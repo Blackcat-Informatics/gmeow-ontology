@@ -12,14 +12,14 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Relation ;
-            edoal:uri gmeow:fullName ;
+            edoal:uri gmeow:LexicalForm ;
         ] ;
         align:entity2 [
             a edoal:Class ;
-            edoal:uri ontolex:LexicalEntry ;
+            edoal:uri ontolex:Form ;
         ] ;
         align:relation "<=" ;
-        rdfs:label "displayable Appellation → ontolex:LexicalEntry + Form + writtenRep"@en ;
+        rdfs:label "LexicalForm → ontolex:Form"@en ;
     ] ,
         [
             a align:Cell ;
@@ -38,14 +38,14 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:LexicalForm ;
+                edoal:uri gmeow:fullName ;
             ] ;
             align:entity2 [
                 a edoal:Class ;
-                edoal:uri ontolex:Form ;
+                edoal:uri ontolex:LexicalEntry ;
             ] ;
             align:relation "<=" ;
-            rdfs:label "LexicalForm → ontolex:Form"@en ;
+            rdfs:label "displayable Appellation → ontolex:LexicalEntry + Form + writtenRep"@en ;
         ] ,
         [
             a align:Cell ;

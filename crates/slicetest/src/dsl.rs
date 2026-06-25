@@ -533,19 +533,16 @@ mod tests {
         );
     }
 
-    /// Load inline Turtle into a store, mirroring the lenient parse the harness uses.
+    /// Load inline Turtle into a store via the native codec (#909): parse through
+    /// `parse_dataset` into the frozen IR, then fold into an oxigraph Store via the
+    /// text-free `store_from_dataset` hop — the same canonical codec the rest of the
+    /// stack uses (and lenient on long private-use language tags, like the harness).
     fn store_from_turtle(ttl: &str) -> Store {
-        use oxigraph::io::{RdfFormat, RdfParser};
-        let store = Store::new().expect("store");
-        for triple in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(ttl.as_bytes())
-        {
-            store
-                .insert(&triple.expect("valid turtle"))
-                .expect("insert");
-        }
-        store
+        use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+        use gmeow_rdf::parse_dataset;
+        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("valid turtle");
+        store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
+            .expect("materialize turtle into store")
     }
 
     #[test]

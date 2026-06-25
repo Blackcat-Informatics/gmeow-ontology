@@ -12,8 +12,8 @@
     align:map [
         a align:Cell ;
         align:entity1 [
-            a edoal:Relation ;
-            edoal:uri gmeow:groundedIn ;
+            a edoal:Class ;
+            edoal:uri gmeow:Annotation ;
         ] ;
         align:entity2 [
             a edoal:Class ;
@@ -21,53 +21,8 @@
         ] ;
         align:relation "<=" ;
         edoal:measure "0.85"^^xsd:double ;
-        rdfs:label "groundedIn evidence span → oa:Annotation (claim body, chunk target, position selector)"@en ;
+        rdfs:label "Annotation relator → oa:Annotation (body/target/motivatedBy)"@en ;
     ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
-                edoal:uri gmeow:Tagging ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri oa:Annotation ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.8"^^xsd:double ;
-            edoal:transformation [
-                rdfs:seeAlso gmeow:fnTaggingToAnnotation ;
-            ] ;
-            rdfs:label "Tagging relator → oa:Annotation (body/target/motivatedBy)"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
-                edoal:uri gmeow:Annotation ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri oa:Annotation ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "Annotation relator → oa:Annotation (body/target/motivatedBy)"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
-                edoal:uri gmeow:Highlight ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri oa:Annotation ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "Highlight → oa:Annotation (SpecificResource + selector, no body)"@en ;
-        ] ,
         [
             a align:Cell ;
             align:entity1 [
@@ -95,6 +50,51 @@
             align:relation "<=" ;
             edoal:measure "0.8"^^xsd:double ;
             rdfs:label "Comment → oa:Annotation (body = comment, target = parent, motivatedBy replying)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Class ;
+                edoal:uri gmeow:Highlight ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri oa:Annotation ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "Highlight → oa:Annotation (SpecificResource + selector, no body)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Class ;
+                edoal:uri gmeow:Tagging ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri oa:Annotation ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.8"^^xsd:double ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnTaggingToAnnotation ;
+            ] ;
+            rdfs:label "Tagging relator → oa:Annotation (body/target/motivatedBy)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:groundedIn ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri oa:Annotation ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "groundedIn evidence span → oa:Annotation (claim body, chunk target, position selector)"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

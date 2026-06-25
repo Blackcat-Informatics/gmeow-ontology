@@ -129,7 +129,7 @@ impl PyQueryTriples {
         py: Python<'py>,
         format: PyRdfFormat,
     ) -> PyResult<Bound<'py, PyBytes>> {
-        let bytes = serialize_triples(&self.triples, format.to_ox())
+        let bytes = serialize_triples(&self.triples, format.to_native())
             .map_err(|e| PyValueError::new_err(format!("serialize error: {e}")))?;
         Ok(PyBytes::new(py, &bytes))
     }

@@ -17,9 +17,11 @@
 
 use std::path::PathBuf;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::NamedOrBlankNode;
 use oxigraph::store::Store;
+
+use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset_scoped;
+use gmeow_rdf::parse_dataset;
 
 use crate::store::dump_store_to_ntriples;
 
@@ -50,11 +52,15 @@ pub fn merge_with_provenance(paths: &[PathBuf]) -> Result<DslMerge, String> {
     for path in paths {
         let path_str = path.display().to_string();
         let bytes = std::fs::read(path).map_err(|e| format!("failed to read {path_str}: {e}"))?;
-        for triple in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(bytes.as_slice())
-        {
-            let triple = triple.map_err(|e| format!("syntax error in {path_str}: {e}"))?;
+        let dataset = parse_dataset(&bytes, "text/turtle", None)
+            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
+        // Scope blank labels by the source path: each DSL/competency file restarts its
+        // anonymous-blank counter, so merging several into one store unscoped would
+        // collide distinct cells (e.g. two `[ a ExpectedCell ; … ]` blanks fusing into
+        // one with two `cellVar`s). Per-source scoping keeps them disjoint (#909).
+        let quads = flat_oxigraph_quads_from_dataset_scoped(&dataset, &path_str)
+            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
+        for triple in quads {
             if let NamedOrBlankNode::NamedNode(n) = &triple.subject {
                 let iri = n.as_str().to_owned();
                 if seen.insert(iri.clone()) {
@@ -91,11 +97,13 @@ fn build_merged_store(paths: &[PathBuf]) -> Result<Store, String> {
     for path in paths {
         let path_str = path.display().to_string();
         let bytes = std::fs::read(path).map_err(|e| format!("failed to read {path_str}: {e}"))?;
-        for triple in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(bytes.as_slice())
-        {
-            let triple = triple.map_err(|e| format!("syntax error in {path_str}: {e}"))?;
+        let dataset = parse_dataset(&bytes, "text/turtle", None)
+            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
+        // Per-source blank scoping (see `merge_with_provenance`): keep each file's
+        // anonymous blanks disjoint so merged DSL cells don't fuse (#909).
+        let quads = flat_oxigraph_quads_from_dataset_scoped(&dataset, &path_str)
+            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
+        for triple in quads {
             store
                 .insert(&triple)
                 .map_err(|e| format!("store insert failed for {path_str}: {e}"))?;

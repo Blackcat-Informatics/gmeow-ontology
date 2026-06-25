@@ -6,9 +6,10 @@
 //! Mirrors the two SPARQL CONSTRUCT codecs (`queries/codecs/rdf12-project.rq`
 //! and `rdf12-to-owl.rq`) as pure structural folds over the gmeow-rdf model, so
 //! the RDF 1.2 statement lead artifact (`generated/statements/gmeow.rdf12.ttl`)
-//! is produced with **no Apache Jena, no Docker, and no SPARQL engine**. oxigraph
-//! (the `rdf-12` feature) only *parses* the input Turtle; the projection itself
-//! is a fold over native RDF quads into RDF 1.2 triple terms.
+//! is produced with **no Apache Jena, no Docker, and no SPARQL engine**. The native
+//! [`parse_dataset`](crate::parse_dataset) codec (#909) only *parses* the input
+//! Turtle into the IR; the projection itself is a fold over native RDF quads (the
+//! IR flattened back to a flat quad stream) into RDF 1.2 triple terms.
 //!
 //! Both emitters write full-IRI Turtle (no prefix compaction); the drift gate
 //! compares RDFC-1.0 canonical quad sets (graph isomorphism), so banners and
@@ -21,10 +22,10 @@
 
 use std::collections::BTreeMap;
 
-use oxigraph::io::{RdfFormat, RdfParser};
-
-use crate::oxigraph::rdf_quad_from_oxigraph;
-use crate::{RdfDiagnostic, RdfLiteral, RdfQuad, RdfTerm, RdfTriple};
+use crate::oxigraph::flat_rdf_quads_from_dataset;
+use crate::{
+    parse_dataset, NativeRdfFormat, RdfDiagnostic, RdfLiteral, RdfQuad, RdfTerm, RdfTriple,
+};
 
 const OWL_AXIOM: &str = "http://www.w3.org/2002/07/owl#Axiom";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
@@ -36,19 +37,17 @@ const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 
 /// Parse a Turtle document (incl. RDF 1.2 triple terms) into model quads.
 ///
-/// Uses oxigraph's streaming `RdfParser`, NOT a `Store`: the `Store` canonicalizes
-/// typed-literal lexical forms (`+00:00` → `Z`, `0.70` → `0.7`), but a faithful
-/// codec must round-trip literals byte-for-byte so the inversion is a pure
-/// serialization-shape change with no value churn into the GTS bundle and the
-/// other derived artifacts.
+/// Uses the native [`parse_dataset`](crate::parse_dataset) codec into the IR, NOT a
+/// `Store`: the `Store` canonicalizes typed-literal lexical forms (`+00:00` → `Z`,
+/// `0.70` → `0.7`), but a faithful codec must round-trip literals byte-for-byte so
+/// the inversion is a pure serialization-shape change with no value churn into the
+/// GTS bundle and the other derived artifacts. The IR is then flattened back to the
+/// source-faithful flat quad stream (base quads + the `rdf:reifies` / annotation
+/// rows the projection folds over) via [`flat_rdf_quads_from_dataset`].
 fn parse_quads(ttl: &str) -> Result<Vec<RdfQuad>, RdfDiagnostic> {
-    let mut quads = Vec::new();
-    for quad in RdfParser::from_format(RdfFormat::Turtle).for_reader(ttl.as_bytes()) {
-        let quad =
-            quad.map_err(|e| RdfDiagnostic::error("statements-turtle-parse", e.to_string()))?;
-        quads.push(rdf_quad_from_oxigraph(&quad));
-    }
-    Ok(quads)
+    let dataset = parse_dataset(ttl.as_bytes(), NativeRdfFormat::Turtle.media_type(), None)
+        .map_err(|e| RdfDiagnostic::error("statements-turtle-parse", e.to_string()))?;
+    Ok(flat_rdf_quads_from_dataset(&dataset))
 }
 
 /// Drop a redundant `^^xsd:string` datatype so a simple literal serializes bare.
@@ -452,7 +451,14 @@ gmeow:ax a owl:Axiom ;
     #[test]
     fn conflicting_reifies_is_rejected() {
         // Two DIFFERENT rdf:reifies triple terms for one reifier subject: corrupt
-        // input the normalizer must hard-fail on.
+        // input the codec must hard-fail on, never silently last-write-win.
+        //
+        // FINDING (#909): the rejection now fires EARLIER — the native
+        // `parse_dataset` folds the statement layer during parse and detects the
+        // conflicting reifier rebind there, so `parse_quads` surfaces it as a
+        // `statements-turtle-parse` error before `normalize_rdf12_to_owl` reaches its
+        // own `set_once_or_error` guard. The conflict is still hard-failed (P7), only
+        // the detection point and error code moved into the shared native fold.
         const RDF12_CONFLICT: &str = r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -463,6 +469,10 @@ gmeow:ax rdf:reifies <<( gmeow:s gmeow:p gmeow:o )>> ;
 "#;
         let err = normalize_rdf12_to_owl(RDF12_CONFLICT)
             .expect_err("conflicting rdf:reifies must hard-fail, not be silently dropped");
-        assert_eq!(err.code, "statements-conflicting-structural");
+        assert_eq!(err.code, "statements-turtle-parse");
+        assert!(
+            err.to_string().contains("conflicting rdf:reifies binding"),
+            "{err:?}"
+        );
     }
 }

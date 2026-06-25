@@ -31,7 +31,7 @@ gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts"] }
 # The export leaf reads the folded gts Graph model directly and reuses the
 # gmeow-gts N-Quads/TriG serializers (the lossless dataset forms) + the columnar
 # blob model for the parquet leaf (#861 P4). Same pin as gmeow-rdf links.
-gmeow-gts = "0.9.5"
+gmeow-gts = "0.9.9"
 # The `reason` stage wires the native EL/DL reasoner + artifact builders directly
 # (gmeow_logic::reason::reason_all + reason::artifacts) — no Python, no PyO3.
 gmeow-logic = { path = "../logic" }

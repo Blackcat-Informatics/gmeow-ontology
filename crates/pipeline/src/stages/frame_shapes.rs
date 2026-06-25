@@ -11,13 +11,12 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{NamedNode, Term};
 use oxigraph::store::Store;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::source_load::module_files;
+use crate::stages::source_load::{module_files, turtle_bytes_into_store_scoped};
 
 /// Committed logical path of the generated frame-relativity shapes.
 pub const FRAME_SHAPES_PATH: &str = "generated/shapes/frame-shapes.ttl";
@@ -40,17 +39,8 @@ fn load_authored_no_imports(root: &Path) -> Result<Store, PipelineError> {
             continue;
         }
         let bytes = std::fs::read(&path)?;
-        for quad in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(bytes.as_slice())
-        {
-            let quad = quad.map_err(|e| {
-                PipelineError::Parse(format!("syntax error in {}: {e}", path.display()))
-            })?;
-            store
-                .insert(&quad)
-                .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-        }
+        // Scope per source file so distinct modules' anonymous blanks stay disjoint.
+        turtle_bytes_into_store_scoped(&store, &bytes, &path.display().to_string())?;
     }
     Ok(store)
 }

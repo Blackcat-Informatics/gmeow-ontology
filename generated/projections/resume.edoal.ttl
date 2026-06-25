@@ -18,16 +18,16 @@
                 edoal:uri gmeow:employmentInterval ;
             ] [
                 a edoal:Relation ;
-                edoal:uri gmeow:startedAtTime ;
+                edoal:uri gmeow:endedAtTime ;
             ] ) ;
         ] ;
         align:entity2 [
             a edoal:Property ;
-            edoal:uri schema:startDate ;
+            edoal:uri schema:endDate ;
         ] ;
         align:relation "<=" ;
         edoal:measure "0.9"^^xsd:double ;
-        rdfs:label "Employment interval start → schema:startDate"@en ;
+        rdfs:label "Employment interval end → schema:endDate"@en ;
     ] ,
         [
             a align:Cell ;
@@ -38,16 +38,16 @@
                     edoal:uri gmeow:employmentInterval ;
                 ] [
                     a edoal:Relation ;
-                    edoal:uri gmeow:endedAtTime ;
+                    edoal:uri gmeow:startedAtTime ;
                 ] ) ;
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri schema:endDate ;
+                edoal:uri schema:startDate ;
             ] ;
             align:relation "<=" ;
             edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "Employment interval end → schema:endDate"@en ;
+            rdfs:label "Employment interval start → schema:startDate"@en ;
         ] ,
         [
             a align:Cell ;

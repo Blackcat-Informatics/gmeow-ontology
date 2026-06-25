@@ -27,6 +27,20 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Class ;
+                edoal:uri gmeow:FeedPosting ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri sioc:Post ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "FeedPosting → sioc:Post"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Class ;
                 edoal:uri gmeow:Thread ;
             ] ;
             align:entity2 [
@@ -41,29 +55,15 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:partOfThread ;
+                edoal:uri gmeow:accountName ;
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri sioc:has_container ;
+                edoal:uri sioc:name ;
             ] ;
-            align:relation "=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "partOfThread → sioc:has_container"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:inReplyTo ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri sioc:reply_of ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.95"^^xsd:double ;
-            rdfs:label "inReplyTo → sioc:reply_of"@en ;
+            align:relation "<=" ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "accountName → sioc:name (the account display name)"@en ;
         ] ,
         [
             a align:Cell ;
@@ -97,6 +97,20 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
+                edoal:uri gmeow:inReplyTo ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri sioc:reply_of ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.95"^^xsd:double ;
+            rdfs:label "inReplyTo → sioc:reply_of"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
                 edoal:uri gmeow:isAbout ;
             ] ;
             align:entity2 [
@@ -111,43 +125,15 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:accountName ;
+                edoal:uri gmeow:partOfThread ;
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri sioc:name ;
+                edoal:uri sioc:has_container ;
             ] ;
-            align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "accountName → sioc:name (the account display name)"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:sourceLocation ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri sioc:link ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "message sourceLocation → sioc:link"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
-                edoal:uri gmeow:FeedPosting ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri sioc:Post ;
-            ] ;
-            align:relation "<=" ;
+            align:relation "=" ;
             edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "FeedPosting → sioc:Post"@en ;
+            rdfs:label "partOfThread → sioc:has_container"@en ;
         ] ,
         [
             a align:Cell ;
@@ -162,6 +148,20 @@
             align:relation "<=" ;
             edoal:measure "0.85"^^xsd:double ;
             rdfs:label "sharesContent → sioc:links_to"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:sourceLocation ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri sioc:link ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "message sourceLocation → sioc:link"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

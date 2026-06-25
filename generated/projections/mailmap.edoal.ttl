@@ -12,32 +12,32 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Relation ;
-            edoal:uri gmeow:mailmapEntry ;
+            edoal:uri gmeow:canonicalizedIdentity ;
         ] ;
         align:entity2 [
             a edoal:Property ;
-            edoal:uri gmeow:mailmapEntry ;
+            edoal:uri gmeow:projectedMailmapMapping ;
         ] ;
-        align:relation "=" ;
+        align:relation "<=" ;
         edoal:measure "1"^^xsd:double ;
-        rdfs:label "Agent mailmapEntry → canonical .mailmap line"@en ;
+        edoal:transformation [
+            rdfs:seeAlso gmeow:fnComposeMailmapMapping ;
+        ] ;
+        rdfs:label "suppressed AuthorIdentity → .mailmap remapping line"@en ;
     ] ,
         [
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:canonicalizedIdentity ;
+                edoal:uri gmeow:mailmapEntry ;
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri gmeow:projectedMailmapMapping ;
+                edoal:uri gmeow:mailmapEntry ;
             ] ;
-            align:relation "<=" ;
+            align:relation "=" ;
             edoal:measure "1"^^xsd:double ;
-            edoal:transformation [
-                rdfs:seeAlso gmeow:fnComposeMailmapMapping ;
-            ] ;
-            rdfs:label "suppressed AuthorIdentity → .mailmap remapping line"@en ;
+            rdfs:label "Agent mailmapEntry → canonical .mailmap line"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

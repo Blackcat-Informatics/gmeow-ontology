@@ -5,8 +5,11 @@
 //! SPARQL-capable `Store`, the canonicalization-capable `Dataset`, and the
 //! `QuadIter` snapshot iterator they share.
 
-use oxigraph::io::{RdfParser, RdfSerializer};
-use oxigraph::model::{Dataset, Quad};
+use std::sync::atomic::{AtomicU64, Ordering};
+
+use oxigraph::model::{
+    BlankNode, Dataset, GraphName, GraphNameRef, NamedOrBlankNode, Quad, Term, Triple,
+};
 use oxigraph::sparql::SparqlEvaluator;
 use oxigraph::store::Store;
 use pyo3::exceptions::{PyTypeError, PyValueError};
@@ -14,14 +17,18 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyCapsule, PyDict};
 
 use super::canon::PyCanonicalizationAlgorithm;
-use super::io::{read_input, PyRdfFormat};
+use super::io::{parse_quads, read_input, PyRdfFormat};
 use super::query::materialize_results;
 use super::term::{extract_graph_name, extract_term, PyQuad, PyVariable};
+use crate::{serialize_dataset, SerializeGraph};
 
 /// An in-memory RDF 1.2 quad store with SPARQL. Mirrors the oxigraph Python `Store`.
 #[pyclass(name = "Store")]
 pub struct PyStore {
     inner: Store,
+    /// Monotonic per-load counter that isolates blank-node label scopes across
+    /// separate [`load`](PyStore::load) calls (see [`load`](PyStore::load) for why).
+    next_load_scope: AtomicU64,
 }
 
 #[pymethods]
@@ -30,6 +37,7 @@ impl PyStore {
     fn new() -> PyResult<Self> {
         Ok(Self {
             inner: Store::new().map_err(store_err)?,
+            next_load_scope: AtomicU64::new(1),
         })
     }
 
@@ -44,9 +52,27 @@ impl PyStore {
     ) -> PyResult<()> {
         let format = format.ok_or_else(|| PyValueError::new_err("load: format is required"))?;
         let data = read_input(input, path)?;
-        self.inner
-            .load_from_slice(RdfParser::from_format(format.to_ox()).lenient(), &data)
-            .map_err(|e| PyValueError::new_err(format!("load error: {e}")))
+        // Parse natively (#909) into the flat quad stream, then insert into the store.
+        //
+        // Blank-node labels in a serialized document are document-local: two distinct
+        // documents may reuse the same label (`_:b0`, or a content-addressed hash an
+        // anonymous node lands on) for *different* nodes, and the same store loaded from
+        // many files must keep those distinct. oxigraph's prior `Store::load_from_slice`
+        // gave each load call a fresh blank scope for exactly this reason; the native
+        // codec preserves labels verbatim, so we restore that isolation here by rewriting
+        // every parsed blank node's label with a per-load-call-unique prefix before
+        // insertion (the COW `MutableDataset::load` does the equivalent via `BlankScope`).
+        // `parse` / `parse_quads` keep labels verbatim — that path round-trips a single
+        // document, where verbatim labels are correct and canonicalization needs them.
+        let scope = self.next_load_scope.fetch_add(1, Ordering::Relaxed);
+        for quad in parse_quads(&data, format.to_native())
+            .map_err(|e| PyValueError::new_err(format!("load error: {e}")))?
+        {
+            self.inner
+                .insert(&scope_quad_blanks(&quad, scope))
+                .map_err(store_err)?;
+        }
+        Ok(())
     }
 
     /// Alias of [`load`] — oxigraph's bulk loader is a throughput optimization,
@@ -125,22 +151,24 @@ impl PyStore {
         from_graph: Option<&Bound<'_, PyAny>>,
     ) -> PyResult<Option<Py<PyBytes>>> {
         let format = format.ok_or_else(|| PyValueError::new_err("dump: format is required"))?;
-        let ox_format = format.to_ox();
-        let mut buf: Vec<u8> = Vec::new();
-        if ox_format.supports_datasets() && from_graph.is_none() {
-            self.inner
-                .dump_to_writer(RdfSerializer::from_format(ox_format), &mut buf)
-                .map_err(|e| PyValueError::new_err(format!("dump error: {e}")))?;
+        let native = format.to_native();
+        // Serialize natively (#909): materialize the store's quads into the IR verbatim
+        // (preserving literal lexical forms the oxigraph serializer would canonicalize)
+        // and dispatch to the native codec.
+        let (quads, selection) = if native.supports_datasets() && from_graph.is_none() {
+            (self.collect_quads(None)?, SerializeGraph::Dataset)
         } else {
             let graph = extract_graph_name(from_graph)?;
-            self.inner
-                .dump_graph_to_writer(
-                    graph.as_ref(),
-                    RdfSerializer::from_format(ox_format),
-                    &mut buf,
-                )
-                .map_err(|e| PyValueError::new_err(format!("dump error: {e}")))?;
-        }
+            // Project a single graph: emit its triples in the default graph.
+            (
+                self.collect_quads(Some(&graph))?,
+                SerializeGraph::DefaultGraph,
+            )
+        };
+        let dataset = super::io::dataset_from_ox_quads_verbatim(&quads)
+            .map_err(|e| PyValueError::new_err(format!("dump error: {e}")))?;
+        let buf = serialize_dataset(&dataset, native.media_type(), selection)
+            .map_err(|e| PyValueError::new_err(format!("dump error: {e}")))?;
         match output {
             Some(output) => {
                 output.call_method1("write", (PyBytes::new(py, &buf),))?;
@@ -188,6 +216,32 @@ impl PyStore {
             c"gmeow-validation-store",
             move |_addr, _ctx| drop(keepalive),
         )
+    }
+}
+
+impl PyStore {
+    /// Snapshot the store's quads. When `graph` is `Some`, only that graph's quads are
+    /// returned, re-homed to the default graph (so a single-graph dump serializes as
+    /// triples); when `None`, every quad is returned with its graph name intact.
+    fn collect_quads(&self, graph: Option<&GraphName>) -> PyResult<Vec<Quad>> {
+        let mut quads = Vec::new();
+        for quad in self.inner.iter() {
+            let quad = quad.map_err(store_err)?;
+            match graph {
+                Some(g) => {
+                    if &quad.graph_name == g {
+                        quads.push(Quad::new(
+                            quad.subject,
+                            quad.predicate,
+                            quad.object,
+                            GraphNameRef::DefaultGraph,
+                        ));
+                    }
+                }
+                None => quads.push(quad),
+            }
+        }
+        Ok(quads)
     }
 }
 
@@ -265,4 +319,131 @@ impl PyQuadIter {
 
 fn store_err(e: impl std::fmt::Display) -> PyErr {
     PyValueError::new_err(format!("store error: {e}"))
+}
+
+/// Rewrite every blank node in `quad` with a `scope`-local label so blank nodes from
+/// separate [`load`](PyStore::load) calls cannot collide. IRIs and literals pass
+/// through unchanged; the label rewrite is applied recursively through RDF 1.2
+/// quoted-triple terms and to the (rare) blank-node graph name.
+fn scope_quad_blanks(quad: &Quad, scope: u64) -> Quad {
+    Quad::new(
+        scope_subject_blanks(&quad.subject, scope),
+        quad.predicate.clone(),
+        scope_term_blanks(&quad.object, scope),
+        match &quad.graph_name {
+            GraphName::DefaultGraph => GraphName::DefaultGraph,
+            GraphName::NamedNode(n) => GraphName::NamedNode(n.clone()),
+            GraphName::BlankNode(b) => GraphName::BlankNode(scoped_blank(b.as_str(), scope)),
+        },
+    )
+}
+
+/// A `scope`-local blank node: prefix the document-local label so it is unique to one
+/// load call while staying deterministic within it (a label reused inside the same
+/// document still resolves to the same node — only cross-load reuse is separated).
+fn scoped_blank(label: &str, scope: u64) -> BlankNode {
+    // `BlankNode::new` rejects labels with characters illegal in an N-Triples blank id;
+    // the parsed label is already a valid blank id and the prefix uses only `[A-Za-z0-9]`,
+    // so the composed label is always valid — `new_unchecked` is sound and avoids the
+    // fallible path on a value we know is well-formed.
+    BlankNode::new_unchecked(format!("ld{scope}x{label}"))
+}
+
+fn scope_subject_blanks(subject: &NamedOrBlankNode, scope: u64) -> NamedOrBlankNode {
+    match subject {
+        NamedOrBlankNode::NamedNode(n) => NamedOrBlankNode::NamedNode(n.clone()),
+        NamedOrBlankNode::BlankNode(b) => {
+            NamedOrBlankNode::BlankNode(scoped_blank(b.as_str(), scope))
+        }
+    }
+}
+
+fn scope_term_blanks(term: &Term, scope: u64) -> Term {
+    match term {
+        Term::NamedNode(n) => Term::NamedNode(n.clone()),
+        Term::BlankNode(b) => Term::BlankNode(scoped_blank(b.as_str(), scope)),
+        Term::Literal(l) => Term::Literal(l.clone()),
+        Term::Triple(t) => Term::Triple(Box::new(Triple::new(
+            scope_subject_blanks(&t.subject, scope),
+            t.predicate.clone(),
+            scope_term_blanks(&t.object, scope),
+        ))),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use oxigraph::model::{Literal, NamedNode};
+
+    use super::*;
+
+    fn iri(s: &str) -> NamedNode {
+        NamedNode::new(s).unwrap()
+    }
+
+    #[test]
+    fn scoping_keeps_iris_and_literals_verbatim() {
+        let quad = Quad::new(
+            iri("https://e/s"),
+            iri("https://e/p"),
+            Literal::new_simple_literal("v"),
+            GraphName::DefaultGraph,
+        );
+        let scoped = scope_quad_blanks(&quad, 7);
+        assert_eq!(scoped, quad, "no blank node: the quad is unchanged");
+    }
+
+    #[test]
+    fn scoping_rewrites_blank_subject_and_object_under_one_scope() {
+        let quad = Quad::new(
+            BlankNode::new_unchecked("b0"),
+            iri("https://e/p"),
+            Term::BlankNode(BlankNode::new_unchecked("b1")),
+            GraphName::DefaultGraph,
+        );
+        let scoped = scope_quad_blanks(&quad, 3);
+        assert_eq!(
+            scoped.subject,
+            NamedOrBlankNode::BlankNode(BlankNode::new_unchecked("ld3xb0"))
+        );
+        assert_eq!(
+            scoped.object,
+            Term::BlankNode(BlankNode::new_unchecked("ld3xb1"))
+        );
+    }
+
+    #[test]
+    fn same_label_different_scopes_yields_distinct_nodes() {
+        // The regression guard (#909): the SAME document-local blank label loaded under
+        // two different scopes (two `Store::load` calls) MUST become two distinct nodes,
+        // mirroring oxigraph's prior per-load blank isolation.
+        let a = scoped_blank("b0", 1);
+        let b = scoped_blank("b0", 2);
+        assert_ne!(a, b);
+        // …but the same label within one scope is the SAME node (intra-document joins).
+        assert_eq!(scoped_blank("b0", 1), scoped_blank("b0", 1));
+    }
+
+    #[test]
+    fn scoping_recurses_into_quoted_triple_terms() {
+        let quad = Quad::new(
+            BlankNode::new_unchecked("r"),
+            iri("https://e/p"),
+            Term::Triple(Box::new(Triple::new(
+                BlankNode::new_unchecked("s"),
+                iri("https://e/q"),
+                Term::BlankNode(BlankNode::new_unchecked("o")),
+            ))),
+            GraphName::DefaultGraph,
+        );
+        let scoped = scope_quad_blanks(&quad, 5);
+        let Term::Triple(t) = scoped.object else {
+            panic!("object must stay a quoted triple");
+        };
+        assert_eq!(
+            t.subject,
+            NamedOrBlankNode::BlankNode(BlankNode::new_unchecked("ld5xs"))
+        );
+        assert_eq!(t.object, Term::BlankNode(BlankNode::new_unchecked("ld5xo")));
+    }
 }

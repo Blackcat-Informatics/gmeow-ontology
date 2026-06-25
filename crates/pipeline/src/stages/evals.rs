@@ -28,13 +28,12 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::Term;
-use oxigraph::store::Store;
 use serde_json::Value;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::stages::source_load::turtle_bytes_to_store;
 
 /// Logical path of the generated leaderboard.
 pub const LEADERBOARD_PATH: &str = "generated/evals/leaderboard.md";
@@ -267,17 +266,7 @@ struct CorpusDoc {
 
 fn parse_corpus(path: &Path) -> Result<BTreeMap<String, (String, Vec<String>)>, PipelineError> {
     let bytes = std::fs::read(path)?;
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes.as_slice())
-    {
-        let quad = quad.map_err(|e| PipelineError::Parse(format!("corpus syntax error: {e}")))?;
-        store
-            .insert(&quad)
-            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-    }
+    let store = turtle_bytes_to_store(&bytes, "corpus")?;
     let source_location =
         oxigraph::model::NamedNode::new(format!("{GM}sourceLocation")).expect("sourceLocation IRI");
     let content_digest =
@@ -1008,6 +997,8 @@ impl Stage for EvalsStage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::stages::source_load::turtle_bytes_into_store;
+    use oxigraph::store::Store;
 
     fn repo_root() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -1063,9 +1054,7 @@ mod tests {
 
         let parse = |bytes: &[u8]| -> BTreeMap<String, ()> {
             let store = Store::new().unwrap();
-            store
-                .load_from_reader(RdfFormat::Turtle, bytes)
-                .expect("parse turtle");
+            turtle_bytes_into_store(&store, bytes, "scores.ttl").expect("parse turtle");
             store
                 .quads_for_pattern(None, None, None, None)
                 .map(|q| {

@@ -13,12 +13,11 @@
 
 use std::collections::BTreeMap;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::store::Store;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::source_load::{store_to_nquads, BASE_GRAPH_PATH};
+use crate::stages::source_load::{rdf_bytes_into_store, store_to_nquads, BASE_GRAPH_PATH};
 use crate::stages::statements::RDF12_PATH;
 
 /// Logical path of the composed dataset (N-Quads, in-memory dataflow).
@@ -27,21 +26,19 @@ pub const COMPOSED_PATH: &str = "pipeline/composed.nq";
 /// Parse an artifact (Turtle or N-Quads, by extension heuristic) into `store`,
 /// tolerating RDF 1.2 triple terms (the statement layer).
 fn ingest(store: &Store, logical_path: &str, bytes: &[u8]) -> Result<(), PipelineError> {
-    let format = if logical_path.ends_with(".nq") {
-        RdfFormat::NQuads
+    let media_type = if logical_path.ends_with(".nq") {
+        "application/n-quads"
     } else if logical_path.ends_with(".nt") {
-        RdfFormat::NTriples
+        "application/n-triples"
     } else {
-        RdfFormat::Turtle
+        "text/turtle"
     };
-    for quad in RdfParser::from_format(format).lenient().for_reader(bytes) {
-        let quad =
-            quad.map_err(|e| PipelineError::Parse(format!("composing {logical_path}: {e}")))?;
-        store
-            .insert(&quad)
-            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(())
+    rdf_bytes_into_store(
+        store,
+        bytes,
+        media_type,
+        &format!("composing {logical_path}"),
+    )
 }
 
 /// Compose the upstream products into one store: the base graph plus the RDF 1.2

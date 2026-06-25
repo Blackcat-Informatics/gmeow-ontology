@@ -465,8 +465,6 @@ mod tests {
     /// not quoted (e.g. `7^^xsd:integer` instead of `"7"^^xsd:integer`).
     #[test]
     fn emitted_turtle_is_valid() {
-        use oxigraph::io::{RdfFormat, RdfParser};
-
         let edges = vec![
             make_edge(
                 "https://blackcatinformatics.ca/gmeow/sliceA",
@@ -493,23 +491,21 @@ mod tests {
         let result =
             emit_analysis_graph(&edges, "", &["abc", "def"], &tc(), |_| 2, term_count).unwrap();
 
-        // Drive the streaming parser over the emitted body.  Any Turtle syntax
+        // Drive the native codec over the emitted body.  Any Turtle syntax
         // error (including an un-quoted typed-literal like `7^^xsd:integer`)
-        // will produce a parse error and the collect() will panic with a
-        // descriptive message including the offending source.
+        // will produce a parse error and `parse_dataset` returns an Err that
+        // panics here with a descriptive message including the offending source.
         let turtle = &result.turtle_body;
-        let triples: Vec<_> = RdfParser::from_format(RdfFormat::Turtle)
-            .for_reader(turtle.as_bytes())
-            .collect::<Result<_, _>>()
+        let dataset = gmeow_rdf::parse_dataset(turtle.as_bytes(), "text/turtle", None)
             .unwrap_or_else(|e| {
                 panic!("emitted Turtle is not valid:\n{e}\n\n--- emitted body ---\n{turtle}")
             });
 
         // Sanity: at least the graph-level provenance node + per-slice + per-edge triples.
+        let triple_count = dataset.quad_count();
         assert!(
-            triples.len() >= 4,
-            "expected at least 4 triples, got {}: \n{turtle}",
-            triples.len()
+            triple_count >= 4,
+            "expected at least 4 triples, got {triple_count}: \n{turtle}"
         );
     }
 

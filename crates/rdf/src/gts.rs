@@ -26,32 +26,16 @@ pub fn flattened_oxigraph_store_from_bytes(
 pub fn flattened_oxigraph_store_from_graph(
     graph: &gmeow_gts::model::Graph,
 ) -> Result<::oxigraph::store::Store, RdfDiagnostic> {
-    use ::oxigraph::io::{RdfFormat, RdfParser};
-    use ::oxigraph::model::{GraphNameRef, Quad};
-    use ::oxigraph::store::Store;
-
-    let nquads = gmeow_gts::nquads::to_nquads(graph);
-    let store =
-        Store::new().map_err(|e| RdfDiagnostic::error("oxigraph-store-create", e.to_string()))?;
-    for quad in RdfParser::from_format(RdfFormat::NQuads)
-        .lenient()
-        .for_reader(nquads.as_bytes())
-    {
-        let quad = quad.map_err(|e| {
-            RdfDiagnostic::error("gts-nquads-parse", "GTS N-Quads projection failed")
-                .with_detail(e.to_string())
-        })?;
-        let flattened_quad = Quad::new(
-            quad.subject,
-            quad.predicate,
-            quad.object,
-            GraphNameRef::DefaultGraph,
-        );
-        store
-            .insert(&flattened_quad)
-            .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
-    }
-    Ok(store)
+    // Text-free path (#909): fold the gmeow-gts graph straight into the IR (the same
+    // statement-layer fold the native parser uses) and materialize it into the
+    // oxigraph Store, flattening every named graph into the default graph. The
+    // previous implementation round-tripped through N-Quads TEXT (`to_nquads` → an
+    // oxigraph text parser); that text codec is retired.
+    let dataset = crate::native_codecs::parse::dataset_from_gts_graph(graph)?;
+    crate::oxigraph::store_from_dataset(
+        &dataset,
+        crate::oxigraph::GraphPolicy::FlattenToDefaultGraph,
+    )
 }
 
 #[cfg(test)]

@@ -29,7 +29,6 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{NamedNode, Term};
 use oxigraph::store::Store;
 
@@ -237,18 +236,7 @@ fn apply_proposal(original: &str, proposal: &DepProposal) -> Result<String, Slic
 /// Parse Turtle into an oxigraph store (lenient for `@x-gmeow-*` lang tags),
 /// hard-failing on any syntax error.
 fn parse_turtle(bytes: &[u8], path: &str) -> Result<Store, SliceError> {
-    let store =
-        Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes)
-    {
-        let quad = quad.map_err(|e| SliceError::Parse(format!("syntax error in {path}: {e}")))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(store)
+    crate::rdf_text::turtle_bytes_to_store(bytes, path)
 }
 
 /// Extract the `gmeow:` prefix IRI declared in the Turtle (defaults to the

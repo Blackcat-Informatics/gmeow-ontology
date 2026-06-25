@@ -30,7 +30,6 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{NamedNode, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 
@@ -592,22 +591,7 @@ fn parse_rdf_artifact(artifact: &ArtifactRecord) -> Result<Store, SliceError> {
     // dropped — a swallowed parse error would hide a term from the
     // one-validated-owner gate and miscompute the dependency graph
     // (no-optionality / hard-fail doctrine, #820).
-    let store = Store::new()
-        .map_err(|e| SliceError::Parse(format!("store init for {}: {e}", artifact.logical_path)))?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(artifact.content.as_slice())
-    {
-        let quad =
-            quad.map_err(|e| SliceError::Parse(format!("parse {}: {e}", artifact.logical_path)))?;
-        store.insert(&quad).map_err(|e| {
-            SliceError::Parse(format!(
-                "insert into store from {}: {e}",
-                artifact.logical_path
-            ))
-        })?;
-    }
-    Ok(store)
+    crate::rdf_text::turtle_bytes_to_store(artifact.content.as_slice(), &artifact.logical_path)
 }
 
 /// Collect all `subject rdfs:isDefinedBy owner` pairs (owner must be a NamedNode).

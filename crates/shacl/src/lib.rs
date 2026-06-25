@@ -21,6 +21,7 @@ pub mod report;
 pub mod shape_union;
 pub mod shapes;
 pub mod sparql;
+pub mod text_ingest;
 
 /// Crate version string for cache/toolchain salt parity with Python package
 /// versions (`metadata.version("gmeow-shacl")`).

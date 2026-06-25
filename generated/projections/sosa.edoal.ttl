@@ -14,14 +14,14 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Class ;
-            edoal:uri gmeow:SensoryObservation ;
+            edoal:uri gmeow:ObservableProperty ;
         ] ;
         align:entity2 [
             a edoal:Class ;
-            edoal:uri sosa:Observation ;
+            edoal:uri sosa:ObservableProperty ;
         ] ;
         align:relation "<=" ;
-        rdfs:label "SensoryObservation → sosa:Observation"@en ;
+        rdfs:label "ObservableProperty → sosa:ObservableProperty"@en ;
     ] ,
         [
             a align:Cell ;
@@ -53,28 +53,14 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Class ;
-                edoal:uri gmeow:ObservableProperty ;
+                edoal:uri gmeow:SensoryObservation ;
             ] ;
             align:entity2 [
                 a edoal:Class ;
-                edoal:uri sosa:ObservableProperty ;
+                edoal:uri sosa:Observation ;
             ] ;
             align:relation "<=" ;
-            rdfs:label "ObservableProperty → sosa:ObservableProperty"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:sensoryProperty ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri sosa:observedProperty ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "sensoryProperty → sosa:observedProperty"@en ;
+            rdfs:label "SensoryObservation → sosa:Observation"@en ;
         ] ,
         [
             a align:Cell ;
@@ -89,6 +75,34 @@
             align:relation "<=" ;
             edoal:measure "0.8"^^xsd:double ;
             rdfs:label "platformLocation → geo:location (SOSA has no direct platform-location property)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:sensoryObservationOf ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri sosa:hasFeatureOfInterest ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "sensoryObservationOf → sosa:hasFeatureOfInterest"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:sensoryProperty ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri sosa:observedProperty ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "sensoryProperty → sosa:observedProperty"@en ;
         ] ,
         [
             a align:Cell ;
@@ -117,20 +131,6 @@
             align:relation "<=" ;
             edoal:measure "0.85"^^xsd:double ;
             rdfs:label "vantage (Sensor) → sosa:madeBySensor"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:sensoryObservationOf ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri sosa:hasFeatureOfInterest ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "sensoryObservationOf → sosa:hasFeatureOfInterest"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

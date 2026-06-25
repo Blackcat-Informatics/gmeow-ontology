@@ -25,6 +25,7 @@ repos:
             LICENSE.*|
             tests/fixtures/coverage/external/.*|
             tests/fixtures/crossref/.*|
+            crates/rdf/tests/corpus/w3c/.*|
             .*\.(tsv|svg)
           )$
       - id: end-of-file-fixer
@@ -53,7 +54,7 @@ repos:
     hooks:
       - id: codespell
         additional_dependencies: ["tomli"]
-        exclude: '^tests/fixtures/crossref/'
+        exclude: '^(tests/fixtures/crossref/|crates/rdf/tests/corpus/w3c/)'
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.35.1
@@ -69,7 +70,7 @@ repos:
     rev: v0.17.2
     hooks:
       - id: markdownlint-cli2
-        exclude: '^ontology-docs/'
+        exclude: '^(ontology-docs/|crates/rdf/tests/corpus/w3c/)'
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1

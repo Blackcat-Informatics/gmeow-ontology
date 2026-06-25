@@ -958,8 +958,6 @@ fn to_pretty(value: &Value) -> String {
 mod tests {
     use super::*;
     use crate::shapes::from_store;
-    use oxigraph::io::RdfFormat;
-    use oxigraph::store::Store;
 
     const PREFIXES: &str = r#"
         @prefix sh:    <http://www.w3.org/ns/shacl#> .
@@ -971,10 +969,7 @@ mod tests {
 
     fn compile_ttl(body: &str) -> CompiledSchema {
         let ttl = format!("{PREFIXES}{body}");
-        let store = Store::new().unwrap();
-        store
-            .load_from_reader(RdfFormat::Turtle, ttl.as_bytes())
-            .expect("Turtle parse");
+        let store = crate::text_ingest::parse_turtle_to_store(&ttl).expect("Turtle parse");
         let shapes = from_store(&store).expect("shape parse");
         compile(&shapes)
     }

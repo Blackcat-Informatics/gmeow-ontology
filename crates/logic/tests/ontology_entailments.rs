@@ -29,9 +29,7 @@
 use std::path::PathBuf;
 
 use gmeow_logic::reason::{rl_closure, RlClosure};
-use gmeow_rdf::oxigraph::rdf_quad_from_oxigraph;
-use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
-use oxigraph::io::{RdfFormat, RdfParser};
+use gmeow_rdf::{parse_dataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
 
 /// The gmeow ontology namespace (`config.NAMESPACE` = `ONTOLOGY_IRI + "/"`).
 pub const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -78,11 +76,11 @@ fn turtle_quads(rel_paths: &[String]) -> Vec<RdfQuad> {
         let path = root.join(rel);
         let bytes = std::fs::read(&path)
             .unwrap_or_else(|e| panic!("missing ontology source {}: {e}", path.display()));
-        for quad in RdfParser::from_format(RdfFormat::Turtle).for_reader(bytes.as_slice()) {
-            let quad =
-                quad.unwrap_or_else(|e| panic!("Turtle parse failed for {}: {e}", path.display()));
-            quads.push(rdf_quad_from_oxigraph(&quad));
-        }
+        // Parse through the canonical native codec (#909) directly into the frozen IR;
+        // its `RdfQuad`s feed the scoped closure builder below.
+        let dataset = parse_dataset(&bytes, "text/turtle", None)
+            .unwrap_or_else(|e| panic!("Turtle parse failed for {}: {e}", path.display()));
+        quads.extend(dataset.owned_quads());
     }
     quads
 }

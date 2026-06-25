@@ -7,7 +7,6 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphNameRef, Term};
 use oxigraph::store::Store;
 use sha2::{Digest, Sha256};
@@ -159,19 +158,7 @@ impl SliceCatalog {
 // ── Turtle parsing ────────────────────────────────────────────────────────────
 
 fn parse_turtle_to_store(bytes: &[u8], path: &Path) -> Result<Store, SliceError> {
-    let store =
-        Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes)
-    {
-        let quad = quad
-            .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(store)
+    crate::rdf_text::turtle_bytes_to_store(bytes, &path.display().to_string())
 }
 
 // ── Manifest extraction ───────────────────────────────────────────────────────
@@ -447,28 +434,9 @@ fn hex_sha256(bytes: &[u8]) -> String {
     format!("{digest:x}")
 }
 
-/// Select the oxigraph `RdfFormat` for a given file path based on its extension.
-fn rdf_format_for_path(path: &Path) -> RdfFormat {
-    match path.extension().and_then(|e| e.to_str()) {
-        Some("nt") => RdfFormat::NTriples,
-        Some("nq") => RdfFormat::NQuads,
-        Some("trig") => RdfFormat::TriG,
-        _ => RdfFormat::Turtle,
-    }
-}
-
 fn parse_rdf_to_store(bytes: &[u8], path: &Path) -> Result<Store, SliceError> {
-    let format = rdf_format_for_path(path);
-    let store =
-        Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(format).lenient().for_reader(bytes) {
-        let quad = quad
-            .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(store)
+    let media_type = crate::rdf_text::media_type_for_path(path);
+    crate::rdf_text::rdf_bytes_to_store(bytes, media_type, &path.display().to_string())
 }
 
 fn compute_semantic_digest(bytes: &[u8], path: &Path) -> Result<String, SliceError> {

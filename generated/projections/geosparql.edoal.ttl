@@ -11,34 +11,34 @@
     align:map [
         a align:Cell ;
         align:entity1 [
-            a edoal:Relation ;
-            edoal:uri gmeow:asWKT ;
+            a edoal:Class ;
+            edoal:uri gmeow:CoordinateObservation ;
         ] ;
         align:entity2 [
-            a edoal:Property ;
-            edoal:uri geo:asWKT ;
+            a edoal:Class ;
+            edoal:uri geo:Geometry ;
         ] ;
-        align:relation "=" ;
+        align:relation "<=" ;
         edoal:transformation [
-            rdfs:seeAlso gmeow:fnRetagWkt ;
+            rdfs:seeAlso gmeow:fnLatLongToWktPoint ;
         ] ;
-        rdfs:label "asWKT literal → geo:asWKT retagged geo:wktLiteral"@en ;
+        rdfs:label "CoordinateObservation coordinateResult → geo:Geometry with WKT POINT"@en ;
     ] ,
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:coarsenTo ;
+                a edoal:Class ;
+                edoal:uri gmeow:CoordinateObservation ;
             ] ;
             align:entity2 [
-                a edoal:Class ;
-                edoal:uri geo:Geometry ;
+                a edoal:Property ;
+                edoal:uri geo:hasGeometry ;
             ] ;
-            align:relation "<=" ;
+            align:relation "=" ;
             edoal:transformation [
-                rdfs:seeAlso gmeow:fnCoarsenToGranularity ;
+                rdfs:seeAlso gmeow:fnRetagWkt ;
             ] ;
-            rdfs:label "coarsenTo → enclosing-region WKT geometry (privacy generalization)"@en ;
+            rdfs:label "CoordinateObservation geometryResult → geo:hasGeometry with WKT"@en ;
         ] ,
         [
             a align:Cell ;
@@ -55,22 +55,6 @@
                 rdfs:seeAlso gmeow:fnLatLongToWktPoint ;
             ] ;
             rdfs:label "latitude + longitude → geo:Geometry with WKT POINT"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:coarsenTo ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri geo:Geometry ;
-            ] ;
-            align:relation "<=" ;
-            edoal:transformation [
-                rdfs:seeAlso gmeow:fnCoarsenToGranularity ;
-            ] ;
-            rdfs:label "coarsenTo → enclosing-region WKT POINT (privacy generalization)"@en ;
         ] ,
         [
             a align:Cell ;
@@ -108,6 +92,22 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
+                edoal:uri gmeow:asWKT ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri geo:asWKT ;
+            ] ;
+            align:relation "=" ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnRetagWkt ;
+            ] ;
+            rdfs:label "asWKT literal → geo:asWKT retagged geo:wktLiteral"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
                 edoal:uri gmeow:coarsenTo ;
             ] ;
             align:entity2 [
@@ -124,6 +124,38 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
+                edoal:uri gmeow:coarsenTo ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri geo:Geometry ;
+            ] ;
+            align:relation "<=" ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnCoarsenToGranularity ;
+            ] ;
+            rdfs:label "coarsenTo → enclosing-region WKT POINT (privacy generalization)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:coarsenTo ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri geo:Geometry ;
+            ] ;
+            align:relation "<=" ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnCoarsenToGranularity ;
+            ] ;
+            rdfs:label "coarsenTo → enclosing-region WKT geometry (privacy generalization)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
                 edoal:uri gmeow:hasCentroid ;
             ] ;
             align:entity2 [
@@ -135,38 +167,6 @@
                 rdfs:seeAlso gmeow:fnRetagWkt ;
             ] ;
             rdfs:label "hasCentroid geometry → geo:hasCentroid with WKT"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
-                edoal:uri gmeow:CoordinateObservation ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri geo:Geometry ;
-            ] ;
-            align:relation "<=" ;
-            edoal:transformation [
-                rdfs:seeAlso gmeow:fnLatLongToWktPoint ;
-            ] ;
-            rdfs:label "CoordinateObservation coordinateResult → geo:Geometry with WKT POINT"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
-                edoal:uri gmeow:CoordinateObservation ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri geo:hasGeometry ;
-            ] ;
-            align:relation "=" ;
-            edoal:transformation [
-                rdfs:seeAlso gmeow:fnRetagWkt ;
-            ] ;
-            rdfs:label "CoordinateObservation geometryResult → geo:hasGeometry with WKT"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

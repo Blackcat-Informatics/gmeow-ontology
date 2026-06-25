@@ -41,6 +41,20 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
+                edoal:uri gmeow:observationResult ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri obscore:observable ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.7"^^xsd:double ;
+            rdfs:label "ScalarQuantity → obscore:observable"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
                 edoal:uri gmeow:vantage ;
             ] ;
             align:entity2 [
@@ -64,20 +78,6 @@
             align:relation "<=" ;
             edoal:measure "0.75"^^xsd:double ;
             rdfs:label "Sensor (instrument) → obscore:instrument"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:observationResult ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri obscore:observable ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.7"^^xsd:double ;
-            rdfs:label "ScalarQuantity → obscore:observable"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

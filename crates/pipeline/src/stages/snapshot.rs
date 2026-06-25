@@ -20,7 +20,8 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_rdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder};
-use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
+use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
+use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
 use oxigraph::model::Quad;
 use oxigraph::store::Store;
 
@@ -108,7 +109,7 @@ pub fn build_snapshot(
     // RDF 1.2 statement layer: base quads → graph/statements; reifies/annot global.
     builder
         .add_rdf12(
-            &parse_rdf(&rdf12, RdfFormat::Turtle)?,
+            &parse_rdf(&rdf12, "text/turtle")?,
             Some(GRAPH_STATEMENTS),
             Some("stmt"),
         )
@@ -1269,23 +1270,21 @@ fn canonicalize_nq(nq_bytes: &[u8], _scope: &str) -> Result<String, PipelineErro
 }
 
 fn parse_nq(bytes: &[u8]) -> Result<Vec<Quad>, PipelineError> {
-    parse_rdf(bytes, RdfFormat::NQuads)
+    parse_rdf(bytes, "application/n-quads")
 }
 
-fn parse_rdf(bytes: &[u8], format: RdfFormat) -> Result<Vec<Quad>, PipelineError> {
-    let mut quads = Vec::new();
-    for quad in RdfParser::from_format(format).lenient().for_slice(bytes) {
-        quads.push(quad.map_err(|e| stage_err(&format!("parse: {e}")))?);
-    }
-    Ok(quads)
+/// Parse RDF text of `media_type` into a flat oxigraph quad list via the native
+/// codecs. The IR fold + [`flat_oxigraph_quads_from_dataset`] un-fold are exact
+/// inverses (set-equal to the original parse), so the RDF 1.2 statement layer's
+/// `rdf:reifies`/annotation rows are re-materialized for `add_rdf12`'s own fold.
+fn parse_rdf(bytes: &[u8], media_type: &str) -> Result<Vec<Quad>, PipelineError> {
+    let dataset =
+        parse_dataset(bytes, media_type, None).map_err(|e| stage_err(&format!("parse: {e}")))?;
+    flat_oxigraph_quads_from_dataset(&dataset).map_err(|e| stage_err(&format!("IR → quads: {e}")))
 }
 
 fn ingest_turtle(store: &Store, bytes: &[u8]) -> Result<(), PipelineError> {
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_slice(bytes)
-    {
-        let quad = quad.map_err(|e| stage_err(&format!("turtle parse: {e}")))?;
+    for quad in parse_rdf(bytes, "text/turtle")? {
         store
             .insert(&quad)
             .map_err(|e| stage_err(&format!("insert: {e}")))?;
@@ -1317,11 +1316,7 @@ fn ingest_turtle_scoped(store: &Store, bytes: &[u8], scope: usize) -> Result<(),
             other => other.clone(),
         })
     };
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_slice(bytes)
-    {
-        let quad = quad.map_err(|e| stage_err(&format!("turtle parse: {e}")))?;
+    for quad in parse_rdf(bytes, "text/turtle")? {
         let renamed = Quad::new(
             rename_subject(&quad.subject)?,
             quad.predicate.clone(),
@@ -1336,11 +1331,7 @@ fn ingest_turtle_scoped(store: &Store, bytes: &[u8], scope: usize) -> Result<(),
 }
 
 fn ingest_nq(store: &Store, bytes: &[u8]) -> Result<(), PipelineError> {
-    for quad in RdfParser::from_format(RdfFormat::NQuads)
-        .lenient()
-        .for_slice(bytes)
-    {
-        let quad = quad.map_err(|e| stage_err(&format!("n-quads parse: {e}")))?;
+    for quad in parse_nq(bytes)? {
         store
             .insert(&quad)
             .map_err(|e| stage_err(&format!("insert: {e}")))?;
@@ -1349,18 +1340,10 @@ fn ingest_nq(store: &Store, bytes: &[u8]) -> Result<(), PipelineError> {
 }
 
 fn store_to_nquads(store: &Store) -> Result<Vec<u8>, PipelineError> {
-    let mut buf: Vec<u8> = Vec::new();
-    let mut serializer = RdfSerializer::from_format(RdfFormat::NQuads).for_writer(&mut buf);
-    for quad in store.iter() {
-        let quad = quad.map_err(|e| stage_err(&e.to_string()))?;
-        serializer
-            .serialize_quad(&quad)
-            .map_err(|e| stage_err(&format!("serialize: {e}")))?;
-    }
-    serializer
-        .finish()
-        .map_err(|e| stage_err(&format!("finish: {e}")))?;
-    Ok(buf)
+    let dataset = gmeow_rdf::oxigraph::dataset_from_store(store)
+        .map_err(|e| stage_err(&format!("store → IR: {e}")))?;
+    serialize_dataset(&dataset, "application/n-quads", SerializeGraph::Dataset)
+        .map_err(|e| stage_err(&format!("serialize: {e}")))
 }
 
 fn sorted_dirs(dir: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {

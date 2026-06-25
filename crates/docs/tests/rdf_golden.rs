@@ -147,6 +147,15 @@ fn gmeow_rdf_types_the_definition_flag_as_xsd_boolean() {
     );
 }
 
+/// INTENTIONAL oxigraph cross-check ORACLE (#909) — NOT a production codec path.
+///
+/// This test deliberately re-parses the `to_gmeow_rdf` projection through the
+/// *independent* oxigraph N-Quads reader to prove the projection emits valid,
+/// round-trippable N-Quads. Cross-checking the native projection against a second,
+/// independent implementation is the whole point — so the `oxigraph::io` use here is
+/// an explicit, documented carve-out from the #909 grep gate, never a production
+/// parse/serialize. Do NOT migrate it to the native codec (that would test the codec
+/// against itself).
 #[test]
 fn gmeow_rdf_reparses_through_oxigraph() {
     use oxigraph::io::RdfFormat;

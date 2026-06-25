@@ -21,8 +21,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use gmeow_rdf::model::{RdfLiteral, RdfTerm};
-use gmeow_rdf::RdfDataset;
-use oxigraph::io::RdfFormat;
+use gmeow_rdf::oxigraph::dataset_from_store;
+use gmeow_rdf::{serialize_dataset, RdfDataset, SerializeGraph};
 use oxigraph::model::{Literal, NamedNode, Quad, Term};
 use oxigraph::store::Store;
 use sha2::{Digest, Sha256};
@@ -619,13 +619,10 @@ fn build_dcat_store(store: &RdfDataset, root: &Path) -> Result<Store, PipelineEr
 /// Serialize a store's default graph to Turtle bytes, banner-prefixed.
 fn serialize(store: &Store) -> Result<Vec<u8>, PipelineError> {
     let mut buf: Vec<u8> = BANNER.as_bytes().to_vec();
-    store
-        .dump_graph_to_writer(
-            oxigraph::model::GraphNameRef::DefaultGraph,
-            RdfFormat::Turtle,
-            &mut buf,
-        )
+    let dataset = dataset_from_store(store).map_err(|e| PipelineError::Parse(e.to_string()))?;
+    let body = serialize_dataset(&dataset, "text/turtle", SerializeGraph::DefaultGraph)
         .map_err(|e| PipelineError::Parse(format!("turtle serialize: {e}")))?;
+    buf.extend_from_slice(&body);
     Ok(buf)
 }
 
@@ -708,11 +705,8 @@ mod tests {
 
     fn parse_committed(path: &Path) -> Store {
         let bytes = std::fs::read(path).unwrap_or_else(|_| panic!("committed missing: {path:?}"));
-        let store = Store::new().unwrap();
-        store
-            .load_from_reader(RdfFormat::Turtle, bytes.as_slice())
-            .unwrap_or_else(|e| panic!("parse {path:?}: {e}"));
-        store
+        crate::stages::source_load::turtle_bytes_to_store(&bytes, &format!("{path:?}"))
+            .unwrap_or_else(|e| panic!("parse {path:?}: {e}"))
     }
 
     #[test]

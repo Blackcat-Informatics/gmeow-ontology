@@ -9,7 +9,6 @@
 
 use std::sync::Arc;
 
-use oxigraph::io::{RdfFormat, RdfSerializer};
 use oxigraph::model::{
     BlankNode, GraphName, Literal, NamedNode, NamedOrBlankNode, Quad, Term, Triple,
 };
@@ -25,7 +24,10 @@ use super::store::PyQuadIter;
 use super::term::{extract_graph_name, extract_term, PyQuad, PyVariable};
 use crate::dataset_view::{DatasetMut, GraphMatchValue};
 use crate::ir::{MutableDataset, QuadValues};
-use crate::{BlankScope, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTextDirection, TermValue};
+use crate::{
+    serialize_dataset, BlankScope, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTextDirection,
+    SerializeGraph, TermValue,
+};
 
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
@@ -58,7 +60,7 @@ impl PyMutableDataset {
         let format = format.ok_or_else(|| PyValueError::new_err("load: format is required"))?;
         let data = read_input(input, path)?;
         let blank_scope = self.allocate_blank_scope();
-        for quad in parse_quads(&data, format.to_ox())
+        for quad in parse_quads(&data, format.to_native())
             .map_err(|e| PyValueError::new_err(format!("load parse error: {e}")))?
         {
             self.inner
@@ -129,22 +131,24 @@ impl PyMutableDataset {
         from_graph: Option<&Bound<'_, PyAny>>,
     ) -> PyResult<Option<Py<PyBytes>>> {
         let format = format.ok_or_else(|| PyValueError::new_err("dump: format is required"))?;
-        let store = self.materialize_store()?;
-        let mut buf = Vec::new();
-        if format.to_ox().supports_datasets() && from_graph.is_none() {
-            store
-                .dump_to_writer(RdfSerializer::from_format(format.to_ox()), &mut buf)
-                .map_err(|e| PyValueError::new_err(format!("dump error: {e}")))?;
-        } else {
-            let graph = extract_graph_name(from_graph)?;
-            store
-                .dump_graph_to_writer(
-                    graph.as_ref(),
-                    RdfSerializer::from_format(format.to_ox()),
-                    &mut buf,
-                )
-                .map_err(|e| PyValueError::new_err(format!("dump error: {e}")))?;
-        }
+        let native = format.to_native();
+        // Materialize the effective set into the IR verbatim, then serialize through
+        // the native codec (#909) — no oxigraph Store serializer round-trip, so the
+        // literal lexical forms are preserved (the Store would canonicalize them).
+        let dataset = self.materialize_dataset()?;
+        let graph_filter = match from_graph {
+            Some(graph) => optional_graph_value(Some(graph))?,
+            None => None,
+        };
+        let selection = match (&graph_filter, from_graph.is_some()) {
+            (Some(name), _) => SerializeGraph::Named(name),
+            // An explicit default-graph (`from_graph=DefaultGraph`) selection.
+            (None, true) => SerializeGraph::DefaultGraph,
+            (None, false) if native.supports_datasets() => SerializeGraph::Dataset,
+            (None, false) => SerializeGraph::DefaultGraph,
+        };
+        let buf = serialize_dataset(&dataset, native.media_type(), selection)
+            .map_err(|e| PyValueError::new_err(format!("dump error: {e}")))?;
         match output {
             Some(output) => {
                 output.call_method1("write", (PyBytes::new(py, &buf),))?;
@@ -190,14 +194,10 @@ impl PyMutableDataset {
         store
             .update(update)
             .map_err(|e| PyValueError::new_err(format!("update evaluation error: {e}")))?;
-        let mut data = Vec::new();
-        store
-            .dump_to_writer(RdfSerializer::from_format(RdfFormat::NQuads), &mut data)
-            .map_err(|e| PyValueError::new_err(format!("update dump error: {e}")))?;
-        self.inner = mutable_from_quads(
-            parse_quads(&data, RdfFormat::NQuads)
-                .map_err(|e| PyValueError::new_err(format!("update rebuild parse error: {e}")))?,
-        )?;
+        // Rebuild the COW set directly from the updated store's quads — no N-Quads
+        // text round-trip (#909), so blank labels and literal lexical forms are
+        // preserved verbatim.
+        self.inner = mutable_from_quads(store_quads(&store)?)?;
         Ok(())
     }
 
@@ -245,6 +245,25 @@ impl PyMutableDataset {
         }
         Ok(store)
     }
+
+    /// Freeze the effective quad set into the IR verbatim (RDF-star triple-term
+    /// objects preserved; no statement-layer fold), for native serialization (#909).
+    fn materialize_dataset(&self) -> PyResult<Arc<RdfDataset>> {
+        let quads: Vec<QuadValues> =
+            self.inner
+                .quads_for_pattern(None, None, None, GraphMatchValue::Any);
+        freeze_values(&quads)
+    }
+}
+
+/// Snapshot a store's quads (used to rebuild the COW set after a SPARQL UPDATE
+/// without a text round-trip).
+fn store_quads(store: &Store) -> PyResult<Vec<Quad>> {
+    let mut quads = Vec::new();
+    for quad in store.iter() {
+        quads.push(quad.map_err(store_err)?);
+    }
+    Ok(quads)
 }
 
 fn empty_mutable() -> PyResult<MutableDataset> {
@@ -462,7 +481,6 @@ fn value_to_term(value: &TermValue) -> PyResult<Term> {
     })
 }
 
-#[allow(dead_code)]
 fn freeze_values(quads: &[QuadValues]) -> PyResult<Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
     for quad in quads {

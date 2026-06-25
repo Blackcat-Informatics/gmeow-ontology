@@ -26,14 +26,13 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{Literal as OxLiteral, NamedNode, Term};
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::source_load::module_files;
+use crate::stages::source_load::{module_files, turtle_bytes_into_store_scoped};
 
 /// Logical-path prefix of the committed research-object artifacts.
 pub const RESEARCH_OBJECTS_DIR: &str = "generated/research-objects/lillith";
@@ -87,17 +86,9 @@ fn g(local: &str) -> String {
 // ── helpers: load instance graph ──────────────────────────────────────────────
 
 fn parse_into(store: &Store, bytes: &[u8], path: &str) -> Result<(), PipelineError> {
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes)
-    {
-        let quad =
-            quad.map_err(|e| PipelineError::Parse(format!("syntax error in {path}: {e}")))?;
-        store
-            .insert(&quad)
-            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(())
+    // Scope per source file so the worked-example A-Box files' anonymous blanks stay
+    // disjoint when accumulated into one store.
+    turtle_bytes_into_store_scoped(store, bytes, path)
 }
 
 /// Parse the six worked-example Turtle files into one oxigraph store (the A-Box).

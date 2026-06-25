@@ -12,17 +12,73 @@
     align:map [
         a align:Cell ;
         align:entity1 [
-            a edoal:Relation ;
-            edoal:uri gmeow:conflictStrategy ;
+            a edoal:Class ;
+            edoal:uri gmeow:RightsStatement ;
         ] ;
         align:entity2 [
-            a edoal:Property ;
-            edoal:uri odrl:conflict ;
+            a edoal:Class ;
+            edoal:uri odrl:Policy ;
         ] ;
         align:relation "<=" ;
-        edoal:measure "0.8"^^xsd:double ;
-        rdfs:label "conflictStrategy → odrl:conflict"@en ;
+        edoal:measure "0.9"^^xsd:double ;
+        rdfs:label "RightsStatement → odrl:Policy (the Set's superclass, alongside it)"@en ;
     ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Class ;
+                edoal:uri gmeow:RightsStatement ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri odrl:uid ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.95"^^xsd:double ;
+            rdfs:label "RightsStatement → odrl:uid (the policy's own IRI)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:conflictStrategy ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri odrl:conflict ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.8"^^xsd:double ;
+            rdfs:label "conflictStrategy → odrl:conflict"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:conformsTo ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri odrl:profile ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "RightsStatement conformsTo → odrl:profile"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasRightsStatement ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri odrl:hasPolicy ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "hasRightsStatement → odrl:hasPolicy"@en ;
+        ] ,
         [
             a align:Cell ;
             align:entity1 [
@@ -50,62 +106,6 @@
             align:relation "<=" ;
             edoal:measure "0.65"^^xsd:double ;
             rdfs:label "Prohibition consequence → odrl:remedy"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:hasRightsStatement ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri odrl:hasPolicy ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "hasRightsStatement → odrl:hasPolicy"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
-                edoal:uri gmeow:RightsStatement ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri odrl:Policy ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "RightsStatement → odrl:Policy (the Set's superclass, alongside it)"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
-                edoal:uri gmeow:RightsStatement ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri odrl:uid ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.95"^^xsd:double ;
-            rdfs:label "RightsStatement → odrl:uid (the policy's own IRI)"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:conformsTo ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri odrl:profile ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "RightsStatement conformsTo → odrl:profile"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

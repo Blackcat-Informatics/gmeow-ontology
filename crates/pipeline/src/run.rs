@@ -401,23 +401,17 @@ fn graphs_isomorphic(committed: &[u8], produced: &[u8]) -> bool {
 /// Parse RDF (lenient, Turtle for `.ttl`, N-Quads otherwise) and return the
 /// canonicalized quad set as sorted strings. `None` on a parse error.
 fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
-    use oxigraph::io::{RdfFormat, RdfParser};
-    use oxigraph::model::Quad;
     // Try Turtle first, then N-Quads — the leaves emit one of these.
-    for format in [RdfFormat::Turtle, RdfFormat::NQuads] {
-        let mut quads: Vec<Quad> = Vec::new();
-        let mut ok = true;
-        for quad in RdfParser::from_format(format).lenient().for_slice(bytes) {
-            match quad {
-                Ok(q) => quads.push(q),
-                Err(_) => {
-                    ok = false;
-                    break;
-                }
-            }
-        }
-        if ok && !quads.is_empty() {
-            // Native full RDFC-1.0 (#910), replacing oxrdf `Dataset::canonicalize`.
+    // Native text ingress (#909) + native full RDFC-1.0 (#910): no oxigraph::io
+    // parse, no oxrdf `Dataset::canonicalize`.
+    for media_type in ["text/turtle", "application/n-quads"] {
+        let Ok(ir) = gmeow_rdf::parse_dataset(bytes, media_type, None) else {
+            continue;
+        };
+        let Ok(quads) = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(&ir) else {
+            continue;
+        };
+        if !quads.is_empty() {
             let canonical = gmeow_rdf::canonicalize_quads(quads).ok()?;
             let set: std::collections::BTreeSet<String> =
                 canonical.iter().map(|q| format!("{q} .")).collect();

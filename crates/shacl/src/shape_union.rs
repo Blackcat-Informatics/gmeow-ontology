@@ -18,8 +18,10 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::store::Store;
+
+use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset_scoped;
+use gmeow_rdf::parse_dataset;
 
 use crate::shapes::{self, Shapes};
 
@@ -91,21 +93,25 @@ pub fn load_shapes(repo_root: &Path) -> Result<(Store, Shapes), String> {
     for file in &files {
         let bytes = std::fs::read(file)
             .map_err(|e| format!("failed to read shape file {}: {e}", file.display()))?;
-        // Drive the parser by iterator (not `load_from_reader`) so the per-file
-        // `@prefix` map can be recovered — see the doc comment above.
-        let mut parser = RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(bytes.as_slice());
-        for quad in parser.by_ref() {
-            let quad = quad.map_err(|e| {
-                format!("failed to parse Turtle shape file {}: {e}", file.display())
-            })?;
+        let text = std::str::from_utf8(&bytes)
+            .map_err(|e| format!("shape file {} is not UTF-8: {e}", file.display()))?;
+        // Parse via the native codecs (#909). The native codec drops document
+        // prefixes once it folds to the IR, so the per-file `@prefix` map is
+        // recovered by scanning the source text — see the doc comment above.
+        let dataset = parse_dataset(&bytes, "text/turtle", None)
+            .map_err(|e| format!("failed to parse Turtle shape file {}: {e}", file.display()))?;
+        // Scope blank labels by the shape file path: a NodeShape's anonymous property
+        // shapes (`sh:property [ … ]`) restart the blank counter per file, so merging
+        // several shape files unscoped would fuse distinct property shapes (#909).
+        let quads = flat_oxigraph_quads_from_dataset_scoped(&dataset, &file.display().to_string())
+            .map_err(|e| format!("failed to parse Turtle shape file {}: {e}", file.display()))?;
+        for quad in quads {
             store
                 .insert(&quad)
                 .map_err(|e| format!("shapes store insert failed: {e}"))?;
         }
-        for (prefix, namespace) in parser.prefixes() {
-            prefix_map.insert(prefix.to_owned(), namespace.to_owned());
+        for (prefix, namespace) in crate::text_ingest::extract_prefixes(text) {
+            prefix_map.insert(prefix, namespace);
         }
     }
     let doc_prefixes: Vec<(String, String)> = prefix_map.into_iter().collect();

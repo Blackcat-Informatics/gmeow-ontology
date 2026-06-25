@@ -14,30 +14,16 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Class ;
-            edoal:uri gmeow:SensoryObservation ;
+            edoal:uri gmeow:ObservableProperty ;
         ] ;
         align:entity2 [
             a edoal:Class ;
-            edoal:uri loinc:LabTest ;
+            edoal:uri loinc:Component ;
         ] ;
         align:relation "<=" ;
-        edoal:measure "0.8"^^xsd:double ;
-        rdfs:label "SensoryObservation (lab test) → loinc:LabTest"@en ;
+        edoal:measure "0.75"^^xsd:double ;
+        rdfs:label "ObservableProperty → loinc:Component"@en ;
     ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
-                edoal:uri gmeow:ObservableProperty ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri loinc:Component ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.75"^^xsd:double ;
-            rdfs:label "ObservableProperty → loinc:Component"@en ;
-        ] ,
         [
             a align:Cell ;
             align:entity1 [
@@ -65,6 +51,20 @@
             align:relation "<=" ;
             edoal:measure "0.75"^^xsd:double ;
             rdfs:label "ScalarQuantity → loinc:Quantity"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Class ;
+                edoal:uri gmeow:SensoryObservation ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri loinc:LabTest ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.8"^^xsd:double ;
+            rdfs:label "SensoryObservation (lab test) → loinc:LabTest"@en ;
         ] ,
         [
             a align:Cell ;

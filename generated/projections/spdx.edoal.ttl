@@ -27,6 +27,34 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
+                edoal:uri gmeow:isOsiApproved ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri spdx:isOsiApproved ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "isOsiApproved → spdx:isOsiApproved"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:licenseText ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri spdx:licenseText ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "licenseText → spdx:licenseText"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
                 edoal:uri gmeow:spdxLicenseId ;
             ] ;
             align:entity2 [
@@ -50,34 +78,6 @@
             align:relation "=" ;
             edoal:measure "0.85"^^xsd:double ;
             rdfs:label "spdxLicenseName → spdx:name"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:licenseText ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri spdx:licenseText ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "licenseText → spdx:licenseText"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:isOsiApproved ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri spdx:isOsiApproved ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "isOsiApproved → spdx:isOsiApproved"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

@@ -290,8 +290,7 @@ impl Stage for MappingsStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oxigraph::io::{RdfFormat, RdfParser};
-    use oxigraph::store::Store;
+    use crate::stages::source_load::rdf_bytes_to_store;
 
     fn repo_root() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -301,11 +300,8 @@ mod tests {
             .unwrap()
     }
 
-    fn triple_set(bytes: &[u8], format: RdfFormat) -> std::collections::BTreeSet<String> {
-        let store = Store::new().unwrap();
-        for quad in RdfParser::from_format(format).lenient().for_reader(bytes) {
-            store.insert(&quad.unwrap()).unwrap();
-        }
+    fn triple_set(bytes: &[u8], media_type: &str) -> std::collections::BTreeSet<String> {
+        let store = rdf_bytes_to_store(bytes, media_type, "triple_set").unwrap();
         store
             .iter()
             .map(|q| {
@@ -505,7 +501,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile");
         let fno = artifacts.get(FNO_PATH).expect("fno artifact");
-        let triples = triple_set(fno, RdfFormat::NTriples);
+        let triples = triple_set(fno, "application/n-triples");
         assert!(
             triples.len() > 20,
             "FnO catalog unexpectedly small: {} triples",

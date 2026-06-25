@@ -16,11 +16,12 @@
 //! default), [`materialize_core`] produces the exact same `DerivedQuad` sequence
 //! the inlined FFI path did, preserving the oracle≡engine parity guarantee.
 
-use oxigraph::io::RdfFormat;
 use oxigraph::model::{GraphName, NamedNode, Term};
-use oxigraph::store::Store;
 
 use std::time::Instant;
+
+use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+use gmeow_rdf::parse_dataset;
 
 use crate::encode::{
     decode_iri_term, decode_nemo_term, decode_string_constant, encode_quad_to_nemo_fact,
@@ -157,12 +158,12 @@ pub fn materialize_core(
         return Ok(vec![]);
     }
 
-    // ── 1. Parse input N-Quads into an oxigraph Store ────────────────────────
-    let store =
-        Store::new().map_err(|e| MaterializeError::Chase(format!("store creation failed: {e}")))?;
-    store
-        .load_from_reader(RdfFormat::NQuads, input.as_bytes())
+    // ── 1. Parse input N-Quads through the native codec, then fold into an
+    //       oxigraph Store (text-free IR → Store hop, #909) ───────────────────
+    let dataset = parse_dataset(input.as_bytes(), "application/n-quads", None)
         .map_err(|e| MaterializeError::Parse(format!("N-Quads parse error: {e}")))?;
+    let store = store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
+        .map_err(|e| MaterializeError::Chase(format!("store materialization failed: {e}")))?;
 
     // ── 2. Encode each quad as a Nemo ground-fact line ───────────────────────
     let mut fact_lines: Vec<String> = Vec::new();
