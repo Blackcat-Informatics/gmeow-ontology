@@ -1149,4 +1149,66 @@ mod tests {
         // A single-element slice yields exactly one permutation.
         assert_eq!(permutations(&[7u32]).count(), 1);
     }
+
+    /// gmeow-EXT n-degree path: a symmetric blank pair reachable ONLY through
+    /// quoted triple-term slots — the `.s`/`.o` position paths in
+    /// [`CanonState::related_in_slot`] that the W3C suite never exercises. The
+    /// automorphism must resolve deterministically (two relabelings byte-equal),
+    /// and an asymmetric sibling must canonicalize differently.
+    #[test]
+    fn nested_triple_term_symmetry_resolves_deterministically() {
+        use super::super::term::BlankScope;
+        // <base> <ref> <<( x <link> y )>> .
+        // <base> <ref> <<( y <link> x )>> .   — symmetric under x<->y, the symmetry
+        // mediated entirely by blanks nested inside triple terms (no top-level blank
+        // edge), so resolving it forces the triple-term-recursing n-degree search.
+        let build = |l1: &str, l2: &str| -> Arc<RdfDataset> {
+            let mut b = RdfDatasetBuilder::new();
+            let (base, refp, link) = (iri(&mut b, "base"), iri(&mut b, "ref"), iri(&mut b, "link"));
+            let x = b.intern_blank(l1.to_owned(), BlankScope(0));
+            let y = b.intern_blank(l2.to_owned(), BlankScope(0));
+            let t1 = b.intern_triple(x, link, y);
+            let t2 = b.intern_triple(y, link, x);
+            b.push_quad(base, refp, t1, None);
+            b.push_quad(base, refp, t2, None);
+            b.freeze().expect("valid")
+        };
+        let ca = canon(&build("x", "y"));
+        assert_eq!(
+            ca,
+            canon(&build("m", "n")),
+            "nested-triple-term automorphism must canonicalize identically regardless of input labels"
+        );
+        assert!(
+            ca.contains("_:c14n0") && ca.contains("_:c14n1"),
+            "two stable nested blank labels: {ca}"
+        );
+        assert!(ca.contains("<<("), "triple terms rendered: {ca}");
+
+        // Break the symmetry: give x one extra ground edge nested in a triple term.
+        // x and y are no longer automorphic, so the canon output must differ.
+        let asym = {
+            let mut b = RdfDatasetBuilder::new();
+            let (base, refp, link, tag) = (
+                iri(&mut b, "base"),
+                iri(&mut b, "ref"),
+                iri(&mut b, "link"),
+                iri(&mut b, "tag"),
+            );
+            let x = b.intern_blank("x".to_owned(), BlankScope(0));
+            let y = b.intern_blank("y".to_owned(), BlankScope(0));
+            let t1 = b.intern_triple(x, link, y);
+            let t2 = b.intern_triple(y, link, x);
+            let t3 = b.intern_triple(x, link, tag);
+            b.push_quad(base, refp, t1, None);
+            b.push_quad(base, refp, t2, None);
+            b.push_quad(base, refp, t3, None);
+            b.freeze().expect("valid")
+        };
+        assert_ne!(
+            ca,
+            canon(&asym),
+            "an asymmetric nested-triple graph must not canonicalize to the symmetric one"
+        );
+    }
 }
