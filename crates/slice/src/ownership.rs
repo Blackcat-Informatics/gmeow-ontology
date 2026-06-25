@@ -765,8 +765,18 @@ fn extract_query_iris(artifact: &ArtifactRecord) -> Result<BTreeSet<NamedNode>, 
     let mut out: BTreeSet<NamedNode> = BTreeSet::new();
     match &query {
         gmeow_sparql_algebra::Query::Select { pattern, .. }
-        | gmeow_sparql_algebra::Query::Ask { pattern, .. }
-        | gmeow_sparql_algebra::Query::Describe { pattern, .. } => {
+        | gmeow_sparql_algebra::Query::Ask { pattern, .. } => {
+            walk_graph_pattern(pattern, &mut out);
+        }
+        gmeow_sparql_algebra::Query::Describe {
+            pattern, targets, ..
+        } => {
+            // DESCRIBE <iri> carries dependency IRIs in `targets`; the pattern
+            // may be the empty unit pattern, so walking only `pattern` would
+            // drop the described-resource edge entirely.
+            for target in targets {
+                walk_named_node_pattern(target, &mut out);
+            }
             walk_graph_pattern(pattern, &mut out);
         }
         gmeow_sparql_algebra::Query::Construct {
@@ -942,8 +952,18 @@ fn walk_graph_pattern(g: &gmeow_sparql_algebra::GraphPattern, out: &mut BTreeSet
             walk_named_node_pattern(name, out);
             walk_graph_pattern(inner, out);
         }
-        G::OrderBy { inner, .. }
-        | G::Project { inner, .. }
+        G::OrderBy { inner, expression } => {
+            walk_graph_pattern(inner, out);
+            // Sort keys can carry IRI-bearing data (custom functions, IRI
+            // constants); walk each ORDER BY expression, not just `inner`.
+            for order in expression {
+                use gmeow_sparql_algebra::OrderExpression as OE;
+                match order {
+                    OE::Asc(e) | OE::Desc(e) => walk_expression(e, out),
+                }
+            }
+        }
+        G::Project { inner, .. }
         | G::Distinct { inner }
         | G::Reduced { inner }
         | G::Slice { inner, .. } => walk_graph_pattern(inner, out),
@@ -972,13 +992,24 @@ fn walk_graph_pattern(g: &gmeow_sparql_algebra::GraphPattern, out: &mut BTreeSet
         G::Values { bindings, .. } => {
             for row in bindings {
                 for cell in row.iter().flatten() {
-                    if let gmeow_sparql_algebra::GroundTerm::NamedNode(n) = cell {
-                        insert_oxiri(n, out);
-                    } else if let gmeow_sparql_algebra::GroundTerm::Literal(lit) = cell {
-                        insert_oxiri(&literal_datatype(lit), out);
-                    }
+                    walk_ground_term(cell, out);
                 }
             }
+        }
+    }
+}
+
+/// Walk a `VALUES` ground term, recursing into RDF 1.2 ground quoted triples so
+/// IRIs inside `<<( s p o )>>` cells become dependency edges too.
+fn walk_ground_term(t: &gmeow_sparql_algebra::GroundTerm, out: &mut BTreeSet<NamedNode>) {
+    use gmeow_sparql_algebra::GroundTerm as GT;
+    match t {
+        GT::NamedNode(n) => insert_oxiri(n, out),
+        GT::Literal(lit) => insert_oxiri(&literal_datatype(lit), out),
+        GT::Triple(tri) => {
+            walk_ground_term(&tri.subject, out);
+            insert_oxiri(&tri.predicate, out);
+            walk_ground_term(&tri.object, out);
         }
     }
 }
