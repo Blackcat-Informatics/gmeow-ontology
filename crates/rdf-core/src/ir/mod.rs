@@ -13,6 +13,10 @@
 
 pub mod builder;
 pub mod bundle;
+// Native full W3C RDFC-1.0 dataset canonicalization (#910): stable canonical blank
+// labels + canonical N-Quads, extended for the RDF-1.2 reifier/annotation overlay.
+// The canonicalization authority for the gmeow-rdf family — explicitly NOT oxigraph.
+pub mod canon;
 // The `RdfDataset`-direct, blank-aware structural comparator (#819 C1/C2): the
 // equality oracle for importer equivalence — explicitly NOT oxigraph.
 pub mod compare;
@@ -42,6 +46,7 @@ pub mod validate;
 
 pub use builder::RdfDatasetBuilder;
 pub use bundle::{GtsBundle, RdfEnvelope};
+pub use canon::{canonicalize, Canonicalized};
 pub use compare::{dataset_diff, datasets_isomorphic, DatasetDiff};
 pub use dataset::{QuadHandle, QuadIds, QuadRef, RdfDataset, RdfDatasetIter, TermRef};
 pub use event_sink::RdfDatasetVisitor;
