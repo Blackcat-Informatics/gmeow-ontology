@@ -331,23 +331,66 @@ fn send_empty_diagnostics(
 
 /// Convert a URI string to a virtual path for [`analyze`].
 ///
-/// For `file://` URIs, strips the scheme and host to give a usable
-/// filesystem path. Other URIs (e.g. `untitled:`) are returned as-is.
+/// For `file://` URIs the path is percent-decoded and returned as an
+/// absolute filesystem path (platform-native, including Windows drive
+/// letters and UNC paths).  `file:///path/to/My%20Files/x.ttl` →
+/// `/path/to/My Files/x.ttl`.
+///
+/// Non-`file:` URIs (e.g. `untitled:Untitled-1`) are returned as-is so
+/// that callers that use virtual paths for routing continue to work.
+///
+/// Any parse or conversion failure falls back to returning the raw
+/// `uri_str` unchanged — diagnostics must never panic.
 fn uri_to_virtual_path(uri_str: &str) -> String {
-    if let Some(rest) = uri_str.strip_prefix("file://") {
-        // Remove empty authority component ("//hostname" or "//").
-        // For `file:///path/to/file`, rest = "/path/to/file".
-        // For `file://host/path`, keep only the path portion.
-        if let Some(path) = rest.strip_prefix('/') {
-            // `file:////path` → `//path` (UNC); keep as-is.
-            // `file:///path` → rest="/path"; path="/path" after strip
-            // We want the path component starting with '/'.
-            return format!("/{path}");
-        }
-        // file://localhost/path → strip authority up to next /
-        if let Some(slash_idx) = rest.find('/') {
-            return rest[slash_idx..].to_owned();
-        }
+    url::Url::parse(uri_str)
+        .ok()
+        .and_then(|u| u.to_file_path().ok())
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_else(|| uri_str.to_owned())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::uri_to_virtual_path;
+
+    #[test]
+    fn file_uri_simple() {
+        assert_eq!(
+            uri_to_virtual_path("file:///home/user/data.ttl"),
+            "/home/user/data.ttl"
+        );
     }
-    uri_str.to_owned()
+
+    #[test]
+    fn file_uri_percent_encoded_space() {
+        // Regression: the old hand-rolled strip did not percent-decode,
+        // so paths containing %20 produced NotFound errors.
+        assert_eq!(
+            uri_to_virtual_path("file:///home/user/My%20Files/data.ttl"),
+            "/home/user/My Files/data.ttl"
+        );
+    }
+
+    #[test]
+    fn file_uri_localhost_authority() {
+        // `file://localhost/path` is a valid RFC 8089 form.
+        assert_eq!(
+            uri_to_virtual_path("file://localhost/tmp/foo.ttl"),
+            "/tmp/foo.ttl"
+        );
+    }
+
+    #[test]
+    fn non_file_uri_passes_through() {
+        // Non-file schemes must be returned unchanged (virtual-path routing).
+        let s = "untitled:foo";
+        assert_eq!(uri_to_virtual_path(s), s);
+    }
+
+    #[test]
+    fn unparseable_uri_passes_through() {
+        // Garbage input must not panic; just pass through.
+        let s = "not a uri at all \x00";
+        assert_eq!(uri_to_virtual_path(s), s);
+    }
 }

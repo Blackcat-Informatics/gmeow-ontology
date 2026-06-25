@@ -1798,6 +1798,7 @@ dependencies = [
  "oxigraph",
  "serde",
  "serde_json",
+ "url",
 ]
 
 [[package]]
