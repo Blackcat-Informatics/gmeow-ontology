@@ -642,10 +642,19 @@ const HOLONIC_EMERGENCE_INPUT: &str =
 const HOLONIC_EMERGENCE_GOLDEN: &str = include_str!(
     "../../../../conformance/logic/cases/foundation/holonic-emergence/expected/materialized.nq"
 );
+// Holonic autonomy/integration duality (issue #707, C4): the input.nq seed facts and the
+// full materialized golden are read straight from the conformance case, so this Rust golden
+// and the conformance harness assert the SAME bytes.
+const HOLONIC_AGENCY_INPUT: &str = include_str!(
+    "../../../../conformance/logic/cases/foundation/holonic-autonomy-integration/input.nq"
+);
+const HOLONIC_AGENCY_GOLDEN: &str = include_str!(
+    "../../../../conformance/logic/cases/foundation/holonic-autonomy-integration/expected/materialized.nq"
+);
 
 #[test]
 fn golden_quad_sets_match_for_single_world_cases() {
-    let cases: [(&str, &str, &str); 5] = [
+    let cases: [(&str, &str, &str); 6] = [
         (
             "exactly-one-stereotype",
             EXACTLY_ONE_GOLDEN,
@@ -679,6 +688,11 @@ fn golden_quad_sets_match_for_single_world_cases() {
             "holonic-emergence",
             HOLONIC_EMERGENCE_GOLDEN,
             HOLONIC_EMERGENCE_INPUT,
+        ),
+        (
+            "holonic-autonomy-integration",
+            HOLONIC_AGENCY_GOLDEN,
+            HOLONIC_AGENCY_INPUT,
         ),
     ];
 
@@ -1121,4 +1135,97 @@ fn holonic_emergence_tri_valued_verdicts_and_non_propagation() {
         ),
         "the Numinous (Unknown) property must NOT propagate to Engine"
     );
+}
+
+#[test]
+fn holonic_agency_four_valued_verdicts() {
+    // The C4 (issue #707) holon autonomy/integration duality, driven from the SAME bytes
+    // the conformance harness asserts (the case input.nq).  One declared
+    // logic:HolonicAgencyProfile (KoestlerProfile: command ⇒ self-assertion, subordination
+    // ⇒ integration) drives all four logic:AgencyVerdict values, and the two Janus markers
+    // are co-equal (Principle 9).
+    let base = "https://example.org/foundation/holonic-autonomy-integration";
+    let quads = run(HOLONIC_AGENCY_INPUT, AntiRigidityPolicy::WitnessObligation);
+
+    // The four verdicts, each on its own assessment.
+    let expect: [(&str, &str); 4] = [
+        ("AssessCaptain", "HolonIntegral"),
+        ("AssessPrivate", "AutonomyDeficient"),
+        ("AssessWarlord", "IntegrationDeficient"),
+        ("AssessInert", "AgencyUnknown"),
+    ];
+    let all_verdicts = [
+        "HolonIntegral",
+        "AutonomyDeficient",
+        "IntegrationDeficient",
+        "AgencyUnknown",
+    ];
+    for (assess, verdict) in expect {
+        assert!(
+            has_binary(
+                &quads,
+                &format!("{base}/{assess}"),
+                "agencyVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "{assess} must receive {verdict}"
+        );
+        // Mutual exclusivity: the assessment carries NO other verdict (the 2×2 partitions).
+        for other in all_verdicts.iter().filter(|v| **v != verdict) {
+            assert!(
+                !has_binary(
+                    &quads,
+                    &format!("{base}/{assess}"),
+                    "agencyVerdict",
+                    &format!("{LOGIC}{other}")
+                ),
+                "{assess} must NOT also receive {other}"
+            );
+        }
+    }
+
+    // Principle 9 co-equality: the BALANCED holon carries BOTH markers, derived by identical
+    // rules — neither face is privileged.  AssessPrivate carries only integrative (a part
+    // with no autonomy); AssessWarlord only self-assertive (a whole refusing to integrate).
+    assert!(
+        has_marker(&quads, &format!("{base}/AssessCaptain"), "selfAssertive")
+            && has_marker(&quads, &format!("{base}/AssessCaptain"), "integrative"),
+        "the integral assessment must carry BOTH co-equal Janus markers"
+    );
+    assert!(
+        has_marker(&quads, &format!("{base}/AssessPrivate"), "integrative")
+            && !has_marker(&quads, &format!("{base}/AssessPrivate"), "selfAssertive"),
+        "the autonomy-deficient assessment integrates but does not self-assert"
+    );
+    assert!(
+        has_marker(&quads, &format!("{base}/AssessWarlord"), "selfAssertive")
+            && !has_marker(&quads, &format!("{base}/AssessWarlord"), "integrative"),
+        "the integration-deficient assessment self-asserts but does not integrate"
+    );
+
+    // Dogfooding C1 (#704): the mid-chain holon ex:Captain co-fires logic:isHolon.
+    assert!(
+        has_marker(&quads, &format!("{base}/Captain"), "isHolon"),
+        "the mid-chain ex:Captain must co-fire the C1 holon projection"
+    );
+
+    // B1 well-formedness guard: a malformed assessment (no logic:agencyProfile) receives NO
+    // verdict, because every verdict rule re-binds agencyHolon AND agencyProfile.  Here the
+    // holon bears BOTH capacities, so a guard-free rule would wrongly emit HolonIntegral.
+    let malformed = format!(
+        "{HOLONIC_AGENCY_INPUT}\
+         <{base}/AssessMalformed> <{LOGIC}agencyHolon> <{base}/Captain> <{base}/schema> .\n"
+    );
+    let mq = run(&malformed, AntiRigidityPolicy::WitnessObligation);
+    for verdict in all_verdicts {
+        assert!(
+            !has_binary(
+                &mq,
+                &format!("{base}/AssessMalformed"),
+                "agencyVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "a profile-less assessment must receive NO verdict (got {verdict})"
+        );
+    }
 }
