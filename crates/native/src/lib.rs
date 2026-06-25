@@ -32,6 +32,9 @@
 //!   catalog (#853): slices, terms, and dependency edges.
 //! * `gmeow_native.pipeline` — the DAG-driven single-pass build executor (#861):
 //!   the `run_pipeline` full-build / drift-check surface.
+//! * `gmeow_native.foundation` — the foundation-corpus importer (#944): the
+//!   `import_foundation` surface (foundation.ttl + budget report + six
+//!   projections).
 //!
 //! Each submodule is also registered in `sys.modules` under its dotted name so
 //! `import gmeow_native.validate` (and friends) resolves. The legacy import
@@ -87,6 +90,13 @@ fn gmeow_native(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     add_engine_submodule(py, m, &sys_modules, "slice", gmeow_slice::register)?;
     add_engine_submodule(py, m, &sys_modules, "docs", gmeow_docs::register)?;
     add_engine_submodule(py, m, &sys_modules, "pipeline", gmeow_pipeline::register)?;
+    add_engine_submodule(
+        py,
+        m,
+        &sys_modules,
+        "foundation",
+        gmeow_foundation_corpus::register,
+    )?;
 
     Ok(())
 }

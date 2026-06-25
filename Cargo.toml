@@ -11,6 +11,9 @@ members = [
     "crates/diagnostics",
     # Rust-owned typed documentation model built from the slice catalog (#853).
     "crates/docs",
+    # Foundation-corpus importer (#364): narrative JSONL corpus → RDF graph +
+    # budget report + six lossy projections; the consumer child of EPICs #358/#364.
+    "crates/foundation-corpus",
     # Native IRI/URI value space (RFC-3987 IRI + RFC-3986 URI parse/validate,
     # reference resolution, syntax normalization, CURIE/prefix expansion): the
     # zero-dep leaf that replaces the oxigraph-family `oxiri` (purrdf S2, EPIC #906).

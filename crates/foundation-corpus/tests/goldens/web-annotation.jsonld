@@ -1,0 +1,41 @@
+{
+  "@context": "http://www.w3.org/ns/anno.jsonld",
+  "@graph": [
+    {
+      "@type": "Annotation",
+      "motivation": "describing",
+      "target": "https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/1",
+      "body": "https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/1/event/1-rowan-swears-the-steerswoman-s-oath"
+    },
+    {
+      "@type": "Annotation",
+      "motivation": "describing",
+      "target": "https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/1",
+      "body": "https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth"
+    },
+    {
+      "@type": "Annotation",
+      "motivation": "describing",
+      "target": "https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2",
+      "body": "https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2/event/1-willam-s-question-is-answered-truthfully"
+    },
+    {
+      "@type": "Annotation",
+      "motivation": "describing",
+      "target": "https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2",
+      "body": "https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2/event/2-the-ledger-is-opened-to-the-town"
+    },
+    {
+      "@type": "Annotation",
+      "motivation": "describing",
+      "target": "https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2",
+      "body": "https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth"
+    },
+    {
+      "@type": "Annotation",
+      "motivation": "describing",
+      "target": "https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2",
+      "body": "https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/willam-gearhand"
+    }
+  ]
+}
