@@ -1038,7 +1038,7 @@ fixture SHACL, queries, or whole-graph dynamic sweeps.
 
 The OWL/EL/DL **reasoning + entailment** tests are a distinct lane from the
 declarative slice-test DSL above: each rebuilt a reasoned rdflib graph via the
-OWL-2-RL chase (`gmeow_tools.native_rl_rdflib.native_rl_closure`) and asserted a
+OWL-2-RL chase (`gmeow_tools.oracles.native_rl_rdflib.native_rl_closure`) and asserted a
 derived triple. Because the chase is superlinear in fact count, the per-test cost
 dominated the ~45-min `python` CI lane. These migrate to
 `crates/logic/tests/ontology_entailments.rs` — `scoped_closure(slices, abox)`,
@@ -1055,7 +1055,7 @@ pending the #867 slicetest structural migration — they are not reasoning tests
 | `test_location_propagates_through_containment` | `tests/test_reasoning_entailments.py` | `location_propagates_through_containment` | RL-entailment | converted | — | `make logic-test` |
 | `test_suborganization_is_transitive` | `tests/test_reasoning_entailments.py` | `suborganization_is_transitive` | RL-entailment | converted | — | `make logic-test` |
 | `test_proximity_measurement_is_a_measurement` | `tests/test_reasoning_entailments.py` | `proximity_measurement_is_a_measurement` | RL-entailment | converted | — | `make logic-test` |
-| `test_two_axis_case_expects_inconsistency` | `tests/test_reasoning_entailments.py` | — | — | **retained** | tests the Python Docker-orchestration layer (`gmeow_tools.reasoning_cases`, monkeypatched reasoner call-order) — an independent live Python impl with no Rust twin | pytest |
+| `test_two_axis_case_expects_inconsistency` | `tests/test_reasoning_entailments.py` | — | — | **retained** | tests the Python Docker-orchestration layer (`gmeow_tools.oracles.reasoning_cases`, monkeypatched reasoner call-order) — an independent live Python impl with no Rust twin | pytest |
 | `test_two_kind_case_expects_inconsistency` | `tests/test_reasoning_entailments.py` | — | — | **retained** | same — Python orchestration of the Docker inconsistency lane | pytest |
 | `test_reasoning_cases_run_all_order` | `tests/test_reasoning_entailments.py` | — | — | **retained** | same — pins the Docker reasoning-case run order | pytest |
 | `test_specialized_part_relations_entail_generic_parthood` | `tests/test_mereology.py` | `specialized_part_relations_entail_generic_parthood` | RL-entailment | converted | — | `make logic-test` |

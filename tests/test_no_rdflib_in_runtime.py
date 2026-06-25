@@ -3,9 +3,10 @@
 """The purrdf P0 self-host gate: gmeow's own code must not import ``rdflib``.
 
 gmeow runs on the native ``gmeow_rdf.compat.rdflib`` facade (#834). The ONLY
-first-party modules allowed to touch upstream ``rdflib`` are the ``classic_cross_check``
-oracle lane keepers, which use it as the *independent* reasoner/engine oracle — and
-even those gate it behind ``pytest.importorskip`` so the default lanes never need it.
+first-party modules allowed to touch upstream ``rdflib`` are the dev-only
+``gmeow_tools.oracles`` lane keepers, which use it as the *independent*
+reasoner/engine oracle — and even those gate it behind ``pytest.importorskip``
+so the default lanes never need it.
 
 This guard is AST-based (not "uninstall rdflib and import"): rdflib is still present
 transitively via ``sssom``/``linkml`` (tracked for native subsumption in #848), so a
@@ -19,7 +20,7 @@ import ast
 from pathlib import Path
 
 #: The classic_cross_check oracle lane — the sanctioned upstream-rdflib consumers.
-_ALLOWED = {"engine_crosscheck.py", "rl_agreement.py"}
+_ALLOWED = {"oracles/engine_crosscheck.py", "oracles/rl_agreement.py"}
 
 _SRC = Path(__file__).resolve().parent.parent / "src" / "gmeow_tools"
 
@@ -41,11 +42,12 @@ def test_no_first_party_module_imports_rdflib() -> None:
     """No ``src/gmeow_tools`` module imports ``rdflib`` except the cross-check lane."""
     offenders: dict[str, list[str]] = {}
     for path in sorted(_SRC.rglob("*.py")):
-        if path.name in _ALLOWED:
+        rel = path.relative_to(_SRC).as_posix()
+        if rel in _ALLOWED:
             continue
         imports = _rdflib_imports(ast.parse(path.read_text(encoding="utf-8")))
         if imports:
-            offenders[str(path.relative_to(_SRC))] = imports
+            offenders[rel] = imports
     assert not offenders, (
         "first-party modules must use gmeow_rdf.compat.rdflib, not upstream rdflib "
         f"(purrdf P0 #834): {offenders}"
@@ -55,7 +57,7 @@ def test_no_first_party_module_imports_rdflib() -> None:
 def test_keepers_are_the_only_rdflib_consumers() -> None:
     """The allow-list matches reality: exactly the cross-check keepers use rdflib."""
     actual = {
-        path.name
+        path.relative_to(_SRC).as_posix()
         for path in _SRC.rglob("*.py")
         if _rdflib_imports(ast.parse(path.read_text(encoding="utf-8")))
     }

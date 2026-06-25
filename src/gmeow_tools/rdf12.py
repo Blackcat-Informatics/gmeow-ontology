@@ -23,9 +23,9 @@ by `crates/pipeline/src/stages/statements.rs`), so ``make check`` /
 ``check-generated`` / ``regenerate`` carry **zero Java and zero Docker**. This
 module survives **only**
 as the ``classic-cross-check`` Jena oracle
-(:mod:`gmeow_tools.statements_docker_check`): it re-reads the native-written lead
-artifact and proves the two engines agree by RDF 1.2 graph isomorphism. It is
-never imported on the primary path.
+(:mod:`gmeow_tools.oracles.statements_docker_check`): it re-reads the
+native-written lead artifact and proves the two engines agree by RDF 1.2 graph
+isomorphism. It is never imported on the primary path.
 """
 
 from __future__ import annotations

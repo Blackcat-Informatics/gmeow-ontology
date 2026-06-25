@@ -25,7 +25,7 @@ from gmeow_rdf.compat.rdflib import URIRef as CompatURIRef
 from rdflib import RDF, XSD, Graph, Literal, URIRef
 
 from gmeow_tools import sparql
-from gmeow_tools.engine_crosscheck import (
+from gmeow_tools.oracles.engine_crosscheck import (
     ENGINE_CROSSCHECK_STEM,
     RULE_AGREEMENT,
     RULE_DIVERGENCE,

@@ -103,7 +103,7 @@ meta:tests-alignment a meta:TestSuite ;
 
 meta:gate-crosscheck a meta:Gate ;
     rdfs:label "dual-engine query crosscheck (rdflib vs native gmeow_rdf)"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/engine_crosscheck.py" ;
+    meta:artifact "src/gmeow_tools/oracles/engine_crosscheck.py" ;
     meta:makeTarget "maint-crosscheck" ;
     meta:cliCommand "crosscheck-queries" .
 
@@ -305,7 +305,8 @@ meta:gate-dl-el-crosscheck a meta:Gate ;
 # agreement + timing through the gmeow-diagnostics SARIF rail.
 meta:gate-classic-cross-check a meta:Gate ;
     rdfs:label "classic-cross-check lane — native vs ELK/HermiT/owlrl agreement, ENFORCED (non-required Docker/Java oracle lane)"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/classic_cross_check.py", "src/gmeow_tools/rl_agreement.py" ;
+    meta:artifact "src/gmeow_tools/oracles/classic_cross_check.py",
+        "src/gmeow_tools/oracles/rl_agreement.py" ;
     meta:symbol "enforce", "run" ;
     meta:makeTarget "maint-classic-cross-check" ;
     meta:cliCommand "classic-cross-check", "classic-cross-check-rl" .

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import sys
 
-from gmeow_tools.reasoning_cases import run_all
+from gmeow_tools.oracles.reasoning_cases import run_all
 from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
 
 

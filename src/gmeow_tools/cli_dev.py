@@ -745,13 +745,13 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         # classic_cross_check.build_report). Folding it carries the classic-oracle
         # cross-check findings into the bundle. Guarded: it needs the Docker/Java
         # lane, so on a Docker-less host the fold loop records a visible skip.
-        from gmeow_tools import classic_cross_check as crosscheck
+        from gmeow_tools.oracles import classic_cross_check as crosscheck
 
         _passed, _ledger, report = crosscheck.run()
         return report
 
     def _engine_cross_check() -> Any:
-        from gmeow_tools import engine_crosscheck
+        from gmeow_tools.oracles import engine_crosscheck
 
         return engine_crosscheck.build_report(engine_crosscheck.crosscheck_all())
 
@@ -1145,7 +1145,7 @@ def crosscheck_queries() -> None:
     The agreement matrix is also written as JSON/SARIF/HTML via the diagnostics
     rail (#667 — the surface no longer terminates at stdout only).
     """
-    from gmeow_tools.engine_crosscheck import run
+    from gmeow_tools.oracles.engine_crosscheck import run
 
     _passed, results, _report = run()
     diverged = [r for r in results if not r.agree and not r.skipped]
@@ -1178,7 +1178,7 @@ def classic_cross_check() -> None:
     native coverage defect (``DlGap``). NEVER part of ``make check`` or the
     required ``quality`` gate.
     """
-    from gmeow_tools import classic_cross_check as crosscheck
+    from gmeow_tools.oracles import classic_cross_check as crosscheck
     from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
 
     try:
@@ -1219,7 +1219,7 @@ def classic_cross_check_rl() -> None:
     agreement matrix + per-engine timing as SARIF/JSON, and fails NON-ZERO on any
     real RL divergence. NEVER part of ``make check`` or the required gate.
     """
-    from gmeow_tools import rl_agreement
+    from gmeow_tools.oracles import rl_agreement
 
     passed, result, _report = rl_agreement.run()
 
