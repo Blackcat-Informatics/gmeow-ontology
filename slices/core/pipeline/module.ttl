@@ -225,6 +225,7 @@ gmeow:pipeline-build
         gmeow:stage-export-research-objects ,
         gmeow:stage-export-references ,
         gmeow:stage-export-evals ,
+        gmeow:stage-export-bench ,
         gmeow:stage-export-lpg ,
         gmeow:stage-export-logic ,
         gmeow:stage-export-yaml-ld ,
@@ -491,6 +492,17 @@ gmeow:stage-export-evals
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "evals" ;
     gmeow:producesFormat "evals-json" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-bench
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: bench"@x-gmeow-english ;
+    skos:definition "Emit the committed perf leaderboard table."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "bench" ;
+    gmeow:producesFormat "markdown" ;
     gmeow:carriesEngineLock false .
 
 gmeow:stage-export-lpg
