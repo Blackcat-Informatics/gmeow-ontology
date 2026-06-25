@@ -1,0 +1,90 @@
+{
+  "el_closure/hierarchy_30classes_15inst": {
+    "mean_ns": 165618180,
+    "median_ns": 162753487
+  },
+  "el_closure/hierarchy_8classes_4inst": {
+    "mean_ns": 12207712,
+    "median_ns": 12161191
+  },
+  "entrenchment_closure/overrides_dag_4640edges": {
+    "mean_ns": 25958837,
+    "median_ns": 25634851
+  },
+  "foundation_evaluate/cross-world-rigidity": {
+    "mean_ns": 119651,
+    "median_ns": 119771
+  },
+  "foundation_evaluate/exactly-one-stereotype": {
+    "mean_ns": 144555,
+    "median_ns": 145469
+  },
+  "foundation_evaluate/free-role": {
+    "mean_ns": 48044,
+    "median_ns": 47877
+  },
+  "foundation_evaluate/identity-overlap-mixiden": {
+    "mean_ns": 107998,
+    "median_ns": 107418
+  },
+  "foundation_evaluate/mixrig-kind-under-role": {
+    "mean_ns": 120219,
+    "median_ns": 119532
+  },
+  "foundation_evaluate/relcomp-under-mediated": {
+    "mean_ns": 102048,
+    "median_ns": 101222
+  },
+  "foundation_evaluate_large/large_synthetic_11200quads_40worlds": {
+    "mean_ns": 90254032,
+    "median_ns": 89534835
+  },
+  "materialize_core/transitive_chain_40": {
+    "mean_ns": 188063439,
+    "median_ns": 201655113
+  },
+  "materialize_core/transitive_chain_8": {
+    "mean_ns": 8474972,
+    "median_ns": 8289683
+  },
+  "probabilistic_evaluate/noisy_or_17_indep_facts": {
+    "mean_ns": 910184290,
+    "median_ns": 910265272
+  },
+  "reason_all/hierarchy_30classes_15inst": {
+    "mean_ns": 135388962,
+    "median_ns": 134589654
+  },
+  "reason_all/hierarchy_8classes_4inst": {
+    "mean_ns": 13907214,
+    "median_ns": 13846697
+  },
+  "reduct_wf_ancestor/chain_30edges_ancestor_closure": {
+    "mean_ns": 269748325,
+    "median_ns": 266038974
+  },
+  "shacl_validate/corpus_all": {
+    "mean_ns": 3601707,
+    "median_ns": 3615465
+  },
+  "shacl_validate/large_hierarchy": {
+    "mean_ns": 30523870,
+    "median_ns": 29670731
+  },
+  "tarjan_scc/synthetic_10000nodes": {
+    "mean_ns": 2068847,
+    "median_ns": 2047924
+  },
+  "validate_all/run_per_file_8x50": {
+    "mean_ns": 2157650,
+    "median_ns": 2138129
+  },
+  "validate_lint/collect_typed_terms_2k": {
+    "mean_ns": 2108567,
+    "median_ns": 2106361
+  },
+  "validate_lint/structural_lint_2k": {
+    "mean_ns": 7690863,
+    "median_ns": 7622792
+  }
+}

@@ -19,6 +19,7 @@ use std::sync::Arc;
 use crate::registry::StageRegistry;
 
 pub mod apache;
+pub mod bench;
 pub mod catalog;
 pub mod docs_render;
 pub mod evals;
