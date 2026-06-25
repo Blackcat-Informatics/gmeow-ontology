@@ -662,16 +662,16 @@ def validate_all(
             py_warnings.extend(anchor.warnings)
 
         # PO i18n lint: structural validity, orphaned/stale entries, and fuzzy
-        # ratio gates (#572).  Kept Python-side because it reads authored PO
-        # files and the merged rdflib English graph.
+        # ratio gates (#572).  The Rust docs crate owns the policy; Python only
+        # folds the native findings into the shared validation report.
         try:
-            from gmeow_tools.i18n_lint import lint_po_files
+            import gmeow_docs
 
-            i18n_report = lint_po_files(PROJECT_ROOT)
-            result.warnings.extend(i18n_report.warnings)
-            result.errors.extend(i18n_report.errors)
-            py_errors.extend(i18n_report.errors)
-            py_warnings.extend(i18n_report.warnings)
+            i18n_report = gmeow_docs.i18n_lint_po_files(str(PROJECT_ROOT), 100.0)
+            result.warnings.extend(i18n_report["warnings"])
+            result.errors.extend(i18n_report["errors"])
+            py_errors.extend(i18n_report["errors"])
+            py_warnings.extend(i18n_report["warnings"])
         except Exception as exc:  # pragma: no cover - guard against unknown failures
             message = f"i18n PO lint failed: {exc}"
             result.errors.append(message)

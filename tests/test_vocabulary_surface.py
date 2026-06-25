@@ -12,6 +12,7 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import gmeow_docs
 import pytest
 from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef
 
@@ -29,13 +30,16 @@ from gmeow_tools.config import (
     TEST_DSL_VOCABULARY_FILE,
 )
 from gmeow_tools.graph import iter_module_files
-from gmeow_tools.i18n_catalog import LOCALIZABLE_PREDICATES
 from gmeow_tools.slices import (
     iter_slice_example_files,
     iter_slice_mapping_files,
     iter_slice_module_files,
     iter_slice_shape_files,
 )
+
+LOCALIZABLE_PREDICATES = {
+    URIRef(predicate) for predicate in gmeow_docs.i18n_localizable_predicates()
+}
 
 GMEOW = Namespace(NAMESPACE)
 GMEOW_MODULES = NAMESPACE + "modules/"

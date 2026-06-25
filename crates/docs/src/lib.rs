@@ -17,6 +17,7 @@
 //! Python bindings are kept in [`py`]; lint/i18n arrive in later tasks of #853.
 
 pub mod i18n;
+pub mod i18n_compile;
 pub mod lint;
 pub mod model;
 pub mod rdf;
