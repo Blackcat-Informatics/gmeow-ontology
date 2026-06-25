@@ -510,6 +510,12 @@ const STRATUM_1: &[Rule] = &[
     //
     // overriddenConstraint(?C, ?C) :- constraintWhole(?C, ?W), constraintTarget(?C, ?P),
     //     constraintOverride(?C, ?Ov), bearsProperty(?P, ?Ov)
+    //
+    // The constraintWhole(?C, ?W) pattern binds ?W without reusing it on purpose: it is a
+    // well-formedness existence guard kept symmetric with the binding (stratum 3) and unknown
+    // (stratum 4) rules, which both require a declared whole.  Without it a whole-less constraint
+    // could be Overridden yet never Binding/Unknown, breaking the closed-trichotomy contract —
+    // so a malformed constraint correctly receives no verdict.
     Rule {
         head: pos(
             var("?C"),
