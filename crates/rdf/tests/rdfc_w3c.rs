@@ -75,9 +75,13 @@ fn w3c_rdfc10_suite() {
         })
         .collect();
     inputs.sort();
-    assert!(
-        inputs.len() >= 60,
-        "expected the vendored W3C rdf-canon suite (~65 inputs), found {}",
+    // Exact count, not a floor: silent fixture loss must fail the gate rather
+    // than degrade coverage unnoticed. Bump this (and the eval/negative split
+    // below) when the vendored W3C suite is intentionally re-synced.
+    assert_eq!(
+        inputs.len(),
+        65,
+        "expected exactly 65 vendored W3C rdf-canon inputs, found {}",
         inputs.len()
     );
 
@@ -154,6 +158,14 @@ fn w3c_rdfc10_suite() {
     eprintln!(
         "W3C RDFC-1.0: {eval} eval + {negative} negative tests, {} failures",
         failures.len()
+    );
+    // Pin the exact eval/negative split so a fixture that loses its expected
+    // output (silently turning an eval vector into a negative one, or vice
+    // versa) fails the gate instead of quietly weakening it.
+    assert_eq!(
+        (eval, negative),
+        (64, 1),
+        "expected 64 eval + 1 negative W3C vectors, ran {eval} eval + {negative} negative"
     );
     assert!(
         failures.is_empty(),
