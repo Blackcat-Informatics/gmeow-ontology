@@ -12,9 +12,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
 
 use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
-use oxigraph::model::dataset::{CanonicalizationAlgorithm, CanonicalizationHashAlgorithm};
 use oxigraph::model::{
-    Dataset, GraphName, GraphNameRef, Literal, NamedNode, NamedOrBlankNode, Quad, Term, Triple,
+    GraphName, GraphNameRef, Literal, NamedNode, NamedOrBlankNode, Quad, Term, Triple,
 };
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
@@ -231,15 +230,16 @@ fn convert_cells(inputs: &[CellInput]) -> Result<Vec<Cell>, String> {
 
 fn skolemized_store(raw_nt: &str) -> Result<Store, String> {
     let quads = parse_quads(raw_nt.as_bytes(), RdfFormat::NTriples)?;
-    let mut dataset: Dataset = quads.into_iter().collect();
-    dataset.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
-        hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
-    });
+    // Native full RDFC-1.0 (SHA-256) canonical labels — the oxrdf
+    // `Dataset::canonicalize` is fully evicted (#910). Both implement the same
+    // RDFC-1.0, so the `_:c14nN` labels (hence the persisted skolem IRIs) are stable.
+    let canon = gmeow_rdf::canonicalize_quads(quads)
+        .map_err(|e| format!("canonicalization failed: {e}"))?;
     let out = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
-    for quad in dataset.iter() {
-        let subject = skolem_subject(quad.subject)?;
-        let object = skolem_term(quad.object)?;
-        let graph_name = match quad.graph_name {
+    for quad in &canon {
+        let subject = skolem_subject(quad.subject.as_ref())?;
+        let object = skolem_term(quad.object.as_ref())?;
+        let graph_name = match quad.graph_name.as_ref() {
             GraphNameRef::DefaultGraph => GraphName::DefaultGraph,
             GraphNameRef::NamedNode(n) => GraphName::NamedNode(n.into_owned()),
             GraphNameRef::BlankNode(b) => GraphName::NamedNode(
@@ -249,7 +249,7 @@ fn skolemized_store(raw_nt: &str) -> Result<Store, String> {
         };
         out.insert(&Quad::new(
             subject,
-            quad.predicate.into_owned(),
+            quad.predicate.clone(),
             object,
             graph_name,
         ))

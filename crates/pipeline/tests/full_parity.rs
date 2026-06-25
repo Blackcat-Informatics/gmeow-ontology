@@ -224,28 +224,23 @@ fn rdf_isomorphic(committed: &[u8], produced: &[u8]) -> bool {
 
 fn canonical_quads(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
     use oxigraph::io::{RdfFormat, RdfParser};
-    use oxigraph::model::dataset::{
-        CanonicalizationAlgorithm, CanonicalizationHashAlgorithm, Dataset,
-    };
+    use oxigraph::model::Quad;
     for format in [RdfFormat::Turtle, RdfFormat::NQuads] {
-        let mut dataset = Dataset::new();
+        let mut quads: Vec<Quad> = Vec::new();
         let mut ok = true;
         for quad in RdfParser::from_format(format).lenient().for_slice(bytes) {
             match quad {
-                Ok(q) => {
-                    dataset.insert(q.as_ref());
-                }
+                Ok(q) => quads.push(q),
                 Err(_) => {
                     ok = false;
                     break;
                 }
             }
         }
-        if ok && !dataset.is_empty() {
-            dataset.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
-                hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
-            });
-            return Some(dataset.iter().map(|q| format!("{q} .")).collect());
+        if ok && !quads.is_empty() {
+            // Native full RDFC-1.0 (#910), replacing oxrdf `Dataset::canonicalize`.
+            let canonical = gmeow_rdf::canonicalize_quads(quads).ok()?;
+            return Some(canonical.iter().map(|q| format!("{q} .")).collect());
         }
     }
     None

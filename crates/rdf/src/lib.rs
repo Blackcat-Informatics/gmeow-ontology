@@ -43,6 +43,11 @@ pub mod gts;
 // author a full multi-named-graph snapshot without pulling pyo3. It ingests a flat
 // oxigraph quad list (RDF 1.1 base graph) and parses RDF bytes via oxigraph, so it
 // now needs the `oxigraph` feature explicitly — `gts` no longer implies it (#885).
+// The public native RDFC-1.0 canonicalization API (#910): replaces `oxrdf`'s
+// `Dataset::canonicalize` across the workspace. The engine is the oxigraph-free
+// kernel (`gmeow_rdf_core::ir::canon`); this is the oxigraph-facing adapter.
+#[cfg(feature = "oxigraph")]
+pub mod canon;
 #[cfg(feature = "oxigraph")]
 pub mod dataset_io;
 #[cfg(all(feature = "gts", feature = "oxigraph"))]
@@ -79,25 +84,28 @@ pub mod turtle_normalize;
 // `gmeow_rdf::RdfDiagnostic`, … keep resolving exactly as before. The two
 // `gts`-gated IR import helpers are re-exported under the matching gate.
 #[cfg(feature = "oxigraph")]
+pub use canon::{canonical_nquads, canonical_nquads_with, canonicalize_quads, canonicalize_store};
+#[cfg(feature = "oxigraph")]
 pub use dataset_io::{dataset_from_bytes, dataset_from_oxigraph_quads};
 pub use gmeow_rdf_core::{
-    check_provenance, dataset_diff, datasets_isomorphic, emit_annotation, emit_quad, emit_reifier,
-    emit_resource, emit_term, fno_to_ntriples, fno_to_quads, gts_to_rdf_loss_ledger,
-    loss_matrix_json, rdf_to_gts_loss_ledger, rule_iri, ArtifactId, ArtifactIndex,
-    ArtifactInterner, ArtifactRecord, AssertionOccurrence, Attribution, AttributionRole,
-    BlankScope, BundleError, Bytes, ContentDigest, ContentStore, ContentStoreError, DatasetDiff,
-    DatasetProvenance, DatasetSink, DatasetView, FnFunction, FnImpl, FnMapping, FnOutput, FnParam,
-    FnParamMapping, FnReturnMapping, FnoCatalog, FrozenDatasetSource, GraphMatch, GtsBundle,
-    LossEntry, LossLedger, OriginKind, OriginSetId, OriginSetInterner, ProvenanceError, QuadHandle,
-    QuadIds, QuadRef, RdfAnnotation, RdfBlobOrigin, RdfBlobRecord, RdfBundle, RdfDataset,
-    RdfDatasetBuilder, RdfDatasetVisitor, RdfDiagnostic, RdfEnvelope, RdfLiteral, RdfLocation,
-    RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfLoss, RdfMetadataEntry,
-    RdfMetadataValue, RdfOpaqueNodeRecord, RdfParseRequest, RdfParserBackend, RdfQuad, RdfReifier,
-    RdfSegmentRecord, RdfSerializeRequest, RdfSerializer, RdfSeverity, RdfSignatureRecord,
-    RdfStoreCapabilities, RdfSuppressionRecord, RdfTerm, RdfTermKind, RdfTextDirection, RdfTriple,
-    SegmentUnitMap, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult, SssomDiagnostic,
-    SssomMapping, SssomMappingSet, SssomMeta, TermFactory, TermId, TermRef, TermValue, UnitCatalog,
-    UnitId, UnitInterner, UnitMetadata, SSSOM_DEFAULT_VALIDATION_TYPES,
+    canonicalize, canonicalize_with, check_provenance, dataset_diff, datasets_isomorphic,
+    emit_annotation, emit_quad, emit_reifier, emit_resource, emit_term, fno_to_ntriples,
+    fno_to_quads, gts_to_rdf_loss_ledger, loss_matrix_json, rdf_to_gts_loss_ledger, rule_iri,
+    ArtifactId, ArtifactIndex, ArtifactInterner, ArtifactRecord, AssertionOccurrence, Attribution,
+    AttributionRole, BlankScope, BundleError, Bytes, CanonHash, Canonicalized, ContentDigest,
+    ContentStore, ContentStoreError, DatasetDiff, DatasetProvenance, DatasetSink, DatasetView,
+    FnFunction, FnImpl, FnMapping, FnOutput, FnParam, FnParamMapping, FnReturnMapping, FnoCatalog,
+    FrozenDatasetSource, GraphMatch, GtsBundle, LossEntry, LossLedger, OriginKind, OriginSetId,
+    OriginSetInterner, ProvenanceError, QuadHandle, QuadIds, QuadRef, RdfAnnotation, RdfBlobOrigin,
+    RdfBlobRecord, RdfBundle, RdfDataset, RdfDatasetBuilder, RdfDatasetVisitor, RdfDiagnostic,
+    RdfEnvelope, RdfLiteral, RdfLocation, RdfLookaside, RdfLookasideKind, RdfLookasideResource,
+    RdfLoss, RdfMetadataEntry, RdfMetadataValue, RdfOpaqueNodeRecord, RdfParseRequest,
+    RdfParserBackend, RdfQuad, RdfReifier, RdfSegmentRecord, RdfSerializeRequest, RdfSerializer,
+    RdfSeverity, RdfSignatureRecord, RdfStoreCapabilities, RdfSuppressionRecord, RdfTerm,
+    RdfTermKind, RdfTextDirection, RdfTriple, SegmentUnitMap, SerializeGraph, SparqlEngine,
+    SparqlRequest, SparqlResult, SssomDiagnostic, SssomMapping, SssomMappingSet, SssomMeta,
+    TermFactory, TermId, TermRef, TermValue, UnitCatalog, UnitId, UnitInterner, UnitMetadata,
+    SSSOM_DEFAULT_VALIDATION_TYPES,
 };
 #[cfg(feature = "gts")]
 pub use gmeow_rdf_core::{import_gts_events, import_gts_graph};

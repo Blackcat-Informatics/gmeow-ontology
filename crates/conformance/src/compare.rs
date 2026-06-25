@@ -25,8 +25,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::model::dataset::{CanonicalizationAlgorithm, CanonicalizationHashAlgorithm};
-use oxigraph::model::{Dataset, GraphName, Triple};
+use oxigraph::model::{GraphName, Quad, Triple};
 
 use crate::run::CaseOutputs;
 
@@ -39,15 +38,15 @@ use crate::run::CaseOutputs;
 /// lists are equal — the rdflib-free replacement for `rdflib.compare.isomorphic`
 /// (mirrors `logic_runner._canonical_quads`).
 fn canonical_quads(text: &str, format: RdfFormat) -> Result<Vec<String>, String> {
-    let mut dataset = Dataset::new();
+    let mut quads: Vec<Quad> = Vec::new();
     for quad in RdfParser::from_format(format).for_reader(text.as_bytes()) {
-        let quad = quad.map_err(|e| format!("RDF parse error: {e}"))?;
-        dataset.insert(&quad);
+        quads.push(quad.map_err(|e| format!("RDF parse error: {e}"))?);
     }
-    dataset.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
-        hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
-    });
-    let mut quads: Vec<String> = dataset.iter().map(|q| q.to_string()).collect();
+    // Native full RDFC-1.0 (#910), replacing oxrdf `Dataset::canonicalize`: relabels
+    // blank nodes; the term serialization is unchanged, so the comparison is identical.
+    let canonical = gmeow_rdf::canonicalize_quads(quads)
+        .map_err(|e| format!("RDF canonicalization error: {e}"))?;
+    let mut quads: Vec<String> = canonical.iter().map(ToString::to_string).collect();
     quads.sort();
     Ok(quads)
 }

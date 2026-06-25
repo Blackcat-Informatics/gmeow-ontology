@@ -222,9 +222,12 @@ impl PyDataset {
         self.inner.insert(&quad.inner);
     }
 
-    /// Canonicalize blank-node labels in place under `algorithm`.
+    /// Canonicalize blank-node labels in place under `algorithm` (native RDFC-1.0).
     fn canonicalize(&mut self, algorithm: PyCanonicalizationAlgorithm) {
-        self.inner.canonicalize(algorithm.to_ox());
+        let quads: Vec<Quad> = self.inner.iter().map(|q| q.into_owned()).collect();
+        self.inner = super::canon::canonicalize_quads(quads, algorithm)
+            .into_iter()
+            .collect();
     }
 
     fn __len__(&self) -> usize {
