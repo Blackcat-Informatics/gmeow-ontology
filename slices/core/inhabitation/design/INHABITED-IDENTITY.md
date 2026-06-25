@@ -61,7 +61,7 @@ produces:
 
 Every clause names a distinct identity. That is the five-facet discipline applied to the agent stack.
 
-## The highest-risk decision: typing the durable subject
+## The highest-risk decision
 
 The instinct is to mint `DigitalSubject` as a fourth rigid Kind beside `Person`, `Organization`, and
 `SoftwareAgent`. **That is a trap, and the foundation's gates would catch it.** The entities slice

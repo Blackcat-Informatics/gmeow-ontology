@@ -138,7 +138,7 @@ This answers the verdict's sharpest competency question — *two simultaneous se
 two subjects sharing a model?* — by the same subject/model split that
 [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md) draws, plus co-tenancy for the shared-substrate case.
 
-## Transitions — the `Portal`
+## Transitions: the Portal
 
 A subject migrating from one host/runtime to another (Cagle's "portal", a Role transition between
 holons) is modeled **two ways at once**, because the migration is both a state change and an event
