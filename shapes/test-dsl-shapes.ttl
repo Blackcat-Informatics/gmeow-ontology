@@ -60,6 +60,23 @@ gmeow:CompetencyQuestionShape
         sh:severity sh:Violation ;
         sh:message "CompetencyQuestion gmeow:cqReasoning must be gmeow:reasoningNone or gmeow:reasoningRdfs (the closed ReasoningProfile pair)"
     ] ;
+    sh:property [
+        sh:path gmeow:cqDataFile ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "CompetencyQuestion may have at most one gmeow:cqDataFile (xsd:string, a slice-relative ABox overlay fixture path)"
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "CompetencyQuestion gmeow:cqDataFile is only honoured in the asserted (gmeow:reasoningNone) lane, not gmeow:reasoningRdfs" ;
+        sh:select """
+            SELECT $this WHERE {
+                $this gmeow:cqDataFile ?d .
+                $this gmeow:cqReasoning gmeow:reasoningRdfs .
+            }
+        """
+    ] ;
     sh:sparql [
         sh:severity sh:Violation ;
         sh:message "CompetencyQuestion needs exactly one of gmeow:cqQuery (inline) or gmeow:cqQueryFile (referenced)" ;
