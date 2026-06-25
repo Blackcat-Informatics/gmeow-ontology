@@ -987,16 +987,16 @@ impl Parser {
             loop {
                 let cond = if self.eat_kw("ASC") {
                     self.expect(&Token::LParen)?;
-                    let e = self.parse_expression()?;
+                    let e = self.parse_expression_lifting_aggs(aggregates)?;
                     self.expect(&Token::RParen)?;
                     OrderExpression::Asc(e)
                 } else if self.eat_kw("DESC") {
                     self.expect(&Token::LParen)?;
-                    let e = self.parse_expression()?;
+                    let e = self.parse_expression_lifting_aggs(aggregates)?;
                     self.expect(&Token::RParen)?;
                     OrderExpression::Desc(e)
                 } else if self.order_key_ahead() {
-                    OrderExpression::Asc(self.parse_primary_expression()?)
+                    OrderExpression::Asc(self.parse_primary_with_aggs(aggregates)?)
                 } else {
                     break;
                 };
@@ -1863,6 +1863,63 @@ mod tests {
                 ..
             }
         ));
+    }
+
+    #[test]
+    fn order_by_desc_aggregate_lifts_into_group() {
+        // SPARQL 1.1 §11.3: ORDER BY on an aggregate is legal inside a grouped
+        // query. This was previously rejected as `Unsupported` because ORDER BY
+        // used `parse_expression()` (aggregate-blind) instead of the agg-lifting
+        // path. Regression guard for gap G4-A.
+        let q = format!(
+            "{GM}SELECT ?t (COUNT(?x) AS ?c) WHERE {{ ?x a ?t }} GROUP BY ?t ORDER BY DESC(COUNT(?x))"
+        );
+        let where_pat = unproject(select_pattern(&q));
+        // Expected algebra (outermost to innermost, modulo ORDER BY wrapper):
+        //   OrderBy { order: [Desc(...)], inner: Extend { var: ?c, inner: Group { aggs: [...] } } }
+        let GraphPattern::OrderBy {
+            inner,
+            expression: order,
+        } = where_pat
+        else {
+            panic!("expected OrderBy at top of unproject'd pattern, got {where_pat:?}");
+        };
+        // The order key must be a Desc wrapping a Variable reference to the
+        // synthetic aggregate variable (lifted COUNT(?x)).
+        assert_eq!(order.len(), 1);
+        assert!(
+            matches!(order[0], OrderExpression::Desc(_)),
+            "ORDER BY DESC must produce Desc variant, got {:?}",
+            order[0]
+        );
+        // Walk down: Extend → Group.
+        let GraphPattern::Extend {
+            inner: group_inner,
+            variable,
+            ..
+        } = *inner
+        else {
+            panic!("expected Extend under OrderBy, got {inner:?}");
+        };
+        assert_eq!(variable, Variable::new("c"));
+        let GraphPattern::Group { aggregates, .. } = *group_inner else {
+            panic!("expected Group under Extend");
+        };
+        // The aggregate lifted from ORDER BY DESC(COUNT(?x)) must appear in the
+        // Group's aggregate list alongside the SELECT-projected one. There must
+        // be at least one COUNT aggregate (the ?c projection); the ORDER BY
+        // COUNT(?x) should either reuse or add another.
+        assert!(
+            !aggregates.is_empty(),
+            "Group must have at least one aggregate"
+        );
+        assert!(aggregates.iter().any(|(_, ae)| matches!(
+            ae,
+            AggregateExpression::FunctionCall {
+                function: AggregateFunction::Count,
+                ..
+            }
+        )));
     }
 
     #[test]

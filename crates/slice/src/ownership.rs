@@ -946,8 +946,29 @@ fn walk_graph_pattern(g: &gmeow_sparql_algebra::GraphPattern, out: &mut BTreeSet
         | G::Project { inner, .. }
         | G::Distinct { inner }
         | G::Reduced { inner }
-        | G::Slice { inner, .. }
-        | G::Group { inner, .. } => walk_graph_pattern(inner, out),
+        | G::Slice { inner, .. } => walk_graph_pattern(inner, out),
+        G::Group {
+            inner, aggregates, ..
+        } => {
+            walk_graph_pattern(inner, out);
+            for (_var, agg_expr) in aggregates {
+                use gmeow_sparql_algebra::AggregateExpression as AE;
+                use gmeow_sparql_algebra::AggregateFunction as AF;
+                match agg_expr {
+                    AE::CountStar { .. } => {}
+                    AE::FunctionCall {
+                        function,
+                        expression,
+                        ..
+                    } => {
+                        if let AF::Custom(n) = function {
+                            insert_oxiri(n, out);
+                        }
+                        walk_expression(expression, out);
+                    }
+                }
+            }
+        }
         G::Values { bindings, .. } => {
             for row in bindings {
                 for cell in row.iter().flatten() {

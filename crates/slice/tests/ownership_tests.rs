@@ -535,6 +535,81 @@ fn declared_but_unowned_term() {
     );
 }
 
+// ── Test 7: Group aggregate IRI is captured in slice dependency walk ─────────
+
+#[test]
+fn group_aggregate_iri_reaches_dependency_walk() {
+    // G4-B regression guard: the previous Group arm in walk_graph_pattern only
+    // walked `inner` and silently dropped the `aggregates` field.  A custom
+    // function IRI referenced ONLY inside an aggregate expression therefore
+    // vanished from the dependency set, creating an invisible build-dep gap.
+    //
+    // This test places `gmeow:termAggFn` EXCLUSIVELY in the aggregated
+    // expression of a GROUP query (`SUM(gmeow:termAggFn(?x))`).  After the fix
+    // the dependency edge must carry `termAggFn` as evidence; before the fix it
+    // would not, and the query edge might not even appear.
+    let tmp = TempDir::new().unwrap();
+    let root = tmp.path();
+
+    // Slice A defines the term that is referenced only inside the aggregate.
+    write(
+        root,
+        "slices/grpA/sliceA/manifest.ttl",
+        &manifest("sliceA", &[]),
+    );
+    write(
+        root,
+        "slices/grpA/sliceA/module.ttl",
+        &format!(
+            "@prefix gmeow: <{NS}> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
+             gmeow:termAggFn a owl:ObjectProperty ; rdfs:isDefinedBy gmeow:sliceA .\n"
+        ),
+    );
+
+    // Slice B's query: grouped query where gmeow:termAggFn appears ONLY inside
+    // the aggregated expression of SUM — not as a predicate or IRI in the BGP.
+    // Before the fix the Group arm dropped `aggregates` entirely.
+    write(
+        root,
+        "slices/grpB/sliceB/manifest.ttl",
+        &manifest("sliceB", &["sliceA"]),
+    );
+    write(
+        root,
+        "slices/grpB/sliceB/queries/competency/agg.rq",
+        &format!(
+            "PREFIX gmeow: <{NS}>\n\
+             SELECT ?t (SUM(gmeow:termAggFn(?x)) AS ?total) WHERE {{\n\
+             ?x a ?t .\n\
+             }} GROUP BY ?t\n"
+        ),
+    );
+
+    let catalog = SliceCatalog::discover(root).unwrap();
+    let report = OwnershipAnalyzer::new(&catalog).analyze().unwrap();
+
+    // A Query edge from B to A must exist.
+    let edge = report
+        .edges
+        .iter()
+        .find(|e| {
+            e.from_slice == iri("sliceB")
+                && e.to_slice == iri("sliceA")
+                && e.edge_kind == EdgeKind::Query
+        })
+        .expect("expected a sliceB → sliceA Query edge; Group aggregate walk dropped it");
+
+    // The IRI used only inside the aggregate expression must be evidence.
+    let referenced: Vec<&NamedNode> = edge.evidence.iter().map(|e| &e.referenced_term).collect();
+    assert!(
+        referenced.contains(&&nn("termAggFn")),
+        "termAggFn (referenced only inside a Group aggregate expression) must appear in evidence; \
+         walk_graph_pattern dropped Group aggregates before the G4-B fix"
+    );
+}
+
 // ── Hard-fail on a malformed ownership-bearing artifact (G9, no-optionality) ───
 
 #[test]
