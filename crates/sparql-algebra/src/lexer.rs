@@ -445,6 +445,17 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Returns `true` when the chars at `self.pos+1` (and optionally `+2`)
+    /// constitute a valid SPARQL exponent body, i.e. `[0-9]+` or `[+-][0-9]+`.
+    /// Called while `self.cur()` is `e`/`E`.
+    fn exp_has_digits(&self) -> bool {
+        match self.peek(1) {
+            Some('+') | Some('-') => matches!(self.peek(2), Some('0'..='9')),
+            Some('0'..='9') => true,
+            _ => false,
+        }
+    }
+
     fn lex_number(&mut self) -> Token {
         let begin = self.pos;
         let mut seen_dot = false;
@@ -456,12 +467,7 @@ impl<'a> Lexer<'a> {
                     seen_dot = true;
                     self.pos += 1;
                 }
-                '.' if !seen_dot && !seen_exp => {
-                    // trailing dot of a decimal like `1.` (rare); accept.
-                    seen_dot = true;
-                    self.pos += 1;
-                }
-                'e' | 'E' if !seen_exp => {
+                'e' | 'E' if !seen_exp && self.exp_has_digits() => {
                     seen_exp = true;
                     self.pos += 1;
                     if matches!(self.cur(), Some('+') | Some('-')) {
@@ -668,6 +674,67 @@ mod tests {
             toks("?x ?y ?z ."),
             vec![var("x"), var("y"), var("z"), Token::Dot]
         );
+    }
+
+    // ── G1 regression: trailing dot must NOT be absorbed into a number ──────
+
+    #[test]
+    fn trailing_dot_is_separator_not_decimal() {
+        // `3 .` — the dot is a statement separator, not part of the literal.
+        assert_eq!(toks("3 ."), vec![Token::Integer("3".into()), Token::Dot]);
+    }
+
+    #[test]
+    fn number_in_triple_pattern_dot_separator() {
+        // Simulates `?o 3 .` — `3` must come out as Integer, not Decimal("3.").
+        assert_eq!(
+            toks("?o 3 ."),
+            vec![var("o"), Token::Integer("3".into()), Token::Dot]
+        );
+    }
+
+    #[test]
+    fn decimal_with_digit_after_dot_still_works() {
+        // Smoke-test: `1.5` must remain Decimal.
+        assert_eq!(toks("1.5"), vec![Token::Decimal("1.5".into())]);
+    }
+
+    // ── G2 regression: exponent requires at least one digit after e/E ────────
+
+    #[test]
+    fn double_exponent_no_digit_yields_integer_then_word() {
+        // `1e` — no digit follows `e`, so `1` is Integer and `e` is a Word.
+        assert_eq!(
+            toks("1e"),
+            vec![Token::Integer("1".into()), Token::Word("e".into())]
+        );
+    }
+
+    #[test]
+    fn exponent_followed_by_non_digit_word() {
+        // `1err` — `e` has no digit after it, so `1` is Integer; `err` is a Word.
+        assert_eq!(
+            toks("1err"),
+            vec![Token::Integer("1".into()), Token::Word("err".into())]
+        );
+    }
+
+    #[test]
+    fn double_exponent_still_works() {
+        // Smoke-test: `1e9` must still be Double.
+        assert_eq!(toks("1e9"), vec![Token::Double("1e9".into())]);
+    }
+
+    #[test]
+    fn double_exponent_with_sign_still_works() {
+        // Smoke-test: `1.5e-3` must still be Double.
+        assert_eq!(toks("1.5e-3"), vec![Token::Double("1.5e-3".into())]);
+    }
+
+    #[test]
+    fn double_exponent_with_plus_sign_still_works() {
+        // `2E+10` must still be Double.
+        assert_eq!(toks("2E+10"), vec![Token::Double("2E+10".into())]);
     }
 
     fn var(n: &str) -> Token {
