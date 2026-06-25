@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the expertise-endorsed-vs-self-asserted competency question
+# (gmeow:cqDataFile overlay). Verbatim externalization of
+# test_competency_expertise_endorsed_vs_self_asserted_query: three proficiencies —
+# one self-asserted (no attestation), one endorsed (third-party attestation), and
+# one with only a SELF attestation (stays self-asserted).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix exd:   <https://example.org/test/> .
+
+exd:agent1 a gmeow:Agent .
+exd:peer a gmeow:Agent .
+exd:python a gmeow:Skill .
+
+# Self-asserted proficiency (no attestation).
+exd:profSelf a gmeow:SkillProficiency ;
+    gmeow:skillProficiencyAgent exd:agent1 ;
+    gmeow:skillProficiencyOf exd:python ;
+    gmeow:skillProficiencyLevel gmeow:assessedCompetent .
+
+# Endorsed proficiency (third-party attestation).
+exd:profEndorsed a gmeow:SkillProficiency ;
+    gmeow:skillProficiencyAgent exd:agent1 ;
+    gmeow:skillProficiencyOf exd:python ;
+    gmeow:skillProficiencyLevel gmeow:dreyfusExpert .
+exd:att1 a gmeow:Attestation ;
+    gmeow:attestedSubject exd:profEndorsed ;
+    gmeow:attester exd:peer .
+
+# Self-attested proficiency with a self-attestation (must stay self-asserted).
+exd:profSelfAttested a gmeow:SkillProficiency ;
+    gmeow:skillProficiencyAgent exd:agent1 ;
+    gmeow:skillProficiencyOf exd:python .
+exd:att2 a gmeow:Attestation ;
+    gmeow:attestedSubject exd:profSelfAttested ;
+    gmeow:attester exd:agent1 .
