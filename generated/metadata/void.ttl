@@ -1614,9 +1614,9 @@
 	<http://rdfs.org/ns/void#dataDump> <https://blackcatinformatics.ca/gmeow.ttl> ;
 	<http://rdfs.org/ns/void#feature> <http://www.w3.org/ns/formats/Turtle> ;
 	<http://rdfs.org/ns/void#entities> 4486 ;
-	<http://rdfs.org/ns/void#properties> 1583 ;
-	<http://rdfs.org/ns/void#classes> 747 ;
-	<http://rdfs.org/ns/void#triples> 38776 ;
+	<http://rdfs.org/ns/void#properties> 1589 ;
+	<http://rdfs.org/ns/void#classes> 750 ;
+	<http://rdfs.org/ns/void#triples> 38843 ;
 	<http://rdfs.org/ns/void#exampleResource> <https://blackcatinformatics.ca/gmeow/Person> ;
 	<http://rdfs.org/ns/void#uriSpace> "https://blackcatinformatics.ca/gmeow/" ;
 	<http://purl.org/dc/terms/hasVersion> "0.1.0" ;
