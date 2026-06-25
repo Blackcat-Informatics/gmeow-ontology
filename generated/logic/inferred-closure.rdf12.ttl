@@ -14782,6 +14782,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/fixtureHumanTimbreObservation> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/fixtureHumanTimbreObservation> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/fixtureKiranaGharanaStandpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/fixtureKiranaGharanaStandpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Arange> ;
@@ -15346,6 +15352,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/fixtureMIRTimbreObservation> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/fixtureMIRTimbreObservation> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/fixtureMathRockWork> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/CreativeWork> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/fixtureMathRockWork> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/CreativeWork> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
@@ -15580,6 +15592,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/fixtureRagaYamanContestedMembership> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanContestedMembership> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanContestedMembership> <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/fixtureRivalScholarStandpoint> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanContestedMembership> <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/fixtureRivalScholarStandpoint> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-propagation> ;
@@ -15754,6 +15772,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1960> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1960> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1960> <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/fixtureKiranaGharanaStandpoint> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1960> <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/fixtureKiranaGharanaStandpoint> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-propagation> ;
@@ -15892,6 +15916,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1975> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1975> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1975> <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/fixtureKiranaGharanaStandpoint> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1975> <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/fixtureKiranaGharanaStandpoint> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-propagation> ;
@@ -16028,6 +16058,12 @@
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1980> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanPerformed1980> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-propagation> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-propagation> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1980> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1980> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1980> <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/fixtureKiranaGharanaStandpoint> .
@@ -20416,6 +20452,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/measurementCenozoicStart> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/measurementCenozoicStart> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/measurementHoloceneStart> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Measurement> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/measurementHoloceneStart> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Measurement> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
@@ -20522,6 +20564,12 @@
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/measurementHoloceneStart> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Relator> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/measurementHoloceneStart> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/measurementHoloceneStart> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/measurementPhanerozoicStart> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Measurement> .
@@ -20632,6 +20680,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/measurementPhanerozoicStart> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/measurementPhanerozoicStart> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/measurementQuaternaryStart> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Measurement> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/measurementQuaternaryStart> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Measurement> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
@@ -20738,6 +20792,12 @@
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/measurementQuaternaryStart> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Relator> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/measurementQuaternaryStart> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/measurementQuaternaryStart> <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/mediumEInkFile> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#QualityValue> .
@@ -25558,6 +25618,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsomeValuesFrom> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/pitchSpellingCSharp4CMN> <https://blackcatinformatics.ca/gmeow/spelledName> <https://blackcatinformatics.ca/gmeow/skolem/16e6fb54564f4bbab4d145e386e9c1f19196405a> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/pitchSpellingCSharp4CMN> <https://blackcatinformatics.ca/gmeow/spelledName> <https://blackcatinformatics.ca/gmeow/skolem/16e6fb54564f4bbab4d145e386e9c1f19196405a> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/pitchSpellingDFlat4CMN> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Relator> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/pitchSpellingDFlat4CMN> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Relator> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
@@ -25580,6 +25646,12 @@
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/pitchSpellingDFlat4CMN> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/e53cbd28388359a17f17d1964b8cb5ab7c7d41dd> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsomeValuesFrom> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsomeValuesFrom> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/pitchSpellingDFlat4CMN> <https://blackcatinformatics.ca/gmeow/spelledName> <https://blackcatinformatics.ca/gmeow/skolem/16e6fb54564f4bbab4d145e386e9c1f19196405a> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/pitchSpellingDFlat4CMN> <https://blackcatinformatics.ca/gmeow/spelledName> <https://blackcatinformatics.ca/gmeow/skolem/16e6fb54564f4bbab4d145e386e9c1f19196405a> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/pitchSpellingGaSargam> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Relator> .
@@ -25606,6 +25678,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsomeValuesFrom> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/pitchSpellingGaSargam> <https://blackcatinformatics.ca/gmeow/spelledName> <https://blackcatinformatics.ca/gmeow/skolem/16e6fb54564f4bbab4d145e386e9c1f19196405a> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/pitchSpellingGaSargam> <https://blackcatinformatics.ca/gmeow/spelledName> <https://blackcatinformatics.ca/gmeow/skolem/16e6fb54564f4bbab4d145e386e9c1f19196405a> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/pitchSpellingPlus7Johnston> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Relator> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/pitchSpellingPlus7Johnston> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Relator> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
@@ -25628,6 +25706,12 @@
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/pitchSpellingPlus7Johnston> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/e53cbd28388359a17f17d1964b8cb5ab7c7d41dd> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsomeValuesFrom> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsomeValuesFrom> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/pitchSpellingPlus7Johnston> <https://blackcatinformatics.ca/gmeow/spelledName> <https://blackcatinformatics.ca/gmeow/skolem/16e6fb54564f4bbab4d145e386e9c1f19196405a> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/pitchSpellingPlus7Johnston> <https://blackcatinformatics.ca/gmeow/spelledName> <https://blackcatinformatics.ca/gmeow/skolem/16e6fb54564f4bbab4d145e386e9c1f19196405a> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/pitchSpellingSystemCMN> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Object> .
@@ -28768,6 +28852,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/referenceFrameAffectiveCircumplex> <https://blackcatinformatics.ca/gmeow/isHostedBy> <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/referenceFrameAffectiveCircumplex> <https://blackcatinformatics.ca/gmeow/isHostedBy> <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/referenceFrameAltitudeAGL> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/referenceFrameAltitudeAGL> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
@@ -29014,6 +29104,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/referenceFrameCognitiveMapAllocentric> <https://blackcatinformatics.ca/gmeow/isHostedBy> <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/referenceFrameCognitiveMapAllocentric> <https://blackcatinformatics.ca/gmeow/isHostedBy> <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/referenceFrameCognitiveMapEgocentric> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/referenceFrameCognitiveMapEgocentric> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
@@ -29044,6 +29140,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/referenceFrameCognitiveMapEgocentric> <https://blackcatinformatics.ca/gmeow/isHostedBy> <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/referenceFrameCognitiveMapEgocentric> <https://blackcatinformatics.ca/gmeow/isHostedBy> <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/referenceFrameConceptualSpace> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/referenceFrameConceptualSpace> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
@@ -29072,6 +29174,12 @@
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/referenceFrameConceptualSpace> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Object> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/referenceFrameConceptualSpace> <https://blackcatinformatics.ca/gmeow/isHostedBy> <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/referenceFrameConceptualSpace> <https://blackcatinformatics.ca/gmeow/isHostedBy> <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/referenceFrameConfigurationSpace> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> .
@@ -29426,6 +29534,12 @@
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/referenceFrameImaginedSpace> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Object> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/referenceFrameImaginedSpace> <https://blackcatinformatics.ca/gmeow/isHostedBy> <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/referenceFrameImaginedSpace> <https://blackcatinformatics.ca/gmeow/isHostedBy> <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/referenceFrameInternet> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> .
@@ -29930,6 +30044,12 @@
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/referenceFrameThermalComfort> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Object> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/referenceFrameThermalComfort> <https://blackcatinformatics.ca/gmeow/isHostedBy> <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/referenceFrameThermalComfort> <https://blackcatinformatics.ca/gmeow/isHostedBy> <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-edge> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/referenceFrameUNLocode> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> .
@@ -31762,12 +31882,36 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/skolem/040124dcd51e36bdbe1768c7251a4259f7dac8c0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-type> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-type> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/skolem/0b313661eb19967a906c542f3de3d5e20d2dd05a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/0b79d927e25284466ce9139b7070109e50317865> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/skolem/0b313661eb19967a906c542f3de3d5e20d2dd05a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/0b79d927e25284466ce9139b7070109e50317865> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
+<https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-type> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-type> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Endurant> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/skolem/16e6fb54564f4bbab4d145e386e9c1f19196405a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2001/XMLSchema#string> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/skolem/16e6fb54564f4bbab4d145e386e9c1f19196405a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2001/XMLSchema#string> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-type> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-type> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/skolem/1dac987c1fe1036148bdb183ce22a400d6efb455> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/0b79d927e25284466ce9139b7070109e50317865> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/skolem/1dac987c1fe1036148bdb183ce22a400d6efb455> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/0b79d927e25284466ce9139b7070109e50317865> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;

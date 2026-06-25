@@ -35,6 +35,7 @@ const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
 const OWL_ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
 const OWL_ON_CLASS: &str = "http://www.w3.org/2002/07/owl#onClass";
 const OWL_DIFFERENT_FROM: &str = "http://www.w3.org/2002/07/owl#differentFrom";
+const OWL_SAME_AS: &str = "http://www.w3.org/2002/07/owl#sameAs";
 const OWL_PROPERTY_CHAIN_AXIOM: &str = "http://www.w3.org/2002/07/owl#propertyChainAxiom";
 const OWL_INVERSE_OF: &str = "http://www.w3.org/2002/07/owl#inverseOf";
 const OWL_TRANSITIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
@@ -62,6 +63,18 @@ const OWL_HAS_VALUE: &str = "http://www.w3.org/2002/07/owl#hasValue";
 // already covered by the EL/RL-positive path.
 const OWL_UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
 
+/// The #697 construct families this module *inventories* in the committed
+/// bundle (the `(iri, qname, suffix)` triples scanned by [`scan_coverage`]).
+///
+/// IMPORTANT — presence in this table is **inventory, not a coverage claim.**
+/// A construct's IRI appearing in the bundle places it in
+/// [`DlCoverage::present`]; whether it is also [`DlCoverage::decided`] is
+/// decided *empirically* by [`classify_coverage`], which inspects the actual
+/// instances and the honesty of the corresponding post-pass handler. Some
+/// families here (notably `owl:someValuesFrom` and the cardinality family) are
+/// only *inert* in the native post-pass: they do no existential generation and
+/// only fire on already-degenerate inputs, so they are reported `unsupported`
+/// (Gap B) rather than silently relabelled as covered.
 const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
     (OWL_COMPLEMENT_OF, "owl:complementOf", "complementOf"),
     (OWL_SOME_VALUES_FROM, "owl:someValuesFrom", "someValuesFrom"),
@@ -142,10 +155,21 @@ pub struct InconsistencyWitness {
 
 /// Native DL construct-coverage inventory for one reasoning run.
 ///
-/// `present` is the set of issue-#697 construct families found in the input
-/// bundle. `decided` is the subset the native Docker-free reasoner covered in
-/// this run. `unsupported` is a hard defect: callers surface it through
-/// [`DlVerdict::gaps`] and gates fail on it.
+/// `present` is the set of issue-#697 construct families whose IRI appears in
+/// the input bundle. `decided` is the subset the native Docker-free reasoner
+/// can **genuinely** decide the consistency consequences of — i.e. every
+/// present instance either produced its defined consequence or is provably
+/// complete by construction (see [`classify_coverage`]). `unsupported` is
+/// `present \ decided`: a present construct the native path cannot honestly
+/// decide. Callers surface `unsupported` through [`DlVerdict::gaps`] and gates
+/// fail on it.
+///
+/// Honesty doctrine: a match-arm existing for a construct is **not** sufficient
+/// for `decided`. An inert or incomplete handler (e.g. `owl:someValuesFrom`
+/// that does no existential generation, or a cardinality clash that only fires
+/// under an explicit `owl:differentFrom`/`max 0`) leaves its construct
+/// `unsupported`. Coverage tells the truth; closing those gaps for real is a
+/// separate step (Gap B).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DlCoverage {
     pub present: Vec<String>,
@@ -528,14 +552,66 @@ fn has_fact(
     ))
 }
 
-fn pairwise_different(facts: &BTreeSet<Fact>, world: &str, fillers: &[String]) -> bool {
+/// A scoped Skolem witness IRI for an existential filler — the chase's
+/// value-invention (tuple-generating dependency) discipline (SEMANTICS:27,
+/// LOGIC-IR.md:66-72).
+///
+/// The witness identity is a *deterministic, content-addressed* function of the
+/// scope `(world, property, filler_class, ordinal)` — deliberately **not** the
+/// parent individual. This is the **termination guarantee** (restricted-chase
+/// blocking by class-set, the canonical approach in #697): an obligation
+/// `≥n p.D` in `world` always discharges to the *same* `n` witnesses
+/// `w₀…wₙ₋₁` regardless of which individual raised it, so a cyclic axiom like
+/// `D ⊑ ∃p.D` reuses the witness it already invented (`p(w_D, w_D')` where
+/// `w_D'` already exists) instead of inventing a fresh chain — the witness pool
+/// per `(world, property, filler_class)` is finite, so [`add_inferred_fact`]'s
+/// `BTreeSet::insert` saturates and the fixpoint loop terminates. Distinct
+/// ordinals yield distinct IRIs, giving the `n` distinct fillers a `≥n`
+/// obligation needs.
+///
+/// We reuse the project Skolem namespace ([`crate::encode::SKOLEM_PREFIX`]) so the
+/// witness is indistinguishable from a Skolemized blank node downstream.
+fn witness_iri(world: &str, property: &str, filler_class: &str, ordinal: usize) -> String {
+    let key = format!("dl-exists\u{1f}{world}\u{1f}{property}\u{1f}{filler_class}\u{1f}{ordinal}");
+    skolem_iri(&key)
+}
+
+/// True iff `a` and `b` are provably distinct individuals under the bundle's
+/// identity stance.
+///
+/// The native path adopts the standard well-behaved policy declared as a
+/// unique-name *contract assumption* (SEMANTICS:368, "two distinct values via an
+/// inequality guard", SEMANTICS:488): two **named** resources with different IRIs
+/// are distinct unless explicitly merged by `owl:sameAs`. Chase witnesses carry
+/// fresh content-addressed IRIs and are therefore distinct from each other and
+/// from every named individual by construction — unless a `sameAs` fact merges
+/// them. An explicit `owl:differentFrom` also establishes distinctness (and is
+/// honored even were a same-IRI pathology to arise).
+fn distinct_individuals(facts: &BTreeSet<Fact>, world: &str, a: &str, b: &str) -> bool {
+    if a == b {
+        return false;
+    }
+    // An explicit `owl:differentFrom` is a hard distinctness assertion and wins
+    // even over a (contradictory) `owl:sameAs`.
+    if has_fact(facts, world, a, OWL_DIFFERENT_FROM, b)
+        || has_fact(facts, world, b, OWL_DIFFERENT_FROM, a)
+    {
+        return true;
+    }
+    if has_fact(facts, world, a, OWL_SAME_AS, b) || has_fact(facts, world, b, OWL_SAME_AS, a) {
+        return false;
+    }
+    true
+}
+
+/// True iff the `fillers` are pairwise distinct under the bundle's identity
+/// stance (UNA + `owl:sameAs` merges + explicit `owl:differentFrom`), i.e. they
+/// genuinely witness `>n` distinct property values without needing an explicit
+/// `owl:differentFrom` between every pair.
+fn pairwise_distinct(facts: &BTreeSet<Fact>, world: &str, fillers: &[String]) -> bool {
     for i in 0..fillers.len() {
         for j in (i + 1)..fillers.len() {
-            let a = &fillers[i];
-            let b = &fillers[j];
-            if !has_fact(facts, world, a, OWL_DIFFERENT_FROM, b)
-                && !has_fact(facts, world, b, OWL_DIFFERENT_FROM, a)
-            {
+            if !distinct_individuals(facts, world, &fillers[i], &fillers[j]) {
                 return false;
             }
         }
@@ -577,11 +653,34 @@ fn cardinality_minima(restriction: &Restriction) -> Vec<(usize, Option<&str>)> {
     minima
 }
 
+/// The existential-filler obligations a restriction imposes on each of its
+/// instances: `(needed, filler_class)` where `needed` distinct property fillers
+/// of type `filler_class` (or `⊤` when `None`) must exist.
+///
+/// `someValuesFrom D` is the qualified `≥1 p.D`; the cardinality *minima*
+/// (`cardinality`, `minCardinality`, `qualifiedCardinality`,
+/// `minQualifiedCardinality`) contribute their `≥n` lower bound, qualified by
+/// `onClass` when present. These are the obligations the chase discharges by
+/// inventing scoped Skolem witnesses ([`witness_iri`]).
+fn existential_obligations(restriction: &Restriction) -> Vec<(usize, Option<&str>)> {
+    let mut obligations: Vec<(usize, Option<&str>)> = Vec::new();
+    if let Some(class) = restriction.some_values_from.as_deref() {
+        obligations.push((1, Some(class)));
+    }
+    for (n, on_class) in cardinality_minima(restriction) {
+        if n > 0 {
+            obligations.push((n, on_class));
+        }
+    }
+    obligations
+}
+
 /// Add DL-only finite consistency consequences to the closure.
 ///
 /// The RL generic-triple engine owns positive entailment. This pass owns the DL
 /// checks that are not natural positive RL facts: complement/disjoint-union
-/// clashes, unsatisfiable restrictions, and known-distinct cardinality clashes.
+/// clashes, unsatisfiable restrictions, existential value-invention (the chase),
+/// and cardinality clashes under the bundle's identity stance.
 pub(crate) fn augment_inferred_with_dl(
     inferred: &mut Vec<InferredAxiom>,
     edb: &RdfDataset,
@@ -727,16 +826,25 @@ pub(crate) fn augment_inferred_with_dl(
                         &mut facts,
                         Fact::new(
                             fact.subject.clone(),
-                            super_property,
+                            super_property.clone(),
                             fact.object.clone(),
                             world.clone(),
                         ),
                         "dl:subPropertyOf-propagation",
-                        vec![(
-                            fact.predicate.clone(),
-                            RDFS_SUBPROPERTYOF.to_owned(),
-                            fact.object.clone(),
-                        )],
+                        vec![
+                            // schema axiom: predicate ⊑ super_property
+                            (
+                                fact.predicate.clone(),
+                                RDFS_SUBPROPERTYOF.to_owned(),
+                                super_property,
+                            ),
+                            // source assertion: s predicate o
+                            (
+                                fact.subject.clone(),
+                                fact.predicate.clone(),
+                                fact.object.clone(),
+                            ),
+                        ],
                     );
                 }
 
@@ -747,15 +855,20 @@ pub(crate) fn augment_inferred_with_dl(
                         Fact::new(
                             fact.subject.clone(),
                             RDF_TYPE.to_owned(),
-                            domain,
+                            domain.clone(),
                             world.clone(),
                         ),
                         "dl:domain",
-                        vec![(
-                            fact.predicate.clone(),
-                            RDFS_DOMAIN.to_owned(),
-                            fact.object.clone(),
-                        )],
+                        vec![
+                            // schema axiom: predicate rdfs:domain domain
+                            (fact.predicate.clone(), RDFS_DOMAIN.to_owned(), domain),
+                            // source assertion: s predicate o
+                            (
+                                fact.subject.clone(),
+                                fact.predicate.clone(),
+                                fact.object.clone(),
+                            ),
+                        ],
                     );
                 }
 
@@ -766,15 +879,20 @@ pub(crate) fn augment_inferred_with_dl(
                         Fact::new(
                             fact.object.clone(),
                             RDF_TYPE.to_owned(),
-                            range,
+                            range.clone(),
                             world.clone(),
                         ),
                         "dl:range",
-                        vec![(
-                            fact.predicate.clone(),
-                            RDFS_RANGE.to_owned(),
-                            fact.object.clone(),
-                        )],
+                        vec![
+                            // schema axiom: predicate rdfs:range range
+                            (fact.predicate.clone(), RDFS_RANGE.to_owned(), range),
+                            // source assertion: s predicate o
+                            (
+                                fact.subject.clone(),
+                                fact.predicate.clone(),
+                                fact.object.clone(),
+                            ),
+                        ],
                     );
                 }
 
@@ -809,16 +927,21 @@ pub(crate) fn augment_inferred_with_dl(
                         &mut facts,
                         Fact::new(
                             fact.object.clone(),
-                            inverse,
+                            inverse.clone(),
                             fact.subject.clone(),
                             world.clone(),
                         ),
                         "dl:inverseOf",
-                        vec![(
-                            fact.predicate.clone(),
-                            OWL_INVERSE_OF.to_owned(),
-                            fact.object.clone(),
-                        )],
+                        vec![
+                            // schema axiom: predicate owl:inverseOf inverse
+                            (fact.predicate.clone(), OWL_INVERSE_OF.to_owned(), inverse),
+                            // source assertion: s predicate o
+                            (
+                                fact.subject.clone(),
+                                fact.predicate.clone(),
+                                fact.object.clone(),
+                            ),
+                        ],
                     );
                 }
             }
@@ -1043,6 +1166,14 @@ pub(crate) fn augment_inferred_with_dl(
                     let fillers: Vec<String> = objects_for(&index, world, subject, property)
                         .into_iter()
                         .collect();
+
+                    // ── max-cardinality / exact clash under the identity stance ──
+                    // A clash needs `> max` fillers that must be *distinct* given
+                    // the bundle's identity facts. Anti-merge: under the declared
+                    // UNA assumption, named individuals with different IRIs are
+                    // distinct unless `owl:sameAs`-merged, so no explicit
+                    // `owl:differentFrom` is required (Gap B). `max == 0` clashes
+                    // on a single filler regardless.
                     for (max, on_class) in cardinality_maxima(restriction) {
                         let counted: Vec<String> = match on_class {
                             Some(class) => fillers
@@ -1053,7 +1184,7 @@ pub(crate) fn augment_inferred_with_dl(
                             None => fillers.clone(),
                         };
                         if counted.len() > max
-                            && (max == 0 || pairwise_different(&facts, world, &counted))
+                            && (max == 0 || pairwise_distinct(&facts, world, &counted))
                         {
                             add_inferred_fact(
                                 inferred,
@@ -1067,6 +1198,79 @@ pub(crate) fn augment_inferred_with_dl(
                                 "dl:max-cardinality-clash",
                                 vec![],
                             );
+                        }
+                    }
+
+                    // ── existential value-invention (the chase) ─────────────────
+                    // For each existential obligation `≥needed p.D` whose distinct
+                    // qualifying fillers fall short, invent scoped Skolem witnesses
+                    // (TGD value-invention) and assert `p(x,w)` + `type(w,D)`. The
+                    // witness identity is content-addressed on
+                    // (world,x,property,class,ordinal) — so re-firing re-derives
+                    // the SAME witness and the fixpoint terminates (no regenerated
+                    // anonymous individuals). The all-values / disjoint clash rules
+                    // then saturate the witness and surface ∃p.C ⊓ ∀p.D clashes.
+                    for (needed, on_class) in existential_obligations(restriction) {
+                        let filler_class = on_class.unwrap_or(OWL_NOTHING);
+                        // Count the distinct qualifying fillers x already has.
+                        let qualifying: Vec<String> = match on_class {
+                            Some(class) => fillers
+                                .iter()
+                                .filter(|filler| has_fact(&facts, world, filler, RDF_TYPE, class))
+                                .cloned()
+                                .collect(),
+                            // Unqualified `≥n p.⊤`: any filler counts.
+                            None => fillers.clone(),
+                        };
+                        if !pairwise_distinct(&facts, world, &qualifying) {
+                            // Existing fillers are not provably distinct (a
+                            // `sameAs` merge collapses them); the obligation may be
+                            // met by overlap, so do not over-invent.
+                            continue;
+                        }
+                        let have = qualifying.len();
+                        if have >= needed {
+                            continue;
+                        }
+                        for ordinal in have..needed {
+                            let witness = witness_iri(world, property, filler_class, ordinal);
+                            // p(x, witness)
+                            add_inferred_fact(
+                                inferred,
+                                &mut facts,
+                                Fact::new(
+                                    subject.clone(),
+                                    property.to_owned(),
+                                    witness.clone(),
+                                    world.clone(),
+                                ),
+                                "dl:exists-witness-edge",
+                                vec![(
+                                    restriction_key.clone(),
+                                    OWL_ON_PROPERTY.to_owned(),
+                                    property.to_owned(),
+                                )],
+                            );
+                            // type(witness, D) — only for a qualified obligation;
+                            // an unqualified `≥n p.⊤` invents an untyped witness.
+                            if let Some(class) = on_class {
+                                add_inferred_fact(
+                                    inferred,
+                                    &mut facts,
+                                    Fact::new(
+                                        witness.clone(),
+                                        RDF_TYPE.to_owned(),
+                                        class.to_owned(),
+                                        world.clone(),
+                                    ),
+                                    "dl:exists-witness-type",
+                                    vec![(
+                                        restriction_key.clone(),
+                                        OWL_SOME_VALUES_FROM.to_owned(),
+                                        class.to_owned(),
+                                    )],
+                                );
+                            }
                         }
                     }
                 }
@@ -1284,10 +1488,15 @@ pub(crate) fn verdict_from_inferred(
     })
 }
 
-/// Scan the input `edb` quads for the #697 construct families and report native
-/// coverage. Every construct in [`CONSTRUCT_COVERAGE`] is decided by the
-/// predicate-as-DATA + DL-postprocess path; an unsupported construct would be a
-/// hard defect and surface through `DlVerdict::gaps`.
+/// Scan the input `edb` for the #697 construct families and report **honest**
+/// native coverage.
+///
+/// `present` lists the families whose IRI appears in the bundle (as a predicate
+/// or as an IRI object — restriction fillers ride the object position).
+/// `decided` is the subset [`classify_coverage`] proves the native post-pass
+/// genuinely decides over the *actual* instances; `unsupported` is the residual
+/// `present \ decided`. A present-but-undecided construct is **not** relabelled
+/// as covered — it surfaces through [`DlVerdict::gaps`] and gates fail on it.
 ///
 /// # Errors
 ///
@@ -1306,20 +1515,263 @@ fn scan_coverage(edb: &RdfDataset) -> Result<DlCoverage, String> {
 
     let mut present: Vec<String> = Vec::new();
     for &(iri, _name, suffix) in CONSTRUCT_COVERAGE {
-        // A construct is present if its IRI appears as a predicate or object of
-        // any quad in any graph (restriction fillers ride the object position).
         if !present_iris.contains(iri) {
             continue;
         }
         present.push(suffix.to_owned());
     }
     present.sort();
-    let decided = present.clone();
+    present.dedup();
+
+    // Empirically classify which of the present families the native post-pass
+    // can genuinely decide over the real instances.
+    let decided_set = classify_coverage(edb, &present);
+    let mut decided: Vec<String> = present
+        .iter()
+        .filter(|name| decided_set.contains(name.as_str()))
+        .cloned()
+        .collect();
+    decided.sort();
+    let mut unsupported: Vec<String> = present
+        .iter()
+        .filter(|name| !decided_set.contains(name.as_str()))
+        .cloned()
+        .collect();
+    unsupported.sort();
+
     Ok(DlCoverage {
         present,
         decided,
-        unsupported: vec![],
+        unsupported,
     })
+}
+
+/// Honestly classify which present construct families the native DL post-pass
+/// genuinely decides, returning the set of decided family suffixes.
+///
+/// "Genuinely decided" means the native path can determine the construct's
+/// consistency consequences over **every** present instance — not merely that a
+/// match-arm exists. The classifier inspects the actual restrictions/lists in
+/// the bundle (the same data [`augment_inferred_with_dl`] reads) and applies a
+/// per-family honesty rule:
+///
+/// - `complementOf`, `domain`, `range`, `allValuesFrom`, `hasValue` — the
+///   handler emits its defined consequence for every instance with no missing
+///   sub-case (∀-restrictions and hasValue need no fresh individuals; domain/
+///   range/complement are unconditional). Decided when present.
+/// - `unionOf`, `disjointUnionOf`, `oneOf` — list-backed; decided iff **every**
+///   instance resolves to a non-empty RDF list (a dangling/empty list is not
+///   handled and so is not decided).
+/// - `propertyChainAxiom` — the handler only composes chains of **exactly
+///   length 2**; decided iff every present chain is a resolvable 2-list.
+/// - `someValuesFrom` — the chase invents a scoped Skolem witness for `∃p.D`
+///   (value invention, [`witness_iri`]), types it `D`, saturates it through the
+///   EL/DL rules, and surfaces `∃p.C ⊓ ∀p.D` clashes. Decided iff every present
+///   `∃` restriction has a resolvable `onProperty` and filler class so the
+///   witness can be generated (Gap B).
+/// - the cardinality family (`cardinality`, `min`/`maxCardinality`,
+///   `qualifiedCardinality`, `min`/`maxQualifiedCardinality`) — minima generate
+///   the required distinct witnesses (the same chase); maxima clash via counting
+///   plus the **identity-stance anti-merge** (UNA with `owl:sameAs` merges and
+///   `owl:differentFrom`), no longer requiring an explicit `owl:differentFrom`
+///   between every pair. Decided iff every present cardinality instance has a
+///   parseable bound and a resolvable `onProperty` (and `onClass` for the
+///   qualified families).
+fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
+    let present_set: BTreeSet<&str> = present.iter().map(String::as_str).collect();
+    let restrictions = read_restrictions(edb);
+    let lists = read_lists(edb);
+    let mut decided: BTreeSet<String> = BTreeSet::new();
+
+    // Unconditionally-complete families: the handler emits its consequence for
+    // every instance and has no missing sub-case.
+    for family in [
+        "complementOf",
+        "domain",
+        "range",
+        "allValuesFrom",
+        "hasValue",
+    ] {
+        if present_set.contains(family) {
+            decided.insert(family.to_owned());
+        }
+    }
+
+    // List-backed enumeration/union families: decided iff every present instance
+    // resolves to a non-empty RDF list the post-pass can walk.
+    for (family, iri) in [
+        ("unionOf", OWL_UNION_OF),
+        ("disjointUnionOf", OWL_DISJOINT_UNION_OF),
+        ("oneOf", OWL_ONE_OF),
+    ] {
+        if !present_set.contains(family) {
+            continue;
+        }
+        if all_list_instances_resolve(edb, iri, &lists) {
+            decided.insert(family.to_owned());
+        }
+    }
+
+    // owl:propertyChainAxiom: only length-2 resolvable chains are composed.
+    if present_set.contains("propertyChainAxiom") && all_property_chains_are_binary(edb, &lists) {
+        decided.insert("propertyChainAxiom".to_owned());
+    }
+
+    // someValuesFrom: the chase invents a witness for every well-formed `∃p.D`.
+    // Decided iff every present `∃` restriction has a resolvable onProperty and
+    // filler class (Gap B value-invention).
+    if present_set.contains("someValuesFrom")
+        && all_some_values_from_instances_decidable(&restrictions)
+    {
+        decided.insert("someValuesFrom".to_owned());
+    }
+
+    // Cardinality family: minima generate distinct witnesses, maxima clash via
+    // counting + identity-stance anti-merge. Decided iff every present instance
+    // is well-formed for the relevant generation/clash (Gap B).
+    for family in [
+        "cardinality",
+        "minCardinality",
+        "maxCardinality",
+        "qualifiedCardinality",
+        "minQualifiedCardinality",
+        "maxQualifiedCardinality",
+    ] {
+        if present_set.contains(family)
+            && all_cardinality_instances_decidable(edb, &restrictions, family)
+        {
+            decided.insert(family.to_owned());
+        }
+    }
+
+    decided
+}
+
+/// True iff every `owl:someValuesFrom` restriction is well-formed enough for the
+/// chase to discharge it: it carries an `onProperty` and a resolvable
+/// (IRI/bnode) filler class. A literal or absent filler/property is not a shape
+/// the value-invention handler generates for, so it stays undecided.
+fn all_some_values_from_instances_decidable(
+    restrictions: &HashMap<(String, String), Restriction>,
+) -> bool {
+    let mut saw_instance = false;
+    for restriction in restrictions.values() {
+        if restriction.some_values_from.is_none() {
+            continue;
+        }
+        saw_instance = true;
+        if restriction.on_property.is_none() || restriction.some_values_from.is_none() {
+            return false;
+        }
+    }
+    saw_instance
+}
+
+/// True iff every quad whose predicate is `list_predicate` points at a resolved,
+/// non-empty RDF list (so the union/oneOf/disjointUnion handler can walk it).
+fn all_list_instances_resolve(
+    edb: &RdfDataset,
+    list_predicate: &str,
+    lists: &HashMap<(String, String), Vec<String>>,
+) -> bool {
+    let mut saw_instance = false;
+    for (_subject, predicate, object, world) in quads_by_subject(edb) {
+        if predicate != list_predicate {
+            continue;
+        }
+        let Some(root) = term_resource_key(&object) else {
+            return false;
+        };
+        saw_instance = true;
+        match lists.get(&(world, root)) {
+            Some(members) if !members.is_empty() => {}
+            _ => return false,
+        }
+    }
+    saw_instance
+}
+
+/// True iff every `owl:propertyChainAxiom` instance is a resolvable list of
+/// exactly two properties (the only shape the post-pass composes).
+fn all_property_chains_are_binary(
+    edb: &RdfDataset,
+    lists: &HashMap<(String, String), Vec<String>>,
+) -> bool {
+    let mut saw_instance = false;
+    for (_subject, predicate, object, world) in quads_by_subject(edb) {
+        if predicate != OWL_PROPERTY_CHAIN_AXIOM {
+            continue;
+        }
+        let Some(root) = term_resource_key(&object) else {
+            return false;
+        };
+        saw_instance = true;
+        match lists.get(&(world, root)) {
+            Some(members) if members.len() == 2 => {}
+            _ => return false,
+        }
+    }
+    saw_instance
+}
+
+/// True iff every restriction carrying the cardinality `family` is in the
+/// genuinely-decidable sub-case for the native handler (Gap B).
+///
+/// A cardinality instance is decidable when the chase can act on it: it has a
+/// **parseable** non-negative integer bound and a resolvable `onProperty`, and —
+/// for the qualified families — a resolvable `onClass`. Given that shape:
+/// - a *minimum* (`min`/exact/`qualified`/`minQualified`) discharges by inventing
+///   the required distinct Skolem witnesses ([`witness_iri`]);
+/// - a *maximum* (`max`/exact/`qualified`/`maxQualified`) clashes by counting
+///   distinct fillers under the identity-stance anti-merge ([`pairwise_distinct`]).
+///
+/// An unparsable bound, a missing `onProperty`, or a qualified restriction with
+/// no `onClass` is a shape the handler cannot act on, so it stays undecided
+/// (honesty over green) and surfaces as a gap.
+fn all_cardinality_instances_decidable(
+    edb: &RdfDataset,
+    restrictions: &HashMap<(String, String), Restriction>,
+    family: &str,
+) -> bool {
+    let (predicate_iri, qualified) = match family {
+        "cardinality" => (OWL_CARDINALITY, false),
+        "minCardinality" => (OWL_MIN_CARDINALITY, false),
+        "maxCardinality" => (OWL_MAX_CARDINALITY, false),
+        "qualifiedCardinality" => (OWL_QUALIFIED_CARDINALITY, true),
+        "minQualifiedCardinality" => (OWL_MIN_QUALIFIED_CARDINALITY, true),
+        "maxQualifiedCardinality" => (OWL_MAX_QUALIFIED_CARDINALITY, true),
+        _ => return false,
+    };
+    // Scan the raw quads (not the parsed restrictions) so an *unparsable* bound
+    // literal is caught as undecided rather than silently skipped.
+    let mut saw_instance = false;
+    for (subject, predicate, _object, world) in quads_by_subject(edb) {
+        if predicate != predicate_iri {
+            continue;
+        }
+        saw_instance = true;
+        let Some(restriction) = restrictions.get(&(world, subject)) else {
+            return false;
+        };
+        let bound = match family {
+            "cardinality" => restriction.cardinality,
+            "minCardinality" => restriction.min_cardinality,
+            "maxCardinality" => restriction.max_cardinality,
+            "qualifiedCardinality" => restriction.qualified_cardinality,
+            "minQualifiedCardinality" => restriction.min_qualified_cardinality,
+            "maxQualifiedCardinality" => restriction.max_qualified_cardinality,
+            _ => None,
+        };
+        // Unparsable bound, missing onProperty, or (qualified) missing onClass:
+        // the handler cannot generate/count, so the instance stays undecided.
+        if bound.is_none() || restriction.on_property.is_none() {
+            return false;
+        }
+        if qualified && restriction.on_class.is_none() {
+            return false;
+        }
+    }
+    saw_instance
 }
 
 #[cfg(test)]
@@ -1340,6 +1792,7 @@ mod tests {
     const B: &str = "http://gmeow.example/B";
     const C: &str = "http://gmeow.example/C";
     const R: &str = "http://gmeow.example/R";
+    const S: &str = "http://gmeow.example/S";
     const P: &str = "http://gmeow.example/p";
     const X: &str = "http://gmeow.example/x";
     const Y: &str = "http://gmeow.example/y";
@@ -1439,22 +1892,326 @@ mod tests {
     }
 
     #[test]
-    fn union_of_is_decided_not_a_gap() {
+    fn union_of_with_resolvable_list_is_decided_not_a_gap() {
         // owl:unionOf is a positive finite class-expression consequence in the
-        // predicate-as-DATA path; its presence must not emit a DlGap.
-        let store = dataset(vec![quad(A, super::OWL_UNION_OF, B)]);
+        // predicate-as-DATA path *when its list resolves*: A = unionOf (B C).
+        // Its presence with a walkable list must not emit a DlGap.
+        const FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+        const REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+        const NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+        let l0 = "http://gmeow.example/l0";
+        let l1 = "http://gmeow.example/l1";
+        let store = dataset(vec![
+            quad(A, super::OWL_UNION_OF, l0),
+            quad(l0, FIRST, B),
+            quad(l0, REST, l1),
+            quad(l1, FIRST, C),
+            quad(l1, REST, NIL),
+        ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
 
         assert!(verdict.consistent, "bare union axiom is consistent");
         assert!(
             verdict.gaps.is_empty(),
-            "owl:unionOf is decided natively, not a gap: {:?}",
+            "owl:unionOf with a resolvable list is decided natively, not a gap: {:?}",
             verdict.gaps
         );
         assert!(
             verdict.coverage.present.contains(&"unionOf".to_owned()),
             "coverage records unionOf as present: {:?}",
             verdict.coverage
+        );
+        assert!(
+            verdict.coverage.decided.contains(&"unionOf".to_owned()),
+            "coverage records unionOf as decided: {:?}",
+            verdict.coverage
+        );
+    }
+
+    const SOME_VALUES_FROM: &str = "http://www.w3.org/2002/07/owl#someValuesFrom";
+    const QUALIFIED_CARDINALITY: &str = "http://www.w3.org/2002/07/owl#qualifiedCardinality";
+    const MIN_QUALIFIED_CARDINALITY: &str = "http://www.w3.org/2002/07/owl#minQualifiedCardinality";
+    const ON_CLASS: &str = "http://www.w3.org/2002/07/owl#onClass";
+    const SAME_AS: &str = "http://www.w3.org/2002/07/owl#sameAs";
+    const D: &str = "http://gmeow.example/D";
+    const Z: &str = "http://gmeow.example/z";
+
+    #[test]
+    fn exists_p_c_and_all_p_d_with_disjoint_c_d_is_inconsistent() {
+        // GAP B keystone — the case the old inert handler missed.
+        // R = ∃p.C, S = ∀p.D, C disjointWith D, x : R, x : S, NO asserted filler.
+        // The chase must invent a scoped witness w with p(x,w) and type(w,C);
+        // ∀p.D then types w as D; C disjoint D ⇒ w : owl:Nothing ⇒ INCONSISTENT.
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            quad(R, SOME_VALUES_FROM, C),
+            quad(S, ON_PROPERTY, P),
+            quad(S, ALL_VALUES_FROM, D),
+            quad(C, DISJOINT, D),
+            quad(X, TYPE, R),
+            quad(X, TYPE, S),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            !verdict.consistent,
+            "∃p.C ⊓ ∀p.D with C⊓D⊑⊥ must be inconsistent via an invented witness: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(
+            verdict
+                .inconsistencies
+                .iter()
+                .any(|w| w.individual.starts_with(crate::encode::SKOLEM_PREFIX)),
+            "the inconsistency witness must be the invented Skolem filler: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "someValuesFrom is now genuinely decided — no gap: {:?}",
+            verdict.gaps
+        );
+    }
+
+    #[test]
+    fn some_values_from_satisfiable_filler_is_consistent_and_terminates() {
+        // R = ∃p.C, x : R, no disjointness anywhere. The chase invents w, types
+        // it C, and reaches a fixed point WITHOUT regenerating witnesses
+        // (content-addressed identity). If termination were broken this test
+        // would hang rather than fail — its mere completion is the witness.
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            quad(R, SOME_VALUES_FROM, C),
+            quad(X, TYPE, R),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(verdict.consistent, "a satisfiable ∃p.C is consistent");
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .contains(&"someValuesFrom".to_owned()),
+            "someValuesFrom is decided: {:?}",
+            verdict.coverage
+        );
+        assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
+    }
+
+    #[test]
+    fn cyclic_some_values_from_terminates() {
+        // C ⊑ ∃p.C (R = ∃p.C, C ⊑ R). x : C forces a witness w typed C, which is
+        // therefore R, which needs a p-filler of type C — the SAME class-set in
+        // the SAME world, so the witness pool is reused (no fresh chain). The
+        // restricted-chase blocking by class-set guarantees this terminates; the
+        // test completing at all is the termination proof.
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            quad(R, SOME_VALUES_FROM, C),
+            quad(C, SUBCLASS, R),
+            quad(X, TYPE, C),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(verdict.consistent, "cyclic but satisfiable ∃ is consistent");
+        assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
+    }
+
+    #[test]
+    fn max_one_with_two_distinct_fillers_clashes_under_una() {
+        // R = ≤1 p (maxCardinality 1), x : R, x p y, x p z, y ≠ z by UNA (distinct
+        // IRIs, no sameAs). The identity-stance anti-merge must clash WITHOUT any
+        // explicit owl:differentFrom ⇒ INCONSISTENT.
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MAX_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            quad(X, TYPE, R),
+            quad(X, P, Y),
+            quad(X, P, Z),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            !verdict.consistent,
+            "two distinct fillers under ≤1 must clash by UNA: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .contains(&"maxCardinality".to_owned()),
+            "positive maxCardinality is now decided: {:?}",
+            verdict.coverage
+        );
+        assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
+    }
+
+    #[test]
+    fn max_one_with_mergeable_fillers_is_consistent() {
+        // Same ≤1 p, but y owl:sameAs z merges the two fillers ⇒ NOT distinct ⇒
+        // no clash ⇒ CONSISTENT. Proves the anti-merge is real, not a count of
+        // raw IRIs.
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MAX_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            quad(X, TYPE, R),
+            quad(X, P, Y),
+            quad(X, P, Z),
+            quad(Y, SAME_AS, Z),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            verdict.consistent,
+            "mergeable fillers (sameAs) must NOT clash under ≤1: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
+    }
+
+    #[test]
+    fn min_qualified_two_generates_two_distinct_witnesses_and_terminates() {
+        // R = ≥2 p.C (minQualifiedCardinality 2, onClass C), x : R, no asserted
+        // filler. The chase must invent TWO distinct witnesses w0,w1 both typed C
+        // and both p-fillers of x. Consistent, terminating, and the ≥2 obligation
+        // is then met (so re-running invents nothing new).
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            quad(R, ON_CLASS, C),
+            literal_quad(R, MIN_QUALIFIED_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
+            quad(X, TYPE, R),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(verdict.consistent, "a satisfiable ≥2 p.C is consistent");
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .contains(&"minQualifiedCardinality".to_owned()),
+            "minQualifiedCardinality is decided: {:?}",
+            verdict.coverage
+        );
+        assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
+    }
+
+    #[test]
+    fn min_two_then_max_one_qualified_clashes() {
+        // R = ≥2 p.C AND ≤1 p.C on the same restriction (minQualifiedCardinality 2
+        // + qualifiedCardinality... use min 2 + maxCardinality 1 unqualified for a
+        // crisp clash). The min generates 2 distinct C-witnesses, the max-1 then
+        // counts 2 distinct fillers ⇒ clash ⇒ INCONSISTENT. Demonstrates the
+        // generation and counting interlock.
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            quad(R, ON_CLASS, C),
+            literal_quad(R, MIN_QUALIFIED_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
+            literal_quad(R, MAX_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            quad(X, TYPE, R),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            !verdict.consistent,
+            "≥2 p.C with ≤1 p must clash after witness generation: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
+    }
+
+    #[test]
+    fn qualified_cardinality_one_with_two_distinct_c_fillers_clashes() {
+        // R = =1 p.C (qualifiedCardinality 1, onClass C), x : R, x p y, x p z,
+        // y:C, z:C, y≠z by UNA ⇒ the =1 maximum clashes ⇒ INCONSISTENT.
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            quad(R, ON_CLASS, C),
+            literal_quad(R, QUALIFIED_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            quad(X, TYPE, R),
+            quad(X, P, Y),
+            quad(X, P, Z),
+            quad(Y, TYPE, C),
+            quad(Z, TYPE, C),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            !verdict.consistent,
+            "=1 p.C with two distinct C-fillers must clash: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .contains(&"qualifiedCardinality".to_owned()),
+            "qualifiedCardinality is decided: {:?}",
+            verdict.coverage
+        );
+        assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
+    }
+
+    #[test]
+    fn unparseable_cardinality_bound_stays_unsupported_so_the_gate_can_fire() {
+        // The gate must still be able to fire for a genuinely-undecidable case.
+        // A maxCardinality whose literal is NOT a non-negative integer cannot be
+        // acted on by the handler, so it stays `unsupported` → a non-empty gaps,
+        // proving the gate is not dead code.
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            literal_quad(
+                R,
+                MAX_CARDINALITY,
+                "not-a-number",
+                "http://www.w3.org/2001/XMLSchema#string",
+            ),
+            quad(X, TYPE, R),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            verdict
+                .coverage
+                .unsupported
+                .contains(&"maxCardinality".to_owned()),
+            "an unparsable cardinality bound is not genuinely decided: {:?}",
+            verdict.coverage
+        );
+        assert!(
+            !verdict.gaps.is_empty(),
+            "an undecidable cardinality instance must yield a gap so the gate can fire: {:?}",
+            verdict.gaps
+        );
+        assert!(
+            verdict
+                .gaps
+                .iter()
+                .any(|g| g.code == "reason.dl-gap.maxCardinality"),
+            "gaps must name the undecided construct: {:?}",
+            verdict.gaps
+        );
+    }
+
+    #[test]
+    fn some_values_from_without_on_property_stays_unsupported() {
+        // A malformed ∃ restriction (someValuesFrom but no onProperty) cannot be
+        // discharged by the chase, so someValuesFrom stays unsupported → gap.
+        let store = dataset(vec![quad(R, SOME_VALUES_FROM, C), quad(X, TYPE, R)]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            verdict
+                .coverage
+                .unsupported
+                .contains(&"someValuesFrom".to_owned()),
+            "a someValuesFrom with no onProperty is not decidable: {:?}",
+            verdict.coverage
+        );
+        assert!(
+            !verdict.gaps.is_empty(),
+            "must yield a gap: {:?}",
+            verdict.gaps
         );
     }
 
