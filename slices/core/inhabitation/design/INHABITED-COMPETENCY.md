@@ -19,7 +19,7 @@
 | 2 | Which host/deployment/persona/embodiment/memory view at time T? | **specified** (was "answered") | needs `InhabitationConfiguration` time-scoped facets; a single tenure could not resolve a mid-tenure facet change |
 | 3 | Two simultaneous sessions: same subject or shared model? | **specified** | the subject-stage / model-artifact split discriminates; needs the corpus to demonstrate |
 | 4 | Which claims/memories/intentions crossed a migration boundary? | **partial** | needs `TransferManifest` / derivation evidence; recurrence is not crossing |
-| 5 | Tool call via passive capability or delegated agent? | **open** | an `ActionSchema` describes a *possible* action; it does not record that a passive resource *was used* — a usage record is still missing |
+| 5 | Tool call via passive capability or delegated agent? | **specified** (was "open") | resolved without a wrapper class: a `gmeow:usedCapability` edge → `ActionSchema` is passive use; a `gmeow:ToolCall` → `usedTool` → `SoftwareAgent` is delegation ([`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md#capability-use-versus-delegation-cq5)) |
 | 6 | Which artifact/deployment/runtime/session/invocation produced an output? | **partial** | needs the explicit `ModelDeployment` / `RuntimeExecution` identities (now specified) wired through provenance |
 | 7 | Can the subject cease inhabiting one system while existing elsewhere? | **specified** | the subject status is a `RoleMixin` borne over a tenure, independent of any one inhabitation |
 | 8 | Who was controlling at T (co-tenancy)? | **open → specified** | needs `ControlAssessment`; the first draft's deception-divergence reuse did not record control |
@@ -64,13 +64,25 @@ empty — the relationship lives only inside an `InhabitationClaim`
 | `actor-as-character.ttl` | fictional profile | `aboutnessEnacts`; documented as role enactment, **not** host occupation |
 | `corporation-officers.ttl` | legal profile | direction of dependence documented (officer represents corporation) |
 
+## Performance: the upper-projection requirement
+
+CQ2 (active-at-T) and CQ6 (the provenance chain) are *correct* over the nested situations but **slow**:
+they are 8–10 hop traversals with nested time-interval overlaps. The conformance corpus therefore
+includes the **flat upper-projection** (`gmeow:generatedForSubject`, `gmeow:generatedUnderConfiguration`)
+as a Datalog-computed, drift-gated artifact (Principle 12 / 7,
+[`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md#upper-projections-the-flat-shortcut-principle-12)).
+A `perf-recall.ttl` fixture asserts that real-time recall resolves via the one-hop shortcut, and an
+`audit.rq` asserts the full nested path still yields the same subject — the projection and the canon
+must agree.
+
 ## Remaining open items
 
-- **CQ5 tool usage** needs a usage/exercise record for passive capabilities (an `ActionSchema` is a
-  description, not a use). Proposed: a thin `gmeow:CapabilityExercise` record, or reuse of an existing
-  activity-with-participant idiom — to be settled with the authority.
-- **CQ4 transfer** needs the `TransferManifest` vs per-claim-derivation choice pinned, and a
-  partial-migration policy (what crosses by default) — plausibly a projection concern.
+- **CQ4 transfer** is now coarse-by-default (the `TransferManifest` references a `MemoryView` /
+  named-graph checkpoint; per-item `wasDerivedFrom` only for items modified in the transition). The
+  partial-migration *policy* (what is carried by default) remains a projection-layer choice to pin.
+- **CQ8 / the standpoint priority rule** for memory-mutation authorization is specified as an AI-profile
+  runtime policy ([`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md#the-standpoint-priority-rule-operational)),
+  not a canonical-graph axiom; the exact priority order (signed-vantage precedence) is for the authority.
 - The constant-configuration invariant (CQ2) must be a tested SHACL shape, not an assumption.
 
 ## Scope and seams

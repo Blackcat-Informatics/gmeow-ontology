@@ -25,10 +25,11 @@
 | [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md) | correction record | the foundational review's verified evidence, the seven reopened decisions, and the revised term inventory — **authoritative** where a sibling still shows a first-draft form |
 | [`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md) | appendix | the three sources and the by-reference externals — staged for the `metadata/references.ttl` ledger |
 
-> **This set is a revised draft.** A foundational review found the first draft's core stereotypes
-> inconsistent with the GMEOW foundation; the corrections are folded in and recorded in
-> [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md). The `module.ttl` is not authored until the authority
-> confirms the revised shape.
+> **Status: ratified, with one gating item.** Three foundational reviews refined this set; the
+> corrections and the round-3 ratification are recorded in [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md).
+> The architecture is approved for implementation: the minimal `core/inhabitation` `module.ttl` may be
+> authored now, while the AI and expression **profiles** wait on a build-pipeline `tierProfile`
+> registry hook ([`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md#the-gating-item-the-profile-tier-registry-hook-blocking)).
 >
 > **Reading this design set.** The declarative present tense is normative: "X is" means a conforming
 > realization implements X, established by the conformance corpus

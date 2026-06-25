@@ -57,10 +57,30 @@ policy cannot yet *represent* a profile that composes a core slice with extensio
 the packaging architecture to raise explicitly (a `profile/` tier, or extension profiles), not a
 reason to hide the dependency inside a core slice.
 
-> **Open for the authority:** whether GMEOW grows an explicit `profile/` tier for compositions like
-> these, or whether the AI and expression material lives in extension slices that depend on
-> `core/inhabitation`. Either represents the dependency honestly; the first draft's "by reference"
-> framing did not.
+### The gating item: the profile-tier registry hook (blocking)
+
+The second-round ratification is **subject to one resolution**: the build pipeline must recognize the
+profile tier, or developers will later collapse the profiles back into core to satisfy the DAG
+validator — re-creating the dependency-laundering this split removes.
+
+Concretely, `slices/vocabulary.ttl` currently declares only `gmeow:tierCore` and `gmeow:tierExtension`
+as `gmeow:SliceTier` individuals. The resolution is to add a third:
+
+```turtle
+gmeow:tierProfile a gmeow:SliceTier ;
+    rdfs:label "profile"@x-gmeow-english ;
+    skos:definition "A composition tier: a slice that composes a core slice with one or more extension
+        surfaces, depended on by neither core nor a peer extension. Profiles MAY depend on core and on
+        extensions; nothing depends on a profile." .
+```
+
+and to teach the registry / DAG validator the profile dependency rule: **a `tierProfile` slice may
+depend on core and extension slices; no core or extension slice may depend on a profile.** That keeps
+the acyclic guarantee (profiles are leaves) while letting `profile/inhabitation-ai` and
+`profile/inhabitation-expression` legitimately compose `core/inhabitation` with `ai`/`norms`. This is
+an infrastructure decision for the authority; until it lands, the AI and expression material is blocked
+from authoring (it has nowhere DAG-legal to live), but the **minimal core does not depend on it** and
+can proceed.
 
 ## The decisions, after the foundational review
 

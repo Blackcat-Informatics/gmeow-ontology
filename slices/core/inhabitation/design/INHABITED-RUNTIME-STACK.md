@@ -147,21 +147,84 @@ regenerated independently. Migration content rides explicit evidence:
 gmeow:TransferManifest
     a logic:Kind , owl:Class ;
     rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "The record of what was transferred across an inhabitation transition — the
-        claims, memories, and intentions carried from the prior tenure to the next, each linked by
-        derivation provenance (gmeow:wasDerivedFrom) to its pre-transition origin. A claim 'crossed'
-        the boundary iff the manifest records it, or its post-transition form wasDerivedFrom its
-        pre-transition form; mere recurrence is not crossing." .
+    skos:definition "The record of what was transferred across an inhabitation transition. To avoid
+        doubling the memory graph at every migration, the manifest references the transferred state at
+        a COARSE grain — a gmeow:MemoryView individual or a named-graph checkpoint URI — rather than a
+        per-item edge for every carried claim. Only items actually MODIFIED during the transition
+        receive an explicit gmeow:wasDerivedFrom edge to their pre-transition form. A claim 'crossed'
+        the boundary iff it is within the manifest's referenced view (carried unchanged) or its
+        post-transition form wasDerivedFrom its pre-transition form (carried modified); mere recurrence
+        is not crossing." .
 
 ex:migration-7 gmeow:hasTransferManifest ex:manifest-7 .
-ex:manifest-7 gmeow:transferredClaim ex:memory-2200 .
-ex:memory-2200-after gmeow:wasDerivedFrom ex:memory-2200 .   # derivation, not coincidence
+ex:manifest-7 gmeow:transferredView ex:viewCheckpoint-before .   # coarse: the whole carried view
+ex:memory-2200-after gmeow:wasDerivedFrom ex:memory-2200 .        # per-item ONLY for modified items
 ```
 
-Because memory revision is supersession (`gmeow:displayable false`), never deletion (Principle 10), the
-pre-migration belief state stays queryable. Note the lifecycle correction: *ending* the prior tenure
-is an ontic fact (`gmeow:hasDestructionEvent`) and does **not** by itself set `displayable false` —
-suppression is a separate display contract.
+The coarse-by-default design (the round-3 remedy) keeps migration storage proportional to *changes*,
+not to the whole carried memory. Because memory revision is supersession (`gmeow:displayable false`),
+never deletion (Principle 10), the pre-migration belief state stays queryable. Note the lifecycle
+correction: *ending* the prior tenure (closing its `gmeow:duringInterval`, recorded via
+`gmeow:tenureEndedBy`) is an ontic fact and does **not** by itself set `displayable false` — and a
+tenure is a situation, so `gmeow:hasDestructionEvent` (domain `Entity`) is never applied to it.
+
+## Upper-projections: the flat shortcut (Principle 12)
+
+The de-conflation buys correctness at the cost of **property-path length**: tracing an output to its
+durable subject is an 8–10 hop traversal across nested, time-scoped situations (output → invocation →
+execution → deployment → artifact; and invocation → session → configuration → tenure → subject). On a
+standard SPARQL engine, evaluating nested time-interval overlaps over that path will throttle
+real-time agent-memory retrieval.
+
+The remedy is the solver boundary (Principle 12), exactly as the project applies it to standpoint and
+geo computation: the deep situation-nesting is the **canonical audit form**, and the runtime projects
+**flat, materialized upper-projections** for the hot paths, computed by Datalog rules at the projection
+layer and drift-gated like every other generated artifact (Principle 7):
+
+```turtle
+# materialized shortcut (generated, not authored): output → durable lineage, in one hop
+ex:output gmeow:generatedForSubject ex:lillithLineage .
+ex:output gmeow:generatedUnderConfiguration ex:config-A .
+```
+
+`gmeow:generatedForSubject` and `gmeow:generatedUnderConfiguration` are **computed projections** of the
+multi-hop path, never authored facts; the canonical nested situations remain the source of truth for
+deep cryptographic and lineage audits. Real-time recall reads the flat shortcut; an audit walks the
+full path. This keeps the memory engine fast without collapsing the identity criteria the nesting
+exists to protect.
+
+## Capability use versus delegation (CQ5)
+
+The competency question *was a tool call made through a passive capability or delegated to another
+agent?* is resolved **without minting a generic wrapper class** (a `CapabilityExercise` would become an
+operational catch-all). It reuses the provenance "used" pattern on the invocation/execution activity:
+
+- **Passive capability** (an internal function, library, or code path): a `gmeow:usedCapability` edge
+  from the `gmeow:ModelInvocation` / `gmeow:RuntimeExecution` to the `gmeow:ActionSchema` (or code
+  function) that was exercised. No new agent, no `ToolCall`.
+- **Delegated capability** (an external service): a first-class `gmeow:ToolCall` whose `gmeow:usedTool`
+  points to a distinct `gmeow:SoftwareAgent` (the agentic slice, unchanged).
+
+The discriminator is therefore structural and already mostly present: a `usedCapability → ActionSchema`
+edge is passive; a `ToolCall → usedTool → SoftwareAgent` is delegated. (An internally-run script that
+warrants its own process gets its own `gmeow:RuntimeExecution`; whether it does is a modeling choice
+the producer makes, not a forced consequence.)
+
+## The standpoint priority rule (operational)
+
+The neutrality gate lets competing `gmeow:DigitalSubjectTenure` and continuity assessments coexist —
+correct for esoteric and theoretical standpoints, but the MCP store/recall/revise triad needs a
+*deterministic* answer to "whose vantage authorizes this memory mutation?" If a deployment agent claims
+*"I am the continuous subject Lillith"* (vantage A) while the host asserts *"cold-started instance, no
+verified memory signatures"* (vantage B), an undirected runtime forks.
+
+The `profile/inhabitation-ai` therefore binds an **operational standpoint priority rule**: a
+deterministic evaluation order over `gmeow:vantage` values that governs *memory-mutation authorization*
+(not ontological truth — the graph still records both claims, co-equal, Principle 9). The rule is a
+runtime policy (e.g. a verified COSE-signed subject claim outranks an unsigned self-assertion for
+*write* authorization), declared in the AI profile and enforced by the MCP runtime, never an axiom that
+privileges one standpoint in the canonical graph. This separates *what the graph holds* (all vantages,
+co-equal) from *what the runtime is permitted to do* (a deterministic, signed-vantage-priority policy).
 
 ## Cross-vendor continuity
 

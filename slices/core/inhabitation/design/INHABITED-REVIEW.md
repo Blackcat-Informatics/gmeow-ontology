@@ -128,11 +128,32 @@ value vocabulary; the AI provenance chain given explicit joins (`invocationInExe
 thoughtform example corrected to the supported-tenure model (no direct `DigitalSubject` typing); and the
 manifesto's "correctness proof" softened to "adversarial test" to match the traditions document.
 
+## Round 3 — ratification, with operational remedies (accepted)
+
+A third review **ratified the architecture for implementation, subject to one infrastructure
+resolution**. Four operational remedies are folded in; the gating item is recorded for the authority.
+
+| # | Concern | Remedy (folded in) |
+|---|---|---|
+| R3-1 (query cost) | the 8–10 hop traversal to a durable subject throttles real-time recall | flat, Datalog-computed, drift-gated **upper-projections** (`gmeow:generatedForSubject`, `gmeow:generatedUnderConfiguration`) for the hot paths (Principle 12); the nested situations stay the audit canon ([`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md#upper-projections-the-flat-shortcut-principle-12)) |
+| R3-2 (CQ5) | a generic `CapabilityExercise` wrapper class is a smell | **no wrapper class**: `gmeow:usedCapability` → `ActionSchema` (passive) vs `gmeow:ToolCall` → `usedTool` → `SoftwareAgent` (delegated) |
+| R3-3 (CQ4 storage) | per-item `wasDerivedFrom` doubles the memory graph each migration | the `TransferManifest` references a **coarse** `MemoryView` / named-graph checkpoint; per-item derivation only for items **modified** in the transition |
+| R3-4 (authorization) | coexisting subject claims leave the MCP triad without a deterministic write authority | an AI-profile **standpoint priority rule** (a signed-vantage-precedence runtime policy) governs *memory-mutation authorization* — never an axiom privileging a standpoint in the canonical graph (Principle 9 preserved) |
+
+### The gating item (blocking ratification)
+
+The profile tier must be paved in the build pipeline before the AI/expression profiles can be authored:
+`slices/vocabulary.ttl` declares only `gmeow:tierCore` and `gmeow:tierExtension` — a `gmeow:tierProfile`
+individual plus a DAG rule (*a profile may depend on core and extensions; nothing depends on a
+profile*) is required so the packaging split is build-legal rather than a shortcut waiting to be undone
+([`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md#the-gating-item-the-profile-tier-registry-hook-blocking)).
+The **minimal core does not depend on this** and may proceed; the profiles are blocked until it lands.
+
 ## Status
 
-This design set remains a **draft**. The corrections above are folded into the sibling documents; the
-`module.ttl` is not authored until the authority confirms the revised shape. The remaining genuine
-forks for the authority: `DigitalSubject` as `RoleMixin` vs `PhaseMixin` (this set adopts `RoleMixin`
-to avoid the self-assertion-entails-type trap); `InhabitationClaim ⊑ Observation` vs the unasserted
-RDF-1.2 reified proposition (this set leads with the Observation form, both viable); and the exact
-core/profile dependency boundaries.
+The architecture is **ratified** (round 3), subject to the `tierProfile` registry hook. The minimal
+`core/inhabitation` `module.ttl` and its competency fixtures may be authored now; the AI and expression
+profiles wait on the tier-registry decision. Residual forks for the authority: `DigitalSubject` as
+`RoleMixin` vs `PhaseMixin` (this set adopts `RoleMixin`); `InhabitationClaim ⊑ StandpointClaim` vs an
+unasserted RDF-1.2 reified proposition (this set leads with the claim form); the exact standpoint
+priority order (R3-4); and the partial-migration default policy (R3-3).
