@@ -10,8 +10,7 @@ gmeow:Person`` becomes *simultaneously* ``foaf:Person`` / ``schema:Person`` /
 (lossy) half is the projection engine, P(G).
 
 The correctness keystone: only STRONG predicates materialize —
-:data:`gmeow_tools.alignment_lint.STRONG_CLASS_PREDICATES` /
-:data:`~gmeow_tools.alignment_lint.STRONG_PROPERTY_PREDICATES` are the single
+:func:`gmeow_slice.alignment_policy` is the single
 source of truth, so linter and saturator agree by construction.
 ``skos:closeMatch`` (a hint), ``broadMatch``/``narrowMatch`` (hierarchy), and
 any cell the direction lint rates ERROR never materialize. Suppression is
@@ -31,13 +30,10 @@ import hashlib
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import gmeow_slice
 from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Literal, URIRef
 from gmeow_rdf.compat.rdflib.namespace import SKOS, XSD
 
-from gmeow_tools.alignment_lint import (
-    STRONG_CLASS_PREDICATES,
-    STRONG_PROPERTY_PREDICATES,
-)
 from gmeow_tools.config import MAPPING_DSL_DIR, NAMESPACE
 from gmeow_tools.export import curie
 
@@ -55,6 +51,9 @@ _COARSEN_TO = URIRef(_GM + "coarsenTo")
 _MAPPED_FROM = URIRef(_GM + "mappedFrom")
 _CONFIDENCE = URIRef(_GM + "confidence")
 _SCHEMA_SAME_AS = URIRef("https://schema.org/sameAs")
+_ALIGNMENT_POLICY = gmeow_slice.alignment_policy()
+STRONG_CLASS_PREDICATES = frozenset(_ALIGNMENT_POLICY["strong_class_predicates"])
+STRONG_PROPERTY_PREDICATES = frozenset(_ALIGNMENT_POLICY["strong_property_predicates"])
 
 #: The fixed sameAs-mirror rule's provenance IRI — an individual reference
 #: (like the projection alignment IRIs), not a minted term.

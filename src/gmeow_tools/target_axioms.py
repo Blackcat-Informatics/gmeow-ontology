@@ -1,6 +1,6 @@
 """Validation-time snapshots of target-vocabulary *axioms* (domain/range/inverse).
 
-The SSSOM alignment-direction linter (:mod:`gmeow_tools.alignment_lint`) needs the
+The native SSSOM alignment-direction linter (``gmeow_slice.lint_projection``) needs the
 *target* terms' own structural axioms — ``rdfs:domain``/``rdfs:range`` (or
 schema.org's ``schema:domainIncludes``/``rangeIncludes``), ``owl:inverseOf`` (or
 ``schema:inverseOf``), and property-character types — to tell whether a GMEOW
@@ -27,7 +27,7 @@ Two snapshot *shapes*, chosen by the target's ``kind`` (:class:`AlignmentTarget`
 
 * *schema* / *concept_scheme* targets are bridged at the **property** level, so
   their snapshot keeps property axioms (domain/range/inverse + property types) —
-  what :mod:`gmeow_tools.alignment_lint` reads.
+  what the native alignment lint reads.
 * *upper* ontologies (gUFO, BFO, …) are bridged at the **class** level (the
   foundational spine — issue #40), so their snapshot keeps class facts
   (``rdf:type owl:Class``, ``rdfs:subClassOf`` within the namespace, and the

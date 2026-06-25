@@ -33,6 +33,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+use crate::alignment_lint::{STRONG_CLASS_PREDICATES, STRONG_PROPERTY_PREDICATES};
 use crate::analysis::emit_analysis_graph;
 use crate::artifact::{ArtifactRecord, ArtifactRole};
 use crate::cache::ToolchainContext;
@@ -641,16 +642,22 @@ fn emit_fno(root: &str) -> PyResult<String> {
         .map_err(|e| PyValueError::new_err(format!("FnO emission failed: {e}")))
 }
 
-/// Run the native cross-layer projection lint over the committed `generated/` tree at
-/// `root`, returning one dict per problem (#854).
+/// Run the native cross-layer projection lint plus alignment-direction checks over
+/// the committed `generated/` tree at `root`, returning one dict per problem (#854,
+/// #936).
 ///
 /// This is the native replacement for the Python `projection_lint` trio (the FnO
 /// type-mismatch / EDOAL→FnO reference-integrity / CONSTRUCT↔EDOAL↔SSSOM spec-drift
-/// invariants). Each dict carries the SAME `{severity, code, message, check, instance}`
-/// shape as the native SSSOM validator (`gmeow_rdf.validate_sssom`), so the Python
-/// finding leg maps `check` → the canonical `mapping-compile.<check>` code
-/// (`fno-type` / `fno-ref` / `spec-drift`). An empty list means the projection stack
-/// is internally consistent.
+/// invariants) folded together with the alignment-direction lint
+/// (`inverse-direction`, `domain-range`, `property-character`, `equivalence-collapse`,
+/// `dc-refinement`, `dc-hand-authored`). Each dict carries the common
+/// `{severity, code, message, check, instance}` fields plus optional
+/// `{subject_id, predicate_id, object_id}` CURIEs for alignment-row findings.
+/// An empty list means the projection stack and SSSOM alignments are internally
+/// consistent.
+///
+/// `allow_network` (default `false`) permits live fetching of missing target-axiom
+/// snapshots when the alignment lint runs.
 ///
 /// # Errors
 ///
@@ -658,8 +665,13 @@ fn emit_fno(root: &str) -> PyResult<String> {
 /// artifact, the ontology, an SSSOM source) or a profile prefix absent from the
 /// curated registry (no degraded fallback).
 #[pyfunction]
-fn lint_projection<'py>(py: Python<'py>, root: &str) -> PyResult<Vec<Bound<'py, PyDict>>> {
-    let problems = lint_projection_native(Path::new(root))
+#[pyo3(signature = (root, allow_network = false))]
+fn lint_projection<'py>(
+    py: Python<'py>,
+    root: &str,
+    allow_network: bool,
+) -> PyResult<Vec<Bound<'py, PyDict>>> {
+    let problems = lint_projection_native(Path::new(root), allow_network)
         .map_err(|e| PyValueError::new_err(format!("projection lint failed: {e}")))?;
     problems
         .into_iter()
@@ -670,9 +682,38 @@ fn lint_projection<'py>(py: Python<'py>, root: &str) -> PyResult<Vec<Bound<'py, 
             dict.set_item("message", d.message)?;
             dict.set_item("check", d.check)?;
             dict.set_item("instance", d.instance)?;
+            dict.set_item("subject_id", d.subject_id)?;
+            dict.set_item("predicate_id", d.predicate_id)?;
+            dict.set_item("object_id", d.object_id)?;
             Ok(dict)
         })
         .collect()
+}
+
+/// Expose alignment policy constants from the Rust authority.
+///
+/// Python callers use this only to filter the combined `lint_projection` stream and
+/// to keep saturation's strong-predicate gate in lockstep with the native linter.
+#[pyfunction]
+fn alignment_policy<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+    let dict = PyDict::new(py);
+    dict.set_item(
+        "alignment_checks",
+        vec![
+            "inverse-direction",
+            "domain-range",
+            "property-character",
+            "equivalence-collapse",
+            "dc-refinement",
+            "dc-hand-authored",
+        ],
+    )?;
+    dict.set_item("strong_class_predicates", STRONG_CLASS_PREDICATES.to_vec())?;
+    dict.set_item(
+        "strong_property_predicates",
+        STRONG_PROPERTY_PREDICATES.to_vec(),
+    )?;
+    Ok(dict)
 }
 
 /// Register the `gmeow_slice` engine surface into the given module.
@@ -680,6 +721,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(emit_sssom, m)?)?;
     m.add_function(wrap_pyfunction!(emit_fno, m)?)?;
     m.add_function(wrap_pyfunction!(lint_projection, m)?)?;
+    m.add_function(wrap_pyfunction!(alignment_policy, m)?)?;
     m.add_class::<PyArtifactRecord>()?;
     m.add_class::<PyManifestView>()?;
     m.add_class::<PySliceRecord>()?;

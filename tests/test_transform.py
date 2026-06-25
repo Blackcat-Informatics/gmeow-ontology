@@ -155,18 +155,20 @@ def test_equivalence_collapse_aborts(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A poisoned strong-edge graph refuses the WHOLE transform (#284)."""
-    from gmeow_tools import alignment_lint
+    import gmeow_slice
 
-    finding = alignment_lint.AlignmentFinding(
-        severity=alignment_lint.Severity.ERROR,
-        check="equivalence-collapse",
-        subject_id="gmeow:Person",
-        predicate_id="owl:equivalentClass",
-        object_id="schema:Person",
-        message="synthetic collapse for the abort test",
-    )
+    finding: dict[str, object] = {
+        "severity": "ERROR",
+        "code": "equivalence-collapse",
+        "message": "synthetic collapse for the abort test",
+        "check": "equivalence-collapse",
+        "instance": "https://schema.org/Person",
+        "subject_id": None,
+        "predicate_id": None,
+        "object_id": None,
+    }
     monkeypatch.setattr(
-        alignment_lint, "lint_alignment_directions", lambda **_: [finding]
+        gmeow_slice, "lint_projection", lambda *_args, **_kwargs: [finding]
     )
     with pytest.raises(TransformAbortedError, match="equivalence-collapse"):
         transform(_RIGHTS, out_dir=tmp_path / "aborted")
@@ -182,18 +184,20 @@ def test_denied_rows_shrink_e_of_g(
     at an authored TermEquivalence cell for that triple — only at the
     projection alignment IRI.
     """
-    from gmeow_tools import alignment_lint
+    import gmeow_slice
 
-    finding = alignment_lint.AlignmentFinding(
-        severity=alignment_lint.Severity.ERROR,
-        check="inverse-direction",
-        subject_id="gmeow:Mark",
-        predicate_id="owl:equivalentClass",
-        object_id="schema:Brand",
-        message="synthetic denial",
-    )
+    finding: dict[str, object] = {
+        "severity": "ERROR",
+        "code": "inverse-direction",
+        "message": "synthetic denial",
+        "check": "inverse-direction",
+        "instance": "https://schema.org/Brand",
+        "subject_id": "gmeow:Mark",
+        "predicate_id": "owl:equivalentClass",
+        "object_id": "schema:Brand",
+    }
     monkeypatch.setattr(
-        alignment_lint, "lint_alignment_directions", lambda **_: [finding]
+        gmeow_slice, "lint_projection", lambda *_args, **_kwargs: [finding]
     )
     out = tmp_path / "denied"
     report = transform(_RIGHTS, out_dir=out)

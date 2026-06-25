@@ -147,10 +147,9 @@ const STRUCTURAL_OUTPUTS: &[&str] = &[
 /// SSSOM validator's diagnostic dict (`gmeow_rdf.validate_sssom`) so the PyO3 binding
 /// packs both into the same `{severity, code, message, check, instance}` shape the
 /// Python finding leg already consumes.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct ProjectionDiagnostic {
-    /// Always `"ERROR"` — every projection-lint problem is a hard inconsistency
-    /// (mirrors the Python trio, whose every returned string is a gate failure).
+    /// Severity token: `"ERROR"`, `"WARNING"`, or `"INFO"`.
     pub severity: String,
     /// The drift family: `fno-type`, `fno-ref`, or `spec-drift`. The Python finding
     /// leg maps this to the canonical code `mapping-compile.<check>`.
@@ -163,6 +162,12 @@ pub struct ProjectionDiagnostic {
     /// The most-specific RDF node the problem concerns (the FnO param/output IRI, the
     /// undefined function IRI, or the drifting target term), or `None`.
     pub instance: Option<String>,
+    /// For alignment-direction findings, the SSSOM row CURIEs that the finding is
+    /// about. These are `None` for projection-stack findings (`fno-type`, `fno-ref`,
+    /// `spec-drift`).
+    pub subject_id: Option<String>,
+    pub predicate_id: Option<String>,
+    pub object_id: Option<String>,
 }
 
 impl ProjectionDiagnostic {
@@ -173,18 +178,39 @@ impl ProjectionDiagnostic {
             code: check.to_owned(),
             message,
             instance,
+            subject_id: None,
+            predicate_id: None,
+            object_id: None,
         }
+    }
+
+    /// Severity-first ordering used for stable, deterministic lint output:
+    /// ERROR < WARNING < INFO < everything else, then check, then instance.
+    pub fn cmp_severity_check_instance(&self, other: &Self) -> std::cmp::Ordering {
+        let order = |s: &str| match s {
+            "ERROR" => 0,
+            "WARNING" => 1,
+            "INFO" => 2,
+            _ => 3,
+        };
+        order(&self.severity)
+            .cmp(&order(&other.severity))
+            .then_with(|| self.check.cmp(&other.check))
+            .then_with(|| self.instance.cmp(&other.instance))
     }
 }
 
 // ── Public API ─────────────────────────────────────────────────────────────────
 
-/// Run the three projection-lint invariants against the committed `generated/` tree
-/// under `root`, returning every problem as a [`ProjectionDiagnostic`].
+/// Run the projection-lint invariants plus the alignment-direction lint against the
+/// committed `generated/` tree under `root`, returning every problem as a
+/// [`ProjectionDiagnostic`].
 ///
-/// An empty result means the projection stack is internally consistent. The checks
-/// run in `fno-type` → `fno-ref` → `spec-drift` order (the Python `_run_invariants`
-/// order); within each check, problems are emitted in a deterministic sorted order.
+/// An empty result means the projection stack and SSSOM alignments are internally
+/// consistent. Projection checks run first (`fno-type` → `fno-ref` → `spec-drift`),
+/// then alignment checks (`inverse-direction`, `domain-range`, `property-character`,
+/// `equivalence-collapse`, `dc-refinement`, `dc-hand-authored`). The combined list is
+/// sorted deterministically by severity → check → instance.
 ///
 /// # Errors
 ///
@@ -192,7 +218,10 @@ impl ProjectionDiagnostic {
 /// artifact, the ontology, an SSSOM source) or a `_PROFILE_TARGETS` prefix absent
 /// from the curated [`PREFIX_REGISTRY`] — no degraded fallback (CONSTITUTION /
 /// no-compromises).
-pub fn lint_projection(root: &Path) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
+pub fn lint_projection(
+    root: &Path,
+    allow_network: bool,
+) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
     let projections = root.join("generated").join("projections");
     let queries = root.join("generated").join("queries");
 
@@ -203,6 +232,12 @@ pub fn lint_projection(root: &Path) -> Result<Vec<ProjectionDiagnostic>, SliceEr
     out.extend(fno_type_mismatches(&onto, &fno)?);
     out.extend(fno_reference_integrity(&fno, &projections)?);
     out.extend(projection_spec_drift(root, &projections, &queries)?);
+    out.extend(crate::alignment_lint::lint_alignment_directions(
+        root,
+        allow_network,
+    )?);
+
+    out.sort_by(ProjectionDiagnostic::cmp_severity_check_instance);
     Ok(out)
 }
 

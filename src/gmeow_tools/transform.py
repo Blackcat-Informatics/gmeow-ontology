@@ -33,9 +33,10 @@ import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+import gmeow_slice
 from gmeow_rdf.compat.rdflib import Graph, URIRef
 
-from gmeow_tools.config import DIST_DIR, NAMESPACE, PREFIXES
+from gmeow_tools.config import DIST_DIR, NAMESPACE, PREFIXES, PROJECT_ROOT
 from gmeow_tools.graph import bind_prefixes, load_merged_graph
 from gmeow_tools.language_tags import filter_graph
 from gmeow_tools.saturate import (
@@ -154,22 +155,30 @@ def _denied_cells() -> set[tuple[str, str, str]]:
         if precomputed is not None:
             return set(precomputed)
 
-    from gmeow_tools.alignment_lint import Severity, lint_alignment_directions
-
-    findings = lint_alignment_directions()
+    checks = frozenset(gmeow_slice.alignment_policy()["alignment_checks"])
+    findings = [
+        finding
+        for finding in gmeow_slice.lint_projection(
+            str(PROJECT_ROOT), allow_network=False
+        )
+        if finding["check"] in checks
+    ]
     collapses = [
         f
         for f in findings
-        if f.severity is Severity.ERROR and f.check == "equivalence-collapse"
+        if f["severity"] == "ERROR" and f["check"] == "equivalence-collapse"
     ]
     if collapses:
-        details = "; ".join(f.message for f in collapses[:3])
+        details = "; ".join(f["message"] for f in collapses[:3])
         msg = f"equivalence-collapse ERROR — transform refused: {details}"
         raise TransformAbortedError(msg)
     return {
-        (f.subject_id, f.predicate_id, f.object_id)
+        (f["subject_id"], f["predicate_id"], f["object_id"])
         for f in findings
-        if f.severity is Severity.ERROR
+        if f["severity"] == "ERROR"
+        and f["subject_id"] is not None
+        and f["predicate_id"] is not None
+        and f["object_id"] is not None
     }
 
 
