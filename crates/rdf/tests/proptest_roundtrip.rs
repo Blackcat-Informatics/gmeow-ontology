@@ -47,21 +47,14 @@ use gmeow_rdf::{
     RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfLookaside, RdfQuad, RdfTerm, RdfTriple,
 };
 use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
-use oxigraph::model::dataset::{CanonicalizationAlgorithm, CanonicalizationHashAlgorithm};
-use oxigraph::model::{Dataset, Quad};
+use oxigraph::model::Quad;
 use proptest::prelude::*;
 
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 
-// ── Canonical comparator (oxigraph RDFC-1.0) ────────────────────────────────────
-
-fn rdfc10() -> CanonicalizationAlgorithm {
-    CanonicalizationAlgorithm::Rdfc10 {
-        hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
-    }
-}
+// ── Canonical comparator (native RDFC-1.0, #910) ─────────────────────────────────
 
 /// The default JSON-LD format (no profile flags).
 fn jsonld() -> RdfFormat {
@@ -70,14 +63,11 @@ fn jsonld() -> RdfFormat {
     }
 }
 
-/// Canonicalize a quad set's blank-node labels under RDFC-1.0 and return the
-/// quads in a stable order — mirrors `py_store::canonicalize_quads`.
+/// Canonicalize a quad set's blank-node labels under the native full RDFC-1.0 and
+/// return the quads in a stable order — this IS `gmeow_rdf::canonicalize_quads`
+/// (which replaced oxrdf `Dataset::canonicalize`).
 fn canonical(quads: Vec<Quad>) -> Vec<Quad> {
-    let mut dataset: Dataset = quads.into_iter().collect();
-    dataset.canonicalize(rdfc10());
-    let mut out: Vec<Quad> = dataset.iter().map(|q| q.into_owned()).collect();
-    out.sort_by_key(Quad::to_string);
-    out
+    gmeow_rdf::canonicalize_quads(quads).expect("RDFC-1.0 canonicalization")
 }
 
 fn serialize_quads(quads: &[Quad], format: RdfFormat) -> Vec<u8> {
