@@ -198,6 +198,24 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   declared *reduction theory* — the claim that a whole's property is not derivable from its parts
   *under that theory*. Failure to derive is **not** proof of irreducibility; the assessment records
   the theory it is relative to so a later, stronger theory can overturn it without contradiction.
+  The construct is concrete: `logic:EmergenceAssessment` is reified with the role properties
+  `logic:assessmentWhole`, `logic:assessmentProperty`, and `logic:assessmentReductionTheory`, and the
+  engine *derives* its `logic:assessmentVerdict` — one of the three closed `logic:EmergenceVerdict`
+  values `logic:Aggregate`, `logic:Emergent`, `logic:EmergenceUnknown`. A `logic:ReductionTheory`
+  carries, via `logic:reductionBasis`, the property-values it treats as part-reducible, and entities
+  carry property-values through `logic:bearsProperty`. The verdict is computed by four stratified
+  rules: a whole-property is **Aggregate** when the declared theory's basis carries it *and* a proper
+  part bears it (a genuine part-reconstruction); it is **Emergent** by negation-as-failure over that
+  aggregate derivation *while the assessment still binds a declared theory* — so the verdict is
+  theory-relative, never a bare "unflagged" default (the failure mode the foundation explicitly
+  guards against); and it is **EmergenceUnknown** when the whole bears the property but the assessment
+  declares no reduction theory, so the reducibility question cannot even be posed. Crucially, **no
+  rule propagates `logic:bearsProperty` down `logic:properPartOf`**, so an emergent whole-property
+  never reaches its parts and is never entailed by the parts' properties — non-inheritance is a
+  structural guarantee of the rule set, demonstrated positively in the holonic-emergence conformance
+  case (present `bearsProperty(whole, Pv)` + present `properPartOf(part, whole)` + visibly *omitted*
+  `bearsProperty(part, Pv)`). The minimal case lands here; the full emergence corpus and the lossy OWL
+  projection of the verdict accrete in C5 (#708).
 - **Downward constraint is structured and non-transitive.** A whole may constrain its parts, but the
   constraint is a typed, directed relation that does **not** chain transitively by default; a
   constraint from level *n* onto level *n−1* says nothing automatic about level *n−2*.
