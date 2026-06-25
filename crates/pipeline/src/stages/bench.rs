@@ -203,12 +203,29 @@ fn classify(delta_pct: f64) -> Status {
 /// in both is classified on its median Δ%; baseline-only ⇒ `missing`, run-only ⇒
 /// `new`.
 pub fn compare_against_baseline(criterion_root: &Path, baseline_json: &str) -> String {
+    // Report-only path: never gate (always exit 0), but never SWALLOW an error
+    // either — surface it to stderr (the job-summary log) before degrading, so a
+    // misleading all-`missing`/all-`new` board is always explained. The committed
+    // `render_bench_leaderboard` path hard-fails instead; only this advisory path
+    // degrades. See #668 / Principle 18.
     let baseline: BTreeMap<String, Estimate> = if baseline_json.trim().is_empty() {
         BTreeMap::new()
     } else {
-        serde_json::from_str(baseline_json).unwrap_or_default()
+        serde_json::from_str(baseline_json).unwrap_or_else(|e| {
+            eprintln!(
+                "warning(#668): committed baseline JSON is unparsable ({e}); \
+treating every benchmark as `new`."
+            );
+            BTreeMap::new()
+        })
     };
-    let current = collect_estimates(criterion_root).unwrap_or_default();
+    let current = collect_estimates(criterion_root).unwrap_or_else(|e| {
+        eprintln!(
+            "warning(#668): could not collect live criterion estimates ({e}); \
+treating every baseline benchmark as `missing`."
+        );
+        BTreeMap::new()
+    });
 
     let mut names: BTreeSet<&str> = BTreeSet::new();
     names.extend(baseline.keys().map(String::as_str));
@@ -441,5 +458,30 @@ mod tests {
         write_estimate(root, "g", "a", 10.0, 10.0);
         let report = compare_against_baseline(root, "");
         assert!(report.contains("| g/a | — | 10 | — | new |"));
+    }
+
+    #[test]
+    fn compare_degrades_on_malformed_baseline_without_panic() {
+        // A PRESENT-but-unparseable baseline must NOT panic the report-only path
+        // (it always exits 0) and must NOT be silently dropped — the warning is
+        // surfaced to stderr (Gap #668). The current run is still classified as
+        // `new` against the now-empty baseline.
+        let dir = tempdir().unwrap();
+        let root = dir.path();
+        write_estimate(root, "g", "a", 10.0, 10.0);
+        let report = compare_against_baseline(root, "{ this is not valid json ]");
+        assert!(report.contains("| g/a | — | 10 | — | new |"));
+        assert!(report.contains("report-only"));
+    }
+
+    #[test]
+    fn compare_degrades_on_missing_criterion_root_without_panic() {
+        // No live criterion tree at all: every committed baseline benchmark is
+        // `missing`, the board still renders, and the call never panics.
+        let dir = tempdir().unwrap();
+        let root = dir.path().join("does-not-exist");
+        let baseline = "{\"g/a\":{\"mean_ns\":100,\"median_ns\":100}}";
+        let report = compare_against_baseline(&root, baseline);
+        assert!(report.contains("| g/a | 100 | — | — | missing |"));
     }
 }
