@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the deception-lie competency question (gmeow:cqDataFile overlay).
+# Verbatim externalization of test_competency_deception_lie_query's synthetic graph:
+# a lie = held claim refuted + projected claim unequivocal.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix exd:   <https://example.org/test/> .
+
+exd:event1 a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeLie ;
+    gmeow:heldStandpoint exd:claimA ;
+    gmeow:projectedStandpoint exd:claimB .
+
+exd:claimA a gmeow:StandpointClaim ;
+    gmeow:claimModality gmeow:refuted .
+
+exd:claimB a gmeow:StandpointClaim ;
+    gmeow:claimModality gmeow:unequivocal .

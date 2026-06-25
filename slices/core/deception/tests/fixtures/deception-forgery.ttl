@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the deception-forgery competency question (gmeow:cqDataFile overlay).
+# Verbatim externalization of test_competency_deception_forgery_query:
+# forgery = held refuted + projected unequivocal + a forged work (counterpartOf a
+# genuine work) with a failed signature.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix exd:   <https://example.org/test/> .
+
+exd:event1 a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeForgery ;
+    gmeow:heldStandpoint exd:claimA ;
+    gmeow:projectedStandpoint exd:claimB ;
+    gmeow:implicates exd:forgedWork .
+
+exd:claimA a gmeow:StandpointClaim ;
+    gmeow:claimModality gmeow:refuted .
+
+exd:claimB a gmeow:StandpointClaim ;
+    gmeow:claimModality gmeow:unequivocal .
+
+exd:forgedWork a gmeow:CreativeWork ;
+    gmeow:counterpartOf exd:genuineWork .
+
+exd:genuineWork a gmeow:CreativeWork .
+
+exd:signature1 a gmeow:CryptographicSignature ;
+    gmeow:signatureOf exd:forgedWork ;
+    gmeow:hasVerificationStatus gmeow:verificationStatusFailed .
