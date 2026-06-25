@@ -42,7 +42,7 @@
 
 gmeow:CompetencyQuestion a owl:Class ;
     rdfs:label "competency question"@x-gmeow-english ;
-    skos:definition "A declarative competency test: a SPARQL ASK or SELECT query (inline via gmeow:cqQuery or referenced via gmeow:cqQueryFile) paired with an expected outcome and a rationale, authored as ontology data resident in a slice's tests/ directory. An ASK question pins gmeow:cqExpectAsk; a SELECT question pins its result set via gmeow:cqExpectRow (preferred) or a coarse gmeow:cqExpectRowCount."@x-gmeow-english ;
+    skos:definition "A declarative competency test: a SPARQL ASK or SELECT query (inline via gmeow:cqQuery or referenced via gmeow:cqQueryFile) paired with an expected outcome and a rationale, authored as ontology data resident in a slice's tests/ directory. An ASK question pins gmeow:cqExpectAsk; a SELECT question pins its result set via gmeow:cqExpectRow (preferred) or a coarse gmeow:cqExpectRowCount. By default the query runs over the asserted merged ontology (TBox); a question that classifies synthetic instances may overlay a slice-relative ABox fixture via gmeow:cqDataFile, which is inserted onto the asserted merged graph for that one cell only (and only in the gmeow:reasoningNone lane)."@x-gmeow-english ;
     skos:example "ex:cqHasName a gmeow:CompetencyQuestion ; gmeow:cqQuery \"ASK { ?p gmeow:hasName ?n }\" ; gmeow:cqExpectAsk true ; gmeow:cqRationale \"Every modelled person must expose a name.\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to pin a question the ontology must be able to answer — a query whose result (a boolean for ASK, a row set for SELECT) is the acceptance criterion for a slice's modelling decisions."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for structural MUST / MUST-NOT invariants over the module graph (use gmeow:StructuralAssertion) and for example-validation outcomes (use gmeow:ExampleConformance); a competency question is about query-answerability, not graph well-formedness."@x-gmeow-english ;
@@ -186,6 +186,16 @@ gmeow:cqQueryFile a owl:DatatypeProperty ;
     gmeow:useWhen "Use for queries that already exist as .rq files — shared competency queries under queries/competency/ or slice-local ones under slices/<group>/<name>/queries/competency/."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a SLICE-RELATIVE path: the base is the repository root, so do NOT write `queries/competency/x.rq` expecting it to resolve inside the slice — write the full repo-root path. Avoid pairing it with gmeow:cqQuery on the same question."@x-gmeow-english ;
     gmeow:howToUse "Write the path from the REPOSITORY ROOT, e.g. `queries/competency/<name>.rq` for a shared query or `slices/<group>/<name>/queries/competency/<name>.rq` for a slice-local one; the harness resolves it against the repo root in both cases."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cqDataFile a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "competency data file"@x-gmeow-english ;
+    skos:definition "A SLICE-RELATIVE path to a .ttl file of synthetic instance data (an ABox) overlaid onto the asserted merged ontology for this one competency question only, then removed — resolved against the slice directory, NOT the repository root (the same base as gmeow:exampleFile, and the opposite of the repo-root-relative gmeow:cqQueryFile). The merged ontology is TBox-only, so a competency question that classifies instances (e.g. 'is this event a lie?') has nothing to match against the bare ontology; gmeow:cqDataFile supplies the instances. The overlay only applies in the gmeow:reasoningNone lane: pairing it with gmeow:reasoningRdfs is rejected, because the RDFS closure is computed before the overlay and would not see the fixture's entailments."@x-gmeow-english ;
+    skos:example "ex:cqLie gmeow:cqQueryFile \"queries/competency/deception-lie.rq\" ; gmeow:cqDataFile \"tests/fixtures/deception-lie.ttl\" ; gmeow:cqExpectRow ex:lieRow ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a competency question whose query selects over INSTANCE data (an ABox classifier) rather than the asserted vocabulary — supply the synthetic instances as a slice-resident fixture and let the harness overlay them for that cell."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for questions answered by the asserted ontology alone (omit it — the merged TBox is the graph) and avoid pairing it with gmeow:cqReasoning gmeow:reasoningRdfs (the overlay is only honoured in the asserted lane)."@x-gmeow-english ;
+    gmeow:howToUse "Write the path relative to the OWNING SLICE (e.g. `tests/fixtures/<name>.ttl`), author the synthetic instances the query is meant to classify in that .ttl, and pin the expected classification with gmeow:cqExpectRow; the harness overlays the fixture onto the asserted merged graph, runs the one query, and removes it again."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 gmeow:cqRationale a owl:DatatypeProperty ;

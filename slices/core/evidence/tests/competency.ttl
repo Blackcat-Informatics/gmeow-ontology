@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the evidence slice (crates/slicetest, #784),
+# migrated from test_competency_evidence_query and
+# test_competency_notability_eligible_query under #867. TBox subsets over the
+# asserted merged ontology (contains-check). No #869 Gap-1 universal — fixed sets.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/evidence/tests/> .
+
+# ── Evidence vocabulary (classes, properties, value individuals) ──────────────
+ex:cqEvidence a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/evidence.rq" ;
+    gmeow:cqRationale "GMEOW must model the evidence-assessment vocabulary: the EvidenceClass and its assignment property, the independence/tier/coverage axes and their value individuals, the notability-support property, and the named evidence classes." ;
+    gmeow:cqExpectRow
+        ex:evEvidenceClass, ex:evHasEvidenceClass, ex:evSourceIndependence, ex:evSourceTier,
+        ex:evCoverageDepth, ex:evSupportsNotability, ex:evVERIFIED, ex:evSELF, ex:evANECDOTAL,
+        ex:evRUMOR, ex:evLegalFiling, ex:evIndependenceIndependent,
+        ex:evIndependenceSelfOrIssuer, ex:evTierPrimary, ex:evTierSecondary, ex:evTierTertiary,
+        ex:evCoverageSignificant, ex:evCoveragePassing, ex:evCoverageRoutine .
+
+ex:evEvidenceClass a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:EvidenceClass ] .
+ex:evHasEvidenceClass a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:hasEvidenceClass ] .
+ex:evSourceIndependence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:sourceIndependence ] .
+ex:evSourceTier a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:sourceTier ] .
+ex:evCoverageDepth a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:coverageDepth ] .
+ex:evSupportsNotability a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:supportsNotability ] .
+ex:evVERIFIED a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:evidenceVERIFIED ] .
+ex:evSELF a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:evidenceSELF ] .
+ex:evANECDOTAL a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:evidenceANECDOTAL ] .
+ex:evRUMOR a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:evidenceRUMOR ] .
+ex:evLegalFiling a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:evidenceLegalFiling ] .
+ex:evIndependenceIndependent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:sourceIndependenceIndependent ] .
+ex:evIndependenceSelfOrIssuer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:sourceIndependenceSelfOrIssuerOriginated ] .
+ex:evTierPrimary a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:sourceTierPrimary ] .
+ex:evTierSecondary a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:sourceTierSecondary ] .
+ex:evTierTertiary a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:sourceTierTertiary ] .
+ex:evCoverageSignificant a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:coverageDepthSignificantCoverage ] .
+ex:evCoveragePassing a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:coverageDepthPassingMention ] .
+ex:evCoverageRoutine a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:coverageDepthRoutineFiling ] .
+
+# ── Notability-eligibility signal terms ───────────────────────────────────────
+ex:cqNotabilityEligible a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/notability-eligible.rq" ;
+    gmeow:cqRationale "The notability-eligibility signal must surface the independent-source, secondary-tier, and significant-coverage values plus the supportsNotability property." ;
+    gmeow:cqExpectRow ex:neIndependent, ex:neSecondary, ex:neSignificant, ex:neSupports .
+
+ex:neIndependent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:sourceIndependenceIndependent ] .
+ex:neSecondary a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:sourceTierSecondary ] .
+ex:neSignificant a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:coverageDepthSignificantCoverage ] .
+ex:neSupports a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:supportsNotability ] .

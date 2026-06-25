@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the deception-paltering competency question (gmeow:cqDataFile overlay).
+# Verbatim externalization of test_competency_deception_paltering_query:
+# paltering = projected implicates a proposition the held claim refutes, while the
+# projected literal claim itself is non-refuted.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix exd:   <https://example.org/test/> .
+
+exd:event1 a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypePaltering ;
+    gmeow:implicates exd:propositionPprime ;
+    gmeow:heldStandpoint exd:claimA ;
+    gmeow:projectedStandpoint exd:claimB .
+
+exd:claimA a gmeow:StandpointClaim ;
+    gmeow:claimModality gmeow:refuted .
+
+exd:claimB a gmeow:StandpointClaim .

@@ -1,0 +1,146 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the deception slice, executed by the native
+# Rust slice-test harness (crates/slicetest, #784). Migrated from the deception
+# competency tests in tests/test_competency.py under #867.
+#
+# Two shapes:
+#   * TBox vocabulary questions (deception-types, deception-roles) run over the
+#     asserted merged ontology; rows are the SUBSET the pytest asserted present
+#     (cqExactRows omitted → contains-check, faithful to the source's subset
+#     semantics — the source asserted specific terms IN the result + a >=N floor
+#     the DSL has no operator for; the named terms are pinned, the loose floor is
+#     dropped, never strengthened to an exact closed set).
+#   * Instance-classifier questions (the deception event types) overlay a synthetic
+#     ABox via gmeow:cqDataFile (the merged ontology is TBox-only, so there is
+#     nothing to classify without it); each pins the classified event row.
+# None of these is an open dynamic universal — every cell enumerates a fixed term
+# set or a fixed instance classification, so there is no #869 Gap-1 blacklist trap.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/deception/tests/> .
+@prefix exd:   <https://example.org/test/> .
+
+# ── A. TBox: deception-related event types + veridicality values ──────────────
+ex:cqDeceptionTypes a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/deception-types.rq" ;
+    gmeow:cqRationale "GMEOW must enumerate the deception-related event types and veridicality values it models (issues #215–#217). The asserted graph returns at least the deception event-type spine plus the ClaimVeridicality axis; these are the terms test_competency.py pinned." ;
+    gmeow:cqExpectRow
+        ex:dtDeception, ex:dtLie, ex:dtPaltering, ex:dtOmission, ex:dtDistortion,
+        ex:dtBullshit, ex:dtSelfDeception, ex:dtClaimVeridicality,
+        ex:dtVeridicalityUntrue, ex:dtVeridicalityLicensedFalsehood .
+
+ex:dtDeception a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionType" ; gmeow:cellValueIri gmeow:eventTypeDeception ] .
+ex:dtLie a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionType" ; gmeow:cellValueIri gmeow:eventTypeLie ] .
+ex:dtPaltering a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionType" ; gmeow:cellValueIri gmeow:eventTypePaltering ] .
+ex:dtOmission a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionType" ; gmeow:cellValueIri gmeow:eventTypeOmission ] .
+ex:dtDistortion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionType" ; gmeow:cellValueIri gmeow:eventTypeDistortion ] .
+ex:dtBullshit a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionType" ; gmeow:cellValueIri gmeow:eventTypeBullshit ] .
+ex:dtSelfDeception a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionType" ; gmeow:cellValueIri gmeow:eventTypeSelfDeception ] .
+ex:dtClaimVeridicality a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionType" ; gmeow:cellValueIri gmeow:ClaimVeridicality ] .
+ex:dtVeridicalityUntrue a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionType" ; gmeow:cellValueIri gmeow:veridicalityUntrue ] .
+ex:dtVeridicalityLicensedFalsehood a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionType" ; gmeow:cellValueIri gmeow:veridicalityLicensedFalsehood ] .
+
+# ── B. TBox: deception participant roles ──────────────────────────────────────
+ex:cqDeceptionRoles a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/deception-roles.rq" ;
+    gmeow:cqRationale "GMEOW must model the participant roles a deception event ranges over (issue #215): deceiver, deceived, beneficiary, dupe, spin-doctor." ;
+    gmeow:cqExpectRow
+        ex:drDeceiver, ex:drDeceived, ex:drBeneficiary, ex:drDupe, ex:drSpinDoctor .
+
+ex:drDeceiver a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionRole" ; gmeow:cellValueIri gmeow:roleDeceiver ] .
+ex:drDeceived a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionRole" ; gmeow:cellValueIri gmeow:roleDeceived ] .
+ex:drBeneficiary a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionRole" ; gmeow:cellValueIri gmeow:roleBeneficiaryOfDeception ] .
+ex:drDupe a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionRole" ; gmeow:cellValueIri gmeow:roleDupe ] .
+ex:drSpinDoctor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionRole" ; gmeow:cellValueIri gmeow:roleSpinDoctor ] .
+
+# ── C. Instance classifiers (gmeow:cqDataFile overlay) ────────────────────────
+# Each overlays a synthetic deception event and pins that the classifier returns
+# it. The single projected row is exd:event1 (the fixture event); cqExactRows is
+# omitted (contains-check), matching the source's "event1 in result" assertion.
+
+ex:cqDeceptionLie a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/deception-lie.rq" ;
+    gmeow:cqDataFile "tests/fixtures/deception-lie.ttl" ;
+    gmeow:cqRationale "A lie (held refuted + projected unequivocal) must be classified as such." ;
+    gmeow:cqExpectRow ex:eventRow .
+
+ex:cqDeceptionOmission a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/deception-omission.rq" ;
+    gmeow:cqDataFile "tests/fixtures/deception-omission.ttl" ;
+    gmeow:cqRationale "An omission (held standpoint, no projected standpoint) must be classified as such." ;
+    gmeow:cqExpectRow ex:eventRow .
+
+ex:cqDeceptionPaltering a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/deception-paltering.rq" ;
+    gmeow:cqDataFile "tests/fixtures/deception-paltering.ttl" ;
+    gmeow:cqRationale "Paltering (implicated proposition the held claim refutes, projected literal non-refuted) must be classified as such." ;
+    gmeow:cqExpectRow ex:eventRow .
+
+ex:cqDeceptionBullshit a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/deception-bullshit.rq" ;
+    gmeow:cqDataFile "tests/fixtures/deception-bullshit.ttl" ;
+    gmeow:cqRationale "Bullshit (held bullshit modality, projected unequivocal) must be classified as such." ;
+    gmeow:cqExpectRow ex:eventRow .
+
+ex:cqDeceptionDistortion a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/deception-distortion.rq" ;
+    gmeow:cqDataFile "tests/fixtures/deception-distortion.ttl" ;
+    gmeow:cqRationale "Distortion (held probable, projected sharpened to unequivocal) must be classified as such." ;
+    gmeow:cqExpectRow ex:eventRow .
+
+ex:cqDeceptionFabrication a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/deception-fabrication.rq" ;
+    gmeow:cqDataFile "tests/fixtures/deception-fabrication.ttl" ;
+    gmeow:cqRationale "Fabrication (held refuted + projected unequivocal + a failed-verification fabricated work) must be classified as such." ;
+    gmeow:cqExpectRow ex:eventRow .
+
+ex:cqDeceptionForgery a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/deception-forgery.rq" ;
+    gmeow:cqDataFile "tests/fixtures/deception-forgery.ttl" ;
+    gmeow:cqRationale "Forgery (held refuted + projected unequivocal + a forged counterpart work with a failed signature) must be classified as such." ;
+    gmeow:cqExpectRow ex:eventRow .
+
+ex:cqDeceptionImpersonation a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/deception-impersonation.rq" ;
+    gmeow:cqDataFile "tests/fixtures/deception-impersonation.ttl" ;
+    gmeow:cqRationale "Impersonation (held refuted + projected unequivocal + an identity facet whose subject differs from the deceiver) must be classified as such." ;
+    gmeow:cqExpectRow ex:eventRow .
+
+# Shared single-event expected row for the eight single-projection classifiers.
+ex:eventRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri exd:event1 ] .
+
+# Self-deception projects TWO variables (?event ?agent); pin both.
+ex:cqDeceptionSelfDeception a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/deception-self-deception.rq" ;
+    gmeow:cqDataFile "tests/fixtures/deception-self-deception.ttl" ;
+    gmeow:cqRationale "Self-deception (an eventTypeSelfDeception event with a participant) must be classified, binding both the event and its participating agent." ;
+    gmeow:cqExpectRow ex:selfDeceptionRow .
+
+ex:selfDeceptionRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri exd:event1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "agent" ; gmeow:cellValueIri exd:agent1 ] .
+
+# ── D. Negative safety property: a licensed falsehood is NOT a lie ────────────
+ex:cqDeceptionLicensedFalsehood a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/deception-licensed-falsehood.rq" ;
+    gmeow:cqDataFile "tests/fixtures/deception-licensed-falsehood.ttl" ;
+    gmeow:cqRationale "A fiction claim asserted accordingTo a narrative frame with licensed-falsehood veridicality, with no lie event projecting it, must NEVER be returned as a lie — the result is empty." ;
+    gmeow:cqExpectRowCount 0 .

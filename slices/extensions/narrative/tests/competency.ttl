@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the narrative slice, executed by the native
+# Rust slice-test harness (crates/slicetest, #784). Migrated from
+# test_competency_myths_query in tests/test_competency.py under #867.
+#
+# TBox vocabulary question over the asserted merged ontology; rows are the SUBSET
+# the pytest asserted present (cqExactRows omitted → contains-check). No #869
+# Gap-1 universal: a fixed five-term set, including the PROV-O lineage spine
+# (wasDerivedFrom) the propagation property reuses.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/narrative/tests/> .
+
+ex:cqMyths a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/myths.rq" ;
+    gmeow:cqRationale "GMEOW must answer 'what myths exist and how do their tellings propagate?': the Myth class, its telling/frame properties, the propagatesFrom propagation property, and the PROV-O wasDerivedFrom lineage spine it is a subproperty of." ;
+    gmeow:cqExpectRow
+        ex:myMyth, ex:myHasMythTelling, ex:myMythFrame, ex:myPropagatesFrom,
+        ex:myWasDerivedFrom .
+
+ex:myMyth a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:Myth ] .
+ex:myHasMythTelling a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:hasMythTelling ] .
+ex:myMythFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:mythFrame ] .
+ex:myPropagatesFrom a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:propagatesFrom ] .
+ex:myWasDerivedFrom a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:wasDerivedFrom ] .

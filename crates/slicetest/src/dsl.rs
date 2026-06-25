@@ -50,6 +50,10 @@ pub struct CompetencyQuestion {
     pub expected_rows: Vec<ExpectedRow>,
     /// `gmeow:cqReasoning` — the entailment lane (defaults to [`ReasoningProfile::None`]).
     pub reasoning: ReasoningProfile,
+    /// `gmeow:cqDataFile` — SLICE-relative ABox fixture overlaid onto the asserted
+    /// merged graph for this one question (instance-classifier questions only).
+    /// Honoured only in the [`ReasoningProfile::None`] lane.
+    pub data_file: Option<String>,
     pub rationale: Option<String>,
 }
 
@@ -135,7 +139,7 @@ pub enum ReasoningProfile {
 const PREFIX: &str = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n";
 
 const Q_COMPETENCY: &str = "
-SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?rationale WHERE {
+SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFile ?rationale WHERE {
   ?cq a gmeow:CompetencyQuestion .
   OPTIONAL { ?cq gmeow:cqQueryFile ?queryFile }
   OPTIONAL { ?cq gmeow:cqQuery ?query }
@@ -143,6 +147,7 @@ SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?rationa
   OPTIONAL { ?cq gmeow:cqExpectRowCount ?rowCount }
   OPTIONAL { ?cq gmeow:cqExactRows ?exactRows }
   OPTIONAL { ?cq gmeow:cqReasoning ?reasoning }
+  OPTIONAL { ?cq gmeow:cqDataFile ?dataFile }
   OPTIONAL { ?cq gmeow:cqRationale ?rationale }
 }";
 
@@ -215,6 +220,7 @@ fn parse_competency(store: &Store) -> Result<Vec<CompetencyQuestion>, String> {
                     other => return Err(format!("unknown cqReasoning gmeow:{other}")),
                 },
             },
+            data_file: opt_string(&sol, "dataFile"),
             rationale: opt_string(&sol, "rationale"),
         };
         // A multi-valued OPTIONAL (or a duplicated triple) can yield more than one

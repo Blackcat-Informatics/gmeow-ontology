@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency question for the events slice (crates/slicetest, #784),
+# migrated from test_competency_life_events_query under #867. TBox subset over the
+# asserted merged ontology (contains-check). The source also asserted a coarse
+# len >= 25 floor the DSL has no operator for; the named life-event types are
+# pinned and the loose floor is dropped (a faithful relaxation, never strengthened
+# to an exact closed set). No #869 Gap-1 universal.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/events/tests/> .
+
+ex:cqLifeEvents a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/life-events.rq" ;
+    gmeow:cqRationale "GMEOW must model life-event types as eventType VALUE individuals (issue #41): birth, death, marriage, burial, census, adoption (among the full genealogical set)." ;
+    gmeow:cqExpectRow ex:leBirth, ex:leDeath, ex:leMarriage, ex:leBurial, ex:leCensus, ex:leAdoption .
+
+ex:leBirth a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "eventType" ; gmeow:cellValueIri gmeow:eventTypeBirth ] .
+ex:leDeath a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "eventType" ; gmeow:cellValueIri gmeow:eventTypeDeath ] .
+ex:leMarriage a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "eventType" ; gmeow:cellValueIri gmeow:eventTypeMarriage ] .
+ex:leBurial a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "eventType" ; gmeow:cellValueIri gmeow:eventTypeBurial ] .
+ex:leCensus a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "eventType" ; gmeow:cellValueIri gmeow:eventTypeCensus ] .
+ex:leAdoption a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "eventType" ; gmeow:cellValueIri gmeow:eventTypeAdoption ] .

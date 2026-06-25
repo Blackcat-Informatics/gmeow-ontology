@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the languages slice, executed by the native
+# Rust slice-test harness (crates/slicetest, #784). Migrated from the language-origin
+# / writing-system / proficiency-level competency tests in tests/test_competency.py
+# under #867. TBox vocabulary questions over the asserted merged ontology; rows are
+# the SUBSET the pytest asserted present (cqExactRows omitted → contains-check). No
+# #869 Gap-1 universal — fixed term sets.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/languages/tests/> .
+
+# ── Language origins ──────────────────────────────────────────────────────────
+ex:cqLanguageOrigins a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/language-origins.rq" ;
+    gmeow:cqRationale "GMEOW must model language origins: natural, AI-generated, programming, and constructed/engineered." ;
+    gmeow:cqExpectRow ex:loNatural, ex:loAiGenerated, ex:loProgramming, ex:loConstructedEngineered .
+
+ex:loNatural a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "origin" ; gmeow:cellValueIri gmeow:originNatural ] .
+ex:loAiGenerated a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "origin" ; gmeow:cellValueIri gmeow:originAiGenerated ] .
+ex:loProgramming a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "origin" ; gmeow:cellValueIri gmeow:originProgramming ] .
+ex:loConstructedEngineered a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "origin" ; gmeow:cellValueIri gmeow:originConstructedEngineered ] .
+
+# ── Writing-system script roles ───────────────────────────────────────────────
+ex:cqWritingSystems a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/writing-systems.rq" ;
+    gmeow:cqRationale "GMEOW must model script roles in mixed writing systems: logographic content, syllabic grammar, loanword, and transliteration." ;
+    gmeow:cqExpectRow ex:wsLogographicContent, ex:wsSyllabicGrammar, ex:wsLoanword, ex:wsTransliteration .
+
+ex:wsLogographicContent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:scriptRoleLogographicContent ] .
+ex:wsSyllabicGrammar a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:scriptRoleSyllabicGrammar ] .
+ex:wsLoanword a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:scriptRoleLoanword ] .
+ex:wsTransliteration a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:scriptRoleTransliteration ] .
+
+# ── Proficiency levels (CEFR + heritage/native) ───────────────────────────────
+ex:cqProficiencyLevels a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/proficiency-levels.rq" ;
+    gmeow:cqRationale "GMEOW must model language proficiency levels: the CEFR scale endpoints A1 and C2, plus native and heritage speaker levels." ;
+    gmeow:cqExpectRow ex:plA1, ex:plC2, ex:plNative, ex:plHeritage .
+
+ex:plA1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "level" ; gmeow:cellValueIri gmeow:cefrA1 ] .
+ex:plC2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "level" ; gmeow:cellValueIri gmeow:cefrC2 ] .
+ex:plNative a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "level" ; gmeow:cellValueIri gmeow:levelNative ] .
+ex:plHeritage a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "level" ; gmeow:cellValueIri gmeow:levelHeritage ] .

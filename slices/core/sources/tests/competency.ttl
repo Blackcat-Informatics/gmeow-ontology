@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency question for the sources slice (crates/slicetest, #784),
+# migrated from test_competency_import_provenance_query under #867. TBox subset
+# over the asserted merged ontology (contains-check). No #869 Gap-1 universal.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sources/tests/> .
+
+ex:cqImportProvenance a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/import-provenance.rq" ;
+    gmeow:cqRationale "GMEOW must model import provenance: when a source was modified (sourceModifiedAt), its content digest, and where it came from (sourceLocation)." ;
+    gmeow:cqExpectRow ex:ipSourceModifiedAt, ex:ipContentDigest, ex:ipSourceLocation .
+
+ex:ipSourceModifiedAt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:sourceModifiedAt ] .
+ex:ipContentDigest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:contentDigest ] .
+ex:ipSourceLocation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:sourceLocation ] .

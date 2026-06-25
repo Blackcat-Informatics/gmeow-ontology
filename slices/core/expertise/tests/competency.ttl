@@ -1,0 +1,74 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the expertise slice, executed by the native
+# Rust slice-test harness (crates/slicetest, #784). Migrated from the expertise
+# competency tests in tests/test_competency.py under #867 (issue #263).
+#
+# All three are instance classifiers overlaying a synthetic ABox via
+# gmeow:cqDataFile (the merged ontology is TBox-only). Each query projects MULTIPLE
+# variables and the harness compares FULL rows, so every projected binding is
+# pinned (the source pytest only checked column 0; pinning all columns is strictly
+# more faithful to the query's answer). No #869 Gap-1 universal — fixed instance
+# classifications.
+#
+# NOTE: test_competency_expertise_expiring_credentials is NOT migrated here. Its
+# query selects credentials whose gmeow:validUntil is within one year of NOW() — a
+# clock-RELATIVE window. No static fixture date can satisfy "within a year of now"
+# perpetually (a far-future literal falls outside the window; any fixed near date
+# becomes a time-bomb), so it is a documented faithful pytest retain (see
+# dsl/tests/MIGRATION-LEDGER.md).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/expertise/tests/> .
+@prefix exd:   <https://example.org/test/> .
+
+# ── Expert-level proficiency ──────────────────────────────────────────────────
+ex:cqExpertProficiency a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/expertise-expert-python.rq" ;
+    gmeow:cqDataFile "tests/fixtures/expertise-expert-python.ttl" ;
+    gmeow:cqRationale "An agent holding an expert-level (Dreyfus/NIH/assessed) proficiency in a skill must be returned by the expert-proficiency query." ;
+    gmeow:cqExpectRow ex:expertRow .
+
+ex:expertRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "agent" ; gmeow:cellValueIri exd:agent1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "skill" ; gmeow:cellValueIri exd:python ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "level" ; gmeow:cellValueIri gmeow:dreyfusExpert ] .
+
+# ── Endorsed vs self-asserted (three classified proficiencies) ────────────────
+ex:cqEndorsedVsSelfAsserted a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/expertise-endorsed-vs-self-asserted.rq" ;
+    gmeow:cqDataFile "tests/fixtures/expertise-endorsed-vs-self-asserted.ttl" ;
+    gmeow:cqRationale "Each SkillProficiency must be classified self-asserted when no third-party Attestation vouches for it (including a SELF attestation) and endorsed when an Attestation by a different agent exists." ;
+    gmeow:cqExpectRow ex:rowProfSelf, ex:rowProfEndorsed, ex:rowProfSelfAttested .
+
+ex:rowProfSelf a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "proficiency" ; gmeow:cellValueIri exd:profSelf ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "agent" ; gmeow:cellValueIri exd:agent1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "skill" ; gmeow:cellValueIri exd:python ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assertionKind" ; gmeow:cellValueLiteral "self-asserted" ] .
+
+ex:rowProfEndorsed a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "proficiency" ; gmeow:cellValueIri exd:profEndorsed ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "agent" ; gmeow:cellValueIri exd:agent1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "skill" ; gmeow:cellValueIri exd:python ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assertionKind" ; gmeow:cellValueLiteral "endorsed" ] .
+
+ex:rowProfSelfAttested a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "proficiency" ; gmeow:cellValueIri exd:profSelfAttested ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "agent" ; gmeow:cellValueIri exd:agent1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "skill" ; gmeow:cellValueIri exd:python ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assertionKind" ; gmeow:cellValueLiteral "self-asserted" ] .
+
+# ── Employment → occupation → certifying credential ───────────────────────────
+ex:cqEmploymentCredentials a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/expertise-employment-credentials.rq" ;
+    gmeow:cqDataFile "tests/fixtures/expertise-employment-credentials.ttl" ;
+    gmeow:cqRationale "An employment's occupation joined to the credentials that certify that occupation (and their issuers) must be retrievable." ;
+    gmeow:cqExpectRow ex:employmentRow .
+
+ex:employmentRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "employment" ; gmeow:cellValueIri exd:emp1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "occupation" ; gmeow:cellValueIri exd:sweOcc ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "credential" ; gmeow:cellValueIri exd:cred1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "issuer" ; gmeow:cellValueIri exd:org1 ] .
