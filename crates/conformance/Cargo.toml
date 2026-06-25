@@ -32,7 +32,20 @@ serde_json = "1"
 # File-driven test harness: one nextest case per discovered profile.json (i.e. per
 # case directory), run in parallel. Mirrors crates/slicetest (#784, T3).
 datatest-stable = "0.3"
+# The RDF-1.2 adapter, TEST-ONLY: the #697 native-DL gold lane parses curated
+# OWL/gUFO Turtle fixtures into the frozen `RdfDataset` IR that
+# `gmeow_logic::reason::reason_all` consumes (same ingress as the engine). It is
+# a dev-dependency so the harness lib's runtime surface stays unchanged, and
+# `gmeow-logic` already depends on this crate so no new layering edge is created.
+gmeow-rdf = { path = "../rdf", default-features = false, features = ["oxigraph"] }
 
 [[test]]
 name = "conformance"
 harness = false
+
+# The #697 native⊇oracle DL gold lane: load each curated fixture, run native
+# `reason_all`, and assert the native verdict reproduces every FROZEN HermiT
+# inconsistency/unsat class. Offline + deterministic (no Docker/Java/network);
+# the standard libtest harness (not datatest-stable).
+[[test]]
+name = "dl_oracle_gold"

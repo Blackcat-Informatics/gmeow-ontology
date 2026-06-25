@@ -1666,6 +1666,7 @@ version = "0.1.0"
 dependencies = [
  "datatest-stable",
  "gmeow-logic",
+ "gmeow-rdf",
  "oxigraph",
  "serde_json",
 ]

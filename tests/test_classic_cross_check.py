@@ -26,7 +26,7 @@ CROSSCHECK_WORLD = crosscheck.CROSSCHECK_WORLD
 
 
 def test_ledger_all_agree_plus_dlgap() -> None:
-    """Identical native+ELK subsumptions + matching consistency + a gap → no fail."""
+    """Identical native+ELK subsumptions + matching consistency + a gap is tallied."""
     native = [("A", "B", CROSSCHECK_WORLD), ("B", "C", CROSSCHECK_WORLD)]
     elk = [("A", "B", CROSSCHECK_WORLD), ("B", "C", CROSSCHECK_WORLD)]
     ledger = gmeow_logic.build_divergence_ledger(
@@ -87,11 +87,11 @@ def test_ledger_bracket_normalization_agrees() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# enforce — strict-by-default, DlGap-tolerant
+# enforce — strict-by-default, gap-zero
 # --------------------------------------------------------------------------- #
 
 
-def test_enforce_passes_on_agree_plus_dlgap() -> None:
+def test_enforce_fails_on_agree_plus_dlgap() -> None:
     ledger = gmeow_logic.build_divergence_ledger(
         [("A", "B", CROSSCHECK_WORLD)],
         [("A", "B", CROSSCHECK_WORLD)],
@@ -101,7 +101,7 @@ def test_enforce_passes_on_agree_plus_dlgap() -> None:
         [],
         [("reason.dl-gap.x", "honest gap")],
     )
-    assert crosscheck.enforce(ledger) is True
+    assert crosscheck.enforce(ledger) is False
 
 
 def test_enforce_fails_on_native_only() -> None:
@@ -130,8 +130,8 @@ def test_enforce_fails_on_oracle_only() -> None:
     assert crosscheck.enforce(ledger) is False
 
 
-def test_enforce_dlgap_alone_does_not_fail() -> None:
-    """A DlGap is the ONLY honest-expected, non-failing class."""
+def test_enforce_dlgap_alone_fails() -> None:
+    """A DlGap is a native coverage defect and fails even without oracle drift."""
     ledger = gmeow_logic.build_divergence_ledger(
         [],
         [],
@@ -142,7 +142,7 @@ def test_enforce_dlgap_alone_does_not_fail() -> None:
         [("reason.dl-gap.disjoint", "beyond EL"), ("reason.dl-gap.union", "beyond EL")],
     )
     assert ledger["dl_gap"] == 2
-    assert crosscheck.enforce(ledger) is True
+    assert crosscheck.enforce(ledger) is False
 
 
 # --------------------------------------------------------------------------- #
@@ -161,6 +161,8 @@ def test_report_sarif_carries_agreement_and_timing() -> None:
         [("reason.dl-gap.x", "honest gap")],
     )
     report = crosscheck.build_report(ledger, elk_seconds=1.5, hermit_seconds=900.0)
+    assert report.error_count == 1
+    assert not report.ok
     sarif = json.loads(report.to_sarif())
     rule_ids = {result["ruleId"] for result in sarif["runs"][0]["results"]}
     # Agreement-matrix + per-tool timing findings are present.
@@ -348,8 +350,8 @@ def test_enforced_lane_agrees_on_real_bundle(tmp_path: object) -> None:
 
     Exercises the FULL enforced lane: native reasoning → told-facts staging →
     ELK + HermiT over the SAME corpus → Rust comparator → SARIF + enforcement.
-    Native ≡ oracle on the real bundle, so enforcement passes (exit 0) and the
-    only honest-expected non-agreement class is ``DlGap``.
+    Native ≡ oracle on the real bundle, so enforcement passes (exit 0) with
+    zero native DL coverage gaps.
     """
     from pathlib import Path
 
@@ -360,6 +362,7 @@ def test_enforced_lane_agrees_on_real_bundle(tmp_path: object) -> None:
     )
     assert ledger["native_only"] == 0
     assert ledger["oracle_only"] == 0
+    assert ledger["dl_gap"] == 0
     assert ledger["agree"] > 0
     assert report.ok
     # The SARIF/JSON artifacts were written to the lane output dir.

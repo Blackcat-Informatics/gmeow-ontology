@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Report-only divergence ledger over the native reasoner versus classic oracles.
+//! Divergence ledger over the native reasoner versus classic oracles.
 //!
 //! This module compares the native engine's results ([`crate::reason::el`] for EL
 //! subsumption, [`crate::reason::dl`] for DL consistency) against the classic
@@ -9,11 +9,10 @@
 //! not message bytes** — mirroring the #578 doctrine that comparison happens on
 //! the structured shape, never on rendered human strings.
 //!
-//! It is strictly **report-only**: it classifies each tuple as agreeing, native-
-//! only, oracle-only, or a known DL gap, and tallies the counts. It never decides
-//! pass/fail and never enforces anything on divergence — *enforcing on divergence
-//! is deferred to #666*. The Docker oracles themselves run in Python (Task 4); this
-//! Rust module owns ONLY the comparison logic and the structured ledger shape.
+//! It classifies each tuple as agreeing, native-only, oracle-only, or a native
+//! DL coverage defect, and tallies the counts. The Docker oracles themselves run
+//! in Python; this Rust module owns only the comparison logic and the structured
+//! ledger shape.
 //!
 //! There is no I/O and no TTL emission here — serialization is the job of a later
 //! task. This module produces only the in-memory structured ledger.
@@ -30,7 +29,7 @@ pub enum DivergenceKind {
     NativeOnly,
     /// Derived by the oracle but not natively.
     OracleOnly,
-    /// A construct the native encoding cannot decide (a known DL gap).
+    /// A construct the native path did not decide (a coverage defect).
     DlGap,
 }
 
@@ -58,6 +57,62 @@ pub struct DivergenceLedger {
     pub native_only: usize,
     pub oracle_only: usize,
     pub dl_gap: usize,
+}
+
+/// The strict native↔oracle cross-check verdict over a [`DivergenceLedger`].
+///
+/// `passed` is the gate decision; `reasons` is a short, deterministic English
+/// list naming each failing category (empty when `passed` is `true`). There is
+/// **no severity knob** (ETHOS §5/§19): any `NativeOnly`, `OracleOnly`, or `DlGap`
+/// row fails the lane. This is the single authority for the decision — Python only
+/// surfaces this verdict, it never recomputes it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LedgerVerdict {
+    pub passed: bool,
+    pub reasons: Vec<String>,
+}
+
+/// Decide the strict native↔oracle cross-check verdict (the anti-regression
+/// superset gate, #697 criterion 3): the native-decided construct set must be a
+/// superset of the oracle-decided set, with no native coverage defect.
+///
+/// The verdict is `passed` only when the ledger has **zero** `NativeOnly`,
+/// `OracleOnly`, and `DlGap` rows:
+///
+/// * an `OracleOnly` row is a coverage regression — the oracle decided a construct
+///   the native path did not (native ⊉ oracle);
+/// * a `DlGap` row is a native coverage defect (a construct the native path did
+///   not decide at all);
+/// * a `NativeOnly` row is a genuine native↔oracle divergence.
+///
+/// Each non-zero tally contributes one deterministic English reason. This is the
+/// Rust authority for the decision the Python `classic_cross_check.enforce()`
+/// thin wrapper surfaces unchanged.
+pub fn enforce(ledger: &DivergenceLedger) -> LedgerVerdict {
+    let mut reasons: Vec<String> = Vec::new();
+    if ledger.native_only > 0 {
+        reasons.push(format!(
+            "{} native-only divergence row(s): derived natively but not by the oracle",
+            ledger.native_only
+        ));
+    }
+    if ledger.oracle_only > 0 {
+        reasons.push(format!(
+            "{} oracle-only row(s): the oracle decided a construct the native path did not \
+             (native ⊉ oracle coverage regression)",
+            ledger.oracle_only
+        ));
+    }
+    if ledger.dl_gap > 0 {
+        reasons.push(format!(
+            "{} native DL coverage gap(s): a construct the native path did not decide",
+            ledger.dl_gap
+        ));
+    }
+    LedgerVerdict {
+        passed: reasons.is_empty(),
+        reasons,
+    }
 }
 
 /// Strip a single surrounding pair of angle brackets from `s`.
@@ -259,11 +314,11 @@ pub fn compare_consistency(
     rows
 }
 
-/// Emit one [`DivergenceKind::DlGap`] row per native DL gap.
+/// Emit one [`DivergenceKind::DlGap`] row per native DL coverage defect.
 ///
-/// Each gap is a known limitation of the predicate-as-symbol encoding (a construct
-/// whose consistency the native check does not decide); the row carries the gap's
-/// message and code as its `detail`, with empty positional fields.
+/// Each gap is a construct whose consistency the native check did not decide;
+/// the row carries the gap's message and code as its `detail`, with empty
+/// positional fields.
 pub fn dl_gap_rows(gaps: &[RdfLoss]) -> Vec<LedgerRow> {
     gaps.iter()
         .map(|gap| LedgerRow {
@@ -442,5 +497,78 @@ mod tests {
 
         let ledger = build_ledger(Vec::new(), Vec::new(), rows);
         assert_eq!(ledger.dl_gap, 1, "build_ledger tallies dl_gap == 1");
+    }
+
+    // ── enforce (the strict native⊇oracle decision, #697 criterion 3) ──────────
+
+    #[test]
+    fn enforce_passes_on_pure_agreement() {
+        // Identical native+ELK subsumptions and matching consistency → all Agree.
+        let subs = compare_subsumption(&[t(A, B, W)], &[t(A, B, W)]);
+        let cons = compare_consistency(true, &[], Some(true), &[]);
+        let ledger = build_ledger(subs, cons, Vec::new());
+        let verdict = enforce(&ledger);
+        assert!(verdict.passed, "pure agreement must pass: {verdict:?}");
+        assert!(verdict.reasons.is_empty(), "no reasons when passing");
+    }
+
+    #[test]
+    fn enforce_fails_on_native_only() {
+        // native ∖ ELK = one NativeOnly row.
+        let subs = compare_subsumption(&[t(A, B, W), t(B, C, W)], &[t(A, B, W)]);
+        let ledger = build_ledger(subs, Vec::new(), Vec::new());
+        assert_eq!(ledger.native_only, 1);
+        let verdict = enforce(&ledger);
+        assert!(!verdict.passed, "a NativeOnly row must fail");
+        assert!(
+            verdict.reasons.iter().any(|r| r.contains("native-only")),
+            "reason names the native-only divergence: {verdict:?}"
+        );
+    }
+
+    #[test]
+    fn enforce_fails_on_oracle_only() {
+        // ELK ∖ native = one OracleOnly row → a coverage regression (native ⊉ oracle).
+        let subs = compare_subsumption(&[t(A, B, W)], &[t(A, B, W), t(B, C, W)]);
+        let ledger = build_ledger(subs, Vec::new(), Vec::new());
+        assert_eq!(ledger.oracle_only, 1);
+        let verdict = enforce(&ledger);
+        assert!(
+            !verdict.passed,
+            "an OracleOnly row must fail (coverage regression)"
+        );
+        assert!(
+            verdict.reasons.iter().any(|r| r.contains("oracle-only")),
+            "reason names the oracle-only coverage regression: {verdict:?}"
+        );
+    }
+
+    #[test]
+    fn enforce_fails_on_dl_gap_alone() {
+        // A DlGap is a native coverage defect and fails even with no oracle drift.
+        let gaps = dl_gap_rows(&[RdfLoss::new("reason.dl-gap.complementOf", "beyond EL")]);
+        let ledger = build_ledger(Vec::new(), Vec::new(), gaps);
+        assert_eq!(ledger.dl_gap, 1);
+        let verdict = enforce(&ledger);
+        assert!(!verdict.passed, "a DlGap alone must fail");
+        assert!(
+            verdict.reasons.iter().any(|r| r.contains("coverage gap")),
+            "reason names the native DL coverage gap: {verdict:?}"
+        );
+    }
+
+    #[test]
+    fn enforce_accumulates_every_failing_category() {
+        // One of each failing kind → three distinct reasons, deterministic order.
+        let subs = compare_subsumption(&[t(A, B, W)], &[t(C, B, W)]);
+        // native {A⊑B}, elk {C⊑B}: A⊑B is NativeOnly, C⊑B is OracleOnly.
+        let gaps = dl_gap_rows(&[RdfLoss::new("reason.dl-gap.union", "beyond EL")]);
+        let ledger = build_ledger(subs, Vec::new(), gaps);
+        assert_eq!(ledger.native_only, 1);
+        assert_eq!(ledger.oracle_only, 1);
+        assert_eq!(ledger.dl_gap, 1);
+        let verdict = enforce(&ledger);
+        assert!(!verdict.passed);
+        assert_eq!(verdict.reasons.len(), 3, "one reason per failing category");
     }
 }

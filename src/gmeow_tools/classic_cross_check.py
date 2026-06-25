@@ -11,7 +11,7 @@ What it does
 1. Reasons the committed GTS bundle natively (Rust, Java/Docker-free) — the
    authority. From that run it takes the subsumption closure
    (``rdfs:subClassOf``), the DL consistency verdict + unsatisfiable classes, and
-   the beyond-EL DL *gaps* (the honest limits of the ternary encoding).
+   native DL coverage defects, if any.
 2. Runs the classic Docker oracles, **timing each**:
    * ELK materializes the inferred class hierarchy; its ``rdfs:subClassOf``
      closure is the subsumption oracle.
@@ -23,9 +23,8 @@ What it does
    the enforcement decision.
 4. Emits the agreement matrix + per-tool timing as SARIF + JSON via the
    ``gmeow_diagnostics`` rail (the gate taxonomy #666 owns / #662 consumes).
-5. ENFORCES strict-by-default (no knob): exits NON-ZERO if ANY ``NativeOnly`` or
-   ``OracleOnly`` row exists. ``DlGap`` is the ONLY honest-expected, non-failing
-   class.
+5. ENFORCES strict-by-default (no knob): exits NON-ZERO if ANY ``NativeOnly``,
+   ``OracleOnly``, or ``DlGap`` row exists. A native gap is a coverage defect.
 
 World alignment
 ---------------
@@ -105,7 +104,7 @@ def native_unsat_classes(result: dict[str, Any]) -> list[str]:
 
 
 def native_gaps(result: dict[str, Any]) -> list[tuple[str, str]]:
-    """Extract the native beyond-EL DL gaps as ``(code, message)`` tuples."""
+    """Extract native DL coverage defects as ``(code, message)`` tuples."""
     return [(g["code"], g["message"]) for g in result.get("gaps", [])]
 
 
@@ -388,10 +387,10 @@ def build_report(
 ) -> DiagnosticsReport:
     """Build the diagnostics report carrying the agreement matrix + timing.
 
-    Every ledger row becomes a finding tagged with its kind; ``NativeOnly`` /
-    ``OracleOnly`` are ``error`` severity (they FAIL the lane), ``DlGap`` is a
-    ``note`` (honest-expected), and ``Agree`` is ``info``. The per-tool wall-clock
-    is recorded as ``note`` findings so the artifact carries the timing too.
+    Every ledger row becomes a finding tagged with its kind; ``NativeOnly``,
+    ``OracleOnly``, and ``DlGap`` are ``error`` severity because all three fail
+    the lane. ``Agree`` is ``info``. The per-tool wall-clock is recorded as
+    ``note`` findings so the artifact carries the timing too.
     """
     from gmeow_tools import diagnostics
 
@@ -437,7 +436,7 @@ def build_report(
         "Agree": "info",
         "NativeOnly": "error",
         "OracleOnly": "error",
-        "DlGap": "note",
+        "DlGap": "error",
     }
     for row in ledger["rows"]:
         kind = row["kind"]
@@ -458,13 +457,16 @@ def build_report(
 
 
 def enforce(ledger: dict[str, Any]) -> bool:
-    """Strict-by-default verdict: True (pass) unless a real divergence exists.
+    """Surface the Rust-computed strict cross-check verdict (no decision here).
 
-    A ``NativeOnly`` or ``OracleOnly`` row is a real divergence and FAILS the
-    lane. ``DlGap`` is the ONLY honest-expected, non-failing class; ``Agree``
-    passes. There is no severity knob (ETHOS §5/§19).
+    The strict pass/fail DECISION — pass only with zero ``NativeOnly``,
+    ``OracleOnly``, and ``DlGap`` rows (no severity knob; ETHOS §5/§19) — lives in
+    Rust: :func:`gmeow_logic.build_divergence_ledger` computes it and stamps the
+    ledger with a ``passed`` flag (and a ``reasons`` list). This wrapper is a thin
+    surface that returns that flag verbatim; it performs NO arithmetic or decision
+    of its own (Python-retirement directive #933, #697 criterion 3).
     """
-    return int(ledger["native_only"]) == 0 and int(ledger["oracle_only"]) == 0
+    return bool(ledger["passed"])
 
 
 def run(

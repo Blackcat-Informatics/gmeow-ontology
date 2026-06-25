@@ -967,8 +967,8 @@ fn ledger_row_to_dict(
 /// - `hermit_consistent` — HermiT's consistency verdict, or `None` if HermiT was
 ///   not run (recorded as a native-only note, never a divergence).
 /// - `hermit_unsat` — HermiT's unsatisfiable-class IRIs.
-/// - `gaps` — beyond-EL DL gap codes/messages, each a 2-tuple `(code, message)`;
-///   each becomes one honest, non-failing `DlGap` row.
+/// - `gaps` — native DL coverage defects, each a 2-tuple `(code, message)`;
+///   each becomes one failing `DlGap` row.
 ///
 /// # Returns
 ///
@@ -976,6 +976,12 @@ fn ledger_row_to_dict(
 /// - `rows` — `list[dict]`, each `{kind, category, subject, object, world, detail}`
 ///   where `kind` is one of `"Agree"`, `"NativeOnly"`, `"OracleOnly"`, `"DlGap"`.
 /// - `agree`, `native_only`, `oracle_only`, `dl_gap` — per-kind tallies (int).
+/// - `passed` (bool) — the **Rust-computed** strict enforcement verdict (#697
+///   criterion 3): `True` only with zero `NativeOnly`/`OracleOnly`/`DlGap` rows.
+///   This is the single decision authority; Python surfaces it unchanged and does
+///   NOT recompute it.
+/// - `reasons` — `list[str]`, one deterministic English reason per failing
+///   category (empty when `passed`).
 ///
 /// # Errors
 ///
@@ -1002,7 +1008,7 @@ fn build_divergence_ledger(
     gaps: Vec<(String, String)>,
 ) -> PyResult<Py<PyAny>> {
     use crate::reason::ledger::{
-        build_ledger, compare_consistency, compare_subsumption, dl_gap_rows,
+        build_ledger, compare_consistency, compare_subsumption, dl_gap_rows, enforce,
     };
 
     let native: Vec<(String, String, String)> = native_subsumptions
@@ -1030,6 +1036,11 @@ fn build_divergence_ledger(
 
     let ledger = build_ledger(subsumption_rows, consistency_rows, gap_rows);
 
+    // The strict pass/fail DECISION is computed HERE, in Rust (#697 criterion 3) —
+    // never in Python. The thin Python `classic_cross_check.enforce()` wrapper only
+    // surfaces this `passed` flag.
+    let verdict = enforce(&ledger);
+
     let rows = PyList::empty(py);
     for row in &ledger.rows {
         rows.append(ledger_row_to_dict(py, row)?)?;
@@ -1041,6 +1052,8 @@ fn build_divergence_ledger(
     out.set_item("native_only", ledger.native_only)?;
     out.set_item("oracle_only", ledger.oracle_only)?;
     out.set_item("dl_gap", ledger.dl_gap)?;
+    out.set_item("passed", verdict.passed)?;
+    out.set_item("reasons", verdict.reasons)?;
     Ok(out.into_any().unbind())
 }
 
@@ -1066,7 +1079,8 @@ fn build_divergence_ledger(
 ///   (`rule_name` is `None` for asserted EDB axioms)
 /// - `unsatisfiable_classes` (`list[dict]`): each `{class, world}`
 /// - `inconsistencies` (`list[dict]`): each `{individual, world}`
-/// - `gaps` (`list[dict]`): each `{code, message}` — the named beyond-EL constructs
+/// - `coverage` (`dict`): `{present, decided, unsupported}` construct lists
+/// - `gaps` (`list[dict]`): each `{code, message}` — native coverage defects
 ///
 /// # Errors
 ///
@@ -1133,11 +1147,22 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     }
     out.set_item("inconsistencies", inconsist)?;
 
+    let coverage = PyDict::new(py);
+    coverage.set_item("present", result.verdict.coverage.present.clone())?;
+    coverage.set_item("decided", result.verdict.coverage.decided.clone())?;
+    coverage.set_item("unsupported", result.verdict.coverage.unsupported.clone())?;
+    out.set_item("coverage", coverage)?;
+
     let gaps = PyList::empty(py);
     for g in &result.verdict.gaps {
         let d = PyDict::new(py);
         d.set_item("code", g.code.as_str())?;
         d.set_item("message", g.message.as_str())?;
+        // A DL coverage gap is always an error: the native closure is incomplete
+        // and any downstream gate relying on it may produce false negatives.
+        // Severity is decided here in Rust; Python must read this field rather
+        // than hardcoding "error" (Python-retirement doctrine, issue #697 Gap E).
+        d.set_item("severity", "error")?;
         gaps.append(d)?;
     }
     out.set_item("gaps", gaps)?;
@@ -1169,7 +1194,7 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
 /// A dict with three string keys:
 /// - `closure` — the told-vs-inferred inferred-closure Turtle.
 /// - `explanations` — the per-axiom proof-skeleton Turtle.
-/// - `ledger` — the report-only native↔oracle DL/EL crosscheck ledger Turtle.
+/// - `ledger` — the native gap-zero DL/EL crosscheck ledger Turtle.
 ///
 /// # Errors
 ///

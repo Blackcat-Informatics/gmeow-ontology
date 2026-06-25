@@ -9,9 +9,9 @@
 //! [`crate::compile`] pipeline projects, these rule sets are intrinsic to the
 //! reasoner: they encode the OWL semantics themselves, not a domain ontology.
 //!
-//! Currently provides the EL subsumption closure ([`el`]), DL consistency /
-//! unsatisfiability ([`dl`]), and the report-only divergence ledger
-//! ([`ledger`]) comparing the native engine against the classic oracles.
+//! Provides the EL subsumption closure ([`el`]), the predicate-as-DATA RL/DL
+//! native closure ([`rl`] + [`dl`]), and the divergence ledger ([`ledger`])
+//! comparing the native engine against the classic oracles.
 
 pub mod artifacts;
 pub mod dl;
@@ -34,44 +34,36 @@ use crate::nemo_engine::{run_chase, ChaseRow};
 use crate::store::WorldStore;
 use gmeow_rdf::RdfDataset;
 
-/// The combined result of a single-chase native reasoning run.
+/// The combined result of a native reasoning run.
 ///
-/// `inferred` is the subsumption-relevant closure (filtered to
-/// [`el::SUBSUMPTION_PREDICATES`], asserted + derived); `verdict` is the DL
-/// consistency / unsatisfiability verdict. Both are read off the SAME
-/// `Vec<InferredAxiom>` so the Nemo chase runs exactly once.
+/// `inferred` is the asserted + derived IRI-object closure produced by the
+/// predicate-as-DATA native path; `verdict` is the DL consistency /
+/// unsatisfiability verdict read from that same closure plus the DL post-pass.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ReasonResult {
     pub inferred: Vec<InferredAxiom>,
     pub verdict: crate::reason::dl::DlVerdict,
 }
 
-/// Run native EL subsumption + DL consistency in ONE chase.
+/// Run native predicate-as-DATA entailment + DL consistency.
 ///
-/// Runs the full [`dl::dl_rules`] set (the EL calculus plus the clash-detection
-/// rules) through [`run_reasoning`] exactly once, then derives both surfaces
-/// from the shared `Vec<InferredAxiom>`:
+/// Runs the fast DL chase, augments it with data-indexed finite DL consistency
+/// consequences, then reads both surfaces from the shared `Vec<InferredAxiom>`:
 ///
-/// - `inferred` — the subsumption-relevant closure, filtered to
-///   [`el::SUBSUMPTION_PREDICATES`] (the same filter [`el::el_closure`] applies).
-/// - `verdict` — read off by [`dl::verdict_from_inferred`] (the same logic
-///   [`dl::dl_consistency`] uses), with `gaps` scanned over `edb`.
-///
-/// This avoids running Nemo twice (once for the closure, once for consistency)
-/// when a caller needs both — e.g. the PyO3 `reason_native` surface.
+/// - `inferred` — asserted and derived IRI-object triples for reporting/verify.
+/// - `verdict` — read off by [`dl::verdict_from_inferred`], with construct
+///   coverage scanned over `edb`.
 ///
 /// # Errors
 ///
 /// Returns `Err(String)` if the source store cannot be loaded, if the Nemo
-/// chase fails to parse/validate/evaluate/decode, or if the gap scan fails to
-/// read a quad from `edb`.
+/// chase fails to parse/validate/evaluate/decode, or if coverage/consistency
+/// scanning fails.
 pub fn reason_all(edb: &RdfDataset) -> Result<ReasonResult, String> {
-    let all = run_reasoning(edb, &dl::dl_rules())?;
-    let verdict = dl::verdict_from_inferred(&all, edb)?;
-    let inferred: Vec<InferredAxiom> = all
-        .into_iter()
-        .filter(|a| el::SUBSUMPTION_PREDICATES.contains(&a.predicate.as_str()))
-        .collect();
+    let mut inferred = run_reasoning(edb, &dl::dl_rules())?;
+    dl::augment_inferred_with_dl(&mut inferred, edb)?;
+    inferred.sort();
+    let verdict = dl::verdict_from_inferred(&inferred, edb)?;
     Ok(ReasonResult { inferred, verdict })
 }
 

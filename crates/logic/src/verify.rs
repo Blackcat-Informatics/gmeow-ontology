@@ -76,6 +76,57 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
     //    type / equivalent-class edges, which is what the inferred-edge verify
     //    queries (class-in-two-disjoint-axes, class-without-stereotype) rely on.
     let result = reason_all(edb)?;
+
+    // Report is declared here so the gap-enforcement block below can add
+    // findings to it before we reach the query-evaluation section.
+    let mut report = Report::new("verify");
+
+    // 2a. Hard-fail on any DL coverage gap.
+    //
+    // A gap means the native reasoner could NOT genuinely decide the consequences
+    // of one or more OWL constructs present in the bundle: the reasoned closure is
+    // potentially INCOMPLETE for those constructs, so the negative-test queries
+    // below may produce false negatives. Defense-in-depth: surface each gap as an
+    // error Finding so `make verify` fails fast rather than silently passing an
+    // incomplete closure. The committed bundle is genuinely gap-zero, so this
+    // branch is dead on a healthy run — it fires only when a new undecided
+    // construct is introduced without being wired into the native handler first.
+    for gap in &result.verdict.gaps {
+        let mut finding = Finding::new(
+            Severity::Error,
+            format!("verify.dl-gap.{}", gap.code),
+            format!(
+                "DL coverage gap — reasoned closure may be incomplete: {} ({})",
+                gap.message, gap.code
+            ),
+        )
+        .with_tool("verify");
+        finding.tags = vec![
+            "dl-coverage".to_owned(),
+            "reasoned-graph".to_owned(),
+            "incomplete-closure".to_owned(),
+        ];
+        report.add_finding(finding);
+    }
+    if !result.verdict.gaps.is_empty() {
+        // Return early: the closure is incomplete, so running the verify queries
+        // against it would be misleading. The gap findings above are sufficient
+        // for the caller to diagnose and fix the coverage hole.
+        report.add_finding(
+            Finding::new(
+                Severity::Note,
+                "verify.native.summary",
+                format!(
+                    "native reasoned-graph verify: aborted — {} DL coverage gap(s) prevent a \
+                     complete closure",
+                    result.verdict.gaps.len()
+                ),
+            )
+            .with_tool("verify"),
+        );
+        return Ok(report);
+    }
+
     for ax in &result.inferred {
         if ax.is_edb {
             continue;
@@ -93,7 +144,6 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
     }
 
     // 3. Evaluate each verify query; any solution row is a violation.
-    let mut report = Report::new("verify");
     let mut violations = 0usize;
     for (name, sparql) in queries {
         let stem = query_stem(name);
@@ -170,7 +220,7 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+    use gmeow_rdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
 
     const W: &str = "http://gmeow.example/w";
     const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
@@ -241,5 +291,84 @@ mod tests {
         let dataset = store();
         let err = verify(dataset.as_ref(), std::slice::from_ref(&q)).unwrap_err();
         assert!(err.contains("SELECT"), "ASK must be rejected: {err}");
+    }
+
+    /// A DL coverage gap makes `verify` hard-fail with an `error` Finding.
+    ///
+    /// Use an unparsable `owl:maxCardinality` literal — the same case the
+    /// `unparseable_cardinality_bound_stays_unsupported_so_the_gate_can_fire`
+    /// test in `dl.rs` validates against the DL verdict directly. Here we prove
+    /// the gap propagates all the way through `verify` to an `error` Finding,
+    /// and that the summary note says "aborted" rather than listing a query count
+    /// (since we short-circuit before running any queries).
+    #[test]
+    fn dl_coverage_gap_makes_verify_fail() {
+        const W2: &str = "http://gmeow.example/w2";
+        const ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
+        const MAX_CARDINALITY: &str = "http://www.w3.org/2002/07/owl#maxCardinality";
+        const P: &str = "http://gmeow.example/p";
+        const R: &str = "http://gmeow.example/R";
+        const X: &str = "http://gmeow.example/x";
+        const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+        // R = ≤? p (maxCardinality with an unparsable bound) — the native handler
+        // cannot act on it, so maxCardinality stays unsupported → a DL gap.
+        let mut builder = RdfDatasetBuilder::new();
+        for (s, p, o) in [(R, ON_PROPERTY, P), (X, TYPE, R)] {
+            builder.push_owned_quad(
+                &RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W2)),
+            );
+        }
+        builder.push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri(R),
+                MAX_CARDINALITY,
+                RdfTerm::Literal(RdfLiteral::typed(
+                    "not-a-number",
+                    "http://www.w3.org/2001/XMLSchema#string",
+                )),
+            )
+            .in_graph(RdfTerm::iri(W2)),
+        );
+        let dataset = builder.freeze().expect("valid gap-trigger dataset");
+
+        // Pass an empty query slice — we want to prove the gap fires BEFORE any
+        // query is evaluated, i.e. the short-circuit path works.
+        let report = verify(dataset.as_ref(), &[]).expect("verify itself must not Err on a gap");
+
+        assert!(
+            !report.ok(),
+            "a DL coverage gap must make verify fail (report.ok() == false)"
+        );
+        assert!(
+            report.error_count() >= 1,
+            "there must be at least one error Finding for the gap: {:?}",
+            report.findings
+        );
+
+        // The error finding code must reference the gap.
+        let gap_finding = report
+            .findings
+            .iter()
+            .find(|f| f.severity == Severity::Error && f.code.contains("dl-gap"))
+            .expect("an error finding with 'dl-gap' in the code must be present");
+        assert!(
+            gap_finding.code.contains("maxCardinality")
+                || gap_finding.message.contains("maxCardinality"),
+            "the finding must name the undecided construct: {:?}",
+            gap_finding
+        );
+
+        // The summary note must say "aborted".
+        let summary = report
+            .findings
+            .iter()
+            .find(|f| f.code == "verify.native.summary")
+            .expect("a summary note must be present");
+        assert!(
+            summary.message.contains("aborted"),
+            "summary must say 'aborted' when gaps prevent closure: {:?}",
+            summary
+        );
     }
 }

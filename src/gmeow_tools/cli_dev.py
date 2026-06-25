@@ -987,9 +987,9 @@ def classic_cross_check() -> None:
     (authority), runs the classic ELK + HermiT oracles (timing each), calls the
     authoritative Rust
     comparator, writes the agreement matrix + per-tool timing as SARIF/JSON, and
-    fails NON-ZERO on any real divergence (``NativeOnly`` / ``OracleOnly``).
-    ``DlGap`` is the only honest-expected, non-failing class. NEVER part of
-    ``make check`` or the required ``quality`` gate.
+    fails NON-ZERO on any real divergence (``NativeOnly`` / ``OracleOnly``) or
+    native coverage defect (``DlGap``). NEVER part of ``make check`` or the
+    required ``quality`` gate.
     """
     from gmeow_tools import classic_cross_check as crosscheck
     from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
@@ -1008,16 +1008,16 @@ def classic_cross_check() -> None:
     )
     if passed:
         console.print(
-            f"[green]✓ native ≡ oracle (ELK/HermiT); {ledger['dl_gap']} honest "
-            "DL gap(s) — enforced cross-check passed[/green]"
+            "[green]✓ native ≡ oracle (ELK/HermiT) with zero native DL gaps — "
+            "enforced cross-check passed[/green]"
         )
         return
     for row in ledger["rows"]:
-        if row["kind"] in ("NativeOnly", "OracleOnly"):
+        if row["kind"] in ("NativeOnly", "OracleOnly", "DlGap"):
             err_console.print(f"[red]{row['kind']}[/red] {row['detail']}")
     raise _fail(
         f"✗ native↔oracle divergence: {ledger['native_only']} native-only + "
-        f"{ledger['oracle_only']} oracle-only row(s)"
+        f"{ledger['oracle_only']} oracle-only + {ledger['dl_gap']} dl-gap row(s)"
     )
 
 
