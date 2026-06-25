@@ -18,6 +18,7 @@ use pyo3::types::{PyBytes, PyDict, PyList, PyModule};
 use gmeow_diagnostics::py::PyReport;
 
 use crate::run::{run_full, RunMode};
+use crate::transform::{self, CellInput, DerivedRowNative, TransformReportNative};
 use crate::up_projection::{self, AuditReport, LiftMap, UpProjectionReport};
 
 /// Run the full dogfooded build single-pass.
@@ -350,6 +351,94 @@ fn up_projection_reverse_nt(py: Python<'_>, source_nt: String) -> PyResult<Py<Py
     Ok(PyBytes::new(py, graph_nt.as_bytes()).into_any().unbind())
 }
 
+/// Deterministically skolemize an N-Triples graph through the native transform core.
+#[pyfunction]
+#[pyo3(signature = (source_nt))]
+fn transform_skolemize_nt(py: Python<'_>, source_nt: String) -> PyResult<Py<PyAny>> {
+    let graph_nt = py
+        .detach(move || transform::skolemize_nt(&source_nt))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(PyBytes::new(py, graph_nt.as_bytes()).into_any().unbind())
+}
+
+/// Compute E(G) through the native transform core.
+#[pyfunction]
+#[pyo3(signature = (abox_nt, ontology_nt, cells, denied))]
+fn transform_saturate_nt(
+    py: Python<'_>,
+    abox_nt: String,
+    ontology_nt: String,
+    cells: Vec<(String, String, String, String, String)>,
+    denied: Vec<(String, String, String)>,
+) -> PyResult<Py<PyAny>> {
+    let cells = cell_inputs(cells);
+    let rows = py
+        .detach(move || transform::saturate_nt(&abox_nt, &ontology_nt, &cells, &denied))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    derived_rows_to_py(py, &rows)
+}
+
+/// Run MAXIMAL(G) through the native transform core.
+#[pyfunction]
+#[pyo3(signature = (raw_nt, ontology_nt, cells, denied, projection_queries))]
+fn transform_project_nt(
+    py: Python<'_>,
+    raw_nt: String,
+    ontology_nt: String,
+    cells: Vec<(String, String, String, String, String)>,
+    denied: Vec<(String, String, String)>,
+    projection_queries: Vec<(String, String)>,
+) -> PyResult<Py<PyAny>> {
+    let cells = cell_inputs(cells);
+    let report = py
+        .detach(move || {
+            transform::transform_nt(&raw_nt, &ontology_nt, &cells, &denied, &projection_queries)
+        })
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    transform_report_to_py(py, &report)
+}
+
+fn cell_inputs(cells: Vec<(String, String, String, String, String)>) -> Vec<CellInput> {
+    cells
+        .into_iter()
+        .map(
+            |(iri, subject, predicate_curie, object, confidence)| CellInput {
+                iri,
+                subject,
+                predicate_curie,
+                object,
+                confidence,
+            },
+        )
+        .collect()
+}
+
+fn derived_rows_to_py(py: Python<'_>, rows: &[DerivedRowNative]) -> PyResult<Py<PyAny>> {
+    let out = PyList::empty(py);
+    for row in rows {
+        let item = PyDict::new(py);
+        item.set_item("subject", &row.subject)?;
+        item.set_item("predicate", &row.predicate)?;
+        item.set_item("object", &row.object)?;
+        item.set_item("reifier", &row.reifier)?;
+        item.set_item("annotations", PyList::new(py, row.annotations.iter())?)?;
+        out.append(item)?;
+    }
+    Ok(out.into_any().unbind())
+}
+
+fn transform_report_to_py(py: Python<'_>, report: &TransformReportNative) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    out.set_item("base_nt", &report.base_nt)?;
+    out.set_item("base_plus_derived_nt", &report.base_plus_derived_nt)?;
+    out.set_item("gts_bytes", PyBytes::new(py, &report.gts_bytes))?;
+    out.set_item("asserted", report.asserted)?;
+    out.set_item("saturated", report.saturated)?;
+    out.set_item("projected", report.projected)?;
+    out.set_item("suppressed_dropped", report.suppressed_dropped)?;
+    Ok(out.into_any().unbind())
+}
+
 fn lift_map_to_py(py: Python<'_>, lift: &LiftMap) -> PyResult<Py<PyAny>> {
     let out = PyDict::new(py);
     out.set_item("rules", string_map(py, &lift.rules)?)?;
@@ -486,5 +575,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(up_projection_audit_nt, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_resolve_context, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_reverse_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(transform_skolemize_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(transform_saturate_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(transform_project_nt, m)?)?;
     Ok(())
 }

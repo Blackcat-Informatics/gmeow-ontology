@@ -31,33 +31,30 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from types import ModuleType
+from typing import TYPE_CHECKING, cast
 
 import gmeow_slice
 from gmeow_rdf.compat.rdflib import Graph, URIRef
 
-from gmeow_tools.config import DIST_DIR, NAMESPACE, PREFIXES, PROJECT_ROOT
-from gmeow_tools.graph import bind_prefixes, load_merged_graph
+from gmeow_tools.config import DIST_DIR, PREFIXES, PROJECT_ROOT
+from gmeow_tools.graph import bind_prefixes
 from gmeow_tools.language_tags import filter_graph
-from gmeow_tools.saturate import (
-    DerivedTriple,
-    load_cells,
-    reifier_for,
-    saturate,
-    suppressed_nodes,
-)
+from gmeow_tools.saturate import load_cells
+from gmeow_tools.up_projection import _graph_from_native_nt
+from gmeow_tools.up_projection_audit import _ontology_nt
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
-    from gmeow_rdf.compat.rdflib.term import Node
-
     from gmeow_tools.language_tags import LangSelector
 
-_MAPPED_FROM = URIRef(NAMESPACE + "mappedFrom")
-_SKOLEM_AUTHORITY = NAMESPACE.rstrip("/")
-_SKOLEM_BASEPATH = "/.well-known/genid/"
+
+def _pipeline() -> ModuleType:
+    from gmeow_native import pipeline
+
+    return cast(ModuleType, pipeline)
 
 
 class TransformAbortedError(RuntimeError):
@@ -78,59 +75,9 @@ class TransformReport:
 
 
 def _skolemized(abox: Graph) -> Graph:
-    """Skolemize blank nodes on CONTENT-ADDRESSED labels (diffable reruns).
-
-    rdflib blank-node labels are per-process UUIDs, so the graph is canonicalized
-    first; the canonical labels are a pure function of the graph's content, making
-    the skolem IRIs stable across runs. Projection-minted nodes get the same
-    treatment.
-
-    Canonicalization runs on **gmeow_rdf** (RDFC-1.0, Rust): rdflib's pure-Python
-    ``to_canonical_graph`` is pathologically slow on the blank-node-heavy graphs a
-    real source produces (a paudley transpile spent >10 minutes there). gmeow_rdf
-    canonicalizes the same graph in well under a second; the cheap O(n) skolemize
-    round-trip stays in rdflib.
-    """
-    import gmeow_rdf
-    from gmeow_rdf.compat.rdflib import Literal
-
-    # parse() yields Quad objects (default graph for N-Triples), which Dataset
-    # accepts directly — no per-triple Quad reconstruction needed.
-    dataset = gmeow_rdf.Dataset(
-        gmeow_rdf.parse(
-            abox.serialize(format="nt", encoding="utf-8"),
-            format=gmeow_rdf.RdfFormat.N_TRIPLES,
-        )
-    )
-    dataset.canonicalize(gmeow_rdf.CanonicalizationAlgorithm.UNSTABLE)
-
-    # Convert gmeow_rdf terms → rdflib DIRECTLY, skolemizing each blank node by
-    # its CANONICAL value. Going through an N-Triples round trip would let rdflib
-    # re-randomize the blank-node ids (losing the canonical labels and breaking
-    # diffable reruns); this keeps the canonical labels in the skolem IRIs.
-    skolem = _SKOLEM_AUTHORITY + _SKOLEM_BASEPATH
-
-    xsd_string = "http://www.w3.org/2001/XMLSchema#string"
-
-    def _to_rdflib(term: object) -> URIRef | Literal:
-        if isinstance(term, gmeow_rdf.NamedNode):
-            return URIRef(term.value)
-        if isinstance(term, gmeow_rdf.BlankNode):
-            return URIRef(skolem + term.value)
-        # gmeow_rdf.Literal — always carries an explicit datatype (xsd:string for
-        # a plain string, rdf:langString for a lang literal). Map back to rdflib's
-        # convention: a lang tag, a NON-string datatype, or a plain literal (the
-        # implicit xsd:string is dropped, matching the .gts and rdflib paths).
-        if term.language:  # type: ignore[attr-defined]
-            return Literal(term.value, lang=term.language)  # type: ignore[attr-defined]
-        dt = term.datatype.value  # type: ignore[attr-defined]
-        if dt != xsd_string:
-            return Literal(term.value, datatype=URIRef(dt))  # type: ignore[attr-defined]
-        return Literal(term.value)  # type: ignore[attr-defined]
-
-    out = Graph()
-    for q in dataset:
-        out.add((_to_rdflib(q.subject), _to_rdflib(q.predicate), _to_rdflib(q.object)))
+    """Skolemize blank nodes through the native transform core."""
+    source_nt = abox.serialize(format="nt", encoding="utf-8").decode("utf-8")
+    out = _graph_from_native_nt(_pipeline().transform_skolemize_nt(source_nt))
     bind_prefixes(out)
     return out
 
@@ -180,108 +127,6 @@ def _denied_cells() -> set[tuple[str, str, str]]:
         and f["predicate_id"] is not None
         and f["object_id"] is not None
     }
-
-
-def _materialize_claims(abox: Graph) -> Graph:
-    """The quoted triples of every ``gmeow:StatementMetadata`` reifier, as a graph.
-
-    A closeMatch / generalizing up-projection lifts its edge into a refutable
-    CLAIM — a ``StatementMetadata`` cell quoting ``(qSubject, qPredicate,
-    qObject|qObjectLiteral)`` — never an asserted fact. This re-exposes those
-    quoted triples so the down-projection can round-trip them back to the source's
-    own vocabulary (#552, option 1). The result is projection INPUT only; it is
-    never asserted into the output base, so the claim stays a claim.
-    """
-    from gmeow_rdf.compat.rdflib import RDF
-
-    sm = URIRef(NAMESPACE + "StatementMetadata")
-    q_subj = URIRef(NAMESPACE + "qSubject")
-    q_pred = URIRef(NAMESPACE + "qPredicate")
-    q_obj = URIRef(NAMESPACE + "qObject")
-    q_obj_lit = URIRef(NAMESPACE + "qObjectLiteral")
-    out = Graph()
-    for cell in abox.subjects(RDF.type, sm):
-        s = abox.value(cell, q_subj)
-        p = abox.value(cell, q_pred)
-        o = abox.value(cell, q_obj)
-        if o is None:
-            o = abox.value(cell, q_obj_lit)
-        if s is not None and p is not None and o is not None:
-            out.add((s, p, o))
-    return out
-
-
-def _projection_derived(
-    abox: Graph,
-    onto: Graph,
-    profiles: Sequence[str],
-    suppressed: set[Node],
-    *,
-    selector: LangSelector | None = None,
-) -> dict[tuple[Node, Node, Node], set[tuple[URIRef, Node]]]:
-    """P(G): run every profile's CONSTRUCT over the ORIGINAL G.
-
-    The store carries the merged ontology for matching context (subclass
-    paths, the language-tag boundary), so the CONSTRUCT output includes
-    projections OF THE ONTOLOGY'S OWN nodes (term annotations, value-
-    vocabulary individuals) — those are filtered out: only triples about
-    A-Box subjects (or nodes the projections MINT from them) survive.
-
-    Each kept triple is annotated ``gmeow:mappedFrom`` → the profile's EDOAL
-    alignment IRI (``…/projections/<name>``). The compiled queries carry
-    their own suppression guards (#282); the filter here is the shared
-    emission path's belt-and-braces re-check.
-    """
-    from gmeow_tools import sparql
-    from gmeow_tools.projections import project_graph
-
-    # P(G) runs over G PLUS the materialized claim layer (#552, option 1): a
-    # closeMatch / generalizing up-lift parks its edge in a refutable claim rather
-    # than asserting it, so the claimed gmeow term is absent from G and the
-    # down-projection produces nothing for it. But the SOURCE asserted the vocab
-    # term it was lifted from, so re-projecting that quoted triple back DOWN to the
-    # source's own vocabulary is a FAITHFUL round trip — we hand back what came in.
-    # The claims feed the projection INPUT only; they are never added to the output
-    # base, so the gmeow term itself stays a claim (its closeMatch provenance lives
-    # in the .gts), while the round-tripped target triple is asserted in index.ttl.
-    projection_input = abox + _materialize_claims(abox)
-    store = sparql.store_with(include_imports=False, extra_triples=projection_input)
-    onto_subjects = set(onto.subjects())
-    derived: dict[tuple[Node, Node, Node], set[tuple[URIRef, Node]]] = {}
-    for name in profiles:
-        alignment_iri = URIRef(f"{NAMESPACE}projections/{name}")
-        projected = project_graph(name, store, selector=selector)
-        for s, p, o in projected:
-            if s in onto_subjects:
-                continue  # a projection of the ontology itself, not of G
-            if (s, p, o) in abox or s in suppressed or o in suppressed:
-                continue
-            derived.setdefault((s, p, o), set()).add((_MAPPED_FROM, alignment_iri))
-    return derived
-
-
-def _merge_derived(
-    saturated: Sequence[DerivedTriple],
-    projected: dict[tuple[Node, Node, Node], set[tuple[URIRef, Node]]],
-) -> list[DerivedTriple]:
-    """One reifier per derived triple; E- and P-annotations merge."""
-    merged: dict[tuple[Node, Node, Node], set[tuple[URIRef, Node]]] = {
-        row.triple: set(row.annotations) for row in saturated
-    }
-    for triple, ann_rows in projected.items():
-        merged.setdefault(triple, set()).update(ann_rows)
-    return [
-        DerivedTriple(
-            triple=triple,
-            reifier=reifier_for(*triple),
-            annotations=tuple(
-                sorted(ann_rows, key=lambda row: (str(row[0]), str(row[1])))
-            ),
-        )
-        for triple, ann_rows in sorted(
-            merged.items(), key=lambda item: tuple(n.n3() for n in item[0])
-        )
-    ]
 
 
 def _serialize_outputs(
@@ -410,9 +255,7 @@ def transform_graph(
     Returns:
         The :class:`TransformReport` (counts, wall clock, written paths).
     """
-    from gmeow_tools.gts_producer import gts_from_maximal
-    from gmeow_tools.projections import PROFILES
-    from gmeow_tools.suppression import default_suppression_vocab
+    from gmeow_tools.projections import PROFILES, _load_projection_query
 
     start = time.perf_counter()
     target = out_dir if out_dir is not None else DIST_DIR / "transform" / stem
@@ -422,48 +265,38 @@ def transform_graph(
         msg = f"unknown projection profile(s): {', '.join(unknown)}"
         raise ValueError(msg)
 
-    abox = _skolemized(raw)
-
-    onto = load_merged_graph(include_imports=False)
-    vocab = default_suppression_vocab()
     denied = _denied_cells()
-    suppressed = suppressed_nodes(abox, vocab)
-
-    # The outputs are PUBLICATIONS — projections of the canonical source.
-    # Suppressed nodes are withheld from the BASE graph too (#282, P10):
-    # the canonical input file retains them (suppression never deletes at
-    # the source); the published fat file must not carry them.
-    if suppressed:
-        published = Graph()
-        bind_prefixes(published)
-        for s, p, o in abox:
-            if s not in suppressed and o not in suppressed:
-                published.add((s, p, o))
-        abox = published
-
-    saturated = saturate(
-        abox, onto=onto, cells=load_cells(), denied=denied, vocab=vocab
+    cells = [
+        (
+            str(cell.iri),
+            str(cell.subject),
+            cell.predicate_curie,
+            str(cell.obj),
+            cell.confidence,
+        )
+        for cell in load_cells()
+    ]
+    raw_nt = raw.serialize(format="nt", encoding="utf-8").decode("utf-8")
+    native = _pipeline().transform_project_nt(
+        raw_nt,
+        _ontology_nt(),
+        cells,
+        sorted(denied),
+        [(name, _load_projection_query(name)) for name in names],
     )
-    projected = _projection_derived(abox, onto, names, suppressed, selector=selector)
-    derived = _merge_derived(saturated, projected)
 
-    base_plus_derived = Graph()
+    base_plus_derived = _graph_from_native_nt(native["base_plus_derived_nt"])
     bind_prefixes(base_plus_derived)
-    for triple in abox:
-        base_plus_derived.add(triple)
-    for row in derived:
-        base_plus_derived.add(row.triple)
 
-    gts_bytes = gts_from_maximal(abox, derived)
     written = _serialize_outputs(
-        base_plus_derived, gts_bytes, target, stem, selector=selector
+        base_plus_derived, bytes(native["gts_bytes"]), target, stem, selector=selector
     )
 
     return TransformReport(
-        asserted=len(abox),
-        saturated=len(saturated),
-        projected=len(projected),
-        suppressed_dropped=len(suppressed),
+        asserted=native["asserted"],
+        saturated=native["saturated"],
+        projected=native["projected"],
+        suppressed_dropped=native["suppressed_dropped"],
         denied_cells=len(denied),
         wall_clock_s=time.perf_counter() - start,
         written=written,
