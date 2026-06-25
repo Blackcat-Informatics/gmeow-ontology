@@ -33,6 +33,10 @@ members = [
     "crates/shacl",
     "crates/slice",
     "crates/slicetest",
+    # Native SPARQL 1.1/1.2 parser → RDF 1.2-native query algebra AST: the
+    # wasm-clean leaf that replaces the oxigraph-family `spargebra` (purrdf S5,
+    # EPIC #906). Builds only on `crates/iri` + `crates/xsd`.
+    "crates/sparql-algebra",
     "crates/validate",
     # Native XSD value space (parse / value-space equality+ordering / canonical
     # lexical / SPARQL numeric promotion): the zero-dep leaf that replaces the
@@ -142,6 +146,9 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-iri]
+codegen-units = 1
+
+[profile.release.package.gmeow-sparql-algebra]
 codegen-units = 1
 
 # `cargo bench` (used by `make bench`) runs under the `bench` profile, which

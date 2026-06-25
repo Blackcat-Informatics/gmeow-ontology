@@ -1896,6 +1896,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-sparql-algebra"
+version = "0.1.0"
+dependencies = [
+ "gmeow-iri",
+ "gmeow-xsd",
+ "insta",
+ "pretty_assertions",
+ "proptest",
+]
+
+[[package]]
 name = "gmeow-validate"
 version = "0.1.0"
 dependencies = [
