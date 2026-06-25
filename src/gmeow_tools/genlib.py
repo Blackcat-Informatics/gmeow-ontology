@@ -8,11 +8,11 @@ in #861 P7: the build authority is now the Rust ``gmeow-pipeline`` executor
 (``gmeow_native.pipeline.run_pipeline``), which reads the dogfooded build DAG in
 ``slices/core/pipeline/`` and reproduces every committed artifact single-pass.
 
-What survives here are the *pure render helpers* the lane-only schema compiler
-and the remaining library halves of the former render modules still call:
+What survives here are the *pure render helpers* the remaining library halves of
+the former render modules still call:
 
-- the :class:`Generator` shape (a structural base the lane-only ``schemas``
-  compiler subclasses) — no registry, no decorator;
+- the :class:`Generator` shape (a structural base retained for kept render
+  helpers) — no registry, no decorator;
 - the ``GENERATED … DO NOT EDIT`` banner writers (:func:`write_text`,
   :func:`write_turtle`);
 - the deterministic input :func:`source_hash` (banner provenance);
@@ -56,9 +56,8 @@ class GeneratorError(RuntimeError):
 class Generator(Protocol):
     """Structural shape for a render helper.
 
-    Retained so the lane-only ``schemas`` compiler (driven as a subprocess by the
-    Rust ``stage-export-schemas`` leaf) keeps a stable base. It declares canonical
-    *inputs* and committed *outputs* and a :meth:`render` into a staging tree.
+    Retained for kept render helpers. It declares canonical *inputs* and
+    committed *outputs* plus a :meth:`render` into a staging tree.
     """
 
     name: str

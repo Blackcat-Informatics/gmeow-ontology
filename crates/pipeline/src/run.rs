@@ -14,16 +14,13 @@
 //! [`crate::stages::gts_sink::GtsSinkStage`] re-emits those snapshot bytes as its
 //! product; `run_full` writes them to `generated/dist/gmeow.gts`.
 //!
-//! # The schemas disk-write barrier
+//! # The schemas sink-product tail
 //!
-//! The `schemas` leaf shells out to the lane-only Python LinkML toolkit, which
-//! reads `generated/dist/gmeow.gts` FROM DISK (`GTS_SNAPSHOT_FILE`). It therefore
-//! declares a dataflow dependency on `stage-gts-sink` and cannot run until the
-//! fresh fold is on disk. `run_full` honours this by running the DAG in two
-//! phases: phase 1 runs everything up to and including the sink; in regenerate
-//! mode the fresh `gmeow.gts` is written to disk between phases; phase 2 then runs
-//! the `schemas` tail (which reads the now-fresh on-disk fold). In check mode the
-//! committed on-disk fold is already the reference, so no write is needed.
+//! The native `schemas` leaf consumes the `stage-gts-sink` product because the
+//! generated schema surfaces are projections of the exact folded GTS bytes that
+//! are shipped. `run_full` still runs the DAG in two phases so the sink product
+//! exists before schemas render, but schemas read those bytes from the in-memory
+//! upstream product; there is no Python subprocess and no disk-read dependency.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -36,12 +33,11 @@ use crate::node::{StageKind, StageProduct};
 use crate::registry::default_registry;
 use crate::scheduler::{run, RunContext};
 
-/// The id of the stage whose Python toolkit reads the on-disk fold — the only
-/// stage that must run AFTER the sink writes `gmeow.gts`.
+/// The id of the stage that projects the exact sink GTS bytes into schema files.
 const SCHEMAS_STAGE: &str = "stage-export-schemas";
 /// The sole serialization exit; its product carries the `gmeow.gts` bytes.
 const SINK_STAGE: &str = "stage-gts-sink";
-/// The committed fold path the sink writes / schemas reads.
+/// The committed fold path the sink writes / schemas project.
 const GTS_PATH: &str = "generated/dist/gmeow.gts";
 
 /// Whether `run_full` writes artifacts to disk (regenerate) or compares them to
@@ -177,7 +173,7 @@ pub fn full_spec() -> PipelineSpec {
         &["stage-snapshot"],
     ));
 
-    // ── the schemas tail: depends on the on-disk fold the Sink writes ──
+    // ── the schemas tail: depends on the exact GTS bytes the Sink emits ──
     stages.push(st(
         SCHEMAS_STAGE,
         StageKind::ExportLeaf,
@@ -214,8 +210,8 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     let spec = full_spec();
 
     // Split the DAG at the schemas tail: phase 1 is everything up to (and
-    // including) the sink; phase 2 is the schemas leaf, which reads the on-disk
-    // fold the sink writes.
+    // including) the sink; phase 2 is the schemas leaf, which projects the
+    // in-memory sink product.
     let (pre, tail): (Vec<StageSpec>, Vec<StageSpec>) = spec
         .stages
         .iter()
@@ -241,10 +237,9 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
 
     let mut products: BTreeMap<String, StageProduct> = pre_result.products;
 
-    // ── The disk-write barrier: in regenerate mode, write the fresh fold (and
-    //    every other phase-1 artifact) to disk so the schemas Python reads the
-    //    fresh `gmeow.gts`. In check mode the committed file is already the
-    //    reference, so no write happens. ──
+    // ── Phase-1 artifact write: in regenerate mode, write the fresh fold and
+    //    every other phase-1 artifact before the schemas tail reconciles. Schemas
+    //    itself consumes the sink product in memory. ──
     let mut findings: Vec<Finding> = Vec::new();
     let mut drifted: Vec<String> = Vec::new();
     let mut produced = 0usize;
@@ -264,8 +259,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
         }
     }
 
-    // ── Phase 2: run the schemas tail (it now reads the on-disk fold). It binds
-    //    against the sink product produced in phase 1. ──
+    // ── Phase 2: run the schemas tail against the sink product produced in phase 1. ──
     if let Some(sink) = products.get(SINK_STAGE).cloned() {
         let tail_spec = PipelineSpec {
             id: spec.id.clone(),
