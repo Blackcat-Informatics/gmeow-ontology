@@ -535,6 +535,182 @@ fn declared_but_unowned_term() {
     );
 }
 
+// ── Test 7: Group aggregate IRI is captured in slice dependency walk ─────────
+
+#[test]
+fn group_aggregate_iri_reaches_dependency_walk() {
+    // G4-B regression guard: the previous Group arm in walk_graph_pattern only
+    // walked `inner` and silently dropped the `aggregates` field.  A custom
+    // function IRI referenced ONLY inside an aggregate expression therefore
+    // vanished from the dependency set, creating an invisible build-dep gap.
+    //
+    // This test places `gmeow:termAggFn` EXCLUSIVELY in the aggregated
+    // expression of a GROUP query (`SUM(gmeow:termAggFn(?x))`).  After the fix
+    // the dependency edge must carry `termAggFn` as evidence; before the fix it
+    // would not, and the query edge might not even appear.
+    let tmp = TempDir::new().unwrap();
+    let root = tmp.path();
+
+    // Slice A defines the term that is referenced only inside the aggregate.
+    write(
+        root,
+        "slices/grpA/sliceA/manifest.ttl",
+        &manifest("sliceA", &[]),
+    );
+    write(
+        root,
+        "slices/grpA/sliceA/module.ttl",
+        &format!(
+            "@prefix gmeow: <{NS}> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
+             gmeow:termAggFn a owl:ObjectProperty ; rdfs:isDefinedBy gmeow:sliceA .\n"
+        ),
+    );
+
+    // Slice B's query: grouped query where gmeow:termAggFn appears ONLY inside
+    // the aggregated expression of SUM — not as a predicate or IRI in the BGP.
+    // Before the fix the Group arm dropped `aggregates` entirely.
+    write(
+        root,
+        "slices/grpB/sliceB/manifest.ttl",
+        &manifest("sliceB", &["sliceA"]),
+    );
+    write(
+        root,
+        "slices/grpB/sliceB/queries/competency/agg.rq",
+        &format!(
+            "PREFIX gmeow: <{NS}>\n\
+             SELECT ?t (SUM(gmeow:termAggFn(?x)) AS ?total) WHERE {{\n\
+             ?x a ?t .\n\
+             }} GROUP BY ?t\n"
+        ),
+    );
+
+    let catalog = SliceCatalog::discover(root).unwrap();
+    let report = OwnershipAnalyzer::new(&catalog).analyze().unwrap();
+
+    // A Query edge from B to A must exist.
+    let edge = report
+        .edges
+        .iter()
+        .find(|e| {
+            e.from_slice == iri("sliceB")
+                && e.to_slice == iri("sliceA")
+                && e.edge_kind == EdgeKind::Query
+        })
+        .expect("expected a sliceB → sliceA Query edge; Group aggregate walk dropped it");
+
+    // The IRI used only inside the aggregate expression must be evidence.
+    let referenced: Vec<&NamedNode> = edge.evidence.iter().map(|e| &e.referenced_term).collect();
+    assert!(
+        referenced.contains(&&nn("termAggFn")),
+        "termAggFn (referenced only inside a Group aggregate expression) must appear in evidence; \
+         walk_graph_pattern dropped Group aggregates before the G4-B fix"
+    );
+}
+
+// ── Consumer-fidelity guards: walker must not drop IRI-bearing positions ──────
+//
+// G12/G13(OrderBy)/G14: each builds sliceA (defines `defined_term`) and sliceB
+// (a query that references it ONLY in the position under test), then asserts the
+// B → A Query edge carries `defined_term` as evidence. Before the fix the walker
+// dropped that position and the edge/evidence vanished.
+
+/// Returns the evidence terms on the sliceB → sliceA Query edge for a query that
+/// references `defined_term` (owned by sliceA). Panics if the edge is absent.
+fn query_edge_evidence(query_body: &str, defined_term: &str) -> Vec<NamedNode> {
+    let tmp = TempDir::new().unwrap();
+    let root = tmp.path();
+    write(
+        root,
+        "slices/grpA/sliceA/manifest.ttl",
+        &manifest("sliceA", &[]),
+    );
+    write(
+        root,
+        "slices/grpA/sliceA/module.ttl",
+        &format!(
+            "@prefix gmeow: <{NS}> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
+             gmeow:{defined_term} a owl:ObjectProperty ; rdfs:isDefinedBy gmeow:sliceA .\n"
+        ),
+    );
+    write(
+        root,
+        "slices/grpB/sliceB/manifest.ttl",
+        &manifest("sliceB", &["sliceA"]),
+    );
+    write(
+        root,
+        "slices/grpB/sliceB/queries/competency/q.rq",
+        query_body,
+    );
+
+    let catalog = SliceCatalog::discover(root).unwrap();
+    let report = OwnershipAnalyzer::new(&catalog).analyze().unwrap();
+    let edge = report
+        .edges
+        .iter()
+        .find(|e| {
+            e.from_slice == iri("sliceB")
+                && e.to_slice == iri("sliceA")
+                && e.edge_kind == EdgeKind::Query
+        })
+        .expect("expected a sliceB → sliceA Query edge; the walker dropped the dependency");
+    edge.evidence
+        .iter()
+        .map(|e| e.referenced_term.clone())
+        .collect()
+}
+
+#[test]
+fn describe_target_iri_reaches_dependency_walk() {
+    // G12: `DESCRIBE <iri>` stores the IRI in `targets`, and the pattern is the
+    // empty unit pattern — walking only `pattern` dropped the edge.
+    let ev = query_edge_evidence(
+        &format!("PREFIX gmeow: <{NS}>\nDESCRIBE gmeow:describedThing\n"),
+        "describedThing",
+    );
+    assert!(
+        ev.contains(&nn("describedThing")),
+        "DESCRIBE target IRI must be dependency evidence; got {ev:?}"
+    );
+}
+
+#[test]
+fn order_by_function_iri_reaches_dependency_walk() {
+    // G13: a custom function IRI used only in an ORDER BY key was dropped because
+    // the OrderBy arm matched `..` and never walked `expression`.
+    let ev = query_edge_evidence(
+        &format!(
+            "PREFIX gmeow: <{NS}>\nSELECT ?x WHERE {{ ?x gmeow:p ?v }} ORDER BY DESC(gmeow:sortFn(?v))\n"
+        ),
+        "sortFn",
+    );
+    assert!(
+        ev.contains(&nn("sortFn")),
+        "ORDER BY function IRI must be dependency evidence; got {ev:?}"
+    );
+}
+
+#[test]
+fn values_quoted_triple_iri_reaches_dependency_walk() {
+    // G14: an IRI inside an RDF 1.2 ground quoted-triple VALUES cell was dropped
+    // because the Values arm had no GroundTerm::Triple recursion.
+    let ev = query_edge_evidence(
+        &format!(
+            "PREFIX gmeow: <{NS}>\nSELECT ?t WHERE {{ VALUES ?t {{ <<( gmeow:qs gmeow:quotedPred gmeow:qo )>> }} }}\n"
+        ),
+        "quotedPred",
+    );
+    assert!(
+        ev.contains(&nn("quotedPred")),
+        "predicate inside a quoted-triple VALUES cell must be dependency evidence; got {ev:?}"
+    );
+}
+
 // ── Hard-fail on a malformed ownership-bearing artifact (G9, no-optionality) ───
 
 #[test]
