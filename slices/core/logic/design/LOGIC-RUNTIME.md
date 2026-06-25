@@ -112,52 +112,39 @@ fragments — not authorities over the canonical `logic:` semantics.
 > chase, memoization, provenance capture, and disposal. The architectural insight ("existential
 > chase ≈ context construction") is a `logic:`-level design choice layered on that substrate.
 
-### Scryer machine lifecycle and pooling feasibility
+### Backward-resolver instance lifecycle and reuse
 
-The backward resolver builds a **fresh Scryer `Machine` per query** and discards it afterward.
-One query's lifecycle, under the process-global `SCRYER_LOCK` that serialises Scryer's mutable
-atom table for the machine's whole lifetime (construction *through* drop):
+The backward resolver constructs a **fresh solver instance for every query** and disposes of it
+afterward. The embedded Prolog keeps process-global mutable symbol state, so the runtime serialises
+a solver instance's entire lifecycle — construction through disposal — and instances are not
+movable across threads.
 
-1. `build_module` — snapshot the world's EDB as ground Prolog facts (sorted for determinism),
-   prepend the two fixed `:- use_module(library(tabling))` / `library(iso_ext)` imports and the
-   program's tabling directives, append the IDB rules. Produces one module string.
-2. `MachineBuilder::default().build()` — allocate a fresh WAM machine.
-3. `machine.load_module_string("user", module)` — parse and compile that module (libraries, EDB,
-   and IDB) into the machine.
-4. `machine.run_query(goal)` — drain solutions.
-5. drop — Scryer's `Drop` touches the global atom table (still under the lock).
+One query proceeds as: snapshot the world's asserted facts as ground clauses (in a canonical order
+so clause enumeration is deterministic); assemble those facts together with the program's rules and
+tabling directives into a single program text; construct a solver instance; load that program into
+the instance; resolve the goal; then dispose of the instance.
 
-**Where the time goes (measured, release profile, 18.5 KB module ≈ 200 EDB facts + a tabled
-recursive rule):**
+The per-query cost is dominated by **instance construction and program loading**. Assembling the
+fact snapshot is negligible by comparison, so caching that snapshot earns nothing. Of the dominant
+cost, raw instance construction is the larger share and program compilation the smaller; and within
+program compilation the fixed standard-library imports are recompiled on every query even though
+they never change, while only the asserted facts and the program's rules actually vary from one
+query to the next.
 
-| phase | per-query cost | share of fixed cost |
-| --- | --- | --- |
-| `build_module` (EDB snapshot + string assembly) | ~75 µs | <0.1 % |
-| `MachineBuilder::build()` (WAM allocation + bootstrap) | ~51 ms | ~61 % |
-| `load_module_string` (parse + compile libraries + index EDB) | ~33 ms | ~39 % |
-| **build + load (the fixed per-query floor)** | **~84 ms** | — |
+This is why **instance reuse (pooling) is structurally blocked**. Warm reuse would amortise instance
+construction and the fixed library compilation, but the embedded Prolog exposes no way to *reset* an
+instance — no way to clear a loaded program's asserted facts and reload a new world's facts while
+keeping the constructed solver and the compiled libraries warm. Because the program legitimately
+changes per query and there is no reset/reload seam, every query must rebuild from scratch; combined
+with the global-symbol-state serialisation of construction and disposal, even a pool could issue
+instances only one at a time.
 
-Two findings follow. First, this **corrects a common assumption**: it is machine *construction*,
-not module loading, that dominates — the WAM bootstrap is the single largest cost. Second, it
-**confirms #824's EDB-snapshot deferral**: assembling the EDB string is ~75 µs, three orders of
-magnitude below the floor, so caching it cannot matter.
-
-**Why naive pooling is structurally blocked today.** A pool of pre-built machines could amortise
-the ~51 ms `build()` share, but Scryer (pinned to upstream master, ring-free) exposes no API to
-*reset* a machine — no way to clear the `user` module's asserted EDB and reload a new world's
-facts while keeping the WAM and the compiled `library(tabling)`/`library(iso_ext)` warm. The
-module legitimately changes per query (EDB is world-specific; IDB rules and tabling directives are
-program-specific), so without a reset/reload seam every query must rebuild from scratch.
-Compounding this: a `Machine` is `!Send` (thread-local only) and `SCRYER_LOCK` serialises
-construction *and* drop, so even a pool would hand machines out one at a time.
-
-**Re-entry condition (an upstream contribution, not a local change).** Warm-machine reuse needs
-Scryer to grow a small surface — e.g. `Machine::clear_user_module()` plus a fact-only
-`reload_edb(&str)` (and a `reset_tabling_state()` for the tabled predicates). With those, a pooled
-machine would keep the WAM and the library compilation warm across queries, amortising most of the
-~84 ms floor down to the per-query EDB reindex. This is a textbook **subsume/extend** opportunity
-against an upstream we already track on `master`; until that API exists, the per-query machine is
-the correct, contention-safe design and pooling stays **deferred with evidence** (#828 item 1).
+**Re-entry condition.** Warm-instance reuse becomes possible once the embedded Prolog grows a small
+reset surface — the ability to clear a loaded program's asserted facts, reload a fresh fact set, and
+reset tabled state — so the constructed solver and its compiled libraries stay warm across queries.
+That is an upstream capability to contribute, not a local change: the architecture would adopt it
+the moment it exists. Until then, the per-query instance is the correct, contention-safe design, and
+instance pooling stays **deferred pending that capability**.
 
 ## The forward materialization ↔ backward resolution seam
 
