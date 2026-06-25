@@ -78,7 +78,7 @@ pub fn run_import(
 ) -> std::io::Result<(Arc<RdfDataset>, BudgetReport)> {
     let records = load_records(jsonl_path)?;
     let mut importer = FoundationImporter::new();
-    importer.import_corpus(&records, &jsonl_path.to_string_lossy());
+    importer.import_corpus(&records, &jsonl_path.to_string_lossy())?;
     let (dataset, budget) = importer.freeze()?;
 
     std::fs::create_dir_all(out_dir)?;
