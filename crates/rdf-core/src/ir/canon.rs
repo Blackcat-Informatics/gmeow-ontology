@@ -46,9 +46,10 @@
 //! knob: a fixed [`RDFC_CALL_LIMIT`] bounds recursion and the routine `panic!`s
 //! with a diagnostic on exhaustion rather than degrading.
 
+use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
 
-use sha2::{Digest, Sha256};
+use sha2::{Digest, Sha256, Sha384};
 
 use super::dataset::{RdfDataset, TermRef};
 use super::term::TermId;
@@ -68,28 +69,94 @@ const TEMP_PREFIX: &str = "b";
 /// blank graph and is a hard `panic!` (no knob, no degraded fallback — `.goals`).
 const RDFC_CALL_LIMIT: u64 = 1_000_000;
 
-/// A SHA-256 digest rendered as fixed-size lowercase ASCII hex (`Copy + Ord`, so it
-/// sorts and keys a `BTreeMap` without heap allocation). RDFC-1.0 fixes SHA-256.
-type HashHex = [u8; 64];
-
-/// SHA-256 of `bytes`, lowercase-hex into a fixed 64-byte buffer.
-fn sha256_hex(bytes: &[u8]) -> HashHex {
-    let digest = Sha256::digest(bytes);
-    let mut hex = [0u8; 64];
-    const LUT: &[u8; 16] = b"0123456789abcdef";
-    for (i, byte) in digest.iter().enumerate() {
-        hex[2 * i] = LUT[(byte >> 4) as usize];
-        hex[2 * i + 1] = LUT[(byte & 0x0f) as usize];
-    }
-    hex
+/// The RDFC-1.0 hash algorithm. SHA-256 is the default; SHA-384 is the spec's
+/// alternative (RDFC-1.0 §3, exercised by W3C suite `test075`). EXTEND beyond
+/// `oxrdf`, which only offered SHA-256.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CanonHash {
+    /// SHA-256 (the RDFC-1.0 default).
+    Sha256,
+    /// SHA-384.
+    Sha384,
 }
 
-/// View a [`HashHex`] as `&str` (always valid ASCII hex by construction).
-#[inline]
-fn hex_str(h: &HashHex) -> &str {
-    // SAFETY: every byte is an ASCII hex digit written by `sha256_hex`.
-    debug_assert!(h.iter().all(u8::is_ascii_hexdigit));
-    unsafe { std::str::from_utf8_unchecked(h) }
+/// A digest rendered as fixed-capacity lowercase ASCII hex (`Copy`, so it sorts and
+/// keys a `BTreeMap` without heap allocation). Holds SHA-256 (64 hex chars) or
+/// SHA-384 (96 hex chars); within one canonicalization every hash shares an
+/// algorithm, hence a length.
+#[derive(Clone, Copy)]
+struct HashHex {
+    buf: [u8; 96],
+    len: u8,
+}
+
+impl HashHex {
+    /// The hex digits as `&str` (always valid ASCII hex by construction).
+    #[inline]
+    fn as_str(&self) -> &str {
+        // SAFETY: bytes `[0, len)` are ASCII hex digits written by `hex_of`.
+        unsafe { std::str::from_utf8_unchecked(&self.buf[..self.len as usize]) }
+    }
+}
+
+impl PartialEq for HashHex {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_str() == other.as_str()
+    }
+}
+impl Eq for HashHex {}
+impl PartialOrd for HashHex {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Ord for HashHex {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.as_str().cmp(other.as_str())
+    }
+}
+
+/// Lowercase-hex a raw digest (32 bytes for SHA-256, 48 for SHA-384) into a [`HashHex`].
+fn hex_of(digest: &[u8]) -> HashHex {
+    let mut buf = [0u8; 96];
+    const LUT: &[u8; 16] = b"0123456789abcdef";
+    for (i, byte) in digest.iter().enumerate() {
+        buf[2 * i] = LUT[(byte >> 4) as usize];
+        buf[2 * i + 1] = LUT[(byte & 0x0f) as usize];
+    }
+    HashHex {
+        buf,
+        len: (digest.len() * 2) as u8,
+    }
+}
+
+/// Hash `bytes` under the selected algorithm, returning its lowercase hex.
+fn digest_hex(hash: CanonHash, bytes: &[u8]) -> HashHex {
+    match hash {
+        CanonHash::Sha256 => hex_of(&Sha256::digest(bytes)),
+        CanonHash::Sha384 => hex_of(&Sha384::digest(bytes)),
+    }
+}
+
+/// Hash a sequence of already-serialized lines under the selected algorithm, feeding
+/// each line into one running digest (Hash First Degree Quads, §4.6).
+fn hash_lines(hash: CanonHash, lines: &[String]) -> HashHex {
+    match hash {
+        CanonHash::Sha256 => {
+            let mut h = Sha256::new();
+            for line in lines {
+                h.update(line.as_bytes());
+            }
+            hex_of(&h.finalize())
+        }
+        CanonHash::Sha384 => {
+            let mut h = Sha384::new();
+            for line in lines {
+                h.update(line.as_bytes());
+            }
+            hex_of(&h.finalize())
+        }
+    }
 }
 
 /// The result of canonicalizing a dataset.
@@ -105,13 +172,21 @@ pub struct Canonicalized {
     pub labels: BTreeMap<TermId, Box<str>>,
 }
 
-/// Canonicalize `ds` under full W3C RDFC-1.0 (extended for the RDF-1.2 overlay).
+/// Canonicalize `ds` under full W3C RDFC-1.0 (SHA-256, extended for the RDF-1.2
+/// overlay).
 ///
 /// Deterministic and oxigraph-free. Hard-`panic!`s only if the n-degree search
 /// exceeds [`RDFC_CALL_LIMIT`] on a pathologically symmetric blank graph.
 #[must_use]
 pub fn canonicalize(ds: &RdfDataset) -> Canonicalized {
-    CanonState::new(ds).run()
+    canonicalize_with(ds, CanonHash::Sha256)
+}
+
+/// Canonicalize `ds` under full W3C RDFC-1.0 with an explicit hash algorithm
+/// ([`CanonHash::Sha384`] is the spec's SHA-384 variant). See [`canonicalize`].
+#[must_use]
+pub fn canonicalize_with(ds: &RdfDataset, hash: CanonHash) -> Canonicalized {
+    CanonState::new(ds, hash).run()
 }
 
 /// The count of distinct blank nodes in `ds` (incl. blanks nested inside triple
@@ -301,6 +376,8 @@ struct CanonState<'a> {
     first_degree: BTreeMap<TermId, HashHex>,
     /// The durable canonical issuer.
     canonical: IdIssuer,
+    /// The hash algorithm for this run (RDFC-1.0 §3).
+    hash: CanonHash,
     /// Remaining recursion/permutation budget (poison guard).
     budget: u64,
 }
@@ -309,7 +386,7 @@ struct CanonState<'a> {
 struct BudgetExceeded;
 
 impl<'a> CanonState<'a> {
-    fn new(ds: &'a RdfDataset) -> Self {
+    fn new(ds: &'a RdfDataset, hash: CanonHash) -> Self {
         let mut blank_set: BTreeSet<TermId> = BTreeSet::new();
         let mut incident: BTreeMap<TermId, Vec<Component>> = BTreeMap::new();
         collect_components(ds, &mut |comp| {
@@ -330,6 +407,7 @@ impl<'a> CanonState<'a> {
             incident,
             first_degree: BTreeMap::new(),
             canonical: IdIssuer::new(CANON_PREFIX),
+            hash,
             budget: RDFC_CALL_LIMIT,
         }
     }
@@ -419,17 +497,7 @@ impl<'a> CanonState<'a> {
             })
             .collect();
         lines.sort_unstable();
-        let mut hasher = Sha256::new();
-        for line in &lines {
-            hasher.update(line.as_bytes());
-        }
-        let mut hex = [0u8; 64];
-        const LUT: &[u8; 16] = b"0123456789abcdef";
-        for (i, byte) in hasher.finalize().iter().enumerate() {
-            hex[2 * i] = LUT[(byte >> 4) as usize];
-            hex[2 * i + 1] = LUT[(byte & 0x0f) as usize];
-        }
-        hex
+        hash_lines(self.hash, &lines)
     }
 
     /// Hash N-Degree Quads (RDFC-1.0 §4.8): the gossip-path permutation search.
@@ -452,12 +520,17 @@ impl<'a> CanonState<'a> {
         let mut data_to_hash = String::new();
         // §4.8 step 5: for each related hash, ascending.
         for (related_hash, related_list) in &hn {
-            data_to_hash.push_str(hex_str(related_hash));
+            data_to_hash.push_str(related_hash.as_str());
             let mut chosen_path: Option<String> = None;
             let mut chosen_issuer: Option<IdIssuer> = None;
 
             // §4.8 step 5.4: every permutation of the related list, identity first.
             for perm in permutations(related_list) {
+                // Charge the poison budget PER PERMUTATION: a related group of size k
+                // contributes k! permutations, so this — not the recursive-call count —
+                // is the dominant cost on a pathologically symmetric graph (e.g. a
+                // 10-blank clique). Counting it here bounds the actual work.
+                self.budget = self.budget.checked_sub(1).ok_or(BudgetExceeded)?;
                 let mut issuer_copy = issuer.clone();
                 let mut path = String::new();
                 let mut recursion: Vec<TermId> = Vec::new();
@@ -494,7 +567,7 @@ impl<'a> CanonState<'a> {
                     path.push_str("_:");
                     path.push_str(issuer_copy.issue(*related));
                     path.push('<');
-                    path.push_str(hex_str(&rec_hash));
+                    path.push_str(rec_hash.as_str());
                     path.push('>');
                     issuer_copy = rec_issuer;
                     if let Some(best) = &chosen_path {
@@ -525,7 +598,7 @@ impl<'a> CanonState<'a> {
             }
         }
 
-        Ok((sha256_hex(data_to_hash.as_bytes()), issuer))
+        Ok((digest_hex(self.hash, data_to_hash.as_bytes()), issuer))
     }
 
     /// §4.8 step 3 + §4.7: for each related blank of `comp` (other than `focus`),
@@ -620,9 +693,9 @@ impl<'a> CanonState<'a> {
             input.push_str("_:");
             input.push_str(id);
         } else {
-            input.push_str(hex_str(&self.first_degree[&related]));
+            input.push_str(self.first_degree[&related].as_str());
         }
-        sha256_hex(input.as_bytes())
+        digest_hex(self.hash, input.as_bytes())
     }
 
     /// The IRI value of a predicate slot (a real IRI term or a sentinel).
@@ -735,23 +808,44 @@ impl<'a> CanonState<'a> {
     }
 }
 
-/// Generate all permutations of `items` (identity first), in lexicographic order of
-/// their positions. Small by construction — the n-degree poison budget bounds the
-/// pathological case.
-fn permutations<T: Copy>(items: &[T]) -> Vec<Vec<T>> {
-    let n = items.len();
-    if n <= 1 {
-        return vec![items.to_vec()];
-    }
-    let mut idx: Vec<usize> = (0..n).collect();
-    let mut out: Vec<Vec<T>> = Vec::new();
-    loop {
-        out.push(idx.iter().map(|&i| items[i]).collect());
-        if !next_permutation(&mut idx) {
-            break;
+/// A **lazy** generator of every permutation of a slice (identity first, then
+/// lexicographic position order). Lazy generation matters for the poison case: a
+/// 9-element related group has 9! = 362 880 permutations, so collecting them all
+/// upfront would allocate a factorial-sized `Vec<Vec<_>>` per n-degree call. Yielding
+/// one small `Vec` at a time keeps the call-budget guard the only bound on cost.
+struct Permutations<T> {
+    items: Vec<T>,
+    idx: Vec<usize>,
+    first: bool,
+    done: bool,
+}
+
+impl<T: Copy> Iterator for Permutations<T> {
+    type Item = Vec<T>;
+
+    fn next(&mut self) -> Option<Vec<T>> {
+        if self.done {
+            return None;
         }
+        if self.first {
+            self.first = false;
+        } else if !next_permutation(&mut self.idx) {
+            self.done = true;
+            return None;
+        }
+        Some(self.idx.iter().map(|&i| self.items[i]).collect())
     }
-    out
+}
+
+/// Lazily generate every permutation of `items` (identity first; see [`Permutations`]).
+fn permutations<T: Copy>(items: &[T]) -> Permutations<T> {
+    Permutations {
+        items: items.to_vec(),
+        idx: (0..items.len()).collect(),
+        first: true,
+        // An empty slice still yields exactly one (empty) permutation.
+        done: false,
+    }
 }
 
 /// In-place next lexicographic permutation of `a`; `false` if `a` was the last.
@@ -802,7 +896,9 @@ fn write_literal_escaped(value: &str, out: &mut String) {
             '\t' => out.push_str("\\t"),
             '\u{08}' => out.push_str("\\b"),
             '\u{0c}' => out.push_str("\\f"),
-            c if (c as u32) < 0x20 => write_u_escape(c, out),
+            // Canonical N-Quads escapes C0 controls and U+007F (DEL) as \uXXXX; every
+            // other character (incl. all non-ASCII) is emitted verbatim as UTF-8.
+            c if (c as u32) < 0x20 || c as u32 == 0x7f => write_u_escape(c, out),
             c => out.push(c),
         }
     }
@@ -1046,9 +1142,11 @@ mod tests {
 
     #[test]
     fn permutations_are_lexicographic_identity_first() {
-        let perms = permutations(&[10u32, 20, 30]);
+        let perms: Vec<Vec<u32>> = permutations(&[10u32, 20, 30]).collect();
         assert_eq!(perms.len(), 6);
         assert_eq!(perms[0], vec![10, 20, 30], "identity first");
         assert_eq!(perms[5], vec![30, 20, 10], "reverse last");
+        // A single-element slice yields exactly one permutation.
+        assert_eq!(permutations(&[7u32]).count(), 1);
     }
 }

@@ -23,7 +23,10 @@ use std::sync::Arc;
 use oxigraph::model::{BlankNode, GraphName, NamedOrBlankNode, Quad, Term, Triple};
 use oxigraph::store::Store;
 
-use gmeow_rdf_core::{canonicalize as core_canonicalize, Canonicalized};
+use gmeow_rdf_core::{
+    canonicalize as core_canonicalize, canonicalize_with as core_canonicalize_with, CanonHash,
+    Canonicalized,
+};
 
 use crate::oxigraph::rdf_quad_from_oxigraph;
 use crate::{RdfDataset, RdfDatasetBuilder, RdfDiagnostic, TermRef};
@@ -58,6 +61,16 @@ pub fn canonical_nquads<'a>(
 ) -> Result<String, RdfDiagnostic> {
     let ds = flat_dataset(quads)?;
     Ok(core_canonicalize(&ds).nquads)
+}
+
+/// [`canonical_nquads`] with an explicit RDFC-1.0 hash algorithm
+/// ([`CanonHash::Sha384`] selects the SHA-384 variant).
+pub fn canonical_nquads_with<'a>(
+    quads: impl IntoIterator<Item = &'a Quad>,
+    hash: CanonHash,
+) -> Result<String, RdfDiagnostic> {
+    let ds = flat_dataset(quads)?;
+    Ok(core_canonicalize_with(&ds, hash).nquads)
 }
 
 /// Canonicalize a quad set's blank-node labels under native RDFC-1.0, returning the
