@@ -33,8 +33,8 @@ const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 
 /// A reusable SPARQL query parser.
 ///
-/// Mirrors the legacy `spargebra` `SparqlParser` surface the existing consumers
-/// call so the port is mechanical: `SparqlParser::new().parse_query(text)`.
+/// Mirrors the prior oxigraph-family `SparqlParser` surface the existing
+/// consumers call so the port is mechanical: `SparqlParser::new().parse_query(text)`.
 #[derive(Clone, Debug, Default)]
 pub struct SparqlParser {
     base_iri: Option<String>,

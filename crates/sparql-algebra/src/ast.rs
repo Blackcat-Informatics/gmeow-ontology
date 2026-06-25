@@ -4,7 +4,7 @@
 //! RDF 1.2 term-level types for the SPARQL algebra.
 //!
 //! These mirror the *structure* of the W3C SPARQL term model (and the surface
-//! the existing `spargebra` consumers walk) but are gmeow-owned: a [`NamedNode`]
+//! the consumers of the prior oxigraph-family parser walk) but are gmeow-owned: a [`NamedNode`]
 //! wraps a lexical IRI validated by [`gmeow_iri`], and a [`Literal`] carries a
 //! lexical form + datatype (optionally validated by [`gmeow_xsd`]). They carry
 //! **no variables** at the term level except through the `*Pattern` types, which

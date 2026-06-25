@@ -25,7 +25,7 @@ oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 # Native SPARQL parser (purrdf S5, #911). Used at shape-load to reject non-SELECT
 # SHACL-SPARQL queries (ASK/CONSTRUCT/DESCRIBE) — they parse but cannot bind ?this
 # and would panic at eval. Use SparqlParser to parse and match Query::Select.
-# Replaces the oxigraph-family `spargebra`.
+# Replaces the oxigraph-family SPARQL parser.
 gmeow-sparql-algebra = { path = "../sparql-algebra" }
 # sh:pattern regex constraint.
 regex = "1"

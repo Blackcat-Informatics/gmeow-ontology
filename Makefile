@@ -222,12 +222,15 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 		echo "OK: gmeow-sparql-algebra has NO oxigraph-family crate in its normal dependency tree (the #911 spargebra replacement is clean)"; \
 	fi
 	@# [purrdf S5/#911] EPIC #906 is wasm-first: the SPARQL leaf MUST compile to
-	@# wasm32. Skip gracefully if the target is not installed locally (CI installs it).
+	@# wasm32. The target's absence is a SKIP locally but a hard FAIL in CI, so the
+	@# wasm-clean criterion is never silently unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown; then \
 		cargo build -p gmeow-sparql-algebra --target wasm32-unknown-unknown || { echo "FAIL: gmeow-sparql-algebra does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "OK: gmeow-sparql-algebra builds for wasm32-unknown-unknown (wasm-clean)"; \
+	elif [ -n "$${CI:-}" ]; then \
+		echo "FAIL: wasm32-unknown-unknown target absent in CI — the wasm-first criterion (#906) cannot be verified; CI must install it"; exit 1; \
 	else \
-		echo "SKIP: wasm32-unknown-unknown target not installed — run 'rustup target add wasm32-unknown-unknown' to enable the wasm-clean check"; \
+		echo "SKIP: wasm32-unknown-unknown target not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' to enable the wasm-clean check"; \
 	fi
 
 slicetest: ## Run the slice-resident test-DSL harness in isolation.

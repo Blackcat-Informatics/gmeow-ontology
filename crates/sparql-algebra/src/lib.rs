@@ -6,7 +6,7 @@
 //!
 //! A pure-Rust, wasm-clean leaf crate that parses SPARQL query text into a
 //! gmeow-owned, **RDF 1.2-native** query algebra ([`Query`]/[`GraphPattern`]).
-//! It is the drop-in replacement for the oxigraph-family `spargebra` (purrdf S5,
+//! It is the drop-in replacement for the oxigraph-family SPARQL parser (purrdf S5,
 //! EPIC #906) and the front-end the downstream evaluator S6 (`sparql-eval`,
 //! #912) consumes. It builds only on the two CLOSED foundation leaves
 //! [`gmeow_iri`] (#908) and [`gmeow_xsd`] (#907), and deliberately does **not**
