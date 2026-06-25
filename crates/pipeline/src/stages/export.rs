@@ -97,7 +97,7 @@ fn curie(iri: &str) -> String {
 
 // ── FoldView: read-side idioms over a folded gts Graph (mirror gts_views.py) ───
 
-struct FoldView<'a> {
+pub(crate) struct FoldView<'a> {
     graph: &'a Graph,
     iri_index: BTreeMap<&'a str, usize>,
     /// scope (graph IRI or "" for default) → subject tid → [(p, o)]
@@ -107,11 +107,11 @@ struct FoldView<'a> {
     tag_map: BTreeMap<String, String>,
 }
 
-const DEFAULT_SCOPE: &str = "";
-const ALL_SCOPE: &str = "__all__";
+pub(crate) const DEFAULT_SCOPE: &str = "";
+pub(crate) const ALL_SCOPE: &str = "__all__";
 
 impl<'a> FoldView<'a> {
-    fn new(graph: &'a Graph) -> Self {
+    pub(crate) fn new(graph: &'a Graph) -> Self {
         let mut iri_index: BTreeMap<&'a str, usize> = BTreeMap::new();
         for (tid, t) in graph.terms.iter().enumerate() {
             if t.kind == TermKind::Iri {
@@ -161,16 +161,16 @@ impl<'a> FoldView<'a> {
     fn term(&self, tid: usize) -> &GtsTerm {
         &self.graph.terms[tid]
     }
-    fn is_iri(&self, tid: usize) -> bool {
+    pub(crate) fn is_iri(&self, tid: usize) -> bool {
         self.term(tid).kind == TermKind::Iri
     }
-    fn is_bnode(&self, tid: usize) -> bool {
+    pub(crate) fn is_bnode(&self, tid: usize) -> bool {
         self.term(tid).kind == TermKind::Bnode
     }
-    fn is_literal(&self, tid: usize) -> bool {
+    pub(crate) fn is_literal(&self, tid: usize) -> bool {
         self.term(tid).kind == TermKind::Literal
     }
-    fn lex(&self, tid: usize) -> &str {
+    pub(crate) fn lex(&self, tid: usize) -> &str {
         self.term(tid).value.as_deref().unwrap_or("")
     }
     fn lang(&self, tid: usize) -> Option<&str> {
@@ -179,12 +179,12 @@ impl<'a> FoldView<'a> {
     fn datatype(&self, tid: usize) -> String {
         self.graph.datatype_iri(self.term(tid))
     }
-    fn tid_of_iri(&self, iri: &str) -> Option<usize> {
+    pub(crate) fn tid_of_iri(&self, iri: &str) -> Option<usize> {
         self.iri_index.get(iri).copied()
     }
 
     /// Subjects with `rdf:type <class_iri>` in scope, id-sorted unique.
-    fn subjects_by_type(&self, class_iri: &str, scope: &str) -> Vec<usize> {
+    pub(crate) fn subjects_by_type(&self, class_iri: &str, scope: &str) -> Vec<usize> {
         let (Some(type_tid), Some(class_tid)) =
             (self.tid_of_iri(RDF_TYPE), self.tid_of_iri(class_iri))
         else {
@@ -200,7 +200,7 @@ impl<'a> FoldView<'a> {
     }
 
     /// Objects of `(s, p, ?)` in scope, id-sorted unique.
-    fn objects(&self, s_tid: usize, p_iri: &str, scope: &str) -> Vec<usize> {
+    pub(crate) fn objects(&self, s_tid: usize, p_iri: &str, scope: &str) -> Vec<usize> {
         let Some(p_tid) = self.tid_of_iri(p_iri) else {
             return Vec::new();
         };
@@ -226,7 +226,7 @@ impl<'a> FoldView<'a> {
     }
 
     /// All `(p, o)` pairs for a subject in scope, id-sorted unique.
-    fn predicate_objects(&self, s_tid: usize, scope: &str) -> Vec<(usize, usize)> {
+    pub(crate) fn predicate_objects(&self, s_tid: usize, scope: &str) -> Vec<(usize, usize)> {
         let mut out: BTreeSet<(usize, usize)> = BTreeSet::new();
         if let Some(idx) = self.spo.get(scope) {
             if let Some(rows) = idx.get(&s_tid) {
@@ -236,7 +236,7 @@ impl<'a> FoldView<'a> {
         out.into_iter().collect()
     }
 
-    fn has(&self, s_tid: usize, p_iri: &str, o_tid: usize, scope: &str) -> bool {
+    pub(crate) fn has(&self, s_tid: usize, p_iri: &str, o_tid: usize, scope: &str) -> bool {
         let Some(p_tid) = self.tid_of_iri(p_iri) else {
             return false;
         };
@@ -306,7 +306,7 @@ impl<'a> FoldView<'a> {
 
     /// Selector-aware single text + fallback flag (English-only default selector).
     /// Mirrors `public_text_with_fallback` with `selector.requested == ("en",)`.
-    fn public_text_with_fallback(&self, s_tid: usize, p_iri: &str) -> (String, bool) {
+    pub(crate) fn public_text_with_fallback(&self, s_tid: usize, p_iri: &str) -> (String, bool) {
         let candidates: Vec<usize> = self
             .objects(s_tid, p_iri, DEFAULT_SCOPE)
             .into_iter()
