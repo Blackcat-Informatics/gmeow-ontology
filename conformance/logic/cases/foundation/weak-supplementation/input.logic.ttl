@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: foundation/weak-supplementation
+# AC: holon kernel — profile-scoped weak supplementation (issue #704, C1).
+#
+# Weak supplementation (a whole with a proper part has another proper part
+# disjoint from the first) is a logic:MereologyConstraint, NOT an OntoUML
+# logic:Discipline: it holds only within a declared logic:MereologyProfile, never
+# across all parthood. The prerequisites logic:overlaps and logic:disjoint are
+# settled first, so the axiom never fires where overlap is undefined.
+#   * ex:W1 — declared under ex:MP with a LONE proper part ex:P1 (no disjoint
+#     co-part) → logic:violation logic:WeakSupplementation.
+#   * ex:W2 — declared under ex:MP with TWO disjoint proper parts ex:Pa, ex:Pb
+#     (they share no part) → each has a disjoint co-part → trips nothing.
+#   * ex:W3 — a lone proper part ex:P3 but NOT declared under any profile →
+#     parthood is profiled, so no supplementation obligation applies (inert).
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so the parthood +
+# profile edges are duplicated there in the named world ex:schema.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/weak-supplementation/> .
+
+# Schema (also world facts in input.nq).
+ex:MP a logic:MereologyProfile .
+ex:W1 logic:underMereologyProfile ex:MP .
+ex:P1 logic:properPartOf ex:W1 .
+ex:W2 logic:underMereologyProfile ex:MP .
+ex:Pa logic:properPartOf ex:W2 .
+ex:Pb logic:properPartOf ex:W2 .
+ex:P3 logic:properPartOf ex:W3 .

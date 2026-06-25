@@ -417,6 +417,27 @@ logic:GroundedArgumentation
     rdfs:label "Grounded Argumentation"@x-gmeow-english ;
     skos:definition "The grounded Dung argumentation semantics: the unique, sceptical, least fixed point of the characteristic function — an argument is accepted only when every attack on it is defeated by an accepted argument. The argumentation-facet value that resolves conflict deterministically; contrast logic:PreferredArgumentation, which admits multiple maximal admissible sets."@x-gmeow-english .
 
+logic:Holarchy
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Holarchy"@x-gmeow-english ;
+    skos:definition "The bounded logic:properPartOf strict partial order viewed as a nested whole/part structure — a holarchy in Koestler's sense. Because logic:properPartOf is transitive, asymmetric, and irreflexive, a holarchy is a directed acyclic graph (a DAG, not a strict ladder): an entity may be a proper part of several wholes along several paths. It is the structure over which a logic:HolonicPosition is read and logic:holonicLevel is measured (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Holon
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Holon"@x-gmeow-english ;
+    skos:definition "The lossy unary projection of logic:HolonicPosition: an entity that, within some holarchy, is simultaneously a whole and a part — both a proper part of some larger whole and itself having a proper part. Holon-ness is never a bare property of the entity; it is a position occupied in a particular holarchy, context, interval, and path, so logic:Holon is the convenient, lossy projection of that relational logic:HolonicPosition, exactly as the standpoint-modality view projects finer axes (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section). Root wholes and atomic leaves are not holons."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:HolonicPosition
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Holonic Position"@x-gmeow-english ;
+    skos:definition "The canonical relational construct of holon-ness: an entity occupies a holonic position in a particular holarchy, under a particular context, over a particular interval, along a particular path (entity, holarchy, context, interval, path). Whether an entity is a holon is read off this position, never asserted of the entity alone; the unary logic:Holon is its lossy projection. It is reified with the role properties logic:positionEntity, logic:positionHolarchy, logic:positionContext, logic:positionInterval, and logic:positionPath, because the foundation relation is five-place and the arity-bounded reasoning surface carries it as an objectified position (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:HornFragment
     a owl:NamedIndividual ,
         logic:FormulaFragment ;
@@ -470,6 +491,19 @@ logic:MaterialRelationshipType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Material Relationship Type"@x-gmeow-english ;
     skos:definition "A logic:RelationshipType whose instances are material relations — relations founded on a logic:Relator that mediates the relata (marriage, employment, enrolment). The counterpart of gufo:MaterialRelationshipType; the relation it types holds in virtue of the mediating Relator existing (logic:mediates), so its instances are reducible to the relator and its mediation links. Stated in prose, not as a subclass edge. Contrast logic:ComparativeRelationshipType, which needs no relator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:MereologyConstraint
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Mereology Constraint"@x-gmeow-english ;
+    skos:definition "A named profiled-mereology axiom a whole can violate — the family of mereological well-formedness constraints (weak supplementation and its kin) that hold only within a declared logic:MereologyProfile. Distinct from logic:Discipline, the closed set of OntoUML structural anti-patterns: mereology constraints are scoped to a profile, not asserted foundation-wide. Its named individuals are the labels a logic:violation fact may point at; the set is closed so a misspelt label names no declared constraint and is rejected rather than silently accepted."@x-gmeow-english .
+
+logic:MereologyProfile
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Mereology Profile"@x-gmeow-english ;
+    skos:definition "A declared scope within which the strong mereological axioms — weak supplementation above all — are taken to hold. Parthood is profiled, not universal: weak supplementation is true of functional complexes and quantities but false of many legitimate wholes (singleton-membered collectives, abstract aggregates, in-progress assemblies), so logic: scopes it to the MereologyProfile a whole is declared under (via logic:underMereologyProfile) rather than asserting it across all logic:properPartOf. A whole outside any profile is never charged with a logic:WeakSupplementation violation (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:MixIden
@@ -983,6 +1017,13 @@ logic:VariableCollection
     skos:definition "A logic:Collection whose membership may change over time while the collection retains its identity — a club whose roster gains and loses members, a playlist edited over the years. The counterpart of gufo:VariableCollection. Stated in prose, not as a subclass edge. Its time-varying logic:memberOf is naturally carried as a logic:Fluent (membership indexed to time/world) rather than as the static membership of a logic:FixedCollection — the four-dimensional treatment of changing membership."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:WeakSupplementation
+    a owl:NamedIndividual ,
+        logic:MereologyConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Weak Supplementation"@x-gmeow-english ;
+    skos:definition "The weak-supplementation axiom as a profiled-mereology constraint: a whole with a proper part must have another proper part disjoint from the first. It is enforced only within the logic:MereologyProfile a whole is declared under (logic:underMereologyProfile), never across all parthood; a whole with a lone proper part and no disjoint co-part, declared under a profile, is the logic:violation. The prerequisites logic:overlaps and logic:disjoint are settled first, so the axiom is never applied where overlap is undefined (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
 logic:WeightedRankingMeasure
     a owl:NamedIndividual ,
         logic:UncertaintyMeasure ;
@@ -1150,6 +1191,13 @@ logic:dischargeObligation
     rdfs:label "discharge obligation"@x-gmeow-english ;
     skos:definition "Relates an individual to an anti-rigid type it instantiates contingently, carrying the standing obligation to construct or cite a world of existence in which the individual lacks that type (the anti-rigidity witness). The instance-level diagnostic the anti-rigidity lowering emits under the witness-obligation policy (the default; LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy): for an individual x typed by an anti-rigid Role or Phase T in a world, a logic:dischargeObligation fact is entailed in that world. It is an obligation, NOT a violation — anti-rigid instantiation is licensed on the promise that the counter-world is satisfiable on demand (its construction happens on demand); the lighter schema-only policy emits nothing instance-level, the stricter witness-required policy emits logic:witnessRequiredViolation instead. Like the other derived diagnostics it is never asserted by hand."@x-gmeow-english .
 
+logic:disjoint
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "disjoint"@x-gmeow-english ;
+    skos:definition "Mereological disjointness: two entities share no part — the negation of logic:overlaps. A primitive notion of profiled mereology, settled (alongside logic:overlaps) before weak supplementation is stated, so logic:WeakSupplementation is never applied to wholes for which overlap is undefined. The 'another part disjoint from the first' clause of weak supplementation is read against this relation (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:distinctBody
     a owl:ObjectProperty ;
     rdfs:comment "Inequality body guard of a logic:Rule. Default-absent: a rule that needs no inequality carries no logic:distinctBody, so the existing corpus is byte-identical (issue #503)."@x-gmeow-english ;
@@ -1187,6 +1235,14 @@ logic:formulaFragment
     rdfs:label "formula fragment"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:FormulaFragment it selects — the syntactic class of admitted formulae. Single-valued on the contract. Domain logic:ReasoningContract, range logic:FormulaFragment (stated in prose, matching the module's convention)."@x-gmeow-english .
 
+logic:holonicLevel
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "holonic level"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The compositional depth of an entity within a holarchy, measured along a path: how many proper-part steps lie between the entity and a root whole. It is path-relative, not intrinsic — holarchies are DAGs, so an entity has no single global level; two paths may place it at different depths and both are correct, so the level is recorded per path (e.g. as a min/max band) rather than as one value. Distinct from logic:orderedType: logic:orderedType is the HiLog deep-instantiation order (an order-n type instantiates an order-(n+1) type), a property of the instantiation tower, whereas logic:holonicLevel is mereological compositional depth in a whole/part DAG; the two must not be conflated (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:instanceOf
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1207,6 +1263,13 @@ logic:irreflexiveProperty
     rdfs:label "irreflexive property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for irreflexivity: a property P such that P(a,a) holds for no a. The logic: analogue of owl:IrreflexiveProperty, used together with logic:transitiveProperty and logic:asymmetricProperty to make logic:properPartOf a genuine strict partial order (criticism 7)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:isHolon
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "is holon"@x-gmeow-english ;
+    skos:definition "The derived marker that projects holon-ness onto an entity: it holds of an entity that, within a holarchy, is simultaneously a proper part of some whole and itself has a proper part. It is the reasoning-surface marker (mirroring logic:isClass-style stereotype markers) from which the unary logic:Holon class is the OWL projection; the faithful construct is the relational logic:HolonicPosition, of which both are lossy projections. Never asserted by hand; it is entailed by the foundation lowering."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:jointOutcome
     a owl:ObjectProperty ;
@@ -1270,11 +1333,59 @@ logic:outcomeAssignment
     rdfs:label "outcome assignment"@x-gmeow-english ;
     skos:definition "Relates a logic:JointOutcome to a correlated logic:probability fact (the reified base triple) that is TRUE in this outcome. Correlated facts of the model that are not named by any logic:outcomeAssignment of an outcome are false in that outcome — the assignment is read as the positive set, the complement against the model's logic:correlates support. The range is intentionally left open (no rdfs:range), for the same reason as logic:correlates: its object is a reified logic:probability statement, which carries no dedicated class in this standalone module."@x-gmeow-english .
 
+logic:overlaps
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "overlaps"@x-gmeow-english ;
+    skos:definition "Mereological overlap: two entities share a common part. The primitive sharing notion that must be settled before disjointness or weak supplementation can be stated — logic:disjoint is its negation, and logic:WeakSupplementation is never applied where overlap is undefined. It is derived from logic:properPartOf: entities that share a proper part overlap, and a proper part overlaps its whole. Symmetric in intent (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:partOf
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "part of"@x-gmeow-english ;
     skos:definition "The general (reflexive) parthood relation: relates an entity to a whole it is part of, where every entity is trivially part of itself. The mereological base relation over which logic:properPartOf is the strict (irreflexive) restriction. Distinct from logic:memberOf, which relates a member to a collection without the part being a part of the whole in the mereological sense."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:positionContext
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "position context"@x-gmeow-english ;
+    skos:definition "The context role of a logic:HolonicPosition: the context under which the position is occupied. Holon-ness is contextual — an entity that is a holon under one context need not be under another. One of the five role properties (with logic:positionEntity, logic:positionHolarchy, logic:positionInterval, logic:positionPath) that reify the five-place holonic-position relation onto the arity-bounded reasoning surface."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:positionEntity
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "position entity"@x-gmeow-english ;
+    skos:definition "The entity role of a logic:HolonicPosition: the individual that occupies the holonic position — the thing that is a holon along the position's path. One of the five role properties (with logic:positionHolarchy, logic:positionContext, logic:positionInterval, logic:positionPath) that reify the five-place holonic-position relation onto the arity-bounded reasoning surface."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:positionHolarchy
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "position holarchy"@x-gmeow-english ;
+    rdfs:range logic:Holarchy ;
+    skos:definition "The holarchy role of a logic:HolonicPosition: the logic:Holarchy within which the position is occupied. Holon-ness is always relative to a holarchy; the same entity may occupy holonic positions in several holarchies. One of the five role properties (with logic:positionEntity, logic:positionContext, logic:positionInterval, logic:positionPath) that reify the five-place holonic-position relation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:positionInterval
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "position interval"@x-gmeow-english ;
+    skos:definition "The interval role of a logic:HolonicPosition: the interval over which the position is occupied. Holon-ness is temporally bounded — an entity may occupy a holonic position over one interval and not another. One of the five role properties (with logic:positionEntity, logic:positionHolarchy, logic:positionContext, logic:positionPath) that reify the five-place holonic-position relation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:positionPath
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "position path"@x-gmeow-english ;
+    skos:definition "The path role of a logic:HolonicPosition: the path through the holarchy along which the position is read. Holarchies are DAGs, so a holonic position — and the logic:holonicLevel measured at it — is meaningful only relative to a path; two paths may place the same entity at different depths, and both are correct. One of the five role properties (with logic:positionEntity, logic:positionHolarchy, logic:positionContext, logic:positionInterval) that reify the five-place holonic-position relation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:preservationKind
@@ -1369,11 +1480,19 @@ logic:uncertaintyMeasure
     rdfs:label "uncertainty measure"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to a logic:UncertaintyMeasure it carries — how graded belief is recorded. Set-valued on the contract: probabilistic, weighted/ranking, and fuzzy measures may coexist on the same result, so this records the set of measures in force, not one. Domain logic:ReasoningContract, range logic:UncertaintyMeasure (stated in prose, matching the module's convention)."@x-gmeow-english .
 
+logic:underMereologyProfile
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "under mereology profile"@x-gmeow-english ;
+    rdfs:range logic:MereologyProfile ;
+    skos:definition "Relates a whole to the logic:MereologyProfile it is declared under — the scope within which the strong mereological axioms (weak supplementation) hold for it. A whole carries no logic:WeakSupplementation obligation unless declared under a profile via this relation; parthood is profiled, not universal (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:violation
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "violation"@x-gmeow-english ;
-    skos:definition "Relates an offending class to the logic:Discipline it violates: the derived diagnostic the OntoUML-discipline lowering materializes, the logic: analogue of a reasoning_lint message. A logic:violation fact is never asserted by hand; it is entailed by the lowering rules over the stereotype, subsumption and mediation facts, so its presence is a machine-checkable proof that the class breaks the named discipline."@x-gmeow-english .
+    skos:definition "Relates an offending entity to the constraint it violates — a logic:Discipline (an OntoUML structural anti-pattern) or a logic:MereologyConstraint (a profiled-mereology axiom such as logic:WeakSupplementation): the derived diagnostic the foundation lowering materializes, the logic: analogue of a reasoning_lint message. A logic:violation fact is never asserted by hand; it is entailed by the lowering rules over the stereotype, subsumption, mediation and parthood facts, so its presence is a machine-checkable proof that the entity breaks the named constraint."@x-gmeow-english .
 
 logic:weight
     a owl:DatatypeProperty ;
