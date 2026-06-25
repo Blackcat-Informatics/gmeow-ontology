@@ -3,32 +3,30 @@
 
 # GMEOW Inhabitation — Competency and Conformance
 
-> The **conformance contract**, revised after the foundational review
-> ([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)). The first draft marked questions "Answered" that the
-> proposed graph could not yet answer; the statuses are downgraded to honest values here. "Answered"
-> is reserved for a question with a shipped fixture, an executable query, expected bindings, expected-
-> absent bindings, and a counterexample — none of which exist on a design-only branch. Until the
-> `module.ttl` and corpus are authored, the realistic status is **specified** (the constructs exist to
-> answer it) or **open** (a construct or policy is still missing).
+> The **conformance contract.** Statuses are honest: "Answered" is reserved for a question with a
+> shipped fixture, an executable query, expected bindings, expected-absent bindings, and a
+> counterexample — none of which exist on a design-only branch. Until the `module.ttl` and corpus are
+> authored, the realistic status is **specified** (the constructs exist to answer it) or **open** (a
+> construct or policy is still missing).
 
 ## Honest status of the verdict competency questions
 
 | # | Question | Status | Basis |
 |---|---|---|---|
-| 1 | Same subject before/after a model upgrade? | **specified** (was "answered") | needs `SubjectStage` + `IdentityContinuityAssessment`; a single stable node would have *asserted* sameness, so the first draft's "answered" was wrong |
-| 2 | Which host/deployment/persona/embodiment/memory view at time T? | **specified** (was "answered") | needs `InhabitationConfiguration` time-scoped facets; a single tenure could not resolve a mid-tenure facet change |
+| 1 | Same subject before/after a model upgrade? | **specified** | needs `SubjectStage` + `IdentityContinuityAssessment`; a single stable node would *assert* sameness |
+| 2 | Which host/deployment/persona/embodiment/memory view at time T? | **specified** | needs `InhabitationConfiguration` time-scoped facets; a single tenure could not resolve a mid-tenure facet change |
 | 3 | Two simultaneous sessions: same subject or shared model? | **specified** | the subject-stage / model-artifact split discriminates; needs the corpus to demonstrate |
 | 4 | Which claims/memories/intentions crossed a migration boundary? | **partial** | needs `TransferManifest` / derivation evidence; recurrence is not crossing |
-| 5 | Tool call via passive capability or delegated agent? | **specified** (was "open") | resolved without a wrapper class: a `gmeow:usedCapability` edge → `ActionSchema` is passive use; a `gmeow:ToolCall` → `usedTool` → `SoftwareAgent` is delegation ([`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md#capability-use-versus-delegation-cq5)) |
+| 5 | Tool call via passive capability or delegated agent? | **specified** | resolved without a wrapper class: a `gmeow:usedCapability` edge → `ActionSchema` is passive use; a `gmeow:ToolCall` → `usedTool` → `SoftwareAgent` is delegation ([`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md#capability-use-versus-delegation-cq5)) |
 | 6 | Which artifact/deployment/runtime/session/invocation produced an output? | **partial** | needs the explicit `ModelDeployment` / `RuntimeExecution` identities (now specified) wired through provenance |
 | 7 | Can the subject cease inhabiting one system while existing elsewhere? | **specified** | the subject status is a `RoleMixin` borne over a tenure, independent of any one inhabitation |
-| 8 | Who was controlling at T (co-tenancy)? | **open → specified** | needs `ControlAssessment`; the first draft's deception-divergence reuse did not record control |
-| 9 | Continuity denial — does a no-self verdict coexist? | **specified** (was "answered") | needs an *asserted* refuting `IdentityContinuityAssessment`; absence of `counterpartOf` is not denial |
-| 12 | Under which frame is an inhabitation held; does a denial coexist? | **specified** (was "answered") | needs the `InhabitationClaim` form; the first draft asserted the base relation |
+| 8 | Who was controlling at T (co-tenancy)? | **specified** | needs `ControlAssessment`; deception divergence (held≠projected) does not record control |
+| 9 | Continuity denial — does a no-self verdict coexist? | **specified** | needs an *asserted* refuting `IdentityContinuityAssessment`; absence of `counterpartOf` is not denial |
+| 12 | Under which frame is an inhabitation held; does a denial coexist? | **specified** | needs the `InhabitationClaim` form; an asserted base relation would not be frame-neutral |
 
-The honest headline: **zero questions are "answered"** on a design-only branch, several were
-mis-marked, and two (CQ5 tool-usage, CQ4 transfer) needed a construct the first draft lacked. The
-revised constructs make all of them *specified*; the corpus makes them *answered*.
+The honest headline: **zero questions are "answered"** on a design-only branch — the constructs
+*specify* the answers, and the shipped corpus is what makes them *answered*. Two (CQ5 tool-usage,
+CQ4 transfer) need a construct beyond a naive reuse, supplied in the runtime spec.
 
 ## The fixture shape
 
@@ -90,5 +88,4 @@ must agree.
 This document is the conformance contract. The constructs it tests are defined across
 [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md), [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md),
 [`INHABITED-MANIFESTATION.md`](INHABITED-MANIFESTATION.md), and
-[`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md); the review disposition is
-[`INHABITED-REVIEW.md`](INHABITED-REVIEW.md).
+[`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md).

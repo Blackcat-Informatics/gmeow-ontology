@@ -3,9 +3,8 @@
 
 # GMEOW Inhabitation — The Topology
 
-> The **core formal spec.** This document defines the inhabitation relation and its players. It was
-> revised after the foundational review (see [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md) for the
-> full disposition): the inhabitation is a **situation/tenure**, not a relator subclassing a
+> The **core formal spec.** This document defines the inhabitation relation and its players: the
+> inhabitation is a **situation/tenure**, not a relator subclassing a
 > situation; embodiment splits into a carrier role and a time-scoped assignment; locus is two
 > orthogonal axes; control is its own observation, not deception. The durable subject it binds is
 > [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md); the manifestation layering it points into is
@@ -76,24 +75,20 @@ gmeow:InhabitationConfiguration
         contains T. The invariant 'constant configuration over the interval' is stated and tested,
         not assumed." .
 
-# --- minimal core: only the tenure link and an open-range facet superproperty ---
+# core: the tenure link, an OPEN-range facet property, and the one typed facet whose range is core
 gmeow:configurationOfTenure a owl:ObjectProperty ; rdfs:range gmeow:InhabitationTenure .
-gmeow:configurationFacet    a owl:ObjectProperty .   # OPEN range; profiles declare typed subproperties
-
-# --- profile/inhabitation-expression (NOT core) ---
-#   gmeow:configurationPersona    rdfs:subPropertyOf gmeow:configurationFacet ; rdfs:range gmeow:Persona .
-#   gmeow:configurationEmbodiment rdfs:subPropertyOf gmeow:configurationFacet ; rdfs:range gmeow:EmbodimentAssignment .
-# --- profile/inhabitation-ai (NOT core) ---
-#   gmeow:configurationDeployment rdfs:subPropertyOf gmeow:configurationFacet ; rdfs:range gmeow:ModelDeployment .
-#   gmeow:configurationMemoryView rdfs:subPropertyOf gmeow:configurationFacet . # derived view, or signed MemoryView
+gmeow:configurationFacet    a owl:ObjectProperty .   # OPEN range — the composition point
+gmeow:configurationEmbodiment a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:configurationFacet ; rdfs:range gmeow:EmbodimentAssignment .  # range is core
 ```
 
-The minimal core declares **only** `gmeow:configurationOfTenure` and the open-range
-`gmeow:configurationFacet`; the *typed* facet subproperties (`configurationPersona` → `Persona`,
-`configurationDeployment` → `ModelDeployment`) are declared in the expression and AI profiles, because
-their ranges are extension terms and a range axiom is a real dependency
-([`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md)). The first draft put the typed properties in core,
-which the review correctly flagged as re-importing the dependency the packaging split removes.
+The core declares `gmeow:configurationOfTenure`, the **open-range** `gmeow:configurationFacet`, and the
+one typed facet whose range is *core* (`configurationEmbodiment` → the core `EmbodimentAssignment`).
+Facets whose range is an extension term — a `gmeow:Persona` (norms), a `gmeow:ModelDeployment`
+(model-serving) — need **no typed subproperty at all**: an instance writes `ex:config
+gmeow:configurationFacet ex:someDeployment` directly through the open property. This is what lets a
+**profile mint nothing** ([`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md)) — composition is open-facet
+instance data, not a minted typed property whose range would create a cross-tier dependency.
 
 ## `gmeow:Inhabitant` and `gmeow:InhabitedSystem` — contingent role-mixins
 
@@ -221,7 +216,7 @@ tenure is an endurant. A tenure is closed by ending its `gmeow:duringInterval`; 
 `gmeow:tenureEndedBy` (domain `gmeow:TimeScopedRelation`, range `gmeow:Event`) records the causal link
 to the migration event.
 
-Two further corrections the review required:
+Two further points:
 
 - **Ending a tenure is ontic; it does not suppress.** Closing a tenure (ending its interval) is an
   ontic fact; it does **not** entail `gmeow:displayable false`. Suppression is a separate display
@@ -242,7 +237,8 @@ embodiment assignments and role fillers, generated on demand, never materialized
 
 A first-class *domain* `gmeow:Holon` Kind is deferred; the **foundation** holon kernel (issue #704,
 in-flight) supplies `logic:Holarchy`, `logic:HolonicPosition` (the five-place entity × holarchy ×
-context × interval × path relation), and `logic:Holon` (its lossy unary projection). The kernel's
+context × interval × path relation), and `logic:Holon` (its lossy unary projection). The holon/holarchy
+vocabulary is Koestler's (1967; see [`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md)). The kernel's
 doctrine — *"holon-ness is never a bare property of the entity; it is a position"* — is the same
 anti-rigidity argument this slice makes, an independent cross-check. `gmeow:InhabitedSystem` aligns to
 `logic:HolonicPosition` (host = `positionEntity`, tenure interval = `positionInterval`, claim frame =
@@ -255,5 +251,4 @@ This document defines the relation and its players. The durable subject and cont
 [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md); the layering and genesis are
 [`INHABITED-MANIFESTATION.md`](INHABITED-MANIFESTATION.md); the AI realization is
 [`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md); the frame-relative neutrality (contested
-inhabitation as an unasserted claim) is [`INHABITED-TRADITIONS.md`](INHABITED-TRADITIONS.md); the
-full review disposition is [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md).
+inhabitation as an unasserted claim) is [`INHABITED-TRADITIONS.md`](INHABITED-TRADITIONS.md).

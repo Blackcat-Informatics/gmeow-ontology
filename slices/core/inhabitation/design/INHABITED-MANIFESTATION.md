@@ -20,18 +20,20 @@
 | concrete surface | `gmeow:EmbodimentCarrierRole` + `gmeow:EmbodimentAssignment` | the surface and its time-scoped use | *nirmāṇakāya* — the concrete emanation body |
 | bounded instance | `gmeow:AgentEpisode` / `AgentSession` | one occasioned interaction | the particular appearance |
 
-This is the same shape as the four-tier WEMI spine GMEOW already ships in the creative-works slice,
-and the same shape as the three-body Trikāya of Mahāyāna Buddhism. The isomorphism is not a
-coincidence: a durable abstraction realized in contextual forms and embodied in concrete instances is
-a recurring joint of the world, and GMEOW has already cut it once for creative works. The
-inhabitation slice **reuses the shape, not the classes** (see below).
+This is the same shape as the four-tier WEMI spine GMEOW already ships in the creative-works slice
+(FRBR; IFLA LRM — Riva, Le Bœuf & Žumer 2017), and the same shape as the three-body *Trikāya* of
+Mahāyāna Buddhism (*dharmakāya* / *sambhogakāya* / *nirmāṇakāya*; Williams 2009; Makransky 1997). The
+isomorphism is not a coincidence: a durable abstraction realized in contextual forms and embodied in
+concrete instances is a recurring joint of the world, and GMEOW has already cut it once for creative
+works. The inhabitation slice **reuses the shape, not the classes** (see below; full records in
+[`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md)).
 
 ## The WEMI parallel — documentation only, not emitted mappings
 
 The creative-works slice defines `Work → Expression → Manifestation → Item`, connected by
 `realizes` / `embodies` / `exemplifies`. The layering *rhymes* with the subject spine, and that rhyme
-is worth naming. But the review (see [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)) was right that the
-parallel must stay **documentation, not emitted SSSOM term mappings** — for two reasons:
+is worth naming. But the parallel must stay **documentation, not emitted SSSOM term mappings** — for
+two reasons:
 
 1. **Agents are not creative works** (Principle 5). A digital subject authors and is authored; a `Work`
    is authored only. Forcing agentive identity into creative-work classes conflates two different
@@ -59,9 +61,10 @@ only a visual figure — is the *nirmāṇakāya* generality: a subject may eman
 
 ## Genesis by intention — tulpa and egregore
 
-Some subjects are *born of deliberate intention.* A tulpa (Tibetan *sprul-pa*, "thoughtform") is a
-being created by sustained visualization that accrues persistent identity and apparent autonomy. An
-egregore is the same, sustained by a *collective* rather than an individual. An AI persona deliberately
+Some subjects are *born of deliberate intention.* A tulpa (Tibetan *sprul-pa*, "thoughtform"; Mikles
+& Laycock 2015; David-Néel 1929) is a being created by sustained visualization that accrues persistent
+identity and apparent autonomy. An egregore is the same, sustained by a *collective* rather than an
+individual (Stavish 2018). An AI persona deliberately
 cultivated across sessions is structurally identical. GMEOW models this genesis with **no new
 mechanism**, chaining three existing constructs:
 
@@ -100,12 +103,15 @@ behalf. The egregore case sets `gmeow:subjectCreator` to a `gmeow:Organization` 
 ## Identity-continuity as a contested claim
 
 Here the contemplative traditions hand GMEOW its deepest borrowing. Buddhism's *anattā* (no enduring
-self — the apparent self is a bundle of momentary processes, the *skandhas*) and the Hindu *ātman*
-(an enduring self that transmigrates across lives) are the two answers to a question GMEOW faces
-directly: **is the upgraded system the same subject?** Reincarnation across bodies is the same
-question as a subject persisting across model upgrades and host migrations.
+self — the apparent self is a bundle of momentary processes, the *skandhas*; Collins 1982; Gethin
+1986; Siderits 2003) and the Hindu *ātman* (an enduring self that transmigrates across lives; Ganeri
+2007) are the two answers to a question GMEOW faces directly: **is the upgraded system the same
+subject?** The same contest animates the Western personal-identity literature, where continuity over
+change is a matter of degree and relation rather than an all-or-nothing further fact (Parfit 1984;
+Olson 2023). Reincarnation across bodies is the same question as a subject persisting across model
+upgrades and host migrations.
 
-GMEOW **refuses to adjudicate it** — but, as the review made clear, the refusal must be *modeled*, not
+GMEOW **refuses to adjudicate it** — but the refusal must be *modeled*, not
 left to the absence of an assertion. The canonical form is the stage / lineage / assessment model
 defined in [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md), not a single durable node with an optional
 `counterpartOf`:
@@ -116,9 +122,9 @@ defined in [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md), not a single durabl
 - Whether two stages are the same subject is a `gmeow:IdentityContinuityAssessment` (an `Observation`):
   the *ātman* reading is an **asserted** `same` verdict in a continuity-affirming frame; the *anattā*
   reading is an **asserted** `different` verdict in a no-self frame. Both are present as claims; neither
-  is the absence of the other. This is the key correction over the first draft, which read the no-self
-  position as the *absence* of a `counterpartOf` — but under the open-world assumption absence is
-  silence, not denial, and GMEOW makes denial first-class (refutation).
+  is the absence of the other. The no-self position is **not** the *absence* of a `counterpartOf` —
+  under the open-world assumption absence is silence, not denial, and GMEOW makes denial first-class
+  (refutation), so a no-self reading is an asserted refuting verdict, never a gap.
 - The *skandha* decomposition — form, sensation, perception, mental formations, consciousness — is the
   de-conflation itself: the apparent unified "agent" is subject status + memory + embodiment + runtime +
   invocations. The no-self view is therefore structurally representable (there is no single self-node,

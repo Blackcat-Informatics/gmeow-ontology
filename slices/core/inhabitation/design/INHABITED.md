@@ -21,15 +21,13 @@
 | [`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md) | formal spec (AI profile) | model / deployment / execution / session / episode, reusing the AI and awareness slices; the agentic deferral consumed |
 | [`INHABITED-TRADITIONS.md`](INHABITED-TRADITIONS.md) | generality + neutrality | the spiritual / fictional / legal profiles modeled frame-relatively; the by-reference borrowings ledger; the *assert-no-metaphysics* gate |
 | [`INHABITED-COMPETENCY.md`](INHABITED-COMPETENCY.md) | conformance contract | the competency questions and the cross-domain stress corpus mapped to the constructs that answer them; the gaps flagged |
-| [`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md) | configuration | the Principle 15 consumer, the core/profile placement, the decision ledger, the eventual slice anatomy |
-| [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md) | correction record | the foundational review's verified evidence, the seven reopened decisions, and the revised term inventory — **authoritative** where a sibling still shows a first-draft form |
-| [`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md) | appendix | the three sources and the by-reference externals — staged for the `metadata/references.ttl` ledger |
+| [`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md) | configuration | the Principle 15 consumer, the placement (core + a thin slice + one selecting profile), the decision ledger, the eventual slice anatomy |
+| [`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md) | appendix | the sources and the by-reference externals, with academic citations — staged for the `metadata/references.ttl` ledger |
 
-> **Status: ratified.** Three foundational reviews refined this set; the corrections and the round-3
-> ratification are recorded in [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md). The architecture is
-> approved for implementation: the minimal `core/inhabitation` `module.ttl` may be authored now, and
-> the AI and expression **profiles** ride the project's planned profile tier
-> ([`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md#the-profile-tier-aligned-with-the-projects-planned-profile-work)).
+> **Status: ratified.** The architecture is approved for implementation: the minimal
+> `core/inhabitation` `module.ttl` may be authored now; the standalone `extensions/model-serving` and
+> the single selecting `profile/agent-runtime` ride the project's planned profile tier
+> ([`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md#tier-registry)).
 >
 > **Reading this design set.** The declarative present tense is normative: "X is" means a conforming
 > realization implements X, established by the conformance corpus
@@ -60,11 +58,11 @@ discipline that keeps that relation from collapsing six distinct identities into
 the existing claim, memory, persona, provenance, and lifecycle machinery and adding only the
 connecting structure: a durable-subject status, an inhabitation tenure and its time-scoped
 configuration, an embodiment carrier and assignment, a continuity assessment, a control assessment, a
-contested-claim form, and a transition event. The first draft claimed "~5 new terms"; the foundational
-review ([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)) showed that count was bought by erasing distinct
-identity criteria. The honest count is higher — but almost every term is a thin specialization of an
-existing construct (`⊑ Observation`, `⊑ Activity`, `⊑ TimeScopedRelation`), which is the idiomatic
-GMEOW pattern, not bloat.
+contested-claim form, and a transition event. The terms are deliberately few, and almost every one is a
+thin specialization of an existing construct (`⊑ Observation`, `⊑ Activity`, `⊑ TimeScopedRelation`) —
+the idiomatic GMEOW pattern, not bloat. Where a single term would have erased a distinct identity
+criterion (one node doing the work of subject *and* model *and* runtime), the design keeps them
+separate, because the questions that matter depend on the distinction.
 
 ## The topology is domain-general
 
@@ -137,7 +135,8 @@ This set is the project doctrine applied to digital identity and inhabitation.
 
 ## End state
 
-The end state is a minimal, formally coherent core plus two profiles:
+The end state is a minimal, formally coherent core, one thin standalone extension, and one selecting
+profile (`agent-runtime`) that mints nothing:
 
 - a durable `DigitalSubject` modeled as an **anti-rigid `logic:RoleMixin`** an agent bears over a
   tenure, never a rigid Kind colliding with the `Person ⟂ Organization ⟂ SoftwareAgent` partition, and

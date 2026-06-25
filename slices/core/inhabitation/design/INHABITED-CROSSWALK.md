@@ -10,14 +10,8 @@
 > [`INHABITED-MANIFESTATION.md`](INHABITED-MANIFESTATION.md),
 > [`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md)) reference this table rather than
 > restating a term's status; when they disagree with it, this table is authoritative and they are
-> the defect.
->
-> **Post-review note.** The *dispositions* (REUSE / EXTEND / MINT / BRIDGE) below are unchanged, but
-> the foundational **stereotypes** several rows cite inline were corrected by the review
-> ([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)) — a relator may not subclass a situation,
-> `DigitalSubject` is a `RoleMixin`, and several "one term" entries split. The authoritative current
-> stereotypes are the [Net new vocabulary](#net-new-vocabulary-post-review) table at the end; where an
-> inline row still shows a first-draft stereotype, that table governs.
+> the defect. The canonical stereotypes are the [Net new vocabulary](#net-new-vocabulary) table at the
+> end; the source-by-source rows below give each term's disposition and rationale.
 
 ## The four dispositions
 
@@ -79,11 +73,11 @@ mint Kinds (see [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md)).
 | **Inhabitation** | the reified subject-host occupation over time | MINT | `gmeow:InhabitationTenure` — a `logic:Situation ⊑ gmeow:TimeScopedRelation` (NOT a relator subclassing a situation). The core construct, with `gmeow:InhabitationConfiguration` for the time-scoped facets. |
 | **HostSystem / RuntimeEnvironment** | the environment capable of being inhabited | REUSE | `gmeow:PhysicalObject` / `gmeow:SoftwareAgent` located via places, composed via `gmeow:partOf`. **No new class** — "hosted on" is containment. (A thin `gmeow:RuntimeEnvironment` subkind may be minted in the AI profile only if it earns its keep — see [`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md).) |
 | **ModelArtifact** | the model weights / architecture / version | REUSE | `gmeow:SoftwareProduct` / `gmeow:Distribution` (software slice five-facet) + `gmeow:ModelCard` (ai slice). Mint a thin `gmeow:ModelArtifact` subkind only if model-specific facets demand it (Principle 6). |
-| **ModelDeployment** | a served, callable realization of an artifact | MINT *(AI profile)* | `gmeow:ModelDeployment` — a `logic:Relator` binding artifact × service `SoftwareAgent` × host × endpoint × interval. Awareness mode is a *facet* (a tenure on the service agent), not the deployment itself. |
-| **RuntimeExecution** | a particular running process | MINT *(AI profile)* | `gmeow:RuntimeExecution` — a `logic:Event ⊑ gmeow:Activity` (an occurrent), within which `ModelInvocation`s occur. Its own identity, not an awareness tenure (the review corrected the first draft's reuse). |
-| **AgentSession** | a bounded interaction context | MINT *(AI profile)* | `gmeow:AgentSession` — a `logic:Event ⊑ gmeow:Activity` (an **event aggregate** via `subEventOf`), not a relator subclassing a situation. Ordering via `logic:Path` stays in the solver (Principle 12). |
+| **ModelDeployment** | a served, callable realization of an artifact | MINT *(model-serving)* | `gmeow:ModelDeployment` — a `logic:Relator` binding artifact × service `SoftwareAgent` × host × endpoint × interval. Awareness mode is a *facet* (a tenure on the service agent), not the deployment itself. |
+| **RuntimeExecution** | a particular running process | MINT *(model-serving)* | `gmeow:RuntimeExecution` — a `logic:Event ⊑ gmeow:Activity` (an occurrent), within which `ModelInvocation`s occur. Its own identity, not an awareness tenure. |
+| **AgentSession** | a bounded interaction context | MINT *(model-serving)* | `gmeow:AgentSession` — a `logic:Event ⊑ gmeow:Activity` (an **event aggregate** via `subEventOf`), not a relator subclassing a situation. Ordering via `logic:Path` stays in the solver (Principle 12). |
 | **AgentEpisode** | a goal-oriented sequence within a session | REUSE | a sub-aggregate (`eventTypeAgentEpisode`, `subEventOf` the session). Mint a class only if episodes need their own identity. |
-| **Embodiment** | the interface/avatar/device/account/channel used | MINT *(expression profile)* | **split:** `gmeow:EmbodimentCarrierRole` (`logic:RoleMixin` — the surface entity in role) + `gmeow:EmbodimentAssignment` (`logic:Situation ⊑ TimeScopedRelation` — subject × carrier × interval × capabilities, suppressible). Subsumes Cagle's Avatar. |
+| **Embodiment** | the interface/avatar/device/account/channel used | MINT *(core)* | **split:** `gmeow:EmbodimentCarrierRole` (`logic:RoleMixin` — the surface entity in role) + `gmeow:EmbodimentAssignment` (`logic:Situation ⊑ TimeScopedRelation` — subject × carrier × interval × capabilities, suppressible). Subsumes Cagle's Avatar. |
 | **CallableCapability** | a general bearer for tool use (passive or active) | REUSE | **Do not mint.** The agentic slice already *explicitly refused* a `Tool` subclass: tool-ness is a role in the `ToolCall` event ("the Persona lesson"). A passive capability is a `gmeow:ActionSchema` (teleology); a delegated one is a `gmeow:ToolCall` to a `SoftwareAgent`. Do **not** widen `usedTool` — its range (`SoftwareAgent`) is already the most general acting thing. |
 | **inhabitationLocus** *(not in the verdict; from the esoteric generalization)* | self vs external vessel, and shared vs exclusive | MINT | **split into two orthogonal axes:** `gmeow:inhabitationLocusKind` (value vocab `locusSelf` / `locusVessel` — invocation vs evocation) and **derived** tenancy cardinality (shared = overlapping tenures over one host, computed not asserted). See [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md). |
 | **MemoryView** *(implied by the "which memory view was active?" CQ)* | the memory scope active during an inhabitation | DERIVE (+ optional MINT) | Computed over `gmeow:MemoryItem` provenance + the active `Inhabitation` interval (Principle 12). Promote to a first-class `gmeow:MemoryView` object **only** when a view must be signed/attested for the GTS `ai-package`. |
@@ -108,16 +102,19 @@ doc re-litigates it:
    expertise slices. Cagle's "Role" (interface spec) is `gmeow:Role` plus the access-gating carried
    by `Inhabitation`.
 
-## Net new vocabulary (post-review)
+## Net new vocabulary
 
-> The first draft's stereotypes were corrected by the foundational review
-> ([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)): a relator cannot subclass `TimeScopedRelation` (a
-> `logic:Situation`), `DigitalSubject` spans Kinds (so `RoleMixin`, not `Role`), and several "one
-> term" entries split because their identity criteria differ. The corrected inventory:
+The canonical stereotype inventory. The discipline behind it: a relator may not subclass
+`TimeScopedRelation` (a `logic:Situation`); `DigitalSubject` spans Kinds (so `RoleMixin`, not the
+single-Kind `Role`); and an `Observation` subclass is a `logic:SubKind`, not a situation. Terms whose
+identity criteria differ are kept separate rather than collapsed.
+
+All terms live in **core** unless tagged *(model-serving)*, the thin standalone extension. The single
+`agent-runtime` profile mints nothing.
 
 | New term | `logic:` stereotype | One-line role |
 |---|---|---|
-| `gmeow:DigitalSubject` | `logic:RoleMixin` | the durable-subject status an agent bears (spans Person/SoftwareAgent) |
+| `gmeow:DigitalSubject` | `logic:RoleMixin` (⊑ Agent) | the durable-subject status an agent bears (spans Person/SoftwareAgent) |
 | `gmeow:DigitalSubjectTenure` | `logic:Situation ⊑ TimeScopedRelation` | when/according-to-whom the status is borne |
 | `gmeow:InhabitationTenure` | `logic:Situation ⊑ TimeScopedRelation` | S inhabited H over T |
 | `gmeow:InhabitationConfiguration` | `logic:Situation ⊑ TimeScopedRelation` | the time-scoped active facets (active-at-T) |
@@ -126,16 +123,16 @@ doc re-litigates it:
 | `gmeow:Inhabitant` / `gmeow:InhabitedSystem` | `logic:RoleMixin` | agent-side / host-side role fillers |
 | `gmeow:EmbodimentCarrierRole` | `logic:RoleMixin` | the surface entity in role (subsumes Avatar) |
 | `gmeow:EmbodimentAssignment` | `logic:Situation ⊑ TimeScopedRelation` | subject × carrier × interval × capabilities |
-| `gmeow:SubjectStage` / `gmeow:SubjectLineage` | stage record / `logic:Kind` | epochs and the durable identity record |
+| `gmeow:SubjectStage` / `gmeow:SubjectLineage` | `logic:Situation ⊑ TimeScopedRelation` / `logic:Kind ⊑ InformationObject` | epochs and the durable identity record |
 | `gmeow:IdentityContinuityAssessment` | `logic:SubKind ⊑ Observation` | the contestable same/different/indeterminate verdict |
 | `gmeow:ControlAssessment` | `logic:SubKind ⊑ Observation` | who controls a host/embodiment (≠ deception) |
 | `gmeow:inhabitationLocusKind` | `logic:AbstractIndividualType` (values) | self / vessel (tenancy is *derived*, not a value) |
 | `eventTypeInhabitationTransition` + `portalFrom`/`portalTo` | `gmeow:EventType` value | migration (lifecycle value, not an Event subclass) |
-| `gmeow:TransferManifest` | `logic:Kind` | what crossed a transition (evidence, not coincidence) |
-| `gmeow:ModelArtifact` / `gmeow:ModelDeployment` / `gmeow:RuntimeExecution` / `gmeow:AgentSession` *(AI profile)* | `SubKind` / `Relator` / `Event ⊑ Activity` / `Event ⊑ Activity` | explicit AI-stack identities |
+| `gmeow:TransferManifest` | `logic:Kind ⊑ InformationObject` | what crossed a transition (evidence, not coincidence) |
+| `gmeow:ModelArtifact` / `gmeow:ModelDeployment` / `gmeow:RuntimeExecution` / `gmeow:AgentSession` *(model-serving)* | `Kind` / `Relator` / `Event ⊑ Activity` / `Event ⊑ Activity` | the standalone model-serving identities |
 | `gmeow:MemoryView` *(optional)* | situation | promoted only when a view must be signed |
 
 Most are thin specializations of `Observation`, `Activity`, or `TimeScopedRelation` — the idiomatic
-GMEOW pattern. The honest count is higher than the first draft's "~5", because minimality there was
-bought by erasing identity criteria. Plus per-branch role-filler properties — each a property, never a
-class, and never `gufo:inheresIn`.
+GMEOW pattern. Terms whose identity criteria differ are kept separate rather than collapsed into a
+single overloaded node. Plus per-branch role-filler properties — each a property, never a class, and
+never `gufo:inheresIn`.

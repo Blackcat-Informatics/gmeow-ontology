@@ -3,8 +3,7 @@
 
 # GMEOW Inhabitation — Traditions, Generality, and Neutrality
 
-> The **generality charter**, revised after the foundational review
-> ([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)). The crucial correction: a contested inhabitation must
+> The **generality charter**. The load-bearing rule: a contested inhabitation must
 > be an **unasserted claim**, not an asserted base triple with a comment — directly asserting
 > `inhabitationSubject ex:lwa` puts the relationship in the base graph and (range `Agent`) globally
 > infers the lwa is an agent. The cross-domain cases are **profile mappings with documented
@@ -13,10 +12,10 @@
 
 ## The neutrality discipline — claims, not asserted base triples
 
-GMEOW asserts no metaphysics. The first draft tried to achieve this with `gmeow:accordingTo`
-annotations on directly-asserted inhabitation triples. That fails: a statement annotation *attributes*
-a claim, but it cannot *un-assert* a base proposition already in the graph, and the range axiom on
-`gmeow:inhabitationSubject` would entail that the lwa is a `gmeow:Agent` everywhere.
+GMEOW asserts no metaphysics. `gmeow:accordingTo` annotations on a *directly-asserted* inhabitation
+triple do not suffice: a statement annotation *attributes* a claim, but it cannot *un-assert* a base
+proposition already in the graph, and the range axiom on `gmeow:inhabitationSubject` would entail that
+the lwa is a `gmeow:Agent` everywhere.
 
 The canonical form of a contested inhabitation is therefore a **`gmeow:InhabitationClaim`**, an
 observation whose observed feature is an inhabitation configuration/description — the relationship is
@@ -74,7 +73,9 @@ citation (Principle 5) names the traditions without importing their commitments;
 ## The by-reference borrowings ledger
 
 Each tradition contributes a structural distinction; GMEOW carries it with existing machinery; in each
-case a commitment is refused.
+case a commitment is refused. Each row is grounded in a scholarly study of the tradition, cited in full
+in [`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md) — the citation grounds the *distinction*, never
+the metaphysics.
 
 | Tradition | Distinction contributed | GMEOW reuse | Refused inheritance |
 |---|---|---|---|
@@ -98,8 +99,10 @@ universal:
 
 - **Spiritual (possession).** Modeled as an `InhabitationClaim` with co-tenancy and a
   `ControlAssessment`; the *difference* is that traditions vary — some claim control, some identity
-  replacement, some mere presence or attribution — so the locus, control, and configuration vary by
-  tradition and are recorded per claim, not assumed.
+  replacement, some mere presence or attribution (Bourguignon 1976) — so the locus, control, and
+  configuration vary by tradition and are recorded per claim, not assumed. The Vodou "horse"/`chwal`
+  mounted by a *lwa* (Deren 1953; Métraux 1959) is the host/inhabitant relation with a control
+  attribution, modeled frame-indexed and asserting nothing.
 - **Fictional (actor as character).** *Difference:* this may be **role enactment**, not host
   occupation — an actor *performs* a character (`aboutnessEnacts`) rather than the character inhabiting
   the actor as a host. The profile mapping records this explicitly rather than forcing the
@@ -124,5 +127,4 @@ exposed.
 This document is the generality and neutrality charter. The constructs are
 [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md) and [`INHABITED-MANIFESTATION.md`](INHABITED-MANIFESTATION.md);
 the bibliographic records are [`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md); the conformance
-corpus is [`INHABITED-COMPETENCY.md`](INHABITED-COMPETENCY.md); the review disposition is
-[`INHABITED-REVIEW.md`](INHABITED-REVIEW.md).
+corpus is [`INHABITED-COMPETENCY.md`](INHABITED-COMPETENCY.md).

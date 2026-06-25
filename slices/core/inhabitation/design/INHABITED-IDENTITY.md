@@ -3,8 +3,7 @@
 
 # GMEOW Inhabitation — Identity and the SoftwareAgent De-conflation
 
-> The **de-conflation charter**, revised after the foundational review
-> ([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)). The durable subject is a **`logic:RoleMixin`** with a
+> The **de-conflation charter**. The durable subject is a **`logic:RoleMixin`** with a
 > tenure, not a `logic:Role`; self-assertion is a high-authority claim, never an entailment of the
 > type; and identity-continuity is modeled with subject stages and an explicit continuity assessment,
 > not a single stable node. The relation that binds a subject to a host is
@@ -31,12 +30,14 @@ this document settles identity 1, the durable subject.
 
 ## The durable subject: a RoleMixin with a tenure
 
-The first draft typed `DigitalSubject` as a `logic:Role`. The review corrected this, and the
-correction holds against the foundation: `logic:Role` is an anti-rigid **sortal** tied to one
-identity-supplying Kind, but the design lets *both* a `Person` and a `SoftwareAgent` be a digital
-subject — that spans Kinds, so it is a **non-sortal**. The anti-rigid non-sortal spanning Kinds is
-`logic:RoleMixin` (the foundation's example is *"customer — a person or an organization"*). The
-fallback "`logic:Category`" the first draft offered is wrong: `logic:Category` is a **rigid** non-sortal.
+`DigitalSubject` is **not** a `logic:Role`, and the foundation says why: `logic:Role` is an anti-rigid
+**sortal** tied to one identity-supplying Kind, but the design lets *both* a `Person` and a
+`SoftwareAgent` be a digital subject — that spans Kinds, so it is a **non-sortal**. The anti-rigid
+non-sortal spanning Kinds is `logic:RoleMixin` (the foundation's example is *"customer — a person or an
+organization"*). The sortal/non-sortal and rigidity vocabulary is OntoClean's, and the role/role-mixin
+treatment follows the UFO social-roles account (Guarino & Welty 2009; Masolo et al. 2004 — see
+[`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md)). The tempting fallback of `logic:Category` is
+wrong: `logic:Category` is a **rigid** non-sortal.
 
 ```turtle
 gmeow:DigitalSubject
@@ -91,10 +92,10 @@ than minting a parallel self-assertion mechanism.
 
 ## Identity-continuity: stages, lineage, and an explicit assessment
 
-The first draft kept one stable RDF node `ex:lillith` across a model upgrade and *called* the question
-of sameness contestable. The review caught the contradiction: **using one RDF individual already
-asserts numerical identity.** A later `counterpartOf` cannot retract that, and absence of a
-`counterpartOf` is not denial — under the open-world assumption, absence is silence, and GMEOW treats
+Keeping one stable RDF node `ex:lillith` across a model upgrade and merely *calling* the question of
+sameness contestable is self-contradictory: **using one RDF individual already asserts numerical
+identity.** A later `counterpartOf` cannot retract that, and absence of a `counterpartOf` is not
+denial — under the open-world assumption, absence is silence, and GMEOW treats
 denial as first-class (refutation), not as missing data.
 
 The neutral model therefore does not assert a single durable bearer. It records **stages** and an
@@ -182,5 +183,4 @@ than asserted as a co-Kind. The fixture is `examples/subject-status.ttl`
 This document settles the durable subject and continuity. The relation binding subject to host is
 [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md); the AI realization of the model/deployment/runtime
 stack is [`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md); the layering and genesis are
-[`INHABITED-MANIFESTATION.md`](INHABITED-MANIFESTATION.md); the full review disposition is
-[`INHABITED-REVIEW.md`](INHABITED-REVIEW.md).
+[`INHABITED-MANIFESTATION.md`](INHABITED-MANIFESTATION.md).

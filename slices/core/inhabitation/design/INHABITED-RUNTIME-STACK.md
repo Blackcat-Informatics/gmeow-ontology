@@ -3,36 +3,36 @@
 
 # GMEOW Inhabitation — The AI Runtime Stack
 
-> The **AI profile** (`profile/inhabitation-ai`), revised after the foundational review
-> ([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)). Deployment, runtime execution, and the model artifact
-> now have **explicit identities** rather than being collapsed onto an awareness tenure; the
+> The **model-serving vocabulary and the `agent-runtime` profile.** This document specifies the thin
+> standalone `extensions/model-serving` slice (reusable beyond inhabitation) and how the single
+> `agent-runtime` profile composes it with `core/inhabitation`. Deployment, runtime execution, and the
+> model artifact have **explicit identities** rather than being collapsed onto an awareness tenure; the
 > `ModelCard` relations are split so a `Distribution` is not inferred to be a `SoftwareAgent`; the
 > session is an event aggregate, not a relator subclassing a situation; and migration content rides a
 > transfer manifest, not coincidence. The minimal core it builds on is
 > [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md) / [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md);
 > dispositions are fixed by [`INHABITED-CROSSWALK.md`](INHABITED-CROSSWALK.md).
 
-## Why the first draft's reuse was too aggressive
+## Why deployment, execution, and artifact need explicit identities
 
-The first draft mapped deployment, runtime execution, and a single invocation all onto
-`gmeow:AwarenessTenure`, differing only by granularity. The review's correction is right and the
-identity criteria are genuinely distinct:
+Mapping deployment, runtime execution, and a single invocation all onto `gmeow:AwarenessTenure`
+(differing only by granularity) would erase distinct identity criteria:
 
 - a **deployment** binds an artifact, a service identity, a host, an endpoint, configuration, an
   operator, a policy, and a serving interval;
 - a **runtime execution** is an occurrent process;
 - an **awareness tenure** records an agent being in a processing *mode* over an interval.
 
-Awareness mode (`modeOnlineInference` / `modeOfflineReplay` / `modeTraining`) remains a *valuable
-facet* of a deployment or execution — but it cannot *be* either, because it carries none of the
-deployment's binding structure. So the profile mints explicit identities and uses the awareness tenure
-as a facet, not a substitute. This raises the term count over the first draft's "minimal" claim, and
-that is correct: minimality was bought by erasing identity criteria.
+Awareness mode (`modeOnlineInference` / `modeOfflineReplay` / `modeTraining`) is a *valuable facet* of
+a deployment or execution — but it cannot *be* either, because it carries none of the deployment's
+binding structure. So the model-serving slice gives each an explicit identity and uses the awareness
+tenure as a facet, not a substitute. The terms are few, and each carries a genuinely distinct identity
+criterion rather than collapsing them for a smaller count.
 
 ## The model artifact and the ModelCard split
 
 The model artifact is a `gmeow:Distribution` of a `gmeow:SoftwareProduct` (software slice five-facet),
-content-digested. The first draft said it was "described by a `ModelCard`", but `gmeow:describesModel`
+content-digested. It is tempting to say the artifact is "described by a `ModelCard`", but `gmeow:describesModel`
 is `owl:FunctionalProperty` ranging over `gmeow:SoftwareAgent` — so a `Distribution` as its target
 would be inferred a `SoftwareAgent`. The relations split:
 
@@ -112,8 +112,8 @@ ex:session-7    gmeow:sessionConfiguration ex:config-A .           # session →
 
 ## Session and episode — an event aggregate
 
-The first draft typed `AgentSession` as a relator-and-situation, reproducing the foundational collision
-([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)). A session is more naturally an **event aggregate** — an
+Typing `AgentSession` as a relator-and-situation would reproduce the foundational collision (a relator
+cannot subclass a situation). A session is more naturally an **event aggregate** — an
 `Activity` whose sub-events are invocations, tool calls, messages, retrievals, and episodes — using
 GMEOW's existing event mereology:
 
@@ -164,8 +164,8 @@ ex:manifest-7 gmeow:transferredView ex:viewCheckpoint-before .   # coarse: the w
 ex:memory-2200-after gmeow:wasDerivedFrom ex:memory-2200 .        # per-item ONLY for modified items
 ```
 
-The coarse-by-default design (the round-3 remedy) keeps migration storage proportional to *changes*,
-not to the whole carried memory. Because memory revision is supersession (`gmeow:displayable false`),
+The coarse-by-default design keeps migration storage proportional to *changes*, not to the whole
+carried memory. Because memory revision is supersession (`gmeow:displayable false`),
 never deletion (Principle 10), the pre-migration belief state stays queryable. Note the lifecycle
 correction: *ending* the prior tenure (closing its `gmeow:duringInterval`, recorded via
 `gmeow:tenureEndedBy`) is an ontic fact and does **not** by itself set `displayable false` — and a
@@ -221,7 +221,7 @@ correct for esoteric and theoretical standpoints, but the MCP store/recall/revis
 *"I am the continuous subject Lillith"* (vantage A) while the host asserts *"cold-started instance, no
 verified memory signatures"* (vantage B), an undirected runtime forks.
 
-The `profile/inhabitation-ai` therefore binds an **operational standpoint priority rule**: a
+The `agent-runtime` profile therefore binds an **operational standpoint priority rule**: a
 deterministic evaluation order over `gmeow:vantage` values that governs *memory-mutation authorization*
 (not ontological truth — the graph still records both claims, co-equal, Principle 9). The rule is a
 runtime policy (e.g. a verified COSE-signed subject claim outranks an unsigned self-assertion for
