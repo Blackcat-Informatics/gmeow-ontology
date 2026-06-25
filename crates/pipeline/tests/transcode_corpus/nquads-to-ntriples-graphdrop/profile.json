@@ -1,0 +1,1 @@
+{ "from": "nquads", "to": "ntriples", "compare": "rdf", "input": "input.nq", "expected": "expected.nt" }

@@ -39,6 +39,7 @@ pub mod run;
 pub mod scheduler;
 pub mod scoreboards;
 pub mod stages;
+pub mod transcode;
 pub mod transform;
 pub mod up_projection;
 

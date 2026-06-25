@@ -1,0 +1,1 @@
+{ "from": "ntriples", "to": "jsonld", "compare": "rdf", "input": "input.nt", "expected": "expected.jsonld" }

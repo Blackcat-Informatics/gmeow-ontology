@@ -1,0 +1,9 @@
+[
+  {
+    "code": "rdf12-star-unrepresentable",
+    "from": "ntriples",
+    "to": "rdfxml",
+    "note": "RDF/XML has no triple-term (RDF-1.2 quoted triple) syntax; reifying triples and their annotations are dropped.",
+    "count": 0
+  }
+]

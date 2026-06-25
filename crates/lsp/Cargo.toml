@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-lsp"
+description = "GMEOW synchronous LSP server for .ttl and .logic files, plus a sarif CLI subcommand (#671)"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["lsp", "rdf", "turtle", "diagnostics", "sarif"]
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "gmeow-lsp"
+path = "src/main.rs"
+
+[dependencies]
+lsp-server = "0.7"
+lsp-types = "0.97"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+url = "2"
+gmeow-diagnostics = { path = "../diagnostics" }
+gmeow-logic = { path = "../logic" }
+oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+
+[dev-dependencies]
+insta = { version = "1.48", features = ["json"] }

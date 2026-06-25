@@ -110,7 +110,7 @@ pub use gmeow_rdf_core::{
 #[cfg(feature = "gts")]
 pub use gmeow_rdf_core::{import_gts_events, import_gts_graph};
 #[cfg(feature = "oxigraph")]
-pub use oxigraph::backend::OxigraphBackend;
+pub use oxigraph::backend::{serialize_dataset_to_format, OxigraphBackend, SerializeOutcome};
 
 /// The common gmeow-rdf surface, for `use gmeow_rdf::prelude::*;`.
 ///

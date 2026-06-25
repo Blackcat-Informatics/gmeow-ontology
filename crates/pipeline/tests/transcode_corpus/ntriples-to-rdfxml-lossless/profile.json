@@ -1,0 +1,1 @@
+{ "from": "ntriples", "to": "rdfxml", "compare": "rdf", "input": "input.nt", "expected": "expected.rdf" }
