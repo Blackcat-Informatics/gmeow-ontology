@@ -1490,9 +1490,11 @@ fn vocab_coverage(output: &Store, source: &Store) -> Result<String, String> {
     ];
     let mut total_target = 0usize;
     let mut total_covered = 0usize;
+    let empty_terms = BTreeSet::new();
     for (vocab, target_terms) in theirs {
+        let ours_terms = ours.get(&vocab).unwrap_or(&empty_terms);
         let covered = target_terms
-            .intersection(&ours.get(&vocab).cloned().unwrap_or_default())
+            .intersection(ours_terms)
             .cloned()
             .collect::<BTreeSet<_>>();
         let missing = target_terms
