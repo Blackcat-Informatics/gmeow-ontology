@@ -129,7 +129,7 @@ a self-hosted runtime can be shared, an external vessel can be exclusive — so 
   never a `gmeow:locusSharedSubstrate` value, because it is a property of the *set* of tenures, not of
   any one inhabitation.
 
-## `gmeow:Embodiment` — carrier role versus assignment
+## Embodiment: carrier role versus assignment
 
 A device, avatar, account, terminal, or voice endpoint is an entity (or an entity in a role); the fact
 that a subject *acts through it over time* is a time-scoped situation. Naming both "Embodiment"

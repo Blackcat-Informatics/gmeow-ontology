@@ -159,7 +159,7 @@ its concept is the linkage twin of minting a term in the wrong place — maximal
 
 | Vocabulary | Owning slice | How inhabitation gets it |
 |---|---|---|
-| `foaf:OnlineAccount`, **SIOC** (`sioc:UserAccount` / `sioc:account_of`), AS2 actor *accounts* | `accounts` | a `gmeow:Embodiment` references an account (the `accounts` slice); the SIOC / FOAF account alignment lives there, so inhabitation inherits it by reference |
+| `foaf:OnlineAccount`, **SIOC** (`sioc:UserAccount` / `sioc:account_of`), AS2 actor *accounts* | `accounts` | a `gmeow:EmbodimentCarrierRole` can be an account (owned by the `accounts` slice); the SIOC / FOAF account alignment lives there, so inhabitation inherits it by reference |
 | SIOC content model (`sioc:Post` / `Forum` / `Thread` / `Site`) | a messaging / social / `documents` slice | not referenced by inhabitation (out of domain) |
 | `sioc:Role` / `sioc:has_function` | `organization` (`gmeow:Role`) | the role machinery the email-thread crosswalk already covers |
 | `foaf:Agent` / `foaf:Person` | `entities` | the agent spine |

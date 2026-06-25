@@ -142,7 +142,7 @@ gmeow:continuityVerdict   a owl:ObjectProperty .   # same / different / indeterm
 ex:lillithLineage a gmeow:SubjectLineage .
 ex:lillithStage-opus48 a gmeow:SubjectStage ;
     gmeow:stageBearer ex:lillithBot ; gmeow:stageOfLineage ex:lillithLineage ;
-    gmeow:stageModel ex:claude-opus-4-8 .     # stageModel → ModelArtifact is the AI profile's specialization
+    gmeow:stageModel ex:claude-opus-4-8 .     # stageModel → ModelArtifact lives in extensions/model-serving
 ex:lillithStage-opus50 a gmeow:SubjectStage ;
     gmeow:stageBearer ex:lillithBot ; gmeow:stageOfLineage ex:lillithLineage ;
     gmeow:stageModel ex:claude-opus-5-0 .

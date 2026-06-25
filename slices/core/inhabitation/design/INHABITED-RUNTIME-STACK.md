@@ -225,7 +225,7 @@ The `agent-runtime` profile therefore binds an **operational standpoint priority
 deterministic evaluation order over `gmeow:vantage` values that governs *memory-mutation authorization*
 (not ontological truth — the graph still records both claims, co-equal, Principle 9). The rule is a
 runtime policy (e.g. a verified COSE-signed subject claim outranks an unsigned self-assertion for
-*write* authorization), declared in the AI profile and enforced by the MCP runtime, never an axiom that
+*write* authorization), declared in the `agent-runtime` profile and enforced by the MCP runtime, never an axiom that
 privileges one standpoint in the canonical graph. This separates *what the graph holds* (all vantages,
 co-equal) from *what the runtime is permitted to do* (a deterministic, signed-vantage-priority policy).
 
@@ -243,8 +243,9 @@ layers that are deliberately not collapsed:
 
 ## Scope and seams
 
-This document is the AI profile. The general relation it instantiates is
-[`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md); the subject it serves is
-[`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md); the non-AI profiles (spiritual, fictional, legal) are
-[`INHABITED-TRADITIONS.md`](INHABITED-TRADITIONS.md); the competency questions it must answer are
+This document specifies the `extensions/model-serving` slice and the `agent-runtime` profile. The
+general relation it instantiates is [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md); the subject it
+serves is [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md); the non-AI cases (spiritual, fictional,
+legal) are [`INHABITED-TRADITIONS.md`](INHABITED-TRADITIONS.md); the competency questions it must answer
+are
 [`INHABITED-COMPETENCY.md`](INHABITED-COMPETENCY.md).
