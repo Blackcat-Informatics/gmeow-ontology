@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the trust slice (crates/slicetest, #784),
+# migrated from the message-trust / key-scheme / key-certification / trust-assertion
+# competency tests in tests/test_competency.py under #867. TBox subsets over the
+# asserted merged ontology (contains-check). No #869 Gap-1 universal — fixed sets.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/trust/tests/> .
+
+# ── Message-trust signature kinds ─────────────────────────────────────────────
+ex:cqMessageTrust a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/message-trust.rq" ;
+    gmeow:cqRationale "GMEOW must model cryptographic signature kinds: the CryptographicSignature root plus DKIM, S/MIME, and PGP signatures." ;
+    gmeow:cqExpectRow ex:mtCryptographic, ex:mtDKIM, ex:mtSMIME, ex:mtPGP .
+
+ex:mtCryptographic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "signature" ; gmeow:cellValueIri gmeow:CryptographicSignature ] .
+ex:mtDKIM a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "signature" ; gmeow:cellValueIri gmeow:DKIMSignature ] .
+ex:mtSMIME a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "signature" ; gmeow:cellValueIri gmeow:SMIMESignature ] .
+ex:mtPGP a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "signature" ; gmeow:cellValueIri gmeow:PGPSignature ] .
+
+# ── Key schemes ───────────────────────────────────────────────────────────────
+ex:cqKeySchemes a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/key-schemes.rq" ;
+    gmeow:cqRationale "GMEOW must model key schemes: PGP, X.509, SSH, Nostr." ;
+    gmeow:cqExpectRow ex:ksPGP, ex:ksX509, ex:ksSSH, ex:ksNostr .
+
+ex:ksPGP a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "scheme" ; gmeow:cellValueIri gmeow:keySchemePGP ] .
+ex:ksX509 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "scheme" ; gmeow:cellValueIri gmeow:keySchemeX509 ] .
+ex:ksSSH a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "scheme" ; gmeow:cellValueIri gmeow:keySchemeSSH ] .
+ex:ksNostr a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "scheme" ; gmeow:cellValueIri gmeow:keySchemeNostr ] .
+
+# ── Key certifications ────────────────────────────────────────────────────────
+ex:cqKeyCertifications a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/key-certifications.rq" ;
+    gmeow:cqRationale "GMEOW must model the key-certification roles: certifier, certifiedKey, certifiedIdentity." ;
+    gmeow:cqExpectRow ex:kcCertifier, ex:kcCertifiedKey, ex:kcCertifiedIdentity .
+
+ex:kcCertifier a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:certifier ] .
+ex:kcCertifiedKey a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:certifiedKey ] .
+ex:kcCertifiedIdentity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:certifiedIdentity ] .
+
+# ── Trust assertions ──────────────────────────────────────────────────────────
+ex:cqTrustAssertions a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/trust-assertions.rq" ;
+    gmeow:cqRationale "GMEOW must model the aspects of a trust assertion: trustor, trustee, trustLevel, introducerDepth." ;
+    gmeow:cqExpectRow ex:taTrustor, ex:taTrustee, ex:taTrustLevel, ex:taIntroducerDepth .
+
+ex:taTrustor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueIri gmeow:trustor ] .
+ex:taTrustee a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueIri gmeow:trustee ] .
+ex:taTrustLevel a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueIri gmeow:trustLevel ] .
+ex:taIntroducerDepth a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueIri gmeow:introducerDepth ] .

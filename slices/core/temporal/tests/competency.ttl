@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency question for the temporal slice (crates/slicetest, #784),
+# migrated from test_competency_temporal_provenance_clocks_query under #867. TBox
+# subset over the asserted merged ontology (contains-check). No #869 Gap-1 universal.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/temporal/tests/> .
+
+ex:cqTemporalProvenanceClocks a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/temporal-provenance-clocks.rq" ;
+    gmeow:cqRationale "GMEOW must model the temporal-provenance clocks: validFrom, validUntil, assertedAt, recordedNoLaterThan." ;
+    gmeow:cqExpectRow ex:tcValidFrom, ex:tcValidUntil, ex:tcAssertedAt, ex:tcRecordedNoLaterThan .
+
+ex:tcValidFrom a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:validFrom ] .
+ex:tcValidUntil a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:validUntil ] .
+ex:tcAssertedAt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:assertedAt ] .
+ex:tcRecordedNoLaterThan a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:recordedNoLaterThan ] .

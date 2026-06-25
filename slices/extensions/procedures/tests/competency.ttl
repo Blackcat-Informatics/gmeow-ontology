@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the procedures slice (crates/slicetest,
+# #784), migrated from test_competency_procedures_query and
+# test_competency_ingestion_executions_query under #867. The procedures vocabulary
+# question is a TBox subset (contains-check); the ingestion-executions question is
+# deliberately EMPTY over the TBox-only graph (there are no Execution individuals),
+# so it pins cqExpectRowCount 0 — faithful to the source's `terms == set()`.
+# No #869 Gap-1 universal.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/procedures/tests/> .
+
+ex:cqProcedures a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/procedures.rq" ;
+    gmeow:cqRationale "GMEOW must model the procedure vocabulary: Procedure, ProcedureStep, Execution, ControlFlow, DataFlow." ;
+    gmeow:cqExpectRow ex:pProcedure, ex:pProcedureStep, ex:pExecution, ex:pControlFlow, ex:pDataFlow .
+
+ex:pProcedure a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:Procedure ] .
+ex:pProcedureStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:ProcedureStep ] .
+ex:pExecution a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:Execution ] .
+ex:pControlFlow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:ControlFlow ] .
+ex:pDataFlow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:DataFlow ] .
+
+# Empty over the TBox-only merged graph: no Execution instances exist, so the
+# ingestion-executions query returns no rows. Pinning count 0 verifies the query
+# parses and runs and that the asserted graph carries no spurious executions.
+ex:cqIngestionExecutions a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/ingestion-executions.rq" ;
+    gmeow:cqRationale "Over the asserted TBox there are no ingestion-procedure Executions, so the query that finds executions producing Observations but no Events returns the empty set." ;
+    gmeow:cqExpectRowCount 0 .

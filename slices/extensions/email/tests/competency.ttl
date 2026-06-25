@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency question for the email slice (crates/slicetest, #784),
+# migrated from test_competency_email_participants_query under #867. TBox subset
+# over the asserted merged ontology (contains-check). No #869 Gap-1 universal.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/email/tests/> .
+
+ex:cqEmailParticipants a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/email-participants.rq" ;
+    gmeow:cqRationale "Every RFC 5322 participant role must route through the EmailAddress seam: from, sender, replyTo, to, cc, bcc." ;
+    gmeow:cqExpectRow ex:epFrom, ex:epSender, ex:epReplyTo, ex:epTo, ex:epCc, ex:epBcc .
+
+ex:epFrom a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:from ] .
+ex:epSender a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:sender ] .
+ex:epReplyTo a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:replyTo ] .
+ex:epTo a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:to ] .
+ex:epCc a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:cc ] .
+ex:epBcc a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:bcc ] .
