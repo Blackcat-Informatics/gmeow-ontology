@@ -21,6 +21,7 @@
 | [`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md) | formal spec (AI profile) | model / deployment / execution / session / episode, reusing the AI and awareness slices; the agentic deferral consumed |
 | [`INHABITED-TRADITIONS.md`](INHABITED-TRADITIONS.md) | generality + neutrality | the spiritual / fictional / legal profiles modeled frame-relatively; the by-reference borrowings ledger; the *assert-no-metaphysics* gate |
 | [`INHABITED-COMPETENCY.md`](INHABITED-COMPETENCY.md) | conformance contract | the competency questions and the cross-domain stress corpus mapped to the constructs that answer them; the gaps flagged |
+| [`INHABITED-ALIGNMENT.md`](INHABITED-ALIGNMENT.md) | alignment + projection | the four-layer SSSOM/EDOAL/FnO/CONSTRUCT + loss-ledger stack; the flagship bridges to OpenTelemetry-GenAI and W3C DID/VC; PROV-O, gUFO, OWL-Time, ActivityPub, CIDOC-CRM, schema.org, ML-metadata |
 | [`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md) | configuration | the Principle 15 consumer, the placement (core + a thin slice + one selecting profile), the decision ledger, the eventual slice anatomy |
 | [`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md) | appendix | the sources and the by-reference externals, with academic citations — staged for the `metadata/references.ttl` ledger |
 

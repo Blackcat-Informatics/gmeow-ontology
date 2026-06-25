@@ -130,6 +130,9 @@ slices/core/inhabitation/          # MINIMAL CORE — no extension dependencies
 │                       # inhabitationLocusKind (values), eventTypeInhabitationTransition +
 │                       # portalFrom/portalTo, TransferManifest, OPEN configurationFacet; role-filler props
 ├── docs.md, design/ (this set), examples/, tests/structural.ttl
+├── mappings/           # the four-layer alignment layer (INHABITED-ALIGNMENT.md): SSSOM TSV +
+│                       # EDOAL + FnO + CONSTRUCT for PROV-O, gUFO, OWL-Time, schema.org, and the
+│                       # flagship OpenTelemetry-GenAI and W3C DID/VC bridges; each loss-ledgered
 ├── shapes.ttl          # SHACL: neutrality gate (no base-graph inhabitation triple for a claim),
 │                       # constant-configuration invariant, interval-carries-frame (P11),
 │                       # no-gufo-inheresIn, no-owl:sameAs-on-subjects, no-primaryInhabitant

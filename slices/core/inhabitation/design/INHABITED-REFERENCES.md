@@ -77,6 +77,23 @@ is exactly the contested question.
 | `openehr-archetypes` | Beale, T. (2002). Archetypes: Constraint-based Domain Models for Future-proof Information Systems. In *OOPSLA 2002 Workshop on Behavioural Semantics.* (The Ars Semantica lineage in the email thread; role-vs-post-vs-function discipline.) |
 | `dul` | Gangemi, A., et al. (2010). *DOLCE+DnS Ultralite (DUL).* (Role / Description / Situation pattern mirrored by `Inhabitant` / `InhabitedSystem` in an `Inhabitation` situation.) |
 
+## Standards aligned in the alignment layer
+
+The external standards the alignment and projection layer ([`INHABITED-ALIGNMENT.md`](INHABITED-ALIGNMENT.md))
+links to, projects into, or ingests from — by reference, with loss ledgered (Principles 4, 5, 7).
+
+| Key | Citation |
+|---|---|
+| `otel-genai` | OpenTelemetry Authors (2024–). *Semantic Conventions for Generative AI (`gen_ai.*`).* OpenTelemetry (CNCF), experimental. — and *W3C Trace Context* (2021), W3C Recommendation (the trace/span identifier model). The **flagship occurrent-shadow** bridge: traces/spans ↔ `AgentSession`/`RuntimeExecution`/`ModelInvocation`/`ToolCall`. |
+| `did-core` | Sporny, M., Longley, D., Sabadello, M., Reed, D., Steele, O., & Allen, C. (eds.) (2022). *Decentralized Identifiers (DIDs) v1.0.* W3C Recommendation, 19 July 2022. The **flagship identity-shadow** bridge: a DID subject ↔ `gmeow:DigitalSubject`. |
+| `vc-data-model` | Sporny, M., Longley, D., & Chadwick, D. (eds.) (2025). *Verifiable Credentials Data Model v2.0.* W3C Recommendation. A VC ↔ a signed, issuer-attributed `DigitalSubjectTenure` / `IdentityContinuityAssessment`. |
+| `owl-time` | Cox, S., & Little, C. (eds.) (2022). *Time Ontology in OWL.* W3C Recommendation, 15 November 2022. (`time:ProperInterval` + Allen relations ↔ tenure / configuration intervals.) |
+| `activitystreams-2` | Snell, J., & Prodromou, E. (eds.) (2017). *Activity Streams 2.0.* W3C Recommendation. — and Lemmer-Webber, C., et al. (eds.) (2018). *ActivityPub.* W3C Recommendation. (`as:Actor` / icon ↔ Cagle's Actor / Avatar; multi-persona hosts.) |
+| `cidoc-crm` | Bekiari, C., Doerr, M., Le Bœuf, P., et al. (eds.) (2021). *Definition of the CIDOC Conceptual Reference Model (v7.1.1).* ICOM/CIDOC. (`E13 Attribute Assignment` ↔ `InhabitationClaim`; `E7 Activity` / `E5 Event` / `E39 Actor` — the cultural-heritage seam for the spiritual / fictional profiles.) |
+| `model-cards` | Mitchell, M., et al. (2019). Model Cards for Model Reporting. In *Proc. FAT* 2019*, 220–229. ACM. DOI: 10.1145/3287560.3287596. (`gmeow:ModelCard` / `ModelArtifact`.) |
+| `ml-schema` | Publio, G. C., et al. (2018). *ML-Schema: Exposing the Semantics of Machine Learning with Schemas and Ontologies.* W3C Community Group. |
+| `croissant` | Akhtar, M., et al. (2024). *Croissant: A Metadata Format for ML-Ready Datasets.* MLCommons. (Dataset/artifact metadata.) |
+
 ## Contemplative and esoteric scholarship (structure borrowed; metaphysics not inherited)
 
 Each entry pairs a **distinction GMEOW borrowed** with an **academic study** of the tradition. The
