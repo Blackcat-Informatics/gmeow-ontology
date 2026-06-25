@@ -26,13 +26,16 @@ be treated as a regression of the contract, not routine maintenance.
 ### 1. SHACL validation (authoritative, no numeric floor)
 
 - **Floor:** binary — zero SHACL violations. The `gmeow_shacl` Rust validator is
-  the sole SHACL engine (pySHACL and the #578 dual-run were deleted in this PR).
+  the sole SHACL engine.
 - **Measures:** every authored example + the DSL graphs are validated against the
   committed/generated SHACL shapes; any violation is an error and exits non-zero.
 - **Command:** `gmeow-dev validate` (Makefile `validate` target / CLI `validate`).
-- **Where it lives:** `src/gmeow_tools/validate.py` — `validate_all()` runs
-  `run_shacl(...)` through the `gmeow_shacl` extension; violations partition to
-  `errors`. Proven by `tests/test_shacl_engine.py::test_violation_partitions_to_errors_with_stable_line`.
+- **Where it lives:** Rust-native validation orchestration in
+  `crates/validate/src/validate_all.rs`; the Python CLI is only the surface.
+  The build DAG also runs `crates/pipeline/src/stages/validate.rs` over the
+  loaded authored validation graph, emits
+  `generated/diagnostics/shacl.{json,sarif,html,nq}`, and folds the SHACL report
+  into `generated/dist/gmeow.gts`.
 - **Ratchet:** not numeric — the contract is and stays "zero violations".
 
 ### 2. Vendored-entity coverage (hard class + predicate floors)
@@ -100,14 +103,10 @@ floor too.
 
 ## Validation cache decision (#579)
 
-**Decision: KEEP the `.cache/validate` layer in this PR.** The cache (keyed on the
-validation sources + SHACL shapes, see `src/gmeow_tools/validate.py`
-`_VALIDATION_CACHE_DIR` and the `actions/cache` "Cache validation results" step in
-CI) avoids re-running SHACL over unchanged inputs. Removing it now risks a CI-time
-regression with no offsetting benefit while the Rust revalidation path is still
-new. Re-assessing whether Rust-native revalidation is fast enough to drop the cache
-is a tracked follow-up, not a blocker for this PR. Do **not** remove the cache as
-part of #579.
+**Decision: KEEP the `.cache/validate` layer.** The Rust validation cache is keyed
+on validation sources, SHACL shapes, and toolchain versions, avoiding repeated
+SHACL work over unchanged inputs. The pipeline-stage report is separately
+content-addressed by the DAG and compared through `check-generated`.
 
 ## CI build cost (#579)
 

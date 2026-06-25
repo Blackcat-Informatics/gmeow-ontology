@@ -73,6 +73,12 @@ fn spine() -> PipelineSpec {
                 "docs_render",
                 &["stage-gts-compose"],
             ),
+            spec(
+                "stage-validate",
+                StageKind::Validate,
+                "validate",
+                &["stage-source-load"],
+            ),
             // The SHACL→JSON-Schema source leaf the snapshot folds (#700).
             spec(
                 "stage-export-json-schema",
@@ -90,6 +96,7 @@ fn spine() -> PipelineSpec {
                     "stage-gts-compose",
                     "stage-reason",
                     "stage-statements",
+                    "stage-validate",
                 ],
             ),
             spec(

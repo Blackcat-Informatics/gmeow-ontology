@@ -7,7 +7,7 @@ These are **generated**, minimal snapshots of external vocabularies. The snapsho
   property level). Keeps `rdfs:domain`/`rdfs:range` (and schema.org's
   `domainIncludes`/`rangeIncludes`), `owl:inverseOf`/`schema:inverseOf`, and
   property-type triples. No labels or prose. Used by the SSSOM alignment-direction
-  linter (`gmeow_tools.alignment_lint`) to check, offline, whether a GMEOW mapping
+  linter (`gmeow_slice.lint_projection`) to check, offline, whether a GMEOW mapping
   points at the right target term *or its inverse* (issue #25).
 - **Class-fact shape** (`upper` ontologies — bridged at the class level). Keeps each
   `owl:Class` in the namespace, its in-namespace `rdfs:subClassOf` parents, and its

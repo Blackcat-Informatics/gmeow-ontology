@@ -43,6 +43,9 @@ const GRAPH_STATEMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/state
 const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
 const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-analysis";
 const GRAPH_DOCUMENTATION: &str = "https://blackcatinformatics.ca/gmeow/graph/documentation";
+const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
+const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
 
 /// Assemble the structured `dist` snapshot bytes from the repo `root` and the
 /// upstream stage products (statements RDF 1.2, mappings SSSOM, docs graph).
@@ -54,6 +57,7 @@ pub fn build_snapshot(
     root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
     blobs: Vec<BlobRow>,
+    report_blobs: Vec<BlobRow>,
 ) -> Result<Vec<u8>, PipelineError> {
     // ── the authored default graph (ontology + slice modules; NO imports) ──────
     let authored = load_authored_default(root)?;
@@ -74,6 +78,11 @@ pub fn build_snapshot(
         .and_then(|p| p.artifact(crate::stages::docs_render::DOCS_GRAPH_PATH))
         .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing docs-render documentation graph"))?;
+    let diagnostics = upstream
+        .get("stage-validate")
+        .and_then(|p| p.artifact(crate::stages::validate::SHACL_RDF_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics RDF graph"))?;
 
     // Pass 1: build WITHOUT the verify graph, then run native verify over the
     // default graph ∪ imports (the closed-world integrity constraints query that
@@ -122,6 +131,8 @@ pub fn build_snapshot(
     add_named(&mut builder, &verify_attestation, GRAPH_VERIFY, "verify")?;
     // graph/documentation ← the docs projection (N-Quads, already in its graph).
     add_named(&mut builder, &documentation, GRAPH_DOCUMENTATION, "doc")?;
+    // graph/diagnostics ← the DAG-native SHACL diagnostics projection.
+    add_named(&mut builder, &diagnostics, GRAPH_DIAGNOSTICS, "diagnostics")?;
 
     // Fold a deterministic tar archive of the JSON-LD-star + YAML-LD-star
     // serializations into the bundle (#699). The serializer reads THIS builder's
@@ -136,7 +147,7 @@ pub fn build_snapshot(
         "dist",
         Some(vec!["gzip".to_string()]),
         blobs,
-        Vec::new(),
+        report_blobs,
         None,
         None,
         None,
@@ -525,6 +536,7 @@ impl SnapshotStage {
                 "stage-gts-compose".to_string(),
                 "stage-reason".to_string(),
                 "stage-statements".to_string(),
+                "stage-validate".to_string(),
             ],
         }
     }
@@ -553,9 +565,9 @@ impl Stage for SnapshotStage {
         // a single regenerate now folds the fresh schema. v4: render+tar+embed the
         // full ontology-docs site as the `ontology-docs` blob (#897). v3 added the
         // mappings/cells/queries/tests archive blobs + per-slice docs guide blobs.
-        // v6: fold the JSON-LD-star + YAML-LD-star archive from the in-memory
-        // `stage-export-yaml-ld` product (#699).
-        "snapshot.v6-yaml-ld-archive"
+        // v7 folds both the JSON-LD-star/YAML-LD-star archive (#699) and the
+        // DAG-native SHACL diagnostics graph/report blobs (#936/#937).
+        "snapshot.v7-yaml-ld-shacl-diagnostics"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -590,7 +602,31 @@ impl Stage for SnapshotStage {
         let mut blobs = build_archive_blobs(input.root, &schema_json, &openapi_json)?;
         blobs.extend(build_guide_blobs(input.root)?);
         blobs.push(build_docs_archive(input.root)?);
-        let gts = build_snapshot(input.root, input.upstream, blobs)?;
+        let shacl_json = input
+            .upstream
+            .get("stage-validate")
+            .and_then(|p| p.artifact(crate::stages::validate::SHACL_JSON_PATH))
+            .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics JSON"))?
+            .to_vec();
+        let shacl_sarif = input
+            .upstream
+            .get("stage-validate")
+            .and_then(|p| p.artifact(crate::stages::validate::SHACL_SARIF_PATH))
+            .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics SARIF"))?
+            .to_vec();
+        let report_blobs = vec![
+            BlobRow {
+                data: shacl_sarif,
+                media_type: "application/sarif+json".to_string(),
+                rep: REP_SHACL_SARIF.to_string(),
+            },
+            BlobRow {
+                data: shacl_json,
+                media_type: "application/json".to_string(),
+                rep: REP_SHACL_FINDINGS.to_string(),
+            },
+        ];
+        let gts = build_snapshot(input.root, input.upstream, blobs, report_blobs)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(SNAPSHOT_PATH.to_string(), gts);
         Ok(StageOutput {

@@ -208,6 +208,7 @@ gmeow:pipeline-build
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
         gmeow:stage-gts-compose ,
+        gmeow:stage-validate ,
         gmeow:stage-docs-render ,
         gmeow:stage-snapshot ,
         gmeow:stage-export-schemas ,
@@ -290,6 +291,17 @@ gmeow:stage-gts-compose
         gmeow:stage-statements ;
     gmeow:carriesEngineLock false .
 
+gmeow:stage-validate
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "validate"@x-gmeow-english ;
+    skos:definition "Run the Rust SHACL validator over the loaded authored validation graph and emit deterministic diagnostics projections (JSON, SARIF, HTML, and gmeow:Finding RDF) for the snapshot and generated diagnostics artifacts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindValidate ;
+    gmeow:stageImpl "validate" ;
+    gmeow:dataflowConsumes gmeow:stage-source-load ;
+    gmeow:carriesEngineLock false .
+
 gmeow:stage-docs-render
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -316,7 +328,8 @@ gmeow:stage-snapshot
         gmeow:stage-export-json-schema ,
         gmeow:stage-gts-compose ,
         gmeow:stage-reason ,
-        gmeow:stage-statements ;
+        gmeow:stage-statements ,
+        gmeow:stage-validate ;
     gmeow:carriesEngineLock false .
 
 # ── Export leaves (parallel fan-out, each folds one artifact set) ──

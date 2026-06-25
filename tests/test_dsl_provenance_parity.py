@@ -1,13 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""Parity guard for the Rust DSL focus→file provenance (#579, Task 5).
+"""Parity guard for the native DSL focus→file provenance (#579, #937).
 
-The DSL SHACL seam (``dsl_validate``) used to build an rdflib graph plus a
-``node_to_file`` map in Python — the first ``.ttl`` file each named subject
-appears in — so a violation could be attributed to its source cell. That logic
-is net-new Rust now (``gmeow_validate.dsl_merge_with_provenance``). This module
-pins it two ways:
+The DSL SHACL seam now runs in Rust via
+``gmeow_validate.validate_dsl_shacl``: it merges Turtle sources, builds the
+first-seen focus-to-file map, validates via ``gmeow_shacl``, and enriches
+violations with ``source=``. This module pins the behavior two ways:
 
 * **Real-tree golden** — over the actual mapping + statement DSL dirs, the
   validation is clean (0 violations) on a healthy tree; this asserts that, which
@@ -17,10 +16,7 @@ pins it two ways:
 * **Provenance unit test** — because the empty case never exercises the
   focus→file map, a tiny two-file fixture drives the map directly: a subject
   appearing in two files maps to the FIRST (first-seen-wins), and a malformed
-  fixture produces a real ``source=`` line through the full ``validate_*`` path.
-
-This independently reproduces the old Python ``node_to_file`` behavior without
-keeping rdflib on the validation path.
+  fixture produces a real ``source=`` line through the full native path.
 """
 
 from __future__ import annotations
@@ -30,8 +26,12 @@ from pathlib import Path
 import gmeow_validate
 import pytest
 
-from gmeow_tools.config import MAPPING_DSL_DIR, STATEMENT_DSL_DIR
-from gmeow_tools.dsl_validate import validate_mapping_dsl, validate_statement_dsl
+from gmeow_tools.config import (
+    MAPPING_DSL_DIR,
+    MAPPING_DSL_SHAPES_FILE,
+    STATEMENT_DSL_DIR,
+    STATEMENT_DSL_SHAPES_FILE,
+)
 
 # --------------------------------------------------------------------------- #
 # Real-tree golden: the DSL validation is clean (the empty-violations golden).
@@ -40,12 +40,14 @@ from gmeow_tools.dsl_validate import validate_mapping_dsl, validate_statement_ds
 
 def test_mapping_dsl_real_tree_is_clean() -> None:
     paths = [str(p) for p in sorted(MAPPING_DSL_DIR.rglob("*.ttl"))]
-    assert validate_mapping_dsl(paths) == []
+    shapes_ttl = MAPPING_DSL_SHAPES_FILE.read_text(encoding="utf-8")
+    assert gmeow_validate.validate_dsl_shacl(paths, shapes_ttl) == []
 
 
 def test_statement_dsl_real_tree_is_clean() -> None:
     paths = [str(p) for p in sorted(STATEMENT_DSL_DIR.rglob("*.ttl"))]
-    assert validate_statement_dsl(paths) == []
+    shapes_ttl = STATEMENT_DSL_SHAPES_FILE.read_text(encoding="utf-8")
+    assert gmeow_validate.validate_dsl_shacl(paths, shapes_ttl) == []
 
 
 # --------------------------------------------------------------------------- #
@@ -93,7 +95,8 @@ def test_malformed_mapping_cell_carries_source(tmp_path: Path) -> None:
         '    gmeow:sssomFile "gmeow-bad.sssom.tsv" .\n',
         encoding="utf-8",
     )
-    violations = validate_mapping_dsl([str(cell)])
+    shapes_ttl = MAPPING_DSL_SHAPES_FILE.read_text(encoding="utf-8")
+    violations = gmeow_validate.validate_dsl_shacl([str(cell)], shapes_ttl)
     assert violations, "the malformed cell must produce at least one violation"
     joined = "\n".join(violations)
     assert "focus=https://blackcatinformatics.ca/gmeow/eqBad001" in joined
@@ -103,5 +106,6 @@ def test_malformed_mapping_cell_carries_source(tmp_path: Path) -> None:
 def test_dsl_parse_error_hard_fails(tmp_path: Path) -> None:
     bad = tmp_path / "broken.ttl"
     bad.write_text("this is not turtle @@@ <<<", encoding="utf-8")
+    shapes_ttl = MAPPING_DSL_SHAPES_FILE.read_text(encoding="utf-8")
     with pytest.raises(ValueError):
-        validate_mapping_dsl([str(bad)])
+        gmeow_validate.validate_dsl_shacl([str(bad)], shapes_ttl)

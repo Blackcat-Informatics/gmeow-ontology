@@ -31,6 +31,8 @@ import subprocess
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import gmeow_slice
+
 from gmeow_tools import __version__
 from gmeow_tools.config import DIST_DIR, PROJECT_ROOT
 from gmeow_tools.constitution_manifest import Manifest, load_manifest
@@ -73,12 +75,23 @@ def _run_constitution() -> ValidationResult:
 
 
 def _run_alignment() -> ValidationResult:
-    from gmeow_tools.alignment_lint import (
-        findings_to_result,
-        lint_alignment_directions,
-    )
-
-    return findings_to_result(lint_alignment_directions(allow_network=False))
+    checks = frozenset(gmeow_slice.alignment_policy()["alignment_checks"])
+    findings = [
+        finding
+        for finding in gmeow_slice.lint_projection(
+            str(PROJECT_ROOT), allow_network=False
+        )
+        if finding["check"] in checks
+    ]
+    result = ValidationResult()
+    for finding in findings:
+        severity = finding["severity"]
+        message = finding["message"]
+        if severity == "ERROR":
+            result.errors.append(message)
+        elif severity == "WARNING":
+            result.warnings.append(message)
+    return result
 
 
 def _run_check_generated() -> ValidationResult:
