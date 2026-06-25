@@ -399,27 +399,22 @@ def build(
 
     plain = load_graph_from_gts(path)
     bind_prefixes(plain)
-    # RDF 1.1 serializations: Turtle and N-Triples. JSON-LD is skipped here
-    # because the canonical RDF-1.2-star JSON-LD is folded into the bundle below.
+    # RDF 1.1 serializations: Turtle and N-Triples.
     for suffix, fmt in (("ttl", "turtle"), ("nt", "nt")):
         target = out / f"gmeow.{suffix}"
         plain.serialize(destination=target, format=fmt)
         console.print(f"[green]wrote[/green] {target} (RDF 1.1)")
 
-    # RDF 1.2-star serializations are folded into the bundle by the pipeline;
-    # write them straight from the bundle so this command works repo-free (#699).
-    from gmeow_tools import bundle
+    # RDF 1.2-star serializations: serialize from the same snapshot N-Quads
+    # via the Rust pipeline serializer (repo-free; no bundle required — #699).
+    import gmeow_native.pipeline as _pipeline
 
-    jsonld_star = bundle.bundled_jsonld_star()
-    if jsonld_star is not None:
-        target = out / "gmeow.jsonld"
-        target.write_bytes(jsonld_star)
+    nquads_bytes = gts.to_nquads(graph).encode("utf-8")
+    for suffix, fmt in (("jsonld", "jsonld"), ("yamlld", "yamlld")):
+        target = out / f"gmeow.{suffix}"
+        data: bytes = _pipeline.serialize_yaml_ld(nquads_bytes, fmt)
+        target.write_bytes(data)
         console.print(f"[green]wrote[/green] {target} (RDF 1.2-star)")
-    yamlld = bundle.bundled_yaml_ld().get("gmeow.yamlld")
-    if yamlld is not None:
-        target = out / "gmeow.yamlld"
-        target.write_bytes(yamlld)
-        console.print(f"[green]wrote[/green] {target}")
 
 
 @app.command()
