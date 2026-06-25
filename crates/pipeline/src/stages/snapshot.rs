@@ -327,7 +327,6 @@ fn build_okf_blob_from_graph(graph: &gmeow_gts::model::Graph) -> Result<BlobRow,
             .ok_or_else(|| stage_err(&format!("OKF export path is not under dist/: {path}")))?;
         members.push((member.to_string(), bytes));
     }
-    members.sort_by(|a, b| a.0.cmp(&b.0));
     archive_blob(REP_OKF, &members)
 }
 
