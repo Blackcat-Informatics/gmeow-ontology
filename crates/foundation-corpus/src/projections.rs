@@ -10,9 +10,9 @@
 //! `csv.reader`/`json.loads`/XML parsers the Python acceptance test used are
 //! line-ending agnostic, so structural parity with the Python output holds).
 //! CSV uses `QUOTE_MINIMAL` (Python `csv.writer` default quoting). JSON-LD uses
-//! 2-space-indented serde_json with insertion-order keys and no ASCII escaping
-//! (Python `json.dumps(..., indent=2, ensure_ascii=False)`). TEI escapes
-//! `& < >` only (Python `xml.sax.saxutils.escape`).
+//! a crate-local 2-space ordered writer with no ASCII escaping (Python
+//! `json.dumps(..., indent=2, ensure_ascii=False)`). TEI escapes `& < >` only
+//! (Python `xml.sax.saxutils.escape`).
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -27,6 +27,73 @@ const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 
 fn gm(term: &str) -> String {
     format!("{NS}{term}")
+}
+
+// -- Ordered JSON-LD pretty writer. -------------------------------------- //
+
+enum OrderedJson {
+    String(String),
+    Array(Vec<OrderedJson>),
+    Object(Vec<(&'static str, OrderedJson)>),
+}
+
+fn ordered_string(value: impl Into<String>) -> OrderedJson {
+    OrderedJson::String(value.into())
+}
+
+fn render_ordered_jsonld(value: &OrderedJson) -> String {
+    let mut out = String::new();
+    render_ordered_value(value, 0, &mut out);
+    out.push('\n');
+    out
+}
+
+fn render_ordered_value(value: &OrderedJson, indent: usize, out: &mut String) {
+    match value {
+        OrderedJson::String(s) => out.push_str(&serde_json::to_string(s).expect("json string")),
+        OrderedJson::Array(items) => {
+            if items.is_empty() {
+                out.push_str("[]");
+                return;
+            }
+            out.push_str("[\n");
+            for (idx, item) in items.iter().enumerate() {
+                push_indent(out, indent + 2);
+                render_ordered_value(item, indent + 2, out);
+                if idx + 1 != items.len() {
+                    out.push(',');
+                }
+                out.push('\n');
+            }
+            push_indent(out, indent);
+            out.push(']');
+        }
+        OrderedJson::Object(fields) => {
+            if fields.is_empty() {
+                out.push_str("{}");
+                return;
+            }
+            out.push_str("{\n");
+            for (idx, (key, field_value)) in fields.iter().enumerate() {
+                push_indent(out, indent + 2);
+                out.push_str(&serde_json::to_string(key).expect("json key"));
+                out.push_str(": ");
+                render_ordered_value(field_value, indent + 2, out);
+                if idx + 1 != fields.len() {
+                    out.push(',');
+                }
+                out.push('\n');
+            }
+            push_indent(out, indent);
+            out.push('}');
+        }
+    }
+}
+
+fn push_indent(out: &mut String, indent: usize) {
+    for _ in 0..indent {
+        out.push(' ');
+    }
 }
 
 // -- CSV (Python csv.writer: \r\n terminator, QUOTE_MINIMAL). -------------- //
@@ -183,7 +250,7 @@ pub fn project_schema_jsonld(g: &GraphView) -> String {
     let work_ty = gm("Work");
     let has_contributor = gm("hasContributor");
 
-    let mut books: Vec<serde_json::Value> = Vec::new();
+    let mut books: Vec<(String, OrderedJson)> = Vec::new();
     for work in g.subjects_with_object(RDF_TYPE, &work_ty) {
         let label = g
             .value(&work, RDFS_LABEL)
@@ -200,38 +267,34 @@ pub fn project_schema_jsonld(g: &GraphView) -> String {
             })
             .collect();
         // Insertion order: @type, @id, name, [author].
-        let mut entry = serde_json::Map::new();
-        entry.insert("@type".to_string(), json!("Book"));
-        entry.insert("@id".to_string(), json!(work));
-        entry.insert("name".to_string(), json!(label));
+        let mut fields = vec![
+            ("@type", ordered_string("Book")),
+            ("@id", ordered_string(work.clone())),
+            ("name", ordered_string(label)),
+        ];
         if !authors.is_empty() {
             authors.sort();
-            let author_arr: Vec<serde_json::Value> = authors
+            let author_arr: Vec<OrderedJson> = authors
                 .into_iter()
                 .map(|name| {
-                    let mut a = serde_json::Map::new();
-                    a.insert("@type".to_string(), json!("Person"));
-                    a.insert("name".to_string(), json!(name));
-                    serde_json::Value::Object(a)
+                    OrderedJson::Object(vec![
+                        ("@type", ordered_string("Person")),
+                        ("name", ordered_string(name)),
+                    ])
                 })
                 .collect();
-            entry.insert("author".to_string(), serde_json::Value::Array(author_arr));
+            fields.push(("author", OrderedJson::Array(author_arr)));
         }
-        books.push(serde_json::Value::Object(entry));
+        books.push((work, OrderedJson::Object(fields)));
     }
     // sorted by @id.
-    books.sort_by(|a, b| {
-        let ka = a.get("@id").and_then(|v| v.as_str()).unwrap_or("");
-        let kb = b.get("@id").and_then(|v| v.as_str()).unwrap_or("");
-        ka.cmp(kb)
-    });
+    books.sort_by(|(a, _), (b, _)| a.cmp(b));
+    let books: Vec<OrderedJson> = books.into_iter().map(|(_, entry)| entry).collect();
 
-    let mut doc = serde_json::Map::new();
-    doc.insert("@context".to_string(), json!("https://schema.org"));
-    doc.insert("@graph".to_string(), serde_json::Value::Array(books));
-    let mut out = serde_json::to_string_pretty(&serde_json::Value::Object(doc)).expect("json");
-    out.push('\n');
-    out
+    render_ordered_jsonld(&OrderedJson::Object(vec![
+        ("@context", ordered_string("https://schema.org")),
+        ("@graph", OrderedJson::Array(books)),
+    ]))
 }
 
 // ------------------------------------------------------------------------- //
@@ -315,27 +378,25 @@ pub fn project_web_annotation_jsonld(g: &GraphView) -> String {
     let mut pairs = g.subject_objects(&narrates);
     pairs.sort();
 
-    let annotations: Vec<serde_json::Value> = pairs
+    let annotations: Vec<OrderedJson> = pairs
         .into_iter()
         .map(|(segment, target)| {
-            let mut a = serde_json::Map::new();
-            a.insert("@type".to_string(), json!("Annotation"));
-            a.insert("motivation".to_string(), json!("describing"));
-            a.insert("target".to_string(), json!(segment));
-            a.insert("body".to_string(), json!(target));
-            serde_json::Value::Object(a)
+            OrderedJson::Object(vec![
+                ("@type", ordered_string("Annotation")),
+                ("motivation", ordered_string("describing")),
+                ("target", ordered_string(segment)),
+                ("body", ordered_string(target)),
+            ])
         })
         .collect();
 
-    let mut doc = serde_json::Map::new();
-    doc.insert(
-        "@context".to_string(),
-        json!("http://www.w3.org/ns/anno.jsonld"),
-    );
-    doc.insert("@graph".to_string(), serde_json::Value::Array(annotations));
-    let mut out = serde_json::to_string_pretty(&serde_json::Value::Object(doc)).expect("json");
-    out.push('\n');
-    out
+    render_ordered_jsonld(&OrderedJson::Object(vec![
+        (
+            "@context",
+            ordered_string("http://www.w3.org/ns/anno.jsonld"),
+        ),
+        ("@graph", OrderedJson::Array(annotations)),
+    ]))
 }
 
 // ------------------------------------------------------------------------- //
@@ -375,8 +436,8 @@ pub fn project_training_manifest_jsonl(g: &GraphView) -> String {
         let score_f: f64 = score.parse().unwrap_or(0.0);
         let vant = g.value_iri(&assessment, &vantage).unwrap_or_default();
 
-        // sort_keys=True → BTreeMap-backed Map. Disable preserve_order here by
-        // building a sorted map manually then serializing with a sorted writer.
+        // sort_keys=True → BTreeMap-backed map plus a writer with Python's
+        // compact separators.
         let mut record: BTreeMap<String, serde_json::Value> = BTreeMap::new();
         record.insert("work".to_string(), json!(target));
         record.insert("work_title".to_string(), json!(work_title));
@@ -396,9 +457,7 @@ pub fn project_training_manifest_jsonl(g: &GraphView) -> String {
 /// `": "`/`", "` separators (Python `json.dumps(..., sort_keys=True)` default
 /// separators) and `ensure_ascii=False`.
 fn serialize_sorted(record: &BTreeMap<String, serde_json::Value>) -> String {
-    // serde_json with preserve_order serializes in insertion order; build an
-    // ordered Map from the already-sorted BTreeMap to preserve key order, then
-    // render compactly with Python's default `, ` / `: ` separators.
+    // Render compactly with Python's default `, ` / `: ` separators.
     let mut parts: Vec<String> = Vec::with_capacity(record.len());
     for (k, v) in record {
         // keys and string values render via serde_json (handles escaping,

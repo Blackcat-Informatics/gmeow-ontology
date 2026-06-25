@@ -32,8 +32,7 @@ pub struct Record {
     pub book_number: Option<Value>,
     #[serde(default, rename = "author_s_")]
     pub author_s: Option<String>,
-    /// Goal-id → score map; `serde_json::Map` preserves insertion order (we keep
-    /// the `preserve_order` feature on), though ordering is not load-bearing.
+    /// Goal-id → score map; ordering is not load-bearing.
     #[serde(default)]
     pub corpus_db_primary_goals: Option<serde_json::Map<String, Value>>,
     #[serde(default)]

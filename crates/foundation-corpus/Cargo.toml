@@ -27,9 +27,9 @@ python = ["dep:pyo3"]
 # Native RDF 1.2 graph building over the IR (no rdflib, no direct oxigraph).
 gmeow-rdf = { path = "../rdf", features = ["oxigraph"] }
 serde = { version = "1", features = ["derive"] }
-# preserve_order: the JSON-LD projections rely on insertion-order key emission to
-# match the Python json.dumps byte-for-byte.
-serde_json = { version = "1", features = ["preserve_order"] }
+# Keep serde_json's workspace-wide default map semantics. Ordered JSON-LD
+# projection keys are emitted by a crate-local writer in projections.rs.
+serde_json = "1"
 # NFKD normalization for _slug (matches Python unicodedata.normalize("NFKD", ...)).
 unicode-normalization = "0.1"
 # pyo3 is pulled ONLY by the `python` feature (maturin builds the unified
