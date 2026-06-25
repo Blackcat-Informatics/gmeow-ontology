@@ -112,6 +112,40 @@ fragments — not authorities over the canonical `logic:` semantics.
 > chase, memoization, provenance capture, and disposal. The architectural insight ("existential
 > chase ≈ context construction") is a `logic:`-level design choice layered on that substrate.
 
+### Backward-resolver instance lifecycle and reuse
+
+The backward resolver constructs a **fresh solver instance for every query** and disposes of it
+afterward. The embedded Prolog keeps process-global mutable symbol state, so the runtime serialises
+a solver instance's entire lifecycle — construction through disposal — and instances are not
+movable across threads.
+
+One query proceeds as: snapshot the world's asserted facts as ground clauses (in a canonical order
+so clause enumeration is deterministic); assemble those facts together with the program's rules and
+tabling directives into a single program text; construct a solver instance; load that program into
+the instance; resolve the goal; then dispose of the instance.
+
+The per-query cost is dominated by **instance construction and program loading**. Assembling the
+fact snapshot is negligible by comparison, so caching that snapshot earns nothing. Of the dominant
+cost, raw instance construction is the larger share and program compilation the smaller; and within
+program compilation the fixed standard-library imports are recompiled on every query even though
+they never change, while only the asserted facts and the program's rules actually vary from one
+query to the next.
+
+This is why **instance reuse (pooling) is structurally blocked**. Warm reuse would amortise instance
+construction and the fixed library compilation, but the embedded Prolog exposes no way to *reset* an
+instance — no way to clear a loaded program's asserted facts and reload a new world's facts while
+keeping the constructed solver and the compiled libraries warm. Because the program legitimately
+changes per query and there is no reset/reload seam, every query must rebuild from scratch; combined
+with the global-symbol-state serialisation of construction and disposal, even a pool could issue
+instances only one at a time.
+
+**Re-entry condition.** Warm-instance reuse becomes possible once the embedded Prolog grows a small
+reset surface — the ability to clear a loaded program's asserted facts, reload a fresh fact set, and
+reset tabled state — so the constructed solver and its compiled libraries stay warm across queries.
+That is an upstream capability to contribute, not a local change: the architecture would adopt it
+the moment it exists. Until then, the per-query instance is the correct, contention-safe design, and
+instance pooling stays **deferred pending that capability**.
+
 ## The forward materialization ↔ backward resolution seam
 
 The runtime interface between the **materializer** (forward) and the **goal resolver** (backward)

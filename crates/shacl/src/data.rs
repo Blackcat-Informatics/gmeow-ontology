@@ -60,7 +60,18 @@ pub enum GraphFilter {
 /// values (the engine keeps its existing oxigraph term value model). They also
 /// provide a [`Store`] for the SHACL-SPARQL paths, which genuinely require a
 /// SPARQL 1.1 query engine.
-pub trait ShaclDataGraph {
+///
+/// The `Send + Sync` bound readies the seam for parallel focus-node validation
+/// (a shared `&G` read concurrently across rayon threads). It is non-breaking:
+/// every backend is already thread-safe — `Store` is `Send + Sync`, and the IR
+/// backends (`&RdfDataset`, `CachedIrDataGraph`) hold only `Sync` frozen data
+/// plus a `OnceLock<Store>`. The engine itself currently validates SERIALLY: a
+/// rayon path over the focus loop regressed ~9% on `shacl_validate/large_hierarchy`
+/// because per-focus work (~5 µs) is too cheap to amortize thread dispatch and
+/// shared-`Store` contention. It re-enters once per-focus cost exceeds ~50–100 µs
+/// (common SHACL-SPARQL constraints, or the IR-native backend run end-to-end).
+/// See #828 (item 2).
+pub trait ShaclDataGraph: Send + Sync {
     /// All quads matching `(subject?, predicate?, object?)` under `graph`.
     ///
     /// A `None` position is a wildcard. Results carry an oxigraph graph name; for
