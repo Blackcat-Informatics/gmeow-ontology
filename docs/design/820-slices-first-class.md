@@ -454,7 +454,7 @@ The Rust-side twin of Principle 16, enforced now (not deferred):
 - **Acyclic layering** — the first-party crate dependency graph is a **DAG**;
   any cycle is a hard error (the monolithic-compiler trap of §3).
 
-Implementation: `src/gmeow_tools/crate_layering.py::check_crate_layering`,
+Implementation: `crates/validate/src/crate_layering.rs::check_crate_layering`,
 surfaced as `gmeow-dev crate-check` and `make crate-check`, wired into
 `make check`, and registered in `governance/constitution.ttl`
 (`meta:gate-crate-layering`) under Principle 16.
