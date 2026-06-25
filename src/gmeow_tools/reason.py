@@ -439,9 +439,12 @@ def reason_native(
         )
     )
     for gap in gaps:
+        # Severity is decided by Rust (py.rs builds the "severity" key for every
+        # gap dict); Python must not hardcode "error" here — read the field the
+        # Rust side emits so the decision authority lives in Rust only.
         report.add(
             diagnostics.finding(
-                severity="error",
+                severity=gap["severity"],
                 code=gap["code"],
                 message=gap["message"],
                 tool="reason",

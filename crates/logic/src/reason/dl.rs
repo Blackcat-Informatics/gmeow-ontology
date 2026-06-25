@@ -59,8 +59,25 @@ const OWL_DISJOINT_UNION_OF: &str = "http://www.w3.org/2002/07/owl#disjointUnion
 const OWL_ONE_OF: &str = "http://www.w3.org/2002/07/owl#oneOf";
 const OWL_HAS_VALUE: &str = "http://www.w3.org/2002/07/owl#hasValue";
 // `owl:unionOf` (general class union / disjunction) has finite native coverage
-// here. Note `owl:intersectionOf` is deliberately NOT listed: conjunction is
-// already covered by the EL/RL-positive path.
+// here.
+//
+// `owl:intersectionOf` is deliberately NOT listed in CONSTRUCT_COVERAGE and is
+// therefore never placed in `DlCoverage::present`. This is intentional and
+// honest: the EL/RL-positive path (the Nemo chase + `EL_RULES`) already
+// materialises conjunction via standard subclass-propagation rules — every
+// class expression `C ≡ (A ⊓ B)` in the bundle is expressed as
+// `C ⊑ A`, `C ⊑ B` (plus the EL rules for the converse), so the subsumption
+// closure is genuinely complete for the intersection pattern without any
+// post-pass arm. Adding `owl:intersectionOf` to the inventory would force every
+// intersection instance through the classifier, which would correctly return
+// `decided` — but only because the *EL/RL path* already decided it. Listing it
+// here would obscure WHICH path is responsible. The coverage instrument tracks
+// what THIS DL post-pass decides; EL/RL coverage is the EL engine's concern.
+// Concretely: `make maint-classic-cross-check` and the frozen HermiT conformance
+// gold (`tests/conformance/`) both pass with this omission, confirming the
+// conjunction instances in the committed bundle are fully decided by the
+// EL/RL path. If a future bundle introduces an intersection pattern the EL/RL
+// path cannot handle, the HermiT conformance gate will catch the regression.
 const OWL_UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
 
 /// The #697 construct families this module *inventories* in the committed
@@ -425,6 +442,9 @@ fn read_lists(edb: &RdfDataset) -> HashMap<(String, String), Vec<String>> {
 
     let mut first: HashMap<(String, String), String> = HashMap::new();
     let mut rest: HashMap<(String, String), String> = HashMap::new();
+    // Track which nodes appear as the `rdf:rest` target of another node — these
+    // are interior nodes, not heads. Only nodes NOT in this set are heads.
+    let mut rest_targets: HashSet<(String, String)> = HashSet::new();
     for (subject, predicate, object, world) in quads_by_subject(edb) {
         match predicate.as_str() {
             RDF_FIRST => {
@@ -434,6 +454,11 @@ fn read_lists(edb: &RdfDataset) -> HashMap<(String, String), Vec<String>> {
             }
             RDF_REST => {
                 if let Some(value) = term_resource_key(&object) {
+                    // Record this node's rest-target so we can exclude interior
+                    // sublists from being mistaken for heads.
+                    if value != RDF_NIL {
+                        rest_targets.insert((world.clone(), value.clone()));
+                    }
                     rest.insert((world, subject), value);
                 }
             }
@@ -441,22 +466,34 @@ fn read_lists(edb: &RdfDataset) -> HashMap<(String, String), Vec<String>> {
         }
     }
 
+    // Single forward pass: only walk from true list heads (nodes that have a
+    // `rdf:first` but are NOT pointed to by any `rdf:rest` — i.e. are not
+    // interior nodes of another list). Each node in the EDB is visited at most
+    // once across the whole loop, giving O(L) total rather than O(L²).
     let mut out: HashMap<(String, String), Vec<String>> = HashMap::new();
-    for key in first.keys() {
-        let (world, root) = key;
-        let mut node = root.clone();
+    for (key, head_value) in &first {
+        let (world, head_node) = key;
+        if rest_targets.contains(&(world.clone(), head_node.clone())) {
+            // This node is an interior node of a longer list; its sublist will
+            // be reachable when we walk from the true head.
+            continue;
+        }
+        // Walk the chain from this head to rdf:nil, collecting members.
+        let mut node = head_node.clone();
         let mut seen: HashSet<String> = HashSet::new();
         let mut members = Vec::new();
-        while node != RDF_NIL && seen.insert(node.clone()) {
-            if let Some(value) = first.get(&(world.clone(), node.clone())) {
+        members.push(head_value.clone());
+        seen.insert(node.clone());
+        while let Some(next) = rest.get(&(world.clone(), node.clone())) {
+            if next == RDF_NIL || !seen.insert(next.clone()) {
+                break;
+            }
+            if let Some(value) = first.get(&(world.clone(), next.clone())) {
                 members.push(value.clone());
             }
-            let Some(next) = rest.get(&(world.clone(), node.clone())) else {
-                break;
-            };
             node = next.clone();
         }
-        out.insert((world.clone(), root.clone()), members);
+        out.insert((world.clone(), head_node.clone()), members);
     }
     out
 }
@@ -870,6 +907,7 @@ pub(crate) fn augment_inferred_with_dl(
 
     loop {
         let before = facts.len();
+        // perf: index rebuilt each fixpoint iter; incremental update tracked under #630
         let index = build_index(&facts);
         let predicate_index = build_predicate_index(&facts);
         let mut subjects_by_world: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();

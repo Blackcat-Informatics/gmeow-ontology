@@ -1158,6 +1158,11 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
         let d = PyDict::new(py);
         d.set_item("code", g.code.as_str())?;
         d.set_item("message", g.message.as_str())?;
+        // A DL coverage gap is always an error: the native closure is incomplete
+        // and any downstream gate relying on it may produce false negatives.
+        // Severity is decided here in Rust; Python must read this field rather
+        // than hardcoding "error" (Python-retirement doctrine, issue #697 Gap E).
+        d.set_item("severity", "error")?;
         gaps.append(d)?;
     }
     out.set_item("gaps", gaps)?;
