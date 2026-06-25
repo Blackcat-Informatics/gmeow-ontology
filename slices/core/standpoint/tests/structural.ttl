@@ -232,4 +232,4 @@ ex:saClaimModalityNotSubpropertyObservationResult a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:claimModality rdfs:subPropertyOf gmeow:observationResult . }""" ;
-    gmeow:saRationale "gmeow:claimModality MUST NOT be rdfs:subPropertyOf gmeow:observationResult -- StandpointModality (a logic:QualityValue / abstract individual) is disjoint from gmeow:Entity (a gufo:Endurant) in the DL profile; the semantic equivalence is documented, not axiomatised (the claimModality precedent). Mirrors test_claim_modality_property_exists (not-subPropertyOf part)." .
+    gmeow:saRationale "gmeow:claimModality MUST NOT be rdfs:subPropertyOf gmeow:observationResult -- StandpointModality (a logic:QualityValue / abstract individual) is disjoint from gmeow:Entity (a logic:Endurant) in the DL profile; the semantic equivalence is documented, not axiomatised (the claimModality precedent). Mirrors test_claim_modality_property_exists (not-subPropertyOf part)." .

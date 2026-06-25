@@ -4,13 +4,14 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Agent
     a owl:Class .
 
 gmeow:AuthorIdentity
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Author Identity"@x-gmeow-english ;
@@ -19,7 +20,7 @@ gmeow:AuthorIdentity
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Blob
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Blob"@x-gmeow-english ;
@@ -28,7 +29,7 @@ gmeow:Blob
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Branch
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Branch"@x-gmeow-english ;
@@ -37,7 +38,7 @@ gmeow:Branch
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:BuildActivity
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Build Activity"@x-gmeow-english ;
@@ -59,7 +60,7 @@ gmeow:BuildActivity
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Builder
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Builder"@x-gmeow-english ;
@@ -68,7 +69,7 @@ gmeow:Builder
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:CodeReview
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Code Review"@x-gmeow-english ;
@@ -77,7 +78,7 @@ gmeow:CodeReview
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Commit
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Commit"@x-gmeow-english ;
@@ -106,7 +107,7 @@ gmeow:Commit
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Diff
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Diff"@x-gmeow-english ;
@@ -125,7 +126,7 @@ gmeow:Diff
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Distribution
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Distribution"@x-gmeow-english ;
@@ -134,7 +135,7 @@ gmeow:Distribution
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ForgePlatform
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Forge Platform"@x-gmeow-english ;
@@ -143,16 +144,16 @@ gmeow:ForgePlatform
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:GovernanceModel
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Governance Model"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The governance model of a project — a VALUE vocabulary (individuals, never subclasses). Describes how decisions are made and who has authority."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Issue
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Issue"@x-gmeow-english ;
@@ -161,16 +162,16 @@ gmeow:Issue
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MaintenanceStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Maintenance Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The maintenance status of a software project — a VALUE vocabulary (individuals, never subclasses). Answers the question 'is this maintained?' Standpoint-scoped: one community may judge a project abandoned while another considers it stable (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Merge
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Merge"@x-gmeow-english ;
@@ -179,7 +180,7 @@ gmeow:Merge
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MergeRequest
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Merge Request"@x-gmeow-english ;
@@ -188,7 +189,7 @@ gmeow:MergeRequest
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Package
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Package"@x-gmeow-english ;
@@ -198,7 +199,7 @@ gmeow:Package
         gmeow:boxTBox .
 
 gmeow:Project
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Project"@x-gmeow-english ;
@@ -207,7 +208,7 @@ gmeow:Project
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Push
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Push"@x-gmeow-english ;
@@ -216,7 +217,7 @@ gmeow:Push
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Ref
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Ref"@x-gmeow-english ;
@@ -225,7 +226,7 @@ gmeow:Ref
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Release
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Release"@x-gmeow-english ;
@@ -239,7 +240,7 @@ gmeow:Release
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Repository
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Repository"@x-gmeow-english ;
@@ -248,16 +249,16 @@ gmeow:Repository
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:RepositoryType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Repository Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The version-control system of a repository — a VALUE vocabulary (individuals, never subclasses). The set is open; a new VCS is a fresh individual, not a new class."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Review
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Review"@x-gmeow-english ;
@@ -266,16 +267,16 @@ gmeow:Review
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SLSALevel
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "SLSA Level"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The SLSA supply-chain level for build provenance — a VALUE vocabulary (individuals, never subclasses). Levels 1–4 correspond to the SLSA specification's incremental integrity guarantees."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SoftwareName
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Software Name"@x-gmeow-english ;
@@ -284,7 +285,7 @@ gmeow:SoftwareName
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SoftwareProduct
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Software Product"@x-gmeow-english ;
@@ -293,7 +294,7 @@ gmeow:SoftwareProduct
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SoftwareProject
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Software Project"@x-gmeow-english ;
@@ -302,7 +303,7 @@ gmeow:SoftwareProject
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SourceDirectory
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Source Directory"@x-gmeow-english ;
@@ -312,7 +313,7 @@ gmeow:SourceDirectory
         gmeow:boxTBox .
 
 gmeow:SourceFile
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Source File"@x-gmeow-english ;
@@ -322,7 +323,7 @@ gmeow:SourceFile
         gmeow:boxTBox .
 
 gmeow:SourceNode
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Source Node"@x-gmeow-english ;
@@ -332,7 +333,7 @@ gmeow:SourceNode
         gmeow:boxTBox .
 
 gmeow:SourceTree
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Source Tree"@x-gmeow-english ;
@@ -342,7 +343,7 @@ gmeow:SourceTree
         gmeow:boxTBox .
 
 gmeow:TreeEntry
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Tree Entry"@x-gmeow-english ;

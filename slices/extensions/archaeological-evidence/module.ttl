@@ -3,14 +3,15 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:ArchaeologicalFindContext
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Archaeological Find Context"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;
@@ -27,7 +28,7 @@ gmeow:ArchaeologicalFindContext
         gmeow:boxTBox .
 
 gmeow:Inscription
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Inscription"@x-gmeow-english ;
@@ -36,11 +37,11 @@ gmeow:Inscription
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InscriptionReading
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Inscription Reading"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;
@@ -56,11 +57,11 @@ gmeow:InscriptionReading
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InscriptionTranslation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Inscription Translation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;
@@ -76,11 +77,11 @@ gmeow:InscriptionTranslation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InscriptionTransliteration
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Inscription Transliteration"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;
@@ -96,20 +97,20 @@ gmeow:InscriptionTransliteration
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PhysicalCarrierType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Physical Carrier Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The archaeological or cultural-heritage classification of a physical object that bears inscriptions, marks, or signs — a value vocabulary (individuals, never subclasses). Open-ended: new carrier kinds are minted as needed without ontology modification."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ScriptLanguageAttribution
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Script Language Attribution"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;

@@ -5,8 +5,8 @@
 # test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly
 # hand-written in tests/test_sexuality.py. Each runs as a SPARQL ASK over the
 # sexuality module graph (gmeow:scopeModule) under the native Rust slicetest
-# harness. This slice has NOT been #694-migrated so class stereotypes are gufo:
-# (gufo:SubKind, gufo:AbstractIndividualType, gufo:QualityValue), not logic:.
+# harness. This slice is #694-migrated, so class stereotypes are logic:
+# (logic:SubKind, logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_competency_orientation_values_query — reads an external .rq file from
@@ -75,18 +75,18 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:hasSexualOrientation owl:equivalentProperty gmeow:hasRomanticOrientation . }""" ;
     gmeow:saRationale "gmeow:hasSexualOrientation MUST NOT be owl:equivalentProperty gmeow:hasRomanticOrientation — the two axes are structurally distinct (asexual-biromantic must remain expressible). Mirrors test_split_attraction_axes_are_independent (equivalentProperty mustNot)." .
 
-# --- 7. SexualOrientationValue and RomanticOrientationValue subclass gufo:QualityValue (MUST) ---
+# --- 7. SexualOrientationValue and RomanticOrientationValue subclass logic:QualityValue (MUST) ---
 ex:saOrientationValueSubclassQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SexualOrientationValue rdfs:subClassOf gufo:QualityValue .
-    gmeow:RomanticOrientationValue rdfs:subClassOf gufo:QualityValue .
+    gmeow:SexualOrientationValue rdfs:subClassOf logic:QualityValue .
+    gmeow:RomanticOrientationValue rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SexualOrientationValue and gmeow:RomanticOrientationValue MUST both be subclasses of gufo:QualityValue — orientation values are open individual vocabularies rooted in the gufo quality hierarchy. Mirrors test_orientation_values_are_individuals_not_subclasses (QualityValue subClass half)." .
+    gmeow:saRationale "gmeow:SexualOrientationValue and gmeow:RomanticOrientationValue MUST both be subclasses of logic:QualityValue — orientation values are open individual vocabularies rooted in the gufo quality hierarchy. Mirrors test_orientation_values_are_individuals_not_subclasses (QualityValue subClass half)." .
 
 # --- 8. orientAsexual is typed SexualOrientationValue (MUST) -----------------
 ex:saOrientAsexualTyped a gmeow:StructuralAssertion ;

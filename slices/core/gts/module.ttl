@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:CodecClass
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Codec Class"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The capability class of a transform codec — encode, compress, or encrypt (spec §8). Determines the degradation path when the capability is missing: unknown-codec or missing-key opacity."@x-gmeow-english ;
     skos:example "gmeow:codecClassEncrypt a gmeow:CodecClass ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting classes as subclasses (they are individuals) and avoid using this to name a concrete codec; it is the capability category, while gmeow:TransformCodec names the algorithm."@x-gmeow-english ;
@@ -21,7 +22,7 @@ gmeow:CodecClass
     gmeow:useWhen "Use as the value vocabulary for codec capability classes — the small set (encode, compress, encrypt) that determines whether a missing capability yields unknown-codec or missing-key opacity."@x-gmeow-english .
 
 gmeow:GTSCompaction
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS Compaction"@x-gmeow-english ;
@@ -35,7 +36,7 @@ gmeow:GTSCompaction
     gmeow:useWhen "Use to record that a document was re-laid-out from a source — into streaming delivery order or a snapshot — so the new ordering is traceable to its origin while the carried content stays rewrite-invariant."@x-gmeow-english .
 
 gmeow:GTSDocument
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS Document"@x-gmeow-english ;
@@ -50,11 +51,11 @@ gmeow:GTSDocument
     gmeow:useWhen "Use to model a whole shippable GTS file as a first-class entity — when you need to talk about the package itself (its segment list, its composite identity, its provenance) rather than the individual frames or the graph it carries."@x-gmeow-english .
 
 gmeow:GTSProfile
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS Profile"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A named GTS profile (spec §13) — a purpose and requirement set a segment declares. An OPEN value vocabulary (individuals, never subclasses): extensions add their own profiles (e.g. a music package) without touching this module (Principle 9)."@x-gmeow-english ;
     skos:example "ex:musicPackage a gmeow:GTSProfile ; rdfs:label \"music-package profile\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting profiles as subclasses (they are individuals on an open axis) and avoid using a profile to carry per-frame codec or signer detail; the profile names the requirement set, not the wire format."@x-gmeow-english ;
@@ -65,7 +66,7 @@ gmeow:GTSProfile
     gmeow:useWhen "Use as the value vocabulary for a segment's purpose-and-requirements declaration, or when an extension needs to mint a new packaging profile without editing the core module."@x-gmeow-english .
 
 gmeow:GTSSegment
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS Segment"@x-gmeow-english ;
@@ -80,11 +81,11 @@ gmeow:GTSSegment
     gmeow:useWhen "Use for one independently-verifiable log within a document — the unit that carries its own chain, profile, codec catalog, and signers, and the subject a transport Attestation vouches for."@x-gmeow-english .
 
 gmeow:OpacityReason
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Opacity Reason"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "Why a frame is opaque to a given reader (spec §7.6) — a missing capability or damage. An open value vocabulary; opacity is vantage-relative, so the reason is a fact about a reader-frame pair, not about the bytes."@x-gmeow-english ;
     skos:example "gmeow:opacityMissingKey a gmeow:OpacityReason ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting reasons as subclasses (they are individuals) and avoid reading a reason as a property of the bytes; it is true of a reader-frame pair, so the same frame may carry no reason at all for a recipient who can decode it."@x-gmeow-english ;
@@ -93,7 +94,7 @@ gmeow:OpacityReason
     gmeow:useWhen "Use as the value vocabulary naming why a frame is opaque to a reader — unknown codec, missing key, or damage — the required reason that keeps opacity distinguishable from data loss."@x-gmeow-english .
 
 gmeow:OpaqueFrame
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Opaque Frame"@x-gmeow-english ;
@@ -106,11 +107,11 @@ gmeow:OpaqueFrame
     gmeow:useWhen "Use when a reader surfaces a frame it cannot decode — sealed without a key, using an unknown codec, or damaged — so the gap is described rather than silently dropped, preserving the chain."@x-gmeow-english .
 
 gmeow:TransformCodec
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Transform Codec"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A payload transform from the durable GTS catalog (spec §8): a named, stackable codec separating structure durability (CBOR + the spec, forever) from density and confidentiality (swappable codecs). An OPEN value vocabulary tagged by gmeow:codecClass."@x-gmeow-english ;
     skos:example "ex:codecBrotli a gmeow:TransformCodec ; gmeow:codecClass gmeow:codecClassCompress ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting codecs as subclasses (they are individuals) and avoid conflating the transform with the structural format; CBOR and the spec are the durable substrate, codecs are the swappable density/confidentiality layer."@x-gmeow-english ;

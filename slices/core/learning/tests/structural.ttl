@@ -8,10 +8,10 @@
 # not ad-hoc Python. Each assertion runs as a SPARQL ASK over the slice module
 # graph (gmeow:scopeModule); every `must` ASK anchors on a concrete term IRI.
 #
-# NAMESPACE: the learning module is NOT #694-migrated — its value classes are
-# typed with the gUFO meta-vocabulary (gufo:EventType, gufo:AbstractIndividualType,
-# gufo:Kind, gufo:Relator, gufo:QualityValue). These cells mirror the module's
-# CURRENT gufo: shape.
+# NAMESPACE: the learning module is #694-migrated — its value classes are
+# typed with the canonical logic meta-vocabulary (logic:Event, logic:AbstractIndividualType,
+# logic:Kind, logic:Relator, logic:QualityValue). These cells mirror the module's
+# CURRENT logic: shape.
 #
 # The slice's SHACL invariants (gmeow:TeachingShape — teacher ≠ learner, learner
 # must be an Agent) are migrated separately to tests/example-conformance.ttl. The
@@ -35,14 +35,14 @@ ex:saLearningEventReparentsMentalProcess a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:LearningEvent a owl:Class , gufo:EventType ;
+    gmeow:LearningEvent a owl:Class , logic:Event ;
         rdfs:subClassOf gmeow:MentalProcess .
 }""" ;
-    gmeow:saRationale "gmeow:LearningEvent is the OCCURRENT that transitions an agent's knowledge state: it MUST be an owl:Class, a gufo:EventType, and a subClassOf gmeow:MentalProcess (the reparenting hook the mentation slice reserves), exactly as the sibling gmeow:InferenceProcess. Mirrors test_learning_event_reparents_mental_process." .
+    gmeow:saRationale "gmeow:LearningEvent is the OCCURRENT that transitions an agent's knowledge state: it MUST be an owl:Class, a logic:Event, and a subClassOf gmeow:MentalProcess (the reparenting hook the mentation slice reserves), exactly as the sibling gmeow:InferenceProcess. Mirrors test_learning_event_reparents_mental_process." .
 
 # --- 2. processLearning marker rides instances, not the class (MUST-NOT) -------
 ex:saProcessLearningMarkerRidesInstances a gmeow:StructuralAssertion ;
@@ -61,14 +61,14 @@ ex:saLearningEventTypeIsAbstractIndividualType a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:LearningEventType a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:LearningEventType a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:LearningEventType is the variety value vocabulary: it MUST be an owl:Class, a gufo:AbstractIndividualType, and a subClassOf gufo:QualityValue — the value-vocab genus. Mirrors test_learning_event_type_is_an_abstract_individual_type." .
+    gmeow:saRationale "gmeow:LearningEventType is the variety value vocabulary: it MUST be an owl:Class, a logic:AbstractIndividualType, and a subClassOf logic:QualityValue — the value-vocab genus. Mirrors test_learning_event_type_is_an_abstract_individual_type." .
 
 # --- 4a. The six LearningEventType individuals are seeded (MUST) -------------
 ex:saLearningEventTypeIndividualsSeeded a gmeow:StructuralAssertion ;
@@ -160,12 +160,12 @@ ex:saTeachingIsMediatingRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Teaching a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Relator .
+    gmeow:Teaching a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
     gmeow:teacher a owl:ObjectProperty , owl:FunctionalProperty ;
         rdfs:domain gmeow:Teaching ;
         rdfs:range gmeow:Agent .
@@ -173,7 +173,7 @@ ASK {
         rdfs:domain gmeow:Teaching ;
         rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:Teaching is the reified mediating relator: it MUST be an owl:Class, a gufo:Kind, and a subClassOf gufo:Relator; gmeow:teacher MUST be a FUNCTIONAL owl:ObjectProperty (one teacher) with domain gmeow:Teaching and range gmeow:Agent; gmeow:learner MUST be an owl:ObjectProperty with domain gmeow:Teaching and range gmeow:Agent. Mirrors the class/property clauses of test_teaching_is_a_mediating_relator." .
+    gmeow:saRationale "gmeow:Teaching is the reified mediating relator: it MUST be an owl:Class, a logic:Kind, and a subClassOf logic:Relator; gmeow:teacher MUST be a FUNCTIONAL owl:ObjectProperty (one teacher) with domain gmeow:Teaching and range gmeow:Agent; gmeow:learner MUST be an owl:ObjectProperty with domain gmeow:Teaching and range gmeow:Agent. Mirrors the class/property clauses of test_teaching_is_a_mediating_relator." .
 
 # --- 7a'. learner is NOT functional (MUST-NOT) ------------------------------
 ex:saLearnerNotFunctional a gmeow:StructuralAssertion ;

@@ -3,14 +3,15 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:DerivationKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Derivation Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of etymological derivation — a value, never an Entity subclass. Open-ended: new historical-linguistic frameworks may introduce further derivation types without ontology modification."@x-gmeow-english ;
     skos:example "ex:derivationBlending a gmeow:DerivationKind ; rdfs:label \"blending\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid creating per-kind subclasses (kinds are individuals) and avoid using it for the derivation claim itself (that is gmeow:EtymologicalDerivation)."@x-gmeow-english ;
@@ -19,11 +20,11 @@ gmeow:DerivationKind
     gmeow:useWhen "Use as the value vocabulary for the etymological-derivation-kind axis — the seeded kinds (inheritance, borrowing, calque, semantic shift, …) referenced from a derivation via gmeow:derivationKind."@x-gmeow-english .
 
 gmeow:EtymologicalDerivation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Etymological Derivation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;
@@ -48,7 +49,7 @@ gmeow:EtymologicalDerivation
     gmeow:useWhen "Use for a historical-derivation claim between lexical items or forms — borrowing, inheritance, semantic shift — that must carry standpoint, confidence, and temporal scope rather than a flat origin string."@x-gmeow-english .
 
 gmeow:LexicalForm
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Lexical Form"@x-gmeow-english ;
@@ -61,11 +62,11 @@ gmeow:LexicalForm
     gmeow:useWhen "Use for a concrete surface realization of a lexical item — a written string, an IPA transcription, a signed form, a reconstructed shape — bearing its representation and its form type."@x-gmeow-english .
 
 gmeow:LexicalFormType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Lexical Form Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a lexical form — a value, never an Entity subclass. The seed list is an anchor, not a fence; new analytical frameworks may introduce further form types without ontology modification."@x-gmeow-english ;
     skos:example "ex:formGlossed a gmeow:LexicalFormType ; rdfs:label \"glossed\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid creating per-kind subclasses (kinds are individuals) and avoid using it for the form itself (that is gmeow:LexicalForm)."@x-gmeow-english ;
@@ -74,7 +75,7 @@ gmeow:LexicalFormType
     gmeow:useWhen "Use as the value vocabulary for the lexical-form-kind axis — the seeded modalities (written, spoken, signed, reconstructed, …) referenced from a form via gmeow:formType."@x-gmeow-english .
 
 gmeow:LexicalItem
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Lexical Item"@x-gmeow-english ;
@@ -87,11 +88,11 @@ gmeow:LexicalItem
     gmeow:useWhen "Use for the abstract word, morpheme, phrase, idiom, symbol, sign, or construction itself — the lexical entry that carries no surface string but is realized by one or more forms."@x-gmeow-english .
 
 gmeow:UsageAttestation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Usage Attestation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;

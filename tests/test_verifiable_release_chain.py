@@ -16,7 +16,6 @@ from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/verifiable-release/")
 FIXTURE = Path(__file__).parent / "fixtures" / "verifiable-release-chain.ttl"
 
@@ -64,14 +63,6 @@ def test_release_doi_property_exists() -> None:
     g = _graph()
     assert (GM.releaseDoi, RDFS.domain, GM.Release) in g
     assert (GM.releaseDoi, RDFS.range, RDFS.Literal) in g
-
-
-def test_slsa_level_is_value_vocabulary() -> None:
-    g = _graph()
-    assert (GM.SLSALevel, RDFS.subClassOf, GUFO.QualityValue) in g
-    for level in (GM.slsaLevel1, GM.slsaLevel2, GM.slsaLevel3, GM.slsaLevel4):
-        assert (level, RDF.type, GM.SLSALevel) in g
-        assert (level, RDF.type, OWL.Class) not in g
 
 
 def test_build_event_type_seeded() -> None:

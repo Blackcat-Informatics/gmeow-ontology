@@ -7,7 +7,7 @@
 # SPARQL ASK over the coreference module graph (gmeow:scopeModule) under the
 # native Rust slicetest harness (crates/slicetest).
 #
-# Coreference is NOT #694-migrated: it uses no gufo: or logic: stereotypes --
+# Coreference is #694-migrated: it uses no gufo: or logic: stereotypes --
 # it is a pure property/annotation module with no OntoUML class sorts.
 #
 # RETAINED in pytest (not migratable here):

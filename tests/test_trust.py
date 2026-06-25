@@ -27,7 +27,6 @@ from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
 
 
 def _graph() -> Graph:

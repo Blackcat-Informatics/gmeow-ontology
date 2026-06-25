@@ -28,7 +28,6 @@ from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, URIRef
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
 
 
 def _graph() -> Graph:
@@ -96,7 +95,7 @@ def test_formal_language_not_subclass_of_notation() -> None:
 def test_value_vocabularies_not_subclasses() -> None:
     """No unexpected subclasses of SymbolicSystemKind or NotationUsageRole.
 
-    The static positive assertions (owl:Class + gufo:QualityValue subClassOf)
+    The static positive assertions (owl:Class + logic:QualityValue subClassOf)
     are covered by DSL cells saSymbolicSystemKindIsValueVocab and
     saNotationUsageRoleIsValueVocab in slices/core/notation/tests/structural.ttl.
     Only the dynamic whole-graph subjects sweep is retained here.

@@ -3460,6 +3460,17 @@ type AddressTenure
 
 type AdoptiveParentChild
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     withinFamily: [Family]
     relationshipChild: Person
     relationshipParent: Person
@@ -3652,6 +3663,17 @@ type AppraisalDimension
 
 type ArchaeologicalFindContext
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     findContextDating: [TemporalMeasurement]
     findContextEvent: [Event]
     findContextPlace: [Place]
@@ -4173,6 +4195,7 @@ type AuthorityLevel
 
 type Availability
   {
+    duringInterval: [TimeInterval]
     availabilityAgent: [Agent]
     availabilitySlot: TimeInterval
     availabilityStatus: [AvailabilityStatus]
@@ -4257,6 +4280,17 @@ type Axis
 
 type BiologicalParentChild
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     withinFamily: [Family]
     relationshipChild: Person
     relationshipParent: Person
@@ -5114,6 +5148,63 @@ type CadastralReferenceType
 
 type Calendar
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    instanceOfConcept: [Concept]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
     calendarMember: [Event]
     calendarTimeZone: TimeZone
   }
@@ -5944,6 +6035,62 @@ type Commit
 
 type Commitment
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    instanceOfConcept: [Concept]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    intentionGoal: Goal
+    motivates: [Event]
     commitmentBeneficiary: [Agent]
     committedAgent: Agent
   }
@@ -6471,6 +6618,60 @@ type ConstraintOperator
 
 type ContactPoint
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    instanceOfConcept: [Concept]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
     contactPointProvider: [Agent]
     contactPointType: [ContactPointType]
   }
@@ -6610,6 +6811,60 @@ type ControlFlow
 
 type CoordinateMatrix
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    instanceOfConcept: [Concept]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
     coordinateMatrixFrame: ReferenceFrame
     matrixShape: String
     matrixValue: String
@@ -6717,6 +6972,17 @@ type Correspondence
 
 type CoupleRelationship
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     withinFamily: [Family]
     hasCoupleEvent: [Event]
     hasPartner: [Person]
@@ -7508,6 +7774,17 @@ type DepictionContext
 
 type DepictionUsage
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     depictionAudience: [Entity]
     depictionAuthority: [Agent]
     depictionContext: DepictionContext
@@ -8131,6 +8408,60 @@ type DynamicsValue
 
 type EmailAddress
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    instanceOfConcept: [Concept]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
     contactPointProvider: [Agent]
     contactPointType: [ContactPointType]
     addressValue: String
@@ -8388,6 +8719,60 @@ type Embedding
 
 type Emotion
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    instanceOfConcept: [Concept]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
     emotionBearer: Agent
     emotionType: [EmotionType]
   }
@@ -8482,6 +8867,17 @@ type EntityExistence
 
 type EtymologicalDerivation
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     derivationEvidence: [Entity]
     derivationKind: [DerivationKind]
     derivationTarget: InformationObject
@@ -9545,6 +9941,17 @@ type FormFunction
 
 type FosterParentChild
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     withinFamily: [Family]
     relationshipChild: Person
     relationshipParent: Person
@@ -9564,6 +9971,17 @@ type Gender
 
 type GenderExpression
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     selfAsserted: Boolean
     expressionValue: GenderExpressionStyle
   }
@@ -9574,6 +9992,17 @@ type GenderExpressionStyle
 
 type GenderIdentity
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     selfAsserted: Boolean
     genderValue: Gender
   }
@@ -10491,6 +10920,17 @@ type Identifier
 
 type IdentityFacet
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     selfAsserted: Boolean
   }
 
@@ -10891,18 +11331,51 @@ type Inscription
 
 type InscriptionReading
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     readingOf: Inscription
     readingResult: [InformationObject]
   }
 
 type InscriptionTranslation
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     translationOf: Inscription
     translationResult: [InformationObject]
   }
 
 type InscriptionTransliteration
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     transliterationOf: Inscription
     transliterationResult: [InformationObject]
   }
@@ -10915,6 +11388,60 @@ type Instant
 
 type InstantMessageAddress
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    instanceOfConcept: [Concept]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
     contactPointProvider: [Agent]
     contactPointType: [ContactPointType]
   }
@@ -11502,6 +12029,17 @@ type KeyScheme
 
 type KinRelationship
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     withinFamily: [Family]
   }
 
@@ -11733,6 +12271,17 @@ type LanguageProficiency
 
 type LanguageState
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     stateAuthority: [Agent]
     stateInterval: [TimeInterval]
     stateLanguage: Language
@@ -15214,6 +15763,17 @@ type NotationSystem
 
 type NotationSystemUsage
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     notationUsageInterval: TimeInterval
     notationUsageNotationSystem: NotationSystem
     notationUsageRole: NotationUsageRole
@@ -16112,6 +16672,17 @@ type Package
 
 type ParentChildRelationship
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     withinFamily: [Family]
     relationshipChild: Person
     relationshipParent: Person
@@ -17505,6 +18076,60 @@ type Post
 
 type PostalAddress
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    instanceOfConcept: [Concept]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
     contactPointProvider: [Agent]
     contactPointType: [ContactPointType]
     addressLocality: [String]
@@ -19549,6 +20174,17 @@ type RoleInNarrative
 
 type RomanticOrientation
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     selfAsserted: Boolean
     romanticOrientationValue: RomanticOrientationValue
   }
@@ -21050,6 +21686,17 @@ type SexAssignedAtBirth
 
 type SexualOrientation
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     selfAsserted: Boolean
     sexualOrientationValue: SexualOrientationValue
   }
@@ -22302,6 +22949,17 @@ type StandpointTenure
 
 type StepParentChild
   {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
     withinFamily: [Family]
     relationshipChild: Person
     relationshipParent: Person
@@ -22859,6 +23517,60 @@ type Teaching
 
 type TelephoneNumber
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    instanceOfConcept: [Concept]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
     contactPointProvider: [Agent]
     contactPointType: [ContactPointType]
   }

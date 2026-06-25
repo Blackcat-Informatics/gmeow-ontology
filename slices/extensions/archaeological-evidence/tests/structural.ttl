@@ -7,9 +7,9 @@
 # runs as a SPARQL ASK over the archaeological-evidence module graph
 # (gmeow:scopeModule) under the native Rust slicetest harness (crates/slicetest).
 #
-# Archaeological-evidence is NOT #694-migrated: class stereotypes remain gufo:
-# (gufo:Kind, gufo:SubKind, gufo:AbstractIndividualType, gufo:QualityValue,
-# gufo:Relator), not logic:.
+# Archaeological-evidence is #694-migrated: class stereotypes are logic:
+# (logic:Kind, logic:SubKind, logic:AbstractIndividualType, logic:QualityValue,
+# logic:Relator), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_attested_on_carrier_exists — asserts gmeow:attestedOnCarrier, whose
@@ -38,80 +38,80 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:Inscription MUST be an owl:Class and a subclass of gmeow:InformationObject — the sign-bearing content is informationally distinct from its physical carrier (#173). Mirrors test_inscription_is_information_object." .
 
-# --- 2. InscriptionReading is an owl:Class, subClassOf Observation and gufo:Relator (MUST) ---
+# --- 2. InscriptionReading is an owl:Class, subClassOf Observation and logic:Relator (MUST) ---
 ex:saInscriptionReadingIsObservationRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:InscriptionReading a owl:Class ;
         rdfs:subClassOf gmeow:Observation ;
-        rdfs:subClassOf gufo:Relator .
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:InscriptionReading MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of gufo:Relator — a scholarly reading is a standpoint-scoped observation that binds inscription and interpreter (Observation+Relator pattern, #173). Mirrors test_inscription_reading_is_observation_relator." .
+    gmeow:saRationale "gmeow:InscriptionReading MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of logic:Relator — a scholarly reading is a standpoint-scoped observation that binds inscription and interpreter (Observation+Relator pattern, #173). Mirrors test_inscription_reading_is_observation_relator." .
 
-# --- 3. InscriptionTransliteration is an owl:Class, subClassOf Observation and gufo:Relator (MUST) ---
+# --- 3. InscriptionTransliteration is an owl:Class, subClassOf Observation and logic:Relator (MUST) ---
 ex:saInscriptionTransliterationIsObservationRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:InscriptionTransliteration a owl:Class ;
         rdfs:subClassOf gmeow:Observation ;
-        rdfs:subClassOf gufo:Relator .
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:InscriptionTransliteration MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of gufo:Relator — competing transliteration schemes coexist without a single winner (Principle 9, #173). Mirrors test_inscription_transliteration_is_observation_relator." .
+    gmeow:saRationale "gmeow:InscriptionTransliteration MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of logic:Relator — competing transliteration schemes coexist without a single winner (Principle 9, #173). Mirrors test_inscription_transliteration_is_observation_relator." .
 
-# --- 4. InscriptionTranslation is an owl:Class, subClassOf Observation and gufo:Relator (MUST) ---
+# --- 4. InscriptionTranslation is an owl:Class, subClassOf Observation and logic:Relator (MUST) ---
 ex:saInscriptionTranslationIsObservationRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:InscriptionTranslation a owl:Class ;
         rdfs:subClassOf gmeow:Observation ;
-        rdfs:subClassOf gufo:Relator .
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:InscriptionTranslation MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of gufo:Relator — competing translations coexist without privilege (Principle 9, #173). Mirrors test_inscription_translation_is_observation_relator." .
+    gmeow:saRationale "gmeow:InscriptionTranslation MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of logic:Relator — competing translations coexist without privilege (Principle 9, #173). Mirrors test_inscription_translation_is_observation_relator." .
 
-# --- 5. ScriptLanguageAttribution is an owl:Class, subClassOf Observation and gufo:Relator (MUST) ---
+# --- 5. ScriptLanguageAttribution is an owl:Class, subClassOf Observation and logic:Relator (MUST) ---
 ex:saScriptLanguageAttributionIsObservationRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:ScriptLanguageAttribution a owl:Class ;
         rdfs:subClassOf gmeow:Observation ;
-        rdfs:subClassOf gufo:Relator .
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:ScriptLanguageAttribution MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of gufo:Relator — disputed, uncertain, and undeciphered cases produce competing attributions that coexist (Principle 9, #173). Mirrors test_script_language_attribution_is_observation_relator." .
+    gmeow:saRationale "gmeow:ScriptLanguageAttribution MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of logic:Relator — disputed, uncertain, and undeciphered cases produce competing attributions that coexist (Principle 9, #173). Mirrors test_script_language_attribution_is_observation_relator." .
 
-# --- 6. ArchaeologicalFindContext is an owl:Class, subClassOf Observation and gufo:Relator (MUST) ---
+# --- 6. ArchaeologicalFindContext is an owl:Class, subClassOf Observation and logic:Relator (MUST) ---
 ex:saArchaeologicalFindContextIsObservationRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:ArchaeologicalFindContext a owl:Class ;
         rdfs:subClassOf gmeow:Observation ;
-        rdfs:subClassOf gufo:Relator .
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:ArchaeologicalFindContext MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of gufo:Relator — a reified find context binding a carrier to its stratigraphic unit; multiple context claims from different campaigns coexist (Principle 9, #173). Mirrors test_archaeological_find_context_is_observation_relator." .
+    gmeow:saRationale "gmeow:ArchaeologicalFindContext MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of logic:Relator — a reified find context binding a carrier to its stratigraphic unit; multiple context claims from different campaigns coexist (Principle 9, #173). Mirrors test_archaeological_find_context_is_observation_relator." .
 
 # --- 7. inscriptionCarrier is functional (MUST) ---------------------------------
 ex:saInscriptionCarrierIsFunctional a gmeow:StructuralAssertion ;
@@ -419,20 +419,20 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:findContextTarget rdfs:subPropertyOf gmeow:observedFeature . }""" ;
     gmeow:saRationale "gmeow:findContextTarget MUST be rdfs:subPropertyOf gmeow:observedFeature — bridges find contexts onto the universal 'observations about X' query path. Mirrors test_find_context_target_subsumed_under_observed_feature." .
 
-# --- 41. PhysicalCarrierType is an owl:Class, gufo:AbstractIndividualType,
-#         subClassOf gufo:QualityValue (MUST) -----------------------------------
+# --- 41. PhysicalCarrierType is an owl:Class, logic:AbstractIndividualType,
+#         subClassOf logic:QualityValue (MUST) -----------------------------------
 ex:saPhysicalCarrierTypeIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:PhysicalCarrierType a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:PhysicalCarrierType a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:PhysicalCarrierType MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — the carrier classification is an open value vocabulary (individuals, never subclasses); new kinds are minted without ontology modification. Mirrors test_physical_carrier_type_value_vocabulary (class structure part)." .
+    gmeow:saRationale "gmeow:PhysicalCarrierType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — the carrier classification is an open value vocabulary (individuals, never subclasses); new kinds are minted without ontology modification. Mirrors test_physical_carrier_type_value_vocabulary (class structure part)." .
 
 # --- 42. Twelve PhysicalCarrierType seed individuals exist (MUST) -------------
 ex:saPhysicalCarrierTypeSeeds a gmeow:StructuralAssertion ;

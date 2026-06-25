@@ -6,41 +6,42 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AnalysisProperty
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Analysis Property"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of analytical dimensions. Never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ArticulationKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Articulation Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An articulation or attack quality applied to a ToneEvent — staccato, legato, tenuto, accent, marcato, pizzicato, harmonic, etc. A value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:CollectionMemberRole
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Collection Member Role"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The role of a pitch within a collection — tonic/finalis, vādī, samvādī, ghammāz, ascent-only, descent-only, ornamental, or generic member. A value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:DegreeOfFreedom
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Degree of Freedom"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:dofParameter ;
@@ -55,38 +56,38 @@ gmeow:DegreeOfFreedom
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:DeterminationStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Determination Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The status of a musical parameter within a DegreeOfFreedom relator — fixed, constrained, free, or delegated to performer/environment/process. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:DynamicsValue
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Dynamics Value"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A symbolic dynamic level for a ToneEvent — ppp, pp, p, mp, mf, f, ff, fff. A value vocabulary of individuals; measured decibel values are frame-relative Observations outside this vocabulary (Principle 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:FormFunction
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Form Function"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of formal functions. Never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:GenerativeProcess
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Generative Process"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ,
         [
             a owl:Restriction ;
@@ -97,50 +98,50 @@ gmeow:GenerativeProcess
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:GenerativeProcessKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Generative Process Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a generative process — phasing, stochastic, verbal score, rule-based, algorithmic. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:GrooveProfile
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Groove Profile"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A systematic, repeatable deviation from a strict metric grid — swing ratio, per-grid-position offsets, or a measured microtiming profile. Groove is content, not error (stress case 17)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
 gmeow:GrooveProfileKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Groove Profile Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a GrooveProfile — swing ratio, per-grid-position offsets, or a measured profile. A value vocabulary of individuals; never subclassed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
 gmeow:HarmonicFunction
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Harmonic Function"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of harmonic functions. Never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InstrumentConfiguration
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Instrument Configuration"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:configurationModification ;
@@ -156,29 +157,29 @@ gmeow:InstrumentConfiguration
         gmeow:boxTBox .
 
 gmeow:InstrumentModification
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Instrument Modification"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A modification applied to an instrument in an InstrumentConfiguration — prepared, scordatura, capo, mute, electrified, extended range, etc. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InstrumentType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Instrument Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a musical instrument — piano, violin, drum kit, voice, etc. An open value vocabulary of individuals; never subclassed (Principle 9). Each individual may carry a Hornbostel–Sachs code (gmeow:hsNumber) and a MIMO exactMatch (Principle 5)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MeterAssignment
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Meter Assignment"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:meterCarrier ;
@@ -198,21 +199,21 @@ gmeow:MeterAssignment
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MetricGroup
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Metric Group"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "One ordered group within a MetricStructure, carrying a rational length and an optional accent weight. Additive meters are sequences of MetricGroups."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MetricModulation
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Metric Modulation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:modulationFromFrame ;
@@ -227,17 +228,17 @@ gmeow:MetricModulation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MetricStructure
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Metric Structure"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A recurring grouping cycle that defines a meter — an ordered set of MetricGroups with rational lengths and optional accent weights. Covers additive meters (2+2+3 aksak), fractional meters (2/10), tala, colotomic cycles, and the absence of meter when no structure is asserted."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MusicAnalysisClaim
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Music Analysis Claim"@x-gmeow-english ;
@@ -274,16 +275,16 @@ gmeow:MusicAnalysisClaim
     gmeow:requiresFrame gmeow:analysisFrame .
 
 gmeow:MusicalParameter
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Musical Parameter"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A dimension of musical content whose degree of determination a work or expression declares. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MusicalSegment
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Musical Segment"@x-gmeow-english ;
@@ -292,7 +293,7 @@ gmeow:MusicalSegment
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MusicalTimeFrame
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Musical Time Frame"@x-gmeow-english ;
@@ -306,11 +307,11 @@ gmeow:MusicalTimeFrame
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MusicalTimeSpan
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Musical Time Span"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ,
         [
             a owl:Restriction ;
@@ -323,20 +324,20 @@ gmeow:MusicalTimeSpan
     gmeow:requiresFrame gmeow:hasMusicalTimeFrame .
 
 gmeow:NeoRiemannianOperation
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Neo-Riemannian Operation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of Neo-Riemannian operations. Never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:OrnamentProfile
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Ornament Profile"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ,
         [
             a owl:Restriction ;
@@ -348,21 +349,21 @@ gmeow:OrnamentProfile
         gmeow:boxTBox .
 
 gmeow:OrnamentProfileKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Ornament Profile Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of ornament profile — gamaka family, baroque agrément, raga ornament, jazz turn, etc. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
 gmeow:PerformanceDecision
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Performance Decision"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:decisionPerformance ;
@@ -377,7 +378,7 @@ gmeow:PerformanceDecision
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PerformanceParticipation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Performance Participation"@x-gmeow-english ;
@@ -401,11 +402,11 @@ gmeow:PerformanceParticipation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PitchAnchor
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Anchor"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ,
         [
             a owl:Restriction ;
@@ -416,30 +417,30 @@ gmeow:PitchAnchor
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PitchCollection
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Collection"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:InformationObject ;
     skos:definition "A set or multiset of PitchValues derived from a source (a spectrum, a tuning system, an analysis, or a projection). A projection of canonical frame-relative content, not the canonical object itself (Principle 4)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PitchCollectionKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Collection Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a pitch collection, drawn from an open value vocabulary of individuals (scale, mode, maqam, jins, raga, thaat, pathet, mode of limited transposition, pitch-class set, row/series, spectrum collection). Never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PitchCollectionMembership
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Collection Membership"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:membershipCollection ;
@@ -459,11 +460,11 @@ gmeow:PitchCollectionMembership
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PitchExpression
-    a gufo:Category ,
+    a logic:Category ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Expression"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A common superclass for pitch-related quantities that are expressed relative to a TuningSystem. PitchValue and PitchInterval are its subkinds; using a named class avoids anonymous union classes as property domains in generated schemas (Principle 4)."@x-gmeow-english ;
     gmeow:frameCardinality "exactly-one" ;
@@ -471,7 +472,7 @@ gmeow:PitchExpression
     gmeow:requiresFrame gmeow:hasTuningFrame .
 
 gmeow:PitchInterval
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Interval"@x-gmeow-english ;
@@ -482,11 +483,11 @@ gmeow:PitchInterval
     gmeow:requiresFrame gmeow:hasTuningFrame .
 
 gmeow:PitchSpelling
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Spelling"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:spellingPitch ;
@@ -506,31 +507,31 @@ gmeow:PitchSpelling
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PitchSpellingSystem
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Spelling System"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:InformationObject ;
     skos:definition "A named system for spelling frame-relative pitches as note names or symbols — e.g. Common Music Notation staff letters, sargam solfege, Johnston accidentals. A local vocabulary in the music slice; aligned to external notation standards by reference in mappings (Principles 4, 5, 16)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PitchTrajectory
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Trajectory"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "Continuous pitch as content — an ordered set of control points (musical-time × PitchValue) plus an interpolation kind. Models glissandi, gamaka ornaments, UPIC curves, and other continuously varying pitch (stress case 6). Interpolation is solver-evaluated, never reasoner-asserted (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PitchTrajectoryControlPoint
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Trajectory Control Point"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ,
         [
             a owl:Restriction ;
@@ -546,16 +547,16 @@ gmeow:PitchTrajectoryControlPoint
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PitchTrajectoryInterpolationKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Trajectory Interpolation Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The interpolation mode of a PitchTrajectory — linear in cents, exponential, or stochastic-by-reference. A value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PitchValue
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Value"@x-gmeow-english ;
@@ -566,38 +567,38 @@ gmeow:PitchValue
     gmeow:requiresFrame gmeow:hasTuningFrame .
 
 gmeow:PlayingTechnique
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Playing Technique"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A technique used to play or activate a musical instrument — arco, pizzicato, prepared piano, etc. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SchenkerLevel
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Schenker Level"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of Schenkerian structural levels. Never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SegmentKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Segment Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The granularity or functional role of a MusicalSegment, drawn from an open value vocabulary of individuals. Never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SegmentTransformation
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Segment Transformation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:transformationSource ;
@@ -617,26 +618,26 @@ gmeow:SegmentTransformation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SetClassLabel
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Set Class Label"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of pitch-class set labels (Forte names and successors). Never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Spectrum
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Spectrum"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:InformationObject ;
     skos:definition "A first-class information object representing a partial list or recording-region spectrum. Spectra are the source material from which pitch collections may be derived by a solver (fnSpectrumToPitchCollection) — the canonical content of spectralism (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TempoMap
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Tempo Map"@x-gmeow-english ;
@@ -645,54 +646,54 @@ gmeow:TempoMap
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TempoMapKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Tempo Map Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The curve shape of a TempoMap or segment — constant, linear ramp, curve, or measured. A value vocabulary of individuals; never subclassed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TempoMapSegment
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Tempo Map Segment"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "One piece of a piecewise TempoMap — a span together with a tempo-map kind (constant, linear ramp, curve, measured) and the segment-level ratio or expression data needed by the solver (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TimbreDescriptor
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Timbre Descriptor"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A perceived timbre quality applied to a ToneEvent — bright, dark, breathy, gritty, hollow, etc. A value vocabulary of individuals; never subclassed (Principle 9). Contested descriptors are coexisting standpoints, each in its own observation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TimeMapping
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Time Mapping"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A declared mapping between two musical time frames or spans. Tuplets, tempo canons, and tempo maps are kinds of TimeMapping; their arithmetic is solver-evaluated, never reasoner-asserted. MetricModulation and GrooveProfile are modeled as separate constructs (Principles 4, 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TimeMappingKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Time Mapping Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a TimeMapping — tuplet, tempo canon, tempo map, or unsynchronized ad-lib span. A value vocabulary of individuals; never subclassed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ToneEvent
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Tone Event"@x-gmeow-english ;
@@ -701,26 +702,26 @@ gmeow:ToneEvent
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TransformationType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Transformation Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of segment transformation — transposition, inversion, retrograde, augmentation, diminution, phase shift, reaccentuation, octave displacement, timbre reorchestration, spectral compression, ornamentation, quotation, reduction. A value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TraversalConstraint
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Traversal Constraint"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:InformationObject ;
     skos:definition "Mobile form as data: a set of fragments, allowed-successor links (mayFollow), selection rules, and termination rules interpreted by a solver. Graph reachability and termination are solver work; no DL chain axiom is ever asserted over mayFollow (Principles 4, 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TuningSystem
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Tuning System"@x-gmeow-english ;
@@ -734,20 +735,20 @@ gmeow:TuningSystem
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TuningSystemKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Tuning System Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a tuning system, drawn from an open value vocabulary of individuals (equal division, just intonation, well temperament, instrument-relative, etc.). Never subclassed (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Voice
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Voice"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A continuity strand binding MusicalSegments together; may host its own MusicalTimeFrame, TuningSystem, and MetricStructure. The carrier for polymeter, tempo canons, aleatoric boxes, and per-voice tuning/time frames (Principle 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .

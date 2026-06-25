@@ -3,14 +3,15 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Agreement
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "Agreement"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "A mutual understanding between two or more agents that creates obligations or rights, reified as a relator connecting its parties."@x-gmeow-english ;
     skos:example "ex:partnership a gmeow:Agreement ; gmeow:hasParty ex:lillith, ex:vendor ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the teleological bond of being committed toward someone (that is the teleology module's gmeow:Commitment) and for the agreement's title or document; mint a gmeow:Contract when legal enforceability is the point."@x-gmeow-english ;
@@ -19,7 +20,7 @@ gmeow:Agreement
     gmeow:useWhen "Use for the binding object itself — the reified relationship between two or more agents that creates obligations or rights, and the thing on which other relators (Membership, KinRelationship) are founded via gmeow:foundedOn."@x-gmeow-english .
 
 gmeow:AgreementName
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "Agreement Name"@x-gmeow-english ;
@@ -32,7 +33,7 @@ gmeow:AgreementName
     gmeow:useWhen "Use to name an agreement as a first-class appellation — a formal title, short name, or one of several co-equal multilingual versions of a contract or legal instrument."@x-gmeow-english .
 
 gmeow:Contract
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "Contract"@x-gmeow-english ;
@@ -46,7 +47,7 @@ gmeow:Contract
 
 gmeow:foundedOn
     a owl:ObjectProperty ;
-    rdfs:domain gufo:Relator ;
+    rdfs:domain logic:Relator ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "founded on"@x-gmeow-english ;
     rdfs:range gmeow:Agreement ;

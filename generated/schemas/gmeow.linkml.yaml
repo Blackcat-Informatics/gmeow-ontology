@@ -181,6 +181,7 @@ classes:
   ArchaeologicalFindContext:
     class_uri: https://blackcatinformatics.ca/gmeow/ArchaeologicalFindContext
     title: Archaeological Find Context
+    is_a: Observation
     slots:
     - findContextDating
     - findContextEvent
@@ -231,6 +232,7 @@ classes:
   Attestation:
     class_uri: https://blackcatinformatics.ca/gmeow/Attestation
     title: Attestation
+    is_a: JustificationGround
     slots:
     - attestationArtifact
     - attestationPolicy
@@ -278,6 +280,7 @@ classes:
   Availability:
     class_uri: https://blackcatinformatics.ca/gmeow/Availability
     title: Availability
+    is_a: TimeScopedRelation
     slots:
     - availabilityAgent
     - availabilitySlot
@@ -390,6 +393,7 @@ classes:
   Calendar:
     class_uri: https://blackcatinformatics.ca/gmeow/Calendar
     title: Calendar
+    is_a: InformationObject
     slots:
     - calendarMember
     - calendarTimeZone
@@ -543,6 +547,7 @@ classes:
   Commitment:
     class_uri: https://blackcatinformatics.ca/gmeow/Commitment
     title: Commitment
+    is_a: IntentionalMoment
     slots:
     - commitmentBeneficiary
     - committedAgent
@@ -644,6 +649,7 @@ classes:
   ContactPoint:
     class_uri: https://blackcatinformatics.ca/gmeow/ContactPoint
     title: Contact Point
+    is_a: Entity
     slots:
     - contactPointProvider
     - contactPointType
@@ -717,6 +723,7 @@ classes:
   CoordinateMatrix:
     class_uri: https://blackcatinformatics.ca/gmeow/CoordinateMatrix
     title: Coordinate Matrix
+    is_a: Entity
     slots:
     - coordinateMatrixFrame
     - matrixShape
@@ -930,6 +937,7 @@ classes:
   DepictionUsage:
     class_uri: https://blackcatinformatics.ca/gmeow/DepictionUsage
     title: Depiction Usage
+    is_a: Observation
     slots:
     - depictionAudience
     - depictionAuthority
@@ -1100,6 +1108,7 @@ classes:
   Emotion:
     class_uri: https://blackcatinformatics.ca/gmeow/Emotion
     title: Emotion
+    is_a: Entity
     slots:
     - emotionBearer
     - emotionType
@@ -1189,6 +1198,7 @@ classes:
   EtymologicalDerivation:
     class_uri: https://blackcatinformatics.ca/gmeow/EtymologicalDerivation
     title: Etymological Derivation
+    is_a: Observation
     slots:
     - derivationEvidence
     - derivationKind
@@ -1605,6 +1615,7 @@ classes:
   IdentityFacet:
     class_uri: https://blackcatinformatics.ca/gmeow/IdentityFacet
     title: Identity Facet
+    is_a: Observation
     slots:
     - selfAsserted
   ImageRegion:
@@ -1678,18 +1689,21 @@ classes:
   InscriptionReading:
     class_uri: https://blackcatinformatics.ca/gmeow/InscriptionReading
     title: Inscription Reading
+    is_a: Observation
     slots:
     - readingOf
     - readingResult
   InscriptionTranslation:
     class_uri: https://blackcatinformatics.ca/gmeow/InscriptionTranslation
     title: Inscription Translation
+    is_a: Observation
     slots:
     - translationOf
     - translationResult
   InscriptionTransliteration:
     class_uri: https://blackcatinformatics.ca/gmeow/InscriptionTransliteration
     title: Inscription Transliteration
+    is_a: Observation
     slots:
     - transliterationOf
     - transliterationResult
@@ -1809,6 +1823,7 @@ classes:
   KinRelationship:
     class_uri: https://blackcatinformatics.ca/gmeow/KinRelationship
     title: Kin Relationship
+    is_a: Observation
     slots:
     - withinFamily
   KnowledgeLevel:
@@ -1885,6 +1900,7 @@ classes:
   LanguageState:
     class_uri: https://blackcatinformatics.ca/gmeow/LanguageState
     title: Language State
+    is_a: Observation
     slots:
     - stateAuthority
     - stateInterval
@@ -2504,6 +2520,7 @@ classes:
   NotationSystemUsage:
     class_uri: https://blackcatinformatics.ca/gmeow/NotationSystemUsage
     title: Notation System Usage
+    is_a: Observation
     slots:
     - notationUsageInterval
     - notationUsageNotationSystem

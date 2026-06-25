@@ -7,9 +7,9 @@
 # as a SPARQL ASK over the notes module graph (gmeow:scopeModule) under the
 # native Rust slicetest harness (crates/slicetest).
 #
-# Notes is NOT yet #694-migrated: class stereotypes remain gufo:
-# (gufo:Kind, gufo:SubKind, gufo:AbstractIndividualType, gufo:QualityValue),
-# not logic:.
+# Notes is #694-migrated: class stereotypes are logic:
+# (logic:Kind, logic:SubKind, logic:AbstractIndividualType, logic:QualityValue),
+# not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_evidence_span_is_information_object -- asserts gmeow:EvidenceSpan
@@ -56,19 +56,19 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:Note rdfs:subClassOf gmeow:InformationObject . }""" ;
     gmeow:saRationale "gmeow:Note MUST be rdfs:subClassOf gmeow:InformationObject -- the flat-first knowledge-graph card grounded as stored information. Mirrors test_note_is_information_object." .
 
-# --- 2. Annotation is a gufo:Kind owl:Class subclass of gufo:Relator (MUST) --
+# --- 2. Annotation is a logic:Kind owl:Class subclass of logic:Relator (MUST) --
 ex:saAnnotationIsKindRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Annotation a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Relator .
+    gmeow:Annotation a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:Annotation MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator -- the W3C Web Annotation idiom expressed as a gUFO relator binding body, target, and motivation. Mirrors test_annotation_is_relator." .
+    gmeow:saRationale "gmeow:Annotation MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- the W3C Web Annotation idiom expressed as a gUFO relator binding body, target, and motivation. Mirrors test_annotation_is_relator." .
 
 # --- 3. Highlight is a subclass of Annotation (MUST) -------------------------
 ex:saHighlightIsAnnotation a gmeow:StructuralAssertion ;

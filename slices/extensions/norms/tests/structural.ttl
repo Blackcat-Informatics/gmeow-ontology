@@ -7,9 +7,9 @@
 # ASK over the norms module graph (gmeow:scopeModule) under the native Rust
 # slicetest harness (crates/slicetest).
 #
-# Norms is NOT yet #694-migrated: class stereotypes remain gufo:
-# (gufo:Category, gufo:Kind, gufo:SubKind, gufo:SituationType,
-# gufo:AbstractIndividualType, gufo:QualityValue), not logic:.
+# Norms is #694-migrated: class stereotypes are logic:
+# (logic:Category, logic:Kind, logic:SubKind, logic:Situation,
+# logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_graft_axioms_live_extension_side_only — loads slices/core/rights/module.ttl
@@ -33,29 +33,29 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/norms/tests/> .
 
-# --- 1. Norm is a gufo:Category at Entity level, never a Kind or SocialObject subclass (MUST) ---
+# --- 1. Norm is a logic:Category at Entity level, never a Kind or SocialObject subclass (MUST) ---
 ex:saNormIsCategory a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Norm a gufo:Category , owl:Class ;
+    gmeow:Norm a logic:Category , owl:Class ;
         rdfs:subClassOf gmeow:Entity .
     gmeow:NormativeSystem rdfs:subClassOf gmeow:SocialObject .
 }""" ;
-    gmeow:saRationale "gmeow:Norm MUST be an owl:Class typed gufo:Category and a subclass of gmeow:Entity — the IntentionalMoment precedent; gmeow:NormativeSystem MUST be a subclass of gmeow:SocialObject. Mirrors test_norm_is_an_entity_level_category (positive part)." .
+    gmeow:saRationale "gmeow:Norm MUST be an owl:Class typed logic:Category and a subclass of gmeow:Entity — the IntentionalMoment precedent; gmeow:NormativeSystem MUST be a subclass of gmeow:SocialObject. Mirrors test_norm_is_an_entity_level_category (positive part)." .
 
-# --- 2. Norm must NOT be typed gufo:Kind (MUST-NOT) ---
+# --- 2. Norm must NOT be typed logic:Kind (MUST-NOT) ---
 ex:saNormNotKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
-ASK { gmeow:Norm a gufo:Kind . }""" ;
-    gmeow:saRationale "gmeow:Norm MUST NOT be typed gufo:Kind — a Kind would stack identities under the rights trio (OntoUML MixIden gate); the Category is the correct OntoUML sort. Mirrors test_norm_is_an_entity_level_category (mustNot-Kind part)." .
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { gmeow:Norm a logic:Kind . }""" ;
+    gmeow:saRationale "gmeow:Norm MUST NOT be typed logic:Kind — a Kind would stack identities under the rights trio (OntoUML MixIden gate); the Category is the correct OntoUML sort. Mirrors test_norm_is_an_entity_level_category (mustNot-Kind part)." .
 
 # --- 3. Norm must NOT be a subclass of SocialObject (MUST-NOT) ---
 ex:saNormNotSubclassSocialObject a gmeow:StructuralAssertion ;
@@ -208,19 +208,19 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:hasAuthorityLevel a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasAuthorityLevel MUST NOT be owl:FunctionalProperty — in a multi-source merge sources may grade the same norm differently, and those claims coexist (Principle 9, the kernel-axis convention). Mirrors test_authority_levels_are_ordered_on_levels_only (hasAuthorityLevel not-functional part)." .
 
-# --- 18. PrecedenceTenure is a gufo:SituationType subclass of TimeScopedRelation (MUST) ---
+# --- 18. PrecedenceTenure is a logic:Situation subclass of TimeScopedRelation (MUST) ---
 ex:saPrecedenceTenureIsSituationType a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:PrecedenceTenure a gufo:SituationType , owl:Class ;
+    gmeow:PrecedenceTenure a logic:Situation , owl:Class ;
         rdfs:subClassOf gmeow:TimeScopedRelation .
 }""" ;
-    gmeow:saRationale "gmeow:PrecedenceTenure MUST be an owl:Class typed gufo:SituationType and a subclass of gmeow:TimeScopedRelation — the StandpointTenure idiom (Principle 10). Mirrors test_precedence_tenure_is_the_standpoint_tenure_idiom (class structure part)." .
+    gmeow:saRationale "gmeow:PrecedenceTenure MUST be an owl:Class typed logic:Situation and a subclass of gmeow:TimeScopedRelation — the StandpointTenure idiom (Principle 10). Mirrors test_precedence_tenure_is_the_standpoint_tenure_idiom (class structure part)." .
 
 # --- 19. precedenceHigher, precedenceLower, precedenceScope are functional (MUST) ---
 ex:saPrecedenceTenurePropertiesFunctional a gmeow:StructuralAssertion ;
@@ -426,3 +426,52 @@ ASK {
     gmeow:ruleAction   rdfs:subPropertyOf gmeow:prescribedConduct .
 }""" ;
     gmeow:saRationale "gmeow:Rule MUST be rdfs:subClassOf gmeow:Norm and the two subproperty grafts (ruleAssignee/normBearer and ruleAction/prescribedConduct) MUST be asserted in the norms module — zero core churn (#352). Mirrors test_graft_rule_is_a_norm." .
+
+# --- 38. Rubric is a logic:Kind norm for judging (MUST) ----------------------
+ex:saRubricIsNormForJudging a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Rubric a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:Norm , gmeow:SocialObject .
+    gmeow:hasCriterion rdfs:subPropertyOf gmeow:hasPart .
+}""" ;
+    gmeow:saRationale "gmeow:Rubric MUST be a logic:Kind norm/social object for judging, and gmeow:hasCriterion MUST specialize gmeow:hasPart. Replaces the stale gufo:Kind pytest assertion." .
+
+# --- 39. Exemplar is a logic:SubKind CitationAct with polarity seeds (MUST) --
+ex:saExemplarIsCitationActWithPolarity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Exemplar a owl:Class , logic:SubKind ;
+        rdfs:subClassOf gmeow:CitationAct .
+    gmeow:exemplarPolarity a owl:FunctionalProperty .
+    gmeow:polarityPositive   a gmeow:ExemplarPolarity .
+    gmeow:polarityNegative   a gmeow:ExemplarPolarity .
+    gmeow:polarityCautionary a gmeow:ExemplarPolarity .
+}""" ;
+    gmeow:saRationale "gmeow:Exemplar MUST be a logic:SubKind of CitationAct with functional polarity and the three canonical polarity individuals. Replaces the stale gufo:SubKind pytest assertion." .
+
+# --- 40. Persona is a logic:Kind relator with one bearer (MUST) --------------
+ex:saPersonaIsRelatorWithBearer a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Persona a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
+    gmeow:personaBearer a owl:FunctionalProperty ;
+        rdfs:range gmeow:Agent .
+}""" ;
+    gmeow:saRationale "gmeow:Persona MUST be a logic:Kind relator with one bearer. Replaces stale gufo:Kind/Relator pytest assertions." .

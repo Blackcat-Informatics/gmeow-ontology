@@ -5,9 +5,9 @@
 # test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly
 # hand-written in tests/test_gender.py. Each runs as a SPARQL ASK over the
 # gender module graph (gmeow:scopeModule) under the native Rust slicetest
-# harness. Gender is NOT yet #694-migrated, so the class stereotypes are
-# gufo: (gufo:SubKind, gufo:AbstractIndividualType, gufo:QualityValue),
-# not logic:.
+# harness. Gender is #694-migrated, so the class stereotypes are
+# logic: (logic:SubKind, logic:AbstractIndividualType, logic:QualityValue),
+# not gufo:.
 #
 # RETAINED in pytest (not migrated here):
 #   test_displayable_generalised_to_cover_identity — gmeow:displayable is
@@ -21,29 +21,29 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/gender/tests/> .
 
-# --- 1a. IdentityFacet is a subclass of gufo:Relator (MUST) ------------------
+# --- 1a. IdentityFacet is a subclass of logic:Relator (MUST) ------------------
 ex:saIdentityFacetIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:IdentityFacet a owl:Class ;
-        rdfs:subClassOf gufo:Relator .
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:IdentityFacet MUST be an owl:Class and subClassOf gufo:Relator (the NameUsage idiom; Endurant-compatible so it bears displayable/wasAttributedTo without clashing with Entity-domained props). Mirrors test_identity_facet_is_a_relator (positive half)." .
+    gmeow:saRationale "gmeow:IdentityFacet MUST be an owl:Class and subClassOf logic:Relator (the NameUsage idiom; Endurant-compatible so it bears displayable/wasAttributedTo without clashing with Entity-domained props). Mirrors test_identity_facet_is_a_relator (positive half)." .
 
-# --- 1b. IdentityFacet is NOT a subclass of gufo:Situation (MUST-NOT) --------
+# --- 1b. IdentityFacet is NOT a subclass of logic:Situation (MUST-NOT) --------
 ex:saIdentityFacetNotSituation a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:IdentityFacet rdfs:subClassOf gufo:Situation . }""" ;
-    gmeow:saRationale "gmeow:IdentityFacet MUST NOT be grounded as a gufo:Situation (disjoint from Endurant in gUFO). Mirrors test_identity_facet_is_a_relator (negative half)." .
+ASK { gmeow:IdentityFacet rdfs:subClassOf logic:Situation . }""" ;
+    gmeow:saRationale "gmeow:IdentityFacet MUST NOT be grounded as a logic:Situation (disjoint from Endurant in gUFO). Mirrors test_identity_facet_is_a_relator (negative half)." .
 
 # --- 1c. GenderIdentity is a subclass of IdentityFacet (MUST) ----------------
 ex:saGenderIdentitySubclassIdentityFacet a gmeow:StructuralAssertion ;
@@ -68,14 +68,14 @@ ex:saValueVocabsSubclassQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Gender rdfs:subClassOf gufo:QualityValue .
-    gmeow:GenderExpressionStyle rdfs:subClassOf gufo:QualityValue .
-    gmeow:SexAssignedAtBirth rdfs:subClassOf gufo:QualityValue .
+    gmeow:Gender rdfs:subClassOf logic:QualityValue .
+    gmeow:GenderExpressionStyle rdfs:subClassOf logic:QualityValue .
+    gmeow:SexAssignedAtBirth rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:Gender, gmeow:GenderExpressionStyle and gmeow:SexAssignedAtBirth MUST each be subClassOf gufo:QualityValue — they are open value vocabularies of individuals, never per-value Person subclasses (Principle 9). Mirrors test_gender_values_are_individuals_not_subclasses (class assertions)." .
+    gmeow:saRationale "gmeow:Gender, gmeow:GenderExpressionStyle and gmeow:SexAssignedAtBirth MUST each be subClassOf logic:QualityValue — they are open value vocabularies of individuals, never per-value Person subclasses (Principle 9). Mirrors test_gender_values_are_individuals_not_subclasses (class assertions)." .
 
 # --- 2b. Core Gender seed individuals exist (MUST) ---------------------------
 ex:saGenderSeedIndividuals a gmeow:StructuralAssertion ;

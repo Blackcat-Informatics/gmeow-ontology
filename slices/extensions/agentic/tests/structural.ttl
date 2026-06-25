@@ -7,8 +7,8 @@
 # runs as a SPARQL ASK over the agentic module graph (gmeow:scopeModule) under
 # the native Rust slicetest harness (crates/slicetest).
 #
-# Agentic is NOT #694-migrated: class stereotypes remain gufo:
-# (gufo:EventType), not logic:.
+# Agentic is #694-migrated: class stereotypes are logic:
+# (logic:Event), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_double_valued_toolcall_violates_the_closed_world_twins -- run_shacl()
@@ -37,14 +37,14 @@ ex:saToolCallFollowsModelInvocationIdiom a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ToolCall a owl:Class , gufo:EventType ;
+    gmeow:ToolCall a owl:Class , logic:Event ;
         rdfs:subClassOf gmeow:Activity .
 }""" ;
-    gmeow:saRationale "gmeow:ToolCall MUST be an owl:Class typed gufo:EventType and a subclass of gmeow:Activity -- the ModelInvocation idiom one level down (#390). Mirrors test_toolcall_follows_the_modelinvocation_idiom." .
+    gmeow:saRationale "gmeow:ToolCall MUST be an owl:Class typed logic:Event and a subclass of gmeow:Activity -- the ModelInvocation idiom one level down (#390). Mirrors test_toolcall_follows_the_modelinvocation_idiom." .
 
 # --- 2. Object-property ends: calledByInvocation and usedTool (MUST) ---------
 ex:saAgenticObjectPropertiesEndsAndFunctionality a gmeow:StructuralAssertion ;

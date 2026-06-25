@@ -5,8 +5,8 @@
 # test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly hand-written in
 # tests/test_procedures.py. Each assertion runs as a SPARQL ASK over the procedures
 # module graph (gmeow:scopeModule) under the native Rust harness (crates/slicetest).
-# Procedures is NOT yet #694-migrated, so class stereotypes remain gufo:
-# (gufo:Kind, gufo:EventType, gufo:AbstractIndividualType, gufo:QualityValue), not logic:.
+# Procedures is #694-migrated, so class stereotypes are logic:
+# (logic:Kind, logic:Event, logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_ingestion_procedure_has_six_steps — counts g.objects() for hasProcedureStep;
@@ -17,75 +17,75 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/procedures/tests/> .
 
-# --- 1. Procedure is an owl:Class typed gufo:Kind and subclass of InformationObject (MUST) ---
+# --- 1. Procedure is an owl:Class typed logic:Kind and subclass of InformationObject (MUST) ---
 ex:saProcedureIsInformationObject a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Procedure a owl:Class , gufo:Kind ;
+    gmeow:Procedure a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:Procedure MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:InformationObject — a procedure is the prescriptive-spec (plan) side of the plan ⟂ execution de-conflation (#226). Mirrors test_procedure_is_information_object." .
+    gmeow:saRationale "gmeow:Procedure MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject — a procedure is the prescriptive-spec (plan) side of the plan ⟂ execution de-conflation (#226). Mirrors test_procedure_is_information_object." .
 
-# --- 2. ProcedureStep is an owl:Class typed gufo:Kind and subclass of InformationObject (MUST) ---
+# --- 2. ProcedureStep is an owl:Class typed logic:Kind and subclass of InformationObject (MUST) ---
 ex:saProcedureStepIsInformationObject a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ProcedureStep a owl:Class , gufo:Kind ;
+    gmeow:ProcedureStep a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:ProcedureStep MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:InformationObject — procedure steps are plan-level specifications, not execution occurrences (#226). Mirrors test_procedure_step_is_information_object." .
+    gmeow:saRationale "gmeow:ProcedureStep MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject — procedure steps are plan-level specifications, not execution occurrences (#226). Mirrors test_procedure_step_is_information_object." .
 
-# --- 3. Execution is an owl:Class typed gufo:EventType and subclass of Event (MUST) ---
+# --- 3. Execution is an owl:Class typed logic:Event and subclass of Event (MUST) ---
 ex:saExecutionIsEvent a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Execution a owl:Class , gufo:EventType ;
+    gmeow:Execution a owl:Class , logic:Event ;
         rdfs:subClassOf gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:Execution MUST be an owl:Class typed gufo:EventType and a subclass of gmeow:Event — an execution is the occurrence (plan ⟂ execution de-conflation) that enacts a Procedure (#226). Mirrors test_execution_is_event." .
+    gmeow:saRationale "gmeow:Execution MUST be an owl:Class typed logic:Event and a subclass of gmeow:Event — an execution is the occurrence (plan ⟂ execution de-conflation) that enacts a Procedure (#226). Mirrors test_execution_is_event." .
 
-# --- 4. ControlFlow is an owl:Class typed gufo:Kind and subclass of gufo:Relator (MUST) ---
+# --- 4. ControlFlow is an owl:Class typed logic:Kind and subclass of logic:Relator (MUST) ---
 ex:saControlFlowIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ControlFlow a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Relator .
+    gmeow:ControlFlow a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:ControlFlow MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator — control-flow is a reified relator connecting two ProcedureSteps following the Participation idiom (#226). Mirrors test_control_flow_is_relator." .
+    gmeow:saRationale "gmeow:ControlFlow MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator — control-flow is a reified relator connecting two ProcedureSteps following the Participation idiom (#226). Mirrors test_control_flow_is_relator." .
 
-# --- 5. DataFlow is an owl:Class typed gufo:Kind and subclass of gufo:Relator (MUST) ---
+# --- 5. DataFlow is an owl:Class typed logic:Kind and subclass of logic:Relator (MUST) ---
 ex:saDataFlowIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:DataFlow a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Relator .
+    gmeow:DataFlow a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:DataFlow MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator — data-flow is a reified relator carrying entities between ProcedureSteps (#226). Mirrors test_data_flow_is_relator." .
+    gmeow:saRationale "gmeow:DataFlow MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator — data-flow is a reified relator carrying entities between ProcedureSteps (#226). Mirrors test_data_flow_is_relator." .
 
 # --- 6a. ProcedureType seed individuals are typed gmeow:ProcedureType (MUST) ---
 ex:saProcedureTypeValuesAreIndividuals a gmeow:StructuralAssertion ;

@@ -7,8 +7,8 @@
 # the tags module graph (gmeow:scopeModule) under the native Rust slicetest
 # harness (crates/slicetest).
 #
-# This slice has NOT been #694-migrated so class stereotypes remain gufo:
-# (gufo:Kind, gufo:Relator), not logic:.
+# This slice is #694-migrated, so class stereotypes are logic:
+# (logic:Kind, logic:Relator), not gufo:.
 #
 # RETAINED in pytest (dynamic combinatorial sweep):
 #   test_no_bridge_among_has_tag_is_about_and_rdf_type — iterates
@@ -42,15 +42,15 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:TagScheme rdfs:subClassOf gmeow:InformationObject . }""" ;
     gmeow:saRationale "gmeow:TagScheme MUST be a subclass of gmeow:InformationObject — a tag scheme is a namespaced information object. Mirrors test_tag_is_information_object (TagScheme arm)." .
 
-# --- 2. Tagging is a subclass of gufo:Relator (MUST) -------------------------
+# --- 2. Tagging is a subclass of logic:Relator (MUST) -------------------------
 ex:saTaggingSubclassRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:Tagging rdfs:subClassOf gufo:Relator . }""" ;
-    gmeow:saRationale "gmeow:Tagging MUST be a subclass of gufo:Relator — a reified tagging act is a relator mediating tagged resource, tag, and tagger. Mirrors test_tagging_is_a_relator." .
+ASK { gmeow:Tagging rdfs:subClassOf logic:Relator . }""" ;
+    gmeow:saRationale "gmeow:Tagging MUST be a subclass of logic:Relator — a reified tagging act is a relator mediating tagged resource, tag, and tagger. Mirrors test_tagging_is_a_relator." .
 
 # --- 3a. Seed tag individuals are typed gmeow:Tag (MUST) ----------------------
 ex:saTagSeedIndividualsTyped a gmeow:StructuralAssertion ;

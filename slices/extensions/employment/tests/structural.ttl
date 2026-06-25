@@ -7,17 +7,12 @@
 # employment module graph (gmeow:scopeModule) under the native Rust slicetest
 # harness (crates/slicetest).
 #
-# Employment is NOT yet #694-migrated, so class stereotypes remain gufo:
-# (gufo:AbstractIndividualType, gufo:SubKind, gufo:QualityValue), not logic:.
+# Employment is #694-migrated, so class stereotypes are logic:
+# (logic:AbstractIndividualType, logic:SubKind, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
-#   test_employment_is_gufo_grounded — includes gmeow:Membership rdfs:subClassOf
-#     gufo:Relator, which is asserted in the memberships/relator slice, not here;
-#     a scopeModule cell would silently miss the cross-slice triple.
 #   test_employment_event_types_are_values — gmeow:eventTypeHiring etc. are defined
 #     in slices/core/events/module.ttl, not here; cross-slice subjects.
-#   test_founded_on_links_relator_to_agreement — gmeow:foundedOn is defined in
-#     slices/core/agreements/module.ttl; cross-slice subject.
 #   test_contested_employment_coexists — uses run_shacl() against an external
 #     fixture file; a SHACL conformance check, not a TBox ASK.
 #   test_withdrawn_employment_suppressed_not_deleted — uses run_shacl() against
@@ -31,19 +26,33 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/employment/tests/> .
 
+# --- 0. Employment is a Membership subkind (MUST) ----------------------------
+ex:saEmploymentIsMembershipSubKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Employment a owl:Class , logic:SubKind ;
+        rdfs:subClassOf gmeow:Membership .
+}""" ;
+    gmeow:saRationale "gmeow:Employment MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Membership. Replaces the local half of the former whole-graph employment grounding pytest check." .
+
 # --- 1. EmploymentType is an AbstractIndividualType value vocabulary (MUST) ---
 ex:saEmploymentTypeIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:EmploymentType a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:EmploymentType a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:EmploymentType MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — employment kind is a value vocabulary of individuals, never a subclass taxonomy (Principle 9). Mirrors test_employment_type_is_value_not_subclass (positive class half)." .
+    gmeow:saRationale "gmeow:EmploymentType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — employment kind is a value vocabulary of individuals, never a subclass taxonomy (Principle 9). Mirrors test_employment_type_is_value_not_subclass (positive class half)." .
 
 # --- 2. Core EmploymentType seed individuals exist (MUST) ---------------------
 ex:saEmploymentTypeSeedsExist a gmeow:StructuralAssertion ;
@@ -75,14 +84,14 @@ ex:saSeniorityLevelIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SeniorityLevel a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:SeniorityLevel a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SeniorityLevel MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — seniority rank is a value vocabulary of individuals, never an Employment subclass (Principle 9). Mirrors test_seniority_is_value_not_subclass (positive class half)." .
+    gmeow:saRationale "gmeow:SeniorityLevel MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — seniority rank is a value vocabulary of individuals, never an Employment subclass (Principle 9). Mirrors test_seniority_is_value_not_subclass (positive class half)." .
 
 # --- 5. SeniorityLevel seed individuals exist (MUST) -------------------------
 ex:saSeniorityLevelSeedsExist a gmeow:StructuralAssertion ;

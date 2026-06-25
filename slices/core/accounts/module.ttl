@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AccountStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Account Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The usage status of an account from its holder's standpoint — a VALUE vocabulary (active, dormant, historical, …); open set."@x-gmeow-english ;
     skos:example "ex:accountStatusHistorical a gmeow:AccountStatus ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the underlying service's liveness (use gmeow:ServiceStatus) and avoid per-status subclasses; statuses are individuals on an open value vocabulary."@x-gmeow-english ;
@@ -20,7 +21,7 @@ gmeow:AccountStatus
     gmeow:useWhen "Use as the value vocabulary for an account's usage state from the holder's standpoint — the open set (active, dormant, historical, …) an OnlineAccount declares through gmeow:accountStatus."@x-gmeow-english .
 
 gmeow:OnlineAccount
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Online Account"@x-gmeow-english ;
@@ -33,7 +34,7 @@ gmeow:OnlineAccount
     gmeow:useWhen "Use for an agent's identity-bearing account on an online service — a social profile, code-forge login, email account, or decentralized identity — modelled as the information object that carries the handle, service link, and account status."@x-gmeow-english .
 
 gmeow:OnlineService
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Online Service"@x-gmeow-english ;
@@ -46,11 +47,11 @@ gmeow:OnlineService
     gmeow:useWhen "Use for the platform or service an account lives on — a social network, code forge, email provider, or federated instance — modelled as a first-class object that carries its own liveness and shutdown history."@x-gmeow-english .
 
 gmeow:ServiceStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Service Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The liveness status of an online service — a VALUE vocabulary (live, shut-down, …); open set."@x-gmeow-english ;
     skos:example "ex:serviceStatusLive a gmeow:ServiceStatus ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for an account's usage state (use gmeow:AccountStatus) and avoid minting per-status subclasses; statuses are individuals on an open value vocabulary."@x-gmeow-english ;

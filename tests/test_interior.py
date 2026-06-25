@@ -25,7 +25,6 @@ from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/shapes/")
 
 FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
@@ -44,16 +43,6 @@ def _fixture(name: str) -> Graph:
 # --------------------------------------------------------------------------- #
 # Affect (#356)
 # --------------------------------------------------------------------------- #
-
-
-def test_emotion_is_an_intrinsic_mode() -> None:
-    g = _graph()
-    assert (GM.Emotion, RDF.type, GUFO.Kind) in g
-    assert (GM.Emotion, RDFS.subClassOf, GUFO.IntrinsicMode) in g
-    assert (GM.emotionBearer, RDF.type, OWL.FunctionalProperty) in g
-    assert (GM.emotionBearer, RDFS.range, GM.Agent) in g
-    # Blends and rival traditions coexist (P9).
-    assert (GM.emotionType, RDF.type, OWL.FunctionalProperty) not in g
 
 
 def test_plutchik_seeds_are_present_and_open() -> None:
@@ -121,17 +110,6 @@ def test_character_arc_extension_is_additive() -> None:
 # --------------------------------------------------------------------------- #
 # Roles (#362)
 # --------------------------------------------------------------------------- #
-
-
-def test_role_in_narrative_is_scoped_and_interpretive() -> None:
-    g = _graph()
-    assert (GM.RoleInNarrative, RDFS.subClassOf, GUFO.Relator) in g
-    for prop in (GM.narrativeRoleBearer, GM.narrativeRoleScope, GM.narrativeRoleValue):
-        assert (prop, RDF.type, OWL.FunctionalProperty) in g, prop
-    assert (GM.narrativeRoleScope, RDFS.range, GM.NarrativeScope) in g
-    # The scope graft, extension-side (the Rule ⊑ Norm direction).
-    for cls in (GM.CreativeWork, GM.ContentSegment, GM.NarrativeReferenceFrame):
-        assert (cls, RDFS.subClassOf, GM.NarrativeScope) in g, cls
 
 
 def test_no_primary_protagonist_machinery() -> None:

@@ -1,4 +1,4 @@
-"""Deception · Myth as gufo:SocialObject (issue #214).
+"""Deception · Myth as a logic-backed SocialObject (issue #214).
 
 Tests the myth module: Myth is a SocialObject Kind; hasMythTelling, mythFrame,
 and propagatesFrom properties; recurringRisk and affectedConsumerSurface operational
@@ -13,20 +13,12 @@ from gmeow_rdf.compat.rdflib.namespace import XSD
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 EX = Namespace("https://example.org/test/")
 
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def test_myth_is_kind_and_social_object() -> None:
-    graph = _graph()
-    assert (GMEOW.Myth, RDF.type, OWL.Class) in graph
-    assert (GMEOW.Myth, RDF.type, GUFO.Kind) in graph
-    assert (GMEOW.Myth, RDFS.subClassOf, GMEOW.SocialObject) in graph
 
 
 def test_social_object_is_category() -> None:

@@ -3,8 +3,8 @@
 """Structural + closed-world guards for the inference module (issue #581).
 
 Exercises Peirce's tetrad as the epistemic face of logic:: the endurant/occurrent
-split (InferenceProcess ⊑ MentalProcess vs InferenceCommitment ⊑ gufo:Relator), the
-exactly-one-gUFO-master invariant, the property domains/ranges/characteristics, the
+split (InferenceProcess ⊑ MentalProcess vs InferenceCommitment ⊑ logic:Relator), the
+exactly-one-logic-master invariant, the property domains/ranges/characteristics, the
 mode + defeater value vocabularies, and the SHACL shapes (a well-formed commitment
 conforms; a malformed one — premise == conclusion, self-competesWith — is flagged).
 """

@@ -31,7 +31,6 @@ from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 
 
 def _graph() -> Graph:

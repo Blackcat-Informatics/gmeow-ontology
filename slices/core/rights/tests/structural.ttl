@@ -7,9 +7,9 @@
 # module graph (gmeow:scopeModule) under the native Rust slicetest harness
 # (crates/slicetest).
 #
-# Rights is NOT yet #694-migrated, so class stereotypes are gufo:
-# (gufo:Kind, gufo:SubKind, gufo:Category, gufo:AbstractIndividualType,
-# gufo:QualityValue, gufo:Relator), NOT logic:.
+# Rights is #694-migrated, so class stereotypes are logic:
+# (logic:Kind, logic:SubKind, logic:Category, logic:AbstractIndividualType,
+# logic:QualityValue, logic:Relator), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_expanded_action_vocabulary_is_seeded — asserts len(actions) >= 45, a
@@ -44,32 +44,32 @@ ex:saCoreRelatorsGrounded a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:RightsStatement a owl:Class , gufo:SubKind .
-    gmeow:Copyright        a owl:Class , gufo:Kind .
-    gmeow:Trademark        a owl:Class , gufo:Kind .
-    gmeow:Mark             a owl:Class , gufo:Kind .
-    gmeow:Rule             a owl:Class , gufo:Category .
-    gmeow:Permission       a owl:Class , gufo:Kind .
-    gmeow:Prohibition      a owl:Class , gufo:Kind .
-    gmeow:Duty             a owl:Class , gufo:Kind .
-    gmeow:License          a owl:Class , gufo:SubKind .
+    gmeow:RightsStatement a owl:Class , logic:SubKind .
+    gmeow:Copyright        a owl:Class , logic:Kind .
+    gmeow:Trademark        a owl:Class , logic:Kind .
+    gmeow:Mark             a owl:Class , logic:Kind .
+    gmeow:Rule             a owl:Class , logic:Category .
+    gmeow:Permission       a owl:Class , logic:Kind .
+    gmeow:Prohibition      a owl:Class , logic:Kind .
+    gmeow:Duty             a owl:Class , logic:Kind .
+    gmeow:License          a owl:Class , logic:SubKind .
 }""" ;
-    gmeow:saRationale "All nine core rights classes MUST be asserted as owl:Class with their gufo: stereotype — RightsStatement/License as gufo:SubKind, Copyright/Trademark/Mark/Permission/Prohibition/Duty as gufo:Kind, Rule as gufo:Category. Mirrors test_core_relators_are_grounded (class + stereo part)." .
+    gmeow:saRationale "All nine core rights classes MUST be asserted as owl:Class with their logic: stereotype — RightsStatement/License as logic:SubKind, Copyright/Trademark/Mark/Permission/Prohibition/Duty as logic:Kind, Rule as logic:Category. Mirrors test_core_relators_are_grounded (class + stereo part)." .
 
-# --- 2. RightsStatement is a subclass of gufo:Relator (MUST) ------------------
+# --- 2. RightsStatement is a subclass of logic:Relator (MUST) ------------------
 ex:saRightsStatementSubclassRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:RightsStatement rdfs:subClassOf gufo:Relator .
+    gmeow:RightsStatement rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:RightsStatement MUST be a subclass of gufo:Relator — it reifies the binding of an IP right to its subject as a relator. Mirrors test_core_relators_are_grounded (RightsStatement→gufo:Relator part)." .
+    gmeow:saRationale "gmeow:RightsStatement MUST be a subclass of logic:Relator — it reifies the binding of an IP right to its subject as a relator. Mirrors test_core_relators_are_grounded (RightsStatement→logic:Relator part)." .
 
 # --- 3. RightsStatement is a subclass of gmeow:Observation (MUST) -------------
 ex:saRightsStatementSubclassObservation a gmeow:StructuralAssertion ;
@@ -140,20 +140,20 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:Permission, gmeow:Prohibition, and gmeow:Duty MUST be declared pairwise disjoint via owl:AllDisjointClasses — no rights rule may simultaneously grant and forbid an action (the ODRL closed-world rule model, #21). Mirrors test_deontic_trio_is_disjoint." .
 
-# --- 9. Value vocabularies are subclasses of gufo:QualityValue (MUST) ---------
+# --- 9. Value vocabularies are subclasses of logic:QualityValue (MUST) ---------
 ex:saValueVocabulariesAreQualityValues a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:RightsAction     rdfs:subClassOf gufo:QualityValue .
-    gmeow:LicenseFamily    rdfs:subClassOf gufo:QualityValue .
-    gmeow:TrademarkStatus  rdfs:subClassOf gufo:QualityValue .
-    gmeow:CopyrightStatus  rdfs:subClassOf gufo:QualityValue .
+    gmeow:RightsAction     rdfs:subClassOf logic:QualityValue .
+    gmeow:LicenseFamily    rdfs:subClassOf logic:QualityValue .
+    gmeow:TrademarkStatus  rdfs:subClassOf logic:QualityValue .
+    gmeow:CopyrightStatus  rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:RightsAction, LicenseFamily, TrademarkStatus, and CopyrightStatus MUST all be subclasses of gufo:QualityValue — they are open individuals-based value vocabularies, never subclassed per value (Principle 9, #21). Mirrors test_value_vocabularies_are_open_individuals (subClassOf part)." .
+    gmeow:saRationale "gmeow:RightsAction, LicenseFamily, TrademarkStatus, and CopyrightStatus MUST all be subclasses of logic:QualityValue — they are open individuals-based value vocabularies, never subclassed per value (Principle 9, #21). Mirrors test_value_vocabularies_are_open_individuals (subClassOf part)." .
 
 # --- 10. One seed individual from each value vocabulary exists (MUST) ----------
 ex:saValueVocabularySeedIndividualsExist a gmeow:StructuralAssertion ;

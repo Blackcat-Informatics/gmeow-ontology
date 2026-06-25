@@ -3,14 +3,15 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Profile
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "Profile"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:InformationObject ;
     skos:definition "A closed descriptor schema for an open-but-structured facet. A Profile self-describes the properties that constitute the facet and the open value vocabularies from which their values are drawn, enabling extensibility-by-construction."@x-gmeow-english ;
     skos:example "ex:profileReferenceFrame a gmeow:Profile ; gmeow:profileAppliesTo gmeow:ReferenceFrame ."@x-gmeow-english ;

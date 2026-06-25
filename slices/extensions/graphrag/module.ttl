@@ -4,9 +4,10 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 gmeow:Community
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Community"@x-gmeow-english ;
@@ -15,7 +16,7 @@ gmeow:Community
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:CommunitySummary
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Community Summary"@x-gmeow-english ;
@@ -29,7 +30,7 @@ gmeow:CommunitySummary
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Corpus
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Corpus"@x-gmeow-english ;
@@ -38,16 +39,16 @@ gmeow:Corpus
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:DistanceMetric
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Distance Metric"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of vector similarity/distance functions."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Embedding
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Embedding"@x-gmeow-english ;
@@ -71,7 +72,7 @@ gmeow:Embedding
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ExtractedEntity
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Extracted Entity"@x-gmeow-english ;
@@ -80,7 +81,7 @@ gmeow:ExtractedEntity
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ExtractedRelationship
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Extracted Relationship"@x-gmeow-english ;
@@ -99,16 +100,16 @@ gmeow:ExtractedRelationship
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:IndexAlgorithm
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Index Algorithm"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of vector-index structures."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:RetrievalEvent
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Retrieval Event"@x-gmeow-english ;
@@ -122,7 +123,7 @@ gmeow:RetrievalEvent
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:VectorIndex
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Vector Index"@x-gmeow-english ;

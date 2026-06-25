@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the contacts slice. Each assertion runs
+# as a SPARQL ASK over contacts/module.ttl under the native Rust slicetest
+# harness.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/contacts/tests/> .
+
+ex:saInterpersonalRelationshipIsRelatorKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:InterpersonalRelationship a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:InterpersonalRelationship MUST be a logic:Kind subclass of logic:Relator, not a Situation. Replaces the stale temporal pytest cross-slice gufo:Relator check." .

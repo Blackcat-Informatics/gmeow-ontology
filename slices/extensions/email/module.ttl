@@ -4,10 +4,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Attachment
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Attachment"@x-gmeow-english ;
@@ -16,7 +17,7 @@ gmeow:Attachment
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:AuthenticationResult
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Authentication Result"@x-gmeow-english ;
@@ -25,7 +26,7 @@ gmeow:AuthenticationResult
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:BodyPart
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Body Part"@x-gmeow-english ;
@@ -34,7 +35,7 @@ gmeow:BodyPart
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:BodyValue
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Body Value"@x-gmeow-english ;
@@ -43,34 +44,34 @@ gmeow:BodyValue
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:CalendarMethod
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Calendar Method"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The iCalendar METHOD of a calendar component carried by an email — a VALUE vocabulary (individuals, never subclasses). Aligned to RFC 5546/iTIP: REQUEST, REPLY, CANCEL, PUBLISH, COUNTER, DECLINECOUNTER, ADD, REFRESH."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ContentDisposition
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Content Disposition"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The presentation disposition of a body part — inline (displayed as part of the message body) or attachment (presented as a separate file). An open value vocabulary (individuals, never subclasses)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ContentTransferEncoding
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Content Transfer Encoding"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The MIME content-transfer-encoding of a body part — the mechanism by which the part's content is encoded for transport. An open value vocabulary (individuals, never subclasses)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:DKIMSignature
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "DKIM Signature"@x-gmeow-english ;
@@ -79,7 +80,7 @@ gmeow:DKIMSignature
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:EmailMessage
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Email Message"@x-gmeow-english ;
@@ -88,7 +89,7 @@ gmeow:EmailMessage
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:EmailPatchDiff
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Email Patch Diff"@x-gmeow-english ;
@@ -97,7 +98,7 @@ gmeow:EmailPatchDiff
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InlinePart
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Inline Part"@x-gmeow-english ;
@@ -106,7 +107,7 @@ gmeow:InlinePart
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Mailbox
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Mailbox"@x-gmeow-english ;
@@ -115,7 +116,7 @@ gmeow:Mailbox
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MailboxResidence
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Mailbox Residence"@x-gmeow-english ;
@@ -124,7 +125,7 @@ gmeow:MailboxResidence
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MailingList
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Mailing List"@x-gmeow-english ;
@@ -133,7 +134,7 @@ gmeow:MailingList
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Message
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Message"@x-gmeow-english ;
@@ -142,7 +143,7 @@ gmeow:Message
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MessageHeader
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Message Header"@x-gmeow-english ;
@@ -151,29 +152,29 @@ gmeow:MessageHeader
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MessageKeyword
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Message Keyword"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A flag/keyword applied to a message (IMAP flag or JMAP keyword) such as seen, flagged, answered, draft, forwarded, or junk."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MessageKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Message Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The behavioral or report kind of a message — a VALUE vocabulary (individuals, never subclasses). Categories can overlap (a bounce is also auto-generated; a read receipt is also auto-generated). Principle 9: no single category wins."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MessageParticipant
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Message Participant"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:participantMessage ;
@@ -193,16 +194,16 @@ gmeow:MessageParticipant
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MessageParticipantRole
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Message Participant Role"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The role an address occurrence plays in a message header or envelope."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MultipartBodyPart
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Multipart Body Part"@x-gmeow-english ;
@@ -211,25 +212,25 @@ gmeow:MultipartBodyPart
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MultipartType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Multipart Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The MIME multipart subtype of a MultipartBodyPart — an open value vocabulary (individuals, never subclasses). Standard subtypes are seeded; new subtypes (e.g. form-data) are added as individuals."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:RelayHop
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Relay Hop"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Event ;
+    rdfs:subClassOf logic:Event ;
     skos:definition "One hop in a message's delivery path, recorded by a Received header: a relaying server, the host it received from, a server timestamp, and the protocol used."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Thread
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Thread"@x-gmeow-english ;

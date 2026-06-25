@@ -13,10 +13,10 @@
 # ASK FINDS the forbidden pattern across every triple position, so it quantifies
 # over the WHOLE module graph rather than a hand-listed set.
 #
-# NAMESPACE: the awareness module is NOT yet migrated under #694 — its value
-# classes are typed with the gUFO meta-vocabulary (gufo:AbstractIndividualType,
-# gufo:QualityValue, gufo:SituationType). These cells mirror the module's CURRENT
-# gufo: shape, not a normalized form.
+# NAMESPACE: the awareness module is migrated under #694 — its value
+# classes are typed with the canonical logic meta-vocabulary (logic:AbstractIndividualType,
+# logic:QualityValue, logic:Situation). These cells mirror the module's CURRENT
+# logic: shape, not a normalized form.
 #
 # TWO tests stay in tests/test_awareness.py (genuinely unreachable by this
 # module-scoped harness):
@@ -48,21 +48,21 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/awareness/tests/> .
 
-# --- 1. Value classes are gufo:AbstractIndividualType ⊑ QualityValue (MUST) ---
+# --- 1. Value classes are logic:AbstractIndividualType ⊑ QualityValue (MUST) ---
 ex:saVocabClassesAreAbstractIndividualTypes a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:AwarenessMode  a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
-    gmeow:AwarenessLevel a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:AwarenessMode  a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+    gmeow:AwarenessLevel a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:AwarenessMode and gmeow:AwarenessLevel MUST each be an owl:Class, a gufo:AbstractIndividualType, and a subClassOf gufo:QualityValue — the value-vocabulary genus shared with gmeow:ContentOrigin (Principle 9, no overtyping). Mirrors test_vocab_classes_are_abstract_individual_types." .
+    gmeow:saRationale "gmeow:AwarenessMode and gmeow:AwarenessLevel MUST each be an owl:Class, a logic:AbstractIndividualType, and a subClassOf logic:QualityValue — the value-vocabulary genus shared with gmeow:ContentOrigin (Principle 9, no overtyping). Mirrors test_vocab_classes_are_abstract_individual_types." .
 
 # --- 2. All 17 awareness-mode individuals are seeded (MUST) -------------------
 ex:saModeIndividualsAreSeeded a gmeow:StructuralAssertion ;
@@ -206,14 +206,14 @@ ex:saAwarenessTenureTimeScopedSituation a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:AwarenessTenure a owl:Class , gufo:SituationType ;
+    gmeow:AwarenessTenure a owl:Class , logic:Situation ;
         rdfs:subClassOf gmeow:TimeScopedRelation .
 }""" ;
-    gmeow:saRationale "gmeow:AwarenessTenure MUST be an owl:Class, a gufo:SituationType, and an rdfs:subClassOf gmeow:TimeScopedRelation — the temporal reification seam. Mirrors test_awareness_tenure_is_a_time_scoped_situation." .
+    gmeow:saRationale "gmeow:AwarenessTenure MUST be an owl:Class, a logic:Situation, and an rdfs:subClassOf gmeow:TimeScopedRelation — the temporal reification seam. Mirrors test_awareness_tenure_is_a_time_scoped_situation." .
 
 # --- 9. No reality or truth bit (MUST-NOT) -----------------------------------
 ex:saNoRealityOrTruthBit a gmeow:StructuralAssertion ;

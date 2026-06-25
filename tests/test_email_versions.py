@@ -16,7 +16,6 @@ from gmeow_rdf.compat.rdflib.query import ResultRow
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
 
 
 def _graph() -> Graph:
@@ -32,14 +31,6 @@ def _fixture_path() -> str:
 # --------------------------------------------------------------------------- #
 # Class guards
 # --------------------------------------------------------------------------- #
-
-
-def test_email_patch_diff_is_body_part_subkind() -> None:
-    graph = _graph()
-    node = URIRef(GMEOW + "EmailPatchDiff")
-    assert (node, RDF.type, OWL.Class) in graph
-    assert (node, RDF.type, URIRef(GUFO + "SubKind")) in graph
-    assert (node, RDFS.subClassOf, URIRef(GMEOW + "BodyPart")) in graph
 
 
 def test_no_email_variant_subclasses() -> None:

@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the documents slice. Each assertion runs
+# as a SPARQL ASK over documents/module.ttl under the native Rust slicetest
+# harness.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/documents/tests/> .
+
+ex:saCreativeWorkIsCategory a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:CreativeWork a owl:Class , logic:Category .
+}""" ;
+    gmeow:saRationale "gmeow:CreativeWork MUST be an owl:Class typed logic:Category in the WEMI spine. Replaces the stale gufo:Category pytest assertion." .
+
+ex:saContentSegmentTypeValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ContentSegmentType rdfs:subClassOf logic:QualityValue .
+    gmeow:segmentTypeChapter     a gmeow:ContentSegmentType .
+    gmeow:segmentTypeSection     a gmeow:ContentSegmentType .
+    gmeow:segmentTypeScene       a gmeow:ContentSegmentType .
+    gmeow:segmentTypeParagraph   a gmeow:ContentSegmentType .
+    gmeow:segmentTypeFrontMatter a gmeow:ContentSegmentType .
+    gmeow:segmentTypeBackMatter  a gmeow:ContentSegmentType .
+}""" ;
+    gmeow:saRationale "gmeow:ContentSegmentType MUST be a logic:QualityValue vocabulary with the canonical seeded segment-type individuals. Replaces the stale gufo:QualityValue pytest assertion." .

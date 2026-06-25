@@ -7,8 +7,8 @@
 # over the connectivity module graph (gmeow:scopeModule) under the native Rust
 # slicetest harness.
 #
-# Connectivity is NOT #694-migrated, so class stereotypes use gufo:
-# (gufo:Kind, gufo:Relator, gufo:AbstractIndividualType, gufo:QualityValue).
+# Connectivity is #694-migrated, so class stereotypes use logic:
+# (logic:Kind, logic:Relator, logic:AbstractIndividualType, logic:QualityValue).
 #
 # RETAINED in pytest (cross-slice subjects):
 #   test_connects_to_universal_spine      — gmeow:connectsTo lives in core, not here
@@ -21,33 +21,33 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/connectivity/tests/> .
 
-# --- 1. Route is a gufo:Kind subclass of Entity (MUST) -----------------------
+# --- 1. Route is a logic:Kind subclass of Entity (MUST) -----------------------
 ex:saRouteClass a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Route a owl:Class , gufo:Kind ;
+    gmeow:Route a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:Route MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:Entity. Mirrors test_route_class_and_kinds (Route part)." .
+    gmeow:saRationale "gmeow:Route MUST be an owl:Class typed logic:Kind and a subclass of gmeow:Entity. Mirrors test_route_class_and_kinds (Route part)." .
 
-# --- 2. RouteKind is a gufo:AbstractIndividualType value vocab (MUST) --------
+# --- 2. RouteKind is a logic:AbstractIndividualType value vocab (MUST) --------
 ex:saRouteKindClass a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:RouteKind a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:RouteKind a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:RouteKind MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — an open value vocabulary of individuals, not subclasses (Principle 9). Mirrors test_route_class_and_kinds (RouteKind part)." .
+    gmeow:saRationale "gmeow:RouteKind MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — an open value vocabulary of individuals, not subclasses (Principle 9). Mirrors test_route_class_and_kinds (RouteKind part)." .
 
 # --- 3. The seven RouteKind seed individuals exist (MUST) --------------------
 ex:saRouteKindSeeds a gmeow:StructuralAssertion ;
@@ -79,19 +79,19 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:routeKind MUST be a functional owl:ObjectProperty with domain Route and range RouteKind. Mirrors test_route_class_and_kinds (routeKind property part)." .
 
-# --- 5. Connection is a gufo:Relator class (MUST) ----------------------------
+# --- 5. Connection is a logic:Relator class (MUST) ----------------------------
 ex:saConnectionClass a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Connection a owl:Class ;
-        rdfs:subClassOf gufo:Relator .
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:Connection MUST be an owl:Class and a subclass of gufo:Relator. Mirrors test_connection_relator (class part)." .
+    gmeow:saRationale "gmeow:Connection MUST be an owl:Class and a subclass of logic:Relator. Mirrors test_connection_relator (class part)." .
 
 # --- 6. connectionSource and connectionTarget are functional with owl:Thing range (MUST) ---
 ex:saConnectionEndpoints a gmeow:StructuralAssertion ;

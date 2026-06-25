@@ -5,10 +5,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:NotationProjectionProfile
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "Notation Projection Profile"@x-gmeow-english ;
@@ -25,7 +26,7 @@ gmeow:NotationProjectionProfile
     gmeow:useWhen "Use to declare, per notation system, exactly which canonical parameters its surface form can carry and which it drops — the explicit ledger that makes a notation's lossiness queryable rather than implicit (every notation is a lossy render, never the canonical object)."@x-gmeow-english .
 
 gmeow:NotationSystem
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "Notation System"@x-gmeow-english ;
@@ -38,11 +39,11 @@ gmeow:NotationSystem
     gmeow:useWhen "Use for a structured, rule-governed symbol system that renders content of an existing language or domain into a surface form — IPA, Western staff notation, Morse, a stenographic system — every one of which is a lossy projection of underlying frame-relative content."@x-gmeow-english .
 
 gmeow:NotationSystemUsage
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "Notation System Usage"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;
@@ -72,11 +73,11 @@ gmeow:NotationSystemUsage
     gmeow:useWhen "Use when a notation system's use by an entity must be first-class — carrying role, period, standpoint, or confidence — so a language using IPA, a work using staff notation, and a text using Morse coexist co-equally without any one being privileged (the reify-on-demand half of the flat hasNotationSystem)."@x-gmeow-english .
 
 gmeow:NotationUsageRole
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "Notation Usage Role"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The role a notation system plays in a specific usage — a value, never an Entity subclass. Open-ended: new analytical frameworks may introduce further roles without ontology modification."@x-gmeow-english ;
     skos:example "ex:u gmeow:notationUsageRole gmeow:notationRoleEncoding ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-role subclasses (roles are individuals) and avoid using a role to record the system's domain kind — that is gmeow:SymbolicSystemKind, an orthogonal axis (the same notation may play different roles in different usages)."@x-gmeow-english ;
@@ -85,7 +86,7 @@ gmeow:NotationUsageRole
     gmeow:useWhen "Use as the value vocabulary for the function a notation serves in a particular use — transcription, encoding, representation, communication, expression, shorthand, cipher — referenced from a NotationSystemUsage via gmeow:notationUsageRole."@x-gmeow-english .
 
 gmeow:ProjectionFunction
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "Projection Function"@x-gmeow-english ;
@@ -98,11 +99,11 @@ gmeow:ProjectionFunction
     gmeow:useWhen "Use to type the executable FnO function that performs a notation render — the solver-layer object a projection profile points at to actually turn canonical content into a surface form."@x-gmeow-english .
 
 gmeow:ProjectionLoss
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "Projection Loss"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A kind of information loss incurred when canonical content is projected to a notation system. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
     skos:example "ex:lossMicrotiming a gmeow:ProjectionLoss ; gmeow:accountsForParameter ex:microtiming ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-loss subclasses (losses are individuals) and avoid using a loss to record a parameter the notation DOES carry — that is gmeow:representableParameter, its complement."@x-gmeow-english ;
@@ -111,7 +112,7 @@ gmeow:ProjectionLoss
     gmeow:useWhen "Use as the value vocabulary for naming a specific kind of loss a notation incurs — quantization to 12-EDO, dropped microtiming, collapsed standpoint — so the lossiness of a projection profile is enumerable and gate-checkable."@x-gmeow-english .
 
 gmeow:SymbolicSystem
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "Symbolic System"@x-gmeow-english ;
@@ -124,11 +125,11 @@ gmeow:SymbolicSystem
     gmeow:useWhen "Use as the broad umbrella for any convention-bearing symbol system that is not itself a language — gesture systems, emoji conventions, platform conventions, and the parent domain when a fact ranges over symbol systems generally rather than the narrower structured-notation subkind."@x-gmeow-english .
 
 gmeow:SymbolicSystemKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "Symbolic System Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The domain or kind of a symbolic or notation system — a value, never an Entity subclass. The seed list is an anchor, not a fence; new domains may introduce further kinds without ontology modification."@x-gmeow-english ;
     skos:example "ex:abc a gmeow:SymbolicSystem ; gmeow:symbolicSystemKind gmeow:symbolicKindMusical ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-kind subclasses (kinds are individuals on an open vocabulary) and avoid using a kind to record the role a notation plays in a particular use — that is gmeow:NotationUsageRole, a distinct axis."@x-gmeow-english ;
