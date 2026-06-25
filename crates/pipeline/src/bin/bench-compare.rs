@@ -40,9 +40,22 @@ fn main() -> ExitCode {
             }
         }
     } else {
-        // Report-only: a missing/unreadable baseline degrades to an all-`new`
-        // board, never an error. The scoreboard NEVER gates — always exit 0.
-        let baseline = std::fs::read_to_string(bench::BASELINE_PATH).unwrap_or_default();
+        // Report-only: a missing baseline degrades silently to an all-`new`
+        // board (the legitimate first-run case). A baseline that is PRESENT but
+        // unreadable is a real error — surface it to stderr (don't swallow it),
+        // then still degrade. The scoreboard NEVER gates — always exit 0.
+        let baseline = match std::fs::read_to_string(bench::BASELINE_PATH) {
+            Ok(s) => s,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => String::new(),
+            Err(e) => {
+                eprintln!(
+                    "warning(#668): committed `{}` is present but unreadable ({e}); \
+treating every benchmark as `new`.",
+                    bench::BASELINE_PATH
+                );
+                String::new()
+            }
+        };
         print!(
             "{}",
             bench::compare_against_baseline(criterion_root, &baseline)
