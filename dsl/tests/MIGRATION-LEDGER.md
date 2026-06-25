@@ -1021,6 +1021,82 @@ already discovers and runs the three fixed spec filenames (`competency.ttl`,
 `structural.ttl`, `example-conformance.ttl`) under any slice, so each new slice
 spec lights up automatically.
 
+## #867 — `tests/test_competency.py` → native competency cells (2026-06-24)
+
+Supersedes the "Other slices" note above for the **competency** cell type: the
+whole of `tests/test_competency.py` (~46 functions + the QC `missing-definitions`
+check) is migrated to declarative `competency.ttl` cells across the owning slices.
+A new harness capability — `gmeow:cqDataFile` (a slice-relative ABox overlay,
+symmetric with `gmeow:exampleFile`; `crates/slicetest/src/{dsl,exec}.rs` +
+`dsl/tests/vocabulary.ttl`) — lets the instance-classifier questions migrate as
+real native cells instead of pytest retains.
+
+**Faithfulness encoding.** The TBox `_query_terms` tests asserted a *subset* of
+terms present (robust to additions), so each migrated cell enumerates exactly the
+pytest-asserted rows with `cqExactRows` **omitted** (contains-check) — never
+strengthened to an exact closed set. The two `len() >= N` floors (`life-events`
+>=25, `citation-intents` >=10) are coarse bounds the DSL has no operator for; the
+named rows are pinned and the loose floor is dropped (a faithful relaxation). The
+deliberately-empty queries pin `cqExpectRowCount 0`.
+
+| Owning slice | cell(s) | source `_query_terms*` test(s) | encoding |
+|---|---|---|---|
+| `core/deception` | `cqDeceptionTypes`, `cqDeceptionRoles` + 8 single-event classifiers + `cqDeceptionSelfDeception` (2-var) + `cqDeceptionLicensedFalsehood` (count 0) | deception-types/-roles + lie/omission/paltering/bullshit/distortion/self-deception/fabrication/forgery/impersonation/licensed-falsehood | subset + 9 `cqDataFile` overlays + 1 empty |
+| `extensions/narrative` | `cqMyths` | myths | subset |
+| `core/expertise` | `cqExpertProficiency`, `cqEndorsedVsSelfAsserted` (3 rows), `cqEmploymentCredentials` | expertise expert-python / endorsed-vs-self / employment-credentials | 3 `cqDataFile` overlays (full multi-var rows) |
+| `core/names` | appellation-kinds, name-part-types, pronoun-sets, place-namings | same | subset |
+| `core/places` | location-kinds, place-types, storage-media, place-properties | same | subset |
+| `extensions/languages` | language-origins, writing-systems, proficiency-levels | same | subset |
+| `core/creative-works` | works | works | subset |
+| `core/rights` | rights | rights | subset |
+| `extensions/genealogy` | kinship | kinship | subset |
+| `core/events` | life-events | life-events (was `>=25`) | subset |
+| `extensions/email` | email-participants | email-participants | subset |
+| `core/contacts` | interpersonal-relationships | interpersonal-relationships | subset |
+| `core/trust` | message-trust, key-schemes, key-certifications, trust-assertions | same | subset |
+| `core/sources` | import-provenance | import-provenance | subset |
+| `core/temporal` | temporal-provenance-clocks | temporal-provenance-clocks | subset |
+| `core/citations` | citation-intents | citation-intents (was `>=10`) | subset |
+| `core/evidence` | evidence, notability-eligible | same | subset |
+| `extensions/procedures` | procedures, ingestion-executions (count 0) | same | subset + 1 empty |
+| `core/inquiry` | research-inquiries (count 0) | research-inquiries | empty |
+| `core/quality` | `cqMissingDefinitions` (count 0) | `test_qc_missing_definitions_is_empty` | empty; preserves the OPEN-universal dynamic `FILTER(STRSTARTS(...))` (the #869 Gap-1 GOOD pattern, NOT a blacklist) |
+
+**Instance-overlay reconciliation:** the source had 14 `_query_terms_on_graph`
+classifiers = 10 deception + 4 expertise. **13 are migrated** as `cqDataFile`
+overlay cells; **1 is a documented retain** (below).
+
+**Retained (1):** `test_competency_expertise_expiring_credentials_query` stays in
+`tests/test_competency.py`. Its query selects credentials whose `gmeow:validUntil`
+is within one year of `NOW()` — a clock-RELATIVE window. No static fixture date
+satisfies "within a year of now" perpetually (a far-future literal falls outside
+the window; a fixed near date becomes a time-bomb that silently reds as wall-clock
+time passes it), so a faithful native cell would need clock-relative date
+templating the DSL deliberately lacks. Per the verification-honesty doctrine
+(never author a test that silently breaks later) it remains a pytest retain that
+builds its data relative to the run-time clock. `tests/test_competency.py` is
+trimmed to this one function + the `_query_terms_on_graph` helper (not deleted).
+
+**#869 Gap-1:** none of the migrated cells is a finite-VALUES blacklist standing
+in for an open universal. The TBox cells enumerate fixed term sets the source
+already pinned; the overlay cells pin fixed instance classifications; the QC cell
+references the `.rq` verbatim, keeping its dynamic `FILTER(STRSTARTS(...))` open
+universal over every present-or-future `gmeow:` class.
+
+**Red-proofs (2026-06-24).** Each new `competency.ttl` was proven to red under a
+transient break, then reverted: deception `cqDeceptionLie` → `expected row(s)
+absent {?event=…event1}` (broken fixture); narrative `cqMyths`, names
+`cqAppellationKinds`, places `cqLocationKinds`, languages `cqLanguageOrigins`, and
+the 13 Task-5 cells → row absent (corrupted term); expertise `cqExpertProficiency`
+→ full multi-var row absent (non-expert level); the count-0 cells (procedures
+ingestion, inquiry, quality QC) → `expected 1 rows, got 0` (count flipped to 1).
+All authored by MEASURING the live merged store (and merged+fixture for overlays),
+never by guessing.
+
+**Verification:** `cargo nextest run -p gmeow-slicetest` runs 25 competency files
+green; the harness auto-discovers each new `competency.ttl` (no harness wiring
+change beyond the Task-1 `cqDataFile` addition).
+
 ## Notes / known limitations
 
 - **Competency reasoning cost.** The competency lane defaults to the *asserted*
