@@ -34,13 +34,21 @@ pub struct NamedNode {
 
 impl NamedNode {
     /// Validate and wrap an absolute IRI. Returns [`ParseError::Iri`] if the
-    /// string is not a valid RFC-3987 IRI.
+    /// string is not a valid RFC-3987 IRI, or if it is a relative reference
+    /// (term-position IRIs — predicates, datatypes, `GRAPH`/`SERVICE` names —
+    /// must be absolute; `gmeow_iri::parse` itself admits relative references).
     pub fn new(iri: impl Into<String>) -> Result<Self> {
         let iri = iri.into();
-        gmeow_iri::parse(&iri).map_err(|e| ParseError::Iri {
+        let parsed = gmeow_iri::parse(&iri).map_err(|e| ParseError::Iri {
             lexical: iri.clone(),
             reason: e.to_string(),
         })?;
+        if !parsed.has_scheme() {
+            return Err(ParseError::Iri {
+                lexical: iri.clone(),
+                reason: "relative IRI reference in term position (no scheme)".to_owned(),
+            });
+        }
         Ok(Self { iri })
     }
 

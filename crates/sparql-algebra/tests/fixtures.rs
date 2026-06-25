@@ -72,6 +72,9 @@ fn positive_in_scope_features() {
     // RDF 1.2 quoted triple terms — both spellings.
     ok("SELECT ?r WHERE { ?r rdf:reifies <<( ?s ?p ?o )>> }");
     ok("SELECT ?r WHERE { ?r rdf:reifies << ?s gmeow:p ?o >> }");
+
+    // BASE resolves a relative IRIREF to an absolute IRI in term position.
+    ok("BASE <http://base/> SELECT ?a WHERE { ?a a <Thing> }");
 }
 
 #[test]
@@ -124,5 +127,12 @@ fn negative_out_of_scope_and_malformed() {
     assert!(matches!(
         e,
         ParseError::Lex { .. } | ParseError::Syntax { .. }
+    ));
+
+    // Relative IRIREF in term position with no in-scope BASE → Iri (term-position
+    // IRIs must be absolute; the parser no longer admits a bare relative ref).
+    assert!(matches!(
+        err("SELECT ?a WHERE { ?a a <RelativeNoScheme> }"),
+        ParseError::Iri { .. }
     ));
 }

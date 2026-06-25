@@ -171,7 +171,7 @@ impl Parser {
 
     fn parse_query(&mut self) -> Result<Query> {
         self.parse_prologue()?;
-        let base_iri = self.base.clone().map(NamedNode::new_unchecked);
+        let base_iri = self.base.clone().map(NamedNode::new).transpose()?;
         if self.peek_kw("SELECT") {
             self.parse_select(base_iri)
         } else if self.peek_kw("CONSTRUCT") {
@@ -206,7 +206,7 @@ impl Parser {
 
     fn expect_iriref(&mut self) -> Result<String> {
         match self.bump() {
-            Some(Token::Iri(s)) => Ok(self.resolve_iri(&s)),
+            Some(Token::Iri(s)) => self.resolve_iri(&s),
             other => Err(ParseError::syntax(
                 format!("expected IRIREF, found {other:?}"),
                 self.span(),
@@ -225,21 +225,30 @@ impl Parser {
         }
     }
 
-    fn resolve_iri(&self, s: &str) -> String {
+    /// Resolve a lexical IRIREF against the in-scope `BASE` (relative refs only).
+    /// Propagates a typed [`ParseError::Iri`] when the base or the resolution is
+    /// malformed instead of silently falling back to the raw string.
+    fn resolve_iri(&self, s: &str) -> Result<String> {
         match &self.base {
-            Some(base) if !is_absolute_iri(s) => match gmeow_iri::parse(base) {
-                Ok(base_iri) => gmeow_iri::Iri::resolve(&base_iri, s)
-                    .map(|r| r.as_str().to_owned())
-                    .unwrap_or_else(|_| s.to_owned()),
-                Err(_) => s.to_owned(),
-            },
-            _ => s.to_owned(),
+            Some(base) if !is_absolute_iri(s) => {
+                let base_iri = gmeow_iri::parse(base).map_err(|e| ParseError::Iri {
+                    lexical: base.clone(),
+                    reason: e.to_string(),
+                })?;
+                let resolved =
+                    gmeow_iri::Iri::resolve(&base_iri, s).map_err(|e| ParseError::Iri {
+                        lexical: s.to_owned(),
+                        reason: e.to_string(),
+                    })?;
+                Ok(resolved.as_str().to_owned())
+            }
+            _ => Ok(s.to_owned()),
         }
     }
 
     fn resolve_prefixed(&self, prefix: &str, local: &str) -> Result<NamedNode> {
         match self.prefixes.get(prefix) {
-            Some(ns) => Ok(NamedNode::new_unchecked(format!("{ns}{local}"))),
+            Some(ns) => NamedNode::new(format!("{ns}{local}")),
             None => Err(ParseError::syntax(
                 format!("undeclared prefix {prefix:?}"),
                 self.span(),
@@ -862,7 +871,7 @@ impl Parser {
 
     fn expect_iri_node(&mut self) -> Result<NamedNode> {
         match self.bump() {
-            Some(Token::Iri(s)) => Ok(NamedNode::new_unchecked(self.resolve_iri(&s))),
+            Some(Token::Iri(s)) => NamedNode::new(self.resolve_iri(&s)?),
             Some(Token::PrefixedName(p, l)) => self.resolve_prefixed(&p, &l),
             other => Err(ParseError::syntax(
                 format!("expected an IRI, found {other:?}"),
