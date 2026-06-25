@@ -75,7 +75,8 @@ fn split_queries(text: &str) -> Vec<String> {
         .collect()
 }
 
-fn assert_all_parse(dir: &Path, label: &str) -> usize {
+/// Returns `(file_count, query_count)`: every `.rq` under `dir` must parse.
+fn assert_all_parse(dir: &Path, label: &str) -> (usize, usize) {
     let mut files = Vec::new();
     collect_rq(dir, &mut files);
     assert!(
@@ -100,24 +101,43 @@ fn assert_all_parse(dir: &Path, label: &str) -> usize {
         failures.len(),
         failures.join("\n")
     );
-    queries
+    (files.len(), queries)
 }
 
 #[test]
 fn all_hand_authored_queries_parse() {
-    let n = assert_all_parse(&repo_root().join("queries"), "queries/");
-    // 90 files; one file holds 3 queries → 92 individual queries.
-    assert!(n >= 90, "expected >= 90 corpus queries, parsed {n}");
+    let (files, queries) = assert_all_parse(&repo_root().join("queries"), "queries/");
+    // Exact gate: 90 tracked `.rq` files; one holds 3 queries → 92 individual
+    // queries. A drop here means a corpus file was deleted/moved or a checkout
+    // is stripped — fail loudly rather than passing a shrunken corpus.
+    assert_eq!(
+        files, 90,
+        "expected 90 hand-authored .rq files, found {files}"
+    );
+    assert_eq!(
+        queries, 92,
+        "expected 92 hand-authored queries, parsed {queries}"
+    );
 }
 
 #[test]
 fn all_generated_projections_parse() {
+    // The DSL-generated projections are tracked in git and are a hard part of
+    // the S5 acceptance gate: a missing directory is a FAILURE, not a skip.
     let dir = repo_root().join("generated/queries");
-    if !dir.exists() {
-        // Generated artifacts are tracked, but tolerate a stripped checkout.
-        eprintln!("generated/queries absent — skipping");
-        return;
-    }
-    let n = assert_all_parse(&dir, "generated/queries/");
-    assert!(n >= 40, "expected the DSL projection set, parsed {n}");
+    assert!(
+        dir.exists(),
+        "generated/queries is absent — the DSL projection set is a tracked, \
+         required part of the corpus gate (no soft-skip)"
+    );
+    let (files, queries) = assert_all_parse(&dir, "generated/queries/");
+    // Exact gate: 51 tracked single-CONSTRUCT projections.
+    assert_eq!(
+        files, 51,
+        "expected 51 generated projections, found {files}"
+    );
+    assert_eq!(
+        queries, 51,
+        "expected 51 generated queries, parsed {queries}"
+    );
 }
