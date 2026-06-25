@@ -34,6 +34,7 @@ pub mod seam;
 pub mod slme;
 pub mod stablemodel;
 pub mod store;
+pub mod transition;
 pub mod verify;
 pub mod versioning;
 pub mod wellfounded;
