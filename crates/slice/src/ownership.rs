@@ -24,8 +24,9 @@
 //! `gmeow:sliceDependsOn` declaration — a documentation cross-reference must
 //! never silently become a build dependency (RFC §10).
 //!
-//! SPARQL queries are **parsed** with `spargebra` (not text-searched) so that an
-//! IRI mentioned only inside a string literal never produces a dependency edge.
+//! SPARQL queries are **parsed** with the native `gmeow-sparql-algebra` (not
+//! text-searched) so that an IRI mentioned only inside a string literal never
+//! produces a dependency edge.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
@@ -749,10 +750,11 @@ fn collect_term_iris(term: &Term, out: &mut BTreeSet<NamedNode>) {
 
 /// Parse a SPARQL query artifact and extract every NamedNode IRI it references
 /// in *term position* (subjects/predicates/objects/paths/functions/datatypes),
-/// using `spargebra`. An IRI mentioned only inside a string literal is never
-/// returned — that is the whole point of parsing rather than text-searching.
+/// using the native `gmeow-sparql-algebra` parser. An IRI mentioned only inside
+/// a string literal is never returned — that is the whole point of parsing
+/// rather than text-searching.
 fn extract_query_iris(artifact: &ArtifactRecord) -> Result<BTreeSet<NamedNode>, String> {
-    use spargebra::SparqlParser;
+    use gmeow_sparql_algebra::SparqlParser;
 
     let text = std::str::from_utf8(&artifact.content)
         .map_err(|e| format!("query is not valid UTF-8: {e}"))?;
@@ -762,12 +764,12 @@ fn extract_query_iris(artifact: &ArtifactRecord) -> Result<BTreeSet<NamedNode>, 
 
     let mut out: BTreeSet<NamedNode> = BTreeSet::new();
     match &query {
-        spargebra::Query::Select { pattern, .. }
-        | spargebra::Query::Ask { pattern, .. }
-        | spargebra::Query::Describe { pattern, .. } => {
+        gmeow_sparql_algebra::Query::Select { pattern, .. }
+        | gmeow_sparql_algebra::Query::Ask { pattern, .. }
+        | gmeow_sparql_algebra::Query::Describe { pattern, .. } => {
             walk_graph_pattern(pattern, &mut out);
         }
-        spargebra::Query::Construct {
+        gmeow_sparql_algebra::Query::Construct {
             template, pattern, ..
         } => {
             for tp in template {
@@ -779,43 +781,47 @@ fn extract_query_iris(artifact: &ArtifactRecord) -> Result<BTreeSet<NamedNode>, 
     Ok(out)
 }
 
-fn insert_oxiri(node: &spargebra::term::NamedNode, out: &mut BTreeSet<NamedNode>) {
+fn insert_oxiri(node: &gmeow_sparql_algebra::NamedNode, out: &mut BTreeSet<NamedNode>) {
     if let Ok(nn) = NamedNode::new(node.as_str()) {
         out.insert(nn);
     }
 }
 
-fn walk_named_node_pattern(p: &spargebra::term::NamedNodePattern, out: &mut BTreeSet<NamedNode>) {
-    if let spargebra::term::NamedNodePattern::NamedNode(n) = p {
+fn walk_named_node_pattern(
+    p: &gmeow_sparql_algebra::NamedNodePattern,
+    out: &mut BTreeSet<NamedNode>,
+) {
+    if let gmeow_sparql_algebra::NamedNodePattern::NamedNode(n) = p {
         insert_oxiri(n, out);
     }
 }
 
-fn walk_term_pattern(p: &spargebra::term::TermPattern, out: &mut BTreeSet<NamedNode>) {
+fn walk_term_pattern(p: &gmeow_sparql_algebra::TermPattern, out: &mut BTreeSet<NamedNode>) {
     match p {
-        spargebra::term::TermPattern::NamedNode(n) => insert_oxiri(n, out),
-        spargebra::term::TermPattern::Literal(lit) => {
+        gmeow_sparql_algebra::TermPattern::NamedNode(n) => insert_oxiri(n, out),
+        gmeow_sparql_algebra::TermPattern::Literal(lit) => {
             // Only the datatype IRI counts, never the lexical form.
             insert_oxiri(&literal_datatype(lit), out);
         }
-        spargebra::term::TermPattern::Triple(t) => walk_triple_pattern(t, out),
-        spargebra::term::TermPattern::BlankNode(_) | spargebra::term::TermPattern::Variable(_) => {}
+        gmeow_sparql_algebra::TermPattern::Triple(t) => walk_triple_pattern(t, out),
+        gmeow_sparql_algebra::TermPattern::BlankNode(_)
+        | gmeow_sparql_algebra::TermPattern::Variable(_) => {}
     }
 }
 
-/// Spargebra `Literal` exposes its datatype; build a NamedNode from it.
-fn literal_datatype(lit: &spargebra::term::Literal) -> spargebra::term::NamedNode {
-    spargebra::term::NamedNode::new_unchecked(lit.datatype().as_str())
+/// A SPARQL `Literal` exposes its datatype; clone the NamedNode from it.
+fn literal_datatype(lit: &gmeow_sparql_algebra::Literal) -> gmeow_sparql_algebra::NamedNode {
+    lit.datatype().clone()
 }
 
-fn walk_triple_pattern(t: &spargebra::term::TriplePattern, out: &mut BTreeSet<NamedNode>) {
+fn walk_triple_pattern(t: &gmeow_sparql_algebra::TriplePattern, out: &mut BTreeSet<NamedNode>) {
     walk_term_pattern(&t.subject, out);
     walk_named_node_pattern(&t.predicate, out);
     walk_term_pattern(&t.object, out);
 }
 
-fn walk_path(p: &spargebra::algebra::PropertyPathExpression, out: &mut BTreeSet<NamedNode>) {
-    use spargebra::algebra::PropertyPathExpression as P;
+fn walk_path(p: &gmeow_sparql_algebra::PropertyPathExpression, out: &mut BTreeSet<NamedNode>) {
+    use gmeow_sparql_algebra::PropertyPathExpression as P;
     match p {
         P::NamedNode(n) => insert_oxiri(n, out),
         P::Reverse(a) | P::ZeroOrMore(a) | P::OneOrMore(a) | P::ZeroOrOne(a) => walk_path(a, out),
@@ -831,8 +837,8 @@ fn walk_path(p: &spargebra::algebra::PropertyPathExpression, out: &mut BTreeSet<
     }
 }
 
-fn walk_expression(e: &spargebra::algebra::Expression, out: &mut BTreeSet<NamedNode>) {
-    use spargebra::algebra::Expression as E;
+fn walk_expression(e: &gmeow_sparql_algebra::Expression, out: &mut BTreeSet<NamedNode>) {
+    use gmeow_sparql_algebra::Expression as E;
     match e {
         E::NamedNode(n) => insert_oxiri(n, out),
         // A literal in an expression (e.g. a FILTER comparison string) is NOT a
@@ -872,7 +878,7 @@ fn walk_expression(e: &spargebra::algebra::Expression, out: &mut BTreeSet<NamedN
             }
         }
         E::FunctionCall(func, args) => {
-            if let spargebra::algebra::Function::Custom(n) = func {
+            if let gmeow_sparql_algebra::Function::Custom(n) = func {
                 insert_oxiri(n, out);
             }
             for x in args {
@@ -883,8 +889,8 @@ fn walk_expression(e: &spargebra::algebra::Expression, out: &mut BTreeSet<NamedN
     }
 }
 
-fn walk_graph_pattern(g: &spargebra::algebra::GraphPattern, out: &mut BTreeSet<NamedNode>) {
-    use spargebra::algebra::GraphPattern as G;
+fn walk_graph_pattern(g: &gmeow_sparql_algebra::GraphPattern, out: &mut BTreeSet<NamedNode>) {
+    use gmeow_sparql_algebra::GraphPattern as G;
     match g {
         G::Bgp { patterns } => {
             for tp in patterns {
@@ -945,9 +951,9 @@ fn walk_graph_pattern(g: &spargebra::algebra::GraphPattern, out: &mut BTreeSet<N
         G::Values { bindings, .. } => {
             for row in bindings {
                 for cell in row.iter().flatten() {
-                    if let spargebra::term::GroundTerm::NamedNode(n) = cell {
+                    if let gmeow_sparql_algebra::GroundTerm::NamedNode(n) = cell {
                         insert_oxiri(n, out);
-                    } else if let spargebra::term::GroundTerm::Literal(lit) = cell {
+                    } else if let gmeow_sparql_algebra::GroundTerm::Literal(lit) = cell {
                         insert_oxiri(&literal_datatype(lit), out);
                     }
                 }

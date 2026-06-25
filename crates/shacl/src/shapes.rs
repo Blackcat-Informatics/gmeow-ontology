@@ -732,8 +732,8 @@ impl<'s> Parser<'s> {
             // SHACL-SPARQL requires a SELECT; ASK/CONSTRUCT/DESCRIBE parse but
             // cannot bind ?this and would panic at eval — reject at the boundary.
             if !matches!(
-                spargebra::SparqlParser::new().parse_query(&select),
-                Ok(spargebra::Query::Select { .. })
+                gmeow_sparql_algebra::SparqlParser::new().parse_query(&select),
+                Ok(gmeow_sparql_algebra::Query::Select { .. })
             ) {
                 return Err(format!(
                     "sh:SPARQLTarget on shape {id} must be a SELECT query (ASK/CONSTRUCT/DESCRIBE are not valid SHACL-SPARQL)"
@@ -1024,8 +1024,8 @@ impl<'s> Parser<'s> {
             // SHACL-SPARQL requires a SELECT; ASK/CONSTRUCT/DESCRIBE parse but
             // cannot bind ?this and would panic at eval — reject at the boundary.
             if !matches!(
-                spargebra::SparqlParser::new().parse_query(&select),
-                Ok(spargebra::Query::Select { .. })
+                gmeow_sparql_algebra::SparqlParser::new().parse_query(&select),
+                Ok(gmeow_sparql_algebra::Query::Select { .. })
             ) {
                 return Err(format!(
                     "sh:sparql constraint on shape {id} must be a SELECT query (ASK/CONSTRUCT/DESCRIBE are not valid SHACL-SPARQL)"

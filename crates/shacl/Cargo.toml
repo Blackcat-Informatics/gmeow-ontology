@@ -22,12 +22,11 @@ path = "src/lib.rs"
 # rdflib/pySHACL cannot represent). default-features off drops the rocksdb
 # C/C++ backend we never use.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
-# spargebra is oxigraph's SPARQL algebra (re-pinned to oxigraph's transitive
-# version, 0.4.x). Used at shape-load to reject non-SELECT SHACL-SPARQL queries
-# (ASK/CONSTRUCT/DESCRIBE) — they parse but cannot bind ?this and would panic at
-# eval. Use spargebra::SparqlParser to parse and match Query::Select (the
-# oxigraph::sparql::Query re-export is deprecated under clippy -D warnings).
-spargebra = "0.4"
+# Native SPARQL parser (purrdf S5, #911). Used at shape-load to reject non-SELECT
+# SHACL-SPARQL queries (ASK/CONSTRUCT/DESCRIBE) — they parse but cannot bind ?this
+# and would panic at eval. Use SparqlParser to parse and match Query::Select.
+# Replaces the oxigraph-family `spargebra`.
+gmeow-sparql-algebra = { path = "../sparql-algebra" }
 # sh:pattern regex constraint.
 regex = "1"
 # JSON Schema / OpenAPI emitter (#700). NO `preserve_order` feature: we rely on

@@ -24,10 +24,10 @@ python = ["dep:pyo3"]
 [dependencies]
 gmeow-rdf = { path = "../rdf", features = ["oxigraph"] }
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
-# SPARQL algebra parser — competency/verify queries are PARSED (RFC §10),
-# never text-searched, to extract referenced term IRIs. Version aligns with the
-# oxigraph 0.5 transitive resolution already pinned in the workspace lockfile.
-spargebra = { version = "0.4", features = ["sparql-12"] }
+# Native SPARQL parser (purrdf S5, #911) — competency/verify queries are PARSED
+# (RFC §10), never text-searched, to extract referenced term IRIs. Replaces the
+# oxigraph-family `spargebra`; RDF-1.2 quoted triple terms are first-class.
+gmeow-sparql-algebra = { path = "../sparql-algebra" }
 # Strongly-connected-component computation over the S4 dependency graph
 # (RFC §8 link units). `petgraph` is a published registry crate (no `path`),
 # so it is an external boundary, not a first-party layering edge — the
