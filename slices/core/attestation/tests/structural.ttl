@@ -129,6 +129,32 @@ ASK {
 }""" ;
     gmeow:saRationale "The three seeded AttestationType individuals MUST NOT be typed owl:Class -- the type vocabulary is open individuals, never subclasses (Principle 9). Mirrors test_attestation_type_is_value_vocabulary (not-class part)." .
 
+# --- 8a. Release-evidence AttestationType individuals exist (#673) (MUST) ------
+ex:saAttestationTypeReleaseEvidence a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:attestationTypeConformanceVerdict   a gmeow:AttestationType .
+    gmeow:attestationTypeCrossCheckAgreement  a gmeow:AttestationType .
+}""" ;
+    gmeow:saRationale "The two release-as-evidence gmeow:AttestationType individuals (#673) -- conformance verdict and cross-check agreement matrix -- MUST be present as AttestationType individuals so the signed full-release bundle can type its folded evidence frames (CONSTITUTION.md §18 release-as-evidence)." .
+
+# --- 8b. Release-evidence AttestationType individuals are NOT owl:Class (MUST-NOT)
+ex:saAttestationTypeReleaseEvidenceNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?seed {
+        gmeow:attestationTypeConformanceVerdict
+        gmeow:attestationTypeCrossCheckAgreement
+    }
+    ?seed a owl:Class .
+}""" ;
+    gmeow:saRationale "The two release-evidence AttestationType individuals (#673) MUST NOT be typed owl:Class -- like every type-vocabulary member they are open individuals, never subclasses (Principle 9)." .
+
 # --- 9. SignatureScheme subclasses logic:QualityValue (MUST) -------------------
 ex:saSignatureSchemeIsQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

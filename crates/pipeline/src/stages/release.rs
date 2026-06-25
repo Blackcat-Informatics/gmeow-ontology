@@ -1,0 +1,1173 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Release-as-evidence: fold a SIGNED full-release `gmeow.gts` (#673,
+//! CONSTITUTION.md §18).
+//!
+//! This is a STANDALONE fold — NOT a regenerate pipeline DAG stage. The
+//! `release-bundle` CLI command reads the committed *unsigned* snapshot
+//! (`generated/dist/gmeow.gts`, never mutated), augments it with
+//!
+//! 1. a `graph/attestations` named graph of `gmeow:Attestation` frames (one
+//!    top-level release-manifest attestation over the bundle plus one child
+//!    attestation per evidence artifact), and
+//! 2. the evidence artifacts themselves as content-addressed report blobs,
+//!
+//! then signs the whole thing Ed25519 and writes the bytes to a SEPARATE
+//! `--out` path. The attestations vouch that a given check RAN over given
+//! bytes — never that the ontology is "true" (Principle 9).
+//!
+//! # Determinism (§18)
+//!
+//! The release timestamp is INJECTED (`issued_at`); the fold core never samples
+//! a clock. Evidence inputs are sorted by content digest before minting, and the
+//! attestation IRIs are derived from the content digest, so re-running with the
+//! same inputs + same `issued_at` is byte-identical.
+//!
+//! # No-optionality (§18)
+//!
+//! The CLI reads every evidence file up front and hard-fails on a missing one;
+//! this core never silently skips. Signing here is unconditional (the release
+//! bundle is, by definition, signed): all three signer fields are passed to
+//! [`emit_gts`], which itself hard-fails any partial signing config.
+
+use gmeow_gts::model::Graph;
+use gmeow_gts::reader::read;
+use gmeow_gts::writer::digest_string;
+use gmeow_rdf::gts_compose::{
+    emit_gts, parse_quads_lenient, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD,
+    RDF_REIFIES,
+};
+use oxigraph::io::RdfFormat;
+use oxigraph::model::Quad;
+
+/// The named graph the release-manifest + per-artifact attestations ride in.
+pub const GRAPH_ATTESTATIONS: &str = "https://blackcatinformatics.ca/gmeow/graph/attestations";
+
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// The `rep` tag every release-evidence report blob carries, so a repo-free
+/// consumer can recover each artifact by digest from this single channel.
+const EVIDENCE_REP_PREFIX: &str = "release-evidence:";
+
+/// One evidence artifact to fold into the release bundle.
+///
+/// The bytes are read by the (thin) CLI layer — a missing or unreadable file is
+/// a hard failure there, never an `Option` skip here. `attestation_type_iri` is
+/// the `gmeow:attestationType*` individual naming the KIND of check this artifact
+/// records (e.g. `gmeow:attestationTypeCrossCheckAgreement`).
+pub struct EvidenceInput {
+    /// The decoded artifact bytes (the check result document).
+    pub data: Vec<u8>,
+    /// The artifact's declared media type (`gmeow:artifactMediaType`).
+    pub media_type: String,
+    /// The `gmeow:attestationType*` individual IRI for this evidence's KIND.
+    pub attestation_type_iri: String,
+    /// The blob `rep` discriminator (a short stable label, e.g. `cross-check`).
+    pub rep: String,
+    /// A human label recorded as the artifact's `rdfs:label` for listings.
+    pub subject_label: String,
+}
+
+/// Fold release evidence into a SIGNED `gmeow.gts` bundle (§18).
+///
+/// `snapshot_bytes` is the committed unsigned snapshot; it is read back and
+/// replayed faithfully (default graph + every named graph + the RDF 1.2
+/// statement layer + every existing content-addressed blob) so the release
+/// bundle's snapshot equals the committed snapshot content, PLUS the
+/// `graph/attestations` named graph and the evidence blobs. The result is signed
+/// with the supplied Ed25519 key material and returned as bytes — the caller
+/// writes them to the `--out` path (NEVER over the committed snapshot).
+#[allow(clippy::too_many_arguments)]
+pub fn fold_release_bundle(
+    snapshot_bytes: &[u8],
+    evidence: Vec<EvidenceInput>,
+    attester_iri: &str,
+    issued_at: &str,
+    release_subject_iri: &str,
+    signer_secret: [u8; 32],
+    signer_kid: &str,
+    public_key_armor: &str,
+) -> Result<Vec<u8>, String> {
+    // 1. Read the committed unsigned snapshot back into a folded graph and
+    //    replay it into a fresh builder so we emit the SAME snapshot content.
+    let graph = read(snapshot_bytes, true, None);
+    let mut builder = SnapshotBuilder::new();
+    replay_graph(&graph, &mut builder)?;
+
+    // Re-add the snapshot's existing content-addressed blobs (decoded) as
+    // doc_blobs so the release bundle carries the committed bundle's payloads.
+    let doc_blobs = existing_blobs(&graph)?;
+
+    // 2. Mint the attestation named graph. Sort evidence by content digest so the
+    //    output is a pure function of the inputs (determinism, §18).
+    let mut sorted: Vec<(String, EvidenceInput)> = evidence
+        .into_iter()
+        .map(|ev| (digest_string(&ev.data), ev))
+        .collect();
+    sorted.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.rep.cmp(&b.1.rep)));
+
+    let attestations_nq =
+        build_attestations_nquads(&sorted, attester_iri, issued_at, release_subject_iri);
+    let att_quads = parse_quads_lenient(attestations_nq.as_bytes(), RdfFormat::NQuads)
+        .map_err(|e| format!("parsing minted attestations graph: {e}"))?;
+    builder.add_quads(&att_quads, None, None);
+
+    // 3. Fold each evidence artifact as a content-addressed report blob — but
+    //    NEVER a second time for bytes the committed snapshot already carries.
+    //    Some evidence (e.g. the SHACL/diagnostics SARIF) already rides in the
+    //    snapshot as a report blob; re-folding it would emit a duplicate blob
+    //    frame under a different `rep` for the same digest. The minted
+    //    attestation binds its artifact to the bytes by `gmeow:contentDigest`
+    //    only, which the committed blob already satisfies, so deduping here keeps
+    //    exactly one blob frame AND one attestation envelope per artifact (GAP-2).
+    let committed_digests: std::collections::HashSet<&str> =
+        graph.blobs.iter().map(|(d, _)| d.as_str()).collect();
+    let report_blobs: Vec<BlobRow> = sorted
+        .iter()
+        .filter(|(digest, _)| !committed_digests.contains(digest.as_str()))
+        .map(|(_, ev)| BlobRow {
+            data: ev.data.clone(),
+            media_type: ev.media_type.clone(),
+            rep: format!("{EVIDENCE_REP_PREFIX}{}", ev.rep),
+        })
+        .collect();
+
+    // 4. Emit the signed bundle (emit_gts hard-fails any partial signer config).
+    emit_gts(
+        &builder,
+        "dist",
+        None,
+        doc_blobs,
+        report_blobs,
+        Some(signer_secret),
+        Some(signer_kid.to_string()),
+        Some(public_key_armor.to_string()),
+        DEFAULT_RSYNCABLE_THRESHOLD,
+    )
+}
+
+/// Consumer-side outcome of verifying a signed release-evidence bundle (#673,
+/// §18). The `artifacts_verified` count is the number of per-artifact
+/// attestations whose attested bytes were actually found in the bundle.
+pub struct ReleaseVerifyReport {
+    /// COSE_Sign1 frame signatures present.
+    pub signed: usize,
+    /// Signatures cryptographically valid under the resolved key.
+    pub valid: usize,
+    /// The signer key id recovered during verification.
+    pub kid: Option<String>,
+    /// Uppercase OpenPGP fingerprint of the resolved transport key.
+    pub fingerprint: Option<String>,
+    /// Per-artifact attestations whose `gmeow:contentDigest` blob is present.
+    pub artifacts_verified: usize,
+}
+
+/// Verify a signed release bundle the way the §18 prose promises a consumer can:
+/// not just the signature, but the *evidence*. This is the consumer half of the
+/// fold and the body of `make verify-release`.
+///
+/// Three legs, all hard-failing (no silent skip):
+/// 1. **Signature + trust policy** — native COSE_Sign1 verification against the
+///    embedded `gts:transportKey` (or, when `expected_public_armor` is supplied,
+///    that out-of-band trusted key). Subsumes `gts verify`.
+/// 2. **Attestation frames** — the `graph/attestations` named graph must carry
+///    the top-level release-manifest attestation and at least one per-artifact
+///    `gmeow:contentDigest`.
+/// 3. **Evidence presence** — every attested `gmeow:contentDigest` must resolve
+///    to a blob actually carried by the bundle, so "which checks ran over which
+///    bytes" is verifiable end to end.
+pub fn verify_release_bundle(
+    bundle_bytes: &[u8],
+    expected_public_armor: Option<&str>,
+) -> Result<ReleaseVerifyReport, String> {
+    use gmeow_gts::verify::{verify_file_with_options, VerifyOptions};
+    use oxigraph::model::{GraphName, Term};
+
+    // --- 1. Cryptographic signature + trust policy (native, subsumes gts verify).
+    let mut opts = VerifyOptions::default().require_signatures(true);
+    if let Some(armor) = expected_public_armor {
+        opts = opts.with_armored_key(armor);
+    }
+    let result = verify_file_with_options(bundle_bytes, &opts);
+    if !result.ok || result.valid == 0 {
+        let detail = if result.errors.is_empty() {
+            "no cryptographically valid, trusted signature".to_string()
+        } else {
+            result.errors.join("; ")
+        };
+        return Err(format!(
+            "release bundle signature/trust verification failed: {detail}"
+        ));
+    }
+
+    // --- 2 + 3. Walk the attestation frames and confirm each attested digest is
+    //            backed by a blob actually present in the bundle.
+    let graph = read(bundle_bytes, true, None);
+    let nquads = gmeow_gts::nquads::to_nquads(&graph);
+    let quads = parse_quads_lenient(nquads.as_bytes(), RdfFormat::NQuads)
+        .map_err(|e| format!("re-parsing bundle for the attestation walk: {e}"))?;
+
+    let content_digest_pred = format!("{GMEOW_NS}contentDigest");
+    let attestation_type_pred = format!("{GMEOW_NS}attestationType");
+    let manifest_type = format!("{GMEOW_NS}attestationTypeReleaseManifest");
+
+    let mut saw_manifest = false;
+    let mut digests: Vec<String> = Vec::new();
+    for q in &quads {
+        let in_attestations = matches!(
+            &q.graph_name,
+            GraphName::NamedNode(n) if n.as_str() == GRAPH_ATTESTATIONS
+        );
+        if !in_attestations {
+            continue;
+        }
+        if q.predicate.as_str() == attestation_type_pred {
+            if let Term::NamedNode(o) = &q.object {
+                if o.as_str() == manifest_type {
+                    saw_manifest = true;
+                }
+            }
+        } else if q.predicate.as_str() == content_digest_pred {
+            if let Term::Literal(lit) = &q.object {
+                digests.push(lit.value().to_string());
+            }
+        }
+    }
+
+    if !saw_manifest {
+        return Err(
+            "release bundle graph/attestations carries no release-manifest attestation".to_string(),
+        );
+    }
+    if digests.is_empty() {
+        return Err(
+            "release bundle carries no per-artifact gmeow:contentDigest attestation".to_string(),
+        );
+    }
+
+    let mut artifacts_verified = 0usize;
+    for digest in &digests {
+        if graph.blob_entry(digest).is_none() {
+            return Err(format!(
+                "attested artifact {digest} has no backing blob in the bundle \
+                 (attestation references bytes that are not present)"
+            ));
+        }
+        artifacts_verified += 1;
+    }
+
+    Ok(ReleaseVerifyReport {
+        signed: result.signed,
+        valid: result.valid,
+        kid: result.kid,
+        fingerprint: result.fingerprint,
+        artifacts_verified,
+    })
+}
+
+/// Replay a folded [`Graph`] into a fresh [`SnapshotBuilder`].
+///
+/// The committed snapshot is multi-named-graph and may carry an RDF 1.2
+/// statement layer. We serialize the folded graph to N-Quads (the lossless
+/// dataset form that preserves named graphs AND emits reifier/annotation rows in
+/// the RDF 1.2 reifying style) and re-parse leniently. Base quads keep their
+/// graph names; the `rdf:reifies` statement layer is routed through
+/// [`SnapshotBuilder::add_rdf12`] so the reifier/annotation tables rebuild
+/// exactly. Splitting here (rather than feeding everything to `add_rdf12`, which
+/// collapses base quads onto a single graph name) keeps the named-graph
+/// partitioning intact.
+fn replay_graph(graph: &Graph, builder: &mut SnapshotBuilder) -> Result<(), String> {
+    let nquads = gmeow_gts::nquads::to_nquads(graph);
+    if nquads.is_empty() {
+        return Ok(());
+    }
+
+    // Determinism (§18): SORT the N-Quads lines before re-parsing so the order in
+    // which terms are interned into the `SnapshotBuilder` is a pure function of
+    // the quad SET, never of `to_nquads`'s emission order.
+    //
+    // Why this matters: `SnapshotBuilder::canonical_tables` re-ids terms with a
+    // STABLE sort keyed by `(kind, value, datatype, lang)`. When two structurally
+    // distinct blank nodes carry the SAME serialized label (e.g. a multi-segment
+    // union relabels collisions, or a snapshot whose bnode labels are not
+    // globally unique), their sort keys tie and the tie is broken by INGESTION
+    // order — the order quads arrive from `parse_quads_lenient`, i.e. the
+    // `to_nquads` line order. Any iteration-order variance upstream (a HashMap/
+    // HashSet walk in the reader's segment union, or a future serializer change)
+    // would then leak a process-dependent (hash-seed-dependent) term remap into
+    // the emitted snapshot bytes, breaking cross-process reproducibility.
+    //
+    // Sorting the lines here pins that ingestion order to the lexicographic order
+    // of the canonical N-Quads text, which is identical across processes given
+    // the same quad set. It is a no-op when the upstream order already happens to
+    // be deterministic, and a robust guard when it is not. (Sorting raw N-Quads
+    // lines is sound because each line is one self-delimited statement.)
+    let mut lines: Vec<&str> = nquads.lines().collect();
+    lines.sort_unstable();
+    let sorted_nquads = lines.join("\n");
+
+    let quads = parse_quads_lenient(sorted_nquads.as_bytes(), RdfFormat::NQuads)
+        .map_err(|e| format!("re-parsing committed snapshot N-Quads: {e}"))?;
+
+    // Pass 1: the subjects of `rdf:reifies` quads are reifiers; everything a
+    // reifier subjects belongs to the RDF 1.2 statement layer, the rest are base
+    // quads (which keep their own graph names).
+    use oxigraph::model::NamedOrBlankNode;
+    let mut reifier_subjects: std::collections::HashSet<NamedOrBlankNode> =
+        std::collections::HashSet::new();
+    for q in &quads {
+        if q.predicate.as_str() == RDF_REIFIES {
+            reifier_subjects.insert(q.subject.clone());
+        }
+    }
+
+    let mut base: Vec<Quad> = Vec::new();
+    let mut rdf12: Vec<Quad> = Vec::new();
+    for q in quads {
+        let is_reifies = q.predicate.as_str() == RDF_REIFIES;
+        if is_reifies || reifier_subjects.contains(&q.subject) {
+            rdf12.push(q);
+        } else {
+            base.push(q);
+        }
+    }
+
+    builder.add_quads(&base, None, None);
+    if !rdf12.is_empty() {
+        // The reifying-style N-Quads carry no graph name on the statement layer
+        // (`to_nquads` emits reifier/annotation rows in the default graph), so
+        // `add_rdf12` with no graph name reproduces the snapshot's reifies/annot
+        // tables. Graph names on base quads are already preserved above.
+        builder
+            .add_rdf12(&rdf12, None, None)
+            .map_err(|e| format!("replaying RDF 1.2 statement layer: {e}"))?;
+    }
+    Ok(())
+}
+
+/// Decode every existing snapshot blob into a [`BlobRow`], preserving the
+/// declared media type + `rep`. Hard-fails a lazy blob that cannot decode (a
+/// damaged committed snapshot is a hard build failure, never a silent drop).
+fn existing_blobs(graph: &Graph) -> Result<Vec<BlobRow>, String> {
+    let mut rows = Vec::with_capacity(graph.blobs.len());
+    for (digest, entry) in &graph.blobs {
+        let data = entry
+            .decoded_vec()
+            .map_err(|e| format!("decoding committed snapshot blob {digest}: {e}"))?;
+        let (media_type, rep) = blob_meta_for(graph, digest)?;
+        rows.push(BlobRow {
+            data,
+            media_type,
+            rep,
+        });
+    }
+    Ok(rows)
+}
+
+/// Recover a blob's declared `(media_type, rep)` from the folded `blob_meta`
+/// table. A blob frame's `pub` map carries `mt` + `rep`; both are required for a
+/// committed snapshot blob, so a missing table entry or a missing `mt`/`rep` is
+/// a hard failure (never a silent `application/octet-stream`/empty-`rep` default
+/// that would lose the blob's declared identity on re-emit). A committed,
+/// drift-gated snapshot always carries this metadata; its absence means a
+/// corrupt snapshot, which must stop the release fold, not be papered over.
+fn blob_meta_for(graph: &Graph, digest: &str) -> Result<(String, String), String> {
+    use ciborium::value::Value;
+    let Some(Value::Map(entries)) = graph
+        .blob_meta
+        .iter()
+        .find(|(d, _)| d == digest)
+        .map(|(_, v)| v)
+    else {
+        return Err(format!(
+            "committed snapshot blob {digest} has no blob_meta entry (corrupt snapshot)"
+        ));
+    };
+    let mut media_type: Option<String> = None;
+    let mut rep: Option<String> = None;
+    for (k, v) in entries {
+        if let (Value::Text(key), Value::Text(val)) = (k, v) {
+            match key.as_str() {
+                "mt" => media_type = Some(val.clone()),
+                "rep" => rep = Some(val.clone()),
+                _ => {}
+            }
+        }
+    }
+    match (media_type, rep) {
+        (Some(mt), Some(rep)) => Ok((mt, rep)),
+        (mt, rep) => Err(format!(
+            "committed snapshot blob {digest} blob_meta missing {} (corrupt snapshot)",
+            match (mt.is_none(), rep.is_none()) {
+                (true, true) => "both `mt` and `rep`",
+                (true, false) => "`mt`",
+                _ => "`rep`",
+            }
+        )),
+    }
+}
+
+/// Author the `graph/attestations` named graph as N-Quads text.
+///
+/// One top-level release-manifest attestation over `release_subject_iri`
+/// (`gmeow:attestationTypeReleaseManifest` + `gmeow:attestationTypeSignedRDF`),
+/// plus one child attestation + artifact per evidence input, each bound to its
+/// blob by `gmeow:contentDigest`. Every row carries the `GRAPH_ATTESTATIONS`
+/// graph name. IRIs are derived from the content digest, so the output is stable
+/// across runs with the same inputs (mirrors the worked example shape).
+fn build_attestations_nquads(
+    sorted: &[(String, EvidenceInput)],
+    attester_iri: &str,
+    issued_at: &str,
+    release_subject_iri: &str,
+) -> String {
+    let g = format!("<{GRAPH_ATTESTATIONS}>");
+    let mut lines: Vec<String> = Vec::new();
+
+    let mut quad = |s: &str, p: &str, o: &str| {
+        lines.push(format!("{s} {p} {o} {g} ."));
+    };
+
+    // The attester is a software agent (the full-release lane).
+    let attester = iri(attester_iri);
+    quad(
+        &attester,
+        &iri(RDF_TYPE),
+        &iri(&format!("{GMEOW_NS}SoftwareAgent")),
+    );
+
+    // --- Top-level release-manifest attestation over the whole bundle. --------
+    let manifest = iri(&format!(
+        "{release_subject_iri}/attestation/release-manifest"
+    ));
+    quad(
+        &manifest,
+        &iri(RDF_TYPE),
+        &iri(&format!("{GMEOW_NS}Attestation")),
+    );
+    quad(&manifest, &gmeow("attester"), &attester);
+    quad(
+        &manifest,
+        &gmeow("attestedSubject"),
+        &iri(release_subject_iri),
+    );
+    quad(
+        &manifest,
+        &gmeow("attestationType"),
+        &iri(&format!("{GMEOW_NS}attestationTypeReleaseManifest")),
+    );
+    quad(
+        &manifest,
+        &gmeow("attestationType"),
+        &iri(&format!("{GMEOW_NS}attestationTypeSignedRDF")),
+    );
+    quad(&manifest, &gmeow("issuedAt"), &dt(issued_at));
+
+    // --- One child attestation + artifact per evidence input. -----------------
+    for (digest, ev) in sorted {
+        // Content-derived IRIs: stable across runs for identical bytes.
+        let key = digest_iri_suffix(digest);
+        let attestation = iri(&format!("{release_subject_iri}/attestation/{key}"));
+        let artifact = iri(&format!("{release_subject_iri}/artifact/{key}"));
+
+        quad(
+            &artifact,
+            &iri(RDF_TYPE),
+            &iri(&format!("{GMEOW_NS}AttestationArtifact")),
+        );
+        quad(
+            &artifact,
+            &gmeow("artifactMediaType"),
+            &literal(&ev.media_type),
+        );
+        quad(&artifact, &gmeow("contentDigest"), &literal(digest));
+        if !ev.subject_label.is_empty() {
+            quad(
+                &artifact,
+                &iri("http://www.w3.org/2000/01/rdf-schema#label"),
+                &literal(&ev.subject_label),
+            );
+        }
+
+        quad(
+            &attestation,
+            &iri(RDF_TYPE),
+            &iri(&format!("{GMEOW_NS}Attestation")),
+        );
+        quad(&attestation, &gmeow("attester"), &attester);
+        quad(
+            &attestation,
+            &gmeow("attestedSubject"),
+            &iri(release_subject_iri),
+        );
+        quad(
+            &attestation,
+            &gmeow("attestationType"),
+            &iri(&resolve_attestation_type_iri(&ev.attestation_type_iri)),
+        );
+        quad(&attestation, &gmeow("issuedAt"), &dt(issued_at));
+        quad(&attestation, &gmeow("attestationArtifact"), &artifact);
+    }
+
+    if lines.is_empty() {
+        String::new()
+    } else {
+        // Sort for byte-stability independent of authoring order; the builder
+        // re-sorts by content anyway, but a stable text keeps the parse cheap.
+        lines.sort();
+        format!("{}\n", lines.join("\n"))
+    }
+}
+
+/// Resolve an evidence row's `attestation_type` into a full IRI. A value that is
+/// already absolute (`http://…`/`https://…`) is used verbatim; a bare local name
+/// (e.g. `attestationTypeQualityReport`) is expanded against the gmeow namespace.
+/// The colon-delimited `--evidence` CLI spec (`path:media_type:type:rep:label`)
+/// cannot carry an absolute IRI without its `https:` colliding with a separator,
+/// so the Makefile passes the bare local name and this expands it.
+fn resolve_attestation_type_iri(value: &str) -> String {
+    if value.starts_with("http://") || value.starts_with("https://") {
+        value.to_string()
+    } else {
+        format!("{GMEOW_NS}{value}")
+    }
+}
+
+/// The IRI suffix derived from a `blake3:<hex>` digest (the hex, no scheme).
+fn digest_iri_suffix(digest: &str) -> String {
+    digest.strip_prefix("blake3:").unwrap_or(digest).to_string()
+}
+
+fn iri(s: &str) -> String {
+    format!("<{s}>")
+}
+
+fn gmeow(local: &str) -> String {
+    format!("<{GMEOW_NS}{local}>")
+}
+
+/// Escape a literal lexical form for N-Triples (the `gmeow-gts` escaper is
+/// `pub(crate)`, so we mirror it here for the minted attestation literals).
+fn escape_literal(lex: &str) -> String {
+    let mut out = String::with_capacity(lex.len());
+    for ch in lex.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out
+}
+
+fn literal(lex: &str) -> String {
+    format!("\"{}\"", escape_literal(lex))
+}
+
+fn dt(lex: &str) -> String {
+    format!("\"{}\"^^<{XSD_DATETIME}>", escape_literal(lex))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ed25519_dalek::SigningKey;
+
+    /// Deterministic Ed25519 key from a seed (mirrors validate/signature.rs).
+    fn deterministic_signing_key(seed: u8) -> SigningKey {
+        let mut bytes = [0u8; 32];
+        bytes[0] = seed;
+        for i in 1..32 {
+            bytes[i] = bytes[i - 1].wrapping_mul(31).wrapping_add(seed);
+        }
+        SigningKey::from_bytes(&bytes)
+    }
+
+    fn base64_encode(data: &[u8]) -> String {
+        const ALPHABET: &[u8; 64] =
+            b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        let mut out = String::new();
+        for chunk in data.chunks(3) {
+            let b0 = chunk[0];
+            let b1 = chunk.get(1).copied().unwrap_or(0);
+            let b2 = chunk.get(2).copied().unwrap_or(0);
+            out.push(ALPHABET[(b0 >> 2) as usize] as char);
+            out.push(ALPHABET[(((b0 & 0x03) << 4) | (b1 >> 4)) as usize] as char);
+            if chunk.len() > 1 {
+                out.push(ALPHABET[(((b1 & 0x0f) << 2) | (b2 >> 6)) as usize] as char);
+            } else {
+                out.push('=');
+            }
+            if chunk.len() > 2 {
+                out.push(ALPHABET[(b2 & 0x3f) as usize] as char);
+            } else {
+                out.push('=');
+            }
+        }
+        out
+    }
+
+    /// Build a minimal ASCII-armored OpenPGP v4 Ed25519 public-key certificate
+    /// the bundle's transport-key meta frame carries (the writer only stores the
+    /// armor verbatim; it is not re-parsed during emit).
+    fn fake_public_armor(verify_key: &[u8; 32]) -> String {
+        // Tag-6 public-key packet body: v4, ctime=0, algo=22, OID, 0x40-MPI.
+        let mut body = vec![4u8, 0, 0, 0, 0, 22];
+        body.push(9); // OID length
+        body.extend_from_slice(&[0x2b, 0x06, 0x01, 0x04, 0x01, 0xda, 0x47, 0x0f, 0x01]);
+        // MPI: 0x40 prefix marker || 32-byte key => 263 bits.
+        let mut mpi = vec![0x40u8];
+        mpi.extend_from_slice(verify_key);
+        let bits = (mpi.len() * 8 - 1) as u16; // high bit of 0x40 is clear
+        body.extend_from_slice(&bits.to_be_bytes());
+        body.extend_from_slice(&mpi);
+        // New-format tag-6 packet header.
+        let mut packet = vec![0xc6u8, body.len() as u8];
+        packet.extend_from_slice(&body);
+        let b64 = base64_encode(&packet);
+        let mut wrapped = String::new();
+        for line in b64.as_bytes().chunks(64) {
+            wrapped.push_str(std::str::from_utf8(line).unwrap());
+            wrapped.push('\n');
+        }
+        format!(
+            "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n{wrapped}-----END PGP PUBLIC KEY BLOCK-----\n"
+        )
+    }
+
+    /// A tiny unsigned `dist` snapshot to act as the "committed" base.
+    fn tiny_snapshot() -> Vec<u8> {
+        let nq = "<https://e/s> <https://e/p> <https://e/o> .\n\
+                  <https://e/s> <https://e/q> \"hello\" .\n";
+        let quads = parse_quads_lenient(nq.as_bytes(), RdfFormat::NTriples).expect("parse");
+        let mut b = SnapshotBuilder::new();
+        b.add_quads(&quads, None, None);
+        emit_gts(
+            &b,
+            "dist",
+            None,
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit tiny snapshot")
+    }
+
+    fn evidence_inputs() -> Vec<EvidenceInput> {
+        vec![
+            EvidenceInput {
+                data: b"{\"cross_check\": \"agree\"}".to_vec(),
+                media_type: "application/json".to_string(),
+                attestation_type_iri: format!("{GMEOW_NS}attestationTypeCrossCheckAgreement"),
+                rep: "cross-check".to_string(),
+                subject_label: "native↔oracle agreement".to_string(),
+            },
+            EvidenceInput {
+                data: b"{\"conformance\": \"pass\"}".to_vec(),
+                media_type: "application/json".to_string(),
+                attestation_type_iri: format!("{GMEOW_NS}attestationTypeConformanceVerdict"),
+                rep: "conformance".to_string(),
+                subject_label: "conformance verdicts".to_string(),
+            },
+        ]
+    }
+
+    fn fold(snapshot: &[u8], evidence: Vec<EvidenceInput>, issued_at: &str) -> Vec<u8> {
+        let signing = deterministic_signing_key(7);
+        let secret = signing.to_bytes();
+        let kid = "release-test-kid";
+        let armor = fake_public_armor(&signing.verifying_key().to_bytes());
+        fold_release_bundle(
+            snapshot,
+            evidence,
+            "https://blackcatinformatics.ca/gmeow/agent/release-lane",
+            issued_at,
+            "https://blackcatinformatics.ca/gmeow/release/gmeow.gts",
+            secret,
+            kid,
+            &armor,
+        )
+        .expect("fold release bundle")
+    }
+
+    #[test]
+    fn round_trip_carries_signature_attestations_and_blobs() {
+        let snapshot = tiny_snapshot();
+        let evidence = evidence_inputs();
+        let issued = "2026-06-25T00:00:00Z";
+
+        // Capture the expected per-evidence digests for the blob/triple checks.
+        let digests: Vec<String> = evidence.iter().map(|e| digest_string(&e.data)).collect();
+
+        let bundle = fold(&snapshot, evidence, issued);
+        let graph = read(&bundle, true, None);
+
+        // (a) the signed transport-key meta frame is present.
+        let has_transport_key = graph.meta.iter().any(|(k, _)| k == "gts:transportKey");
+        assert!(
+            has_transport_key,
+            "release bundle must carry the transport key"
+        );
+        assert!(
+            !graph.signatures.is_empty(),
+            "release bundle must carry at least one signature"
+        );
+
+        // (b) the attestations named graph carries the expected frames.
+        let nquads = gmeow_gts::nquads::to_nquads(&graph);
+        assert!(
+            nquads.contains(GRAPH_ATTESTATIONS),
+            "graph/attestations named graph must be present"
+        );
+        assert!(
+            nquads.contains("attestationTypeReleaseManifest"),
+            "top-level release-manifest attestation must be present"
+        );
+        assert!(
+            nquads.contains("attestationTypeCrossCheckAgreement"),
+            "cross-check child attestation must be present"
+        );
+        assert!(
+            nquads.contains("attestationTypeConformanceVerdict"),
+            "conformance child attestation must be present"
+        );
+
+        // (b cont.) each evidence digest is bound via gmeow:contentDigest, and
+        //          the original base graph survived the replay.
+        for digest in &digests {
+            assert!(
+                nquads.contains(digest),
+                "evidence digest {digest} must appear as a gmeow:contentDigest"
+            );
+        }
+        assert!(
+            nquads.contains("<https://e/s> <https://e/p> <https://e/o>"),
+            "the committed snapshot base graph must be replayed faithfully"
+        );
+
+        // (c) the evidence blobs are present with matching digests.
+        for digest in &digests {
+            assert!(
+                graph.blob_entry(digest).is_some(),
+                "evidence blob {digest} must be folded into the bundle"
+            );
+        }
+    }
+
+    #[test]
+    fn fold_is_deterministic() {
+        let snapshot = tiny_snapshot();
+        let issued = "2026-06-25T00:00:00Z";
+        let a = fold(&snapshot, evidence_inputs(), issued);
+        let b = fold(&snapshot, evidence_inputs(), issued);
+        assert_eq!(a, b, "same inputs + same issued_at must be byte-identical");
+    }
+
+    /// GAP-4/8: the consumer verify must accept a well-formed signed bundle —
+    /// signature + every attested artifact present — and report one verified
+    /// artifact per evidence input.
+    #[test]
+    fn verify_release_bundle_accepts_a_well_formed_bundle() {
+        let snapshot = tiny_snapshot();
+        let evidence = evidence_inputs();
+        let n = evidence.len();
+        let bundle = fold(&snapshot, evidence, "2026-06-25T00:00:00Z");
+
+        let report = verify_release_bundle(&bundle, None).expect("well-formed bundle must verify");
+        assert!(report.valid >= 1, "bundle must carry a valid signature");
+        assert_eq!(
+            report.artifacts_verified, n,
+            "every attested evidence artifact must resolve to a present blob"
+        );
+    }
+
+    /// GAP-4: a tampered bundle (a flipped byte) must fail the signature leg, and
+    /// non-GTS garbage must fail too — verify never silently passes.
+    #[test]
+    fn verify_release_bundle_rejects_tampered_and_garbage() {
+        let snapshot = tiny_snapshot();
+        let bundle = fold(&snapshot, evidence_inputs(), "2026-06-25T00:00:00Z");
+
+        let mut tampered = bundle.clone();
+        let mid = tampered.len() / 2;
+        tampered[mid] ^= 0xff;
+        assert!(
+            verify_release_bundle(&tampered, None).is_err(),
+            "a tampered bundle must not verify"
+        );
+
+        assert!(
+            verify_release_bundle(b"not a gts file at all", None).is_err(),
+            "non-GTS garbage must not verify"
+        );
+    }
+
+    /// GAP-8: supplying the WRONG out-of-band trusted key must fail the trust
+    /// leg even though the embedded self-signature is cryptographically valid.
+    #[test]
+    fn verify_release_bundle_rejects_untrusted_key() {
+        let snapshot = tiny_snapshot();
+        let bundle = fold(&snapshot, evidence_inputs(), "2026-06-25T00:00:00Z");
+
+        // A different signer's public key — not the one that signed the bundle.
+        let other = deterministic_signing_key(99);
+        let wrong_armor = fake_public_armor(&other.verifying_key().to_bytes());
+        assert!(
+            verify_release_bundle(&bundle, Some(&wrong_armor)).is_err(),
+            "verifying against an untrusted out-of-band key must fail"
+        );
+    }
+
+    /// A `dist` snapshot that already carries one report blob (the "committed"
+    /// stand-in for e.g. the in-snapshot SHACL SARIF), under `rep`.
+    fn snapshot_with_report_blob(data: &[u8], rep: &str) -> Vec<u8> {
+        let nq = "<https://e/s> <https://e/p> <https://e/o> .\n";
+        let quads = parse_quads_lenient(nq.as_bytes(), RdfFormat::NTriples).expect("parse");
+        let mut b = SnapshotBuilder::new();
+        b.add_quads(&quads, None, None);
+        emit_gts(
+            &b,
+            "dist",
+            None,
+            Vec::new(),
+            vec![BlobRow {
+                data: data.to_vec(),
+                media_type: "application/json".to_string(),
+                rep: rep.to_string(),
+            }],
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit snapshot with report blob")
+    }
+
+    /// Counts how many SERIALIZED blob frames carry each digest. `read()` dedups
+    /// blobs by digest in-place, so it cannot see a double-fold; the streaming
+    /// sink reports every raw frame, which can.
+    #[derive(Default)]
+    struct BlobFrameCounter {
+        counts: std::collections::HashMap<String, usize>,
+    }
+    impl gmeow_gts::reader::StreamingSink for BlobFrameCounter {
+        fn blob(&mut self, _seg: usize, digest: &str, _meta: Option<&ciborium::value::Value>) {
+            *self.counts.entry(digest.to_string()).or_insert(0) += 1;
+        }
+    }
+
+    /// GAP-2: evidence whose bytes already ride in the committed snapshot must NOT
+    /// be folded a second time. The duplicate is invisible after `read()` (the
+    /// model dedups blobs by digest), so we count raw blob FRAMES via the
+    /// streaming sink: the colliding digest must appear exactly once. The minted
+    /// attestation still binds to the artifact by `gmeow:contentDigest`, which the
+    /// committed blob satisfies, so the evidence stays recoverable + attested.
+    #[test]
+    fn evidence_colliding_with_committed_blob_is_not_double_folded() {
+        let shared = b"{\"shacl\":\"sarif-bytes\"}".to_vec();
+        let shared_digest = digest_string(&shared);
+        let snapshot = snapshot_with_report_blob(&shared, "snapshot-only");
+
+        let fresh = b"{\"conformance\":\"pass\"}".to_vec();
+        let fresh_digest = digest_string(&fresh);
+
+        let evidence = vec![
+            // Collides with the committed snapshot report blob.
+            EvidenceInput {
+                data: shared.clone(),
+                media_type: "application/json".to_string(),
+                attestation_type_iri: format!("{GMEOW_NS}attestationTypeQualityReport"),
+                rep: "shacl".to_string(),
+                subject_label: "SHACL diagnostics SARIF".to_string(),
+            },
+            // Brand-new bytes — must fold as one release-evidence frame.
+            EvidenceInput {
+                data: fresh.clone(),
+                media_type: "application/json".to_string(),
+                attestation_type_iri: format!("{GMEOW_NS}attestationTypeConformanceVerdict"),
+                rep: "conformance".to_string(),
+                subject_label: "conformance verdicts".to_string(),
+            },
+        ];
+
+        let bundle = fold(&snapshot, evidence, "2026-06-25T00:00:00Z");
+
+        // Exactly one blob frame per digest — the colliding evidence did NOT add
+        // a second frame for `shared`.
+        let mut counter = BlobFrameCounter::default();
+        gmeow_gts::reader::read_to_sink(&bundle, true, None, &mut counter);
+        assert_eq!(
+            counter.counts.get(&shared_digest).copied(),
+            Some(1),
+            "colliding evidence must yield exactly one blob frame, not a duplicate"
+        );
+        assert_eq!(
+            counter.counts.get(&fresh_digest).copied(),
+            Some(1),
+            "fresh evidence must fold as exactly one blob frame"
+        );
+
+        // Both digests stay recoverable and attested by gmeow:contentDigest.
+        let graph = read(&bundle, true, None);
+        let nquads = gmeow_gts::nquads::to_nquads(&graph);
+        for digest in [&shared_digest, &fresh_digest] {
+            assert!(
+                graph.blob_entry(digest).is_some(),
+                "blob {digest} must be recoverable from the bundle"
+            );
+            assert!(
+                nquads.contains(digest.as_str()),
+                "attestation envelope must bind {digest} by gmeow:contentDigest"
+            );
+        }
+        // The colliding artifact keeps the COMMITTED rep (the twin was suppressed).
+        let (_, rep) = blob_meta_for(&graph, &shared_digest).expect("committed blob meta present");
+        assert_eq!(rep, "snapshot-only");
+    }
+
+    /// Emit a `dist` snapshot from raw N-Quads text (the committed-snapshot
+    /// stand-in for the determinism fixtures).
+    fn snapshot_from_nquads(nq: &str) -> Vec<u8> {
+        let quads = parse_quads_lenient(nq.as_bytes(), RdfFormat::NQuads).expect("parse fixture");
+        let mut b = SnapshotBuilder::new();
+        b.add_quads(&quads, None, None);
+        emit_gts(
+            &b,
+            "dist",
+            None,
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit fixture snapshot")
+    }
+
+    /// A blank-node-heavy snapshot: many `owl:Restriction`-style blank-node
+    /// subjects spread across several named graphs, deliberately constructed so
+    /// that distinct blank nodes COLLIDE on their canonical sort key
+    /// (`(kind, value, datatype, lang)`). Each `_:r{N}` carries the same two
+    /// triples — `rdf:type owl:Restriction` and `owl:onProperty ex:p{N}` — so the
+    /// bnodes differ only in which property they point at; under a label-erasing
+    /// serializer their sort keys would tie and the canonical re-id would fall
+    /// back to ingestion order (the cross-process-unstable tie-break this fold
+    /// must be immune to).
+    fn blank_node_heavy_nquads() -> String {
+        let owl_restriction = "<http://www.w3.org/2002/07/owl#Restriction>";
+        let rdf_type = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+        let on_property = "<http://www.w3.org/2002/07/owl#onProperty>";
+        let graphs = [
+            "<https://e/graph/a>",
+            "<https://e/graph/b>",
+            "<https://e/graph/c>",
+        ];
+        let mut lines: Vec<String> = Vec::new();
+        for n in 0..60u32 {
+            let g = graphs[(n as usize) % graphs.len()];
+            let b = format!("_:r{n}");
+            lines.push(format!("{b} {rdf_type} {owl_restriction} {g} ."));
+            lines.push(format!("{b} {on_property} <https://e/p{n}> {g} ."));
+        }
+        format!("{}\n", lines.join("\n"))
+    }
+
+    /// A blank-node-heavy fold must be byte-stable across repeated runs, and the
+    /// emitted bundle must equal a fixed expected content address. This guards the
+    /// `replay_graph` line-sort: without it, structurally distinct bnodes whose
+    /// canonical sort keys tie would be re-id'd in ingestion order, leaking the
+    /// upstream (potentially HashMap-seeded) iteration order into the output.
+    ///
+    /// NOTE on the in-process limitation: a single test process shares one
+    /// `HashMap` hash-seed, so two folds in THIS process can agree even if a
+    /// genuine cross-process divergence exists. The order-independence assertion
+    /// below is the in-process proxy for that cross-process property — it pins the
+    /// canonical output to the quad SET, not to any iteration order.
+    #[test]
+    fn blank_node_heavy_fold_is_byte_stable() {
+        let snapshot = snapshot_from_nquads(&blank_node_heavy_nquads());
+        let issued = "2026-06-25T00:00:00Z";
+
+        // Sanity: the fixture really does carry many blank nodes.
+        let base = read(&snapshot, true, None);
+        let base_nq = gmeow_gts::nquads::to_nquads(&base);
+        assert!(
+            base_nq.matches("owl#Restriction").count() >= 50,
+            "fixture must carry 50+ owl:Restriction blank nodes"
+        );
+
+        let a = fold(&snapshot, Vec::new(), issued);
+        let b = fold(&snapshot, Vec::new(), issued);
+        assert_eq!(a, b, "blank-node-heavy fold must be byte-stable");
+    }
+
+    /// Build a `SnapshotBuilder` from raw N-Quads text exactly the way
+    /// [`replay_graph`] does (line-sort → parse → reifier split → add), but
+    /// driven from a literal string so a test can feed the SAME quad set in two
+    /// different line orders. This is the in-process surrogate for the
+    /// cross-process tie-break: it isolates the ingestion order that the canonical
+    /// re-id falls back on when blank-node sort keys collide.
+    fn replay_nquads_str(nq: &str) -> SnapshotBuilder {
+        // Mirror replay_graph's line-sort precisely.
+        let mut lines: Vec<&str> = nq.lines().collect();
+        lines.sort_unstable();
+        let sorted = lines.join("\n");
+        let quads = parse_quads_lenient(sorted.as_bytes(), RdfFormat::NQuads).expect("parse");
+
+        use oxigraph::model::NamedOrBlankNode;
+        let mut reifier_subjects: std::collections::HashSet<NamedOrBlankNode> =
+            std::collections::HashSet::new();
+        for q in &quads {
+            if q.predicate.as_str() == RDF_REIFIES {
+                reifier_subjects.insert(q.subject.clone());
+            }
+        }
+        let mut base: Vec<Quad> = Vec::new();
+        let mut rdf12: Vec<Quad> = Vec::new();
+        for q in quads {
+            let is_reifies = q.predicate.as_str() == RDF_REIFIES;
+            if is_reifies || reifier_subjects.contains(&q.subject) {
+                rdf12.push(q);
+            } else {
+                base.push(q);
+            }
+        }
+        let mut b = SnapshotBuilder::new();
+        b.add_quads(&base, None, None);
+        if !rdf12.is_empty() {
+            b.add_rdf12(&rdf12, None, None).expect("rdf12");
+        }
+        b
+    }
+
+    /// The replayed snapshot's content id must be a pure function of the quad SET,
+    /// independent of the order the quads are presented in. This directly exercises
+    /// the [`replay_graph`] line-sort: two blank-node-heavy N-Quads strings holding
+    /// the SAME statements in REVERSED order must yield the same
+    /// `snapshot_content_id`.
+    ///
+    /// Without the line-sort, distinct blank nodes whose canonical sort keys tie
+    /// would be re-id'd in arrival order, so the reversed input would (in the
+    /// general case, e.g. a multi-segment union whose serialized order is
+    /// HashMap-seeded across processes) produce a different content id — the
+    /// cross-process divergence §18 forbids. The sort pins the ingestion order to
+    /// the canonical text, identical in every process for the same set.
+    #[test]
+    fn replayed_content_id_is_independent_of_quad_order() {
+        let nq = blank_node_heavy_nquads();
+        let reversed = {
+            let mut lines: Vec<&str> = nq.lines().collect();
+            lines.reverse();
+            format!("{}\n", lines.join("\n"))
+        };
+
+        let forward_id = replay_nquads_str(&nq).snapshot_content_id();
+        let reversed_id = replay_nquads_str(&reversed).snapshot_content_id();
+        assert_eq!(
+            forward_id, reversed_id,
+            "replayed snapshot content id must depend on the quad SET, not its order"
+        );
+        assert!(forward_id.starts_with("blake3:"));
+    }
+
+    /// End-to-end: the full release fold over a blank-node-heavy snapshot must be
+    /// byte-identical regardless of the order the committed snapshot serialized its
+    /// quads in (the cross-process reproducibility property, §18).
+    #[test]
+    fn fold_is_independent_of_snapshot_quad_order() {
+        let nq = blank_node_heavy_nquads();
+        let forward = snapshot_from_nquads(&nq);
+        let reversed = {
+            let mut lines: Vec<&str> = nq.lines().collect();
+            lines.reverse();
+            snapshot_from_nquads(&format!("{}\n", lines.join("\n")))
+        };
+
+        let issued = "2026-06-25T00:00:00Z";
+        let a = fold(&forward, Vec::new(), issued);
+        let b = fold(&reversed, Vec::new(), issued);
+        assert_eq!(
+            a, b,
+            "release fold must depend on the quad SET, not the serialized order"
+        );
+    }
+
+    #[test]
+    fn empty_evidence_still_signs_the_release_manifest() {
+        let snapshot = tiny_snapshot();
+        let bundle = fold(&snapshot, Vec::new(), "2026-06-25T00:00:00Z");
+        let graph = read(&bundle, true, None);
+        assert!(
+            graph.meta.iter().any(|(k, _)| k == "gts:transportKey"),
+            "an evidence-free release still signs the manifest"
+        );
+        let nquads = gmeow_gts::nquads::to_nquads(&graph);
+        assert!(
+            nquads.contains("attestationTypeReleaseManifest"),
+            "the release-manifest frame is present even with no evidence"
+        );
+        // No artifact frames when there is no evidence.
+        assert!(
+            !nquads.contains("AttestationArtifact"),
+            "no artifacts without evidence"
+        );
+    }
+
+    #[test]
+    fn replayed_named_graph_is_preserved() {
+        // A snapshot with a named graph must round-trip the graph name.
+        let nq = "<https://e/s> <https://e/p> <https://e/o> \
+                  <https://blackcatinformatics.ca/gmeow/graph/metadata> .\n";
+        let quads = parse_quads_lenient(nq.as_bytes(), RdfFormat::NQuads).expect("parse");
+        let mut b = SnapshotBuilder::new();
+        b.add_quads(&quads, None, None);
+        let snapshot = emit_gts(
+            &b,
+            "dist",
+            None,
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit");
+
+        let bundle = fold(&snapshot, Vec::new(), "2026-06-25T00:00:00Z");
+        let graph = read(&bundle, true, None);
+        let nquads = gmeow_gts::nquads::to_nquads(&graph);
+        assert!(
+            nquads.contains("<https://blackcatinformatics.ca/gmeow/graph/metadata>"),
+            "the committed snapshot's named graph must survive the replay"
+        );
+    }
+
+    #[test]
+    fn attestation_type_local_name_expands_but_absolute_iri_passes_through() {
+        // The colon-delimited --evidence spec cannot carry an absolute IRI, so the
+        // Makefile passes a bare local name; an already-absolute IRI (used by the
+        // other tests) must pass through verbatim.
+        assert_eq!(
+            resolve_attestation_type_iri("attestationTypeQualityReport"),
+            "https://blackcatinformatics.ca/gmeow/attestationTypeQualityReport"
+        );
+        assert_eq!(
+            resolve_attestation_type_iri(
+                "https://blackcatinformatics.ca/gmeow/attestationTypeCrossCheckAgreement"
+            ),
+            "https://blackcatinformatics.ca/gmeow/attestationTypeCrossCheckAgreement"
+        );
+    }
+}

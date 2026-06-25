@@ -1828,6 +1828,8 @@ dependencies = [
  "arrow-schema",
  "blake3",
  "bytes",
+ "ciborium",
+ "ed25519-dalek",
  "gmeow-diagnostics",
  "gmeow-docs",
  "gmeow-gts",

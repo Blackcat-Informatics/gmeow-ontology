@@ -1,0 +1,121 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: release-as-evidence (issue #673, CONSTITUTION.md §18). The
+# `make full-release` lane folds every check / classic-cross-check / conformance
+# / SARIF / compliance / perf result into a single SIGNED gmeow.gts bundle, where
+# each result rides as a content-addressed blob described by a gmeow:Attestation
+# envelope. This file is the canonical shape the Rust release stage emits into the
+# bundle's graph/attestations named graph: a top-level release-manifest
+# attestation over the signed GTSDocument, plus one child attestation per evidence
+# artifact, each bound to its blob by gmeow:contentDigest and signed Ed25519.
+#
+# The attestations vouch that a given check RAN over given bytes — never that the
+# ontology is "true" (Principle 9, the no-truth-machine doctrine): a verification
+# is a separate, recorded act, not a global verdict.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The actors: the full-release builder vouches; a consumer verifies. --------
+ex:releaseBot a gmeow:SoftwareAgent ;
+    gmeow:name "gmeow make full-release lane"@x-gmeow-english .
+ex:releaseConsumer a gmeow:SoftwareAgent ;
+    gmeow:name "Downstream gmeow.gts consumer"@x-gmeow-english .
+
+# --- The signed release bundle it all folds into. Modelled as a CreativeWork
+#     (the attested subject); the shippable artifact is a gmeow:GTSDocument, but
+#     this example keeps the WEMI spine out of scope to focus on the frames.
+ex:gmeowRelease a gmeow:CreativeWork ;
+    gmeow:title         "gmeow.gts signed release bundle"@x-gmeow-english ;
+    gmeow:contentDigest "blake3:0000000000000000000000000000000000000000000000000000000000000000" .
+
+# --- The Ed25519 release signature, carried by every attestation in the bundle.
+ex:releaseSig a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "ed25519" ;
+    gmeow:signedBy           ex:releaseBot .
+
+# --- Verification is its own recorded act: a consumer checked the signature.
+ex:releaseVerification a gmeow:VerificationResult ;
+    gmeow:hasVerificationStatus gmeow:verificationStatusVerified ;
+    gmeow:verifiedBy            ex:releaseConsumer .
+
+# === Top-level envelope: the release manifest vouches for the whole bundle. =====
+ex:releaseAttestation a gmeow:Attestation ;
+    gmeow:attester            ex:releaseBot ;
+    gmeow:attestedSubject     ex:gmeowRelease ;
+    gmeow:attestationType     gmeow:attestationTypeReleaseManifest ,
+                              gmeow:attestationTypeSignedRDF ;
+    gmeow:issuedAt            "2026-06-25T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasSignature        ex:releaseSig ;
+    gmeow:verificationResult  ex:releaseVerification .
+
+# === Child attestation 1: the native↔oracle cross-check agreement matrix. ======
+ex:crossCheckArtifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/sarif+json" ;
+    gmeow:contentDigest     "blake3:1111111111111111111111111111111111111111111111111111111111111111" .
+
+ex:crossCheckAttestation a gmeow:Attestation ;
+    gmeow:attester            ex:releaseBot ;
+    gmeow:attestedSubject     ex:gmeowRelease ;
+    gmeow:attestationType     gmeow:attestationTypeCrossCheckAgreement ;
+    gmeow:issuedAt            "2026-06-25T00:00:00Z"^^xsd:dateTime ;
+    gmeow:attestationArtifact ex:crossCheckArtifact ;
+    gmeow:hasSignature        ex:releaseSig ;
+    gmeow:verificationResult  ex:releaseVerification .
+
+# === Child attestation 2: the public conformance-suite verdicts. ===============
+ex:conformanceArtifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/json" ;
+    gmeow:contentDigest     "blake3:2222222222222222222222222222222222222222222222222222222222222222" .
+
+ex:conformanceAttestation a gmeow:Attestation ;
+    gmeow:attester            ex:releaseBot ;
+    gmeow:attestedSubject     ex:gmeowRelease ;
+    gmeow:attestationType     gmeow:attestationTypeConformanceVerdict ;
+    gmeow:issuedAt            "2026-06-25T00:00:00Z"^^xsd:dateTime ;
+    gmeow:attestationArtifact ex:conformanceArtifact ;
+    gmeow:hasSignature        ex:releaseSig ;
+    gmeow:verificationResult  ex:releaseVerification .
+
+# === Child attestation 3: the SHACL/diagnostics SARIF findings (quality report).
+ex:sarifArtifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/sarif+json" ;
+    gmeow:contentDigest     "blake3:3333333333333333333333333333333333333333333333333333333333333333" .
+
+ex:sarifAttestation a gmeow:Attestation ;
+    gmeow:attester            ex:releaseBot ;
+    gmeow:attestedSubject     ex:gmeowRelease ;
+    gmeow:attestationType     gmeow:attestationTypeQualityReport ;
+    gmeow:issuedAt            "2026-06-25T00:00:00Z"^^xsd:dateTime ;
+    gmeow:attestationArtifact ex:sarifArtifact ;
+    gmeow:hasSignature        ex:releaseSig ;
+    gmeow:verificationResult  ex:releaseVerification .
+
+# === Child attestation 4: the machine-readable compliance report (quality report).
+ex:complianceArtifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "text/turtle" ;
+    gmeow:contentDigest     "blake3:4444444444444444444444444444444444444444444444444444444444444444" .
+
+ex:complianceAttestation a gmeow:Attestation ;
+    gmeow:attester            ex:releaseBot ;
+    gmeow:attestedSubject     ex:gmeowRelease ;
+    gmeow:attestationType     gmeow:attestationTypeQualityReport ;
+    gmeow:issuedAt            "2026-06-25T00:00:00Z"^^xsd:dateTime ;
+    gmeow:attestationArtifact ex:complianceArtifact ;
+    gmeow:hasSignature        ex:releaseSig ;
+    gmeow:verificationResult  ex:releaseVerification .
+
+# === Child attestation 5: the perf results, carried as DATA, never a gate. ======
+ex:perfArtifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/json" ;
+    gmeow:contentDigest     "blake3:5555555555555555555555555555555555555555555555555555555555555555" .
+
+ex:perfAttestation a gmeow:Attestation ;
+    gmeow:attester            ex:releaseBot ;
+    gmeow:attestedSubject     ex:gmeowRelease ;
+    gmeow:attestationType     gmeow:attestationTypeQualityReport ;
+    gmeow:issuedAt            "2026-06-25T00:00:00Z"^^xsd:dateTime ;
+    gmeow:attestationArtifact ex:perfArtifact ;
+    gmeow:hasSignature        ex:releaseSig ;
+    gmeow:verificationResult  ex:releaseVerification .

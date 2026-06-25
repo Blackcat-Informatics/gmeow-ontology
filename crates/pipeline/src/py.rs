@@ -263,6 +263,128 @@ fn roundtrip_isomorphic(nquads_bytes: &[u8], star_bytes: &[u8], format: &str) ->
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
 }
 
+/// Fold release evidence into a SIGNED `gmeow.gts` bundle (#673, §18).
+///
+/// This is the thin marshalling surface for the standalone release-as-evidence
+/// fold ([`crate::stages::release::fold_release_bundle`]). ALL fold / sign /
+/// attestation logic is Rust; Python only reads files, the signing key, and the
+/// armor, then calls here.
+///
+/// * `snapshot_bytes` — the committed *unsigned* `gmeow.gts` (NEVER mutated).
+/// * `evidence` — a list of `(data, media_type, attestation_type_iri, rep,
+///   subject_label)` rows; the caller read each artifact file (a missing file is
+///   a hard failure at the CLI before this is called).
+/// * `attester_iri` — the release-lane agent IRI.
+/// * `issued_at` — the INJECTED ISO-8601 release timestamp (determinism, §18).
+/// * `release_subject_iri` — the IRI naming the signed release bundle.
+/// * `signer_secret_armor` — the ASCII-armored unencrypted Ed25519 OpenPGP
+///   SECRET key (the SIGN_KEY material); parsed to a `SigningKey` + kid HERE.
+/// * `public_key_armor` — the ASCII-armored Ed25519 OpenPGP PUBLIC certificate
+///   carried in the bundle's transport-key meta frame.
+///
+/// Returns the signed bundle bytes; the caller writes them to `--out`.
+#[pyfunction]
+#[pyo3(signature = (
+    snapshot_bytes,
+    evidence,
+    attester_iri,
+    issued_at,
+    release_subject_iri,
+    signer_secret_armor,
+    public_key_armor,
+))]
+#[allow(clippy::too_many_arguments)]
+fn fold_release_bundle_native(
+    py: Python<'_>,
+    snapshot_bytes: &[u8],
+    evidence: Vec<(Vec<u8>, String, String, String, String)>,
+    attester_iri: String,
+    issued_at: String,
+    release_subject_iri: String,
+    signer_secret_armor: String,
+    public_key_armor: String,
+) -> PyResult<Py<PyAny>> {
+    use crate::stages::release::{fold_release_bundle, EvidenceInput};
+
+    // Load the Ed25519 signing material from the armored secret key in Rust
+    // (no key handling in Python beyond reading the file bytes).
+    let signer =
+        gmeow_gts::openpgp::parse_secret_signing_key(&signer_secret_armor, None).map_err(|e| {
+            pyo3::exceptions::PyValueError::new_err(format!("parsing signing secret key: {e}"))
+        })?;
+    let (signing_key, kid) = signer.into_parts();
+    let secret = signing_key.to_bytes();
+
+    let inputs: Vec<EvidenceInput> = evidence
+        .into_iter()
+        .map(
+            |(data, media_type, attestation_type_iri, rep, subject_label)| EvidenceInput {
+                data,
+                media_type,
+                attestation_type_iri,
+                rep,
+                subject_label,
+            },
+        )
+        .collect();
+
+    // Own the snapshot bytes so the heavy fold runs off the GIL.
+    let snapshot = snapshot_bytes.to_vec();
+    let bytes = py
+        .detach(move || {
+            fold_release_bundle(
+                &snapshot,
+                inputs,
+                &attester_iri,
+                &issued_at,
+                &release_subject_iri,
+                secret,
+                &kid,
+                &public_key_armor,
+            )
+        })
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(PyBytes::new(py, &bytes).into_any().unbind())
+}
+
+/// Marshalled shape of a [`crate::stages::release::ReleaseVerifyReport`] for
+/// Python: a `(signed, valid, kid, fingerprint, artifacts_verified)` tuple.
+type ReleaseVerifyTuple = (usize, usize, Option<String>, Option<String>, usize);
+
+/// Verify a signed release-evidence bundle (#673, §18) — the consumer half of
+/// the fold and the body of `make verify-release`.
+///
+/// Thin marshalling surface for [`crate::stages::release::verify_release_bundle`]:
+/// it does the COSE signature + trust-policy check AND walks the
+/// `graph/attestations` frames, hard-failing if any attested artifact's bytes
+/// are absent. Returns `(signed, valid, kid, fingerprint, artifacts_verified)`;
+/// a verification failure raises `ValueError` (no silent pass).
+///
+/// * `bundle_bytes` — the signed bundle to verify.
+/// * `expected_public_armor` — optional out-of-band trusted public key; when
+///   present the signature is checked against it, not just the embedded key.
+#[pyfunction]
+#[pyo3(signature = (bundle_bytes, expected_public_armor=None))]
+fn verify_release_bundle_native(
+    py: Python<'_>,
+    bundle_bytes: &[u8],
+    expected_public_armor: Option<String>,
+) -> PyResult<ReleaseVerifyTuple> {
+    use crate::stages::release::verify_release_bundle;
+
+    let bundle = bundle_bytes.to_vec();
+    let report = py
+        .detach(move || verify_release_bundle(&bundle, expected_public_armor.as_deref()))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok((
+        report.signed,
+        report.valid,
+        report.kid,
+        report.fingerprint,
+        report.artifacts_verified,
+    ))
+}
+
 /// Classify one SSSOM row for the native up-projection audit.
 #[pyfunction]
 #[pyo3(signature = (subject_id, predicate_id, object_id))]
@@ -740,6 +862,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     m.add_function(wrap_pyfunction!(roundtrip_isomorphic, m)?)?;
+    m.add_function(wrap_pyfunction!(fold_release_bundle_native, m)?)?;
+    m.add_function(wrap_pyfunction!(verify_release_bundle_native, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_classify_sssom, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_combined_class, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_build_lift_map, m)?)?;

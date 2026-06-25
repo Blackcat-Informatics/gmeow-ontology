@@ -13329,6 +13329,12 @@ enums:
       attestationTypeC2PA:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeC2PA
         title: C2PA manifest
+      attestationTypeConformanceVerdict:
+        meaning: https://blackcatinformatics.ca/gmeow/attestationTypeConformanceVerdict
+        title: conformance verdict
+      attestationTypeCrossCheckAgreement:
+        meaning: https://blackcatinformatics.ca/gmeow/attestationTypeCrossCheckAgreement
+        title: cross-check agreement matrix
       attestationTypeDSSE:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeDSSE
         title: DSSE envelope

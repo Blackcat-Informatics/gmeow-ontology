@@ -116,6 +116,8 @@ enum AttestationTypeEnum {
   attestationTypeAIOutput
   attestationTypeBlockchainClaim
   attestationTypeC2PA
+  attestationTypeConformanceVerdict
+  attestationTypeCrossCheckAgreement
   attestationTypeDSSE
   attestationTypeEAT
   attestationTypeFactCheck

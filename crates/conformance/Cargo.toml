@@ -12,6 +12,13 @@ repository.workspace = true
 [lib]
 path = "src/lib.rs"
 
+# Release-as-evidence roll-up (#673, §18): run the corpus and materialize the
+# per-case verdicts as one canonical-JSON artifact for folding into the signed
+# release bundle. Driven by `make conformance-report`.
+[[bin]]
+name = "conformance-report"
+path = "src/bin/conformance_report.rs"
+
 [dependencies]
 # The native logic engine: compile / certify / materialize / explain / foundation
 # / scryer / stable-model / probabilistic cores. The harness calls these directly

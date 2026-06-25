@@ -16,7 +16,7 @@ Tier-2 uplift backlog.
 | agreements | core | core | 2 | 3 | 2 | 0 | 1 | 5/5 | full |
 | ai | core | core | 5 | 11 | 23 | 0 | 1 | 34/34 | full |
 | archaeological-evidence | extension | extensions | 6 | 7 | 18 | 0 | 1 | - | full |
-| attestation | core | core | 5 | 16 | 28 | 0 | 1 | 44/44 | full |
+| attestation | core | core | 5 | 16 | 28 | 0 | 2 | 44/44 | full |
 | awareness | core | core | 2 | 3 | 5 | 0 | 2 | 8/8 | full |
 | calendar | core | core | 4 | 14 | 26 | 0 | 1 | 40/40 | full |
 | citations | core | core | 3 | 5 | 11 | 0 | 1 | 16/16 | full |
