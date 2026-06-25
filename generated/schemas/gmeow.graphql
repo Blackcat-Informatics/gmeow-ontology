@@ -2159,6 +2159,7 @@ enum PipelineStageEnum
   {
     stage__HYPHEN_MINUS__docs__HYPHEN_MINUS__render
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__apache
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__bench
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__catalog
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__evals
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__export

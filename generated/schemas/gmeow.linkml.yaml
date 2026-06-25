@@ -17949,6 +17949,9 @@ enums:
       stage-export-apache:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-apache
         title: 'export: apache headers'
+      stage-export-bench:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-bench
+        title: 'export: bench'
       stage-export-catalog:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-catalog
         title: 'export: catalog'
