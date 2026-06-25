@@ -141,12 +141,17 @@ fn relabel_graph(graph: &GraphName, map: &HashMap<String, String>) -> GraphName 
     }
 }
 
-/// Relabel one blank node; an unmapped blank (should not occur — canonicalization
-/// labels every blank) keeps its original id.
+/// Relabel one blank node to its canonical label. Canonicalization assigns a
+/// label to *every* blank in the dataset, so an unmapped blank is a broken
+/// invariant — hard-fail rather than silently passing the original id through
+/// (no degraded fallback; `.goals`).
 fn relabel_blank(blank: &BlankNode, map: &HashMap<String, String>) -> BlankNode {
     match map.get(blank.as_str()) {
         Some(canon) => BlankNode::new_unchecked(canon.as_str()),
-        None => blank.clone(),
+        None => unreachable!(
+            "RDFC-1.0 labels every blank node; missing canonical label for _:{}",
+            blank.as_str()
+        ),
     }
 }
 
