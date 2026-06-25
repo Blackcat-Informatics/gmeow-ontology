@@ -81,6 +81,18 @@ _RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label"
 _ADOPTED_PREDICATES: frozenset[str] = frozenset(
     {_SKOS + "exactMatch", _SKOS + "closeMatch"}
 )
+#: GMEOW statement-metadata structural terms. These are authored as RDF-1.2-star
+#: reifiers in YAML-LD-star / JSON-LD-star input; they are already native GMEOW,
+#: so the up-projection passes them through unchanged (#699).
+_STATEMENT_METADATA_TERMS: frozenset[str] = frozenset(
+    {
+        str(GM.StatementMetadata),
+        str(GM.qSubject),
+        str(GM.qPredicate),
+        str(GM.qObject),
+        str(GM.qObjectLiteral),
+    }
+)
 #: External label sub-properties GMEOW NORMALIZES to its single label predicate.
 #: GMEOW canonicalizes every label to ``rdfs:label`` (the tags slice: "GMEOW uses
 #: rdfs:label for all labels"); ``skos:prefLabel``/``skos:altLabel`` are declared
@@ -552,6 +564,13 @@ def build_lift_map() -> LiftMap:
     for adopted in _ADOPTED_PREDICATES:
         rules.setdefault(adopted, adopted)
 
+    # GMEOW statement-metadata structural terms pass through unchanged (#699).
+    # These terms are produced by the YAML-LD-star / JSON-LD-star downcast when
+    # the source carries RDF-1.2-star annotations; they are already native GMEOW,
+    # so preserving them is lossless and avoids a false coverage gap.
+    for sm_term in _STATEMENT_METADATA_TERMS:
+        rules.setdefault(sm_term, sm_term)
+
     # SKOS label sub-properties normalize to rdfs:label (sound subproperty
     # entailment — see _NORMALIZED_PREDICATES). setdefault, so a genuine alignment
     # cell for the same source predicate, if one is ever authored, still wins.
@@ -665,6 +684,10 @@ class _Acc:
         self.claims[_canon_qname(str(source_term))] += 1
 
 
+def _is_gmeow_ns(iri: str) -> bool:
+    return iri.startswith(str(GM))
+
+
 def _account(acc: _Acc, lift: LiftMap, key: str) -> None:
     if key in lift.ambiguous:
         acc.ambig[_canon_qname(key)] += 1
@@ -689,6 +712,9 @@ def _lift_edge(acc: _Acc, s: Node, p: Node, o: Node, lift: LiftMap) -> None:
             if isinstance(s, URIRef):
                 gmeow, conf = lift.claim_rules[key]
                 acc.claim(s, RDF.type, URIRef(gmeow), URIRef(key), conf)
+        elif _is_gmeow_ns(key):
+            # Already-native GMEOW types pass through unchanged (#699).
+            acc.fact(s, RDF.type, o)
         else:
             _account(acc, lift, key)
         return
@@ -733,6 +759,9 @@ def _lift_edge(acc: _Acc, s: Node, p: Node, o: Node, lift: LiftMap) -> None:
         if isinstance(s, URIRef) and isinstance(o, URIRef | Literal):
             gmeow, conf = lift.claim_rules[key]
             acc.claim(s, URIRef(gmeow), o, URIRef(key), conf)
+    elif _is_gmeow_ns(key):
+        # Already-native GMEOW predicates pass through unchanged (#699).
+        acc.fact(s, p, o)
     else:
         _account(acc, lift, key)
 

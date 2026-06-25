@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://blackcatinformatics.ca/gmeow/schemas/gmeow.schema.json
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Hand-authored YAML-LD-star statement-layer fixture (issue #699 / PR #978).
+#
+# A standpoint claim annotated with explicit reifier ids, statement metadata
+# (accordingTo, confidence, assertedAt), and a directional language-tagged name.
+# The graph is flat (one node object per subject) so it matches the JSON-LD-star
+# idiom produced by the GMEOW emitter and consumed by the narrow Rust parser.
+'@context':
+  '@vocab': https://blackcatinformatics.ca/gmeow/
+  ex: https://example.org/
+  gmeow: https://blackcatinformatics.ca/gmeow/
+  xsd: http://www.w3.org/2001/XMLSchema#
+'@graph':
+  - '@id': ex:claim-001
+    '@type':
+      - '@id': StandpointClaim
+    claimModality:
+      '@id': gmeow:bullshit
+      '@annotation':
+        '@id': ex:claim-001-annotation
+        accordingTo:
+          '@id': ex:analyst-standpoint
+        confidence:
+          '@value': '0.65'
+          '@type': xsd:decimal
+        assertedAt:
+          '@value': '2026-06-05T00:00:00Z'
+          '@type': xsd:dateTime
+    observedFeature:
+      '@id': ex:alice
+  - '@id': ex:alice
+    name:
+      '@value': Alice
+      '@language': en
+      '@direction': ltr
+      '@annotation':
+        '@id': ex:alice-name-annotation
+        accordingTo:
+          '@id': ex:analyst-standpoint
+        confidence:
+          '@value': '0.9'
+          '@type': xsd:decimal

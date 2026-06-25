@@ -42,6 +42,7 @@ pub mod schemas;
 pub mod snapshot;
 pub mod source_load;
 pub mod statements;
+pub mod yaml_ld;
 
 /// Register every production stage into `registry` under its `gmeow:stageImpl`
 /// key. The single inventory the loader and `run_pipeline` (P6) share. Stages
@@ -74,4 +75,5 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("parquet", Arc::new(parquet::ParquetStage::new()));
     registry.register("okf", Arc::new(okf::OkfStage::new()));
     registry.register("export", Arc::new(export::ExportStage::new()));
+    registry.register("yaml_ld", Arc::new(yaml_ld::YamlLdStage::new()));
 }
