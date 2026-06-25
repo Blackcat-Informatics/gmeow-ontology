@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the expertise-expert-python competency question (gmeow:cqDataFile
+# overlay). Verbatim externalization of test_competency_expertise_expert_python_query:
+# an agent with Dreyfus-expert proficiency in a skill.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix exd:   <https://example.org/test/> .
+
+exd:agent1 a gmeow:Agent .
+exd:python a gmeow:Skill .
+
+exd:prof1 a gmeow:SkillProficiency ;
+    gmeow:skillProficiencyAgent exd:agent1 ;
+    gmeow:skillProficiencyOf exd:python ;
+    gmeow:skillProficiencyLevel gmeow:dreyfusExpert .

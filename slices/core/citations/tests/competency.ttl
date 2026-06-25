@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency question for the citations slice (crates/slicetest, #784),
+# migrated from test_competency_citation_intents_query under #867. TBox subset over
+# the asserted merged ontology (contains-check). The source asserted a len >= 10
+# floor; the ten named intents are pinned (the floor has no DSL operator and is a
+# faithful relaxation, never strengthened to exact). No #869 Gap-1 universal.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/citations/tests/> .
+
+ex:cqCitationIntents a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/citation-intents.rq" ;
+    gmeow:cqRationale "GMEOW must model citation intents (CiTO-aligned): cites-as-data-source, uses-method-in, extends, is-inspired-by, conforms-to, derived-from, documents, supports, disagrees-with, bridged-by-reference." ;
+    gmeow:cqExpectRow
+        ex:ciCitesAsDataSource, ex:ciUsesMethodIn, ex:ciExtends, ex:ciIsInspiredBy,
+        ex:ciConformsTo, ex:ciDerivedFrom, ex:ciDocuments, ex:ciSupports,
+        ex:ciDisagreesWith, ex:ciBridgedByReference .
+
+ex:ciCitesAsDataSource a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "intent" ; gmeow:cellValueIri gmeow:intentCitesAsDataSource ] .
+ex:ciUsesMethodIn a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "intent" ; gmeow:cellValueIri gmeow:intentUsesMethodIn ] .
+ex:ciExtends a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "intent" ; gmeow:cellValueIri gmeow:intentExtends ] .
+ex:ciIsInspiredBy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "intent" ; gmeow:cellValueIri gmeow:intentIsInspiredBy ] .
+ex:ciConformsTo a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "intent" ; gmeow:cellValueIri gmeow:intentConformsTo ] .
+ex:ciDerivedFrom a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "intent" ; gmeow:cellValueIri gmeow:intentDerivedFrom ] .
+ex:ciDocuments a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "intent" ; gmeow:cellValueIri gmeow:intentDocuments ] .
+ex:ciSupports a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "intent" ; gmeow:cellValueIri gmeow:intentSupports ] .
+ex:ciDisagreesWith a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "intent" ; gmeow:cellValueIri gmeow:intentDisagreesWith ] .
+ex:ciBridgedByReference a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "intent" ; gmeow:cellValueIri gmeow:intentBridgedByReference ] .

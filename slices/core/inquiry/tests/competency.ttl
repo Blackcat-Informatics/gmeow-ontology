@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency question for the inquiry slice (crates/slicetest, #784),
+# migrated from test_competency_research_inquiries_query under #867. Deliberately
+# EMPTY over the TBox-only merged graph (there are no open inquiry instances), so
+# it pins cqExpectRowCount 0 — faithful to the source's `terms == set()`.
+# No #869 Gap-1 universal.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inquiry/tests/> .
+
+ex:cqResearchInquiries a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/research-inquiries.rq" ;
+    gmeow:cqRationale "Over the asserted TBox there are no open research-inquiry instances, so the open-inquiries query returns the empty set." ;
+    gmeow:cqExpectRowCount 0 .

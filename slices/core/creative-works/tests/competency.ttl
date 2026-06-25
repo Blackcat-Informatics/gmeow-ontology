@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency question for the creative-works slice (crates/slicetest,
+# #784), migrated from test_competency_works_query under #867. TBox subset over the
+# asserted merged ontology (contains-check). No #869 Gap-1 universal.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/creative-works/tests/> .
+
+ex:cqWorks a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/works.rq" ;
+    gmeow:cqRationale "GMEOW must model the kinds of creative work it supports: the CreativeWork root plus Article, Patent, Dataset, and SoftwareProduct." ;
+    gmeow:cqExpectRow ex:wCreativeWork, ex:wArticle, ex:wPatent, ex:wDataset, ex:wSoftwareProduct .
+
+ex:wCreativeWork a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "work" ; gmeow:cellValueIri gmeow:CreativeWork ] .
+ex:wArticle a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "work" ; gmeow:cellValueIri gmeow:Article ] .
+ex:wPatent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "work" ; gmeow:cellValueIri gmeow:Patent ] .
+ex:wDataset a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "work" ; gmeow:cellValueIri gmeow:Dataset ] .
+ex:wSoftwareProduct a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "work" ; gmeow:cellValueIri gmeow:SoftwareProduct ] .

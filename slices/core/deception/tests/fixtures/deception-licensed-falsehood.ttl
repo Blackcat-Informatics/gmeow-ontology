@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the deception-licensed-falsehood NEGATIVE competency question
+# (gmeow:cqDataFile overlay). Verbatim externalization of
+# test_competency_deception_licensed_falsehood_query: a fiction claim asserted
+# accordingTo a narrative frame with licensed-falsehood veridicality, and NO lie
+# event projecting it — so the query must return EMPTY (the safety property holds).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix exd:   <https://example.org/test/> .
+
+exd:fictionClaim a gmeow:StandpointClaim ;
+    gmeow:accordingTo exd:narrativeFrame ;
+    gmeow:claimVeridicality gmeow:veridicalityLicensedFalsehood .

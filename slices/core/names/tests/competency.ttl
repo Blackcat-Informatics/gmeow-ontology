@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the names slice, executed by the native Rust
+# slice-test harness (crates/slicetest, #784). Migrated from the appellation /
+# name-part / pronoun / place-naming competency tests in tests/test_competency.py
+# under #867. All TBox vocabulary questions over the asserted merged ontology; rows
+# are the SUBSET the pytest asserted present (cqExactRows omitted → contains-check).
+# No #869 Gap-1 universal — fixed term sets.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/names/tests/> .
+
+# ── Appellation kinds ─────────────────────────────────────────────────────────
+ex:cqAppellationKinds a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/appellation-kinds.rq" ;
+    gmeow:cqRationale "GMEOW must model the kinds of appellation it supports: the Appellation root plus PersonName, Filename, PlaceName, and OrganizationName." ;
+    gmeow:cqExpectRow ex:akAppellation, ex:akPersonName, ex:akFilename, ex:akPlaceName, ex:akOrganizationName .
+
+ex:akAppellation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:Appellation ] .
+ex:akPersonName a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:PersonName ] .
+ex:akFilename a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:Filename ] .
+ex:akPlaceName a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:PlaceName ] .
+ex:akOrganizationName a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:OrganizationName ] .
+
+# ── Name-part types (multi-cultural coverage) ─────────────────────────────────
+ex:cqNamePartTypes a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/name-part-types.rq" ;
+    gmeow:cqRationale "GMEOW must model name-part types across cultures: Western given/surname, Spanish paternal surname, Arabic nisba, mononym, generation/clan/birth-order names, and the Roman nomen." ;
+    gmeow:cqExpectRow ex:nptGiven, ex:nptSurname, ex:nptPaternalSurname, ex:nptNisba,
+        ex:nptMononym, ex:nptGenerationName, ex:nptClanName, ex:nptBirthOrderName, ex:nptNomen .
+
+ex:nptGiven a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "namePartType" ; gmeow:cellValueIri gmeow:namePartGiven ] .
+ex:nptSurname a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "namePartType" ; gmeow:cellValueIri gmeow:namePartSurname ] .
+ex:nptPaternalSurname a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "namePartType" ; gmeow:cellValueIri gmeow:namePartPaternalSurname ] .
+ex:nptNisba a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "namePartType" ; gmeow:cellValueIri gmeow:namePartNisba ] .
+ex:nptMononym a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "namePartType" ; gmeow:cellValueIri gmeow:namePartMononym ] .
+ex:nptGenerationName a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "namePartType" ; gmeow:cellValueIri gmeow:namePartGenerationName ] .
+ex:nptClanName a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "namePartType" ; gmeow:cellValueIri gmeow:namePartClanName ] .
+ex:nptBirthOrderName a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "namePartType" ; gmeow:cellValueIri gmeow:namePartBirthOrderName ] .
+ex:nptNomen a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "namePartType" ; gmeow:cellValueIri gmeow:namePartNomen ] .
+
+# ── Pronoun sets ──────────────────────────────────────────────────────────────
+ex:cqPronounSets a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/pronoun-sets.rq" ;
+    gmeow:cqRationale "GMEOW must model pronoun sets including neopronouns: she/her, he/him, they/them, xe/xem." ;
+    gmeow:cqExpectRow ex:psSheHer, ex:psHeHim, ex:psTheyThem, ex:psXeXem .
+
+ex:psSheHer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "pronounSet" ; gmeow:cellValueIri gmeow:pronounSheHer ] .
+ex:psHeHim a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "pronounSet" ; gmeow:cellValueIri gmeow:pronounHeHim ] .
+ex:psTheyThem a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "pronounSet" ; gmeow:cellValueIri gmeow:pronounTheyThem ] .
+ex:psXeXem a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "pronounSet" ; gmeow:cellValueIri gmeow:pronounXeXem ] .
+
+# ── Place namings (the place-scoped NameUsage subclass, asserted) ─────────────
+ex:cqPlaceNamings a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/place-namings.rq" ;
+    gmeow:cqRationale "GMEOW must expose PlaceNaming, the place-scoped subclass of NameUsage (issue #105), in the asserted graph." ;
+    gmeow:cqExpectRow ex:pnPlaceNaming .
+
+ex:pnPlaceNaming a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "placeNamingKind" ; gmeow:cellValueIri gmeow:PlaceNaming ] .
