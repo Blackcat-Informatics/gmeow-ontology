@@ -861,3 +861,153 @@ fn first_wins_tiebreak_prefers_most_direct_derivation_order_independent() {
         "combined perm: shallowest wins"
     );
 }
+
+// ── Typed/contextual mereology + holon kernel (issue #704, C1) ───────────────────
+
+/// Whether a binary `(subject, predicate_local, object_iri)` fact is present
+/// (object compared in N3 `<iri>` form).
+fn has_binary(quads: &[FoundationQuad], subject: &str, local: &str, object_iri: &str) -> bool {
+    let pred = format!("{LOGIC}{local}");
+    let obj = format!("<{object_iri}>");
+    quads
+        .iter()
+        .any(|q| q.subject == subject && q.predicate == pred && q.object == obj)
+}
+
+/// Whether a self-atom marker `(subject, predicate_local, subject)` is present.
+fn has_marker(quads: &[FoundationQuad], subject: &str, local: &str) -> bool {
+    has_binary(quads, subject, local, subject)
+}
+
+#[test]
+fn holon_projection_middle_of_chain_only() {
+    // Engine ⊏ Car ⊏ Fleet.  Car is both a proper part (of Fleet) and a whole
+    // (has Engine) → isHolon.  Fleet (root) and Engine (leaf) are not holons.
+    let base = "https://example.org/foundation/holon-projection";
+    let nq = format!(
+        "<{base}/Engine> <{LOGIC}properPartOf> <{base}/Car> <{base}/schema> .\n\
+         <{base}/Car> <{LOGIC}properPartOf> <{base}/Fleet> <{base}/schema> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+
+    assert!(
+        has_marker(&quads, &format!("{base}/Car"), "isHolon"),
+        "Car (part AND whole) must project to isHolon"
+    );
+    assert!(
+        !has_marker(&quads, &format!("{base}/Fleet"), "isHolon"),
+        "Fleet (root whole) must NOT be a holon"
+    );
+    assert!(
+        !has_marker(&quads, &format!("{base}/Engine"), "isHolon"),
+        "Engine (atomic leaf) must NOT be a holon"
+    );
+    // overlap: a proper part overlaps its whole (both directions).
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/Engine"),
+            "overlaps",
+            &format!("{base}/Car")
+        ),
+        "Engine overlaps Car (part overlaps whole)"
+    );
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/Car"),
+            "overlaps",
+            &format!("{base}/Engine")
+        ),
+        "overlaps is symmetric: Car overlaps Engine"
+    );
+}
+
+#[test]
+fn holon_two_node_chain_has_no_holon() {
+    // A ⊏ B: A is a leaf, B is a root.  Neither is both a part and a whole, so the
+    // reflexive overlap (a thing overlaps its own whole) must NOT spuriously fire
+    // isHolon for either.
+    let base = "https://example.org/foundation/holon-two-node";
+    let nq = format!("<{base}/A> <{LOGIC}properPartOf> <{base}/B> <{base}/schema> .\n");
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+
+    assert!(
+        !has_marker(&quads, &format!("{base}/A"), "isHolon"),
+        "A (leaf) must not be a holon in a 2-node chain"
+    );
+    assert!(
+        !has_marker(&quads, &format!("{base}/B"), "isHolon"),
+        "B (root) must not be a holon in a 2-node chain"
+    );
+}
+
+#[test]
+fn weak_supplementation_singleton_part_under_profile_fires() {
+    // W1 is declared under a MereologyProfile and has exactly ONE proper part P1
+    // with no disjoint co-part → weak supplementation is violated.
+    let base = "https://example.org/foundation/weak-supplementation";
+    let nq = format!(
+        "<{base}/W1> <{LOGIC}underMereologyProfile> <{base}/MP> <{base}/schema> .\n\
+         <{base}/P1> <{LOGIC}properPartOf> <{base}/W1> <{base}/schema> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+
+    assert!(
+        has_marker(&quads, &format!("{base}/W1"), "supplementationScoped"),
+        "W1 declared under a profile must be supplementation-scoped"
+    );
+    assert!(
+        has_violation(&quads, &format!("{base}/W1"), "WeakSupplementation"),
+        "W1 (lone proper part, under profile) must fire WeakSupplementation"
+    );
+}
+
+#[test]
+fn weak_supplementation_two_disjoint_parts_under_profile_clean() {
+    // W2 under a profile has two disjoint proper parts (Pa, Pb share no part) →
+    // each has a disjoint co-part, so weak supplementation holds (no violation).
+    let base = "https://example.org/foundation/weak-supplementation-clean";
+    let nq = format!(
+        "<{base}/W2> <{LOGIC}underMereologyProfile> <{base}/MP> <{base}/schema> .\n\
+         <{base}/Pa> <{LOGIC}properPartOf> <{base}/W2> <{base}/schema> .\n\
+         <{base}/Pb> <{LOGIC}properPartOf> <{base}/W2> <{base}/schema> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/Pa"),
+            "disjoint",
+            &format!("{base}/Pb")
+        ),
+        "Pa and Pb (no shared part) must be disjoint"
+    );
+    assert!(
+        has_marker(&quads, &format!("{base}/W2"), "supplementationScoped"),
+        "W2 declared under a profile must be supplementation-scoped"
+    );
+    assert!(
+        !has_violation(&quads, &format!("{base}/W2"), "WeakSupplementation"),
+        "W2 (two disjoint parts) must NOT fire WeakSupplementation"
+    );
+}
+
+#[test]
+fn weak_supplementation_inert_without_profile() {
+    // W3 has a lone proper part but is NOT declared under any profile → parthood is
+    // profiled, so no WeakSupplementation obligation applies.
+    let base = "https://example.org/foundation/weak-supplementation-unprofiled";
+    let nq = format!("<{base}/P3> <{LOGIC}properPartOf> <{base}/W3> <{base}/schema> .\n");
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+
+    assert!(
+        !has_marker(&quads, &format!("{base}/W3"), "supplementationScoped"),
+        "W3 not under a profile must not be supplementation-scoped"
+    );
+    assert!(
+        !has_violation(&quads, &format!("{base}/W3"), "WeakSupplementation"),
+        "W3 (lone part, NO profile) must NOT fire WeakSupplementation"
+    );
+}

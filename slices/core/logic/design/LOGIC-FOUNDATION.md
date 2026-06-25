@@ -484,6 +484,24 @@ describe — five violation labels from four checks: `logic:StereotypeCardinalit
 `logic:StratifiedNAFProfile`. The discipline checks are the regression specification of the lowering;
 the lowering is the enforcement mechanism.
 
+Profiled-mereology constraints are a *second* violation family, kept deliberately separate from the
+OntoUML disciplines. Weak supplementation — a whole with a proper part has another proper part
+disjoint from the first — is not a foundation-wide structural anti-pattern but an axiom that holds only
+*within* a declared `logic:MereologyProfile` (see the typed-and-contextual-mereology-and-holons section
+above). It is therefore a `logic:MereologyConstraint`, not a `logic:Discipline`, even though it is
+emitted through the same uniform `logic:violation` predicate. Its lowering, also under
+`logic:StratifiedNAFProfile`, is a three-step stratified Datalog chain over the asserted strict
+parthood relation `logic:properPartOf`: `logic:overlaps` is derived positively (two entities that share
+a proper part overlap, and a proper part overlaps its whole); `logic:disjoint` and the helper
+`logic:hasDisjointCopart` are its negation-as-failure complements, range-restricted to co-parts of a
+common whole so disjointness is only ever asserted where overlap is defined; and
+`logic:violation logic:WeakSupplementation` fires for a whole that is supplementation-scoped (declared
+under a profile via `logic:underMereologyProfile`) and has a proper part with no disjoint co-part. The
+unary holon projection rides the same parthood relation: `logic:isHolon` is derived for any entity that
+is simultaneously a proper part of some whole and itself a whole of some part — the lossy unary
+projection of the relational `logic:HolonicPosition`. All these rules are inert on inputs that carry no
+`logic:properPartOf` facts, so the OntoUML-discipline cases are unaffected.
+
 Cross-world rigidity — the world-spanning universal quantifier that no ordinary in-world Datalog rule
 expresses — is evaluated as a bounded closure pass over the finite materialized world set, emitting
 `logic:rigidityViolation` quads in the world where rigidity persistence fails. The pass fires when at

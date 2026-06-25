@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: foundation/holon-projection
+# AC: holon kernel — the lossy unary logic:Holon projection (issue #704, C1).
+#
+# Holon-ness is contextual (the canonical construct is the relational
+# logic:HolonicPosition); logic:isHolon is its lossy unary projection: an entity
+# that, within a holarchy, is BOTH a proper part of some whole AND itself has a
+# proper part. A strict-parthood chain Engine ⊏ Car ⊏ Fleet exercises it:
+#   * ex:Car    — a proper part of ex:Fleet AND a whole of ex:Engine → logic:isHolon.
+#   * ex:Fleet  — the root whole (no whole above it) → NOT a holon.
+#   * ex:Engine — an atomic leaf (no proper part below it) → NOT a holon.
+# It also exercises logic:overlaps: a proper part overlaps its whole (both
+# directions), and a whole with a proper part overlaps itself via that part.
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so the parthood edges
+# are duplicated there in the named world ex:schema; these are the program axioms.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/holon-projection/> .
+
+# Schema: a three-level strict-parthood chain (also world facts in input.nq).
+ex:Engine logic:properPartOf ex:Car .
+ex:Car    logic:properPartOf ex:Fleet .
