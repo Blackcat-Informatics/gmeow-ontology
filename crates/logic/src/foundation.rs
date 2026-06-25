@@ -367,6 +367,84 @@ const STRATUM_1: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
+    // ── Typed/contextual mereology + holon kernel (issue #704, C1) ──────────────────
+    // Positive prerequisites: overlap, the supplementation-profile marker, and the
+    // unary holon projection.  All depend only on the asserted (EDB) relations
+    // logic:properPartOf and logic:underMereologyProfile, so they are inert on inputs
+    // that carry neither — the pre-#704 foundation goldens are unaffected.
+    //
+    // overlaps(?A, ?B) :- properPartOf(?Z, ?A), properPartOf(?Z, ?B)
+    Rule {
+        head: pos(var("?A"), TermPat::Const(logic_iri!("overlaps")), var("?B")),
+        body: &[
+            pos(
+                var("?Z"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?A"),
+            ),
+            pos(
+                var("?Z"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?B"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // overlaps(?A, ?B) :- properPartOf(?A, ?B)   (a proper part overlaps its whole)
+    Rule {
+        head: pos(var("?A"), TermPat::Const(logic_iri!("overlaps")), var("?B")),
+        body: &[pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("properPartOf")),
+            var("?B"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // overlaps(?A, ?B) :- properPartOf(?B, ?A)   (symmetric mirror of the above)
+    Rule {
+        head: pos(var("?A"), TermPat::Const(logic_iri!("overlaps")), var("?B")),
+        body: &[pos(
+            var("?B"),
+            TermPat::Const(logic_iri!("properPartOf")),
+            var("?A"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // supplementationScoped(?X, ?X) :- underMereologyProfile(?X, ?M)
+    // Arms the weak-supplementation rule only for wholes declared under a profile;
+    // parthood is profiled, not universal (LOGIC-FOUNDATION.md §mereology+holons).
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("supplementationScoped")),
+            var("?X"),
+        ),
+        body: &[pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("underMereologyProfile")),
+            var("?M"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // isHolon(?X, ?X) :- properPartOf(?P, ?X), properPartOf(?X, ?W)
+    // The lossy unary projection of logic:HolonicPosition: an entity that is both a
+    // proper part of some whole and itself has a proper part.  Roots and leaves do not.
+    Rule {
+        head: pos(var("?X"), TermPat::Const(logic_iri!("isHolon")), var("?X")),
+        body: &[
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?X"),
+            ),
+            pos(
+                var("?X"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?W"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
 ];
 
 const STRATUM_2: &[Rule] = &[
@@ -518,6 +596,62 @@ const STRATUM_3: &[Rule] = &[
             ),
         ],
         distinct_pairs: NO_GUARD,
+    },
+    // ── Mereology NAF helpers (issue #704, C1) ──────────────────────────────────────
+    // Disjointness is the negation of overlap, scoped to co-parts of a common whole so
+    // the NAF body is range-restricted (overlaps must be settled in a lower stratum).
+    //
+    // disjoint(?P, ?P2) :- properPartOf(?P, ?X), properPartOf(?P2, ?X), NOT overlaps(?P, ?P2)
+    Rule {
+        head: pos(
+            var("?P"),
+            TermPat::Const(logic_iri!("disjoint")),
+            var("?P2"),
+        ),
+        body: &[
+            neg(
+                var("?P"),
+                TermPat::Const(logic_iri!("overlaps")),
+                var("?P2"),
+            ),
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?X"),
+            ),
+            pos(
+                var("?P2"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?X"),
+            ),
+        ],
+        distinct_pairs: &[("?P", "?P2")],
+    },
+    // hasDisjointCopart(?X, ?P) :- properPartOf(?P, ?X), properPartOf(?P2, ?X), NOT overlaps(?P, ?P2)
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("hasDisjointCopart")),
+            var("?P"),
+        ),
+        body: &[
+            neg(
+                var("?P"),
+                TermPat::Const(logic_iri!("overlaps")),
+                var("?P2"),
+            ),
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?X"),
+            ),
+            pos(
+                var("?P2"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?X"),
+            ),
+        ],
+        distinct_pairs: &[("?P", "?P2")],
     },
 ];
 
@@ -690,6 +824,38 @@ const STRATUM_4: &[Rule] = &[
                 var("?C"),
             ),
             pos(var("?C"), TermPat::Const(logic_iri!("isClass")), var("?C")),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Weak supplementation (issue #704, C1) ───────────────────────────────────────
+    // A profile-scoped MereologyConstraint (NOT an OntoUML Discipline): a whole with a
+    // proper part must have another proper part disjoint from the first.  Fires only
+    // for wholes armed by supplementationScoped (declared under a logic:MereologyProfile).
+    //
+    // violation(?X, WeakSupplementation) :- properPartOf(?P, ?X),
+    //     NOT hasDisjointCopart(?X, ?P), supplementationScoped(?X, ?X)
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("violation")),
+            TermPat::Const(logic_iri!("WeakSupplementation")),
+        ),
+        body: &[
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?X"),
+            ),
+            neg(
+                var("?X"),
+                TermPat::Const(logic_iri!("hasDisjointCopart")),
+                var("?P"),
+            ),
+            pos(
+                var("?X"),
+                TermPat::Const(logic_iri!("supplementationScoped")),
+                var("?X"),
+            ),
         ],
         distinct_pairs: NO_GUARD,
     },
