@@ -140,20 +140,24 @@ resolution**. Four operational remedies are folded in; the gating item is record
 | R3-3 (CQ4 storage) | per-item `wasDerivedFrom` doubles the memory graph each migration | the `TransferManifest` references a **coarse** `MemoryView` / named-graph checkpoint; per-item derivation only for items **modified** in the transition |
 | R3-4 (authorization) | coexisting subject claims leave the MCP triad without a deterministic write authority | an AI-profile **standpoint priority rule** (a signed-vantage-precedence runtime policy) governs *memory-mutation authorization* — never an axiom privileging a standpoint in the canonical graph (Principle 9 preserved) |
 
-### The gating item (blocking ratification)
+### The profile tier (satisfied by the project's planned profile work)
 
-The profile tier must be paved in the build pipeline before the AI/expression profiles can be authored:
-`slices/vocabulary.ttl` declares only `gmeow:tierCore` and `gmeow:tierExtension` — a `gmeow:tierProfile`
-individual plus a DAG rule (*a profile may depend on core and extensions; nothing depends on a
-profile*) is required so the packaging split is build-legal rather than a shortcut waiting to be undone
-([`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md#the-gating-item-the-profile-tier-registry-hook-blocking)).
-The **minimal core does not depend on this** and may proceed; the profiles are blocked until it lands.
+The packaging split needs the profile tier in the build pipeline before the AI/expression profiles are
+authored: `slices/vocabulary.ttl` declares only `gmeow:tierCore` and `gmeow:tierExtension`, so a
+`gmeow:tierProfile` individual plus the DAG rule (*a profile may depend on core and extensions; nothing
+depends on a profile*) is required. The authority has confirmed profiles are **already on the
+roadmap** and match the intended definition — *a subset of core+extensions with an internally
+consistent sub-ontology and a cohesive purpose and audience* — so this is **alignment, not a bespoke
+blocker** ([`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md#the-profile-tier-aligned-with-the-projects-planned-profile-work)).
+The **minimal core does not depend on the profile tier** and may proceed now; the inhabitation AI and
+expression profiles ride the general profile mechanism when it ships.
 
 ## Status
 
-The architecture is **ratified** (round 3), subject to the `tierProfile` registry hook. The minimal
-`core/inhabitation` `module.ttl` and its competency fixtures may be authored now; the AI and expression
-profiles wait on the tier-registry decision. Residual forks for the authority: `DigitalSubject` as
+The architecture is **ratified** (round 3); the profile-tier packaging aligns with the project's
+planned profile work, so it is not a bespoke blocker. The minimal `core/inhabitation` `module.ttl` and
+its competency fixtures may be authored now; the AI and expression profiles ride the profile tier when
+it ships. Residual forks for the authority: `DigitalSubject` as
 `RoleMixin` vs `PhaseMixin` (this set adopts `RoleMixin`); `InhabitationClaim ⊑ StandpointClaim` vs an
 unasserted RDF-1.2 reified proposition (this set leads with the claim form); the exact standpoint
 priority order (R3-4); and the partial-migration default policy (R3-3).

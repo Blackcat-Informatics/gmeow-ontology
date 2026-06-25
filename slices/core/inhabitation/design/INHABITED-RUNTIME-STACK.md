@@ -141,7 +141,10 @@ of the same kind. Ordering is `atTime` + `temporally-succeeds`, resolved by the 
 
 The competency question *which claims, memories, and intentions crossed a migration boundary?* is
 **not** answered by seeing the same claim before and after the transition — it may have been
-regenerated independently. Migration content rides explicit evidence:
+regenerated independently. Migration content rides explicit evidence. Note: `gmeow:TransferManifest`
+is a **core** term (the transition-content record, declared beside the transition event in
+[`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md), since migration applies to every inhabitation profile,
+not only AI); it is shown here because the AI memory package is its primary consumer.
 
 ```turtle
 gmeow:TransferManifest

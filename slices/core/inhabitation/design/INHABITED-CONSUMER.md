@@ -47,8 +47,9 @@ profile/inhabitation-expression   Persona and Embodiment integration (configurat
 
 profile/inhabitation-ai           model / deployment / runtime / session / tools / memory
                                   (ModelArtifact, ModelDeployment, RuntimeExecution, AgentSession,
-                                  the ModelCard split, TransferManifest). Composes core with the
-                                  ai, awareness, software, and agentic surfaces.
+                                  the ModelCard split). Composes core with the ai, awareness,
+                                  software, and agentic surfaces. (TransferManifest is CORE — it is
+                                  the transition-content record, beside the transition event.)
 ```
 
 The minimal core has no extension dependency. The profiles are where Persona, ToolCall, and
@@ -57,30 +58,37 @@ policy cannot yet *represent* a profile that composes a core slice with extensio
 the packaging architecture to raise explicitly (a `profile/` tier, or extension profiles), not a
 reason to hide the dependency inside a core slice.
 
-### The gating item: the profile-tier registry hook (blocking)
+### The profile tier (aligned with the project's planned profile work)
 
-The second-round ratification is **subject to one resolution**: the build pipeline must recognize the
-profile tier, or developers will later collapse the profiles back into core to satisfy the DAG
-validator — re-creating the dependency-laundering this split removes.
+> **A profile is a subset of core + extensions with an internally consistent sub-ontology of GMEOW and
+> a cohesive purpose and audience.** (the authority's definition)
 
-Concretely, `slices/vocabulary.ttl` currently declares only `gmeow:tierCore` and `gmeow:tierExtension`
-as `gmeow:SliceTier` individuals. The resolution is to add a third:
+By that definition, `profile/inhabitation-ai` and `profile/inhabitation-expression` are profiles in the
+exact intended sense: each is a **dependency-closed subset** of core (`core/inhabitation`, `ai`,
+`awareness`, …) and extensions (`norms`, `agentic`, `software`), internally consistent, with a cohesive
+audience — the AI agent runtime, and expression/persona-driven systems, respectively. They sit beside
+the existing named profiles (claims / memory / narrative) the project already ships.
+
+The packaging concern raised in review is therefore **satisfied by the profile tier the project is
+already shipping** — not a bespoke blocker. The two requirements it imposes:
 
 ```turtle
 gmeow:tierProfile a gmeow:SliceTier ;
     rdfs:label "profile"@x-gmeow-english ;
-    skos:definition "A composition tier: a slice that composes a core slice with one or more extension
-        surfaces, depended on by neither core nor a peer extension. Profiles MAY depend on core and on
-        extensions; nothing depends on a profile." .
+    skos:definition "A profile: a dependency-closed subset of core and extension slices forming an
+        internally consistent sub-ontology for a cohesive purpose and audience. A profile MAY depend
+        on core and extensions; nothing depends on a profile." .
 ```
 
-and to teach the registry / DAG validator the profile dependency rule: **a `tierProfile` slice may
-depend on core and extension slices; no core or extension slice may depend on a profile.** That keeps
-the acyclic guarantee (profiles are leaves) while letting `profile/inhabitation-ai` and
-`profile/inhabitation-expression` legitimately compose `core/inhabitation` with `ai`/`norms`. This is
-an infrastructure decision for the authority; until it lands, the AI and expression material is blocked
-from authoring (it has nowhere DAG-legal to live), but the **minimal core does not depend on it** and
-can proceed.
+and the DAG rule **a profile may depend on core and extensions; nothing depends on a profile** (profiles
+are leaves, so the graph stays acyclic). `slices/vocabulary.ttl` currently declares only `tierCore` and
+`tierExtension`; the `tierProfile` individual lands with the project's profile work, at which point the
+inhabitation AI and expression profiles are build-legal with no special case. Until then, the **minimal
+`core/inhabitation` does not depend on the profile tier** and can be authored immediately; the profiles
+ride the general profile mechanism when it ships. The new terms each profile needs (`ModelDeployment`,
+`EmbodimentAssignment`, …) are part of *its* internally-consistent sub-ontology — one open confirmation
+for the authority is whether a profile may mint such terms or whether they live in a thin home slice the
+profile selects; either keeps the dependency honest.
 
 ## The decisions, after the foundational review
 

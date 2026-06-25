@@ -103,16 +103,23 @@ a host may be a `PhysicalObject` or a `SoftwareAgent`), so both are **`logic:Rol
 non-sortals spanning Kinds), not `logic:Role` (which is a sortal tied to one Kind). This is the same
 correction applied to `DigitalSubject` in [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md).
 
-The role-mixins are **grounded** so their instances are actual agents and entities, and the tenure's
-role-filler edges classify the filler into the role (by a narrowed range or a native rule), so that
-participating in a tenure genuinely instantiates the role:
+The role-mixins are **grounded** so their instances are actual agents and entities, and the filler is
+classified into the role by a **native `logic:` rule** over the tenure — the decided mechanism (not a
+narrowed range), logic-first (Principle 17) and matching the holon kernel's `logic:isHolon`, which is
+"entailed by the foundation lowering, never asserted by hand":
 
 ```turtle
 gmeow:Inhabitant       a logic:RoleMixin , owl:Class ; rdfs:subClassOf gmeow:Agent .
 gmeow:InhabitedSystem  a logic:RoleMixin , owl:Class ; rdfs:subClassOf gmeow:Entity .
-# gmeow:inhabitationSubject classifies its filler as gmeow:Inhabitant, gmeow:inhabitedHost as
-# gmeow:InhabitedSystem — by a narrowed range or a native rule over the tenure, not left implicit.
+
+# native classification rules (derived, never asserted by hand):
+{ ?t a gmeow:InhabitationTenure ; gmeow:inhabitationSubject ?a } => { ?a a gmeow:Inhabitant } .
+{ ?t a gmeow:InhabitationTenure ; gmeow:inhabitedHost      ?h } => { ?h a gmeow:InhabitedSystem } .
 ```
+
+A native rule is chosen over narrowing `inhabitationSubject`'s range to `gmeow:Inhabitant` because the
+classification should fire from *participating in a tenure*, and should be a derived, drift-gated
+entailment a projection can drop — not an OWL range axiom that every consumer inherits unconditionally.
 
 ## Locus: two orthogonal axes, not one
 

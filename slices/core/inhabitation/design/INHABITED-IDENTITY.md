@@ -72,7 +72,17 @@ gmeow:DigitalSubjectTenure
 gmeow:tenureSubjectAgent a owl:ObjectProperty ; rdfs:range gmeow:Agent .
 gmeow:tenureVantage      a owl:ObjectProperty ; rdfs:range gmeow:Agent .   # ⊑ accordingTo
 gmeow:tenureSupportedBy  a owl:ObjectProperty ; rdfs:range gmeow:Observation .  # the self-assertion claim
+
+# the decided classification mechanism: a native logic: rule (logic-first, P17), NOT a narrowed range
+# on tenureSubjectAgent. Bearing a tenure — a deliberate, vantage-attributed, self-asserted record —
+# classifies the agent as a DigitalSubject; a bare utterance does not (the support-not-entail rule).
+{ ?dst a gmeow:DigitalSubjectTenure ; gmeow:tenureSubjectAgent ?a } => { ?a a gmeow:DigitalSubject } .
 ```
+
+The rule fires from the *tenure*, not from an assertion: `tenureSubjectAgent` keeps its open `gmeow:Agent`
+range, and the derived `DigitalSubject` classification is a drift-gated entailment a projection may
+drop — so "self-assertion supports, never entails" holds (a tenure is a recorded, attributed bearing,
+not a raw "I am durable" utterance), while the filler still genuinely instantiates the role.
 
 A machine-imposed digital-subject status (a vendor labeling a model "on its behalf") is recorded as an
 attributed, confidence-weighted claim and ranked **below** the agent's own assertion — Principle 9's

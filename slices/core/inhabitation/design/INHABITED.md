@@ -25,11 +25,11 @@
 | [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md) | correction record | the foundational review's verified evidence, the seven reopened decisions, and the revised term inventory — **authoritative** where a sibling still shows a first-draft form |
 | [`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md) | appendix | the three sources and the by-reference externals — staged for the `metadata/references.ttl` ledger |
 
-> **Status: ratified, with one gating item.** Three foundational reviews refined this set; the
-> corrections and the round-3 ratification are recorded in [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md).
-> The architecture is approved for implementation: the minimal `core/inhabitation` `module.ttl` may be
-> authored now, while the AI and expression **profiles** wait on a build-pipeline `tierProfile`
-> registry hook ([`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md#the-gating-item-the-profile-tier-registry-hook-blocking)).
+> **Status: ratified.** Three foundational reviews refined this set; the corrections and the round-3
+> ratification are recorded in [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md). The architecture is
+> approved for implementation: the minimal `core/inhabitation` `module.ttl` may be authored now, and
+> the AI and expression **profiles** ride the project's planned profile tier
+> ([`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md#the-profile-tier-aligned-with-the-projects-planned-profile-work)).
 >
 > **Reading this design set.** The declarative present tense is normative: "X is" means a conforming
 > realization implements X, established by the conformance corpus

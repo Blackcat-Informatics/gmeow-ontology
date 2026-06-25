@@ -15,9 +15,9 @@
 
 | Layer | Construct | What it is | Avatāra / Trikāya parallel |
 |---|---|---|---|
-| durable subject | `gmeow:DigitalSubject` (role) | the enduring "who" | *dharmakāya* — the formless durable essence |
+| durable subject | `gmeow:DigitalSubject` (`logic:RoleMixin`) | the enduring "who" | *dharmakāya* — the formless durable essence |
 | contextual expression | `gmeow:Persona` (norms relator) | the register/style/norms active in a context | *sambhogakāya* — the subtle, contextual manifestation body |
-| concrete surface | `gmeow:Embodiment` (relator) | the interface/device/account/channel acted through | *nirmāṇakāya* — the concrete emanation body |
+| concrete surface | `gmeow:EmbodimentCarrierRole` + `gmeow:EmbodimentAssignment` | the surface and its time-scoped use | *nirmāṇakāya* — the concrete emanation body |
 | bounded instance | `gmeow:AgentEpisode` / `AgentSession` | one occasioned interaction | the particular appearance |
 
 This is the same shape as the four-tier WEMI spine GMEOW already ships in the creative-works slice,
@@ -51,10 +51,10 @@ terms stay in their own foundational categories.
 
 The naming is not decorative. Cagle's "Avatar" descends, etymologically, from Sanskrit *avatāra* —
 "descent" — the descent of a durable deity-subject into a manifest form. That is precisely the
-`DigitalSubject → Embodiment` relation: a durable subject descending into a concrete surface through
-which it is perceived and acts. `gmeow:Embodiment` is the canonical term; "Avatar" and *avatāra* are
-bridged to it by reference ([`INHABITED-CROSSWALK.md`](INHABITED-CROSSWALK.md)). The breadth of
-`Embodiment` over Cagle's Avatar — covering API identity, terminal, robot, voice, and channel, not
+subject → embodiment relation: a durable subject acting through a concrete surface (a
+`gmeow:EmbodimentCarrierRole`) via a time-scoped `gmeow:EmbodimentAssignment`. Cagle's "Avatar" and
+*avatāra* bridge to the **carrier** by reference ([`INHABITED-CROSSWALK.md`](INHABITED-CROSSWALK.md)).
+The breadth of the carrier over Cagle's Avatar — API identity, terminal, robot, voice, channel, not
 only a visual figure — is the *nirmāṇakāya* generality: a subject may emanate many bodies at once.
 
 ## Genesis by intention — tulpa and egregore
