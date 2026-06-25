@@ -493,10 +493,9 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         return coverage.to_diagnostics_report(coverage.run_coverage())
 
     def _acceptance() -> Any:
-        from gmeow_tools import acceptance
+        import gmeow_native.pipeline as _pipeline
 
-        results = [acceptance.run_acceptance(p) for p in acceptance.default_corpus()]
-        return acceptance.to_diagnostics_report(results)
+        return _pipeline.acceptance_diagnostics_report(str(PROJECT_ROOT))
 
     def _wikidata() -> Any:
         return gmeow_validate.wikidata_diagnostics_report(str(MAPPINGS_DIR))
@@ -521,11 +520,14 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         return box_roles.to_diagnostics_report(box_roles.audit_box_roles())
 
     def _audit() -> Any:
-        from gmeow_tools import audit
+        import gmeow_native.pipeline as _pipeline
+
         from gmeow_tools.config import FIXTURES_DIR
 
         corpus = FIXTURES_DIR / "hallucination-kg.ttl"
-        return audit.to_diagnostics_report(audit.audit_graph([corpus]))
+        return _pipeline.claim_audit_diagnostics_report(
+            str(PROJECT_ROOT), [str(corpus)]
+        )
 
     def _generated() -> Any:
         # Drift surface for the build: run the Rust pipeline in CHECK mode (the
@@ -913,17 +915,25 @@ def audit(
     ),
 ) -> None:
     """Audit claims: ungrounded / contradicted / stale, flagged never deleted."""
-    from gmeow_tools.audit import audit_graph, render_json, render_text
+    import gmeow_native.pipeline as _pipeline
 
-    report = audit_graph(list(files))
+    try:
+        report = cast(
+            "dict[str, Any]",
+            _pipeline.claim_audit(str(PROJECT_ROOT), [str(path) for path in files]),
+        )
+    except (ImportError, OSError, RuntimeError, ValueError) as exc:
+        raise _fail(str(exc)) from exc
     if json_out:
-        console.print(render_json(report))
+        console.out(str(report["json"]))
     else:
-        console.print(render_text(report))
-    if report.shacl_errors:
-        raise _fail(f"✗ {len(report.shacl_errors)} SHACL error(s)")
-    if strict and report.flagged:
-        raise _fail(f"✗ {report.flagged} flagged claim(s) (--strict)")
+        console.print(str(report["text"]), markup=False, highlight=False)
+    shacl_errors = cast("list[str]", report.get("shacl_errors", []))
+    flagged = int(report.get("flagged", 0))
+    if shacl_errors:
+        raise _fail(f"✗ {len(shacl_errors)} SHACL error(s)")
+    if strict and flagged:
+        raise _fail(f"✗ {flagged} flagged claim(s) (--strict)")
 
 
 @app.command(name="compliance-report")
@@ -1989,33 +1999,33 @@ def acceptance(
     the command hard-fails — making the transpile gate block without demanding
     100%% per-file recall (honest-scoreboard doctrine preserved).
     """
-    from gmeow_tools.acceptance import (
-        corpus_recall_pct,
-        default_corpus,
-        render_report,
-        run_acceptance,
-    )
+    import gmeow_native.pipeline as _pipeline
 
-    sources = [source] if source is not None else default_corpus()
-    if not sources:
-        raise _fail("no source given and no external/ snapshots found")
     try:
-        results = [run_acceptance(s, descend=not floor) for s in sources]
-    except (OSError, ValueError, SyntaxError) as exc:
+        native = cast(
+            "dict[str, Any]",
+            _pipeline.acceptance(
+                str(PROJECT_ROOT),
+                None if source is None else str(source),
+                not floor,
+            ),
+        )
+    except (ImportError, OSError, RuntimeError, ValueError) as exc:
         raise _fail(str(exc)) from exc
 
-    report = render_report(results)
+    report = str(native["markdown"])
     if out is not None:
         out.write_text(report, encoding="utf-8")
         err_console.print(f"[green]wrote[/green] {out}")
     else:
         console.print(report, markup=False, highlight=False)
+    results = cast("list[dict[str, Any]]", native.get("results", []))
     for fa in results:
-        verdict = "[green]PASS[/green]" if fa.passed else "[red]FAIL[/red]"
-        err_console.print(f"{verdict} {fa.source}")
+        verdict = "[green]PASS[/green]" if fa.get("passed") else "[red]FAIL[/red]"
+        err_console.print(f"{verdict} {fa.get('source', 'source')}")
 
     if min_recall is not None:
-        aggregate = corpus_recall_pct(results)
+        aggregate = float(native.get("aggregate_recall", 100.0))
         if aggregate < min_recall:
             raise _fail(
                 f"✗ corpus-aggregate round-trip recall {aggregate:.2f}% is below "
