@@ -94,3 +94,6 @@ bytes = "1"
 # Determinism tests for the YAML-LD-star / JSON-LD-star emitter vary hash-map
 # seeds to prove that output order is independent of input collection order.
 ahash = "0.8"
+# Issue #699 / PR #978: validate sample @annotation fragments against the
+# SHACL-derived JSON Schema from #700.
+jsonschema = { version = "0.46", default-features = false }

@@ -292,7 +292,7 @@ fn build_yaml_ld_blob_from_builder(builder: &SnapshotBuilder) -> Result<BlobRow,
     let graph = gmeow_rdf::gts::read_graph(&temp_gts, true)
         .map_err(|e| PipelineError::Parse(format!("read temp snapshot gmeow.gts: {e}")))?;
     let jsonld = crate::stages::yaml_ld::serialize_graph(&graph)?;
-    let yamlld = crate::stages::yaml_ld::serialize_graph_yaml(&graph)?;
+    let yamlld = crate::stages::yaml_ld::serialize_graph_yaml(&graph, None)?;
     build_yaml_ld_blob(jsonld.as_bytes(), yamlld.as_bytes())
 }
 

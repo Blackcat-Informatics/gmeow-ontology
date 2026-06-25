@@ -399,10 +399,12 @@ def build(
 
     plain = load_graph_from_gts(path)
     bind_prefixes(plain)
-    for suffix, fmt in (("ttl", "turtle"), ("nt", "nt"), ("jsonld", "json-ld")):
+    # RDF 1.1 serializations: Turtle and N-Triples. JSON-LD is skipped here
+    # because the canonical RDF-1.2-star JSON-LD is folded into the bundle below.
+    for suffix, fmt in (("ttl", "turtle"), ("nt", "nt")):
         target = out / f"gmeow.{suffix}"
         plain.serialize(destination=target, format=fmt)
-        console.print(f"[green]wrote[/green] {target}")
+        console.print(f"[green]wrote[/green] {target} (RDF 1.1)")
 
     # RDF 1.2-star serializations are folded into the bundle by the pipeline;
     # write them straight from the bundle so this command works repo-free (#699).
@@ -412,7 +414,7 @@ def build(
     if jsonld_star is not None:
         target = out / "gmeow.jsonld"
         target.write_bytes(jsonld_star)
-        console.print(f"[green]wrote[/green] {target}")
+        console.print(f"[green]wrote[/green] {target} (RDF 1.2-star)")
     yamlld = bundle.bundled_yaml_ld().get("gmeow.yamlld")
     if yamlld is not None:
         target = out / "gmeow.yamlld"

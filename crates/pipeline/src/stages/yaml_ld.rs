@@ -26,8 +26,11 @@ pub const PRESERVATION_PATH: &str = "generated/metadata/preservation.json";
 
 const GMEOW_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-/// Default schema URL for the YAML-LD language-server header.
-const DEFAULT_SCHEMA_URL: &str = "https://blackcatinformatics.ca/gmeow/schemas/gmeow.schema.json";
+/// Schema reference for the YAML-LD language-server header when the output is
+/// consumed from the bundled `gmeow.gts` snapshot. The schema is shipped as
+/// `schemas-archive/gmeow.schema.json` (#700), so a bare member name resolves
+/// inside the bundle.
+const BUNDLED_SCHEMA_REF: &str = "gmeow.schema.json";
 
 /// RDF 1.2 reifier predicate.
 pub const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
@@ -88,12 +91,12 @@ impl Stage for YamlLdStage {
         // v2: adds deterministic YAML-LD-star output and the preservation ledger.
         "yaml_ld.jsonld_star.v2-yaml-ld"
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let gts = crate::stages::snapshot::snapshot_bytes(input.upstream)?;
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+        let gts = crate::stages::snapshot::snapshot_bytes(_input.upstream)?;
         let graph = gmeow_rdf::gts::read_graph(&gts, true)
             .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))?;
         let json = serialize_graph(&graph)?;
-        let yaml = serialize_graph_yaml(&graph)?;
+        let yaml = serialize_graph_yaml(&graph, None)?;
         let preservation = preservation_ledger();
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(JSON_LD_PATH.to_string(), json.into_bytes());
@@ -138,21 +141,25 @@ pub fn serialize_graph(graph: &Graph) -> Result<String, PipelineError> {
 /// The JSON-LD-star document is re-serialized to YAML with sorted keys, block
 /// style, no anchors/aliases, and an explicit `@context`. The header carries a
 /// YAML language-server schema reference.
-pub fn serialize_graph_yaml(graph: &Graph) -> Result<String, PipelineError> {
+pub fn serialize_graph_yaml(
+    graph: &Graph,
+    schema_url: Option<&str>,
+) -> Result<String, PipelineError> {
     let json = serialize_graph(graph)?;
     let value: Value = serde_json::from_str(&json)
         .map_err(|e| PipelineError::Decode(format!("parse JSON-LD for YAML: {e}")))?;
     let body = serde_yaml::to_string(&value)
         .map_err(|e| PipelineError::Decode(format!("YAML-LD serialization: {e}")))?;
+    let url = schema_url.unwrap_or(BUNDLED_SCHEMA_REF);
     let header = format!(
-        "# yaml-language-server: $schema={DEFAULT_SCHEMA_URL}\n\
+        "# yaml-language-server: $schema={url}\n\
          # TODO(#700): default schema URL is bounded to the bundled gmeow.schema.json;\n\
          # replace with the canonical public URL once issue #700 finalizes the schema surface.\n"
     );
     Ok(header + &body)
 }
 
-/// Serialization-preservation ledger: records YAML-LD-star as lossless.
+/// Serialization-preservation ledger: records JSON-LD-star and YAML-LD-star as lossless.
 fn preservation_ledger() -> String {
     // A deliberately simple, versioned JSON ledger. It is intentionally NOT
     // conflated with the logic-projection PreservationKind vocabulary.
@@ -167,6 +174,7 @@ fn preservation_ledger() -> String {
         "note".to_string(),
         Value::String("RDF 1.2-star quoted triples and annotations round-trip through the JSON-LD-star / YAML-LD-star surface.".to_string()),
     );
+    map.insert("json-ld-star".to_string(), to_json_object(entry.clone()));
     map.insert("yaml-ld-star".to_string(), to_json_object(entry));
     serde_json::to_string_pretty(&to_json_object(map))
         .expect("preservation ledger is serializable JSON")
@@ -1296,8 +1304,8 @@ mod tests {
     #[test]
     fn yaml_ld_is_byte_deterministic() {
         let graph = minimal_graph();
-        let first = serialize_graph_yaml(&graph).expect("serialize first");
-        let second = serialize_graph_yaml(&graph).expect("serialize second");
+        let first = serialize_graph_yaml(&graph, None).expect("serialize first");
+        let second = serialize_graph_yaml(&graph, None).expect("serialize second");
         assert_eq!(first, second, "YAML-LD output must be byte-deterministic");
     }
 
@@ -1420,8 +1428,8 @@ mod tests {
         let graph_a = build_nontrivial_graph_with_seed(seed_a);
         let graph_b = build_nontrivial_graph_with_seed(seed_b);
 
-        let yaml_a = serialize_graph_yaml(&graph_a).expect("serialize YAML-LD A");
-        let yaml_b = serialize_graph_yaml(&graph_b).expect("serialize YAML-LD B");
+        let yaml_a = serialize_graph_yaml(&graph_a, None).expect("serialize YAML-LD A");
+        let yaml_b = serialize_graph_yaml(&graph_b, None).expect("serialize YAML-LD B");
         assert_eq!(
             yaml_a, yaml_b,
             "YAML-LD-star output must be identical under different hash-map seeds"
@@ -1431,7 +1439,7 @@ mod tests {
     #[test]
     fn yaml_ld_has_explicit_context_and_no_anchors() {
         let graph = minimal_graph();
-        let yaml = serialize_graph_yaml(&graph).expect("serialize YAML-LD");
+        let yaml = serialize_graph_yaml(&graph, None).expect("serialize YAML-LD");
         assert!(
             yaml.contains("@context"),
             "YAML-LD must carry an explicit @context: {yaml}"
@@ -1448,15 +1456,15 @@ mod tests {
             "YAML-LD must not use anchors or aliases: {yaml}"
         );
         assert!(
-            yaml.contains("yaml-language-server: $schema="),
-            "YAML-LD must carry a language-server schema header: {yaml}"
+            yaml.contains(&format!("yaml-language-server: $schema={BUNDLED_SCHEMA_REF}")),
+            "YAML-LD must carry a language-server schema header pointing to the bundled schema: {yaml}"
         );
     }
 
     #[test]
     fn yaml_ld_roundtrips_through_oxigraph() {
         let graph = minimal_graph();
-        let yaml = serialize_graph_yaml(&graph).expect("serialize YAML-LD");
+        let yaml = serialize_graph_yaml(&graph, None).expect("serialize YAML-LD");
         // The test parser works over JSON-LD-star; convert YAML back to JSON first.
         let yaml_value: serde_yaml::Value =
             serde_yaml::from_str(&yaml).expect("parse emitted YAML-LD");
@@ -2259,6 +2267,58 @@ mod tests {
         assert!(
             dataset_has(&dataset, &name_annotation, &q_object_literal, &alice_name),
             "name gmeow:qObjectLiteral must point to the directional literal"
+        );
+    }
+
+    /// Issue #699 / PR #978 MEDIUM gap #7 item 4: a sample `@annotation` fragment
+    /// shaped like serializer output must validate against the SHACL-derived JSON
+    /// Schema `$defs/Annotation` from #700.
+    #[test]
+    fn annotation_fragment_validates_against_json_schema() {
+        use std::path::Path;
+
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .expect("repo root");
+        let schema_path = root.join("generated/schemas/gmeow.schema.json");
+        let schema_bytes = std::fs::read(&schema_path)
+            .unwrap_or_else(|e| panic!("cannot read {}: {e}", schema_path.display()));
+        let mut schema: Value =
+            serde_json::from_slice(&schema_bytes).expect("schema is valid JSON");
+
+        // Validate a sample annotation object (the value inside `@annotation`) by
+        // rooting the schema at `#/$defs/Annotation`.
+        schema.as_object_mut().expect("schema is an object").insert(
+            "$ref".to_string(),
+            Value::String("#/$defs/Annotation".to_string()),
+        );
+        // Remove the anyOf at the root so the `$ref` is unambiguous.
+        schema.as_object_mut().unwrap().remove("anyOf");
+        schema.as_object_mut().unwrap().remove("properties");
+        schema.as_object_mut().unwrap().remove("type");
+
+        let validator = jsonschema::options()
+            .with_draft(jsonschema::Draft::Draft202012)
+            .build(&schema)
+            .expect("annotation subschema compiles");
+
+        // Sample fragment mirroring the annotation objects the serializer emits:
+        // string literal, IRI object, and typed literal values.
+        let fragment = serde_json::json!({
+            "gmeow:confidence": 0.9,
+            "gmeow:accordingTo": {"@id": "http://example.org/source"},
+            "gmeow:assertedAt": {"@value": "2026-06-05T00:00:00Z", "@type": "xsd:dateTime"}
+        });
+
+        let errors: Vec<String> = validator
+            .iter_errors(&fragment)
+            .map(|e| e.to_string())
+            .collect();
+        assert!(
+            errors.is_empty(),
+            "sample @annotation fragment must validate against #700 $defs/Annotation: {errors:?}"
         );
     }
 

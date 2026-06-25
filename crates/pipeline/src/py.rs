@@ -150,7 +150,7 @@ fn serialize_yaml_ld(py: Python<'_>, nquads_bytes: &[u8], format: &str) -> PyRes
     let text = match format {
         "jsonld" => crate::stages::yaml_ld::serialize_graph(&graph)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?,
-        "yamlld" => crate::stages::yaml_ld::serialize_graph_yaml(&graph)
+        "yamlld" => crate::stages::yaml_ld::serialize_graph_yaml(&graph, None)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?,
         _ => {
             return Err(pyo3::exceptions::PyValueError::new_err(format!(
