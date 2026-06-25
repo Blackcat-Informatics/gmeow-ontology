@@ -1859,12 +1859,12 @@ dependencies = [
  "criterion",
  "gmeow-gts",
  "gmeow-rdf",
+ "gmeow-sparql-algebra",
  "oxigraph",
  "proptest",
  "pyo3",
  "regex",
  "serde_json",
- "spargebra 0.4.6",
 ]
 
 [[package]]
@@ -1872,6 +1872,7 @@ name = "gmeow-slice"
 version = "0.1.0"
 dependencies = [
  "gmeow-rdf",
+ "gmeow-sparql-algebra",
  "hex",
  "insta",
  "oxigraph",
@@ -1880,7 +1881,6 @@ dependencies = [
  "regex",
  "serde",
  "sha2",
- "spargebra 0.4.6",
  "tempfile",
  "ureq",
 ]
@@ -1893,6 +1893,17 @@ dependencies = [
  "gmeow-shacl",
  "gmeow-validate",
  "oxigraph",
+]
+
+[[package]]
+name = "gmeow-sparql-algebra"
+version = "0.1.0"
+dependencies = [
+ "gmeow-iri",
+ "gmeow-xsd",
+ "insta",
+ "pretty_assertions",
+ "proptest",
 ]
 
 [[package]]
