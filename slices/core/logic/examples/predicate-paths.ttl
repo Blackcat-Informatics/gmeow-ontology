@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — named & parametric predicate paths (logic:PathShape, issue
+# #1010). SPARQL 1.1 property paths (§9) are fixed strings with no predicate
+# wildcard, no bounded depth {1,n}, and no named/parameterized reuse. A
+# logic:PathShape makes "all nodes within n hops, by any predicate" a first-class,
+# reusable, by-name term, invoked with a parametric depth. The PathShape is the
+# canonical logic: form; an extended SPARQL property path and a depth-bounded
+# Datalog program are its projections (Principle 17), and the native Datalog
+# least-model fixpoint is its runtime (see design/LOGIC-PATHS.md). This file
+# demonstrates the SHAPE of each construct, not its evaluation.
+#
+#   §1  Wildcard, namespace-scoped, bounded-depth path  :nearbyOrgs(?maxDepth := 2)
+#       "All organisations within 2 hops of a start org, by ANY predicate in the
+#       org vocabulary." Wildcard + bounded {1,2} — neither expressible in SPARQL
+#       §9 — scoped to one namespace to bound fan-out.
+#
+#   §2  Named-predicate bounded-depth path  :ancestorsTo3(?maxDepth := 3)
+#       "Ancestors up to 3 generations via ex:parentOf." A named-predicate {1,3}
+#       path: losslessly representable in the EXTENDED SPARQL property-path
+#       algebra (Range), and unrollable to standard §9 as ex:parentOf |
+#       ex:parentOf/ex:parentOf | ex:parentOf/ex:parentOf/ex:parentOf.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
+@prefix org:   <https://blackcatinformatics.ca/gmeow/examples/logic/org/> .
+
+#### §1  Wildcard, namespace-scoped, bounded-depth path ########################
+
+ex:nearbyOrgs
+    a logic:PathShape ;
+    logic:pathWildcard true ;
+    logic:pathNamespaceScope "https://blackcatinformatics.ca/gmeow/examples/logic/org/"^^xsd:anyURI ;
+    logic:pathMinDepth 1 ;
+    logic:pathMaxDepth 2 ;
+    logic:pathDepthParam "maxDepth" .
+
+# :nearbyOrgs(?maxDepth := 2) — the canonical reified form of the parametric call.
+ex:nearbyOrgsCall
+    a logic:PathInvocation ;
+    logic:invokesPathShape ex:nearbyOrgs ;
+    logic:pathDepthArg 2 .
+
+# Sample org graph (predicates all in org:, so the namespace scope admits them).
+# From ex:acme the ≤2-hop set by ANY org: predicate is { ex:beta, ex:gamma,
+# ex:delta }; ex:epsilon is 3 hops away and is NOT reached at maxDepth := 2.
+ex:acme    org:partnersWith ex:beta .
+ex:beta    org:subsidiary   ex:gamma .
+ex:acme    org:acquired     ex:delta .
+ex:gamma   org:partnersWith ex:epsilon .
+
+#### §2  Named-predicate bounded-depth path ####################################
+
+ex:ancestorsTo3
+    a logic:PathShape ;
+    logic:pathStepPredicate ex:parentOf ;
+    logic:pathMinDepth 1 ;
+    logic:pathMaxDepth 3 ;
+    logic:pathDepthParam "maxDepth" .
+
+ex:ancestorsTo3Call
+    a logic:PathInvocation ;
+    logic:invokesPathShape ex:ancestorsTo3 ;
+    logic:pathDepthArg 3 .
+
+ex:rey    ex:parentOf ex:kylo .
+ex:kylo   ex:parentOf ex:han .
+ex:han    ex:parentOf ex:anakin .

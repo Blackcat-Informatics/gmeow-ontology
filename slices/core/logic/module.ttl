@@ -737,6 +737,20 @@ logic:PathContextAxis
     rdfs:label "Path Context Axis"@x-gmeow-english ;
     skos:definition "The path index axis of the multi-dimensional context facet: a truth is relative to a transaction or execution path. One of several context axes that coexist on a single result — world, standpoint, time, and path index the same result simultaneously rather than being alternative values of one slot."@x-gmeow-english .
 
+logic:PathInvocation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Path Invocation"@x-gmeow-english ;
+    skos:definition "A by-name application of a logic:PathShape with concrete depth arguments — the canonical, reified form of a parametric call such as :nearbyOrgs(?maxDepth := 2). It carries logic:invokesPathShape (the shape applied) and logic:pathDepthArg (the value bound to the shape's logic:pathDepthParam), so a named, reusable traversal is instantiated at a specific bound without rewriting the shape. The surface syntax :name(?param := value) is a rendering of this individual, not a separate construct (Principle 17)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:PathShape
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Path Shape"@x-gmeow-english ;
+    skos:definition "A named, parametric predicate-path traversal specification: a reusable description of how to walk the graph, invocable by name with a depth parameter. A PathShape carries a base step — either a named predicate (logic:pathStepPredicate) or a predicate wildcard (logic:pathWildcard true, optionally scoped by logic:pathNamespaceScope) — together with a bounded depth range (logic:pathMinDepth … logic:pathMaxDepth; an absent maximum means unbounded) and a declared depth parameter name (logic:pathDepthParam) bound at each logic:PathInvocation. It SUBSUMES and EXTENDS SPARQL 1.1 property paths (§9), which are fixed strings with no predicate wildcard, no bounded depth {1,n}, and no named or parameterized reuse: 'all nodes within n hops, by any predicate' becomes a first-class, reusable term. The PathShape is the canonical logic: form; an extended SPARQL property path and a depth-bounded Datalog program are its projections (Principle 17), and the native Datalog least-model fixpoint is its runtime."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:Perdurant
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -842,6 +856,13 @@ logic:ProjectionTarget
     rdfs:label "Projection Target"@x-gmeow-english ;
     skos:definition "The facet value class of a projection target: a surface the answer is rendered to. The projection facet is an output request that may name one or more targets (canonical, OWL, Datalog, Common Logic, validation-only) at once; it is a standing request, not a semantic selection, and never alters which entailments hold."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:PropertyPathProjection
+    a owl:NamedIndividual ,
+        logic:ProjectionTarget ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Property Path Projection"@x-gmeow-english ;
+    skos:definition "The projection-target value requesting that a logic:PathShape (or a rule's path-structured body) be rendered to a SPARQL property-path surface — extended by GMEOW past SPARQL 1.1 §9 with bounded depth {n,m} and a predicate wildcard. One of several output targets a single contract may name at once; like every projection target it is a rendering request and never alters which entailments hold. A consumer restricted to standard SPARQL §9 receives the unrolled or approximated form, and that loss is declared in the loss ledger rather than hidden."@x-gmeow-english .
 
 logic:Quality
     a owl:Class ;
@@ -1547,6 +1568,15 @@ logic:invokesBuiltin
     skos:definition "Relates a logic:Rule to a logic:Builtin it calls in its body: the dependency edge recording that a rule uses a native computational primitive, and therefore requires logic:ProceduralPrologProfile (where builtins are gated). Lets the compiler check that a rule invoking a builtin declares the procedural profile and records the loss when such a rule is projected to a declarative semantics."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:invokesPathShape
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PathInvocation ;
+    rdfs:range logic:PathShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "invokes path shape"@x-gmeow-english ;
+    skos:definition "Relates a logic:PathInvocation to the logic:PathShape it applies by name: the dependency edge recording which reusable traversal a parametric call instantiates. Paired with logic:pathDepthArg, which supplies the concrete bound for the shape's logic:pathDepthParam."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:irreflexiveProperty
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1635,6 +1665,68 @@ logic:partOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "part of"@x-gmeow-english ;
     skos:definition "The general (reflexive) parthood relation: relates an entity to a whole it is part of, where every entity is trivially part of itself. The mereological base relation over which logic:properPartOf is the strict (irreflexive) restriction. Distinct from logic:memberOf, which relates a member to a collection without the part being a part of the whole in the mereological sense."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathDepthArg
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PathInvocation ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path depth argument"@x-gmeow-english ;
+    skos:definition "The concrete depth bound supplied at a logic:PathInvocation for the named depth parameter of the invoked logic:PathShape (its logic:pathDepthParam): the value of ?maxDepth in :name(?maxDepth := 2). Bounds the traversal to at most this many hops for this invocation without altering the shape itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathDepthParam
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PathShape ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path depth parameter"@x-gmeow-english ;
+    skos:definition "The name of the depth parameter a logic:PathShape exposes for parametric invocation — 'maxDepth' in :nearbyOrgs(?maxDepth := 2). A logic:PathInvocation binds this parameter with logic:pathDepthArg. Default-absent: a shape with a fixed depth and no exposed parameter carries no logic:pathDepthParam and is invoked without an argument."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathMaxDepth
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PathShape ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path maximum depth"@x-gmeow-english ;
+    skos:definition "The inclusive upper bound on the traversal length of a logic:PathShape — the n in a bounded {min,n} path. Default-absent: a shape with no logic:pathMaxDepth is unbounded (the SPARQL-+ / transitive-closure reading), traversing arbitrarily many hops. When present it makes the path a bounded {1,n} traversal, which SPARQL 1.1 §9 cannot express directly."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathMinDepth
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PathShape ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path minimum depth"@x-gmeow-english ;
+    skos:definition "The inclusive lower bound on the traversal length of a logic:PathShape — the min in a bounded {min,max} path. Default-absent: a shape with no logic:pathMinDepth starts at one hop (min = 1). Must not exceed logic:pathMaxDepth when both are present; a minimum above the maximum is a malformed shape and is rejected by the frontend, not silently repaired."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathNamespaceScope
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PathShape ;
+    rdfs:range xsd:anyURI ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path namespace scope"@x-gmeow-english ;
+    skos:definition "A predicate-namespace IRI prefix that scopes a wildcard step of a logic:PathShape: when logic:pathWildcard is true, only predicates whose IRI begins with this namespace are traversed. Bounds the fan-out of an otherwise any-predicate walk to a single vocabulary. Default-absent on a wildcard shape: the wildcard matches predicates in any namespace."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathStepPredicate
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PathShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path step predicate"@x-gmeow-english ;
+    skos:definition "The named predicate that each hop of a logic:PathShape traverses. Present on a named-predicate path; absent on a wildcard path (where logic:pathWildcard is true instead). A shape that carries BOTH a logic:pathStepPredicate and logic:pathWildcard true is malformed — the base step is a named predicate XOR a wildcard — and is rejected by the frontend rather than silently resolved."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathWildcard
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PathShape ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path wildcard"@x-gmeow-english ;
+    skos:definition "Marks a logic:PathShape whose step matches ANY predicate rather than one named predicate — the 'any predicate within n hops' traversal that SPARQL 1.1 §9 property paths cannot express. When true the step is unconstrained except by an optional logic:pathNamespaceScope; mutually exclusive with logic:pathStepPredicate. Default-absent (false): the path follows the named logic:pathStepPredicate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:positionContext
