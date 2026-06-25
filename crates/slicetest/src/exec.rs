@@ -47,6 +47,7 @@ type CanonRow = Vec<(String, String)>;
 /// Returns `Err(String)` aggregating each failing cell's diagnostic.
 pub fn run_competency_file(path: &Path) -> Result<(), String> {
     let spec = dsl::load_spec(path)?;
+    let slice_dir = paths::slice_dir(path);
     // The asserted merged graph is the default lane and is always built once.
     // The RDFS-closed graph is built lazily — only if some question opts into it
     // via gmeow:cqReasoning gmeow:reasoningRdfs — and then reused across cells.
@@ -64,7 +65,7 @@ pub fn run_competency_file(path: &Path) -> Result<(), String> {
                 rdfs.as_ref().expect("rdfs store just built")
             }
         };
-        results.push((cq.iri.as_str(), run_competency_cell(store, cq)));
+        results.push((cq.iri.as_str(), run_competency_cell(store, cq, &slice_dir)));
     }
     aggregate(path, "competency", results.into_iter())
 }
@@ -130,10 +131,50 @@ fn aggregate<'a>(
 
 // ── Competency ──────────────────────────────────────────────────────────────────
 
-fn run_competency_cell(store: &Store, cq: &CompetencyQuestion) -> Result<(), String> {
+fn run_competency_cell(
+    store: &Store,
+    cq: &CompetencyQuestion,
+    slice_dir: &Path,
+) -> Result<(), String> {
     let query = load_query(cq)?;
+    let Some(rel) = &cq.data_file else {
+        // No overlay: run the query directly over the (asserted or RDFS) store.
+        return execute_competency_query(store, cq, &query);
+    };
+
+    // Overlay lane: a slice-relative ABox fixture is inserted onto the asserted
+    // merged graph for this one query, then removed. The merged store is shared
+    // across cells in this file, so a leak would contaminate later questions —
+    // scoped_overlay_insert returns only the quads it actually inserted (skipping
+    // any already present) and scoped_overlay_remove deletes exactly that set, and
+    // we remove unconditionally even when the query errors.
+    if cq.reasoning != ReasoningProfile::None {
+        // The RDFS closure is computed BEFORE the overlay, so an overlaid fixture's
+        // entailments would be invisible. Refuse rather than silently under-answer.
+        return Err(format!(
+            "{}: gmeow:cqDataFile is only honoured in the asserted (reasoningNone) lane, \
+             not gmeow:reasoningRdfs",
+            cq.iri
+        ));
+    }
+    let fixture_path = paths::example_file(slice_dir, rel);
+    let quads = parse_file(&fixture_path)
+        .map_err(|e| format!("parsing cqDataFile {}: {e}", fixture_path.display()))?;
+    let inserted = scoped_overlay_insert(store, quads.iter());
+    let result = execute_competency_query(store, cq, &query);
+    scoped_overlay_remove(store, &inserted);
+    result
+}
+
+/// Execute a competency question's (already-resolved) query over `store` and
+/// check the result against its expectation.
+fn execute_competency_query(
+    store: &Store,
+    cq: &CompetencyQuestion,
+    query: &str,
+) -> Result<(), String> {
     let results = SparqlEvaluator::new()
-        .parse_query(&query)
+        .parse_query(query)
         .map_err(|e| format!("query parse error: {e}"))?
         .on_store(store)
         .execute()
@@ -390,5 +431,67 @@ fn join_codes(codes: &BTreeSet<String>) -> String {
         "<none>".to_owned()
     } else {
         codes.iter().cloned().collect::<Vec<_>>().join(", ")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::dsl::{CompetencyQuestion, ExpectedCell, ExpectedRow};
+    use oxigraph::model::{NamedNode, Term};
+
+    /// A `gmeow:cqDataFile` overlay must (a) make the fixture's instances visible to
+    /// the query, (b) be removed afterwards so it never leaks into the shared store,
+    /// and (c) be rejected outright in the RDFS lane.
+    #[test]
+    fn cq_data_file_overlay_applies_and_is_removed() {
+        let dir = std::env::temp_dir().join(format!("slicetest-overlay-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("temp slice dir");
+        let fixture = "@prefix ex: <https://example.org/test/> .\n\
+                       @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+                       ex:event1 a gmeow:Event .\n";
+        std::fs::write(dir.join("data.ttl"), fixture).expect("write fixture");
+
+        // Empty shared store: the only way the SELECT matches is via the overlay.
+        let store = Store::new().expect("store");
+        let cq = CompetencyQuestion {
+            iri: "https://example.org/test/cqOverlay".to_owned(),
+            query_inline: Some(
+                "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> \
+                 SELECT ?e WHERE { ?e a gmeow:Event }"
+                    .to_owned(),
+            ),
+            query_file: None,
+            expect_ask: None,
+            expect_row_count: None,
+            exact_rows: false,
+            expected_rows: vec![ExpectedRow {
+                cells: vec![ExpectedCell {
+                    var: "e".to_owned(),
+                    value: Term::NamedNode(
+                        NamedNode::new("https://example.org/test/event1").unwrap(),
+                    ),
+                }],
+            }],
+            reasoning: ReasoningProfile::None,
+            data_file: Some("data.ttl".to_owned()),
+            rationale: None,
+        };
+
+        run_competency_cell(&store, &cq, &dir).expect("overlay cell must pass");
+        assert_eq!(
+            store.len().expect("len"),
+            0,
+            "the overlay must be removed — it must not leak into the shared store"
+        );
+
+        // Same cell in the RDFS lane: hard-fail, never silently under-answer.
+        let mut rdfs_cq = cq.clone();
+        rdfs_cq.reasoning = ReasoningProfile::Rdfs;
+        let err = run_competency_cell(&store, &rdfs_cq, &dir)
+            .expect_err("cqDataFile + reasoningRdfs must be rejected");
+        assert!(err.contains("reasoningNone"), "unexpected error: {err}");
+
+        std::fs::remove_dir_all(&dir).ok();
     }
 }
