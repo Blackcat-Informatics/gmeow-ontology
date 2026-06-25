@@ -457,17 +457,16 @@ def build_report(
 
 
 def enforce(ledger: dict[str, Any]) -> bool:
-    """Strict-by-default verdict: True (pass) only with no divergence or gap.
+    """Surface the Rust-computed strict cross-check verdict (no decision here).
 
-    A ``NativeOnly`` or ``OracleOnly`` row is a real divergence and a ``DlGap``
-    row is a native coverage defect. All three FAIL the lane. There is no
-    severity knob (ETHOS §5/§19).
+    The strict pass/fail DECISION — pass only with zero ``NativeOnly``,
+    ``OracleOnly``, and ``DlGap`` rows (no severity knob; ETHOS §5/§19) — lives in
+    Rust: :func:`gmeow_logic.build_divergence_ledger` computes it and stamps the
+    ledger with a ``passed`` flag (and a ``reasons`` list). This wrapper is a thin
+    surface that returns that flag verbatim; it performs NO arithmetic or decision
+    of its own (Python-retirement directive #933, #697 criterion 3).
     """
-    return (
-        int(ledger["native_only"]) == 0
-        and int(ledger["oracle_only"]) == 0
-        and int(ledger["dl_gap"]) == 0
-    )
+    return bool(ledger["passed"])
 
 
 def run(

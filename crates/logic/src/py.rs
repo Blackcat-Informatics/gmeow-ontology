@@ -976,6 +976,12 @@ fn ledger_row_to_dict(
 /// - `rows` — `list[dict]`, each `{kind, category, subject, object, world, detail}`
 ///   where `kind` is one of `"Agree"`, `"NativeOnly"`, `"OracleOnly"`, `"DlGap"`.
 /// - `agree`, `native_only`, `oracle_only`, `dl_gap` — per-kind tallies (int).
+/// - `passed` (bool) — the **Rust-computed** strict enforcement verdict (#697
+///   criterion 3): `True` only with zero `NativeOnly`/`OracleOnly`/`DlGap` rows.
+///   This is the single decision authority; Python surfaces it unchanged and does
+///   NOT recompute it.
+/// - `reasons` — `list[str]`, one deterministic English reason per failing
+///   category (empty when `passed`).
 ///
 /// # Errors
 ///
@@ -1002,7 +1008,7 @@ fn build_divergence_ledger(
     gaps: Vec<(String, String)>,
 ) -> PyResult<Py<PyAny>> {
     use crate::reason::ledger::{
-        build_ledger, compare_consistency, compare_subsumption, dl_gap_rows,
+        build_ledger, compare_consistency, compare_subsumption, dl_gap_rows, enforce,
     };
 
     let native: Vec<(String, String, String)> = native_subsumptions
@@ -1030,6 +1036,11 @@ fn build_divergence_ledger(
 
     let ledger = build_ledger(subsumption_rows, consistency_rows, gap_rows);
 
+    // The strict pass/fail DECISION is computed HERE, in Rust (#697 criterion 3) —
+    // never in Python. The thin Python `classic_cross_check.enforce()` wrapper only
+    // surfaces this `passed` flag.
+    let verdict = enforce(&ledger);
+
     let rows = PyList::empty(py);
     for row in &ledger.rows {
         rows.append(ledger_row_to_dict(py, row)?)?;
@@ -1041,6 +1052,8 @@ fn build_divergence_ledger(
     out.set_item("native_only", ledger.native_only)?;
     out.set_item("oracle_only", ledger.oracle_only)?;
     out.set_item("dl_gap", ledger.dl_gap)?;
+    out.set_item("passed", verdict.passed)?;
+    out.set_item("reasons", verdict.reasons)?;
     Ok(out.into_any().unbind())
 }
 
