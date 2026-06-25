@@ -1,0 +1,6 @@
+{
+  "https://example.org/foundation/holonic-governance/schema": {
+    "quads": 29,
+    "status": "consistent"
+  }
+}
