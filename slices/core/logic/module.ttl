@@ -961,6 +961,29 @@ logic:TransactionPathEvolution
     rdfs:label "Transaction-Path Evolution"@x-gmeow-english ;
     skos:definition "The evolution-facet value selecting the Transaction-Logic state-change semantics of LOGIC-TRANSACTION.md — serial conjunction (⊗), executional entailment over a path of states, and elementary updates as supersession. It is a facet value, never a seventh profile, and is independent of the model-semantics facet; its full semantics land in issue #711."@x-gmeow-english .
 
+logic:ElementaryUpdate
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Elementary Update"@x-gmeow-english ;
+    skos:definition "A single Transaction-Logic state-transition primitive over a path of WorldStore snapshots. Its two concrete forms are `ins(F)`, which makes a support hold in the successor state, and `del(F)`, which retires one active support in the successor state without deleting the historical assertion. Conflicting same-fact updates are resolved by the declared entrenchment ordering."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DeleteUpdate
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Delete Update"@x-gmeow-english ;
+    rdfs:subClassOf logic:ElementaryUpdate ;
+    skos:definition "An elementary Transaction-Logic update of the `del(F)` kind: it retires one active support from the successor state while retaining the historical support in the path record. `del` is supersession, not physical erasure; state validity changes by moving to a successor snapshot, while displayability remains a separate disclosure decision."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:InsertUpdate
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Insert Update"@x-gmeow-english ;
+    rdfs:subClassOf logic:ElementaryUpdate ;
+    skos:definition "An elementary Transaction-Logic update of the `ins(F)` kind: it asserts one support into the successor state of a path. Insertion advances the path by materializing the support in the successor snapshot; it does not mutate the predecessor state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:TruthAlgebra
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1505,6 +1528,48 @@ logic:witnessRequiredViolation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "witness required violation"@x-gmeow-english ;
     skos:definition "Relates an individual to an anti-rigid type it instantiates with no materialized counter-world to witness the anti-rigidity: the instance-level diagnostic the anti-rigidity lowering emits under the strict witness-required policy (LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy). For an individual x typed by an anti-rigid Role or Phase T in a world, if there is no other materialized world in which x exists but is NOT typed T, a logic:witnessRequiredViolation fact is entailed in the typing world; a counter-world that witnesses x existing untyped by T discharges the obligation and no violation is emitted. Unlike the default witness-obligation policy (which emits logic:dischargeObligation, an obligation rather than a violation) this policy treats a missing counter-world as a hard failure; the construction of the witness world itself happens on demand. It is never asserted by hand; its presence is a machine-checkable proof that an anti-rigid instantiation lacks the world of existence its anti-rigidity requires."@x-gmeow-english .
+
+logic:activeInState
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "active in state"@x-gmeow-english ;
+    skos:definition "Relates a support/reified assertion to the path state in which that support was active. The transition oracle uses it to keep retired supports auditable: a `del` records the predecessor state where the support held, then advances to a successor where that support no longer holds."@x-gmeow-english .
+
+logic:validUntilState
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "valid until state"@x-gmeow-english ;
+    skos:definition "Relates a support/reified assertion to the successor state at which it stops holding as an active support. It is the path-state counterpart of temporal valid-until metadata: a `del` records the state boundary where the support is retired, while the historical support remains retained."@x-gmeow-english .
+
+logic:retiredByTransaction
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "retired by transaction"@x-gmeow-english ;
+    skos:definition "Relates a retired support/reified assertion to the elementary update or transaction-path step that retired it. It is transition provenance: it explains why the support no longer holds in the successor state without deleting the support from the historical path."@x-gmeow-english .
+
+logic:transitionFromState
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "transition from state"@x-gmeow-english ;
+    skos:definition "Relates an elementary update or transaction-path step to the predecessor state snapshot from which it starts. States are WorldStore named-graph snapshots; this relation records the path edge's source state without mutating that state."@x-gmeow-english .
+
+logic:transitionToState
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "transition to state"@x-gmeow-english ;
+    skos:definition "Relates an elementary update or transaction-path step to the successor state snapshot it materializes. The successor is a new named graph produced by the transition oracle from the predecessor plus the effective `ins`/`del` updates."@x-gmeow-english .
+
+logic:ins
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ins"@x-gmeow-english ;
+    skos:definition "Relates a logic:InsertUpdate to the support/fact it asserts. The `ins(F)` primitive makes F active in the successor state while leaving the predecessor state untouched."@x-gmeow-english .
+
+logic:del
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "del"@x-gmeow-english ;
+    skos:definition "Relates a logic:DeleteUpdate to the support/fact it retires. The `del(F)` primitive removes F from the active support set of the successor state, records supersession provenance, and leaves the predecessor state and historical support intact."@x-gmeow-english .
 
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .
