@@ -190,6 +190,11 @@ impl<'a> Lexer<'a> {
             '<' => self.lex_lt_or_iri(),
             '>' => Ok(self.two_or_one('>', Token::TripleClose, '=', Token::GtEq, Token::Gt)),
             '"' | '\'' => self.lex_string(c, start),
+            // `?` is the variable sigil when a name follows, else the path
+            // zero-or-one operator. `$` is only ever a variable sigil.
+            '?' if !matches!(self.peek(1), Some(c) if is_varname_char(c)) => {
+                self.single(Token::Question)
+            }
             '?' | '$' => self.lex_variable(c),
             '_' if self.peek(1) == Some(':') => self.lex_blank_label(start),
             ':' => self.lex_prefixed_name(start),
@@ -641,6 +646,20 @@ mod tests {
             toks("?x != ?y && ?z"),
             vec![var("x"), Token::NotEq, var("y"), Token::And, var("z")]
         );
+    }
+
+    #[test]
+    fn question_is_path_op_or_var_by_lookahead() {
+        // `?` before a name char is a variable; otherwise the zero-or-one path op.
+        assert_eq!(
+            toks("gmeow:p? ?y"),
+            vec![
+                Token::PrefixedName("gmeow".into(), "p".into()),
+                Token::Question,
+                var("y"),
+            ]
+        );
+        assert_eq!(toks("?x"), vec![var("x")]);
     }
 
     #[test]
