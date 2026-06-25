@@ -1,0 +1,6 @@
+{
+  "https://example.org/foundation/holon-projection/schema": {
+    "quads": 9,
+    "status": "consistent"
+  }
+}

@@ -198,6 +198,26 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   declared *reduction theory* — the claim that a whole's property is not derivable from its parts
   *under that theory*. Failure to derive is **not** proof of irreducibility; the assessment records
   the theory it is relative to so a later, stronger theory can overturn it without contradiction.
+  The construct is concrete: `logic:EmergenceAssessment` is reified with the role properties
+  `logic:assessmentWhole`, `logic:assessmentProperty`, and `logic:assessmentReductionTheory`, and the
+  engine *derives* its `logic:assessmentVerdict` — one of the three closed `logic:EmergenceVerdict`
+  values `logic:Aggregate`, `logic:Emergent`, `logic:EmergenceUnknown`. A `logic:ReductionTheory`
+  carries, via `logic:reductionBasis`, the property-values it treats as part-reducible, and entities
+  carry property-values through `logic:bearsProperty`. The verdict is computed by five stratified
+  rules — a derivation-grounded marker plus an OWL-projectable `logic:assessmentVerdict` for each of
+  **Aggregate** and **Emergent**, and the single **EmergenceUnknown** projection: a whole-property is
+  **Aggregate** when the declared theory's basis carries it *and* a proper
+  part bears it (a genuine part-reconstruction); it is **Emergent** by negation-as-failure over that
+  aggregate derivation *while the assessment still binds a declared theory* — so the verdict is
+  theory-relative, never a bare "unflagged" default (the failure mode the foundation explicitly
+  guards against); and it is **EmergenceUnknown** when the whole bears the property but the assessment
+  declares no reduction theory, so the reducibility question cannot even be posed. Crucially, **no
+  rule propagates `logic:bearsProperty` down `logic:properPartOf`**, so an emergent whole-property
+  never reaches its parts and is never entailed by the parts' properties — non-inheritance is a
+  structural guarantee of the rule set, demonstrated positively in the holonic-emergence conformance
+  case (present `bearsProperty(whole, Pv)` + present `properPartOf(part, whole)` + visibly *omitted*
+  `bearsProperty(part, Pv)`). The minimal case lands here; the full emergence corpus and the lossy OWL
+  projection of the verdict accrete in C5 (#708).
 - **Downward constraint is structured and non-transitive.** A whole may constrain its parts, but the
   constraint is a typed, directed relation that does **not** chain transitively by default; a
   constraint from level *n* onto level *n−1* says nothing automatic about level *n−2*.
@@ -483,6 +503,24 @@ describe — five violation labels from four checks: `logic:StereotypeCardinalit
 `logic:FreeRole`, `logic:MixRig`, and `logic:RelComp`. The lowering certifies under
 `logic:StratifiedNAFProfile`. The discipline checks are the regression specification of the lowering;
 the lowering is the enforcement mechanism.
+
+Profiled-mereology constraints are a *second* violation family, kept deliberately separate from the
+OntoUML disciplines. Weak supplementation — a whole with a proper part has another proper part
+disjoint from the first — is not a foundation-wide structural anti-pattern but an axiom that holds only
+*within* a declared `logic:MereologyProfile` (see the typed-and-contextual-mereology-and-holons section
+above). It is therefore a `logic:MereologyConstraint`, not a `logic:Discipline`, even though it is
+emitted through the same uniform `logic:violation` predicate. Its lowering, also under
+`logic:StratifiedNAFProfile`, is a three-step stratified Datalog chain over the asserted strict
+parthood relation `logic:properPartOf`: `logic:overlaps` is derived positively (two entities that share
+a proper part overlap, and a proper part overlaps its whole); `logic:disjoint` and the helper
+`logic:hasDisjointCopart` are its negation-as-failure complements, range-restricted to co-parts of a
+common whole so disjointness is only ever asserted where overlap is defined; and
+`logic:violation logic:WeakSupplementation` fires for a whole that is supplementation-scoped (declared
+under a profile via `logic:underMereologyProfile`) and has a proper part with no disjoint co-part. The
+unary holon projection rides the same parthood relation: `logic:isHolon` is derived for any entity that
+is simultaneously a proper part of some whole and itself a whole of some part — the lossy unary
+projection of the relational `logic:HolonicPosition`. All these rules are inert on inputs that carry no
+`logic:properPartOf` facts, so the OntoUML-discipline cases are unaffected.
 
 Cross-world rigidity — the world-spanning universal quantifier that no ordinary in-world Datalog rule
 expresses — is evaluated as a bounded closure pass over the finite materialized world set, emitting

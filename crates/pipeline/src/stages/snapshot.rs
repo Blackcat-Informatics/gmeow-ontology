@@ -21,8 +21,7 @@ use std::path::{Path, PathBuf};
 
 use gmeow_rdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder};
 use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
-use oxigraph::model::dataset::CanonicalizationAlgorithm;
-use oxigraph::model::{Dataset, Quad};
+use oxigraph::model::Quad;
 use oxigraph::store::Store;
 
 use crate::error::PipelineError;
@@ -1255,13 +1254,14 @@ fn reject_quoted_triples(quads: &[Quad], graph_name: &str) -> Result<(), Pipelin
 /// Mirrors `compile_gts`'s `to_canonical_graph` before each `add_graph`.
 fn canonicalize_nq(nq_bytes: &[u8], _scope: &str) -> Result<String, PipelineError> {
     let quads = parse_nq(nq_bytes)?;
-    let mut dataset: Dataset = quads.iter().map(|q| q.as_ref().into_owned()).collect();
-    dataset.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
-        hash_algorithm: oxigraph::model::dataset::CanonicalizationHashAlgorithm::Sha256,
-    });
-    // `QuadRef`'s Display renders `s p o g` WITHOUT the trailing N-Quads dot, so
-    // append ` .` to each row to produce valid N-Quads the parser round-trips.
-    let mut out: Vec<String> = dataset.iter().map(|q| format!("{q} .")).collect();
+    // Native full RDFC-1.0 (#910), replacing oxrdf `Dataset::canonicalize`. The blank
+    // labeling is identical (both conformant SHA-256 RDFC-1.0) and the oxigraph term
+    // serialization below is unchanged, so the emitted N-Quads are byte-stable.
+    let canonical = gmeow_rdf::canonicalize_quads(quads)
+        .map_err(|e| stage_err(&format!("canonicalize: {e}")))?;
+    // `Quad`'s Display renders `s p o g` WITHOUT the trailing N-Quads dot, so append
+    // ` .` to each row to produce valid N-Quads the parser round-trips.
+    let mut out: Vec<String> = canonical.iter().map(|q| format!("{q} .")).collect();
     out.sort_unstable();
     let mut text = out.join("\n");
     text.push('\n');

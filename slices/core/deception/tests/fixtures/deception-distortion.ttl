@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the deception-distortion competency question (gmeow:cqDataFile overlay).
+# Verbatim externalization of test_competency_deception_distortion_query:
+# distortion = held probable, projected sharpened to unequivocal.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix exd:   <https://example.org/test/> .
+
+exd:event1 a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeDistortion ;
+    gmeow:heldStandpoint exd:claimA ;
+    gmeow:projectedStandpoint exd:claimB .
+
+exd:claimA a gmeow:StandpointClaim ;
+    gmeow:claimModality gmeow:probable .
+
+exd:claimB a gmeow:StandpointClaim ;
+    gmeow:claimModality gmeow:unequivocal .

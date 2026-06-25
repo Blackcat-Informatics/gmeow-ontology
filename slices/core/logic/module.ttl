@@ -47,6 +47,13 @@ logic:AdmitAllFour
     rdfs:label "Admit All Four"@x-gmeow-english ;
     skos:definition "The admissible-valuation policy that permits all four Belnap values — true, false, both (glut), and neither (gap). It carves out First-Degree Entailment (FDE): a valuation may leave an atom under-determined (gap) or over-determined (glut). Reducing the FDE↔LP difference to the designated-value set is a formal error — FDE differs from LP by admitting the gap, not by its designated values."@x-gmeow-english .
 
+logic:Aggregate
+    a owl:NamedIndividual ,
+        logic:EmergenceVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Aggregate"@x-gmeow-english ;
+    skos:definition "The emergence-verdict value for a part-reducible whole property: under the declared logic:ReductionTheory of an logic:EmergenceAssessment, the whole's property is reconstructible from its proper parts — the theory carries the property in its logic:reductionBasis and a proper part also bears it (logic:bearsProperty) — so the property is a mere aggregate, a sum or closure over parts, not an emergent one. The positive, derivation-grounded verdict, reached by an actual part-reconstruction rather than by negation; contrast logic:Emergent (not part-reducible under the theory) and logic:EmergenceUnknown (the reducibility question cannot be posed) (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
 logic:AntiRigidType
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -263,6 +270,34 @@ logic:Disposition
     skos:definition "A bearer-held tendency, power, or liability to manifest events of a characteristic type when triggered — a fragility, a solubility, a hazard's potential to harm — which remains fully real even while it never manifests. gUFO has no Disposition class and models such tendencies as a gufo:IntrinsicMode; logic: subsumes that by carrying the disposition as first-class, so an unmanifested tendency needs no counterfactual reification. A logic:Mode whose manifestations are logic:Events of the characteristic type (stated in prose, not as a subclass edge); the bearer relation is asserted with a domain property (Principle 5), never gufo:inheresIn."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:EmergenceAssessment
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Emergence Assessment"@x-gmeow-english ;
+    skos:definition "The canonical relational construct of emergence: a tri-valued assessment of whether a whole's property is reducible to its proper parts, always made relative to a declared logic:ReductionTheory. Emergence is assessed, never asserted — the assessment is reified with the role properties logic:assessmentWhole, logic:assessmentProperty, and logic:assessmentReductionTheory, and the engine derives its logic:assessmentVerdict (logic:Aggregate, logic:Emergent, or logic:EmergenceUnknown). Failure to derive a property from the parts under one theory is not proof of irreducibility: because the assessment records the theory it is relative to, a later, stronger theory can overturn an logic:Emergent verdict without contradiction. The convenient unary reading 'P is emergent' is the lossy projection of this assessment, exactly as logic:Holon projects logic:HolonicPosition (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EmergenceUnknown
+    a owl:NamedIndividual ,
+        logic:EmergenceVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Emergence Unknown"@x-gmeow-english ;
+    skos:definition "The emergence-verdict value when the reducibility question cannot be posed: the whole bears the property under assessment, but the logic:EmergenceAssessment declares no logic:ReductionTheory (no logic:assessmentReductionTheory), so neither a part-reconstruction (logic:Aggregate) nor a theory-relative non-reduction (logic:Emergent) can be derived. ME9's first-class third value, kept distinct from logic:Aggregate and logic:Emergent so that a genuinely unclassifiable assessment is never silently read as emergence — failure-to-derive is not irreducibility, and a theory-free assessment is unknown, not emergent (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
+logic:EmergenceVerdict
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Emergence Verdict"@x-gmeow-english ;
+    skos:definition "The closed class of emergence-assessment outcomes: the tri-valued result an logic:EmergenceAssessment receives via logic:assessmentVerdict. Its three named individuals are logic:Aggregate (part-reducible under the declared theory), logic:Emergent (borne by the whole but not part-reducible under that theory), and logic:EmergenceUnknown (the reducibility question cannot be posed). The set is closed, so a misspelt verdict names no declared value and is rejected rather than silently accepted, mirroring logic:MereologyConstraint (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Emergent
+    a owl:NamedIndividual ,
+        logic:EmergenceVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Emergent"@x-gmeow-english ;
+    skos:definition "The emergence-verdict value for a genuinely emergent whole property: under the declared logic:ReductionTheory of an logic:EmergenceAssessment, the whole bears the property but it is not reconstructible from the parts — the theory does not carry it in its logic:reductionBasis, or no proper part bears it — so the property does not propagate down logic:properPartOf and is not entailed by the parts' properties. The verdict is strictly theory-relative: it is reached by negation-as-failure over the aggregate derivation, never as a bare 'unflagged' default, and failure to derive under this theory is not proof of irreducibility — a stronger logic:ReductionTheory may reduce the same property under a different assessment without contradiction. Contrast logic:Aggregate and logic:EmergenceUnknown (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
 logic:Endurant
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -417,6 +452,27 @@ logic:GroundedArgumentation
     rdfs:label "Grounded Argumentation"@x-gmeow-english ;
     skos:definition "The grounded Dung argumentation semantics: the unique, sceptical, least fixed point of the characteristic function — an argument is accepted only when every attack on it is defeated by an accepted argument. The argumentation-facet value that resolves conflict deterministically; contrast logic:PreferredArgumentation, which admits multiple maximal admissible sets."@x-gmeow-english .
 
+logic:Holarchy
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Holarchy"@x-gmeow-english ;
+    skos:definition "The bounded logic:properPartOf strict partial order viewed as a nested whole/part structure — a holarchy in Koestler's sense. Because logic:properPartOf is transitive, asymmetric, and irreflexive, a holarchy is a directed acyclic graph (a DAG, not a strict ladder): an entity may be a proper part of several wholes along several paths. It is the structure over which a logic:HolonicPosition is read and logic:holonicLevel is measured (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Holon
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Holon"@x-gmeow-english ;
+    skos:definition "The lossy unary projection of logic:HolonicPosition: an entity that, within some holarchy, is simultaneously a whole and a part — both a proper part of some larger whole and itself having a proper part. Holon-ness is never a bare property of the entity; it is a position occupied in a particular holarchy, context, interval, and path, so logic:Holon is the convenient, lossy projection of that relational logic:HolonicPosition, exactly as the standpoint-modality view projects finer axes (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section). Root wholes and atomic leaves are not holons."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:HolonicPosition
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Holonic Position"@x-gmeow-english ;
+    skos:definition "The canonical relational construct of holon-ness: an entity occupies a holonic position in a particular holarchy, under a particular context, over a particular interval, along a particular path (entity, holarchy, context, interval, path). Whether an entity is a holon is read off this position, never asserted of the entity alone; the unary logic:Holon is its lossy projection. It is reified with the role properties logic:positionEntity, logic:positionHolarchy, logic:positionContext, logic:positionInterval, and logic:positionPath, because the foundation relation is five-place and the arity-bounded reasoning surface carries it as an objectified position (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:HornFragment
     a owl:NamedIndividual ,
         logic:FormulaFragment ;
@@ -470,6 +526,19 @@ logic:MaterialRelationshipType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Material Relationship Type"@x-gmeow-english ;
     skos:definition "A logic:RelationshipType whose instances are material relations — relations founded on a logic:Relator that mediates the relata (marriage, employment, enrolment). The counterpart of gufo:MaterialRelationshipType; the relation it types holds in virtue of the mediating Relator existing (logic:mediates), so its instances are reducible to the relator and its mediation links. Stated in prose, not as a subclass edge. Contrast logic:ComparativeRelationshipType, which needs no relator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:MereologyConstraint
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Mereology Constraint"@x-gmeow-english ;
+    skos:definition "A named profiled-mereology axiom a whole can violate — the family of mereological well-formedness constraints (weak supplementation and its kin) that hold only within a declared logic:MereologyProfile. Distinct from logic:Discipline, the closed set of OntoUML structural anti-patterns: mereology constraints are scoped to a profile, not asserted foundation-wide. Its named individuals are the labels a logic:violation fact may point at; the set is closed so a misspelt label names no declared constraint and is rejected rather than silently accepted."@x-gmeow-english .
+
+logic:MereologyProfile
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Mereology Profile"@x-gmeow-english ;
+    skos:definition "A declared scope within which the strong mereological axioms — weak supplementation above all — are taken to hold. Parthood is profiled, not universal: weak supplementation is true of functional complexes and quantities but false of many legitimate wholes (singleton-membered collectives, abstract aggregates, in-progress assemblies), so logic: scopes it to the MereologyProfile a whole is declared under (via logic:underMereologyProfile) rather than asserting it across all logic:properPartOf. A whole outside any profile is never charged with a logic:WeakSupplementation violation (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:MixIden
@@ -733,6 +802,13 @@ logic:ReasoningPreset
     skos:definition "A named ReasoningContract that fixes a common, supported facet selection — sugar the compiler expands to the full facet bundle before reasoning. The historical profile names (positive-Horn, stratified-negation, well-founded, stable-model, procedural, probabilistic) survive only as presets, not as indivisible alternatives."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:ReductionTheory
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reduction Theory"@x-gmeow-english ;
+    skos:definition "A declared theory of part-whole reducibility, relative to which an logic:EmergenceAssessment is made. It carries, via logic:reductionBasis, the property-values it treats as part-reducible — reconstructible from the proper parts that bear them. Emergence is always relative to such a theory: the same whole property may be logic:Aggregate under one ReductionTheory and logic:Emergent under another, and an logic:Emergent verdict can be overturned by a later, stronger theory without contradiction precisely because the assessment records which theory it was relative to. The systems-theory analogue of a logic:MereologyProfile — it scopes the emergence calculus rather than asserting reducibility foundation-wide (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:RelComp
     a owl:NamedIndividual ,
         logic:Discipline ;
@@ -927,6 +1003,29 @@ logic:TransactionPathEvolution
     rdfs:label "Transaction-Path Evolution"@x-gmeow-english ;
     skos:definition "The evolution-facet value selecting the Transaction-Logic state-change semantics of LOGIC-TRANSACTION.md — serial conjunction (⊗), executional entailment over a path of states, and elementary updates as supersession. It is a facet value, never a seventh profile, and is independent of the model-semantics facet; its full semantics land in issue #711."@x-gmeow-english .
 
+logic:ElementaryUpdate
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Elementary Update"@x-gmeow-english ;
+    skos:definition "A single Transaction-Logic state-transition primitive over a path of WorldStore snapshots. Its two concrete forms are `ins(F)`, which makes a support hold in the successor state, and `del(F)`, which retires one active support in the successor state without deleting the historical assertion. Conflicting same-fact updates are resolved by the declared entrenchment ordering."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DeleteUpdate
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Delete Update"@x-gmeow-english ;
+    rdfs:subClassOf logic:ElementaryUpdate ;
+    skos:definition "An elementary Transaction-Logic update of the `del(F)` kind: it retires one active support from the successor state while retaining the historical support in the path record. `del` is supersession, not physical erasure; state validity changes by moving to a successor snapshot, while displayability remains a separate disclosure decision."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:InsertUpdate
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Insert Update"@x-gmeow-english ;
+    rdfs:subClassOf logic:ElementaryUpdate ;
+    skos:definition "An elementary Transaction-Logic update of the `ins(F)` kind: it asserts one support into the successor state of a path. Insertion advances the path by materializing the support in the successor snapshot; it does not mutate the predecessor state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:TruthAlgebra
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -982,6 +1081,13 @@ logic:VariableCollection
     rdfs:label "Variable Collection"@x-gmeow-english ;
     skos:definition "A logic:Collection whose membership may change over time while the collection retains its identity — a club whose roster gains and loses members, a playlist edited over the years. The counterpart of gufo:VariableCollection. Stated in prose, not as a subclass edge. Its time-varying logic:memberOf is naturally carried as a logic:Fluent (membership indexed to time/world) rather than as the static membership of a logic:FixedCollection — the four-dimensional treatment of changing membership."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:WeakSupplementation
+    a owl:NamedIndividual ,
+        logic:MereologyConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Weak Supplementation"@x-gmeow-english ;
+    skos:definition "The weak-supplementation axiom as a profiled-mereology constraint: a whole with a proper part must have another proper part disjoint from the first. It is enforced only within the logic:MereologyProfile a whole is declared under (logic:underMereologyProfile), never across all parthood; a whole with a lone proper part and no disjoint co-part, declared under a profile, is the logic:violation. The prerequisites logic:overlaps and logic:disjoint are settled first, so the axiom is never applied where overlap is undefined (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
 
 logic:WeightedRankingMeasure
     a owl:NamedIndividual ,
@@ -1044,12 +1150,53 @@ logic:argumentation
     rdfs:label "argumentation"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:ArgumentationSemantics it selects — how conflicts among defeasible arguments are resolved. Single-valued on the contract. Domain logic:ReasoningContract, range logic:ArgumentationSemantics (stated in prose, matching the module's domain/range convention)."@x-gmeow-english .
 
+logic:assessmentProperty
+    a owl:ObjectProperty ;
+    rdfs:domain logic:EmergenceAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment property"@x-gmeow-english ;
+    skos:definition "The property role of an logic:EmergenceAssessment: the property-value whose emergence is being assessed — the thing the whole bears (logic:bearsProperty) and whose reducibility to the parts is in question. One of the three role properties (with logic:assessmentWhole and logic:assessmentReductionTheory) that reify the emergence-assessment relation onto the arity-bounded reasoning surface, mirroring the logic:HolonicPosition role properties (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentReductionTheory
+    a owl:ObjectProperty ;
+    rdfs:domain logic:EmergenceAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment reduction theory"@x-gmeow-english ;
+    rdfs:range logic:ReductionTheory ;
+    skos:definition "The theory role of an logic:EmergenceAssessment: the logic:ReductionTheory the assessment is relative to. Emergence is never absolute — the verdict (logic:Aggregate / logic:Emergent / logic:EmergenceUnknown) is read only against this declared theory's logic:reductionBasis, and recording it is what lets a stronger theory overturn an logic:Emergent verdict without contradiction. An assessment that omits this role cannot pose the reducibility question and receives logic:EmergenceUnknown. One of the three role properties (with logic:assessmentWhole and logic:assessmentProperty) that reify the emergence-assessment relation (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentVerdict
+    a owl:ObjectProperty ;
+    rdfs:domain logic:EmergenceAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment verdict"@x-gmeow-english ;
+    rdfs:range logic:EmergenceVerdict ;
+    skos:definition "The derived outcome of an logic:EmergenceAssessment: the logic:EmergenceVerdict (logic:Aggregate, logic:Emergent, or logic:EmergenceUnknown) the foundation lowering entails for it. Never asserted by hand — it is computed by the stratified emergence rules from the assessment's whole, property, and declared logic:ReductionTheory, the convenient OWL-projectable surface of the assessment exactly as logic:isHolon projects holon-ness. logic:Emergent is reached by negation-as-failure over the aggregate derivation, so the verdict is genuinely theory-relative rather than a bare 'unflagged' default (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentWhole
+    a owl:ObjectProperty ;
+    rdfs:domain logic:EmergenceAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment whole"@x-gmeow-english ;
+    skos:definition "The whole role of an logic:EmergenceAssessment: the entity whose property is being assessed for emergence — the whole that bears the property and stands over the proper parts the reduction is attempted from. One of the three role properties (with logic:assessmentProperty and logic:assessmentReductionTheory) that reify the emergence-assessment relation onto the arity-bounded reasoning surface, mirroring the logic:HolonicPosition role properties (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:asymmetricProperty
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "asymmetric property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for asymmetry: a property P such that P(a,b) entails ¬P(b,a). The logic: analogue of owl:AsymmetricProperty, minted standalone so it can co-occur with logic:transitiveProperty on the same property — the transitive ∧ asymmetric combination OWL 2 DL bars for decidability but logic: keeps and reasons over (criticism 7)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:bearsProperty
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bears property"@x-gmeow-english ;
+    skos:definition "Relates an entity to a property-value it carries, for the purpose of the emergence calculus: a whole and its proper parts each bearsProperty the values an logic:EmergenceAssessment reasons over. A deliberately thin logic-layer relation — NOT a metaphysical inherence claim; the bearer relation for logic:Modes and dispositions is asserted with their own domain properties (Principle 5), and gufo:inheresIn is never asserted. Whether a borne whole property reduces to the parts that bear it is exactly what logic:EmergenceAssessment decides; crucially, no rule propagates bearsProperty down logic:properPartOf, so an logic:Emergent whole property never reaches its parts (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:builtinArithmetic
     a owl:NamedIndividual ,
@@ -1150,6 +1297,13 @@ logic:dischargeObligation
     rdfs:label "discharge obligation"@x-gmeow-english ;
     skos:definition "Relates an individual to an anti-rigid type it instantiates contingently, carrying the standing obligation to construct or cite a world of existence in which the individual lacks that type (the anti-rigidity witness). The instance-level diagnostic the anti-rigidity lowering emits under the witness-obligation policy (the default; LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy): for an individual x typed by an anti-rigid Role or Phase T in a world, a logic:dischargeObligation fact is entailed in that world. It is an obligation, NOT a violation — anti-rigid instantiation is licensed on the promise that the counter-world is satisfiable on demand (its construction happens on demand); the lighter schema-only policy emits nothing instance-level, the stricter witness-required policy emits logic:witnessRequiredViolation instead. Like the other derived diagnostics it is never asserted by hand."@x-gmeow-english .
 
+logic:disjoint
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "disjoint"@x-gmeow-english ;
+    skos:definition "Mereological disjointness: two entities share no part — the negation of logic:overlaps. A primitive notion of profiled mereology, settled (alongside logic:overlaps) before weak supplementation is stated, so logic:WeakSupplementation is never applied to wholes for which overlap is undefined. The 'another part disjoint from the first' clause of weak supplementation is read against this relation (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:distinctBody
     a owl:ObjectProperty ;
     rdfs:comment "Inequality body guard of a logic:Rule. Default-absent: a rule that needs no inequality carries no logic:distinctBody, so the existing corpus is byte-identical (issue #503)."@x-gmeow-english ;
@@ -1187,6 +1341,14 @@ logic:formulaFragment
     rdfs:label "formula fragment"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:FormulaFragment it selects — the syntactic class of admitted formulae. Single-valued on the contract. Domain logic:ReasoningContract, range logic:FormulaFragment (stated in prose, matching the module's convention)."@x-gmeow-english .
 
+logic:holonicLevel
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "holonic level"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The compositional depth of an entity within a holarchy, measured along a path: how many proper-part steps lie between the entity and a root whole. It is path-relative, not intrinsic — holarchies are DAGs, so an entity has no single global level; two paths may place it at different depths and both are correct, so the level is recorded per path (e.g. as a min/max band) rather than as one value. Distinct from logic:orderedType: logic:orderedType is the HiLog deep-instantiation order (an order-n type instantiates an order-(n+1) type), a property of the instantiation tower, whereas logic:holonicLevel is mereological compositional depth in a whole/part DAG; the two must not be conflated (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:instanceOf
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1207,6 +1369,13 @@ logic:irreflexiveProperty
     rdfs:label "irreflexive property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for irreflexivity: a property P such that P(a,a) holds for no a. The logic: analogue of owl:IrreflexiveProperty, used together with logic:transitiveProperty and logic:asymmetricProperty to make logic:properPartOf a genuine strict partial order (criticism 7)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:isHolon
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "is holon"@x-gmeow-english ;
+    skos:definition "The derived marker that projects holon-ness onto an entity: it holds of an entity that, within a holarchy, is simultaneously a proper part of some whole and itself has a proper part. It is the reasoning-surface marker (mirroring logic:isClass-style stereotype markers) from which the unary logic:Holon class is the OWL projection; the faithful construct is the relational logic:HolonicPosition, of which both are lossy projections. Never asserted by hand; it is entailed by the foundation lowering."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:jointOutcome
     a owl:ObjectProperty ;
@@ -1270,11 +1439,59 @@ logic:outcomeAssignment
     rdfs:label "outcome assignment"@x-gmeow-english ;
     skos:definition "Relates a logic:JointOutcome to a correlated logic:probability fact (the reified base triple) that is TRUE in this outcome. Correlated facts of the model that are not named by any logic:outcomeAssignment of an outcome are false in that outcome — the assignment is read as the positive set, the complement against the model's logic:correlates support. The range is intentionally left open (no rdfs:range), for the same reason as logic:correlates: its object is a reified logic:probability statement, which carries no dedicated class in this standalone module."@x-gmeow-english .
 
+logic:overlaps
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "overlaps"@x-gmeow-english ;
+    skos:definition "Mereological overlap: two entities share a common part. The primitive sharing notion that must be settled before disjointness or weak supplementation can be stated — logic:disjoint is its negation, and logic:WeakSupplementation is never applied where overlap is undefined. It is derived from logic:properPartOf: entities that share a proper part overlap, and a proper part overlaps its whole. Symmetric in intent (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:partOf
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "part of"@x-gmeow-english ;
     skos:definition "The general (reflexive) parthood relation: relates an entity to a whole it is part of, where every entity is trivially part of itself. The mereological base relation over which logic:properPartOf is the strict (irreflexive) restriction. Distinct from logic:memberOf, which relates a member to a collection without the part being a part of the whole in the mereological sense."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:positionContext
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "position context"@x-gmeow-english ;
+    skos:definition "The context role of a logic:HolonicPosition: the context under which the position is occupied. Holon-ness is contextual — an entity that is a holon under one context need not be under another. One of the five role properties (with logic:positionEntity, logic:positionHolarchy, logic:positionInterval, logic:positionPath) that reify the five-place holonic-position relation onto the arity-bounded reasoning surface."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:positionEntity
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "position entity"@x-gmeow-english ;
+    skos:definition "The entity role of a logic:HolonicPosition: the individual that occupies the holonic position — the thing that is a holon along the position's path. One of the five role properties (with logic:positionHolarchy, logic:positionContext, logic:positionInterval, logic:positionPath) that reify the five-place holonic-position relation onto the arity-bounded reasoning surface."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:positionHolarchy
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "position holarchy"@x-gmeow-english ;
+    rdfs:range logic:Holarchy ;
+    skos:definition "The holarchy role of a logic:HolonicPosition: the logic:Holarchy within which the position is occupied. Holon-ness is always relative to a holarchy; the same entity may occupy holonic positions in several holarchies. One of the five role properties (with logic:positionEntity, logic:positionContext, logic:positionInterval, logic:positionPath) that reify the five-place holonic-position relation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:positionInterval
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "position interval"@x-gmeow-english ;
+    skos:definition "The interval role of a logic:HolonicPosition: the interval over which the position is occupied. Holon-ness is temporally bounded — an entity may occupy a holonic position over one interval and not another. One of the five role properties (with logic:positionEntity, logic:positionHolarchy, logic:positionContext, logic:positionPath) that reify the five-place holonic-position relation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:positionPath
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "position path"@x-gmeow-english ;
+    skos:definition "The path role of a logic:HolonicPosition: the path through the holarchy along which the position is read. Holarchies are DAGs, so a holonic position — and the logic:holonicLevel measured at it — is meaningful only relative to a path; two paths may place the same entity at different depths, and both are correct. One of the five role properties (with logic:positionEntity, logic:positionHolarchy, logic:positionContext, logic:positionInterval) that reify the five-place holonic-position relation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:preservationKind
@@ -1311,6 +1528,14 @@ logic:properPartOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "proper part of"@x-gmeow-english ;
     skos:definition "STRICT parthood: relates an entity to a whole it is part of but NOT identical to. Transitive, asymmetric, and irreflexive — a genuine strict partial order (proper-part-of, ancestor). This exact combination is illegal in OWL 2 DL, which globally forbids a property being both transitive and asymmetric (criticism 7, LOGIC-FOUNDATION.md §OWL 2 criticisms); logic: imposes no such global restriction and reasons over it completely, recovering decidability by projection rather than by crippling the canon. The deliberate OWL-2-criticism demonstrator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:reductionBasis
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ReductionTheory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reduction basis"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReductionTheory to a property-value it treats as part-reducible: the theory holds that a whole bearing this property has it in virtue of its proper parts bearing it, so under that theory the property is an logic:Aggregate rather than an emergent one. The carrier that makes emergence theory-relative — a property in one theory's reduction basis and absent from another's receives opposite verdicts with no contradiction. Without a matching basis entry, a borne whole property is assessed logic:Emergent under the theory (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:resourcePolicy
@@ -1369,11 +1594,19 @@ logic:uncertaintyMeasure
     rdfs:label "uncertainty measure"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to a logic:UncertaintyMeasure it carries — how graded belief is recorded. Set-valued on the contract: probabilistic, weighted/ranking, and fuzzy measures may coexist on the same result, so this records the set of measures in force, not one. Domain logic:ReasoningContract, range logic:UncertaintyMeasure (stated in prose, matching the module's convention)."@x-gmeow-english .
 
+logic:underMereologyProfile
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "under mereology profile"@x-gmeow-english ;
+    rdfs:range logic:MereologyProfile ;
+    skos:definition "Relates a whole to the logic:MereologyProfile it is declared under — the scope within which the strong mereological axioms (weak supplementation) hold for it. A whole carries no logic:WeakSupplementation obligation unless declared under a profile via this relation; parthood is profiled, not universal (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:violation
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "violation"@x-gmeow-english ;
-    skos:definition "Relates an offending class to the logic:Discipline it violates: the derived diagnostic the OntoUML-discipline lowering materializes, the logic: analogue of a reasoning_lint message. A logic:violation fact is never asserted by hand; it is entailed by the lowering rules over the stereotype, subsumption and mediation facts, so its presence is a machine-checkable proof that the class breaks the named discipline."@x-gmeow-english .
+    skos:definition "Relates an offending entity to the constraint it violates — a logic:Discipline (an OntoUML structural anti-pattern) or a logic:MereologyConstraint (a profiled-mereology axiom such as logic:WeakSupplementation): the derived diagnostic the foundation lowering materializes, the logic: analogue of a reasoning_lint message. A logic:violation fact is never asserted by hand; it is entailed by the lowering rules over the stereotype, subsumption, mediation and parthood facts, so its presence is a machine-checkable proof that the entity breaks the named constraint."@x-gmeow-english .
 
 logic:weight
     a owl:DatatypeProperty ;
@@ -1386,6 +1619,48 @@ logic:witnessRequiredViolation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "witness required violation"@x-gmeow-english ;
     skos:definition "Relates an individual to an anti-rigid type it instantiates with no materialized counter-world to witness the anti-rigidity: the instance-level diagnostic the anti-rigidity lowering emits under the strict witness-required policy (LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy). For an individual x typed by an anti-rigid Role or Phase T in a world, if there is no other materialized world in which x exists but is NOT typed T, a logic:witnessRequiredViolation fact is entailed in the typing world; a counter-world that witnesses x existing untyped by T discharges the obligation and no violation is emitted. Unlike the default witness-obligation policy (which emits logic:dischargeObligation, an obligation rather than a violation) this policy treats a missing counter-world as a hard failure; the construction of the witness world itself happens on demand. It is never asserted by hand; its presence is a machine-checkable proof that an anti-rigid instantiation lacks the world of existence its anti-rigidity requires."@x-gmeow-english .
+
+logic:activeInState
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "active in state"@x-gmeow-english ;
+    skos:definition "Relates a support/reified assertion to the path state in which that support was active. The transition oracle uses it to keep retired supports auditable: a `del` records the predecessor state where the support held, then advances to a successor where that support no longer holds."@x-gmeow-english .
+
+logic:validUntilState
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "valid until state"@x-gmeow-english ;
+    skos:definition "Relates a support/reified assertion to the successor state at which it stops holding as an active support. It is the path-state counterpart of temporal valid-until metadata: a `del` records the state boundary where the support is retired, while the historical support remains retained."@x-gmeow-english .
+
+logic:retiredByTransaction
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "retired by transaction"@x-gmeow-english ;
+    skos:definition "Relates a retired support/reified assertion to the elementary update or transaction-path step that retired it. It is transition provenance: it explains why the support no longer holds in the successor state without deleting the support from the historical path."@x-gmeow-english .
+
+logic:transitionFromState
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "transition from state"@x-gmeow-english ;
+    skos:definition "Relates an elementary update or transaction-path step to the predecessor state snapshot from which it starts. States are WorldStore named-graph snapshots; this relation records the path edge's source state without mutating that state."@x-gmeow-english .
+
+logic:transitionToState
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "transition to state"@x-gmeow-english ;
+    skos:definition "Relates an elementary update or transaction-path step to the successor state snapshot it materializes. The successor is a new named graph produced by the transition oracle from the predecessor plus the effective `ins`/`del` updates."@x-gmeow-english .
+
+logic:ins
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ins"@x-gmeow-english ;
+    skos:definition "Relates a logic:InsertUpdate to the support/fact it asserts. The `ins(F)` primitive makes F active in the successor state while leaving the predecessor state untouched."@x-gmeow-english .
+
+logic:del
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "del"@x-gmeow-english ;
+    skos:definition "Relates a logic:DeleteUpdate to the support/fact it retires. The `del(F)` primitive removes F from the active support set of the successor state, records supersession provenance, and leaves the predecessor state and historical support intact."@x-gmeow-english .
 
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .

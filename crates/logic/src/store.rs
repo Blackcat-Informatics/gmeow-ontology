@@ -9,7 +9,8 @@
 //! through the named-graph IRI that identifies the world.
 
 use oxigraph::model::{
-    GraphName, GraphNameRef, NamedNode, NamedNodeRef, NamedOrBlankNodeRef, Quad, Term,
+    GraphName, GraphNameRef, NamedNode, NamedNodeRef, NamedOrBlankNode, NamedOrBlankNodeRef, Quad,
+    Term,
 };
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
@@ -93,6 +94,32 @@ impl WorldStore {
         self.inner
             .insert(&quad)
             .expect("in-memory store insert is infallible");
+    }
+
+    /// Insert an already-materialized RDF triple into the named graph `world`.
+    ///
+    /// This is the term-preserving companion to [`Self::insert_quad`]. It is used
+    /// by snapshot-style transitions that must copy existing RDF terms, including
+    /// literal objects, without round-tripping through string-only IRI helpers.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(String)` if `world` is not a valid IRI or if the in-memory
+    /// store rejects the insert.
+    pub fn insert_quad_terms(
+        &self,
+        world: &str,
+        subject: NamedOrBlankNode,
+        predicate: NamedNode,
+        object: Term,
+    ) -> Result<(), String> {
+        let graph = NamedNode::new(world)
+            .map_err(|e| format!("invalid world IRI {world:?} for insert: {e}"))?;
+        let quad = Quad::new(subject, predicate, object, graph);
+        self.inner
+            .insert(&quad)
+            .map_err(|e| format!("world store insert failed: {e}"))?;
+        Ok(())
     }
 
     /// Return all quads in the named graph `world`, in unspecified order.

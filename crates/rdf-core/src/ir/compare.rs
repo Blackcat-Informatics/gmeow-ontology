@@ -28,397 +28,31 @@
 //!   only in how many reifiers bind one triple term, or in an annotation triple,
 //!   compare UNEQUAL.
 //!
-//! ## Blank-node canonicalization & its correctness caveat
+//! ## Implementation: full RDFC-1.0 (no false negatives)
 //!
-//! Blanks are canonicalized by **iterative signature hashing** (a simplified
-//! RDFC-1.0): each blank starts from a constant seed, then on each round absorbs a
-//! commutative (order-independent) digest of every incident quad/reifier/annotation —
-//! each ground neighbour by value, each blank neighbour by its *current* signature,
-//! plus the blank's role (position) in that statement. Iterating to a fixed point
-//! propagates structure outward so non-isomorphic wirings diverge.
-//!
-//! After the fixed point, each dataset is rendered into a **canonical multiset** of
-//! quads/reifiers/annotations with every blank replaced by its signature, and the two
-//! multisets are compared. The hash is **commutative across statements and across the
-//! refinement frontier**, so it is invariant under blank relabeling.
-//!
-//! Caveat: a pure hash refinement is NOT a full RDFC-1.0 isomorphism decision for
-//! *pathologically symmetric* blank graphs (automorphism classes a hash cannot split
-//! without hash-tie-break + backtracking). This implementation therefore guards
-//! against a **false positive** with a final structural check: after canonical
-//! labeling, if any blank's signature is shared by more than one blank *within a
-//! single dataset* (an unresolved symmetry), and the two datasets are not already
-//! proven equal by the multiset comparison, the comparator returns **false** rather
-//! than risk reporting two genuinely-different datasets as equal. The contract is:
-//! never a false positive; a false negative on a pathological symmetry is acceptable
-//! (and does not arise for the importer-equivalence fixtures, whose blanks are
-//! distinguished by their ground neighbours).
+//! The verdict is computed by the native full W3C RDFC-1.0 canonicalizer
+//! ([`super::canon::canonicalize`]): two datasets are isomorphic **iff** their
+//! canonical N-Quads strings are byte-equal. RDFC-1.0 resolves blank-node
+//! automorphisms via hash-partition + permutation backtracking, so — unlike the
+//! simplified FNV signature refinement this comparator used to carry (#910) — the
+//! oracle is **exact**: never a false positive *and* never a false negative, even on
+//! pathologically symmetric blank graphs. The canonicalizer folds the RDF-1.2
+//! reifier/annotation overlay and triple terms into the canonical form, so reifier
+//! count and annotation presence remain part of the compared structure.
 
-use std::collections::BTreeMap;
-
+use super::canon;
 use super::dataset::RdfDataset;
-use super::term::TermId;
-
-/// A 64-bit signature used both as a blank-node canonical label and as a term key.
-type Sig = u64;
-
-const FNV_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
-const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
-
-#[inline]
-fn fnv_mix(mut hash: u64, bytes: &[u8]) -> u64 {
-    for &b in bytes {
-        hash ^= u64::from(b);
-        hash = hash.wrapping_mul(FNV_PRIME);
-    }
-    hash
-}
-
-#[inline]
-fn fnv_u64(hash: u64, value: u64) -> u64 {
-    fnv_mix(hash, &value.to_le_bytes())
-}
-
-/// A fully-resolved, blank-agnostic VALUE key for a ground term, used as the stable
-/// component of statement signatures. Blanks are excluded here (they carry no ground
-/// value); their contribution to a statement signature is their canonical signature.
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
-enum GroundKey {
-    Iri(String),
-    /// lexical, datatype-iri, language, direction-discriminant.
-    Literal(String, String, Option<String>, Option<u8>),
-    /// A triple term keyed by its three components' canonical keys.
-    Triple(Box<(TermKey, TermKey, TermKey)>),
-}
-
-/// A canonical key for ANY term: a ground value, or a blank identified by its
-/// canonical signature (never by label/scope).
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
-enum TermKey {
-    Ground(GroundKey),
-    Blank(Sig),
-}
-
-/// Per-dataset canonicalization state.
-struct Canon<'a> {
-    ds: &'a RdfDataset,
-    /// The blank `TermId`s present in the dataset, in a stable order.
-    blanks: Vec<TermId>,
-    /// Current signature for each blank `TermId`.
-    sig: BTreeMap<TermId, Sig>,
-}
-
-impl<'a> Canon<'a> {
-    fn new(ds: &'a RdfDataset) -> Self {
-        // Collect every blank TermId actually referenced by a quad / reifier /
-        // annotation (resolving recursively into triple terms).
-        let mut blank_set: std::collections::BTreeSet<TermId> = std::collections::BTreeSet::new();
-        for q in ds.quads() {
-            collect_blanks(ds, q.s, &mut blank_set);
-            collect_blanks(ds, q.p, &mut blank_set);
-            collect_blanks(ds, q.o, &mut blank_set);
-            if let Some(g) = q.g {
-                collect_blanks(ds, g, &mut blank_set);
-            }
-        }
-        for (r, t) in ds.reifiers() {
-            collect_blanks(ds, r, &mut blank_set);
-            collect_blanks(ds, t, &mut blank_set);
-        }
-        for (r, p, o) in ds.annotations() {
-            collect_blanks(ds, r, &mut blank_set);
-            collect_blanks(ds, p, &mut blank_set);
-            collect_blanks(ds, o, &mut blank_set);
-        }
-        let blanks: Vec<TermId> = blank_set.into_iter().collect();
-        // All blanks start from the SAME seed: their identity must come purely from
-        // structure, never from label/scope/id order.
-        let sig = blanks.iter().map(|&b| (b, FNV_OFFSET)).collect();
-        Self { ds, blanks, sig }
-    }
-
-    /// The current key for a term: ground value, or a blank's current signature.
-    fn term_key(&self, id: TermId) -> TermKey {
-        match self.ds.resolve(id) {
-            super::dataset::TermRef::Iri(iri) => TermKey::Ground(GroundKey::Iri(iri.to_owned())),
-            super::dataset::TermRef::Blank { .. } => {
-                TermKey::Blank(*self.sig.get(&id).expect("blank must be tracked"))
-            }
-            super::dataset::TermRef::Literal {
-                lexical,
-                datatype,
-                language,
-                direction,
-            } => {
-                let datatype_iri = match self.ds.resolve(datatype) {
-                    super::dataset::TermRef::Iri(iri) => iri.to_owned(),
-                    other => unreachable!("literal datatype must be an IRI, got {other:?}"),
-                };
-                TermKey::Ground(GroundKey::Literal(
-                    lexical.to_owned(),
-                    datatype_iri,
-                    language.map(str::to_owned),
-                    direction.map(|d| d as u8),
-                ))
-            }
-            super::dataset::TermRef::Triple { s, p, o } => TermKey::Ground(GroundKey::Triple(
-                Box::new((self.term_key(s), self.term_key(p), self.term_key(o))),
-            )),
-        }
-    }
-
-    /// Hash a term key into an accumulator. Stable across relabeling because a blank
-    /// contributes only its current signature, never its id.
-    fn hash_term_key(&self, hash: u64, key: &TermKey) -> u64 {
-        match key {
-            TermKey::Ground(g) => self.hash_ground(fnv_u64(hash, 1), g),
-            TermKey::Blank(sig) => fnv_u64(fnv_u64(hash, 2), *sig),
-        }
-    }
-
-    fn hash_ground(&self, hash: u64, g: &GroundKey) -> u64 {
-        match g {
-            GroundKey::Iri(iri) => fnv_mix(fnv_u64(hash, 10), iri.as_bytes()),
-            GroundKey::Literal(lex, dt, lang, dir) => {
-                let mut h = fnv_mix(fnv_u64(hash, 11), lex.as_bytes());
-                h = fnv_mix(h, dt.as_bytes());
-                if let Some(l) = lang {
-                    h = fnv_mix(fnv_u64(h, 1), l.as_bytes());
-                }
-                if let Some(d) = dir {
-                    h = fnv_u64(fnv_u64(h, 2), u64::from(*d));
-                }
-                h
-            }
-            GroundKey::Triple(parts) => {
-                let h = fnv_u64(hash, 12);
-                let h = self.hash_term_key(h, &parts.0);
-                let h = self.hash_term_key(h, &parts.1);
-                self.hash_term_key(h, &parts.2)
-            }
-        }
-    }
-
-    /// One refinement round: recompute each blank's signature from a commutative
-    /// digest of its incident statements (each statement contributes a hash that
-    /// folds in the blank's role/position and every other position's current key).
-    /// Returns the new signature map.
-    fn refine(&self) -> BTreeMap<TermId, Sig> {
-        // For each blank, accumulate a COMMUTATIVE (XOR-folded) digest over all the
-        // statements it participates in, so the result is independent of statement
-        // order and of which other blank is which.
-        let mut acc: BTreeMap<TermId, u64> = self.blanks.iter().map(|&b| (b, 0u64)).collect();
-
-        let mut contribute = |id: TermId, stmt_hash: u64, role: u64| {
-            if let Some(slot) = acc.get_mut(&id) {
-                // Fold the per-statement hash (already role-tagged) commutatively.
-                *slot ^= fnv_u64(stmt_hash, role).rotate_left((role % 63) as u32 + 1);
-            }
-        };
-
-        // Quads: role tags 0=s, 1=p, 2=o, 3=g.
-        for q in self.ds.quads() {
-            let sk = self.term_key(q.s);
-            let pk = self.term_key(q.p);
-            let ok = self.term_key(q.o);
-            let gk = q.g.map(|g| self.term_key(g));
-            // Per-position statement hash: the WHOLE statement minus the focused
-            // blank's signature (its signature is replaced by a constant focus token),
-            // tagged with the focus role. This makes a blank's update depend on its
-            // neighbours, not on itself.
-            let base = self.hash_quad(&sk, &pk, &ok, gk.as_ref());
-            self.contribute_blanks_of(q.s, base, 0, &mut contribute);
-            self.contribute_blanks_of(q.p, base, 1, &mut contribute);
-            self.contribute_blanks_of(q.o, base, 2, &mut contribute);
-            if let Some(g) = q.g {
-                self.contribute_blanks_of(g, base, 3, &mut contribute);
-            }
-        }
-        // Reifiers: role 4=reifier, the bound triple's blanks via the triple key.
-        for (r, t) in self.ds.reifiers() {
-            let rk = self.term_key(r);
-            let tk = self.term_key(t);
-            let base = self.hash_reifier(&rk, &tk);
-            self.contribute_blanks_of(r, base, 4, &mut contribute);
-            self.contribute_blanks_of(t, base, 5, &mut contribute);
-        }
-        // Annotations: roles 6=reifier, 7=predicate, 8=object.
-        for (r, p, o) in self.ds.annotations() {
-            let rk = self.term_key(r);
-            let pk = self.term_key(p);
-            let ok = self.term_key(o);
-            let base = self.hash_annotation(&rk, &pk, &ok);
-            self.contribute_blanks_of(r, base, 6, &mut contribute);
-            self.contribute_blanks_of(p, base, 7, &mut contribute);
-            self.contribute_blanks_of(o, base, 8, &mut contribute);
-        }
-
-        // The next signature mixes the previous signature with the accumulated digest.
-        self.blanks
-            .iter()
-            .map(|&b| {
-                let prev = *self.sig.get(&b).expect("tracked");
-                let digest = *acc.get(&b).expect("tracked");
-                (b, fnv_u64(prev, digest))
-            })
-            .collect()
-    }
-
-    /// Contribute `base` (a statement hash) to EVERY blank reachable at `id`
-    /// (including blanks nested inside a triple term), tagged with `role`.
-    fn contribute_blanks_of(
-        &self,
-        id: TermId,
-        base: u64,
-        role: u64,
-        contribute: &mut impl FnMut(TermId, u64, u64),
-    ) {
-        match self.ds.resolve(id) {
-            super::dataset::TermRef::Blank { .. } => contribute(id, base, role),
-            super::dataset::TermRef::Triple { s, p, o } => {
-                // Nested-triple blanks get a role offset so position inside the triple
-                // matters.
-                self.contribute_blanks_of(
-                    s,
-                    base,
-                    role.wrapping_mul(31).wrapping_add(20),
-                    contribute,
-                );
-                self.contribute_blanks_of(
-                    p,
-                    base,
-                    role.wrapping_mul(31).wrapping_add(21),
-                    contribute,
-                );
-                self.contribute_blanks_of(
-                    o,
-                    base,
-                    role.wrapping_mul(31).wrapping_add(22),
-                    contribute,
-                );
-            }
-            _ => {}
-        }
-    }
-
-    fn hash_quad(&self, s: &TermKey, p: &TermKey, o: &TermKey, g: Option<&TermKey>) -> u64 {
-        let mut h = fnv_u64(FNV_OFFSET, 100);
-        h = self.hash_term_key(fnv_u64(h, 0), s);
-        h = self.hash_term_key(fnv_u64(h, 1), p);
-        h = self.hash_term_key(fnv_u64(h, 2), o);
-        match g {
-            Some(g) => self.hash_term_key(fnv_u64(h, 3), g),
-            None => fnv_u64(h, 4),
-        }
-    }
-
-    fn hash_reifier(&self, r: &TermKey, t: &TermKey) -> u64 {
-        let h = fnv_u64(FNV_OFFSET, 200);
-        let h = self.hash_term_key(fnv_u64(h, 0), r);
-        self.hash_term_key(fnv_u64(h, 1), t)
-    }
-
-    fn hash_annotation(&self, r: &TermKey, p: &TermKey, o: &TermKey) -> u64 {
-        let h = fnv_u64(FNV_OFFSET, 300);
-        let h = self.hash_term_key(fnv_u64(h, 0), r);
-        let h = self.hash_term_key(fnv_u64(h, 1), p);
-        self.hash_term_key(fnv_u64(h, 2), o)
-    }
-
-    /// Iterate refinement to a fixed point (signatures stop changing) or a bounded
-    /// number of rounds (`blanks + 2`, enough for structure to propagate across the
-    /// blank graph's diameter for non-pathological inputs).
-    fn run_to_fixpoint(&mut self) {
-        let rounds = self.blanks.len() + 2;
-        for _ in 0..rounds {
-            let next = self.refine();
-            if next == self.sig {
-                break;
-            }
-            self.sig = next;
-        }
-    }
-
-    /// `true` iff two distinct blanks share the same final signature — an unresolved
-    /// symmetry that a hash refinement cannot split. Used to guard against false
-    /// positives.
-    fn has_signature_collision(&self) -> bool {
-        let mut seen: std::collections::BTreeSet<Sig> = std::collections::BTreeSet::new();
-        for &b in &self.blanks {
-            let sig = *self.sig.get(&b).expect("tracked");
-            if !seen.insert(sig) {
-                return true;
-            }
-        }
-        false
-    }
-
-    /// The canonical multisets (quads, reifiers, annotations) with blanks rendered by
-    /// signature, for cross-dataset comparison.
-    fn canonical_form(&self) -> CanonicalForm {
-        let mut quads: BTreeMap<(TermKey, TermKey, TermKey, Option<TermKey>), usize> =
-            BTreeMap::new();
-        for q in self.ds.quads() {
-            let key = (
-                self.term_key(q.s),
-                self.term_key(q.p),
-                self.term_key(q.o),
-                q.g.map(|g| self.term_key(g)),
-            );
-            *quads.entry(key).or_insert(0) += 1;
-        }
-        let mut reifiers: BTreeMap<(TermKey, TermKey), usize> = BTreeMap::new();
-        for (r, t) in self.ds.reifiers() {
-            *reifiers
-                .entry((self.term_key(r), self.term_key(t)))
-                .or_insert(0) += 1;
-        }
-        let mut annotations: BTreeMap<(TermKey, TermKey, TermKey), usize> = BTreeMap::new();
-        for (r, p, o) in self.ds.annotations() {
-            *annotations
-                .entry((self.term_key(r), self.term_key(p), self.term_key(o)))
-                .or_insert(0) += 1;
-        }
-        CanonicalForm {
-            quads,
-            reifiers,
-            annotations,
-        }
-    }
-}
-
-/// Collect every blank `TermId` reachable at `id` (recursing into triple terms).
-fn collect_blanks(ds: &RdfDataset, id: TermId, out: &mut std::collections::BTreeSet<TermId>) {
-    match ds.resolve(id) {
-        super::dataset::TermRef::Blank { .. } => {
-            out.insert(id);
-        }
-        super::dataset::TermRef::Triple { s, p, o } => {
-            collect_blanks(ds, s, out);
-            collect_blanks(ds, p, out);
-            collect_blanks(ds, o, out);
-        }
-        _ => {}
-    }
-}
-
-/// The signature-rendered canonical form of one dataset.
-#[derive(PartialEq, Eq)]
-struct CanonicalForm {
-    quads: BTreeMap<(TermKey, TermKey, TermKey, Option<TermKey>), usize>,
-    reifiers: BTreeMap<(TermKey, TermKey), usize>,
-    annotations: BTreeMap<(TermKey, TermKey, TermKey), usize>,
-}
 
 /// IR-direct structural comparison. Returns `true` iff the two datasets are
 /// RDF-structurally isomorphic: the same quads (under a blank-node bijection), the
 /// same reifier bindings, and the same annotations. **Oxigraph is NEVER consulted.**
 ///
-/// Prefers a false negative to a false positive: on an unresolved blank symmetry it
-/// returns `false` rather than risk equating two genuinely-different datasets (see the
-/// module-level caveat).
+/// Backed by full RDFC-1.0 canonicalization, this is an **exact** oracle: it never
+/// reports a false positive *or* a false negative (the simplified comparator's
+/// pathological-symmetry false negative is gone, #910).
 pub fn datasets_isomorphic(a: &RdfDataset, b: &RdfDataset) -> bool {
-    // Fast structural rejections that do not depend on blank labeling.
+    // Cheap structural rejections that do not depend on blank labeling — they avoid
+    // running the (poison-guarded) canonicalizer on obviously-different inputs.
     if a.quad_count() != b.quad_count() {
         return false;
     }
@@ -428,27 +62,11 @@ pub fn datasets_isomorphic(a: &RdfDataset, b: &RdfDataset) -> bool {
     if a.annotations().count() != b.annotations().count() {
         return false;
     }
-
-    let mut ca = Canon::new(a);
-    let mut cb = Canon::new(b);
-    if ca.blanks.len() != cb.blanks.len() {
+    if canon::blank_count(a) != canon::blank_count(b) {
         return false;
     }
-    ca.run_to_fixpoint();
-    cb.run_to_fixpoint();
-
-    let equal = ca.canonical_form() == cb.canonical_form();
-    if !equal {
-        return false;
-    }
-
-    // Equal canonical forms, BUT if either side has an internal signature collision
-    // (two blanks sharing a signature), the hash refinement did not resolve the
-    // symmetry; we cannot prove a true bijection, so refuse to claim equality.
-    if ca.has_signature_collision() || cb.has_signature_collision() {
-        return false;
-    }
-    true
+    // The exact oracle: byte-equal canonical N-Quads ⇔ RDF isomorphism.
+    canon::canonicalize(a).nquads == canon::canonicalize(b).nquads
 }
 
 /// A structural diff between two datasets, for test diagnostics. Counts only; the
@@ -469,13 +87,11 @@ pub struct DatasetDiff {
 
 /// A richer diff for test diagnostics: structural counts plus the isomorphism verdict.
 pub fn dataset_diff(a: &RdfDataset, b: &RdfDataset) -> DatasetDiff {
-    let ca = Canon::new(a);
-    let cb = Canon::new(b);
     DatasetDiff {
         quad_counts: (a.quad_count(), b.quad_count()),
         reifier_counts: (a.reifiers().count(), b.reifiers().count()),
         annotation_counts: (a.annotations().count(), b.annotations().count()),
-        blank_counts: (ca.blanks.len(), cb.blanks.len()),
+        blank_counts: (canon::blank_count(a), canon::blank_count(b)),
         isomorphic: datasets_isomorphic(a, b),
     }
 }
@@ -486,6 +102,8 @@ mod tests {
     use crate::ir::RdfDatasetBuilder;
     use crate::{RdfLiteral, RdfTextDirection};
     use std::sync::Arc;
+
+    use super::super::term::TermId;
 
     fn iri(b: &mut RdfDatasetBuilder, n: &str) -> TermId {
         b.intern_iri(format!("http://example.org/{n}"))
@@ -646,6 +264,24 @@ mod tests {
         let a = build("x", 0, "y", 0);
         let b = build("m", 3, "n", 9);
         assert!(datasets_isomorphic(&a, &b));
+    }
+
+    /// The classic symmetric blank ring (`_:x p _:y ; _:y p _:x`): a pure-hash
+    /// refinement could not split this automorphism and the old comparator conceded a
+    /// false negative; full RDFC-1.0 proves the two relabelings isomorphic.
+    #[test]
+    fn symmetric_ring_relabeled_is_isomorphic() {
+        use super::super::term::BlankScope;
+        let build = |l1: &str, l2: &str| -> Arc<RdfDataset> {
+            let mut b = RdfDatasetBuilder::new();
+            let p = iri(&mut b, "p");
+            let x = b.intern_blank(l1.to_owned(), BlankScope(0));
+            let y = b.intern_blank(l2.to_owned(), BlankScope(0));
+            b.push_quad(x, p, y, None);
+            b.push_quad(y, p, x, None);
+            b.freeze().expect("valid")
+        };
+        assert!(datasets_isomorphic(&build("x", "y"), &build("m", "n")));
     }
 
     #[test]

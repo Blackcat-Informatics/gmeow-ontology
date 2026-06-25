@@ -1,0 +1,6 @@
+{
+  "https://example.org/foundation/weak-supplementation/schema": {
+    "quads": 25,
+    "status": "consistent"
+  }
+}

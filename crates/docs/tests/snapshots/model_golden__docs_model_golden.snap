@@ -7,7 +7,7 @@ expression: summary
   "version": "3",
   "slice_count": 75,
   "term_count": 2163,
-  "dependency_edge_count": 762,
+  "dependency_edge_count": 780,
   "term_count_by_category": {
     "Class": 651,
     "Datatype": 1,
@@ -116,35 +116,35 @@ expression: summary
         "logical_path": "examples/location-access.ttl",
         "media_type": "text/turtle",
         "raw_digest": "d51813f45761a15f7cd4551d7951a082249988cbedf02da7cb1e8fe8b49208e0",
-        "semantic_digest": "c8503d5419ce214a9036b76370ba32342c52df596d61247b940b16a3e227080d"
+        "semantic_digest": "87a52b5af427dc1ccacebe469cdcb5a192f47069d689a5aaa642c9b60101cc2e"
       },
       {
         "role": "Manifest",
         "logical_path": "manifest.ttl",
         "media_type": "text/turtle",
         "raw_digest": "266cbc93bb4aea74310767bf20466d023c331ae3490c85cadd85308f39741541",
-        "semantic_digest": "a26ce65d4abc78fd59bf7a0c7ae7a8bbc5cdfcfab93da511ad0f6c3e731201a9"
+        "semantic_digest": "1e58ec2a6358f4fc330a2ef751c73727fd8febc56f91c88c13a19b694ca6c198"
       },
       {
         "role": "Mapping",
         "logical_path": "mappings/equivalences.ttl",
         "media_type": "text/turtle",
         "raw_digest": "bf3738f943065d5bd7b7f0e655765808ba6640395ad5dbffa75f258bba35f03d",
-        "semantic_digest": "0765edd06d2dc30324a64a2f4e4ae0ba865bb46fb8577c1591e033c9648c41fa"
+        "semantic_digest": "d0026ea697afd30a572cfdd2bd08e909ee6701fc0045398f6e17ba8fac51832a"
       },
       {
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
         "raw_digest": "7a6add3719932a36dc535d90998abed130f11755ce618bfcb7c978d87fe76a78",
-        "semantic_digest": "5ae0a77b18f23a1e80347ef7e47086e831fd87aeffe463b1ec3be8fdb703004b"
+        "semantic_digest": "31c3e9efc13c4011259729291ade793f98c3bcc1584cbb63df84be3e440d6c3d"
       },
       {
         "role": "TestDsl",
         "logical_path": "tests/structural.ttl",
         "media_type": "text/turtle",
         "raw_digest": "4415b880cf4e3e108c7daba1a56fac4c081215791a0dd623e791f6a409c85b68",
-        "semantic_digest": "fea12563ba72950e3fa70398d379ad68aad50fbbe78e904713e8d269804dbf28"
+        "semantic_digest": "dac747640e2f5ac92f63edaaa345c772d6f385bd7c1dd8a656668130c2e81250"
       }
     ]
   },

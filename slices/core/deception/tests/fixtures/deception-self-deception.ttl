@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the deception-self-deception competency question (gmeow:cqDataFile overlay).
+# Verbatim externalization of test_competency_deception_self_deception_query:
+# self-deception = event with eventTypeSelfDeception and a participant.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix exd:   <https://example.org/test/> .
+
+exd:event1 a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeSelfDeception ;
+    gmeow:hasParticipant exd:agent1 .

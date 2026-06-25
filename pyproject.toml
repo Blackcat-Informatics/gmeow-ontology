@@ -176,7 +176,7 @@ filterwarnings = [
 markers = [
     "network: tests that require network access (Wikidata/OOPS!/FOOPS!)",
     "docker: tests that require Docker (ROBOT/Jena)",
-    "maintainer: heavy / kept-Python-module tests (schema_compile LinkML, export/okf read-library, the mapping & statement compilers, transpiler). The Rust pipeline (crates/pipeline) is the build authority and covers their committed output via byte-parity + `check-generated`, so these are a SEPARATE maintainer-only suite — EXCLUDED from CI and EVERY required `make` target; run on demand with `make maint-test-heavy` (#861).",
+    "maintainer: heavy / kept-Python-module tests (export/okf read-library, the mapping & statement compilers, transpiler). The Rust pipeline (crates/pipeline) is the build authority and covers committed generated output via byte-parity + `check-generated`, so these are a SEPARATE maintainer-only suite — EXCLUDED from CI and EVERY required `make` target; run on demand with `make maint-test-heavy` (#861).",
     "classic_cross_check: legacy-oracle cross-check tests (ELK/HermiT/owlrl/rdflib) — run ONLY in the `make maint-classic-cross-check` lane (#666), never required for normal repo use",
 ]
 

@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the deception-omission competency question (gmeow:cqDataFile overlay).
+# Verbatim externalization of test_competency_deception_omission_query:
+# an omission = held standpoint present, no projected standpoint.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix exd:   <https://example.org/test/> .
+
+exd:event1 a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeOmission ;
+    gmeow:heldStandpoint exd:claimA .
+
+exd:claimA a gmeow:StandpointClaim .

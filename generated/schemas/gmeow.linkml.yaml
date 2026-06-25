@@ -3,8 +3,7 @@
 
 id: https://blackcatinformatics.ca/gmeow/linkml
 name: gmeow
-description: 'GMEOW developer schema generated from canonical OWL. Lossy by design:
-  restrictions, reification, standpoint, inverseOf, and temporal scope are dropped.'
+description: 'GMEOW developer schema generated from canonical OWL. Lossy by design: restrictions, reification, standpoint, inverseOf, and temporal scope are dropped.'
 prefixes:
   gmeow: https://blackcatinformatics.ca/gmeow/
   linkml: https://w3id.org/linkml/
@@ -1014,19 +1013,10 @@ classes:
   DreamReport:
     class_uri: https://blackcatinformatics.ca/gmeow/DreamReport
     title: Dream Report
-    description: 'A dream report is a recollection episode: an instance of gmeow:Experience
-      with gmeow:mentalProcessType gmeow:processRecollection and gmeow:contentOrigin
-      gmeow:originImagined. It is a claim about a prior dream episode, but modelled
-      as the recollection process itself rather than as a propositional claim class,
-      so it inherits the occurrent mental-timeline machinery (gmeow:experiencer, gmeow:mentalProcessType,
-      etc.) from gmeow:Experience.
+    description: |-
+      A dream report is a recollection episode: an instance of gmeow:Experience with gmeow:mentalProcessType gmeow:processRecollection and gmeow:contentOrigin gmeow:originImagined. It is a claim about a prior dream episode, but modelled as the recollection process itself rather than as a propositional claim class, so it inherits the occurrent mental-timeline machinery (gmeow:experiencer, gmeow:mentalProcessType, etc.) from gmeow:Experience.
 
-
-      Dream reports are co-equal vantage-indexed claims with low metacognitive reliability
-      (Principle 9): the dreamer, an analyst, and a later interview may produce competing
-      reports of the same dream episode, and all may coexist. A superseded report
-      (for example, a corrected or withdrawn dream-journal entry) is suppressed with
-      gmeow:displayable false rather than deleted (Principle 10).'
+      Dream reports are co-equal vantage-indexed claims with low metacognitive reliability (Principle 9): the dreamer, an analyst, and a later interview may produce competing reports of the same dream episode, and all may coexist. A superseded report (for example, a corrected or withdrawn dream-journal entry) is suppressed with gmeow:displayable false rather than deleted (Principle 10).
     is_a: Experience
   Duration:
     class_uri: https://blackcatinformatics.ca/gmeow/Duration
@@ -5260,8 +5250,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/collectionPartOrder
     title: collection part order
     range: integer
-    minimum_value: 0
     domain: PitchCollection
+    minimum_value: 0
     multivalued: false
   colourspace:
     slot_uri: https://blackcatinformatics.ca/gmeow/colourspace
@@ -5339,8 +5329,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/communityLevel
     title: community level
     range: integer
-    minimum_value: 0
     domain: Community
+    minimum_value: 0
     multivalued: true
   communityMember:
     slot_uri: https://blackcatinformatics.ca/gmeow/communityMember
@@ -5633,8 +5623,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/controlPointOrder
     title: control point order
     range: integer
-    minimum_value: 0
     domain: PitchTrajectoryControlPoint
+    minimum_value: 0
     multivalued: false
   controlPointPitch:
     slot_uri: https://blackcatinformatics.ca/gmeow/controlPointPitch
@@ -5940,8 +5930,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/degreeCount
     title: degree count
     range: integer
-    minimum_value: 0
     domain: TuningSystem
+    minimum_value: 0
     multivalued: false
   deliversToAccount:
     slot_uri: https://blackcatinformatics.ca/gmeow/deliversToAccount
@@ -6115,8 +6105,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/dimensionCount
     title: dimension count
     range: integer
-    minimum_value: 0
     domain: ReferenceFrame
+    minimum_value: 0
     multivalued: false
   discourseTimeOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/discourseTimeOf
@@ -6168,8 +6158,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/divisionCount
     title: division count
     range: integer
-    minimum_value: 0
     domain: TuningSystem
+    minimum_value: 0
     multivalued: false
   docsConcern:
     slot_uri: https://blackcatinformatics.ca/gmeow/docsConcern
@@ -6243,11 +6233,7 @@ slots:
   dreamElement:
     slot_uri: https://blackcatinformatics.ca/gmeow/dreamElement
     title: dream element
-    description: Used to decompose a dream experience into its constituent imagined
-      parts. The range is deliberately left open (Principle 13) so the property can
-      point at any entity, description, or proposition that plays a part in the dream.
-      Competing elementations from different vantages coexist as co-equal claims (Principle
-      9).
+    description: Used to decompose a dream experience into its constituent imagined parts. The range is deliberately left open (Principle 13) so the property can point at any entity, description, or proposition that plays a part in the dream. Competing elementations from different vantages coexist as co-equal claims (Principle 9).
     range: uriorcurie
     domain: Experience
     multivalued: true
@@ -6307,8 +6293,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/embeddingDimensions
     title: embedding dimensions
     range: integer
-    minimum_value: 1
     domain: Embedding
+    minimum_value: 1
     multivalued: true
   embeddingModel:
     slot_uri: https://blackcatinformatics.ca/gmeow/embeddingModel
@@ -7136,8 +7122,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/gtsSegmentIndex
     title: GTS segment index
     range: integer
-    minimum_value: 0
     domain: GTSSegment
+    minimum_value: 0
     multivalued: false
   gtsSegmentOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/gtsSegmentOf
@@ -9198,8 +9184,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/materializationDepth
     title: materialization depth
     range: integer
-    minimum_value: 0
     domain: Repository
+    minimum_value: 0
     multivalued: false
   matrixShape:
     slot_uri: https://blackcatinformatics.ca/gmeow/matrixShape
@@ -9415,8 +9401,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/metricGroupOrder
     title: metric group order
     range: integer
-    minimum_value: 0
     domain: MetricGroup
+    minimum_value: 0
     multivalued: false
   metricStructureOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/metricStructureOf
@@ -9440,8 +9426,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/minimumPopulation
     title: minimum population
     range: integer
-    minimum_value: 0
     domain: SpatialAggregation
+    minimum_value: 0
     multivalued: false
   mitigationCounters:
     slot_uri: https://blackcatinformatics.ca/gmeow/mitigationCounters
@@ -9465,8 +9451,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/modelContextWindow
     title: model context window
     range: integer
-    minimum_value: 1
     domain: ModelCard
+    minimum_value: 1
     multivalued: true
   modelProvider:
     slot_uri: https://blackcatinformatics.ca/gmeow/modelProvider
@@ -10069,8 +10055,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/partOrder
     title: part order
     range: integer
-    minimum_value: 0
     domain: NamePart
+    minimum_value: 0
     multivalued: false
   partText:
     slot_uri: https://blackcatinformatics.ca/gmeow/partText
@@ -10106,8 +10092,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/participantOrdinal
     title: participant ordinal
     range: integer
-    minimum_value: 0
     domain: MessageParticipant
+    minimum_value: 0
     multivalued: false
   participantRole:
     slot_uri: https://blackcatinformatics.ca/gmeow/participantRole
@@ -10281,15 +10267,15 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/pixelHeight
     title: pixel height
     range: integer
-    minimum_value: 0
     domain: MediaObject
+    minimum_value: 0
     multivalued: false
   pixelWidth:
     slot_uri: https://blackcatinformatics.ca/gmeow/pixelWidth
     title: pixel width
     range: integer
-    minimum_value: 0
     domain: MediaObject
+    minimum_value: 0
     multivalued: false
   placeDeterminacy:
     slot_uri: https://blackcatinformatics.ca/gmeow/placeDeterminacy
@@ -10469,8 +10455,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/primeLimit
     title: prime limit
     range: integer
-    minimum_value: 0
     domain: TuningSystem
+    minimum_value: 0
     multivalued: false
   priority:
     slot_uri: https://blackcatinformatics.ca/gmeow/priority
@@ -11320,8 +11306,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/samplingMaxTokens
     title: sampling max tokens
     range: integer
-    minimum_value: 1
     domain: ModelInvocation
+    minimum_value: 1
     multivalued: true
   samplingTemperature:
     slot_uri: https://blackcatinformatics.ca/gmeow/samplingTemperature
@@ -11571,8 +11557,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/sequenceEnd
     title: sequence end
     range: integer
-    minimum_value: 1
     domain: SequenceCoordinates
+    minimum_value: 1
     multivalued: false
   sequenceFeatureType:
     slot_uri: https://blackcatinformatics.ca/gmeow/sequenceFeatureType
@@ -11584,8 +11570,8 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/sequenceStart
     title: sequence start
     range: integer
-    minimum_value: 1
     domain: SequenceCoordinates
+    minimum_value: 1
     multivalued: false
   sequenceStrand:
     slot_uri: https://blackcatinformatics.ca/gmeow/sequenceStrand
@@ -15872,6 +15858,27 @@ enums:
       harmonicFunctionTonic:
         meaning: https://blackcatinformatics.ca/gmeow/harmonicFunctionTonic
         title: tonic
+  HonorificClassEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/HonorificClass
+    permissible_values:
+      honorificClassAcademic:
+        meaning: https://blackcatinformatics.ca/gmeow/honorificClassAcademic
+        title: academic
+      honorificClassClerical:
+        meaning: https://blackcatinformatics.ca/gmeow/honorificClassClerical
+        title: clerical
+      honorificClassJudicial:
+        meaning: https://blackcatinformatics.ca/gmeow/honorificClassJudicial
+        title: judicial
+      honorificClassMilitary:
+        meaning: https://blackcatinformatics.ca/gmeow/honorificClassMilitary
+        title: military
+      honorificClassNoble:
+        meaning: https://blackcatinformatics.ca/gmeow/honorificClassNoble
+        title: noble
+      honorificClassSocial:
+        meaning: https://blackcatinformatics.ca/gmeow/honorificClassSocial
+        title: social
   HonorificEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Honorific
     permissible_values:
@@ -15926,27 +15933,6 @@ enums:
       honorificSri:
         meaning: https://blackcatinformatics.ca/gmeow/honorificSri
         title: Sri
-  HonorificClassEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/HonorificClass
-    permissible_values:
-      honorificClassAcademic:
-        meaning: https://blackcatinformatics.ca/gmeow/honorificClassAcademic
-        title: academic
-      honorificClassClerical:
-        meaning: https://blackcatinformatics.ca/gmeow/honorificClassClerical
-        title: clerical
-      honorificClassJudicial:
-        meaning: https://blackcatinformatics.ca/gmeow/honorificClassJudicial
-        title: judicial
-      honorificClassMilitary:
-        meaning: https://blackcatinformatics.ca/gmeow/honorificClassMilitary
-        title: military
-      honorificClassNoble:
-        meaning: https://blackcatinformatics.ca/gmeow/honorificClassNoble
-        title: noble
-      honorificClassSocial:
-        meaning: https://blackcatinformatics.ca/gmeow/honorificClassSocial
-        title: social
   HonorificPositionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/HonorificPosition
     permissible_values:
@@ -16157,18 +16143,6 @@ enums:
       tenureTypeUsufruct:
         meaning: https://blackcatinformatics.ca/gmeow/tenureTypeUsufruct
         title: usufruct
-  LanguageEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/Language
-    permissible_values:
-      langEnglish:
-        meaning: https://blackcatinformatics.ca/gmeow/langEnglish
-        title: English
-      langFrench:
-        meaning: https://blackcatinformatics.ca/gmeow/langFrench
-        title: French
-      langMandarin:
-        meaning: https://blackcatinformatics.ca/gmeow/langMandarin
-        title: Mandarin Chinese
   LanguageChangeTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/LanguageChangeType
     permissible_values:
@@ -16211,6 +16185,18 @@ enums:
       changeStandardization:
         meaning: https://blackcatinformatics.ca/gmeow/changeStandardization
         title: standardization
+  LanguageEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Language
+    permissible_values:
+      langEnglish:
+        meaning: https://blackcatinformatics.ca/gmeow/langEnglish
+        title: English
+      langFrench:
+        meaning: https://blackcatinformatics.ca/gmeow/langFrench
+        title: French
+      langMandarin:
+        meaning: https://blackcatinformatics.ca/gmeow/langMandarin
+        title: Mandarin Chinese
   LanguageModalityEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/LanguageModality
     permissible_values:
@@ -17206,8 +17192,7 @@ enums:
         title: deadname (historical, do-not-display)
       namePurposeEndonym:
         meaning: https://blackcatinformatics.ca/gmeow/namePurposeEndonym
-        title: endonym (name used by a place's own inhabitants / a language's own
-          speakers)
+        title: endonym (name used by a place's own inhabitants / a language's own speakers)
       namePurposeExonym:
         meaning: https://blackcatinformatics.ca/gmeow/namePurposeExonym
         title: exonym (name used by outsiders / in another language)
@@ -17949,6 +17934,9 @@ enums:
       stage-export-apache:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-apache
         title: 'export: apache headers'
+      stage-export-bench:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-bench
+        title: 'export: bench'
       stage-export-catalog:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-catalog
         title: 'export: catalog'
@@ -18249,12 +18237,6 @@ enums:
       pitchSpellingSystemSargam:
         meaning: https://blackcatinformatics.ca/gmeow/pitchSpellingSystemSargam
         title: sargam
-  PitchTrajectoryEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/PitchTrajectory
-    permissible_values:
-      fixtureStructureGlissando:
-        meaning: https://blackcatinformatics.ca/gmeow/fixtureStructureGlissando
-        title: fixture glissando trajectory
   PitchTrajectoryControlPointEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint
     permissible_values:
@@ -18264,6 +18246,12 @@ enums:
       fixtureStructureGlissPointG4:
         meaning: https://blackcatinformatics.ca/gmeow/fixtureStructureGlissPointG4
         title: glissando end G4
+  PitchTrajectoryEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/PitchTrajectory
+    permissible_values:
+      fixtureStructureGlissando:
+        meaning: https://blackcatinformatics.ca/gmeow/fixtureStructureGlissando
+        title: fixture glissando trajectory
   PitchTrajectoryInterpolationKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PitchTrajectoryInterpolationKind
     permissible_values:

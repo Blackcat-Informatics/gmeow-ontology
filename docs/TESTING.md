@@ -38,8 +38,21 @@ A SPARQL ASK/SELECT plus its expected outcome. The query is inline
 (`gmeow:cqQuery`) or referenced (`gmeow:cqQueryFile`, **repo-root-relative**).
 An ASK pins `gmeow:cqExpectAsk`; a SELECT pins its rows by full enumeration
 (`gmeow:cqExpectRow` + `gmeow:cqExactRows true`, the preferred maximal-fidelity
-form) or, as an escape hatch, a coarse `gmeow:cqExpectRowCount`. Runs over the
-full **merged ontology** (see *Reasoning* below).
+form), by an enumerated **subset** (`gmeow:cqExpectRow` with `cqExactRows`
+omitted — a contains-check, for questions whose source asserted only that certain
+rows are present), or, as an escape hatch, a coarse `gmeow:cqExpectRowCount`
+(`0` pins an expected-empty result). Runs over the full **merged ontology** (see
+*Reasoning* below).
+
+A question that classifies **instance** data (e.g. "is this event a lie?") can
+overlay a slice-relative ABox fixture via `gmeow:cqDataFile`: the fixture is
+inserted onto the asserted merged graph for that one cell, the query runs, and the
+fixture is removed again (the same scoped-overlay idiom `gmeow:exampleFile` uses).
+Because the merged ontology is TBox-only, this is how instance-classifier
+competency questions get something to match against. The overlay is honoured only
+in the `gmeow:reasoningNone` lane — pairing `gmeow:cqDataFile` with
+`gmeow:reasoningRdfs` is rejected (the RDFS closure is computed before the overlay,
+so the fixture's entailments would be invisible).
 
 ### `gmeow:StructuralAssertion` — `tests/structural.ttl`
 

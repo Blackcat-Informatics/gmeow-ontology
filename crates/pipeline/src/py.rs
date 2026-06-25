@@ -18,6 +18,8 @@ use pyo3::types::{PyBytes, PyDict, PyList, PyModule};
 use gmeow_diagnostics::py::PyReport;
 
 use crate::run::{run_full, RunMode};
+use crate::transform::{self, CellInput, DerivedRowNative, TransformReportNative};
+use crate::up_projection::{self, AuditReport, LiftMap, UpProjectionReport};
 
 /// Run the full dogfooded build single-pass.
 ///
@@ -227,6 +229,328 @@ fn roundtrip_isomorphic(nquads_bytes: &[u8], star_bytes: &[u8], format: &str) ->
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
 }
 
+/// Classify one SSSOM row for the native up-projection audit.
+#[pyfunction]
+#[pyo3(signature = (subject_id, predicate_id, object_id))]
+fn up_projection_classify_sssom(
+    subject_id: String,
+    predicate_id: String,
+    object_id: String,
+) -> PyResult<(String, String, String)> {
+    let class = up_projection::classify_sssom(&subject_id, &predicate_id, &object_id);
+    Ok((class.bucket, class.gmeow, class.target))
+}
+
+/// Compute the best combined up-projection class for one target term.
+#[pyfunction]
+#[pyo3(signature = (term, sssom, structural))]
+fn up_projection_combined_class(
+    term: String,
+    sssom: std::collections::BTreeMap<String, String>,
+    structural: std::collections::BTreeMap<String, String>,
+) -> PyResult<String> {
+    Ok(up_projection::combined_class(&term, &sssom, &structural))
+}
+
+/// Build the native lift map from serialized SSSOM, projection TTL, and ontology NT.
+#[pyfunction]
+#[pyo3(signature = (sssom_texts, projection_ttls, ontology_nt))]
+fn up_projection_build_lift_map(
+    py: Python<'_>,
+    sssom_texts: Vec<String>,
+    projection_ttls: Vec<String>,
+    ontology_nt: String,
+) -> PyResult<Py<PyAny>> {
+    let lift = py
+        .detach(move || up_projection::build_lift_map(&sssom_texts, &projection_ttls, &ontology_nt))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    lift_map_to_py(py, &lift)
+}
+
+/// Up-project N-Triples through the native Rust kernel.
+#[pyfunction]
+#[pyo3(signature = (source_nt, sssom_texts, projection_ttls, ontology_nt, descend = false))]
+fn up_projection_project_nt(
+    py: Python<'_>,
+    source_nt: String,
+    sssom_texts: Vec<String>,
+    projection_ttls: Vec<String>,
+    ontology_nt: String,
+    descend: bool,
+) -> PyResult<Py<PyAny>> {
+    let report = py
+        .detach(move || {
+            up_projection::up_project_nt(
+                &source_nt,
+                &sssom_texts,
+                &projection_ttls,
+                &ontology_nt,
+                descend,
+            )
+        })
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    up_projection_report_to_py(py, &report)
+}
+
+/// Run the native up-projection invertibility audit over serialized corpus graphs.
+#[pyfunction]
+#[pyo3(signature = (sssom_texts, projection_ttls, corpus_nts))]
+fn up_projection_audit_nt(
+    py: Python<'_>,
+    sssom_texts: Vec<String>,
+    projection_ttls: Vec<String>,
+    corpus_nts: Vec<(String, String)>,
+) -> PyResult<Py<PyAny>> {
+    let report = py
+        .detach(move || up_projection::run_audit_nt(&sssom_texts, &projection_ttls, &corpus_nts))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    audit_report_to_py(py, &report)
+}
+
+/// Resolve one context-aware up-projection candidate through the native descent index.
+#[pyfunction]
+#[pyo3(signature = (predicate, subject_types, sssom_texts, projection_ttls, ontology_nt))]
+fn up_projection_resolve_context(
+    py: Python<'_>,
+    predicate: String,
+    subject_types: Vec<String>,
+    sssom_texts: Vec<String>,
+    projection_ttls: Vec<String>,
+    ontology_nt: String,
+) -> PyResult<Py<PyAny>> {
+    let subject_types: std::collections::BTreeSet<String> = subject_types.into_iter().collect();
+    let resolved = py
+        .detach(move || {
+            up_projection::resolve_context_candidate(
+                &predicate,
+                &subject_types,
+                &sssom_texts,
+                &projection_ttls,
+                &ontology_nt,
+            )
+        })
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let Some((gmeow, context_type, relation, confidence)) = resolved else {
+        return Ok(py.None());
+    };
+    let out = PyDict::new(py);
+    out.set_item("gmeow", gmeow)?;
+    out.set_item("context_type", context_type)?;
+    out.set_item("relation", relation)?;
+    out.set_item("confidence", confidence)?;
+    Ok(out.into_any().unbind())
+}
+
+/// Run only the hand-authored/native reverse-projection minting layer.
+#[pyfunction]
+#[pyo3(signature = (source_nt))]
+fn up_projection_reverse_nt(py: Python<'_>, source_nt: String) -> PyResult<Py<PyAny>> {
+    let graph_nt = py
+        .detach(move || up_projection::reverse_nt(&source_nt))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(PyBytes::new(py, graph_nt.as_bytes()).into_any().unbind())
+}
+
+/// Deterministically skolemize an N-Triples graph through the native transform core.
+#[pyfunction]
+#[pyo3(signature = (source_nt))]
+fn transform_skolemize_nt(py: Python<'_>, source_nt: String) -> PyResult<Py<PyAny>> {
+    let graph_nt = py
+        .detach(move || transform::skolemize_nt(&source_nt))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(PyBytes::new(py, graph_nt.as_bytes()).into_any().unbind())
+}
+
+/// Compute E(G) through the native transform core.
+#[pyfunction]
+#[pyo3(signature = (abox_nt, ontology_nt, cells, denied))]
+fn transform_saturate_nt(
+    py: Python<'_>,
+    abox_nt: String,
+    ontology_nt: String,
+    cells: Vec<(String, String, String, String, String)>,
+    denied: Vec<(String, String, String)>,
+) -> PyResult<Py<PyAny>> {
+    let cells = cell_inputs(cells);
+    let rows = py
+        .detach(move || transform::saturate_nt(&abox_nt, &ontology_nt, &cells, &denied))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    derived_rows_to_py(py, &rows)
+}
+
+/// Run MAXIMAL(G) through the native transform core.
+#[pyfunction]
+#[pyo3(signature = (raw_nt, ontology_nt, cells, denied, projection_queries))]
+fn transform_project_nt(
+    py: Python<'_>,
+    raw_nt: String,
+    ontology_nt: String,
+    cells: Vec<(String, String, String, String, String)>,
+    denied: Vec<(String, String, String)>,
+    projection_queries: Vec<(String, String)>,
+) -> PyResult<Py<PyAny>> {
+    let cells = cell_inputs(cells);
+    let report = py
+        .detach(move || {
+            transform::transform_nt(&raw_nt, &ontology_nt, &cells, &denied, &projection_queries)
+        })
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    transform_report_to_py(py, &report)
+}
+
+fn cell_inputs(cells: Vec<(String, String, String, String, String)>) -> Vec<CellInput> {
+    cells
+        .into_iter()
+        .map(
+            |(iri, subject, predicate_curie, object, confidence)| CellInput {
+                iri,
+                subject,
+                predicate_curie,
+                object,
+                confidence,
+            },
+        )
+        .collect()
+}
+
+fn derived_rows_to_py(py: Python<'_>, rows: &[DerivedRowNative]) -> PyResult<Py<PyAny>> {
+    let out = PyList::empty(py);
+    for row in rows {
+        let item = PyDict::new(py);
+        item.set_item("subject", &row.subject)?;
+        item.set_item("predicate", &row.predicate)?;
+        item.set_item("object", &row.object)?;
+        item.set_item("reifier", &row.reifier)?;
+        item.set_item("annotations", PyList::new(py, row.annotations.iter())?)?;
+        out.append(item)?;
+    }
+    Ok(out.into_any().unbind())
+}
+
+fn transform_report_to_py(py: Python<'_>, report: &TransformReportNative) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    out.set_item("base_nt", &report.base_nt)?;
+    out.set_item("base_plus_derived_nt", &report.base_plus_derived_nt)?;
+    out.set_item("gts_bytes", PyBytes::new(py, &report.gts_bytes))?;
+    out.set_item("asserted", report.asserted)?;
+    out.set_item("saturated", report.saturated)?;
+    out.set_item("projected", report.projected)?;
+    out.set_item("suppressed_dropped", report.suppressed_dropped)?;
+    Ok(out.into_any().unbind())
+}
+
+fn lift_map_to_py(py: Python<'_>, lift: &LiftMap) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    out.set_item("rules", string_map(py, &lift.rules)?)?;
+    out.set_item("ambiguous", string_set_map(py, &lift.ambiguous)?)?;
+    out.set_item("inverse_rules", string_map(py, &lift.inverse_rules)?)?;
+    out.set_item("claim_rules", tuple_map(py, &lift.claim_rules)?)?;
+    out.set_item(
+        "object_properties",
+        PyList::new(py, lift.object_properties.iter())?,
+    )?;
+
+    let value_rules = PyList::empty(py);
+    for ((source_predicate, source_value), (gmeow_predicate, gmeow_value)) in &lift.value_rules {
+        let row = PyDict::new(py);
+        row.set_item("source_predicate", source_predicate)?;
+        row.set_item("source_value", source_value)?;
+        row.set_item("gmeow_predicate", gmeow_predicate)?;
+        row.set_item("gmeow_value", gmeow_value)?;
+        value_rules.append(row)?;
+    }
+    out.set_item("value_rules", value_rules)?;
+    Ok(out.into_any().unbind())
+}
+
+fn up_projection_report_to_py(py: Python<'_>, report: &UpProjectionReport) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    out.set_item("graph_nt", &report.graph_nt)?;
+    out.set_item("lifted", report.lifted)?;
+    out.set_item("claimed", report.claimed)?;
+    out.set_item("gap_terms", usize_map(py, &report.gap_terms)?)?;
+    out.set_item("ambiguous_terms", usize_map(py, &report.ambiguous_terms)?)?;
+    out.set_item("claim_terms", usize_map(py, &report.claim_terms)?)?;
+    out.set_item("context_resolved", report.context_resolved)?;
+    out.set_item("context_terms", usize_map(py, &report.context_terms)?)?;
+    out.set_item("tag_resolved", report.tag_resolved)?;
+    out.set_item(
+        "tag_resolved_terms",
+        usize_map(py, &report.tag_resolved_terms)?,
+    )?;
+    out.set_item("minted", report.minted)?;
+    Ok(out.into_any().unbind())
+}
+
+fn audit_report_to_py(py: Python<'_>, report: &AuditReport) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    let files = PyList::empty(py);
+    for file in &report.files {
+        let f = PyDict::new(py);
+        f.set_item("name", &file.name)?;
+        f.set_item("per_term", string_map(py, &file.per_term)?)?;
+        let per_vocab = PyDict::new(py);
+        for (vocab, counts) in &file.per_vocab {
+            per_vocab.set_item(vocab, usize_map(py, counts)?)?;
+        }
+        f.set_item("per_vocab", per_vocab)?;
+        f.set_item("liftable", file.liftable())?;
+        f.set_item("total", file.total())?;
+        files.append(f)?;
+    }
+    out.set_item("files", files)?;
+    out.set_item("gaps", PyList::new(py, report.gaps.iter())?)?;
+    out.set_item("sssom_total", report.sssom_total)?;
+    out.set_item("struct_total", report.struct_total)?;
+    out.set_item("liftable", report.liftable())?;
+    out.set_item("total", report.total())?;
+    Ok(out.into_any().unbind())
+}
+
+fn string_map(
+    py: Python<'_>,
+    map: &std::collections::BTreeMap<String, String>,
+) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    for (key, value) in map {
+        out.set_item(key, value)?;
+    }
+    Ok(out.into_any().unbind())
+}
+
+fn tuple_map(
+    py: Python<'_>,
+    map: &std::collections::BTreeMap<String, (String, String)>,
+) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    for (key, (left, right)) in map {
+        out.set_item(key, (left, right))?;
+    }
+    Ok(out.into_any().unbind())
+}
+
+fn string_set_map(
+    py: Python<'_>,
+    map: &std::collections::BTreeMap<String, std::collections::BTreeSet<String>>,
+) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    for (key, values) in map {
+        out.set_item(key, PyList::new(py, values.iter())?)?;
+    }
+    Ok(out.into_any().unbind())
+}
+
+fn usize_map(
+    py: Python<'_>,
+    map: &std::collections::BTreeMap<String, usize>,
+) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    for (key, value) in map {
+        out.set_item(key, *value)?;
+    }
+    Ok(out.into_any().unbind())
+}
+
 /// Register the `gmeow_native.pipeline` submodule. Called by the unified
 /// `gmeow_native` cdylib (#630); exposes [`run_pipeline`].
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -244,5 +568,15 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     m.add_function(wrap_pyfunction!(roundtrip_isomorphic, m)?)?;
+    m.add_function(wrap_pyfunction!(up_projection_classify_sssom, m)?)?;
+    m.add_function(wrap_pyfunction!(up_projection_combined_class, m)?)?;
+    m.add_function(wrap_pyfunction!(up_projection_build_lift_map, m)?)?;
+    m.add_function(wrap_pyfunction!(up_projection_project_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(up_projection_audit_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(up_projection_resolve_context, m)?)?;
+    m.add_function(wrap_pyfunction!(up_projection_reverse_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(transform_skolemize_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(transform_saturate_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(transform_project_nt, m)?)?;
     Ok(())
 }

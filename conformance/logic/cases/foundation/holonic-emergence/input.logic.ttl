@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: foundation/holonic-emergence
+# AC: holonic emergence — EmergenceAssessment relative to a reduction theory (issue #705, C2).
+#
+# Emergence is assessed, never asserted: a logic:EmergenceAssessment over a (whole,
+# property, reduction theory) signature receives a tri-valued logic:assessmentVerdict
+# the engine DERIVES. One whole (ex:Car, with proper parts ex:Engine, ex:Wheel) and one
+# reduction theory (ex:AdditiveTheory, whose logic:reductionBasis carries ex:HasMass but
+# NOT ex:Drivable) exercise all three verdicts:
+#   * ex:AssessMass  (Car, HasMass, AdditiveTheory) → logic:Aggregate — the theory's basis
+#     carries HasMass AND the proper part ex:Engine bears it, so it reduces to the parts.
+#   * ex:AssessDrive (Car, Drivable, AdditiveTheory) → logic:Emergent — Car bears Drivable
+#     but the theory does not reduce it and no part bears it; reached by negation-as-failure
+#     over the aggregate derivation WHILE the theory is still bound, so it is theory-relative.
+#   * ex:AssessNuminous (Car, Numinous, NO theory) → logic:EmergenceUnknown — Car bears the
+#     property but the assessment declares no reduction theory, so the reducibility question
+#     cannot be posed (ME9's first-class third value; failure-to-derive is not irreducibility).
+#
+# NON-PROPAGATION: no rule propagates logic:bearsProperty down logic:properPartOf, so the
+# emergent ex:Drivable stays on ex:Car and never reaches ex:Engine or ex:Wheel — the golden
+# materialized.nq contains bearsProperty(Car, Drivable) and properPartOf(Engine/Wheel, Car)
+# but visibly OMITS bearsProperty(Engine/Wheel, Drivable). That omission is the non-inheritance
+# demonstration, not a gap.
+#
+# No logic:underMereologyProfile is declared, so weak supplementation stays inert and the
+# absence of a logic:WeakSupplementation violation is intentional. The C1 holon-kernel
+# co-firings (logic:overlaps, logic:disjoint, logic:hasDisjointCopart) are expected on this
+# parthood input and are included — suppressing them would misreport the engine.
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so all facts below are duplicated
+# there in the named world ex:schema; these are the program axioms.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/holonic-emergence/> .
+
+# Mereology: a car with two proper parts (also world facts in input.nq).
+ex:Engine logic:properPartOf ex:Car .
+ex:Wheel  logic:properPartOf ex:Car .
+
+# Borne property-values: mass is borne by the whole and by a part; drivability and the
+# numinous quality are borne by the whole alone.
+ex:Car    logic:bearsProperty ex:HasMass .
+ex:Engine logic:bearsProperty ex:HasMass .
+ex:Car    logic:bearsProperty ex:Drivable .
+ex:Car    logic:bearsProperty ex:Numinous .
+
+# The reduction theory: additive mass reduces to parts; nothing else is in its basis.
+ex:AdditiveTheory logic:reductionBasis ex:HasMass .
+
+# Three emergence assessments over the one whole.
+ex:AssessMass logic:assessmentWhole ex:Car ;
+    logic:assessmentProperty ex:HasMass ;
+    logic:assessmentReductionTheory ex:AdditiveTheory .
+
+ex:AssessDrive logic:assessmentWhole ex:Car ;
+    logic:assessmentProperty ex:Drivable ;
+    logic:assessmentReductionTheory ex:AdditiveTheory .
+
+# No logic:assessmentReductionTheory — the reducibility question cannot be posed.
+ex:AssessNuminous logic:assessmentWhole ex:Car ;
+    logic:assessmentProperty ex:Numinous .

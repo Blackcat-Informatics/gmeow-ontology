@@ -20,7 +20,6 @@ _SRC = PROJECT_ROOT / "src" / "gmeow_tools"
 #: The data exporters: module name → modules that must NOT be imported.
 _SEALED: dict[str, frozenset[str]] = {
     "export.py": frozenset({"rdflib", "gmeow_rdf"}),
-    "schema_compile.py": frozenset({"rdflib", "gmeow_rdf"}),
 }
 
 #: Canonical-source readers no exporter may touch (metadata included).

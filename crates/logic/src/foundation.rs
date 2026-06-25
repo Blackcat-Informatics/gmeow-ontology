@@ -367,6 +367,139 @@ const STRATUM_1: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
+    // ── Typed/contextual mereology + holon kernel (issue #704, C1) ──────────────────
+    // Positive prerequisites: overlap, the supplementation-profile marker, and the
+    // unary holon projection.  All depend only on the asserted (EDB) relations
+    // logic:properPartOf and logic:underMereologyProfile, so they are inert on inputs
+    // that carry neither — the pre-#704 foundation goldens are unaffected.
+    //
+    // overlaps(?A, ?B) :- properPartOf(?Z, ?A), properPartOf(?Z, ?B)
+    Rule {
+        head: pos(var("?A"), TermPat::Const(logic_iri!("overlaps")), var("?B")),
+        body: &[
+            pos(
+                var("?Z"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?A"),
+            ),
+            pos(
+                var("?Z"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?B"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // overlaps(?A, ?B) :- properPartOf(?A, ?B)   (a proper part overlaps its whole)
+    Rule {
+        head: pos(var("?A"), TermPat::Const(logic_iri!("overlaps")), var("?B")),
+        body: &[pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("properPartOf")),
+            var("?B"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // overlaps(?A, ?B) :- properPartOf(?B, ?A)   (symmetric mirror of the above)
+    Rule {
+        head: pos(var("?A"), TermPat::Const(logic_iri!("overlaps")), var("?B")),
+        body: &[pos(
+            var("?B"),
+            TermPat::Const(logic_iri!("properPartOf")),
+            var("?A"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // supplementationScoped(?X, ?X) :- underMereologyProfile(?X, ?M)
+    // Arms the weak-supplementation rule only for wholes declared under a profile;
+    // parthood is profiled, not universal (LOGIC-FOUNDATION.md §mereology+holons).
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("supplementationScoped")),
+            var("?X"),
+        ),
+        body: &[pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("underMereologyProfile")),
+            var("?M"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // isHolon(?X, ?X) :- properPartOf(?P, ?X), properPartOf(?X, ?W)
+    // The lossy unary projection of logic:HolonicPosition: an entity that is both a
+    // proper part of some whole and itself has a proper part.  Roots and leaves do not.
+    Rule {
+        head: pos(var("?X"), TermPat::Const(logic_iri!("isHolon")), var("?X")),
+        body: &[
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?X"),
+            ),
+            pos(
+                var("?X"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?W"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic emergence: aggregate reduction (issue #705, C2) ──────────────────────
+    // The positive, derivation-grounded verdict marker.  Under the assessment's declared
+    // logic:ReductionTheory, the whole bears a property the theory's logic:reductionBasis
+    // carries AND a proper part also bears it, so the property reduces to the parts — a
+    // genuine part-reconstruction, not a default.  Inert on inputs with no
+    // logic:EmergenceAssessment.  (LOGIC-FOUNDATION.md §mereology+holons.)
+    //
+    // aggregateAssessed(?A, ?A) :- assessmentWhole(?A, ?W), assessmentProperty(?A, ?Pv),
+    //     assessmentReductionTheory(?A, ?T), reductionBasis(?T, ?Pv), bearsProperty(?W, ?Pv),
+    //     properPartOf(?Part, ?W), bearsProperty(?Part, ?Pv)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("aggregateAssessed")),
+            var("?A"),
+        ),
+        body: &[
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentWhole")),
+                var("?W"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentProperty")),
+                var("?Pv"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentReductionTheory")),
+                var("?T"),
+            ),
+            pos(
+                var("?T"),
+                TermPat::Const(logic_iri!("reductionBasis")),
+                var("?Pv"),
+            ),
+            pos(
+                var("?W"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?Pv"),
+            ),
+            pos(
+                var("?Part"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?W"),
+            ),
+            pos(
+                var("?Part"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?Pv"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
 ];
 
 const STRATUM_2: &[Rule] = &[
@@ -460,6 +593,21 @@ const STRATUM_2: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
+    // ── Holonic emergence: aggregate verdict projection (issue #705, C2) ─────────────
+    // assessmentVerdict(?A, logic:Aggregate) :- aggregateAssessed(?A, ?A)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("assessmentVerdict")),
+            TermPat::Const(logic_iri!("Aggregate")),
+        ),
+        body: &[pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("aggregateAssessed")),
+            var("?A"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
 ];
 
 const STRATUM_3: &[Rule] = &[
@@ -517,6 +665,120 @@ const STRATUM_3: &[Rule] = &[
                 var("?C"),
             ),
         ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Mereology NAF helpers (issue #704, C1) ──────────────────────────────────────
+    // Disjointness is the negation of overlap, scoped to co-parts of a common whole so
+    // the NAF body is range-restricted (overlaps must be settled in a lower stratum).
+    //
+    // disjoint(?P, ?P2) :- properPartOf(?P, ?X), properPartOf(?P2, ?X), NOT overlaps(?P, ?P2)
+    Rule {
+        head: pos(
+            var("?P"),
+            TermPat::Const(logic_iri!("disjoint")),
+            var("?P2"),
+        ),
+        body: &[
+            neg(
+                var("?P"),
+                TermPat::Const(logic_iri!("overlaps")),
+                var("?P2"),
+            ),
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?X"),
+            ),
+            pos(
+                var("?P2"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?X"),
+            ),
+        ],
+        distinct_pairs: &[("?P", "?P2")],
+    },
+    // hasDisjointCopart(?X, ?P) :- properPartOf(?P, ?X), properPartOf(?P2, ?X), NOT overlaps(?P, ?P2)
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("hasDisjointCopart")),
+            var("?P"),
+        ),
+        body: &[
+            neg(
+                var("?P"),
+                TermPat::Const(logic_iri!("overlaps")),
+                var("?P2"),
+            ),
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?X"),
+            ),
+            pos(
+                var("?P2"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?X"),
+            ),
+        ],
+        distinct_pairs: &[("?P", "?P2")],
+    },
+    // ── Holonic emergence: emergent verdict (issue #705, C2) ─────────────────────────
+    // Emergent by negation-as-failure over the aggregate reduction, WHILE the assessment
+    // still binds a declared logic:ReductionTheory (?T) — so the verdict is theory-relative,
+    // never a bare "unflagged" default, and failure-to-derive is not irreducibility.
+    // aggregateAssessed settles in stratum 1, so the NAF is stratified; ?A/?T/?Pv/?W are all
+    // positively bound, so the rule is DL-safe.
+    //
+    // emergentAssessed(?A, ?A) :- assessmentWhole(?A, ?W), assessmentProperty(?A, ?Pv),
+    //     assessmentReductionTheory(?A, ?T), bearsProperty(?W, ?Pv), NOT aggregateAssessed(?A, ?A)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("emergentAssessed")),
+            var("?A"),
+        ),
+        body: &[
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("aggregateAssessed")),
+                var("?A"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentWhole")),
+                var("?W"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentProperty")),
+                var("?Pv"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentReductionTheory")),
+                var("?T"),
+            ),
+            pos(
+                var("?W"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?Pv"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // assessmentVerdict(?A, logic:Emergent) :- emergentAssessed(?A, ?A)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("assessmentVerdict")),
+            TermPat::Const(logic_iri!("Emergent")),
+        ),
+        body: &[pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("emergentAssessed")),
+            var("?A"),
+        )],
         distinct_pairs: NO_GUARD,
     },
 ];
@@ -690,6 +952,84 @@ const STRATUM_4: &[Rule] = &[
                 var("?C"),
             ),
             pos(var("?C"), TermPat::Const(logic_iri!("isClass")), var("?C")),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Weak supplementation (issue #704, C1) ───────────────────────────────────────
+    // A profile-scoped MereologyConstraint (NOT an OntoUML Discipline): a whole with a
+    // proper part must have another proper part disjoint from the first.  Fires only
+    // for wholes armed by supplementationScoped (declared under a logic:MereologyProfile).
+    //
+    // violation(?X, WeakSupplementation) :- properPartOf(?P, ?X),
+    //     NOT hasDisjointCopart(?X, ?P), supplementationScoped(?X, ?X)
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("violation")),
+            TermPat::Const(logic_iri!("WeakSupplementation")),
+        ),
+        body: &[
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?X"),
+            ),
+            neg(
+                var("?X"),
+                TermPat::Const(logic_iri!("hasDisjointCopart")),
+                var("?P"),
+            ),
+            pos(
+                var("?X"),
+                TermPat::Const(logic_iri!("supplementationScoped")),
+                var("?X"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic emergence: unknown verdict (issue #705, C2) ──────────────────────────
+    // ME9's first-class third value: the whole bears the property under assessment, but
+    // neither an aggregate reduction nor a theory-relative emergence verdict is derivable
+    // (the assessment declares no logic:assessmentReductionTheory, so emergentAssessed
+    // cannot fire either), so the reducibility question cannot be posed.  Both NAF targets
+    // (aggregateAssessed S1, emergentAssessed S3) are settled below stratum 4, so the
+    // negation is stratified; ?A/?W/?Pv are positively bound, so the rule is DL-safe.
+    //
+    // assessmentVerdict(?A, logic:EmergenceUnknown) :- assessmentWhole(?A, ?W),
+    //     assessmentProperty(?A, ?Pv), bearsProperty(?W, ?Pv),
+    //     NOT aggregateAssessed(?A, ?A), NOT emergentAssessed(?A, ?A)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("assessmentVerdict")),
+            TermPat::Const(logic_iri!("EmergenceUnknown")),
+        ),
+        body: &[
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("aggregateAssessed")),
+                var("?A"),
+            ),
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("emergentAssessed")),
+                var("?A"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentWhole")),
+                var("?W"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentProperty")),
+                var("?Pv"),
+            ),
+            pos(
+                var("?W"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?Pv"),
+            ),
         ],
         distinct_pairs: NO_GUARD,
     },

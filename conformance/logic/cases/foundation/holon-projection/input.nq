@@ -1,0 +1,2 @@
+<https://example.org/foundation/holon-projection/Engine> <https://blackcatinformatics.ca/logic/properPartOf> <https://example.org/foundation/holon-projection/Car> <https://example.org/foundation/holon-projection/schema> .
+<https://example.org/foundation/holon-projection/Car> <https://blackcatinformatics.ca/logic/properPartOf> <https://example.org/foundation/holon-projection/Fleet> <https://example.org/foundation/holon-projection/schema> .

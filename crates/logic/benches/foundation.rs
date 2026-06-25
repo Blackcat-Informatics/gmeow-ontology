@@ -20,11 +20,12 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use gmeow_logic::foundation::{evaluate, AntiRigidityPolicy};
 use gmeow_logic::store::WorldStore;
 
-/// The six foundation conformance cases under `conformance/logic/cases/foundation/`.
-const CASES: [&str; 6] = [
+/// The foundation conformance cases under `conformance/logic/cases/foundation/`.
+const CASES: [&str; 7] = [
     "cross-world-rigidity",
     "exactly-one-stereotype",
     "free-role",
+    "holonic-emergence",
     "identity-overlap-mixiden",
     "mixrig-kind-under-role",
     "relcomp-under-mediated",
