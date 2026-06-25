@@ -137,6 +137,7 @@ pub fn full_spec() -> PipelineSpec {
     for (id, impl_key) in [
         ("stage-export-lpg", "lpg"),
         ("stage-export-logic", "logic"),
+        ("stage-export-yaml-ld", "yaml_ld"),
         ("stage-export-metadata", "metadata"),
         ("stage-export-export", "export"),
         ("stage-export-okf", "okf"),

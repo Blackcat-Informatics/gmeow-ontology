@@ -226,6 +226,7 @@ gmeow:pipeline-build
         gmeow:stage-export-evals ,
         gmeow:stage-export-lpg ,
         gmeow:stage-export-logic ,
+        gmeow:stage-export-yaml-ld ,
         gmeow:stage-gts-sink .
 
 # ── Spine ──
@@ -501,6 +502,19 @@ gmeow:stage-export-logic
     gmeow:stageImpl "logic" ;
     gmeow:dataflowConsumes gmeow:stage-snapshot ;
     gmeow:producesFormat "rdf12-turtle" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-yaml-ld
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: yaml ld"@x-gmeow-english ;
+    skos:definition "Emit the YAML-LD-star and JSON-LD-star serializations of the composed dataset by folding THIS run's snapshot."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "yaml_ld" ;
+    gmeow:dataflowConsumes gmeow:stage-snapshot ;
+    gmeow:producesFormat "yaml-ld" ;
+    gmeow:producesFormat "json-ld" ;
     gmeow:carriesEngineLock false .
 
 # ── The single serialization exit (the gts narrow waist) ──

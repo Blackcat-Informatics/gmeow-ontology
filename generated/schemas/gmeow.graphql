@@ -2174,6 +2174,7 @@ enum PipelineStageEnum
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__references
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__research__HYPHEN_MINUS__objects
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__schemas
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__yaml__HYPHEN_MINUS__ld
     stage__HYPHEN_MINUS__gts__HYPHEN_MINUS__compose
     stage__HYPHEN_MINUS__gts__HYPHEN_MINUS__sink
     stage__HYPHEN_MINUS__mappings

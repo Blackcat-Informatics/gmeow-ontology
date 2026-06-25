@@ -17994,6 +17994,9 @@ enums:
       stage-export-schemas:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-schemas
         title: 'export: schemas'
+      stage-export-yaml-ld:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-yaml-ld
+        title: 'export: yaml ld'
       stage-gts-compose:
         meaning: https://blackcatinformatics.ca/gmeow/stage-gts-compose
         title: gts compose

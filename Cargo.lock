@@ -1772,6 +1772,7 @@ dependencies = [
 name = "gmeow-pipeline"
 version = "0.1.0"
 dependencies = [
+ "ahash",
  "arrow-array",
  "arrow-schema",
  "blake3",
@@ -1784,6 +1785,7 @@ dependencies = [
  "gmeow-shacl",
  "gmeow-slice",
  "gmeow-validate",
+ "jsonschema",
  "oxigraph",
  "parquet",
  "petgraph",
@@ -1791,6 +1793,7 @@ dependencies = [
  "rayon",
  "serde",
  "serde_json",
+ "serde_yaml",
  "sha1 0.10.6",
  "sha2",
  "tempfile",
