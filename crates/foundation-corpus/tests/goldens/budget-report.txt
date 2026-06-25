@@ -1,0 +1,14 @@
+FOUNDATION IMPORT BUDGET
+== flat links (1 quad each) ==
+  contributor: 2
+  motifOccursIn ← concept appearance: 2
+  narratedIn ← appearance: 3
+  narrates → active character: 3
+  narrates → key event: 3
+== reified constructs (vantage/score/mode is data) ==
+  arc samples (vantage is data): 3
+  entity exemplars (exemplarSubject, #353/#362): 1
+  goal-score assessments (zeros are scores): 3
+  role claims (scoped, interpretive): 2
+== deliberately not imported (no silent caps) ==
+  thematic_tags (unpromoted — #363 heuristic): 3
