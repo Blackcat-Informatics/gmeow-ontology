@@ -31,6 +31,7 @@ const DC_NS: &str = "http://purl.org/dc/elements/1.1/";
 const DCMITYPE_NS: &str = "http://purl.org/dc/dcmitype/";
 const OWL_NAMED_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#NamedIndividual";
 const WIKIDATA_API: &str = "https://www.wikidata.org/w/api.php";
+const WIKIDATA_MAX_IDS_PER_REQUEST: usize = 50;
 const DEFAULT_CACHE_TTL: Duration = Duration::from_secs(7 * 24 * 60 * 60);
 
 const EXPECTED_DC: &[&str] = &[
@@ -295,11 +296,10 @@ pub fn check_syntax(identifiers: &[String]) -> SyntaxReport {
 pub fn check_syntax_iri(iri: &str, in_object_position: bool) -> Vec<Misuse> {
     if let Some(local) = iri.strip_prefix(WD_HTTPS_NS) {
         if is_valid_id(local) {
-            let prefix = if local.starts_with('Q') { "wd" } else { "wdt" };
             return vec![Misuse {
                 local_id: local.to_owned(),
                 kind: NamespaceMisuse::HttpsUrlShouldBeCurie,
-                message: format!("{iri} should be written as {prefix}:{local}"),
+                message: format!("{iri} should be written as wd:{local}"),
             }];
         }
         return vec![Misuse {
@@ -451,14 +451,17 @@ pub fn wikidata_coverage(
 
 pub fn dc_coverage(mappings_dir: &Path, threshold: f64) -> Result<DcCoverageReport, String> {
     let rows = load_mapping_rows(mappings_dir)?;
+    let expected_dcterms = expected_set(DCTERMS_NS, EXPECTED_DCTERMS);
+    let expected_dc = expected_set(DC_NS, EXPECTED_DC);
+    let expected_dcmitype = expected_set(DCMITYPE_NS, EXPECTED_DCMITYPE);
     let dc_rows: Vec<_> = rows
         .into_iter()
         .filter(|row| dc_namespace(&row.object_iri).is_some())
         .collect();
     let mut report = DcCoverageReport {
-        total_dcterms: EXPECTED_DCTERMS.len(),
-        total_dc: EXPECTED_DC.len(),
-        total_dcmitype: EXPECTED_DCMITYPE.len(),
+        total_dcterms: expected_dcterms.len(),
+        total_dc: expected_dc.len(),
+        total_dcmitype: expected_dcmitype.len(),
         mapped_dcterms: BTreeSet::new(),
         mapped_dc: BTreeSet::new(),
         mapped_dcmitype: BTreeSet::new(),
@@ -470,7 +473,12 @@ pub fn dc_coverage(mappings_dir: &Path, threshold: f64) -> Result<DcCoverageRepo
     };
 
     for row in &dc_rows {
-        match dc_namespace(&row.object_iri) {
+        match expected_dc_namespace(
+            &row.object_iri,
+            &expected_dcterms,
+            &expected_dc,
+            &expected_dcmitype,
+        ) {
             Some("dcterms") => {
                 report.mapped_dcterms.insert(row.object_iri.clone());
             }
@@ -696,8 +704,10 @@ pub fn check_existence(
     chunk_size: usize,
     delay: Duration,
 ) -> Result<BTreeMap<String, ExistenceStatus>, String> {
-    if chunk_size == 0 {
-        return Err("chunk_size must be greater than zero".to_owned());
+    if !(1..=WIKIDATA_MAX_IDS_PER_REQUEST).contains(&chunk_size) {
+        return Err(format!(
+            "chunk_size must be between 1 and {WIKIDATA_MAX_IDS_PER_REQUEST}"
+        ));
     }
     let mut statuses = BTreeMap::new();
     let mut queryable = Vec::new();
@@ -714,9 +724,9 @@ pub fn check_existence(
 
     for (chunk_index, chunk) in queryable.chunks(chunk_size).enumerate() {
         let payload = fetch_entities(chunk, project_root, timeout)?;
-        let entities = payload.get("entities").and_then(Value::as_object);
+        let entities = wikidata_entities(&payload)?;
         for identifier in chunk {
-            let entity = entities.and_then(|map| map.get(identifier));
+            let entity = entities.get(identifier);
             let status = match entity {
                 None => ExistenceStatus::Missing,
                 Some(value) if value.get("missing").is_some() => ExistenceStatus::Missing,
@@ -759,8 +769,30 @@ fn fetch_entities(
         .map_err(|e| format!("Wikidata response read failed: {e}"))?;
     let payload: Value =
         serde_json::from_str(&body).map_err(|e| format!("Wikidata JSON parse failed: {e}"))?;
+    wikidata_entities(&payload)?;
     save_cached(project_root, &key, &payload)?;
     Ok(payload)
+}
+
+fn wikidata_entities(payload: &Value) -> Result<&serde_json::Map<String, Value>, String> {
+    if let Some(error) = payload.get("error") {
+        let code = error
+            .get("code")
+            .and_then(Value::as_str)
+            .unwrap_or("unknown");
+        let info = error
+            .get("info")
+            .and_then(Value::as_str)
+            .unwrap_or("no details");
+        return Err(format!("Wikidata API error {code}: {info}"));
+    }
+    if payload.get("success").and_then(Value::as_i64) != Some(1) {
+        return Err("Wikidata response missing success=1".to_owned());
+    }
+    payload
+        .get("entities")
+        .and_then(Value::as_object)
+        .ok_or_else(|| "Wikidata response missing entities object".to_owned())
 }
 
 fn cache_key(identifiers: &[String]) -> String {
@@ -996,6 +1028,20 @@ fn dc_namespace(iri: &str) -> Option<&'static str> {
     }
 }
 
+fn expected_dc_namespace(
+    iri: &str,
+    expected_dcterms: &BTreeSet<String>,
+    expected_dc: &BTreeSet<String>,
+    expected_dcmitype: &BTreeSet<String>,
+) -> Option<&'static str> {
+    match dc_namespace(iri) {
+        Some("dcterms") if expected_dcterms.contains(iri) => Some("dcterms"),
+        Some("dc") if expected_dc.contains(iri) => Some("dc"),
+        Some("dcmitype") if expected_dcmitype.contains(iri) => Some("dcmitype"),
+        _ => None,
+    }
+}
+
 fn expected_set(namespace: &str, locals: &[&str]) -> BTreeSet<String> {
     locals
         .iter()
@@ -1111,6 +1157,11 @@ mod tests {
             check_syntax_iri("https://www.wikidata.org/entity/Q42", false)[0].kind,
             NamespaceMisuse::HttpsUrlShouldBeCurie
         );
+        assert!(
+            check_syntax_iri("https://www.wikidata.org/entity/P31", false)[0]
+                .message
+                .contains("wd:P31")
+        );
         assert_eq!(
             check_syntax_iri("http://www.wikidata.org/entity/P31", false)[0].kind,
             NamespaceMisuse::WdPropShouldBeWdt
@@ -1131,6 +1182,89 @@ mod tests {
         assert_eq!(EXPECTED_DC.len(), 15);
         assert_eq!(EXPECTED_DCTERMS.len(), 46);
         assert_eq!(EXPECTED_DCMITYPE.len(), 12);
+    }
+
+    #[test]
+    fn dc_expected_namespace_ignores_out_of_scope_terms() {
+        let expected_dcterms = expected_set(DCTERMS_NS, EXPECTED_DCTERMS);
+        let expected_dc = expected_set(DC_NS, EXPECTED_DC);
+        let expected_dcmitype = expected_set(DCMITYPE_NS, EXPECTED_DCMITYPE);
+
+        assert_eq!(
+            expected_dc_namespace(
+                "http://purl.org/dc/terms/title",
+                &expected_dcterms,
+                &expected_dc,
+                &expected_dcmitype,
+            ),
+            Some("dcterms")
+        );
+        assert_eq!(
+            expected_dc_namespace(
+                "http://purl.org/dc/terms/notARealDctermsTerm",
+                &expected_dcterms,
+                &expected_dc,
+                &expected_dcmitype,
+            ),
+            None
+        );
+        assert_eq!(
+            expected_dc_namespace(
+                "http://purl.org/dc/dcmitype/StillImage",
+                &expected_dcterms,
+                &expected_dc,
+                &expected_dcmitype,
+            ),
+            Some("dcmitype")
+        );
+    }
+
+    #[test]
+    fn wikidata_entities_rejects_api_errors_and_malformed_payloads() {
+        let error = serde_json::json!({
+            "error": {
+                "code": "bad-request",
+                "info": "bad ids"
+            }
+        });
+        assert!(wikidata_entities(&error)
+            .unwrap_err()
+            .contains("Wikidata API error bad-request"));
+
+        let missing_success = serde_json::json!({
+            "entities": {}
+        });
+        assert!(wikidata_entities(&missing_success)
+            .unwrap_err()
+            .contains("success=1"));
+
+        let missing_entities = serde_json::json!({
+            "success": 1
+        });
+        assert!(wikidata_entities(&missing_entities)
+            .unwrap_err()
+            .contains("entities object"));
+
+        let ok = serde_json::json!({
+            "success": 1,
+            "entities": {
+                "Q42": {}
+            }
+        });
+        assert!(wikidata_entities(&ok).unwrap().contains_key("Q42"));
+    }
+
+    #[test]
+    fn check_existence_rejects_invalid_chunk_sizes() {
+        let root = tempfile::tempdir().unwrap();
+        let identifiers = vec!["Q42".to_owned()];
+        let timeout = Duration::from_secs(1);
+        let delay = Duration::ZERO;
+
+        let zero = check_existence(&identifiers, root.path(), timeout, 0, delay).unwrap_err();
+        assert!(zero.contains("between 1 and 50"));
+        let too_large = check_existence(&identifiers, root.path(), timeout, 51, delay).unwrap_err();
+        assert!(too_large.contains("between 1 and 50"));
     }
 
     #[test]
