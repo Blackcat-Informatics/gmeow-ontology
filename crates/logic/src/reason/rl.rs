@@ -51,6 +51,10 @@
 //! * **scm-dom1/dom2 / scm-rng1/rng2** — domain/range propagate up the class
 //!   hierarchy and down the sub-property hierarchy.
 //! * **cls-svf1** — `owl:someValuesFrom` restriction membership.
+//! * **cls-avf / cls-hv / cls-oneOf / cls-union** — the bundle's finite DL
+//!   class-expression surface that has positive entailment consequences:
+//!   universal restrictions, value restrictions, nominals, unions, and
+//!   disjoint-union member subsumption.
 //! * **cls-int1** — length-2 `owl:intersectionOf` membership; together with
 //!   cls-svf1 + scm-eqc1 this recognizes the `owl:equivalentClass` defined
 //!   classes (e.g. `PlaceNaming ≡ NameUsage ⊓ ∃usageNamed.Place`, #105).
@@ -218,6 +222,51 @@ triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w) :-
     triple(?r, <http://www.w3.org/2002/07/owl#someValuesFrom>, ?c, ?w),
     triple(?x, ?p, ?y, ?w),
     triple(?y, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c, ?w) .
+
+% ── cls-avf: allValuesFrom restriction value typing ─────────────────────────
+#[name("rl:cls-avf")]
+triple(?y, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c, ?w) :-
+    triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w),
+    triple(?r, <http://www.w3.org/2002/07/owl#onProperty>, ?p, ?w),
+    triple(?r, <http://www.w3.org/2002/07/owl#allValuesFrom>, ?c, ?w),
+    triple(?x, ?p, ?y, ?w) .
+
+% ── cls-hv1/2: hasValue restriction assertion + recognition ────────────────
+#[name("rl:cls-hv1")]
+triple(?x, ?p, ?v, ?w) :-
+    triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w),
+    triple(?r, <http://www.w3.org/2002/07/owl#onProperty>, ?p, ?w),
+    triple(?r, <http://www.w3.org/2002/07/owl#hasValue>, ?v, ?w) .
+#[name("rl:cls-hv2")]
+triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w) :-
+    triple(?r, <http://www.w3.org/2002/07/owl#onProperty>, ?p, ?w),
+    triple(?r, <http://www.w3.org/2002/07/owl#hasValue>, ?v, ?w),
+    triple(?x, ?p, ?v, ?w) .
+
+% ── RDF list membership helper for finite class expressions ─────────────────
+#[name("rl:list-member-head")]
+list_member(?l, ?x, ?w) :-
+    triple(?l, <http://www.w3.org/1999/02/22-rdf-syntax-ns#first>, ?x, ?w) .
+#[name("rl:list-member-tail")]
+list_member(?l, ?x, ?w) :-
+    triple(?l, <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>, ?r, ?w),
+    list_member(?r, ?x, ?w) .
+
+% ── cls-oneOf: nominal members are instances of the enumeration class ───────
+#[name("rl:cls-oneOf")]
+triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c, ?w) :-
+    triple(?c, <http://www.w3.org/2002/07/owl#oneOf>, ?l, ?w),
+    list_member(?l, ?x, ?w) .
+
+% ── cls-union/disjointUnion: members are subclasses of the containing class ──
+#[name("rl:cls-union-member")]
+triple(?m, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c, ?w) :-
+    triple(?c, <http://www.w3.org/2002/07/owl#unionOf>, ?l, ?w),
+    list_member(?l, ?m, ?w) .
+#[name("rl:cls-disjointUnion-member")]
+triple(?m, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c, ?w) :-
+    triple(?c, <http://www.w3.org/2002/07/owl#disjointUnionOf>, ?l, ?w),
+    list_member(?l, ?m, ?w) .
 
 % ── cls-int1: length-2 intersectionOf membership ────────────────────────────
 % `C intersectionOf ( C1 C2 ); x a C1; x a C2` ⇒ `x a C`. The intersection list
@@ -680,6 +729,106 @@ mod tests {
         assert!(
             has(&c, X, TYPE, DEFINED),
             "x must be classified into the equivalent defined class Defined"
+        );
+    }
+
+    // ── rule-local coverage for the five RL clause families (#697 feedback) ──
+    // Each test exercises exactly one clause family with the minimal axioms that
+    // make it fire, in the same shape as the cls-svf/cls-int test above.
+
+    const ONPROP: &str = "http://www.w3.org/2002/07/owl#onProperty";
+    const ALL_VALUES_FROM: &str = "http://www.w3.org/2002/07/owl#allValuesFrom";
+    const HAS_VALUE: &str = "http://www.w3.org/2002/07/owl#hasValue";
+    const ONE_OF: &str = "http://www.w3.org/2002/07/owl#oneOf";
+    const UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
+    const DISJOINT_UNION_OF: &str = "http://www.w3.org/2002/07/owl#disjointUnionOf";
+
+    #[test]
+    fn cls_avf_types_property_values_under_all_values_from() {
+        // R onProperty P; R allValuesFrom C; x a R; x P y ⇒ y a C.
+        const R: &str = "http://gmeow.example/R";
+        let store = dataset(vec![
+            quad(R, ONPROP, P),
+            quad(R, ALL_VALUES_FROM, C),
+            quad(X, TYPE, R),
+            quad(X, P, Y),
+        ]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
+        assert!(has(&c, Y, TYPE, C), "y a C via cls-avf");
+    }
+
+    #[test]
+    fn cls_hv1_and_hv2_assert_and_recognize_has_value() {
+        // R onProperty P; R hasValue V.
+        //   cls-hv1: x a R          ⇒ x P V   (assert the value).
+        //   cls-hv2: z P V          ⇒ z a R   (recognize the restriction).
+        const R: &str = "http://gmeow.example/R";
+        const V: &str = "http://gmeow.example/v";
+        let store = dataset(vec![
+            quad(R, ONPROP, P),
+            quad(R, HAS_VALUE, V),
+            quad(X, TYPE, R),
+            quad(Z, P, V),
+        ]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
+        assert!(has(&c, X, P, V), "x P V via cls-hv1");
+        assert!(has(&c, Z, TYPE, R), "z a R via cls-hv2");
+    }
+
+    #[test]
+    fn cls_oneof_types_each_nominal_member() {
+        // C oneOf ( x y ) ⇒ x a C, y a C.
+        let l0 = "http://gmeow.example/l0";
+        let l1 = "http://gmeow.example/l1";
+        let store = dataset(vec![
+            quad(C, ONE_OF, l0),
+            quad(l0, FIRST, X),
+            quad(l0, REST, l1),
+            quad(l1, FIRST, Y),
+            quad(l1, REST, NIL),
+        ]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
+        assert!(has(&c, X, TYPE, C), "x a C via cls-oneOf");
+        assert!(has(&c, Y, TYPE, C), "y a C via cls-oneOf");
+    }
+
+    #[test]
+    fn cls_union_member_subclasses_each_member_to_the_union() {
+        // C unionOf ( A B ) ⇒ A ⊑ C, B ⊑ C.
+        let l0 = "http://gmeow.example/l0";
+        let l1 = "http://gmeow.example/l1";
+        let store = dataset(vec![
+            quad(C, UNION_OF, l0),
+            quad(l0, FIRST, A),
+            quad(l0, REST, l1),
+            quad(l1, FIRST, B),
+            quad(l1, REST, NIL),
+        ]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
+        assert!(has(&c, A, SUBCLASS, C), "A ⊑ C via cls-union-member");
+        assert!(has(&c, B, SUBCLASS, C), "B ⊑ C via cls-union-member");
+    }
+
+    #[test]
+    fn cls_disjoint_union_member_subclasses_each_member_to_the_union() {
+        // C disjointUnionOf ( A B ) ⇒ A ⊑ C, B ⊑ C.
+        let l0 = "http://gmeow.example/l0";
+        let l1 = "http://gmeow.example/l1";
+        let store = dataset(vec![
+            quad(C, DISJOINT_UNION_OF, l0),
+            quad(l0, FIRST, A),
+            quad(l0, REST, l1),
+            quad(l1, FIRST, B),
+            quad(l1, REST, NIL),
+        ]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
+        assert!(
+            has(&c, A, SUBCLASS, C),
+            "A ⊑ C via cls-disjointUnion-member"
+        );
+        assert!(
+            has(&c, B, SUBCLASS, C),
+            "B ⊑ C via cls-disjointUnion-member"
         );
     }
 

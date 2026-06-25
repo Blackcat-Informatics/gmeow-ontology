@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Construct family: someValuesFrom (∃) ⊓ allValuesFrom (∀) over disjoint fillers.
+# A ⊑ ∃p.C ⊓ ∀p.D, with C disjointWith D, and an individual x:A forces a p-filler
+# that must be both C and D -> INCONSISTENT. This is the beyond-EL ∀ construct
+# ELK silently ignores; HermiT (OWL 2 DL) catches it.
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://gmeow.example/dl/some-all#> .
+
+ex: a owl:Ontology .
+
+ex:p a owl:ObjectProperty .
+ex:C a owl:Class .
+ex:D a owl:Class .
+ex:C owl:disjointWith ex:D .
+
+ex:A a owl:Class ;
+  rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty ex:p ; owl:someValuesFrom ex:C ] ,
+    [ a owl:Restriction ; owl:onProperty ex:p ; owl:allValuesFrom  ex:D ] .
+
+ex:x a owl:NamedIndividual , ex:A .

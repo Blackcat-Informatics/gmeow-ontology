@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Construct family: complementOf.
+# Bad ⊑ A and Bad ⊑ ¬A (complementOf A), so Bad is provably empty (UNSATISFIABLE).
+# No individual -> CONSISTENT ontology with one unsatisfiable class.
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://gmeow.example/dl/complement#> .
+
+ex: a owl:Ontology .
+
+ex:A a owl:Class .
+ex:NotA a owl:Class ;
+  owl:complementOf ex:A .
+
+ex:Bad a owl:Class ;
+  rdfs:subClassOf ex:A , ex:NotA .

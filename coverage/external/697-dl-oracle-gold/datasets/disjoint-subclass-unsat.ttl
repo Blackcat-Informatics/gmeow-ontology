@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Construct family: class disjointness / unsatisfiable class.
+# A subclasses two disjoint classes B and C, so A is provably empty (unsat).
+# No individual -> the ontology is CONSISTENT but A is UNSATISFIABLE.
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://gmeow.example/dl/disjoint-subclass#> .
+
+ex: a owl:Ontology .
+
+ex:A a owl:Class .
+ex:B a owl:Class .
+ex:C a owl:Class .
+
+ex:B owl:disjointWith ex:C .
+ex:A rdfs:subClassOf ex:B , ex:C .

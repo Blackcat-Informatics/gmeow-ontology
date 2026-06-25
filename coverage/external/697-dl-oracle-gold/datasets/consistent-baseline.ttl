@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Sanity baseline: a satisfiable ontology that still exercises restrictions,
+# domain/range, and a property chain — CONSISTENT with NO unsatisfiable classes.
+# Guards against a harness that trivially "passes" by always reporting trouble.
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://gmeow.example/dl/consistent#> .
+
+ex: a owl:Ontology .
+
+ex:C a owl:Class .
+ex:D a owl:Class .
+
+ex:p a owl:ObjectProperty ; rdfs:range ex:C .
+ex:q a owl:ObjectProperty ; rdfs:range ex:D .
+ex:r a owl:ObjectProperty ;
+  owl:propertyChainAxiom ( ex:p ex:q ) .
+
+ex:A a owl:Class ;
+  rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty ex:p ; owl:someValuesFrom ex:C ] .
+
+ex:a a owl:NamedIndividual , ex:A .
+ex:b a owl:NamedIndividual .
+ex:c a owl:NamedIndividual .
+ex:a ex:p ex:b .
+ex:b ex:q ex:c .

@@ -282,8 +282,8 @@ meta:gate-logic-gufo-superset a meta:Gate ;
 
 # Principle 18 enforcement — the native reasoning authority. The native
 # EL/DL lane is the Java/Docker-free authoritative gate; the divergence ledger
-# is built from native results ONLY (report-only) with oracle comparison +
-# enforcement deferred to classic-cross-check.
+# is built from native results ONLY and enforces native gap-zero coverage, while
+# oracle comparison runs in classic-cross-check.
 meta:gate-reason-native a meta:Gate ;
     rdfs:label "native Docker-free EL/DL reasoning authority (reason --mode native)"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/reason.py" ;
@@ -292,7 +292,7 @@ meta:gate-reason-native a meta:Gate ;
     meta:cliCommand "reason" .
 
 meta:gate-dl-el-crosscheck a meta:Gate ;
-    rdfs:label "native↔oracle divergence ledger — report-only committed artifact on the primary path; enforcement runs in the classic-cross-check lane (gate-classic-cross-check)"@x-gmeow-english ;
+    rdfs:label "native gap-zero divergence ledger — native-built gap-zero artifact; oracle confirmation runs in the classic-cross-check lane"@x-gmeow-english ;
     meta:artifact "crates/pipeline/src/stages/logic.rs", "generated/logic/dl-el-crosscheck-report.ttl" ;
     meta:symbol "LogicStage" ;
     meta:generator "logic" .
@@ -300,15 +300,30 @@ meta:gate-dl-el-crosscheck a meta:Gate ;
 # The ENFORCING classic-cross-check lane: the sole Java+Docker surface, a
 # single non-required CI job. Compares the native engine against the legacy
 # oracles (ELK/HermiT subsumption + consistency; owlrl OWL-2-RL closure) and
-# FAILS strictly on any NativeOnly/OracleOnly divergence (DlGap is the only
-# honest-expected, non-failing class). NEVER part of `make check` or the required
-# `quality` gate. Emits agreement + timing through the gmeow-diagnostics SARIF rail.
+# FAILS strictly on any NativeOnly/OracleOnly divergence or DlGap native coverage
+# defect. NEVER part of `make check` or the required `quality` gate. Emits
+# agreement + timing through the gmeow-diagnostics SARIF rail.
 meta:gate-classic-cross-check a meta:Gate ;
     rdfs:label "classic-cross-check lane — native vs ELK/HermiT/owlrl agreement, ENFORCED (non-required Docker/Java oracle lane)"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/classic_cross_check.py", "src/gmeow_tools/rl_agreement.py" ;
     meta:symbol "enforce", "run" ;
     meta:makeTarget "maint-classic-cross-check" ;
     meta:cliCommand "classic-cross-check", "classic-cross-check-rl" .
+
+# The anti-regression SUPERSET meta-gate (#697 criterion 3): the native-decided
+# construct set must be a SUPERSET of the oracle-decided set. Any OracleOnly row
+# (the oracle decided a construct the native path did not) or any DlGap (a native
+# coverage defect) is a coverage REGRESSION and FAILS. The decision is computed in
+# Rust (the `enforce` verdict over the divergence ledger), not in Python, and is
+# proven OFFLINE by the frozen oracle-gold conformance lane (native ⊇ HermiT over
+# the curated DL datasets, no Docker/Java/network).
+meta:gate-native-oracle-superset a meta:Gate ;
+    rdfs:label "native ⊇ oracle anti-regression superset gate — Rust-decided, offline frozen-oracle-gold proven (#697)"@x-gmeow-english ;
+    meta:artifact "crates/logic/src/reason/ledger.rs",
+        "crates/conformance/tests/dl_oracle_gold.rs",
+        "coverage/external/697-dl-oracle-gold/README.md" ;
+    meta:symbol "enforce", "native_reasoner_is_a_superset_of_the_frozen_oracle_gold" ;
+    meta:makeTarget "conformance" .
 
 # --------------------------------------------------------------------------- #
 # The principles
@@ -426,5 +441,6 @@ meta:Principle18 a meta:Principle ;
     meta:number 18 ;
     meta:title "The reference RDF-1.2 stack — complete, coherent, and Docker-free" ;
     meta:enforcedBy meta:gate-reason-native, meta:gate-dl-el-crosscheck,
-        meta:gate-classic-cross-check, meta:tests-lane-purity ;
+        meta:gate-classic-cross-check, meta:gate-native-oracle-superset,
+        meta:tests-lane-purity ;
     meta:extends meta:Principle17, meta:Principle13 .

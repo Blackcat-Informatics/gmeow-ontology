@@ -50,7 +50,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene \
 	slicetest conformance insta-review \
 	fuzz-smoke bench bench-json rust-coverage mutants compliance-report \
-	maint-classic-cross-check maint-reason-hermit maint-explain maint-verify-docker \
+	maint-classic-cross-check maint-reason-hermit maint-explain maint-697-oracle-gold maint-verify-docker \
 	maint-reasoning-cases maint-statements-docker-check maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
@@ -270,6 +270,9 @@ maint-reason-hermit: maint-pull-images native-py ## Run HermiT complete consiste
 
 maint-explain: maint-pull-images native-py ## Explain unsatisfiable classes with HermiT.
 	$(GMEOW_DEV) explain
+
+maint-697-oracle-gold: maint-pull-images ## (Re)freeze #697 curated-DL oracle gold via HermiT/ELK (Docker).
+	uv run --package gmeow-dev python scripts/gen_dl_oracle_gold.py
 
 maint-verify-docker: maint-pull-images native-py ## Run ROBOT/ELK reasoned-graph verification.
 	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural

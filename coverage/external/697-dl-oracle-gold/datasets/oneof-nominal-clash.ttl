@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Construct family: nominals / oneOf (closure direction).
+# Colour is the enumeration {red, green} (owl:oneOf on a NAMED class). x:Colour
+# but x is owl:differentFrom both red and green, so x cannot be any member of the
+# enumeration -> INCONSISTENT. This exercises the *closure* half of oneOf (every
+# instance of the class must equal a listed member), the hard nominal direction.
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://gmeow.example/dl/oneof#> .
+
+ex: a owl:Ontology .
+
+ex:red   a owl:NamedIndividual .
+ex:green a owl:NamedIndividual .
+
+ex:Colour a owl:Class ;
+  owl:oneOf ( ex:red ex:green ) .
+
+ex:x a owl:NamedIndividual , ex:Colour ;
+  owl:differentFrom ex:red , ex:green .

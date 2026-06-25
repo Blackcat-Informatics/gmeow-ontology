@@ -69,7 +69,7 @@ pub struct InferredAxiom {
 ///
 /// `inferred` holds every subsumption-predicate axiom (asserted and derived);
 /// `total_facts` is the count of all decoded ternary chase rows; `gaps` names
-/// the honest limitations of this encoding.
+/// the EL-profile limitations of this narrow encoding.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ElClosure {
     pub inferred: Vec<InferredAxiom>,
@@ -81,7 +81,9 @@ pub struct ElClosure {
 ///
 /// Runs the fixed [`EL_RULES`] over `edb` through the shared
 /// [`crate::reason::run_reasoning`] chase machinery, then filters the decoded
-/// closure to the subsumption predicates and surfaces the honest DL gaps.
+/// closure to the subsumption predicates and surfaces the EL-profile
+/// predicate-position limitations for callers that use this narrow surface
+/// directly.
 ///
 /// # Errors
 ///
@@ -99,13 +101,13 @@ pub fn el_closure(edb: &RdfDataset) -> Result<ElClosure, String> {
         .filter(|a| SUBSUMPTION_PREDICATES.contains(&a.predicate.as_str()))
         .collect();
 
-    // 3. Honest DL-gap surface: the ternary predicate-as-symbol encoding cannot
+    // 3. EL-profile limitation surface: this narrow ternary encoding cannot
     //    express entailments that quantify over the predicate position.
     let gaps = vec![
         "domain/range and property-chain entailments are NOT expressible in the \
          predicate-as-symbol ternary encoding (the predicate is a Nemo symbol, not \
-         data); they require a predicate-as-data reformulation and are deferred to \
-         the DL-gap surface"
+         data); callers that need those entailments must use the native DL/RL \
+         authority surface"
             .to_owned(),
     ];
 
@@ -198,11 +200,11 @@ mod tests {
     fn gaps_names_the_predicate_as_symbol_limitation() {
         let store = dataset(vec![quad(A, SUBCLASS, B)]);
         let closure = el_closure(store.as_ref()).expect("EL closure should succeed");
-        assert_eq!(closure.gaps.len(), 1, "exactly one honest gap entry");
+        assert_eq!(closure.gaps.len(), 1, "exactly one profile-limit entry");
         assert!(
             closure.gaps[0].contains("property-chain")
                 && closure.gaps[0].contains("predicate-as-symbol"),
-            "gap must name domain/range + property-chain inexpressibility: {:?}",
+            "profile limit must name domain/range + property-chain inexpressibility: {:?}",
             closure.gaps[0]
         );
     }

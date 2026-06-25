@@ -389,9 +389,9 @@ def reason_native(
 
     The Java/Docker-free authority lane (Principles 17 and 18): the Rust engine reasons
     the bundle, this builds the diagnostics report (consistency verdict,
-    beyond-EL gaps, any inconsistency/unsatisfiability), folds in the four-box
-    role audit, writes the inferred-closure RDF 1.2 artifact, and writes the
-    JSON / SARIF / HTML diagnostics artifacts. It never raises on an
+    native DL coverage defects, any inconsistency/unsatisfiability), folds in
+    the four-box role audit, writes the inferred-closure RDF 1.2 artifact, and
+    writes the JSON / SARIF / HTML diagnostics artifacts. It never raises on an
     inconsistent ontology — the caller inspects ``report.ok``.
 
     Args:
@@ -421,7 +421,7 @@ def reason_native(
             code="reason.native.summary",
             message=(
                 f"native EL/DL reasoning: consistent={result['consistent']}, "
-                f"{len(derived)} entailments, {len(gaps)} beyond-EL gaps"
+                f"{len(derived)} entailments, {len(gaps)} DL coverage defects"
             ),
             tool="reason",
         )
@@ -439,9 +439,12 @@ def reason_native(
         )
     )
     for gap in gaps:
+        # Severity is decided by Rust (py.rs builds the "severity" key for every
+        # gap dict); Python must not hardcode "error" here — read the field the
+        # Rust side emits so the decision authority lives in Rust only.
         report.add(
             diagnostics.finding(
-                severity="note",
+                severity=gap["severity"],
                 code=gap["code"],
                 message=gap["message"],
                 tool="reason",
