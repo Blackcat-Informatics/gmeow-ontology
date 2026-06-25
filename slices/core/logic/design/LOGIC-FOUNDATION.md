@@ -203,8 +203,10 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   engine *derives* its `logic:assessmentVerdict` — one of the three closed `logic:EmergenceVerdict`
   values `logic:Aggregate`, `logic:Emergent`, `logic:EmergenceUnknown`. A `logic:ReductionTheory`
   carries, via `logic:reductionBasis`, the property-values it treats as part-reducible, and entities
-  carry property-values through `logic:bearsProperty`. The verdict is computed by four stratified
-  rules: a whole-property is **Aggregate** when the declared theory's basis carries it *and* a proper
+  carry property-values through `logic:bearsProperty`. The verdict is computed by five stratified
+  rules — a derivation-grounded marker plus an OWL-projectable `logic:assessmentVerdict` for each of
+  **Aggregate** and **Emergent**, and the single **EmergenceUnknown** projection: a whole-property is
+  **Aggregate** when the declared theory's basis carries it *and* a proper
   part bears it (a genuine part-reconstruction); it is **Emergent** by negation-as-failure over that
   aggregate derivation *while the assessment still binds a declared theory* — so the verdict is
   theory-relative, never a bare "unflagged" default (the failure mode the foundation explicitly
