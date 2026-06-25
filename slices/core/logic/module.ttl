@@ -47,6 +47,13 @@ logic:AdmitAllFour
     rdfs:label "Admit All Four"@x-gmeow-english ;
     skos:definition "The admissible-valuation policy that permits all four Belnap values — true, false, both (glut), and neither (gap). It carves out First-Degree Entailment (FDE): a valuation may leave an atom under-determined (gap) or over-determined (glut). Reducing the FDE↔LP difference to the designated-value set is a formal error — FDE differs from LP by admitting the gap, not by its designated values."@x-gmeow-english .
 
+logic:Aggregate
+    a owl:NamedIndividual ,
+        logic:EmergenceVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Aggregate"@x-gmeow-english ;
+    skos:definition "The emergence-verdict value for a part-reducible whole property: under the declared logic:ReductionTheory of an logic:EmergenceAssessment, the whole's property is reconstructible from its proper parts — the theory carries the property in its logic:reductionBasis and a proper part also bears it (logic:bearsProperty) — so the property is a mere aggregate, a sum or closure over parts, not an emergent one. The positive, derivation-grounded verdict, reached by an actual part-reconstruction rather than by negation; contrast logic:Emergent (not part-reducible under the theory) and logic:EmergenceUnknown (the reducibility question cannot be posed) (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
 logic:AntiRigidType
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -262,6 +269,34 @@ logic:Disposition
     rdfs:label "Disposition"@x-gmeow-english ;
     skos:definition "A bearer-held tendency, power, or liability to manifest events of a characteristic type when triggered — a fragility, a solubility, a hazard's potential to harm — which remains fully real even while it never manifests. gUFO has no Disposition class and models such tendencies as a gufo:IntrinsicMode; logic: subsumes that by carrying the disposition as first-class, so an unmanifested tendency needs no counterfactual reification. A logic:Mode whose manifestations are logic:Events of the characteristic type (stated in prose, not as a subclass edge); the bearer relation is asserted with a domain property (Principle 5), never gufo:inheresIn."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EmergenceAssessment
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Emergence Assessment"@x-gmeow-english ;
+    skos:definition "The canonical relational construct of emergence: a tri-valued assessment of whether a whole's property is reducible to its proper parts, always made relative to a declared logic:ReductionTheory. Emergence is assessed, never asserted — the assessment is reified with the role properties logic:assessmentWhole, logic:assessmentProperty, and logic:assessmentReductionTheory, and the engine derives its logic:assessmentVerdict (logic:Aggregate, logic:Emergent, or logic:EmergenceUnknown). Failure to derive a property from the parts under one theory is not proof of irreducibility: because the assessment records the theory it is relative to, a later, stronger theory can overturn an logic:Emergent verdict without contradiction. The convenient unary reading 'P is emergent' is the lossy projection of this assessment, exactly as logic:Holon projects logic:HolonicPosition (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EmergenceUnknown
+    a owl:NamedIndividual ,
+        logic:EmergenceVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Emergence Unknown"@x-gmeow-english ;
+    skos:definition "The emergence-verdict value when the reducibility question cannot be posed: the whole bears the property under assessment, but the logic:EmergenceAssessment declares no logic:ReductionTheory (no logic:assessmentReductionTheory), so neither a part-reconstruction (logic:Aggregate) nor a theory-relative non-reduction (logic:Emergent) can be derived. ME9's first-class third value, kept distinct from logic:Aggregate and logic:Emergent so that a genuinely unclassifiable assessment is never silently read as emergence — failure-to-derive is not irreducibility, and a theory-free assessment is unknown, not emergent (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
+logic:EmergenceVerdict
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Emergence Verdict"@x-gmeow-english ;
+    skos:definition "The closed class of emergence-assessment outcomes: the tri-valued result an logic:EmergenceAssessment receives via logic:assessmentVerdict. Its three named individuals are logic:Aggregate (part-reducible under the declared theory), logic:Emergent (borne by the whole but not part-reducible under that theory), and logic:EmergenceUnknown (the reducibility question cannot be posed). The set is closed, so a misspelt verdict names no declared value and is rejected rather than silently accepted, mirroring logic:MereologyConstraint (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Emergent
+    a owl:NamedIndividual ,
+        logic:EmergenceVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Emergent"@x-gmeow-english ;
+    skos:definition "The emergence-verdict value for a genuinely emergent whole property: under the declared logic:ReductionTheory of an logic:EmergenceAssessment, the whole bears the property but it is not reconstructible from the parts — the theory does not carry it in its logic:reductionBasis, or no proper part bears it — so the property does not propagate down logic:properPartOf and is not entailed by the parts' properties. The verdict is strictly theory-relative: it is reached by negation-as-failure over the aggregate derivation, never as a bare 'unflagged' default, and failure to derive under this theory is not proof of irreducibility — a stronger logic:ReductionTheory may reduce the same property under a different assessment without contradiction. Contrast logic:Aggregate and logic:EmergenceUnknown (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
 
 logic:Endurant
     a owl:Class ;
@@ -767,6 +802,13 @@ logic:ReasoningPreset
     skos:definition "A named ReasoningContract that fixes a common, supported facet selection — sugar the compiler expands to the full facet bundle before reasoning. The historical profile names (positive-Horn, stratified-negation, well-founded, stable-model, procedural, probabilistic) survive only as presets, not as indivisible alternatives."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:ReductionTheory
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reduction Theory"@x-gmeow-english ;
+    skos:definition "A declared theory of part-whole reducibility, relative to which an logic:EmergenceAssessment is made. It carries, via logic:reductionBasis, the property-values it treats as part-reducible — reconstructible from the proper parts that bear them. Emergence is always relative to such a theory: the same whole property may be logic:Aggregate under one ReductionTheory and logic:Emergent under another, and an logic:Emergent verdict can be overturned by a later, stronger theory without contradiction precisely because the assessment records which theory it was relative to. The systems-theory analogue of a logic:MereologyProfile — it scopes the emergence calculus rather than asserting reducibility foundation-wide (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:RelComp
     a owl:NamedIndividual ,
         logic:Discipline ;
@@ -1108,12 +1150,53 @@ logic:argumentation
     rdfs:label "argumentation"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:ArgumentationSemantics it selects — how conflicts among defeasible arguments are resolved. Single-valued on the contract. Domain logic:ReasoningContract, range logic:ArgumentationSemantics (stated in prose, matching the module's domain/range convention)."@x-gmeow-english .
 
+logic:assessmentProperty
+    a owl:ObjectProperty ;
+    rdfs:domain logic:EmergenceAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment property"@x-gmeow-english ;
+    skos:definition "The property role of an logic:EmergenceAssessment: the property-value whose emergence is being assessed — the thing the whole bears (logic:bearsProperty) and whose reducibility to the parts is in question. One of the three role properties (with logic:assessmentWhole and logic:assessmentReductionTheory) that reify the emergence-assessment relation onto the arity-bounded reasoning surface, mirroring the logic:HolonicPosition role properties (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentReductionTheory
+    a owl:ObjectProperty ;
+    rdfs:domain logic:EmergenceAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment reduction theory"@x-gmeow-english ;
+    rdfs:range logic:ReductionTheory ;
+    skos:definition "The theory role of an logic:EmergenceAssessment: the logic:ReductionTheory the assessment is relative to. Emergence is never absolute — the verdict (logic:Aggregate / logic:Emergent / logic:EmergenceUnknown) is read only against this declared theory's logic:reductionBasis, and recording it is what lets a stronger theory overturn an logic:Emergent verdict without contradiction. An assessment that omits this role cannot pose the reducibility question and receives logic:EmergenceUnknown. One of the three role properties (with logic:assessmentWhole and logic:assessmentProperty) that reify the emergence-assessment relation (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentVerdict
+    a owl:ObjectProperty ;
+    rdfs:domain logic:EmergenceAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment verdict"@x-gmeow-english ;
+    rdfs:range logic:EmergenceVerdict ;
+    skos:definition "The derived outcome of an logic:EmergenceAssessment: the logic:EmergenceVerdict (logic:Aggregate, logic:Emergent, or logic:EmergenceUnknown) the foundation lowering entails for it. Never asserted by hand — it is computed by the stratified emergence rules from the assessment's whole, property, and declared logic:ReductionTheory, the convenient OWL-projectable surface of the assessment exactly as logic:isHolon projects holon-ness. logic:Emergent is reached by negation-as-failure over the aggregate derivation, so the verdict is genuinely theory-relative rather than a bare 'unflagged' default (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentWhole
+    a owl:ObjectProperty ;
+    rdfs:domain logic:EmergenceAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment whole"@x-gmeow-english ;
+    skos:definition "The whole role of an logic:EmergenceAssessment: the entity whose property is being assessed for emergence — the whole that bears the property and stands over the proper parts the reduction is attempted from. One of the three role properties (with logic:assessmentProperty and logic:assessmentReductionTheory) that reify the emergence-assessment relation onto the arity-bounded reasoning surface, mirroring the logic:HolonicPosition role properties (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:asymmetricProperty
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "asymmetric property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for asymmetry: a property P such that P(a,b) entails ¬P(b,a). The logic: analogue of owl:AsymmetricProperty, minted standalone so it can co-occur with logic:transitiveProperty on the same property — the transitive ∧ asymmetric combination OWL 2 DL bars for decidability but logic: keeps and reasons over (criticism 7)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:bearsProperty
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bears property"@x-gmeow-english ;
+    skos:definition "Relates an entity to a property-value it carries, for the purpose of the emergence calculus: a whole and its proper parts each bearsProperty the values an logic:EmergenceAssessment reasons over. A deliberately thin logic-layer relation — NOT a metaphysical inherence claim; the bearer relation for logic:Modes and dispositions is asserted with their own domain properties (Principle 5), and gufo:inheresIn is never asserted. Whether a borne whole property reduces to the parts that bear it is exactly what logic:EmergenceAssessment decides; crucially, no rule propagates bearsProperty down logic:properPartOf, so an logic:Emergent whole property never reaches its parts (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:builtinArithmetic
     a owl:NamedIndividual ,
@@ -1445,6 +1528,14 @@ logic:properPartOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "proper part of"@x-gmeow-english ;
     skos:definition "STRICT parthood: relates an entity to a whole it is part of but NOT identical to. Transitive, asymmetric, and irreflexive — a genuine strict partial order (proper-part-of, ancestor). This exact combination is illegal in OWL 2 DL, which globally forbids a property being both transitive and asymmetric (criticism 7, LOGIC-FOUNDATION.md §OWL 2 criticisms); logic: imposes no such global restriction and reasons over it completely, recovering decidability by projection rather than by crippling the canon. The deliberate OWL-2-criticism demonstrator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:reductionBasis
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ReductionTheory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reduction basis"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReductionTheory to a property-value it treats as part-reducible: the theory holds that a whole bearing this property has it in virtue of its proper parts bearing it, so under that theory the property is an logic:Aggregate rather than an emergent one. The carrier that makes emergence theory-relative — a property in one theory's reduction basis and absent from another's receives opposite verdicts with no contradiction. Without a matching basis entry, a borne whole property is assessed logic:Emergent under the theory (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:resourcePolicy
