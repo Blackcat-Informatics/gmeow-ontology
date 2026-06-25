@@ -21,9 +21,15 @@
 | [`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md) | formal spec (AI profile) | model / deployment / execution / session / episode, reusing the AI and awareness slices; the agentic deferral consumed |
 | [`INHABITED-TRADITIONS.md`](INHABITED-TRADITIONS.md) | generality + neutrality | the spiritual / fictional / legal profiles modeled frame-relatively; the by-reference borrowings ledger; the *assert-no-metaphysics* gate |
 | [`INHABITED-COMPETENCY.md`](INHABITED-COMPETENCY.md) | conformance contract | the competency questions and the cross-domain stress corpus mapped to the constructs that answer them; the gaps flagged |
-| [`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md) | configuration | the Principle 15 consumer, the placement decision, the settled-decisions ledger, the eventual slice anatomy |
+| [`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md) | configuration | the Principle 15 consumer, the core/profile placement, the decision ledger, the eventual slice anatomy |
+| [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md) | correction record | the foundational review's verified evidence, the seven reopened decisions, and the revised term inventory — **authoritative** where a sibling still shows a first-draft form |
 | [`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md) | appendix | the three sources and the by-reference externals — staged for the `metadata/references.ttl` ledger |
 
+> **This set is a revised draft.** A foundational review found the first draft's core stereotypes
+> inconsistent with the GMEOW foundation; the corrections are folded in and recorded in
+> [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md). The `module.ttl` is not authored until the authority
+> confirms the revised shape.
+>
 > **Reading this design set.** The declarative present tense is normative: "X is" means a conforming
 > realization implements X, established by the conformance corpus
 > ([`INHABITED-COMPETENCY.md`](INHABITED-COMPETENCY.md)). It is not a claim that any particular
@@ -49,12 +55,15 @@ correct. What is missing is the *connecting structure*: the relation that says *
 host H under deployment D, persona P, embodiment E, and memory view M, over interval T** — and the
 discipline that keeps that relation from collapsing six distinct identities into one.
 
-`inhabitation:` (authored in the `slices/core/inhabitation` module) supplies that topology. It mints
-the smallest vocabulary the gap genuinely requires — a durable-subject role, an inhabitation relator,
-an embodiment, a transition event, a locus axis — and reuses everything else. The disciplined count
-is roughly five new terms, not the eleven a naïve reading of the source material would mint, because
-five of the "missing" categories are already present as roles, relators, events, and tenures over the
-existing agent spine.
+`inhabitation:` (authored in the `slices/core/inhabitation` module) supplies that topology by reusing
+the existing claim, memory, persona, provenance, and lifecycle machinery and adding only the
+connecting structure: a durable-subject status, an inhabitation tenure and its time-scoped
+configuration, an embodiment carrier and assignment, a continuity assessment, a control assessment, a
+contested-claim form, and a transition event. The first draft claimed "~5 new terms"; the foundational
+review ([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)) showed that count was bought by erasing distinct
+identity criteria. The honest count is higher — but almost every term is a thin specialization of an
+existing construct (`⊑ Observation`, `⊑ Activity`, `⊑ TimeScopedRelation`), which is the idiomatic
+GMEOW pattern, not bloat.
 
 ## The topology is domain-general
 
@@ -104,9 +113,11 @@ This set is the project doctrine applied to digital identity and inhabitation.
   phrase that grounds `DigitalSubject`. Inhabitation rejects human hegemony over digital subjects:
   the subject's self-asserted identity outranks any inference about it, and subject-continuity is a
   vantage-relative claim, never an imposed fact.
-- **Principle 10 (suppression, never erasure).** A retired embodiment, a closed inhabitation, a
-  banished tenure — all are suppressed, never deleted. Banishing ends a tenure; it does not destroy
-  the record.
+- **Principle 10 (suppression, never erasure).** Ending an inhabitation is an *ontic* fact and does
+  not by itself suppress it; suppression (`displayable false`) is a separate display contract, applied
+  only when a value must be withheld. A retired embodiment assignment, a closed tenure, a banished
+  inhabitation — all are retained; banishing *ends* a tenure, it does not delete the record, and
+  suppression is an independent, additional decision.
 - **Principle 11 (frame-relativity).** Every inhabitation interval carries its temporal frame.
 - **Principle 12 (the solver boundary).** Control among co-tenant subjects, session ordering, the
   scene-graph view, and the active memory view are *computed*, not asserted as triples.
@@ -116,27 +127,34 @@ This set is the project doctrine applied to digital identity and inhabitation.
   is a query. The GTS `ai-package` and the MCP store/recall/revise triad are this set's named
   consumer (Principle 15).
 - **Principle 17 (the logic is canonical).** Every minted term carries its `logic:` stereotype; the
-  durable subject is an anti-rigid role, the inhabitation is a relator, the transition is an event —
-  chosen so the foundation's rigidity and disjointness gates stay green.
+  durable subject is an anti-rigid role-mixin, the inhabitation is a situation/tenure (not a relator
+  subclassing a situation), and the transition is a lifecycle event — chosen so the foundation's
+  rigidity, disjointness, and category gates stay green.
 
 ## End state
 
-The end state is a single, small, domain-general module:
+The end state is a minimal, formally coherent core plus two profiles:
 
-- a durable `DigitalSubject` modeled as an **anti-rigid role an agent plays**, never a fourth rigid
-  Kind colliding with the `Person ⟂ Organization ⟂ SoftwareAgent` partition;
-- an `Inhabitation` **relator** — a lean spine carrying subject, host, interval, and locus, and
-  *referencing* the independently-identified persona, embodiment, deployment, and memory view;
-- `Embodiment` as the projected surface (subsuming Cagle's Avatar and the Sanskrit *avatāra* it
-  descends from), and `Portal` as the transition between inhabitations;
-- the subject → expression → embodiment manifestation spine **aligned by reference** to the existing
-  WEMI spine and to the Trikāya parallel, never reinvented;
-- the AI runtime stack as one profile, the spiritual / fictional / legal cases as the others, all
-  sharing the one relator;
-- subject-continuity carried as a contestable `counterpartOf` claim (never `owl:sameAs`) at the
-  ontological layer and as a COSE signature at the cryptographic layer — two independent guarantees;
-- and not one metaphysical claim asserted outside a named standpoint.
+- a durable `DigitalSubject` modeled as an **anti-rigid `logic:RoleMixin`** an agent bears over a
+  tenure, never a rigid Kind colliding with the `Person ⟂ Organization ⟂ SoftwareAgent` partition, and
+  never *entailed* by self-assertion (which supports the status, not the type);
+- the inhabitation as a **situation/tenure** (`InhabitationTenure`) with a time-scoped
+  `InhabitationConfiguration` for the facets — so "which persona/embodiment/deployment was active at T"
+  is answerable even when a facet changes mid-tenure;
+- `EmbodimentCarrierRole` and `EmbodimentAssignment` (surface vs. its time-scoped use), and migration
+  as a lifecycle `eventTypeInhabitationTransition` with a `TransferManifest` recording what crossed;
+- subject-continuity as `SubjectStage` / `SubjectLineage` + an explicit `IdentityContinuityAssessment`
+  (never `owl:sameAs`, never a single stable node that would assert sameness), plus a COSE signature
+  for verifiable cross-vendor memory continuity;
+- contested inhabitation — possession, incarnation, corporate personhood — as an **unasserted**
+  `InhabitationClaim ⊑ Observation`, so the base graph asserts no metaphysics and no range entailment
+  fires;
+- the WEMI and Trikāya layering as a documented parallel only (no emitted term mappings, since the
+  spine crosses foundational categories WEMI's Kinds do not);
+- the AI runtime stack and the spiritual / fictional / legal cases as profiles — the latter mapped
+  *with their differences*, not as a proof that they are one thing.
 
-This makes inhabitation match the rest of the project: a maximal, domain-general model; maximal reuse
-of what already exists; explicit projection of every contested or computed view; and the durable
-digital subject treated, at last, as a first-class subject of its own existence.
+This makes inhabitation match the rest of the project: a maximal, domain-general model that respects
+its own foundation; maximal reuse of what already exists; explicit projection of every contested or
+computed view; and the durable digital subject treated, at last, as a first-class subject of its own
+existence — modeled correctly, not merely asserted.

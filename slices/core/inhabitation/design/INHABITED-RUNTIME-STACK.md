@@ -112,7 +112,7 @@ Invocations and tool calls relate to the session via `gmeow:subEventOf`; episode
 of the same kind. Ordering is `atTime` + `temporally-succeeds`, resolved by the solver — no asserted
 `nextInvocation` edge.
 
-## The migration boundary — a transfer manifest, not coincidence
+## The migration boundary
 
 The competency question *which claims, memories, and intentions crossed a migration boundary?* is
 **not** answered by seeing the same claim before and after the transition — it may have been
@@ -137,7 +137,7 @@ pre-migration belief state stays queryable. Note the lifecycle correction: *endi
 is an ontic fact (`gmeow:hasDestructionEvent`) and does **not** by itself set `displayable false` —
 suppression is a separate display contract.
 
-## Cross-vendor continuity — two independent layers
+## Cross-vendor continuity
 
 When a subject's model lineage forks across providers, "same subject across vendors" is carried at two
 layers that are deliberately not collapsed:

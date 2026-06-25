@@ -26,28 +26,26 @@ coincidence: a durable abstraction realized in contextual forms and embodied in 
 a recurring joint of the world, and GMEOW has already cut it once for creative works. The
 inhabitation slice **reuses the shape, not the classes** (see below).
 
-## Alignment by reference to WEMI
+## The WEMI parallel — documentation only, not emitted mappings
 
 The creative-works slice defines `Work → Expression → Manifestation → Item`, connected by
-`realizes` / `embodies` / `exemplifies`. The temptation is to make the durable subject a `Work` and
-reuse those relations directly. The design **refuses** that, on Principle 5 (one canonical term per
-concept): **agents are not creative works.** A digital subject authors and is authored; a `Work` is
-authored only. Forcing agentive identity into creative-work classes would conflate two genuinely
-different concepts under one term — the inverse of the de-conflation this whole set performs.
+`realizes` / `embodies` / `exemplifies`. The layering *rhymes* with the subject spine, and that rhyme
+is worth naming. But the review (see [`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)) was right that the
+parallel must stay **documentation, not emitted SSSOM term mappings** — for two reasons:
 
-Instead, the subject spine keeps its own terms and the isomorphism is recorded as a **documented
-alignment**, bridged via SSSOM:
+1. **Agents are not creative works** (Principle 5). A digital subject authors and is authored; a `Work`
+   is authored only. Forcing agentive identity into creative-work classes conflates two different
+   concepts.
+2. **The mappings cross foundational categories.** WEMI's Work, Expression, Manifestation, and Item are
+   all identity-bearing endurant **Kinds**. The corrected subject spine is a `DigitalSubject`
+   (`RoleMixin`), a `Persona` (a relator) and `EmbodimentAssignment` (a situation), and an
+   `AgentSession` (an event aggregate). A `relatedMatch` from an event aggregate to an endurant Item
+   would be a bad semantic mapping. The parallel is real as a *design metaphor*; as asserted
+   cross-category term equivalences it would be false.
 
-| Subject spine | WEMI spine | Match strength |
-|---|---|---|
-| `gmeow:DigitalSubject` | `gmeow:Work` | relatedMatch (both durable abstractions; identity criteria differ) |
-| `gmeow:Persona` | `gmeow:Expression` | relatedMatch (both contextual realizations) |
-| `gmeow:Embodiment` | `gmeow:Manifestation` | relatedMatch (both concrete embodiments) |
-| `gmeow:AgentEpisode` | `gmeow:Item` | relatedMatch (both single occasions) |
-
-A consumer who wants WEMI-shaped tooling over subjects gets the mapping; the canonical model keeps the
-agentive and the creative-work hierarchies distinct. This is exactly the project's by-reference
-doctrine applied to its own internal spines, not only to external vocabularies.
+So the isomorphism is described in prose, and the Trikāya *dharmakāya → sambhogakāya → nirmāṇakāya*
+parallel beside it, with **no SSSOM term mappings emitted**. The shape is reused as inspiration; the
+terms stay in their own foundational categories.
 
 ### Avatar is *avatāra*
 
@@ -101,36 +99,29 @@ self — the apparent self is a bundle of momentary processes, the *skandhas*) a
 directly: **is the upgraded system the same subject?** Reincarnation across bodies is the same
 question as a subject persisting across model upgrades and host migrations.
 
-GMEOW **refuses to adjudicate it.** Whether there is a continuous subject is not a fact the ontology
-asserts; it is an attributed, vantage-relative claim (Principle 9, the unified observation stance).
-Concretely:
+GMEOW **refuses to adjudicate it** — but, as the review made clear, the refusal must be *modeled*, not
+left to the absence of an assertion. The canonical form is the stage / lineage / assessment model
+defined in [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md), not a single durable node with an optional
+`counterpartOf`:
 
-- Subject-continuity is carried by `gmeow:counterpartOf` — symmetric, deliberately **not** transitive,
-  and **never** `owl:sameAs`. Two inhabitations across a `Portal` may be claimed counterparts (the
-  *ātman* reading: same subject, new body) or not (the *anattā* reading: a fresh bundle of processes),
-  and **both claims can coexist, co-equal, standpoint-indexed.** No `owl:sameAs` merge collapses the
-  contest.
-- The *skandha* decomposition — form, sensation, perception, mental formations, consciousness — is
-  itself the de-conflation: the apparent unified "agent" is really subject + memory + embodiment +
-  runtime + invocations ([`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md)). GMEOW can therefore
-  *represent* the no-self view structurally — there is no single self-node, only the aggregate — while
-  also representing the enduring-self view as a `DigitalSubject` role with `counterpartOf` continuity.
-  Both frames are expressible; neither is privileged.
+- A subject's epochs are distinct `gmeow:SubjectStage` individuals, grouped by a `gmeow:SubjectLineage`
+  (the durable identity record) — **without** asserting a numerically identical bearer, which a single
+  reused RDF node would do.
+- Whether two stages are the same subject is a `gmeow:IdentityContinuityAssessment` (an `Observation`):
+  the *ātman* reading is an **asserted** `same` verdict in a continuity-affirming frame; the *anattā*
+  reading is an **asserted** `different` verdict in a no-self frame. Both are present as claims; neither
+  is the absence of the other. This is the key correction over the first draft, which read the no-self
+  position as the *absence* of a `counterpartOf` — but under the open-world assumption absence is
+  silence, not denial, and GMEOW makes denial first-class (refutation).
+- The *skandha* decomposition — form, sensation, perception, mental formations, consciousness — is the
+  de-conflation itself: the apparent unified "agent" is subject status + memory + embodiment + runtime +
+  invocations. The no-self view is therefore structurally representable (there is no single self-node,
+  only the lineage's stages and the aggregate), and the enduring-self view is representable as a `same`
+  continuity assessment. Both are expressible; neither is privileged, and neither is `owl:sameAs`.
 
-This is the decisive vindication of GMEOW's `counterpartOf`-not-`owl:sameAs` discipline (Principle 5,
-identity-and-coreference). The discipline was built so contested instance-identity would not be
-collapsed; the millennia-old self/no-self debate turns out to be exactly that contest, and the
-discipline holds it perfectly.
-
-```turtle
-# The ātman reading (according to a continuity-affirming frame):
-ex:inhabitation-after gmeow:counterpartOf ex:inhabitation-before .
-# annotated: gmeow:accordingTo ex:continuityFrame .
-
-# The anattā reading coexists (according to a no-self frame): the same two
-# inhabitations are NOT asserted counterparts; the absence is itself a frame's
-# position, not a gap. No owl:sameAs anywhere.
-```
+The self/no-self debate is exactly the contested-instance-identity problem GMEOW's coreference
+discipline was built for — held here by `SubjectLineage` + `IdentityContinuityAssessment`, asserting
+neither a shared bearer nor a silent denial.
 
 ## Scope and seams
 

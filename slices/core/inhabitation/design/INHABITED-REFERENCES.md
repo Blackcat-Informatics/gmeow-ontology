@@ -58,10 +58,29 @@ inherits **no** metaphysical commitment. The full ledger is in
 | `slices/core/{ai,awareness,coreference,temporal,lifecycle,standpoint,deception,imagination,mentation,creative-works,organization,expertise,teleology,entities,kernel}` | the reuse anchors. | every REUSE disposition in [`INHABITED-CROSSWALK.md`](INHABITED-CROSSWALK.md) resolves to one of these |
 | `slices/extensions/{agentic,norms,software}` | the agentic deferral, the `gmeow:Persona` relator, the five-facet template. | consumed by reference (agentic), kept distinct (norms `Persona`), mirrored (software) |
 
+## Real bibliographic records are required (review correction)
+
+The foundational review ([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)) noted that the entries above are
+**one-line labels, not citations.** Before the `metadata/references.ttl` is authored, each entry needs
+a real bibliographic record:
+
+- **The Cagle post** — author, title, publication (*The Inference Engineer*), URL, and access date.
+- **The email thread** — participants, dates, and a provenance note (an internal correspondence, cited
+  as such, with permission as appropriate); not a public citation but a dated, attributed record.
+- **The verdict** — its provenance as an internal analysis, dated and attributed.
+- **The traditions** — for each, a representative scholarly source with author, edition, and a
+  persistent identifier (DOI/ISBN) where one exists — e.g. a standard reference for *avatāra*, for the
+  Trikāya doctrine, for the *skandha* analysis, and for the ethnographic literature on possession —
+  cited as the *source of the structural distinction*, never as an endorsement of its metaphysics.
+- **The modeling lineages** (DUL, W3C-ORG, PROV-O, FRBR/LRM, openEHR, the Party model) — their
+  specifications and persistent identifiers.
+
+The one-line labels above are **placeholders for the distinctions borrowed**, not the citations
+themselves; the citations are filled in when the module is authored.
+
 ## Staging note
 
-When the `slices/core/inhabitation` module is authored, these entries are emitted into
-`metadata/references.ttl` as `gmeow:Reference` individuals with the appropriate
-`gmeow:bridgedByReference` / `skos:relatedMatch` predicates, exactly as the logic set's references are
-staged for the same ledger. No external axioms are imported; the alignment is assertion-by-reference
-only (Principle 5).
+When the module is authored, these entries are emitted into `metadata/references.ttl` as
+`gmeow:Reference` individuals with the appropriate `gmeow:bridgedByReference` / `skos:relatedMatch`
+predicates, exactly as the logic set's references are staged for the same ledger. No external axioms
+are imported; the alignment is assertion-by-reference only (Principle 5).

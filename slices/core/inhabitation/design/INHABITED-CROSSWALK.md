@@ -11,6 +11,13 @@
 > [`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md)) reference this table rather than
 > restating a term's status; when they disagree with it, this table is authoritative and they are
 > the defect.
+>
+> **Post-review note.** The *dispositions* (REUSE / EXTEND / MINT / BRIDGE) below are unchanged, but
+> the foundational **stereotypes** several rows cite inline were corrected by the review
+> ([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)) — a relator may not subclass a situation,
+> `DigitalSubject` is a `RoleMixin`, and several "one term" entries split. The authoritative current
+> stereotypes are the [Net new vocabulary](#net-new-vocabulary-post-review) table at the end; where an
+> inline row still shows a first-draft stereotype, that table governs.
 
 ## The four dispositions
 
@@ -40,7 +47,7 @@ else is REUSE, EXTEND, or BRIDGE. The naïve reading of the verdict alone would 
 | **Role** | the interface specification between an Actor and the holon it inhabits; permitted actions, info access, presentation norms | REUSE | `logic:Role` / `gmeow:Role` (organization slice — relationally-acquired function-in-context). Info-access gating is carried by the `Inhabitation` relator that names the role-filler; presentation norms route to `gmeow:Persona` / `gmeow:Register`. |
 | **Collective** | an Actor itself composed of multiple Actors, coordinating toward a shared purpose | REUSE | `gmeow:Organization` (structured) or `gmeow:Group` (informal) + a shared `gmeow:Goal` (teleology). This is exactly Taylor's "Organization as a Party derivative" — see Source B. A Collective that bears a `DigitalSubject` role is the egregore case (see [`INHABITED-MANIFESTATION.md`](INHABITED-MANIFESTATION.md)). |
 | **holon** | a whole-that-is-also-a-part; an inhabited system is a holon of Actors-in-Roles projecting Avatars | REUSE (foundation) + DEFER (domain) | The foundation already supplies the holon kernel in `logic:` (issue #704): `logic:Holarchy`, `logic:HolonicPosition` (the five-place entity × holarchy × context × interval × path relation), and `logic:Holon` (its lossy unary projection). A *domain* `gmeow:Holon` Kind is **deferred** (it would overtype what `logic:HolonicPosition` correctly models relationally). The inhabited-system reading is `gmeow:InhabitedSystem` aligned to `logic:HolonicPosition` (host = `positionEntity`). See [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md#the-holon-deferred-at-the-domain-layer-supplied-at-the-foundation-layer). |
-| **portal** | a Role transition between holons | MINT | `gmeow:Portal` (`logic:Event`) reifying the transition, paired with the supersession chain that closes one `Inhabitation` and opens the next. See [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md#transitions-the-portal). |
+| **portal** | a Role transition between holons | MINT | A migration as a lifecycle event: `eventTypeInhabitationTransition` + `portalFrom`/`portalTo` (the lifecycle value pattern, not an Event subclass), closing one tenure and opening the next. See [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md#transitions-migration-as-a-lifecycle-event). |
 | **scene graph** | the runtime view mapping Avatars + Roles, not underlying Actors | BRIDGE (solver-side) | Not asserted data. The scene graph is a **computed projection** (Principle 12) over the `Embodiment` and `Role` fillers of the currently-active `Inhabitation`s — a view, never triples. |
 
 ## Source B — the organizational-modeling email thread
@@ -67,7 +74,7 @@ mint Kinds (see [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md)).
 
 | Verdict term | Verdict's meaning | Disposition | GMEOW resolution |
 |---|---|---|---|
-| **DigitalSubject** | the enduring digital "who" that may span runtimes | MINT | `gmeow:DigitalSubject` — an **anti-rigid `logic:Role`** an `Agent` plays on self-assertion (NOT a rigid Kind; see [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md#the-highest-risk-decision)). The one genuinely-new identity construct. |
+| **DigitalSubject** | the enduring digital "who" that may span runtimes | MINT | `gmeow:DigitalSubject` — an **anti-rigid `logic:RoleMixin`** (it spans Person/SoftwareAgent) borne over a `DigitalSubjectTenure`; NOT a rigid Kind and NOT a single-Kind `Role`. Self-assertion supports the status, never entails it. See [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md#the-durable-subject-a-rolemixin-with-a-tenure). |
 | **Inhabitant** | the agent while occupying/operating a system | MINT | `gmeow:Inhabitant` — a `logic:Role` played in an `Inhabitation`; contingent, anti-rigid. |
 | **Inhabitation** | the reified subject-host occupation over time | MINT | `gmeow:Inhabitation` — a `logic:Relator ⊑ gmeow:TimeScopedRelation`. The core construct. A **lean spine**: subject + host + interval + locus directly, referencing persona/embodiment/deployment/memory-view. |
 | **HostSystem / RuntimeEnvironment** | the environment capable of being inhabited | REUSE | `gmeow:PhysicalObject` / `gmeow:SoftwareAgent` located via places, composed via `gmeow:partOf`. **No new class** — "hosted on" is containment. (A thin `gmeow:RuntimeEnvironment` subkind may be minted in the AI profile only if it earns its keep — see [`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md).) |
@@ -101,22 +108,33 @@ doc re-litigates it:
    expertise slices. Cagle's "Role" (interface spec) is `gmeow:Role` plus the access-gating carried
    by `Inhabitation`.
 
-## Net new vocabulary
+## Net new vocabulary (post-review)
 
-The complete minted set across all three sources and the esoteric generalization:
+> The first draft's stereotypes were corrected by the foundational review
+> ([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)): a relator cannot subclass `TimeScopedRelation` (a
+> `logic:Situation`), `DigitalSubject` spans Kinds (so `RoleMixin`, not `Role`), and several "one
+> term" entries split because their identity criteria differ. The corrected inventory:
 
 | New term | `logic:` stereotype | One-line role |
 |---|---|---|
-| `gmeow:DigitalSubject` | `logic:Role` (anti-rigid) | the durable digital "who" an Agent plays on self-assertion |
-| `gmeow:Inhabitation` | `logic:Relator ⊑ TimeScopedRelation` | the lean subject-host-interval-locus spine |
-| `gmeow:Inhabitant` | `logic:Role` | the agent's role within an Inhabitation |
-| `gmeow:InhabitedSystem` | `logic:Role` | the host's role within an Inhabitation (interim for the deferred Holon) |
-| `gmeow:Embodiment` | `logic:Relator ⊑ TimeScopedRelation` | the projected, suppressible surface (subsumes Avatar) |
-| `gmeow:Portal` | `logic:Event` | the reified transition between inhabitations |
-| `gmeow:inhabitationLocus` | `logic:AbstractIndividualType` (value vocab) | self / vessel / shared-substrate |
-| `gmeow:AgentSession` *(conditional)* | `logic:Relator ⊑ TimeScopedRelation` | the bounded interaction aggregate, if the consumer needs it |
-| `gmeow:MemoryView` *(optional)* | `logic:Relator` | promoted only when a view must be signed |
+| `gmeow:DigitalSubject` | `logic:RoleMixin` | the durable-subject status an agent bears (spans Person/SoftwareAgent) |
+| `gmeow:DigitalSubjectTenure` | `logic:Situation ⊑ TimeScopedRelation` | when/according-to-whom the status is borne |
+| `gmeow:InhabitationTenure` | `logic:Situation ⊑ TimeScopedRelation` | S inhabited H over T |
+| `gmeow:InhabitationConfiguration` | `logic:Situation ⊑ TimeScopedRelation` | the time-scoped active facets (active-at-T) |
+| `gmeow:InhabitationClaim` | `logic:Situation ⊑ Observation` | the contested, *unasserted* inhabitation (neutrality) |
+| `gmeow:Inhabitant` / `gmeow:InhabitedSystem` | `logic:RoleMixin` | agent-side / host-side role fillers |
+| `gmeow:EmbodimentCarrierRole` | `logic:RoleMixin` | the surface entity in role (subsumes Avatar) |
+| `gmeow:EmbodimentAssignment` | `logic:Situation ⊑ TimeScopedRelation` | subject × carrier × interval × capabilities |
+| `gmeow:SubjectStage` / `gmeow:SubjectLineage` | stage record / `logic:Kind` | epochs and the durable identity record |
+| `gmeow:IdentityContinuityAssessment` | `logic:Situation ⊑ Observation` | the contestable same/different/indeterminate verdict |
+| `gmeow:ControlAssessment` | `logic:Situation ⊑ Observation` | who controls a host/embodiment (≠ deception) |
+| `gmeow:inhabitationLocusKind` | `logic:AbstractIndividualType` (values) | self / vessel (tenancy is *derived*, not a value) |
+| `eventTypeInhabitationTransition` + `portalFrom`/`portalTo` | `gmeow:EventType` value | migration (lifecycle value, not an Event subclass) |
+| `gmeow:TransferManifest` | `logic:Kind` | what crossed a transition (evidence, not coincidence) |
+| `gmeow:ModelArtifact` / `gmeow:ModelDeployment` / `gmeow:RuntimeExecution` / `gmeow:AgentSession` *(AI profile)* | `SubKind` / `Relator` / `Event ⊑ Activity` / `Event ⊑ Activity` | explicit AI-stack identities |
+| `gmeow:MemoryView` *(optional)* | situation | promoted only when a view must be signed |
 
-Plus a small number of per-branch bearer and connector properties named in
-[`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md) and [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md)
-— each a property, never a class, and never `gufo:inheresIn`.
+Most are thin specializations of `Observation`, `Activity`, or `TimeScopedRelation` — the idiomatic
+GMEOW pattern. The honest count is higher than the first draft's "~5", because minimality there was
+bought by erasing identity criteria. Plus per-branch role-filler properties — each a property, never a
+class, and never `gufo:inheresIn`.
