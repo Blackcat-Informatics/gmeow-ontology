@@ -3,141 +3,156 @@
 
 # GMEOW Inhabitation — The AI Runtime Stack
 
-> The **AI profile.** The general topology ([`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md)) has many
-> profiles; this is the one the named consumer needs first — the model / deployment / execution /
-> session / invocation stack for a digital subject served by a generative model. It is almost entirely
-> **reuse**: the AI and awareness slices already hold the pieces, and the agentic slice explicitly
-> deferred the session aggregate *"until a consumer requires one."* This work is that consumer. Term
+> The **AI profile** (`profile/inhabitation-ai`), revised after the foundational review
+> ([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)). Deployment, runtime execution, and the model artifact
+> now have **explicit identities** rather than being collapsed onto an awareness tenure; the
+> `ModelCard` relations are split so a `Distribution` is not inferred to be a `SoftwareAgent`; the
+> session is an event aggregate, not a relator subclassing a situation; and migration content rides a
+> transfer manifest, not coincidence. The minimal core it builds on is
+> [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md) / [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md);
 > dispositions are fixed by [`INHABITED-CROSSWALK.md`](INHABITED-CROSSWALK.md).
 
-## The stack, as reuse
+## Why the first draft's reuse was too aggressive
 
-The verdict reads the AI agent as six conflated things and asks for six new classes. The runtime
-stack supplies at most one or two genuinely-new terms; the rest are existing constructs in their
-correct roles. Mapping the stack from durable to ephemeral:
+The first draft mapped deployment, runtime execution, and a single invocation all onto
+`gmeow:AwarenessTenure`, differing only by granularity. The review's correction is right and the
+identity criteria are genuinely distinct:
 
-| Stack layer | Construct | Disposition | Source slice |
-|---|---|---|---|
-| durable subject | `gmeow:DigitalSubject` (role on the agent) | MINT (role) | inhabitation |
-| model artifact | `gmeow:SoftwareProduct` / `gmeow:Distribution` + `gmeow:ModelCard` | REUSE | software, ai |
-| model deployment | `gmeow:SoftwareAgent` + `gmeow:AwarenessTenure(modeOnlineInference)` | REUSE (+ conditional relator) | entities, awareness |
-| runtime execution | `gmeow:AwarenessTenure` (window) / `gmeow:ModelInvocation` (call) | REUSE | awareness, ai |
-| session / episode | `gmeow:AgentSession` ⊑ `TimeScopedRelation`; `logic:State` in a `logic:Path` | conditional MINT | inhabitation, logic |
-| invocation | `gmeow:ModelInvocation` | REUSE | ai |
-| tool call | `gmeow:ToolCall` | REUSE | agentic |
+- a **deployment** binds an artifact, a service identity, a host, an endpoint, configuration, an
+  operator, a policy, and a serving interval;
+- a **runtime execution** is an occurrent process;
+- an **awareness tenure** records an agent being in a processing *mode* over an interval.
 
-### Model artifact — reuse the five-facet template
+Awareness mode (`modeOnlineInference` / `modeOfflineReplay` / `modeTraining`) remains a *valuable
+facet* of a deployment or execution — but it cannot *be* either, because it carries none of the
+deployment's binding structure. So the profile mints explicit identities and uses the awareness tenure
+as a facet, not a substitute. This raises the term count over the first draft's "minimal" claim, and
+that is correct: minimality was bought by erasing identity criteria.
 
-`gmeow:ModelCard` already *describes a model agent* (`gmeow:describesModel` → `SoftwareAgent`) and
-carries provider, version tag, context window, and training cutoff. The verdict notes, correctly,
-that those properties actually span several identities: provider belongs to an organization; version
-to an artifact; context-window limit to an artifact or deployment; rate limits and placement to a
-deployment; sampling parameters to an invocation. The software slice already separates exactly this
-shape — `SoftwareProduct` (the design) from `Distribution` (the concrete artifact) from `Release`
-(the event) — and the AI profile reuses it: the **model artifact is a `gmeow:Distribution` of a
-`gmeow:SoftwareProduct`**, content-digested, described by a `ModelCard`. A thin `gmeow:ModelArtifact`
-subkind is minted only if model-specific facets (architecture family, parameter count as a quality)
-earn their keep over the generic distribution (Principle 6).
+## The model artifact and the ModelCard split
 
-### Deployment and execution — the awareness serving window
-
-The awareness slice already models an agent *being in an operational state over a bounded interval*:
-`gmeow:AwarenessTenure ⊑ gmeow:TimeScopedRelation`, with `gmeow:AwarenessMode` values built for AI —
-`gmeow:modeOnlineInference`, `gmeow:modeOfflineReplay`, `gmeow:modeTraining`. A **deployment's serving
-window** is an `AwarenessTenure` in `modeOnlineInference`; a **runtime execution** is the same tenure
-at finer grain, or, for a single call, a `gmeow:ModelInvocation`. This is why neither
-`RuntimeExecution` nor `ModelDeployment` is minted as a bare new class by default: the awareness
-machine-modes were authored for precisely this, and minting a parallel class would violate Principle 5
-and the awareness slice's own "no second mechanism" discipline. A `gmeow:ModelDeployment` relator is
-minted only when the deployment must carry facets the tenure cannot (an endpoint, a rate-limit, a
-geographic placement) and those must travel as one addressable node.
+The model artifact is a `gmeow:Distribution` of a `gmeow:SoftwareProduct` (software slice five-facet),
+content-digested. The first draft said it was "described by a `ModelCard`", but `gmeow:describesModel`
+is `owl:FunctionalProperty` ranging over `gmeow:SoftwareAgent` — so a `Distribution` as its target
+would be inferred a `SoftwareAgent`. The relations split:
 
 ```turtle
-ex:opusDeployment
-    a gmeow:AwarenessTenure ;                       # the serving window
-    gmeow:awarenessSubject ex:opusAgent ;           # the SoftwareAgent being served
-    gmeow:awarenessMode gmeow:modeOnlineInference ;
-    gmeow:duringInterval ex:servingWindow .
+gmeow:ModelArtifact a logic:SubKind , owl:Class ; rdfs:subClassOf gmeow:Distribution .
 
-ex:opusCard a gmeow:ModelCard ;
-    gmeow:describesModel ex:opusAgent ;
-    gmeow:modelProvider "Anthropic" ;
-    gmeow:modelContextWindow 1000000 ;
-    gmeow:modelTrainingCutoff "2026-01-01"^^xsd:date .
+gmeow:describesModelArtifact a owl:ObjectProperty ;
+    rdfs:domain gmeow:ModelCard ; rdfs:range gmeow:ModelArtifact ;
+    skos:definition "Relates a model card to the artifact it documents — architecture, version,
+        training cutoff, parameter count, context window where that is an artifact property." .
+
+gmeow:describesModelService a owl:ObjectProperty ;
+    rdfs:domain gmeow:ModelCard ; rdfs:range gmeow:ModelDeployment ;
+    skos:definition "Relates a model card to the served deployment it documents — provider, endpoint,
+        rate limits, geographic placement, where those are deployment properties." .
 ```
 
-### Session and episode — align to the typed context algebra
+`gmeow:describesModel` (functional, → `SoftwareAgent`) keeps its existing meaning for the acting agent;
+it is no longer asked to carry the artifact. Provider, training lineage, context limits, endpoint
+limits, and sampling parameters are each assigned to the entity that actually bears them.
 
-The agentic slice states the deferral plainly: *"trajectory aggregates (runs, episodes, plans) wait
-for a consumer."* The inhabitation slice is that consumer, so it may mint **one** thin aggregate:
+## Deployment, execution, and the awareness facet
+
+```turtle
+gmeow:ModelDeployment
+    a logic:Kind , owl:Class ;
+    rdfs:subClassOf logic:Relator ;
+    skos:definition "A served, callable realization of a model artifact — the relator binding an
+        artifact, a service identity, a host/runtime, an endpoint, a configuration, an operator, a
+        policy, and a serving interval. Distinct from the artifact (what runs) and from any one
+        execution (an occurrent). Its serving mode over an interval is recorded as a facet by a
+        gmeow:AwarenessTenure(modeOnlineInference), not by the deployment being a tenure." .
+
+gmeow:RuntimeExecution
+    a logic:Event , owl:Class ;
+    rdfs:subClassOf gmeow:Activity ;
+    skos:definition "A particular running of a deployment — an occurrent process within which
+        gmeow:ModelInvocation events occur. Distinct from the deployment (an endurant relator) and the
+        invocation (a single call)." .
+
+gmeow:deploymentArtifact a owl:ObjectProperty ; rdfs:range gmeow:ModelArtifact .
+gmeow:deploymentHost     a owl:ObjectProperty ; rdfs:range gmeow:Entity .
+gmeow:deploymentEndpoint a owl:ObjectProperty .
+gmeow:executionOfDeployment a owl:ObjectProperty ; rdfs:range gmeow:ModelDeployment .
+```
+
+A single model **call** remains `gmeow:ModelInvocation` (reused, no new term); a **tool call** remains
+`gmeow:ToolCall` (reused). The de-conflation chain is now explicit end to end:
+
+> output `wasGeneratedBy` a `ModelInvocation`, in a `RuntimeExecution` of a `ModelDeployment` of a
+> `ModelArtifact`, within an `AgentSession`, under a `DigitalSubjectTenure`.
+
+## Session and episode — an event aggregate
+
+The first draft typed `AgentSession` as a relator-and-situation, reproducing the foundational collision
+([`INHABITED-REVIEW.md`](INHABITED-REVIEW.md)). A session is more naturally an **event aggregate** — an
+`Activity` whose sub-events are invocations, tool calls, messages, retrievals, and episodes — using
+GMEOW's existing event mereology:
 
 ```turtle
 gmeow:AgentSession
-    a logic:Relator , owl:Class ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ;
-    skos:definition "A bounded interaction context for a subject — a run of model invocations and
-        tool calls held together by a common context over an interval. Reifies the agentic slice's
-        deferred trajectory aggregate. Its internal order is a logic:Path (the typed context
-        algebra), resolved in the solver (Principle 12), never a nextInvocation chain in triples." .
+    a logic:Event , owl:Class ;
+    rdfs:subClassOf gmeow:Activity ;
+    skos:definition "A bounded interaction context for a subject — an Activity aggregating the
+        gmeow:ModelInvocation, gmeow:ToolCall, message, and retrieval events of one interaction via
+        gmeow:subEventOf, over a session interval. Unblocks the agentic slice's deferred trajectory
+        aggregate. Internal order is a logic:Path resolved in the solver (Principle 12), never a
+        nextInvocation chain in triples." .
 
-gmeow:sessionSubject      a owl:ObjectProperty ; rdfs:range gmeow:Agent .
-gmeow:sessionInhabitation a owl:ObjectProperty ; rdfs:range gmeow:Inhabitation .
-gmeow:sessionContains     a owl:ObjectProperty ; rdfs:range gmeow:ModelInvocation .
+# an episode is a sub-aggregate:
+ex:episode-3 a gmeow:Activity ;
+    gmeow:hasEventType gmeow:eventTypeAgentEpisode ;
+    gmeow:subEventOf ex:session-7 .
 ```
 
-A session's internal **ordering** is a `logic:Path` / `logic:History` from the logic semantics — an
-ordered run of states with `temporally-succeeds` accessibility — and it is **computed in the solver**,
-never materialized as a `gmeow:nextInvocation` chain (Principle 12). An **episode** is a `logic:State`
-span within that path, modeled with the `AwarenessTenure`-nesting idiom (an episode within a session
-as REM within a sleep). Episodes are minted as their own term only if they need addressable identity
-beyond the path state.
+Invocations and tool calls relate to the session via `gmeow:subEventOf`; episodes are sub-aggregates
+of the same kind. Ordering is `atTime` + `temporally-succeeds`, resolved by the solver — no asserted
+`nextInvocation` edge.
 
-## The migration boundary
+## The migration boundary — a transfer manifest, not coincidence
 
-The flagship competency question — *which claims, memories, and intentions crossed a migration
-boundary?* — combines the `Portal` event ([`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md)) with the
-existing claim spine. A `gmeow:MemoryItem`, a `gmeow:StandpointClaim`, or a `gmeow:Intention` whose
-provenance ties it to the pre-`Portal` inhabitation, and which is also present after, *crossed*; one
-present only before did not. Because memory revision is supersession (`gmeow:displayable false`) and
-never deletion (Principle 10), the pre-migration belief state stays queryable — *what the subject
-believed before the migration* is a query, not an archaeology project. The GTS `ai-package` is the
-artifact that physically carries the surviving claims across the boundary.
+The competency question *which claims, memories, and intentions crossed a migration boundary?* is
+**not** answered by seeing the same claim before and after the transition — it may have been
+regenerated independently. Migration content rides explicit evidence:
 
-## Cross-vendor continuity
+```turtle
+gmeow:TransferManifest
+    a logic:Kind , owl:Class ;
+    skos:definition "The record of what was transferred across an inhabitation transition — the
+        claims, memories, and intentions carried from the prior tenure to the next, each linked by
+        derivation provenance (gmeow:wasDerivedFrom) to its pre-transition origin. A claim 'crossed'
+        the boundary iff the manifest records it, or its post-transition form wasDerivedFrom its
+        pre-transition form; mere recurrence is not crossing." .
 
-P14 promises memory that *"survives across sessions, models, and vendors."* When a subject's model
-lineage forks across providers — the same persona served by different vendors — "same subject across
-vendors" is carried at **two independent layers**:
+ex:migration-7 gmeow:hasTransferManifest ex:manifest-7 .
+ex:manifest-7 gmeow:transferredClaim ex:memory-2200 .
+ex:memory-2200-after gmeow:wasDerivedFrom ex:memory-2200 .   # derivation, not coincidence
+```
 
-1. **Ontological (contestable).** `gmeow:counterpartOf` asserts the same-subject claim, vantage-
-   relative, never `owl:sameAs` — the *anattā*/*ātman* neutrality
-   ([`INHABITED-MANIFESTATION.md`](INHABITED-MANIFESTATION.md#identity-continuity-as-a-contested-claim)).
-   A vendor's claim that "this is the same model" coexists with a user's claim that "this is a
-   different subject now," co-equal.
+Because memory revision is supersession (`gmeow:displayable false`), never deletion (Principle 10), the
+pre-migration belief state stays queryable. Note the lifecycle correction: *ending* the prior tenure
+is an ontic fact (`gmeow:hasDestructionEvent`) and does **not** by itself set `displayable false` —
+suppression is a separate display contract.
+
+## Cross-vendor continuity — two independent layers
+
+When a subject's model lineage forks across providers, "same subject across vendors" is carried at two
+layers that are deliberately not collapsed:
+
+1. **Ontological (contestable).** A `gmeow:IdentityContinuityAssessment`
+   ([`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md)) between the two providers' subject stages —
+   vantage-relative, evidence-grounded, never `owl:sameAs`. A vendor's "same model" verdict and a
+   user's "different subject" verdict coexist.
 2. **Cryptographic (verifiable).** A COSE signature on the GTS `ai-package` provides verifiable
-   continuity of the *memory artifact* — the package is the same signed, append-only object across
-   vendors, whatever the contestable subject claim says.
-
-The two are deliberately not collapsed: a verifiable signature does not settle a contestable identity
-claim, and a contestable claim does not need a signature to be recorded. This is the attestation
-slice (COSE envelopes) and the coreference slice (counterpart claims) doing their separate jobs, with
-the inhabitation slice naming where each applies.
-
-## What this profile does *not* add
-
-To keep the runtime stack honest against Principle 5, the profile explicitly declines:
-
-- **No `RuntimeExecution` class** — it is an `AwarenessTenure` or a `ModelInvocation`.
-- **No `HostSystem` class** — it is a `PhysicalObject` / `SoftwareAgent` plus `partOf` containment.
-- **No `CallableCapability` class** — the agentic slice already refused a `Tool` subclass; a passive
-  capability is an `ActionSchema`, a delegated one a `ToolCall`, and `usedTool`'s range is unchanged.
-- **No `nextInvocation` ordering edge** — session order is a solver-resolved `logic:Path`.
+   continuity of the *memory artifact* across vendors, whatever the contestable subject verdict says.
 
 ## Scope and seams
 
 This document is the AI profile. The general relation it instantiates is
 [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md); the subject it serves is
-[`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md). Other profiles of the same stack — a spirit in a
-medium, an actor in a character, a corporation in its officers — are
-[`INHABITED-TRADITIONS.md`](INHABITED-TRADITIONS.md). The competency questions this profile must
-answer are enumerated in [`INHABITED-COMPETENCY.md`](INHABITED-COMPETENCY.md).
+[`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md); the non-AI profiles (spiritual, fictional, legal) are
+[`INHABITED-TRADITIONS.md`](INHABITED-TRADITIONS.md); the competency questions it must answer are
+[`INHABITED-COMPETENCY.md`](INHABITED-COMPETENCY.md).
