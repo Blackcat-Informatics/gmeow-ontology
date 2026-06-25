@@ -1515,9 +1515,14 @@ pub(crate) fn augment_inferred_with_dl(
 /// Returns `Err(String)` if the source store cannot be loaded or the Nemo
 /// chase/post-pass fails to parse/validate/evaluate/decode.
 pub fn dl_consistency(edb: &RdfDataset) -> Result<DlVerdict, String> {
-    let mut inferred: Vec<InferredAxiom> = crate::reason::run_reasoning(edb, &dl_rules())?;
-    augment_inferred_with_dl(&mut inferred, edb)?;
-    verdict_from_inferred(&inferred, edb)
+    // This is the verdict-only entry point. The single-chase pipeline
+    // (run_reasoning → augment_inferred_with_dl → sort → verdict_from_inferred)
+    // lives in [`crate::reason::reason_all`]; we run it and keep only the verdict,
+    // dropping the closure callers of this function do not need. Sharing the one
+    // pipeline guarantees the verdict here is bit-for-bit the verdict
+    // `reason_all` reports (the sort is closure-ordering only and does not change
+    // which clash facts are derived).
+    Ok(crate::reason::reason_all(edb)?.verdict)
 }
 
 /// Read off the [`DlVerdict`] from an already-computed native closure.

@@ -53,6 +53,26 @@ DATASETS_DIR = GOLD_DIR / "datasets"
 _UNSAT_RE = re.compile(r"unsatisfiable:\s*(\S+)")
 #: ROBOT's inconsistency banner.
 _INCONSISTENT_RE = re.compile(r"The ontology is inconsistent")
+#: ELK's beyond-EL-profile rejection signature. ELK is an OWL 2 EL reasoner; on
+#: an ontology that uses a non-EL axiom it aborts with an ``ElkUnsupportedFeature``
+#: / "Unsupported ... feature" error rather than a verdict. This is the ONE
+#: failure mode that legitimately maps to "ELK has no opinion → recorded null";
+#: every other non-zero exit is a real crash/timeout/image failure and must
+#: propagate. The marker requires both the ELK component and the unsupported-
+#: feature phrasing so a generic Java stack trace cannot be misread as a rejection.
+_ELK_PROFILE_REJECTION_RE = re.compile(
+    r"(?is)elk.*?(?:unsupported\s+(?:owl\s*2?\s*el\s+)?feature|ElkUnsupportedFeature"
+    r"|does\s+not\s+support)"
+)
+
+
+class ElkProfileRejectionError(RuntimeError):
+    """ELK refused the ontology because it is outside the OWL 2 EL profile.
+
+    Raised ONLY for the genuine profile-rejection case (see
+    ``_ELK_PROFILE_REJECTION_RE``); a plain ``RuntimeError`` is raised for any
+    other unexpected ROBOT failure so it propagates and fails the maint target.
+    """
 
 
 @dataclass(frozen=True)
@@ -88,13 +108,26 @@ def _run_robot_reason(rel_input: str, reasoner: str) -> OracleVerdict:
         timeout=900.0,
     )
     combined = result.stdout + result.stderr
-    inconsistent = bool(_INCONSISTENT_RE.search(combined))
-    unsat = sorted({m.group(1) for m in _UNSAT_RE.finditer(combined)})
-    if not inconsistent and result.returncode not in (0, 1):
+    # Validate the exit code INDEPENDENTLY of the inconsistency banner. The
+    # documented ROBOT contract is exactly: 0 = consistent (no unsat classes),
+    # 1 = consistent-with-unsat OR inconsistent. Any other code is a crashed /
+    # aborted / OOM-killed run whose stderr may still happen to contain the
+    # inconsistency banner — that output must NEVER be frozen as authoritative.
+    if result.returncode not in (0, 1):
+        # Distinguish the ONE benign failure (ELK rejecting a beyond-EL ontology)
+        # from every other crash/timeout/image failure: only the former is allowed
+        # to degrade to a recorded null; the latter must fail the maint target.
+        if _ELK_PROFILE_REJECTION_RE.search(combined):
+            raise ElkProfileRejectionError(
+                f"ELK rejected {rel_input} as outside the OWL 2 EL profile "
+                f"(exit {result.returncode}):\n{combined}"
+            )
         raise RuntimeError(
             f"ROBOT/{reasoner} failed unexpectedly (exit {result.returncode}) "
             f"on {rel_input}:\n{combined}"
         )
+    inconsistent = bool(_INCONSISTENT_RE.search(combined))
+    unsat = sorted({m.group(1) for m in _UNSAT_RE.finditer(combined)})
     return OracleVerdict(
         reasoner=reasoner,
         consistent=not inconsistent,
@@ -118,9 +151,12 @@ def _freeze(dataset: Path) -> dict[str, object]:
     # record it but the frozen gold the native gate is checked against is HermiT.
     try:
         elk: OracleVerdict | None = _run_robot_reason(rel, "ELK")
-    except RuntimeError:
+    except ElkProfileRejectionError:
         # ELK rejects ontologies outside the EL profile outright; that is fine —
-        # the dataset is then beyond-EL and HermiT is the sole oracle for it.
+        # the dataset is then beyond-EL and HermiT is the sole oracle for it. Only
+        # this specific rejection degrades to a recorded null; any other ELK
+        # failure (crash/timeout/missing image) is NOT swallowed — it propagates
+        # out of _run_robot_reason and fails the maint target loudly.
         elk = None
 
     gold: dict[str, object] = {

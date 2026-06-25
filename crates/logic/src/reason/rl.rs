@@ -732,6 +732,106 @@ mod tests {
         );
     }
 
+    // ── rule-local coverage for the five RL clause families (#697 feedback) ──
+    // Each test exercises exactly one clause family with the minimal axioms that
+    // make it fire, in the same shape as the cls-svf/cls-int test above.
+
+    const ONPROP: &str = "http://www.w3.org/2002/07/owl#onProperty";
+    const ALL_VALUES_FROM: &str = "http://www.w3.org/2002/07/owl#allValuesFrom";
+    const HAS_VALUE: &str = "http://www.w3.org/2002/07/owl#hasValue";
+    const ONE_OF: &str = "http://www.w3.org/2002/07/owl#oneOf";
+    const UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
+    const DISJOINT_UNION_OF: &str = "http://www.w3.org/2002/07/owl#disjointUnionOf";
+
+    #[test]
+    fn cls_avf_types_property_values_under_all_values_from() {
+        // R onProperty P; R allValuesFrom C; x a R; x P y ⇒ y a C.
+        const R: &str = "http://gmeow.example/R";
+        let store = dataset(vec![
+            quad(R, ONPROP, P),
+            quad(R, ALL_VALUES_FROM, C),
+            quad(X, TYPE, R),
+            quad(X, P, Y),
+        ]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
+        assert!(has(&c, Y, TYPE, C), "y a C via cls-avf");
+    }
+
+    #[test]
+    fn cls_hv1_and_hv2_assert_and_recognize_has_value() {
+        // R onProperty P; R hasValue V.
+        //   cls-hv1: x a R          ⇒ x P V   (assert the value).
+        //   cls-hv2: z P V          ⇒ z a R   (recognize the restriction).
+        const R: &str = "http://gmeow.example/R";
+        const V: &str = "http://gmeow.example/v";
+        let store = dataset(vec![
+            quad(R, ONPROP, P),
+            quad(R, HAS_VALUE, V),
+            quad(X, TYPE, R),
+            quad(Z, P, V),
+        ]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
+        assert!(has(&c, X, P, V), "x P V via cls-hv1");
+        assert!(has(&c, Z, TYPE, R), "z a R via cls-hv2");
+    }
+
+    #[test]
+    fn cls_oneof_types_each_nominal_member() {
+        // C oneOf ( x y ) ⇒ x a C, y a C.
+        let l0 = "http://gmeow.example/l0";
+        let l1 = "http://gmeow.example/l1";
+        let store = dataset(vec![
+            quad(C, ONE_OF, l0),
+            quad(l0, FIRST, X),
+            quad(l0, REST, l1),
+            quad(l1, FIRST, Y),
+            quad(l1, REST, NIL),
+        ]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
+        assert!(has(&c, X, TYPE, C), "x a C via cls-oneOf");
+        assert!(has(&c, Y, TYPE, C), "y a C via cls-oneOf");
+    }
+
+    #[test]
+    fn cls_union_member_subclasses_each_member_to_the_union() {
+        // C unionOf ( A B ) ⇒ A ⊑ C, B ⊑ C.
+        let l0 = "http://gmeow.example/l0";
+        let l1 = "http://gmeow.example/l1";
+        let store = dataset(vec![
+            quad(C, UNION_OF, l0),
+            quad(l0, FIRST, A),
+            quad(l0, REST, l1),
+            quad(l1, FIRST, B),
+            quad(l1, REST, NIL),
+        ]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
+        assert!(has(&c, A, SUBCLASS, C), "A ⊑ C via cls-union-member");
+        assert!(has(&c, B, SUBCLASS, C), "B ⊑ C via cls-union-member");
+    }
+
+    #[test]
+    fn cls_disjoint_union_member_subclasses_each_member_to_the_union() {
+        // C disjointUnionOf ( A B ) ⇒ A ⊑ C, B ⊑ C.
+        let l0 = "http://gmeow.example/l0";
+        let l1 = "http://gmeow.example/l1";
+        let store = dataset(vec![
+            quad(C, DISJOINT_UNION_OF, l0),
+            quad(l0, FIRST, A),
+            quad(l0, REST, l1),
+            quad(l1, FIRST, B),
+            quad(l1, REST, NIL),
+        ]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
+        assert!(
+            has(&c, A, SUBCLASS, C),
+            "A ⊑ C via cls-disjointUnion-member"
+        );
+        assert!(
+            has(&c, B, SUBCLASS, C),
+            "B ⊑ C via cls-disjointUnion-member"
+        );
+    }
+
     #[test]
     fn literal_objects_round_trip_through_interning() {
         // A hyphenated language tag (`@x-gmeow-english`), an escaped quote, and a
