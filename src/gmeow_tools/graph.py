@@ -142,8 +142,7 @@ def load_merged_graph(
     """
     cached = _build_merged_graph(include_imports, root)
     g = Graph()
-    for triple in cached:
-        g.add(triple)
+    g.parse(data=cached.serialize(format="nquads", encoding="utf-8"), format="nquads")
     bind_prefixes(g)
     return g
 
