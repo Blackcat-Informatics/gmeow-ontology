@@ -10,7 +10,6 @@ use std::collections::BTreeMap;
 
 use gmeow_gts::model::{Graph, Term, TermKind};
 use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
-use oxigraph::model::dataset::{CanonicalizationAlgorithm, CanonicalizationHashAlgorithm};
 use oxigraph::model::{Dataset, GraphName, NamedNode, NamedOrBlankNode, Quad, Term as OxTerm};
 use oxigraph::store::Store;
 use serde_json::Value;
@@ -1118,11 +1117,12 @@ pub fn yaml_ld_star_to_gmeow_statement_metadata_nquads(
 /// Promoted out of the test module so the build-time round-trip gate
 /// ([`roundtrip_isomorphic`]) and the tests share one canonicalizer (#699).
 pub(crate) fn canonical_lines(dataset: &Dataset) -> Vec<String> {
-    let mut ds = dataset.clone();
-    ds.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
-        hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
-    });
-    let mut lines: Vec<String> = ds.iter().map(|q| q.to_string()).collect();
+    // Native full RDFC-1.0 (#910), replacing oxrdf `Dataset::canonicalize`: identical
+    // blank labeling, unchanged term serialization.
+    let quads: Vec<Quad> = dataset.iter().map(|q| q.into_owned()).collect();
+    let canonical =
+        gmeow_rdf::canonicalize_quads(quads).expect("RDFC-1.0 canonicalization of parsed quads");
+    let mut lines: Vec<String> = canonical.iter().map(|q| q.to_string()).collect();
     lines.sort();
     lines
 }

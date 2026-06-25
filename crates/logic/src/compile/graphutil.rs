@@ -92,24 +92,10 @@ pub(crate) fn nn(iri: &str) -> NamedNode {
 /// projection at the source (greenfield: one deterministic front door, not a
 /// per-back-end patch).
 pub(crate) fn canonicalize_blank_nodes(store: &Store) -> Result<Store, String> {
-    use oxigraph::model::dataset::{CanonicalizationAlgorithm, CanonicalizationHashAlgorithm};
-    use oxigraph::model::Dataset;
-
-    let mut dataset = Dataset::new();
-    for quad in store.quads_for_pattern(None, None, None, None) {
-        let quad = quad.map_err(|e| format!("blank-node canonicalization: read failed: {e}"))?;
-        dataset.insert(&quad);
-    }
-    dataset.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
-        hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
-    });
-    let out =
-        Store::new().map_err(|e| format!("blank-node canonicalization: store init failed: {e}"))?;
-    for quad in dataset.iter() {
-        out.insert(quad)
-            .map_err(|e| format!("blank-node canonicalization: insert failed: {e}"))?;
-    }
-    Ok(out)
+    // Native full RDFC-1.0 (#910), replacing oxrdf `Dataset::canonicalize`. The
+    // labeling is identical (both are conformant RDFC-1.0 / SHA-256), so the text
+    // back-ends and conformance goldens are unchanged.
+    gmeow_rdf::canonicalize_store(store).map_err(|e| format!("blank-node canonicalization: {e}"))
 }
 
 /// All triples in the default graph, materialized for repeated iteration.

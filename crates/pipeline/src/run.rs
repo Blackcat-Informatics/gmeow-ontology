@@ -402,30 +402,25 @@ fn graphs_isomorphic(committed: &[u8], produced: &[u8]) -> bool {
 /// canonicalized quad set as sorted strings. `None` on a parse error.
 fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
     use oxigraph::io::{RdfFormat, RdfParser};
-    use oxigraph::model::dataset::{
-        CanonicalizationAlgorithm, CanonicalizationHashAlgorithm, Dataset,
-    };
+    use oxigraph::model::Quad;
     // Try Turtle first, then N-Quads — the leaves emit one of these.
     for format in [RdfFormat::Turtle, RdfFormat::NQuads] {
-        let mut dataset = Dataset::new();
+        let mut quads: Vec<Quad> = Vec::new();
         let mut ok = true;
         for quad in RdfParser::from_format(format).lenient().for_slice(bytes) {
             match quad {
-                Ok(q) => {
-                    dataset.insert(q.as_ref());
-                }
+                Ok(q) => quads.push(q),
                 Err(_) => {
                     ok = false;
                     break;
                 }
             }
         }
-        if ok && !dataset.is_empty() {
-            dataset.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
-                hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
-            });
+        if ok && !quads.is_empty() {
+            // Native full RDFC-1.0 (#910), replacing oxrdf `Dataset::canonicalize`.
+            let canonical = gmeow_rdf::canonicalize_quads(quads).ok()?;
             let set: std::collections::BTreeSet<String> =
-                dataset.iter().map(|q| format!("{q} .")).collect();
+                canonical.iter().map(|q| format!("{q} .")).collect();
             return Some(set);
         }
     }
