@@ -2,8 +2,8 @@
 
 This module is the dependency-inversion boundary for callers that already hold
 their data graph as N-Triples: the DSL provenance merge, the test suite's
-synthetic rdflib graphs, and ``audit.py``. The production ``make validate`` path
-now validates the shared oxigraph store directly through
+synthetic rdflib graphs, and focused helper callers. The production ``make
+validate`` path now validates the shared oxigraph store directly through
 ``gmeow_validate.validate_all_native`` (#634); it no longer serializes the merged
 ontology or slice examples to N-Triples. This seam remains for the legacy/test
 N-Triples callers above.
