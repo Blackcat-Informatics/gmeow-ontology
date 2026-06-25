@@ -114,7 +114,7 @@ future slice migration inherits.
 
 | Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained/deleted | Run by |
 |---|---|---|---|---|---|---|
-| `test_metacognitive_state_is_a_mental_moment_kind` | `tests/test_metacognition.py` | `ex:saMetacognitiveStateIsMentalMomentKind` + `ex:saMetacognitiveStateNoExtraGufoMetaclass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_metacognitive_state_is_a_mental_moment_kind` | `tests/test_metacognition.py` | `ex:saMetacognitiveStateIsMentalMomentKind` + `ex:saMetacognitiveStateNoExtraLogicMetaclass` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_metacognitive_state_is_a_sibling_not_a_sub_mode` | `tests/test_metacognition.py` | `ex:saMetacognitiveStateSiblingNotSubMode` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_meta_target_is_open_range_and_characteristic_free` | `tests/test_metacognition.py` | `ex:saMetaTargetObjectPropertyWithDomain` + `ex:saMetaTargetOpenRange` + `ex:saMetaTargetFlat` + `ex:saMetaTargetCharacteristicFree` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_calibration_status_is_an_abstract_individual_type` | `tests/test_metacognition.py` | `ex:saCalibrationStatusIsAbstractIndividualType` | StructuralAssertion | converted | — | `make slicetest` |

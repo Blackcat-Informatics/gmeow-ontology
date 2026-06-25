@@ -40,8 +40,8 @@ ASK {
 }""" ;
     gmeow:saRationale "MetacognitiveState MUST be an owl:Class, a logic:Kind, and a subClassOf gmeow:MentalMoment — the reflexive mode sibling. Mirrors test_metacognitive_state_is_a_mental_moment_kind." .
 
-# --- 1b. MetacognitiveState carries exactly one gUFO metaclass (MUST-NOT) -----
-ex:saMetacognitiveStateNoExtraGufoMetaclass a gmeow:StructuralAssertion ;
+# --- 1b. MetacognitiveState carries exactly one logic metaclass (MUST-NOT) ----
+ex:saMetacognitiveStateNoExtraLogicMetaclass a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
@@ -49,9 +49,9 @@ PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
     gmeow:MetacognitiveState rdf:type ?t .
-    FILTER(STRSTARTS(STR(?t), "http://purl.org/nemo/gufo#") && ?t != logic:Kind)
+    FILTER(STRSTARTS(STR(?t), "https://blackcatinformatics.ca/logic/") && ?t != logic:Kind)
 }""" ;
-    gmeow:saRationale "MetacognitiveState MUST carry NO gUFO-namespace type other than logic:Kind — this dynamic ASK mirrors the ORIGINAL test_metacognitive_state_is_a_mental_moment_kind set-equality (the gUFO-type set must equal {logic:Kind} exactly, for ANY gUFO metaclass, not just a hardcoded blacklist). Paired with ex:saMetacognitiveStateIsMentalMomentKind which asserts logic:Kind IS present." .
+    gmeow:saRationale "MetacognitiveState MUST carry NO logic-namespace type other than logic:Kind — this dynamic ASK mirrors the ORIGINAL test_metacognitive_state_is_a_mental_moment_kind set-equality (the logic-type set must equal {logic:Kind} exactly, for ANY logic metaclass, not just a hardcoded blacklist). Paired with ex:saMetacognitiveStateIsMentalMomentKind which asserts logic:Kind IS present." .
 
 # --- 2. MetacognitiveState is sibling not a sub-mode (MUST-NOT hold) ----------
 ex:saMetacognitiveStateSiblingNotSubMode a gmeow:StructuralAssertion ;
