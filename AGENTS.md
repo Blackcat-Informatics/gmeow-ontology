@@ -224,8 +224,9 @@ PR, so the required lane stays fast.
 make bench           # criterion hot-path benchmarks (host-tuned target-cpu=native);
                      #   reasoning (reason_all/el_closure/materialize_core), SHACL
                      #   validate, RDF layout, foundation chase, …
-make bench-json      # flatten target/criterion/**/new/estimates.json → bench-results.json
-                     #   (the machine-stable feed for the #668 perf leaderboard)
+make bench-compare   # report-only perf scoreboard: live criterion run vs committed
+                     #   bench/baseline.json (ok|watch|regressed; always exits 0, #668).
+                     #   maint-bench-baseline refreshes the committed baseline + leaderboard.
 make rust-coverage   # cargo-llvm-cov region coverage (lcov + HTML, --include-ffi); report-only.
                      #   Named NOT `coverage` — that is the Python entity-coverage gate.
 make mutants         # cargo-mutants over the logic+validate cores (mutants.toml). Grades whether

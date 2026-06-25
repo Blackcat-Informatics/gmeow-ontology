@@ -2159,6 +2159,7 @@ export enum PipelineStageEnum {
 
     docs_render = "stage-docs-render",
     exportCOLON_apache_headers = "stage-export-apache",
+    exportCOLON_bench = "stage-export-bench",
     exportCOLON_catalog = "stage-export-catalog",
     exportCOLON_evals = "stage-export-evals",
     exportCOLON_flat_views = "stage-export-export",
