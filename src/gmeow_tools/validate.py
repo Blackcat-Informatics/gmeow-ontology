@@ -6,7 +6,7 @@ cheaply before the heavier reasoning step. The orchestration in
 ``gmeow_validate.validate_all_native`` entrypoint (#634): the Rust engine builds
 the ontology store once, parses the SHACL shapes once, and runs every phase
 against the shared store. The legacy N-Triples SHACL seam survives only as a
-convenience for tests and ``audit.py``.
+convenience for tests and focused helper callers.
 """
 
 from __future__ import annotations
@@ -363,8 +363,8 @@ def run_shacl(data_nt: str, *, shapes_path: Path = SHAPES_FILE) -> ValidationRes
     The production ``make validate`` path no longer serializes the merged
     ontology to N-Triples; it validates the shared oxigraph store directly in
     Rust (#634). This function remains as a convenience for the test suite and
-    for ``audit.py``, which still build small rdflib graphs and serialize them
-    to N-Triples.
+    focused helper callers that build small graphs and serialize them to
+    N-Triples.
 
     Args:
         data_nt: The data graph to validate, serialized as N-Triples.

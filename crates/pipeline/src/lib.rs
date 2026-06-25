@@ -37,6 +37,7 @@ pub mod provenance;
 pub mod registry;
 pub mod run;
 pub mod scheduler;
+pub mod scoreboards;
 pub mod stages;
 pub mod transform;
 pub mod up_projection;
