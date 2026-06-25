@@ -219,7 +219,13 @@ impl Parser {
     /// Expect a `prefix:` namespace token (PNAME_NS), i.e. an empty local part.
     fn expect_pname_ns(&mut self) -> Result<(String, String)> {
         match self.bump() {
-            Some(Token::PrefixedName(p, l)) => Ok((p, l)),
+            Some(Token::PrefixedName(p, l)) if l.is_empty() => Ok((p, l)),
+            // `PREFIX ex:local <...>` is malformed — a prologue prefix must be a
+            // bare PNAME_NS (`ex:`). Reject rather than silently dropping `local`.
+            Some(Token::PrefixedName(p, l)) => Err(ParseError::syntax(
+                format!("PREFIX declaration must be a bare namespace, found {p}:{l}"),
+                self.span(),
+            )),
             other => Err(ParseError::syntax(
                 format!("expected prefix declaration, found {other:?}"),
                 self.span(),

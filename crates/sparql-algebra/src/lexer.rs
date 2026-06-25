@@ -195,7 +195,7 @@ impl<'a> Lexer<'a> {
             '?' if !matches!(self.peek(1), Some(c) if is_varname_char(c)) => {
                 self.single(Token::Question)
             }
-            '?' | '$' => self.lex_variable(c),
+            '?' | '$' => self.lex_variable(c, start),
             '_' if self.peek(1) == Some(':') => self.lex_blank_label(start),
             ':' => self.lex_prefixed_name(start),
             '@' => self.lex_lang_tag(start),
@@ -379,21 +379,35 @@ impl<'a> Lexer<'a> {
                 self.pos += 1;
                 return Ok(Token::StringLit(value));
             }
+            // SPARQL STRING_LITERAL1/2 forbid raw line breaks; only the long
+            // `'''`/`"""` forms admit them. Reject rather than over-accept.
+            if !long && matches!(c, '\n' | '\r') {
+                return Err(ParseError::lex(
+                    "raw newline in short string literal",
+                    start,
+                ));
+            }
             value.push(c);
             self.pos += 1;
         }
     }
 
-    fn lex_variable(&mut self, _sigil: char) -> Result<Token> {
+    fn lex_variable(&mut self, _sigil: char, start: usize) -> Result<Token> {
         self.pos += 1; // sigil
         let name = self.take_while(is_varname_char);
+        if name.is_empty() {
+            return Err(ParseError::lex("empty variable name after sigil", start));
+        }
         Ok(Token::Variable(name))
     }
 
-    fn lex_blank_label(&mut self, _start: usize) -> Result<Token> {
+    fn lex_blank_label(&mut self, start: usize) -> Result<Token> {
         self.pos += 2; // `_:`
         let label = self.take_while(|c| is_pn_chars(c) || c == '.');
         let label = label.trim_end_matches('.').to_string();
+        if label.is_empty() {
+            return Err(ParseError::lex("empty blank node label after `_:`", start));
+        }
         Ok(Token::BlankNodeLabel(label))
     }
 

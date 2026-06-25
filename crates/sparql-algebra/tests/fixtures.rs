@@ -135,4 +135,30 @@ fn negative_out_of_scope_and_malformed() {
         err("SELECT ?a WHERE { ?a a <RelativeNoScheme> }"),
         ParseError::Iri { .. }
     ));
+
+    // Empty variable name (`$` with no following name) → Lex (no empty token).
+    assert!(matches!(
+        err("SELECT ?a WHERE { ?a gmeow:p $ }"),
+        ParseError::Lex { .. }
+    ));
+
+    // Empty blank-node label (`_:` with no label) → Lex.
+    assert!(matches!(
+        err("SELECT ?a WHERE { _: gmeow:p ?a }"),
+        ParseError::Lex { .. }
+    ));
+
+    // Raw newline inside a SHORT string literal → Lex (only `'''`/`\"\"\"` allow it).
+    assert!(matches!(
+        err("SELECT ?a WHERE { ?a gmeow:p \"line1\nline2\" }"),
+        ParseError::Lex { .. }
+    ));
+
+    // `PREFIX` with a non-empty local part → Syntax (must be a bare PNAME_NS).
+    assert!(matches!(
+        SparqlParser::new()
+            .parse_query("PREFIX ex:local <http://e/>\nSELECT ?a WHERE { ?a a ex:T }")
+            .unwrap_err(),
+        ParseError::Syntax { .. }
+    ));
 }
