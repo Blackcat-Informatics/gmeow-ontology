@@ -508,10 +508,8 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         )
 
     def _crate_layering() -> Any:
-        from gmeow_tools import crate_layering
-
-        return crate_layering.to_diagnostics_report(
-            crate_layering.check_crate_layering()
+        return gmeow_validate.crate_layering_diagnostics_report(
+            str(PROJECT_ROOT / "crates")
         )
 
     def _box_roles() -> Any:
@@ -1394,18 +1392,19 @@ def crate_check() -> None:
     twin of Principle 16 — slice / domain semantics layer ABOVE the core, never
     inside it.
     """
-    from gmeow_tools.crate_layering import check_crate_layering
-
-    report = check_crate_layering()
-    for message in report.errors:
+    report = gmeow_validate.crate_layering_check(str(PROJECT_ROOT / "crates"))
+    errors = list(report["errors"])
+    warnings = list(report["warnings"])
+    edges = report["edges"]
+    for message in errors:
         err_console.print(f"[red]error[/red] {message}")
-    for message in report.warnings:
+    for message in warnings:
         err_console.print(f"[yellow]warning[/yellow] {message}")
-    if not report.ok:
-        raise _fail(f"✗ {len(report.errors)} crate-layering violation(s)")
+    if not report["ok"]:
+        raise _fail(f"✗ {len(errors)} crate-layering violation(s)")
     console.print(
         f"[green]✓ crate layering OK[/green] "
-        f"({len(report.edges)} crates, RDF core pure, DAG acyclic)"
+        f"({len(edges)} crates, RDF core pure, DAG acyclic)"
     )
 
 

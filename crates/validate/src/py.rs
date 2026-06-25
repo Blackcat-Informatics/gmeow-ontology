@@ -26,6 +26,7 @@ use pyo3::types::{PyCapsule, PyDict, PyList};
 
 use crate::constitution;
 use crate::coverage;
+use crate::crate_layering;
 use crate::crossref;
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
@@ -712,6 +713,28 @@ fn wikidata_diagnostics_report(py: Python<'_>, mappings_dir: String) -> PyResult
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
+#[pyfunction]
+fn crate_layering_check(py: Python<'_>, crates_dir: String) -> PyResult<Py<PyAny>> {
+    let report = crate_layering::check_crate_layering(&PathBuf::from(crates_dir));
+    let out = PyDict::new(py);
+    out.set_item("ok", report.ok())?;
+    out.set_item("errors", PyList::new(py, report.errors.iter())?)?;
+    out.set_item("warnings", PyList::new(py, report.warnings.iter())?)?;
+    let edges = PyDict::new(py);
+    for (name, deps) in &report.edges {
+        edges.set_item(name, PyList::new(py, deps.iter())?)?;
+    }
+    out.set_item("edges", edges)?;
+    Ok(out.into_any().unbind())
+}
+
+#[pyfunction]
+fn crate_layering_diagnostics_report(py: Python<'_>, crates_dir: String) -> PyResult<Py<PyAny>> {
+    let report = crate_layering::check_crate_layering(&PathBuf::from(crates_dir));
+    let diagnostics = crate_layering::to_diagnostics_report(&report);
+    Ok(Py::new(py, PyReport::from_engine(diagnostics))?.into_any())
+}
+
 fn non_negative_finite_duration(value: f64, name: &str) -> Result<Duration, String> {
     if value < 0.0 || !value.is_finite() {
         return Err(format!("{name} must be a non-negative finite float"));
@@ -1178,6 +1201,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(wikidata_mapping_syntax, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_collect_ids, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_diagnostics_report, m)?)?;
+    m.add_function(wrap_pyfunction!(crate_layering_check, m)?)?;
+    m.add_function(wrap_pyfunction!(crate_layering_diagnostics_report, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_check_existence, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_coverage_report, m)?)?;
     m.add_function(wrap_pyfunction!(dc_coverage_report, m)?)?;

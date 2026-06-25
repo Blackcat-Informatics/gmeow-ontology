@@ -191,7 +191,7 @@ meta:tests-slices a meta:TestSuite ;
 
 meta:gate-crate-layering a meta:Gate ;
     rdfs:label "Rust crate layering: gmeow-rdf-core purity + acyclic crate DAG"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/crate_layering.py" ;
+    meta:artifact "crates/validate/src/crate_layering.rs" ;
     meta:symbol "check_crate_layering" ;
     meta:cliCommand "crate-check" ;
     meta:makeTarget "crate-check" .

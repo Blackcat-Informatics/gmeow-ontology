@@ -26,6 +26,8 @@ regex = "1"
 # Serialization for timing records and JSON result export (#634).
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# Cargo manifest parsing for the native crate-layering DAG gate (#947).
+toml = "0.8"
 # JSON Schema draft-2020-12 instance validator (#700 Task 4). default-features
 # off drops the network/file remote-$ref resolvers (reqwest/rustls/resolve-http):
 # the GMEOW JSON Schema is fully self-contained ($defs-local refs only), so we
