@@ -1,0 +1,1 @@
+{ "from": "ntriples", "to": "yaml-ld-star", "compare": "star", "input": "input.nt", "expected": "expected.yaml" }

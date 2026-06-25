@@ -1,0 +1,49 @@
+{
+  "name": "gmeow-lsp",
+  "displayName": "GMEOW LSP",
+  "description": "Language Server Protocol client for GMEOW ontology (.ttl, .logic)",
+  "version": "0.1.0",
+  "publisher": "blackcat-informatics",
+  "license": "AGPL-3.0-only",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "activationEvents": [
+    "onLanguage:turtle",
+    "onLanguage:gmeow-logic"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "turtle",
+        "aliases": ["Turtle"],
+        "extensions": [".ttl"],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "gmeow-logic",
+        "aliases": ["GMEOW Logic"],
+        "extensions": [".logic"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "configuration": {
+      "title": "GMEOW LSP",
+      "properties": {
+        "gmeow.lsp.serverPath": {
+          "type": "string",
+          "default": "gmeow-lsp",
+          "description": "Path to the gmeow-lsp binary."
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
+}

@@ -1,0 +1,6 @@
+@prefix ex: <http://example.org/> .
+
+ex:graph1 {
+    ex:subject ex:predicate ex:object .
+    ex:subject2 ex:predicate2 "named graph literal" .
+}

@@ -1,0 +1,9 @@
+[
+  {
+    "code": "rdf12-star-jsonld-rejected",
+    "from": "ntriples",
+    "to": "jsonld",
+    "note": "The JSON-LD 1.1 serializer rejects RDF-1.2 quoted triples; reifying triples and their annotations are dropped (use jsonld-star or yaml-ld-star to retain them).",
+    "count": 2
+  }
+]

@@ -19,6 +19,8 @@ members = [
     # zero-dep leaf that replaces the oxigraph-family `oxiri` (purrdf S2, EPIC #906).
     "crates/iri",
     "crates/logic",
+    # Synchronous LSP server for .ttl and .logic files + sarif CLI (#671).
+    "crates/lsp",
     # The single PyO3 cdylib: all five engine crates fold into `gmeow_native` so
     # the diagnostics `Report`/`Finding` pyclasses are ONE shared type (#630).
     "crates/native",
@@ -163,6 +165,9 @@ codegen-units = 1
 # deltas are relative, so wheel fidelity is explicitly not required here, and a
 # cross-crate LTO link on every `make bench` would add build time for no
 # measurement benefit. Release/wheel artifacts still get thin-LTO via the base.
+
+[profile.release.package.gmeow-lsp]
+codegen-units = 1
 [profile.bench]
 lto = false
 

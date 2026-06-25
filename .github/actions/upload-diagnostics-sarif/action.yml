@@ -1,0 +1,43 @@
+name: Upload Diagnostics SARIF
+description: >
+  Upload a diagnostics SARIF file to GitHub code scanning and, for fork
+  pull-requests, as a downloadable artifact.
+
+inputs:
+  sarif_file:
+    description: Path to the SARIF file to upload.
+    required: true
+  category:
+    description: Code-scanning category label (e.g. python, rust).
+    required: true
+  artifact_name:
+    description: Artifact name for the fork-safe fallback upload.
+    required: true
+  artifact_path:
+    description: Directory containing the SARIF file (uploaded as artifact).
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Upload SARIF to code scanning
+      uses: github/codeql-action/upload-sarif@dd903d2e4f5405488e5ef1422510ee31c8b32357 # v3
+      if: >-
+        always() &&
+        hashFiles(inputs.sarif_file) != '' &&
+        (github.event_name == 'push' ||
+         github.event.pull_request.head.repo.full_name == github.repository)
+      with:
+        sarif_file: ${{ inputs.sarif_file }}
+        category: ${{ inputs.category }}
+
+    - name: Upload SARIF artifacts (fork-safe fallback)
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      if: >-
+        always() &&
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name != github.repository
+      with:
+        name: ${{ inputs.artifact_name }}
+        path: ${{ inputs.artifact_path }}
+        if-no-files-found: warn

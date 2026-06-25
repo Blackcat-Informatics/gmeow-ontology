@@ -117,6 +117,280 @@ pub fn loss_matrix_json() -> String {
     LossLedger::from_entries(entries).render_json()
 }
 
+/// Syntax codecs: serialization formats that carry RDF triples/quads faithfully
+/// (no semantic projection). Order is stable and matches the canonical list.
+const SYNTAX_CODECS: &[&str] = &[
+    "turtle",
+    "ntriples",
+    "nquads",
+    "trig",
+    "jsonld",
+    "jsonld-star",
+    "yaml-ld-star",
+    "rdfxml",
+    "gts",
+    "owl-rdf12",
+];
+
+/// Projection codecs: lossy targets that select a semantic subset of the
+/// source graph (decidable fragments, rule languages, foundational profiles).
+const PROJECTION_CODECS: &[&str] = &[
+    "owl-dl",
+    "owl-el",
+    "datalog",
+    "n3",
+    "nemo",
+    "gufo",
+    "canonical-rdf12",
+];
+
+/// Map a codec name to its `&'static str` literal.
+///
+/// Panics on any name not found in [`SYNTAX_CODECS`] or [`PROJECTION_CODECS`].
+/// Hard-fail per the no-optionality doctrine.
+pub fn canonical_codec_name(name: &str) -> &'static str {
+    for s in SYNTAX_CODECS.iter().chain(PROJECTION_CODECS.iter()) {
+        if *s == name {
+            return s;
+        }
+    }
+    panic!("unknown codec name: `{name}`");
+}
+
+/// `true` when the codec can carry named-graph (quad) information.
+///
+/// Panics on unknown codec name.
+pub fn supports_quads(name: &str) -> bool {
+    match canonical_codec_name(name) {
+        "nquads" | "trig" | "jsonld" | "jsonld-star" | "yaml-ld-star" | "gts" => true,
+        "turtle" | "ntriples" | "rdfxml" | "owl-rdf12" => false,
+        // Projection codecs do not carry named graphs.
+        "owl-dl" | "owl-el" | "datalog" | "n3" | "nemo" | "gufo" | "canonical-rdf12" => false,
+        _ => unreachable!(),
+    }
+}
+
+/// `true` when the codec can represent RDF-1.2 quoted triples (star syntax).
+///
+/// Panics on unknown codec name.
+pub fn supports_stars(name: &str) -> bool {
+    match canonical_codec_name(name) {
+        "turtle" | "ntriples" | "nquads" | "trig" | "jsonld-star" | "yaml-ld-star" | "gts"
+        | "owl-rdf12" => true,
+        "jsonld" | "rdfxml" => false,
+        // Projection codecs do not carry star syntax.
+        "owl-dl" | "owl-el" | "datalog" | "n3" | "nemo" | "gufo" | "canonical-rdf12" => false,
+        _ => unreachable!(),
+    }
+}
+
+/// `true` when the codec is a projection (semantic subset) rather than a
+/// syntax serialization.
+///
+/// Panics on unknown codec name.
+pub fn is_projection(name: &str) -> bool {
+    let n = canonical_codec_name(name);
+    PROJECTION_CODECS.contains(&n)
+}
+
+/// Compute the static loss contract for a `from → to` transcoding pair.
+///
+/// Rules:
+/// - `from` MUST be a syntax codec. Panics if `from` is a projection.
+/// - If `from == to`, returns an empty ledger.
+/// - Named-graph and star losses are accumulated as needed; projection targets
+///   add a single per-target entry.
+///
+/// Panics on unknown codec names or a projection source.
+pub fn pair_loss_ledger(from: &str, to: &str) -> LossLedger {
+    let from = canonical_codec_name(from);
+    let to = canonical_codec_name(to);
+
+    assert!(
+        !is_projection(from),
+        "pair_loss_ledger: `from` must be a syntax codec, not projection `{from}`"
+    );
+
+    if from == to {
+        return LossLedger::default();
+    }
+
+    let mut entries: Vec<LossEntry> = Vec::new();
+
+    if is_projection(to) {
+        if supports_quads(from) {
+            entries.push(LossEntry {
+                code: "named-graph-dropped",
+                from,
+                to,
+                intentional: true,
+                note: "The target syntax has no named-graph construct; quads are folded into the \
+                       default graph and graph names are dropped.",
+            });
+        }
+        let proj_entry = match to {
+            "owl-dl" => LossEntry {
+                code: "owl-dl-projection",
+                from,
+                to,
+                intentional: true,
+                note: "Projection to OWL 2 DL: rules and constructs outside the decidable DL \
+                       fragment are dropped; the result is a sound view.",
+            },
+            "owl-el" => LossEntry {
+                code: "owl-el-projection",
+                from,
+                to,
+                intentional: true,
+                note: "Projection to the OWL 2 EL profile: constructs outside EL are dropped; \
+                       the result is a sound, PTIME-decidable view.",
+            },
+            "datalog" => LossEntry {
+                code: "datalog-projection",
+                from,
+                to,
+                intentional: true,
+                note: "Projection to Datalog: non-rule axioms and existentials outside the \
+                       Datalog fragment are dropped.",
+            },
+            "n3" => LossEntry {
+                code: "n3-projection",
+                from,
+                to,
+                intentional: true,
+                note: "Projection to Notation3 rules: validation-only and non-rule constructs \
+                       are dropped.",
+            },
+            "nemo" => LossEntry {
+                code: "nemo-projection",
+                from,
+                to,
+                intentional: true,
+                note: "Projection to Nemo existential rules: constructs outside the supported \
+                       rule fragment are dropped.",
+            },
+            "gufo" => LossEntry {
+                code: "gufo-projection",
+                from,
+                to,
+                intentional: true,
+                note: "Projection to gUFO foundational classes: structure without a gUFO \
+                       correspondence is dropped.",
+            },
+            "canonical-rdf12" => LossEntry {
+                code: "canonical-rdf12-projection",
+                from,
+                to,
+                intentional: true,
+                note: "Projection to the canonical RDF-1.2 logic form: non-logic RDF structure \
+                       is dropped.",
+            },
+            _ => unreachable!("unhandled projection codec `{to}`"),
+        };
+        entries.push(proj_entry);
+    } else {
+        // to is a syntax codec
+        if supports_quads(from) && !supports_quads(to) {
+            entries.push(LossEntry {
+                code: "named-graph-dropped",
+                from,
+                to,
+                intentional: true,
+                note: "The target syntax has no named-graph construct; quads are folded into the \
+                       default graph and graph names are dropped.",
+            });
+        }
+        if supports_stars(from) && !supports_stars(to) {
+            let star_entry = match to {
+                "rdfxml" => LossEntry {
+                    code: "rdf12-star-unrepresentable",
+                    from,
+                    to,
+                    intentional: true,
+                    note: "RDF/XML has no triple-term (RDF-1.2 quoted triple) syntax; reifying \
+                           triples and their annotations are dropped.",
+                },
+                "jsonld" => LossEntry {
+                    code: "rdf12-star-jsonld-rejected",
+                    from,
+                    to,
+                    intentional: true,
+                    note: "The JSON-LD 1.1 serializer rejects RDF-1.2 quoted triples; reifying \
+                           triples and their annotations are dropped (use jsonld-star or \
+                           yaml-ld-star to retain them).",
+                },
+                _ => unreachable!(
+                    "supports_stars(from)=true but supports_stars({to})=false for unhandled target"
+                ),
+            };
+            entries.push(star_entry);
+        }
+    }
+
+    LossLedger::from_entries(entries)
+}
+
+/// Render a slice of [`LossEntry`] values to deterministic JSON.
+///
+/// Unlike [`render_entries`] this function does NOT assume codes are unique —
+/// the transcode matrix can have the same code for different (from, to) pairs.
+/// Entries are rendered in the order supplied; callers must pre-sort.
+fn render_entries_sorted_by_pair(entries: &[LossEntry]) -> String {
+    let mut out = String::from("[\n");
+    for (i, entry) in entries.iter().enumerate() {
+        out.push_str("  {\n");
+        push_field(&mut out, "code", entry.code, false);
+        push_field(&mut out, "from", entry.from, false);
+        push_field(&mut out, "to", entry.to, false);
+        push_bool_field(&mut out, "intentional", entry.intentional);
+        push_field(&mut out, "note", entry.note, true);
+        out.push_str("  }");
+        if i + 1 < entries.len() {
+            out.push(',');
+        }
+        out.push('\n');
+    }
+    out.push_str("]\n");
+    out
+}
+
+/// The full transcode loss matrix as deterministic JSON.
+///
+/// Iterates all `(from ∈ SYNTAX_CODECS) × (to ∈ SYNTAX_CODECS ∪
+/// PROJECTION_CODECS)` pairs, skips identity pairs, collects every non-empty
+/// [`LossEntry`], sorts by `(from, to, code)`, and renders via
+/// [`render_entries_sorted_by_pair`].
+///
+/// The rendered output is committed at `generated/transcode-loss-matrix.json`.
+pub fn transcode_loss_matrix_json() -> String {
+    let all_targets: Vec<&str> = SYNTAX_CODECS
+        .iter()
+        .chain(PROJECTION_CODECS.iter())
+        .copied()
+        .collect();
+
+    let mut entries: Vec<LossEntry> = Vec::new();
+    for &from in SYNTAX_CODECS {
+        for &to in &all_targets {
+            if from == to {
+                continue;
+            }
+            let ledger = pair_loss_ledger(from, to);
+            entries.extend_from_slice(ledger.entries());
+        }
+    }
+
+    // Sort by (from, to, code) for full determinism.
+    entries.sort_by(|a, b| {
+        a.from
+            .cmp(b.from)
+            .then(a.to.cmp(b.to))
+            .then(a.code.cmp(b.code))
+    });
+
+    render_entries_sorted_by_pair(&entries)
+}
+
 /// Render a sorted slice of entries to deterministic JSON.
 ///
 /// Hand-rolled to avoid pulling serde into the kernel rlib (the crate does not
@@ -304,5 +578,60 @@ mod tests {
             loss_matrix_json(),
             "generated/rdf-loss-matrix.json is stale; regenerate it from loss_matrix_json()"
         );
+    }
+
+    #[test]
+    fn transcode_loss_matrix_deterministic() {
+        assert_eq!(transcode_loss_matrix_json(), transcode_loss_matrix_json());
+    }
+
+    #[test]
+    fn transcode_matrix_has_not_drifted() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../generated/transcode-loss-matrix.json");
+        let on_disk = std::fs::read_to_string(&path)
+            .unwrap_or_else(|_| panic!("generated file missing: {}", path.display()));
+        assert_eq!(
+            on_disk,
+            transcode_loss_matrix_json(),
+            "transcode-loss-matrix.json has drifted"
+        );
+    }
+
+    #[test]
+    fn pair_loss_identity_is_empty() {
+        assert!(pair_loss_ledger("turtle", "turtle").is_empty());
+        assert!(pair_loss_ledger("gts", "gts").is_empty());
+    }
+
+    #[test]
+    fn pair_loss_known_lossy_pairs() {
+        let trig_to_turtle = pair_loss_ledger("trig", "turtle");
+        assert!(trig_to_turtle
+            .entries()
+            .iter()
+            .any(|e| e.code == "named-graph-dropped"));
+
+        let nquads_to_rdfxml = pair_loss_ledger("nquads", "rdfxml");
+        assert!(nquads_to_rdfxml
+            .entries()
+            .iter()
+            .any(|e| e.code == "named-graph-dropped"));
+        assert!(nquads_to_rdfxml
+            .entries()
+            .iter()
+            .any(|e| e.code == "rdf12-star-unrepresentable"));
+
+        let turtle_to_jsonld = pair_loss_ledger("turtle", "jsonld");
+        assert!(turtle_to_jsonld
+            .entries()
+            .iter()
+            .any(|e| e.code == "rdf12-star-jsonld-rejected"));
+    }
+
+    #[test]
+    #[should_panic]
+    fn pair_loss_panics_on_projection_source() {
+        let _ = pair_loss_ledger("owl-dl", "turtle");
     }
 }

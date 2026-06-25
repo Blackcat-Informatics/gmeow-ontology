@@ -164,6 +164,39 @@ fn serialize_yaml_ld(py: Python<'_>, nquads_bytes: &[u8], format: &str) -> PyRes
     Ok(PyBytes::new(py, text.as_bytes()).into_any().unbind())
 }
 
+/// Universal RDF-1.2 transcode: convert `data` from one codec to another,
+/// recording loss (#671).
+///
+/// * `data` — the source document bytes.
+/// * `from_` / `to` — codec names (see `crate::transcode::Codec::from_cli_str`):
+///   `turtle`, `ntriples`, `nquads`, `trig`, `jsonld`, `jsonld-star`,
+///   `yaml-ld-star`, `rdfxml`, `gts`, `owl-rdf12`, and the projection targets
+///   `owl-dl`, `owl-el`, `datalog`, `n3`, `nemo`, `gufo`, `canonical-rdf12`.
+/// * `base_iri` — optional base IRI for relative-IRI resolution.
+///
+/// Returns `(output_bytes, realized_loss_json)`. Hard-fails (`ValueError`) on an
+/// unknown codec, a non-invertible projection source, or an undecodable input
+/// codec (JSON-LD-star / YAML-LD-star are output-only).
+#[pyfunction]
+#[pyo3(signature = (data, from_, to, base_iri = None))]
+fn transcode(
+    py: Python<'_>,
+    data: &[u8],
+    from_: &str,
+    to: &str,
+    base_iri: Option<String>,
+) -> PyResult<(Py<PyBytes>, String)> {
+    use crate::transcode::{realized_loss_json, transcode as run_transcode, Codec};
+    let from = Codec::from_cli_str(from_)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    let to = Codec::from_cli_str(to)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    let output = run_transcode(data, from, to, base_iri.as_deref())
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    let loss = realized_loss_json(&output.realized);
+    Ok((PyBytes::new(py, &output.bytes).unbind(), loss))
+}
+
 /// Parse JSON-LD-star bytes and downcast RDF 1.2 quoted triples to GMEOW
 /// statement-metadata N-Quads.
 ///
@@ -697,6 +730,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compile_statements_report, m)?)?;
     m.add_function(wrap_pyfunction!(compile_mappings_report, m)?)?;
     m.add_function(wrap_pyfunction!(serialize_yaml_ld, m)?)?;
+    m.add_function(wrap_pyfunction!(transcode, m)?)?;
     m.add_function(wrap_pyfunction!(
         parse_jsonld_star_to_gmeow_statement_metadata_nquads,
         m
