@@ -398,25 +398,28 @@ fn build_triple_term_value(
 
 /// Build the JSON-LD-star annotated node object for a quoted triple (s,p,o).
 fn build_nested_triple_node(
-    graph: &Graph,
-    s: usize,
-    p: usize,
-    o: usize,
-    reifier_of: &ReifierIndex,
-    annotations_of: &AnnotationIndex,
+    _graph: &Graph,
+    _s: usize,
+    _p: usize,
+    _o: usize,
+    _reifier_of: &ReifierIndex,
+    _annotations_of: &AnnotationIndex,
 ) -> Result<Value, PipelineError> {
-    let s_term = &graph.terms[s];
-    let p_term = &graph.terms[p];
-    let o_term = &graph.terms[o];
-    let p_iri = p_term
-        .value
-        .as_deref()
-        .ok_or_else(|| PipelineError::Parse("triple predicate missing IRI".to_string()))?;
-    let mut node = BTreeMap::new();
-    node.insert("@id".to_string(), Value::String(term_id(s_term)?));
-    let inner = build_value_object(graph, s, p, o, o_term, reifier_of, annotations_of)?;
-    node.insert(curie(p_iri), inner);
-    Ok(to_json_object(node))
+    // A bare quoted-triple in object position would have to be encoded as
+    // `{"@id": s, <p-curie>: <object>}`, which (a) is indistinguishable from an
+    // ordinary node object and (b) is not parseable back: the parser's `@id`
+    // branch returns only the subject IRI and drops the predicate/object,
+    // silently corrupting the triple term. Rather than emit that lossy,
+    // ambiguous form we fail closed. The lossless, supported representation for
+    // RDF-1.2-star here is the rdf:reifies / `@annotation` form, which is
+    // unaffected by this guard. Full lossless nested-triple-term support
+    // (object-position and annotation-value triple terms) is a deferred
+    // extension requiring a distinguishable JSON-LD-star encoding.
+    Err(PipelineError::Parse(
+        "quoted-triple object terms are not yet losslessly serializable in JSON-LD-star; \
+         use the rdf:reifies/@annotation form"
+            .to_string(),
+    ))
 }
 
 /// Convert a single RDF term to its JSON-LD value-object form.
@@ -523,14 +526,18 @@ fn simple_term_value(graph: &Graph, term: &Term) -> Result<Value, PipelineError>
             }
             Ok(to_json_object(map))
         }
-        TermKind::Triple => {
-            let mut map = BTreeMap::new();
-            map.insert(
-                "@value".to_string(),
-                Value::String("<<triple term>>".to_string()),
-            );
-            Ok(to_json_object(map))
-        }
+        // Triple-valued annotation objects (an annotation whose value is itself a
+        // quoted triple term) have no distinguishable, losslessly parseable
+        // JSON-LD-star encoding here yet. Emitting a placeholder literal would
+        // silently corrupt RDF-1.2-star data, so we fail closed. Full lossless
+        // nested-triple-term support (both object-position and annotation-value
+        // triple terms) is a deferred extension that requires a distinguishable
+        // JSON-LD-star encoding; until then "lossless or hard-fail" wins.
+        TermKind::Triple => Err(PipelineError::Parse(
+            "triple-valued annotation objects are not yet losslessly serializable; \
+             refusing to emit a lossy placeholder"
+                .to_string(),
+        )),
     }
 }
 
@@ -2382,9 +2389,12 @@ mod tests {
             .expect("annotation subschema compiles");
 
         // Sample fragment mirroring the annotation objects the serializer emits:
-        // string literal, IRI object, and typed literal values.
+        // typed-literal value objects (string `@value` + `@type`) and IRI
+        // objects. The serializer never emits a bare JSON number for a literal;
+        // numeric values are emitted as typed-literal objects, so the sample
+        // mirrors that real shape.
         let fragment = serde_json::json!({
-            "gmeow:confidence": 0.9,
+            "gmeow:confidence": {"@value": "0.9", "@type": "xsd:decimal"},
             "gmeow:accordingTo": {"@id": "http://example.org/source"},
             "gmeow:assertedAt": {"@value": "2026-06-05T00:00:00Z", "@type": "xsd:dateTime"}
         });
