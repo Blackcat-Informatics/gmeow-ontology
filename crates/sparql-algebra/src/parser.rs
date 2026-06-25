@@ -62,6 +62,7 @@ impl SparqlParser {
             prefixes: HashMap::new(),
             base: self.base_iri.clone(),
             agg_counter: 0,
+            anon_counter: 0,
         };
         let q = p.parse_query()?;
         p.expect_eof()?;
@@ -75,6 +76,7 @@ struct Parser {
     prefixes: HashMap<String, String>,
     base: Option<String>,
     agg_counter: usize,
+    anon_counter: usize,
 }
 
 impl Parser {
@@ -740,7 +742,15 @@ impl Parser {
     }
 
     fn parse_path_one_in_set(&mut self) -> Result<NamedNode> {
-        let _inverse = self.eat(&Token::Caret);
+        // `!(^iri)` — an inverse link inside a negated property set — cannot be
+        // represented by NegatedPropertySet(Vec<NamedNode>), which carries no
+        // per-element direction. Hard-fail rather than silently miscompiling it
+        // to the forward `!(iri)` (no-optionality / no silent degradation).
+        if self.eat(&Token::Caret) {
+            return Err(ParseError::unsupported(
+                "inverse link (^) inside a negated property set",
+            ));
+        }
         if matches!(self.peek(), Some(Token::Word(w)) if w == "a") {
             self.pos += 1;
             return Ok(NamedNode::new_unchecked(RDF_TYPE));
@@ -764,7 +774,7 @@ impl Parser {
             }
             Some(Token::Anon) => {
                 self.pos += 1;
-                Ok(TermPattern::BlankNode(BlankNode::new("")))
+                Ok(TermPattern::BlankNode(self.fresh_anon()))
             }
             Some(Token::StringLit(_))
             | Some(Token::Integer(_))
@@ -1392,6 +1402,15 @@ impl Parser {
         v
     }
 
+    /// Mint a fresh, unique label for an anonymous blank node (`[]`). Each
+    /// occurrence is a distinct existential; reusing one label (e.g. `""`) would
+    /// wrongly fuse separate blank nodes into a single AST node.
+    fn fresh_anon(&mut self) -> BlankNode {
+        let b = BlankNode::new(format!("__gmeow_anon_{}", self.anon_counter));
+        self.anon_counter += 1;
+        b
+    }
+
     fn parse_arg_list(
         &mut self,
         aggs: &mut Vec<(Variable, AggregateExpression)>,
@@ -1746,6 +1765,35 @@ mod tests {
             GraphPattern::Project { inner, .. } => *inner,
             other => other,
         }
+    }
+
+    #[test]
+    fn inverse_in_negated_property_set_is_unsupported() {
+        // `!(^iri)` cannot be represented by NegatedPropertySet (no per-element
+        // direction); it must hard-fail rather than silently become `!(iri)`.
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x !(^gmeow:p) ?y }}");
+        let err = SparqlParser::new().parse_query(&q).unwrap_err();
+        assert!(
+            matches!(err, ParseError::Unsupported(_)),
+            "expected Unsupported for inverse-in-negated-set, got {err:?}"
+        );
+    }
+
+    #[test]
+    fn distinct_anonymous_blank_nodes_do_not_collapse() {
+        // Two `[]` are two distinct existentials; they must not fuse into one
+        // AST node (which would wrongly merge the triples that mention them).
+        let q = format!("{GM}SELECT ?x WHERE {{ [] gmeow:p ?x . [] gmeow:q ?x }}");
+        let GraphPattern::Bgp { patterns } = unproject(select_pattern(&q)) else {
+            panic!("expected BGP");
+        };
+        assert_eq!(patterns.len(), 2);
+        let (TermPattern::BlankNode(a), TermPattern::BlankNode(b)) =
+            (&patterns[0].subject, &patterns[1].subject)
+        else {
+            panic!("both subjects should be blank nodes");
+        };
+        assert_ne!(a, b, "distinct [] must produce distinct blank nodes");
     }
 
     #[test]
