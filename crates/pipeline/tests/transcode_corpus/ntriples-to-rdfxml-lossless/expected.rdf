@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:its="http://www.w3.org/2005/11/its">
+	<rdf:Description rdf:about="http://example.org/subject1">
+		<predicate1 xmlns="http://example.org/" rdf:resource="http://example.org/object1"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="http://example.org/subject2">
+		<predicate2 xmlns="http://example.org/">simple literal</predicate2>
+	</rdf:Description>
+	<Type1 xmlns="http://example.org/" rdf:about="http://example.org/subject3">
+	</Type1>
+</rdf:RDF>

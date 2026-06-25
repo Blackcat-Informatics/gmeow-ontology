@@ -1,0 +1,9 @@
+[
+  {
+    "code": "named-graph-dropped",
+    "from": "nquads",
+    "to": "ntriples",
+    "note": "The target syntax has no named-graph construct; quads are folded into the default graph and graph names are dropped.",
+    "count": 1
+  }
+]

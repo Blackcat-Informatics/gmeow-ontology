@@ -1,0 +1,1 @@
+{ "from": "ntriples", "to": "turtle", "compare": "rdf", "input": "input.nt", "expected": "expected.ttl" }
