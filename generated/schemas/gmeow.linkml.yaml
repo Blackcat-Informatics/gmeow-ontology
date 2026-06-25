@@ -18018,6 +18018,9 @@ enums:
       stage-statements:
         meaning: https://blackcatinformatics.ca/gmeow/stage-statements
         title: statements
+      stage-validate:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-validate
+        title: validate
   PitchAnchorEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PitchAnchor
     permissible_values:

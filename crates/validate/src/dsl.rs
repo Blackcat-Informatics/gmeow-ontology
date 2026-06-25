@@ -3,7 +3,7 @@
 
 //! Merged-graph N-Triples plus focus→file provenance for the DSL SHACL path.
 //!
-//! PyO3-free engine core. The DSL validation seam (`dsl_validate.py`) used to
+//! PyO3-free engine core. The legacy Python DSL validation seam used to
 //! build an rdflib graph AND a `node_to_file` map (the first `.ttl` file each
 //! named subject appears in) so a SHACL violation could be attributed to its
 //! source cell. That provenance walk is net-new Rust here (#579): each file is

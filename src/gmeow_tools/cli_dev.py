@@ -14,11 +14,13 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
+import gmeow_slice
 import gmeow_validate
 import gts
 import httpx
 import typer
 from rich.console import Console
+from rich.markup import escape
 
 from gmeow_tools import __version__
 from gmeow_tools.config import PROJECT_ROOT
@@ -27,8 +29,26 @@ from gmeow_tools.slices import Slice
 
 if TYPE_CHECKING:
     from gmeow_rdf.compat.rdflib import Graph
+    from gmeow_slice import ProjectionDiagnostic
 
     from gmeow_tools.language_tags import LangSelector
+
+
+def _alignment_checks() -> frozenset[str]:
+    return frozenset(gmeow_slice.alignment_policy()["alignment_checks"])
+
+
+def _alignment_findings(*, network: bool = False) -> list[ProjectionDiagnostic]:
+    """Run the Rust alignment lint and return only alignment-family findings."""
+    checks = _alignment_checks()
+    return [
+        finding
+        for finding in gmeow_slice.lint_projection(
+            str(PROJECT_ROOT), allow_network=network
+        )
+        if finding["check"] in checks
+    ]
+
 
 app = typer.Typer(
     name="gmeow-dev",
@@ -453,11 +473,19 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
     """
 
     def _alignment() -> Any:
-        from gmeow_tools import alignment_lint
+        from gmeow_tools import diagnostics
 
-        findings = alignment_lint.lint_alignment_directions(allow_network=False)
-        findings += alignment_lint.lint_dc_refinement()
-        return alignment_lint.to_diagnostics_report(findings)
+        items = [
+            diagnostics.finding(
+                severity=finding["severity"].lower(),
+                code=f"alignment.{finding['check']}",
+                message=finding["message"],
+                tool="alignment",
+                logical=finding["instance"],
+            )
+            for finding in _alignment_findings(network=False)
+        ]
+        return diagnostics.report_from_findings(tool="alignment", findings=items)
 
     def _coverage() -> Any:
         from gmeow_tools import coverage
@@ -1291,17 +1319,24 @@ def lint_alignment(
     Offline by default — target axioms missing a vendored snapshot or fixture are
     reported as non-fatal info. ``--network`` fetches them live (incl. schema.org).
     """
-    from gmeow_tools.alignment_lint import Severity, lint_alignment_directions
 
-    findings = lint_alignment_directions(allow_network=network)
-    errors = [f for f in findings if f.severity is Severity.ERROR]
-    warnings = [f for f in findings if f.severity is Severity.WARNING]
-    infos = [f for f in findings if f.severity is Severity.INFO]
+    def _render(finding: ProjectionDiagnostic) -> str:
+        check = finding["check"]
+        instance = finding.get("instance")
+        message = finding["message"]
+        if instance:
+            return escape(f"[{check}] {instance}: {message}")
+        return escape(f"[{check}] {message}")
+
+    findings = _alignment_findings(network=network)
+    errors = [f for f in findings if f["severity"] == "ERROR"]
+    warnings = [f for f in findings if f["severity"] == "WARNING"]
+    infos = [f for f in findings if f["severity"] == "INFO"]
 
     for finding in errors:
-        err_console.print(f"[red]error[/red] {finding.render()}")
+        err_console.print(f"[red]error[/red] {_render(finding)}")
     for finding in warnings:
-        err_console.print(f"[yellow]warning[/yellow] {finding.render()}")
+        err_console.print(f"[yellow]warning[/yellow] {_render(finding)}")
     if infos:
         console.print(f"[dim]{len(infos)} row(s) skipped (no target axioms)[/dim]")
 

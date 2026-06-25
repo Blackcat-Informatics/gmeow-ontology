@@ -2182,6 +2182,7 @@ enum PipelineStageEnum
     stage__HYPHEN_MINUS__snapshot
     stage__HYPHEN_MINUS__source__HYPHEN_MINUS__load
     stage__HYPHEN_MINUS__statements
+    stage__HYPHEN_MINUS__validate
   }
 
 enum PitchAnchorEnum

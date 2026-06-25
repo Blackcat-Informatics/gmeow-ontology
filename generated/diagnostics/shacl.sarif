@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "artifacts": [],
+      "automationDetails": {
+        "id": "shacl"
+      },
+      "results": [
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanImprovised1975"
+                },
+                {
+                  "fullyQualifiedName": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a90e28357639aac3"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+          },
+          "ruleId": "shacl.MinCountConstraintComponent"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanOralExpression"
+                },
+                {
+                  "fullyQualifiedName": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "480813fe4f4a2abb"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+          },
+          "ruleId": "shacl.MinCountConstraintComponent"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanPerformed1960"
+                },
+                {
+                  "fullyQualifiedName": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b6d313c5d987363b"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+          },
+          "ruleId": "shacl.MinCountConstraintComponent"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanPerformed1980"
+                },
+                {
+                  "fullyQualifiedName": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3ab975d8c442a435"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+          },
+          "ruleId": "shacl.MinCountConstraintComponent"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/Blackcat-Informatics/gmeow-ontology",
+          "name": "shacl",
+          "rules": [
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "id": "shacl.MinCountConstraintComponent"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

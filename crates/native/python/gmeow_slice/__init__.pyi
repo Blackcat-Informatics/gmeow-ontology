@@ -127,15 +127,37 @@ class ProjectionDiagnostic(TypedDict):
     message: str
     check: str
     instance: str | None
+    subject_id: str | None
+    predicate_id: str | None
+    object_id: str | None
 
-def lint_projection(root: str) -> list[ProjectionDiagnostic]:
-    """Run the native cross-layer projection lint over ``root``'s committed tree.
+class AlignmentPolicy(TypedDict):
+    alignment_checks: list[str]
+    strong_class_predicates: list[str]
+    strong_property_predicates: list[str]
 
-    Ports the three Python ``projection_lint`` invariants (#854): FnO type-mismatch
+def lint_projection(
+    root: str, allow_network: bool = False
+) -> list[ProjectionDiagnostic]:
+    """Run native projection and alignment lint over ``root``'s committed tree.
+
+    Ports the three projection-lint invariants (#854): FnO type-mismatch
     (``fno-type``), EDOAL→FnO reference integrity (``fno-ref``), and
-    CONSTRUCT↔EDOAL↔SSSOM spec-drift (``spec-drift``). Reads the committed
+    CONSTRUCT↔EDOAL↔SSSOM spec-drift (``spec-drift``), plus the alignment-direction
+    checks (#936): ``inverse-direction``, ``domain-range``, ``property-character``,
+    ``equivalence-collapse``, ``dc-refinement``, and ``dc-hand-authored``. Reads the
+    committed
     ``generated/projections/*.{fno.ttl,edoal.ttl}`` + ``generated/queries/*.rq``,
-    the ontology ``rdfs:range``s, and the SSSOM alignment. An empty list means the
-    projection stack is internally consistent.
+    the ontology ``rdfs:range``s, and the SSSOM alignment.
+
+    ``allow_network`` permits live fetching of missing target-axiom snapshots for the
+    alignment-direction checks (default ``False``).
+
+    An empty list means the projection stack and SSSOM alignments are internally
+    consistent.
     """
+    ...
+
+def alignment_policy() -> AlignmentPolicy:
+    """Return Rust-owned alignment check and strong-predicate policy constants."""
     ...

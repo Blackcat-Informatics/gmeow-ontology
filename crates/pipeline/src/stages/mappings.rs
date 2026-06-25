@@ -130,11 +130,16 @@ pub fn compile_diagnostics_report(root: &Path) -> Report {
         fold_sssom_findings(&mut report, path, bytes);
     }
 
-    match lint_projection(root) {
+    match lint_projection(root, false) {
         Ok(problems) => {
             for problem in problems {
                 let mut finding = Finding::new(
-                    Severity::Error,
+                    match problem.severity.as_str() {
+                        "ERROR" => Severity::Error,
+                        "WARNING" => Severity::Warning,
+                        "INFO" => Severity::Info,
+                        _ => Severity::Warning,
+                    },
                     format!("mapping-compile.{}", problem.check),
                     problem.message,
                 )

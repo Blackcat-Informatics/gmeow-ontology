@@ -2182,6 +2182,7 @@ export enum PipelineStageEnum {
     snapshot = "stage-snapshot",
     source_load = "stage-source-load",
     statements = "stage-statements",
+    validate = "stage-validate",
 };
 
 export enum PitchAnchorEnum {

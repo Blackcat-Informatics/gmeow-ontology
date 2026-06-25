@@ -18,9 +18,9 @@
 //!
 //! # Engine core separation
 //!
-//! Only [`py`] imports pyo3. The engine modules ([`store`], [`model`]) are
-//! PyO3-free so the rlib links into the future Rust compiler without any Python
-//! dependency.
+//! Only [`py`] and [`py_dsl`] import pyo3. The engine modules ([`store`],
+//! [`model`]) are PyO3-free so the rlib links into the future Rust compiler
+//! without any Python dependency.
 
 pub mod cache;
 pub mod constitution;
@@ -39,9 +39,11 @@ pub mod store;
 pub mod validate_all;
 
 pub mod crossref;
+pub mod dsl_shacl;
 
-// PyO3 bindings — the only module that imports pyo3.
+// PyO3 bindings — the only modules that import pyo3.
 pub mod py;
+pub mod py_dsl;
 
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
 // cdylib can populate the `gmeow_native.validate` submodule (#630).

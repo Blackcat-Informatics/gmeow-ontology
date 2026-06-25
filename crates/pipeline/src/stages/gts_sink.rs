@@ -110,9 +110,19 @@ mod tests {
             "stage-docs-render".to_string(),
             StageProduct::from_artifacts("stage-docs-render", dc),
         );
+        let mut vd: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        vd.insert(
+            crate::stages::validate::SHACL_RDF_PATH.to_string(),
+            Vec::new(),
+        );
+        snap_upstream.insert(
+            "stage-validate".to_string(),
+            StageProduct::from_artifacts("stage-validate", vd),
+        );
 
-        let gts = crate::stages::snapshot::build_snapshot(&root, &snap_upstream, Vec::new())
-            .expect("build_snapshot");
+        let gts =
+            crate::stages::snapshot::build_snapshot(&root, &snap_upstream, Vec::new(), Vec::new())
+                .expect("build_snapshot");
         assert!(
             gts.len() > 1024,
             "GTS bundle implausibly small: {} bytes",

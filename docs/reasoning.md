@@ -137,7 +137,7 @@ enforce that contract on data; consumers MUST honour `false` and never surface t
 ## Running it
 
 ```bash
-make validate   # SHACL + syntax + term-annotation lint (pure Python, always-on)
+make validate   # Rust SHACL + syntax + term-annotation lint (always-on)
 make reason     # native Docker-free EL/DL reasoning authority
 make maint-reason-hermit  # sound + complete consistency oracle (Docker)
 make verify     # reasoned-graph SPARQL QC — native EL/DL closure (Java/Docker-free)

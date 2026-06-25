@@ -11,7 +11,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_tools.dsl_validate import validate_mapping_dsl, validate_statement_dsl
+import gmeow_validate
+
+from gmeow_tools.config import MAPPING_DSL_SHAPES_FILE, STATEMENT_DSL_SHAPES_FILE
 
 _MALFORMED_MAPPING_TTL = """
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -49,7 +51,10 @@ class TestMappingDslShacl:
     def test_malformed_term_equivalence_shacl_diagnostic(self, tmp_path: Path) -> None:
         """A TermEquivalence missing alignSubject must fail with a SHACL diagnostic."""
         (tmp_path / "test.ttl").write_text(_MALFORMED_MAPPING_TTL, encoding="utf-8")
-        violations = validate_mapping_dsl([str(tmp_path / "test.ttl")])
+        shapes_ttl = MAPPING_DSL_SHAPES_FILE.read_text(encoding="utf-8")
+        violations = gmeow_validate.validate_dsl_shacl(
+            [str(tmp_path / "test.ttl")], shapes_ttl
+        )
         msg = "\n".join(violations)
         assert violations
         assert "focus=" in msg
@@ -63,7 +68,10 @@ class TestStatementDslShacl:
     def test_malformed_statement_shacl_diagnostic(self, tmp_path: Path) -> None:
         """A StatementMetadata with both qObject and qObjectLiteral must fail."""
         (tmp_path / "test.ttl").write_text(_MALFORMED_STATEMENT_TTL, encoding="utf-8")
-        violations = validate_statement_dsl([str(tmp_path / "test.ttl")])
+        shapes_ttl = STATEMENT_DSL_SHAPES_FILE.read_text(encoding="utf-8")
+        violations = gmeow_validate.validate_dsl_shacl(
+            [str(tmp_path / "test.ttl")], shapes_ttl
+        )
         msg = "\n".join(violations)
         assert violations
         assert "focus=" in msg

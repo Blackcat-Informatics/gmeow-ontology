@@ -92,8 +92,8 @@ meta:lint-sameas-ban a meta:Lint ;
 
 meta:lint-equivalence-collapse a meta:Lint ;
     rdfs:label "equivalence-closure collapse gate over disjoint pairs"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/alignment_lint.py" ;
-    meta:symbol "_check_equivalence_collapse" ;
+    meta:artifact "crates/slice/src/alignment_lint.rs" ;
+    meta:symbol "check_equivalence_collapse" ;
     meta:makeTarget "lint-alignment" .
 
 meta:tests-alignment a meta:TestSuite ;

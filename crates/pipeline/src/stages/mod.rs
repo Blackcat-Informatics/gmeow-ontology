@@ -42,6 +42,7 @@ pub mod schemas;
 pub mod snapshot;
 pub mod source_load;
 pub mod statements;
+pub mod validate;
 pub mod yaml_ld;
 
 /// Register every production stage into `registry` under its `gmeow:stageImpl`
@@ -53,6 +54,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
     registry.register("mappings", Arc::new(mappings::MappingsStage));
+    registry.register("validate", Arc::new(validate::ValidateStage::new()));
     registry.register("docs_render", Arc::new(docs_render::DocsRenderStage::new()));
     registry.register("snapshot", Arc::new(snapshot::SnapshotStage::new()));
     registry.register("gts_sink", Arc::new(gts_sink::GtsSinkStage::new()));

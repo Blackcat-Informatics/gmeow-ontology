@@ -4,6 +4,7 @@
 //! `gmeow-slice` — native slice catalog: manifest-based discovery, typed
 //! artifact inventory, and content-addressed IDs for the GMEOW ontology slices.
 
+pub mod alignment_lint;
 pub mod analysis;
 pub mod artifact;
 pub mod cache;

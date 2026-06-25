@@ -2088,6 +2088,7 @@ class PipelineStageEnum(str, Enum):
     snapshot = "stage-snapshot"
     source_load = "stage-source-load"
     statements = "stage-statements"
+    validate = "stage-validate"
 
 
 class PitchAnchorEnum(str, Enum):

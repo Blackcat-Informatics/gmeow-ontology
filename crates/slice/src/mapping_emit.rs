@@ -876,7 +876,7 @@ fn sssom_header(
 
 /// The registry namespace IRI for a prefix, or `None` (mirrors `prefix in PREFIXES`
 /// / `PREFIXES[prefix]`).
-fn registry_iri(prefix: &str) -> Option<&'static str> {
+pub(crate) fn registry_iri(prefix: &str) -> Option<&'static str> {
     PREFIX_REGISTRY
         .iter()
         .find(|(p, _)| *p == prefix)
