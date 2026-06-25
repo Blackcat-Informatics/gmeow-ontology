@@ -464,6 +464,53 @@ pub fn realized_loss_json(losses: &[RealizedLoss]) -> String {
     serde_json::to_string_pretty(&sorted).unwrap_or_else(|_| "[]".to_owned())
 }
 
+/// One row of the supported-transcode matrix: a `from → to` pair the engine
+/// accepts, with the static loss codes the conversion declares.
+#[derive(Debug, serde::Serialize)]
+struct MatrixEntry {
+    from: &'static str,
+    to: &'static str,
+    /// `true` when the static contract declares any loss for this pair.
+    lossy: bool,
+    /// The declared loss codes (sorted), empty for a lossless pair.
+    loss_codes: Vec<&'static str>,
+}
+
+/// Render the supported-transcode matrix as deterministic, pretty JSON.
+///
+/// Enumerates every `from → to` pair the engine accepts — `from` is any
+/// decodable codec, `to` is any codec except the identity — annotated with the
+/// static [`pair_loss_ledger`] loss codes. Sorted by `(from, to)` so the
+/// committed `generated/transcode-matrix.json` artifact is byte-stable; a drift
+/// test re-derives and compares it.
+pub fn transcode_matrix_json() -> String {
+    let mut entries: Vec<MatrixEntry> = Vec::new();
+    for &from in Codec::all() {
+        if !from.can_decode() {
+            continue;
+        }
+        for &to in Codec::all() {
+            if from == to {
+                continue;
+            }
+            let ledger = pair_loss_ledger(from.name(), to.name());
+            let mut loss_codes: Vec<&'static str> =
+                ledger.entries().iter().map(|e| e.code).collect();
+            loss_codes.sort_unstable();
+            entries.push(MatrixEntry {
+                from: from.name(),
+                to: to.name(),
+                lossy: !loss_codes.is_empty(),
+                loss_codes,
+            });
+        }
+    }
+    entries.sort_by(|a, b| a.from.cmp(b.from).then(a.to.cmp(b.to)));
+    let mut json = serde_json::to_string_pretty(&entries).unwrap_or_else(|_| "[]".to_owned());
+    json.push('\n');
+    json
+}
+
 /// Map a syntax [`Codec`] to its oxigraph [`RdfFormat`] equivalent.
 ///
 /// Returns `None` for codecs that have no direct oxigraph mapping (GTS, any
@@ -837,5 +884,31 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
             let canonical = canonical_codec_name(name);
             assert_eq!(canonical, name, "canonical name mismatch for `{name}`");
         }
+    }
+
+    // ── transcode matrix drift gate ───────────────────────────────────────────
+
+    #[test]
+    fn transcode_matrix_is_deterministic() {
+        assert_eq!(transcode_matrix_json(), transcode_matrix_json());
+    }
+
+    /// Drift gate: the committed artifact must byte-equal the freshly rendered
+    /// matrix. Regenerate `generated/transcode-matrix.json` from
+    /// `transcode_matrix_json()` when the codec set or loss contract changes.
+    #[test]
+    fn transcode_matrix_has_not_drifted() {
+        let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .join("generated")
+            .join("transcode-matrix.json");
+        let committed = std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+        assert_eq!(
+            committed,
+            transcode_matrix_json(),
+            "generated/transcode-matrix.json is stale; regenerate from transcode_matrix_json()"
+        );
     }
 }

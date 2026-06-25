@@ -683,6 +683,68 @@ def export(
         console.print(f"[green]wrote[/green] {path}")
 
 
+@app.command()
+def convert(
+    source: Path = typer.Argument(  # noqa: B008
+        ..., help="Input RDF document, or '-' to read from stdin."
+    ),
+    from_: str = typer.Option(
+        ...,
+        "--from",
+        help=(
+            "Source codec: turtle|ntriples|nquads|trig|jsonld|rdfxml|gts|owl-rdf12. "
+            "(jsonld-star/yaml-ld-star and projection targets are output-only.)"
+        ),
+    ),
+    to: str = typer.Option(
+        ...,
+        "--to",
+        help=(
+            "Target codec: any source codec plus jsonld-star|yaml-ld-star and the "
+            "projections owl-dl|owl-el|datalog|n3|nemo|gufo|canonical-rdf12."
+        ),
+    ),
+    out: Path | None = typer.Option(  # noqa: B008
+        None, "--out", "-o", help="Output path (default: stdout)."
+    ),
+    loss_report: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--loss-report",
+        help="Write the realized loss ledger (JSON) here (default: stderr summary).",
+    ),
+    base_iri: str | None = typer.Option(
+        None, "--base", help="Base IRI for relative-IRI resolution."
+    ),
+) -> None:
+    """Transcode any RDF-1.2 syntax/projection to any other, recording loss.
+
+    Every lossy conversion records what it dropped (the projection doctrine):
+    the realized loss ledger lists each declared loss class and the number of
+    items actually dropped from this document.
+    """
+    import gmeow_native.pipeline as _pipeline
+
+    data = sys.stdin.buffer.read() if str(source) == "-" else source.read_bytes()
+    try:
+        out_bytes, loss_json = _pipeline.transcode(
+            data, from_=from_, to=to, base_iri=base_iri
+        )
+    except ValueError as exc:
+        raise _fail(str(exc)) from exc
+
+    if out is not None:
+        out.write_bytes(out_bytes)
+        console.print(f"[green]wrote[/green] {out}")
+    else:
+        sys.stdout.buffer.write(out_bytes)
+
+    if loss_report is not None:
+        loss_report.write_text(loss_json)
+        err_console.print(f"[green]loss[/green] {loss_report}")
+    elif loss_json.strip() not in ("", "[]"):
+        err_console.print(f"[yellow]loss[/yellow] {loss_json}")
+
+
 @app.command(name="extract-docs")
 def extract_docs(
     directory: Path = typer.Option(  # noqa: B008
