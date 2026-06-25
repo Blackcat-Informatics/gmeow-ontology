@@ -1,0 +1,1 @@
+{ "from": "nquads", "to": "jsonld-star", "compare": "star", "input": "input.nq", "expected": "expected.json" }

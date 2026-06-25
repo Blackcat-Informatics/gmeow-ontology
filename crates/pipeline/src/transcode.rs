@@ -328,6 +328,28 @@ pub fn transcode(
         return transcode_to_projection(&dataset, from, to, named_graph_count);
     }
 
+    // JSON-LD-star and YAML-LD-star write path: NQuads -> GTS -> yaml_ld stage.
+    if matches!(to, Codec::JsonLdStar | Codec::YamlLdStar) {
+        let nq_outcome = serialize_dataset_to_format(&dataset, RdfFormat::NQuads, None)
+            .map_err(|e| TranscodeError::Codec(format!("star pre-step nquads serialize: {e}")))?;
+        let nq_str = String::from_utf8(nq_outcome.bytes)
+            .map_err(|e| TranscodeError::Codec(format!("star pre-step nquads utf8: {e}")))?;
+        let gts = gmeow_gts::from_nquads::from_nquads(&nq_str)
+            .map_err(|e| TranscodeError::Codec(format!("star pre-step nquads->gts: {e}")))?;
+        let graph = gmeow_rdf::gts::read_graph(&gts, true)
+            .map_err(|e| TranscodeError::Codec(format!("star pre-step gts read_graph: {e}")))?;
+        let text = match to {
+            Codec::JsonLdStar => crate::stages::yaml_ld::serialize_graph(&graph)
+                .map_err(|e| TranscodeError::Codec(format!("jsonld-star serialize: {e}")))?,
+            Codec::YamlLdStar => crate::stages::yaml_ld::serialize_graph_yaml(&graph, None)
+                .map_err(|e| TranscodeError::Codec(format!("yaml-ld-star serialize: {e}")))?,
+            _ => unreachable!(),
+        };
+        let bytes = text.into_bytes();
+        let realized = realize_losses(ledger.entries(), named_graph_count, 0, 0);
+        return Ok(TranscodeOutput { bytes, realized });
+    }
+
     // Syntax-to-syntax path via oxigraph serializer.
     let fmt = codec_to_rdf_format(to).ok_or_else(|| {
         TranscodeError::Codec(format!("no RdfFormat mapping for `{}`", to.name()))

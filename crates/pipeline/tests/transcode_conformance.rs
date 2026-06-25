@@ -9,18 +9,22 @@
 //!
 //! Profile schema:
 //! ```json
-//! { "from": "<codec>", "to": "<codec>", "compare": "rdf" | "text",
+//! { "from": "<codec>", "to": "<codec>", "compare": "rdf" | "text" | "star",
 //!   "input": "input.<ext>", "expected": "expected.<ext>" }
 //! ```
 //!
 //! Comparison modes:
 //! - `rdf`  — RDFC-1.0 canonical quad comparison via oxigraph + gmeow_rdf.
 //! - `text` — exact UTF-8 trimmed equality.
+//! - `star` — round-trip via `parse_jsonld_star` / `yaml_ld_star_to_json` +
+//!   RDFC-1.0 comparison; used for JSON-LD-star and YAML-LD-star targets that
+//!   oxigraph cannot parse directly.
 //!
 //! Also compares `loss.json` byte-for-byte against `realized_loss_json(&output.realized)`.
 
 use std::path::{Path, PathBuf};
 
+use gmeow_pipeline::stages::yaml_ld::{parse_jsonld_star, yaml_ld_star_to_json};
 use gmeow_pipeline::transcode::{realized_loss_json, transcode, Codec};
 use oxigraph::io::{RdfFormat, RdfParser};
 
@@ -49,6 +53,32 @@ fn canonical_quads(bytes: &[u8], fmt: RdfFormat) -> Result<Vec<String>, String> 
     let canonical = gmeow_rdf::canonicalize_quads(quads)
         .map_err(|e| format!("RDF canonicalization error: {e}"))?;
     let mut strings: Vec<String> = canonical.iter().map(ToString::to_string).collect();
+    strings.sort();
+    Ok(strings)
+}
+
+/// Parse JSON-LD-star or YAML-LD-star bytes via the pipeline's own round-trip
+/// path (the inverse of the emitter) and return RDFC-1.0 canonical quad strings.
+///
+/// Used for the `"star"` compare mode: oxigraph cannot parse jsonld-star /
+/// yaml-ld-star directly, so we decode through `parse_jsonld_star` (which
+/// understands the `@annotation` idiom emitted by the GMEOW serializer) and
+/// then canonicalize via gmeow_rdf.
+fn canonical_quads_star(bytes: &[u8], to_codec: &str) -> Result<Vec<String>, String> {
+    let json_bytes = match to_codec {
+        "jsonld-star" | "json-ld-star" => bytes.to_vec(),
+        "yaml-ld-star" | "yamlld-star" => {
+            let json_str =
+                yaml_ld_star_to_json(bytes).map_err(|e| format!("yaml-ld-star to json: {e}"))?;
+            json_str.into_bytes()
+        }
+        other => return Err(format!("canonical_quads_star: unknown codec {other:?}")),
+    };
+    let dataset = parse_jsonld_star(&json_bytes).map_err(|e| format!("parse jsonld-star: {e}"))?;
+    let quads: Vec<_> = dataset.iter().map(|q| q.into_owned()).collect();
+    let canonical = gmeow_rdf::canonicalize_quads(quads)
+        .map_err(|e| format!("RDF canonicalization error: {e}"))?;
+    let mut strings: Vec<String> = canonical.iter().map(|q| q.to_string()).collect();
     strings.sort();
     Ok(strings)
 }
@@ -228,9 +258,45 @@ fn transcode_corpus() {
                     Some(msg)
                 }
             }
+            "star" => {
+                match (
+                    canonical_quads_star(&output.bytes, &profile.to),
+                    canonical_quads_star(&expected_bytes, &profile.to),
+                ) {
+                    (Ok(actual), Ok(expected)) if actual == expected => None,
+                    (Ok(actual), Ok(expected)) => {
+                        let actual_set: std::collections::BTreeSet<_> = actual.iter().collect();
+                        let expected_set: std::collections::BTreeSet<_> = expected.iter().collect();
+                        let only_actual: Vec<_> =
+                            actual_set.difference(&expected_set).take(5).collect();
+                        let only_expected: Vec<_> =
+                            expected_set.difference(&actual_set).take(5).collect();
+                        let mut msg = format!(
+                            "RDF mismatch (star round-trip): {} actual quads vs {} expected quads",
+                            actual.len(),
+                            expected.len()
+                        );
+                        for q in only_actual {
+                            msg.push_str(&format!(
+                                "
+  actual only: {q}"
+                            ));
+                        }
+                        for q in only_expected {
+                            msg.push_str(&format!(
+                                "
+  expected only: {q}"
+                            ));
+                        }
+                        Some(msg)
+                    }
+                    (Err(e), _) => Some(format!("actual star parse error: {e}")),
+                    (_, Err(e)) => Some(format!("expected star parse error: {e}")),
+                }
+            }
             other => {
                 failures.push(format!(
-                    "[{case_name}] unknown compare mode `{other}`; expected `rdf` or `text`"
+                    "[{case_name}] unknown compare mode `{other}`; expected `rdf`, `text`, or `star`"
                 ));
                 continue;
             }
