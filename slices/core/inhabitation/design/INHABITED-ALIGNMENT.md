@@ -62,7 +62,7 @@ projection), **I** (inbound ingest); most flagship targets are bidirectional.
 | **PROV-O** | SSSOM + CONSTRUCT | P/I | exact for the activity/agent/entity core | migration + invocation provenance |
 | **gUFO** | CONSTRUCT (the foundational down-projection) | P | exact for the OWL-expressible fragment | mandatory (Principle 17) |
 | **OWL-Time** | SSSOM + FnO | P | exact (interval + Allen relations) | tenure/configuration intervals |
-| **ActivityStreams 2.0 / ActivityPub** | SSSOM + EDOAL | L/P | under-approx | Actor/Avatar ↔ `as:Actor`/icon; multi-persona hosts |
+| **ActivityStreams 2.0 / ActivityPub** *(actor-model only)* | SSSOM + EDOAL | L/P | under-approx | `as:Actor`/`icon` ↔ subject/`Embodiment`; multi-persona hosts. The AS2 *activity/content* vocabulary (`Create`, `Note`, `Like`) is **out of scope here** — it belongs to a messaging/social slice. |
 | **schema.org** | SSSOM + CONSTRUCT | P | over-approx (flattened) | `SoftwareApplication`, `Person`, JSON-LD consumer surface (Principle 13) |
 | **CIDOC-CRM** | EDOAL | L | under-approx | `InhabitationClaim` ↔ `E13 Attribute Assignment`; ritual ↔ `E7`; the cultural-heritage seam for the spiritual/fictional cases |
 | **ML metadata** (Model Cards, ML-Schema, Croissant, SPDX-AI, MLflow) | SSSOM + EDOAL | L/I | under-approx | `ModelArtifact`/`ModelCard`/`ModelDeployment` |
@@ -136,8 +136,11 @@ method is recorded as provenance, not privileged.
 - **OWL-Time** — tenure and configuration intervals → `time:ProperInterval`; the constant-configuration
   intervals tile a tenure via Allen relations (`time:intervalDuring` / `intervalMeets`), making
   "active-at-T" answerable in standard temporal tooling.
-- **ActivityStreams 2.0 / ActivityPub** — Cagle's `Actor`/`Avatar` ↔ `as:Actor` / its `icon`; an
-  inhabited host ↔ a server hosting many actors. The closest *deployed* analog to an inhabited system.
+- **ActivityStreams 2.0 / ActivityPub** *(actor model only)* — Cagle's `Actor`/`Avatar` ↔ `as:Actor` /
+  its `icon`; an inhabited host ↔ a server hosting many actors. The closest *deployed* analog to an
+  inhabited system. Scoped deliberately to the **actor model**: AS2's activity and content vocabulary
+  (`Create`, `Note`, `Like`, collections of posts) is *not* inhabitation's and is aligned by a
+  messaging/social slice, not here.
 - **schema.org** — the flat JSON-LD consumer surface (Principle 13): `SoftwareApplication`, `Person`,
   `Organization`; an over-approximation (the deep structure flattens).
 - **CIDOC-CRM** — the cultural-heritage seam for the spiritual/fictional profiles:
@@ -146,6 +149,26 @@ method is recorded as provenance, not privileged.
   document a possession or incarnation *as a documented claim*, asserting no metaphysics.
 - **ML metadata** — `ModelArtifact`/`ModelCard`/`ModelDeployment` align to Model Cards, ML-Schema,
   Croissant, SPDX-AI, and MLflow runs, making the model-serving slice a hub for LLM-ops metadata.
+
+## Aligned elsewhere, referenced here
+
+A vocabulary is aligned **once, in the slice that owns its core concept**; other slices reference that
+alignment transitively rather than re-aligning it. Aligning a vocabulary in a slice that does not own
+its concept is the linkage twin of minting a term in the wrong place — maximal use means maximal
+*coverage*, not maximal *duplication*. For the inhabitation neighbourhood:
+
+| Vocabulary | Owning slice | How inhabitation gets it |
+|---|---|---|
+| `foaf:OnlineAccount`, **SIOC** (`sioc:UserAccount` / `sioc:account_of`), AS2 actor *accounts* | `accounts` | a `gmeow:Embodiment` references an account (the `accounts` slice); the SIOC / FOAF account alignment lives there, so inhabitation inherits it by reference |
+| SIOC content model (`sioc:Post` / `Forum` / `Thread` / `Site`) | a messaging / social / `documents` slice | not referenced by inhabitation (out of domain) |
+| `sioc:Role` / `sioc:has_function` | `organization` (`gmeow:Role`) | the role machinery the email-thread crosswalk already covers |
+| `foaf:Agent` / `foaf:Person` | `entities` | the agent spine |
+
+So **SIOC is deliberately absent from the inhabitation alignment ledger.** Its only
+inhabitation-adjacent concept — an account distinct from its holder — is owned by the `accounts` slice
+(beside `foaf:OnlineAccount`), and `Embodiment` reaches it by reference. (SIOC is in any case a dormant
+2007 W3C Member Submission, largely superseded by AS2/ActivityPub; it is a low-priority by-reference
+target wherever it lands.)
 
 ## Discipline — how "maximal" stays honest
 
