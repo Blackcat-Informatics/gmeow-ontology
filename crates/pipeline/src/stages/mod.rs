@@ -38,6 +38,7 @@ pub mod parquet;
 pub mod profiles;
 pub mod reason;
 pub mod references;
+pub mod release;
 pub mod research_objects;
 pub mod schemas;
 pub mod snapshot;

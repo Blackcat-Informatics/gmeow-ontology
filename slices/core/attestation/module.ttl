@@ -377,6 +377,22 @@ gmeow:attestationTypeC2PA
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
+gmeow:attestationTypeConformanceVerdict
+    a gmeow:AttestationType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "conformance verdict"@x-gmeow-english ;
+    skos:definition "An attestation recording the pass/fail verdict of a processor or artifact against a published conformance test suite (RDF-1.2, SPARQL-1.2, OWL 2 EL/RL, SHACL-Core), distinct from a generic quality report in that it certifies adherence to a named external standard's test corpus."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:attestationTypeCrossCheckAgreement
+    a gmeow:AttestationType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "cross-check agreement matrix"@x-gmeow-english ;
+    skos:definition "An attestation recording the agreement matrix between two or more independent reasoners or validators over the same input — the native engine versus the legacy oracles (ELK, HermiT, ROBOT, Jena, owlrl) — listing matched entailments, divergences, and per-reasoner timing. Distinct from a quality report in that it certifies inter-engine agreement, not a single engine's metrics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
 gmeow:attestationTypeDSSE
     a gmeow:AttestationType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;

@@ -16,6 +16,18 @@ CARGO_TARGET_DIR ?= target
 SIGN_KEY ?=
 PUBLIC_KEY ?= keys/gmeow-release-key.asc
 GTS_OUT ?= dist/gmeow.gts
+# Injected release timestamp for the signed evidence fold (§18 determinism): the
+# HEAD commit's strict-ISO committer date — deterministic per release commit, and
+# overridable (e.g. RELEASE_ISSUED_AT=2026-06-25T00:00:00Z) for reproducible rebuilds.
+RELEASE_ISSUED_AT ?= $(shell git show -s --format=%cI HEAD)
+# release-publish knobs (§18 step 7). RELEASE_TAG names the GitHub release;
+# CROSSREF_USER/CROSSREF_PASS are the depositor's Crossref member credentials
+# (supplied by the maintainer at publish time — never stored). Publishing and
+# DOI submission are USER-driven steps; this repo never holds signing keys.
+RELEASE_TAG ?=
+CROSSREF_USER ?=
+CROSSREF_PASS ?=
+CROSSREF_DEPOSIT_URL ?= https://doi.crossref.org/servlet/deposit
 
 # Optional cargo-nextest partition for sharded CI runs (e.g., count:1/2)
 NEXTEST_PARTITION ?=
@@ -45,11 +57,11 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 .PHONY: help \
 	install fmt lint \
 	native-py validate validate-gts reason verify test test-fast rust-build rust-test check \
-	regenerate check-generated commit docs normalize build project release release-sign-gts clean \
+	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
-	slicetest conformance insta-review \
+	slicetest conformance conformance-report insta-review \
 	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report \
 	maint-classic-cross-check maint-reason-hermit maint-explain maint-697-oracle-gold maint-verify-docker \
 	maint-reasoning-cases maint-statements-docker-check maint-crosscheck \
@@ -169,6 +181,65 @@ release-sign-gts: native-py ## Sign the regenerated GTS bundle for release packa
 	fi
 	$(GMEOW_DEV) compile-gts --sign-key "$(SIGN_KEY)" --public-key "$(PUBLIC_KEY)" --out "$(GTS_OUT)"
 
+full-release: native-py ## Signed release-as-evidence: gate + oracle lane + conformance + perf, folded + signed + DOI (§18).
+	@if [ -z "$(SIGN_KEY)" ]; then \
+		echo "SIGN_KEY=/path/to/secret.asc is required"; exit 1; \
+	fi
+	$(MAKE) check
+	$(MAKE) maint-classic-cross-check
+	$(MAKE) conformance
+	$(MAKE) conformance-report
+	$(MAKE) bench-compare
+	$(MAKE) maint-compliance-report-full
+	$(GMEOW_DEV) release-bundle \
+		--sign-key "$(SIGN_KEY)" --public-key "$(PUBLIC_KEY)" \
+		--out "$(GTS_OUT)" --source generated/dist/gmeow.gts \
+		--issued-at "$(RELEASE_ISSUED_AT)" \
+		--evidence "generated/diagnostics/shacl.sarif:application/sarif+json:attestationTypeQualityReport:shacl:SHACL diagnostics SARIF" \
+		--evidence "dist/compliance-report.ttl:text/turtle:attestationTypeQualityReport:compliance:Compliance report" \
+		--evidence "generated/conformance/verdicts.json:application/json:attestationTypeConformanceVerdict:conformance:Logic conformance suite verdicts" \
+		--evidence "generated/logic/dl-el-crosscheck-report.ttl:text/turtle:attestationTypeCrossCheckAgreement:nativeoracle:Native gap-zero DL-EL agreement ledger" \
+		--evidence "dist/gmeow-classic-cross-check.sarif:application/sarif+json:attestationTypeCrossCheckAgreement:crosscheck:Classic cross-check agreement matrix" \
+		--evidence "bench/baseline.json:application/json:attestationTypeQualityReport:perf:Perf baseline"
+	$(MAKE) verify-release
+	$(MAKE) crossref
+	@echo "full-release: signed evidence bundle written to $(GTS_OUT)"
+
+verify-release: native-py ## Consumer verification of a signed release bundle: signature + trust policy + attestation frames (§18).
+	@if [ ! -f "$(GTS_OUT)" ]; then \
+		echo "no signed release bundle at $(GTS_OUT); run 'make full-release SIGN_KEY=...' first"; exit 1; \
+	fi
+	$(GMEOW_DEV) verify-release-bundle --bundle "$(GTS_OUT)" $(if $(PUBLIC_KEY),--public-key "$(PUBLIC_KEY)",)
+	@echo "verify-release: signature + trust policy + attestation frames verified over $(GTS_OUT)"
+
+release-publish: ## USER-driven publish of a verified signed bundle: content-addressed GitHub release + Crossref DOI deposit (§18 step 7).
+	@if [ ! -f "$(GTS_OUT)" ]; then \
+		echo "no signed release bundle at $(GTS_OUT); run 'make full-release SIGN_KEY=...' first"; exit 1; \
+	fi
+	@if [ -z "$(RELEASE_TAG)" ]; then \
+		echo "RELEASE_TAG=vX.Y.Z is required (names the GitHub release)"; exit 1; \
+	fi
+	$(MAKE) verify-release
+	$(MAKE) crossref
+	sha256sum "$(GTS_OUT)" > "$(GTS_OUT).sha256"
+	@echo "release bundle native content heads (BLAKE3):"
+	uv run gts heads "$(GTS_OUT)"
+	gh release create "$(RELEASE_TAG)" \
+		"$(GTS_OUT)" "$(GTS_OUT).sha256" dist/crossref-deposit.xml \
+		--title "GMEOW $(RELEASE_TAG) — signed release-as-evidence bundle" \
+		--notes "Signed, content-addressed release bundle (§18). Verify with \`make verify-release\` or \`gts verify gmeow.gts\`; download integrity via the .sha256 sidecar; native content address via \`gts heads\`. The attached Crossref deposit is over the always-latest concept DOI (version-agnostic by design, #44)."
+	@if [ -n "$(CROSSREF_USER)" ] && [ -n "$(CROSSREF_PASS)" ]; then \
+		echo "submitting Crossref deposit as $(CROSSREF_USER) ..."; \
+		curl -fsS -F 'operation=doMDUpload' -F 'login_id=$(CROSSREF_USER)' \
+			-F 'login_passwd=$(CROSSREF_PASS)' -F 'fname=@dist/crossref-deposit.xml' \
+			"$(CROSSREF_DEPOSIT_URL)"; \
+		echo "Crossref deposit submitted."; \
+	else \
+		echo "DOI registration PENDING: set CROSSREF_USER + CROSSREF_PASS to submit, or run:"; \
+		echo "  curl -F operation=doMDUpload -F login_id=\$$CROSSREF_USER -F login_passwd=\$$CROSSREF_PASS -F fname=@dist/crossref-deposit.xml $(CROSSREF_DEPOSIT_URL)"; \
+	fi
+	@echo "release-publish: published $(RELEASE_TAG) ($(GTS_OUT) + .sha256 + crossref deposit)."
+
 clean: ## Remove ephemeral build artifacts.
 	rm -rf dist docs/_generated .stamps $(NATIVE_PY_STAMP) $(RUST_READY_STAMP)
 	@echo "cleaned ephemeral artifacts"
@@ -258,6 +329,9 @@ slicetest: ## Run the slice-resident test-DSL harness in isolation.
 
 conformance: ## Run the native logic conformance harness in isolation.
 	cargo nextest run -p gmeow-conformance $(NEXTEST_PARTITION_ARG)
+
+conformance-report: ## Materialize the logic conformance suite verdicts as a foldable release artifact (§18).
+	cargo run -p gmeow-conformance --bin conformance-report -- --out generated/conformance/verdicts.json
 
 insta-review: ## Regenerate intentional insta snapshot goldens, then verify determinism.
 	INSTA_UPDATE=always cargo nextest run $(NEXTEST_PARTITION_ARG)

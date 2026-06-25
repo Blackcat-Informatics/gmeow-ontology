@@ -325,6 +325,23 @@ meta:gate-native-oracle-superset a meta:Gate ;
     meta:symbol "enforce", "native_reasoner_is_a_superset_of_the_frozen_oracle_gold" ;
     meta:makeTarget "conformance" .
 
+# The release-as-evidence gate (#673): the signed `make full-release` bundle folds
+# every check / classic-cross-check / conformance / SARIF / compliance / perf
+# result as content-addressed `gmeow:Attestation` frames into a SEPARATE signed
+# dist/gmeow.gts (never the committed Docker-free snapshot). The Rust round-trip
+# test proves the fold carries the signature, the graph/attestations frames, and a
+# gmeow:contentDigest per evidence blob; `make verify-release` is the consumer's
+# signature + trust-policy verification path.
+meta:gate-release-evidence a meta:Gate ;
+    rdfs:label "release-as-evidence gate — signed full-release folds attestations into gmeow.gts, consumer-verifiable (#673)"@x-gmeow-english ;
+    meta:artifact "crates/pipeline/src/stages/release.rs" ;
+    meta:symbol "fold_release_bundle",
+        "verify_release_bundle",
+        "round_trip_carries_signature_attestations_and_blobs",
+        "verify_release_bundle_accepts_a_well_formed_bundle" ;
+    meta:makeTarget "full-release", "verify-release" ;
+    meta:cliCommand "release-bundle", "verify-release-bundle" .
+
 # --------------------------------------------------------------------------- #
 # The principles
 # --------------------------------------------------------------------------- #
@@ -442,5 +459,5 @@ meta:Principle18 a meta:Principle ;
     meta:title "The reference RDF-1.2 stack — complete, coherent, and Docker-free" ;
     meta:enforcedBy meta:gate-reason-native, meta:gate-dl-el-crosscheck,
         meta:gate-classic-cross-check, meta:gate-native-oracle-superset,
-        meta:tests-lane-purity ;
+        meta:tests-lane-purity, meta:gate-release-evidence ;
     meta:extends meta:Principle17, meta:Principle13 .

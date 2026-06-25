@@ -28,7 +28,7 @@ assertion is true.
 
 | Vocabulary | Purpose |
 |---|---|
-| `gmeow:AttestationType` | What kind of attestation this is (`slsaProvenance`, `inToto`, `verifiableCredential`, `c2pa`, `eat`, `signedRdf`, `scitt`, `nanopublication`, `blockchainClaim`, `gitSignedTag`, `releaseManifest`, `qualityReport`, `aiOutput`). |
+| `gmeow:AttestationType` | What kind of attestation this is (`slsaProvenance`, `inToto`, `verifiableCredential`, `c2pa`, `eat`, `signedRdf`, `scitt`, `nanopublication`, `blockchainClaim`, `gitSignedTag`, `releaseManifest`, `qualityReport`, `aiOutput`, `crossCheckAgreement`, `conformanceVerdict`). |
 | `gmeow:SignatureScheme` | The cryptographic algorithm (`rsaSha256`, `ed25519`, `ecdsaSecp256k1`, `ecdsaP256`, `bls12-381`). |
 | `gmeow:VerificationStatus` | Outcome of verification (`verified`, `failed`, `unverified`, `expired`, `revoked`, `policyFailed`, `finalityPending`). |
 | `gmeow:LedgerFinalityStatus` | Finality state of a ledger transaction/block (`pending`, `confirmed`, `finalized`, `orphaned`, `reorged`). |
@@ -165,6 +165,45 @@ ex:ctEntry a gmeow:TransparencyLogEntry ;
     gmeow:logEntryIndex     42 ;
     gmeow:ledgerInclusionProof "base64:proofData…" .
 ```
+
+## Release-as-evidence: GMEOW dogfoods its own attestations (#673)
+
+GMEOW's own signed release is the flagship use of this slice (CONSTITUTION.md §18,
+the *release-as-evidence* clause). `make full-release` runs the native authority gate,
+the Java/Docker `classic-cross-check` oracle lane, and the public conformance + perf
+suites, then folds **every** result into a single signed `gmeow.gts` bundle: each
+artifact rides as a BLAKE3-content-addressed blob, described by a `gmeow:Attestation`
+envelope in a dedicated `graph/attestations` named graph that binds the envelope to its
+blob by `gmeow:contentDigest`. Two `AttestationType` individuals exist for the evidence
+kinds the prior vocabulary could not name:
+
+- `gmeow:attestationTypeCrossCheckAgreement` — a native↔oracle agreement matrix
+  (matched entailments, divergences, per-reasoner timing), distinct from a generic
+  quality report in that it certifies *inter-engine agreement*. Two artifacts use it:
+  the classic ROBOT/HermiT/Jena/ELK cross-check SARIF and the native gap-zero DL-EL
+  ledger.
+- `gmeow:attestationTypeConformanceVerdict` — the public conformance-suite verdicts,
+  rolled up by `make conformance-report` (a Rust `gmeow-conformance` binary that runs
+  every case through the native cores and emits one deterministic canonical-JSON
+  artifact of per-case verdicts + certification).
+
+The compliance report, perf results, and SHACL/diagnostics SARIF reuse
+`gmeow:attestationTypeQualityReport`; the bundle itself reuses
+`gmeow:attestationTypeSignedRDF`; the top-level envelope is a
+`gmeow:attestationTypeReleaseManifest`. Each child attestation carries
+`gmeow:contentDigest`, `gmeow:issuedAt`, `gmeow:hasSignature` (Ed25519), and a
+`gmeow:verificationResult` — vouching that a given check *ran over given bytes*, never
+that the ontology is "true" (Principle 9). The worked shape is
+[`examples/release-evidence-bundle.ttl`](./examples/release-evidence-bundle.ttl), which
+is exactly the RDF the Rust release stage emits into the bundle. `make verify-release`
+is the consumer half, in Rust: native COSE signature + trust-policy verification, then a
+walk of the attestation frames asserting every attested `gmeow:contentDigest` resolves to
+a blob actually present in the bundle — so a consumer confirms exactly which checks ran
+over which bytes, not merely that *something* was signed. A verified bundle is published
+by the user-driven `make release-publish` (a content-addressed GitHub release plus the
+Crossref concept-DOI deposit; signing and submission stay maintainer-credentialed). The
+fold is reproducible: release timestamps are injected, blobs and frames are
+content-hash-sorted, and perf timings ride as data, never as a gate.
 
 ## Interoperability layers
 
