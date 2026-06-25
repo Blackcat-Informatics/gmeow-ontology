@@ -13,7 +13,7 @@
 # logic:AbstractIndividual, logic:Relator). These cells mirror the module's
 # CURRENT logic: shape.
 #
-# TWO tests stay in tests/test_temporal.py because they are CROSS-SLICE — the
+# One test stays in tests/test_temporal.py because it is CROSS-SLICE — the
 # subjects are NOT declared in temporal/module.ttl, so the module-scoped harness
 # (which loads only this slice's module.ttl) cannot see them; the pytest reaches
 # them via the FULL merged graph (load_merged_graph(include_imports=True)):
@@ -21,10 +21,7 @@
 #     (extensions/email) and gmeow:AddressTenure (core/contacts) ⊑
 #     gmeow:TimeScopedRelation. The subclass edges live in those OTHER slices'
 #     modules, not here.
-#   * test_interpersonal_relationship_is_a_gufo_relator —
-#     gmeow:InterpersonalRelationship (core/contacts, core/names) ⊑ logic:Relator.
-#     Same reason.
-# These are genuine cross-slice integration checks, faithfully retained in pytest.
+# This is a genuine cross-slice integration check, faithfully retained in pytest.
 #
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 

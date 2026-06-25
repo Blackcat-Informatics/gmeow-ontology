@@ -195,9 +195,9 @@ The temporal pytest loaded the FULL merged graph (`load_merged_graph(include_imp
 | `test_time_interval_can_have_temporal_frame` | `tests/test_temporal.py` | `ex:saTimeIntervalCanHaveTemporalFrame` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_temporal_measurement_is_logic_relator` | `tests/test_temporal.py` | `ex:saTemporalMeasurementIsLogicRelator` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_reified_residence_and_tenure_are_time_scoped` | `tests/test_temporal.py` | — | — | **retained** | CROSS-SLICE: `gmeow:MailboxResidence` (extensions/email) + `gmeow:AddressTenure` (core/contacts) ⊑ TimeScopedRelation — the subclass edges are declared in those OTHER slices' modules, absent from temporal/module.ttl, so the module-scoped harness cannot see them. Faithful only over the merged graph. | pytest |
-| `test_interpersonal_relationship_is_a_gufo_relator` | `tests/test_temporal.py` | — | — | **retained** | CROSS-SLICE: `gmeow:InterpersonalRelationship` (core/contacts, core/names) ⊑ gufo:Relator — declared in those slices, absent from temporal/module.ttl. Merged-graph integration check. | pytest |
+| `test_interpersonal_relationship_is_a_gufo_relator` | `tests/test_temporal.py` | `slices/core/contacts/tests/structural.ttl` `ex:saInterpersonalRelationshipIsRelatorKind` | StructuralAssertion | converted | — | `make slicetest` |
 
-**Temporal tally:** 6 converted, 2 retained-with-reason (cross-slice merged-graph). Source file `tests/test_temporal.py` trimmed to the 2 retained functions (not deleted).
+**Temporal tally:** 7 converted, 1 retained-with-reason (cross-slice merged-graph). Source file `tests/test_temporal.py` trimmed to the 1 retained function (not deleted).
 
 ## `slices/core/gts`
 
