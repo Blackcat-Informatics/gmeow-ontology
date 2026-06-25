@@ -68,11 +68,14 @@ fn role_seed(role: &str) -> Option<String> {
 ///
 /// The Python builds `f"{float(score):.4f}"` then rdflib canonicalizes on output.
 /// We store the canonical form directly: strip trailing zeros and a trailing dot.
-/// `0.9000 -> "0.9"`, `0.4000 -> "0.4"`, `0.0000 -> "0"`.
+/// `0.9000 -> "0.9"`, `0.4000 -> "0.4"`, `0.0000 -> "0"`, `-0.0000 -> "0"`.
+///
+/// The `-0` guard matters because `format!("{:.4}", -0.0)` yields `"-0.0000"`,
+/// which trims to `"-0"`; XSD-decimal canonical form has no signed zero.
 fn canonical_decimal(value: f64) -> String {
     let s = format!("{value:.4}");
     let trimmed = s.trim_end_matches('0').trim_end_matches('.');
-    if trimmed.is_empty() || trimmed == "-" {
+    if trimmed.is_empty() || trimmed == "-" || trimmed == "-0" {
         "0".to_string()
     } else {
         trimmed.to_string()
@@ -702,6 +705,19 @@ fn book_scope(record: &Record) -> String {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    // -- canonical_decimal ------------------------------------------------- //
+
+    #[test]
+    fn canonical_decimal_canonicalizes() {
+        assert_eq!(canonical_decimal(0.9), "0.9");
+        assert_eq!(canonical_decimal(0.4), "0.4");
+        assert_eq!(canonical_decimal(1.0), "1");
+        // Both signed and unsigned zero must canonicalize to "0" (no "-0"):
+        // XSD-decimal has no signed zero, and "zeros are scores" here.
+        assert_eq!(canonical_decimal(0.0), "0");
+        assert_eq!(canonical_decimal(-0.0), "0");
+    }
 
     // -- happy-path -------------------------------------------------------- //
 
