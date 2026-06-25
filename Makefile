@@ -48,7 +48,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene \
-	lsp-build lsp-sarif diagnostics-rust-sarif \
+	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance insta-review \
 	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report \
 	maint-classic-cross-check maint-reason-hermit maint-explain maint-697-oracle-gold maint-verify-docker \
@@ -106,6 +106,12 @@ rust-test: rust-build ## Run the Rust workspace tests and doctests.
 lsp-build: $(RUST_READY_STAMP) ## Build the gmeow-lsp binary (debug profile).
 	cargo build -p gmeow-lsp
 
+lsp-release: $(RUST_READY_STAMP) ## Build the gmeow-lsp release binary and stage it into dist/bin/.
+	cargo build -p gmeow-lsp --release
+	mkdir -p dist/bin
+	cp $(CARGO_TARGET_DIR)/release/gmeow-lsp dist/bin/gmeow-lsp
+	@echo "gmeow-lsp release binary staged at dist/bin/gmeow-lsp"
+
 lsp-sarif: lsp-build ## Emit SARIF from all .ttl files in the workspace root (report-only).
 	$(CARGO_TARGET_DIR)/debug/gmeow-lsp sarif --out $(CARGO_TARGET_DIR)/lsp-sarif --category rust $$(find . -maxdepth 5 -name '*.ttl' -not -path './target/*' -not -path './.venv/*' | head -20) || true
 	@echo "SARIF written to $(CARGO_TARGET_DIR)/lsp-sarif/gmeow-feedback.sarif"
@@ -153,6 +159,7 @@ project: ## Project GMEOW data to schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time 
 release: docs ## Regenerate, native-reason, build, report, docs, and emit CrossRef deposit.
 	$(GMEOW_DEV) reason --mode native --merge
 	$(MAKE) build
+	$(MAKE) lsp-release
 	$(MAKE) maint-compliance-report-full
 	$(MAKE) crossref
 

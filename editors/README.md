@@ -10,8 +10,18 @@ The server is installed via:
 cargo install --path crates/lsp
 ```
 
-or from a release artifact. It is built with the repo's pinned nightly
-toolchain (see `rust-toolchain.toml`).
+or via the release target, which builds a release-profile binary and stages it
+at `dist/bin/gmeow-lsp`:
+
+```sh
+make lsp-release
+# binary is at dist/bin/gmeow-lsp
+```
+
+`make release` calls `lsp-release` automatically, so `dist/bin/gmeow-lsp` is
+always present after a full release run.
+
+It is built with the repo's pinned nightly toolchain (see `rust-toolchain.toml`).
 
 ## VS Code
 
