@@ -48,7 +48,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene \
-	lsp-build lsp-sarif \
+	lsp-build lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance insta-review \
 	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report \
 	maint-classic-cross-check maint-reason-hermit maint-explain maint-697-oracle-gold maint-verify-docker \
@@ -109,6 +109,10 @@ lsp-build: $(RUST_READY_STAMP) ## Build the gmeow-lsp binary (debug profile).
 lsp-sarif: lsp-build ## Emit SARIF from all .ttl files in the workspace root (report-only).
 	$(CARGO_TARGET_DIR)/debug/gmeow-lsp sarif --out $(CARGO_TARGET_DIR)/lsp-sarif --category rust $$(find . -maxdepth 5 -name '*.ttl' -not -path './target/*' -not -path './.venv/*' | head -20) || true
 	@echo "SARIF written to $(CARGO_TARGET_DIR)/lsp-sarif/gmeow-feedback.sarif"
+
+diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow-lsp.
+	cargo build -p gmeow-lsp
+	./target/debug/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
 check: native-py ## Run the full Docker-free local quality gate.
 	$(MAKE) -j$(NPROC) $(CHECK_TARGETS)
