@@ -47,6 +47,27 @@ logic:AdmitAllFour
     rdfs:label "Admit All Four"@x-gmeow-english ;
     skos:definition "The admissible-valuation policy that permits all four Belnap values — true, false, both (glut), and neither (gap). It carves out First-Degree Entailment (FDE): a valuation may leave an atom under-determined (gap) or over-determined (glut). Reducing the FDE↔LP difference to the designated-value set is a formal error — FDE differs from LP by admitting the gap, not by its designated values."@x-gmeow-english .
 
+logic:AgencyAssessment
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Agency Assessment"@x-gmeow-english ;
+    skos:definition "The canonical relational construct of holonic agency: a four-valued assessment of whether a holon exhibits Koestler's two co-equal Janus tendencies — self-assertive (autonomy, as a whole) and integrative (subordination, as a part) — always made relative to a declared logic:HolonicAgencyProfile. Holon integrity is assessed, never asserted — the assessment is reified with the role properties logic:agencyHolon and logic:agencyProfile, and the engine derives its logic:agencyVerdict (logic:HolonIntegral, logic:AutonomyDeficient, logic:IntegrationDeficient, or logic:AgencyUnknown). The two pathologies are the collapse of one tendency: a 'part' with no autonomy (logic:AutonomyDeficient) and a 'whole' that refuses to integrate (logic:IntegrationDeficient); integrity is both present, and neither face is privileged over the other (Principle 9). The convenient unary reading 'this holon is integral' is the lossy projection of this assessment, exactly as logic:Holon projects logic:HolonicPosition and logic:EmergenceAssessment carries emergence (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:AgencyUnknown
+    a owl:NamedIndividual ,
+        logic:AgencyVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Agency Unknown"@x-gmeow-english ;
+    skos:definition "The agency-verdict value when neither Janus tendency is evidenced: under the declared logic:HolonicAgencyProfile, the assessed holon bears neither an logic:selfAssertiveBasis value nor an logic:integrativeBasis value, so neither the self-assertive nor the integrative marker can fire and the integrity question has no positive footing. This subsumes the 'cannot pose the question' case: it fires both when the holon bears no basis value and when the profile declares no basis at all (no marker can derive). The first-class fourth value, kept distinct from the two pathologies so that a holon evidencing neither tendency is never silently read as a deficiency of one — failure-to-evidence is not integrity, and a basis-free profile is unknown, not deficient. Mirrors logic:EmergenceUnknown and logic:ConstraintUnknown (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
+logic:AgencyVerdict
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Agency Verdict"@x-gmeow-english ;
+    skos:definition "The closed class of holonic-agency outcomes: the four-valued result an logic:AgencyAssessment receives via logic:agencyVerdict. Its four named individuals are logic:HolonIntegral (both Janus tendencies present), logic:AutonomyDeficient (a 'part' with no autonomy), logic:IntegrationDeficient (a 'whole' refusing to integrate), and logic:AgencyUnknown (neither tendency evidenced, so the integrity question has no positive footing). The set is closed, so a misspelt verdict names no declared value and is rejected rather than silently accepted, mirroring logic:EmergenceVerdict and logic:ConstraintVerdict (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:Aggregate
     a owl:NamedIndividual ,
         logic:EmergenceVerdict ;
@@ -74,6 +95,13 @@ logic:Aspect
     rdfs:label "Aspect"@x-gmeow-english ;
     skos:definition "A moment (trope): an endurant that exists only by inhering in a bearer on which it existentially depends — a colour, a belief, a marriage's commitment. The counterpart of gufo:Aspect, covering its intrinsic/extrinsic split (gufo:IntrinsicAspect inheres in a single bearer, gufo:ExtrinsicAspect depends on several): logic: carries that distinction on the inherence/dependence relation rather than as separate classes. The dependent counterpart of logic:Substantial. Qualities and modes are aspects (stated in prose, not as a subclass edge)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:AutonomyDeficient
+    a owl:NamedIndividual ,
+        logic:AgencyVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Autonomy Deficient"@x-gmeow-english ;
+    skos:definition "The agency-verdict value for the first Koestlerian pathology — a 'part' with no autonomy: under the declared logic:HolonicAgencyProfile, the holon bears an logic:integrativeBasis value (it subordinates as a part) but bears no logic:selfAssertiveBasis value, so its self-assertive (autonomy-as-a-whole) face has collapsed. Reached by negation-as-failure over the self-assertive marker while the integrative marker holds, so the verdict is profile-relative, never a bare default. The co-equal counterpart of logic:IntegrationDeficient (the opposite collapse); contrast logic:HolonIntegral (both faces) and logic:AgencyUnknown (neither evidenced) (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
 
 logic:BelnapBilattice
     a owl:NamedIndividual ,
@@ -508,6 +536,20 @@ logic:Holon
     skos:definition "The lossy unary projection of logic:HolonicPosition: an entity that, within some holarchy, is simultaneously a whole and a part — both a proper part of some larger whole and itself having a proper part. Holon-ness is never a bare property of the entity; it is a position occupied in a particular holarchy, context, interval, and path, so logic:Holon is the convenient, lossy projection of that relational logic:HolonicPosition, exactly as the standpoint-modality view projects finer axes (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section). Root wholes and atomic leaves are not holons."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:HolonIntegral
+    a owl:NamedIndividual ,
+        logic:AgencyVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Holon Integral"@x-gmeow-english ;
+    skos:definition "The agency-verdict value for a holon that exhibits both Janus tendencies: under the declared logic:HolonicAgencyProfile of an logic:AgencyAssessment, the holon bears (logic:bearsProperty) both a logic:selfAssertiveBasis value (it asserts itself as a whole) and a logic:integrativeBasis value (it subordinates itself as a part) — Koestler's balanced holon. The positive, derivation-grounded verdict, reached by an actual two-face conjunction rather than by negation; the two faces are co-equal, neither privileged (Principle 9). Contrast logic:AutonomyDeficient and logic:IntegrationDeficient (one face collapsed) and logic:AgencyUnknown (neither evidenced) (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
+logic:HolonicAgencyProfile
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Holonic Agency Profile"@x-gmeow-english ;
+    skos:definition "A declared profile of holonic agency that a holarchy may adopt, relative to which an logic:AgencyAssessment is made. It carries, via logic:selfAssertiveBasis and logic:integrativeBasis, the property-values that respectively evidence a holon's self-assertive (autonomy-as-a-whole) and integrative (subordination-as-a-part) tendencies — Koestler's two co-equal Janus faces, neither primary (Principle 9). Holonic agency is always relative to such a profile: it is a named profile a holarchy adopts, NOT a universal well-formedness rule every holon must satisfy — a bolt, a file-segment, or a process-phase needs no autonomy and is simply outside the profile (issue #775). The Koestlerian-agency analogue of a logic:ReductionTheory (which scopes the emergence calculus) and a logic:GovernanceRegime (which scopes downward constraint) — it scopes the autonomy/integration calculus rather than asserting agency foundation-wide (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:HolonicPosition
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -542,6 +584,13 @@ logic:Individual
     rdfs:label "Individual"@x-gmeow-english ;
     skos:definition "A particular: an entity that is NOT a logic:Type — it is instantiated by types (via logic:instanceOf) but has no instances of its own, sitting at the bottom of every instantiation chain (logic:orderedType 0). The counterpart of gufo:Individual; the root complementing logic:Type. Specialized by logic:ConcreteIndividual (in spacetime) and logic:AbstractIndividual (outside it). Stated in prose, not as a subclass edge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:IntegrationDeficient
+    a owl:NamedIndividual ,
+        logic:AgencyVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Integration Deficient"@x-gmeow-english ;
+    skos:definition "The agency-verdict value for the second Koestlerian pathology — a 'whole' that refuses to integrate: under the declared logic:HolonicAgencyProfile, the holon bears an logic:selfAssertiveBasis value (it asserts itself as a whole) but bears no logic:integrativeBasis value, so its integrative (subordination-as-a-part) face has collapsed. Reached by negation-as-failure over the integrative marker while the self-assertive marker holds, so the verdict is profile-relative, never a bare default. The co-equal counterpart of logic:AutonomyDeficient (the opposite collapse); contrast logic:HolonIntegral (both faces) and logic:AgencyUnknown (neither evidenced) (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
 
 logic:JointOutcome
     a owl:Class ;
@@ -1194,6 +1243,32 @@ logic:admissibleValuation
     rdfs:label "admissible valuation"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:AdmissibleValuationPolicy it selects — the gap/glut policy fixing which Belnap values a valuation may assign. Single-valued on the contract. Domain logic:ReasoningContract, range logic:AdmissibleValuationPolicy (stated here in prose, matching the module's domain/range convention). It is one of the three independent truth-facet components and must not be conflated with logic:designatedValues."@x-gmeow-english .
 
+logic:agencyHolon
+    a owl:ObjectProperty ;
+    rdfs:domain logic:AgencyAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "agency holon"@x-gmeow-english ;
+    skos:definition "The holon role of an logic:AgencyAssessment: the entity whose Janus-faced holonic agency is being assessed — the holon that bears (logic:bearsProperty) the self-assertive and integrative values the profile reasons over. One of the two role properties (with logic:agencyProfile) that reify the agency-assessment relation onto the arity-bounded reasoning surface, mirroring logic:assessmentWhole and the logic:HolonicPosition role properties. It is also a well-formedness existence guard: every verdict rule re-binds it, so a malformed assessment naming no holon receives no verdict (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:agencyProfile
+    a owl:ObjectProperty ;
+    rdfs:domain logic:AgencyAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "agency profile"@x-gmeow-english ;
+    rdfs:range logic:HolonicAgencyProfile ;
+    skos:definition "The profile role of an logic:AgencyAssessment: the logic:HolonicAgencyProfile the assessment is relative to. Holonic agency is never absolute — the verdict (logic:HolonIntegral / logic:AutonomyDeficient / logic:IntegrationDeficient / logic:AgencyUnknown) is read only against this declared profile's logic:selfAssertiveBasis and logic:integrativeBasis. An assessment that omits this role, or whose profile declares no basis at all, cannot evidence either tendency and receives logic:AgencyUnknown. One of the two role properties (with logic:agencyHolon) that reify the agency-assessment relation, mirroring logic:assessmentReductionTheory and logic:constraintRegime (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:agencyVerdict
+    a owl:ObjectProperty ;
+    rdfs:domain logic:AgencyAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "agency verdict"@x-gmeow-english ;
+    rdfs:range logic:AgencyVerdict ;
+    skos:definition "The engine-derived outcome of an logic:AgencyAssessment: the four-valued logic:AgencyVerdict (logic:HolonIntegral, logic:AutonomyDeficient, logic:IntegrationDeficient, or logic:AgencyUnknown) the foundation lowering entails for it. Never asserted by hand — it is computed by the stratified agency rules from the assessment's holon and declared logic:HolonicAgencyProfile, the convenient OWL-projectable surface of the assessment exactly as logic:assessmentVerdict is for emergence and logic:constraintVerdict for governance. The two pathology values are reached by negation-as-failure over the two co-equal tendency markers, so each verdict is genuinely profile-relative rather than a bare default (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:argumentation
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1457,6 +1532,14 @@ logic:instanceOf
     skos:definition "HiLog deep instantiation: relates an individual or a type to a (possibly higher-order) type it instantiates, across any number of meta-levels. The first-class multi-level primitive that replaces OWL punning (criticism 5): types are reified as first-order individuals so 'an instance of a type that is itself an instance of a metatype' is ordinary first-order quantification rather than a punning trick. The general relation of which logic:suppliesIdentity is the identity-supplying specialization."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:integrativeBasis
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicAgencyProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "integrative basis"@x-gmeow-english ;
+    skos:definition "Relates a logic:HolonicAgencyProfile to a property-value that evidences the integrative tendency: the profile holds that a holon bearing this value (logic:bearsProperty) subordinates itself as a part to a larger whole — Koestler's integrative face. The carrier that makes integration profile-relative, the co-equal twin of logic:selfAssertiveBasis (neither privileged, Principle 9). Without a borne integrative value a holon's integration face is not evidenced, contributing — together with the self-assertive face — to the logic:AgencyVerdict (logic:IntegrationDeficient or logic:HolonIntegral). The integration analogue of logic:reductionBasis and logic:activationBasis (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:invokesBuiltin
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1662,6 +1745,14 @@ logic:rigidlyAppliesTo
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "rigidly applies to"@x-gmeow-english ;
     skos:definition "Relates a rigid type to the individuals it necessarily classifies: for every individual and every pair of worlds in which the individual exists, if it instantiates the type in one world it instantiates it in the other. The modal rigidity constraint; a Kind rigidly applies to its instances, an anti-rigid Role or Phase does not (the same constraint negated). Lowered to a universally quantified, world-indexed rule evaluated by closure over the finite materialized world set, needing no native modal operator."@x-gmeow-english .
+
+logic:selfAssertiveBasis
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicAgencyProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "self-assertive basis"@x-gmeow-english ;
+    skos:definition "Relates a logic:HolonicAgencyProfile to a property-value that evidences the self-assertive (autonomy) tendency: the profile holds that a holon bearing this value (logic:bearsProperty) asserts itself as a whole — Koestler's self-assertive face. The carrier that makes autonomy profile-relative, the co-equal twin of logic:integrativeBasis (neither privileged, Principle 9). Without a borne self-assertive value a holon's autonomy face is not evidenced, contributing — together with the integrative face — to the logic:AgencyVerdict (logic:AutonomyDeficient or logic:HolonIntegral). The autonomy analogue of logic:reductionBasis and logic:activationBasis (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:suppliesIdentity
     a owl:ObjectProperty ;
