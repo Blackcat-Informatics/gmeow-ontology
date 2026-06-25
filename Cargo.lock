@@ -1703,6 +1703,8 @@ name = "gmeow-foundation-corpus"
 version = "0.1.0"
 dependencies = [
  "gmeow-rdf",
+ "gmeow-shacl",
+ "oxigraph",
  "serde",
  "serde_json",
  "tempfile",

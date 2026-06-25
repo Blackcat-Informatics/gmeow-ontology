@@ -371,7 +371,15 @@ impl FoundationImporter {
         self.add_iri(&frame, &gm("discourseTimeOf"), work);
         self.add_iri(&frame, &gm("frameRealm"), &gm("frameRealmNarrative"));
         self.add_iri(&frame, &gm("frameKind"), &gm("frameKindNarrative"));
-        self.add_iri(&frame, &gm("hasAxis"), &format!("{frame}/axis"));
+        // The single coordinate axis of the discourse frame. It MUST be typed
+        // gmeow:Axis: gmeow:NarrativeTimeFrame ⊑ gmeow:ReferenceFrame, so the
+        // closed-world FrameProfileShape requires every gmeow:hasAxis value to be
+        // an Axis (sh:class gmeow:Axis). A bare, untyped axis IRI passes only when
+        // SHACL runs fixture-alone (no subclass closure); under the whole-ontology
+        // merged validation it is a genuine violation (#944).
+        let axis = format!("{frame}/axis");
+        self.add_type(&axis, &gm("Axis"));
+        self.add_iri(&frame, &gm("hasAxis"), &axis);
         {
             let s = self.iri(&frame);
             let p = self.iri(&gm("dimensionCount"));
