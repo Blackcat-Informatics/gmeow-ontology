@@ -220,7 +220,41 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   projection of the verdict accrete in C5 (#708).
 - **Downward constraint is structured and non-transitive.** A whole may constrain its parts, but the
   constraint is a typed, directed relation that does **not** chain transitively by default; a
-  constraint from level *n* onto level *n−1* says nothing automatic about level *n−2*.
+  constraint from level *n* onto level *n−1* says nothing automatic about level *n−2*. The construct is
+  concrete and mirrors the emergence calculus above, but for governance flowing *down* rather than
+  reducibility flowing *up*: `logic:DownwardConstraint` is reified with the role properties
+  `logic:constraintWhole`, `logic:constraintTarget`, `logic:constraintState`, `logic:constraintRegime`,
+  and `logic:constraintOverride`, and the engine *derives* its `logic:constraintVerdict` — one of the
+  three closed `logic:ConstraintVerdict` values `logic:ConstraintBinding`, `logic:ConstraintOverridden`,
+  `logic:ConstraintUnknown`. This is downward **constraint, never material causation**: the governing
+  whole *bounds the permissible role/state* of a named proper part, it does not produce or compose the
+  part. The constrained `logic:constraintState` is typically the part's functional role or
+  `gmeow:Goal` set in the context of its super-whole (the teleology slice, linked via `rdfs:seeAlso`) —
+  the downward face of holonic governance is precisely that a part's teleology is fixed relative to the
+  holon it serves. Governance is **regime-relative**: a `logic:GovernanceRegime` carries, via
+  `logic:activationBasis`, the constrained states it activates as binding, exactly as a
+  `logic:ReductionTheory` carries its `logic:reductionBasis` — the same whole may bind a part's state
+  under one regime and leave it unknown under another, and a binding can be quieted by a different
+  regime without contradiction. The verdict is computed by five stratified rules in the same
+  marker→projection shape as emergence: a constraint is **ConstraintOverridden** (the positive,
+  derivation-grounded verdict) when it names an override and the target *bears* that declared token
+  (`logic:bearsProperty`); it is **ConstraintBinding** by negation-as-failure over that override
+  derivation *while the constraint still binds a declared regime whose basis activates the state* — so
+  the verdict is regime-relative, never a bare "unconstrained" default; and it is
+  **ConstraintUnknown** when the named target is a proper part of the whole but no regime activates the
+  constrained state, so the binding question cannot even be posed (the first-class third value;
+  failure-to-activate is not constraint). The override settles below the binding NAF (stratum 1 vs
+  stratum 3), so an overridden constraint is never read as binding. Crucially — and this is the C3
+  analogue of emergence's non-inheritance — **no rule cascades the constraint down
+  `logic:properPartOf`**: every verdict rule is gated on an explicit `logic:constraintTarget`
+  reification, so a constraint onto a part says nothing automatic about that part's own sub-parts.
+  Non-transitivity is therefore a **structural guarantee robust by construction**, not incidental to
+  the EDB-only treatment of `properPartOf`: even were the transitive closure of `properPartOf`
+  materialized, no verdict could attach to an entity that no `logic:DownwardConstraint` names. It is
+  demonstrated positively in the holonic-governance conformance case (a grandchild that is a transitive
+  proper part of the governing whole, targeted by no constraint, carries *no* `logic:constraintVerdict`
+  in the golden `materialized.nq`). The minimal case lands here; the full governance corpus and the
+  lossy OWL projection of the verdict accrete in C5 (#708).
 - **Autonomy/integration is a named profile.** The Koestlerian balance of part-autonomy against
   whole-integration is a **declared profile** a holarchy may adopt, not a universal well-formedness
   rule every holon must satisfy.
