@@ -445,6 +445,61 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
+    // ── Holonic emergence: aggregate reduction (issue #705, C2) ──────────────────────
+    // The positive, derivation-grounded verdict marker.  Under the assessment's declared
+    // logic:ReductionTheory, the whole bears a property the theory's logic:reductionBasis
+    // carries AND a proper part also bears it, so the property reduces to the parts — a
+    // genuine part-reconstruction, not a default.  Inert on inputs with no
+    // logic:EmergenceAssessment.  (LOGIC-FOUNDATION.md §mereology+holons.)
+    //
+    // aggregateAssessed(?A, ?A) :- assessmentWhole(?A, ?W), assessmentProperty(?A, ?Pv),
+    //     assessmentReductionTheory(?A, ?T), reductionBasis(?T, ?Pv), bearsProperty(?W, ?Pv),
+    //     properPartOf(?Part, ?W), bearsProperty(?Part, ?Pv)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("aggregateAssessed")),
+            var("?A"),
+        ),
+        body: &[
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentWhole")),
+                var("?W"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentProperty")),
+                var("?Pv"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentReductionTheory")),
+                var("?T"),
+            ),
+            pos(
+                var("?T"),
+                TermPat::Const(logic_iri!("reductionBasis")),
+                var("?Pv"),
+            ),
+            pos(
+                var("?W"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?Pv"),
+            ),
+            pos(
+                var("?Part"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?W"),
+            ),
+            pos(
+                var("?Part"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?Pv"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
 ];
 
 const STRATUM_2: &[Rule] = &[
@@ -535,6 +590,21 @@ const STRATUM_2: &[Rule] = &[
             var("?C"),
             TermPat::Const(logic_iri!("subClassOf")),
             var("?X"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic emergence: aggregate verdict projection (issue #705, C2) ─────────────
+    // assessmentVerdict(?A, logic:Aggregate) :- aggregateAssessed(?A, ?A)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("assessmentVerdict")),
+            TermPat::Const(logic_iri!("Aggregate")),
+        ),
+        body: &[pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("aggregateAssessed")),
+            var("?A"),
         )],
         distinct_pairs: NO_GUARD,
     },
@@ -652,6 +722,64 @@ const STRATUM_3: &[Rule] = &[
             ),
         ],
         distinct_pairs: &[("?P", "?P2")],
+    },
+    // ── Holonic emergence: emergent verdict (issue #705, C2) ─────────────────────────
+    // Emergent by negation-as-failure over the aggregate reduction, WHILE the assessment
+    // still binds a declared logic:ReductionTheory (?T) — so the verdict is theory-relative,
+    // never a bare "unflagged" default, and failure-to-derive is not irreducibility.
+    // aggregateAssessed settles in stratum 1, so the NAF is stratified; ?A/?T/?Pv/?W are all
+    // positively bound, so the rule is DL-safe.
+    //
+    // emergentAssessed(?A, ?A) :- assessmentWhole(?A, ?W), assessmentProperty(?A, ?Pv),
+    //     assessmentReductionTheory(?A, ?T), bearsProperty(?W, ?Pv), NOT aggregateAssessed(?A, ?A)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("emergentAssessed")),
+            var("?A"),
+        ),
+        body: &[
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("aggregateAssessed")),
+                var("?A"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentWhole")),
+                var("?W"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentProperty")),
+                var("?Pv"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentReductionTheory")),
+                var("?T"),
+            ),
+            pos(
+                var("?W"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?Pv"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // assessmentVerdict(?A, logic:Emergent) :- emergentAssessed(?A, ?A)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("assessmentVerdict")),
+            TermPat::Const(logic_iri!("Emergent")),
+        ),
+        body: &[pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("emergentAssessed")),
+            var("?A"),
+        )],
+        distinct_pairs: NO_GUARD,
     },
 ];
 
@@ -855,6 +983,52 @@ const STRATUM_4: &[Rule] = &[
                 var("?X"),
                 TermPat::Const(logic_iri!("supplementationScoped")),
                 var("?X"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic emergence: unknown verdict (issue #705, C2) ──────────────────────────
+    // ME9's first-class third value: the whole bears the property under assessment, but
+    // neither an aggregate reduction nor a theory-relative emergence verdict is derivable
+    // (the assessment declares no logic:assessmentReductionTheory, so emergentAssessed
+    // cannot fire either), so the reducibility question cannot be posed.  Both NAF targets
+    // (aggregateAssessed S1, emergentAssessed S3) are settled below stratum 4, so the
+    // negation is stratified; ?A/?W/?Pv are positively bound, so the rule is DL-safe.
+    //
+    // assessmentVerdict(?A, logic:EmergenceUnknown) :- assessmentWhole(?A, ?W),
+    //     assessmentProperty(?A, ?Pv), bearsProperty(?W, ?Pv),
+    //     NOT aggregateAssessed(?A, ?A), NOT emergentAssessed(?A, ?A)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("assessmentVerdict")),
+            TermPat::Const(logic_iri!("EmergenceUnknown")),
+        ),
+        body: &[
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("aggregateAssessed")),
+                var("?A"),
+            ),
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("emergentAssessed")),
+                var("?A"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentWhole")),
+                var("?W"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("assessmentProperty")),
+                var("?Pv"),
+            ),
+            pos(
+                var("?W"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?Pv"),
             ),
         ],
         distinct_pairs: NO_GUARD,

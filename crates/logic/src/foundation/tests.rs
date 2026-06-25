@@ -634,10 +634,18 @@ const IDENTITY_GOLDEN: &str =
     include_str!("../../../../conformance/logic/cases/foundation/identity-overlap-mixiden/expected/materialized.nq");
 const RELCOMP_GOLDEN: &str =
     include_str!("../../../../conformance/logic/cases/foundation/relcomp-under-mediated/expected/materialized.nq");
+// Holonic emergence (issue #705, C2): the input.nq seed facts and the full
+// materialized golden are read straight from the conformance case, so this Rust
+// golden and the conformance harness assert the SAME bytes.
+const HOLONIC_EMERGENCE_INPUT: &str =
+    include_str!("../../../../conformance/logic/cases/foundation/holonic-emergence/input.nq");
+const HOLONIC_EMERGENCE_GOLDEN: &str = include_str!(
+    "../../../../conformance/logic/cases/foundation/holonic-emergence/expected/materialized.nq"
+);
 
 #[test]
 fn golden_quad_sets_match_for_single_world_cases() {
-    let cases: [(&str, &str, &str); 4] = [
+    let cases: [(&str, &str, &str); 5] = [
         (
             "exactly-one-stereotype",
             EXACTLY_ONE_GOLDEN,
@@ -666,6 +674,11 @@ fn golden_quad_sets_match_for_single_world_cases() {
              <https://example.org/foundation/relcomp-under-mediated/Employment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/Employer> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
              <https://example.org/foundation/relcomp-under-mediated/Marriage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Relator> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
              <https://example.org/foundation/relcomp-under-mediated/Marriage> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/Spouse1> <https://example.org/foundation/relcomp-under-mediated/schema> .\n",
+        ),
+        (
+            "holonic-emergence",
+            HOLONIC_EMERGENCE_GOLDEN,
+            HOLONIC_EMERGENCE_INPUT,
         ),
     ];
 
@@ -1009,5 +1022,103 @@ fn weak_supplementation_inert_without_profile() {
     assert!(
         !has_violation(&quads, &format!("{base}/W3"), "WeakSupplementation"),
         "W3 (lone part, NO profile) must NOT fire WeakSupplementation"
+    );
+}
+
+#[test]
+fn holonic_emergence_tri_valued_verdicts_and_non_propagation() {
+    // One whole (Car, with proper parts Engine + Wheel) under one reduction theory
+    // (AdditiveTheory, whose basis carries HasMass but NOT Drivable) drives all three
+    // emergence verdicts, and the emergent property must NOT propagate to the parts.
+    let base = "https://example.org/foundation/holonic-emergence";
+    let nq = format!(
+        "<{base}/Engine> <{LOGIC}properPartOf> <{base}/Car> <{base}/schema> .\n\
+         <{base}/Wheel> <{LOGIC}properPartOf> <{base}/Car> <{base}/schema> .\n\
+         <{base}/Car> <{LOGIC}bearsProperty> <{base}/HasMass> <{base}/schema> .\n\
+         <{base}/Engine> <{LOGIC}bearsProperty> <{base}/HasMass> <{base}/schema> .\n\
+         <{base}/Car> <{LOGIC}bearsProperty> <{base}/Drivable> <{base}/schema> .\n\
+         <{base}/Car> <{LOGIC}bearsProperty> <{base}/Numinous> <{base}/schema> .\n\
+         <{base}/AdditiveTheory> <{LOGIC}reductionBasis> <{base}/HasMass> <{base}/schema> .\n\
+         <{base}/AssessMass> <{LOGIC}assessmentWhole> <{base}/Car> <{base}/schema> .\n\
+         <{base}/AssessMass> <{LOGIC}assessmentProperty> <{base}/HasMass> <{base}/schema> .\n\
+         <{base}/AssessMass> <{LOGIC}assessmentReductionTheory> <{base}/AdditiveTheory> <{base}/schema> .\n\
+         <{base}/AssessDrive> <{LOGIC}assessmentWhole> <{base}/Car> <{base}/schema> .\n\
+         <{base}/AssessDrive> <{LOGIC}assessmentProperty> <{base}/Drivable> <{base}/schema> .\n\
+         <{base}/AssessDrive> <{LOGIC}assessmentReductionTheory> <{base}/AdditiveTheory> <{base}/schema> .\n\
+         <{base}/AssessNuminous> <{LOGIC}assessmentWhole> <{base}/Car> <{base}/schema> .\n\
+         <{base}/AssessNuminous> <{LOGIC}assessmentProperty> <{base}/Numinous> <{base}/schema> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+
+    // Aggregate: the theory's basis carries HasMass AND a proper part bears it.
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/AssessMass"),
+            "assessmentVerdict",
+            &format!("{LOGIC}Aggregate")
+        ),
+        "mass (theory-reduced, borne by a part) must be Aggregate"
+    );
+    // Emergent: borne by the whole, theory declared, but not part-reducible — a genuine
+    // negation-as-failure over the aggregate derivation, never a theory-free default.
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/AssessDrive"),
+            "assessmentVerdict",
+            &format!("{LOGIC}Emergent")
+        ),
+        "drivability (borne by the whole, not reduced by the theory) must be Emergent"
+    );
+    // Unknown: the whole bears the property but the assessment declares no reduction
+    // theory, so the reducibility question cannot be posed (ME9's third value).
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/AssessNuminous"),
+            "assessmentVerdict",
+            &format!("{LOGIC}EmergenceUnknown")
+        ),
+        "a theory-free assessment of a borne property must be EmergenceUnknown"
+    );
+    // The three verdicts are mutually exclusive — no assessment carries two.
+    assert!(
+        !has_binary(
+            &quads,
+            &format!("{base}/AssessDrive"),
+            "assessmentVerdict",
+            &format!("{LOGIC}Aggregate")
+        ),
+        "the emergent assessment must NOT also be Aggregate"
+    );
+    // NON-PROPAGATION: the emergent property never reaches the parts, and is not
+    // entailed by the parts' properties — non-inheritance is structural.
+    assert!(
+        !has_binary(
+            &quads,
+            &format!("{base}/Engine"),
+            "bearsProperty",
+            &format!("{base}/Drivable")
+        ),
+        "emergent Drivable must NOT propagate down properPartOf to Engine"
+    );
+    assert!(
+        !has_binary(
+            &quads,
+            &format!("{base}/Wheel"),
+            "bearsProperty",
+            &format!("{base}/Drivable")
+        ),
+        "emergent Drivable must NOT propagate down properPartOf to Wheel"
+    );
+    assert!(
+        !has_binary(
+            &quads,
+            &format!("{base}/Engine"),
+            "bearsProperty",
+            &format!("{base}/Numinous")
+        ),
+        "the Numinous (Unknown) property must NOT propagate to Engine"
     );
 }
