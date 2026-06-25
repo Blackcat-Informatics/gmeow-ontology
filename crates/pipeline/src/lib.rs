@@ -38,6 +38,7 @@ pub mod registry;
 pub mod run;
 pub mod scheduler;
 pub mod stages;
+pub mod up_projection;
 
 #[cfg(feature = "python")]
 pub mod py;
