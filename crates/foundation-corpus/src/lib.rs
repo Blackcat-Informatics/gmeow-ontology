@@ -30,6 +30,12 @@ pub mod projections;
 pub mod reconcile;
 pub mod slug;
 
+#[cfg(feature = "python")]
+pub mod py;
+
+#[cfg(feature = "python")]
+pub use py::register;
+
 use std::path::Path;
 use std::sync::Arc;
 

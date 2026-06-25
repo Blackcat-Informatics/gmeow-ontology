@@ -1705,6 +1705,7 @@ dependencies = [
  "gmeow-rdf",
  "gmeow-shacl",
  "oxigraph",
+ "pyo3",
  "serde",
  "serde_json",
  "tempfile",
@@ -1773,6 +1774,7 @@ version = "0.1.0"
 dependencies = [
  "gmeow-diagnostics",
  "gmeow-docs",
+ "gmeow-foundation-corpus",
  "gmeow-logic",
  "gmeow-pipeline",
  "gmeow-rdf",
