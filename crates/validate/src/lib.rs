@@ -31,6 +31,7 @@ pub mod gufo;
 pub mod instance;
 pub mod language_tags;
 pub mod lint;
+pub mod mapping_eval;
 pub mod model;
 pub mod signature;
 pub mod slice_ownership;
