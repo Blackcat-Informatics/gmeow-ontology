@@ -49,13 +49,13 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene \
 	slicetest conformance insta-review \
-	fuzz-smoke bench bench-json rust-coverage mutants compliance-report \
+	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report \
 	maint-classic-cross-check maint-reason-hermit maint-explain maint-697-oracle-gold maint-verify-docker \
 	maint-reasoning-cases maint-statements-docker-check maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
 	maint-test-network maint-pull-images maint-quality maint-evals-score \
-	maint-compliance-report-full
+	maint-compliance-report-full maint-bench-baseline
 
 ##@ Core Workflows
 
@@ -236,9 +236,8 @@ fuzz-smoke: ## Run bounded coverage-guided fuzz smoke tests for each format fron
 bench: ## Run criterion benchmarks with host-tuned codegen.
 	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate
 
-bench-json: ## Flatten criterion estimates into bench-results.json.
-	python3 scripts/bench_to_json.py > bench-results.json
-	@echo "wrote bench-results.json ($$(wc -c < bench-results.json) bytes)"
+bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
+	@cargo run -q -p gmeow-pipeline --bin bench-compare
 
 rust-coverage: ## Generate report-only Rust region coverage.
 	cargo llvm-cov nextest --workspace --include-ffi --lcov --output-path lcov.info
@@ -319,6 +318,11 @@ maint-evals-score: ## Score committed model emissions against the eval contract.
 
 maint-compliance-report-full: ## Run in-process gates and emit dist/compliance-report.ttl.
 	$(GMEOW_DEV) compliance-report
+
+maint-bench-baseline: ## (maintainer) Refresh bench/baseline.json from a fresh criterion run.
+	$(MAKE) bench
+	cargo run -q -p gmeow-pipeline --bin bench-compare -- --emit-baseline > bench/baseline.json
+	@echo "wrote bench/baseline.json ($$(wc -c < bench/baseline.json) bytes) — regenerate + commit"
 
 native-py: $(NATIVE_PY_STAMP)
 

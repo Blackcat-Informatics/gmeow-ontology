@@ -164,6 +164,7 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-references", "references"),
         ("stage-export-evals", "evals"),
         ("stage-export-research-objects", "research-objects"),
+        ("stage-export-bench", "bench"),
     ] {
         stages.push(st(id, StageKind::ExportLeaf, impl_key, &[]));
     }
