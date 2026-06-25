@@ -1694,8 +1694,10 @@ dependencies = [
  "pretty_assertions",
  "pulldown-cmark",
  "pyo3",
+ "regex",
  "serde",
  "serde_json",
+ "sha1 0.10.6",
 ]
 
 [[package]]

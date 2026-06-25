@@ -681,7 +681,7 @@ impl Stage for SnapshotStage {
 
 // ── default graph (authored ontology, NO imports) ───────────────────────────────
 
-/// The localizable predicates (`i18n_catalog.LOCALIZABLE_PREDICATES`): the
+/// The localizable predicates shared with `gmeow-docs` i18n compilation: the
 /// vocabulary surface a slice `.po` catalog may translate. Full IRIs.
 const LOCALIZABLE_PREDICATES: &[&str] = &[
     "http://www.w3.org/2000/01/rdf-schema#label",
