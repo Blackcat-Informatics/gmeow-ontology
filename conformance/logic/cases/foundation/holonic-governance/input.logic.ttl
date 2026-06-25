@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: foundation/holonic-governance
+# AC: holonic downward constraint / governance — DownwardConstraint relative to a
+# governance regime (issue #706, C3; revised by ME9 / #775).
+#
+# Governance is the DOWNWARD (governing) face of a holon: a whole CONSTRAINS its parts.
+# This is downward constraint, NOT material causation — the whole bounds a part's
+# permissible role/state, it does not produce the part. A logic:DownwardConstraint over a
+# (whole, target, state, regime, override) signature receives a tri-valued
+# logic:constraintVerdict the engine DERIVES. One holarchy (ex:Department ▷ ex:Team ▷
+# ex:Member) and one regime (ex:HouseRegime, whose logic:activationBasis carries
+# ex:OnCallState but NOT ex:IdleState) exercise all three verdicts:
+#   * ex:GovActive (Department→Team, OnCallState, HouseRegime, no override)
+#       → logic:ConstraintBinding — Team is a proper part of Department and the regime
+#       activates OnCallState, so the constraint binds; reached by negation-as-failure
+#       over the override derivation WHILE a regime is still bound, so it is regime-relative.
+#   * ex:GovWaived (Department→Team, OnCallState, HouseRegime, override ex:CharterWaiver)
+#       → logic:ConstraintOverridden — the would-be binding is DEFEATED because Team bears
+#       the declared override token (logic:bearsProperty), and overriddenConstraint settles
+#       in stratum 1 below the binding NAF, so the override wins.
+#   * ex:GovIdle (Department→Team, IdleState, HouseRegime, no override)
+#       → logic:ConstraintUnknown — the regime does NOT activate IdleState (not in its
+#       activationBasis), so neither a binding nor an override-defeat can be derived; the
+#       first-class third value (failure-to-activate is not constraint).
+#
+# NON-TRANSITIVITY (the C3 guarantee, #775): governance does NOT cascade down
+# logic:properPartOf. ex:Member is a proper part of ex:Team (hence TRANSITIVELY a proper
+# part of ex:Department), but NO logic:DownwardConstraint names ex:Member as its
+# logic:constraintTarget, and every verdict rule is gated on an explicit constraintWhole /
+# constraintTarget reification — so NO logic:constraintVerdict is ever derived for
+# ex:Member, regardless of any properPartOf closure. The golden materialized.nq carries the
+# three verdicts on the GovActive/GovWaived/GovIdle constraints but visibly OMITS any
+# constraintVerdict touching ex:Member. That omission is the non-transitivity demonstration,
+# not a gap — it is robust by construction, not incidental to today's EDB-only properPartOf.
+#
+# No logic:underMereologyProfile is declared, so weak supplementation stays inert and the
+# absence of a logic:WeakSupplementation violation is intentional. The C1 holon-kernel
+# co-firings (logic:overlaps, logic:isHolon on the nested ex:Team, …) are expected on this
+# parthood input and are included — suppressing them would misreport the engine.
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so all facts below are duplicated
+# there in the named world ex:schema; these are the program axioms.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/holonic-governance/> .
+
+# Holarchy: a department with a team, and the team with a member (the grandchild).
+ex:Team   logic:properPartOf ex:Department .
+ex:Member logic:properPartOf ex:Team .
+
+# The governance regime: it activates OnCallState as binding; nothing else is in its basis.
+ex:HouseRegime logic:activationBasis ex:OnCallState .
+
+# The override token borne by the team (defeats the waived constraint).
+ex:Team logic:bearsProperty ex:CharterWaiver .
+
+# Three downward constraints the department imposes on the team.
+ex:GovActive logic:constraintWhole ex:Department ;
+    logic:constraintTarget ex:Team ;
+    logic:constraintState ex:OnCallState ;
+    logic:constraintRegime ex:HouseRegime .
+
+ex:GovWaived logic:constraintWhole ex:Department ;
+    logic:constraintTarget ex:Team ;
+    logic:constraintState ex:OnCallState ;
+    logic:constraintRegime ex:HouseRegime ;
+    logic:constraintOverride ex:CharterWaiver .
+
+# IdleState is NOT in the regime's activation basis — the binding question cannot be posed.
+ex:GovIdle logic:constraintWhole ex:Department ;
+    logic:constraintTarget ex:Team ;
+    logic:constraintState ex:IdleState ;
+    logic:constraintRegime ex:HouseRegime .
