@@ -139,8 +139,10 @@ pub fn build_snapshot(
     // snapshot graph, so we do a temporary in-memory emit/read rather than reading
     // the committed file from disk or creating a DAG cycle.
     let yaml_ld_blob = build_yaml_ld_blob_from_builder(&builder)?;
+    let okf_blob = build_okf_blob_from_builder(&builder)?;
     let mut blobs = blobs;
     blobs.push(yaml_ld_blob);
+    blobs.push(okf_blob);
 
     emit_gts(
         &builder,
@@ -195,6 +197,8 @@ const REP_TESTS: &str = "tests-archive";
 const REP_SCHEMAS: &str = "schemas-archive";
 /// tar of the JSON-LD-star + YAML-LD-star serializations (#699).
 const REP_YAMLLD: &str = "yaml-ld-archive";
+/// tar of the Rust-rendered OKF bundle (#940), member = `gmeow-okf/...`.
+const REP_OKF: &str = "okf-export";
 /// The full rendered ontology-docs static site (#897). The rep MUST equal the
 /// string the runtime consumer (`create_docs._unpack_doc_archive`) looks up —
 /// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow extract-docs` finds it.
@@ -305,6 +309,46 @@ fn build_yaml_ld_blob_from_builder(builder: &SnapshotBuilder) -> Result<BlobRow,
     let jsonld = crate::stages::yaml_ld::serialize_graph(&graph)?;
     let yamlld = crate::stages::yaml_ld::serialize_graph_yaml(&graph, None)?;
     build_yaml_ld_blob(jsonld.as_bytes(), yamlld.as_bytes())
+}
+
+/// Pack the Rust-rendered OKF bundle into a deterministic archive blob (#940).
+///
+/// The public reader (`gmeow_tools.bundle.bundled_okf`) expects members relative
+/// to the bundle root (`gmeow-okf/classes/Foo.md`), while the export leaf product
+/// is a disk artifact under `dist/`. Strip only that leading `dist/` boundary and
+/// hard-fail if a renderer path escapes it.
+fn build_okf_blob_from_graph(graph: &gmeow_gts::model::Graph) -> Result<BlobRow, PipelineError> {
+    let (title, version, terms) = crate::stages::export::collect_term_surface(graph)?;
+    let artifacts = crate::stages::okf::render_okf(&title, &version, &terms)?;
+    let mut members: Vec<(String, Vec<u8>)> = Vec::with_capacity(artifacts.len());
+    for (path, bytes) in artifacts {
+        let member = path
+            .strip_prefix("dist/")
+            .ok_or_else(|| stage_err(&format!("OKF export path is not under dist/: {path}")))?;
+        members.push((member.to_string(), bytes));
+    }
+    archive_blob(REP_OKF, &members)
+}
+
+/// Build the OKF archive by reading the same in-memory snapshot graph that the
+/// fold-reading export leaves consume, avoiding a `stage-snapshot` ↔
+/// `stage-export-okf` DAG cycle.
+fn build_okf_blob_from_builder(builder: &SnapshotBuilder) -> Result<BlobRow, PipelineError> {
+    let temp_gts = emit_gts(
+        builder,
+        "dist",
+        Some(vec!["gzip".to_string()]),
+        Vec::new(),
+        Vec::new(),
+        None,
+        None,
+        None,
+        gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+    )
+    .map_err(|e| stage_err(&format!("temporary emit for okf: {e}")))?;
+    let graph = gmeow_rdf::gts::read_graph(&temp_gts, true)
+        .map_err(|e| PipelineError::Parse(format!("read temp snapshot gmeow.gts: {e}")))?;
+    build_okf_blob_from_graph(&graph)
 }
 
 /// Render the full ontology-docs static site and pack it into the single
@@ -566,8 +610,9 @@ impl Stage for SnapshotStage {
         // full ontology-docs site as the `ontology-docs` blob (#897). v3 added the
         // mappings/cells/queries/tests archive blobs + per-slice docs guide blobs.
         // v7 folds both the JSON-LD-star/YAML-LD-star archive (#699) and the
-        // DAG-native SHACL diagnostics graph/report blobs (#936/#937).
-        "snapshot.v7-yaml-ld-shacl-diagnostics"
+        // DAG-native SHACL diagnostics graph/report blobs (#936/#937). v8 folds
+        // the Rust-rendered OKF archive into gmeow.gts (#940).
+        "snapshot.v8-okf-archive"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -1478,6 +1523,49 @@ mod ustar_tests {
             "ontology-docs: {} members, longest name {max_len}B",
             members.len()
         );
+    }
+
+    #[test]
+    fn build_okf_archive_packs_the_rust_rendered_bundle() {
+        let root = repo_root();
+        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("committed gts");
+        let graph = gmeow_rdf::gts::read_graph(&gts, true).expect("read committed gts");
+        let blob = build_okf_blob_from_graph(&graph).expect("okf archive");
+        assert_eq!(blob.rep, REP_OKF);
+        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
+
+        let members = parse(&blob.data);
+        assert!(!members.is_empty(), "the OKF archive must carry members");
+        assert!(
+            members.iter().all(|(n, _)| n.starts_with("gmeow-okf/")),
+            "every OKF member must be bundle-relative under gmeow-okf/, got e.g. {:?}",
+            members.iter().map(|(n, _)| n).take(3).collect::<Vec<_>>()
+        );
+        assert!(
+            members.iter().any(|(n, _)| n == "gmeow-okf/index.md"),
+            "root OKF index must be present"
+        );
+        for required_dir in ["classes", "properties", "individuals"] {
+            let prefix = format!("gmeow-okf/{required_dir}/");
+            assert!(
+                members
+                    .iter()
+                    .any(|(n, _)| n.starts_with(&prefix) && !n.ends_with("/index.md")),
+                "expected at least one OKF document under {prefix}"
+            );
+        }
+        let root_index = members
+            .iter()
+            .find(|(n, _)| n == "gmeow-okf/index.md")
+            .map(|(_, bytes)| String::from_utf8_lossy(bytes).into_owned())
+            .expect("root index bytes");
+        assert!(
+            root_index.contains("LOSSY projection"),
+            "root OKF index must declare projection loss"
+        );
+
+        let blob2 = build_okf_blob_from_graph(&graph).expect("second okf archive");
+        assert_eq!(blob.data, blob2.data, "OKF archive must be deterministic");
     }
 
     #[test]
