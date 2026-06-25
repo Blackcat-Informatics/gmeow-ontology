@@ -32,7 +32,6 @@ _FORMATS: dict[str, tuple[str, str] | None] = {
     "ttl": ("turtle", "turtle"),
     "rdf": ("pretty-xml", "xml"),
     "nt": ("nt", "nt"),
-    "jsonld11": ("json-ld", "json-ld"),
 }
 
 
