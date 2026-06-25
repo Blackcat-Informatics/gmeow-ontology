@@ -1485,7 +1485,7 @@ logic:violation
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "violation"@x-gmeow-english ;
-    skos:definition "Relates an offending class to the logic:Discipline it violates: the derived diagnostic the OntoUML-discipline lowering materializes, the logic: analogue of a reasoning_lint message. A logic:violation fact is never asserted by hand; it is entailed by the lowering rules over the stereotype, subsumption and mediation facts, so its presence is a machine-checkable proof that the class breaks the named discipline."@x-gmeow-english .
+    skos:definition "Relates an offending entity to the constraint it violates — a logic:Discipline (an OntoUML structural anti-pattern) or a logic:MereologyConstraint (a profiled-mereology axiom such as logic:WeakSupplementation): the derived diagnostic the foundation lowering materializes, the logic: analogue of a reasoning_lint message. A logic:violation fact is never asserted by hand; it is entailed by the lowering rules over the stereotype, subsumption, mediation and parthood facts, so its presence is a machine-checkable proof that the entity breaks the named constraint."@x-gmeow-english .
 
 logic:weight
     a owl:DatatypeProperty ;
