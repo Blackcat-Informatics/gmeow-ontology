@@ -1349,6 +1349,7 @@ logic:partOf
 
 logic:positionContext
     a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "position context"@x-gmeow-english ;
     skos:definition "The context role of a logic:HolonicPosition: the context under which the position is occupied. Holon-ness is contextual — an entity that is a holon under one context need not be under another. One of the five role properties (with logic:positionEntity, logic:positionHolarchy, logic:positionInterval, logic:positionPath) that reify the five-place holonic-position relation onto the arity-bounded reasoning surface."@x-gmeow-english ;
@@ -1356,6 +1357,7 @@ logic:positionContext
 
 logic:positionEntity
     a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "position entity"@x-gmeow-english ;
     skos:definition "The entity role of a logic:HolonicPosition: the individual that occupies the holonic position — the thing that is a holon along the position's path. One of the five role properties (with logic:positionHolarchy, logic:positionContext, logic:positionInterval, logic:positionPath) that reify the five-place holonic-position relation onto the arity-bounded reasoning surface."@x-gmeow-english ;
@@ -1363,13 +1365,16 @@ logic:positionEntity
 
 logic:positionHolarchy
     a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "position holarchy"@x-gmeow-english ;
+    rdfs:range logic:Holarchy ;
     skos:definition "The holarchy role of a logic:HolonicPosition: the logic:Holarchy within which the position is occupied. Holon-ness is always relative to a holarchy; the same entity may occupy holonic positions in several holarchies. One of the five role properties (with logic:positionEntity, logic:positionContext, logic:positionInterval, logic:positionPath) that reify the five-place holonic-position relation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:positionInterval
     a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "position interval"@x-gmeow-english ;
     skos:definition "The interval role of a logic:HolonicPosition: the interval over which the position is occupied. Holon-ness is temporally bounded — an entity may occupy a holonic position over one interval and not another. One of the five role properties (with logic:positionEntity, logic:positionHolarchy, logic:positionContext, logic:positionPath) that reify the five-place holonic-position relation."@x-gmeow-english ;
@@ -1377,6 +1382,7 @@ logic:positionInterval
 
 logic:positionPath
     a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicPosition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "position path"@x-gmeow-english ;
     skos:definition "The path role of a logic:HolonicPosition: the path through the holarchy along which the position is read. Holarchies are DAGs, so a holonic position — and the logic:holonicLevel measured at it — is meaningful only relative to a path; two paths may place the same entity at different depths, and both are correct. One of the five role properties (with logic:positionEntity, logic:positionHolarchy, logic:positionContext, logic:positionInterval) that reify the five-place holonic-position relation."@x-gmeow-english ;
@@ -1478,6 +1484,7 @@ logic:underMereologyProfile
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "under mereology profile"@x-gmeow-english ;
+    rdfs:range logic:MereologyProfile ;
     skos:definition "Relates a whole to the logic:MereologyProfile it is declared under — the scope within which the strong mereological axioms (weak supplementation) hold for it. A whole carries no logic:WeakSupplementation obligation unless declared under a profile via this relation; parthood is profiled, not universal (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
