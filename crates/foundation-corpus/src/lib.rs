@@ -51,11 +51,14 @@ pub use reconcile::{reconcile_nq, NQ_PREDICATE_STATUS};
 /// Read a JSONL corpus into a list of record structs.
 ///
 /// Mirrors the Python `load_records`: strip each line, skip blanks, JSON-parse
-/// each non-blank line.
+/// each non-blank line. Streams the file line-by-line (`BufReader`) rather than
+/// loading the whole corpus into memory.
 pub fn load_records(path: &Path) -> std::io::Result<Vec<Record>> {
-    let text = std::fs::read_to_string(path)?;
+    use std::io::BufRead;
+    let reader = std::io::BufReader::new(std::fs::File::open(path)?);
     let mut records = Vec::new();
-    for line in text.lines() {
+    for line in reader.lines() {
+        let line = line?;
         let line = line.trim();
         if !line.is_empty() {
             let record: Record = serde_json::from_str(line)

@@ -87,21 +87,26 @@ pub const NQ_PREDICATE_STATUS: [(&str, &str); 16] = [
 /// token, stripped of `<>`), order by `Counter.most_common()` (descending count,
 /// then first-seen insertion order for ties), and render `  pred (count): status`.
 pub fn reconcile_nq(nq_path: &Path, mapped: &[(&str, &str)]) -> std::io::Result<String> {
-    let text = std::fs::read_to_string(nq_path)?;
+    use std::io::BufRead;
+    // Stream the `.nq` line-by-line rather than loading the whole file.
+    let reader = std::io::BufReader::new(std::fs::File::open(nq_path)?);
     // Insertion-ordered counter: track first-seen order to break count ties the
     // way Python's Counter.most_common does.
     let mut counts: Vec<(String, u64)> = Vec::new();
     let mut index: HashMap<String, usize> = HashMap::new();
-    for line in text.lines() {
+    for line in reader.lines() {
+        let line = line?;
         // Python: line.split(maxsplit=3); parts[1] must start with '<'.
-        let toks = split_max(line, 3);
+        let toks = split_max(&line, 3);
         if toks.len() > 2 && toks[1].starts_with('<') {
-            let pred = toks[1].trim_matches(|c| c == '<' || c == '>').to_string();
-            match index.get(&pred) {
+            // Borrow for the lookup; only allocate on first-seen insertion.
+            let pred = toks[1].trim_matches(|c| c == '<' || c == '>');
+            match index.get(pred) {
                 Some(&i) => counts[i].1 += 1,
                 None => {
-                    index.insert(pred.clone(), counts.len());
-                    counts.push((pred, 1));
+                    let owned = pred.to_string();
+                    index.insert(owned.clone(), counts.len());
+                    counts.push((owned, 1));
                 }
             }
         }
