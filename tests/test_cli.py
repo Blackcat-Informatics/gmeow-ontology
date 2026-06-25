@@ -708,6 +708,13 @@ def test_dev_i18n_merge_outputs_multilingual_graph(
     assert "PO file(s)" in result.output
 
 
+def test_dev_i18n_merge_writes_stdout(runner: CliRunner) -> None:
+    result = runner.invoke(dev_app, ["i18n", "merge", "--lang", "fr"])
+    assert result.exit_code == 0, result.output
+    assert "Existence d'entité" in result.output
+    assert "PO file(s)" in result.stderr
+
+
 def _write_test_po(
     path: Path,
     language: str,

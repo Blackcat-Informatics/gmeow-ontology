@@ -25,7 +25,6 @@ from rich.markup import escape
 from gmeow_tools import __version__
 from gmeow_tools.config import MAPPINGS_DIR, PROJECT_ROOT
 from gmeow_tools.projections import PROFILES as _PROFILES
-from gmeow_tools.slices import Slice
 
 if TYPE_CHECKING:
     from gmeow_rdf.compat.rdflib import Graph
@@ -2706,34 +2705,6 @@ i18n_app = typer.Typer(help="Internationalization commands.", no_args_is_help=Tr
 app.add_typer(i18n_app, name="i18n")
 
 
-def _i18n_output_path(
-    slice_iri: str,
-    slices_by_iri: dict[str, Slice],
-    output_dir: Path,
-    lang: str | None,
-) -> Path:
-    """Return the output path for a slice or namespace grouping."""
-    slice_info = slices_by_iri.get(slice_iri)
-    if slice_info is not None:
-        if lang is None:
-            return output_dir / "slices" / slice_info.group / f"{slice_info.name}.pot"
-        return (
-            output_dir
-            / "slices"
-            / slice_info.group
-            / slice_info.name
-            / "i18n"
-            / f"{lang}.po"
-        )
-    local = slice_iri.rstrip("/#").split("/")[-1] if "/" in slice_iri else slice_iri
-    if not local:
-        local = "_"
-    safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in local)[:64]
-    if lang is None:
-        return output_dir / "slices" / "_core" / f"{safe}.pot"
-    return output_dir / "slices" / "_core" / safe / "i18n" / f"{lang}.po"
-
-
 @i18n_app.command(name="extract")
 def extract_catalog(
     root: Path = typer.Option(  # noqa: B008
@@ -2773,128 +2744,13 @@ def extract_catalog(
         terms_only: Only extract ontology term strings, skip Markdown docs and
             templates.
     """
-    from gmeow_rdf.compat.rdflib import Graph, Literal, URIRef
+    import gmeow_docs
 
-    from gmeow_tools.graph import load_merged_graph
-    from gmeow_tools.i18n_catalog import (
-        LOCALIZABLE_PREDICATES,
-        build_pot,
-        extract_markdown,
-        extract_ontology_docs_templates,
-        extract_terms,
-        write_po,
-        write_pot,
-    )
-    from gmeow_tools.i18n_sync import PoEntry
-    from gmeow_tools.slices import discover_slices
-
-    graph = load_merged_graph(include_imports=False)
-    slices_by_iri: dict[str, Slice] = discover_slices(root / "slices")
-
-    # Map each localizable (term, predicate, value) triple to the slice
-    # module(s) that declare it. This lets terms reused across slices with
-    # different definitions be routed to the slice that actually owns the
-    # literal, while terms not declared in any slice module fall back to
-    # namespace-based grouping.
-    value_sources: dict[tuple[str, str, str], set[str]] = {}
-    for slice_info in slices_by_iri.values():
-        if not slice_info.module_path.is_file():
-            continue
-        module_graph = Graph()
-        try:
-            module_graph.parse(slice_info.module_path, format="turtle")
-        except Exception:
-            continue
-        for subject, predicate, obj in module_graph:
-            if (
-                isinstance(subject, URIRef)
-                and predicate in LOCALIZABLE_PREDICATES
-                and isinstance(obj, Literal)
-            ):
-                value_sources.setdefault(
-                    (str(subject), str(predicate), str(obj)), set()
-                ).add(slice_info.iri)
-
-    def _resolve_slice(term_iri: str, predicate_iri: str, lexical: str) -> str | None:
-        source_slices = value_sources.get((term_iri, predicate_iri, lexical))
-        if source_slices:
-            return min(source_slices)
-        return None
-
-    groups: dict[str, list[Any]] = {}
-    total_keys = 0
-    for key in extract_terms(graph, slice_resolver=_resolve_slice):
-        groups.setdefault(key.slice_iri, []).append(key)
-        total_keys += 1
-
-    for slice_iri, keys in groups.items():
-        path = _i18n_output_path(slice_iri, slices_by_iri, output_dir, lang)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if lang:
-            entries = [
-                PoEntry(
-                    msgctxt=f"{key.term_iri}|{key.predicate}",
-                    msgid=key.english_value,
-                    msgstr=key.english_value,
-                )
-                for key in keys
-            ]
-            write_po(path, entries, lang)
-        else:
-            path.write_text(build_pot(keys), encoding="utf-8")
-
-    if not terms_only:
-        docs_output = output_dir / "docs"
-        docs_output.mkdir(parents=True, exist_ok=True)
-
-        md_sources: list[Path] = []
-        md_sources.extend(sorted(root.glob("slices/*/*/docs.md")))
-        md_sources.extend(sorted((root / "docs").glob("*.md")))
-        if (root / "README.md").is_file():
-            md_sources.append(root / "README.md")
-
-        for source in md_sources:
-            rel = source.relative_to(root)
-            entries = extract_markdown(source, rel_path=rel.as_posix())
-            path = (
-                docs_output / f"{rel}.{lang}.po" if lang else docs_output / f"{rel}.pot"
-            )
-            path.parent.mkdir(parents=True, exist_ok=True)
-            if lang:
-                po_entries = [
-                    PoEntry(
-                        msgctxt=entry.msgctxt,
-                        msgid=entry.msgid,
-                        msgstr=entry.msgid,
-                    )
-                    for entry in entries
-                ]
-                write_po(path, po_entries, lang)
-            else:
-                write_pot(path, entries)
-
-        template_entries = extract_ontology_docs_templates()
-        template_path = (
-            output_dir / f"ontology-docs-templates.{lang}.po"
-            if lang
-            else output_dir / "ontology-docs-templates.pot"
-        )
-        if lang:
-            po_entries = [
-                PoEntry(
-                    msgctxt=entry.msgctxt,
-                    msgid=entry.msgid,
-                    msgstr=entry.msgid,
-                )
-                for entry in template_entries
-            ]
-            write_po(template_path, po_entries, lang)
-        else:
-            write_pot(template_path, template_entries)
+    report = gmeow_docs.i18n_extract(str(root), str(output_dir), lang, terms_only)
 
     console.print(
-        f"[green]✓[/green] wrote {len(groups)} term catalog(s) "
-        f"({total_keys} keys) to {output_dir}"
+        f"[green]✓[/green] wrote {report['groups']} term catalog(s) "
+        f"({report['total_keys']} keys) to {output_dir}"
     )
 
 
@@ -2922,7 +2778,7 @@ def sync_english(
         root: Repository root to search for slices.
         dry_run: Report only; do not write changes.
     """
-    from gmeow_tools.i18n_sync import sync_english_file
+    import gmeow_docs
 
     po_files = sorted(root.glob("slices/**/i18n/*.po"))
     changed_files: list[Path] = []
@@ -2949,12 +2805,14 @@ def sync_english(
         for source_path in source_paths:
             if not source_path.is_file():
                 continue
-            report = sync_english_file(po_path, source_path, dry_run=dry_run)
+            report = gmeow_docs.i18n_sync_english_file(
+                str(po_path), str(source_path), dry_run
+            )
             processed += 1
-            changed_files.extend(report.changed_files)
-            conflicts.extend(report.conflicts)
-            skipped.extend(report.skipped)
-            unchanged += len(report.unchanged)
+            changed_files.extend(Path(path) for path in report["changed_files"])
+            conflicts.extend(report["conflicts"])
+            skipped.extend(report["skipped"])
+            unchanged += len(report["unchanged"])
 
     def _rel(path: Path) -> Path:
         return (
@@ -3016,34 +2874,18 @@ def merge(
         output: Output Turtle file. Defaults to stdout.
         lang: BCP-47 language tag to merge (e.g. 'fr'). Defaults to all languages.
     """
-    from gmeow_tools.graph import load_merged_graph
-    from gmeow_tools.i18n_catalog import _language_from_po, merge_terms
+    import gmeow_docs
 
-    po_paths = sorted(root.glob("slices/*/*/i18n/*.po"))
-    if lang is not None:
-        lang_lower = lang.lower()
-        po_paths = [
-            p
-            for p in po_paths
-            if _language_from_po(p.read_text(encoding="utf-8")).lower() == lang_lower
-        ]
-
-    base_graph = load_merged_graph(include_imports=False)
-    merged_graph = merge_terms(base_graph, po_paths)
-    added = len(merged_graph) - len(base_graph)
-
-    ttl = merged_graph.serialize(format="turtle")
+    report = gmeow_docs.i18n_merge(
+        str(root), str(output) if output is not None else None, lang
+    )
     if output is None:
-        console.print(ttl, end="")
-        output_note = "stdout"
-    else:
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(ttl, encoding="utf-8")
-        output_note = str(output)
+        console.print(report["turtle"], end="")
 
     err_console.print(
-        f"[green]✓ merged {len(po_paths)} PO file(s), "
-        f"{added} translated triple(s) added → {output_note}[/green]"
+        f"[green]✓ merged {report['po_files']} PO file(s), "
+        f"{report['added']} translated triple(s) added "
+        f"→ {report['output_note']}[/green]"
     )
 
 
@@ -3071,9 +2913,11 @@ def export_csv(
         root: Repository root to search for slices.
         output: Output CSV file (default: stdout).
     """
-    from gmeow_tools.i18n_catalog import iter_po_catalogs, write_csv_export
+    import gmeow_docs
 
-    write_csv_export(iter_po_catalogs(root), output)
+    text = gmeow_docs.i18n_export_csv(str(root), str(output) if output else None)
+    if output is None:
+        console.print(text, end="")
 
 
 @i18n_app.command(name="export-xliff")
@@ -3100,9 +2944,11 @@ def export_xliff(
         root: Repository root to search for slices.
         output: Output XLIFF 1.2 file (default: stdout).
     """
-    from gmeow_tools.i18n_catalog import iter_po_catalogs, write_xliff_export
+    import gmeow_docs
 
-    write_xliff_export(iter_po_catalogs(root), output)
+    text = gmeow_docs.i18n_export_xliff(str(root), str(output) if output else None)
+    if output is None:
+        console.print(text, end="")
 
 
 @app.command(name="slice-fix-deps")
