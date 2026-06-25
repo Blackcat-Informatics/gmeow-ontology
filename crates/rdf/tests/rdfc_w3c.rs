@@ -125,10 +125,26 @@ fn w3c_rdfc10_suite() {
             let outcome = std::panic::catch_unwind(|| {
                 canonical_nquads_with(quads.iter(), hash_for(&stem)).expect("canonicalize")
             });
-            if outcome.is_ok() {
-                failures.push(format!(
+            match outcome {
+                Ok(_) => failures.push(format!(
                     "{stem}: NEGATIVE poison test did not abort (expected the call-budget guard to trip)"
-                ));
+                )),
+                Err(payload) => {
+                    // The abort MUST be the poison call-budget guard, not an
+                    // incidental parse/bridge panic — otherwise a future
+                    // regression would masquerade as a poison abort and pass.
+                    let msg = payload
+                        .downcast_ref::<String>()
+                        .map(String::as_str)
+                        .or_else(|| payload.downcast_ref::<&str>().copied())
+                        .unwrap_or("<non-string panic payload>");
+                    if !msg.contains("call budget") {
+                        failures.push(format!(
+                            "{stem}: NEGATIVE test panicked, but not via the call-budget guard \
+                             (payload: {msg:?}); a non-budget panic must not count as a poison abort"
+                        ));
+                    }
+                }
             }
         }
     }
