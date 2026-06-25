@@ -191,6 +191,42 @@ fn parse_jsonld_star_to_gmeow_statement_metadata_nquads(
     Ok(PyBytes::new(py, nquads.as_bytes()).into_any().unbind())
 }
 
+/// Parse YAML-LD-star bytes and downcast RDF 1.2 quoted triples to GMEOW
+/// statement-metadata N-Quads.
+///
+/// Routes the YAML-LD-star document through the Rust native JSON-LD-star
+/// downcast (anchors/aliases hard-fail), so the rdflib-compat up-projection lane
+/// receives quoted-triple-free N-Quads (#699). The Python YAML codec is retired
+/// in favor of this single Rust authority.
+#[pyfunction]
+#[pyo3(signature = (yaml_bytes))]
+fn parse_yaml_ld_star_to_gmeow_statement_metadata_nquads(
+    py: Python<'_>,
+    yaml_bytes: &[u8],
+) -> PyResult<Py<PyAny>> {
+    let nquads =
+        crate::stages::yaml_ld::yaml_ld_star_to_gmeow_statement_metadata_nquads(yaml_bytes)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    Ok(PyBytes::new(py, nquads.as_bytes()).into_any().unbind())
+}
+
+/// Verify a serialized RDF-1.2-star document round-trips isomorphic to its
+/// source N-Quads-star.
+///
+/// * `nquads_bytes` — the original UTF-8 N-Quads-star document.
+/// * `star_bytes` — the serialized RDF-1.2-star bytes to verify.
+/// * `format` — `"jsonld"` for JSON-LD-star, `"yamlld"` for YAML-LD-star.
+///
+/// Returns `True` iff the re-parsed dataset is RDFC-1.0 canonical-equal to the
+/// original. This is the Rust authority for the build-time serialization
+/// isomorphism gate (#699), replacing the Python `_round_trip_star`.
+#[pyfunction]
+#[pyo3(signature = (nquads_bytes, star_bytes, format))]
+fn roundtrip_isomorphic(nquads_bytes: &[u8], star_bytes: &[u8], format: &str) -> PyResult<bool> {
+    crate::stages::yaml_ld::roundtrip_isomorphic(nquads_bytes, star_bytes, format)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+}
+
 /// Register the `gmeow_native.pipeline` submodule. Called by the unified
 /// `gmeow_native` cdylib (#630); exposes [`run_pipeline`].
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -203,5 +239,10 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
         parse_jsonld_star_to_gmeow_statement_metadata_nquads,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(
+        parse_yaml_ld_star_to_gmeow_statement_metadata_nquads,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(roundtrip_isomorphic, m)?)?;
     Ok(())
 }

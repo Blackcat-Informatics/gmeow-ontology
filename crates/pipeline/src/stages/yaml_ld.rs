@@ -9,7 +9,8 @@
 use std::collections::BTreeMap;
 
 use gmeow_gts::model::{Graph, Term, TermKind};
-use oxigraph::io::{RdfFormat, RdfSerializer};
+use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
+use oxigraph::model::dataset::{CanonicalizationAlgorithm, CanonicalizationHashAlgorithm};
 use oxigraph::model::{Dataset, GraphName, NamedNode, NamedOrBlankNode, Quad, Term as OxTerm};
 use oxigraph::store::Store;
 use serde_json::Value;
@@ -1068,6 +1069,98 @@ pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
     String::from_utf8(buf).map_err(|e| PipelineError::Decode(format!("N-Quads are not UTF-8: {e}")))
 }
 
+/// Convert YAML-LD-star bytes to JSON-LD-star JSON, hard-failing on YAML
+/// anchors/aliases (extended YAML is out of scope, #699 non-goal).
+///
+/// The conversion is purely structural: YAML scalars/sequences/mappings map
+/// one-to-one onto JSON, so the resulting JSON is consumable by
+/// [`parse_jsonld_star`] and the statement-metadata downcast.
+pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, PipelineError> {
+    let text = std::str::from_utf8(yaml_bytes)
+        .map_err(|e| PipelineError::Decode(format!("YAML-LD-star bytes are not UTF-8: {e}")))?;
+    // Reject anchors/aliases BEFORE deserializing, using the repo's trusted
+    // heuristic: a whitespace-delimited token starting with `&` (anchor) or `*`
+    // (alias) signals extended YAML, which is out of scope for #699.
+    if text
+        .split_whitespace()
+        .any(|t| t.starts_with('&') || t.starts_with('*'))
+    {
+        return Err(PipelineError::Decode(
+            "YAML-LD-star must not use anchors or aliases".into(),
+        ));
+    }
+    let value: serde_yaml::Value = serde_yaml::from_str(text)
+        .map_err(|e| PipelineError::Decode(format!("parse YAML-LD-star: {e}")))?;
+    serde_json::to_string(&value)
+        .map_err(|e| PipelineError::Decode(format!("YAML-LD-star -> JSON-LD-star: {e}")))
+}
+
+/// Downcast YAML-LD-star bytes to GMEOW statement-metadata N-Quads.
+///
+/// Routes through [`yaml_ld_star_to_json`] then the JSON-LD-star downcast, so
+/// the output contains no quoted triple terms and is safe for the rdflib-compat
+/// up-projection lane (#699).
+pub fn yaml_ld_star_to_gmeow_statement_metadata_nquads(
+    yaml_bytes: &[u8],
+) -> Result<String, PipelineError> {
+    jsonld_star_to_gmeow_statement_metadata_nquads(yaml_ld_star_to_json(yaml_bytes)?.as_bytes())
+}
+
+/// Return an RDFC-1.0 canonical, deterministically sorted quad representation.
+///
+/// Promoted out of the test module so the build-time round-trip gate
+/// ([`roundtrip_isomorphic`]) and the tests share one canonicalizer (#699).
+pub(crate) fn canonical_lines(dataset: &Dataset) -> Vec<String> {
+    let mut ds = dataset.clone();
+    ds.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
+        hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
+    });
+    let mut lines: Vec<String> = ds.iter().map(|q| q.to_string()).collect();
+    lines.sort();
+    lines
+}
+
+/// Parse N-Quads-star text into an oxigraph [`Dataset`], preserving quoted
+/// triple terms (RDF 1.2-star). Used by [`roundtrip_isomorphic`].
+fn dataset_from_nquads(nquads: &[u8]) -> Result<Dataset, PipelineError> {
+    let store = Store::new().map_err(|e| PipelineError::Parse(e.to_string()))?;
+    for quad in RdfParser::from_format(RdfFormat::NQuads)
+        .lenient()
+        .for_reader(nquads)
+    {
+        let quad = quad.map_err(|e| PipelineError::Parse(format!("parse N-Quads: {e}")))?;
+        store
+            .insert(&quad)
+            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+    }
+    store
+        .iter()
+        .collect::<Result<Dataset, _>>()
+        .map_err(|e| PipelineError::Parse(e.to_string()))
+}
+
+/// Return whether `star_bytes` (format `"jsonld"`|`"yamlld"`) re-parses to a
+/// dataset isomorphic (RDFC-1.0 / oxigraph canonical) to the original
+/// N-Quads-star input. This is the Rust authority for the build-time
+/// serialization-isomorphism gate (#699), replacing the Python `_round_trip_star`.
+pub fn roundtrip_isomorphic(
+    original_nquads: &[u8],
+    star_bytes: &[u8],
+    format: &str,
+) -> Result<bool, PipelineError> {
+    let original = dataset_from_nquads(original_nquads)?;
+    let roundtrip = match format {
+        "jsonld" => parse_jsonld_star(star_bytes)?,
+        "yamlld" => parse_jsonld_star(yaml_ld_star_to_json(star_bytes)?.as_bytes())?,
+        other => {
+            return Err(PipelineError::Decode(format!(
+                "unknown star format {other:?}; expected 'jsonld' or 'yamlld'"
+            )))
+        }
+    };
+    Ok(canonical_lines(&original) == canonical_lines(&roundtrip))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1079,11 +1172,6 @@ mod tests {
         RdfTriple, TermId,
     };
 
-    use oxigraph::io::RdfParser;
-    use oxigraph::model::{
-        dataset::{CanonicalizationAlgorithm, CanonicalizationHashAlgorithm},
-        Dataset, NamedNode, NamedOrBlankNode, Quad, Term as OxTerm,
-    };
     use std::collections::HashSet;
     use std::path::PathBuf;
     use std::sync::Arc;
@@ -2019,17 +2107,6 @@ mod tests {
             .map_err(|e| PipelineError::Parse(format!("read_graph: {e}")))
     }
 
-    /// Return an RDFC-1.0 canonical, deterministically sorted quad representation.
-    fn canonical_lines(dataset: &Dataset) -> Vec<String> {
-        let mut ds = dataset.clone();
-        ds.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
-            hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
-        });
-        let mut lines: Vec<String> = ds.iter().map(|q| q.to_string()).collect();
-        lines.sort();
-        lines
-    }
-
     fn repo_root() -> PathBuf {
         let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         manifest
@@ -2326,5 +2403,40 @@ mod tests {
         let mut quads: Vec<String> = dataset.iter().map(|q| q.to_string()).collect();
         quads.sort();
         quads.join("\n")
+    }
+
+    #[test]
+    fn yaml_ld_star_ingest_rejects_anchors() {
+        let anchored = "anchor: &a {x: 1}\nalias: *a\n";
+        let err = yaml_ld_star_to_json(anchored.as_bytes())
+            .expect_err("YAML anchors/aliases must hard-fail");
+        assert!(
+            matches!(err, PipelineError::Decode(_)),
+            "expected a Decode error, got {err:?}"
+        );
+    }
+
+    #[test]
+    fn roundtrip_isomorphic_accepts_emitted_jsonld() {
+        let graph = minimal_graph();
+        let json = serialize_graph(&graph).expect("serialize JSON-LD-star");
+        let nquads = gmeow_gts::nquads::to_nquads(&graph);
+        assert!(
+            roundtrip_isomorphic(nquads.as_bytes(), json.as_bytes(), "jsonld")
+                .expect("roundtrip_isomorphic for jsonld"),
+            "emitted JSON-LD-star must round-trip isomorphic to the source N-Quads-star"
+        );
+    }
+
+    #[test]
+    fn roundtrip_isomorphic_accepts_emitted_yamlld() {
+        let graph = minimal_graph();
+        let yaml = serialize_graph_yaml(&graph, None).expect("serialize YAML-LD-star");
+        let nquads = gmeow_gts::nquads::to_nquads(&graph);
+        assert!(
+            roundtrip_isomorphic(nquads.as_bytes(), yaml.as_bytes(), "yamlld")
+                .expect("roundtrip_isomorphic for yamlld"),
+            "emitted YAML-LD-star must round-trip isomorphic to the source N-Quads-star"
+        );
     }
 }

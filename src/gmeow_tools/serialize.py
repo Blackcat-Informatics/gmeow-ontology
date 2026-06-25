@@ -43,23 +43,17 @@ def _native_jsonld_star(nquads_bytes: bytes, fmt: str) -> bytes:
     return result
 
 
-def _round_trip_star(original: Graph, star_bytes: bytes, fmt: str) -> bool:
-    """Verify that RDF-1.2-star bytes re-parse to a graph isomorphic to *original*."""
-    import pyoxigraph
+def _round_trip_star(nquads_bytes: bytes, star_bytes: bytes, fmt: str) -> bool:
+    """Verify that RDF-1.2-star bytes re-parse isomorphic to the source N-Quads.
 
-    from gmeow_tools.yaml_ld import parse_jsonld_star, parse_yaml_ld
+    The check is delegated entirely to the Rust codec
+    (``gmeow_native.pipeline.roundtrip_isomorphic``), the single authority for the
+    JSON-LD-star / YAML-LD-star parse-and-canonicalize path (#699).
+    """
+    import gmeow_native.pipeline as _pipeline
 
-    if fmt == "jsonld":
-        store = parse_jsonld_star(star_bytes)
-    elif fmt == "yamlld":
-        store = parse_yaml_ld(star_bytes)
-    else:
-        raise ValueError(f"unknown star format: {fmt}")
-    nquads = store.dump(format=pyoxigraph.RdfFormat.N_QUADS)
-    assert nquads is not None
-    check = Graph()
-    check.parse(data=nquads.decode("utf-8"), format="nquads")
-    return graphs_isomorphic(original, check)
+    result: bool = _pipeline.roundtrip_isomorphic(nquads_bytes, star_bytes, fmt)
+    return result
 
 
 def serialize_graph(
@@ -108,7 +102,7 @@ def serialize_graph(
             out = tmp_path / f"{stem}.{ext}"
             bytes_ = _native_jsonld_star(nquads_bytes, fmt)
             out.write_bytes(bytes_)
-            if not _round_trip_star(graph, bytes_, fmt):
+            if not _round_trip_star(nquads_bytes, bytes_, fmt):
                 raise ValueError(f"round-trip failed isomorphism for {ext}: {out}")
             staged[ext] = out
 
