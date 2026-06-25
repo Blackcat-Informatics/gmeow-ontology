@@ -612,3 +612,140 @@ fn diagnostics_report_for_no_diagnostics_is_an_empty_ok_report() {
     assert!(report.findings.is_empty());
     assert!(report.ok());
 }
+
+// ── Path shapes (#1010) ──────────────────────────────────────────────────────
+
+fn path_shape<'a>(prog: &'a LogicProgram, iri_suffix: &str) -> &'a PathShapeIr {
+    prog.path_shapes
+        .iter()
+        .find(|s| s.iri.ends_with(iri_suffix))
+        .unwrap_or_else(|| {
+            panic!(
+                "no path shape ending in {iri_suffix:?}: {:?}",
+                prog.path_shapes
+            )
+        })
+}
+
+#[test]
+fn parse_wildcard_namespace_scoped_bounded_path_shape() {
+    let (prog, diags) = parse(
+        "ex:nearbyOrgs a logic:PathShape ;
+            logic:pathWildcard true ;
+            logic:pathNamespaceScope \"https://example.org/org/\"^^xsd:anyURI ;
+            logic:pathMinDepth 1 ;
+            logic:pathMaxDepth 2 ;
+            logic:pathDepthParam \"maxDepth\" .",
+    );
+    assert!(
+        diags.iter().all(|d| d.code != "MALFORMED_PATH_SHAPE"),
+        "unexpected path-shape diagnostics: {diags:?}"
+    );
+    let s = path_shape(&prog, "/nearbyOrgs");
+    assert_eq!(s.base, PathBase::Wildcard);
+    assert_eq!(s.min_depth, 1);
+    assert_eq!(s.max_depth, Some(2));
+    assert_eq!(
+        s.namespace_scope.as_deref(),
+        Some("https://example.org/org/")
+    );
+    assert_eq!(s.depth_param.as_deref(), Some("maxDepth"));
+}
+
+#[test]
+fn parse_named_predicate_bounded_path_shape_defaults_min_one() {
+    // No logic:pathMinDepth → defaults to 1; named-predicate step.
+    let (prog, _diags) = parse(
+        "ex:ancestorsTo3 a logic:PathShape ;
+            logic:pathStepPredicate ex:parentOf ;
+            logic:pathMaxDepth 3 ;
+            logic:pathDepthParam \"maxDepth\" .",
+    );
+    let s = path_shape(&prog, "/ancestorsTo3");
+    assert_eq!(
+        s.base,
+        PathBase::NamedPredicate("https://example.org/test/parentOf".to_owned())
+    );
+    assert_eq!(s.min_depth, 1);
+    assert_eq!(s.max_depth, Some(3));
+    assert_eq!(s.namespace_scope, None);
+}
+
+#[test]
+fn parse_unbounded_path_shape_has_no_max() {
+    // No logic:pathMaxDepth → unbounded (transitive-closure reading).
+    let (prog, _diags) = parse(
+        "ex:reaches a logic:PathShape ;
+            logic:pathStepPredicate ex:linksTo .",
+    );
+    let s = path_shape(&prog, "/reaches");
+    assert_eq!(s.max_depth, None);
+    assert_eq!(s.min_depth, 1);
+}
+
+#[test]
+fn malformed_path_shape_both_named_and_wildcard_is_skipped_with_diagnostic() {
+    let (prog, diags) = parse(
+        "ex:bad a logic:PathShape ;
+            logic:pathStepPredicate ex:p ;
+            logic:pathWildcard true .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "malformed shape must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("BOTH")),
+        "expected a BOTH-step diagnostic: {diags:?}"
+    );
+}
+
+#[test]
+fn malformed_path_shape_min_above_max_is_skipped_with_diagnostic() {
+    let (prog, diags) = parse(
+        "ex:inverted a logic:PathShape ;
+            logic:pathWildcard true ;
+            logic:pathMinDepth 3 ;
+            logic:pathMaxDepth 1 .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "inverted range must be skipped"
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("must not exceed")),
+        "expected a min>max diagnostic: {diags:?}"
+    );
+}
+
+#[test]
+fn malformed_path_shape_no_step_is_skipped_with_diagnostic() {
+    let (prog, diags) = parse("ex:nostep a logic:PathShape ; logic:pathMaxDepth 2 .");
+    assert!(prog.path_shapes.is_empty());
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("neither")),
+        "expected a neither-step diagnostic: {diags:?}"
+    );
+}
+
+#[test]
+fn path_shapes_are_canonically_ordered() {
+    let (prog, _diags) = parse(
+        "ex:zeta  a logic:PathShape ; logic:pathStepPredicate ex:p .
+         ex:alpha a logic:PathShape ; logic:pathStepPredicate ex:p .",
+    );
+    let iris: Vec<&str> = prog.path_shapes.iter().map(|s| s.iri.as_str()).collect();
+    let mut sorted = iris.clone();
+    sorted.sort_unstable();
+    assert_eq!(
+        iris, sorted,
+        "path shapes must be in canonical (sorted) order"
+    );
+}

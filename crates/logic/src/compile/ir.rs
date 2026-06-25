@@ -686,6 +686,114 @@ impl ReasoningContract {
 }
 
 // --------------------------------------------------------------------------- //
+// Predicate-path shapes (#1010)
+// --------------------------------------------------------------------------- //
+
+/// The base step of a [`PathShapeIr`]: either one named predicate or a wildcard
+/// matching any predicate. The two are structurally exclusive (a step is a named
+/// edge XOR any edge); the front-end rejects a graph node that declares both.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum PathBase {
+    /// A named-predicate step: the IRI string every hop traverses
+    /// (`logic:pathStepPredicate`).
+    NamedPredicate(String),
+    /// A wildcard step matching ANY predicate (`logic:pathWildcard true`),
+    /// optionally namespace-scoped on the carrying [`PathShapeIr`].
+    Wildcard,
+}
+
+/// A named, parametric predicate-path traversal specification (`logic:PathShape`,
+/// #1010): a reusable, by-name graph walk carrying a base step, a bounded depth
+/// range, an optional wildcard namespace scope, and a declared depth parameter.
+///
+/// This is the canonical form; the SPARQL property-path and Datalog renderings are
+/// projections (Principle 17). The depth range is `min_depth ..= max_depth`, with
+/// `max_depth == None` meaning unbounded (the `+` / transitive-closure reading).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PathShapeIr {
+    /// IRI string of the shape individual.
+    pub iri: String,
+    /// The base step (named predicate or wildcard).
+    pub base: PathBase,
+    /// Inclusive lower bound on traversal length (`logic:pathMinDepth`; default 1).
+    pub min_depth: u32,
+    /// Inclusive upper bound (`logic:pathMaxDepth`); `None` ⇒ unbounded.
+    pub max_depth: Option<u32>,
+    /// Predicate-namespace IRI prefix scoping a wildcard step
+    /// (`logic:pathNamespaceScope`); only meaningful when `base` is
+    /// [`PathBase::Wildcard`].
+    pub namespace_scope: Option<String>,
+    /// The declared depth parameter name (`logic:pathDepthParam`) a
+    /// `logic:PathInvocation` binds; `None` ⇒ no exposed parameter.
+    pub depth_param: Option<String>,
+}
+
+impl PathShapeIr {
+    /// Construct, validating the depth range and base step:
+    ///
+    /// * `min_depth` must be ≥ 1;
+    /// * when `max_depth` is `Some(m)`, `min_depth` must not exceed `m`;
+    /// * a [`PathBase::NamedPredicate`] must be non-empty.
+    pub fn new(
+        iri: impl Into<String>,
+        base: PathBase,
+        min_depth: u32,
+        max_depth: Option<u32>,
+        namespace_scope: Option<String>,
+        depth_param: Option<String>,
+    ) -> Result<Self, String> {
+        let iri = iri.into();
+        if iri.is_empty() {
+            return Err("PathShapeIr.iri must be a non-empty IRI string".to_owned());
+        }
+        if min_depth < 1 {
+            return Err("PathShapeIr.min_depth must be >= 1".to_owned());
+        }
+        if let Some(m) = max_depth {
+            if min_depth > m {
+                return Err(format!(
+                    "PathShapeIr min_depth ({min_depth}) must not exceed max_depth ({m})"
+                ));
+            }
+        }
+        if let PathBase::NamedPredicate(p) = &base {
+            if p.is_empty() {
+                return Err("PathShapeIr named-predicate step must be a non-empty IRI".to_owned());
+            }
+        }
+        Ok(Self {
+            iri,
+            base,
+            min_depth,
+            max_depth,
+            namespace_scope,
+            depth_param,
+        })
+    }
+
+    /// Stable sort key for canonical ordering — the shape IRI is unique.
+    pub fn sort_key(&self) -> String {
+        self.iri.clone()
+    }
+
+    /// A deterministic full-content key for canonical equality.
+    fn content_key(&self) -> String {
+        let base = match &self.base {
+            PathBase::NamedPredicate(p) => format!("named={p}"),
+            PathBase::Wildcard => "wildcard".to_owned(),
+        };
+        format!(
+            "{}{SEP}{base}{SEP}min={}{SEP}max={}{SEP}ns={}{SEP}param={}",
+            self.iri,
+            self.min_depth,
+            self.max_depth.map(|m| m.to_string()).unwrap_or_default(),
+            self.namespace_scope.as_deref().unwrap_or(""),
+            self.depth_param.as_deref().unwrap_or(""),
+        )
+    }
+}
+
+// --------------------------------------------------------------------------- //
 // Top-level container
 // --------------------------------------------------------------------------- //
 
@@ -702,6 +810,10 @@ pub struct LogicProgram {
     pub rules: Vec<LogicRule>,
     /// Reasoning contracts in canonical order (#767; was `profiles`).
     pub contracts: Vec<ReasoningContract>,
+    /// Named/parametric predicate-path shapes in canonical order (`logic:PathShape`,
+    /// #1010). Attached via [`LogicProgram::with_path_shapes`]; empty for the
+    /// historical path-shape-free corpus, so the canonical key is unchanged there.
+    pub path_shapes: Vec<PathShapeIr>,
     /// IRI of the source graph/document (optional provenance).
     pub source_iri: Option<String>,
 }
@@ -725,8 +837,20 @@ impl LogicProgram {
             axioms,
             rules,
             contracts,
+            path_shapes: Vec::new(),
             source_iri,
         }
+    }
+
+    /// Attach the program's `logic:PathShape` individuals (#1010), canonicalizing
+    /// them into sorted order.  Kept separate from [`Self::new`] so existing call
+    /// sites are untouched and the byte-pinned canonical key of a path-shape-free
+    /// program is unchanged (the path-shapes segment is append-only when present).
+    pub fn with_path_shapes(mut self, path_shapes: Vec<PathShapeIr>) -> Self {
+        let mut path_shapes = path_shapes;
+        path_shapes.sort_by_cached_key(PathShapeIr::sort_key);
+        self.path_shapes = path_shapes;
+        self
     }
 
     /// A single deterministic, order-independent content key for the whole
@@ -752,10 +876,22 @@ impl LogicProgram {
             .map(ReasoningContract::content_key)
             .collect::<Vec<_>>()
             .join("\n");
-        format!(
+        let mut key = format!(
             "AXIOMS\n{axioms}\nRULES\n{rules}\nCONTRACTS\n{contracts}\nSOURCE\n{}",
             self.source_iri.as_deref().unwrap_or(""),
-        )
+        );
+        // Append-only: a path-shape-free program keeps its exact historical key.
+        if !self.path_shapes.is_empty() {
+            let shapes = self
+                .path_shapes
+                .iter()
+                .map(PathShapeIr::content_key)
+                .collect::<Vec<_>>()
+                .join("\n");
+            key.push_str("\nPATHSHAPES\n");
+            key.push_str(&shapes);
+        }
+        key
     }
 }
 

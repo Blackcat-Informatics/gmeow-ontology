@@ -510,4 +510,84 @@ fn logic_program_source_iri_preserved() {
     assert!(prog.axioms.is_empty());
     assert!(prog.rules.is_empty());
     assert!(prog.contracts.is_empty());
+    assert!(prog.path_shapes.is_empty());
+}
+
+// ── Path shapes (#1010) ──────────────────────────────────────────────────────
+
+fn shape(iri: &str, base: PathBase, min: u32, max: Option<u32>) -> PathShapeIr {
+    PathShapeIr::new(iri, base, min, max, None, None).unwrap()
+}
+
+#[test]
+fn path_shape_rejects_inverted_range() {
+    let err = PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::Wildcard,
+        3,
+        Some(1),
+        None,
+        None,
+    )
+    .unwrap_err();
+    assert!(err.contains("must not exceed"), "got: {err}");
+}
+
+#[test]
+fn path_shape_rejects_zero_min() {
+    let err = PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::Wildcard,
+        0,
+        Some(2),
+        None,
+        None,
+    )
+    .unwrap_err();
+    assert!(err.contains(">= 1"), "got: {err}");
+}
+
+#[test]
+fn path_shape_rejects_empty_named_predicate() {
+    let err = PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::NamedPredicate(String::new()),
+        1,
+        None,
+        None,
+        None,
+    )
+    .unwrap_err();
+    assert!(err.contains("non-empty IRI"), "got: {err}");
+}
+
+#[test]
+fn with_path_shapes_sorts_canonically() {
+    let prog = LogicProgram::new(vec![], vec![], vec![], None).with_path_shapes(vec![
+        shape(&format!("{LOGIC}z"), PathBase::Wildcard, 1, Some(2)),
+        shape(&format!("{LOGIC}a"), PathBase::Wildcard, 1, Some(2)),
+    ]);
+    let iris: Vec<&str> = prog.path_shapes.iter().map(|s| s.iri.as_str()).collect();
+    assert_eq!(iris, vec![format!("{LOGIC}a"), format!("{LOGIC}z")]);
+}
+
+#[test]
+fn canonical_key_is_unchanged_for_path_shape_free_program() {
+    // Corpus safety: attaching no path shapes must not alter the historical key.
+    let ax = axiom(&format!("{LOGIC}x"), &kind_pred(), &format!("{LOGIC}y"));
+    let base = LogicProgram::new(vec![ax.clone()], vec![], vec![], None);
+    let attached = LogicProgram::new(vec![ax], vec![], vec![], None).with_path_shapes(vec![]);
+    assert_eq!(base.canonical_key(), attached.canonical_key());
+    assert!(!base.canonical_key().contains("PATHSHAPES"));
+}
+
+#[test]
+fn canonical_key_appends_path_shapes_when_present() {
+    let prog = LogicProgram::new(vec![], vec![], vec![], None).with_path_shapes(vec![shape(
+        &format!("{LOGIC}s"),
+        PathBase::Wildcard,
+        1,
+        Some(2),
+    )]);
+    assert!(prog.canonical_key().contains("PATHSHAPES"));
 }
