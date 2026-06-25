@@ -3,11 +3,18 @@
 
 //! `FoundationImporter` — one corpus → one RDF dataset + one budget report.
 //!
-//! A faithful port of the Python `FoundationImporter`. It builds the dataset over
-//! the `gmeow-rdf` IR (`RdfDatasetBuilder`) rather than rdflib, and records the
-//! flat-vs-reified split in a [`BudgetReport`]. The IRI/term shapes match the
-//! Python exactly so the projections (which navigate the graph) reproduce the
-//! byte-exact goldens.
+//! A port of the Python `FoundationImporter`. It builds the dataset over the
+//! `gmeow-rdf` IR (`RdfDatasetBuilder`) rather than rdflib, and records the
+//! flat-vs-reified split in a [`BudgetReport`]. The IRI/term shapes follow the
+//! Python so the projections (which navigate the graph) are byte-deterministic
+//! against the committed goldens.
+//!
+//! One deliberate divergence from the Python output: the discourse frame's
+//! coordinate axis is typed `gmeow:Axis` (see `import_chapters`), which the
+//! Python omitted. An untyped axis passes only fixture-alone SHACL but fails the
+//! whole-ontology `FrameProfileShape` (`gmeow:NarrativeTimeFrame ⊑ ReferenceFrame`,
+//! `sh:class gmeow:Axis`), so `foundation.ttl` is an intentional correctness
+//! improvement over the Python, not a byte-for-byte reproduction of it.
 
 use std::collections::BTreeMap;
 use std::io;
