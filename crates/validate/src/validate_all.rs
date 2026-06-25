@@ -11,13 +11,12 @@
 //! Timing records are collected when [`ValidateOptions::timings`] is true and
 //! can be serialized to JSON alongside the error/warning output.
 
-use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
 use gmeow_gts::model::Graph;
-use oxigraph::model::{Quad, Term};
+use oxigraph::model::Quad;
 use oxigraph::store::Store;
 use serde::{Deserialize, Serialize};
 
@@ -26,7 +25,6 @@ use gmeow_slice::ownership::OwnershipAnalyzer;
 use gmeow_slice::{product_unit_key, Phase, ToolchainContext};
 
 use crate::cache::{CachedResult, ValidationCache};
-use crate::dsl;
 use crate::findings::finding_from_shacl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig};
@@ -76,6 +74,13 @@ pub struct ValidateOptions {
     /// Turtle text of the statement DSL SHACL shapes. When provided, statement
     /// DSL SHACL validation is run in Rust.
     pub statement_shapes_ttl: Option<String>,
+    /// Path to the test DSL vocabulary directory (`dsl/tests/`). When provided
+    /// along with `test_dsl_shapes_ttl` and `slices_dir`, test DSL SHACL
+    /// validation is run in Rust.
+    pub test_dsl_dir: Option<String>,
+    /// Turtle text of the test DSL SHACL shapes. When provided, test DSL SHACL
+    /// validation is run in Rust.
+    pub test_dsl_shapes_ttl: Option<String>,
     /// Project root for the content-addressed `.cache/validate` cache. When
     /// `None`, caching is disabled; Task 4 wires Python to pass `PROJECT_ROOT`
     /// so CI/local reruns share the same cache.
@@ -133,8 +138,9 @@ impl ValidationRun {
     /// 10. Per-example SHACL via scoped overlay
     /// 11. Mapping DSL SHACL
     /// 12. Statement DSL SHACL
+    /// 13. Test DSL SHACL
     ///
-    /// Phases 9–12 are skipped when their required inputs are absent in
+    /// Phases 9–13 are skipped when their required inputs are absent in
     /// `options`; callers that provide `slices_dir` and the DSL shape texts get
     /// the full gate.
     pub fn run(
@@ -381,8 +387,8 @@ impl ValidationRun {
         if !mapping_dsl_dir.is_empty() {
             if let Some(dsl_shapes_ttl) = &options.mapping_shapes_ttl {
                 let start = Instant::now();
-                let (result, meta) =
-                    check_dsl(mapping_dsl_dir, dsl_shapes_ttl, "mapping", cache.as_ref())?;
+                let paths = collect_ttl_paths(mapping_dsl_dir)?;
+                let (result, meta) = check_dsl(&paths, dsl_shapes_ttl, "mapping", cache.as_ref())?;
                 if options.timings {
                     timings.push(Timing {
                         phase: "mapping-dsl-shacl".to_owned(),
@@ -398,12 +404,9 @@ impl ValidationRun {
         if !statement_dsl_dir.is_empty() {
             if let Some(dsl_shapes_ttl) = &options.statement_shapes_ttl {
                 let start = Instant::now();
-                let (result, meta) = check_dsl(
-                    statement_dsl_dir,
-                    dsl_shapes_ttl,
-                    "statement",
-                    cache.as_ref(),
-                )?;
+                let paths = collect_ttl_paths(statement_dsl_dir)?;
+                let (result, meta) =
+                    check_dsl(&paths, dsl_shapes_ttl, "statement", cache.as_ref())?;
                 if options.timings {
                     timings.push(Timing {
                         phase: "statement-dsl-shacl".to_owned(),
@@ -412,6 +415,31 @@ impl ValidationRun {
                     });
                 }
                 shacl_findings.extend(result);
+            }
+        }
+
+        // Phase 13: test DSL SHACL.
+        if let (Some(test_dsl_dir), Some(dsl_shapes_ttl)) =
+            (&options.test_dsl_dir, &options.test_dsl_shapes_ttl)
+        {
+            if !test_dsl_dir.is_empty() {
+                let start = Instant::now();
+                let mut paths = collect_ttl_paths(test_dsl_dir)?;
+                if let Some(slices_dir) = &options.slices_dir {
+                    paths.extend(collect_slice_test_files(slices_dir)?);
+                }
+                paths.sort();
+                if !paths.is_empty() {
+                    let (result, meta) = check_dsl(&paths, dsl_shapes_ttl, "test", cache.as_ref())?;
+                    if options.timings {
+                        timings.push(Timing {
+                            phase: "test-dsl-shacl".to_owned(),
+                            elapsed_ms: start.elapsed().as_millis(),
+                            metadata: meta,
+                        });
+                    }
+                    shacl_findings.extend(result);
+                }
             }
         }
 
@@ -813,20 +841,20 @@ fn store_contains_quad(store: &Store, quad: &oxigraph::model::Quad) -> bool {
         .is_some()
 }
 
-/// Phase 11/12: validate a DSL directory against its dedicated SHACL shapes.
+/// Phase 11/12/13: validate a merged set of DSL Turtle sources against dedicated
+/// SHACL shapes.
 fn check_dsl(
-    dsl_dir: &str,
+    paths: &[PathBuf],
     shapes_ttl: &str,
     label: &str,
     cache: Option<&ValidationCache>,
 ) -> Result<(Vec<Finding>, Option<String>), String> {
-    let paths = collect_ttl_paths(dsl_dir)?;
     if paths.is_empty() {
         return Ok((Vec::new(), Some("no-inputs".to_owned())));
     }
 
     let key = if let Some(cache) = cache {
-        let file_key = cache.files_cache_key(&paths)?;
+        let file_key = cache.files_cache_key(paths)?;
         let shapes_key = ValidationCache::cache_key(&[shapes_ttl.as_bytes()]);
         let salt = ValidationCache::toolchain_salt();
         ValidationCache::cache_key(&[
@@ -836,55 +864,12 @@ fn check_dsl(
             salt.as_bytes(),
         ])
     } else {
-        ValidationCache::cache_key(&[dsl_dir.as_bytes(), label.as_bytes()])
+        ValidationCache::cache_key(&[label.as_bytes()])
     };
 
     run_cached(cache, &format!("dsl-shacl/{label}"), &key, || {
-        let merge = dsl::merge_with_provenance(&paths)?;
-        let data_store = store::build_store_from_nt(&merge.data_nt)?;
-        let shapes = gmeow_shacl::engine::parse_shapes(shapes_ttl)?;
-        let report = gmeow_shacl::engine::validate(&data_store, &shapes);
-        let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
-        Ok(dsl_findings(&report, &focus_to_file, label))
+        crate::dsl_shacl::validate_dsl(paths, shapes_ttl, label)
     })
-}
-
-/// Convert DSL SHACL results into structured findings, attributing each to its
-/// authored source file (via the focus→file map) as the finding's primary path.
-fn dsl_findings(
-    report: &gmeow_shacl::report::ValidationReport,
-    focus_to_file: &HashMap<String, String>,
-    label: &str,
-) -> Vec<Finding> {
-    let mut findings: Vec<Finding> = Vec::new();
-    for result in &report.results {
-        let mut finding = finding_from_shacl(result);
-        finding.tool = Some(format!("{label}-dsl"));
-        if let Term::NamedNode(node) = &result.focus_node {
-            if let Some(source) = focus_to_file.get(node.as_str()) {
-                if let Some(primary) = finding.locations.first_mut() {
-                    primary.path = Some(source.clone());
-                } else {
-                    finding.add_location(Location {
-                        path: Some(source.clone()),
-                        ..Location::default()
-                    });
-                }
-            }
-        }
-        findings.push(finding);
-    }
-    if findings.is_empty() && !report.conforms {
-        findings.push(
-            Finding::new(
-                Severity::Error,
-                format!("{label}-dsl.nonconforming"),
-                "SHACL validation failed: non-conforming with no results",
-            )
-            .with_tool(format!("{label}-dsl")),
-        );
-    }
-    findings
 }
 
 /// Recursively collect all `.ttl` files under `dir`, sorted deterministically.
@@ -907,6 +892,32 @@ fn collect_ttl_paths_recursive(dir: &Path, paths: &mut Vec<PathBuf>) -> Result<(
         }
     }
     Ok(())
+}
+
+/// Collect every slice-resident test-DSL fixture (`slices/*/*/tests/*.ttl`),
+/// non-recursive within each slice's `tests/` directory.
+fn collect_slice_test_files(slices_dir: &str) -> Result<Vec<PathBuf>, String> {
+    let mut paths: Vec<PathBuf> = Vec::new();
+    for manifest in find_slice_manifests(slices_dir)? {
+        let slice_dir = manifest
+            .parent()
+            .ok_or_else(|| format!("manifest has no parent: {}", manifest.display()))?;
+        let tests_dir = slice_dir.join("tests");
+        if !tests_dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&tests_dir)
+            .map_err(|e| format!("read_dir {}: {e}", tests_dir.display()))?
+        {
+            let entry = entry.map_err(|e| format!("dir entry in {}: {e}", tests_dir.display()))?;
+            let path = entry.path();
+            if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("ttl") {
+                paths.push(path);
+            }
+        }
+    }
+    paths.sort();
+    Ok(paths)
 }
 
 /// Find every `slices/*/*/manifest.ttl` file under `slices_dir`, sorted.
