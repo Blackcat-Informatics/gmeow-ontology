@@ -24,25 +24,35 @@ observation whose observed feature is an inhabitation configuration/description 
 
 ```turtle
 gmeow:InhabitationClaim
-    a logic:Situation , owl:Class ;
-    rdfs:subClassOf gmeow:Observation ;
-    skos:definition "A standpoint-indexed, attributed observation that an inhabitation holds — its
-        observed feature is an inhabitation description (a quoted configuration), NOT an asserted
-        gmeow:InhabitationTenure. The relationship is described, never placed in the base graph, so no
-        range entailment fires: claiming 'the lwa inhabits the horse' does not entail that the lwa is
-        an Agent. Competing claims and refutations coexist (Principle 9)." .
+    a logic:SubKind , owl:Class ;
+    rdfs:subClassOf gmeow:StandpointClaim ;
+    skos:definition "A standpoint-indexed, attributed claim that an inhabitation holds — its observed
+        feature is a gmeow:InhabitationDescription (a quoted configuration), NOT an asserted
+        gmeow:InhabitationTenure. A gmeow:StandpointClaim (it carries gmeow:claimModality and
+        gmeow:vantage): the relationship is described, never placed in the base graph, so no range
+        entailment fires — claiming 'the lwa inhabits the horse' does not entail that the lwa is an
+        Agent. Competing claims and refutations coexist (Principle 9)." .
+
+gmeow:InhabitationDescription
+    a logic:SubKind , owl:Class ;
+    rdfs:subClassOf gmeow:Proposition ;
+    skos:definition "A quoted, unasserted description of an inhabitation configuration — the observed
+        feature of a gmeow:InhabitationClaim. Its gmeow:describedSubject and gmeow:describedHost are
+        deliberately RANGE-OPEN (no rdfs:range), so describing a spirit as a subject does not infer it
+        is a gmeow:Agent; the neutrality depends on this." .
+# gmeow:describedSubject / gmeow:describedHost / gmeow:describedLocusKind — range-open by design.
 ```
 
 ```turtle
 ex:possession-claim a gmeow:InhabitationClaim ;
     gmeow:vantage ex:vodouStandpoint ;
-    gmeow:claimModality gmeow:held ;
+    gmeow:claimModality gmeow:unequivocal ;     # held unequivocally in the Vodou frame
     gmeow:observedFeature [ a gmeow:InhabitationDescription ;     # a quoted configuration, not asserted
-        gmeow:describedSubject ex:lwa-L ;
+        gmeow:describedSubject ex:lwa-L ;        # range-open: NOT inferred to be a gmeow:Agent
         gmeow:describedHost ex:horse-H ;
         gmeow:describedLocusKind gmeow:locusVessel ] .
-# A secular frame's refutation is a coexisting gmeow:InhabitationClaim with claimModality refuted.
-# Nothing asserts ex:lwa-L a gmeow:Agent.
+# A secular frame's refutation is a coexisting gmeow:InhabitationClaim with gmeow:claimModality
+# gmeow:refuted. Nothing in the base graph asserts ex:lwa-L a gmeow:Agent.
 ```
 
 Equivalently, an RDF-1.2 reified-but-unasserted proposition carrying `accordingTo` + modality is

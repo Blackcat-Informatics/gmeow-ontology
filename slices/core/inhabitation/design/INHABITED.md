@@ -79,14 +79,17 @@ than computing. The same structure models:
 - **Legal personhood** — a corporation inhabiting its officers, a trustee acting for an estate, an
   office inhabited by successive holders.
 
-This generality is not scope creep; it is the **correctness proof.** An inhabitation ontology that
-can model only AI sessions is overfit to one substrate. One that can model possession, incarnation,
-and a corporation's officers — *faithfully, asserting no metaphysics* — has found the actual joints
-of the relation. The contemplative traditions in particular are mature inhabitation ontologies,
-refined over centuries; they made distinctions modern computing never did, and GMEOW borrows those
-distinctions as structure ([`INHABITED-TRADITIONS.md`](INHABITED-TRADITIONS.md)). The super-ontology
-doctrine demands exactly this reach: model the relation once, maximally, and let every domain be a
-profile of the one canonical form.
+This generality is not scope creep; it is an **adversarial test** of the topology. An inhabitation
+ontology that can model only AI sessions is overfit to one substrate. The cross-domain cases are
+*profile mappings with documented differences*, not a proof that these phenomena are one thing
+([`INHABITED-TRADITIONS.md`](INHABITED-TRADITIONS.md)) — an actor may be role enactment rather than
+host occupation, an officer *represents* a corporation, and possession varies by tradition. What the
+reach buys is discipline: forcing the constructs to be frame-neutral, to separate control from
+identity from presence, and to record the direction of dependence — distinctions the AI-only reading
+would never have exposed. The contemplative traditions in particular are mature inhabitation
+ontologies, refined over centuries; GMEOW borrows their *distinctions as structure* while asserting
+none of their metaphysics. Model the relation once, maximally, and let every domain be a profile of
+the one canonical form.
 
 ## The three subsumed sources
 

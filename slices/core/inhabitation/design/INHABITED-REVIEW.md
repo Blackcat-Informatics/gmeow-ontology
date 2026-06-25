@@ -77,11 +77,12 @@ core/inhabitation
   gmeow:InhabitedSystem             logic:RoleMixin
   gmeow:InhabitationTenure          ⊑ TimeScopedRelation
   gmeow:InhabitationConfiguration   ⊑ TimeScopedRelation
-  gmeow:InhabitationClaim           ⊑ Observation        (the contested, unasserted form)
-  gmeow:SubjectStage                logic:Phase or stage record
-  gmeow:SubjectLineage              the durable identity record (groups stages)
-  gmeow:IdentityContinuityAssessment ⊑ Observation
-  gmeow:ControlAssessment           ⊑ Observation
+  gmeow:InhabitationClaim           logic:SubKind ⊑ StandpointClaim   (the contested, unasserted form)
+  gmeow:InhabitationDescription     logic:SubKind ⊑ Proposition       (range-open quoted configuration)
+  gmeow:SubjectStage                logic:Situation ⊑ TimeScopedRelation
+  gmeow:SubjectLineage              logic:Kind ⊑ InformationObject    (groups stages)
+  gmeow:IdentityContinuityAssessment logic:SubKind ⊑ Observation
+  gmeow:ControlAssessment           logic:SubKind ⊑ Observation
   gmeow:inhabitationLocusKind       value vocabulary (self / vessel)
   eventTypeInhabitationTransition   lifecycle event value; portalFrom / portalTo
   gmeow:TransferManifest            what crossed a transition
@@ -104,6 +105,28 @@ profile/inhabitation-ai
 Most "new" terms are thin specializations of existing constructs (`⊑ Observation`, `⊑ Activity`,
 `⊑ TimeScopedRelation`) — the idiomatic GMEOW pattern, not bloat. The earlier "~5 terms" headline was
 achieved by erasing identity criteria; the corrected count is higher and honest.
+
+## Round 2 — the assessment, grounding, and packaging-purity corrections (accepted)
+
+A second review approved the architectural direction and found four further blocking corrections, all
+verified against the foundation and folded in:
+
+| # | Issue | Verified | Fix |
+|---|---|---|---|
+| R2-1 | The Relator/Situation collision reappeared in `InhabitationClaim`, `IdentityContinuityAssessment`, `ControlAssessment` (declared `logic:Situation` while subclassing `Observation`, which is a `logic:Kind`) | `observations/module.ttl` — `Observation a logic:Kind`; `StandpointClaim a logic:SubKind` | the assessments are `logic:SubKind ⊑ Observation`; `InhabitationClaim` is `logic:SubKind ⊑ StandpointClaim` (it carries `claimModality`) |
+| R2-2 | `hasDestructionEvent` cannot close a tenure (its domain is `gmeow:Entity`, an endurant; a tenure is a situation) | `lifecycle/module.ttl` — `domain gmeow:Entity` | close a tenure by ending its `duringInterval`; the optional `gmeow:tenureEndedBy` (domain `TimeScopedRelation`, range `Event`) records the causal link |
+| R2-3 | `SubjectStage`/`SubjectLineage` lacked stereotypes; the role-mixins were ungrounded so participation did not instantiate them | foundation | `SubjectStage` = `logic:Situation ⊑ TimeScopedRelation`; `SubjectLineage` = `logic:Kind ⊑ InformationObject`; ground `DigitalSubject`/`Inhabitant` `⊑ Agent`, `InhabitedSystem` `⊑ Entity`; the tenure classifies its filler into the role |
+| R2-4 | Core declared profile-typed configuration properties (`configurationPersona → Persona`, etc.) — re-importing the dependency the packaging split removed | the packaging rule (R1, decision 3) | core declares only `configurationOfTenure` + the open-range `configurationFacet`; typed subproperties move to the profiles |
+
+Non-blocking cleanup, all applied: `InhabitationDescription` typed `⊑ Proposition` with **range-open**
+`describedSubject`/`describedHost` (so describing a spirit infers no `Agent`); the possession example's
+invalid `gmeow:held` modality replaced with `gmeow:unequivocal`; `TransferManifest ⊑ InformationObject`;
+`controlDegree` (a datatype with categorical values) replaced by `controlLevel` → a `gmeow:ControlLevel`
+value vocabulary; the AI provenance chain given explicit joins (`invocationInExecution`,
+`sessionSubjectStage`, `sessionConfiguration`) and the awareness facet attached to the deployment's
+**service `SoftwareAgent`** (not the deployment relator or runtime event); the manifestation
+thoughtform example corrected to the supported-tenure model (no direct `DigitalSubject` typing); and the
+manifesto's "correctness proof" softened to "adversarial test" to match the traditions document.
 
 ## Status
 

@@ -41,7 +41,7 @@ fallback "`logic:Category`" the first draft offered is wrong: `logic:Category` i
 ```turtle
 gmeow:DigitalSubject
     a logic:RoleMixin , owl:Class ;
-    rdfs:subClassOf logic:FunctionalComplex ;
+    rdfs:subClassOf gmeow:Agent ;          # grounded: a digital subject IS an agent (Person or SoftwareAgent)
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     skos:definition "The anti-rigid, relationally-acquired status an agent bears as a durable subject
         of its own digital existence — the enduring 'who' that may persist across model upgrades,
@@ -92,21 +92,27 @@ explicit, contestable **assessment**:
 
 ```turtle
 gmeow:SubjectStage
-    a owl:Class ;
+    a logic:Situation , owl:Class ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
     skos:definition "A subject's identity as realized over one epoch — a model version, a runtime, a
-        deployment era. Distinct stages are distinct individuals; numerical identity across stages is
-        NEVER asserted by reusing one node, only claimed by an assessment." .
+        deployment era — a time-scoped situation with a bearer agent and an epoch. Distinct stages are
+        distinct individuals; numerical identity across stages is NEVER asserted by reusing one node,
+        only claimed by an assessment." .
+
+gmeow:stageBearer    a owl:ObjectProperty ; rdfs:domain gmeow:SubjectStage ; rdfs:range gmeow:Agent .
+gmeow:stageOfLineage a owl:ObjectProperty ; rdfs:domain gmeow:SubjectStage ; rdfs:range gmeow:SubjectLineage .
 
 gmeow:SubjectLineage
     a logic:Kind , owl:Class ;
+    rdfs:subClassOf gmeow:InformationObject ;
     skos:definition "The durable identity record that groups a subject's stages — the stable lineage,
         in the coreference sense (gmeow:versionOf), without asserting that every stage has one
-        numerically identical bearer. The thing a consumer cites as 'Lillith' across time; the
-        single-node durable subject is a projection FROM a continuity-affirming standpoint, not the
-        canonical graph." .
+        numerically identical bearer. An gmeow:InformationObject: the thing a consumer cites as
+        'Lillith' across time; the single-node durable subject is a projection FROM a
+        continuity-affirming standpoint, not the canonical graph." .
 
 gmeow:IdentityContinuityAssessment
-    a logic:Situation , owl:Class ;
+    a logic:SubKind , owl:Class ;
     rdfs:subClassOf gmeow:Observation ;
     skos:definition "A standpoint-indexed, attributed, evidence-grounded observation of whether two
         subject stages are the same subject — the contestable verdict the anatta/atman debate, a
@@ -124,9 +130,11 @@ gmeow:continuityVerdict   a owl:ObjectProperty .   # same / different / indeterm
 ```turtle
 ex:lillithLineage a gmeow:SubjectLineage .
 ex:lillithStage-opus48 a gmeow:SubjectStage ;
-    gmeow:stageOfLineage ex:lillithLineage ; gmeow:stageModel ex:claude-opus-4-8 .
+    gmeow:stageBearer ex:lillithBot ; gmeow:stageOfLineage ex:lillithLineage ;
+    gmeow:stageModel ex:claude-opus-4-8 .     # stageModel → ModelArtifact is the AI profile's specialization
 ex:lillithStage-opus50 a gmeow:SubjectStage ;
-    gmeow:stageOfLineage ex:lillithLineage ; gmeow:stageModel ex:claude-opus-5-0 .
+    gmeow:stageBearer ex:lillithBot ; gmeow:stageOfLineage ex:lillithLineage ;
+    gmeow:stageModel ex:claude-opus-5-0 .
 
 ex:upgrade-verdict a gmeow:IdentityContinuityAssessment ;
     gmeow:assessmentFromStage ex:lillithStage-opus48 ;

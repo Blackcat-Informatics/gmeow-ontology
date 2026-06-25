@@ -74,16 +74,41 @@ gmeow:RuntimeExecution
         invocation (a single call)." .
 
 gmeow:deploymentArtifact a owl:ObjectProperty ; rdfs:range gmeow:ModelArtifact .
+gmeow:deploymentService  a owl:ObjectProperty ; rdfs:range gmeow:SoftwareAgent .  # the acting service agent
 gmeow:deploymentHost     a owl:ObjectProperty ; rdfs:range gmeow:Entity .
 gmeow:deploymentEndpoint a owl:ObjectProperty .
 gmeow:executionOfDeployment a owl:ObjectProperty ; rdfs:range gmeow:ModelDeployment .
 ```
 
-A single model **call** remains `gmeow:ModelInvocation` (reused, no new term); a **tool call** remains
-`gmeow:ToolCall` (reused). The de-conflation chain is now explicit end to end:
+The serving mode is recorded by an `AwarenessTenure` whose `gmeow:awarenessSubject` is the deployment's
+**service `SoftwareAgent`** (`gmeow:deploymentService`) — because `awarenessSubject` ranges over
+`gmeow:Agent`, it cannot attach directly to a `ModelDeployment` (a relator) or a `RuntimeExecution` (an
+event):
 
-> output `wasGeneratedBy` a `ModelInvocation`, in a `RuntimeExecution` of a `ModelDeployment` of a
-> `ModelArtifact`, within an `AgentSession`, under a `DigitalSubjectTenure`.
+```turtle
+ex:opusServing a gmeow:AwarenessTenure ;
+    gmeow:awarenessSubject ex:opusServiceAgent ;     # the SoftwareAgent, not the deployment relator
+    gmeow:awarenessMode gmeow:modeOnlineInference ;
+    gmeow:duringInterval ex:servingWindow .
+ex:opusDeployment gmeow:deploymentService ex:opusServiceAgent .
+```
+
+A single model **call** remains `gmeow:ModelInvocation` (reused); a **tool call** remains
+`gmeow:ToolCall` (reused). The de-conflation chain is explicit end to end, with each join named:
+
+```turtle
+ex:output     gmeow:wasGeneratedBy   ex:invocation-7 .
+ex:invocation-7 gmeow:invocationInExecution ex:execution-3 .       # invocation → execution
+ex:execution-3  gmeow:executionOfDeployment ex:opusDeployment .    # execution → deployment
+ex:opusDeployment gmeow:deploymentArtifact   ex:opus-artifact .    # deployment → artifact
+ex:invocation-7 gmeow:subEventOf       ex:session-7 .              # invocation → session
+ex:session-7    gmeow:sessionSubjectStage ex:lillithStage-opus50 . # session → subject stage
+ex:session-7    gmeow:sessionConfiguration ex:config-A .           # session → active configuration
+```
+
+> output `wasGeneratedBy` a `ModelInvocation`, `invocationInExecution` a `RuntimeExecution`
+> `executionOfDeployment` a `ModelDeployment` `deploymentArtifact` a `ModelArtifact`; the invocation is
+> `subEventOf` an `AgentSession`, which carries `sessionSubjectStage` and `sessionConfiguration`.
 
 ## Session and episode — an event aggregate
 
@@ -121,6 +146,7 @@ regenerated independently. Migration content rides explicit evidence:
 ```turtle
 gmeow:TransferManifest
     a logic:Kind , owl:Class ;
+    rdfs:subClassOf gmeow:InformationObject ;
     skos:definition "The record of what was transferred across an inhabitation transition — the
         claims, memories, and intentions carried from the prior tenure to the next, each linked by
         derivation provenance (gmeow:wasDerivedFrom) to its pre-transition origin. A claim 'crossed'

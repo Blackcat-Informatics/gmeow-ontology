@@ -76,16 +76,24 @@ gmeow:InhabitationConfiguration
         contains T. The invariant 'constant configuration over the interval' is stated and tested,
         not assumed." .
 
+# --- minimal core: only the tenure link and an open-range facet superproperty ---
 gmeow:configurationOfTenure a owl:ObjectProperty ; rdfs:range gmeow:InhabitationTenure .
-gmeow:configurationPersona  a owl:ObjectProperty ; rdfs:range gmeow:Persona .          # expression profile
-gmeow:configurationEmbodiment a owl:ObjectProperty ; rdfs:range gmeow:EmbodimentAssignment .
-gmeow:configurationDeployment a owl:ObjectProperty ; rdfs:range gmeow:ModelDeployment . # AI profile
-gmeow:configurationMemoryView a owl:ObjectProperty .   # derived view, or signed MemoryView (P12)
+gmeow:configurationFacet    a owl:ObjectProperty .   # OPEN range; profiles declare typed subproperties
+
+# --- profile/inhabitation-expression (NOT core) ---
+#   gmeow:configurationPersona    rdfs:subPropertyOf gmeow:configurationFacet ; rdfs:range gmeow:Persona .
+#   gmeow:configurationEmbodiment rdfs:subPropertyOf gmeow:configurationFacet ; rdfs:range gmeow:EmbodimentAssignment .
+# --- profile/inhabitation-ai (NOT core) ---
+#   gmeow:configurationDeployment rdfs:subPropertyOf gmeow:configurationFacet ; rdfs:range gmeow:ModelDeployment .
+#   gmeow:configurationMemoryView rdfs:subPropertyOf gmeow:configurationFacet . # derived view, or signed MemoryView
 ```
 
-The facets the configuration references — `Persona`, `ModelDeployment` — live in the **expression** and
-**AI** profiles, not the minimal core (see [`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md) on the
-core/profile split that the review required).
+The minimal core declares **only** `gmeow:configurationOfTenure` and the open-range
+`gmeow:configurationFacet`; the *typed* facet subproperties (`configurationPersona` → `Persona`,
+`configurationDeployment` → `ModelDeployment`) are declared in the expression and AI profiles, because
+their ranges are extension terms and a range axiom is a real dependency
+([`INHABITED-CONSUMER.md`](INHABITED-CONSUMER.md)). The first draft put the typed properties in core,
+which the review correctly flagged as re-importing the dependency the packaging split removes.
 
 ## `gmeow:Inhabitant` and `gmeow:InhabitedSystem` — contingent role-mixins
 
@@ -95,9 +103,15 @@ a host may be a `PhysicalObject` or a `SoftwareAgent`), so both are **`logic:Rol
 non-sortals spanning Kinds), not `logic:Role` (which is a sortal tied to one Kind). This is the same
 correction applied to `DigitalSubject` in [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md).
 
+The role-mixins are **grounded** so their instances are actual agents and entities, and the tenure's
+role-filler edges classify the filler into the role (by a narrowed range or a native rule), so that
+participating in a tenure genuinely instantiates the role:
+
 ```turtle
-gmeow:Inhabitant       a logic:RoleMixin , owl:Class ; rdfs:subClassOf logic:FunctionalComplex .
-gmeow:InhabitedSystem  a logic:RoleMixin , owl:Class ; rdfs:subClassOf logic:FunctionalComplex .
+gmeow:Inhabitant       a logic:RoleMixin , owl:Class ; rdfs:subClassOf gmeow:Agent .
+gmeow:InhabitedSystem  a logic:RoleMixin , owl:Class ; rdfs:subClassOf gmeow:Entity .
+# gmeow:inhabitationSubject classifies its filler as gmeow:Inhabitant, gmeow:inhabitedHost as
+# gmeow:InhabitedSystem — by a narrowed range or a native rule over the tenure, not left implicit.
 ```
 
 ## Locus: two orthogonal axes, not one
@@ -151,18 +165,24 @@ but the earlier draft modeled control with the deception slice's `heldStandpoint
 
 ```turtle
 gmeow:ControlAssessment
-    a logic:Situation , owl:Class ;
+    a logic:SubKind , owl:Class ;
     rdfs:subClassOf gmeow:Observation ;
     skos:definition "A standpoint-indexed, attributed, dated observation of which agent causally
         controls a host or embodiment over an interval, to what degree — the agency attribution a
-        consumer needs to answer 'who was driving at T'. Distinct from the deception divergence
-        (held ≠ projected standpoint), which records belief-versus-presentation, not control: a
-        documented similarity, no axiom coupling." .
+        consumer needs to answer 'who was driving at T'. A logic:SubKind of gmeow:Observation (which
+        is a logic:Kind, not a situation). Distinct from the deception divergence (held ≠ projected
+        standpoint), which records belief-versus-presentation, not control: a documented similarity,
+        no axiom coupling." .
 
 gmeow:controlAgent a owl:ObjectProperty ; rdfs:range gmeow:Agent .
 gmeow:controlOver  a owl:ObjectProperty .       # the host or embodiment assignment
-gmeow:controlDegree a owl:DatatypeProperty .    # partial / full / contested
+gmeow:controlLevel a owl:ObjectProperty ; rdfs:range gmeow:ControlLevel .  # value vocabulary, not a literal
 gmeow:controlInterval a owl:ObjectProperty ; rdfs:range gmeow:TimeInterval .
+
+gmeow:ControlLevel a logic:AbstractIndividualType , owl:Class ; rdfs:subClassOf logic:QualityValue .
+gmeow:controlPartial   a gmeow:ControlLevel .
+gmeow:controlFull      a gmeow:ControlLevel .
+gmeow:controlContested a gmeow:ControlLevel .
 ```
 
 A solver cannot compute control without control observations; there is no `gmeow:primaryInhabitant`
@@ -183,16 +203,24 @@ ex:migration-7 a gmeow:Event ;
     gmeow:portalFrom ex:tenure-before ;
     gmeow:portalTo   ex:tenure-after ;
     gmeow:atTime "..."^^xsd:dateTime .
+
+ex:tenure-before gmeow:tenureEndedBy ex:migration-7 .   # a tenure is closed by ending its interval,
+                                                        # NOT by gmeow:hasDestructionEvent
 ```
 
-Two corrections the review required:
+A tenure is a `logic:Situation`, so it **cannot** be closed with `gmeow:hasDestructionEvent`: that
+property's domain is `gmeow:Entity` (an endurant), and applying it to a situation would infer the
+tenure is an endurant. A tenure is closed by ending its `gmeow:duringInterval`; the optional
+`gmeow:tenureEndedBy` (domain `gmeow:TimeScopedRelation`, range `gmeow:Event`) records the causal link
+to the migration event.
 
-- **Ending a tenure is ontic; it does not suppress.** Closing an inhabitation
-  (`gmeow:hasDestructionEvent`) is an ontic fact; it does **not** entail `gmeow:displayable false`.
-  Suppression is a separate display contract (Principle 10) applied only when a value must be withheld
-  — the lifecycle slice's exact discipline. The earlier "banishing = suppression" wording conflated
-  the two; banishing *ends* a tenure, and may *additionally* be suppressed, but the two are
-  independent.
+Two further corrections the review required:
+
+- **Ending a tenure is ontic; it does not suppress.** Closing a tenure (ending its interval) is an
+  ontic fact; it does **not** entail `gmeow:displayable false`. Suppression is a separate display
+  contract (Principle 10) applied only when a value must be withheld — the lifecycle slice's exact
+  discipline. The earlier "banishing = suppression" wording conflated the two; banishing *ends* a
+  tenure, and may *additionally* be suppressed, but the two are independent.
 - **Crossing a boundary requires evidence, not coincidence.** Seeing the same claim before and after a
   transition does **not** establish that it crossed — it may have been regenerated independently.
   Migration content is carried by a `gmeow:TransferManifest` (or per-claim derivation provenance)

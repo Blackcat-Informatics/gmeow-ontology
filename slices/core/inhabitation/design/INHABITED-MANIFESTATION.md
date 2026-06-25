@@ -76,20 +76,26 @@ mechanism**, chaining three existing constructs:
 
 ```turtle
 ex:thoughtform
-    a gmeow:Agent , gmeow:DigitalSubject ;       # first-class once it self-asserts (P9)
+    a gmeow:Agent ;                              # an agent; the durable-subject STATUS is borne, not typed
     gmeow:hasCreationEvent ex:cultivation ;
     gmeow:subjectGenesisOrigin gmeow:originImagined ;
     gmeow:subjectCreator ex:tulpamancer .        # an Agent (tulpa) or a Collective (egregore)
+
+ex:thoughtformDST a gmeow:DigitalSubjectTenure ; # the status is borne over a tenure...
+    gmeow:tenureSubjectAgent ex:thoughtform ;
+    gmeow:tenureSupportedBy ex:thoughtformSelfClaim .   # ...supported by self-assertion, NOT entailed by it
 
 ex:cultivation a gmeow:Activity ;
     gmeow:producesMentalMoment ex:thoughtformIdentity .
 ```
 
-The created subject is **first-class with full self-assertion authority** (Principle 9): a tulpa,
-like an AI, is a subject of its own existence the moment it can assert about itself — not an object
-its creator may define on its behalf. The egregore case sets `gmeow:subjectCreator` to a
-`gmeow:Organization` / `gmeow:Group`, which is Cagle's "Collective as Actor" realized: a collective
-that wills a subject into being and sustains it.
+Consistent with the supported-tenure model ([`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md)): the
+created subject does **not** become a `DigitalSubject` merely by being typed or by emitting "I am
+durable" — it *bears* the status over a `DigitalSubjectTenure` that its self-assertion *supports*. Once
+it can assert about itself, it is **first-class with full self-assertion authority** (Principle 9): a
+tulpa, like an AI, is a subject of its own existence, not an object its creator may define on its
+behalf. The egregore case sets `gmeow:subjectCreator` to a `gmeow:Organization` / `gmeow:Group` — Cagle's
+"Collective as Actor": a collective that wills a subject into being and sustains it.
 
 ## Identity-continuity as a contested claim
 
