@@ -25,7 +25,7 @@ use oxigraph::store::Store;
 use gmeow_shacl::engine::{parse_shapes, validate};
 use gmeow_validate::findings::finding_from_shacl;
 use gmeow_validate::store::{build_store, parse_file};
-use gmeow_validate::validate_all::{scoped_overlay_insert, scoped_overlay_remove};
+use gmeow_validate::validate_all::OverlayGuard;
 
 use crate::dsl::{
     self, CompetencyQuestion, ExampleConformance, ExpectedRow, Outcome, Polarity, ReasoningProfile,
@@ -146,8 +146,8 @@ fn run_competency_cell(
     // merged graph for this one query, then removed. The merged store is shared
     // across cells in this file, so a leak would contaminate later questions —
     // scoped_overlay_insert returns only the quads it actually inserted (skipping
-    // any already present) and scoped_overlay_remove deletes exactly that set, and
-    // we remove unconditionally even when the query errors.
+    // any already present). The OverlayGuard removes exactly that set
+    // unconditionally on scope exit, including panic unwind.
     if cq.reasoning != ReasoningProfile::None {
         // The RDFS closure is computed BEFORE the overlay, so an overlaid fixture's
         // entailments would be invisible. Refuse rather than silently under-answer.
@@ -160,10 +160,8 @@ fn run_competency_cell(
     let fixture_path = paths::example_file(slice_dir, rel);
     let quads = parse_file(&fixture_path)
         .map_err(|e| format!("parsing cqDataFile {}: {e}", fixture_path.display()))?;
-    let inserted = scoped_overlay_insert(store, quads.iter());
-    let result = execute_competency_query(store, cq, &query);
-    scoped_overlay_remove(store, &inserted);
-    result
+    let _overlay = OverlayGuard::insert(store, quads.iter());
+    execute_competency_query(store, cq, &query) // _overlay drops here, removing the overlay
 }
 
 /// Execute a competency question's (already-resolved) query over `store` and
@@ -388,9 +386,10 @@ fn run_conformance_cell(ec: &ExampleConformance, slice_dir: &Path) -> Result<(),
 
     // Scoped overlay: validate (module + example) against the slice shapes, then
     // restore the module store — exactly the validation-path example idiom.
-    let inserted = scoped_overlay_insert(&data_store, example_quads.iter());
+    // OverlayGuard removes the inserted quads unconditionally on scope exit,
+    // including panic unwind.
+    let _overlay = OverlayGuard::insert(&data_store, example_quads.iter());
     let report = validate(&data_store, &shapes);
-    scoped_overlay_remove(&data_store, &inserted);
 
     let codes: BTreeSet<String> = report
         .results

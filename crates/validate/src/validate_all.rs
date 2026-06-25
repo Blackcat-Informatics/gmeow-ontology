@@ -798,10 +798,9 @@ fn run_example_shacl(
             .with_tool("validate")]);
         }
     };
-    let inserted = scoped_overlay_insert(store, example_quads.iter());
+    let _overlay = OverlayGuard::insert(store, example_quads.iter());
     let report = gmeow_shacl::engine::validate(store, shapes);
-    scoped_overlay_remove(store, &inserted);
-    Ok(shacl_findings_from_report(&report, Some(name)))
+    Ok(shacl_findings_from_report(&report, Some(name))) // _overlay drops here, removing the overlay
 }
 
 /// Insert only quads that are not already present in `store` and return the
@@ -825,6 +824,37 @@ pub fn scoped_overlay_insert<'a>(
 pub fn scoped_overlay_remove(store: &Store, quads: &[oxigraph::model::Quad]) {
     for quad in quads {
         store.remove(quad).expect("in-memory store remove");
+    }
+}
+
+/// RAII guard: removes an inserted overlay set on scope exit, including panic unwind.
+///
+/// The merged store is shared across cells in the same test file; a leaked overlay
+/// would contaminate later cells. Wrapping the insert in this guard makes removal
+/// unconditional — it runs on normal return *and* on panic unwind — so the store
+/// is always restored to its pre-overlay state by the time the guard drops.
+pub struct OverlayGuard<'a> {
+    store: &'a Store,
+    quads: Vec<oxigraph::model::Quad>,
+}
+
+impl<'a> OverlayGuard<'a> {
+    /// Insert `quads` not already present and hold them for unconditional removal on drop.
+    pub fn insert<'q>(
+        store: &'a Store,
+        quads: impl Iterator<Item = &'q oxigraph::model::Quad>,
+    ) -> Self {
+        let inserted = scoped_overlay_insert(store, quads);
+        Self {
+            store,
+            quads: inserted,
+        }
+    }
+}
+
+impl Drop for OverlayGuard<'_> {
+    fn drop(&mut self) {
+        scoped_overlay_remove(self.store, &self.quads);
     }
 }
 
