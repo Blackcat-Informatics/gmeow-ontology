@@ -272,6 +272,116 @@ gmeow:versionSet
     gmeow:howToUse "Set exactly one versionSet, an existing gmeow:VersionSet individual, alongside the relator's gmeow:versionMember."@x-gmeow-english ;
     gmeow:useWhen "Use to name the one lineage a VersionMembership places its member into — the concept-level family the version belongs to."@x-gmeow-english .
 
+# ── Per-term lifecycle metadata (#1026) ─────────────────────────────────────────
+# Maturity and changelog signals about a VOCABULARY TERM (a class or property in
+# the TBox), distinct from the standpoint-scoped instance-level version roles
+# above. Asserted with owl:AnnotationProperty (the gmeow:accordingTo pattern,
+# Principle 3) so that annotating a class keeps the generated OWL downcast in
+# OWL 2 DL — a term's own maturity/history is metadata ABOUT the term, never an
+# essential type. Surfaced on every term page by the ontology-docs generator.
+
+gmeow:TermStability
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+    rdfs:label "Term Stability"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The maturity status a vocabulary term holds within the ontology's own release lifecycle — a VALUE, never an Entity subclass. The seed list (stable, experimental, deprecated) is an anchor, not a fence: a domain may mint further statuses. Distinct from gmeow:VersionRole, which classifies a concrete artifact's membership in a lineage; TermStability classifies a TBox term's own readiness for adopter use."@x-gmeow-english ;
+    skos:example "ex:stabilityReleaseCandidate a gmeow:TermStability ; rdfs:label \"release candidate\"@en ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-status Entity subclasses or typing instances with a stability value; stability is an annotation value asserted about a term via gmeow:termStability, not an essential type, and not a per-instance version role (that is gmeow:VersionRole)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the seeded individuals from gmeow:termStability, and extend the anchor list with new gmeow:TermStability individuals (label only) when an editorial process needs a status the seeds omit."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for per-term maturity — the named statuses (stable, experimental, deprecated, …) referenced by gmeow:termStability, and the place to mint a new status individual."@x-gmeow-english .
+
+gmeow:stabilityStable
+    a gmeow:TermStability ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+    rdfs:label "stable"@x-gmeow-english ;
+    skos:definition "The stable term-stability status — the term is mature and its meaning is committed; adopters may rely on it. The default for core-tier terms unless an explicit gmeow:termStability or owl:deprecated overrides it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:stabilityExperimental
+    a gmeow:TermStability ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+    rdfs:label "experimental"@x-gmeow-english ;
+    skos:definition "The experimental term-stability status — the term is provisional and may change or be withdrawn; adopters should pin and watch it. The default for extension-tier terms unless an explicit gmeow:termStability overrides it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:stabilityDeprecated
+    a gmeow:TermStability ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+    rdfs:label "deprecated"@x-gmeow-english ;
+    skos:definition "The deprecated term-stability status — the term is retained for continuity but should no longer be used; a replacement is expected. Implied by owl:deprecated true on the term, or asserted explicitly via gmeow:termStability."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:termStability
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+    rdfs:label "term stability"@x-gmeow-english ;
+    skos:definition "Annotates a vocabulary term with its maturity status — a gmeow:TermStability individual (stable, experimental, deprecated). An owl:AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) because it is asserted ABOUT a class or property, keeping the generated OWL in OWL 2 DL. When absent, the docs generator derives a default from the owner slice's tier (core → stable, extension → experimental) and from owl:deprecated; an explicit assertion overrides the default."@x-gmeow-english ;
+    skos:example "gmeow:SomeTerm gmeow:termStability gmeow:stabilityExperimental ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on instances or using it for a concrete version's lifecycle role (that is gmeow:versionRole through a gmeow:VersionMembership); reserve it for the maturity of a TBox term."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point it at one seeded gmeow:TermStability individual on the class or property; omit it to accept the tier-derived default."@x-gmeow-english ;
+    gmeow:useWhen "Use to override a term's derived maturity badge — to mark a core term experimental while it settles, or to flag any term deprecated ahead of removal."@x-gmeow-english .
+
+gmeow:addedInVersion
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+    rdfs:label "added in version"@x-gmeow-english ;
+    skos:definition "The ontology release version in which a vocabulary term first appeared — a literal version string (e.g. \"1.0.2\"). An owl:AnnotationProperty asserted about a class or property. The seed for the per-term changelog; eventually populated automatically from release-as-evidence content-address diffs (CONSTITUTION §18)."@x-gmeow-english ;
+    skos:example "gmeow:SomeTerm gmeow:addedInVersion \"1.0.2\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a concrete artifact's version (that is gmeow:versionMember / gmeow:versionFingerprint on a gmeow:VersionMembership); reserve it for the release a TBox term debuted in."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach one version-string literal to the term; pair it with gmeow:hasChangelogEntry to narrate subsequent changes."@x-gmeow-english ;
+    gmeow:useWhen "Use to record when a term entered the vocabulary, so adopters can tell newly-added terms from long-stable ones at a glance."@x-gmeow-english .
+
+gmeow:ChangelogEntry
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+    rdfs:label "Changelog Entry"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A reified record of one change to a vocabulary term in a given release — a first-class information object carrying a version (gmeow:entryVersion) and optional prose (gmeow:entryNote). Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per-release history without any per-instance lifecycle modelling."@x-gmeow-english ;
+    skos:example "[ a gmeow:ChangelogEntry ; gmeow:entryVersion \"1.0.2\" ; gmeow:entryNote \"Range tightened to gmeow:Entity.\"@x-gmeow-english ]"@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a concrete artifact's release record (that is a gmeow:VersionMembership) and avoid overwriting an entry to revise history; add a new entry per release (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one entry per (term, release) change, fill gmeow:entryVersion and optionally gmeow:entryNote, and attach it with gmeow:hasChangelogEntry."@x-gmeow-english ;
+    gmeow:useWhen "Use to narrate a single per-release change to a term — what changed and in which version — building the term's changelog block in the docs."@x-gmeow-english .
+
+gmeow:hasChangelogEntry
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+    rdfs:label "has changelog entry"@x-gmeow-english ;
+    skos:definition "Attaches a gmeow:ChangelogEntry to the vocabulary term it describes. An owl:AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) so a class or property can carry per-release history while the generated OWL stays in OWL 2 DL. Non-functional: a term accrues one entry per release."@x-gmeow-english ;
+    skos:example "gmeow:SomeTerm gmeow:hasChangelogEntry [ a gmeow:ChangelogEntry ; gmeow:entryVersion \"1.0.2\" ] ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid collapsing several releases into one entry; mint one gmeow:ChangelogEntry per release so the history stays ordered and auditable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point it at a gmeow:ChangelogEntry node carrying gmeow:entryVersion and optional gmeow:entryNote; repeat for each release that touched the term."@x-gmeow-english ;
+    gmeow:useWhen "Use to give a term a per-release changelog — the ordered list of versioned changes shown on its docs page."@x-gmeow-english .
+
+gmeow:entryVersion
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+    rdfs:label "entry version"@x-gmeow-english ;
+    skos:definition "The release version a gmeow:ChangelogEntry pertains to — a literal version string (e.g. \"1.0.2\"). Required on every entry; the docs generator sorts a term's entries by this value."@x-gmeow-english ;
+    skos:example "[ a gmeow:ChangelogEntry ; gmeow:entryVersion \"1.0.2\" ] ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting it (an entry with no version cannot be ordered) and avoid pointing it at a lineage concept; it is a literal release string for one entry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set one version-string literal per gmeow:ChangelogEntry; keep it consistent with the term's gmeow:addedInVersion."@x-gmeow-english ;
+    gmeow:useWhen "Use to stamp a changelog entry with the release it describes, so the per-term changelog can be ordered and rendered."@x-gmeow-english .
+
+gmeow:entryNote
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+    rdfs:label "entry note"@x-gmeow-english ;
+    skos:definition "Optional prose describing what changed in a gmeow:ChangelogEntry — a short, localizable note carried on the @x-gmeow-english carrier. Renders as the per-release line in a term's changelog block."@x-gmeow-english ;
+    skos:example "[ a gmeow:ChangelogEntry ; gmeow:entryVersion \"1.0.2\" ; gmeow:entryNote \"Range tightened to gmeow:Entity.\"@x-gmeow-english ] ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid packing multiple releases' changes into one note; one note describes the single release named by its entry's gmeow:entryVersion."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach one localizable prose literal to the entry on the @x-gmeow-english carrier; keep it terse — one change, one sentence."@x-gmeow-english ;
+    gmeow:useWhen "Use to say in words what changed about a term in a given release, beyond the bare version string."@x-gmeow-english .
+
 <https://blackcatinformatics.ca/gmeow/slices/versions>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
