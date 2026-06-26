@@ -4661,9 +4661,11 @@ type Finding {
   id: String
   iri: String
   findingCode: [String!]
+  findingHelpUri: [String!]
   findingLocation: [String!]
   findingMessage: [String!]
   findingSeverity: [DiagnosticSeverity!]
+  findingSuggestion: [String!]
   findingTool: [String!]
 }
 

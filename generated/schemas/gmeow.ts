@@ -4251,9 +4251,11 @@ export interface FinancialTransaction extends Event {
 
 export interface Finding extends Observation {
     findingCode?: string[],
+    findingHelpUri?: string[],
     findingLocation?: string[],
     findingMessage?: string[],
     findingSeverity?: DiagnosticSeverity[],
+    findingSuggestion?: string[],
     findingTool?: string[],
 }
 

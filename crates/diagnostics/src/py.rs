@@ -203,6 +203,11 @@ impl PyReport {
         render::to_text(&self.inner)
     }
 
+    /// Render only the advisory (Note/Info) findings as text (#760 F1).
+    fn render_advisory_text(&self) -> String {
+        render::to_text_advisories(&self.inner)
+    }
+
     /// Write the report's projections to `directory/<stem>.<ext>` and return the
     /// `{kind: path}` map of what was written.
     ///

@@ -1400,9 +1400,11 @@ classes:
     is_a: Observation
     slots:
     - findingCode
+    - findingHelpUri
     - findingLocation
     - findingMessage
     - findingSeverity
+    - findingSuggestion
     - findingTool
   ForgePlatform:
     class_uri: https://blackcatinformatics.ca/gmeow/ForgePlatform
@@ -6780,6 +6782,12 @@ slots:
     range: string
     domain: Finding
     multivalued: true
+  findingHelpUri:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingHelpUri
+    title: finding help URI
+    range: uri
+    domain: Finding
+    multivalued: true
   findingLocation:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingLocation
     title: finding location
@@ -6796,6 +6804,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingSeverity
     title: finding severity
     range: DiagnosticSeverity
+    domain: Finding
+    multivalued: true
+  findingSuggestion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingSuggestion
+    title: finding suggestion
+    range: string
     domain: Finding
     multivalued: true
   findingTool:

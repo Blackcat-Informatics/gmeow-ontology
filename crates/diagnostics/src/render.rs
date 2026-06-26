@@ -204,6 +204,7 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 /// The named graph the diagnostics projection lives in.
 const DIAGNOSTICS_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const XSD_ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
 const XSD_NNI: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 
 /// The `gmeow:DiagnosticSeverity` individual IRI for a severity.
@@ -244,18 +245,21 @@ fn nq_escape(value: &str) -> String {
 ///
 /// Each finding becomes a `gmeow:Finding` individual carrying `gmeow:findingCode`,
 /// `gmeow:findingMessage`, `gmeow:findingTool`, a `gmeow:findingSeverity`
-/// pointing at the matching `gmeow:DiagnosticSeverity` individual, and one
-/// `gmeow:findingLocation` blank node per location, whose GTS wire coordinates
-/// are hung on it as datatype properties. This is the native in-bundle form of a
-/// report — a projection of the canonical Rust model (Principle 4), SPARQL-
-/// queryable beside the data it describes. N-Quads is used so the output parses
-/// in any RDF tool (oxigraph, rdflib) without TriG/prefix handling. Output
-/// is deterministic: the report is normalized and findings are emitted in sorted
-/// order with content-addressed finding IRIs.
+/// pointing at the matching `gmeow:DiagnosticSeverity` individual, one
+/// `gmeow:findingSuggestion` per suggestion (already sorted/deduped), an optional
+/// `gmeow:findingHelpUri` from the rule registry, and one `gmeow:findingLocation`
+/// blank node per location, whose GTS wire coordinates are hung on it as datatype
+/// properties. This is the native in-bundle form of a report — a projection of the
+/// canonical Rust model (Principle 4), SPARQL-queryable beside the data it
+/// describes. N-Quads is used so the output parses in any RDF tool (oxigraph,
+/// rdflib) without TriG/prefix handling. Output is deterministic: the report is
+/// normalized and findings are emitted in sorted order with content-addressed
+/// finding IRIs.
 pub fn to_gmeow_rdf(report: &Report) -> String {
     let normalized = report.normalized();
     let graph = format!("<{DIAGNOSTICS_GRAPH}>");
     let mut lines: Vec<String> = Vec::new();
+    let rules = rule_map(&normalized);
 
     let triple = |s: &str, p: &str, o: &str, lines: &mut Vec<String>| {
         lines.push(format!("{s} <{p}> {o} {graph} ."));
@@ -290,6 +294,26 @@ pub fn to_gmeow_rdf(report: &Report) -> String {
                 &format!("\"{}\"", nq_escape(tool)),
                 &mut lines,
             );
+        }
+        // Advisory: one triple per suggestion (already sorted+deduped by normalize).
+        for suggestion in &finding.suggestions {
+            triple(
+                &subject,
+                &format!("{GMEOW}findingSuggestion"),
+                &format!("\"{}\"", nq_escape(suggestion)),
+                &mut lines,
+            );
+        }
+        // Advisory: help URI from the rule registry, if present.
+        if let Some(rule) = rules.get(finding.code.as_str()) {
+            if let Some(uri) = &rule.help_uri {
+                triple(
+                    &subject,
+                    &format!("{GMEOW}findingHelpUri"),
+                    &format!("\"{}\"^^<{XSD_ANY_URI}>", nq_escape(uri)),
+                    &mut lines,
+                );
+            }
         }
         for (loc_index, location) in finding.locations.iter().enumerate() {
             // An IRI (not a blank node) so the findings graph round-trips
@@ -343,30 +367,89 @@ pub fn to_gmeow_rdf(report: &Report) -> String {
     out
 }
 
+/// Build a `BTreeMap` from rule id to `&Rule` for O(log n) lookup by finding code.
+/// Built once per render call and shared across findings.
+fn rule_map(report: &Report) -> BTreeMap<&str, &Rule> {
+    report.rules.iter().map(|r| (r.id.as_str(), r)).collect()
+}
+
+/// Render the text lines for a single finding (message line + suggestion/help lines)
+/// into `out`. Shared by [`to_text`] and [`to_text_advisories`].
+fn finding_text_lines(finding: &Finding, rules: &BTreeMap<&str, &Rule>, out: &mut Vec<String>) {
+    let mut line = format!(
+        "{} {}: {}",
+        finding.severity.as_str(),
+        finding.code,
+        finding.message
+    );
+    if let Some(location) = finding.primary_location() {
+        line.push_str(" (");
+        line.push_str(&location.display());
+        line.push(')');
+    }
+    out.push(line);
+    // Suggestions (already sorted+deduped by normalize): one indented line each.
+    for suggestion in &finding.suggestions {
+        out.push(format!("  ↳ suggestion: {suggestion}"));
+    }
+    // Help URI from the rule, if present.
+    if let Some(rule) = rules.get(finding.code.as_str()) {
+        if let Some(uri) = &rule.help_uri {
+            out.push(format!("  ↳ help: {uri}"));
+        }
+    }
+}
+
 /// Render a compact terminal-safe plain-text report.
 pub fn to_text(report: &Report) -> String {
     let normalized = report.normalized();
+    let rules = rule_map(&normalized);
     let mut lines = Vec::new();
     for finding in &normalized.findings {
-        let mut line = format!(
-            "{} {}: {}",
-            finding.severity.as_str(),
-            finding.code,
-            finding.message
-        );
-        if let Some(location) = finding.primary_location() {
-            line.push_str(" (");
-            line.push_str(&location.display());
-            line.push(')');
-        }
-        lines.push(line);
+        finding_text_lines(finding, &rules, &mut lines);
     }
     lines.join("\n")
+}
+
+/// Render ONLY the advisory (Note/Info) findings as text — the block the
+/// legacy CLI appends after its error/warning lines so advisory-tier findings
+/// (#760) are visible on the default `gmeow validate` surface. Reuses the same
+/// per-finding rendering as `to_text` (message line + suggestion/help lines).
+/// Returns an empty string when there are no advisory findings.
+pub fn to_text_advisories(report: &Report) -> String {
+    use crate::model::Severity;
+    let normalized = report.normalized();
+    let rules = rule_map(&normalized);
+    let mut lines = Vec::new();
+    for finding in &normalized.findings {
+        if matches!(finding.severity, Severity::Note | Severity::Info) {
+            finding_text_lines(finding, &rules, &mut lines);
+        }
+    }
+    lines.join("\n")
+}
+
+/// Whether a report has any finding with suggestions or any rule with a help_uri,
+/// used to decide whether to include the `.suggestions`/`.help` CSS rules.
+fn has_advisory_content(report: &Report, rules: &BTreeMap<&str, &Rule>) -> bool {
+    report.findings.iter().any(|f| {
+        !f.suggestions.is_empty()
+            || rules
+                .get(f.code.as_str())
+                .and_then(|r| r.help_uri.as_deref())
+                .is_some()
+    })
 }
 
 /// Render a self-contained static HTML report.
 pub fn to_html(report: &Report) -> String {
     let normalized = report.normalized();
+    let rules = rule_map(&normalized);
+    let advisory_css = if has_advisory_content(&normalized, &rules) {
+        "\n    .suggestions { margin: 0.25rem 0 0 0; padding-left: 1.2rem; color: #4b5563; font-size: 0.9rem; }\n    .help { color: #175cd3; font-size: 0.85rem; margin-left: 0.4rem; text-decoration: none; }\n    .help:hover { text-decoration: underline; }"
+    } else {
+        ""
+    };
     let mut rows = String::new();
     for finding in &normalized.findings {
         let location = finding
@@ -380,7 +463,26 @@ pub fn to_html(report: &Report) -> String {
             escape_html(finding.severity.as_str())
         ));
         rows.push_str(&format!("<td>{}</td>", escape_html(&finding.code)));
-        rows.push_str(&format!("<td>{}</td>", escape_html(&finding.message)));
+
+        // Message cell: message text, optional suggestions list, optional help link.
+        let mut msg_cell = escape_html(&finding.message);
+        if !finding.suggestions.is_empty() {
+            msg_cell.push_str("<ul class=\"suggestions\">");
+            for suggestion in &finding.suggestions {
+                msg_cell.push_str(&format!("<li>{}</li>", escape_html(suggestion)));
+            }
+            msg_cell.push_str("</ul>");
+        }
+        if let Some(rule) = rules.get(finding.code.as_str()) {
+            if let Some(uri) = &rule.help_uri {
+                msg_cell.push_str(&format!(
+                    "<a class=\"help\" href=\"{}\">\u{2139} help</a>",
+                    escape_html(uri)
+                ));
+            }
+        }
+        rows.push_str(&format!("<td>{msg_cell}</td>"));
+
         rows.push_str(&format!("<td>{}</td>", escape_html(&location)));
         rows.push_str("</tr>\n");
     }
@@ -404,7 +506,7 @@ pub fn to_html(report: &Report) -> String {
     .sev {{ border-radius: 4px; color: white; display: inline-block; font-size: 0.8rem; min-width: 4.5rem; padding: 0.2rem 0.4rem; text-align: center; }}
     .sev-error {{ background: #b42318; }}
     .sev-warning {{ background: #b54708; }}
-    .sev-note, .sev-info {{ background: #175cd3; }}
+    .sev-note, .sev-info {{ background: #175cd3; }}{advisory_css}
   </style>
 </head>
 <body>
@@ -423,6 +525,7 @@ pub fn to_html(report: &Report) -> String {
         warnings = normalized.warning_count(),
         total = normalized.findings.len(),
         rows = rows,
+        advisory_css = advisory_css,
     )
 }
 
@@ -567,6 +670,12 @@ fn sarif_result(finding: &Finding) -> Value {
         });
         props.insert("gmeow.attributions".to_owned(), json!(sorted));
     }
+    // Advisory suggestions land in properties as a plain string array.
+    // SARIF `fixes` (with artifactChanges) is deliberately left to D5/#764
+    // where suggestions become concrete edits with file mutations.
+    if !finding.suggestions.is_empty() {
+        props.insert("gmeow.suggestions".to_owned(), json!(finding.suggestions));
+    }
     if !props.is_empty() {
         result["properties"] = serde_json::Value::Object(props);
     }
@@ -692,7 +801,7 @@ fn escape_attr(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{DiagnosticAttribution, Finding, Location, Report, Severity};
+    use crate::model::{DiagnosticAttribution, Finding, Location, Report, Rule, Severity};
 
     // ── Fixtures ─────────────────────────────────────────────────────────────
     //
@@ -1051,6 +1160,153 @@ mod tests {
         let close_rows = html.matches("</tr>").count();
         assert_eq!(html.matches("<tr").count(), close_rows);
         assert_eq!(close_rows, 1 + report.findings.len());
+    }
+
+    /// A report with one advisory finding carrying suggestions and a rule help_uri.
+    /// Used to snapshot-test that `to_text` and `to_html` render these fields.
+    fn advisory_report() -> Report {
+        let mut finding = Finding::new(
+            Severity::Note,
+            "advice.sample",
+            "consider a more specific sortal",
+        )
+        .with_tool("validate");
+        // Push in reverse-alphabetical order so normalize() re-sorts them, confirming
+        // the renderer iterates the already-sorted slice AS-IS.
+        finding
+            .suggestions
+            .push("use gmeow:Kind for rigid sortals".to_owned());
+        finding
+            .suggestions
+            .push("see the modeling guide".to_owned());
+
+        let mut rule = Rule::new("advice.sample", Severity::Note);
+        rule.help_uri = Some("https://blackcatinformatics.ca/gmeow/advice#sample".to_owned());
+
+        let mut report = Report::new("validate");
+        report.add_rule(rule);
+        report.add_finding(finding);
+        report
+    }
+
+    #[test]
+    fn advisory_text_snapshot() {
+        insta::assert_snapshot!(to_text(&advisory_report()));
+    }
+
+    #[test]
+    fn to_text_advisories_renders_only_notes_and_infos() {
+        // comprehensive_report() has Error + Warning findings but no Note/Info:
+        // result must be empty.
+        assert_eq!(
+            to_text_advisories(&comprehensive_report()),
+            "",
+            "expected empty string for a report with no Note/Info findings"
+        );
+
+        // advisory_report() has one Note finding with suggestions and a help URI.
+        let text = to_text_advisories(&advisory_report());
+        assert!(
+            text.contains("note advice.sample"),
+            "expected 'note advice.sample' prefix line in advisory text, got: {text}"
+        );
+        assert!(
+            text.contains("↳ suggestion:"),
+            "expected suggestion lines in advisory text, got: {text}"
+        );
+        assert!(
+            text.contains("↳ help:"),
+            "expected help line in advisory text, got: {text}"
+        );
+        // Must NOT contain any error or warning severity prefix.
+        for line in text.lines() {
+            assert!(
+                !line.starts_with("error ") && !line.starts_with("warning "),
+                "advisory text must not contain error/warning severity lines, found: {line}"
+            );
+        }
+    }
+
+    #[test]
+    fn advisory_only_text_snapshot() {
+        insta::assert_snapshot!(to_text_advisories(&advisory_report()));
+    }
+
+    #[test]
+    fn advisory_html_snapshot() {
+        insta::assert_snapshot!(to_html(&advisory_report()));
+    }
+
+    #[test]
+    fn advisory_sarif_snapshot() {
+        let value: Value = serde_json::from_str(&to_sarif(&advisory_report()).unwrap()).unwrap();
+        insta::assert_json_snapshot!(value);
+    }
+
+    #[test]
+    fn advisory_gmeow_rdf_snapshot() {
+        insta::assert_snapshot!(to_gmeow_rdf(&advisory_report()));
+    }
+
+    #[test]
+    fn gmeow_rdf_escapes_suggestion_specials() {
+        // A suggestion containing a double-quote and a C0 control char must be
+        // escaped correctly: \" → \\\" and \u{7} → \\u0007. No raw control char
+        // may survive into the N-Quads output.
+        let mut finding = Finding::new(Severity::Note, "advice.escape", "escape test finding");
+        finding
+            .suggestions
+            .push("quote \" and \u{7} bell".to_owned());
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+        let nquads = to_gmeow_rdf(&report);
+        assert!(
+            nquads.contains("quote \\\" and \\u0007 bell"),
+            "escaped form not found in output: {nquads}"
+        );
+        assert!(
+            !nquads.chars().any(|c| (c as u32) < 0x20 && c != '\n'),
+            "raw control character leaked into N-Quads output"
+        );
+    }
+
+    #[test]
+    fn advisory_suggestions_are_properties_not_locations() {
+        let sarif_str = to_sarif(&advisory_report()).unwrap();
+        let value: Value = serde_json::from_str(&sarif_str).unwrap();
+        let result = &value["runs"][0]["results"][0];
+
+        // suggestions land in properties, not as locations or relatedLocations
+        let suggestions = &result["properties"]["gmeow.suggestions"];
+        assert!(suggestions.is_array(), "gmeow.suggestions must be an array");
+        assert_eq!(
+            suggestions.as_array().unwrap().len(),
+            2,
+            "expected 2 suggestions"
+        );
+
+        // exactly one location (the synthetic fallback for the location-less Note)
+        let locations = result["locations"].as_array().unwrap();
+        assert_eq!(locations.len(), 1, "expected exactly 1 location");
+
+        // no relatedLocations key at all
+        assert!(
+            result.get("relatedLocations").is_none(),
+            "relatedLocations must not be present"
+        );
+
+        // rule-level helpUri carried via rules array
+        let rules = value["runs"][0]["tool"]["driver"]["rules"]
+            .as_array()
+            .unwrap();
+        let advice_rule = rules
+            .iter()
+            .find(|r| r["id"].as_str() == Some("advice.sample"))
+            .expect("advice.sample rule must be present");
+        assert!(
+            advice_rule.get("helpUri").is_some(),
+            "advice.sample rule must carry helpUri"
+        );
     }
 
     /// Recursively collect every `"uri"` string value under a JSON node.

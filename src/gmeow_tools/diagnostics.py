@@ -110,11 +110,23 @@ def report_from_validation_result(
 
 
 def emit_legacy_cli(report_obj: DiagnosticsReport, err_console: Console) -> None:
-    """Print warnings and errors in the existing CLI style (the ``pretty`` mode)."""
+    """Print warnings and errors in the existing CLI style (the ``pretty`` mode).
+
+    Advisory (note/info) findings are surfaced too (#760 F1): the legacy
+    error/warning surface is derived from ``legacy_errors``/``legacy_warnings``,
+    which filter out Note/Info, so an advisory would otherwise be invisible on the
+    default ``gmeow validate`` console. The advisory block is rendered ENTIRELY in
+    Rust (``render_advisory_text`` → ``render::to_text_advisories``, including the
+    suggestion/help lines); Python only passes the rendered text through to the
+    console — no per-severity logic lives here.
+    """
     for warning in list(report_obj.warnings):
         err_console.print(f"[yellow]warning[/yellow] {warning}")
     for error in list(report_obj.errors):
         err_console.print(f"[red]error[/red] {error}")
+    advisory = report_obj.render_advisory_text()
+    if advisory:
+        err_console.print(advisory, markup=False, highlight=False)
 
 
 def _findings_as_jsonl(report_obj: DiagnosticsReport) -> list[str]:
