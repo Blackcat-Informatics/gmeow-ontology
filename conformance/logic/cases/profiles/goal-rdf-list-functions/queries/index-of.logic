@@ -1,0 +1,11 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: list value lookup — the gmeow:listIndexOf backing (#1009 §5).
+% Recursive idx/3 over the rdf:first/rdf:rest chain with the arithmetic builtin
+% (`N is M + 1`). The value ex:z sits at position 2 in the list (x y z), so N = 2.
+:- prefix(ex, 'https://example.org/profiles/goal-rdf-list-functions/').
+:- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+ex:idx(L, X, 0) :- rdf:first(L, X).
+ex:idx(L, X, N) :- rdf:rest(L, R), ex:idx(R, X, M), N is M + 1.
+?- ex:idx(ex:l0, ex:z, N).

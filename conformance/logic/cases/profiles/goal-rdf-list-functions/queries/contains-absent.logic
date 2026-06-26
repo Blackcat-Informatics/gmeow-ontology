@@ -1,0 +1,12 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: list membership, negative case — the gmeow:listContains backing (#1009 §5).
+% Reuses the listMember/2 rdf:first/rdf:rest walk from contains.logic. The ground goal
+% asks whether ex:absent is a member of the list (x y z); it is not, so the goal
+% fails and returns empty bindings, status ok.
+:- prefix(ex, 'https://example.org/profiles/goal-rdf-list-functions/').
+:- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+ex:listMember(L, X) :- rdf:first(L, X).
+ex:listMember(L, X) :- rdf:rest(L, R), ex:listMember(R, X).
+?- ex:listMember(ex:l0, ex:absent).

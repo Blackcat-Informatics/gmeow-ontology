@@ -1,0 +1,10 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: list length, empty-list edge case — gmeow:listLength backing (#1009 §5).
+% The base case `ex:len(rdf:nil, 0)` answers directly: the empty list has length 0.
+:- prefix(ex, 'https://example.org/profiles/goal-rdf-list-functions/').
+:- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+ex:len(rdf:nil, 0).
+ex:len(L, N) :- rdf:rest(L, R), ex:len(R, M), N is M + 1.
+?- ex:len(rdf:nil, N).

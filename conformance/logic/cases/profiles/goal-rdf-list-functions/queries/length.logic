@@ -1,0 +1,11 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: list length — the gmeow:listLength backing (#1009 §5).
+% Recursive count over the rdf:rest chain with the arithmetic builtin (`N is M + 1`).
+% Over the list (x y z) at l0, the length goal returns N = 3, status ok.
+:- prefix(ex, 'https://example.org/profiles/goal-rdf-list-functions/').
+:- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+ex:len(rdf:nil, 0).
+ex:len(L, N) :- rdf:rest(L, R), ex:len(R, M), N is M + 1.
+?- ex:len(ex:l0, N).
