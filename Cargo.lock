@@ -1868,6 +1868,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-rdf-capi"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf",
+ "gmeow-rdf-core",
+]
+
+[[package]]
 name = "gmeow-rdf-core"
 version = "0.1.0"
 dependencies = [

@@ -60,6 +60,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene \
+	capi-build capi-header capi-check capi-install \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
 	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report \
@@ -322,6 +323,33 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 	else \
 		echo "SKIP: wasm32-unknown-unknown target not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' to enable the wasm-clean check"; \
 	fi
+
+CAPI_HEADER := crates/rdf-capi/include/purrdf.h
+
+capi-build: ## Build libpurrdf (cdylib + staticlib + header + pkg-config) via cargo-c.
+	cargo capi build -p gmeow-rdf-capi
+
+capi-header: ## Regenerate the committed purrdf.h ABI contract from the crate.
+	@touch crates/rdf-capi/src/lib.rs  # cargo-c only re-runs cbindgen when the crate recompiles; force it so a cache-fresh build cannot serve a stale header
+	cargo capi build -p gmeow-rdf-capi
+	@hdr=$$(find $(CARGO_TARGET_DIR) -path '*/include/purrdf/purrdf.h' | head -1); \
+	  test -n "$$hdr" || { echo "FAIL: cargo-c did not emit purrdf.h"; exit 1; }; \
+	  cp "$$hdr" $(CAPI_HEADER); echo "regenerated $(CAPI_HEADER)"
+
+capi-check: ## Verify the committed purrdf.h is current + the C smoke links and runs.
+	@touch crates/rdf-capi/src/lib.rs  # force cbindgen to re-run; otherwise CI's rust-cache can restore a stale header and the drift diff is meaningless
+	cargo capi build -p gmeow-rdf-capi
+	@hdr=$$(find $(CARGO_TARGET_DIR) -path '*/include/purrdf/purrdf.h' | head -1); \
+	  test -n "$$hdr" || { echo "FAIL: cargo-c did not emit purrdf.h"; exit 1; }; \
+	  if ! diff -q "$$hdr" $(CAPI_HEADER) >/dev/null; then \
+	    echo "FAIL: $(CAPI_HEADER) is STALE — run 'make capi-header' and commit the ABI header"; \
+	    diff $(CAPI_HEADER) "$$hdr" | head -40; exit 1; \
+	  fi; \
+	  echo "OK: committed purrdf.h matches the libpurrdf ABI surface"
+	cargo test -p gmeow-rdf-capi --test c_smoke  # the smoke driver self-builds the cdylib if absent (hermetic in every lane)
+
+capi-install: ## Install libpurrdf + purrdf.pc + header to PREFIX (default /usr/local).
+	cargo capi install -p gmeow-rdf-capi --prefix="$(if $(PREFIX),$(PREFIX),/usr/local)"
 
 slicetest: ## Run the slice-resident test-DSL harness in isolation.
 	cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)
