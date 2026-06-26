@@ -1207,6 +1207,75 @@ fn holonic_emergence_tri_valued_verdicts_and_non_propagation() {
 }
 
 #[test]
+fn holonic_downward_constraint_tri_valued_verdicts_and_non_transitivity() {
+    // The C3 (issue #706, revised by ME9 / #775) downward-constraint governance, driven from the
+    // SAME bytes the conformance harness asserts (the downward-constraint case input.nq).  One
+    // holarchy (ex:Department ▷ ex:Team ▷ ex:Member) and one governance regime (ex:HouseRegime,
+    // whose logic:activationBasis carries ex:OnCallState but NOT ex:IdleState) drive all three
+    // logic:ConstraintVerdict values; the would-be binding on ex:GovWaived is DEFEATED because
+    // ex:Team bears the declared override token (ex:CharterWaiver).  Crucially, the verdict must
+    // NOT cascade down logic:properPartOf to the grandchild ex:Member — non-transitivity is the
+    // C3 guarantee, and golden parity alone cannot pin that NEGATIVE fact.
+    let base = "https://example.org/foundation/holonic-governance";
+    let quads = run(
+        HOLONIC_GOVERNANCE_INPUT,
+        AntiRigidityPolicy::WitnessObligation,
+    );
+
+    // The three verdicts, each on its own logic:DownwardConstraint reifier.
+    let expect: [(&str, &str); 3] = [
+        ("GovActive", "ConstraintBinding"), // regime activates OnCallState, no override
+        ("GovWaived", "ConstraintOverridden"), // binding defeated by the CharterWaiver token
+        ("GovIdle", "ConstraintUnknown"),   // IdleState not in the regime's activationBasis
+    ];
+    let all_verdicts = [
+        "ConstraintBinding",
+        "ConstraintOverridden",
+        "ConstraintUnknown",
+    ];
+    for (constraint, verdict) in expect {
+        assert!(
+            has_binary(
+                &quads,
+                &format!("{base}/{constraint}"),
+                "constraintVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "{constraint} must receive {verdict}"
+        );
+        // Mutual exclusivity: the constraint carries NO other verdict of the trio.
+        for other in all_verdicts.iter().filter(|v| **v != verdict) {
+            assert!(
+                !has_binary(
+                    &quads,
+                    &format!("{base}/{constraint}"),
+                    "constraintVerdict",
+                    &format!("{LOGIC}{other}")
+                ),
+                "{constraint} must NOT also receive {other}"
+            );
+        }
+    }
+
+    // NON-TRANSITIVITY (the C3 #775 guarantee): governance does NOT cascade down
+    // logic:properPartOf.  ex:Member is a proper part of ex:Team (hence TRANSITIVELY a proper
+    // part of ex:Department), but no logic:DownwardConstraint names it as its constraintTarget,
+    // so it receives NO logic:constraintVerdict of any value — every verdict rule is gated on an
+    // explicit constraintWhole / constraintTarget reification, never on the properPartOf closure.
+    for verdict in all_verdicts {
+        assert!(
+            !has_binary(
+                &quads,
+                &format!("{base}/Member"),
+                "constraintVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "downward constraint must NOT cascade to the grandchild ex:Member (got {verdict})"
+        );
+    }
+}
+
+#[test]
 fn holonic_agency_four_valued_verdicts() {
     // The C4 (issue #707) holon autonomy/integration duality, driven from the SAME bytes
     // the conformance harness asserts (the case input.nq).  One declared
