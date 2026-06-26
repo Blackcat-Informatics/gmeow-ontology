@@ -663,6 +663,11 @@ const HOLONIC_LEVEL_INPUT: &str =
 const HOLONIC_LEVEL_GOLDEN: &str = include_str!(
     "../../../../conformance/logic/cases/holonic/holonic-level/expected/materialized.nq"
 );
+// Holonic agent-goal-holarchy (#709, C6): the named Principle-15 CONSUMER of the Holons epic —
+// an AI agent's goal/action trajectory as a holarchy that applies the C1–C4 kernel at once.
+// Read straight from the conformance case so this Rust test asserts the SAME bytes the harness does.
+const HOLONIC_AGENT_GOAL_INPUT: &str =
+    include_str!("../../../../conformance/logic/cases/holonic/agent-goal-holarchy/input.nq");
 
 #[test]
 fn golden_quad_sets_match_for_single_world_cases() {
@@ -1388,6 +1393,99 @@ fn holonic_agency_four_valued_verdicts() {
                 &format!("{LOGIC}{verdict}")
             ),
             "a profile-less assessment must receive NO verdict (got {verdict})"
+        );
+    }
+}
+
+#[test]
+fn holonic_agent_goal_holarchy_non_propagation_and_non_transitivity() {
+    // C6 (issue #709): the named Principle-15 CONSUMER — an AI agent's goal/action trajectory as
+    // a holarchy, applying the C1–C4 kernel at once.  The flagship composite previously had only
+    // golden-parity coverage; this test PINS the two structural guarantees golden parity cannot
+    // express as positive facts: NON-PROPAGATION (C2 — an emergent plan property never inherits
+    // down to sub-goals) and NON-TRANSITIVITY (C3 — a downward constraint never cascades down
+    // logic:properPartOf to a grandchild sub-goal).  Positive anchors across all four composed
+    // families come first, so the test cannot pass vacuously on an inert case.
+    let base = "https://example.org/holonic/agent-goal-holarchy";
+    let quads = run(
+        HOLONIC_AGENT_GOAL_INPUT,
+        AntiRigidityPolicy::WitnessObligation,
+    );
+
+    // ── Liveness: at least one positive derivation from each composed family fires ──
+    // C1 holon projection: mid-chain goals/actions are holons; the root goal and leaf are not.
+    for holon in ["RetrieveContext", "AnswerQuery", "ToolPhase"] {
+        assert!(
+            has_marker(&quads, &format!("{base}/{holon}"), "isHolon"),
+            "mid-chain {holon} must co-fire the C1 holon projection"
+        );
+    }
+    for non_holon in ["ShipAssistant", "SearchQuery"] {
+        assert!(
+            !has_marker(&quads, &format!("{base}/{non_holon}"), "isHolon"),
+            "the root/leaf {non_holon} must NOT be a holon"
+        );
+    }
+    // C2 emergence, C3 constraint, C4 agency: one verdict each proves the family is engaged.
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/AssessCoherence"),
+            "assessmentVerdict",
+            &format!("{LOGIC}Emergent")
+        ),
+        "plan coherence (borne by the whole, not theory-reduced) must be Emergent"
+    );
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/GovGrounded"),
+            "constraintVerdict",
+            &format!("{LOGIC}ConstraintBinding")
+        ),
+        "the grounded-only governance must bind the retrieval sub-goal"
+    );
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/IntegralRetrieve"),
+            "agencyVerdict",
+            &format!("{LOGIC}HolonIntegral")
+        ),
+        "the both-capacity retrieval sub-agent must be HolonIntegral"
+    );
+
+    // ── NON-PROPAGATION (C2): the emergent ex:PlanCoherence stays on the root goal and never
+    // inherits down logic:properPartOf to any sub-goal — non-inheritance is structural. ──
+    for sub_goal in ["AnswerQuery", "RetrieveContext", "SearchQuery"] {
+        assert!(
+            !has_binary(
+                &quads,
+                &format!("{base}/{sub_goal}"),
+                "bearsProperty",
+                &format!("{base}/PlanCoherence")
+            ),
+            "emergent PlanCoherence must NOT propagate down to the sub-goal {sub_goal}"
+        );
+    }
+
+    // ── NON-TRANSITIVITY (C3): ex:SearchQuery is a proper part of ex:RetrieveContext (the
+    // constraint target), hence transitively of ex:AnswerQuery (the constraint whole), but no
+    // logic:DownwardConstraint names it, so it receives NO constraintVerdict of any value —
+    // governance does not cascade down the properPartOf closure. ──
+    for verdict in [
+        "ConstraintBinding",
+        "ConstraintOverridden",
+        "ConstraintUnknown",
+    ] {
+        assert!(
+            !has_binary(
+                &quads,
+                &format!("{base}/SearchQuery"),
+                "constraintVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "downward constraint must NOT cascade to the grandchild sub-goal ex:SearchQuery (got {verdict})"
         );
     }
 }
