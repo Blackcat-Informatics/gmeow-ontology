@@ -2,12 +2,28 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Lower a SPARQL property path to a `.logic` Datalog program and resolve it with
-//! the embedded Scryer tabling engine (S8 #914 — the native-only accelerator).
+//! the embedded Scryer tabling engine (S8 #914 — the native-only lowered twin).
 //!
 //! This is the **lowered** twin of the in-engine evaluator in
 //! `gmeow-sparql-eval::path`. The acceptance criterion for #914 is *parity*: the
 //! two implementations must agree on every property-path query in the corpus
 //! (validated by `crates/logic/tests/sparql_path_parity.rs`).
+//!
+//! # Wiring status (read before treating this as production API)
+//!
+//! Today this lowering is consumed **solely as the parity oracle** that validates
+//! the in-engine evaluator — its only caller is `sparql_path_parity.rs`. It is *not*
+//! yet on any production query path: the wasm-safe in-engine evaluator
+//! (`gmeow-sparql-eval::path`) is the engine that actually answers a
+//! `GraphPattern::Path` for the SPARQL stack. Wiring this lowering in as a *native
+//! accelerator* — routing recursive/closure shapes (`+`/`*`/`{n,}`) through Scryer
+//! behind the native SPARQL engine while the in-engine evaluator stays the
+//! wasm/default — is deferred to the native query stack EPIC #906. When that
+//! dispatcher lands it **must** route every non-lowerable shape (the
+//! `NegatedPropertySet`/`Wildcard` and `{0,0}` cases that hard-fail below, plus any
+//! budget-incomplete result) back to the in-engine evaluator: the complete engine
+//! handling its full surface with the lowering as an optional accelerator for the
+//! recursive subset — *not* a degraded fallback.
 //!
 //! # Why Datalog/Scryer
 //!
