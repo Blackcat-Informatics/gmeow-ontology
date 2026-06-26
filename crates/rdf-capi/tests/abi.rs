@@ -17,6 +17,7 @@ use purrdf::graph::{
     purrdf_graph_free, purrdf_graph_freeze, purrdf_graph_from_dataset, purrdf_graph_insert,
     purrdf_graph_remove, PurrdfGraph,
 };
+use purrdf::gts::{purrdf_from_gts, purrdf_to_gts};
 use purrdf::handles::{
     purrdf_dataset_free, purrdf_dataset_quad_count, purrdf_dataset_term_count, PurrdfDataset,
 };
@@ -27,12 +28,14 @@ use purrdf::rowcursor::{
     purrdf_rowcursor_variable_count, purrdf_rowcursor_variable_name, PurrdfRowCursor,
 };
 use purrdf::serialize::purrdf_serialize;
-use purrdf::status::{PurrdfAbiVersion, PurrdfStatus};
+use purrdf::status::{PurrdfAbiVersion, PurrdfCapabilities, PurrdfStatus};
 use purrdf::term::{
     purrdf_term_to_ntriples, PurrdfGraphMatch, PurrdfGraphMatchKind, PurrdfStr, PurrdfTermKind,
     PurrdfTermView,
 };
-use purrdf::version::{purrdf_abi_version, PURRDF_ABI_MAJOR, PURRDF_ABI_MINOR, PURRDF_ABI_PATCH};
+use purrdf::version::{
+    purrdf_abi_version, purrdf_capabilities, PURRDF_ABI_MAJOR, PURRDF_ABI_MINOR, PURRDF_ABI_PATCH,
+};
 
 /// A zeroed output term view the cursor fills.
 fn out_view() -> PurrdfTermView {
@@ -701,5 +704,128 @@ fn rowcursor_reports_unbound_optional() {
         assert!(saw_unbound, "expected at least one unbound ?missing");
         purrdf_rowcursor_free(rows);
         purrdf_dataset_free(dataset);
+    }
+}
+
+unsafe fn to_gts(dataset: *const PurrdfDataset) -> Vec<u8> {
+    let profile = CString::new("dist").unwrap();
+    let mut buffer: *mut PurrdfBuffer = std::ptr::null_mut();
+    let mut error: *mut PurrdfError = std::ptr::null_mut();
+    let status = purrdf_to_gts(dataset, profile.as_ptr(), &mut buffer, &mut error);
+    assert_eq!(status, PurrdfStatus::Ok as i32);
+    assert!(error.is_null());
+    let bytes = buffer_bytes(buffer);
+    purrdf_buffer_free(buffer);
+    bytes
+}
+
+unsafe fn from_gts(bytes: &[u8]) -> *mut PurrdfDataset {
+    let mut dataset: *mut PurrdfDataset = std::ptr::null_mut();
+    let mut error: *mut PurrdfError = std::ptr::null_mut();
+    let status = purrdf_from_gts(bytes.as_ptr(), bytes.len(), &mut dataset, &mut error);
+    assert_eq!(status, PurrdfStatus::Ok as i32);
+    assert!(error.is_null());
+    assert!(!dataset.is_null());
+    dataset
+}
+
+#[test]
+fn gts_round_trips_a_plain_graph() {
+    unsafe {
+        let dataset = parse("application/n-triples", THREE_QUADS);
+        let gts = to_gts(dataset);
+        assert!(!gts.is_empty());
+        let restored = from_gts(&gts);
+        assert_eq!(quad_count(restored), 3);
+        purrdf_dataset_free(restored);
+        purrdf_dataset_free(dataset);
+    }
+}
+
+/// Characterization test (HONEST, not aspirational): the C-ABI's
+/// `purrdf_to_gts` → `purrdf_from_gts` round-trip CANNOT yet preserve the RDF-1.2
+/// star layer (quoted triples / reifier bindings). The C-ABI calls the canonical
+/// kernel path (`to_gts` → `read_graph` → `import_gts_graph`); the gap is upstream
+/// in the kernel/gmeow-gts GTS↔IR star round-trip: `to_gts` emits a triple-term
+/// reifier slot but the binding rows are dropped through `read_graph`, so
+/// `import_gts_graph` fails with `gts-missing-reifier-binding`. No kernel test
+/// covered this path (their GTS round-trip tests are star-free and stop at
+/// Graph→N-Quads). This test pins the CURRENT behavior so the limitation is
+/// visible and a future kernel fix flips it to a hard failure here (prompting the
+/// assertion to be tightened to "must survive"). See the PR for the tracking note.
+#[test]
+fn gts_star_roundtrip_is_a_known_kernel_gap() {
+    unsafe {
+        let doc = concat!(
+            "<https://e/r> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
+            "<<( <https://e/s> <https://e/p> <https://e/o> )>> .\n",
+        );
+        let dataset = parse("application/n-triples", doc);
+        let gts = to_gts(dataset);
+        assert!(!gts.is_empty());
+
+        let mut restored: *mut PurrdfDataset = std::ptr::null_mut();
+        let mut error: *mut PurrdfError = std::ptr::null_mut();
+        let status = purrdf_from_gts(gts.as_ptr(), gts.len(), &mut restored, &mut error);
+
+        // CURRENT behavior: the star round-trip surfaces the kernel gap as a clean
+        // GtsError, not a panic and not silent corruption.
+        assert_eq!(
+            status,
+            PurrdfStatus::GtsError as i32,
+            "star GTS round-trip unexpectedly changed — if the kernel now preserves \
+             reifier bindings, tighten this test to assert quoted_triples/reifiers survive"
+        );
+        assert!(restored.is_null());
+        assert!(!error.is_null());
+        let msg = std::ffi::CStr::from_ptr(purrdf_error_message(error))
+            .to_str()
+            .unwrap();
+        assert!(
+            msg.contains("reifier-binding"),
+            "expected the missing-reifier-binding diagnostic, got: {msg}"
+        );
+        purrdf_error_free(error);
+        purrdf_dataset_free(dataset);
+    }
+}
+
+#[test]
+fn capabilities_reflect_the_dataset() {
+    unsafe {
+        let mut caps = PurrdfCapabilities {
+            named_graphs: 9,
+            quoted_triples: 9,
+            reifiers: 9,
+            annotations: 9,
+            source_locations: 9,
+            loss_records: 9,
+            lookaside: 9,
+        };
+
+        // A plain graph has no star features.
+        let plain = parse("application/n-triples", THREE_QUADS);
+        assert_eq!(
+            purrdf_capabilities(plain, &mut caps),
+            PurrdfStatus::Ok as i32
+        );
+        assert_eq!(caps.quoted_triples, 0);
+        purrdf_dataset_free(plain);
+
+        // An in-memory quoted-triple object sets the star capability (this path
+        // does NOT depend on the GTS round-trip gap).
+        let star = parse(
+            "application/n-triples",
+            "<https://e/a> <https://e/b> <<( <https://e/s> <https://e/p> <https://e/o> )>> .",
+        );
+        assert_eq!(
+            purrdf_capabilities(star, &mut caps),
+            PurrdfStatus::Ok as i32
+        );
+        assert_eq!(
+            caps.quoted_triples, 1,
+            "an in-memory quoted triple sets the flag"
+        );
+        purrdf_dataset_free(star);
     }
 }

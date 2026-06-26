@@ -83,6 +83,7 @@ pub mod buffer;
 pub mod cursor;
 pub mod error;
 pub mod graph;
+pub mod gts;
 pub mod handles;
 pub mod parse;
 pub mod query;
