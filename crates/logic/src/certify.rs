@@ -17,17 +17,17 @@
 //!
 //! # The predicate-naming parity normalization (the crux)
 //!
-//! The Python certifier runs over the typed IR
-//! (`gmeow_tools.logic_ir.LogicProgram`), where each atom carries a *full IRI*
-//! predicate string and an `rdf:type`-folding rule (`_predicate_key`):
+//! The legacy typed-IR certifier ran over a `LogicProgram` value (the `logic_ir`
+//! typed IR was retired in #727), where each atom carries a *full IRI* predicate
+//! string and an `rdf:type`-folding rule (`_predicate_key`):
 //!
 //! * a non-`rdf:type` atom's key is its bare predicate IRI;
 //! * an `rdf:type` atom whose **object** is a non-variable (a named class) folds
 //!   the class into the key as `"{rdf:type-iri} {class-iri}"`, so class-level
 //!   recursion (`?x a C :- ?y a C`) shows up as a self-cycle.
 //!
-//! The Rust certifier instead consumes the **`.rls` text** that
-//! `gmeow_tools.logic_projections.project_nemo` emits.  `project_nemo`:
+//! The Rust certifier instead consumes the **`.rls` text** that the canonical
+//! Nemo projection (`project_nemo`) emits.  `project_nemo`:
 //!
 //! * writes predicates as bare angle-bracketed IRIs — `<http://…/p>(?S, ?O, ?W)`
 //!   — and Nemo's parser resolves an `<iri>` tag to its bare content

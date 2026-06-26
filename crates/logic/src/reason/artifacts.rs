@@ -13,11 +13,12 @@
 //! * **dl-el-crosscheck-report** — the native↔oracle divergence ledger; `DlGap`
 //!   rows are coverage defects, so the committed bundle must emit zero.
 //!
-//! These builders are the Rust port of the retired Python emitters
-//! (`gmeow_tools.reason.build_*_ttl`). They serialize via the gmeow-rdf
-//! [`gmeow_rdf::turtle`] emitter (clean full-IRI RDF 1.2), so the structure
-//! (`[] rdf:reifies << … >>`, triple-term objects, anonymous reifiers) matches
-//! the committed artifacts and the drift gate (RDFC-1.0 isomorphism) stays green.
+//! These builders are the canonical emitters for the reasoning artifacts (the
+//! Python `build_*_ttl` emitters in `gmeow_tools.reason` they replaced were
+//! retired). They serialize via the gmeow-rdf [`gmeow_rdf::turtle`] emitter
+//! (clean full-IRI RDF 1.2), so the structure (`[] rdf:reifies << … >>`,
+//! triple-term objects, anonymous reifiers) matches the committed artifacts and
+//! the drift gate (RDFC-1.0 isomorphism) stays green.
 
 use gmeow_rdf::turtle::{emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};
 use gmeow_rdf::{RdfAnnotation, RdfDataset, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple};

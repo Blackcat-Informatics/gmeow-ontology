@@ -9,14 +9,12 @@
 //! typed [`Profile`] with **strict, hard-fail** validation (no-optionality
 //! doctrine): an unknown preset, a malformed `budget_params`, a non-object profile,
 //! or a surviving retired top-level `semantic_profile` key is an error, never a
-//! silently-coerced default. Mirrors the validation in the retired Python
-//! `logic_runner.run` / `_parse_budget_params`.
+//! silently-coerced default.
 
 use serde_json::{Map, Value};
 
-/// The semantic profiles the native engine recognises (mirrors
-/// `logic_runner._VALID_SEMANTIC_PROFILES`). An unknown localname is a hard
-/// failure — the case author must declare a real profile.
+/// The semantic profiles the native engine recognises. An unknown localname is
+/// a hard failure — the case author must declare a real profile.
 pub const VALID_SEMANTIC_PROFILES: [&str; 6] = [
     "PositiveHornProfile",
     "StratifiedNAFProfile",
@@ -188,8 +186,7 @@ fn parse_reasoning_contract(case_id: &str, value: &Value) -> Result<String, Stri
     Ok(preset.to_string())
 }
 
-/// Parse the optional `budget_params` object (mirrors
-/// `logic_runner._parse_budget_params`).
+/// Parse the optional `budget_params` object.
 ///
 /// Hard-fail (no silent coercion): a non-object `budget_params`, an unknown key,
 /// or a non-positive / non-integer / boolean ceiling is an error. Returns `None`

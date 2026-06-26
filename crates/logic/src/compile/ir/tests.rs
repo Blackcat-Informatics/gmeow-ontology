@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Tests for the canonical IR — the Rust mirror of `tests/test_logic_ir.py`.
+//! Tests for the canonical IR.  These are the authoritative IR tests; the Python
+//! `tests/test_logic_ir.py` they superseded was retired in #727.
 
 use super::*;
 

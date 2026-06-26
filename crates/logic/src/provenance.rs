@@ -4,9 +4,10 @@
 //! Content-addressed provenance IRI helpers.
 //!
 //! Every function here **must** produce byte-identical output to the canonical
-//! native statements recipe and `gmeow_tools.logic_materialize`.
-//! The goldens in `tests/fixtures/logic/determinism-goldens.json` are normative;
-//! any deviation from them is a hard test failure.
+//! native statements recipe.  The goldens in
+//! `tests/fixtures/logic/determinism-goldens.json` are normative; any deviation
+//! from them is a hard test failure.  (The retired `logic_materialize.py` was
+//! the prior Python authority; it was superseded by this crate in #497/#636.)
 //!
 //! # N3 serialization rules (mirror of rdflib `.n3()`)
 //!
@@ -51,7 +52,8 @@ pub const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 pub const LOGIC_NAMESPACE: &str = "https://blackcatinformatics.ca/logic/";
 
 /// Sentinel rule IRI for asserted (input) facts.
-/// Matches `_ASSERT_RULE_IRI` in `logic_materialize.py` exactly:
+/// The canonical assert-rule IRI (the recipe formerly carried by
+/// `logic_materialize.py`, retired in #497):
 /// `f"{_LOGIC_NS}assert"` where `_LOGIC_NS = PREFIXES["logic"]`.
 pub const ASSERT_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/assert";
 
@@ -198,7 +200,8 @@ pub fn mint_reifier(s: &Term, p: &NamedNode, o: &Term) -> Result<String, String>
 /// them in `<...>`); `obj_n3` is the object already in canonical N3 form (`<iri>`
 /// for an IRI, `"lex"^^<dt>` for a literal, etc.) and is used **verbatim**.
 ///
-/// This mirrors the Python `_reifier_from_quad` in `logic_explain.py` exactly:
+/// The canonical reifier recipe (Python `_reifier_from_quad` in
+/// `logic_explain.py` retired in #497):
 /// ```text
 /// payload = f"<{subject}> <{predicate}> {obj_n3}"
 /// digest  = sha1(payload.encode("utf-8")).hexdigest()
@@ -217,7 +220,8 @@ pub(crate) fn reifier_from_strings(subject: &str, predicate: &str, obj_n3: &str)
 
 /// Compute the derivation IRI for a rule firing.
 ///
-/// Mirrors `derivation_id_iri` in `gmeow_tools.logic_materialize` exactly:
+/// The canonical derivation-id recipe (Python `derivation_id_iri` in
+/// `gmeow_tools.logic_materialize` retired in #497):
 /// ```text
 /// payload = rule_iri + "\n" + "\n".join(sorted(source_reifier_iris))
 /// digest  = sha1(payload.encode("utf-8")).hexdigest()

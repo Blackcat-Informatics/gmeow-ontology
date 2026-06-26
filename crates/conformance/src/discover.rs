@@ -6,8 +6,8 @@
 //! The `datatest-stable` harness in `tests/conformance.rs` performs the actual
 //! filesystem glob (one nextest case per `profile.json` sentinel) and calls
 //! [`validate_case`] on each discovered directory. [`discover_cases`] is the
-//! standalone walk mirroring the retired Python `discover_cases` contract — used
-//! by the parity/unit tests and any non-harness caller:
+//! standalone walk used by the parity/unit tests and any non-harness caller
+//! (the retired Python `discover_cases` it supersedes was removed in #727):
 //!
 //! * `input.logic.ttl` is required.
 //! * `profile.json` is required and must be a JSON object (malformed ⇒ hard fail).
@@ -41,7 +41,7 @@ pub struct ConformanceCase {
 /// describing the first missing/malformed required artifact (hard-fail, no
 /// silent skip — verification-honesty). This is the harness entry point: the
 /// glob already proved `profile.json` exists, so a missing `input.logic.ttl` here
-/// is a malformed case and a hard failure (matching the Python runner's `run`).
+/// is a malformed case and a hard failure.
 pub fn validate_case(case_dir: &Path) -> Result<ConformanceCase, String> {
     let case_id = crate::paths::case_id(case_dir);
 
@@ -63,10 +63,10 @@ pub fn validate_case(case_dir: &Path) -> Result<ConformanceCase, String> {
 
 /// Discover every conformance case under `cases_root`.
 ///
-/// Walks up to two levels (`cases/<category>/<case>/`) in sorted order, mirroring
-/// the Python `discover_cases`: a directory is a case iff it holds BOTH
-/// `input.logic.ttl` and `profile.json` (a directory missing either is skipped,
-/// not failed). A present-but-malformed `profile.json` is a hard failure.
+/// Walks up to two levels (`cases/<category>/<case>/`) in sorted order: a
+/// directory is a case iff it holds BOTH `input.logic.ttl` and `profile.json`
+/// (a directory missing either is skipped, not failed). A present-but-malformed
+/// `profile.json` is a hard failure.
 ///
 /// # Errors
 /// Returns an error if `cases_root` is not a directory, or any discovered case's
@@ -151,8 +151,9 @@ mod tests {
 
     #[test]
     fn discovers_the_full_corpus() {
-        // Ports tests/test_logic_runner.py::TestDiscoverCases::test_discovers_projection_cases:
-        // the projection cases (and the rest of the corpus) are discovered.
+        // Canonical discovery test: every case under projections/ (and the rest of the corpus)
+        // is discovered. (The retired tests/test_logic_runner.py::TestDiscoverCases covered the
+        // same case before being removed in #727.)
         let cases = discover_cases(&corpus_cases_root()).expect("discovery ok");
         let ids: Vec<&str> = cases.iter().map(|c| c.case_id.as_str()).collect();
         assert!(

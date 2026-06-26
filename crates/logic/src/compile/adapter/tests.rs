@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Tests for the OWL/gUFO adapter — the Rust mirror of
-//! `tests/test_logic_adapter.py`, driven by Turtle source strings.
+//! Tests for the OWL/gUFO adapter, driven by Turtle source strings.
+//!
+//! These are the authoritative adapter tests; the Python
+//! `tests/test_logic_adapter.py` they superseded was retired in #727.
 
 use super::*;
 use crate::compile::frontend::parse_logic_str;
