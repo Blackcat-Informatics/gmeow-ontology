@@ -2498,19 +2498,23 @@ fn term_advice_facet(term: &DocTerm) -> Vec<String> {
         .collect()
 }
 
-/// The alignment facet for a term: a `tag:object` token per crosswalk whose
-/// subject is this term (e.g. `exactMatch:Agent`), sorted+deduped. Empty when
-/// the term has no alignments. Lets search find a term by what it aligns to.
-fn term_alignment_facet(model: &DocsModel, term_iri: &str) -> Vec<String> {
-    let mut tags: Vec<String> = model
-        .linkages
-        .iter()
-        .filter(|l| l.subject == term_iri)
-        .map(|l| format!("{}:{}", align_tag(&l.predicate), local_name(&l.object)))
-        .collect();
-    tags.sort_unstable();
-    tags.dedup();
-    tags
+/// Precompute alignment facets for all terms in one pass: maps each subject IRI
+/// to a sorted+deduped `tag:object` token list. Avoids the O(N×M) per-term
+/// linear scan of `model.linkages` when rendering search and llms-docs surfaces.
+fn precompute_alignment_facets(model: &DocsModel) -> std::collections::HashMap<&str, Vec<String>> {
+    let mut map: std::collections::HashMap<&str, Vec<String>> = std::collections::HashMap::new();
+    for l in &model.linkages {
+        map.entry(l.subject.as_str()).or_default().push(format!(
+            "{}:{}",
+            align_tag(&l.predicate),
+            local_name(&l.object)
+        ));
+    }
+    for tags in map.values_mut() {
+        tags.sort_unstable();
+        tags.dedup();
+    }
+    map
 }
 
 /// A single search record. Serialized as a deterministic JSON array element.
@@ -2538,6 +2542,7 @@ struct SearchRecord {
 /// concern, and mapping set, sorted by URL. A pure function of the model.
 pub fn search_index_json(model: &DocsModel) -> String {
     let mut records: Vec<SearchRecord> = Vec::new();
+    let alignment_facets = precompute_alignment_facets(model);
 
     for term in &model.terms {
         records.push(SearchRecord {
@@ -2547,7 +2552,10 @@ pub fn search_index_json(model: &DocsModel) -> String {
             definition: term.definition.clone(),
             url: format!("{}/index.html", Page::Term(term_slug(term)).dir()),
             advice: term_advice_facet(term),
-            alignments: term_alignment_facet(model, &term.iri),
+            alignments: alignment_facets
+                .get(term.iri.as_str())
+                .cloned()
+                .unwrap_or_default(),
         });
     }
     for slice in &model.slices {
@@ -2623,6 +2631,9 @@ pub fn llms_docs_txt(model: &DocsModel) -> String {
     ));
     out.push('\n');
 
+    // Precompute alignment facets once — avoids O(N×M) per-term linkage scan.
+    let alignment_facets = precompute_alignment_facets(model);
+
     // Terms are already IRI-sorted; emit by (curie, iri) for a stable, readable
     // ordering keyed on the human identifier.
     let mut terms: Vec<&DocTerm> = model.terms.iter().collect();
@@ -2652,7 +2663,14 @@ pub fn llms_docs_txt(model: &DocsModel) -> String {
         seg("related", join_local_names(&term.related_terms));
         seg("logic", term.logic_stereotypes.join(", "));
         seg("box", term.box_role.clone().unwrap_or_default());
-        seg("aligns", term_alignment_facet(model, &term.iri).join(", "));
+        seg(
+            "aligns",
+            alignment_facets
+                .get(term.iri.as_str())
+                .cloned()
+                .unwrap_or_default()
+                .join(", "),
+        );
         seg("use-when", term.use_when.join("; "));
         seg("avoid-when", term.avoid_when.join("; "));
 
