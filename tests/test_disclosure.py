@@ -91,6 +91,7 @@ def test_projection_context_seeds_declared() -> None:
         GM.consumerSchemaOrgJsonLd,
         GM.consumerFoafExport,
         GM.consumerResearchQueue,
+        GM.consumerAdviceCatalog,
     }
 
 
