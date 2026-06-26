@@ -60,6 +60,12 @@ pub fn eval(pattern: &GraphPattern, ctx: &mut EvalCtx<'_>) -> Result<SolutionSeq
         GraphPattern::Bgp { patterns } => crate::bgp::eval_bgp(patterns, ctx),
         GraphPattern::Join { left, right } => crate::binop::eval_join(left, right, ctx),
         GraphPattern::Union { left, right } => crate::binop::eval_union(left, right, ctx),
+        GraphPattern::LeftJoin {
+            left,
+            right,
+            expression,
+        } => crate::binop::eval_left_join(left, right, expression, ctx),
+        GraphPattern::Minus { left, right } => crate::binop::eval_minus(left, right, ctx),
         // Implemented incrementally over the remaining S6 build tasks; until then
         // (and permanently, for out-of-scope nodes) a hard error names the construct.
         other => Err(EvalError::Unsupported(format!(
@@ -113,12 +119,10 @@ mod tests {
         let ds = RdfDatasetBuilder::new().freeze().expect("freeze empty");
         let mut ctx = EvalCtx::new(&ds);
         let inner = Box::new(GraphPattern::Bgp { patterns: vec![] });
-        let pattern = GraphPattern::Minus {
-            left: inner.clone(),
-            right: inner,
-        };
+        // REDUCED is not implemented until Task 6.
+        let pattern = GraphPattern::Reduced { inner };
         let err = eval(&pattern, &mut ctx).unwrap_err();
         assert!(matches!(err, EvalError::Unsupported(_)));
-        assert!(err.to_string().contains("MINUS"));
+        assert!(err.to_string().contains("REDUCED"));
     }
 }

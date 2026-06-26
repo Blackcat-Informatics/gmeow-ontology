@@ -18,7 +18,7 @@
 
 use std::rc::Rc;
 
-use gmeow_sparql_algebra::GraphPattern;
+use gmeow_sparql_algebra::{Expression, GraphPattern};
 
 use crate::error::EvalError;
 use crate::eval::{eval, EvalCtx};
@@ -84,6 +84,24 @@ fn right_to_out_map(right: &VarSchema, out: &VarSchema) -> Vec<usize> {
         .collect()
 }
 
+/// Build the right-side join index: rows whose shared columns are all bound are
+/// grouped by their key; rows with an unbound shared column are returned separately
+/// (`wild`), since they are compatible with any probe value on that column.
+fn build_index(
+    r: &SolutionSeq,
+    shared: &[(usize, usize)],
+) -> (DetHashMap<Vec<SolutionTerm>, Vec<usize>>, Vec<usize>) {
+    let mut keyed: DetHashMap<Vec<SolutionTerm>, Vec<usize>> = DetHashMap::default();
+    let mut wild: Vec<usize> = Vec::new();
+    for (idx, rrow) in r.rows.iter().enumerate() {
+        match bound_key(rrow, shared, KeySide::Right) {
+            Some(key) => keyed.entry(key).or_default().push(idx),
+            None => wild.push(idx),
+        }
+    }
+    (keyed, wild)
+}
+
 /// Hash-join two solution sequences on their shared variables.
 fn hash_join(l: &SolutionSeq, r: &SolutionSeq) -> SolutionSeq {
     let out = l.schema.union(&r.schema);
@@ -93,16 +111,8 @@ fn hash_join(l: &SolutionSeq, r: &SolutionSeq) -> SolutionSeq {
     // Shared columns as (left_ordinal, right_ordinal) pairs, in left order.
     let shared = l.schema.shared_columns(&r.schema);
 
-    // Build side = right. Index rows whose shared columns are all bound; keep the
-    // rest (with an unbound shared column) as `wild`.
-    let mut keyed: DetHashMap<Vec<SolutionTerm>, Vec<usize>> = DetHashMap::default();
-    let mut wild: Vec<usize> = Vec::new();
-    for (idx, rrow) in r.rows.iter().enumerate() {
-        match bound_key(rrow, &shared, KeySide::Right) {
-            Some(key) => keyed.entry(key).or_default().push(idx),
-            None => wild.push(idx),
-        }
-    }
+    // Build side = right (split into key-indexed + wild rows).
+    let (keyed, wild) = build_index(r, &shared);
 
     let mut rows = Vec::new();
     for lrow in &l.rows {
@@ -188,6 +198,114 @@ fn merge(
         }
     }
     merged
+}
+
+/// Evaluate `left OPTIONAL { right }` (algebra `LeftJoin`) as a left outer join.
+///
+/// The inline-`FILTER` form (`expression` present) needs the expression evaluator
+/// and is wired in Task 5; until then it is an explicit hard error rather than a
+/// silently-dropped condition.
+pub(crate) fn eval_left_join(
+    left: &GraphPattern,
+    right: &GraphPattern,
+    expression: &Option<Expression>,
+    ctx: &mut EvalCtx<'_>,
+) -> Result<SolutionSeq, EvalError> {
+    if expression.is_some() {
+        return Err(EvalError::unsupported(
+            "OPTIONAL with an inline FILTER condition (pending FILTER/expression support)",
+        ));
+    }
+    let l = eval(left, ctx)?;
+    let r = eval(right, ctx)?;
+    Ok(left_outer_join(&l, &r))
+}
+
+/// Left outer join: every left solution merged with each compatible right
+/// solution, or emitted alone (right columns unbound) when none is compatible.
+fn left_outer_join(l: &SolutionSeq, r: &SolutionSeq) -> SolutionSeq {
+    let out = l.schema.union(&r.schema);
+    let out_len = out.len();
+    let left_len = l.schema.len();
+    let right_to_out = right_to_out_map(&r.schema, &out);
+    let shared = l.schema.shared_columns(&r.schema);
+
+    let (keyed, wild) = build_index(r, &shared);
+
+    let mut rows = Vec::new();
+    for lrow in &l.rows {
+        let before = rows.len();
+        match bound_key(lrow, &shared, KeySide::Left) {
+            Some(key) => {
+                if let Some(idxs) = keyed.get(&key) {
+                    for &idx in idxs {
+                        rows.push(merge(lrow, &r.rows[idx], left_len, &right_to_out, out_len));
+                    }
+                }
+                for &idx in &wild {
+                    if compatible(lrow, &r.rows[idx], &shared) {
+                        rows.push(merge(lrow, &r.rows[idx], left_len, &right_to_out, out_len));
+                    }
+                }
+            }
+            None => {
+                for rrow in &r.rows {
+                    if compatible(lrow, rrow, &shared) {
+                        rows.push(merge(lrow, rrow, left_len, &right_to_out, out_len));
+                    }
+                }
+            }
+        }
+        // No compatible right solution → keep the left solution alone (the OPTIONAL
+        // contributed nothing, its variables stay unbound).
+        if rows.len() == before {
+            let mut row = vec![None; out_len];
+            row[..left_len].copy_from_slice(lrow);
+            rows.push(row);
+        }
+    }
+
+    SolutionSeq {
+        schema: Rc::new(out),
+        rows,
+    }
+}
+
+/// Evaluate `left MINUS { right }` (algebra `Minus`).
+///
+/// A left solution is removed iff some right solution is **both** compatible **and**
+/// shares at least one actually-bound variable (the domain-intersection guard,
+/// SPARQL §18.5): solutions with disjoint domains never remove, so `MINUS` over
+/// patterns with no common variable is a no-op. The result schema is the left
+/// schema (MINUS introduces no right columns) and left multiplicity is preserved.
+pub(crate) fn eval_minus(
+    left: &GraphPattern,
+    right: &GraphPattern,
+    ctx: &mut EvalCtx<'_>,
+) -> Result<SolutionSeq, EvalError> {
+    let l = eval(left, ctx)?;
+    let r = eval(right, ctx)?;
+    let shared = l.schema.shared_columns(&r.schema);
+
+    let rows = l
+        .rows
+        .iter()
+        .filter(|lrow| {
+            // Keep the left row unless some right row removes it.
+            !r.rows.iter().any(|rrow| {
+                compatible(lrow, rrow, &shared)
+                    && shared
+                        .iter()
+                        .any(|&(la, ra)| lrow[la].is_some() && rrow[ra].is_some())
+            })
+        })
+        .cloned()
+        .collect();
+
+    Ok(SolutionSeq {
+        schema: l.schema.clone(),
+        rows,
+    })
 }
 
 #[cfg(test)]
@@ -341,5 +459,65 @@ mod tests {
         let left_rows = seq.rows.iter().filter(|r| r[0].is_some()).count();
         let right_rows = seq.rows.iter().filter(|r| r[2].is_some()).count();
         assert_eq!((left_rows, right_rows), (1, 2));
+    }
+
+    #[test]
+    fn optional_keeps_unmatched_left_with_unbound_right() {
+        let ds = graph();
+        let mut ctx = EvalCtx::new(&ds);
+        // { ?s :likes ?o } OPTIONAL { ?s :knows ?f }
+        // s∈{a,b}: a knows b (match), b knows nothing (unmatched → ?f unbound).
+        let left = bgp(vp("s"), pred("http://ex/likes"), vp("o"));
+        let right = bgp(vp("s"), pred("http://ex/knows"), vp("f"));
+        let seq = eval_left_join(&left, &right, &None, &mut ctx).expect("optional");
+        assert_eq!(seq.len(), 2);
+        let f = seq.schema.index_of(&Variable::new("f")).unwrap();
+        // Exactly one row leaves ?f bound (s=a) and one leaves it unbound (s=b).
+        let bound = seq.rows.iter().filter(|r| r[f].is_some()).count();
+        assert_eq!(bound, 1);
+    }
+
+    #[test]
+    fn optional_with_inline_filter_hard_errors_until_task5() {
+        let ds = graph();
+        let mut ctx = EvalCtx::new(&ds);
+        let left = bgp(vp("s"), pred("http://ex/likes"), vp("o"));
+        let right = bgp(vp("s"), pred("http://ex/knows"), vp("f"));
+        let cond = Some(Expression::Bound(Variable::new("f")));
+        let err = eval_left_join(&left, &right, &cond, &mut ctx).unwrap_err();
+        assert!(matches!(err, EvalError::Unsupported(_)));
+    }
+
+    #[test]
+    fn minus_removes_compatible_overlapping_rows() {
+        let ds = graph();
+        let mut ctx = EvalCtx::new(&ds);
+        // { ?s :likes ?o } MINUS { ?s :knows ?f }
+        // s∈{a,b} on the left; s=a is also a knows-subject (compatible + shares ?s),
+        // so the a-row is removed, leaving only s=b.
+        let left = bgp(vp("s"), pred("http://ex/likes"), vp("o"));
+        let right = bgp(vp("s"), pred("http://ex/knows"), vp("f"));
+        let seq = eval_minus(&left, &right, &mut ctx).expect("minus");
+        assert_eq!(
+            render(&ds, &seq, &["s", "o"]),
+            vec![vec![
+                Some("http://ex/b".to_owned()),
+                Some("http://ex/tea".to_owned()),
+            ]]
+        );
+        // Result schema is the left schema (no right columns introduced).
+        assert_eq!(seq.schema.vars(), &[Variable::new("s"), Variable::new("o")]);
+    }
+
+    #[test]
+    fn minus_with_disjoint_domains_removes_nothing() {
+        let ds = graph();
+        let mut ctx = EvalCtx::new(&ds);
+        // { ?s :likes ?o } MINUS { ?x :knows ?y } — no shared variable, so the
+        // domain-intersection guard keeps every left row (the classic MINUS trap).
+        let left = bgp(vp("s"), pred("http://ex/likes"), vp("o")); // 2 rows
+        let right = bgp(vp("x"), pred("http://ex/knows"), vp("y")); // 1 row
+        let seq = eval_minus(&left, &right, &mut ctx).expect("minus");
+        assert_eq!(seq.len(), 2);
     }
 }
