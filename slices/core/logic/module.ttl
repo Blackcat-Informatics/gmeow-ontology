@@ -1985,6 +1985,256 @@ logic:del
     rdfs:label "del"@x-gmeow-english ;
     skos:definition "Relates a logic:DeleteUpdate to the support/fact it retires. The `del(F)` primitive removes F from the active support set of the successor state, records supersession provenance, and leaves the predecessor state and historical support intact."@x-gmeow-english .
 
+# ── ME2 (#768): the typed logic:ReasoningResult surface ─────────────────────────
+# The single shared result model. Authored canonically in crates/logic (Rust,
+# crates/logic/src/result.rs); these terms are the lossy documentation projection
+# (Principle 17). The five orthogonal status fields and the conclusiveness
+# invariant are normative in design/LOGIC-SEMANTICS.md §The reasoning result;
+# logic:ResultAssurance is in design/LOGIC-COGNITION.md. Each value class is a
+# CLOSED set: a misspelt value names no declared individual and is rejected.
+
+logic:ReasoningResult
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reasoning Result"@x-gmeow-english ;
+    skos:definition "The single shared result a reasoning run produces and every consumer reads (#768, ME2): a compositional status carrying FIVE orthogonal fields, each ranging over its own value class — logic:resultInput (well-formedness), logic:resultEvaluation (what the engine could do), logic:resultCompleteness (relative to what the answer is complete), logic:resultPreservation (the set of answer-preservation polarities the lowering claims, plus the constructs it could not carry), and logic:resultInformation (the four-valued Belnap verdict plus two explicit non-results). Several fields hold at once. It additionally carries the provenance bundle: logic:contractHash, logic:query/logic:conclusion, logic:resultProof/logic:resultCounterproof, the world/standpoint/time/path context, logic:engine, logic:consumedBudget, logic:certifiedFragment, logic:contradictionWitness, and logic:resultAssumption. Authored canonically in crates/logic (Rust); this is a lossy documentation projection (Principle 17). Normative in design/LOGIC-SEMANTICS.md, §The reasoning result."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:InputStatus
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Input Status"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:resultInput field: was the request well-formed? Its individuals are logic:InputValid and logic:InputInvalid. The set is closed, so a misspelt value names no declared value and is rejected (design/LOGIC-SEMANTICS.md, §The reasoning result)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:InputValid
+    a owl:NamedIndividual ,
+        logic:InputStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Input Valid"@x-gmeow-english ;
+    skos:definition "The logic:InputStatus value for a request whose sources parsed and type-checked: reasoning was attempted. Wire value `valid`."@x-gmeow-english .
+
+logic:InputInvalid
+    a owl:NamedIndividual ,
+        logic:InputStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Input Invalid"@x-gmeow-english ;
+    skos:definition "The logic:InputStatus value for an ill-formed request: no reasoning was attempted and the other four fields are vacuous. Wire value `invalid`."@x-gmeow-english .
+
+logic:EvaluationStatus
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Evaluation Status"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:resultEvaluation field (the computation axis): what the engine was ABLE to do. Its individuals are logic:EvaluationCompleted, logic:BudgetExhausted, and logic:EvaluationUnsupported. The set is closed; a misspelt value is rejected (design/LOGIC-SEMANTICS.md, §The reasoning result)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EvaluationCompleted
+    a owl:NamedIndividual ,
+        logic:EvaluationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Evaluation Completed"@x-gmeow-english ;
+    skos:definition "The logic:EvaluationStatus value for a run that reached its natural end on the request — a conclusive evaluation. Wire value `completed`."@x-gmeow-english .
+
+logic:BudgetExhausted
+    a owl:NamedIndividual ,
+        logic:EvaluationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Budget Exhausted"@x-gmeow-english ;
+    skos:definition "The logic:EvaluationStatus value for a run that hit a declared resource budget or bound before finishing. Wire value `budget-exhausted`. The specific budget that tripped (answers/inference/depth) is carried alongside as consumed-budget detail so the historical answer-status strings remain a lossless projection."@x-gmeow-english .
+
+logic:EvaluationUnsupported
+    a owl:NamedIndividual ,
+        logic:EvaluationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Evaluation Unsupported"@x-gmeow-english ;
+    skos:definition "The logic:EvaluationStatus value for a request the engine has no defined procedure for (an unsupported contract, or a missing required model such as a probabilistic dependency model). Wire value `unsupported`; the information field is then logic:InfoNotEvaluated, never logic:InfoNeither."@x-gmeow-english .
+
+logic:CompletenessStatus
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Completeness Status"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:resultCompleteness field: relative to what is the answer complete? Its individuals are logic:CompleteForFragment, logic:Incomplete, and logic:CompletenessUnknown. The set is closed; a misspelt value is rejected (design/LOGIC-SEMANTICS.md, §The reasoning result)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:CompleteForFragment
+    a owl:NamedIndividual ,
+        logic:CompletenessStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Complete For Fragment"@x-gmeow-english ;
+    skos:definition "The logic:CompletenessStatus value for an answer complete for the certified fragment the contract pins — a conclusive evaluation even when the whole run did not otherwise complete. Wire value `complete-for-fragment`."@x-gmeow-english .
+
+logic:Incomplete
+    a owl:NamedIndividual ,
+        logic:CompletenessStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Incomplete"@x-gmeow-english ;
+    skos:definition "The logic:CompletenessStatus value for an answer whose search did not exhaust the space (a budget, answer cap, or depth bound was hit, or a DL construct was undecided). Wire value `incomplete`."@x-gmeow-english .
+
+logic:CompletenessUnknown
+    a owl:NamedIndividual ,
+        logic:CompletenessStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Completeness Unknown"@x-gmeow-english ;
+    skos:definition "The logic:CompletenessStatus value when completeness is not a defined question for the request — e.g. a genuine incomparable-entrenchment revision tie. Wire value `unknown`."@x-gmeow-english .
+
+logic:InformationState
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information State"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:resultInformation field (the information axis): the four-valued Belnap verdict about the queried proposition plus two explicit non-results. Its individuals are logic:InfoSupported, logic:InfoOpposed, logic:InfoBoth, logic:InfoNeither (the Belnap four), logic:InfoUndetermined, and logic:InfoNotEvaluated. The three non-positive states are NEVER interchangeable: logic:InfoNeither requires a conclusive evaluation; logic:InfoUndetermined means no verdict was reached; logic:InfoNotEvaluated means the engine could not look. The set is closed; a misspelt value is rejected (design/LOGIC-SEMANTICS.md, §The reasoning result)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:InfoSupported
+    a owl:NamedIndividual ,
+        logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information Supported"@x-gmeow-english ;
+    skos:definition "The logic:InformationState value when there is a proof and no counterproof. Wire value `supported`. Provisional when the evaluation is not conclusive (logic:Incomplete); conclusive within the fragment otherwise."@x-gmeow-english .
+
+logic:InfoOpposed
+    a owl:NamedIndividual ,
+        logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information Opposed"@x-gmeow-english ;
+    skos:definition "The logic:InformationState value when there is a counterproof and no proof — the FDE/paraconsistent evidence for the explicit negation. Wire value `opposed`."@x-gmeow-english .
+
+logic:InfoBoth
+    a owl:NamedIndividual ,
+        logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information Both"@x-gmeow-english ;
+    skos:definition "The logic:InformationState value when a proof AND a counterproof exist — a witnessed contradiction (glut) within one context, carried with its logic:contradictionWitness graph. Wire value `both`. A correct `both` is HIGH-assurance about a contradictory input, not a defect, and is local to its world — never globalized to owl:Nothing."@x-gmeow-english .
+
+logic:InfoNeither
+    a owl:NamedIndividual ,
+        logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information Neither"@x-gmeow-english ;
+    skos:definition "The logic:InformationState value when neither proof nor counterproof exists, established by a CONCLUSIVE evaluation (a completed run or a complete-for-the-fragment answer) — a real four-valued verdict. Wire value `neither`. NEVER interchangeable with logic:InfoUndetermined (no verdict reached) or logic:InfoNotEvaluated (the engine could not look)."@x-gmeow-english .
+
+logic:InfoUndetermined
+    a owl:NamedIndividual ,
+        logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information Undetermined"@x-gmeow-english ;
+    skos:definition "The logic:InformationState value when the evaluation did not reach a conclusive verdict — the search did not finish (budget exhausted), a partial-order tie, or a graded semantics with no discretization policy. Wire value `undetermined`. NOT the conclusive logic:InfoNeither."@x-gmeow-english .
+
+logic:InfoNotEvaluated
+    a owl:NamedIndividual ,
+        logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information Not Evaluated"@x-gmeow-english ;
+    skos:definition "The logic:InformationState value when no information semantics were available — the engine COULD NOT look (an unsupported contract, or a missing required model such as a probabilistic dependency model). Wire value `not-evaluated`. NOT the conclusive logic:InfoNeither."@x-gmeow-english .
+
+logic:ResultAssurance
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Result Assurance"@x-gmeow-english ;
+    skos:definition "A reified assessment that targets one logic:ReasoningResult (via logic:assuresResult) and reads its fields JOINTLY: logic:InfoSupported with logic:Incomplete is provisional, whereas logic:InfoSupported with logic:CompleteForFragment is conclusive within that fragment; a correctly returned logic:InfoBoth is high-assurance about a contradictory input, not a defect. A result assurance is DISTINCT from a reliability assessment of the reasoner: the former judges one result, the latter judges a series of runs (a logic:CognitiveAssessment). Authored canonically in crates/logic (Rust); lossy documentation projection (Principle 17). Normative in design/LOGIC-COGNITION.md."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:assuresResult
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assures result"@x-gmeow-english ;
+    skos:definition "Relates a logic:ResultAssurance to the single logic:ReasoningResult it assesses. Domain logic:ResultAssurance, range logic:ReasoningResult (stated in prose, matching the module's convention)."@x-gmeow-english .
+
+logic:resultInput
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result input"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the logic:InputStatus it received. Single-valued. Domain logic:ReasoningResult, range logic:InputStatus (stated in prose)."@x-gmeow-english .
+
+logic:resultEvaluation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result evaluation"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the logic:EvaluationStatus the engine reached (the computation axis). Single-valued. Domain logic:ReasoningResult, range logic:EvaluationStatus (stated in prose)."@x-gmeow-english .
+
+logic:resultCompleteness
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result completeness"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the logic:CompletenessStatus of its answer. Single-valued. Domain logic:ReasoningResult, range logic:CompletenessStatus (stated in prose)."@x-gmeow-english .
+
+logic:resultInformation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result information"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the logic:InformationState verdict about the queried proposition (the information axis). Single-valued. Domain logic:ReasoningResult, range logic:InformationState (stated in prose)."@x-gmeow-english .
+
+logic:resultPreservation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result preservation"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to each logic:PreservationKind polarity that co-holds for it — MULTI-valued, because the preservation field is a SET of polarities, not a single choice (logic:ValidationOnly is excluded; it names a lowering's purpose, not an answer-preservation polarity). Domain logic:ReasoningResult, range logic:PreservationKind (stated in prose)."@x-gmeow-english .
+
+logic:unsupportedConstruct
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "unsupported construct"@x-gmeow-english ;
+    skos:definition "Names a construct the lowering could not carry at all, carried on a logic:ReasoningResult's preservation field — MULTI-valued. A query whose constructs intersect this set is loss-affected (a derived diagnostic, never a stored field). Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:contractHash
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "contract hash"@x-gmeow-english ;
+    skos:definition "The content-addressed identity of the reasoning contract a logic:ReasoningResult was produced under. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:engine
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "engine"@x-gmeow-english ;
+    skos:definition "The engine identity + version that produced a logic:ReasoningResult. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:query
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "query"@x-gmeow-english ;
+    skos:definition "The canonical query text a logic:ReasoningResult answers — part of the proof certificate. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:conclusion
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conclusion"@x-gmeow-english ;
+    skos:definition "The canonical conclusion text a logic:ReasoningResult's verdict is about — part of the proof certificate. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:resultProof
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result proof"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the derivation that proves its conclusion (a content-addressed handle into the explanation/proof tree), present iff the conclusion is derivable. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:resultCounterproof
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result counterproof"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the derivation that proves the explicit negation of its conclusion (the same machinery as logic:resultProof), present iff the negation is derivable. A result carrying BOTH a proof and a counterproof is logic:InfoBoth. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:contradictionWitness
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "contradiction witness"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to a within-world contradiction witness justifying a logic:InfoBoth verdict — MULTI-valued. The witness is local to its world; the base store is never globalized to owl:Nothing. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:consumedBudget
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "consumed budget"@x-gmeow-english ;
+    skos:definition "The resource budget a logic:ReasoningResult consumed, against the contract's declared allowance. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:certifiedFragment
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "certified fragment"@x-gmeow-english ;
+    skos:definition "The certified-complete fragment reference backing a logic:CompleteForFragment claim on a logic:ReasoningResult. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:resultAssumption
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result assumption"@x-gmeow-english ;
+    skos:definition "A declared closure/identity/revision/witness-policy assumption a logic:ReasoningResult rests on (e.g. closed-world, unique-name, entrenchment-revision, skolem-witness) — MULTI-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .
 
