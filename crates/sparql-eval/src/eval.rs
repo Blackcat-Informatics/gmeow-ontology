@@ -58,6 +58,8 @@ impl<'d> EvalCtx<'d> {
 pub fn eval(pattern: &GraphPattern, ctx: &mut EvalCtx<'_>) -> Result<SolutionSeq, EvalError> {
     match pattern {
         GraphPattern::Bgp { patterns } => crate::bgp::eval_bgp(patterns, ctx),
+        GraphPattern::Join { left, right } => crate::binop::eval_join(left, right, ctx),
+        GraphPattern::Union { left, right } => crate::binop::eval_union(left, right, ctx),
         // Implemented incrementally over the remaining S6 build tasks; until then
         // (and permanently, for out-of-scope nodes) a hard error names the construct.
         other => Err(EvalError::Unsupported(format!(

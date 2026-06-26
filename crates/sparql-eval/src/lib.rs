@@ -37,6 +37,7 @@
 #![warn(missing_docs)]
 
 mod bgp;
+mod binop;
 mod convert;
 pub mod error;
 pub mod eval;
