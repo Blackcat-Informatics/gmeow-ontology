@@ -539,8 +539,18 @@ void purrdf_graph_free(PurrdfGraph *graph);
 
 /**
  * Read a GTS container into a fresh frozen dataset. `*out_dataset` is a
- * caller-owned handle (free with `purrdf_dataset_free`). GTS is a lossless
- * container, so the full RDF-1.2 statement layer survives the round-trip.
+ * caller-owned handle (free with `purrdf_dataset_free`).
+ *
+ * **Losslessness (v0.1):** plain-graph data round-trips losslessly, but the
+ * RDF-1.2 reifier-binding layer does NOT survive yet. `to_gts` writes the
+ * reifier slot, but the read-back path (`read_graph` + `import_gts_graph`)
+ * drops the binding rows and fails with a `gts-missing-reifier-binding`
+ * `GtsError` — and the streaming `import_gts_events` reader, which expects a
+ * declares-before-reference event ordering, cannot resolve `to_gts`'s
+ * forward-referenced reifier bindings either. This is a kernel-side limitation
+ * tracked in #1032; it blocks freezing the ABI at 1.0 (the 0.1 beta pin carries
+ * it). The failure is honest: a clean `GtsError`, never a panic or silent
+ * corruption.
  *
  * # Safety
  * `bytes` must be valid for `len` bytes; the out-params must be writable.
