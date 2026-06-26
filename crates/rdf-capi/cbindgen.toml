@@ -30,7 +30,11 @@ prefix = ""
 # `PurrdfStatus` is only used internally (functions return `int32_t`, the status
 # cast to an int), so cbindgen would not emit it — but its constants are part of
 # the ABI contract, so force its inclusion.
-include = ["PurrdfStatus"]
+# `PurrdfTermKind`, `PurrdfDirection`, and `PurrdfGraphMatchKind` are now stored
+# as `int32_t` in the structs (to prevent enum-discriminant UB when C writes an
+# out-of-range value), so cbindgen would drop them — force-export them so C
+# callers retain the named constants.
+include = ["PurrdfStatus", "PurrdfTermKind", "PurrdfDirection", "PurrdfGraphMatchKind"]
 
 [enum]
 # `QualifiedScreamingSnakeCase` already qualifies each variant with the enum name

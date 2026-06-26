@@ -45,7 +45,7 @@ fn out_view() -> PurrdfTermView {
 /// An input IRI term view borrowing `s` (which the caller must keep alive).
 fn iri_view(s: &str) -> PurrdfTermView {
     PurrdfTermView {
-        kind: PurrdfTermKind::Iri,
+        kind: PurrdfTermKind::Iri as i32,
         lexical: PurrdfStr {
             ptr: s.as_ptr(),
             len: s.len(),
@@ -58,7 +58,7 @@ fn iri_view(s: &str) -> PurrdfTermView {
             ptr: std::ptr::null(),
             len: 0,
         },
-        direction: purrdf::term::PurrdfDirection::None,
+        direction: purrdf::term::PurrdfDirection::None as i32,
         blank_scope: 0,
         term_id: 0,
     }
@@ -67,7 +67,7 @@ fn iri_view(s: &str) -> PurrdfTermView {
 /// "Match any graph".
 fn any_graph() -> PurrdfGraphMatch {
     PurrdfGraphMatch {
-        kind: PurrdfGraphMatchKind::Any,
+        kind: PurrdfGraphMatchKind::Any as i32,
         name: out_view(),
     }
 }
@@ -81,8 +81,8 @@ unsafe fn view_str(view: &PurrdfTermView) -> String {
 }
 
 /// Drain a cursor, returning each row's (subject, predicate, object) lexical and
-/// object kind.
-unsafe fn drain(cursor: *mut PurrdfCursor) -> Vec<(String, String, String, PurrdfTermKind)> {
+/// object kind as i32.
+unsafe fn drain(cursor: *mut PurrdfCursor) -> Vec<(String, String, String, i32)> {
     let mut rows = Vec::new();
     loop {
         let (mut s, mut p, mut o, mut g) = (out_view(), out_view(), out_view(), out_view());
@@ -403,7 +403,7 @@ fn quoted_triple_object_renders_to_ntriples() {
         let rc = purrdf_cursor_next(cursor, &mut s, &mut p, &mut o, &mut g, &mut has_graph);
         assert_eq!(rc, PurrdfStatus::Ok as i32);
         // The object is a quoted triple: kind Triple, empty lexical, non-zero id.
-        assert_eq!(o.kind, PurrdfTermKind::Triple);
+        assert_eq!(o.kind, PurrdfTermKind::Triple as i32);
         assert_eq!(o.lexical.len, 0);
         assert_ne!(o.term_id, 0);
 
@@ -827,5 +827,120 @@ fn capabilities_reflect_the_dataset() {
             "an in-memory quoted triple sets the flag"
         );
         purrdf_dataset_free(star);
+    }
+}
+
+// ── Invalid-discriminant tests ────────────────────────────────────────────────
+// These tests verify that C-written out-of-range enum values produce
+// `PurrdfStatus::InvalidArgument`, not UB/panic/crash.
+
+/// A PurrdfTermView with `kind = 99` (unknown discriminant) passed to
+/// `purrdf_term_to_ntriples` (no dataset id, so it goes through `view_to_value`)
+/// must return `InvalidArgument`.
+#[test]
+fn invalid_term_kind_yields_invalid_argument() {
+    unsafe {
+        let s = "http://example.org/whatever";
+        let view = PurrdfTermView {
+            kind: 99, // out-of-range discriminant
+            lexical: PurrdfStr {
+                ptr: s.as_ptr(),
+                len: s.len(),
+            },
+            datatype: PurrdfStr {
+                ptr: std::ptr::null(),
+                len: 0,
+            },
+            language: PurrdfStr {
+                ptr: std::ptr::null(),
+                len: 0,
+            },
+            direction: purrdf::term::PurrdfDirection::None as i32,
+            blank_scope: 0,
+            term_id: 0,
+        };
+        let mut buffer: *mut PurrdfBuffer = std::ptr::null_mut();
+        let mut error: *mut PurrdfError = std::ptr::null_mut();
+        let status = purrdf_term_to_ntriples(std::ptr::null(), &view, &mut buffer, &mut error);
+        assert_eq!(
+            status,
+            PurrdfStatus::InvalidArgument as i32,
+            "expected InvalidArgument for unknown term kind 99"
+        );
+        assert!(buffer.is_null());
+        assert!(!error.is_null());
+        purrdf_error_free(error);
+    }
+}
+
+/// A PurrdfTermView with `kind = Literal` but `direction = 99` (unknown) must
+/// return `InvalidArgument`.
+#[test]
+fn invalid_direction_yields_invalid_argument() {
+    unsafe {
+        let lex = "hello";
+        let dt = "http://www.w3.org/2001/XMLSchema#string";
+        let view = PurrdfTermView {
+            kind: PurrdfTermKind::Literal as i32,
+            lexical: PurrdfStr {
+                ptr: lex.as_ptr(),
+                len: lex.len(),
+            },
+            datatype: PurrdfStr {
+                ptr: dt.as_ptr(),
+                len: dt.len(),
+            },
+            language: PurrdfStr {
+                ptr: std::ptr::null(),
+                len: 0,
+            },
+            direction: 99, // out-of-range discriminant
+            blank_scope: 0,
+            term_id: 0,
+        };
+        let mut buffer: *mut PurrdfBuffer = std::ptr::null_mut();
+        let mut error: *mut PurrdfError = std::ptr::null_mut();
+        let status = purrdf_term_to_ntriples(std::ptr::null(), &view, &mut buffer, &mut error);
+        assert_eq!(
+            status,
+            PurrdfStatus::InvalidArgument as i32,
+            "expected InvalidArgument for unknown direction 99"
+        );
+        assert!(buffer.is_null());
+        assert!(!error.is_null());
+        purrdf_error_free(error);
+    }
+}
+
+/// A PurrdfGraphMatch with `kind = 99` (unknown discriminant) passed to
+/// `purrdf_quads_for_pattern` must return `InvalidArgument`.
+#[test]
+fn invalid_graph_match_kind_yields_invalid_argument() {
+    unsafe {
+        let dataset = parse("application/n-triples", THREE_QUADS);
+        let graph = PurrdfGraphMatch {
+            kind: 99, // out-of-range discriminant
+            name: out_view(),
+        };
+        let mut cursor: *mut PurrdfCursor = std::ptr::null_mut();
+        let mut error: *mut PurrdfError = std::ptr::null_mut();
+        let status = purrdf_quads_for_pattern(
+            dataset,
+            std::ptr::null(),
+            std::ptr::null(),
+            std::ptr::null(),
+            &graph,
+            &mut cursor,
+            &mut error,
+        );
+        assert_eq!(
+            status,
+            PurrdfStatus::InvalidArgument as i32,
+            "expected InvalidArgument for unknown graph match kind 99"
+        );
+        assert!(cursor.is_null());
+        assert!(!error.is_null());
+        purrdf_error_free(error);
+        purrdf_dataset_free(dataset);
     }
 }

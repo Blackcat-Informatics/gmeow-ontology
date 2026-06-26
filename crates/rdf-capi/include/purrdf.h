@@ -38,6 +38,10 @@
 
 /**
  * The optional base direction of a literal (RDF-1.2 `i18n` direction).
+ *
+ * These are the canonical discriminant values for the `int32_t direction` field
+ * of [`PurrdfTermView`]. An unknown value yields [`PurrdfStatus::InvalidArgument`]
+ * — never UB.
  */
 enum PurrdfDirection
 #ifdef __cplusplus
@@ -63,6 +67,10 @@ typedef int32_t PurrdfDirection;
 
 /**
  * The kind tag of a [`PurrdfGraphMatch`].
+ *
+ * These are the canonical discriminant values for the `int32_t kind` field of
+ * [`PurrdfGraphMatch`]. An unknown value yields [`PurrdfStatus::InvalidArgument`]
+ * — never UB.
  */
 enum PurrdfGraphMatchKind
 #ifdef __cplusplus
@@ -153,6 +161,10 @@ typedef int32_t PurrdfStatus;
 
 /**
  * The kind tag of a [`PurrdfTermView`].
+ *
+ * These are the canonical discriminant values for the `int32_t kind` field of
+ * [`PurrdfTermView`]. An unknown value in that field yields
+ * [`PurrdfStatus::InvalidArgument`] — never UB.
  */
 enum PurrdfTermKind
 #ifdef __cplusplus
@@ -255,12 +267,18 @@ typedef struct {
  * term (`0` when the view was not produced from an interned dataset term, e.g.
  * a SPARQL solution value); it is meaningful ONLY against the dataset that
  * produced the view and must never be compared across datasets.
+ *
+ * `kind` is an `int32_t` carrying a [`PurrdfTermKind`] discriminant (0–3).
+ * `direction` is an `int32_t` carrying a [`PurrdfDirection`] discriminant (0–2).
+ * An unknown value in either field yields [`PurrdfStatus::InvalidArgument`] —
+ * never undefined behaviour.
  */
 typedef struct {
     /**
-     * The term kind tag.
+     * The term kind tag (`int32_t`; see [`PurrdfTermKind`] for valid values).
+     * An unknown discriminant yields `PurrdfStatus::InvalidArgument`, not UB.
      */
-    PurrdfTermKind kind;
+    int32_t kind;
     /**
      * IRI string / blank label / literal lexical form (empty for `Triple`).
      */
@@ -274,9 +292,11 @@ typedef struct {
      */
     PurrdfStr language;
     /**
-     * Base direction (`Literal` only).
+     * Base direction (`int32_t`; see [`PurrdfDirection`] for valid values;
+     * `Literal` only). An unknown discriminant yields `PurrdfStatus::InvalidArgument`,
+     * not UB.
      */
-    PurrdfDirection direction;
+    int32_t direction;
     /**
      * Blank-node scope ordinal (`Blank` only).
      */
@@ -290,12 +310,16 @@ typedef struct {
 /**
  * A graph-slot match passed by value into `purrdf_quads_for_pattern`. For
  * `Named`, `name` is an **input** term view the caller fills.
+ *
+ * `kind` is an `int32_t` carrying a [`PurrdfGraphMatchKind`] discriminant (0–2).
+ * An unknown value yields [`PurrdfStatus::InvalidArgument`] — never UB.
  */
 typedef struct {
     /**
-     * Which graphs to match.
+     * Which graphs to match (`int32_t`; see [`PurrdfGraphMatchKind`] for valid
+     * values). An unknown discriminant yields `PurrdfStatus::InvalidArgument`, not UB.
      */
-    PurrdfGraphMatchKind kind;
+    int32_t kind;
     /**
      * The named-graph term (meaningful only when `kind == Named`).
      */

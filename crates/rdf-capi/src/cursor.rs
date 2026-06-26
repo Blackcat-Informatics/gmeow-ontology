@@ -76,7 +76,8 @@ unsafe fn resolve_graph(
     dataset: &RdfDataset,
     graph: &PurrdfGraphMatch,
 ) -> Result<GraphSlot, PurrdfError> {
-    Ok(match graph.kind {
+    let kind = PurrdfGraphMatchKind::try_from(graph.kind)?;
+    Ok(match kind {
         PurrdfGraphMatchKind::Any => GraphSlot::Match(GraphMatch::Any),
         PurrdfGraphMatchKind::Default => GraphSlot::Match(GraphMatch::Default),
         PurrdfGraphMatchKind::Named => {

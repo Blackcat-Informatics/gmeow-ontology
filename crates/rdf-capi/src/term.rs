@@ -31,6 +31,10 @@ const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
 
 /// The kind tag of a [`PurrdfTermView`].
+///
+/// These are the canonical discriminant values for the `int32_t kind` field of
+/// [`PurrdfTermView`]. An unknown value in that field yields
+/// [`PurrdfStatus::InvalidArgument`] — never UB.
 #[repr(i32)]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum PurrdfTermKind {
@@ -45,7 +49,28 @@ pub enum PurrdfTermKind {
     Triple = 3,
 }
 
+impl TryFrom<i32> for PurrdfTermKind {
+    type Error = PurrdfError;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(PurrdfTermKind::Iri),
+            1 => Ok(PurrdfTermKind::Blank),
+            2 => Ok(PurrdfTermKind::Literal),
+            3 => Ok(PurrdfTermKind::Triple),
+            _ => Err(PurrdfError::new(
+                PurrdfStatus::InvalidArgument,
+                format!("unknown PurrdfTermKind discriminant: {value}"),
+            )),
+        }
+    }
+}
+
 /// The optional base direction of a literal (RDF-1.2 `i18n` direction).
+///
+/// These are the canonical discriminant values for the `int32_t direction` field
+/// of [`PurrdfTermView`]. An unknown value yields [`PurrdfStatus::InvalidArgument`]
+/// — never UB.
 #[repr(i32)]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum PurrdfDirection {
@@ -55,6 +80,22 @@ pub enum PurrdfDirection {
     Ltr = 1,
     /// Right-to-left.
     Rtl = 2,
+}
+
+impl TryFrom<i32> for PurrdfDirection {
+    type Error = PurrdfError;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(PurrdfDirection::None),
+            1 => Ok(PurrdfDirection::Ltr),
+            2 => Ok(PurrdfDirection::Rtl),
+            _ => Err(PurrdfError::new(
+                PurrdfStatus::InvalidArgument,
+                format!("unknown PurrdfDirection discriminant: {value}"),
+            )),
+        }
+    }
 }
 
 /// A borrowed UTF-8 slice. `ptr` is **not** NUL-terminated — use `len`. The
@@ -116,19 +157,27 @@ impl PurrdfStr {
 /// term (`0` when the view was not produced from an interned dataset term, e.g.
 /// a SPARQL solution value); it is meaningful ONLY against the dataset that
 /// produced the view and must never be compared across datasets.
+///
+/// `kind` is an `int32_t` carrying a [`PurrdfTermKind`] discriminant (0–3).
+/// `direction` is an `int32_t` carrying a [`PurrdfDirection`] discriminant (0–2).
+/// An unknown value in either field yields [`PurrdfStatus::InvalidArgument`] —
+/// never undefined behaviour.
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct PurrdfTermView {
-    /// The term kind tag.
-    pub kind: PurrdfTermKind,
+    /// The term kind tag (`int32_t`; see [`PurrdfTermKind`] for valid values).
+    /// An unknown discriminant yields `PurrdfStatus::InvalidArgument`, not UB.
+    pub kind: i32,
     /// IRI string / blank label / literal lexical form (empty for `Triple`).
     pub lexical: PurrdfStr,
     /// Datatype IRI (`Literal` only; empty otherwise).
     pub datatype: PurrdfStr,
     /// Language tag (`Literal` only; empty when absent).
     pub language: PurrdfStr,
-    /// Base direction (`Literal` only).
-    pub direction: PurrdfDirection,
+    /// Base direction (`int32_t`; see [`PurrdfDirection`] for valid values;
+    /// `Literal` only). An unknown discriminant yields `PurrdfStatus::InvalidArgument`,
+    /// not UB.
+    pub direction: i32,
     /// Blank-node scope ordinal (`Blank` only).
     pub blank_scope: u32,
     /// Dataset-local opaque term id (`0` = none). See the struct docs.
@@ -140,11 +189,11 @@ impl PurrdfTermView {
     /// out-params before a cursor fills them.
     pub(crate) fn empty() -> Self {
         Self {
-            kind: PurrdfTermKind::Iri,
+            kind: PurrdfTermKind::Iri as i32,
             lexical: PurrdfStr::empty(),
             datatype: PurrdfStr::empty(),
             language: PurrdfStr::empty(),
-            direction: PurrdfDirection::None,
+            direction: PurrdfDirection::None as i32,
             blank_scope: 0,
             term_id: 0,
         }
@@ -152,6 +201,10 @@ impl PurrdfTermView {
 }
 
 /// The kind tag of a [`PurrdfGraphMatch`].
+///
+/// These are the canonical discriminant values for the `int32_t kind` field of
+/// [`PurrdfGraphMatch`]. An unknown value yields [`PurrdfStatus::InvalidArgument`]
+/// — never UB.
 #[repr(i32)]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum PurrdfGraphMatchKind {
@@ -163,13 +216,33 @@ pub enum PurrdfGraphMatchKind {
     Named = 2,
 }
 
+impl TryFrom<i32> for PurrdfGraphMatchKind {
+    type Error = PurrdfError;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(PurrdfGraphMatchKind::Any),
+            1 => Ok(PurrdfGraphMatchKind::Default),
+            2 => Ok(PurrdfGraphMatchKind::Named),
+            _ => Err(PurrdfError::new(
+                PurrdfStatus::InvalidArgument,
+                format!("unknown PurrdfGraphMatchKind discriminant: {value}"),
+            )),
+        }
+    }
+}
+
 /// A graph-slot match passed by value into `purrdf_quads_for_pattern`. For
 /// `Named`, `name` is an **input** term view the caller fills.
+///
+/// `kind` is an `int32_t` carrying a [`PurrdfGraphMatchKind`] discriminant (0–2).
+/// An unknown value yields [`PurrdfStatus::InvalidArgument`] — never UB.
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct PurrdfGraphMatch {
-    /// Which graphs to match.
-    pub kind: PurrdfGraphMatchKind,
+    /// Which graphs to match (`int32_t`; see [`PurrdfGraphMatchKind`] for valid
+    /// values). An unknown discriminant yields `PurrdfStatus::InvalidArgument`, not UB.
+    pub kind: i32,
     /// The named-graph term (meaningful only when `kind == Named`).
     pub name: PurrdfTermView,
 }
@@ -197,14 +270,14 @@ pub(crate) unsafe fn render_term(dataset: &RdfDataset, id: TermId, view: &mut Pu
     view.blank_scope = 0;
     view.datatype = PurrdfStr::empty();
     view.language = PurrdfStr::empty();
-    view.direction = PurrdfDirection::None;
+    view.direction = PurrdfDirection::None as i32;
     match dataset.resolve(id) {
         TermRef::Iri(iri) => {
-            view.kind = PurrdfTermKind::Iri;
+            view.kind = PurrdfTermKind::Iri as i32;
             view.lexical = PurrdfStr::from_str(iri);
         }
         TermRef::Blank { label, scope } => {
-            view.kind = PurrdfTermKind::Blank;
+            view.kind = PurrdfTermKind::Blank as i32;
             view.lexical = PurrdfStr::from_str(label);
             view.blank_scope = scope.ordinal();
         }
@@ -214,7 +287,7 @@ pub(crate) unsafe fn render_term(dataset: &RdfDataset, id: TermId, view: &mut Pu
             language,
             direction,
         } => {
-            view.kind = PurrdfTermKind::Literal;
+            view.kind = PurrdfTermKind::Literal as i32;
             view.lexical = PurrdfStr::from_str(lexical);
             // The datatype is a term id; resolve it to the IRI slice (C0.1).
             if let TermRef::Iri(dt) = dataset.resolve(datatype) {
@@ -224,13 +297,13 @@ pub(crate) unsafe fn render_term(dataset: &RdfDataset, id: TermId, view: &mut Pu
                 view.language = PurrdfStr::from_str(language);
             }
             view.direction = match direction {
-                Option::None => PurrdfDirection::None,
-                Some(RdfTextDirection::Ltr) => PurrdfDirection::Ltr,
-                Some(RdfTextDirection::Rtl) => PurrdfDirection::Rtl,
+                Option::None => PurrdfDirection::None as i32,
+                Some(RdfTextDirection::Ltr) => PurrdfDirection::Ltr as i32,
+                Some(RdfTextDirection::Rtl) => PurrdfDirection::Rtl as i32,
             };
         }
         TermRef::Triple { .. } => {
-            view.kind = PurrdfTermKind::Triple;
+            view.kind = PurrdfTermKind::Triple as i32;
             view.lexical = PurrdfStr::empty();
         }
     }
@@ -250,14 +323,14 @@ pub(crate) unsafe fn render_value(value: &TermValue, view: &mut PurrdfTermView) 
     view.blank_scope = 0;
     view.datatype = PurrdfStr::empty();
     view.language = PurrdfStr::empty();
-    view.direction = PurrdfDirection::None;
+    view.direction = PurrdfDirection::None as i32;
     match value {
         TermValue::Iri(iri) => {
-            view.kind = PurrdfTermKind::Iri;
+            view.kind = PurrdfTermKind::Iri as i32;
             view.lexical = PurrdfStr::from_str(iri);
         }
         TermValue::Blank { label, scope } => {
-            view.kind = PurrdfTermKind::Blank;
+            view.kind = PurrdfTermKind::Blank as i32;
             view.lexical = PurrdfStr::from_str(label);
             view.blank_scope = scope.ordinal();
         }
@@ -267,20 +340,20 @@ pub(crate) unsafe fn render_value(value: &TermValue, view: &mut PurrdfTermView) 
             language,
             direction,
         } => {
-            view.kind = PurrdfTermKind::Literal;
+            view.kind = PurrdfTermKind::Literal as i32;
             view.lexical = PurrdfStr::from_str(lexical_form);
             view.datatype = PurrdfStr::from_str(datatype);
             if let Some(language) = language {
                 view.language = PurrdfStr::from_str(language);
             }
             view.direction = match direction {
-                Option::None => PurrdfDirection::None,
-                Some(RdfTextDirection::Ltr) => PurrdfDirection::Ltr,
-                Some(RdfTextDirection::Rtl) => PurrdfDirection::Rtl,
+                Option::None => PurrdfDirection::None as i32,
+                Some(RdfTextDirection::Ltr) => PurrdfDirection::Ltr as i32,
+                Some(RdfTextDirection::Rtl) => PurrdfDirection::Rtl as i32,
             };
         }
         TermValue::Triple { .. } => {
-            view.kind = PurrdfTermKind::Triple;
+            view.kind = PurrdfTermKind::Triple as i32;
             view.lexical = PurrdfStr::empty();
         }
     }
@@ -294,7 +367,8 @@ pub(crate) unsafe fn render_value(value: &TermValue, view: &mut PurrdfTermView) 
 /// The view's `PurrdfStr` slices must be valid for the call.
 pub(crate) unsafe fn view_to_value(view: &PurrdfTermView) -> Result<TermValue, PurrdfError> {
     let lexical = view.lexical.as_str()?;
-    match view.kind {
+    let kind = PurrdfTermKind::try_from(view.kind)?;
+    match kind {
         PurrdfTermKind::Iri => Ok(TermValue::Iri(lexical.to_owned())),
         PurrdfTermKind::Blank => Ok(TermValue::Blank {
             label: lexical.to_owned(),
@@ -314,7 +388,7 @@ pub(crate) unsafe fn view_to_value(view: &PurrdfTermView) -> Result<TermValue, P
             } else {
                 XSD_STRING.to_owned()
             };
-            let direction = match view.direction {
+            let direction = match PurrdfDirection::try_from(view.direction)? {
                 PurrdfDirection::None => None,
                 PurrdfDirection::Ltr => Some(RdfTextDirection::Ltr),
                 PurrdfDirection::Rtl => Some(RdfTextDirection::Rtl),
