@@ -405,6 +405,141 @@ pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
     out
 }
 
+// ── reasoning-result + proof-certificate ────────────────────────────────────────
+
+/// The `logic:` vocabulary namespace (the typed-result terms live here, #768).
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+
+/// `logic:` term IRI helper.
+fn logic(local: &str) -> String {
+    format!("{LOGIC_NS}{local}")
+}
+
+/// Banner for the typed reasoning-result + proof-certificate artifact.
+const RESULT_HEADER: &str = "\
+# GMEOW typed reasoning result + proof certificate (RDF 1.2, #768 ME2).
+# The single shared logic:ReasoningResult the native lane produced, serialized as
+# its five orthogonal status fields (input, evaluation, completeness,
+# preservation, information) plus the provenance bundle (contract hash, engine,
+# proof/counterproof, contradiction witnesses, assumptions, consumed budget) —
+# the proof certificate binding the verdict to what produced it. DO NOT EDIT.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+";
+
+/// Render the typed [`ReasoningResult`] as a `logic:ReasoningResult` individual —
+/// the proof-certificate surface (#768 ME2): the five status fields projected to
+/// their `module.ttl` value individuals plus the provenance bundle (contract
+/// hash, engine, proof/counterproof, contradiction witnesses, assumptions). This
+/// is a NEW, additive artifact — it does not touch the three historical
+/// byte-pinned artifacts.
+///
+/// All multi-valued fields iterate sorted sets, so the output is deterministic.
+pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
+    let mut out = String::from(RESULT_HEADER);
+    out.push_str("\n# --- reasoning result + proof certificate ---\n");
+
+    let subject = gmeow("reasoning-result");
+    let mut props: Vec<(String, String)> = vec![
+        (
+            RDF_TYPE.to_owned(),
+            format!("<{}>", logic("ReasoningResult")),
+        ),
+        (logic("resultInput"), format!("<{}>", result.input.iri())),
+        (
+            logic("resultEvaluation"),
+            format!("<{}>", result.evaluation.iri()),
+        ),
+        (
+            logic("resultCompleteness"),
+            format!("<{}>", result.completeness.iri()),
+        ),
+        (
+            logic("resultInformation"),
+            format!("<{}>", result.information.iri()),
+        ),
+        (
+            logic("contractHash"),
+            format!("\"{}\"", escape_literal(&result.provenance.contract_hash)),
+        ),
+        (
+            logic("engine"),
+            format!(
+                "\"{} {}\"",
+                escape_literal(&result.provenance.engine.name),
+                escape_literal(&result.provenance.engine.version)
+            ),
+        ),
+        (
+            logic("consumedBudget"),
+            result.provenance.consumed_budget.consumed.to_string(),
+        ),
+    ];
+
+    // The preservation polarity set + unsupported constructs (both sorted).
+    for kind in &result.preservation.polarities {
+        props.push((logic("resultPreservation"), format!("<{}>", kind.iri())));
+    }
+    for construct in &result.preservation.unsupported_constructs {
+        props.push((
+            logic("unsupportedConstruct"),
+            format!("\"{}\"", escape_literal(construct)),
+        ));
+    }
+
+    // The proof certificate: query/conclusion + proof/counterproof handles.
+    if !result.provenance.query.is_empty() {
+        props.push((
+            logic("query"),
+            format!("\"{}\"", escape_literal(&result.provenance.query)),
+        ));
+    }
+    if !result.provenance.conclusion.is_empty() {
+        props.push((
+            logic("conclusion"),
+            format!("\"{}\"", escape_literal(&result.provenance.conclusion)),
+        ));
+    }
+    if let Some(proof) = &result.provenance.proof {
+        props.push((logic("resultProof"), format!("<{}>", proof.derivation_id)));
+    }
+    if let Some(counterproof) = &result.provenance.counterproof {
+        props.push((
+            logic("resultCounterproof"),
+            format!("<{}>", counterproof.derivation_id),
+        ));
+    }
+
+    // Belnap contradiction witnesses (justify information=both), sorted.
+    for witness in &result.provenance.contradiction_witnesses {
+        props.push((
+            logic("contradictionWitness"),
+            format!("<{}>", bare_iri(&witness.individual)),
+        ));
+    }
+
+    // Declared closure/identity/revision/witness-policy assumptions, sorted.
+    for assumption in &result.provenance.assumptions {
+        props.push((
+            logic("resultAssumption"),
+            format!("\"{}\"", assumption.wire()),
+        ));
+    }
+
+    // The world the answer holds in (when pinned).
+    if !result.provenance.context.world.is_empty() {
+        props.push((
+            gmeow("inWorld"),
+            format!("<{}>", bare_iri(&result.provenance.context.world)),
+        ));
+    }
+
+    out.push_str(&emit_resource(&subject, &props));
+    out
+}
+
 /// Escape a string for embedding in a double-quoted Turtle literal (mirrors the
 /// gmeow-rdf emitter's literal escaping; inlined here for ledger string literals
 /// that are not full [`gmeow_rdf::RdfLiteral`] terms).
@@ -633,5 +768,40 @@ mod tests {
         assert!(ttl.contains("reason.dl-gap.complementOf"));
         assert!(ttl.contains("gmeow/entailmentCount> 1"));
         assert!(ttl.contains("gmeow/gapCount> 1"));
+    }
+
+    #[test]
+    fn reasoning_result_ttl_emits_status_fields_and_certificate() {
+        // A consistent run: supported, completed, complete-for-fragment.
+        let result = result_with(vec![], true);
+        let ttl = build_reasoning_result_ttl(&result);
+        assert!(ttl.contains("#type> <https://blackcatinformatics.ca/logic/ReasoningResult>"));
+        assert!(
+            ttl.contains("logic/resultInput> <https://blackcatinformatics.ca/logic/InputValid>")
+        );
+        assert!(ttl.contains(
+            "logic/resultEvaluation> <https://blackcatinformatics.ca/logic/EvaluationCompleted>"
+        ));
+        assert!(ttl.contains(
+            "logic/resultCompleteness> <https://blackcatinformatics.ca/logic/CompleteForFragment>"
+        ));
+        assert!(ttl.contains(
+            "logic/resultInformation> <https://blackcatinformatics.ca/logic/InfoSupported>"
+        ));
+        assert!(ttl.contains("logic/contractHash>"));
+        assert!(ttl.contains("logic/engine>"));
+    }
+
+    #[test]
+    fn reasoning_result_ttl_inconsistent_is_both_with_witness() {
+        // An inconsistent run: information=both, carrying a contradiction witness.
+        let result = result_with(vec![], false);
+        let ttl = build_reasoning_result_ttl(&result);
+        assert!(ttl
+            .contains("logic/resultInformation> <https://blackcatinformatics.ca/logic/InfoBoth>"));
+        assert!(
+            ttl.contains("logic/contradictionWitness> <http://example.org/x>"),
+            "the glut must carry its witness: {ttl}"
+        );
     }
 }
