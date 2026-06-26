@@ -26,7 +26,10 @@ use gmeow_rdf_core::{SparqlResult, TermValue};
 /// # Errors
 ///
 /// Returns [`Error::Format`] for `Boolean` (ASK) and `Graph` (CONSTRUCT)
-/// results, which W3C CSV does not define.
+/// results, which W3C CSV does not define.  Returns [`Error::MalformedTerm`]
+/// if any solution row contains more bindings than there are projected
+/// variables (over-wide rows are an invariant violation; short rows are
+/// intentional and padded with empty fields for unbound variables).
 pub fn to_csv(
     result: &SparqlResult,
     provenance: &ResultProvenance,
@@ -59,6 +62,13 @@ pub fn to_csv(
     out.push_str("\r\n");
 
     for row in rows {
+        if row.len() > variables.len() {
+            return Err(Error::MalformedTerm(format!(
+                "solution row has {} bindings but only {} variables are projected",
+                row.len(),
+                variables.len()
+            )));
+        }
         for column in 0..variables.len() {
             if column > 0 {
                 out.push(',');
@@ -256,6 +266,22 @@ mod tests {
         };
         let expected = concat!("a,b,c\r\n", "http://example.org/x,,\r\n",);
         assert_eq!(csv_text(&result, &ResultProvenance::default()), expected);
+    }
+
+    #[test]
+    fn over_wide_row_is_malformed_error() {
+        // 1 variable but row supplies 2 bound cells — over-wide rows must hard-fail.
+        let iri = TermValue::Iri("http://example.org/x".to_string());
+        let result = SparqlResult::Solutions {
+            variables: vec!["a".to_string()],
+            rows: vec![vec![Some(iri.clone()), Some(iri)]],
+        };
+        let err = to_csv(&result, &ResultProvenance::default())
+            .expect_err("over-wide row must be rejected");
+        assert!(
+            matches!(err, Error::MalformedTerm(_)),
+            "expected MalformedTerm: {err:?}"
+        );
     }
 
     #[test]
