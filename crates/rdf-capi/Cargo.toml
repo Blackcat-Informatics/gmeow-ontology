@@ -36,6 +36,10 @@ gmeow-rdf = { path = "../rdf", default-features = false, features = ["gts", "oxi
 # directly too so it can name MutableDataset/QuadValues/GraphMatchValue/DatasetMut
 # without leaning on re-export aliasing. Harmless to crate-check (acyclic).
 gmeow-rdf-core = { path = "../rdf-core", default-features = false, features = ["gts"] }
+# The canonical SPARQL-Results serializer (purrdf S9, EPIC #906). Path-depends on
+# the SAME ../rdf-core, so SparqlResult/TermValue unify — this crate delegates its
+# SRJ emission here instead of carrying a second hand-written serializer.
+gmeow-sparql-results = { path = "../sparql-results" }
 
 # === cargo-c packaging (the spec-letter build mechanism) ===
 [package.metadata.capi]

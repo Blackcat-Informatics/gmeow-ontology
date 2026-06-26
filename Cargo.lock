@@ -1875,6 +1875,7 @@ version = "0.1.0"
 dependencies = [
  "gmeow-rdf",
  "gmeow-rdf-core",
+ "gmeow-sparql-results",
 ]
 
 [[package]]
