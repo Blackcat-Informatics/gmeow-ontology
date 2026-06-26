@@ -1788,6 +1788,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-logic-compile"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf",
+ "gmeow-sparql-algebra",
+ "insta",
+ "sha2",
+]
+
+[[package]]
 name = "gmeow-lsp"
 version = "0.1.0"
 dependencies = [
