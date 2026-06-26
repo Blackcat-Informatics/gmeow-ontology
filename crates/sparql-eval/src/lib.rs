@@ -38,6 +38,7 @@
 
 mod bgp;
 mod binop;
+mod construct;
 mod convert;
 pub mod error;
 pub mod eval;
@@ -47,7 +48,7 @@ pub mod scratch;
 pub mod solution;
 
 pub use error::EvalError;
-pub use eval::{eval, EvalCtx};
+pub use eval::{eval, evaluate_query, EvalCtx, Outcome};
 pub use scratch::{ScratchId, ScratchInterner, SolutionTerm};
 pub use solution::{compatible, Solution, SolutionSeq, VarSchema};
 

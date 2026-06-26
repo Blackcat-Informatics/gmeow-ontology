@@ -15,8 +15,10 @@
 //! indexed read surface through `DatasetView` (the inherent `quads_for_pattern`
 //! override, P4b #891).
 
+use std::sync::Arc;
+
 use gmeow_rdf_core::{GraphMatch, RdfDataset};
-use gmeow_sparql_algebra::GraphPattern;
+use gmeow_sparql_algebra::{GraphPattern, Query};
 
 use crate::error::EvalError;
 use crate::scratch::ScratchInterner;
@@ -101,6 +103,37 @@ pub fn eval(pattern: &GraphPattern, ctx: &mut EvalCtx<'_>) -> Result<SolutionSeq
             "graph pattern `{}` is not yet implemented in sparql-eval",
             pattern_kind(other)
         ))),
+    }
+}
+
+/// The result of evaluating a top-level query form — the internal counterpart of
+/// the `SparqlResult` egress model (materialized by the engine, S6 Task 9).
+#[derive(Debug)]
+pub enum Outcome {
+    /// `SELECT` solutions (a multiset over the projected schema).
+    Solutions(SolutionSeq),
+    /// `CONSTRUCT`/`DESCRIBE` graph result.
+    Graph(Arc<RdfDataset>),
+    /// `ASK` boolean.
+    Boolean(bool),
+}
+
+/// Evaluate a top-level [`Query`] form over `ctx`'s dataset.
+///
+/// `SELECT`/`ASK` walk the modifier-wrapped pattern; `CONSTRUCT` emits the IR
+/// dataset directly. `DESCRIBE` is out of S6 scope (a hard error).
+pub fn evaluate_query(query: &Query, ctx: &mut EvalCtx<'_>) -> Result<Outcome, EvalError> {
+    match query {
+        Query::Select { pattern, .. } => Ok(Outcome::Solutions(eval(pattern, ctx)?)),
+        Query::Ask { pattern, .. } => Ok(Outcome::Boolean(!eval(pattern, ctx)?.is_empty())),
+        Query::Construct {
+            template, pattern, ..
+        } => Ok(Outcome::Graph(crate::construct::eval_construct(
+            template, pattern, ctx,
+        )?)),
+        Query::Describe { .. } => Err(EvalError::unsupported(
+            "DESCRIBE query form (out of S6 scope)",
+        )),
     }
 }
 
