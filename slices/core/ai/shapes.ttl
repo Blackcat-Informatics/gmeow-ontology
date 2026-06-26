@@ -54,12 +54,16 @@ gmeow:SpanSanityShape
     rdfs:label "Span sanity shape"@x-gmeow-english ;
     skos:definition "A span's exclusive end offset must exceed its inclusive start; nonsensical spans would silently break the mechanical AIS checking the typed offsets exist for (EvidenceSpan audit machinery)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    # Dogfoods the canonical importable prefix set (#1009 §2): the SPARQL
+    # constraint's prefixes come from `gmeow:CorePrefixes` (resolved by the
+    # SHACL reader's sh:prefixes → sh:declare path) instead of an inline
+    # `PREFIX gmeow:` preamble redeclared in the sh:select string.
+    sh:prefixes gmeow:CorePrefixes ;
     sh:targetSubjectsOf gmeow:spanStart ;
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:message "A span's end offset must be greater than its start (spanEnd exclusive > spanStart inclusive)." ;
         sh:select """
-            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
             SELECT $this WHERE {
                 $this gmeow:spanStart ?s ; gmeow:spanEnd ?e .
                 FILTER (?e <= ?s)

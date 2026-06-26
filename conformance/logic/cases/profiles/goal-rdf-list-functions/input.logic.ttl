@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: profiles/goal-rdf-list-functions (#1009 §5)
+# AC: the reasoning layer backs the first-class RDF list functions by walking the
+# rdf:first/rdf:rest chain — the backward-goal Prolog analog of the forward-chase
+# `rl:list-member` recursion. gmeow:listContains, gmeow:listLength, gmeow:listGet
+# and gmeow:listIndexOf are now EXECUTABLY backed by the query engine under the
+# ProceduralPrologProfile: each queries/*.logic recurses over rdf:first/rdf:rest
+# and uses the arithmetic/comparison builtins (`N is M + 1`, `N > 0`, `M is N - 1`)
+# lit up by G2a. Over the list (x y z) at l0, membership returns {x, y, z}, length
+# returns 3 (empty list → 0), get(1) returns y, indexOf(z) returns 2, and the
+# negative/out-of-range goals return empty bindings with status ok.
+#
+# gmeow:listSlice and gmeow:listConcat remain deferred to #1016: they require
+# value-inventing list construction (minting fresh rdf:List cons cells), which is
+# the existential-rule / materialization paradigm — a different seam from the
+# backward-goal query/answers path exercised here.
+#
+# No forward rules: the list EDB lives in input.nq; the list operations are the
+# backward goals in queries/.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/goal-rdf-list-functions/> .
+
+# Schema: the element sort used by the projection back-ends.
+ex:Element a logic:Kind .
