@@ -7,16 +7,24 @@
 #   ex:orgA --ex:linkedTo--> ex:orgB --ex:linkedTo--> ex:orgC
 #                                                        --ex:linkedTo--> ex:orgD
 #
-# "Within 2 hops" = 1-hop OR 2-hop, expressed in SPARQL §9 as:
-#   ex:linkedTo | ex:linkedTo/ex:linkedTo
+# "Within 2 hops" is the bounded path logic:nearbyOrgs (pathStepPredicate
+# ex:linkedTo, pathMinDepth 1, pathMaxDepth 2).  GMEOW's native projection lowers
+# that shape to the EXTENDED SPARQL property path `ex:linkedTo{1,2}` — but a `{m,n}`
+# quantifier is exactly the §9 construct standard SPARQL engines (oxigraph, which
+# runs the competency cells) cannot parse.  So this query embeds the licensed
+# STANDARD-SPARQL down-projection of that bounded path — the alternation
+# `(ex:linkedTo|ex:linkedTo/ex:linkedTo)` — which is semantically identical for
+# maxDepth 2 and actually executes on oxigraph.
 #
-# This is the standard §9 projection of a logic:PathShape with
-# pathStepPredicate ex:linkedTo, pathMinDepth 1, pathMaxDepth 2.
-# ex:orgD is 3 hops away and must NOT appear (cqExactRows true).
+# Anti-drift (issue #1010, CR7): the lossless extended-SPARQL projection
+# `<...linkedTo>{1,2}` is pinned by the Rust golden
+# `nearby_orgs_projection_emits_pinned_bounded_path`
+# (crates/logic, projections/paths/tests.rs); if the projection drifts, that test
+# fails.  ex:orgD is 3 hops away and must NOT appear (cqExactRows true).
 
 PREFIX ex: <https://blackcatinformatics.ca/gmeow/examples/logic/tests/>
 
 SELECT ?neighbor WHERE {
-    ex:orgA (ex:linkedTo | ex:linkedTo/ex:linkedTo) ?neighbor .
+    ex:orgA (ex:linkedTo|ex:linkedTo/ex:linkedTo) ?neighbor .
 }
 ORDER BY ?neighbor

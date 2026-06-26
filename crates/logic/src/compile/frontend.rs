@@ -978,7 +978,21 @@ fn extract_path_shapes(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<
                 ));
                 continue;
             }
-            (Some(p), false) => PathBase::NamedPredicate(term_str(p)),
+            (Some(p), false) => match p {
+                // A step predicate MUST be an IRI: a literal or blank-node object
+                // would produce a malformed predicate IRI downstream (no silent
+                // coercion). Skip the shape with a diagnostic, like every other
+                // malformed-shape branch.
+                Term::NamedNode(_) => PathBase::NamedPredicate(term_str(p)),
+                _ => {
+                    diagnostics.push(Diagnostic::warning(
+                        "MALFORMED_PATH_SHAPE",
+                        "logic:pathStepPredicate must be an IRI named node; shape skipped",
+                        Some(subj.clone()),
+                    ));
+                    continue;
+                }
+            },
             (None, true) => PathBase::Wildcard,
             (None, false) => {
                 diagnostics.push(Diagnostic::warning(

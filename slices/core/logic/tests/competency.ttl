@@ -6,9 +6,20 @@
 # headline capability of issue #1010 that SPARQL §9 property paths lack?
 #
 # This question overlays a synthetic ABox (path-traversal.ttl) and runs a
-# depth-bounded SPARQL property-path query (ex:linkedTo{1,2}) over it.  The
-# expected result is exactly {ex:orgB, ex:orgC}; ex:orgD is 3 hops away and
-# must NOT appear (cqExactRows true pins the closed set).
+# depth-bounded SPARQL property-path query over it.  The expected result is exactly
+# {ex:orgB, ex:orgC}; ex:orgD is 3 hops away and must NOT appear (cqExactRows true
+# pins the closed set).
+#
+# Rust-first linkage (issue #1010, CR7): logic:nearbyOrgs (pathStepPredicate
+# ex:linkedTo, pathMinDepth 1, pathMaxDepth 2) projects to the EXTENDED SPARQL path
+# `<...linkedTo>{1,2}`.  A `{m,n}` quantifier is the §9 construct standard SPARQL
+# engines cannot parse — exactly the gap #1010 closes — so the competency runner
+# (oxigraph) executes the licensed standard-SPARQL down-projection
+# `(ex:linkedTo|ex:linkedTo/ex:linkedTo)` in named-parametric-paths.rq, semantically
+# identical for maxDepth 2.  The Rust golden
+# `nearby_orgs_projection_emits_pinned_bounded_path` (crates/logic,
+# projections/paths/tests.rs) pins the lossless `{1,2}` projection output so a
+# projection drift fails a test rather than silently passing this CQ.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .

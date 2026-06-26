@@ -738,11 +738,17 @@ pub const MAX_PATH_DEPTH: usize = 1_000;
 impl PathShapeIr {
     /// Construct, validating the depth range and base step:
     ///
-    /// * `min_depth` must be ≥ 1;
+    /// * `min_depth` must be ≥ 1 and must not exceed [`MAX_PATH_DEPTH`] (hard cap
+    ///   — an unbounded path with a huge `min_depth` still unrolls a `min_depth`-hop
+    ///   chain, CWE-400);
     /// * when `max_depth` is `Some(m)`, `min_depth` must not exceed `m`;
     /// * when `max_depth` is `Some(m)`, `m` must not exceed [`MAX_PATH_DEPTH`]
     ///   (hard cap — prevents runaway Datalog unrolling, CWE-400);
-    /// * a [`PathBase::NamedPredicate`] must be non-empty.
+    /// * a [`PathBase::NamedPredicate`] must be non-empty;
+    /// * `namespace_scope`, when present, must be a non-empty IRI and is only
+    ///   admissible for a [`PathBase::Wildcard`] step (it scopes the wildcard);
+    /// * `depth_param`, when present, must be a non-empty string (an empty string
+    ///   collides with `None` in the content key — a determinism hazard).
     pub fn new(
         iri: impl Into<String>,
         base: PathBase,
@@ -757,6 +763,15 @@ impl PathShapeIr {
         }
         if min_depth < 1 {
             return Err("PathShapeIr.min_depth must be >= 1".to_owned());
+        }
+        // Cap min_depth too (CWE-400): an unbounded path (max_depth = None) with a
+        // huge min_depth still unrolls a 1..min_depth edge chain in datalog_text,
+        // exhausting memory. The cap on max_depth alone does not bound this.
+        if min_depth as usize > MAX_PATH_DEPTH {
+            return Err(format!(
+                "PathShapeIr.min_depth ({min_depth}) exceeds the hard cap of {MAX_PATH_DEPTH}; \
+                 no legitimate graph walk needs a deeper minimum"
+            ));
         }
         if let Some(m) = max_depth {
             if min_depth > m {
@@ -779,7 +794,30 @@ impl PathShapeIr {
         if let Some(ns) = &namespace_scope {
             if ns.trim().is_empty() {
                 return Err(
-                    "PathShapeIr.namespace_scope must be a non-empty IRI string when present;                      pass None to leave it unset"
+                    "PathShapeIr.namespace_scope must be a non-empty IRI string when present; \
+                     pass None to leave it unset"
+                        .to_owned(),
+                );
+            }
+            // namespace_scope only scopes a wildcard step (projections apply it
+            // solely to wildcards). Carrying it on a named-predicate path is
+            // malformed — reject rather than silently ignore it.
+            if let PathBase::NamedPredicate(_) = &base {
+                return Err(
+                    "PathShapeIr.namespace_scope is only meaningful for a wildcard step \
+                     (logic:pathWildcard true); a named-predicate path must not carry one"
+                        .to_owned(),
+                );
+            }
+        }
+        // An empty/whitespace depth_param collides with None in content_key()
+        // (content-addressing determinism hazard): Some("") and None must never
+        // produce the same key. Reject it so Some("") can never be constructed.
+        if let Some(dp) = &depth_param {
+            if dp.trim().is_empty() {
+                return Err(
+                    "PathShapeIr.depth_param must be a non-empty string when present; \
+                     pass None to leave it unset"
                         .to_owned(),
                 );
             }

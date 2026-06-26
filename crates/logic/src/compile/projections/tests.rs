@@ -411,3 +411,43 @@ ex:nearbyOrgs a logic:PathShape ;
         "property-path ledger entry must declare lossy_drops"
     );
 }
+
+// ── CR5: the projection report includes the property-path targets ────────────
+//
+// build_projection_report runs over the SAME target list the preservation ledger
+// is built from (path projections are folded into `owned` BEFORE the report), so
+// the report Turtle and the ledger must AGREE — both carry a property-path row for
+// every declared logic:PathShape (maximal information flow; no suppression).
+
+#[test]
+fn projection_report_includes_property_path_targets() {
+    let ttl = "\
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/test/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+ex:nearbyOrgs a logic:PathShape ;
+    logic:pathWildcard true ;
+    logic:pathNamespaceScope \"https://example.org/org/\"^^xsd:anyURI ;
+    logic:pathMinDepth 1 ; logic:pathMaxDepth 2 ; logic:pathDepthParam \"maxDepth\" .";
+    let (program, _diags) = parse_logic_str(ttl, None).expect("parse");
+    let arts = compile_program(&program).expect("compile");
+
+    // The report Turtle must carry the property-path target as an rdfs:label, in
+    // lock-step with the ledger row keyed `property-path:<iri>`.
+    let pp = &arts.path_projections[0];
+    let expected_label = format!("property-path:{}", pp.shape_iri);
+    assert!(
+        arts.report.contains(&expected_label),
+        "the projection report must include a property-path target labelled {expected_label:?}; \
+         report:\n{}",
+        arts.report
+    );
+
+    // And it must agree with the preservation ledger (same target list).
+    assert!(
+        arts.preservation_ledger
+            .iter()
+            .any(|e| e.target == expected_label),
+        "report and ledger must agree on the property-path target {expected_label:?}"
+    );
+}

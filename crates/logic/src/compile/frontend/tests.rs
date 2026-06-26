@@ -813,3 +813,72 @@ fn path_shape_wildcard_false_literal_yields_no_wildcard() {
         "step predicate must win when wildcard is false"
     );
 }
+
+// ── CR1: a non-IRI logic:pathStepPredicate is rejected ───────────────────────
+
+#[test]
+fn path_shape_literal_step_predicate_is_skipped_with_diagnostic() {
+    // CR1: a logic:pathStepPredicate that is a LITERAL (not an IRI named node)
+    // would build a malformed predicate IRI downstream — reject the shape with a
+    // MALFORMED_PATH_SHAPE diagnostic, never silently coerce it.
+    let (prog, diags) = parse(
+        "ex:litStep a logic:PathShape ;
+            logic:pathStepPredicate \"not-an-iri\" .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "a literal step predicate must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("IRI named node")),
+        "expected a MALFORMED_PATH_SHAPE diagnostic about an IRI named node: {diags:?}"
+    );
+}
+
+// ── CR2: PathShapeIr::new() Err branches surface as MALFORMED_PATH_SHAPE + skip ──
+
+#[test]
+fn path_shape_empty_namespace_scope_is_skipped_with_diagnostic() {
+    // CR2: an empty logic:pathNamespaceScope makes PathShapeIr::new() Err; the
+    // front-end must surface it as MALFORMED_PATH_SHAPE and skip the shape.
+    let (prog, diags) = parse(
+        "ex:emptyNs a logic:PathShape ;
+            logic:pathWildcard true ;
+            logic:pathNamespaceScope \"\"^^xsd:anyURI .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "an empty namespace scope must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags.iter().any(|d| d.code == "MALFORMED_PATH_SHAPE"),
+        "expected a MALFORMED_PATH_SHAPE diagnostic for an empty namespace scope: {diags:?}"
+    );
+}
+
+#[test]
+fn path_shape_max_depth_above_cap_is_skipped_with_diagnostic() {
+    // CR2: a logic:pathMaxDepth above MAX_PATH_DEPTH (1000) makes PathShapeIr::new()
+    // Err; the front-end must surface it as MALFORMED_PATH_SHAPE and skip the shape.
+    let (prog, diags) = parse(
+        "ex:tooDeep a logic:PathShape ;
+            logic:pathWildcard true ;
+            logic:pathMinDepth 1 ;
+            logic:pathMaxDepth 1001 .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "a max depth above the cap must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("hard cap")),
+        "expected a MALFORMED_PATH_SHAPE diagnostic mentioning the hard cap: {diags:?}"
+    );
+}

@@ -371,3 +371,44 @@ fn nearby_orgs_wildcard_runs_on_the_native_engine() {
         &format!("{o}epsilon")
     ));
 }
+
+// ── CR7: golden pin anchoring the competency CQ to the projection ────────────
+//
+// The competency CQ (slices/core/logic/tests/competency.ttl +
+// queries/competency/named-parametric-paths.rq) exercises the bounded path
+// logic:nearbyOrgs over a four-node chain.  GMEOW's native projection lowers that
+// shape to the EXTENDED SPARQL property path `<...linkedTo>{1,2}`; standard SPARQL
+// engines (oxigraph, which runs the competency cell) cannot parse a `{m,n}`
+// quantifier — that is precisely the §9 gap issue #1010 closes — so the .rq embeds
+// the licensed standard-SPARQL down-projection `(linkedTo|linkedTo/linkedTo)`.
+// This golden pins the lossless extended-SPARQL projection output: if the
+// projection drifts, this test fails (rust-first anti-drift), independent of the
+// hand-runnable standard-SPARQL form in the .rq.
+
+/// The lossless extended-SPARQL property path GMEOW's projection emits for the
+/// bounded `nearbyOrgs` shape (the §9-extended `{1,2}` form, not the standard-SPARQL
+/// down-projection the competency `.rq` executes on oxigraph).
+const NEARBY_ORGS_PROJECTED_PATH: &str =
+    "<https://blackcatinformatics.ca/gmeow/examples/logic/tests/linkedTo>{1,2}";
+
+#[test]
+fn nearby_orgs_projection_emits_pinned_bounded_path() {
+    // nearbyOrgs: a named-predicate path over ex:linkedTo with maxDepth = 2 (the
+    // shape the competency fixture path-traversal.ttl exercises).
+    let s = shape(
+        "https://blackcatinformatics.ca/gmeow/examples/logic/tests/nearbyOrgs",
+        PathBase::NamedPredicate(
+            "https://blackcatinformatics.ca/gmeow/examples/logic/tests/linkedTo".to_owned(),
+        ),
+        1,
+        Some(2),
+        None,
+    );
+    let projected = project_path_shape(&s).property_path;
+    assert_eq!(
+        projected, NEARBY_ORGS_PROJECTED_PATH,
+        "the logic:nearbyOrgs projection must emit the pinned bounded extended-SPARQL \
+         path; if this drifts, the competency .rq's standard-SPARQL down-projection \
+         must be re-derived to stay semantically equivalent"
+    );
+}

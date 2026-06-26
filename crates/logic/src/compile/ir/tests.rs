@@ -686,3 +686,114 @@ fn path_shape_accepts_valid_namespace_scope() {
     )
     .expect("valid namespace_scope must be accepted");
 }
+
+// ── CR3: min_depth hard cap (CWE-400, unbounded path) ───────────────────────
+
+#[test]
+fn path_shape_rejects_min_depth_above_cap() {
+    // CR3: an unbounded path (max_depth = None) with min_depth = MAX_PATH_DEPTH + 1
+    // would unroll a billion-line edge chain in datalog_text. Reject it, mirroring
+    // the max_depth cap.
+    let err = PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::NamedPredicate(format!("{LOGIC}p")),
+        (MAX_PATH_DEPTH + 1) as u32,
+        None,
+        None,
+        None,
+    )
+    .unwrap_err();
+    assert!(
+        err.contains("min_depth") && err.contains("hard cap"),
+        "min_depth over the cap must be rejected with a hard-cap message: {err}"
+    );
+    assert!(
+        err.contains(&(MAX_PATH_DEPTH + 1).to_string()),
+        "error must include the offending value: {err}"
+    );
+}
+
+#[test]
+fn path_shape_accepts_min_depth_at_cap() {
+    // CR3: exactly MAX_PATH_DEPTH must be accepted (the cap is inclusive); use an
+    // unbounded path so the min>max check does not preempt the cap check.
+    PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::NamedPredicate(format!("{LOGIC}p")),
+        MAX_PATH_DEPTH as u32,
+        None,
+        None,
+        None,
+    )
+    .expect("min_depth == MAX_PATH_DEPTH (unbounded) must be accepted");
+}
+
+// ── CR4a: empty/whitespace depth_param is rejected (content-key determinism) ──
+
+#[test]
+fn path_shape_rejects_empty_depth_param() {
+    // CR4a: Some("") would collide with None in content_key() — a content-addressing
+    // determinism hazard. new() must reject it so Some("") can never be constructed.
+    let err = PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::Wildcard,
+        1,
+        Some(2),
+        None,
+        Some(String::new()),
+    )
+    .unwrap_err();
+    assert!(
+        err.contains("depth_param") && err.contains("non-empty"),
+        "an empty depth_param must be rejected: {err}"
+    );
+}
+
+#[test]
+fn path_shape_rejects_whitespace_depth_param() {
+    let err = PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::Wildcard,
+        1,
+        Some(2),
+        None,
+        Some("   ".to_owned()),
+    )
+    .unwrap_err();
+    assert!(err.contains("depth_param"), "got: {err}");
+}
+
+// ── CR4b: namespace_scope on a named-predicate path is rejected ──────────────
+
+#[test]
+fn path_shape_rejects_namespace_scope_on_named_predicate() {
+    // CR4b: namespace_scope only scopes a wildcard step (projections apply it solely
+    // to wildcards). A named-predicate path carrying one is malformed.
+    let err = PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::NamedPredicate(format!("{LOGIC}p")),
+        1,
+        Some(2),
+        Some("https://example.org/ns/".to_owned()),
+        None,
+    )
+    .unwrap_err();
+    assert!(
+        err.contains("namespace_scope") && err.contains("wildcard"),
+        "namespace_scope on a named-predicate step must be rejected: {err}"
+    );
+}
+
+#[test]
+fn path_shape_accepts_namespace_scope_on_wildcard() {
+    // CR4b: the wildcard case (the only legitimate carrier) still works.
+    PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::Wildcard,
+        1,
+        Some(2),
+        Some("https://example.org/ns/".to_owned()),
+        None,
+    )
+    .expect("namespace_scope on a wildcard step must be accepted");
+}
