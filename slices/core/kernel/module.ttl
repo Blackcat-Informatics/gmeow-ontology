@@ -275,7 +275,8 @@ gmeow:avoidWhen
     rdfs:label "avoid when"@x-gmeow-english ;
     rdfs:subPropertyOf skos:scopeNote ;
     skos:definition "Term-level advisory metadata naming conditions in which a class, property, individual, or slice-level construct should not be used, or should be promoted to a more precise construct. A narrower, machine-addressable form of skos:scopeNote for negative scope advice; it has no logical force."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useForConsumer gmeow:consumerAdviceCatalog .
 
 gmeow:boxABox
     a gmeow:GraphBoxRole ;
@@ -440,6 +441,13 @@ gmeow:connectsTo
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert the most specific connectivity subproperty for the domain; generic consumers read gmeow:connectsTo by inheritance, and reachability or shortest-path queries are computed in the solver layer (P12)."@x-gmeow-english ;
     gmeow:useWhen "Use when a generic consumer needs to ask whether two things are directly linked in a graph, network, or path, without committing to a specific kind of connection."@x-gmeow-english .
+
+gmeow:consumerAdviceCatalog
+    a gmeow:ProjectionContext ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "advice catalog"@x-gmeow-english ;
+    skos:definition "The consumer is the developer-facing advice catalog (issue #765) aggregated from each term's advisory annotations — use-when, avoid-when, how-to-use, and scope — and surfaced on the generated term pages, the search index, and the llms-docs export. It is the #765 consumer of the advice facet."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:consumerAgentMemory
     a gmeow:ProjectionContext ;
@@ -697,7 +705,8 @@ gmeow:howToUse
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "how to use"@x-gmeow-english ;
     skos:definition "Term-level advisory metadata carrying a short modeling recipe for the HOW facet: the companion properties, relators, statement metadata, or projection checks that normally travel with the annotated term. Documentation-only; it does not change OWL entailments."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useForConsumer gmeow:consumerAdviceCatalog .
 
 gmeow:markdown
     a rdfs:Datatype ;
@@ -833,7 +842,8 @@ gmeow:useWhen
     rdfs:label "use when"@x-gmeow-english ;
     rdfs:subPropertyOf skos:scopeNote ;
     skos:definition "Term-level advisory metadata naming the modeling situation in which a class, property, individual, or slice-level construct should be used. A narrower, machine-addressable form of skos:scopeNote for the WHEN facet; it has no logical force and is consumed by describe, docs, validation, and projection guidance tooling."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useForConsumer gmeow:consumerAdviceCatalog .
 
 <https://blackcatinformatics.ca/gmeow/slices/kernel>
     a owl:Ontology ;

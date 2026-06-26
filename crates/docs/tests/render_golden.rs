@@ -107,6 +107,17 @@ fn richest_surface_term_slug(model: &DocsModel) -> String {
     term_slug(term)
 }
 
+/// The fully-populated term as a `&DocTerm` — it carries parents + domain +
+/// range, so it is guaranteed to have a neighbourhood to draw.
+fn neighbourhood_term(model: &DocsModel) -> &gmeow_docs::DocTerm {
+    let slug = fully_populated_term_slug(model);
+    model
+        .terms
+        .iter()
+        .find(|t| term_slug(t) == slug)
+        .expect("the fully-populated term resolves")
+}
+
 #[test]
 fn richest_surface_term_markdown_golden() {
     let model = model();
@@ -216,6 +227,19 @@ fn concern_overview_svg_golden() {
 }
 
 #[test]
+fn term_neighbourhood_svg_golden() {
+    // The per-term neighbourhood SVG is small; lock its structural head (open
+    // tag, title, background, centre + first flank nodes). Determinism is
+    // asserted separately by `svg_is_pure`.
+    let model = model();
+    let term = neighbourhood_term(&model);
+    assert!(svg::term_has_neighbourhood(term));
+    let svg_doc = svg::term_neighbourhood_svg(term);
+    let head: String = svg_doc.lines().take(12).collect::<Vec<_>>().join("\n");
+    insta::assert_snapshot!(head);
+}
+
+#[test]
 fn svg_is_pure() {
     let model = model();
     assert_eq!(
@@ -225,6 +249,11 @@ fn svg_is_pure() {
     assert_eq!(
         svg::concern_overview_svg(&model),
         svg::concern_overview_svg(&model)
+    );
+    let term = neighbourhood_term(&model);
+    assert_eq!(
+        svg::term_neighbourhood_svg(term),
+        svg::term_neighbourhood_svg(term)
     );
 }
 

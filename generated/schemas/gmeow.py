@@ -2279,6 +2279,7 @@ class ProfileEnum(str, Enum):
 
 
 class ProjectionContextEnum(str, Enum):
+    consumerAdviceCatalog = "consumerAdviceCatalog"
     consumerAgentMemory = "consumerAgentMemory"
     consumerFoafExport = "consumerFoafExport"
     consumerInternalArchive = "consumerInternalArchive"

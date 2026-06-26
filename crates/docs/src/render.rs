@@ -256,6 +256,17 @@ pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
             svg::slice_local_svg(model, &slice.iri).into_bytes(),
         );
     }
+    // Per-term neighbourhood diagrams — only for terms that actually have a
+    // neighbourhood, gated on the same predicate as the page embed below so the
+    // two never disagree (no dangling image paths).
+    for term in &model.terms {
+        if svg::term_has_neighbourhood(term) {
+            files.insert(
+                format!("diagrams/terms/{}.svg", term_slug(term)),
+                svg::term_neighbourhood_svg(term).into_bytes(),
+            );
+        }
+    }
 
     // Static indexes (deterministic, pure functions of the model).
     files.insert(
@@ -687,6 +698,22 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     if let Some(def) = &term.definition {
         heading(&mut out, 2, "Definition");
         line(&mut out, &md_escape(def));
+    }
+
+    // ── Neighbourhood diagram (the term and its 1-hop relations) ────────────────
+    // Gated on the identical predicate as the emission loop in `render_site_lang`
+    // so the embedded path always resolves (preserves no-dangling-link).
+    if svg::term_has_neighbourhood(term) {
+        heading(&mut out, 2, "Neighborhood");
+        push_line(
+            &mut out,
+            &format!(
+                "![Term neighborhood]({}diagrams/terms/{}.svg)",
+                root_href(&from),
+                term_slug(term)
+            ),
+        );
+        blank(&mut out);
     }
 
     if !term.parents.is_empty() {
@@ -2458,6 +2485,38 @@ fn md_escape(text: &str) -> String {
 
 // ── Static indexes (search-index.json, llms-docs.txt) ──────────────────────────
 
+/// The flattened advice facet for a term — its English advisory carriers in a
+/// stable field order (scope, use-when, avoid-when, how-to-use). Empty when the
+/// term carries no advice. Lets search match on advisory prose, not just label.
+fn term_advice_facet(term: &DocTerm) -> Vec<String> {
+    term.scope_notes
+        .iter()
+        .chain(term.use_when.iter())
+        .chain(term.avoid_when.iter())
+        .chain(term.how_to_use.iter())
+        .cloned()
+        .collect()
+}
+
+/// Precompute alignment facets for all terms in one pass: maps each subject IRI
+/// to a sorted+deduped `tag:object` token list. Avoids the O(N×M) per-term
+/// linear scan of `model.linkages` when rendering search and llms-docs surfaces.
+fn precompute_alignment_facets(model: &DocsModel) -> std::collections::HashMap<&str, Vec<String>> {
+    let mut map: std::collections::HashMap<&str, Vec<String>> = std::collections::HashMap::new();
+    for l in &model.linkages {
+        map.entry(l.subject.as_str()).or_default().push(format!(
+            "{}:{}",
+            align_tag(&l.predicate),
+            local_name(&l.object)
+        ));
+    }
+    for tags in map.values_mut() {
+        tags.sort_unstable();
+        tags.dedup();
+    }
+    map
+}
+
 /// A single search record. Serialized as a deterministic JSON array element.
 #[derive(serde::Serialize)]
 struct SearchRecord {
@@ -2471,12 +2530,19 @@ struct SearchRecord {
     definition: Option<String>,
     /// The site-relative URL of the record's HTML page.
     url: String,
+    /// Advisory prose facet (terms only); omitted from JSON when empty.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    advice: Vec<String>,
+    /// Crosswalk facet — `tag:object` tokens (terms only); omitted when empty.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    alignments: Vec<String>,
 }
 
 /// Build the deterministic `search-index.json`: one record per term, slice,
 /// concern, and mapping set, sorted by URL. A pure function of the model.
 pub fn search_index_json(model: &DocsModel) -> String {
     let mut records: Vec<SearchRecord> = Vec::new();
+    let alignment_facets = precompute_alignment_facets(model);
 
     for term in &model.terms {
         records.push(SearchRecord {
@@ -2485,6 +2551,11 @@ pub fn search_index_json(model: &DocsModel) -> String {
             label: term.label.clone().unwrap_or_else(|| term.curie.clone()),
             definition: term.definition.clone(),
             url: format!("{}/index.html", Page::Term(term_slug(term)).dir()),
+            advice: term_advice_facet(term),
+            alignments: alignment_facets
+                .get(term.iri.as_str())
+                .cloned()
+                .unwrap_or_default(),
         });
     }
     for slice in &model.slices {
@@ -2494,6 +2565,8 @@ pub fn search_index_json(model: &DocsModel) -> String {
             label: slice_display(slice),
             definition: None,
             url: format!("{}/index.html", Page::Slice(slice_slug(slice)).dir()),
+            advice: Vec::new(),
+            alignments: Vec::new(),
         });
     }
     for concern in &model.concerns {
@@ -2503,6 +2576,8 @@ pub fn search_index_json(model: &DocsModel) -> String {
             label: concern_display(concern),
             definition: concern.definition.clone(),
             url: format!("{}/index.html", Page::Concern(concern_slug(concern)).dir()),
+            advice: Vec::new(),
+            alignments: Vec::new(),
         });
     }
     for set in &model.mapping_sets {
@@ -2512,6 +2587,8 @@ pub fn search_index_json(model: &DocsModel) -> String {
             label: set_display(set),
             definition: set.comment.clone(),
             url: format!("{}/index.html", Page::LinkageIndex.dir()),
+            advice: Vec::new(),
+            alignments: Vec::new(),
         });
     }
 
@@ -2525,9 +2602,22 @@ pub fn search_index_json(model: &DocsModel) -> String {
     serde_json::to_string_pretty(&records).expect("search records serialize")
 }
 
+/// Local names of a list of IRIs, joined with `, ` — for compact one-line
+/// relational segments in `llms-docs.txt`.
+fn join_local_names(iris: &[String]) -> String {
+    iris.iter()
+        .map(|i| local_name(i))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
 /// Build the deterministic `llms-docs.txt`: an LLM-friendly plaintext dump —
 /// a header (title + version + counts) then one sorted line per term:
-/// `curie — label: definition (category, owner slice)`.
+/// `curie — label: definition (category, owner slice)` followed by compact
+/// ` | key: …` relational segments (parents/domain/range/related/logic/box/
+/// aligns/use-when/avoid-when), each omitted when empty and kept single-line so
+/// the file stays greppable. Carries every relation the model holds for the term
+/// into the LLM surface (maximal information flow).
 pub fn llms_docs_txt(model: &DocsModel) -> String {
     let mut out = String::new();
     out.push_str(&format!("# {}\n", model.title));
@@ -2541,6 +2631,9 @@ pub fn llms_docs_txt(model: &DocsModel) -> String {
     ));
     out.push('\n');
 
+    // Precompute alignment facets once — avoids O(N×M) per-term linkage scan.
+    let alignment_facets = precompute_alignment_facets(model);
+
     // Terms are already IRI-sorted; emit by (curie, iri) for a stable, readable
     // ordering keyed on the human identifier.
     let mut terms: Vec<&DocTerm> = model.terms.iter().collect();
@@ -2549,14 +2642,40 @@ pub fn llms_docs_txt(model: &DocsModel) -> String {
         let label = term.label.as_deref().unwrap_or("");
         let def = term.definition.as_deref().map(one_line).unwrap_or_default();
         let slice = local_name(&term.owner_slice);
-        out.push_str(&format!(
-            "{} — {}: {} ({}, {})\n",
+        let mut line = format!(
+            "{} — {}: {} ({}, {})",
             term.curie,
             label,
             def,
             category_singular(term.category),
             slice,
-        ));
+        );
+
+        // Compact relational segments — each omitted when empty, single-line.
+        let mut seg = |key: &str, value: String| {
+            if !value.is_empty() {
+                line.push_str(&format!(" | {key}: {}", one_line(&value)));
+            }
+        };
+        seg("parents", join_local_names(&term.parents));
+        seg("domain", join_local_names(&term.domain));
+        seg("range", join_local_names(&term.range));
+        seg("related", join_local_names(&term.related_terms));
+        seg("logic", term.logic_stereotypes.join(", "));
+        seg("box", term.box_role.clone().unwrap_or_default());
+        seg(
+            "aligns",
+            alignment_facets
+                .get(term.iri.as_str())
+                .cloned()
+                .unwrap_or_default()
+                .join(", "),
+        );
+        seg("use-when", term.use_when.join("; "));
+        seg("avoid-when", term.avoid_when.join("; "));
+
+        line.push('\n');
+        out.push_str(&line);
     }
     out
 }
