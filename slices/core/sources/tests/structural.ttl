@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the sources slice (#867 Tier-B
+# closeout). The slice already carries competency.ttl; this adds its small but
+# real TBox shape (content-addressing vs audit-location vs mtime). No migratable
+# pytest existed. Each runs as a SPARQL ASK over the module graph
+# (gmeow:scopeModule).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sources/tests/> .
+
+# --- 1. The three source/carrier properties (MUST hold) ----------------------
+ex:saSourcePropertyShapes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:contentDigest   a owl:DatatypeProperty ; rdfs:range rdfs:Literal .
+    gmeow:sourceLocation  a owl:DatatypeProperty ; rdfs:domain gmeow:CreativeWork ; rdfs:range rdfs:Literal .
+    gmeow:sourceModifiedAt a owl:DatatypeProperty ; rdfs:domain gmeow:CreativeWork ; rdfs:range xsd:dateTime .
+}""" ;
+    gmeow:saRationale "The carrier-metadata properties MUST hold their shapes: gmeow:contentDigest (by-content identity, a literal hash), gmeow:sourceLocation (audit-only path/URL on a CreativeWork), and gmeow:sourceModifiedAt (a CreativeWork mtime, terminus-ante-quem on recording)." .
+
+# --- 2. contentDigest is domain-free (MUST-NOT hold) -------------------------
+ex:saContentDigestDomainFree a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:contentDigest rdfs:domain ?d . }""" ;
+    gmeow:saRationale "gmeow:contentDigest MUST NOT declare an rdfs:domain: it is deliberately domain-free, applying to any content-addressable artifact (creative work, source file, commit, distribution) — by-content identity is universal, not tied to one class." .
+
+# --- 3. The source properties are NOT functional (MUST-NOT hold) -------------
+ex:saSourcePropertiesNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?p { gmeow:contentDigest gmeow:sourceLocation gmeow:sourceModifiedAt }
+    ?p a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "None of the three carrier properties MUST be functional: an artifact may carry digests under several algorithms, and copies/syncs of identical bytes may report different locations and mtimes — all must coexist rather than force an inconsistency. VALUES ranges over the closed set of three properties the slice declares." .

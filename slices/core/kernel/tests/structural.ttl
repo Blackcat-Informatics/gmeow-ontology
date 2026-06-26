@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the kernel slice — the slice-resident
+# test-DSL twin of the kernel-local MUST / MUST-NOT invariants formerly
+# hand-written in tests/test_aboutness.py (the universal aboutness axis, #349,
+# EPIC #348). Authored as gmeow: ontology data so the native Rust harness
+# (crates/slicetest, #784) drives the test, not ad-hoc Python. Each assertion
+# runs as a SPARQL ASK over the kernel module graph (gmeow:scopeModule).
+#
+# Scope note: only the invariants whose subjects are DECLARED in the kernel
+# module migrate here. test_aboutness_orthogonal_to_other_axes and
+# test_no_aboutness_truth_bridge assert ABSENCE over the whole merged graph
+# across axes (gmeow:confidence, gmeow:hasGranularity, …) and a seed
+# (gmeow:aboutnessEnacts) that are also declared/used in 10+ other slices, so
+# they cannot be faithfully reduced to module scope and are RETAINED in pytest
+# (see dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/kernel/tests/> .
+
+# --- 1. AboutnessMode class structure (MUST hold) ----------------------------
+ex:saAboutnessModeClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:AboutnessMode a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:AboutnessMode MUST be a universal logic:AbstractIndividualType owl:Class that is a subclass of logic:QualityValue — a value vocabulary of individuals, never per-mode subclasses (Principle 9, the fourth domain-free epistemic axis #349). Mirrors test_aboutness_class_structure in test_aboutness.py." .
+
+# --- 2. hasAboutness is an AnnotationProperty ranging on AboutnessMode (MUST) -
+ex:saHasAboutnessAnnotationProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasAboutness a owl:AnnotationProperty ;
+        rdfs:range gmeow:AboutnessMode .
+}""" ;
+    gmeow:saRationale "gmeow:hasAboutness MUST be declared an owl:AnnotationProperty (not an ObjectProperty, unlike the other three axes) with rdfs:range gmeow:AboutnessMode — the annotation form keeps the OWL downcast DL-clean through the accordingTo pattern (Principle 3). Mirrors the positive clauses of test_has_aboutness_property_structure." .
+
+# --- 3. hasAboutness is domain-free, non-object, non-functional (MUST-NOT) ----
+ex:saHasAboutnessNotObjectFunctionalOrDomained a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:hasAboutness a owl:ObjectProperty . }
+    UNION
+    { gmeow:hasAboutness a owl:FunctionalProperty . }
+    UNION
+    { gmeow:hasAboutness rdfs:domain ?d . }
+}""" ;
+    gmeow:saRationale "The kernel declaration of gmeow:hasAboutness MUST NOT make it an owl:ObjectProperty (it is an annotation), MUST NOT make it owl:FunctionalProperty (multi-vantage classifications coexist, Principle 9), and MUST NOT give it an rdfs:domain (domain-free/universal, like hasGranularity/hasDeterminacy/hasSensitivity). Mirrors the negative clauses of test_has_aboutness_property_structure." .
+
+# --- 4. The value vocabulary's two seeds are typed AboutnessMode (MUST) -------
+ex:saAboutnessSeedsTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:aboutnessDescribes a gmeow:AboutnessMode .
+    gmeow:aboutnessEnacts    a gmeow:AboutnessMode .
+}""" ;
+    gmeow:saRationale "The mention/use space MUST be spanned by both seeds: gmeow:aboutnessDescribes (mention) and gmeow:aboutnessEnacts (use) are each a gmeow:AboutnessMode. Mirrors the membership half of test_value_vocab_spans_two_seeds." .
+
+# --- 5. No third AboutnessMode member in the kernel module (MUST-NOT) ---------
+ex:saAboutnessNoThirdMember a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?m a gmeow:AboutnessMode .
+    FILTER (?m != gmeow:aboutnessDescribes && ?m != gmeow:aboutnessEnacts)
+}""" ;
+    gmeow:saRationale "The aboutness value vocabulary is a genuinely-closed two-member enumeration with no privileged winner (Principle 9): the kernel module MUST NOT declare any gmeow:AboutnessMode individual other than the describes/enacts seeds. Mirrors the closure half of test_value_vocab_spans_two_seeds (kernel-scoped; the cross-module guarantee that no OTHER slice adds a member is borne by the retained merged-graph pytest)." .

@@ -1,0 +1,82 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the guides slice (#867 Tier-B closeout).
+# The guides slice has no migratable rdflib pytest; these cells are authored
+# fresh to pin its keystone invariants and the referential integrity of its
+# dogfooded recipes/learning-paths (MAXIMAL coverage, dogfooding). Each runs as
+# a SPARQL ASK over the module graph (gmeow:scopeModule). The slice dogfoods the
+# curated pedagogy formerly hardcoded in the docs tooling: gmeow:Recipe and
+# gmeow:LearningPath individuals (Principle 4 — authored once).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/guides/tests/> .
+
+# --- 1. Recipe / LearningPath are QualityValues (MUST hold) -------------------
+ex:saGuideKindsAreQualityValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:Recipe       a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:LearningPath a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:Recipe and gmeow:LearningPath MUST each be a logic:AbstractIndividualType owl:Class subClassOf logic:QualityValue — curated pedagogy authored as value-vocabulary individuals, not domain-axiom classes." .
+
+# --- 2. includesRecipe relates LearningPath to Recipe (MUST hold) -------------
+ex:saIncludesRecipeShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:includesRecipe a owl:ObjectProperty ;
+        rdfs:domain gmeow:LearningPath ; rdfs:range gmeow:Recipe .
+    gmeow:learningAudience a owl:DatatypeProperty ; rdfs:domain gmeow:LearningPath .
+    gmeow:followsGuidePath a owl:DatatypeProperty ; rdfs:domain gmeow:Recipe .
+}""" ;
+    gmeow:saRationale "gmeow:includesRecipe MUST link gmeow:LearningPath to gmeow:Recipe (a path folds in recipes as stations); gmeow:learningAudience is a LearningPath datatype property and gmeow:followsGuidePath a Recipe datatype property — the asymmetric shape distinguishing the two guide kinds." .
+
+# --- 3. Every Recipe is well-formed: slug + title + goal (MUST-NOT hold) ------
+ex:saEveryRecipeWellFormed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?r a gmeow:Recipe .
+    FILTER (
+        NOT EXISTS { ?r gmeow:guideSlug  ?s } ||
+        NOT EXISTS { ?r gmeow:guideTitle ?t } ||
+        NOT EXISTS { ?r gmeow:guideGoal  ?g }
+    )
+}""" ;
+    gmeow:saRationale "Every dogfooded gmeow:Recipe MUST carry a gmeow:guideSlug (stable key), a gmeow:guideTitle (docs headline), and a gmeow:guideGoal (modelling outcome): the slice MUST NOT contain a malformed recipe missing any of the three. Guards the authored-once docs surface the renderer projects." .
+
+# --- 4. Every LearningPath has an audience + a goal (MUST-NOT hold) -----------
+ex:saEveryLearningPathWellFormed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?p a gmeow:LearningPath .
+    FILTER (
+        NOT EXISTS { ?p gmeow:learningAudience ?a } ||
+        NOT EXISTS { ?p gmeow:guideGoal         ?g }
+    )
+}""" ;
+    gmeow:saRationale "Every dogfooded gmeow:LearningPath MUST name its gmeow:learningAudience and its gmeow:guideGoal: the slice MUST NOT contain a path missing either, so each curated journey states who it is for and what it achieves." .
+
+# --- 5. includesRecipe targets are typed Recipes (MUST-NOT hold) --------------
+ex:saIncludedRecipesAreRecipes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?p gmeow:includesRecipe ?r .
+    FILTER NOT EXISTS { ?r a gmeow:Recipe }
+}""" ;
+    gmeow:saRationale "Referential integrity of the dogfooded catalog: every target of gmeow:includesRecipe MUST be a typed gmeow:Recipe — the slice MUST NOT include a dangling or mistyped recipe reference, so a learning path's stations always resolve to real recipes." .

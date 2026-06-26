@@ -1,0 +1,77 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the entities slice (#867 Tier-B
+# closeout). No migratable rdflib pytest existed; these cells are authored fresh
+# to pin the agent-Kind spine and its disjointness (MAXIMAL coverage,
+# dogfooding). Each runs as a SPARQL ASK over the module graph
+# (gmeow:scopeModule).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/entities/tests/> .
+
+# --- 1. The agent-Kind spine (MUST hold) -------------------------------------
+ex:saAgentKindSpine a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:Organization  a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:Agent .
+    gmeow:Person        a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:Agent .
+    gmeow:SoftwareAgent a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:Agent .
+    gmeow:Group         a owl:Class , logic:Kind ; rdfs:subClassOf logic:Collection , gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:Organization, gmeow:Person, and gmeow:SoftwareAgent MUST each be a logic:Kind owl:Class subClassOf gmeow:Agent (each supplies its own principle of identity); gmeow:Group is a logic:Kind subClassOf logic:Collection and gmeow:Entity — an informal collective, not an agent." .
+
+# --- 2. Entity description/name/web/nationality property shapes (MUST hold) ---
+ex:saEntityPropertyShapes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:description a owl:DatatypeProperty ; rdfs:domain gmeow:Entity ; rdfs:range rdfs:Literal .
+    gmeow:name        a owl:DatatypeProperty ; rdfs:domain gmeow:Entity ; rdfs:range rdfs:Literal .
+    gmeow:hasWebPage  a owl:ObjectProperty ;   rdfs:domain gmeow:Entity ; rdfs:range gmeow:WebPage .
+    gmeow:nationality a owl:ObjectProperty ;   rdfs:domain gmeow:Person ; rdfs:range gmeow:Place .
+}""" ;
+    gmeow:saRationale "The flat entity-level properties MUST hold their shapes: gmeow:description and gmeow:name are Entity-domain literals; gmeow:hasWebPage links an Entity to a first-class gmeow:WebPage; gmeow:nationality links a gmeow:Person to a country gmeow:Place." .
+
+# --- 3. The agent Kinds are pairwise disjoint (MUST hold) ---------------------
+ex:saAgentKindsDisjoint a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    ?d a owl:AllDisjointClasses ; owl:members ?list .
+    ?list rdf:rest*/rdf:first gmeow:Person .
+    ?list rdf:rest*/rdf:first gmeow:Organization .
+    ?list rdf:rest*/rdf:first gmeow:SoftwareAgent .
+}""" ;
+    gmeow:saRationale "Person, Organization, and SoftwareAgent MUST be mutually disjoint Kinds (a human is not an organization is not a bot): all three MUST appear together in an owl:AllDisjointClasses member list, the OWL form of the agent-kind partition." .
+
+# --- 4. Group is deliberately NOT disjoint with Organization (MUST-NOT hold) --
+ex:saGroupNotDisjointOrganization a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    { gmeow:Group owl:disjointWith gmeow:Organization }
+    UNION
+    { gmeow:Organization owl:disjointWith gmeow:Group }
+    UNION
+    {
+        ?d a owl:AllDisjointClasses ; owl:members ?list .
+        ?list rdf:rest*/rdf:first gmeow:Group .
+        ?list rdf:rest*/rdf:first gmeow:Organization .
+    }
+}""" ;
+    gmeow:saRationale "gmeow:Group MUST NOT be asserted disjoint with gmeow:Organization (directly or via AllDisjointClasses): a structured collective is arguably also a group, so the partition deliberately leaves them overlapping (documented in Group's avoidWhen)." .
