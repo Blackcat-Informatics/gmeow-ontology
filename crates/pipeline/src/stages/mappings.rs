@@ -29,8 +29,10 @@ use gmeow_diagnostics::{Finding, Location, Report, Severity};
 use gmeow_rdf::RdfSeverity;
 use gmeow_slice::emit_sssom_sets;
 use gmeow_slice::fno_emit::emit_fno;
+use gmeow_slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
 use gmeow_slice::{
-    emit_dsl_stats, emit_edoal_sets, emit_sparql_sets, emit_standpoint_sets, lint_projection,
+    emit_dsl_stats, emit_edoal_sets, emit_sparql_sets, emit_standpoint_sets,
+    lint_prefix_consistency, lint_projection,
 };
 
 use crate::error::PipelineError;
@@ -47,12 +49,37 @@ pub const EDOAL_DIR: &str = "generated/projections";
 pub const QUERIES_DIR: &str = "generated/queries";
 /// Committed logical path of the DSL surface-count summary.
 pub const DSL_STATS_PATH: &str = "generated/mappings/dsl-stats.json";
+/// Committed logical path of the importable named prefix set (#1009 §2).
+pub const CORE_PREFIXES_PATH: &str = "generated/projections/core-prefixes.ttl";
+/// Committed logical path of the JSON-LD `@context` (#1009 §2; replaces the
+/// retired Python `jsonld_context.py` builder).
+pub const JSONLD_CONTEXT_PATH: &str = "generated/context.jsonld";
 
 /// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
 /// projections) plus the DSL surface-count summary from `root`, returning
 /// `{logical_path → bytes}`. The mappings stage is now complete.
 pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+
+    // Prefix-consistency gate (#1009 §2): no authored source may shadow a registry
+    // prefix with a foreign namespace — a shadow desynchronizes authored CURIEs from
+    // the registry-driven shortener. Hard-fail before emitting any artifact
+    // (no-optionality); this makes `regenerate` / `check-generated` / `make check`
+    // all reject a shadow.
+    let prefix_problems = lint_prefix_consistency(root).map_err(|e| PipelineError::Stage {
+        stage: "stage-mappings".to_string(),
+        message: format!("prefix-consistency lint failed: {e}"),
+    })?;
+    if let Some(first) = prefix_problems.first() {
+        return Err(PipelineError::Stage {
+            stage: "stage-mappings".to_string(),
+            message: format!(
+                "prefix-consistency: {} registry-prefix shadow(s); first: {}",
+                prefix_problems.len(),
+                first.message
+            ),
+        });
+    }
 
     // SSSOM — byte-identical to the Python emitter.
     let sssom = emit_sssom_sets(root).map_err(|e| PipelineError::Stage {
@@ -104,6 +131,20 @@ pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
         message: format!("dsl-stats emission failed: {e}"),
     })?;
     artifacts.insert(DSL_STATS_PATH.to_string(), dsl_stats.into_bytes());
+
+    // Prefix-set projections (#1009 §2) — both derived from the single
+    // PREFIX_REGISTRY authority: the importable `gmeow:CorePrefixes` SHACL set
+    // and the JSON-LD `@context`. Deterministic by construction (const-derived),
+    // so they ride the `generated/` drift gate and fold into `gmeow.gts` exactly
+    // like the FnO catalog, with no new pipeline stage.
+    artifacts.insert(
+        CORE_PREFIXES_PATH.to_string(),
+        emit_core_prefixes().into_bytes(),
+    );
+    artifacts.insert(
+        JSONLD_CONTEXT_PATH.to_string(),
+        emit_jsonld_context().into_bytes(),
+    );
 
     Ok(artifacts)
 }
@@ -265,7 +306,9 @@ impl Stage for MappingsStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        "mappings.v3-complete"
+        // v4: adds the #1009 §2 prefix-set projections (core-prefixes.ttl +
+        // context.jsonld) to the emitted family — bump busts the stage cache.
+        "mappings.v4-prefix-sets"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
@@ -507,5 +550,45 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             "FnO catalog unexpectedly small: {} triples",
             triples.len()
         );
+    }
+
+    #[test]
+    fn prefix_set_projections_are_emitted_and_parse() {
+        // Wiring check (#1009 §2): the mappings stage emits the importable prefix
+        // set + JSON-LD context, and the Turtle parses with the importable node
+        // carrying the generalized sh:declare surface.
+        let root = repo_root();
+        let artifacts = compile_mappings(&root).expect("compile");
+
+        let core = artifacts
+            .get(CORE_PREFIXES_PATH)
+            .expect("core-prefixes artifact");
+        let triples = triple_set(core, RdfFormat::Turtle);
+        // owl:Ontology declaration + at least one sh:declare per registry entry.
+        let has_node = triples.iter().any(|t| {
+            t.contains("CorePrefixes")
+                && t.contains("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+                && t.contains("http://www.w3.org/2002/07/owl#Ontology")
+        });
+        assert!(has_node, "core-prefixes missing owl:Ontology node");
+        let declares = triples
+            .iter()
+            .filter(|t| t.contains("http://www.w3.org/ns/shacl#prefix>"))
+            .count();
+        assert!(
+            declares > 100,
+            "expected one sh:prefix per registry entry, got {declares}"
+        );
+
+        let ctx = artifacts
+            .get(JSONLD_CONTEXT_PATH)
+            .expect("context.jsonld artifact");
+        let text = std::str::from_utf8(ctx).expect("utf8 context");
+        assert!(
+            text.contains("\"@context\""),
+            "context.jsonld has no @context"
+        );
+        assert!(text.contains("\"@vocab\""), "context.jsonld has no @vocab");
+        assert!(text.ends_with("}\n}\n"), "context.jsonld malformed tail");
     }
 }
