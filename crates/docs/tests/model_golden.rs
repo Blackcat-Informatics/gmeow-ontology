@@ -16,8 +16,8 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use gmeow_docs::{
-    DocConcern, DocExample, DocExternalTerm, DocLearningPath, DocLinkage, DocMappingSet, DocRecipe,
-    DocSlice, DocTerm, DocTermCategory, DocsModel,
+    DocConcern, DocCompetency, DocExample, DocExternalTerm, DocLearningPath, DocLinkage,
+    DocMappingSet, DocRecipe, DocShape, DocSlice, DocTerm, DocTermCategory, DocsModel,
 };
 use serde::Serialize;
 
@@ -91,6 +91,16 @@ struct ModelSummary {
     sample_recipe: Option<DocRecipe>,
     /// ONE fully serialized learning path (first by slug).
     sample_learning_path: Option<DocLearningPath>,
+
+    // ── New (#1020) structural collections: counts + one sample each ─────────
+    /// Number of SHACL node shapes reverse-mapped to documented terms.
+    shape_count: usize,
+    /// Number of competency questions reverse-mapped to documented terms.
+    competency_count: usize,
+    /// ONE fully serialized shape (first by target term then shape IRI).
+    sample_shape: Option<DocShape>,
+    /// ONE fully serialized competency question (first by IRI).
+    sample_competency: Option<DocCompetency>,
 }
 
 impl ModelSummary {
@@ -160,6 +170,10 @@ impl ModelSummary {
             has_four_boxes: model.four_boxes.is_some(),
             sample_recipe: model.recipes.first().cloned(),
             sample_learning_path: model.learning_paths.first().cloned(),
+            shape_count: model.shapes.len(),
+            competency_count: model.competencies.len(),
+            sample_shape: model.shapes.first().cloned(),
+            sample_competency: model.competencies.first().cloned(),
         }
     }
 }

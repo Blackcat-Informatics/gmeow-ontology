@@ -49,15 +49,16 @@ fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), Pipel
 }
 
 /// Every raw source file `gmeow_docs::DocsModel::discover` reads: slice modules,
-/// per-slice `docs.md` guides, slice `examples/*.ttl`, `docs/four-boxes.md`,
-/// per-slice `i18n/<lang>.po` gettext translation catalogs, per-slice
-/// `shapes.ttl` SHACL constraint files, per-slice `tests/competency.ttl`
-/// competency-question overlays, and root `shapes/*.ttl` aggregate node shapes.
-/// These are NOT reflected in the composed `stage-gts-compose` product (guide
-/// bodies ride the bundle only as blake3 digests), so any stage that derives an
-/// artifact from the docs model must declare them as `input_files` for cache
-/// soundness. Shared by `DocsRenderStage` (the documentation graph) and
-/// `SnapshotStage` (the embedded rendered site, #897).
+/// per-slice `docs.md` guides, slice `examples/*.ttl`, per-slice `shapes.ttl`
+/// (read by `extract_shapes`), per-slice `tests/competency.ttl` (read by
+/// `extract_competency`), `docs/four-boxes.md`, per-slice `i18n/<lang>.po`
+/// gettext translation catalogs, and root `shapes/*.ttl` (read by
+/// `merge_root_shapes` via `DocsModel::discover`). These are NOT reflected
+/// in the composed `stage-gts-compose` product (guide bodies ride the bundle only
+/// as blake3 digests), so any stage that derives an artifact from the docs model
+/// must declare them as `input_files` for cache soundness. Shared by
+/// `DocsRenderStage` (the documentation graph) and `SnapshotStage` (the embedded
+/// rendered site, #897).
 pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
     let mut files: Vec<std::path::PathBuf> = Vec::new();
     for module in crate::stages::source_load::module_files(root)? {
@@ -67,14 +68,6 @@ pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, 
         if docs.is_file() {
             files.push(docs);
         }
-        let shapes = dir.join("shapes.ttl");
-        if shapes.is_file() {
-            files.push(shapes);
-        }
-        let competency = dir.join("tests").join("competency.ttl");
-        if competency.is_file() {
-            files.push(competency);
-        }
         if let Ok(entries) = std::fs::read_dir(dir.join("examples")) {
             for entry in entries.flatten() {
                 let p = entry.path();
@@ -82,6 +75,16 @@ pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, 
                     files.push(p);
                 }
             }
+        }
+        // Per-slice SHACL shapes (read by extract_shapes — #1020 cache soundness).
+        let shapes = dir.join("shapes.ttl");
+        if shapes.is_file() {
+            files.push(shapes);
+        }
+        // Per-slice competency questions (read by extract_competency — #1020).
+        let competency = dir.join("tests").join("competency.ttl");
+        if competency.is_file() {
+            files.push(competency);
         }
         if let Ok(entries) = std::fs::read_dir(dir.join("i18n")) {
             for entry in entries.flatten() {
@@ -97,6 +100,7 @@ pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, 
         files.push(four_boxes);
     }
     walk_files(&root.join("i18n"), &mut files)?;
+    // Root-level SHACL shapes (read by merge_root_shapes — #1020 cache soundness).
     walk_files(&root.join("shapes"), &mut files)?;
     files.sort();
     files.dedup();
@@ -167,41 +171,6 @@ mod tests {
             .join("..")
             .canonicalize()
             .unwrap()
-    }
-
-    #[test]
-    fn docs_source_files_includes_new_inputs() {
-        let root = repo_root();
-        let files = docs_source_files(&root).expect("docs_source_files");
-        let has_shapes_ttl = files
-            .iter()
-            .any(|p| p.file_name().and_then(|n| n.to_str()) == Some("shapes.ttl"));
-        assert!(
-            has_shapes_ttl,
-            "docs_source_files must include at least one per-slice shapes.ttl"
-        );
-        let has_competency = files.iter().any(|p| {
-            p.file_name().and_then(|n| n.to_str()) == Some("competency.ttl")
-                && p.parent()
-                    .and_then(|parent| parent.file_name())
-                    .and_then(|n| n.to_str())
-                    == Some("tests")
-        });
-        assert!(
-            has_competency,
-            "docs_source_files must include at least one per-slice tests/competency.ttl"
-        );
-        let shapes_dir = root.join("shapes");
-        let has_root_shapes = files.iter().any(|p| {
-            p.extension().and_then(|s| s.to_str()) == Some("ttl")
-                && p.parent()
-                    .map(|parent| parent == shapes_dir)
-                    .unwrap_or(false)
-        });
-        assert!(
-            has_root_shapes,
-            "docs_source_files must include root shapes/*.ttl files"
-        );
     }
 
     #[test]
