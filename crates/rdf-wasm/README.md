@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinform
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
-# purrdf (wasm) — RDF 1.2 in the browser & node, the RDF/JS way
+# purrdf (wasm) — RDF 1.2 in the browser & Node, the RDF/JS way
 
 `purrdf` is a `wasm32`, **in-memory** RDF 1.2 engine compiled from the oxigraph-free
 [`gmeow-rdf`](../rdf) kernel and surfaced to JavaScript/TypeScript through the
@@ -11,22 +11,72 @@ SPDX-License-Identifier: AGPL-3.0-only
 `Stream`/`Sink`). It is parcel **P10** of the purrdf program
 (EPIC #832, [`docs/design/PURRDF-PLAN.md`](../../docs/design/PURRDF-PLAN.md)).
 
-> **Status:** under construction (issue #846). The crate scaffold + wasm toolchain
-> gate land first; the DataFactory / DatasetCore / Stream surface and the npm package
-> follow in the subsequent commits of this PR.
+This crate (`gmeow-rdf-wasm`) is the Rust cdylib; the published npm/ESM package lives
+in [`js/`](./js/) and is named **`purrdf`**.
 
 ## The RDF-1.2 wedge
 
 No incumbent RDF/JS library carries RDF-1.2 **quoted-triple terms** or **directional
-literals**. purrdf's `DataFactory` accepts a quoted triple anywhere a term is expected
-and round-trips base direction — the deliberate extension to stock RDF/JS.
+literals**. purrdf's `DataFactory` exposes both — the deliberate "overcome, don't
+inherit" extension to stock RDF/JS:
+
+```js
+import { ready, DataFactory, Dataset } from "purrdf";
+
+await ready(); // one-time async wasm instantiation
+
+const f = new DataFactory();
+
+// A quoted triple, usable as a subject/object (RDF-star / RDF 1.2).
+const quoted = f.quotedTriple(
+  f.namedNode("https://ex/alice"),
+  f.namedNode("https://ex/knows"),
+  f.namedNode("https://ex/bob"),
+);
+
+// A base-direction literal (rdf:dirLangString).
+const rtl = f.directionalLiteral("مرحبا", "ar", "rtl");
+
+const ds = new Dataset();
+ds.add(f.quad(f.namedNode("https://ex/s"), f.namedNode("https://ex/says"), rtl));
+ds.add(f.quad(f.namedNode("https://ex/stmt"), f.namedNode("https://ex/asserts"), quoted));
+
+// Quoted triples + directions survive a round-trip through N-Quads.
+const nq = ds.serialize("nquads");
+const reparsed = Dataset.parse(nq, "nquads");
+```
+
+## API
+
+- **`ready(bytesOrUrl?)`** — await once before anything else (instantiates the wasm).
+- **`DataFactory`** — `namedNode`, `blankNode`, `literal(value, languageOrDatatype?)`,
+  `typedLiteral`, `directionalLiteral`, `variable`, `defaultGraph`, `quad`,
+  `quotedTriple`, `fromTerm`, `fromQuad`.
+- **`Dataset`** (RDF/JS `DatasetCore`) — `Dataset.parse(input, format, base?)`,
+  `serialize(format)`, `add`/`delete`/`has`/`match`/`quads`/`size`, and iteration
+  (`for (const quad of dataset)`). Formats: `turtle`, `ntriples`, `nquads`, `trig`,
+  `rdfxml` (or their media types).
+- **`Sink`** — a streaming consumer (`push(quad)` / `finish() → Dataset`) over the
+  `gmeow-rdf-events` ingestion protocol; **`datasetToStream`** / **`streamToDataset`**
+  are the async RDF/JS Stream/Sink helpers.
 
 ## Scope
 
 - **In-memory only** — the oxigraph `Store` (RocksDB) and the logic engine do not
   compile to wasm and are excluded by design. SPARQL query is out of scope here.
-- Text codecs (Turtle / N-Triples / N-Quads / TriG / RDF-XML) ride the wasm-clean
-  `gmeow-gts/rdf-codecs` subset — no Store dependency.
+- Text codecs ride the wasm-clean `gmeow-gts/rdf-codecs` subset — no Store dependency.
+- A quoted-triple term as a quad **object** currently round-trips only through
+  **N-Quads** (a gmeow-gts serializer limitation for the other formats).
+
+## Building
+
+```sh
+make wasm-pkg        # release wasm + wasm-bindgen ESM bindings → js/pkg/
+make wasm-pkg-test   # the above + the Node real-execution round-trip suite
+```
+
+Requires the `wasm32-unknown-unknown` Rust target and `wasm-bindgen-cli` (pinned to
+the crate's `wasm-bindgen` version, `0.2.125`).
 
 ## License
 
