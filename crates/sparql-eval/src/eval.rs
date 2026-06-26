@@ -37,16 +37,49 @@ pub struct EvalCtx<'d> {
     /// A monotonic counter for minting fresh blank nodes (`BNODE()` and CONSTRUCT
     /// template blanks).
     pub bnode_counter: u64,
+    /// The evaluation-time value of NOW() — an xsd:dateTime, captured once at
+    /// context construction so all NOW() calls in a query return the same instant.
+    /// On wasm32 this is always the Unix epoch (1970-01-01T00:00:00Z) because
+    /// `std::time::SystemTime` is not available there without a WASI environment.
+    pub now: gmeow_xsd::XsdValue,
+    /// Splitmix64 PRNG state for RAND()/UUID()/STRUUID().
+    /// Seeded from the current time on native targets; fixed to 0 on wasm32.
+    pub rng_state: u64,
 }
 
 impl<'d> EvalCtx<'d> {
     /// A fresh context over `dataset`, scoped to the default graph.
     pub fn new(dataset: &'d RdfDataset) -> Self {
+        #[cfg(not(target_arch = "wasm32"))]
+        let now_val = {
+            use std::time::SystemTime;
+            let secs = SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .map(|d| d.as_secs() as i64)
+                .unwrap_or(0);
+            gmeow_xsd::XsdValue::DateTime(gmeow_xsd::datetime_from_unix_seconds(secs))
+        };
+        #[cfg(target_arch = "wasm32")]
+        let now_val = gmeow_xsd::XsdValue::DateTime(gmeow_xsd::datetime_epoch());
+
+        #[cfg(not(target_arch = "wasm32"))]
+        let rng_seed = {
+            use std::time::SystemTime;
+            let d = SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap_or_default();
+            d.as_secs() ^ (u64::from(d.subsec_nanos()))
+        };
+        #[cfg(target_arch = "wasm32")]
+        let rng_seed: u64 = 0;
+
         Self {
             dataset,
             scratch: ScratchInterner::new(),
             active_graph: GraphMatch::Default,
             bnode_counter: 0,
+            now: now_val,
+            rng_state: rng_seed,
         }
     }
 }

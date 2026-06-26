@@ -15,10 +15,12 @@
 //!
 //! Implemented: logical `&&`/`||`/`!` (Kleene three-valued), comparisons and
 //! `sameTerm`, `BOUND`, `IN`, `IF`, `COALESCE`, `EXISTS`, the string/type/RDF
-//! built-ins the corpus uses, **numeric arithmetic** (`+ - * /`, unary sign) and
-//! **`ABS`/`CEIL`/`FLOOR`/`ROUND`**. The date/hash/uuid/rand built-ins hard-error
-//! (`Unsupported`) pending Gap 4 — comparisons over numbers do NOT need arithmetic
-//! (they go through `gmeow_xsd::value_cmp`).
+//! built-ins the corpus uses, **numeric arithmetic** (`+ - * /`, unary sign),
+//! **`ABS`/`CEIL`/`FLOOR`/`ROUND`**, and (Gap 4) **`ENCODE_FOR_URI`**,
+//! **`NOW`**, **`YEAR`/`MONTH`/`DAY`/`HOURS`/`MINUTES`/`SECONDS`**,
+//! **`TIMEZONE`/`TZ`**, **`MD5`/`SHA1`/`SHA256`/`SHA384`/`SHA512`**,
+//! **`RAND`**, and **`UUID`/`STRUUID`**. Still deferred (`Unsupported`):
+//! `SERVICE` (S6b #928), property paths (S8 #914), and `Function::Custom`.
 
 use std::cmp::Ordering;
 
@@ -29,6 +31,7 @@ use gmeow_xsd::{
     numeric_mul, numeric_round, numeric_sub, numeric_unary_minus, numeric_unary_plus, parse_by_iri,
     value_cmp, XsdValue,
 };
+use sha2::Digest; // brings the Digest trait in scope for all RustCrypto hash calls
 
 use crate::error::EvalError;
 use crate::eval::{eval, EvalCtx};
@@ -519,27 +522,155 @@ fn eval_function(
         Function::Floor => unary_numeric_fn(ctx, &vals, numeric_floor),
         Function::Round => unary_numeric_fn(ctx, &vals, numeric_round),
 
-        // ---- out of S6 scope: hard error (never a wrong answer) -----------
-        Function::Rand
-        | Function::Year
-        | Function::Month
-        | Function::Day
-        | Function::Hours
-        | Function::Minutes
-        | Function::Seconds
-        | Function::Timezone
-        | Function::Tz
-        | Function::Now
-        | Function::Uuid
-        | Function::StrUuid
-        | Function::Md5
-        | Function::Sha1
-        | Function::Sha256
-        | Function::Sha384
-        | Function::Sha512
-        | Function::EncodeForUri => Err(EvalError::unsupported(format!(
-            "SPARQL built-in {function:?} (not yet implemented in sparql-eval)"
-        ))),
+        // ---- ENCODE_FOR_URI -----------------------------------------------
+        Function::EncodeForUri => match string_arg(&vals, 0) {
+            Some((s, _)) => Ok(Some(string_term(ctx, encode_for_uri(&s)))),
+            None => Ok(None),
+        },
+
+        // ---- NOW() --------------------------------------------------------
+        Function::Now => Ok(Some(xsd_to_term(ctx, &ctx.now.clone()))),
+
+        // ---- Date/time component extraction --------------------------------
+        Function::Year => match arg(&vals, 0).and_then(xsd_of) {
+            Some(XsdValue::DateTime(dt)) => Ok(Some(integer_term(ctx, dt.year()))),
+            Some(XsdValue::Date(d)) => Ok(Some(integer_term(ctx, d.year()))),
+            _ => Ok(None),
+        },
+        Function::Month => match arg(&vals, 0).and_then(xsd_of) {
+            Some(XsdValue::DateTime(dt)) => Ok(Some(integer_term(ctx, i64::from(dt.month())))),
+            Some(XsdValue::Date(d)) => Ok(Some(integer_term(ctx, i64::from(d.month())))),
+            _ => Ok(None),
+        },
+        Function::Day => match arg(&vals, 0).and_then(xsd_of) {
+            Some(XsdValue::DateTime(dt)) => Ok(Some(integer_term(ctx, i64::from(dt.day())))),
+            Some(XsdValue::Date(d)) => Ok(Some(integer_term(ctx, i64::from(d.day())))),
+            _ => Ok(None),
+        },
+        Function::Hours => match arg(&vals, 0).and_then(xsd_of) {
+            Some(XsdValue::DateTime(dt)) => Ok(Some(integer_term(ctx, i64::from(dt.hour())))),
+            Some(XsdValue::Time(t)) => Ok(Some(integer_term(ctx, i64::from(t.hour())))),
+            _ => Ok(None),
+        },
+        Function::Minutes => match arg(&vals, 0).and_then(xsd_of) {
+            Some(XsdValue::DateTime(dt)) => Ok(Some(integer_term(ctx, i64::from(dt.minute())))),
+            Some(XsdValue::Time(t)) => Ok(Some(integer_term(ctx, i64::from(t.minute())))),
+            _ => Ok(None),
+        },
+        Function::Seconds => match arg(&vals, 0).and_then(xsd_of) {
+            Some(XsdValue::DateTime(dt)) => {
+                Ok(Some(xsd_to_term(ctx, &XsdValue::Decimal(dt.second()))))
+            }
+            Some(XsdValue::Time(t)) => Ok(Some(xsd_to_term(ctx, &XsdValue::Decimal(t.second())))),
+            _ => Ok(None),
+        },
+        Function::Timezone => match arg(&vals, 0).and_then(xsd_of) {
+            Some(XsdValue::DateTime(dt)) => match dt.timezone_minutes() {
+                Some(off_min) => Ok(Some(intern(
+                    ctx,
+                    typed(
+                        &format_daytime_duration(off_min),
+                        "http://www.w3.org/2001/XMLSchema#dayTimeDuration",
+                    ),
+                ))),
+                None => Ok(None), // SPARQL §17.4.5.7: no timezone → error
+            },
+            Some(XsdValue::Date(d)) => match d.timezone_minutes() {
+                Some(off_min) => Ok(Some(intern(
+                    ctx,
+                    typed(
+                        &format_daytime_duration(off_min),
+                        "http://www.w3.org/2001/XMLSchema#dayTimeDuration",
+                    ),
+                ))),
+                None => Ok(None),
+            },
+            Some(XsdValue::Time(t)) => match t.timezone_minutes() {
+                Some(off_min) => Ok(Some(intern(
+                    ctx,
+                    typed(
+                        &format_daytime_duration(off_min),
+                        "http://www.w3.org/2001/XMLSchema#dayTimeDuration",
+                    ),
+                ))),
+                None => Ok(None),
+            },
+            _ => Ok(None),
+        },
+        Function::Tz => match arg(&vals, 0).and_then(xsd_of) {
+            Some(XsdValue::DateTime(dt)) => Ok(Some(string_term(
+                ctx,
+                format_tz_string(dt.timezone_minutes()),
+            ))),
+            Some(XsdValue::Date(d)) => Ok(Some(string_term(
+                ctx,
+                format_tz_string(d.timezone_minutes()),
+            ))),
+            Some(XsdValue::Time(t)) => Ok(Some(string_term(
+                ctx,
+                format_tz_string(t.timezone_minutes()),
+            ))),
+            _ => Ok(None),
+        },
+
+        // ---- hash functions ------------------------------------------------
+        Function::Md5 => match string_arg(&vals, 0) {
+            Some((s, _)) => {
+                let digest = md5::Md5::digest(s.as_bytes());
+                Ok(Some(string_term(ctx, hex_lower(&digest))))
+            }
+            None => Ok(None),
+        },
+        Function::Sha1 => match string_arg(&vals, 0) {
+            Some((s, _)) => {
+                let digest = sha1::Sha1::digest(s.as_bytes());
+                Ok(Some(string_term(ctx, hex_lower(&digest))))
+            }
+            None => Ok(None),
+        },
+        Function::Sha256 => match string_arg(&vals, 0) {
+            Some((s, _)) => {
+                let digest = sha2::Sha256::digest(s.as_bytes());
+                Ok(Some(string_term(ctx, hex_lower(&digest))))
+            }
+            None => Ok(None),
+        },
+        Function::Sha384 => match string_arg(&vals, 0) {
+            Some((s, _)) => {
+                let digest = sha2::Sha384::digest(s.as_bytes());
+                Ok(Some(string_term(ctx, hex_lower(&digest))))
+            }
+            None => Ok(None),
+        },
+        Function::Sha512 => match string_arg(&vals, 0) {
+            Some((s, _)) => {
+                let digest = sha2::Sha512::digest(s.as_bytes());
+                Ok(Some(string_term(ctx, hex_lower(&digest))))
+            }
+            None => Ok(None),
+        },
+
+        // ---- RAND() --------------------------------------------------------
+        Function::Rand => {
+            let bits = next_u64(ctx);
+            // Map to [0,1) double by using the 52 mantissa bits of IEEE 754.
+            // Pattern: set exponent to 1023 (1.0), OR in 52 random bits, subtract 1.0.
+            let f = f64::from_bits((bits >> 12) | 0x3FF0_0000_0000_0000) - 1.0;
+            Ok(Some(xsd_to_term(ctx, &XsdValue::Double(f))))
+        }
+
+        // ---- UUID() / STRUUID() -------------------------------------------
+        Function::Uuid => {
+            let (uuid_iri, _) = make_uuid(ctx);
+            let iri_val = format!("urn:uuid:{uuid_iri}");
+            Ok(Some(intern(ctx, gmeow_rdf_core::TermValue::Iri(iri_val))))
+        }
+        Function::StrUuid => {
+            let (uuid_str, _) = make_uuid(ctx);
+            Ok(Some(string_term(ctx, uuid_str)))
+        }
+
+        // ---- permanent hard errors (never a wrong answer) -----------------
         Function::Custom(iri) => Err(EvalError::unsupported(format!(
             "custom SPARQL function <{}>",
             iri.as_str()
@@ -901,6 +1032,120 @@ fn unary_numeric_fn(
         Ok(result) => Ok(Some(xsd_to_term(ctx, &result))),
         Err(_) => Ok(None),
     }
+}
+
+// ---------------------------------------------------------------------------
+// Gap 4 helper functions
+// ---------------------------------------------------------------------------
+
+/// Splitmix64 step: advance the PRNG state and return the next pseudo-random u64.
+/// Algorithm: <https://prng.di.unimi.it/splitmix64.c>
+fn next_u64(ctx: &mut EvalCtx<'_>) -> u64 {
+    ctx.rng_state = ctx.rng_state.wrapping_add(0x9e37_79b9_7f4a_7c15);
+    let mut z = ctx.rng_state;
+    z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
+    z ^ (z >> 31)
+}
+
+/// Percent-encode every byte except unreserved characters (RFC 3986 §2.3:
+/// `A-Za-z0-9 - _ . ~`). All other bytes become `%XX` in uppercase hex.
+fn encode_for_uri(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for byte in s.as_bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(char::from(*byte));
+            }
+            b => {
+                out.push('%');
+                out.push(
+                    char::from_digit(u32::from(b >> 4), 16)
+                        .unwrap()
+                        .to_ascii_uppercase(),
+                );
+                out.push(
+                    char::from_digit(u32::from(b & 0xf), 16)
+                        .unwrap()
+                        .to_ascii_uppercase(),
+                );
+            }
+        }
+    }
+    out
+}
+
+/// Render a byte slice as lowercase hex.
+fn hex_lower(bytes: &[u8]) -> String {
+    bytes
+        .iter()
+        .fold(String::with_capacity(bytes.len() * 2), |mut s, b| {
+            s.push(char::from_digit(u32::from(*b >> 4), 16).unwrap());
+            s.push(char::from_digit(u32::from(*b & 0xf), 16).unwrap());
+            s
+        })
+}
+
+/// Format a timezone offset in minutes as an `xsd:dayTimeDuration` string,
+/// e.g. `+60` → `"PT1H"`, `0` → `"PT0S"`, `-330` → `"-PT5H30M"`.
+fn format_daytime_duration(offset_minutes: i64) -> String {
+    if offset_minutes == 0 {
+        return "PT0S".to_owned();
+    }
+    let neg = offset_minutes < 0;
+    let abs_min = offset_minutes.unsigned_abs();
+    let hours = abs_min / 60;
+    let mins = abs_min % 60;
+    let mut s = if neg {
+        "-PT".to_owned()
+    } else {
+        "PT".to_owned()
+    };
+    if hours > 0 {
+        s.push_str(&format!("{hours}H"));
+    }
+    if mins > 0 {
+        s.push_str(&format!("{mins}M"));
+    }
+    s
+}
+
+/// Format a timezone offset (minutes) as the SPARQL TZ() string:
+/// `Some(0)` → `"Z"`, `Some(n)` → `"+HH:MM"` / `"-HH:MM"`, `None` → `""`.
+fn format_tz_string(offset_minutes: Option<i64>) -> String {
+    match offset_minutes {
+        None => String::new(),
+        Some(0) => "Z".to_owned(),
+        Some(off) => {
+            let sign = if off < 0 { '-' } else { '+' };
+            let abs_min = off.unsigned_abs();
+            format!("{sign}{:02}:{:02}", abs_min / 60, abs_min % 60)
+        }
+    }
+}
+
+/// Mint a version-4 UUID from the PRNG state and return it as a
+/// lowercase-hyphenated `8-4-4-4-12` string (without any `urn:uuid:` prefix).
+fn make_uuid(ctx: &mut EvalCtx<'_>) -> (String, [u8; 16]) {
+    let hi = next_u64(ctx);
+    let lo = next_u64(ctx);
+    let mut bytes = [0u8; 16];
+    bytes[..8].copy_from_slice(&hi.to_be_bytes());
+    bytes[8..].copy_from_slice(&lo.to_be_bytes());
+    // Set version 4 (bits 76–79 of octet 6): top nibble = 4.
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    // Set variant bits (RFC 4122 §4.1.1): top 2 bits of octet 8 = 10.
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    let hex: Vec<String> = bytes.iter().map(|b| format!("{b:02x}")).collect();
+    let uuid = format!(
+        "{}-{}-{}-{}-{}",
+        hex[0..4].join(""),
+        hex[4..6].join(""),
+        hex[6..8].join(""),
+        hex[8..10].join(""),
+        hex[10..16].join(""),
+    );
+    (uuid, bytes)
 }
 
 #[cfg(test)]
@@ -1386,5 +1631,229 @@ mod tests {
         )
         .expect("not exists");
         assert_eq!(subjects(&ds, &seq, "s"), vec!["http://ex/b".to_owned()]);
+    }
+    // ---- Gap 4: ENCODE_FOR_URI ---------------------------------------------
+
+    #[test]
+    fn encode_for_uri_basic() {
+        let ds = empty_ds();
+        let expr = Expression::FunctionCall(Function::EncodeForUri, vec![lit("a b/c")]);
+        assert_eq!(lex(&ds, &expr), Some("a%20b%2Fc".to_owned()));
+    }
+
+    // ---- Gap 4: hash functions --------------------------------------------
+
+    const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
+
+    #[test]
+    fn md5_abc() {
+        let ds = empty_ds();
+        let expr = Expression::FunctionCall(Function::Md5, vec![lit("abc")]);
+        assert_eq!(
+            lex(&ds, &expr),
+            Some("900150983cd24fb0d6963f7d28e17f72".to_owned())
+        );
+    }
+
+    #[test]
+    fn sha1_abc() {
+        let ds = empty_ds();
+        let expr = Expression::FunctionCall(Function::Sha1, vec![lit("abc")]);
+        assert_eq!(
+            lex(&ds, &expr),
+            Some("a9993e364706816aba3e25717850c26c9cd0d89d".to_owned())
+        );
+    }
+
+    #[test]
+    fn sha256_abc() {
+        let ds = empty_ds();
+        let expr = Expression::FunctionCall(Function::Sha256, vec![lit("abc")]);
+        assert_eq!(
+            lex(&ds, &expr),
+            Some("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad".to_owned())
+        );
+    }
+
+    // ---- Gap 4: date/time component extraction ----------------------------
+
+    #[test]
+    fn year_month_day_over_datetime() {
+        let ds = empty_ds();
+        let dt = typed_lit("2024-03-15T10:30:00Z", XSD_DATETIME);
+        let year = Expression::FunctionCall(Function::Year, vec![dt.clone()]);
+        let month = Expression::FunctionCall(Function::Month, vec![dt.clone()]);
+        let day = Expression::FunctionCall(Function::Day, vec![dt]);
+        assert_eq!(lex(&ds, &year), Some("2024".to_owned()));
+        assert_eq!(lex(&ds, &month), Some("3".to_owned()));
+        assert_eq!(lex(&ds, &day), Some("15".to_owned()));
+    }
+
+    #[test]
+    fn hours_minutes_seconds_over_datetime() {
+        let ds = empty_ds();
+        let dt = typed_lit("2024-03-15T10:30:45Z", XSD_DATETIME);
+        let hours = Expression::FunctionCall(Function::Hours, vec![dt.clone()]);
+        let minutes = Expression::FunctionCall(Function::Minutes, vec![dt.clone()]);
+        let seconds = Expression::FunctionCall(Function::Seconds, vec![dt]);
+        assert_eq!(lex(&ds, &hours), Some("10".to_owned()));
+        assert_eq!(lex(&ds, &minutes), Some("30".to_owned()));
+        // SECONDS returns xsd:decimal; canonical form of integer-valued decimal is "45.0"
+        assert_eq!(lex(&ds, &seconds), Some("45.0".to_owned()));
+    }
+
+    #[test]
+    fn timezone_returns_daytime_duration() {
+        let ds = empty_ds();
+        // +05:30 offset → "PT5H30M"
+        let dt = typed_lit("2024-03-15T10:30:00+05:30", XSD_DATETIME);
+        let tz = Expression::FunctionCall(Function::Timezone, vec![dt]);
+        let result = lex(&ds, &tz).expect("timezone result");
+        assert_eq!(result, "PT5H30M");
+    }
+
+    #[test]
+    fn timezone_utc_returns_pt0s() {
+        let ds = empty_ds();
+        let dt = typed_lit("2024-03-15T10:30:00Z", XSD_DATETIME);
+        let tz = Expression::FunctionCall(Function::Timezone, vec![dt]);
+        assert_eq!(lex(&ds, &tz), Some("PT0S".to_owned()));
+    }
+
+    #[test]
+    fn tz_function_returns_string() {
+        let ds = empty_ds();
+        let dt_utc = typed_lit("2024-03-15T10:30:00Z", XSD_DATETIME);
+        let dt_off = typed_lit("2024-03-15T10:30:00+05:30", XSD_DATETIME);
+        let dt_none = typed_lit("2024-03-15T10:30:00", XSD_DATETIME);
+        let tz_utc = Expression::FunctionCall(Function::Tz, vec![dt_utc]);
+        let tz_off = Expression::FunctionCall(Function::Tz, vec![dt_off]);
+        let tz_none = Expression::FunctionCall(Function::Tz, vec![dt_none]);
+        assert_eq!(lex(&ds, &tz_utc), Some("Z".to_owned()));
+        assert_eq!(lex(&ds, &tz_off), Some("+05:30".to_owned()));
+        assert_eq!(lex(&ds, &tz_none), Some("".to_owned()));
+    }
+
+    // ---- Gap 4: NOW() with fixed ctx.now ----------------------------------
+
+    #[test]
+    fn now_returns_ctx_now() {
+        let ds = empty_ds();
+        let mut ctx = EvalCtx::new(&ds);
+        // Override now with a known value for deterministic testing.
+        let known_dt = gmeow_xsd::datetime_from_unix_seconds(0);
+        ctx.now = gmeow_xsd::XsdValue::DateTime(known_dt);
+        let schema = VarSchema::new();
+        let expr = Expression::FunctionCall(Function::Now, vec![]);
+        let term = eval_expr(&expr, &[], &schema, &mut ctx)
+            .expect("NOW()")
+            .expect("some");
+        match value_of(&ctx, term) {
+            gmeow_rdf_core::TermValue::Literal { lexical_form, .. } => {
+                assert_eq!(lexical_form, "1970-01-01T00:00:00Z");
+            }
+            other => panic!("expected literal, got {other:?}"),
+        }
+    }
+
+    // ---- Gap 4: RAND() deterministic with fixed seed ----------------------
+
+    #[test]
+    fn rand_deterministic_with_fixed_seed() {
+        let ds = empty_ds();
+        let mut ctx = EvalCtx::new(&ds);
+        ctx.rng_state = 12345;
+        let schema = VarSchema::new();
+        let expr = Expression::FunctionCall(Function::Rand, vec![]);
+        // First call
+        let t1 = eval_expr(&expr, &[], &schema, &mut ctx)
+            .expect("rand1")
+            .expect("some");
+        let v1 = value_of(&ctx, t1);
+        // Second call with same seed-after-first
+        let t2 = eval_expr(&expr, &[], &schema, &mut ctx)
+            .expect("rand2")
+            .expect("some");
+        let v2 = value_of(&ctx, t2);
+        // Both must be xsd:double literals in [0, 1)
+        if let gmeow_rdf_core::TermValue::Literal {
+            lexical_form: lex1, ..
+        } = &v1
+        {
+            let f1: f64 = lex1.parse().unwrap_or(f64::NAN);
+            assert!((0.0..1.0).contains(&f1), "first rand {f1} not in [0,1)");
+        } else {
+            panic!("rand1 not a literal");
+        }
+        if let gmeow_rdf_core::TermValue::Literal {
+            lexical_form: lex2, ..
+        } = &v2
+        {
+            let f2: f64 = lex2.parse().unwrap_or(f64::NAN);
+            assert!((0.0..1.0).contains(&f2), "second rand {f2} not in [0,1)");
+        } else {
+            panic!("rand2 not a literal");
+        }
+        // The two values must differ (splitmix64 is not degenerate for non-zero seeds)
+        assert_ne!(v1, v2, "rand should differ across calls");
+    }
+
+    // ---- Gap 4: UUID() well-formed urn:uuid: shape ------------------------
+
+    #[test]
+    fn uuid_is_well_formed_urn() {
+        let ds = empty_ds();
+        let mut ctx = EvalCtx::new(&ds);
+        ctx.rng_state = 0xDEAD_BEEF_CAFE_BABEu64;
+        let schema = VarSchema::new();
+        let expr = Expression::FunctionCall(Function::Uuid, vec![]);
+        let term = eval_expr(&expr, &[], &schema, &mut ctx)
+            .expect("UUID")
+            .expect("some");
+        let val = value_of(&ctx, term);
+        if let gmeow_rdf_core::TermValue::Iri(iri) = &val {
+            assert!(
+                iri.starts_with("urn:uuid:"),
+                "UUID IRI must start with urn:uuid:"
+            );
+            let uuid_part = &iri["urn:uuid:".len()..];
+            let parts: Vec<&str> = uuid_part.split('-').collect();
+            assert_eq!(parts.len(), 5, "UUID must have 5 dash-separated groups");
+            assert_eq!(parts[0].len(), 8);
+            assert_eq!(parts[1].len(), 4);
+            assert_eq!(parts[2].len(), 4);
+            assert_eq!(parts[3].len(), 4);
+            assert_eq!(parts[4].len(), 12);
+            // version 4 check: first char of group 3 must be '4'
+            assert_eq!(&parts[2][..1], "4", "UUID version must be 4");
+            // variant check: first char of group 4 must be '8', '9', 'a', or 'b'
+            let variant_char = parts[3].chars().next().unwrap();
+            assert!(
+                matches!(variant_char, '8' | '9' | 'a' | 'b'),
+                "UUID variant nibble {variant_char} must be 8/9/a/b"
+            );
+        } else {
+            panic!("UUID() must produce an IRI, got {val:?}");
+        }
+    }
+
+    #[test]
+    fn struuid_is_well_formed_string() {
+        let ds = empty_ds();
+        let mut ctx = EvalCtx::new(&ds);
+        ctx.rng_state = 0x1234_5678_9ABC_DEF0u64;
+        let schema = VarSchema::new();
+        let expr = Expression::FunctionCall(Function::StrUuid, vec![]);
+        let term = eval_expr(&expr, &[], &schema, &mut ctx)
+            .expect("STRUUID")
+            .expect("some");
+        let val = value_of(&ctx, term);
+        if let gmeow_rdf_core::TermValue::Literal { lexical_form, .. } = &val {
+            let parts: Vec<&str> = lexical_form.split('-').collect();
+            assert_eq!(parts.len(), 5);
+            assert_eq!(&parts[2][..1], "4");
+        } else {
+            panic!("STRUUID() must produce a literal");
+        }
     }
 }
