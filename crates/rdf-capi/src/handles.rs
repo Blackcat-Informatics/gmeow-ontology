@@ -14,6 +14,15 @@ use crate::status::PurrdfStatus;
 /// with `purrdf_dataset_free`.
 pub struct PurrdfDataset(pub(crate) Arc<RdfDataset>);
 
+/// Compile-time proof of the `Send + Sync` guarantee documented on
+/// [`PurrdfDataset`] (and published in the README thread-safety table). If a
+/// future change made `RdfDataset` non-`Sync`, this would fail to compile rather
+/// than silently breaking the frozen ABI contract.
+const _: fn() = || {
+    fn assert_send_sync<T: Send + Sync>() {}
+    assert_send_sync::<PurrdfDataset>();
+};
+
 impl PurrdfDataset {
     /// Wrap a frozen dataset as a heap-owned handle pointer.
     pub(crate) fn into_raw(dataset: Arc<RdfDataset>) -> *mut PurrdfDataset {

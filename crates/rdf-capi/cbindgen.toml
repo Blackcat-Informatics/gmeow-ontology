@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# cbindgen configuration for libpurrdf (purrdf P8 / #842). Both `cargo cbuild`
-# (cargo-c) and the crate's build.rs consume this to emit `purrdf.h`. The header
+# cbindgen configuration for libpurrdf (purrdf P8 / #842). `cargo cbuild`
+# (cargo-c) and `make capi-header` consume this to emit `purrdf.h`. The header
 # IS the SemVer-frozen ABI contract: it is committed and drift-gated.
 
 language = "C"
