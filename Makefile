@@ -346,6 +346,7 @@ capi-check: ## Verify the committed purrdf.h is current + the C smoke links and 
 	    diff $(CAPI_HEADER) "$$hdr" | head -40; exit 1; \
 	  fi; \
 	  echo "OK: committed purrdf.h matches the libpurrdf ABI surface"
+	cargo build -p gmeow-rdf-capi  # emit the cdylib into target/<profile>/ where the c_smoke driver looks; `cargo capi build` only writes the triple subdir and `cargo test` builds no cdylib
 	cargo test -p gmeow-rdf-capi --test c_smoke
 
 capi-install: ## Install libpurrdf + purrdf.pc + header to PREFIX (default /usr/local).
