@@ -1715,6 +1715,7 @@ logic:pathNamespaceScope
 logic:pathStepPredicate
     a owl:ObjectProperty ;
     rdfs:domain logic:PathShape ;
+    rdfs:range rdfs:Resource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "path step predicate"@x-gmeow-english ;
     skos:definition "The named predicate that each hop of a logic:PathShape traverses. Present on a named-predicate path; absent on a wildcard path (where logic:pathWildcard is true instead). A shape that carries BOTH a logic:pathStepPredicate and logic:pathWildcard true is malformed — the base step is a named predicate XOR a wildcard — and is rejected by the frontend rather than silently resolved."@x-gmeow-english ;
