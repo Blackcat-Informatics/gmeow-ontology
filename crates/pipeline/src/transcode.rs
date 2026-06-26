@@ -35,8 +35,8 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
-use gmeow_logic::compile::frontend::parse_logic_str;
-use gmeow_logic::compile::projections::{
+use gmeow_logic_compile::frontend::parse_logic_str;
+use gmeow_logic_compile::projections::{
     rdf::{project_canonical_rdf12, project_gufo, project_owl_dl, project_owl_el},
     text::{project_datalog, project_n3, project_nemo},
 };

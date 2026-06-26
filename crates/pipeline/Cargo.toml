@@ -35,6 +35,9 @@ gmeow-gts = "0.9.9"
 # The `reason` stage wires the native EL/DL reasoner + artifact builders directly
 # (gmeow_logic::reason::reason_all + reason::artifacts) — no Python, no PyO3.
 gmeow-logic = { path = "../logic" }
+# The pure compiler surface (parse_logic_str + the RDF/text projections) the
+# transcode stage drives, split out of gmeow-logic in #732.
+gmeow-logic-compile = { path = "../logic-compile" }
 # The structured snapshot's verify-attestation graph reads the native verify
 # lane's `Report` findings (severity / `verify.<stem>` codes) to build the
 # `gmeow:graph/verify` attestation (#861 P6, two-pass like build_snapshot_bytes).

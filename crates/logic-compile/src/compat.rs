@@ -312,7 +312,7 @@ fn table_rule_ids() -> std::collections::BTreeSet<&'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::compile::ir::ReasoningContract;
+    use crate::ir::ReasoningContract;
 
     fn unsupported_reasons(c: &ReasoningContract) -> Vec<String> {
         match check(c) {

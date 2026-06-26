@@ -161,7 +161,7 @@ fn compatibility_rule_ids_match_module_ttl() {
     // The Rust authority (compat.rs ALL_RULE_IDS) and the ontology surface
     // (logic:CompatibilityRule individuals in module.ttl) must never diverge:
     // every rust rule id is an individual local name and vice versa.
-    use crate::compile::compat::ALL_RULE_IDS;
+    use crate::compat::ALL_RULE_IDS;
 
     let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../slices/core/logic/module.ttl");

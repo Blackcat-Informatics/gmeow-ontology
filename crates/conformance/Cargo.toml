@@ -24,6 +24,9 @@ path = "src/bin/conformance_report.rs"
 # / scryer / stable-model / probabilistic cores. The harness calls these directly
 # (the SAME functions py.rs wraps), so case outputs are identical by construction.
 gmeow-logic = { path = "../logic" }
+# The pure compiler surface (parse_logic_str / compile_program / projections /
+# LedgerEntry) the harness drives, split out of gmeow-logic in #732.
+gmeow-logic-compile = { path = "../logic-compile" }
 # Native RDF text codecs (#909): the comparator parses serialized RDF via
 # `gmeow_rdf::parse_dataset` (oxigraph-free text ingress through the gmeow-gts codecs)
 # instead of `oxigraph::io::RdfParser`; the `gmeow-rdf` dep + `oxigraph` feature below

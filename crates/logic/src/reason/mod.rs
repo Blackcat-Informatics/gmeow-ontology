@@ -6,7 +6,7 @@
 //! This module hosts fixed entailment rule sets — like ELK's built-in
 //! calculus — that run over an arbitrary TBox/ABox through the world-scoped
 //! ternary gmeow encoding. Unlike the user-authored `logic:` programs the
-//! [`crate::compile`] pipeline projects, these rule sets are intrinsic to the
+//! the compiler pipeline projects, these rule sets are intrinsic to the
 //! reasoner: they encode the OWL semantics themselves, not a domain ontology.
 //!
 //! Provides the EL subsumption closure ([`el`]), the predicate-as-DATA RL/DL

@@ -11,7 +11,7 @@
 //! pure `Diagnostic` / `Severity` values the compiler front-end emits. The PyO3
 //! `compile_logic` entrypoint (`crate::py`) and the LSP server are its callers.
 
-use crate::compile::frontend::{Diagnostic, Severity};
+use gmeow_logic_compile::frontend::{Diagnostic, Severity};
 
 /// Project parse [`Diagnostic`]s into the canonical `gmeow-diagnostics` `Report`
 /// (issue #856).
@@ -53,7 +53,7 @@ pub fn diagnostics_report(diagnostics: &[Diagnostic]) -> gmeow_diagnostics::Repo
 #[cfg(test)]
 mod tests {
     use super::diagnostics_report;
-    use crate::compile::frontend::{Diagnostic, Severity};
+    use gmeow_logic_compile::frontend::{Diagnostic, Severity};
 
     #[test]
     fn diagnostics_report_projects_findings_with_logic_compile_namespace() {

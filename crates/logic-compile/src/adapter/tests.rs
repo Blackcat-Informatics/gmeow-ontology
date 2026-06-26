@@ -7,7 +7,7 @@
 //! `tests/test_logic_adapter.py` they superseded was retired in #727.
 
 use super::*;
-use crate::compile::frontend::parse_logic_str;
+use crate::frontend::parse_logic_str;
 
 const PREFIXES: &str = "\
 @prefix logic: <https://blackcatinformatics.ca/logic/> .

@@ -910,16 +910,16 @@ pub fn certify(rules: &str, profile: &str) -> Result<CertificationVerdict, Strin
 /// Certify a program straight from the **canonical source AST** (issue #664).
 ///
 /// This is the canonical-AST front door to the certifier: the program is lowered
-/// to its Nemo rules section by the Rust compiler ([`crate::compile::projections`])
+/// to its Nemo rules section by the Rust compiler ([`gmeow_logic_compile::projections`])
 /// and certified — no Python and no hand-authored `.rls` in the loop, so the
 /// canonical IR is the single source feeding decidability certification too.
 pub fn certify_program(
-    program: &crate::compile::ir::LogicProgram,
+    program: &gmeow_logic_compile::ir::LogicProgram,
     profile: &str,
 ) -> Result<CertificationVerdict, String> {
-    let nemo = crate::compile::projections::text::project_nemo(program)?;
+    let nemo = gmeow_logic_compile::projections::text::project_nemo(program)?;
     let rules_section =
-        crate::compile::projections::text::extract_nemo_rules_section(&nemo.content)?;
+        gmeow_logic_compile::projections::text::extract_nemo_rules_section(&nemo.content)?;
     certify(&rules_section, profile)
 }
 

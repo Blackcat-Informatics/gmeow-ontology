@@ -10,7 +10,7 @@
 use std::collections::BTreeMap;
 
 use gmeow_logic::certify::CertificationVerdict;
-use gmeow_logic::compile::projections::LedgerEntry;
+use gmeow_logic_compile::projections::LedgerEntry;
 
 use crate::run::RunnerQuad;
 

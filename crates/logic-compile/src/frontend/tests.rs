@@ -6,7 +6,7 @@
 //! superseded was retired in #727.
 
 use super::*;
-use crate::compile::ir::LogicModality;
+use crate::ir::LogicModality;
 
 const PREFIXES: &str = "\
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
