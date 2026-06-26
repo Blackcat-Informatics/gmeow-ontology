@@ -22,6 +22,7 @@
 //! [`model`]) are PyO3-free so the rlib links into the future Rust compiler
 //! without any Python dependency.
 
+pub mod advisory;
 pub mod cache;
 pub mod constitution;
 pub mod coverage;
