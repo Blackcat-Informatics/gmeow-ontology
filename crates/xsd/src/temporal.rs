@@ -108,6 +108,59 @@ fn days_from_civil(y: i64, m: u8, d: u8) -> i64 {
     era * 146097 + doe - 719_468
 }
 
+/// Convert Unix epoch seconds (UTC) to an xsd:dateTime value using Howard Hinnant's
+/// civil-from-days algorithm. Pure math — no clock access, wasm-safe.
+/// The result always carries timezone offset 0 (UTC / "Z").
+///
+/// Algorithm reference: <https://howardhinnant.github.io/date_algorithms.html>
+pub fn datetime_from_unix_seconds(secs: i64) -> DateTime {
+    const SECS_PER_DAY_I64: i64 = 86_400;
+    // Split into day offset + time-of-day.
+    let days = if secs >= 0 {
+        secs / SECS_PER_DAY_I64
+    } else {
+        (secs - SECS_PER_DAY_I64 + 1) / SECS_PER_DAY_I64
+    };
+    let tod = secs - days * SECS_PER_DAY_I64; // 0 .. 86399
+
+    // Howard Hinnant's civil_from_days
+    let z = days + 719_468;
+    let era = (if z >= 0 { z } else { z - 146_096 }) / 146_097;
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = (doy - (153 * mp + 2) / 5 + 1) as u8;
+    let m = if mp < 10 {
+        (mp + 3) as u8
+    } else {
+        (mp - 9) as u8
+    };
+    let y = if m <= 2 { y + 1 } else { y };
+
+    let hour = (tod / 3600) as u8;
+    let minute = ((tod % 3600) / 60) as u8;
+    let second_whole = (tod % 60) as i128;
+    let second = crate::numeric::Decimal::from_parts(second_whole, 0);
+
+    DateTime {
+        year: y,
+        month: m,
+        day: d,
+        hour,
+        minute,
+        second,
+        tz: Some(0),
+    }
+}
+
+/// Return the Unix epoch (1970-01-01T00:00:00Z) as an xsd:dateTime value.
+/// Useful as the compile-time-safe "now" fallback for wasm32 targets.
+pub fn datetime_epoch() -> DateTime {
+    datetime_from_unix_seconds(0)
+}
+
 // ── Parsing ──────────────────────────────────────────────────────────────────────
 
 fn invalid(dt: XsdDatatype, lexical: &str, reason: &'static str) -> XsdError {
@@ -793,6 +846,48 @@ impl DateTime {
             fmt_tz(self.tz),
         )
     }
+
+    /// Gregorian year component.
+    #[must_use]
+    pub fn year(&self) -> i64 {
+        self.year
+    }
+
+    /// Gregorian month component (1–12).
+    #[must_use]
+    pub fn month(&self) -> u8 {
+        self.month
+    }
+
+    /// Gregorian day component (1–31).
+    #[must_use]
+    pub fn day(&self) -> u8 {
+        self.day
+    }
+
+    /// Hour component (0–24).
+    #[must_use]
+    pub fn hour(&self) -> u8 {
+        self.hour
+    }
+
+    /// Minute component (0–59).
+    #[must_use]
+    pub fn minute(&self) -> u8 {
+        self.minute
+    }
+
+    /// Second component as a Decimal.
+    #[must_use]
+    pub fn second(&self) -> Decimal {
+        self.second
+    }
+
+    /// Timezone offset in minutes; None = no timezone.
+    #[must_use]
+    pub fn timezone_minutes(&self) -> Option<i64> {
+        self.tz.map(i64::from)
+    }
 }
 
 impl Date {
@@ -807,6 +902,30 @@ impl Date {
             fmt_tz(self.tz)
         )
     }
+
+    /// Gregorian year component.
+    #[must_use]
+    pub fn year(&self) -> i64 {
+        self.year
+    }
+
+    /// Gregorian month component (1–12).
+    #[must_use]
+    pub fn month(&self) -> u8 {
+        self.month
+    }
+
+    /// Gregorian day component (1–31).
+    #[must_use]
+    pub fn day(&self) -> u8 {
+        self.day
+    }
+
+    /// Timezone offset in minutes; None = no timezone.
+    #[must_use]
+    pub fn timezone_minutes(&self) -> Option<i64> {
+        self.tz.map(i64::from)
+    }
 }
 
 impl Time {
@@ -820,6 +939,30 @@ impl Time {
             fmt_seconds(&self.second),
             fmt_tz(self.tz)
         )
+    }
+
+    /// Hour component (0–24).
+    #[must_use]
+    pub fn hour(&self) -> u8 {
+        self.hour
+    }
+
+    /// Minute component (0–59).
+    #[must_use]
+    pub fn minute(&self) -> u8 {
+        self.minute
+    }
+
+    /// Second component as a Decimal.
+    #[must_use]
+    pub fn second(&self) -> Decimal {
+        self.second
+    }
+
+    /// Timezone offset in minutes; None = no timezone.
+    #[must_use]
+    pub fn timezone_minutes(&self) -> Option<i64> {
+        self.tz.map(i64::from)
     }
 }
 
@@ -1027,5 +1170,30 @@ mod tests {
         let a = parse_gregorian(XsdDatatype::GYear, "2024").unwrap();
         let b = parse_gregorian(XsdDatatype::GMonth, "--05").unwrap();
         assert_eq!(cmp_gregorian(&a, &b), None);
+    }
+    #[test]
+    fn datetime_from_unix_seconds_epoch() {
+        let dt = datetime_from_unix_seconds(0);
+        assert_eq!(dt.canonical_lexical(), "1970-01-01T00:00:00Z");
+    }
+
+    #[test]
+    fn datetime_from_unix_seconds_known_timestamp() {
+        // 2024-03-15T10:30:00Z = 2024-03-15 is day 19796 since epoch.
+        // 10*3600 + 30*60 = 37800 seconds into the day.
+        // 19796 * 86400 + 37800 = 1710495000
+        let dt = datetime_from_unix_seconds(1_710_498_600);
+        assert_eq!(dt.canonical_lexical(), "2024-03-15T10:30:00Z");
+    }
+
+    #[test]
+    fn datetime_accessors_work() {
+        let dt = parse_datetime("2024-03-15T10:30:45.5Z").unwrap();
+        assert_eq!(dt.year(), 2024);
+        assert_eq!(dt.month(), 3);
+        assert_eq!(dt.day(), 15);
+        assert_eq!(dt.hour(), 10);
+        assert_eq!(dt.minute(), 30);
+        assert_eq!(dt.timezone_minutes(), Some(0));
     }
 }

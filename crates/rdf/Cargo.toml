@@ -78,6 +78,10 @@ gmeow-gts = "0.9.9"
 # Same oxigraph build the kernel links (rdf-12, no extra codecs) so proptest
 # round-trips drive the identical engine the production codecs use.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+# The native SPARQL evaluator (purrdf S6, #912), used ONLY by the differential
+# parity test (tests/sparql_eval_parity.rs) — kept a DEV-dependency so the native
+# engine's own crate stays oxigraph-free while we diff it against oxigraph here.
+gmeow-sparql-eval = { path = "../sparql-eval" }
 proptest = "1"
 # Acceleration-program baselines (#630/#819 C1 Task 7); light feature set matching
 # the sibling crates (logic/shacl/validate): criterion's plotters/rayon defaults are
