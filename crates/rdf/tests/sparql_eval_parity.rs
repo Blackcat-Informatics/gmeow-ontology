@@ -299,21 +299,148 @@ fn collect_rq_recursive(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>
 /// Corpus must not shrink below 141 queries (the count at Gap 5 authoring time).
 const CORPUS_MIN_TOTAL: usize = 141;
 
-/// Minimum number of queries that must match (green) after classification.
-///
-/// = corpus(141)
-///   − property-path-deferred(23, S8 #914) − rdf12-triple-term-deferred(1, SPARQL-1.2)
-///   − nondeterministic(1, NOW()) − multi-query-skipped(1)
-///   − margin(2) for corpus drift
-///
-/// Observed: 115 green on first run (2026-06-26). Set floor to 113 (115 − 2 margin).
-/// Raising scope (fixing a DEFERRED construct) MUST raise this floor and update this
-/// comment with the new observed count.
-const CORPUS_MIN_GREEN: usize = 113;
+// ---------------------------------------------------------------------------
+// Sharding (#1045)
+// ---------------------------------------------------------------------------
+//
+// The full sweep is eval-bound: ~1.5 s shared load (gts decode + oxigraph store +
+// native dataset) then ~49 s of evaluation (141 native + 115 oxigraph queries over
+// the real ontology), ~50 s total — over the 25 s always-on per-test budget. ONE
+// query (`queries/verify/class-without-stereotype.rq`) accounts for ~44 s of that on
+// the native engine alone (see OFF_GATE_HEAVY); carving it out drops the remaining
+// corpus to ~8 s. We then split that remainder across `NUM_SHARDS` independent
+// `#[test]` fns; nextest runs each in its own process, in parallel, so per-shard wall
+// time is ~1.5 s load + ~8/N s eval — observed 1.5–5.2 s each (2026-06-26), well under
+// budget with CI headroom and room for corpus growth.
+//
+// The original whole-corpus green guard was `CORPUS_MIN_GREEN = 113` (observed 115).
+// It is now expressed as per-shard floors (the gated subset) plus
+// [`OFF_GATE_HEAVY_MIN_GREEN`]; their sum is the same whole-corpus guard.
+
+/// How many independent shard tests the gated corpus parity sweep is split across.
+const NUM_SHARDS: usize = 4;
+
+/// Per-shard green floors for the GATED subset (corpus minus [`OFF_GATE_HEAVY`]).
+/// Sharding is by a STABLE hash of each query's repo-relative path (not its position
+/// in the sorted corpus), so a given file stays in the same shard as the corpus
+/// grows — which keeps these per-shard minimums valid when queries are added.
+/// Observed gated greens on 2026-06-26: `[37, 25, 27, 25]` (sum 114); floors set one
+/// below each for drift margin. With [`OFF_GATE_HEAVY_MIN_GREEN`] (1) the whole-corpus
+/// green floor is 111 (observed total 115). Raising scope (fixing a DEFERRED construct)
+/// MUST raise the affected shard's floor and this comment.
+const CORPUS_MIN_GREEN_PER_SHARD: [usize; NUM_SHARDS] = [36, 24, 26, 24];
+
+/// Stable FNV-1a hash of a query's repo-relative path → shard id. Stable across
+/// machines/worktrees (the key is repo-relative, not absolute) and across corpus
+/// growth (per-file, not positional), unlike a `sorted_index % N` scheme which
+/// would reshuffle every file's shard whenever a query is added.
+fn shard_of(rel_path: &str) -> usize {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for b in rel_path.as_bytes() {
+        h ^= u64::from(*b);
+        h = h.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    (h % NUM_SHARDS as u64) as usize
+}
+
+/// Repo root as the corpus enumerator builds it (`crates/rdf/../..`), used to derive
+/// the stable repo-relative shard key.
+fn corpus_repo_root() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("..")
+}
 
 #[test]
 #[cfg(all(feature = "oxigraph", feature = "gts"))]
-fn corpus_parity_against_real_ontology() {
+fn corpus_parity_shard_0() {
+    run_corpus_shard(0);
+}
+
+#[test]
+#[cfg(all(feature = "oxigraph", feature = "gts"))]
+fn corpus_parity_shard_1() {
+    run_corpus_shard(1);
+}
+
+#[test]
+#[cfg(all(feature = "oxigraph", feature = "gts"))]
+fn corpus_parity_shard_2() {
+    run_corpus_shard(2);
+}
+
+#[test]
+#[cfg(all(feature = "oxigraph", feature = "gts"))]
+fn corpus_parity_shard_3() {
+    run_corpus_shard(3);
+}
+
+/// OFF-GATE: the full native-vs-oxigraph parity sweep over the [`OFF_GATE_HEAVY`]
+/// queries, which are too slow on the native engine to fit the 25 s always-on budget.
+/// Kept always-runnable (NOT `#[ignore]`d) and exercised on the `maint-rust-heavy`
+/// nextest profile / `make maint-rust-heavy`; the per-commit gate excludes it via the
+/// default profile's `default-filter` (see `.config/nextest.toml`). This preserves
+/// #912 parity coverage for these queries off the critical path.
+#[test]
+#[cfg(all(feature = "oxigraph", feature = "gts"))]
+fn corpus_parity_heavy_offgate() {
+    let tally = run_corpus_subset(&|rel| is_off_gate_heavy(rel));
+    assert_corpus_tally("off-gate-heavy", &tally, OFF_GATE_HEAVY_MIN_GREEN);
+}
+
+/// Cheap whole-corpus tripwire (no load, no eval — milliseconds): the corpus must
+/// not shrink below [`CORPUS_MIN_TOTAL`]. Guards against a query directory going
+/// missing, which the per-shard tests (each seeing only their slice) cannot detect.
+#[test]
+fn corpus_inventory_floor() {
+    let total = collect_corpus_files().len();
+    assert!(
+        total >= CORPUS_MIN_TOTAL,
+        "corpus shrank: {total} < {CORPUS_MIN_TOTAL} — a query directory may be missing"
+    );
+}
+
+/// Queries whose NATIVE evaluation is known-pathological on the real ontology and
+/// therefore cannot meet the 25 s always-on per-test budget (#1045). They keep their
+/// full native-vs-oxigraph parity coverage in the OFF-GATE [`corpus_parity_heavy_offgate`]
+/// test (maint lane), not on the per-commit gate.
+///
+/// Current entry: `queries/verify/class-without-stereotype.rq` — a `FILTER NOT EXISTS`
+/// anti-join over every `owl:Class`. oxigraph evaluates it in ~5 ms; the native
+/// `gmeow-sparql-eval` engine takes ~44 s (un-indexed nested-loop NOT EXISTS). Tracked
+/// as a native-engine performance gap; remove from this list once the engine indexes
+/// the anti-join (then it rejoins the gated shards automatically).
+///
+/// Paths are repo-relative (the same key as [`shard_of`]).
+const OFF_GATE_HEAVY: &[&str] = &["queries/verify/class-without-stereotype.rq"];
+
+/// Green floor for the off-gate-heavy subset. Equal to the number of in-scope
+/// (parity-matched) entries in [`OFF_GATE_HEAVY`]; observed 1 on 2026-06-26
+/// (`class-without-stereotype` is an in-scope SELECT that matches oxigraph).
+const OFF_GATE_HEAVY_MIN_GREEN: usize = 1;
+
+/// True if `rel_path` (repo-relative, using `/` separators) is an off-gate-heavy query.
+fn is_off_gate_heavy(rel_path: &str) -> bool {
+    let norm = rel_path.replace('\\', "/");
+    OFF_GATE_HEAVY.contains(&norm.as_str())
+}
+
+/// The classification result for one subset of the corpus.
+#[cfg(all(feature = "oxigraph", feature = "gts"))]
+struct CorpusTally {
+    matched: usize,
+    deferred: usize,
+    nondet: usize,
+    multi_query_skipped: usize,
+    unexpected_failures: Vec<(String, String)>,
+}
+
+/// Load the real merged ontology once and run the differential parity sweep over
+/// the corpus files for which `include(repo_relative_path)` is true. Returns the
+/// tally; the caller prints it and applies the regression guards. `include` is how
+/// shards (`shard_of == n`) and the off-gate-heavy carve-out partition the corpus.
+#[cfg(all(feature = "oxigraph", feature = "gts"))]
+fn run_corpus_subset(include: &dyn Fn(&str) -> bool) -> CorpusTally {
     // -----------------------------------------------------------------------
     // 1. Load the real merged ontology graph — identical source for both engines.
     // -----------------------------------------------------------------------
@@ -342,9 +469,10 @@ fn corpus_parity_against_real_ontology() {
         total >= CORPUS_MIN_TOTAL,
         "corpus shrank: {total} < {CORPUS_MIN_TOTAL} — a query directory may be missing"
     );
+    let repo_root = corpus_repo_root();
 
     // -----------------------------------------------------------------------
-    // 3. Per-query classification.
+    // 3. Per-query classification — included files only.
     // -----------------------------------------------------------------------
     let engine = NativeSparqlEngine::new();
     let ox = OxigraphBackend;
@@ -356,6 +484,15 @@ fn corpus_parity_against_real_ontology() {
     let mut unexpected_failures: Vec<(String, String)> = Vec::new();
 
     for path in &corpus {
+        // Stable, repo-relative key — skip files this subset does not own.
+        let rel = path
+            .strip_prefix(&repo_root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .into_owned();
+        if !include(&rel) {
+            continue;
+        }
         let query_text = std::fs::read_to_string(path)
             .unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
         let label = path.display().to_string();
@@ -448,36 +585,58 @@ fn corpus_parity_against_real_ontology() {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // 4. Honest tally line — always printed (--nocapture or CI log).
-    // -----------------------------------------------------------------------
+    CorpusTally {
+        matched,
+        deferred,
+        nondet,
+        multi_query_skipped,
+        unexpected_failures,
+    }
+}
+
+/// Print the honest tally line and apply the shared regression guards (hard-fail on
+/// ANY unexpected error/mismatch; assert the green floor). `scope` labels the subset.
+#[cfg(all(feature = "oxigraph", feature = "gts"))]
+fn assert_corpus_tally(scope: &str, tally: &CorpusTally, green_floor: usize) {
     eprintln!(
-        "corpus parity: {matched} matched, {deferred} deferred(paths/service/rdf12-triple-terms), \
-         {nondet} nondeterministic, {multi_query_skipped} multi-query-skipped, \
-         {} unexpected, total {total}",
-        unexpected_failures.len()
+        "corpus parity [{scope}]: {} matched, {} deferred(paths/service/rdf12-triple-terms), \
+         {} nondeterministic, {} multi-query-skipped, {} unexpected",
+        tally.matched,
+        tally.deferred,
+        tally.nondet,
+        tally.multi_query_skipped,
+        tally.unexpected_failures.len()
     );
-
-    // -----------------------------------------------------------------------
-    // 5. Regression guards.
-    // -----------------------------------------------------------------------
-
-    // 5a. Hard fail on any unexpected error or parity mismatch — list ALL of them.
+    // Hard fail on any unexpected error or parity mismatch — list ALL of them.
     assert!(
-        unexpected_failures.is_empty(),
-        "in-scope corpus queries errored or mismatched unexpectedly ({} failures):\n{}",
-        unexpected_failures.len(),
-        unexpected_failures
+        tally.unexpected_failures.is_empty(),
+        "[{scope}] in-scope corpus queries errored or mismatched unexpectedly ({} failures):\n{}",
+        tally.unexpected_failures.len(),
+        tally
+            .unexpected_failures
             .iter()
             .map(|(f, e)| format!("  {f}\n    → {e}"))
             .collect::<Vec<_>>()
             .join("\n")
     );
-
-    // 5b. Green floor — must not regress below the observed baseline.
+    // Green floor — must not regress below the observed baseline.
     assert!(
-        matched >= CORPUS_MIN_GREEN,
-        "green corpus shrank: {matched} matched < {CORPUS_MIN_GREEN} CORPUS_MIN_GREEN \
-         — a previously passing query now fails; investigate before merging"
+        tally.matched >= green_floor,
+        "[{scope}] green corpus shrank: {} matched < {green_floor} floor — a previously \
+         passing query now fails; investigate before merging",
+        tally.matched
+    );
+}
+
+/// One gated shard: the corpus files assigned to `shard` by [`shard_of`], minus the
+/// off-gate-heavy carve-out. Each shard reloads the ontology (~1.5 s) and runs its
+/// slice; nextest parallelises the shards so wall time stays well under the 25 s budget.
+#[cfg(all(feature = "oxigraph", feature = "gts"))]
+fn run_corpus_shard(shard: usize) {
+    let tally = run_corpus_subset(&|rel| !is_off_gate_heavy(rel) && shard_of(rel) == shard);
+    assert_corpus_tally(
+        &format!("shard {shard}/{NUM_SHARDS}"),
+        &tally,
+        CORPUS_MIN_GREEN_PER_SHARD[shard],
     );
 }

@@ -2,6 +2,21 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 [profile.default]
+# Always-on per-test budget (#1045): every test on this profile must complete under
+# 25 s real wall time, enforced AFTER the run by the JUnit duration gate
+# (`cargo run -p gmeow-test-budget`, wired into `make rust-test`/`rust-gate`). Tests
+# that are irreducibly heavier than the budget (full-fold reasoning, full-DAG parity,
+# snapshot codec round-trips, the native-pathological corpus parity query, …) are
+# carved out of this profile via `default-filter` below and run on the `maint-heavy`
+# profile instead — so the gate has NO legitimate >25 s test to allowlist. The
+# slow-timeout stays at the original 120 s terminate cliff purely as a runaway/hang
+# backstop; the 25 s POLICY is the JUnit gate, not this timeout.
+#
+# `default-filter` is the set of tests run when no filter is given on the CLI. Keep
+# this expression as the single source of truth for what the always-on gate excludes;
+# `maint-heavy` re-includes everything. Each excluded pattern MUST be justified by an
+# entry in AGENTS.md's test-budget section (the off-gate allowlist).
+default-filter = 'not test(/corpus_parity_heavy_offgate/)'
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
 retries = { backoff = "fixed", count = 2, delay = "1s" }
 # Output ergonomics (#871): surface the slowest tests in the final summary every
@@ -14,6 +29,17 @@ failure-output = "immediate-final"
 
 [profile.ci]
 inherits = "default"
+junit = { path = "junit.xml" }
+fail-fast = false
+
+# Maintainer lane (#1045): runs EVERYTHING, including the heavy tests the default/ci
+# profiles carve out via `default-filter`. Used by `make maint-rust-heavy` so the
+# off-gate parity / full-fold / codec coverage still runs (locally + on a CI schedule),
+# just not on the per-commit gate. `default-filter = 'all()'` overrides the inherited
+# exclusion; the JUnit budget gate is NOT applied to this profile.
+[profile.maint-heavy]
+inherits = "default"
+default-filter = 'all()'
 junit = { path = "junit.xml" }
 fail-fast = false
 
