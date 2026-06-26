@@ -80,11 +80,13 @@ macro_rules! ffi_guard {
 }
 
 pub mod buffer;
+pub mod cursor;
 pub mod error;
 pub mod handles;
 pub mod parse;
 pub mod serialize;
 pub mod status;
+pub mod term;
 pub mod version;
 
 /// Render a caught panic payload as a human-readable message.
