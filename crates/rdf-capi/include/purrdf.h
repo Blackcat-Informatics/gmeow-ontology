@@ -37,73 +37,15 @@
 #define PURRDF_ABI_PATCH 0
 
 /**
- * The optional base direction of a literal (RDF-1.2 `i18n` direction).
- *
- * These are the canonical discriminant values for the `int32_t direction` field
- * of [`PurrdfTermView`]. An unknown value yields [`PurrdfStatus::InvalidArgument`]
- * — never UB.
- */
-enum PurrdfDirection
-#ifdef __cplusplus
-  : int32_t
-#endif // __cplusplus
- {
-    /**
-     * No base direction.
-     */
-    PURRDF_DIRECTION_NONE = 0,
-    /**
-     * Left-to-right.
-     */
-    PURRDF_DIRECTION_LTR = 1,
-    /**
-     * Right-to-left.
-     */
-    PURRDF_DIRECTION_RTL = 2,
-};
-#ifndef __cplusplus
-typedef int32_t PurrdfDirection;
-#endif // __cplusplus
-
-/**
- * The kind tag of a [`PurrdfGraphMatch`].
- *
- * These are the canonical discriminant values for the `int32_t kind` field of
- * [`PurrdfGraphMatch`]. An unknown value yields [`PurrdfStatus::InvalidArgument`]
- * — never UB.
- */
-enum PurrdfGraphMatchKind
-#ifdef __cplusplus
-  : int32_t
-#endif // __cplusplus
- {
-    /**
-     * Match any graph (default or named).
-     */
-    PURRDF_GRAPH_MATCH_KIND_ANY = 0,
-    /**
-     * Match only the default graph.
-     */
-    PURRDF_GRAPH_MATCH_KIND_DEFAULT = 1,
-    /**
-     * Match the named graph given by `name`.
-     */
-    PURRDF_GRAPH_MATCH_KIND_NAMED = 2,
-};
-#ifndef __cplusplus
-typedef int32_t PurrdfGraphMatchKind;
-#endif // __cplusplus
-
-/**
  * Status returned by every fallible entry point as `i32`. `Ok == 0`.
  *
  * Append-only: never renumber a variant. `Panic` is parked at 100 to leave room
  * for ordinary status codes to grow contiguously from 10.
  */
 enum PurrdfStatus
-#ifdef __cplusplus
+#if defined(__cplusplus) || __STDC_VERSION__ >= 202311L
   : int32_t
-#endif // __cplusplus
+#endif // defined(__cplusplus) || __STDC_VERSION__ >= 202311L
  {
     /**
      * Success.
@@ -156,7 +98,11 @@ enum PurrdfStatus
     PURRDF_STATUS_PANIC = 100,
 };
 #ifndef __cplusplus
+#if __STDC_VERSION__ >= 202311L
+typedef enum PurrdfStatus PurrdfStatus;
+#else
 typedef int32_t PurrdfStatus;
+#endif // __STDC_VERSION__ >= 202311L
 #endif // __cplusplus
 
 /**
@@ -167,9 +113,9 @@ typedef int32_t PurrdfStatus;
  * [`PurrdfStatus::InvalidArgument`] — never UB.
  */
 enum PurrdfTermKind
-#ifdef __cplusplus
+#if defined(__cplusplus) || __STDC_VERSION__ >= 202311L
   : int32_t
-#endif // __cplusplus
+#endif // defined(__cplusplus) || __STDC_VERSION__ >= 202311L
  {
     /**
      * An IRI; `lexical` is the IRI string.
@@ -190,7 +136,77 @@ enum PurrdfTermKind
     PURRDF_TERM_KIND_TRIPLE = 3,
 };
 #ifndef __cplusplus
+#if __STDC_VERSION__ >= 202311L
+typedef enum PurrdfTermKind PurrdfTermKind;
+#else
 typedef int32_t PurrdfTermKind;
+#endif // __STDC_VERSION__ >= 202311L
+#endif // __cplusplus
+
+/**
+ * The optional base direction of a literal (RDF-1.2 `i18n` direction).
+ *
+ * These are the canonical discriminant values for the `int32_t direction` field
+ * of [`PurrdfTermView`]. An unknown value yields [`PurrdfStatus::InvalidArgument`]
+ * — never UB.
+ */
+enum PurrdfDirection
+#if defined(__cplusplus) || __STDC_VERSION__ >= 202311L
+  : int32_t
+#endif // defined(__cplusplus) || __STDC_VERSION__ >= 202311L
+ {
+    /**
+     * No base direction.
+     */
+    PURRDF_DIRECTION_NONE = 0,
+    /**
+     * Left-to-right.
+     */
+    PURRDF_DIRECTION_LTR = 1,
+    /**
+     * Right-to-left.
+     */
+    PURRDF_DIRECTION_RTL = 2,
+};
+#ifndef __cplusplus
+#if __STDC_VERSION__ >= 202311L
+typedef enum PurrdfDirection PurrdfDirection;
+#else
+typedef int32_t PurrdfDirection;
+#endif // __STDC_VERSION__ >= 202311L
+#endif // __cplusplus
+
+/**
+ * The kind tag of a [`PurrdfGraphMatch`].
+ *
+ * These are the canonical discriminant values for the `int32_t kind` field of
+ * [`PurrdfGraphMatch`]. An unknown value yields [`PurrdfStatus::InvalidArgument`]
+ * — never UB.
+ */
+enum PurrdfGraphMatchKind
+#if defined(__cplusplus) || __STDC_VERSION__ >= 202311L
+  : int32_t
+#endif // defined(__cplusplus) || __STDC_VERSION__ >= 202311L
+ {
+    /**
+     * Match any graph (default or named).
+     */
+    PURRDF_GRAPH_MATCH_KIND_ANY = 0,
+    /**
+     * Match only the default graph.
+     */
+    PURRDF_GRAPH_MATCH_KIND_DEFAULT = 1,
+    /**
+     * Match the named graph given by `name`.
+     */
+    PURRDF_GRAPH_MATCH_KIND_NAMED = 2,
+};
+#ifndef __cplusplus
+#if __STDC_VERSION__ >= 202311L
+typedef enum PurrdfGraphMatchKind PurrdfGraphMatchKind;
+#else
+typedef int32_t PurrdfGraphMatchKind;
+#endif // __STDC_VERSION__ >= 202311L
 #endif // __cplusplus
 
 /**
