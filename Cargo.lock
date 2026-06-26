@@ -1860,6 +1860,7 @@ dependencies = [
  "gmeow-gts",
  "gmeow-rdf-core",
  "gmeow-rdf-events",
+ "gmeow-sparql-eval",
  "gmeow-xsd",
  "oxigraph",
  "pretty_assertions",
@@ -1949,6 +1950,20 @@ dependencies = [
  "insta",
  "pretty_assertions",
  "proptest",
+]
+
+[[package]]
+name = "gmeow-sparql-eval"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf-core",
+ "gmeow-sparql-algebra",
+ "gmeow-xsd",
+ "md-5",
+ "pretty_assertions",
+ "regex",
+ "sha1 0.10.6",
+ "sha2",
 ]
 
 [[package]]

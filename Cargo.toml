@@ -44,6 +44,10 @@ members = [
     # wasm-clean leaf that replaces the oxigraph-family `spargebra` (purrdf S5,
     # EPIC #906). Builds only on `crates/iri` + `crates/xsd`.
     "crates/sparql-algebra",
+    # Native, RDF-1.2-first multiset SPARQL evaluator over the rdf-core DatasetView
+    # in TermId space: consumes `crates/sparql-algebra` and replaces the
+    # oxigraph-family `spareval` on the query path (purrdf S6, EPIC #906).
+    "crates/sparql-eval",
     "crates/validate",
     # Native XSD value space (parse / value-space equality+ordering / canonical
     # lexical / SPARQL numeric promotion): the zero-dep leaf that replaces the
@@ -159,6 +163,9 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-sparql-algebra]
+codegen-units = 1
+
+[profile.release.package.gmeow-sparql-eval]
 codegen-units = 1
 
 # `cargo bench` (used by `make bench`) runs under the `bench` profile, which

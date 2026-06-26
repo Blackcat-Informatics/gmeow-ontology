@@ -200,6 +200,20 @@ pub enum XsdError {
         /// A short, stable explanation of which bound was exceeded.
         reason: &'static str,
     },
+    /// Division by zero for an exact numeric type (integer or decimal). Per
+    /// SPARQL §17.4 / XPath `op:numeric-divide`, dividing an `xsd:integer` or
+    /// `xsd:decimal` by zero is a hard type error. Float and double division by zero
+    /// follows IEEE 754 (yields ±INF or NaN) and is NOT an error.
+    DivisionByZero {
+        /// The datatype of the dividend (the numerator operand).
+        datatype: XsdDatatype,
+    },
+    /// An arithmetic or unary operation was applied to a non-numeric value (e.g.
+    /// `numeric_unary_minus` on a boolean). SPARQL treats this as a type error.
+    TypeMismatch {
+        /// A short description of what was expected vs. what was received.
+        reason: &'static str,
+    },
 }
 
 impl std::fmt::Display for XsdError {
@@ -223,6 +237,10 @@ impl std::fmt::Display for XsdError {
                 "lexical form {lexical:?} is out of representable range for <{}>: {reason}",
                 datatype.iri()
             ),
+            XsdError::DivisionByZero { datatype } => {
+                write!(f, "division by zero for <{}>", datatype.iri())
+            }
+            XsdError::TypeMismatch { reason } => write!(f, "type mismatch: {reason}"),
         }
     }
 }
