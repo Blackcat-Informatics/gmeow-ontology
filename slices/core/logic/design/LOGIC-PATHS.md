@@ -37,13 +37,16 @@ three facets, mirroring the issue's decomposition:
 1. **A base step** — either a named predicate ([`logic:pathStepPredicate`](../module.ttl))
    *or* a predicate wildcard ([`logic:pathWildcard`](../module.ttl) `true`). The two
    are mutually exclusive: a step is one named edge XOR any edge. A shape carrying
-   both is malformed and is rejected by the compiler frontend, never silently
-   resolved.
+   both (or an unrecognized `pathWildcard` literal) is malformed: the frontend
+   extractor emits a diagnostic and skips the shape — it is never silently dropped
+   and never causes a hard process abort, consistent with the project-wide
+   frontend-extractor convention.
 2. **A bounded depth** — [`logic:pathMinDepth`](../module.ttl) …
    [`logic:pathMaxDepth`](../module.ttl). The minimum defaults to one hop when absent;
    an absent maximum means *unbounded* (the `+` / transitive-closure reading). When
    the maximum is present the path is a bounded `{min,max}` traversal — the construct
-   SPARQL §9 lacks. A minimum above the maximum is malformed and is rejected.
+   SPARQL §9 lacks. A minimum above the maximum is malformed and is surfaced as a
+   diagnostic; the shape is skipped.
 3. **A predicate-namespace scope** — [`logic:pathNamespaceScope`](../module.ttl), an
    IRI prefix that bounds a wildcard step to a single vocabulary. An unscoped wildcard
    matches predicates in any namespace; scoping it keeps the fan-out of an
