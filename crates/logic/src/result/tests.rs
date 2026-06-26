@@ -301,6 +301,131 @@ fn from_dl_verdict_unsupported_constructs_drop_completeness() {
     assert_eq!(r.information, InformationState::Supported);
 }
 
+// ── Proof/counterproof schema (from_explanation + from_query) ──────────────────
+
+fn dref(id: &str) -> DerivationRef {
+    let mut cited = BTreeSet::new();
+    cited.insert(format!("{id}-cite-a"));
+    cited.insert(format!("{id}-cite-b"));
+    DerivationRef {
+        derivation_id: id.to_owned(),
+        cited_iris: cited,
+    }
+}
+
+#[test]
+fn derivation_ref_from_explanation_copies_id_and_cites() {
+    let mut cited = BTreeSet::new();
+    cited.insert("http://gmeow.example/q1".to_owned());
+    let explanation = crate::explain::Explanation {
+        target_derivation_id: "http://gmeow.example/d1".to_owned(),
+        target_quad_reifier: "http://gmeow.example/r1".to_owned(),
+        world_iri: "http://gmeow.example/w".to_owned(),
+        step_skeleton: vec![],
+        cited_iris: cited.clone(),
+    };
+    let r = DerivationRef::from_explanation(&explanation);
+    assert_eq!(r.derivation_id, "http://gmeow.example/d1");
+    assert_eq!(r.cited_iris, cited);
+}
+
+fn query(
+    proof: Option<DerivationRef>,
+    counterproof: Option<DerivationRef>,
+    evaluation: EvaluationStatus,
+    completeness: CompletenessStatus,
+    semantics_available: bool,
+) -> ReasoningResult {
+    ReasoningResult::from_query(
+        ResultPayload::Bindings(vec![]),
+        proof,
+        counterproof,
+        evaluation,
+        completeness,
+        PreservationClaim::exact(),
+        semantics_available,
+        prov(),
+    )
+}
+
+#[test]
+fn from_query_proof_only_is_supported() {
+    let r = query(
+        Some(dref("p")),
+        None,
+        EvaluationStatus::Completed,
+        CompletenessStatus::CompleteForFragment,
+        true,
+    );
+    assert_eq!(r.information, InformationState::Supported);
+    assert!(r.provenance.proof.is_some());
+    assert!(r.provenance.counterproof.is_none());
+    assert!(r.validate().is_ok());
+}
+
+#[test]
+fn from_query_counterproof_only_is_opposed() {
+    let r = query(
+        None,
+        Some(dref("c")),
+        EvaluationStatus::Completed,
+        CompletenessStatus::CompleteForFragment,
+        true,
+    );
+    assert_eq!(r.information, InformationState::Opposed);
+}
+
+#[test]
+fn from_query_both_is_glut_and_validates() {
+    let r = query(
+        Some(dref("p")),
+        Some(dref("c")),
+        EvaluationStatus::Completed,
+        CompletenessStatus::CompleteForFragment,
+        true,
+    );
+    assert_eq!(r.information, InformationState::Both);
+    // The proof + counterproof are themselves the glut witnesses validate() needs.
+    assert!(r.validate().is_ok());
+}
+
+#[test]
+fn from_query_none_conclusive_is_neither() {
+    let r = query(
+        None,
+        None,
+        EvaluationStatus::Completed,
+        CompletenessStatus::CompleteForFragment,
+        true,
+    );
+    assert_eq!(r.information, InformationState::Neither);
+    assert!(r.validate().is_ok());
+}
+
+#[test]
+fn from_query_none_nonconclusive_is_undetermined() {
+    let r = query(
+        None,
+        None,
+        EvaluationStatus::BudgetExhausted,
+        CompletenessStatus::Incomplete,
+        true,
+    );
+    assert_eq!(r.information, InformationState::Undetermined);
+}
+
+#[test]
+fn from_query_no_semantics_is_not_evaluated() {
+    let r = query(
+        Some(dref("p")),
+        None,
+        EvaluationStatus::Unsupported,
+        CompletenessStatus::Unknown,
+        false,
+    );
+    assert_eq!(r.information, InformationState::NotEvaluated);
+}
+
 // ── BudgetLimit lossless discriminator ─────────────────────────────────────────
 
 #[test]

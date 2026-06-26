@@ -479,6 +479,20 @@ pub struct DerivationRef {
     pub cited_iris: BTreeSet<String>,
 }
 
+impl DerivationRef {
+    /// Build a [`DerivationRef`] from a reconstructed [`crate::explain::Explanation`]
+    /// proof tree. A *proof* references the conclusion quad's explanation; a
+    /// *counterproof* references the explanation of the conclusion's explicit
+    /// negation (the FDE/paraconsistent `opposed` evidence). The same machinery
+    /// builds both.
+    pub fn from_explanation(explanation: &crate::explain::Explanation) -> Self {
+        Self {
+            derivation_id: explanation.target_derivation_id.clone(),
+            cited_iris: explanation.cited_iris.clone(),
+        }
+    }
+}
+
 /// The context an answer is true in: a world (always present — "an answer is
 /// always somewhere", SEMANTICS:362) and the optional standpoint/time/path axes.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -768,6 +782,51 @@ impl ReasoningResult {
             InformationState::NotEvaluated,
             provenance,
             ResultPayload::Empty,
+        )
+    }
+
+    /// Build a result for a **queried conclusion** from its proof / counterproof,
+    /// classifying the information state at the single [`InformationState::classify`]
+    /// chokepoint (so the conclusiveness invariant cannot be violated).
+    ///
+    /// This is the query-surface entry point (#768 Task 3): `proof` is present iff
+    /// the conclusion is derivable; `counterproof` is present iff its explicit
+    /// negation is derivable. The Belnap quadrant follows: proof-only ⇒ supported,
+    /// counterproof-only ⇒ opposed, both ⇒ a witnessed contradiction (`both`),
+    /// neither ⇒ `neither` when conclusive else `undetermined`;
+    /// `semantics_available == false` ⇒ `not-evaluated`. When `both`, the proof and
+    /// counterproof themselves are the glut witnesses the [`Self::validate`]
+    /// invariant requires.
+    #[allow(clippy::too_many_arguments)]
+    pub fn from_query(
+        payload: ResultPayload,
+        proof: Option<DerivationRef>,
+        counterproof: Option<DerivationRef>,
+        evaluation: EvaluationStatus,
+        completeness: CompletenessStatus,
+        preservation: PreservationClaim,
+        semantics_available: bool,
+        mut provenance: ResultProvenance,
+    ) -> Self {
+        let conclusive = evaluation == EvaluationStatus::Completed
+            || completeness == CompletenessStatus::CompleteForFragment;
+        let information = InformationState::classify(
+            proof.is_some(),
+            counterproof.is_some(),
+            conclusive,
+            semantics_available,
+        );
+        provenance.proof = proof;
+        provenance.counterproof = counterproof;
+        provenance.projection_class = preservation.clone();
+        Self::new(
+            InputStatus::Valid,
+            evaluation,
+            completeness,
+            preservation,
+            information,
+            provenance,
+            payload,
         )
     }
 
