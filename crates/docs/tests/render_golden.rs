@@ -301,6 +301,97 @@ fn search_index_json_golden() {
 }
 
 #[test]
+fn llms_txt_header_golden() {
+    // The standard llmstxt.org index is ~2k bullets; lock only its deterministic
+    // head — H1 + canonical summary blockquote + prose + the Vocabulary section.
+    let model = model();
+    let txt = gmeow_docs::render::llms_txt(&model);
+    let head: String = txt.lines().take(16).collect::<Vec<_>>().join("\n");
+    insta::assert_snapshot!(head);
+}
+
+#[test]
+fn llms_full_txt_header_golden() {
+    // Lock the complete form's header skeleton + the `## Terms` banner.
+    let model = model();
+    let txt = gmeow_docs::render::llms_full_txt(&model);
+    let head: String = txt.lines().take(8).collect::<Vec<_>>().join("\n");
+    insta::assert_snapshot!(head);
+}
+
+#[test]
+fn term_card_md_golden() {
+    // The richest-surface term exercises every advisory field in the card.
+    let model = model();
+    let slug = richest_surface_term_slug(&model);
+    let term = model
+        .terms
+        .iter()
+        .find(|t| term_slug(t) == slug)
+        .expect("the richest-surface term resolves");
+    insta::assert_snapshot!(gmeow_docs::render::term_card_md(&model, term));
+}
+
+/// Extract the `url` of a `- [text](url): note` markdown-link bullet, if the line
+/// is one (else `None`). URLs never contain `)`, so the first `)` closes them.
+fn bullet_url(line: &str) -> Option<&str> {
+    let after = line.strip_prefix("- [")?;
+    let close = after.find("](")?;
+    let rest = &after[close + 2..];
+    let end = rest.find(')')?;
+    Some(&rest[..end])
+}
+
+#[test]
+fn llms_txt_conforms_to_llmstxt_org() {
+    // The load-bearing correctness gate (NOT insta): the structural llmstxt.org
+    // invariants plus the guarantee that every bullet URL resolves to a real file
+    // in the published site tree (the anchor-lint equivalent for the .txt surface,
+    // which the HTML-only `no_dangling_internal_html_links` does not cover).
+    let model = model();
+    let site = render_site(&model);
+    let txt = std::str::from_utf8(&site.files["llms.txt"]).expect("llms.txt is utf-8");
+
+    // Exactly one H1, and a summary blockquote.
+    assert_eq!(
+        txt.lines().filter(|l| l.starts_with("# ")).count(),
+        1,
+        "llms.txt must have exactly one H1"
+    );
+    assert!(
+        txt.lines().any(|l| l.starts_with("> ")),
+        "llms.txt must carry a summary blockquote"
+    );
+
+    let mut sections = 0usize;
+    let mut linked_bullets = 0usize;
+    for line in txt.lines() {
+        if let Some(heading) = line.strip_prefix("## ") {
+            sections += 1;
+            assert!(
+                !heading.trim().is_empty(),
+                "section heading must not be empty"
+            );
+        }
+        if let Some(url) = bullet_url(line) {
+            linked_bullets += 1;
+            assert!(
+                site.files.contains_key(url),
+                "llms.txt bullet URL must resolve to a site file: {url}"
+            );
+        }
+    }
+    assert!(
+        sections >= 5,
+        "expected the standard section set (Vocabulary/Terms/Slices/Concerns/Reference…), got {sections}"
+    );
+    assert!(
+        linked_bullets > 100,
+        "expected the full term vocabulary linked, got {linked_bullets}"
+    );
+}
+
+#[test]
 fn render_site_is_byte_stable() {
     let model = model();
     let a = render_site(&model);

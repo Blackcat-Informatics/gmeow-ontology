@@ -1,0 +1,29 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: "gmeow_docs::render::term_card_md(&model, term)"
+---
+# gmeow:Tagging (⊑ Relator)
+
+- category: Class
+- iri: https://blackcatinformatics.ca/gmeow/Tagging
+- slice: tags
+- label: Tagging
+- box: gmeow:boxTBox
+
+A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a tagger, and optionally a scheme and time interval. Bears provenance (gmeow:wasAttributedTo), confidence (gmeow:confidence), and suppression (gmeow:displayable false for retraction without deletion — Principle 10). Structurally the NameUsage/IdentityFacet idiom wearing a different hat, inheriting time-scoping, confidence-weighting, and retract-without-delete for free. The canonical form when the act of tagging must itself be a node; the flat shortcut is gmeow:hasTag.
+
+**Parents:** Relator
+
+**Use when:** Use when the act of tagging must itself be a node — to record who tagged, when, under which scheme, with what confidence, or to retract a tag without deleting it (gmeow:displayable false).
+
+**Avoid when:** Avoid for the ordinary 80% case where a bare label suffices (use the flat gmeow:hasTag, optionally with RDF-star annotations); reify only when provenance, period, or suppression must be first-class.
+
+**How to use:** Mint the relator and fill its roles — gmeow:taggingTagged, gmeow:taggingTag, gmeow:taggingTagger, optionally gmeow:taggingScheme and gmeow:taggingInterval — then carry provenance, confidence, and displayable on the relator node; gmeow:hasTag pairsWith Tagging as the promotion target.
+
+**Examples:** ex:t1 a gmeow:Tagging ; gmeow:taggingTagged ex:report ; gmeow:taggingTag ex:tagUrgent ; gmeow:taggingTagger ex:lillith .
+
+**Logic:** logic:Kind
+
+**Related:** hasTag
+
+**Aligns:** closeMatch:Annotation; closeMatch:Tagging
