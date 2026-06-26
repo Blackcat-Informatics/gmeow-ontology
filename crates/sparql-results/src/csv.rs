@@ -64,7 +64,7 @@ pub fn to_csv(
                 out.push(',');
             }
             if let Some(Some(value)) = row.get(column) {
-                push_field(&cell_value(value), &mut out);
+                push_field(cell_value(value).as_ref(), &mut out);
             }
             // None or missing column → empty field (nothing emitted between separators).
         }
@@ -78,13 +78,18 @@ pub fn to_csv(
 }
 
 /// The bare CSV "value" for a bound term.
-fn cell_value(value: &TermValue) -> String {
+///
+/// Returns a [`std::borrow::Cow`] to avoid cloning the lexical string for the
+/// two common cases (IRI and Literal); only blank-node labels and triple terms
+/// require an owned allocation.
+fn cell_value(value: &TermValue) -> std::borrow::Cow<'_, str> {
+    use std::borrow::Cow;
     match value {
-        TermValue::Iri(iri) => iri.clone(),
-        TermValue::Literal { lexical_form, .. } => lexical_form.clone(),
-        TermValue::Blank { label, .. } => format!("_:{label}"),
+        TermValue::Iri(iri) => Cow::Borrowed(iri),
+        TermValue::Literal { lexical_form, .. } => Cow::Borrowed(lexical_form),
+        TermValue::Blank { label, .. } => Cow::Owned(format!("_:{label}")),
         // CSV predates RDF-1.2; the N-Triples token is a reasonable rendering.
-        TermValue::Triple { .. } => ntriples_token(value),
+        TermValue::Triple { .. } => Cow::Owned(ntriples_token(value)),
     }
 }
 
