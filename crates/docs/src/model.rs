@@ -256,12 +256,11 @@ impl DocSlice {
         creators.sort();
         let mut consumers = consumers.clone();
         consumers.sort();
-        let mut profiles = profiles.clone();
-        profiles.sort();
-        profiles.dedup();
-        let mut depends_on = depends_on.clone();
-        depends_on.sort();
-        depends_on.dedup();
+        // `extract_manifest_view` already sorts + dedups both vectors before
+        // populating `ManifestView` (crates/slice/src/catalog.rs), so they
+        // arrive deterministically ordered — no re-sort needed here.
+        let profiles = profiles.clone();
+        let depends_on = depends_on.clone();
 
         Self {
             iri: slice_iri.clone(),
@@ -1866,7 +1865,7 @@ fn named(iri: &str) -> oxigraph::model::NamedNode {
 /// lexical form), or `None`.
 fn first_literal(store: &Store, subject: &str, predicate: &str) -> Option<String> {
     let subject = oxigraph::model::NamedNode::new(subject).ok()?;
-    let mut values: Vec<String> = store
+    store
         .quads_for_pattern(
             Some(subject.as_ref().into()),
             Some(named(predicate).as_ref()),
@@ -1878,9 +1877,7 @@ fn first_literal(store: &Store, subject: &str, predicate: &str) -> Option<String
             Term::Literal(lit) => Some(lit.value().to_string()),
             _ => None,
         })
-        .collect();
-    values.sort();
-    values.into_iter().next()
+        .min()
 }
 
 /// The first literal value for `subject predicate ?o` where `subject` is a
@@ -1891,7 +1888,7 @@ fn first_literal_of(
     subject: oxigraph::model::NamedOrBlankNodeRef,
     predicate: &str,
 ) -> Option<String> {
-    let mut values: Vec<String> = store
+    store
         .quads_for_pattern(
             Some(subject),
             Some(named(predicate).as_ref()),
@@ -1903,9 +1900,7 @@ fn first_literal_of(
             Term::Literal(lit) => Some(lit.value().to_string()),
             _ => None,
         })
-        .collect();
-    values.sort();
-    values.into_iter().next()
+        .min()
 }
 
 /// All literal values for `subject predicate ?o`, sorted and deduped
