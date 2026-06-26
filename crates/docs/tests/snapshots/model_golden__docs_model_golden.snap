@@ -4,7 +4,7 @@ expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "3",
+  "version": "4",
   "slice_count": 75,
   "term_count": 2163,
   "dependency_edge_count": 781,
@@ -175,7 +175,13 @@ expression: summary
         "Reference gmeow:aboutnessDescribes or gmeow:aboutnessEnacts from a carrier via gmeow:hasAboutness; carry the subject toward which the mode holds on the surrounding construct (citation, exemplar, statement cell), never inferred."
       ],
       "use_for_consumer": [],
-      "avoid_for_consumer": []
+      "avoid_for_consumer": [],
+      "logic_stereotypes": [
+        "logic:AbstractIndividualType"
+      ],
+      "related_terms": [],
+      "box_role": "gmeow:boxTBox",
+      "formalized_by": []
     },
     {
       "iri": "https://blackcatinformatics.ca/gmeow/abstract",
@@ -205,7 +211,11 @@ expression: summary
         "Carry the summary literal on gmeow:abstract with a language tag per rendition; projects to schema:abstract / dcterms:abstract."
       ],
       "use_for_consumer": [],
-      "avoid_for_consumer": []
+      "avoid_for_consumer": [],
+      "logic_stereotypes": [],
+      "related_terms": [],
+      "box_role": "gmeow:boxRBox",
+      "formalized_by": []
     },
     {
       "iri": "https://blackcatinformatics.ca/gmeow/langEnglish",
@@ -223,7 +233,11 @@ expression: summary
       "avoid_when": [],
       "how_to_use": [],
       "use_for_consumer": [],
-      "avoid_for_consumer": []
+      "avoid_for_consumer": [],
+      "logic_stereotypes": [],
+      "related_terms": [],
+      "box_role": "gmeow:boxABox",
+      "formalized_by": []
     }
   ],
   "mapping_set_count": 54,
