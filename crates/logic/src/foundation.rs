@@ -622,26 +622,34 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic level coherence: presence marker (issue #708, C5) ────────────────────
-    // A positive presence marker keyed ONLY on logic:holonicLevel — the mereological
-    // compositional depth in a whole/part DAG.  logic:orderedType (HiLog deep-
-    // instantiation order) does NOT feed this marker: the two axes are orthogonal and
-    // must not be conflated.  A holon carrying orderedType but no holonicLevel will
-    // still fail the NAF in stratum 4 and receive a HolonicLevelIncoherence violation.
-    // Settles in stratum 1 so the stratum-4 NAF is stratified.  Inert on inputs with
-    // no logic:holonicLevel assertions.  (LOGIC-FOUNDATION.md §mereology+holons.)
+    // ── Holonic level coherence: position presence marker (issue #708, C5) ───────────
+    // A holon's logic:holonicLevel (mereological compositional depth) is READ OFF its
+    // logic:HolonicPosition — the canonical relational construct of which logic:Holon
+    // and a level are lossy projections (see logic:Holon / logic:holonicLevel defs).
+    // The level itself is a literal (xsd:nonNegativeInteger), and the foundation chase
+    // is all-IRI (no literal facts), so coherence is keyed on the IRI-valued canonical
+    // construct: a holon "is levelled" exactly when it occupies a logic:HolonicPosition,
+    // i.e. some position reifier P has logic:positionEntity(P, ?X).  Without a position
+    // there is no path along which a depth could be measured, so the level is incoherent.
     //
-    // hasHolonicLevel(?X, ?X) :- holonicLevel(?X, ?L)
+    // NON-CONFLATION: this marker is fed ONLY by logic:positionEntity (the mereological
+    // position axis).  logic:instanceOf / logic:orderedType (the HiLog deep-instantiation
+    // order — the type tower) do NOT feed it; an entity high in the instantiation tower
+    // but occupying no holonic position still fails the stratum-4 NAF and is charged,
+    // because instantiation order is not a mereological level.  Settles in stratum 1 so
+    // the stratum-4 NAF is stratified.  (LOGIC-FOUNDATION.md §mereology+holons.)
+    //
+    // hasHolonicPosition(?X, ?X) :- positionEntity(?P, ?X)
     Rule {
         head: pos(
             var("?X"),
-            TermPat::Const(logic_iri!("hasHolonicLevel")),
+            TermPat::Const(logic_iri!("hasHolonicPosition")),
             var("?X"),
         ),
         body: &[pos(
+            var("?P"),
+            TermPat::Const(logic_iri!("positionEntity")),
             var("?X"),
-            TermPat::Const(logic_iri!("holonicLevel")),
-            var("?L"),
         )],
         distinct_pairs: NO_GUARD,
     },
@@ -1340,23 +1348,28 @@ const STRATUM_4: &[Rule] = &[
     // PROFILE-SCOPED, exactly like weak supplementation (and per #775 profile-relativity):
     // a holon (isHolon — both a proper part of some whole AND itself has a proper part) is
     // charged with this coherence violation ONLY when it is declared under a mereology
-    // profile (underMereologyProfile) yet carries no logic:holonicLevel assertion.  A holon
+    // profile (underMereologyProfile) yet occupies NO logic:HolonicPosition.  A holon
     // outside any logic:MereologyProfile is NEVER charged — parthood is profiled, not
-    // universal, and holonicLevel is path-relative (a min/max band), optional outside a
-    // profile.  The NAF target hasHolonicLevel settles in stratum 1 (armed only by
-    // logic:holonicLevel), isHolon also settles in stratum 1, and underMereologyProfile is
-    // an asserted EDB relation, so the negation is stratified — this mirrors the
-    // weak-supplementation violation exactly.  ?X is positively bound by isHolon(?X, ?X) and
+    // universal, and a holonic level is path-relative (a min/max band), optional outside a
+    // profile.  logic:holonicLevel is a literal read off the holon's logic:HolonicPosition;
+    // the foundation chase is all-IRI, so coherence is keyed on the IRI-valued canonical
+    // construct (hasHolonicPosition) rather than the literal level: a profiled holon with no
+    // position has no path along which a depth could be measured, so its level is incoherent.
+    // The NAF target hasHolonicPosition settles in stratum 1 (armed by logic:positionEntity),
+    // isHolon also settles in stratum 1, and underMereologyProfile is an asserted EDB
+    // relation, so the negation is stratified — this mirrors the weak-supplementation
+    // violation exactly.  ?X is positively bound by isHolon(?X, ?X) and
     // underMereologyProfile(?X, ?M), so the rule is DL-safe.
     //
-    // CRITICAL NON-CONFLATION: logic:orderedType (HiLog deep-instantiation order) does NOT
-    // feed hasHolonicLevel — the two axes are orthogonal.  A profiled holon carrying
-    // orderedType but no holonicLevel still fires this violation, because holonicLevel
-    // (mereological compositional depth in a whole/part DAG) and orderedType (instantiation
-    // tower order) must not be conflated.  (LOGIC-FOUNDATION.md §mereology+holons.)
+    // CRITICAL NON-CONFLATION: logic:instanceOf / logic:orderedType (HiLog deep-instantiation
+    // order — the type tower) do NOT feed hasHolonicPosition — the two axes are orthogonal.
+    // A profiled holon high in the instantiation tower but occupying no holonic position
+    // still fires this violation, because mereological compositional depth (read off a
+    // logic:HolonicPosition in a whole/part DAG) and instantiation-tower order must not be
+    // conflated.  (LOGIC-FOUNDATION.md §mereology+holons.)
     //
     // violation(?X, logic:HolonicLevelIncoherence) :- isHolon(?X, ?X),
-    //     underMereologyProfile(?X, ?M), NOT hasHolonicLevel(?X, ?X)
+    //     underMereologyProfile(?X, ?M), NOT hasHolonicPosition(?X, ?X)
     Rule {
         head: pos(
             var("?X"),
@@ -1372,7 +1385,7 @@ const STRATUM_4: &[Rule] = &[
             ),
             neg(
                 var("?X"),
-                TermPat::Const(logic_iri!("hasHolonicLevel")),
+                TermPat::Const(logic_iri!("hasHolonicPosition")),
                 var("?X"),
             ),
         ],

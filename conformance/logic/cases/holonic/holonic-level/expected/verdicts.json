@@ -1,0 +1,6 @@
+{
+  "https://example.org/holonic/holonic-level/schema": {
+    "quads": 57,
+    "status": "consistent"
+  }
+}

@@ -638,18 +638,16 @@ const RELCOMP_GOLDEN: &str =
 // materialized golden are read straight from the conformance case, so this Rust
 // golden and the conformance harness assert the SAME bytes.
 const HOLONIC_EMERGENCE_INPUT: &str =
-    include_str!("../../../../conformance/logic/cases/foundation/holonic-emergence/input.nq");
-const HOLONIC_EMERGENCE_GOLDEN: &str = include_str!(
-    "../../../../conformance/logic/cases/foundation/holonic-emergence/expected/materialized.nq"
-);
+    include_str!("../../../../conformance/logic/cases/holonic/emergence/input.nq");
+const HOLONIC_EMERGENCE_GOLDEN: &str =
+    include_str!("../../../../conformance/logic/cases/holonic/emergence/expected/materialized.nq");
 // Holonic autonomy/integration duality (issue #707, C4): the input.nq seed facts and the
 // full materialized golden are read straight from the conformance case, so this Rust golden
 // and the conformance harness assert the SAME bytes.
-const HOLONIC_AGENCY_INPUT: &str = include_str!(
-    "../../../../conformance/logic/cases/foundation/holonic-autonomy-integration/input.nq"
-);
+const HOLONIC_AGENCY_INPUT: &str =
+    include_str!("../../../../conformance/logic/cases/holonic/holon-integrity/input.nq");
 const HOLONIC_AGENCY_GOLDEN: &str = include_str!(
-    "../../../../conformance/logic/cases/foundation/holonic-autonomy-integration/expected/materialized.nq"
+    "../../../../conformance/logic/cases/holonic/holon-integrity/expected/materialized.nq"
 );
 
 #[test]

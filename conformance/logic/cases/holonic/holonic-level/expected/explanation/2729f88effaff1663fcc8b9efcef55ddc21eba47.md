@@ -1,0 +1,36 @@
+<!-- cited-iri-skeleton
+  https://blackcatinformatics.ca/gmeow/derivation/20dee9e79336ead14c10fc525ee25421b8301427
+  https://blackcatinformatics.ca/gmeow/derivation/5502aea866d80dad4ed918ba59ddfbce05fcfc4e
+  https://blackcatinformatics.ca/gmeow/reifier/1392d75dde95bcd77559f98fda14f0e4cec583d6
+  https://blackcatinformatics.ca/gmeow/reifier/2729f88effaff1663fcc8b9efcef55ddc21eba47
+  https://blackcatinformatics.ca/logic/assert
+  https://blackcatinformatics.ca/logic/overlaps
+  https://blackcatinformatics.ca/logic/properPartOf
+  https://blackcatinformatics.ca/logic/rule/anonymous
+  https://example.org/holonic/holonic-level/Pixel1
+  https://example.org/holonic/holonic-level/Sprite
+  https://example.org/holonic/holonic-level/schema
+-->
+
+<!-- step-skeleton
+  step derivation=https://blackcatinformatics.ca/gmeow/derivation/5502aea866d80dad4ed918ba59ddfbce05fcfc4e
+    rule=https://blackcatinformatics.ca/logic/rule/anonymous
+    term=https://blackcatinformatics.ca/logic/overlaps
+    term=https://example.org/holonic/holonic-level/Pixel1
+    term=https://example.org/holonic/holonic-level/Sprite
+  step derivation=https://blackcatinformatics.ca/gmeow/derivation/20dee9e79336ead14c10fc525ee25421b8301427
+    rule=https://blackcatinformatics.ca/logic/assert
+    term=https://blackcatinformatics.ca/logic/properPartOf
+    term=https://example.org/holonic/holonic-level/Pixel1
+    term=https://example.org/holonic/holonic-level/Sprite
+-->
+
+# Explanation for `<https://blackcatinformatics.ca/gmeow/reifier/2729f88effaff1663fcc8b9efcef55ddc21eba47>`
+
+**World:** `<https://example.org/holonic/holonic-level/schema>`
+**Target derivation:** `<https://blackcatinformatics.ca/gmeow/derivation/5502aea866d80dad4ed918ba59ddfbce05fcfc4e>`
+
+**Derived** by rule `<https://blackcatinformatics.ca/logic/rule/anonymous>`:
+  `<https://example.org/holonic/holonic-level/Sprite>` `<https://blackcatinformatics.ca/logic/overlaps>` `<https://example.org/holonic/holonic-level/Pixel1>` *(in `<https://example.org/holonic/holonic-level/schema>`)*
+  **Asserted fact** (input — `<https://blackcatinformatics.ca/gmeow/reifier/1392d75dde95bcd77559f98fda14f0e4cec583d6>`):
+    `<https://example.org/holonic/holonic-level/Pixel1>` `<https://blackcatinformatics.ca/logic/properPartOf>` `<https://example.org/holonic/holonic-level/Sprite>` *(in `<https://example.org/holonic/holonic-level/schema>`)*
