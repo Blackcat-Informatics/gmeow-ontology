@@ -18,9 +18,11 @@
 //! * **Raise** ([`LogicParseError`]) on empty/unreadable input.
 //!
 //! The `gufo: class → logic: term` *coverage* correspondence (the `#663`
-//! "gmeow:logic ⊇ gUFO floor" gate fixture, with its `SUPERSEDED` sentinel) is a
-//! Python-only test fixture and is **not** part of the compiler runtime — it is
-//! intentionally not ported here.
+//! "gmeow:logic ⊇ gUFO floor", with its `SUPERSEDED` sentinel) is **not** part of
+//! the compiler runtime — only the 11-stereotype runtime sort map lives in this
+//! module. The coverage floor is enforced natively by the integration test
+//! `crates/logic/tests/gufo_superset.rs` (#731, which retired the Python fixture
+//! `tests/test_logic_gufo_superset.py`).
 
 use std::collections::HashSet;
 use std::path::Path;
