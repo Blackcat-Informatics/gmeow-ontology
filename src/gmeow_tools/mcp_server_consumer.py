@@ -17,7 +17,7 @@ from contextlib import suppress
 from dataclasses import asdict
 from functools import lru_cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from fastmcp import FastMCP
 from gts import read
@@ -41,12 +41,20 @@ def _view() -> FoldView:
     return FoldView(read(GTS_SNAPSHOT_FILE.read_bytes()))
 
 
+class _McpView(Protocol):
+    """The three Rust MCP surfaces (``gmeow_native.pipeline.McpView``, #1031)."""
+
+    def lookup_term(self, term: str, requested: list[str]) -> str: ...
+    def llms_txt(self, requested: list[str]) -> str: ...
+    def okf_index(self, requested: list[str]) -> str: ...
+
+
 @lru_cache(maxsize=1)
-def _rust_view() -> Any:
+def _rust_view() -> _McpView:
     """The Rust MCP surface over the bundled snapshot (loaded once, #1031)."""
     from gmeow_native import pipeline
 
-    return pipeline.McpView(GTS_SNAPSHOT_FILE.read_bytes())
+    return cast("_McpView", pipeline.McpView(GTS_SNAPSHOT_FILE.read_bytes()))
 
 
 def _selector(view: FoldView, lang: str | None = None) -> LangSelector:
@@ -88,7 +96,7 @@ def gmeow_lookup_term(term: str, lang: str | None = None) -> str:
         requested = _requested(lang)
     except UnknownLanguageError as exc:
         return json.dumps({"ok": False, "error": str(exc)})
-    return cast("str", _rust_view().lookup_term(term, requested))
+    return _rust_view().lookup_term(term, requested)
 
 
 @mcp.resource("gmeow://ontology/llms.txt{?lang}")
@@ -102,7 +110,7 @@ def gmeow_llms_txt(lang: str | None = None) -> str:
         requested = _requested(lang)
     except UnknownLanguageError as exc:
         return f"# Error: {exc}\n"
-    return cast("str", _rust_view().llms_txt(requested))
+    return _rust_view().llms_txt(requested)
 
 
 @mcp.resource("gmeow://ontology/okf-index{?lang}")
@@ -123,7 +131,7 @@ def gmeow_okf_index(lang: str | None = None) -> str:
         requested = _requested(lang)
     except UnknownLanguageError as exc:
         return json.dumps({"ok": False, "error": str(exc)})
-    return cast("str", _rust_view().okf_index(requested))
+    return _rust_view().okf_index(requested)
 
 
 def _memory() -> Any:
