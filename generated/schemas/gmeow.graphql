@@ -2876,6 +2876,12 @@ enum TemporalPrecisionEnum {
   precisionYear
 }
 
+enum TermStabilityEnum {
+  stabilityDeprecated
+  stabilityExperimental
+  stabilityStable
+}
+
 enum TextDirectionEnum {
   directionBoustrophedon
   directionContextual
@@ -3615,6 +3621,11 @@ type Certification {
   certifiedIdentity: Agent
   certifiedKey: CryptographicKey
   certifier: Agent
+}
+
+type ChangelogEntry {
+  id: String
+  iri: String
 }
 
 type CharacterArc {
@@ -7428,6 +7439,11 @@ type TemporalMeasurement {
 }
 
 type TemporalPrecision {
+  id: String
+  iri: String
+}
+
+type TermStability {
   id: String
   iri: String
 }
