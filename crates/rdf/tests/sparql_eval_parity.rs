@@ -315,7 +315,10 @@ const CORPUS_MIN_TOTAL: usize = 141;
 //
 // The original whole-corpus green guard was `CORPUS_MIN_GREEN = 113` (observed 115).
 // It is now expressed as per-shard floors (the gated subset) plus
-// [`OFF_GATE_HEAVY_MIN_GREEN`]; their sum is the same whole-corpus guard.
+// [`OFF_GATE_HEAVY_MIN_GREEN`]: `36 + 24 + 26 + 24` (= 110) `+ 1` = a **111**
+// whole-corpus floor — deliberately 2 below the prior 113, the same one-below-each
+// drift margin the per-shard floors use (observed total 115). Not a coverage
+// regression; just a slightly looser floor expressed shard-locally.
 
 /// How many independent shard tests the gated corpus parity sweep is split across.
 const NUM_SHARDS: usize = 4;
