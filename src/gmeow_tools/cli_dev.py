@@ -2482,19 +2482,20 @@ def extract_docs(
 ) -> None:
     """Extract the browsable docs tree from a GTS snapshot (#439).
 
-    Combines a deterministic Markdown projection (per-term reference pages, slice
-    guides, an alignment summary, and a statement-layer summary) with the full
-    ontology-docs site, unpacked verbatim from the ``ontology-docs`` blob baked
-    into the bundle. The site is rendered at ``regenerate gts`` time and embedded,
-    not re-rendered here; run ``regenerate gts`` to refresh the stored tree.
+    The tree is the full ontology-docs site (per-term reference pages, slice
+    guides, alignment + linkage indexes), unpacked verbatim from the
+    ``ontology-docs`` blob baked into the bundle. The site is rendered natively
+    at ``regenerate gts`` time (``gmeow_docs::render_site_lang``) and embedded,
+    not re-projected here; run ``regenerate gts`` to refresh the stored tree.
     """
     from gmeow_tools.config import GTS_SNAPSHOT_FILE
-    from gmeow_tools.create_docs import create_docs
+    from gmeow_tools.gts_views import extract_docs_site, load_fold
 
     path = gts_file or GTS_SNAPSHOT_FILE
-    selector = _resolve_lang(lang, _gts_tag_map(path))
+    view = load_fold(path)
+    selector = _resolve_lang(lang, view.tag_map())
     try:
-        create_docs(path, directory, force=force, selector=selector)
+        extract_docs_site(view, directory, selector=selector, force=force)
     except FileExistsError as exc:
         raise _fail(str(exc)) from exc
     except (OSError, ValueError) as exc:

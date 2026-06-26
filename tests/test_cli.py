@@ -324,19 +324,24 @@ def test_quality_foops_best_effort_skips_when_foops_raises(
     assert "FOOPS! skipped" in result.output
 
 
-def test_create_docs_from_bundled_snapshot(runner: CliRunner, tmp_path: Path) -> None:
+def test_extract_docs_unpacks_site_from_bundled_snapshot(
+    runner: CliRunner, tmp_path: Path
+) -> None:
     out = tmp_path / "docs-tree"
     result = runner.invoke(public_app, ["extract-docs", "--directory", str(out)])
     assert result.exit_code == 0, result.output
+    # `extract-docs` is now a pure unpack of the Rust-rendered ontology-docs site
+    # (#1019): the embedded ``ontology-docs`` blob (#897) is the docs tree, with
+    # the internal language prefix stripped, so the site lands at the root.
+    assert (out / "index.html").exists()
     assert (out / "index.md").exists()
-    assert (out / "terms" / "classes").is_dir()
-    assert (out / "terms" / "properties").is_dir()
-    assert (out / "alignments.md").exists()
-    assert (out / "statements.md").exists()
-    # The full ontology-docs site is unpacked verbatim from the embedded
-    # ``ontology-docs`` blob (#897), repo-free — the language prefix is stripped.
-    assert (out / "ontology-docs" / "index.html").exists()
-    assert (out / "ontology-docs" / "assets" / "gmeow.css").exists()
+    assert (out / "assets" / "gmeow.css").exists()
+    assert (out / "terms").is_dir()
+    assert (out / "linkages" / "index.html").exists()
+    assert (out / "search-index.json").exists()
+    # A per-term reference page is unpacked (carrying the enriched Usage Advice /
+    # Alignments sections rendered natively by `md_term`).
+    assert list((out / "terms").glob("*/index.md")), "per-term Markdown pages present"
 
 
 def test_describe_unknown_language_fails(runner: CliRunner) -> None:
@@ -454,20 +459,6 @@ def test_export_lang_flag_wins_over_env(runner: CliRunner, tmp_path: Path) -> No
     header = classes_csv.read_text(encoding="utf-8").splitlines()[0]
     assert "label_fr" in header
     assert "label_en" not in header
-
-
-def test_create_docs_language_fallback(runner: CliRunner, tmp_path: Path) -> None:
-    fixture = _multilingual_gts(tmp_path, include_fr=False, include_zh=False)
-    out = tmp_path / "docs-tree"
-    result = runner.invoke(
-        public_app,
-        ["extract-docs", "--directory", str(out), "--lang", "fr", str(fixture)],
-    )
-    assert result.exit_code == 0, result.output
-    sample_file = out / "terms" / "classes" / "gmeow-SampleTerm.md"
-    assert sample_file.exists()
-    text = sample_file.read_text(encoding="utf-8")
-    assert "[fallback: en]" in text
 
 
 def test_public_cli_excludes_checkout_commands(runner: CliRunner) -> None:
