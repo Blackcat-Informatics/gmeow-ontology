@@ -334,6 +334,10 @@ const CORPUS_MIN_GREEN_PER_SHARD: [usize; NUM_SHARDS] = [36, 24, 26, 24];
 /// machines/worktrees (the key is repo-relative, not absolute) and across corpus
 /// growth (per-file, not positional), unlike a `sorted_index % N` scheme which
 /// would reshuffle every file's shard whenever a query is added.
+///
+/// `rel_path` **must** use `'/'` separators (Windows `'\\'` must be normalized
+/// before calling); the FNV hash is over raw bytes, so any backslash would change
+/// the shard assignment and invalidate the hardcoded per-shard floors.
 fn shard_of(rel_path: &str) -> usize {
     let mut h: u64 = 0xcbf2_9ce4_8422_2325;
     for b in rel_path.as_bytes() {
@@ -485,11 +489,14 @@ fn run_corpus_subset(include: &dyn Fn(&str) -> bool) -> CorpusTally {
 
     for path in &corpus {
         // Stable, repo-relative key — skip files this subset does not own.
+        // Always '/'-normalized so shard_of() hashes the same bytes on all platforms
+        // (Windows paths would otherwise introduce '\\' separators that change the
+        // FNV hash and invalidate the hardcoded per-shard floors).
         let rel = path
             .strip_prefix(&repo_root)
             .unwrap_or(path)
             .to_string_lossy()
-            .into_owned();
+            .replace('\\', "/");
         if !include(&rel) {
             continue;
         }
