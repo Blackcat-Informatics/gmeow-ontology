@@ -14,9 +14,36 @@
 #
 # `default-filter` is the set of tests run when no filter is given on the CLI. Keep
 # this expression as the single source of truth for what the always-on gate excludes;
-# `maint-heavy` re-includes everything. Each excluded pattern MUST be justified by an
-# entry in AGENTS.md's test-budget section (the off-gate allowlist).
-default-filter = 'not test(/corpus_parity_heavy_offgate/)'
+# `maint-heavy` re-includes everything. Each excluded group MUST be justified here and
+# in AGENTS.md's test-budget section (the off-gate allowlist). The post-run JUnit
+# budget gate verifies nothing >25 s slipped THROUGH this filter onto the gate.
+#
+# Off-gate groups (all measured >22 s locally; #1045). They are NOT casually slow —
+# each is irreducibly heavy under the current architecture:
+#   - corpus_parity_heavy_offgate: native NOT-EXISTS pathology (~44 s; see crates/rdf).
+#   - gmeow-docs render/competency/extract/lint/i18n/model binaries: each test rebuilds
+#     the full DocsModel via `DocsModel::discover` (~13 s) + render (~5 s), uncached
+#     across nextest's process-per-test model. A docs-model shared-fixture brings these
+#     back on-gate — tracked as a follow-up. `rdf_golden` stays gated as the docs
+#     representative subset.
+#   - gmeow-logic ontology_entailments: Nemo OWL-2-RL closures (engine-bound by design).
+#   - gmeow-conformance goal-rdf-list-functions: Nemo chase case.
+#   - gmeow-pipeline end_to_end / fold_parity / full-fold artifacts / snapshot codec
+#     round-trips / mapping byte-parity / scoreboards acceptance: full-DAG, minutes.
+#   - gmeow-slice alignment/sparql/edoal emit parity + gmeow-slicetest places structural:
+#     whole-ontology emit/closure checks just over budget.
+default-filter = '''
+  not (
+    test(/corpus_parity_heavy_offgate/)
+    | (package(gmeow-docs) & binary(/competency|extract_roundtrip|i18n_render|lint_regression|model_golden|render_golden/))
+    | (package(gmeow-logic) & binary(ontology_entailments))
+    | (package(gmeow-conformance) & test(/goal-rdf-list-functions/))
+    | (package(gmeow-pipeline) & binary(/end_to_end|fold_parity/))
+    | (package(gmeow-pipeline) & test(/stages::gts_sink|stages::snapshot::ustar_tests::build_docs_archive|stages::logic::tests::logic_artifacts_reproduce|scoreboards::tests::acceptance_runs_the_real_external_fixture|stages::mappings::tests|stages::docs_render::tests::docs_graph_is_nonempty/))
+    | (package(gmeow-slice) & (test(/alignment_parity/) | test(/sparql_emit::tests/) | test(/edoal_emit::tests::every_edoal/)))
+    | (package(gmeow-slicetest) & test(/places.tests.structural/))
+  )
+'''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
 retries = { backoff = "fixed", count = 2, delay = "1s" }
 # Output ergonomics (#871): surface the slowest tests in the final summary every
