@@ -633,3 +633,56 @@ fn path_shape_accepts_max_depth_at_cap() {
     )
     .expect("max_depth == MAX_PATH_DEPTH must be accepted");
 }
+
+// ── G8: namespace_scope must be non-empty ───────────────────────────────────
+
+#[test]
+fn path_shape_rejects_empty_namespace_scope() {
+    // G8: an empty namespace_scope string must be hard-rejected.
+    let err = PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::Wildcard,
+        1,
+        None,
+        Some(String::new()),
+        None,
+    )
+    .unwrap_err();
+    assert!(
+        err.contains("namespace_scope"),
+        "error must mention namespace_scope: {err}"
+    );
+    assert!(
+        err.contains("non-empty"),
+        "error must describe the constraint: {err}"
+    );
+}
+
+#[test]
+fn path_shape_rejects_whitespace_only_namespace_scope() {
+    // G8: a whitespace-only namespace_scope must be hard-rejected (trim check).
+    let err = PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::Wildcard,
+        1,
+        None,
+        Some("   ".to_owned()),
+        None,
+    )
+    .unwrap_err();
+    assert!(err.contains("namespace_scope"), "got: {err}");
+}
+
+#[test]
+fn path_shape_accepts_valid_namespace_scope() {
+    // G8: a non-empty namespace_scope must be accepted.
+    PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::Wildcard,
+        1,
+        None,
+        Some("https://example.org/ns/".to_owned()),
+        None,
+    )
+    .expect("valid namespace_scope must be accepted");
+}

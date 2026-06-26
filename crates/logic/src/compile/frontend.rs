@@ -941,9 +941,31 @@ fn extract_path_shapes(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<
 
         // Base step: named-predicate XOR wildcard.
         let step_pred = value(store, &node, &p_step);
-        let wildcard = value(store, &node, &p_wildcard)
-            .map(|t| term_str(&t) == "true")
-            .unwrap_or(false);
+        // xsd:boolean lexical space: "true"/"1" = true, "false"/"0" = false.
+        // Any other literal is a hard-fail (no silent coercion to false).
+        let wildcard_result: Result<bool, ()> = match value(store, &node, &p_wildcard) {
+            None => Ok(false),
+            Some(t) => match term_str(&t).as_str() {
+                "true" | "1" => Ok(true),
+                "false" | "0" => Ok(false),
+                other => {
+                    diagnostics.push(Diagnostic::warning(
+                        "MALFORMED_PATH_SHAPE",
+                        format!(
+                            "logic:pathWildcard has unrecognized boolean literal {:?}; \
+                             expected \"true\", \"false\", \"1\", or \"0\"; shape skipped",
+                            other
+                        ),
+                        Some(subj.clone()),
+                    ));
+                    Err(())
+                }
+            },
+        };
+        let wildcard = match wildcard_result {
+            Ok(b) => b,
+            Err(()) => continue,
+        };
 
         let base = match (step_pred.as_ref(), wildcard) {
             (Some(_), true) => {

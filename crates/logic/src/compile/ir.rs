@@ -776,6 +776,14 @@ impl PathShapeIr {
                 return Err("PathShapeIr named-predicate step must be a non-empty IRI".to_owned());
             }
         }
+        if let Some(ns) = &namespace_scope {
+            if ns.trim().is_empty() {
+                return Err(
+                    "PathShapeIr.namespace_scope must be a non-empty IRI string when present;                      pass None to leave it unset"
+                        .to_owned(),
+                );
+            }
+        }
         Ok(Self {
             iri,
             base,

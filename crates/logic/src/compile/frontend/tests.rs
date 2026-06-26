@@ -749,3 +749,67 @@ fn path_shapes_are_canonically_ordered() {
         "path shapes must be in canonical (sorted) order"
     );
 }
+
+// ── G7: pathWildcard boolean fidelity ───────────────────────────────────────
+
+#[test]
+fn path_shape_wildcard_accepts_xsd_boolean_one() {
+    // G7: the xsd:boolean value "1" must be accepted as wildcard = true.
+    let (prog, diags) = parse(
+        "ex:wc a logic:PathShape ;
+            logic:pathWildcard \"1\"^^xsd:boolean .",
+    );
+    assert!(
+        diags.iter().all(|d| d.code != "MALFORMED_PATH_SHAPE"),
+        "\"1\" must not produce a path-shape diagnostic: {diags:?}"
+    );
+    let s = path_shape(&prog, "/wc");
+    assert_eq!(
+        s.base,
+        PathBase::Wildcard,
+        "\"1\" must parse as wildcard=true"
+    );
+}
+
+#[test]
+fn path_shape_wildcard_rejects_unrecognized_literal() {
+    // G7: an unrecognized boolean literal must produce a MALFORMED_PATH_SHAPE
+    // diagnostic and the shape must be skipped (hard-fail, no silent coercion).
+    let (prog, diags) = parse(
+        "ex:bad a logic:PathShape ;
+            logic:pathWildcard \"yes\" .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "shape with unrecognized wildcard literal must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("unrecognized")),
+        "expected a MALFORMED_PATH_SHAPE diagnostic mentioning unrecognized: {diags:?}"
+    );
+}
+
+#[test]
+fn path_shape_wildcard_false_literal_yields_no_wildcard() {
+    // G7: "false" is valid and must NOT mark the shape as wildcard.
+    // Here we pair it with a step predicate to verify "false" is accepted cleanly
+    // (i.e., does not trigger the unrecognized-literal hard-fail).
+    let (prog, diags) = parse(
+        "ex:notWild a logic:PathShape ;
+            logic:pathStepPredicate ex:p ;
+            logic:pathWildcard \"false\" .",
+    );
+    assert!(
+        diags.iter().all(|d| d.code != "MALFORMED_PATH_SHAPE"),
+        "\"false\" must not produce a path-shape diagnostic: {diags:?}"
+    );
+    let s = path_shape(&prog, "/notWild");
+    assert_eq!(
+        s.base,
+        PathBase::NamedPredicate("https://example.org/test/p".to_owned()),
+        "step predicate must win when wildcard is false"
+    );
+}
