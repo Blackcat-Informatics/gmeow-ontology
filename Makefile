@@ -59,7 +59,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	native-py validate validate-gts reason verify test test-fast rust-build rust-test check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene \
+	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene wasm wasm-pkg wasm-pkg-test \
 	capi-build capi-header capi-check capi-install \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
@@ -365,6 +365,44 @@ capi-check: ## Verify the committed purrdf.h is current + the C smoke links and 
 
 capi-install: ## Install libpurrdf + purrdf.pc + header to PREFIX (default /usr/local).
 	cargo capi install -p gmeow-rdf-capi --prefix="$(if $(PREFIX),$(PREFIX),/usr/local)"
+
+wasm: ## Build the purrdf wasm engine (P10, #846) for wasm32-unknown-unknown.
+	@# EPIC #832 P10 is wasm-first: the in-memory RDF/JS engine MUST compile to
+	@# wasm32. The target's absence is a SKIP locally but a hard FAIL in CI, so the
+	@# wasm-clean criterion is never silently unverified on the gating path (same
+	@# idiom as `rdf-core-hygiene`'s sparql-algebra wasm check).
+	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown; then \
+		echo "== engine proof: gmeow-rdf (gts, no oxigraph/python) builds for wasm32 =="; \
+		cargo build -p gmeow-rdf --no-default-features --features gts --target wasm32-unknown-unknown || { echo "FAIL: gmeow-rdf does not build for wasm32-unknown-unknown"; exit 1; }; \
+		echo "== binding proof: the purrdf cdylib builds for wasm32 =="; \
+		cargo build -p gmeow-rdf-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-rdf-wasm (purrdf) does not build for wasm32-unknown-unknown"; exit 1; }; \
+		echo "OK: purrdf wasm engine + bindings build for wasm32-unknown-unknown"; \
+	elif [ -n "$${CI:-}" ]; then \
+		echo "FAIL: wasm32-unknown-unknown target absent in CI — the P10 wasm-first criterion (#846) cannot be verified; CI must install it"; exit 1; \
+	else \
+		echo "SKIP: wasm32-unknown-unknown target not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' to enable the purrdf wasm build"; \
+	fi
+
+wasm-pkg: ## Build the purrdf npm/ESM package (release wasm + wasm-bindgen web bindings).
+	@# Release-build the cdylib, then run `wasm-bindgen` (pinned =0.2.125, matching the
+	@# crate) to emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
+	@# `~/.cargo/bin` carries the cli on both CI runners and local dev installs.
+	cargo build -p gmeow-rdf-wasm --target wasm32-unknown-unknown --release
+	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
+		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_rdf_wasm.wasm \
+		--out-dir crates/rdf-wasm/js/pkg --target web
+	@# Size optimization is best-effort: wasm-opt -Oz roughly halves the artifact, but
+	@# the package is correct without it. Absence is a note, not a failure.
+	@if command -v wasm-opt >/dev/null 2>&1; then \
+		wasm-opt -Oz -o crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm && \
+		echo "OK: wasm-opt -Oz applied"; \
+	else \
+		echo "note: wasm-opt not found — shipping unoptimized wasm (size-opt is a follow-up)"; \
+	fi
+	@echo "OK: purrdf npm package built (crates/rdf-wasm/js/, pkg/ generated)"
+
+wasm-pkg-test: wasm-pkg ## Build the purrdf package and run the Node real-execution round-trip lane.
+	cd crates/rdf-wasm/js && node --test tests/*.test.mjs
 
 slicetest: ## Run the slice-resident test-DSL harness in isolation.
 	cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)
