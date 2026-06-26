@@ -13,6 +13,10 @@ use purrdf::cursor::{
     purrdf_cursor_free, purrdf_cursor_next, purrdf_quads_for_pattern, PurrdfCursor,
 };
 use purrdf::error::{purrdf_error_code, purrdf_error_free, purrdf_error_message, PurrdfError};
+use purrdf::graph::{
+    purrdf_graph_free, purrdf_graph_freeze, purrdf_graph_from_dataset, purrdf_graph_insert,
+    purrdf_graph_remove, PurrdfGraph,
+};
 use purrdf::handles::{
     purrdf_dataset_free, purrdf_dataset_quad_count, purrdf_dataset_term_count, PurrdfDataset,
 };
@@ -408,5 +412,114 @@ fn quoted_triple_object_renders_to_ntriples() {
         purrdf_buffer_free(buffer);
         purrdf_cursor_free(cursor);
         purrdf_dataset_free(dataset);
+    }
+}
+
+unsafe fn quad_count(dataset: *const PurrdfDataset) -> usize {
+    let mut count: usize = 0;
+    assert_eq!(
+        purrdf_dataset_quad_count(dataset, &mut count),
+        PurrdfStatus::Ok as i32
+    );
+    count
+}
+
+unsafe fn graph_of(doc: &str) -> *mut PurrdfGraph {
+    let dataset = parse("application/n-triples", doc);
+    let mut graph: *mut PurrdfGraph = std::ptr::null_mut();
+    assert_eq!(
+        purrdf_graph_from_dataset(dataset, &mut graph),
+        PurrdfStatus::Ok as i32
+    );
+    purrdf_dataset_free(dataset);
+    graph
+}
+
+unsafe fn insert(graph: *mut PurrdfGraph, s: &str, p: &str, o: &str) -> u8 {
+    let (sv, pv, ov) = (iri_view(s), iri_view(p), iri_view(o));
+    let mut changed: u8 = 0;
+    let mut error: *mut PurrdfError = std::ptr::null_mut();
+    let status = purrdf_graph_insert(
+        graph,
+        &sv,
+        &pv,
+        &ov,
+        std::ptr::null(),
+        &mut changed,
+        &mut error,
+    );
+    assert_eq!(status, PurrdfStatus::Ok as i32);
+    assert!(error.is_null());
+    changed
+}
+
+unsafe fn remove(graph: *mut PurrdfGraph, s: &str, p: &str, o: &str) -> u8 {
+    let (sv, pv, ov) = (iri_view(s), iri_view(p), iri_view(o));
+    let mut changed: u8 = 0;
+    let mut error: *mut PurrdfError = std::ptr::null_mut();
+    let status = purrdf_graph_remove(
+        graph,
+        &sv,
+        &pv,
+        &ov,
+        std::ptr::null(),
+        &mut changed,
+        &mut error,
+    );
+    assert_eq!(status, PurrdfStatus::Ok as i32);
+    assert!(error.is_null());
+    changed
+}
+
+unsafe fn freeze(graph: *const PurrdfGraph) -> *mut PurrdfDataset {
+    let mut frozen: *mut PurrdfDataset = std::ptr::null_mut();
+    let mut error: *mut PurrdfError = std::ptr::null_mut();
+    assert_eq!(
+        purrdf_graph_freeze(graph, &mut frozen, &mut error),
+        PurrdfStatus::Ok as i32
+    );
+    assert!(error.is_null());
+    frozen
+}
+
+#[test]
+fn graph_insert_grows_the_frozen_count() {
+    unsafe {
+        let graph = graph_of(THREE_QUADS);
+        assert_eq!(insert(graph, "http://s3", "http://p", "http://o4"), 1);
+        // Re-inserting the same quad is a no-op.
+        assert_eq!(insert(graph, "http://s3", "http://p", "http://o4"), 0);
+        let frozen = freeze(graph);
+        assert_eq!(quad_count(frozen), 4);
+        purrdf_dataset_free(frozen);
+        purrdf_graph_free(graph);
+    }
+}
+
+#[test]
+fn graph_remove_base_quad_shrinks_the_frozen_count() {
+    unsafe {
+        let graph = graph_of(THREE_QUADS);
+        assert_eq!(remove(graph, "http://s1", "http://p", "http://o1"), 1);
+        // Removing an absent quad is a no-op.
+        assert_eq!(remove(graph, "http://s1", "http://p", "http://o1"), 0);
+        let frozen = freeze(graph);
+        assert_eq!(quad_count(frozen), 2);
+        purrdf_dataset_free(frozen);
+        purrdf_graph_free(graph);
+    }
+}
+
+#[test]
+fn graph_reinsert_unsuppresses_a_removed_base_quad() {
+    unsafe {
+        let graph = graph_of(THREE_QUADS);
+        // Remove a base quad (suppresses it), then re-insert it (un-suppresses).
+        assert_eq!(remove(graph, "http://s2", "http://p", "http://o3"), 1);
+        assert_eq!(insert(graph, "http://s2", "http://p", "http://o3"), 1);
+        let frozen = freeze(graph);
+        assert_eq!(quad_count(frozen), 3);
+        purrdf_dataset_free(frozen);
+        purrdf_graph_free(graph);
     }
 }
