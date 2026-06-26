@@ -131,6 +131,7 @@ pub(crate) const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("rdfs", "http://www.w3.org/2000/01/rdf-schema#"),
     ("xsd", "http://www.w3.org/2001/XMLSchema#"),
     ("skos", "http://www.w3.org/2004/02/skos/core#"),
+    ("vs", "http://www.w3.org/2003/06/sw-vocab-status/ns#"),
     ("dcterms", "http://purl.org/dc/terms/"),
     ("dc", "http://purl.org/dc/elements/1.1/"),
     ("dcmitype", "http://purl.org/dc/dcmitype/"),
