@@ -1,0 +1,12 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: list membership — the gmeow:listContains backing (#1009 §5).
+% Walks the rdf:first/rdf:rest chain (the Prolog analog of the forward-chase
+% rl:list-member recursion), reusing the same recursive rdf:List resolution.
+% Over the list (x y z) at l0, membership returns Y = {x, y, z}, status ok.
+:- prefix(ex, 'https://example.org/profiles/goal-rdf-list-functions/').
+:- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+ex:listMember(L, X) :- rdf:first(L, X).
+ex:listMember(L, X) :- rdf:rest(L, R), ex:listMember(R, X).
+?- ex:listMember(ex:l0, Y).

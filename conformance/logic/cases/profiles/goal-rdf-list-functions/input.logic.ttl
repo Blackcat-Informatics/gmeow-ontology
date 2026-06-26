@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: profiles/goal-rdf-list-functions (#1009 §5)
+# AC: the reasoning layer backs the first-class RDF list functions
+# (gmeow:listLength/listContains/…) by walking the rdf:first/rdf:rest chain — the
+# backward-goal Prolog analog of the forward-chase `rl:list-member` recursion. A
+# membership goal over the list (x y z) returns {x, y, z}; a length goal returns 3.
+#
+# No forward rules: the list EDB lives in input.nq; the list operations are the
+# backward goals in queries/.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/goal-rdf-list-functions/> .
+
+# Schema: the element sort used by the projection back-ends.
+ex:Element a logic:Kind .

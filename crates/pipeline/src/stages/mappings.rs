@@ -31,7 +31,7 @@ use gmeow_slice::emit_sssom_sets;
 use gmeow_slice::fno_emit::emit_fno;
 use gmeow_slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
 use gmeow_slice::{
-    emit_dsl_stats, emit_edoal_sets, emit_sparql_sets, emit_standpoint_sets,
+    emit_dsl_stats, emit_edoal_sets, emit_list_functions, emit_sparql_sets, emit_standpoint_sets,
     lint_prefix_consistency, lint_projection,
 };
 
@@ -54,6 +54,8 @@ pub const CORE_PREFIXES_PATH: &str = "generated/projections/core-prefixes.ttl";
 /// Committed logical path of the JSON-LD `@context` (#1009 §2; replaces the
 /// retired Python `jsonld_context.py` builder).
 pub const JSONLD_CONTEXT_PATH: &str = "generated/context.jsonld";
+/// Committed logical path of the first-class RDF list functions (#1009 §5).
+pub const LIST_FUNCTIONS_PATH: &str = "generated/projections/list-functions.fno.ttl";
 
 /// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
 /// projections) plus the DSL surface-count summary from `root`, returning
@@ -144,6 +146,14 @@ pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
     artifacts.insert(
         JSONLD_CONTEXT_PATH.to_string(),
         emit_jsonld_context().into_bytes(),
+    );
+
+    // First-class RDF list functions (#1009 §5) — six FnO primitives backed by the
+    // reasoning layer's recursive rdf:List resolution. Fixed content, deterministic;
+    // folds into gmeow.gts like the FnO catalog.
+    artifacts.insert(
+        LIST_FUNCTIONS_PATH.to_string(),
+        emit_list_functions().into_bytes(),
     );
 
     Ok(artifacts)
@@ -308,7 +318,7 @@ impl Stage for MappingsStage {
     fn impl_version(&self) -> &str {
         // v4: adds the #1009 §2 prefix-set projections (core-prefixes.ttl +
         // context.jsonld) to the emitted family — bump busts the stage cache.
-        "mappings.v4-prefix-sets"
+        "mappings.v5-list-functions"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
@@ -590,5 +600,38 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         );
         assert!(text.contains("\"@vocab\""), "context.jsonld has no @vocab");
         assert!(text.ends_with("}\n}\n"), "context.jsonld malformed tail");
+    }
+
+    #[test]
+    fn list_functions_are_emitted_and_parse() {
+        // Wiring check (#1009 §5): the mappings stage emits the six list functions
+        // as well-formed FnO that parses, each typed via fno:Output.
+        let root = repo_root();
+        let artifacts = compile_mappings(&root).expect("compile");
+        let lf = artifacts
+            .get(LIST_FUNCTIONS_PATH)
+            .expect("list-functions artifact");
+        let triples = triple_set(lf, RdfFormat::Turtle);
+        let functions = triples
+            .iter()
+            .filter(|t| t.contains("https://w3id.org/function/ontology#Function"))
+            .count();
+        assert_eq!(functions, 6, "expected six fno:Function declarations");
+        // Each issue-named function is present.
+        for name in [
+            "listLength",
+            "listGet",
+            "listIndexOf",
+            "listSlice",
+            "listConcat",
+            "listContains",
+        ] {
+            assert!(
+                triples
+                    .iter()
+                    .any(|t| t.contains(&format!("gmeow/{name}>"))),
+                "missing function {name}"
+            );
+        }
     }
 }
