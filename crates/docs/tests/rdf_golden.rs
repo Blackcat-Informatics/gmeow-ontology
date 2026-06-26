@@ -32,6 +32,8 @@ fn small_model() -> DocsModel {
             creators: Vec::new(),
             consumers: Vec::new(),
             artifacts: Vec::new(),
+            profiles: Vec::new(),
+            depends_on: Vec::new(),
         }],
         terms: vec![
             DocTerm {

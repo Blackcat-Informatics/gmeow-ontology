@@ -204,6 +204,13 @@ pub struct DocSlice {
     pub creators: Vec<String>,
     /// `gmeow:sliceConsumer` values.
     pub consumers: Vec<String>,
+    /// `gmeow:sliceProfile` values — named profiles this slice declares
+    /// membership in (sorted). Drives per-term profile chips (#1026).
+    pub profiles: Vec<String>,
+    /// `gmeow:sliceDependsOn` slice IRIs (sorted). The relation whose closure
+    /// over a profile's declared members yields the profile's full membership
+    /// (#330); reused to compute per-term profile membership (#1026).
+    pub depends_on: Vec<String>,
     /// All artifacts in the slice (sorted by logical path).
     pub artifacts: Vec<DocArtifact>,
 }
@@ -218,6 +225,8 @@ impl DocSlice {
             identifier,
             tier,
             consumers,
+            profiles,
+            depends_on,
         } = &record.manifest;
 
         let mut artifacts: Vec<DocArtifact> = record
@@ -231,6 +240,12 @@ impl DocSlice {
         creators.sort();
         let mut consumers = consumers.clone();
         consumers.sort();
+        let mut profiles = profiles.clone();
+        profiles.sort();
+        profiles.dedup();
+        let mut depends_on = depends_on.clone();
+        depends_on.sort();
+        depends_on.dedup();
 
         Self {
             iri: slice_iri.clone(),
@@ -240,6 +255,8 @@ impl DocSlice {
             identifier: identifier.clone(),
             creators,
             consumers,
+            profiles,
+            depends_on,
             artifacts,
         }
     }
