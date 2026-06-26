@@ -15,7 +15,6 @@
     "rdf-star",
     "rdfjs",
     "wasm",
-    "sparql",
     "turtle",
     "n-quads"
   ],
