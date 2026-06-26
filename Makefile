@@ -330,12 +330,14 @@ capi-build: ## Build libpurrdf (cdylib + staticlib + header + pkg-config) via ca
 	cargo capi build -p gmeow-rdf-capi
 
 capi-header: ## Regenerate the committed purrdf.h ABI contract from the crate.
+	@touch crates/rdf-capi/src/lib.rs  # cargo-c only re-runs cbindgen when the crate recompiles; force it so a cache-fresh build cannot serve a stale header
 	cargo capi build -p gmeow-rdf-capi
 	@hdr=$$(find $(CARGO_TARGET_DIR) -path '*/include/purrdf/purrdf.h' | head -1); \
 	  test -n "$$hdr" || { echo "FAIL: cargo-c did not emit purrdf.h"; exit 1; }; \
 	  cp "$$hdr" $(CAPI_HEADER); echo "regenerated $(CAPI_HEADER)"
 
 capi-check: ## Verify the committed purrdf.h is current + the C smoke links and runs.
+	@touch crates/rdf-capi/src/lib.rs  # force cbindgen to re-run; otherwise CI's rust-cache can restore a stale header and the drift diff is meaningless
 	cargo capi build -p gmeow-rdf-capi
 	@hdr=$$(find $(CARGO_TARGET_DIR) -path '*/include/purrdf/purrdf.h' | head -1); \
 	  test -n "$$hdr" || { echo "FAIL: cargo-c did not emit purrdf.h"; exit 1; }; \
