@@ -40,7 +40,7 @@ default-filter = '''
     | (package(gmeow-conformance) & test(/goal-rdf-list-functions/))
     | (package(gmeow-pipeline) & binary(/end_to_end|fold_parity/))
     | (package(gmeow-pipeline) & test(/stages::gts_sink|stages::snapshot::ustar_tests::build_docs_archive|stages::logic::tests::logic_artifacts_reproduce|scoreboards::tests::acceptance_runs_the_real_external_fixture|stages::mappings::tests|stages::docs_render::tests::docs_graph_is_nonempty/))
-    | (package(gmeow-slice) & (test(/alignment_parity/) | test(/sparql_emit::tests/) | test(/edoal_emit::tests::every_edoal/)))
+    | (package(gmeow-slice) & (binary(alignment_parity) | test(/sparql_emit::tests/) | test(/edoal_emit::tests::every_edoal/)))
     | (package(gmeow-slicetest) & test(/places.tests.structural/))
   )
 '''
