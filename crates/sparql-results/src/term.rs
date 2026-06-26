@@ -16,7 +16,6 @@ use gmeow_rdf_core::{emit_term, RdfLiteral, RdfTerm, RdfTriple, TermValue};
 /// non-language) literal. The egress model always populates `datatype`, so a
 /// plain literal arrives as a literal carrying this IRI; the owned model and
 /// Turtle/N-Triples abbreviate it to a bare `"lex"` form.
-#[allow(dead_code)]
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 
 /// Bridge an egress [`TermValue`] into the owned [`RdfTerm`] model.
@@ -29,7 +28,6 @@ const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 /// pragmatic, because predicates are IRIs in all real data.
 // Consumed by the JSON/XML/CSV/TSV document writers landing in Tasks 2–3; the
 // lib-only build can't see those call sites yet (the test module exercises it).
-#[allow(dead_code)]
 pub(crate) fn term_value_to_rdf_term(value: &TermValue) -> RdfTerm {
     match value {
         TermValue::Iri(s) => RdfTerm::iri(s.clone()),
@@ -83,7 +81,6 @@ pub(crate) fn term_value_to_rdf_term(value: &TermValue) -> RdfTerm {
 /// RDF; for a (malformed) non-IRI predicate we fall back to the kernel
 /// lexicalization of the bridged term with the `<>` delimiters trimmed, so the
 /// infallible bridge still produces a string rather than panicking.
-#[allow(dead_code)]
 fn predicate_iri(p: &TermValue) -> String {
     match p {
         TermValue::Iri(iri) => iri.clone(),
@@ -101,7 +98,6 @@ fn predicate_iri(p: &TermValue) -> String {
 /// The N-Triples / TSV token for a result cell: the kernel `emit_term` over the
 /// bridged owned term (`<iri>`, `_:label`, `"lex"` / `"lex"@lang` /
 /// `"lex"^^<dt>`, or `<< s p o >>`).
-#[allow(dead_code)]
 pub(crate) fn ntriples_token(value: &TermValue) -> String {
     emit_term(&term_value_to_rdf_term(value))
 }

@@ -15,20 +15,26 @@
 //! exclusively by the rdf-core kernel `emit_*` primitives (see [`term`],
 //! [`graph`]); this crate adds no term-syntax of its own.
 //!
-//! Scope of the current task: the shared infrastructure (error type, provenance
-//! carrier, term lexicalization bridge, CONSTRUCT-graph N-Triples writer) plus
-//! the public result-format and outcome types. The format dispatcher and the
-//! per-format document writers (JSON/XML/CSV/TSV) land in later tasks.
+//! Scope: the shared infrastructure (error type, provenance carrier, term
+//! lexicalization bridge, CONSTRUCT-graph N-Triples writer), the four per-format
+//! document writers (JSON/XML/CSV/TSV), and the [`serialize`] dispatcher that
+//! selects among them.
 
+mod csv;
 mod error;
 mod graph;
 mod json;
 mod model;
 mod term;
+mod tsv;
+mod xml;
 
+pub use csv::to_csv;
 pub use error::Error;
 pub use json::to_json;
 pub use model::{ResultProvenance, SolutionProvenance};
+pub use tsv::to_tsv;
+pub use xml::to_xml;
 
 /// Re-export of the egress result model this crate serializes, so consumers name
 /// a single path (`gmeow_sparql_results::SparqlResult`).
@@ -57,4 +63,71 @@ pub struct SerializeOutcome {
     /// with no extension point, so a populated provenance is trimmed at the exit
     /// gate and this flag is set, letting the caller detect the lossy projection.
     pub provenance_dropped: bool,
+}
+
+/// Serialize a [`SparqlResult`] to the requested [`SparqlResultsFormat`],
+/// carrying the additive `gmeow` provenance extension where the format allows.
+///
+/// This is the single public entry point: it dispatches to the per-format
+/// writer ([`to_json`], [`to_xml`], [`to_csv`], [`to_tsv`]).
+///
+/// # Errors
+///
+/// Propagates the per-format [`Error`]. Notably, the result-kind support matrix
+/// is enforced by the writers: XML rejects CONSTRUCT graphs, and CSV/TSV reject
+/// both ASK booleans and CONSTRUCT graphs, all via [`Error::Format`].
+pub fn serialize(
+    result: &SparqlResult,
+    format: SparqlResultsFormat,
+    provenance: &ResultProvenance,
+) -> Result<SerializeOutcome, Error> {
+    match format {
+        SparqlResultsFormat::Json => to_json(result, provenance),
+        SparqlResultsFormat::Xml => to_xml(result, provenance),
+        SparqlResultsFormat::Csv => to_csv(result, provenance),
+        SparqlResultsFormat::Tsv => to_tsv(result, provenance),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use gmeow_rdf_core::TermValue;
+
+    fn select_one() -> SparqlResult {
+        SparqlResult::Solutions {
+            variables: vec!["s".to_string()],
+            rows: vec![vec![Some(TermValue::Iri(
+                "http://example.org/s".to_string(),
+            ))]],
+        }
+    }
+
+    #[test]
+    fn dispatch_routes_each_format() {
+        let result = select_one();
+        let prov = ResultProvenance::default();
+
+        let json = serialize(&result, SparqlResultsFormat::Json, &prov).expect("json");
+        assert!(String::from_utf8(json.bytes)
+            .expect("utf8")
+            .starts_with('{'));
+
+        let xml = serialize(&result, SparqlResultsFormat::Xml, &prov).expect("xml");
+        assert!(String::from_utf8(xml.bytes)
+            .expect("utf8")
+            .starts_with("<?xml"));
+
+        let csv = serialize(&result, SparqlResultsFormat::Csv, &prov).expect("csv");
+        assert_eq!(
+            String::from_utf8(csv.bytes).expect("utf8"),
+            "s\r\nhttp://example.org/s\r\n"
+        );
+
+        let tsv = serialize(&result, SparqlResultsFormat::Tsv, &prov).expect("tsv");
+        assert_eq!(
+            String::from_utf8(tsv.bytes).expect("utf8"),
+            "?s\n<http://example.org/s>\n"
+        );
+    }
 }
