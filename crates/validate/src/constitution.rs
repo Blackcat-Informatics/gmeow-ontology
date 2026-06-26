@@ -817,16 +817,10 @@ pub fn check_supersession(md_text: &str, principles: &[Principle]) -> Vec<Findin
 }
 
 fn load_store_from_ttl(ttl: &str) -> Result<Store, String> {
-    use oxigraph::io::{RdfFormat, RdfParser};
-    let store = Store::new().map_err(|e| e.to_string())?;
-    for triple in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(ttl.as_bytes())
-    {
-        let triple = triple.map_err(|e| e.to_string())?;
-        store.insert(&triple).map_err(|e| e.to_string())?;
-    }
-    Ok(store)
+    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+    use gmeow_rdf::parse_dataset;
+    let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).map_err(|e| e.to_string())?;
+    store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).map_err(|e| e.to_string())
 }
 
 /// Run every constitution-as-code check into one granular finding list.
@@ -931,15 +925,10 @@ mod tests {
     }
 
     fn store_from(ttl: &str) -> Store {
-        use oxigraph::io::{RdfFormat, RdfParser};
-        let store = Store::new().unwrap();
-        for triple in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(ttl.as_bytes())
-        {
-            store.insert(&triple.unwrap()).unwrap();
-        }
-        store
+        use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+        use gmeow_rdf::parse_dataset;
+        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).unwrap()
     }
 
     const PREFIX: &str = "@prefix meta: <https://blackcatinformatics.ca/gmeow/meta#> .\n\

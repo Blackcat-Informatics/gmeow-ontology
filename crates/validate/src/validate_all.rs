@@ -1024,20 +1024,16 @@ fn find_example_files(slices_dir: &str) -> Result<Vec<(String, PathBuf)>, String
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oxigraph::io::{RdfFormat, RdfParser};
     use std::collections::{BTreeSet, HashSet};
+
+    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+    use gmeow_rdf::parse_dataset;
 
     use crate::store::dump_store_to_ntriples;
 
     fn store_from(ttl: &str) -> Store {
-        let store = Store::new().unwrap();
-        for triple in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(ttl.as_bytes())
-        {
-            store.insert(&triple.unwrap()).unwrap();
-        }
-        store
+        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).unwrap()
     }
 
     fn write_tmp(name: &str, contents: &str) -> PathBuf {

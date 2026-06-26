@@ -14,7 +14,10 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
+use gmeow_rdf::oxigraph::{
+    flat_oxigraph_quads_from_dataset, flat_oxigraph_quads_from_dataset_scoped, GraphPolicy,
+};
+use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
 use oxigraph::store::Store;
 
 use crate::error::PipelineError;
@@ -29,19 +32,34 @@ pub fn load_authored_store(root: &Path) -> Result<Store, PipelineError> {
         Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
     for path in authored_files(root)? {
         let bytes = std::fs::read(&path)?;
-        for quad in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(bytes.as_slice())
-        {
-            let quad = quad.map_err(|e| {
-                PipelineError::Parse(format!("syntax error in {}: {e}", path.display()))
-            })?;
-            store
-                .insert(&quad)
-                .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-        }
+        // SCOPE by the source path: each authored file is a distinct RDF document, so
+        // its anonymous blanks (`_:gts_<counter>`, restarting per parse) must not merge
+        // with another file's identically-labelled blanks when they share this store.
+        let scope = path.display().to_string();
+        rdf_bytes_into_store_scoped(&store, &bytes, "text/turtle", &scope, &scope)?;
     }
     Ok(store)
+}
+
+/// Like [`rdf_bytes_into_store`] but scopes blank node labels by `scope_key` (a stable
+/// per-source identity) so documents accumulated into one store keep disjoint blanks.
+pub fn rdf_bytes_into_store_scoped(
+    store: &Store,
+    bytes: &[u8],
+    media_type: &str,
+    scope_key: &str,
+    context: &str,
+) -> Result<(), PipelineError> {
+    let dataset = parse_dataset(bytes, media_type, None)
+        .map_err(|e| PipelineError::Parse(format!("syntax error in {context}: {e}")))?;
+    for quad in flat_oxigraph_quads_from_dataset_scoped(&dataset, scope_key)
+        .map_err(|e| PipelineError::Parse(format!("IR → quads in {context}: {e}")))?
+    {
+        store
+            .insert(&quad)
+            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
+    }
+    Ok(())
 }
 
 /// The sorted authored Turtle files that form the base graph (the hidden-input
@@ -123,17 +141,10 @@ fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 /// Serialize a store to canonical N-Quads bytes (sorted lines) for in-memory
 /// passing between stages.
 pub fn store_to_nquads(store: &Store) -> Result<Vec<u8>, PipelineError> {
-    let mut buf: Vec<u8> = Vec::new();
-    let mut serializer = RdfSerializer::from_format(RdfFormat::NQuads).for_writer(&mut buf);
-    for quad in store.iter() {
-        let quad = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
-        serializer
-            .serialize_quad(&quad)
-            .map_err(|e| PipelineError::Parse(format!("serialize failed: {e}")))?;
-    }
-    serializer
-        .finish()
-        .map_err(|e| PipelineError::Parse(format!("serializer finish failed: {e}")))?;
+    let dataset = gmeow_rdf::oxigraph::dataset_from_store(store)
+        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+    let buf = serialize_dataset(&dataset, "application/n-quads", SerializeGraph::Dataset)
+        .map_err(|e| PipelineError::Parse(format!("serialize failed: {e}")))?;
     // Sort lines for determinism (oxigraph iteration order is not guaranteed).
     let text = String::from_utf8(buf)
         .map_err(|e| PipelineError::Parse(format!("non-utf8 n-quads: {e}")))?;
@@ -147,18 +158,74 @@ pub fn store_to_nquads(store: &Store) -> Result<Vec<u8>, PipelineError> {
 /// Parse the published base-graph N-Quads artifact back into a store (the
 /// in-memory hand-off downstream stages use instead of re-reading from disk).
 pub fn parse_base_graph(bytes: &[u8]) -> Result<Store, PipelineError> {
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::NQuads)
-        .lenient()
-        .for_reader(bytes)
+    let dataset = parse_dataset(bytes, "application/n-quads", None)
+        .map_err(|e| PipelineError::Parse(format!("base-graph parse: {e}")))?;
+    gmeow_rdf::oxigraph::store_from_dataset(&dataset, GraphPolicy::PreserveNamedGraphs)
+        .map_err(|e| PipelineError::Parse(format!("base-graph store: {e}")))
+}
+
+/// Parse RDF text `bytes` of `media_type` into a fresh oxigraph store via the
+/// native codecs, preserving named graphs. `context` labels parse errors.
+pub fn rdf_bytes_to_store(
+    bytes: &[u8],
+    media_type: &str,
+    context: &str,
+) -> Result<Store, PipelineError> {
+    let dataset = parse_dataset(bytes, media_type, None)
+        .map_err(|e| PipelineError::Parse(format!("syntax error in {context}: {e}")))?;
+    gmeow_rdf::oxigraph::store_from_dataset(&dataset, GraphPolicy::PreserveNamedGraphs)
+        .map_err(|e| PipelineError::Parse(format!("store build for {context}: {e}")))
+}
+
+/// Parse RDF text `bytes` of `media_type` and insert the resulting quads into an
+/// existing `store`, accumulating across calls. `context` labels parse errors.
+pub fn rdf_bytes_into_store(
+    store: &Store,
+    bytes: &[u8],
+    media_type: &str,
+    context: &str,
+) -> Result<(), PipelineError> {
+    let dataset = parse_dataset(bytes, media_type, None)
+        .map_err(|e| PipelineError::Parse(format!("syntax error in {context}: {e}")))?;
+    for quad in flat_oxigraph_quads_from_dataset(&dataset)
+        .map_err(|e| PipelineError::Parse(format!("IR → quads in {context}: {e}")))?
     {
-        let quad = quad.map_err(|e| PipelineError::Parse(format!("base-graph parse: {e}")))?;
         store
             .insert(&quad)
             .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
     }
-    Ok(store)
+    Ok(())
+}
+
+/// Parse Turtle `bytes` into a fresh oxigraph store via the native codecs.
+///
+/// The native `parse_dataset` folds the RDF 1.2 statement layer, and
+/// `store_from_dataset` materialises the result with named graphs preserved (a
+/// stand-alone Turtle document only ever populates the default graph, so the
+/// policy is equivalent to flattening here). `context` labels parse errors.
+pub fn turtle_bytes_to_store(bytes: &[u8], context: &str) -> Result<Store, PipelineError> {
+    rdf_bytes_to_store(bytes, "text/turtle", context)
+}
+
+/// Parse Turtle `bytes` and insert the resulting quads into an existing `store`,
+/// accumulating across calls. `context` labels parse errors.
+pub fn turtle_bytes_into_store(
+    store: &Store,
+    bytes: &[u8],
+    context: &str,
+) -> Result<(), PipelineError> {
+    rdf_bytes_into_store(store, bytes, "text/turtle", context)
+}
+
+/// Parse Turtle `bytes` from a distinct source document (`scope_key` = its stable
+/// identity, e.g. the file path) and insert into `store`, scoping blank-node labels
+/// so several source files accumulated into one store keep disjoint anonymous blanks.
+pub fn turtle_bytes_into_store_scoped(
+    store: &Store,
+    bytes: &[u8],
+    scope_key: &str,
+) -> Result<(), PipelineError> {
+    rdf_bytes_into_store_scoped(store, bytes, "text/turtle", scope_key, scope_key)
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────

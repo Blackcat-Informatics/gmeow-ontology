@@ -32,6 +32,12 @@ gmeow-shacl = { path = "../shacl" }
 # File-driven test harness: one nextest case per discovered tests/*.ttl spec
 # file, run in parallel. The headline speed win of #784 (T3).
 datatest-stable = "0.3"
+# Native RDF text codec (#909): the test-only `store_from_turtle` helper parses
+# inline Turtle through `parse_dataset` + `store_from_dataset` (text-free IR → Store)
+# instead of oxigraph's `RdfParser`, so even the harness's parse path uses the
+# canonical native codec. Production slicetest parsing already routes through
+# `gmeow-validate::store::build_store`, so this stays a dev-dependency.
+gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts"] }
 
 [[test]]
 name = "slice_specs"

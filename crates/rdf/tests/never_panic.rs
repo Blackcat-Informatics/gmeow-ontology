@@ -21,6 +21,14 @@
 //! default nextest run), so — like `proptest_roundtrip.rs` — the N-Quads/Turtle
 //! contract is exercised through the identical oxigraph `RdfParser` path that
 //! `parse_quads` wraps.
+//!
+//! INTENTIONAL oxigraph cross-check (#909) — NOT a production native-codec path.
+//! These properties deliberately hammer the *oxigraph* `RdfParser` because the
+//! python-gated `py_store::parse_quads` it guards wraps that exact reader; the
+//! native text codec's own "never panic" contract is covered by the cargo-fuzz
+//! `nquads` target (`fuzz/fuzz_targets/nquads.rs`, re-pointed at
+//! `gmeow_rdf::parse_dataset`). So the `oxigraph::io` use here is an explicit,
+//! documented carve-out from the #909 grep gate, not a production parse.
 
 use oxigraph::io::{RdfFormat, RdfParser};
 use proptest::prelude::*;

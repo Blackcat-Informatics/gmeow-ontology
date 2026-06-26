@@ -98,12 +98,14 @@ fn parse(ttl: &str) -> LogicProgram {
 /// Canonical sorted triple lines of a Turtle document (default graph), for
 /// triple-set equality (valid because no golden uses blank nodes).
 fn triple_set(turtle: &str) -> Vec<String> {
-    use oxigraph::io::RdfFormat;
-    use oxigraph::store::Store;
-    let store = Store::new().unwrap();
-    store
-        .load_from_reader(RdfFormat::Turtle, turtle.as_bytes())
+    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+    use gmeow_rdf::parse_dataset;
+    // Native codec parse (#909) → frozen IR → oxigraph Store, so the existing
+    // oxigraph-`Display` triple rendering below is unchanged.
+    let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)
         .unwrap_or_else(|e| panic!("turtle parse failed: {e}\n---\n{turtle}"));
+    let store = store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
+        .unwrap_or_else(|e| panic!("turtle materialize failed: {e}\n---\n{turtle}"));
     let mut lines: Vec<String> = store
         .iter()
         .map(|q| {

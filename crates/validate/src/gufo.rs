@@ -882,7 +882,8 @@ pub fn reasoning_invariants(store: &Store, cfg: &GufoConfig) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oxigraph::io::{RdfFormat, RdfParser};
+    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+    use gmeow_rdf::parse_dataset;
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -893,14 +894,8 @@ mod tests {
     }
 
     fn store_from(ttl: &str) -> Store {
-        let store = Store::new().unwrap();
-        for triple in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(ttl.as_bytes())
-        {
-            store.insert(&triple.unwrap()).unwrap();
-        }
-        store
+        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).unwrap()
     }
 
     const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\

@@ -1310,14 +1310,9 @@ fn parse_u64(term: &Term) -> Option<u64> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oxigraph::io::RdfFormat;
 
     fn load_store(ttl: &str) -> Store {
-        let store = Store::new().expect("store creation is infallible");
-        store
-            .load_from_reader(RdfFormat::Turtle, ttl.as_bytes())
-            .expect("Turtle parse error");
-        store
+        crate::text_ingest::parse_turtle_to_store(ttl).expect("Turtle parse error")
     }
 
     const PREFIXES: &str = r#"

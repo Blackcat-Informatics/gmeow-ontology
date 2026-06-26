@@ -17,9 +17,10 @@
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
+use gmeow_rdf::oxigraph::{dataset_from_store, flat_oxigraph_quads_from_dataset};
+use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
 use gmeow_shacl::engine::validate_graphs;
 use gmeow_shacl::report::{Severity, ValidationReport};
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::store::Store;
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
@@ -207,30 +208,25 @@ pub fn base_ontology_nt() -> &'static str {
         for path in &module_paths {
             let ttl = std::fs::read_to_string(path)
                 .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
-            // Use lenient parser to accept private-use language tags.
-            if let Err(e) = store.load_from_reader(
-                RdfParser::from_format(RdfFormat::Turtle).lenient(),
-                ttl.as_bytes(),
-            ) {
+            // Native codec parse (#909): lenient on private-use language tags.
+            match parse_dataset(ttl.as_bytes(), "text/turtle", None)
+                .and_then(|ds| flat_oxigraph_quads_from_dataset(&ds))
+            {
+                Ok(quads) => {
+                    for quad in quads {
+                        store.insert(&quad).expect("store insert is infallible");
+                    }
+                }
                 // Warn but continue — some module.ttl files import cross-slice
-                // IRIs that are not resolvable in the local store; lenient parse
-                // already ignores unknown prefixes.
-                eprintln!(
-                    "warning: lenient Turtle parse of {} had errors: {e}",
+                // IRIs that are not resolvable in the local store.
+                Err(e) => eprintln!(
+                    "warning: native Turtle parse of {} had errors: {e}",
                     path.display()
-                );
+                ),
             }
         }
 
-        let mut buf: Vec<u8> = Vec::new();
-        store
-            .dump_graph_to_writer(
-                oxigraph::model::GraphNameRef::DefaultGraph,
-                RdfFormat::NTriples,
-                &mut buf,
-            )
-            .expect("N-Triples serialisation is infallible");
-        String::from_utf8(buf).expect("oxigraph N-Triples output is valid UTF-8")
+        store_dataset_to_nt(&store)
     })
 }
 
@@ -273,22 +269,29 @@ pub fn ttl_file_to_nt(path: &Path) -> String {
 /// Uses the lenient parser (same as `gmeow_shacl::engine::validate_graphs`) so
 /// private-use `@x-gmeow-*` language tags are accepted.
 pub fn ttl_str_to_nt(ttl: &str) -> String {
-    let store = Store::new().expect("in-memory store creation is infallible");
-    store
-        .load_from_reader(
-            RdfParser::from_format(RdfFormat::Turtle).lenient(),
-            ttl.as_bytes(),
-        )
+    let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None)
         .unwrap_or_else(|e| panic!("Turtle parse failed: {e}\nInput:\n{ttl}"));
-    let mut buf: Vec<u8> = Vec::new();
-    store
-        .dump_graph_to_writer(
-            oxigraph::model::GraphNameRef::DefaultGraph,
-            RdfFormat::NTriples,
-            &mut buf,
-        )
-        .expect("N-Triples serialisation is infallible");
-    String::from_utf8(buf).expect("oxigraph N-Triples output is valid UTF-8")
+    let store = gmeow_rdf::oxigraph::store_from_dataset(
+        &dataset,
+        gmeow_rdf::oxigraph::GraphPolicy::FlattenToDefaultGraph,
+    )
+    .unwrap_or_else(|e| panic!("store from dataset failed: {e}"));
+    store_dataset_to_nt(&store)
+}
+
+/// Fold an oxigraph store back to the IR and serialize its default graph as
+/// N-Triples via the native codec (#909). The `application/n-quads` codec on the
+/// `DefaultGraph` selection emits graphless rows (N-Triples) and is byte-lenient
+/// on private-use language tags.
+fn store_dataset_to_nt(store: &Store) -> String {
+    let dataset = dataset_from_store(store).expect("store folds to the IR");
+    let buf = serialize_dataset(
+        &dataset,
+        "application/n-quads",
+        SerializeGraph::DefaultGraph,
+    )
+    .expect("native N-Triples serialisation is infallible");
+    String::from_utf8(buf).expect("native N-Triples output is valid UTF-8")
 }
 
 // ── Report helpers ────────────────────────────────────────────────────────────

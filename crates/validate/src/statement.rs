@@ -582,19 +582,14 @@ fn py_str_repr(s: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oxigraph::io::{RdfFormat, RdfParser};
+    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+    use gmeow_rdf::parse_dataset;
 
     /// Build a store from a Turtle fixture (the native statement OWL + ontology
     /// union the production wrapper assembles).
     fn store_from(ttl: &str) -> Store {
-        let store = Store::new().unwrap();
-        for triple in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(ttl.as_bytes())
-        {
-            store.insert(&triple.unwrap()).unwrap();
-        }
-        store
+        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).unwrap()
     }
 
     const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\

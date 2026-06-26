@@ -42,10 +42,10 @@ use gmeow_logic::compile::projections::{
 };
 use gmeow_rdf::loss::pair_loss_ledger;
 use gmeow_rdf::{
-    dataset_from_bytes, import_gts_events, serialize_dataset_to_format, RdfDataset, RdfLookaside,
-    TermId,
+    dataset_from_bytes, dataset_from_oxigraph_quads, import_gts_events,
+    serialize_dataset_base_only, serialize_dataset_to_format, NativeRdfFormat, RdfDataset,
+    RdfLookaside, SerializeGraph, TermId,
 };
-use oxigraph::io::RdfFormat;
 
 /// A supported transcode codec (source or target).
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -73,8 +73,8 @@ pub enum Codec {
     /// OWL serialized as canonical RDF-1.2-faithful Turtle (star-capable,
     /// decodable). Intentionally an *intent label* over the same RDF-1.2 Turtle
     /// codec as [`Codec::Turtle`]: both decode/encode through
-    /// `RdfFormat::Turtle` (oxigraph's `rdf-12` feature parses the `<<( … )>>`
-    /// quoted-triple syntax). The distinct name marks "this Turtle carries OWL
+    /// `NativeRdfFormat::Turtle` (the native gmeow-gts RDF-1.2 Turtle codec parses
+    /// the `<<( … )>>` quoted-triple syntax). The distinct name marks "this Turtle carries OWL
     /// in RDF-1.2 form" for routing/reporting; it does NOT imply a separate
     /// parser or a syntactic rewrite. (We deliberately do not run the lossy,
     /// directional `gmeow_rdf::statements::normalize_rdf12_to_owl` here — it
@@ -285,9 +285,19 @@ pub fn read_to_dataset(input: &[u8], from: Codec) -> Result<Arc<RdfDataset>, Tra
                 import_gts_events(input).map_err(|e| TranscodeError::Codec(e.to_string()))?;
             Ok(bundle.dataset)
         }
+        // JSON-LD has no single `NativeRdfFormat` variant: decode it with the
+        // hand-rolled native JSON-LD(-star) parser (no `oxigraph::io`), then fold the
+        // resulting oxigraph model quads into the frozen IR through the shared path.
+        Codec::JsonLd => {
+            let dataset = crate::stages::yaml_ld::parse_jsonld_star(input)
+                .map_err(|e| TranscodeError::Codec(format!("jsonld parse: {e}")))?;
+            let quads: Vec<oxigraph::model::Quad> =
+                dataset.iter().map(|q| q.into_owned()).collect();
+            dataset_from_oxigraph_quads(&quads).map_err(TranscodeError::Codec)
+        }
         _ => {
-            let fmt = codec_to_rdf_format(from).ok_or_else(|| {
-                TranscodeError::Codec(format!("no RdfFormat mapping for `{}`", from.name()))
+            let fmt = codec_to_native_format(from).ok_or_else(|| {
+                TranscodeError::Codec(format!("no native format mapping for `{}`", from.name()))
             })?;
             dataset_from_bytes(input, fmt).map_err(TranscodeError::Codec)
         }
@@ -338,7 +348,7 @@ pub fn transcode(
 
     // JSON-LD-star and YAML-LD-star write path: NQuads -> GTS -> yaml_ld stage.
     if matches!(to, Codec::JsonLdStar | Codec::YamlLdStar) {
-        let nq_outcome = serialize_dataset_to_format(&dataset, RdfFormat::NQuads, None)
+        let nq_outcome = serialize_dataset_to_format(&dataset, NativeRdfFormat::NQuads, None)
             .map_err(|e| TranscodeError::Codec(format!("star pre-step nquads serialize: {e}")))?;
         let nq_str = String::from_utf8(nq_outcome.bytes)
             .map_err(|e| TranscodeError::Codec(format!("star pre-step nquads utf8: {e}")))?;
@@ -358,9 +368,32 @@ pub fn transcode(
         return Ok(TranscodeOutput { bytes, realized });
     }
 
-    // Syntax-to-syntax path via oxigraph serializer.
-    let fmt = codec_to_rdf_format(to).ok_or_else(|| {
-        TranscodeError::Codec(format!("no RdfFormat mapping for `{}`", to.name()))
+    // JSON-LD target: no `NativeRdfFormat` variant. Serialize the star-FREE base quads
+    // through the native `yaml_ld` serializer (NQuads -> GTS -> yaml_ld); the dropped
+    // statement rows are declared loss (rdf12-star-jsonld-rejected), never silent (P7).
+    if to == Codec::JsonLd {
+        let nq =
+            serialize_dataset_base_only(&dataset, "application/n-quads", SerializeGraph::Dataset)
+                .map_err(|e| TranscodeError::Codec(format!("jsonld base nquads serialize: {e}")))?;
+        let nq_str = String::from_utf8(nq)
+            .map_err(|e| TranscodeError::Codec(format!("jsonld base nquads utf8: {e}")))?;
+        let gts = gmeow_gts::from_nquads::from_nquads(&nq_str)
+            .map_err(|e| TranscodeError::Codec(format!("jsonld base nquads->gts: {e}")))?;
+        let graph = gmeow_rdf::gts::read_graph(&gts, true)
+            .map_err(|e| TranscodeError::Codec(format!("jsonld base gts read_graph: {e}")))?;
+        let text = crate::stages::yaml_ld::serialize_graph(&graph)
+            .map_err(|e| TranscodeError::Codec(format!("jsonld serialize: {e}")))?;
+        let star_dropped = (dataset.reifiers().count() + dataset.annotations().count()) as u64;
+        let realized = realize_losses(ledger.entries(), named_graph_count, star_dropped, 0);
+        return Ok(TranscodeOutput {
+            bytes: text.into_bytes(),
+            realized,
+        });
+    }
+
+    // Syntax-to-syntax path via the native codecs.
+    let fmt = codec_to_native_format(to).ok_or_else(|| {
+        TranscodeError::Codec(format!("no native format mapping for `{}`", to.name()))
     })?;
     let outcome = serialize_dataset_to_format(&dataset, fmt, base_iri)
         .map_err(|e| TranscodeError::Codec(e.to_string()))?;
@@ -384,8 +417,8 @@ fn transcode_to_projection(
     to: Codec,
     named_graph_count: u64,
 ) -> Result<TranscodeOutput, TranscodeError> {
-    // Serialize the IR to Turtle via the oxigraph serializer.
-    let turtle_outcome = serialize_dataset_to_format(dataset, RdfFormat::Turtle, None)
+    // Serialize the IR to Turtle via the native codecs.
+    let turtle_outcome = serialize_dataset_to_format(dataset, NativeRdfFormat::Turtle, None)
         .map_err(|e| TranscodeError::Codec(format!("projection pre-step turtle serialize: {e}")))?;
     let turtle_str = String::from_utf8(turtle_outcome.bytes)
         .map_err(|e| TranscodeError::Codec(format!("projection pre-step turtle utf8: {e}")))?;
@@ -541,24 +574,23 @@ pub fn transcode_matrix_json() -> String {
     json
 }
 
-/// Map a syntax [`Codec`] to its oxigraph [`RdfFormat`] equivalent.
+/// Map a syntax [`Codec`] to its [`NativeRdfFormat`] equivalent.
 ///
-/// Returns `None` for codecs that have no direct oxigraph mapping (GTS, any
-/// projection codec). The caller is responsible for routing those separately.
-fn codec_to_rdf_format(codec: Codec) -> Option<RdfFormat> {
+/// Returns `None` for codecs that have no single native-format mapping: JSON-LD
+/// (routed through the `yaml_ld` serializer/parser), GTS, and any projection codec.
+/// The caller routes those separately.
+fn codec_to_native_format(codec: Codec) -> Option<NativeRdfFormat> {
     match codec {
         // `owl-rdf12` intentionally aliases the RDF-1.2 Turtle codec: it is the
         // same star-capable Turtle syntax, named distinctly only as an
         // OWL-in-RDF-1.2 intent label (see the `Codec::OwlRdf12` doc).
-        Codec::Turtle | Codec::OwlRdf12 => Some(RdfFormat::Turtle),
-        Codec::NTriples => Some(RdfFormat::NTriples),
-        Codec::NQuads => Some(RdfFormat::NQuads),
-        Codec::TriG => Some(RdfFormat::TriG),
-        Codec::JsonLd => Some(RdfFormat::JsonLd {
-            profile: Default::default(),
-        }),
-        Codec::RdfXml => Some(RdfFormat::RdfXml),
-        // GTS and projection codecs do not map to RdfFormat.
+        Codec::Turtle | Codec::OwlRdf12 => Some(NativeRdfFormat::Turtle),
+        Codec::NTriples => Some(NativeRdfFormat::NTriples),
+        Codec::NQuads => Some(NativeRdfFormat::NQuads),
+        Codec::TriG => Some(NativeRdfFormat::TriG),
+        Codec::RdfXml => Some(NativeRdfFormat::RdfXml),
+        // JSON-LD (yaml_ld path), GTS, and projection codecs do not map to a single
+        // native format.
         _ => None,
     }
 }
@@ -681,8 +713,7 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
     /// the same quad/reifier count as the direct path.
     #[test]
     fn gts_round_trip_via_canonical_nquads() {
-        use gmeow_rdf::dataset_from_bytes;
-        use oxigraph::io::RdfFormat;
+        use gmeow_rdf::{dataset_from_bytes, NativeRdfFormat};
 
         // Turtle → GTS → NTriples
         let gts_out = transcode(
@@ -706,8 +737,9 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
         .expect("direct ntriples → ntriples");
 
         // Compare via parsed dataset quad/reifier counts (canonical content comparison).
-        let ds_a = dataset_from_bytes(&nt_out.bytes, RdfFormat::NTriples).expect("parse a");
-        let ds_b = dataset_from_bytes(&direct_nq.bytes, RdfFormat::NTriples).expect("parse b");
+        let ds_a = dataset_from_bytes(&nt_out.bytes, NativeRdfFormat::NTriples).expect("parse a");
+        let ds_b =
+            dataset_from_bytes(&direct_nq.bytes, NativeRdfFormat::NTriples).expect("parse b");
         assert_eq!(
             ds_a.quad_count(),
             ds_b.quad_count(),

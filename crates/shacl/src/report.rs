@@ -10,13 +10,14 @@
 
 use std::collections::BTreeSet;
 
-use oxigraph::io::RdfFormat;
 use oxigraph::model::{
     BlankNode, GraphName, Literal, NamedNode, NamedNodeRef, NamedOrBlankNode, Quad, Term,
 };
 use oxigraph::store::Store;
 
+use gmeow_rdf::oxigraph::dataset_from_store;
 use gmeow_rdf::provenance::Attribution;
+use gmeow_rdf::{serialize_dataset, SerializeGraph};
 
 use crate::model::{rdf, sh, xsd};
 
@@ -130,11 +131,14 @@ pub type ResultTuple = (
 );
 
 impl ValidationReport {
-    /// Emit the report as canonical N-Triples text using oxigraph's serializer.
+    /// Emit the report as N-Triples text using the native gmeow-rdf codec (#909).
     ///
     /// The report is built into an in-memory [`Store`] as quads in the default
-    /// graph, then serialised with `RdfFormat::NTriples`. This avoids
-    /// hand-rolling literal escaping and ensures oxigraph-canonical output.
+    /// graph, folded back to the IR ([`dataset_from_store`]), then serialised via
+    /// the native codec. This avoids hand-rolling literal escaping and carries no
+    /// oxigraph `io` dependency. The `DefaultGraph` selection on the
+    /// `application/n-quads` codec emits graphless rows (i.e. N-Triples) and is
+    /// byte-lenient on language tags, matching the legacy oxigraph serializer.
     pub fn to_ntriples(&self) -> String {
         let store = Store::new().expect("in-memory store creation is infallible");
 
@@ -231,15 +235,14 @@ impl ValidationReport {
             }
         }
 
-        let mut buf: Vec<u8> = Vec::new();
-        store
-            .dump_graph_to_writer(
-                oxigraph::model::GraphNameRef::DefaultGraph,
-                RdfFormat::NTriples,
-                &mut buf,
-            )
-            .expect("N-Triples serialisation into Vec<u8> is infallible");
-        String::from_utf8(buf).expect("oxigraph N-Triples output is valid UTF-8")
+        let dataset = dataset_from_store(&store).expect("report store folds to the IR");
+        let buf = serialize_dataset(
+            &dataset,
+            "application/n-quads",
+            SerializeGraph::DefaultGraph,
+        )
+        .expect("native N-Triples serialisation of report quads is infallible");
+        String::from_utf8(buf).expect("native N-Triples output is valid UTF-8")
     }
 
     /// Return the result set as a [`BTreeSet`] of [`ResultTuple`]s for
@@ -288,10 +291,7 @@ fn insert_triple(
 ///
 /// Returns an error string if the N-Triples cannot be parsed.
 pub fn conforms_from_ntriples(nt: &str) -> Result<bool, String> {
-    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
-    store
-        .load_from_reader(RdfFormat::NTriples, nt.as_bytes())
-        .map_err(|e| format!("N-Triples parse error: {e}"))?;
+    let store = store_from_ntriples(nt)?;
     Ok(conforms_from_store(&store).unwrap_or(true))
 }
 
@@ -304,11 +304,19 @@ pub fn conforms_from_ntriples(nt: &str) -> Result<bool, String> {
 ///
 /// Returns an error string if the N-Triples cannot be parsed.
 pub fn tuples_from_ntriples(nt: &str) -> Result<BTreeSet<ResultTuple>, String> {
-    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
-    store
-        .load_from_reader(RdfFormat::NTriples, nt.as_bytes())
-        .map_err(|e| format!("N-Triples parse error: {e}"))?;
+    let store = store_from_ntriples(nt)?;
     Ok(tuples_from_store(&store))
+}
+
+/// Parse a SHACL report N-Triples string into an in-memory store via the native
+/// gmeow-rdf codec (#909) — no oxigraph `io`.
+fn store_from_ntriples(nt: &str) -> Result<Store, String> {
+    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+    use gmeow_rdf::parse_dataset;
+    let dataset = parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| format!("N-Triples parse error: {e}"))?;
+    store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph)
+        .map_err(|e| format!("N-Triples store build error: {e}"))
 }
 
 /// Walk a SHACL report store and extract result tuples.
@@ -460,10 +468,7 @@ mod tests {
         assert!(parsed.is_empty(), "empty report must produce zero tuples");
 
         // Check conforms_from_store directly
-        let store = Store::new().unwrap();
-        store
-            .load_from_reader(RdfFormat::NTriples, nt.as_bytes())
-            .unwrap();
+        let store = store_from_ntriples(&nt).unwrap();
         assert_eq!(conforms_from_store(&store), Some(true));
     }
 

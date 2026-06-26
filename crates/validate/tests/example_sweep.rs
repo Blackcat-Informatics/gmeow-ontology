@@ -29,8 +29,10 @@ use std::path::{Path, PathBuf};
 use gmeow_shacl::shapes::Shapes;
 use gmeow_shacl::{engine, instance, json_schema, shape_union};
 use gmeow_validate::instance::{validate_instance, InstanceFormat};
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::store::Store;
+
+use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+use gmeow_rdf::parse_dataset;
 
 /// Examples that do NOT conform to the merged SHACL shapes and are therefore
 /// out of scope for the JSON-schema sweep (illustrative, not valid instance
@@ -93,19 +95,15 @@ fn repo_root() -> PathBuf {
         .expect("canonicalize repo root")
 }
 
-/// Load one Turtle data-graph file into a fresh oxigraph [`Store`], using the
-/// SAME lenient driver the shape union uses ([`shape_union::load_shapes`]).
+/// Load one Turtle data-graph file into a fresh oxigraph [`Store`] via the native
+/// codec (#909) — the SAME lenient native path the shape union uses
+/// ([`shape_union::load_shapes`]).
 fn load_data_graph(path: &Path) -> Store {
     let bytes = std::fs::read(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
-    let store = Store::new().expect("create store");
-    let mut parser = RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes.as_slice());
-    for quad in parser.by_ref() {
-        let quad = quad.unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
-        store.insert(&quad).expect("store insert");
-    }
-    store
+    let dataset = parse_dataset(&bytes, "text/turtle", None)
+        .unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
+    store_from_dataset(&dataset, GraphPolicy::PreserveNamedGraphs)
+        .unwrap_or_else(|e| panic!("store {}: {e}", path.display()))
 }
 
 /// Glob every `slices/*/*/examples/*.ttl`, sorted, as repo-relative paths.

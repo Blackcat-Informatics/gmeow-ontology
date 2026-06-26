@@ -8,8 +8,9 @@
 //! serialization need only reproduce the same triples.  The Python duplicate was
 //! retired in #727; this is the source of truth.
 
-use oxigraph::io::RdfSerializer;
-use oxigraph::model::{GraphName, Literal, NamedNode, NamedOrBlankNode, Quad, Term};
+use oxigraph::model::{GraphName, Literal, NamedNode, Quad, Term};
+
+use gmeow_rdf::{dataset_from_oxigraph_quads, serialize_dataset, SerializeGraph};
 
 use super::super::ir::{LogicModality, LogicProgram};
 use super::{
@@ -171,46 +172,26 @@ impl TripleSink {
         }
     }
 
-    /// Serialize to Turtle with a GENERATED banner.  The triple set is fed to the
-    /// oxigraph Turtle serializer in canonical-sorted order, so the bytes are
-    /// deterministic across runs (the goldens compare by isomorphism either way).
+    /// Serialize to Turtle with a GENERATED banner.  The triple set is folded into the
+    /// frozen `RdfDataset` IR and serialized through the native codec (#909), which
+    /// emits canonical, deterministic Turtle — so no manual pre-sort is needed (the
+    /// goldens compare by isomorphism either way). All projected quads live in the
+    /// default graph, so `SerializeGraph::DefaultGraph` is the faithful selector.
     pub(crate) fn serialize(self, banner: &str) -> String {
-        let mut sorted: Vec<&Quad> = self.quads.iter().collect();
-        sorted.sort_by_cached_key(|q| {
-            (
-                subject_sort_key(&q.subject),
-                q.predicate.as_str().to_owned(),
-                term_sort_key(&q.object),
-            )
-        });
-        let mut ser = RdfSerializer::from_format(oxigraph::io::RdfFormat::Turtle)
-            .for_writer(Vec::<u8>::new());
-        for q in sorted {
-            let _ = ser.serialize_quad(q.as_ref());
-        }
-        let body = ser
-            .finish()
+        let body = dataset_from_oxigraph_quads(&self.quads)
             .ok()
-            .and_then(|b| String::from_utf8(b).ok())
+            .and_then(|dataset| {
+                serialize_dataset(
+                    dataset.as_ref(),
+                    "text/turtle",
+                    SerializeGraph::DefaultGraph,
+                )
+                .ok()
+            })
+            .and_then(|bytes| String::from_utf8(bytes).ok())
             .unwrap_or_default();
         let body = format!("{}\n", body.trim_end_matches('\n'));
         format!("{banner}{body}")
-    }
-}
-
-fn subject_sort_key(s: &NamedOrBlankNode) -> String {
-    match s {
-        NamedOrBlankNode::NamedNode(n) => n.as_str().to_owned(),
-        NamedOrBlankNode::BlankNode(b) => format!("_:{}", b.as_str()),
-    }
-}
-
-fn term_sort_key(t: &Term) -> String {
-    match t {
-        Term::NamedNode(n) => n.as_str().to_owned(),
-        Term::BlankNode(b) => format!("_:{}", b.as_str()),
-        Term::Literal(l) => format!("\"{}\"^^{}", l.value(), l.datatype().as_str()),
-        Term::Triple(_) => String::new(),
     }
 }
 

@@ -7,7 +7,6 @@
 //! non-deactivated node shape, runs all constraints, and assembles a
 //! deterministically-sorted [`ValidationReport`].
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::Term;
 use oxigraph::store::Store;
 
@@ -336,41 +335,16 @@ const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 /// Returns an error string if the shapes Turtle fails to parse or contains
 /// unsupported SHACL constructs.
 pub fn parse_shapes(shapes_ttl: &str) -> Result<Shapes, String> {
-    let shapes_store = Store::new().map_err(|e| format!("shapes store creation failed: {e}"))?;
-    // Drive the Turtle parser by iterator (rather than Store::load_from_reader) so
-    // we can recover the document's @prefix map — oxigraph stores do not retain
-    // prefixes, but SHACL-AF sh:select queries (and pySHACL) rely on them. See #578.
-    let mut doc_prefixes: Vec<(String, String)> = Vec::new();
-    if !shapes_ttl.is_empty() {
-        let mut parser = RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(shapes_ttl.as_bytes());
-        // Accumulate EVERY syntax error rather than short-circuiting on the first.
-        // oxttl drives an error-recovery state (the toolkit transitions the parser
-        // into `error_recovery_state` after a malformed statement), so a single
-        // pass keeps yielding past the first break and surfaces all of them. A
-        // SHACL author then sees the complete list in one report instead of the
-        // fix-one-rerun-find-the-next loop. See #828 (item 4). Well-formed quads
-        // are still inserted, but a non-empty error set is a hard parse failure.
-        let mut errors: Vec<String> = Vec::new();
-        for quad in parser.by_ref() {
-            match quad {
-                Ok(quad) => {
-                    shapes_store
-                        .insert(&quad)
-                        .map_err(|e| format!("shapes store insert failed: {e}"))?;
-                }
-                Err(e) => errors.push(format!("Turtle parse error: {e}")),
-            }
-        }
-        if !errors.is_empty() {
-            return Err(errors.join("\n"));
-        }
-        doc_prefixes = parser
-            .prefixes()
-            .map(|(prefix, namespace)| (prefix.to_owned(), namespace.to_owned()))
-            .collect();
-    }
+    // Parse the shapes graph via the native gmeow-rdf codecs (#909) — no
+    // the oxigraph `io` parser. The native codec drops document prefixes once it folds to
+    // the IR, so we recover the `@prefix`/SPARQL `PREFIX` map by scanning the
+    // source text: SHACL-AF sh:select queries (and pySHACL) rely on prefixed
+    // names like `gmeow:`. See #578. A syntax error is reported per-statement so
+    // a SHACL author sees the full list in one pass (#828 item 4), not the
+    // fix-one-rerun-find-the-next loop.
+    let shapes_store = crate::text_ingest::parse_turtle_to_store(shapes_ttl)
+        .map_err(|errors| errors.join("\n"))?;
+    let doc_prefixes = crate::text_ingest::extract_prefixes(shapes_ttl);
 
     crate::shapes::from_store_with_prefixes(&shapes_store, &doc_prefixes)
 }
@@ -392,28 +366,11 @@ pub fn parse_shapes(shapes_ttl: &str) -> Result<Shapes, String> {
 ///
 /// Returns an error string if either graph fails to parse.
 pub fn validate_graphs(data_nt: &str, shapes_ttl: &str) -> Result<ValidationReport, String> {
-    let data = Store::new().map_err(|e| format!("data store creation failed: {e}"))?;
-    if !data_nt.is_empty() {
-        // Iterate (rather than `load_from_reader`, which collapses to the FIRST
-        // error) so every malformed N-Triples line is reported in one pass —
-        // same multi-error contract as `parse_shapes`. See #828 (item 4).
-        let mut errors: Vec<String> = Vec::new();
-        for quad in RdfParser::from_format(RdfFormat::NTriples)
-            .lenient()
-            .for_reader(data_nt.as_bytes())
-        {
-            match quad {
-                Ok(quad) => {
-                    data.insert(&quad)
-                        .map_err(|e| format!("data store insert failed: {e}"))?;
-                }
-                Err(e) => errors.push(format!("N-Triples parse error: {e}")),
-            }
-        }
-        if !errors.is_empty() {
-            return Err(errors.join("\n"));
-        }
-    }
+    // Parse the data graph via the native codecs (#909). Every malformed
+    // N-Triples line is reported in one pass — same multi-error contract as
+    // `parse_shapes`. See #828 (item 4).
+    let data =
+        crate::text_ingest::parse_ntriples_to_store(data_nt).map_err(|errors| errors.join("\n"))?;
 
     let shapes = parse_shapes(shapes_ttl)?;
     Ok(validate(&data, &shapes))
@@ -450,20 +407,12 @@ mod tests {
     "#;
 
     fn load_data_nt(nt: &str) -> Store {
-        let store = Store::new().unwrap();
-        if !nt.is_empty() {
-            store
-                .load_from_reader(RdfFormat::NTriples, nt.as_bytes())
-                .unwrap();
-        }
-        store
+        crate::text_ingest::parse_ntriples_to_store(nt).expect("data N-Triples must parse")
     }
 
     fn load_shapes_ttl(ttl: &str) -> Shapes {
-        let store = Store::new().unwrap();
-        store
-            .load_from_reader(RdfFormat::Turtle, ttl.as_bytes())
-            .unwrap();
+        let store =
+            crate::text_ingest::parse_turtle_to_store(ttl).expect("shapes Turtle must parse");
         crate::shapes::from_store(&store).expect("shapes parse must succeed")
     }
 
@@ -496,8 +445,8 @@ mod tests {
     #[test]
     fn validate_graphs_reports_all_data_syntax_errors() {
         // Multiple malformed N-Triples lines must all be reported in one pass
-        // rather than short-circuiting on the first (the `load_from_reader`
-        // behavior item 4 replaced).
+        // rather than short-circuiting on the first (the single-error
+        // load-into-store behavior item 4 replaced).
         let bad_data = concat!(
             "this is not a triple\n",
             "<http://example.org/s> <http://example.org/p> .\n",

@@ -24,10 +24,29 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use oxigraph::io::{RdfFormat, RdfParser};
+use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
 use oxigraph::model::{GraphName, Quad, Triple};
 
 use crate::run::CaseOutputs;
+
+/// IANA media type for Turtle (the projection comparison surface).
+const TURTLE: &str = "text/turtle";
+/// IANA media type for N-Triples (the per-world materialized comparison).
+const NTRIPLES: &str = "application/n-triples";
+/// IANA media type for N-Quads (the materialized-corpus bucketing).
+const NQUADS: &str = "application/n-quads";
+
+/// Parse serialized RDF `text` of `media_type` into oxigraph quads via the native
+/// codecs (`gmeow_rdf::parse_dataset` → IR → oxigraph quads). The oxigraph
+/// `Dataset` is then built from these for RDFC-1.0 canonicalization (scope-OUT).
+fn parse_oxigraph_quads(
+    text: &str,
+    media_type: &str,
+) -> Result<Vec<oxigraph::model::Quad>, String> {
+    let dataset = gmeow_rdf::parse_dataset(text.as_bytes(), media_type, None)
+        .map_err(|e| format!("RDF parse error: {e}"))?;
+    flat_oxigraph_quads_from_dataset(&dataset).map_err(|e| format!("IR → quads error: {e}"))
+}
 
 /// Canonicalize a serialized RDF document to a sorted list of canonical N-Quads
 /// strings.
@@ -37,11 +56,9 @@ use crate::run::CaseOutputs;
 /// strings. Two RDF documents are graph-isomorphic iff their canonical quad
 /// lists are equal — the rdflib-free replacement for `rdflib.compare.isomorphic`
 /// (mirrors `logic_runner._canonical_quads`).
-fn canonical_quads(text: &str, format: RdfFormat) -> Result<Vec<String>, String> {
-    let mut quads: Vec<Quad> = Vec::new();
-    for quad in RdfParser::from_format(format).for_reader(text.as_bytes()) {
-        quads.push(quad.map_err(|e| format!("RDF parse error: {e}"))?);
-    }
+fn canonical_quads(text: &str, media_type: &str) -> Result<Vec<String>, String> {
+    // Native text ingress (#909): parse via the gmeow-gts codecs, not oxigraph::io.
+    let quads: Vec<Quad> = parse_oxigraph_quads(text, media_type)?;
     // Native full RDFC-1.0 (#910), replacing oxrdf `Dataset::canonicalize`: relabels
     // blank nodes; the term serialization is unchanged, so the comparison is identical.
     let canonical = gmeow_rdf::canonicalize_quads(quads)
@@ -84,12 +101,12 @@ pub fn compare_text(actual: &str, expected: &str) -> Vec<String> {
 /// describing the canonical quads unique to each side (capped at 5 each, as the
 /// Python runner did). A parse error on either side surfaces as a single diff
 /// line (it still fails the case loudly).
-pub fn compare_rdf(actual_text: &str, expected_text: &str, format: RdfFormat) -> Vec<String> {
-    let actual = match canonical_quads(actual_text, format) {
+pub fn compare_rdf(actual_text: &str, expected_text: &str, media_type: &str) -> Vec<String> {
+    let actual = match canonical_quads(actual_text, media_type) {
         Ok(q) => q,
         Err(e) => return vec![format!("actual {e}")],
     };
-    let expected = match canonical_quads(expected_text, format) {
+    let expected = match canonical_quads(expected_text, media_type) {
         Ok(q) => q,
         Err(e) => return vec![format!("expected {e}")],
     };
@@ -220,8 +237,7 @@ pub fn nquads_by_named_graph(nquads_text: &str) -> Result<BTreeMap<String, Strin
     if nquads_text.trim().is_empty() {
         return Ok(BTreeMap::new());
     }
-    for quad in RdfParser::from_format(RdfFormat::NQuads).for_reader(nquads_text.as_bytes()) {
-        let quad = quad.map_err(|e| format!("N-Quads parse error: {e}"))?;
+    for quad in parse_oxigraph_quads(nquads_text, NQUADS)? {
         let graph_iri = match &quad.graph_name {
             GraphName::NamedNode(nn) => nn.as_str().to_string(),
             // Default graph / blank-node graph triples are not part of the
@@ -305,7 +321,7 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
             }
             match (produced, read_text(&expected_path)) {
                 (Some(content), Ok(expected_text)) => {
-                    for d in compare_rdf(content, &expected_text, RdfFormat::Turtle) {
+                    for d in compare_rdf(content, &expected_text, TURTLE) {
                         diffs.push(format!("[{case_id}] {target}: {d}"));
                     }
                 }
@@ -321,11 +337,7 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
         if report_path.exists() {
             match read_text(&report_path) {
                 Ok(expected_text) => {
-                    for d in compare_rdf(
-                        &out.projections.report_turtle,
-                        &expected_text,
-                        RdfFormat::Turtle,
-                    ) {
+                    for d in compare_rdf(&out.projections.report_turtle, &expected_text, TURTLE) {
                         diffs.push(format!("[{case_id}] projection-report: {d}"));
                     }
                 }
@@ -454,11 +466,9 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
                         }
                         for g in actual_iris.intersection(&expected_iris) {
                             let g = *g;
-                            for d in compare_rdf(
-                                &actual_by_graph[g],
-                                &expected_by_graph[g],
-                                RdfFormat::NTriples,
-                            ) {
+                            for d in
+                                compare_rdf(&actual_by_graph[g], &expected_by_graph[g], NTRIPLES)
+                            {
                                 diffs.push(format!("[{case_id}] materialized.nq [<{g}>]: {d}"));
                             }
                         }
@@ -616,50 +626,38 @@ mod tests {
     #[test]
     fn rdf_identical_graphs_match() {
         let nt = "<https://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/B> .\n";
-        assert_eq!(
-            compare_rdf(nt, nt, RdfFormat::NTriples),
-            Vec::<String>::new()
-        );
+        assert_eq!(compare_rdf(nt, nt, NTRIPLES), Vec::<String>::new());
     }
 
     #[test]
     fn rdf_isomorphic_blank_node_graphs_match() {
         let g1 = "<https://example.org/A> <https://example.org/rel> _:x .\n_:x <https://example.org/label> <https://example.org/val> .\n";
         let g2 = "<https://example.org/A> <https://example.org/rel> _:y .\n_:y <https://example.org/label> <https://example.org/val> .\n";
-        assert_eq!(
-            compare_rdf(g1, g2, RdfFormat::NTriples),
-            Vec::<String>::new()
-        );
+        assert_eq!(compare_rdf(g1, g2, NTRIPLES), Vec::<String>::new());
     }
 
     #[test]
     fn rdf_differing_graphs_fail() {
         let g1 = "<https://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/B> .\n";
         let g2 = "<https://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/C> .\n";
-        assert!(!compare_rdf(g1, g2, RdfFormat::NTriples).is_empty());
+        assert!(!compare_rdf(g1, g2, NTRIPLES).is_empty());
     }
 
     #[test]
     fn rdf_empty_vs_nonempty_fails() {
         let g2 = "<https://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/B> .\n";
-        assert!(!compare_rdf("", g2, RdfFormat::NTriples).is_empty());
+        assert!(!compare_rdf("", g2, NTRIPLES).is_empty());
     }
 
     #[test]
     fn rdf_empty_vs_empty_passes() {
-        assert_eq!(
-            compare_rdf("", "", RdfFormat::NTriples),
-            Vec::<String>::new()
-        );
+        assert_eq!(compare_rdf("", "", NTRIPLES), Vec::<String>::new());
     }
 
     #[test]
     fn rdf12_triple_terms_compare() {
         let ttl = "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n<https://example.org/r> rdf:reifies <<( <https://example.org/s> <https://example.org/p> <https://example.org/o> )>> .\n";
-        assert_eq!(
-            compare_rdf(ttl, ttl, RdfFormat::Turtle),
-            Vec::<String>::new()
-        );
+        assert_eq!(compare_rdf(ttl, ttl, TURTLE), Vec::<String>::new());
     }
 
     // ---- compare_canonical_json (ports TestCompareCanonicalJson) ----
@@ -809,10 +807,7 @@ mod tests {
         assert!(by_graph.contains_key("https://example.org/w2"));
         // Each bucket re-parses as valid N-Triples and round-trips through compare_rdf.
         let w1 = &by_graph["https://example.org/w1"];
-        assert_eq!(
-            compare_rdf(w1, w1, RdfFormat::NTriples),
-            Vec::<String>::new()
-        );
+        assert_eq!(compare_rdf(w1, w1, NTRIPLES), Vec::<String>::new());
     }
 
     #[test]

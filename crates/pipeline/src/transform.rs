@@ -598,7 +598,7 @@ fn gts_from_maximal(
     if !statement_nt.trim().is_empty() {
         let statement_quads = gmeow_rdf::gts_compose::parse_quads_lenient(
             statement_nt.as_bytes(),
-            RdfFormat::NTriples,
+            gmeow_rdf::NativeRdfFormat::NTriples,
         )?;
         builder.add_rdf12(&statement_quads, None, None)?;
     }
