@@ -651,6 +651,39 @@ const STRATUM_1: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
+    // multiplyPositioned(?X, ?X) :- positionEntity(?P1, ?X), positionEntity(?P2, ?X)  [?P1 != ?P2]
+    //
+    // ME9 (#775), the positive companion to the stratum-4 logic:HolonicLevelIncoherence
+    // (which fires for a profiled holon occupying NO position).  This marker fires when an
+    // entity occupies TWO OR MORE distinct logic:HolonicPositions — the structural signature
+    // of a DAG node sitting on several paths through a holarchy, so its logic:holonicLevel is
+    // genuinely path-relative (two paths may place it at different depths, both correct) and a
+    // non-trivial logic:holonicLevelMin..Max band exists.  It grounds only the band's
+    // EXISTENCE: the all-IRI stratified chase has no numeric comparison, so it cannot derive
+    // or check the band's integer endpoints (those stay operator-asserted EDB).  Keyed on the
+    // position reifiers via positionEntity (position-subject, entity-object), distinct by the
+    // ?P1≠?P2 guard.  Depends only on the EDB position axis, so it settles in stratum 1.
+    // (LOGIC-FOUNDATION.md §mereology+holons.)
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("multiplyPositioned")),
+            var("?X"),
+        ),
+        body: &[
+            pos(
+                var("?P1"),
+                TermPat::Const(logic_iri!("positionEntity")),
+                var("?X"),
+            ),
+            pos(
+                var("?P2"),
+                TermPat::Const(logic_iri!("positionEntity")),
+                var("?X"),
+            ),
+        ],
+        distinct_pairs: &[("?P1", "?P2")],
+    },
 ];
 
 const STRATUM_2: &[Rule] = &[
