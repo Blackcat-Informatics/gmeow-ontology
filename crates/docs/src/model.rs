@@ -1027,12 +1027,12 @@ fn merge_root_shapes(model: &mut DocsModel, shapes_dir: &Path) {
 /// objects (property shapes, `sh:or` / `sh:and` lists), sorted/deduped. Named-node
 /// objects are NOT followed (they point out into the wider graph).
 fn shape_messages(store: &Store, start: &NamedOrBlankNode) -> Vec<String> {
-    use std::collections::BTreeSet;
-    let mut seen: BTreeSet<String> = BTreeSet::new();
-    let mut queue: Vec<NamedOrBlankNode> = vec![start.clone()];
+    use std::collections::{HashSet, VecDeque};
+    let mut seen: HashSet<NamedOrBlankNode> = HashSet::new();
+    let mut queue: VecDeque<NamedOrBlankNode> = VecDeque::from([start.clone()]);
     let mut msgs: Vec<String> = Vec::new();
-    while let Some(node) = queue.pop() {
-        if !seen.insert(node.to_string()) {
+    while let Some(node) = queue.pop_front() {
+        if !seen.insert(node.clone()) {
             continue;
         }
         for quad in store
@@ -1047,7 +1047,7 @@ fn shape_messages(store: &Store, start: &NamedOrBlankNode) -> Vec<String> {
             let is_message = quad.predicate.as_str() == SH_MESSAGE;
             match quad.object {
                 Term::Literal(lit) if is_message => msgs.push(lit.value().to_string()),
-                Term::BlankNode(b) => queue.push(NamedOrBlankNode::BlankNode(b)),
+                Term::BlankNode(b) => queue.push_back(NamedOrBlankNode::BlankNode(b)),
                 _ => {}
             }
         }
