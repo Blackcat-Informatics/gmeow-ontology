@@ -216,6 +216,44 @@ fn rdf_result(
 }
 
 // --------------------------------------------------------------------------- //
+// Holon surface helper
+// --------------------------------------------------------------------------- //
+
+/// Emit the OWL skeleton for the holon vocabulary: class and property
+/// declarations that survive the lossy OWL projection.  Called only when the
+/// program actually uses `logic:properPartOf` (i.e. it has holon axioms).
+///
+/// Loss ledger rationale:
+/// * `asymmetric` + `irreflexive` characteristics on `logic:properPartOf` are
+///   not expressible in OWL 2 DL; only `owl:TransitiveProperty` survives.
+/// * The five-place `logic:HolonicPosition` relation is projected as the unary
+///   `logic:Holon` class; positional arity is dropped.
+/// * `logic:WeakSupplementation` stays in the logic: layer; no OWL lowering.
+fn emit_holon_surface(g: &mut TripleSink) {
+    // Classes
+    for cls in &["Holon", "HolonicPosition", "Holarchy"] {
+        g.add_iri(&logic(cls), RDF_TYPE, &owl("Class"));
+    }
+    // Object properties
+    for prop in &[
+        "properPartOf",
+        "isHolon",
+        "positionEntity",
+        "positionHolarchy",
+        "positionContext",
+        "positionInterval",
+        "positionPath",
+    ] {
+        g.add_iri(&logic(prop), RDF_TYPE, &owl("ObjectProperty"));
+    }
+    // properPartOf also gets TransitiveProperty (transitivity survives;
+    // asymmetric + irreflexive are the documented loss).
+    g.add_iri(&logic("properPartOf"), RDF_TYPE, &owl("TransitiveProperty"));
+    // Datatype property
+    g.add_iri(&logic("holonicLevel"), RDF_TYPE, &owl("DatatypeProperty"));
+}
+
+// --------------------------------------------------------------------------- //
 // OWL 2 DL
 // --------------------------------------------------------------------------- //
 
@@ -229,6 +267,15 @@ pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, Overcl
         RDF_TYPE,
         &owl("Ontology"),
     );
+
+    // Detect holon usage before the axiom loop so we can emit the surface once.
+    let uses_holons = program
+        .axioms
+        .iter()
+        .any(|a| a.predicate == logic("properPartOf"));
+    if uses_holons {
+        emit_holon_surface(&mut g);
+    }
 
     for axiom in &program.axioms {
         let pred = &axiom.predicate;
@@ -249,6 +296,13 @@ pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, Overcl
             }
             continue;
         }
+        // properPartOf edges survive as object-property assertions.
+        if pred == &logic("properPartOf") {
+            if !axiom.obj_is_literal {
+                g.add_iri(&axiom.subject, &logic("properPartOf"), obj);
+            }
+            continue;
+        }
         if let Some(owl_pred) = owl_for_pred(pred) {
             g.add_obj(&axiom.subject, &owl_pred, obj, axiom.obj_is_literal);
             continue;
@@ -259,6 +313,26 @@ pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, Overcl
                 axiom.subject
             ));
         }
+    }
+
+    // Record holon-surface structural losses.
+    if uses_holons {
+        actual_drops.push(
+            "logic:properPartOf strict-order characteristics (asymmetric + irreflexive) \
+             cannot be declared in OWL 2 DL; only owl:TransitiveProperty is projected"
+                .to_string(),
+        );
+        actual_drops.push(
+            "the five-place logic:HolonicPosition relation is projected lossily as the \
+             unary logic:Holon class; its positional arity (holarchy, context, interval, \
+             path) is dropped"
+                .to_string(),
+        );
+        actual_drops.push(
+            "the logic:WeakSupplementation mereology axiom is not lowered to OWL and \
+             stays in logic:"
+                .to_string(),
+        );
     }
 
     for rule in &program.rules {
@@ -298,6 +372,15 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
         &owl("Ontology"),
     );
 
+    // Detect holon usage before the axiom loop so we can emit the surface once.
+    let uses_holons = program
+        .axioms
+        .iter()
+        .any(|a| a.predicate == logic("properPartOf"));
+    if uses_holons {
+        emit_holon_surface(&mut g);
+    }
+
     for axiom in &program.axioms {
         let pred = &axiom.predicate;
         let obj = &axiom.obj;
@@ -327,6 +410,14 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
             }
             continue;
         }
+        // properPartOf edges survive as object-property assertions (transitivity
+        // is EL-safe; asymmetric/irreflexive are the documented loss).
+        if pred == &logic("properPartOf") {
+            if !axiom.obj_is_literal {
+                g.add_iri(&axiom.subject, &logic("properPartOf"), obj);
+            }
+            continue;
+        }
         if is_el_safe_pred(pred) {
             let owl_pred = owl_for_pred(pred).unwrap();
             g.add_obj(&axiom.subject, &owl_pred, obj, axiom.obj_is_literal);
@@ -345,6 +436,26 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
                 ));
             }
         }
+    }
+
+    // Record holon-surface structural losses.
+    if uses_holons {
+        actual_drops.push(
+            "logic:properPartOf strict-order characteristics (asymmetric + irreflexive) \
+             cannot be declared in OWL 2 EL; only owl:TransitiveProperty is projected"
+                .to_string(),
+        );
+        actual_drops.push(
+            "the five-place logic:HolonicPosition relation is projected lossily as the \
+             unary logic:Holon class; its positional arity (holarchy, context, interval, \
+             path) is dropped"
+                .to_string(),
+        );
+        actual_drops.push(
+            "the logic:WeakSupplementation mereology axiom is not lowered to OWL 2 EL \
+             and stays in logic:"
+                .to_string(),
+        );
     }
 
     for rule in &program.rules {
