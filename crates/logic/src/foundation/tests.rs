@@ -649,10 +649,24 @@ const HOLONIC_AGENCY_INPUT: &str =
 const HOLONIC_AGENCY_GOLDEN: &str = include_str!(
     "../../../../conformance/logic/cases/holonic/holon-integrity/expected/materialized.nq"
 );
+// Holonic downward-constraint governance (#708, C3 corpus closure): the governance case and
+// rules already existed; these constants wire the Rust golden to the same conformance case
+// so the golden-parity test covers it.
+const HOLONIC_GOVERNANCE_INPUT: &str =
+    include_str!("../../../../conformance/logic/cases/holonic/downward-constraint/input.nq");
+const HOLONIC_GOVERNANCE_GOLDEN: &str = include_str!(
+    "../../../../conformance/logic/cases/holonic/downward-constraint/expected/materialized.nq"
+);
+// Holonic-level coherence (#708, C5): position-based level coherence rule + HolonicLevelIncoherence.
+const HOLONIC_LEVEL_INPUT: &str =
+    include_str!("../../../../conformance/logic/cases/holonic/holonic-level/input.nq");
+const HOLONIC_LEVEL_GOLDEN: &str = include_str!(
+    "../../../../conformance/logic/cases/holonic/holonic-level/expected/materialized.nq"
+);
 
 #[test]
 fn golden_quad_sets_match_for_single_world_cases() {
-    let cases: [(&str, &str, &str); 6] = [
+    let cases: [(&str, &str, &str); 8] = [
         (
             "exactly-one-stereotype",
             EXACTLY_ONE_GOLDEN,
@@ -691,6 +705,16 @@ fn golden_quad_sets_match_for_single_world_cases() {
             "holonic-autonomy-integration",
             HOLONIC_AGENCY_GOLDEN,
             HOLONIC_AGENCY_INPUT,
+        ),
+        (
+            "holonic-governance",
+            HOLONIC_GOVERNANCE_GOLDEN,
+            HOLONIC_GOVERNANCE_INPUT,
+        ),
+        (
+            "holonic-level",
+            HOLONIC_LEVEL_GOLDEN,
+            HOLONIC_LEVEL_INPUT,
         ),
     ];
 
@@ -964,6 +988,30 @@ fn holon_two_node_chain_has_no_holon() {
     assert!(
         !has_marker(&quads, &format!("{base}/B"), "isHolon"),
         "B (root) must not be a holon in a 2-node chain"
+    );
+}
+
+#[test]
+fn holonic_level_coherence_is_position_based_and_profile_scoped() {
+    let base = "https://example.org/holonic/holonic-level";
+    let quads = run(HOLONIC_LEVEL_INPUT, AntiRigidityPolicy::WitnessObligation);
+    // Profiled holon WITH a HolonicPosition → coherent, not charged.
+    assert!(!has_violation(&quads, &format!("{base}/Bracket"), "HolonicLevelIncoherence"),
+        "Bracket (profiled holon occupying a HolonicPosition) must NOT fire HolonicLevelIncoherence");
+    // Profiled holon in the instantiation tower but with NO position → fires (non-conflation:
+    // logic:instanceOf / orderedType do not supply a holonic position).
+    assert!(
+        has_violation(
+            &quads,
+            &format!("{base}/Gearbox"),
+            "HolonicLevelIncoherence"
+        ),
+        "Gearbox (profiled holon, no position, only instanceOf) MUST fire HolonicLevelIncoherence"
+    );
+    // Unprofiled holon → never charged (profile-relativity, #775).
+    assert!(
+        !has_violation(&quads, &format!("{base}/Sprite"), "HolonicLevelIncoherence"),
+        "Sprite (unprofiled holon) must NOT fire HolonicLevelIncoherence"
     );
 }
 
