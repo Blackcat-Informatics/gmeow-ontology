@@ -7,11 +7,7 @@
 use std::os::raw::c_char;
 
 use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-use gmeow_rdf::{
-    classify, serialize_dataset_to_format, OxigraphBackend, SparqlEngine, SparqlRequest,
-    SparqlResult,
-};
-use gmeow_rdf_core::{RdfDiagnostic, TermValue};
+use gmeow_rdf::{OxigraphBackend, SparqlEngine, SparqlRequest, SparqlResult};
 
 use crate::buffer::PurrdfBuffer;
 use crate::error::PurrdfError;
@@ -126,125 +122,21 @@ pub unsafe extern "C" fn purrdf_query_json(
             ));
         }
         let result = run_query(dataset, query, base_iri)?;
-        let json = result_to_json(&result).map_err(|diagnostic| {
-            PurrdfError::from_diagnostic(PurrdfStatus::QueryError, &diagnostic)
+        // Delegate to the canonical SPARQL-Results serializer (purrdf S9). An
+        // empty `ResultProvenance` yields byte-identical pure W3C SRJ for
+        // SELECT/ASK; the CONSTRUCT-graph path is rendered by the crate's
+        // wasm-clean rdf-core N-Triples writer.
+        let outcome = gmeow_sparql_results::to_json(
+            &result,
+            &gmeow_sparql_results::ResultProvenance::default(),
+        )
+        .map_err(|e| {
+            PurrdfError::new(
+                PurrdfStatus::QueryError,
+                format!("SPARQL results JSON serialization failed: {e}"),
+            )
         })?;
-        *out_buffer = PurrdfBuffer::into_raw(json.into_bytes());
+        *out_buffer = PurrdfBuffer::into_raw(outcome.bytes);
         Ok(PurrdfStatus::Ok)
     })
-}
-
-/// Serialize a materialized SPARQL result to SPARQL-JSON (or the graph envelope).
-fn result_to_json(result: &SparqlResult) -> Result<String, RdfDiagnostic> {
-    let mut out = String::new();
-    match result {
-        SparqlResult::Boolean(value) => {
-            out.push_str("{\"head\":{},\"boolean\":");
-            out.push_str(if *value { "true" } else { "false" });
-            out.push('}');
-        }
-        SparqlResult::Solutions { variables, rows } => {
-            out.push_str("{\"head\":{\"vars\":[");
-            for (i, var) in variables.iter().enumerate() {
-                if i > 0 {
-                    out.push(',');
-                }
-                json_string(var, &mut out);
-            }
-            out.push_str("]},\"results\":{\"bindings\":[");
-            for (row_index, row) in rows.iter().enumerate() {
-                if row_index > 0 {
-                    out.push(',');
-                }
-                out.push('{');
-                let mut first = true;
-                for (column, cell) in row.iter().enumerate() {
-                    if let Some(value) = cell {
-                        if !first {
-                            out.push(',');
-                        }
-                        first = false;
-                        // `variables[column]` always exists (rows are dense over vars).
-                        json_string(&variables[column], &mut out);
-                        out.push(':');
-                        json_binding(value, &mut out);
-                    }
-                }
-                out.push('}');
-            }
-            out.push_str("]}}");
-        }
-        SparqlResult::Graph(graph) => {
-            // No native SPARQL-JSON shape for a graph result; render N-Triples in a
-            // documented envelope so the caller still gets the full triples.
-            let format = classify("application/n-triples")?;
-            let outcome = serialize_dataset_to_format(graph.as_ref(), format, None)?;
-            let nt = String::from_utf8_lossy(&outcome.bytes);
-            out.push_str("{\"graph\":");
-            json_string(&nt, &mut out);
-            out.push('}');
-        }
-    }
-    Ok(out)
-}
-
-/// Append a JSON-escaped string literal (including the surrounding quotes).
-fn json_string(value: &str, out: &mut String) {
-    out.push('"');
-    for ch in value.chars() {
-        match ch {
-            '"' => out.push_str("\\\""),
-            '\\' => out.push_str("\\\\"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            c if (c as u32) < 0x20 => {
-                out.push_str(&format!("\\u{:04x}", c as u32));
-            }
-            c => out.push(c),
-        }
-    }
-    out.push('"');
-}
-
-/// Append a SPARQL-JSON binding object for a term value (recursive for triples).
-fn json_binding(value: &TermValue, out: &mut String) {
-    match value {
-        TermValue::Iri(iri) => {
-            out.push_str("{\"type\":\"uri\",\"value\":");
-            json_string(iri, out);
-            out.push('}');
-        }
-        TermValue::Blank { label, .. } => {
-            out.push_str("{\"type\":\"bnode\",\"value\":");
-            json_string(label, out);
-            out.push('}');
-        }
-        TermValue::Literal {
-            lexical_form,
-            datatype,
-            language,
-            ..
-        } => {
-            out.push_str("{\"type\":\"literal\",\"value\":");
-            json_string(lexical_form, out);
-            if let Some(language) = language {
-                out.push_str(",\"xml:lang\":");
-                json_string(language, out);
-            } else {
-                out.push_str(",\"datatype\":");
-                json_string(datatype, out);
-            }
-            out.push('}');
-        }
-        TermValue::Triple { s, p, o } => {
-            out.push_str("{\"type\":\"triple\",\"value\":{\"subject\":");
-            json_binding(s, out);
-            out.push_str(",\"predicate\":");
-            json_binding(p, out);
-            out.push_str(",\"object\":");
-            json_binding(o, out);
-            out.push_str("}}");
-        }
-    }
 }
