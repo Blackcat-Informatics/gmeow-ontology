@@ -41,6 +41,7 @@ mod binop;
 mod convert;
 pub mod error;
 pub mod eval;
+mod expr;
 pub mod scratch;
 pub mod solution;
 

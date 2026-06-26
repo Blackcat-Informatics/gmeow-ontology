@@ -102,6 +102,12 @@ fn build_index(
     (keyed, wild)
 }
 
+/// Hash-join two already-evaluated solution sequences on their shared variables
+/// (used by `EXISTS` to constrain a subpattern to the outer bindings).
+pub(crate) fn join_seqs(l: &SolutionSeq, r: &SolutionSeq) -> SolutionSeq {
+    hash_join(l, r)
+}
+
 /// Hash-join two solution sequences on their shared variables.
 fn hash_join(l: &SolutionSeq, r: &SolutionSeq) -> SolutionSeq {
     let out = l.schema.union(&r.schema);
@@ -200,25 +206,57 @@ fn merge(
     merged
 }
 
-/// Evaluate `left OPTIONAL { right }` (algebra `LeftJoin`) as a left outer join.
-///
-/// The inline-`FILTER` form (`expression` present) needs the expression evaluator
-/// and is wired in Task 5; until then it is an explicit hard error rather than a
-/// silently-dropped condition.
+/// Evaluate `left OPTIONAL { right }` (algebra `LeftJoin`) as a left outer join,
+/// with an optional inline `FILTER` condition evaluated on the merged solution.
 pub(crate) fn eval_left_join(
     left: &GraphPattern,
     right: &GraphPattern,
     expression: &Option<Expression>,
     ctx: &mut EvalCtx<'_>,
 ) -> Result<SolutionSeq, EvalError> {
-    if expression.is_some() {
-        return Err(EvalError::unsupported(
-            "OPTIONAL with an inline FILTER condition (pending FILTER/expression support)",
-        ));
-    }
     let l = eval(left, ctx)?;
     let r = eval(right, ctx)?;
-    Ok(left_outer_join(&l, &r))
+    match expression {
+        None => Ok(left_outer_join(&l, &r)),
+        Some(expr) => left_outer_join_filtered(&l, &r, expr, ctx),
+    }
+}
+
+/// A left outer join whose right-side pairings must additionally satisfy `expr`
+/// (the inline `OPTIONAL { ... FILTER expr }` condition, §18.6). A left solution
+/// with no pairing that is both compatible and passes the filter is emitted alone.
+fn left_outer_join_filtered(
+    l: &SolutionSeq,
+    r: &SolutionSeq,
+    expr: &Expression,
+    ctx: &mut EvalCtx<'_>,
+) -> Result<SolutionSeq, EvalError> {
+    let out = std::rc::Rc::new(l.schema.union(&r.schema));
+    let out_len = out.len();
+    let left_len = l.schema.len();
+    let right_to_out = right_to_out_map(&r.schema, &out);
+    let shared = l.schema.shared_columns(&r.schema);
+
+    let mut rows = Vec::new();
+    for lrow in &l.rows {
+        let mut matched = false;
+        for rrow in &r.rows {
+            if !compatible(lrow, rrow, &shared) {
+                continue;
+            }
+            let merged = merge(lrow, rrow, left_len, &right_to_out, out_len);
+            if crate::expr::eval_ebv(expr, &merged, &out, ctx)? == Some(true) {
+                rows.push(merged);
+                matched = true;
+            }
+        }
+        if !matched {
+            let mut row = vec![None; out_len];
+            row[..left_len].copy_from_slice(lrow);
+            rows.push(row);
+        }
+    }
+    Ok(SolutionSeq { schema: out, rows })
 }
 
 /// Left outer join: every left solution merged with each compatible right
@@ -478,14 +516,22 @@ mod tests {
     }
 
     #[test]
-    fn optional_with_inline_filter_hard_errors_until_task5() {
+    fn optional_inline_filter_excludes_failing_pairings() {
         let ds = graph();
         let mut ctx = EvalCtx::new(&ds);
+        // { ?s :likes ?o } OPTIONAL { ?s :knows ?f } with an always-false condition
+        // sameTerm(?s, ?f): no pairing passes, so every left row is emitted alone
+        // (?f unbound), exercising the filtered left-outer path.
         let left = bgp(vp("s"), pred("http://ex/likes"), vp("o"));
         let right = bgp(vp("s"), pred("http://ex/knows"), vp("f"));
-        let cond = Some(Expression::Bound(Variable::new("f")));
-        let err = eval_left_join(&left, &right, &cond, &mut ctx).unwrap_err();
-        assert!(matches!(err, EvalError::Unsupported(_)));
+        let cond = Some(Expression::SameTerm(
+            Box::new(Expression::Variable(Variable::new("s"))),
+            Box::new(Expression::Variable(Variable::new("f"))),
+        ));
+        let seq = eval_left_join(&left, &right, &cond, &mut ctx).expect("filtered optional");
+        assert_eq!(seq.len(), 2);
+        let f = seq.schema.index_of(&Variable::new("f")).unwrap();
+        assert!(seq.rows.iter().all(|r| r[f].is_none()));
     }
 
     #[test]

@@ -1957,7 +1957,9 @@ version = "0.1.0"
 dependencies = [
  "gmeow-rdf-core",
  "gmeow-sparql-algebra",
+ "gmeow-xsd",
  "pretty_assertions",
+ "regex",
 ]
 
 [[package]]

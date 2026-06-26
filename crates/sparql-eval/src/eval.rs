@@ -66,6 +66,12 @@ pub fn eval(pattern: &GraphPattern, ctx: &mut EvalCtx<'_>) -> Result<SolutionSeq
             expression,
         } => crate::binop::eval_left_join(left, right, expression, ctx),
         GraphPattern::Minus { left, right } => crate::binop::eval_minus(left, right, ctx),
+        GraphPattern::Filter { expr, inner } => crate::expr::eval_filter(expr, inner, ctx),
+        GraphPattern::Extend {
+            inner,
+            variable,
+            expression,
+        } => crate::expr::eval_extend(inner, variable, expression, ctx),
         // Implemented incrementally over the remaining S6 build tasks; until then
         // (and permanently, for out-of-scope nodes) a hard error names the construct.
         other => Err(EvalError::Unsupported(format!(
