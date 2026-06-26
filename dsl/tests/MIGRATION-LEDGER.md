@@ -634,6 +634,8 @@ vocab-not-subclassed; and the language/entities/pipeline FILTER-NOT-EXISTS guard
 or use a dynamic `FILTER NOT EXISTS` over an open population (every Language-refinement class, every
 PipelineStage individual) — never a finite blacklist standing in for an open universal.
 
+Both the inference `saInferenceCommitmentNoSubclasses` and the graphrag `saGraphRagVocabsNotSubclassed` `mustNot` cells carry a `FILTER (?c != self)` reflexive self-exclusion guard, matching the idiom already present in language/kernel/dreaming; the guard is RDFS-reasoner-safe and is currently a no-op in the asserted graph, but future-proofs against a `saReasoning` materialization of rdfs10.
+
 **Batch-13 tally:** 19 fresh structural cells across 5 slices (13 must + 6 mustNot); 0 pytest deleted.
 
 ## #867 structural Tier-B CLOSEOUT — all 76 slices accounted

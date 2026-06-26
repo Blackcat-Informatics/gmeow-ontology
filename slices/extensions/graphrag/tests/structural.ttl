@@ -72,5 +72,6 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     ?c rdfs:subClassOf ?vocab .
     VALUES ?vocab { gmeow:DistanceMetric gmeow:IndexAlgorithm }
+    FILTER (?c != ?vocab)
 }""" ;
     gmeow:saRationale "The QualityValue idiom: gmeow:DistanceMetric and gmeow:IndexAlgorithm are vocabularies of individuals, never per-value subclasses — the slice MUST NOT declare any subclass of either. New metrics/algorithms extend the vocabulary as individuals. VALUES ranges over the two closed value-vocabulary classes the slice declares." .

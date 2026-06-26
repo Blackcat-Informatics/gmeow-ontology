@@ -96,7 +96,7 @@ ex:saInferenceCommitmentNoSubclasses a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { ?c rdfs:subClassOf gmeow:InferenceCommitment . }""" ;
+ASK { ?c rdfs:subClassOf gmeow:InferenceCommitment . FILTER (?c != gmeow:InferenceCommitment) }""" ;
     gmeow:saRationale "Principle 9 (no overtyping): the four Peircean modes differ by a VALUE + a WARRANT, never by subsumption, so the module MUST NOT declare any subclass of gmeow:InferenceCommitment. A deductive vs abductive step is an gmeow:inferenceModeOf value, not a class." .
 
 # --- 7. Open-range argument properties: NO rdfs:range (MUST-NOT hold) ---------
