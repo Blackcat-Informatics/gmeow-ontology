@@ -105,13 +105,27 @@ pub(crate) struct FoldView<'a> {
     /// scope → (p, o) → [subject]
     po: BTreeMap<String, BTreeMap<(usize, usize), Vec<usize>>>,
     tag_map: BTreeMap<String, String>,
+    /// Requested public BCP-47 tags in precedence order (mirrors
+    /// `LangSelector.requested`). The export generator uses `["en"]`; the MCP
+    /// consumer threads a per-call selection (e.g. `["fr"]`).
+    requested: Vec<String>,
 }
 
 pub(crate) const DEFAULT_SCOPE: &str = "";
 pub(crate) const ALL_SCOPE: &str = "__all__";
 
 impl<'a> FoldView<'a> {
+    /// The English-only default view — `requested == ["en"]`. Every existing
+    /// export-leaf caller keeps this exact behavior.
     pub(crate) fn new(graph: &'a Graph) -> Self {
+        Self::with_requested(graph, vec!["en".to_string()])
+    }
+
+    /// A selector-aware view: literal selection honors `requested` (public
+    /// BCP-47 tags in precedence order) before the English / first-tagged /
+    /// untagged fallback chain. Mirrors `language_tags.select_literal` /
+    /// `filter_literals`.
+    pub(crate) fn with_requested(graph: &'a Graph, requested: Vec<String>) -> Self {
         let mut iri_index: BTreeMap<&'a str, usize> = BTreeMap::new();
         for (tid, t) in graph.terms.iter().enumerate() {
             if t.kind == TermKind::Iri {
@@ -120,12 +134,18 @@ impl<'a> FoldView<'a> {
                 }
             }
         }
+        let requested = if requested.is_empty() {
+            vec!["en".to_string()]
+        } else {
+            requested.iter().map(|r| r.to_ascii_lowercase()).collect()
+        };
         let mut view = FoldView {
             graph,
             iri_index,
             spo: BTreeMap::new(),
             po: BTreeMap::new(),
             tag_map: BTreeMap::new(),
+            requested,
         };
         view.build_indexes();
         view.tag_map = view.build_tag_map();
@@ -363,18 +383,26 @@ impl<'a> FoldView<'a> {
         by_bcp
     }
 
-    /// `select_literal` for the English-only default selector.
+    /// `select_literal`: the single best literal for `self.requested`. Tries each
+    /// requested tag in precedence order (non-fallback), then the English /
+    /// first-tagged / untagged fallback chain (`is_fallback=true`). With
+    /// `requested == ["en"]` this is identical to the English-only path.
     fn select_literal(&self, candidates: &[usize]) -> Option<(String, Option<String>, bool)> {
         if candidates.is_empty() {
             return None;
         }
         let by_bcp = self.bucket_by_bcp(candidates);
-        if let Some(en) = by_bcp.get("en") {
-            // requested == ("en",): a present "en" is NOT a fallback.
-            let (text, bcp, _) = &en[0];
-            return Some((text.clone(), bcp.clone(), false));
+        for req in &self.requested {
+            if let Some(rows) = by_bcp.get(req) {
+                let (text, bcp, _) = &rows[0];
+                return Some((text.clone(), bcp.clone(), false));
+            }
         }
-        // Fallback: deterministic-first tagged literal, then untagged.
+        // Fallback: English carrier, then deterministic-first tagged, then untagged.
+        if let Some(en) = by_bcp.get("en") {
+            let (text, bcp, _) = &en[0];
+            return Some((text.clone(), bcp.clone(), true));
+        }
         if let Some((_, row)) = best_tagged(&by_bcp) {
             let (text, bcp, _) = row;
             return Some((text.clone(), bcp.clone(), true));
@@ -386,20 +414,29 @@ impl<'a> FoldView<'a> {
         None
     }
 
-    /// `filter_literals` for the English-only default selector.
+    /// `filter_literals`: every literal matching `self.requested` (non-fallback),
+    /// or the English / first-tagged / untagged fallback (a single row,
+    /// `is_fallback=true`). With `requested == ["en"]` this is identical to the
+    /// English-only path.
     fn filter_literals(&self, candidates: &[usize]) -> Vec<(String, Option<String>, bool)> {
         if candidates.is_empty() {
             return Vec::new();
         }
         let by_bcp = self.bucket_by_bcp(candidates);
-        // requested == ("en",): all "en" rows, non-fallback.
-        if let Some(en) = by_bcp.get("en") {
-            return en
-                .iter()
-                .map(|(t, b, _)| (t.clone(), b.clone(), false))
-                .collect();
+        let mut results: Vec<(String, Option<String>, bool)> = Vec::new();
+        for req in &self.requested {
+            if let Some(rows) = by_bcp.get(req) {
+                results.extend(rows.iter().map(|(t, b, _)| (t.clone(), b.clone(), false)));
+            }
         }
-        // Fallback chain: first tagged, then untagged.
+        if !results.is_empty() {
+            return results;
+        }
+        // Fallback chain: English carrier, then first tagged, then untagged.
+        if let Some(en) = by_bcp.get("en") {
+            let (text, bcp, _) = &en[0];
+            return vec![(text.clone(), bcp.clone(), true)];
+        }
         if let Some((_, row)) = best_tagged(&by_bcp) {
             let (text, bcp, _) = row;
             return vec![(text.clone(), bcp.clone(), true)];
@@ -692,7 +729,7 @@ const PROPERTY_KINDS: &[(&str, &str)] = &[
     ("AnnotationProperty", "annotation"),
 ];
 
-fn collect_terms(view: &FoldView) -> Vec<Term> {
+pub(crate) fn collect_terms(view: &FoldView) -> Vec<Term> {
     let in_namespace =
         |view: &FoldView, tid: usize| view.is_iri(tid) && view.lex(tid).starts_with(NAMESPACE);
 
@@ -796,7 +833,7 @@ fn collect_terms(view: &FoldView) -> Vec<Term> {
     terms
 }
 
-fn fold_meta(view: &FoldView) -> Result<(String, String), PipelineError> {
+pub(crate) fn fold_meta(view: &FoldView) -> Result<(String, String), PipelineError> {
     let onto = view.tid_of_iri(ONTOLOGY_IRI).ok_or_else(|| {
         PipelineError::Parse(format!(
             "ontology header {ONTOLOGY_IRI} not present in the snapshot"
@@ -2059,5 +2096,44 @@ mod tests {
         assert!(skos.contains("skos:ConceptScheme"));
         let shex = String::from_utf8(arts[&format!("{DIST_DIR}/gmeow.shex")].clone()).unwrap();
         assert!(shex.contains("PREFIX gmeow:"));
+    }
+
+    /// The selector threads `requested` through `collect_terms`: the English
+    /// default keeps the carrier label, a `fr` request selects the French
+    /// translation, and an absent translation falls back to English (flagged).
+    /// Pins the multilingual generalization of `FoldView` and guards the English
+    /// path from regression (the default view is unchanged for `gmeow:langFrench`).
+    #[test]
+    fn selector_threads_requested_language() {
+        let root = repo_root();
+        let graph = read_fold(&root).expect("read fold");
+
+        let label_of = |requested: Vec<String>, curie_q: &str| -> Term {
+            let view = FoldView::with_requested(&graph, requested);
+            collect_terms(&view)
+                .into_iter()
+                .find(|t| t.curie == curie_q)
+                .unwrap_or_else(|| panic!("term {curie_q} not in snapshot"))
+        };
+
+        // English default: the carrier label, not a fallback.
+        let en = label_of(vec!["en".to_string()], "gmeow:langFrench");
+        assert_eq!(en.label, "French");
+        assert!(!en.label_fallback);
+
+        // `new()` (the export generator's view) agrees with `["en"]` — the
+        // English path is unchanged by the generalization.
+        let default_view = FoldView::new(&graph);
+        let default_fr = collect_terms(&default_view)
+            .into_iter()
+            .find(|t| t.curie == "gmeow:langFrench")
+            .expect("term present");
+        assert_eq!(default_fr.label, en.label);
+        assert_eq!(default_fr.label_fallback, en.label_fallback);
+
+        // `fr` request: the French translation, non-fallback.
+        let fr = label_of(vec!["fr".to_string()], "gmeow:langFrench");
+        assert_eq!(fr.label, "français");
+        assert!(!fr.label_fallback);
     }
 }
