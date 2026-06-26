@@ -27,6 +27,7 @@ use minijinja::{context, Environment};
 use pulldown_cmark::{html as cmark_html, Options, Parser};
 
 use crate::i18n::{self, ENGLISH};
+use crate::llms::{self, LlmsBullet, LlmsSection};
 use crate::model::{DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
 use crate::svg;
 
@@ -273,9 +274,12 @@ pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
         "search-index.json".to_string(),
         search_index_json(model).into_bytes(),
     );
+    // Standard llmstxt.org surfaces (#1027): a links-only index and a complete
+    // inlined form, both at the site root, superseding the ad-hoc `llms-docs.txt`.
+    files.insert("llms.txt".to_string(), llms_txt(model).into_bytes());
     files.insert(
-        "llms-docs.txt".to_string(),
-        llms_docs_txt(model).into_bytes(),
+        "llms-full.txt".to_string(),
+        llms_full_txt(model).into_bytes(),
     );
 
     // Casefolded slash-namespace aliases (tiny redirect pages).
@@ -2394,6 +2398,16 @@ fn short_digest(digest: &str) -> String {
 }
 
 /// The category directory segment (`classes`, `properties`, …).
+/// The fixed category order used by the category-index pages and the `llms.txt`
+/// Vocabulary section (deterministic).
+const CATEGORY_ORDER: [DocTermCategory; 5] = [
+    DocTermCategory::Class,
+    DocTermCategory::Property,
+    DocTermCategory::Individual,
+    DocTermCategory::Datatype,
+    DocTermCategory::Other,
+];
+
 fn category_dir(category: DocTermCategory) -> &'static str {
     match category {
         DocTermCategory::Class => "classes",
@@ -2551,7 +2565,7 @@ fn md_escape(text: &str) -> String {
     out
 }
 
-// ── Static indexes (search-index.json, llms-docs.txt) ──────────────────────────
+// ── Static indexes (search-index.json, llms.txt / llms-full.txt) ───────────────
 
 /// The flattened advice facet for a term — its English advisory carriers in a
 /// stable field order (scope, use-when, avoid-when, how-to-use). Empty when the
@@ -2568,7 +2582,7 @@ fn term_advice_facet(term: &DocTerm) -> Vec<String> {
 
 /// Precompute alignment facets for all terms in one pass: maps each subject IRI
 /// to a sorted+deduped `tag:object` token list. Avoids the O(N×M) per-term
-/// linear scan of `model.linkages` when rendering search and llms-docs surfaces.
+/// linear scan of `model.linkages` when rendering the search and llms surfaces.
 fn precompute_alignment_facets(model: &DocsModel) -> std::collections::HashMap<&str, Vec<String>> {
     let mut map: std::collections::HashMap<&str, Vec<String>> = std::collections::HashMap::new();
     for l in &model.linkages {
@@ -2671,7 +2685,7 @@ pub fn search_index_json(model: &DocsModel) -> String {
 }
 
 /// Local names of a list of IRIs, joined with `, ` — for compact one-line
-/// relational segments in `llms-docs.txt`.
+/// relational segments in the `llms.txt`/term-card surfaces.
 fn join_local_names(iris: &[String]) -> String {
     iris.iter()
         .map(|i| local_name(i))
@@ -2679,73 +2693,309 @@ fn join_local_names(iris: &[String]) -> String {
         .join(", ")
 }
 
-/// Build the deterministic `llms-docs.txt`: an LLM-friendly plaintext dump —
-/// a header (title + version + counts) then one sorted line per term:
-/// `curie — label: definition (category, owner slice)` followed by compact
-/// ` | key: …` relational segments (parents/domain/range/related/logic/box/
-/// aligns/use-when/avoid-when), each omitted when empty and kept single-line so
-/// the file stays greppable. Carries every relation the model holds for the term
-/// into the LLM surface (maximal information flow).
-pub fn llms_docs_txt(model: &DocsModel) -> String {
+/// The compact llmstxt.org signature suffix for a term: ` (⊑ parents)` for a
+/// class, ` [domain → range]` for a property (each side `?` when absent), empty
+/// otherwise. Local names only, so the line stays compact.
+fn term_signature(term: &DocTerm) -> String {
+    match term.category {
+        DocTermCategory::Property => {
+            if term.domain.is_empty() && term.range.is_empty() {
+                String::new()
+            } else {
+                let d = if term.domain.is_empty() {
+                    "?".to_string()
+                } else {
+                    join_local_names(&term.domain)
+                };
+                let r = if term.range.is_empty() {
+                    "?".to_string()
+                } else {
+                    join_local_names(&term.range)
+                };
+                format!(" [{d} → {r}]")
+            }
+        }
+        _ => {
+            if term.parents.is_empty() {
+                String::new()
+            } else {
+                format!(" (⊑ {})", join_local_names(&term.parents))
+            }
+        }
+    }
+}
+
+/// The one-lined definition (falling back to the label, else empty) for a term —
+/// the bullet note source shared by the index and search surfaces.
+fn term_note(term: &DocTerm) -> String {
+    term.definition
+        .as_deref()
+        .or(term.label.as_deref())
+        .map(one_line)
+        .unwrap_or_default()
+}
+
+/// Build the standard llmstxt.org **index** (`llms.txt`) at the site root: an H1
+/// title, the canonical summary blockquote, then `## Section`s of markdown-link
+/// bullets covering the full vocabulary plus the slice/concern/guide/reference
+/// pages. The links are site-root-relative (`from == ""`) and target the
+/// published `.../index.html` pages — the SAME convention the MCP index recovers
+/// from `gmeow:docUrl`, so the two never disagree. Notes are capped
+/// ([`llms::LLMS_NOTE_CAP`]); the complete inlined form is [`llms_full_txt`].
+pub fn llms_txt(model: &DocsModel) -> String {
+    let prose = vec![format!(
+        "Vocabulary {}. Namespace: {GMEOW_NS}. The OWL source is canonical; this index links into the published documentation.",
+        model.version
+    )];
+    let mut sections: Vec<LlmsSection> = Vec::new();
+
+    // ── Vocabulary: the category index pages, with term counts. ──
+    let mut vocab: Vec<LlmsBullet> = Vec::new();
+    for category in CATEGORY_ORDER {
+        let count = model
+            .terms
+            .iter()
+            .filter(|t| t.category == category)
+            .count();
+        if count == 0 {
+            continue;
+        }
+        vocab.push(LlmsBullet {
+            text: category_plural(category).to_string(),
+            url: Some(format!("{}/index.html", Page::Category(category).dir())),
+            signature: String::new(),
+            note: format!("{count} terms"),
+        });
+    }
+    if !vocab.is_empty() {
+        sections.push(LlmsSection {
+            heading: "Vocabulary".to_string(),
+            bullets: vocab,
+        });
+    }
+
+    // ── Terms: one linked bullet per term (full vocabulary coverage). ──
+    let term_bullets: Vec<LlmsBullet> = model
+        .terms
+        .iter()
+        .map(|term| LlmsBullet {
+            text: term.curie.clone(),
+            url: Some(format!("{}/index.html", Page::Term(term_slug(term)).dir())),
+            signature: term_signature(term),
+            note: llms::cap_note(&term_note(term)),
+        })
+        .collect();
+    if !term_bullets.is_empty() {
+        sections.push(LlmsSection {
+            heading: "Terms".to_string(),
+            bullets: term_bullets,
+        });
+    }
+
+    // ── Slices. ──
+    let slice_bullets: Vec<LlmsBullet> = model
+        .slices
+        .iter()
+        .map(|slice| LlmsBullet {
+            text: slice_display(slice),
+            url: Some(format!(
+                "{}/index.html",
+                Page::Slice(slice_slug(slice)).dir()
+            )),
+            signature: String::new(),
+            note: String::new(),
+        })
+        .collect();
+    if !slice_bullets.is_empty() {
+        sections.push(LlmsSection {
+            heading: "Slices".to_string(),
+            bullets: slice_bullets,
+        });
+    }
+
+    // ── Concerns. ──
+    let concern_bullets: Vec<LlmsBullet> = model
+        .concerns
+        .iter()
+        .map(|concern| LlmsBullet {
+            text: concern_display(concern),
+            url: Some(format!(
+                "{}/index.html",
+                Page::Concern(concern_slug(concern)).dir()
+            )),
+            signature: String::new(),
+            note: concern
+                .definition
+                .as_deref()
+                .map(|d| llms::cap_note(&one_line(d)))
+                .unwrap_or_default(),
+        })
+        .collect();
+    if !concern_bullets.is_empty() {
+        sections.push(LlmsSection {
+            heading: "Concerns".to_string(),
+            bullets: concern_bullets,
+        });
+    }
+
+    // ── Guides: recipes then learning paths. ──
+    let mut guide_bullets: Vec<LlmsBullet> = Vec::new();
+    for recipe in &model.recipes {
+        guide_bullets.push(LlmsBullet {
+            text: recipe.title.clone(),
+            url: Some(format!(
+                "{}/index.html",
+                Page::Recipe(recipe.slug.clone()).dir()
+            )),
+            signature: String::new(),
+            note: llms::cap_note(&one_line(&recipe.goal)),
+        });
+    }
+    for path in &model.learning_paths {
+        guide_bullets.push(LlmsBullet {
+            text: path.title.clone(),
+            url: Some(format!(
+                "{}/index.html",
+                Page::LearningPath(path.slug.clone()).dir()
+            )),
+            signature: String::new(),
+            note: llms::cap_note(&one_line(&path.goal)),
+        });
+    }
+    if !guide_bullets.is_empty() {
+        sections.push(LlmsSection {
+            heading: "Guides".to_string(),
+            bullets: guide_bullets,
+        });
+    }
+
+    // ── Reference: the standing index pages (always present). ──
+    sections.push(LlmsSection {
+        heading: "Reference".to_string(),
+        bullets: vec![
+            reference_bullet("Slice index", &Page::SliceIndex),
+            reference_bullet("Linkages", &Page::LinkageIndex),
+            reference_bullet("External ontologies", &Page::ExternalIndex),
+            reference_bullet("Integrity constraints", &Page::IntegrityIndex),
+            reference_bullet("Logic & reasoning", &Page::Logic),
+        ],
+    });
+
+    llms::render_index(&model.title, &prose, &sections)
+}
+
+/// A single Reference-section bullet linking to a standing index page.
+fn reference_bullet(text: &str, page: &Page) -> LlmsBullet {
+    LlmsBullet {
+        text: text.to_string(),
+        url: Some(format!("{}/index.html", page.dir())),
+        signature: String::new(),
+        note: String::new(),
+    }
+}
+
+/// Build the standard llmstxt.org **complete** form (`llms-full.txt`): the same
+/// header as [`llms_txt`], then the full inlined content of every term (no
+/// truncation), followed by the concern definitions and the slice inventory. This
+/// is the single-file, link-free surface an agent can ingest whole.
+pub fn llms_full_txt(model: &DocsModel) -> String {
+    let prose = vec![format!(
+        "Vocabulary {}. Namespace: {GMEOW_NS}. Complete inlined form — every term, its definition, and its usage advice in full.",
+        model.version
+    )];
+    let mut out = llms::llms_header(&model.title, &prose);
+
+    out.push_str("## Terms\n\n");
+    for term in &model.terms {
+        out.push_str(&term_full_block(model, term));
+    }
+
+    if !model.concerns.is_empty() {
+        out.push_str("## Concerns\n\n");
+        for concern in &model.concerns {
+            out.push_str(&format!("### {}\n\n", concern_display(concern)));
+            if let Some(def) = &concern.definition {
+                out.push_str(&one_line(def));
+                out.push_str("\n\n");
+            }
+        }
+    }
+
+    if !model.slices.is_empty() {
+        out.push_str("## Slices\n\n");
+        for slice in &model.slices {
+            let tier = slice
+                .tier
+                .as_ref()
+                .map(|t| format!(" (tier: {t:?})"))
+                .unwrap_or_default();
+            out.push_str(&format!("- {}{tier}\n", slice_display(slice)));
+        }
+        out.push('\n');
+    }
+
+    out
+}
+
+/// The full, plaintext content block for one term — used by [`llms_full_txt`] and
+/// (via [`term_card_md`]) the per-term prompt cards. A `### {curie}{signature}`
+/// heading, the label, the definition, then every advisory field the model
+/// carries (maximal information flow). Pure markdown text (no links), so it is
+/// safe to inline anywhere.
+fn term_full_block(model: &DocsModel, term: &DocTerm) -> String {
     let mut out = String::new();
-    out.push_str(&format!("# {}\n", model.title));
-    out.push_str(&format!("# version: {}\n", model.version));
+    out.push_str(&format!("### {}{}\n\n", term.curie, term_signature(term)));
     out.push_str(&format!(
-        "# terms: {}  slices: {}  concerns: {}  linkages: {}\n",
-        model.terms.len(),
-        model.slices.len(),
-        model.concerns.len(),
-        model.linkages.len(),
+        "- category: {}\n- iri: {}\n- slice: {}\n",
+        category_singular(term.category),
+        term.iri,
+        local_name(&term.owner_slice),
     ));
+    if let Some(label) = &term.label {
+        if label != &term.curie {
+            out.push_str(&format!("- label: {label}\n"));
+        }
+    }
+    if let Some(box_role) = &term.box_role {
+        out.push_str(&format!("- box: {box_role}\n"));
+    }
     out.push('\n');
 
-    // Precompute alignment facets once — avoids O(N×M) per-term linkage scan.
-    let alignment_facets = precompute_alignment_facets(model);
-
-    // Terms are already IRI-sorted; emit by (curie, iri) for a stable, readable
-    // ordering keyed on the human identifier.
-    let mut terms: Vec<&DocTerm> = model.terms.iter().collect();
-    terms.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
-    for term in terms {
-        let label = term.label.as_deref().unwrap_or("");
-        let def = term.definition.as_deref().map(one_line).unwrap_or_default();
-        let slice = local_name(&term.owner_slice);
-        let mut line = format!(
-            "{} — {}: {} ({}, {})",
-            term.curie,
-            label,
-            def,
-            category_singular(term.category),
-            slice,
-        );
-
-        // Compact relational segments — each omitted when empty, single-line.
-        let mut seg = |key: &str, value: String| {
-            if !value.is_empty() {
-                line.push_str(&format!(" | {key}: {}", one_line(&value)));
-            }
-        };
-        seg("parents", join_local_names(&term.parents));
-        seg("domain", join_local_names(&term.domain));
-        seg("range", join_local_names(&term.range));
-        seg("related", join_local_names(&term.related_terms));
-        seg("logic", term.logic_stereotypes.join(", "));
-        seg("box", term.box_role.clone().unwrap_or_default());
-        seg(
-            "aligns",
-            alignment_facets
-                .get(term.iri.as_str())
-                .cloned()
-                .unwrap_or_default()
-                .join(", "),
-        );
-        seg("use-when", term.use_when.join("; "));
-        seg("avoid-when", term.avoid_when.join("; "));
-
-        line.push('\n');
-        out.push_str(&line);
+    if let Some(def) = &term.definition {
+        out.push_str(&one_line(def));
+        out.push_str("\n\n");
     }
+
+    let alignment_facets = precompute_alignment_facets(model);
+    let mut field = |label: &str, values: &[String]| {
+        if !values.is_empty() {
+            out.push_str(&format!("**{label}:** {}\n\n", values.join("; ")));
+        }
+    };
+    field("Parents", &local_name_vec(&term.parents));
+    field("Domain", &local_name_vec(&term.domain));
+    field("Range", &local_name_vec(&term.range));
+    field("Use when", &term.use_when);
+    field("Avoid when", &term.avoid_when);
+    field("How to use", &term.how_to_use);
+    field("Scope notes", &term.scope_notes);
+    field("Examples", &term.examples);
+    field("Logic", &term.logic_stereotypes);
+    field("Related", &local_name_vec(&term.related_terms));
+    field(
+        "Aligns",
+        &alignment_facets
+            .get(term.iri.as_str())
+            .cloned()
+            .unwrap_or_default(),
+    );
     out
+}
+
+/// The local names of a list of IRIs as an owned `Vec` (for the advisory-field
+/// helper that takes `&[String]`).
+fn local_name_vec(iris: &[String]) -> Vec<String> {
+    iris.iter().map(|i| local_name(i).to_string()).collect()
 }
 
 // ── Casefolded slash-namespace aliases ─────────────────────────────────────────

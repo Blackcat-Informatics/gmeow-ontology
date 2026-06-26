@@ -357,7 +357,7 @@ fn build_okf_blob_from_builder(builder: &SnapshotBuilder) -> Result<BlobRow, Pip
 ///
 /// The rust doc generator (`gmeow_docs::render_site_lang`) emits a complete site
 /// (`index.md`/`index.html` per page, `assets/gmeow.css`, SVG diagrams,
-/// `search-index.json`, `llms-docs.txt`, alias redirects) as a deterministic
+/// `search-index.json`, `llms.txt`/`llms-full.txt`, alias redirects) as a deterministic
 /// `BTreeMap<path, bytes>`. We render it once per available language and prefix
 /// every member with that language's INTERNAL tag (`x-gmeow-english`,
 /// `x-gmeow-<lang>`, …) — the exact `{tag}/` prefix `_unpack_doc_archive` filters
@@ -1490,7 +1490,12 @@ mod ustar_tests {
             "the English landing page must be present"
         );
         // The site carries its structural assets (deterministic, language-keyed).
-        for asset in ["assets/gmeow.css", "search-index.json", "llms-docs.txt"] {
+        for asset in [
+            "assets/gmeow.css",
+            "search-index.json",
+            "llms.txt",
+            "llms-full.txt",
+        ] {
             let want = format!("x-gmeow-english/{asset}");
             assert!(
                 members.iter().any(|(n, _)| n == &want),

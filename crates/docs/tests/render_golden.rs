@@ -16,8 +16,7 @@ use pretty_assertions::assert_eq;
 use std::collections::BTreeSet;
 
 use gmeow_docs::render::{
-    concern_slug, llms_docs_txt, render_site, search_index_json, term_slug, to_html, to_markdown,
-    Page,
+    concern_slug, render_site, search_index_json, term_slug, to_html, to_markdown, Page,
 };
 use gmeow_docs::svg;
 use gmeow_docs::{DocTermCategory, DocsModel};
@@ -302,22 +301,6 @@ fn search_index_json_golden() {
 }
 
 #[test]
-fn llms_docs_txt_golden() {
-    // Lock the header (title/version/counts) plus one representative term line,
-    // not the whole ~2k-line dump.
-    let model = model();
-    let txt = llms_docs_txt(&model);
-    let header: String = txt.lines().take(4).collect::<Vec<_>>().join("\n");
-    // A deterministic sample line: the first non-empty, non-comment line.
-    let sample = txt
-        .lines()
-        .find(|l| !l.is_empty() && !l.starts_with('#'))
-        .unwrap_or("")
-        .to_string();
-    insta::assert_snapshot!(format!("{header}\n---\n{sample}"));
-}
-
-#[test]
 fn render_site_is_byte_stable() {
     let model = model();
     let a = render_site(&model);
@@ -331,7 +314,9 @@ fn render_site_is_byte_stable() {
     assert!(a.files.contains_key("diagrams/slices.svg"));
     assert!(a.files.contains_key("diagrams/concerns.svg"));
     assert!(a.files.contains_key("search-index.json"));
-    assert!(a.files.contains_key("llms-docs.txt"));
+    // The #1027 standard llmstxt.org surfaces (superseded `llms-docs.txt`).
+    assert!(a.files.contains_key("llms.txt"));
+    assert!(a.files.contains_key("llms-full.txt"));
     assert!(a.files.contains_key("linkages/index.html"));
     assert!(a.files.contains_key("examples/index.html"));
     assert!(a.files.contains_key("concerns/index.html"));
