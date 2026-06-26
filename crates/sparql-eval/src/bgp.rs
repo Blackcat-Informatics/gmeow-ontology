@@ -687,4 +687,31 @@ mod tests {
         let p1 = cp(Pos::Slot(2), Pos::Bound(tid(9)), Pos::Slot(3));
         assert_eq!(selectivity_order(&[p0, p1]), vec![0, 1]);
     }
+
+    /// An empty BGP produces an empty order — the `0..n` loop runs zero times so the
+    /// `.expect("an unscheduled pattern always remains")` inside the loop is never
+    /// reached. Guards the n == 0 boundary.
+    #[test]
+    fn empty_bgp_orders_to_empty() {
+        assert_eq!(selectivity_order(&[]), Vec::<usize>::new());
+    }
+
+    /// All-ground patterns contain no `Pos::Slot` positions, so `n_cols == 0` and
+    /// the bound-mask is zero-length. `pattern_connected` and `mark_bound` must not
+    /// index the empty mask. Every position is `Pos::Bound`, so every pattern scores 3
+    /// (all constrained) and none is ever "connected" (no slots). Two such patterns tie
+    /// at score 3 — lowest-index-wins gives [0, 1].
+    #[test]
+    fn all_ground_bgp_orders_by_score() {
+        // p0 and p1: all three positions Bound → score 3 each, n_cols == 0.
+        let p0 = cp(Pos::Bound(tid(0)), Pos::Bound(tid(1)), Pos::Bound(tid(2)));
+        let p1 = cp(Pos::Bound(tid(3)), Pos::Bound(tid(4)), Pos::Bound(tid(5)));
+        let order = selectivity_order(&[p0, p1]);
+        // Tie at score 3 → lowest original index wins → [0, 1].
+        assert_eq!(order, vec![0, 1]);
+        // Confirm it is a genuine permutation of 0..2.
+        let mut sorted = order.clone();
+        sorted.sort_unstable();
+        assert_eq!(sorted, vec![0, 1]);
+    }
 }
