@@ -1,0 +1,67 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the pipeline slice (#867 Tier-B
+# closeout). The repo-level narrow-waist/transpile tests check pipeline BEHAVIOR
+# (KEEP); these cells pin the slice's asserted-TBox spine and the integrity of
+# its dogfooded build-pipeline ABox fresh (MAXIMAL coverage, dogfooding). Each
+# runs as a SPARQL ASK over the module graph (gmeow:scopeModule).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/pipeline/tests/> .
+
+# --- 1. Pipeline / PipelineStage / StageKind spine (MUST hold) ---------------
+ex:saPipelineKinds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:Pipeline      a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:SocialObject .
+    gmeow:PipelineStage a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:SocialObject .
+    gmeow:StageKind     a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:Pipeline and gmeow:PipelineStage MUST be logic:Kind SocialObjects (the build pipeline modelled as first-class graph objects); gmeow:StageKind is a QualityValue vocabulary of stage roles." .
+
+# --- 2. Dataflow and stage property shapes (MUST hold) -----------------------
+ex:saPipelinePropertyShapes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:hasStage         a owl:ObjectProperty ;   rdfs:domain gmeow:Pipeline ;      rdfs:range gmeow:PipelineStage .
+    gmeow:dataflowConsumes a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ; rdfs:range gmeow:PipelineStage .
+    gmeow:dataflowProduces a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ; rdfs:range gmeow:PipelineStage .
+    gmeow:stageKind        a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ; rdfs:range gmeow:StageKind .
+    gmeow:carriesEngineLock a owl:DatatypeProperty ; rdfs:domain gmeow:PipelineStage ; rdfs:range xsd:boolean .
+}""" ;
+    gmeow:saRationale "The pipeline edges MUST hold their shapes: gmeow:hasStage (Pipeline→Stage), the gmeow:dataflowConsumes/dataflowProduces dataflow (Stage→Stage), gmeow:stageKind (Stage→StageKind), and the gmeow:carriesEngineLock boolean flag." .
+
+# --- 3. The seeded StageKind value vocabulary (MUST hold) --------------------
+ex:saStageKindSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:kindSourceLoad a gmeow:StageKind . gmeow:kindTransform a gmeow:StageKind .
+    gmeow:kindReason a gmeow:StageKind .     gmeow:kindValidate a gmeow:StageKind .
+    gmeow:kindDocsRender a gmeow:StageKind .  gmeow:kindExportLeaf a gmeow:StageKind .
+    gmeow:kindSink a gmeow:StageKind .
+}""" ;
+    gmeow:saRationale "The StageKind value vocabulary MUST seed the seven stage roles (source-load, transform, reason, validate, docs-render, export-leaf, sink) the narrow-waist pipeline classifies its stages by." .
+
+# --- 4. Every dogfooded PipelineStage carries a stageKind (MUST-NOT hold) -----
+ex:saEveryStageHasKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?s a gmeow:PipelineStage .
+    FILTER NOT EXISTS { ?s gmeow:stageKind ?k }
+}""" ;
+    gmeow:saRationale "Integrity of the dogfooded build pipeline: every gmeow:PipelineStage individual MUST carry a gmeow:stageKind classifying its role — the slice MUST NOT contain a stage with no kind, so the narrow-waist dataflow stays fully typed." .

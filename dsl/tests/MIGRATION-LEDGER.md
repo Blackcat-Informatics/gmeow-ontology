@@ -610,6 +610,48 @@ All migrated twins use fixture-only `validate()` (every Python original is `run_
 
 **Conformance batch-4 GRAND tally:** places 3 + images 11 + music_collections 11 + music_pitch 9 + ai_claims 1 + agentic 1 + verifiable_release_chain 1 = **37 converted**. Total native conformance suite = **158 tests**. The 4 `validate_with_ontology` (merged) users — finance, music_analysis, ai_claims, agentic — are all faithful (Python `g = _graph()`/`load_merged_graph()`). The run_shacl pytest population is now exhausted: every remaining run_shacl call is a faithful RETAIN (custom-shapes, dynamic disk/sweep, post-SHACL graph-membership, or cross-slice `_graph()` TBox) documented per-file above. `uv run mypy` clean (281 files).
 
+## #867 structural batch 13 (author-fresh: entities / sources / language / pipeline / graphrag)
+
+Five further slices that the batch-12 triage had pencilled in as "exempt" but which, on
+re-verification (the `verify-descope-claims` discipline — confirm before documenting), carry
+**genuine assertable asserted-TBox** worth pinning. Per `.goals` MAXIMAL coverage / NO
+COMPROMISES, a slice that *can* hold a faithful structural cell gets one rather than an exemption
+row. None had migratable rdflib pytest (their pytest, where any, is projection/ABox/behavior — KEEP),
+so these are net-new declarative coverage; no pytest deleted. All green
+(`cargo nextest -p gmeow-slicetest`); every `mustNot` cell red-proofed (2026-06-25).
+
+| Slice | Cells (must / mustNot) | Keystone invariants pinned |
+|---|---|---|
+| `core/entities` | 4 (3 / 1) | agent-Kind spine (Person/Organization/SoftwareAgent ⊑ Agent; Group ⊑ Collection+Entity); entity property shapes; Person/Organization/SoftwareAgent in an AllDisjointClasses; Group deliberately NOT disjoint with Organization |
+| `core/sources` | 3 (1 / 2) | contentDigest/sourceLocation/sourceModifiedAt property shapes; contentDigest domain-free; none functional (digests/copies coexist) — complements the existing competency.ttl |
+| `core/language` | 4 (3 / 1) | Language/WritingSystem Kinds ⊑ InformationObject + Formal/Programming SubKind spine; TransliterationScheme vocab + bcp47Tag/writtenInLanguage/transliterationScheme; en/fr/zh seeds; every Language-refinement carries logic:SubKind |
+| `core/pipeline` | 4 (3 / 1) | Pipeline/PipelineStage Kinds ⊑ SocialObject + StageKind vocab; dataflow/stage property shapes; 7 StageKind seeds; every dogfooded PipelineStage carries a stageKind (build-pipeline integrity) |
+| `extensions/graphrag` | 4 (3 / 1) | Corpus/Community/ExtractedEntity/Embedding/VectorIndex Kinds ⊑ InformationObject + RetrievalEvent ⊑ Activity; DistanceMetric/IndexAlgorithm vocabs + seeds; functional retrieval edges; value vocabs never subclassed |
+
+**#869 Gap-1:** the three VALUES `mustNot` patterns (sources not-functional, graphrag
+vocab-not-subclassed; and the language/entities/pipeline FILTER-NOT-EXISTS guards) range over the
+**fixed term sets each slice declares** (its three carrier properties, its two value-vocab classes)
+or use a dynamic `FILTER NOT EXISTS` over an open population (every Language-refinement class, every
+PipelineStage individual) — never a finite blacklist standing in for an open universal.
+
+**Batch-13 tally:** 19 fresh structural cells across 5 slices (13 must + 6 mustNot); 0 pytest deleted.
+
+## #867 structural Tier-B CLOSEOUT — all 76 slices accounted
+
+With batches 11–13, every one of the 12 slices that previously lacked `tests/structural.ttl` is
+accounted for. **10 now carry a structural cell** (kernel migrated from pytest; accounts, guides,
+inference, dreaming, entities, sources, language, pipeline, graphrag authored fresh). **2 are
+documented exemptions** (re-verified against the live slice, `verify-descope-claims`):
+
+| Exempt slice | Reason (verified 2026-06-25) |
+|---|---|
+| `core/inhabitation` | **No `module.ttl`** — design-only placeholder (`slices/core/inhabitation/design/`, branch `paudley/inhabitation-design`); there is no asserted TBox to assert over. A structural cell follows when the module lands. |
+| `core/logic` | **Principle 17** — `logic:` is the canonical reasoning vocabulary; its structural invariants are enforced by the Rust foundation oracle (`crates/foundation`, `foundation.rs`) and the gufo→logic migration validators, NOT by SHACL/SPARQL projections. A `structural.ttl` over `logic/module.ttl` would duplicate the Rust authority and risk divergence; its pytest (`test_logic_*.py`) exercises the solver ENGINE (KEEP), not TBox shape. |
+
+**Structural Tier-B is now 76/76 accounted: 74 slices carry `structural.ttl` + 2 documented
+exemptions, nothing silently dropped.** (The remaining open #867 work is Tier-C cull-on-retirement,
+gated on #832 / Python-oracle retirement — unchanged by this parcel.)
+
 ## #867 structural batch 12 (author-fresh: accounts / guides / inference / dreaming)
 
 Four slices with real asserted-TBox vocabulary but **no migratable rdflib pytest** (they never

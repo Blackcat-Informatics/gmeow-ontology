@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the graphrag slice (#867 Tier-B
+# closeout). The repo-level test_ai_claims.py is fixture-driven ABox conformance
+# (KEEP); these cells pin the slice's asserted-TBox spine fresh (MAXIMAL
+# coverage, dogfooding). Each runs as a SPARQL ASK over the module graph
+# (gmeow:scopeModule).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/graphrag/tests/> .
+
+# --- 1. The retrieval information-object Kinds (MUST hold) --------------------
+ex:saGraphRagKinds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:Corpus               a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
+    gmeow:Community            a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
+    gmeow:ExtractedEntity      a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
+    gmeow:Embedding            a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
+    gmeow:VectorIndex          a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
+    gmeow:RetrievalEvent       a owl:Class , logic:Event ; rdfs:subClassOf gmeow:Activity .
+}""" ;
+    gmeow:saRationale "The graph-RAG retrieval artifacts MUST be logic:Kind gmeow:InformationObjects (Corpus, Community, ExtractedEntity, Embedding, VectorIndex), and gmeow:RetrievalEvent MUST be a logic:Event subClassOf gmeow:Activity — the occurrent retrieval episode." .
+
+# --- 2. Distance/index value vocabularies + seeds (MUST hold) -----------------
+ex:saGraphRagValueVocabs a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:DistanceMetric a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:IndexAlgorithm a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:distanceMetricCosine a gmeow:DistanceMetric . gmeow:distanceMetricDotProduct a gmeow:DistanceMetric .
+    gmeow:distanceMetricEuclidean a gmeow:DistanceMetric .
+    gmeow:indexAlgorithmFlat a gmeow:IndexAlgorithm . gmeow:indexAlgorithmHnsw a gmeow:IndexAlgorithm .
+    gmeow:indexAlgorithmIvf a gmeow:IndexAlgorithm .
+}""" ;
+    gmeow:saRationale "gmeow:DistanceMetric and gmeow:IndexAlgorithm MUST be QualityValue vocabularies with their seeds present: distance metrics {cosine, dot-product, euclidean} and ANN index algorithms {flat, HNSW, IVF}." .
+
+# --- 3. The functional retrieval edges (MUST hold) ---------------------------
+ex:saGraphRagFunctionalEdges a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:embeddingOf a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:Embedding ; rdfs:range gmeow:InformationObject .
+    gmeow:embeddingModel a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:Embedding ; rdfs:range gmeow:SoftwareAgent .
+    gmeow:relationshipSource a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:ExtractedRelationship ; rdfs:range gmeow:ExtractedEntity .
+    gmeow:relationshipTarget a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:ExtractedRelationship ; rdfs:range gmeow:ExtractedEntity .
+    gmeow:summarizesCommunity a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:CommunitySummary ; rdfs:range gmeow:Community .
+    gmeow:indexAlgorithm a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:VectorIndex ; rdfs:range gmeow:IndexAlgorithm .
+}""" ;
+    gmeow:saRationale "The single-valued retrieval edges MUST be functional with their declared domains/ranges: an embedding embeds one object and one model; an extracted relationship has one source and one target; a summary summarizes one community; a vector index uses one algorithm." .
+
+# --- 4. Value vocabularies are individuals, never subclasses (MUST-NOT hold) --
+ex:saGraphRagVocabsNotSubclassed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    ?c rdfs:subClassOf ?vocab .
+    VALUES ?vocab { gmeow:DistanceMetric gmeow:IndexAlgorithm }
+}""" ;
+    gmeow:saRationale "The QualityValue idiom: gmeow:DistanceMetric and gmeow:IndexAlgorithm are vocabularies of individuals, never per-value subclasses — the slice MUST NOT declare any subclass of either. New metrics/algorithms extend the vocabulary as individuals. VALUES ranges over the two closed value-vocabulary classes the slice declares." .
