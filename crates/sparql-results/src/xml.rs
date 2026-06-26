@@ -180,6 +180,13 @@ fn write_term(value: &TermValue, out: &mut String) -> Result<(), Error> {
             out.push_str("</literal>");
         }
         TermValue::Triple { s, p, o } => {
+            // RDF predicates must be IRIs; a non-IRI predicate has no valid SRX
+            // <predicate> form → hard-fail per the serializer contract.
+            if !matches!(p.as_ref(), TermValue::Iri(_)) {
+                return Err(Error::MalformedTerm(
+                    "triple-term predicate is not an IRI".to_string(),
+                ));
+            }
             out.push_str("<triple><subject>");
             write_term(s, out)?;
             out.push_str("</subject><predicate>");
@@ -444,6 +451,51 @@ mod tests {
                 "</triple></binding>",
             )),
             "unexpected triple shape: {text}"
+        );
+    }
+
+    #[test]
+    fn non_iri_triple_predicate_is_malformed_error() {
+        // A triple-term whose predicate is a plain literal (not an IRI) must
+        // hard-fail with MalformedTerm rather than emitting structurally invalid
+        // SRX output.
+        let triple = TermValue::Triple {
+            s: Box::new(TermValue::Iri("http://example.org/s".to_string())),
+            p: Box::new(lit("not-an-iri", XSD_STRING)),
+            o: Box::new(TermValue::Iri("http://example.org/o".to_string())),
+        };
+        let result = SparqlResult::Solutions {
+            variables: vec!["t".to_string()],
+            rows: vec![vec![Some(triple)]],
+        };
+        let err = to_xml(&result, &ResultProvenance::default())
+            .expect_err("non-IRI predicate must be rejected");
+        assert!(
+            matches!(err, Error::MalformedTerm(_)),
+            "expected MalformedTerm, got: {err:?}"
+        );
+    }
+
+    #[test]
+    fn non_iri_bnode_triple_predicate_is_malformed_error() {
+        // A blank-node predicate is equally invalid.
+        let triple = TermValue::Triple {
+            s: Box::new(TermValue::Iri("http://example.org/s".to_string())),
+            p: Box::new(TermValue::Blank {
+                label: "b0".to_string(),
+                scope: BlankScope(0),
+            }),
+            o: Box::new(TermValue::Iri("http://example.org/o".to_string())),
+        };
+        let result = SparqlResult::Solutions {
+            variables: vec!["t".to_string()],
+            rows: vec![vec![Some(triple)]],
+        };
+        let err = to_xml(&result, &ResultProvenance::default())
+            .expect_err("bnode predicate must be rejected");
+        assert!(
+            matches!(err, Error::MalformedTerm(_)),
+            "expected MalformedTerm, got: {err:?}"
         );
     }
 

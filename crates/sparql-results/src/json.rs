@@ -31,8 +31,9 @@ use gmeow_rdf_core::{SparqlResult, TermValue};
 ///
 /// # Errors
 ///
-/// Returns [`Error`] only on a structurally malformed result; well-formed
-/// results serialize infallibly.
+/// Returns [`Error::MalformedTerm`] when a [`gmeow_rdf_core::TermValue::Triple`]
+/// carries a non-IRI predicate (e.g. a blank node or literal). RDF predicates
+/// must be IRIs; emitting such input would produce structurally invalid SRJ.
 pub fn to_json(
     result: &SparqlResult,
     provenance: &ResultProvenance,
@@ -116,7 +117,7 @@ fn write_base(result: &SparqlResult, out: &mut String) -> Result<(), Error> {
                         first = false;
                         json_string(var, out);
                         out.push(':');
-                        json_binding(value, out);
+                        json_binding(value, out)?;
                     }
                 }
                 out.push('}');
@@ -201,7 +202,13 @@ fn json_string(value: &str, out: &mut String) {
 ///
 /// Byte-identical to the rdf-capi emitter except for the SPARQL 1.2 `"dir"`
 /// key, emitted only when the literal carries a base direction.
-fn json_binding(value: &TermValue, out: &mut String) {
+///
+/// # Errors
+///
+/// Returns [`crate::error::Error::MalformedTerm`] if a [`TermValue::Triple`]
+/// arm's predicate is not an IRI. RDF predicates must be IRIs; emitting a
+/// non-IRI predicate would produce structurally invalid SRJ output.
+fn json_binding(value: &TermValue, out: &mut String) -> Result<(), crate::error::Error> {
     match value {
         TermValue::Iri(iri) => {
             out.push_str("{\"type\":\"uri\",\"value\":");
@@ -236,15 +243,23 @@ fn json_binding(value: &TermValue, out: &mut String) {
             out.push('}');
         }
         TermValue::Triple { s, p, o } => {
+            // RDF predicates must be IRIs; a non-IRI predicate has no valid SRJ
+            // "predicate" form → hard-fail per the serializer contract.
+            if !matches!(p.as_ref(), TermValue::Iri(_)) {
+                return Err(crate::error::Error::MalformedTerm(
+                    "triple-term predicate is not an IRI".to_string(),
+                ));
+            }
             out.push_str("{\"type\":\"triple\",\"value\":{\"subject\":");
-            json_binding(s, out);
+            json_binding(s, out)?;
             out.push_str(",\"predicate\":");
-            json_binding(p, out);
+            json_binding(p, out)?;
             out.push_str(",\"object\":");
-            json_binding(o, out);
+            json_binding(o, out)?;
             out.push_str("}}");
         }
     }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -369,7 +384,53 @@ mod tests {
         );
     }
 
-    // 3. DIRECTION ADDITIVE — directional literal carries the SPARQL 1.2 "dir" key;
+    // 3. NON-IRI PREDICATE — triple-term with a non-IRI predicate must hard-fail.
+    #[test]
+    fn non_iri_triple_predicate_is_malformed_error() {
+        // A triple-term whose predicate is a plain literal (not an IRI) must
+        // hard-fail with MalformedTerm rather than emitting structurally invalid
+        // SRJ output.
+        let triple = TermValue::Triple {
+            s: Box::new(TermValue::Iri("http://example.org/s".to_string())),
+            p: Box::new(lit("not-an-iri", XSD_STRING)),
+            o: Box::new(TermValue::Iri("http://example.org/o".to_string())),
+        };
+        let result = SparqlResult::Solutions {
+            variables: vec!["t".to_string()],
+            rows: vec![vec![Some(triple)]],
+        };
+        let err = to_json(&result, &ResultProvenance::default())
+            .expect_err("non-IRI predicate must be rejected");
+        assert!(
+            matches!(err, crate::error::Error::MalformedTerm(_)),
+            "expected MalformedTerm, got: {err:?}"
+        );
+    }
+
+    #[test]
+    fn non_iri_bnode_triple_predicate_is_malformed_error() {
+        // A blank-node predicate is equally invalid.
+        let triple = TermValue::Triple {
+            s: Box::new(TermValue::Iri("http://example.org/s".to_string())),
+            p: Box::new(TermValue::Blank {
+                label: "b0".to_string(),
+                scope: BlankScope(0),
+            }),
+            o: Box::new(TermValue::Iri("http://example.org/o".to_string())),
+        };
+        let result = SparqlResult::Solutions {
+            variables: vec!["t".to_string()],
+            rows: vec![vec![Some(triple)]],
+        };
+        let err = to_json(&result, &ResultProvenance::default())
+            .expect_err("bnode predicate must be rejected");
+        assert!(
+            matches!(err, crate::error::Error::MalformedTerm(_)),
+            "expected MalformedTerm, got: {err:?}"
+        );
+    }
+
+    // 5. DIRECTION ADDITIVE — directional literal carries the SPARQL 1.2 "dir" key;
     //    plain literals must not.
     #[test]
     fn directional_literal_carries_dir_key() {
@@ -402,7 +463,7 @@ mod tests {
         );
     }
 
-    // 4. MAXIMAL PATH — populated provenance appears as a valid top-level member.
+    // 6. MAXIMAL PATH — populated provenance appears as a valid top-level member.
     #[test]
     fn populated_provenance_appends_valid_gmeow_member() {
         let result = SparqlResult::Solutions {
@@ -463,7 +524,7 @@ mod tests {
         assert!(braces_balanced(&text), "unbalanced braces: {text}");
     }
 
-    // 5. GRAPH — CONSTRUCT result renders `{"graph":"<nt>"}` carrying the triple.
+    // 7. GRAPH — CONSTRUCT result renders `{"graph":"<nt>"}` carrying the triple.
     #[test]
     fn graph_result_wraps_ntriples() {
         let mut builder = RdfDatasetBuilder::new();
