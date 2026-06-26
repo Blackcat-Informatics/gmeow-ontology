@@ -39,13 +39,22 @@
 
 use wasm_bindgen::prelude::*;
 
-// The idiomatic RDF/JS surface is built up parcel by parcel (issue #846):
+// The idiomatic RDF/JS surface, built up parcel by parcel (issue #846):
 //   * `term`    — RDF/JS Term types (NamedNode/BlankNode/Literal/Variable/DefaultGraph
-//                 + the RDF-1.2 Quad-as-term wedge)  [Task 2]
-//   * `factory` — the RDF/JS DataFactory over `gmeow_rdf::backend::TermFactory`  [Task 2]
-//   * `codec`   — parse/serialize over `gmeow_rdf::native_codecs`  [Task 2]
-//   * `dataset` — the mutable RDF/JS DatasetCore over `MutableDataset`/`DatasetMut`  [Task 3]
+//                 + the RDF-1.2 Quad-as-term wedge)
+//   * `factory` — the RDF/JS DataFactory over the engine's owned term model
+//   * `codec`   — format-name resolution for the native codecs
+//   * `dataset` — the mutable RDF/JS DatasetCore over `MutableDataset`/`DatasetMut`
+//                 (parse/serialize/size here; add/delete/has/match next commit)
 //   * `stream`  — the RDF/JS Stream/Sink over the `gmeow-rdf-events` protocol  [Task 4]
+mod codec;
+mod dataset;
+mod factory;
+mod term;
+
+pub use dataset::Dataset;
+pub use factory::DataFactory;
+pub use term::{Quad, Term};
 
 /// The purrdf engine version (the crate's SemVer), exposed to JS as `version()`.
 ///
