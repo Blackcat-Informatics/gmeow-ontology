@@ -369,6 +369,37 @@ fn closure(
     result
 }
 
+/// The one-or-more transitive closure of `inner` from the WHOLE `seeds` set in a
+/// single joint traversal: every node reachable by applying `inner` at least once
+/// from any seed. Equivalent to unioning `closure` over each seed, but visits each
+/// node at most once (O(V+E), not O(|seeds|·(V+E))).
+fn closure_multi(
+    inner: &PropertyPathExpression,
+    seeds: &BTreeSet<TermId>,
+    forward: bool,
+    dataset: &RdfDataset,
+    graph: GraphMatch,
+) -> BTreeSet<TermId> {
+    let mut result = BTreeSet::new();
+    let mut visited = BTreeSet::new();
+    let mut frontier: Vec<TermId> = Vec::new();
+    for &s in seeds {
+        frontier.extend(reach(inner, s, forward, dataset, graph));
+    }
+    while let Some(n) = frontier.pop() {
+        if !visited.insert(n) {
+            continue;
+        }
+        result.insert(n);
+        for next in reach(inner, n, forward, dataset, graph) {
+            if !visited.contains(&next) {
+                frontier.push(next);
+            }
+        }
+    }
+    result
+}
+
 /// `inner{min,max}` — the union over `k ∈ [min, max]` of the nodes reachable in
 /// **exactly** `k` applications of `inner`. The per-level frontier is a fresh set
 /// (re-entrant per `k`), so a node reachable at multiple repetition counts is
@@ -393,10 +424,9 @@ fn range_reach(
         match max {
             Some(m) if k >= m => break,
             None if k >= min => {
-                // Unbounded tail: `*`-close from the exactly-`min` frontier.
-                for n in &current {
-                    out.extend(closure(inner, *n, forward, dataset, graph));
-                }
+                // Unbounded tail: `*`-close from the exactly-`min` frontier in a
+                // single joint traversal (avoids redundant per-seed re-traversal).
+                out.extend(closure_multi(inner, &current, forward, dataset, graph));
                 break;
             }
             _ => {}
