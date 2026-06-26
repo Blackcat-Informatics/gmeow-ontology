@@ -11,6 +11,14 @@ expression: summary
     "url": "concerns/concerndisclosure/index.html"
   },
   "last": {
+    "advice": [
+      "Use for rotation about the vertical axis in the Euler-angle orientation facet.",
+      "Avoid stating Euler angles without gmeow:eulerOrder (the rotation order disambiguates them).",
+      "Set gmeow:yaw with gmeow:pitch, gmeow:roll, and gmeow:eulerOrder on the Orientation."
+    ],
+    "alignments": [
+      "closeMatch:Q465493"
+    ],
     "definition": "Rotation about the vertical (typically z) axis, in degrees or radians as indicated by the reference frame.",
     "id": "gmeow:yaw",
     "kind": "term",
