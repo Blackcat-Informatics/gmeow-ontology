@@ -714,4 +714,64 @@ mod tests {
         sorted.sort_unstable();
         assert_eq!(sorted, vec![0, 1]);
     }
+
+    /// A ≥3-pattern STAR shape: one shared hub variable (?hub = col 0) appears in
+    /// every spoke. Guards two invariants simultaneously:
+    ///
+    /// 1. **Connectivity**: after the seed pattern binds `?hub`, every remaining spoke
+    ///    shares col 0 — so `pattern_connected` returns `true` for all of them and no
+    ///    Cartesian product is ever forced.
+    /// 2. **Score-then-index ordering among connected spokes**: once all spokes are
+    ///    connected the algorithm still picks the highest-scoring eligible pattern,
+    ///    breaking ties by lowest original index.
+    ///
+    /// Pattern layout (col 0 = ?hub, cols 1–4 are distinct leaf slots):
+    ///   P0 (index 0): Bound Bound Slot(0)   — seed; score 2 in round 1 (two constants)
+    ///   P1 (index 1): Slot(0) Bound Slot(1) — spoke A; score 2 after hub bound
+    ///   P2 (index 2): Slot(0) Slot(2) Slot(3) — spoke B; score 1 after hub bound
+    ///   P3 (index 3): Slot(0) Bound Slot(4) — spoke C; score 2 after hub bound
+    ///
+    /// Hand-simulated rounds:
+    ///   Round 1: nothing bound; scores P0=2, P1=1, P2=0, P3=1 → P0 wins; binds col 0.
+    ///   Round 2: col 0 bound; all of P1/P2/P3 connected; scores P1=2, P2=1, P3=2
+    ///            → P1 and P3 tie at 2; lowest index → P1 wins; binds col 0,1.
+    ///   Round 3: cols 0,1 bound; P2 and P3 connected; scores P2=1, P3=2 → P3 wins;
+    ///            binds cols 0,1,4.
+    ///   Round 4: only P2 remains, connected → P2 scheduled.
+    ///   Expected order: [0, 1, 3, 2].
+    #[test]
+    fn star_bgp_schedules_spokes_connected_after_hub() {
+        // P0: seed — two ground constants anchor ?hub (col 0) in the object position.
+        let p0 = cp(Pos::Bound(tid(10)), Pos::Bound(tid(11)), Pos::Slot(0));
+        // P1: spoke A — hub in subject, one ground predicate, leaf in object (col 1).
+        let p1 = cp(Pos::Slot(0), Pos::Bound(tid(12)), Pos::Slot(1));
+        // P2: spoke B — hub in subject, two free leaf slots (cols 2, 3); lowest score.
+        let p2 = cp(Pos::Slot(0), Pos::Slot(2), Pos::Slot(3));
+        // P3: spoke C — hub in subject, one ground predicate, leaf in object (col 4).
+        let p3 = cp(Pos::Slot(0), Pos::Bound(tid(13)), Pos::Slot(4));
+
+        let order = selectivity_order(&[p0, p1, p2, p3]);
+
+        // The unique deterministic output derived by hand-simulation above.
+        assert_eq!(order, vec![0, 1, 3, 2]);
+
+        // Connectivity invariant: every pattern scheduled after the seed (position 0)
+        // must share the hub column (col 0), so no Cartesian product is forced.
+        let pos_of = |i: usize| order.iter().position(|&x| x == i).unwrap();
+        assert!(pos_of(0) == 0, "P0 is the seed");
+        // P1, P2, P3 all share col 0 with P0 — assert each follows the seed.
+        assert!(pos_of(1) > pos_of(0), "P1 (spoke A) follows the seed");
+        assert!(pos_of(2) > pos_of(0), "P2 (spoke B) follows the seed");
+        assert!(pos_of(3) > pos_of(0), "P3 (spoke C) follows the seed");
+        // Score ordering among connected spokes: P3 (score 2) before P2 (score 1).
+        assert!(
+            pos_of(3) < pos_of(2),
+            "higher-scoring spoke P3 precedes lower-scoring P2"
+        );
+        // Tie-break: P1 and P3 both score 2 as connected; P1 (index 1) precedes P3 (index 3).
+        assert!(
+            pos_of(1) < pos_of(3),
+            "lower-index P1 beats equal-scoring P3 in the tie"
+        );
+    }
 }
