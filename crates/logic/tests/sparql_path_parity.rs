@@ -21,7 +21,10 @@
 //! Scope note: the lowering models the subject/object endpoints as independent, so
 //! the same-variable reflexive case (`?x p ?x`) and the not-lowerable
 //! negated-set/wildcard paths are exercised in `gmeow_sparql_eval`'s own unit tests
-//! (in-engine only), not here.
+//! (in-engine only), not here.  `ZeroOrOne` (`?`) and the composed-reflexive shapes
+//! (`p?/q`, `(p?)+`, `(p?)*`) ARE parity-checked here: they are the subtlest
+//! divergence point between the two engines (the lowering's `Sequence` skip-rules and
+//! `add_reflexive` bound-endpoint identity injection).
 
 use std::collections::BTreeSet;
 use std::sync::Arc;
@@ -304,4 +307,75 @@ fn parity_both_variable_star() {
     let edges = [("a", "p", "b"), ("b", "p", "c"), ("x", "q", "y")];
     let star = PropertyPathExpression::ZeroOrMore(Box::new(named("p")));
     assert_parity(&edges, &star, End::Var("s"), End::Var("o"));
+}
+
+// ── ZeroOrOne (?) and composed-reflexive shapes ───────────────────────────────
+
+#[test]
+fn parity_zero_or_one_standalone() {
+    // `:a :p? ?o` over edges a->b: expect {a (identity), b (one hop)}.
+    let edges = [("a", "p", "b")];
+    let qmark = PropertyPathExpression::ZeroOrOne(Box::new(named("p")));
+    assert_parity(&edges, &qmark, End::Iri("a"), End::Var("o"));
+
+    // No outgoing edge from `a` for the identity case: expect only {a}.
+    let edges_no_out: [(&str, &str, &str); 1] = [("c", "p", "d")];
+    assert_parity(&edges_no_out, &qmark, End::Iri("a"), End::Var("o"));
+}
+
+#[test]
+fn parity_zero_or_one_both_ground_hit_and_miss() {
+    // Both-ground (ASK) shapes exercise `add_reflexive`'s `(Iri, Iri)` arm.
+    let edges = [("a", "p", "b")];
+    let qmark = PropertyPathExpression::ZeroOrOne(Box::new(named("p")));
+
+    // `:a :p? :a` — identity hit (s == o).
+    assert_parity(&edges, &qmark, End::Iri("a"), End::Iri("a"));
+    // `:a :p? :b` — one-hop hit.
+    assert_parity(&edges, &qmark, End::Iri("a"), End::Iri("b"));
+    // `:a :p? :c` — miss (no edge a->c and a != c).
+    assert_parity(&edges, &qmark, End::Iri("a"), End::Iri("c"));
+}
+
+#[test]
+fn parity_sequence_optional_leg() {
+    // `:a (:p?)/:q ?o`: the first leg is zero-or-one, exercising the Sequence
+    // skip-rule (sparql_path_lower.rs ~lines 281-287) when the first leg takes the
+    // zero-length identity.  Edges: a-p->x, x-q->b, a-q->c.
+    // Via p then q: a-p->x, x-q->b  → b.
+    // Skip p (identity), then q: a-q->c  → c.
+    // Expected from a: {b, c}.
+    let edges = [("a", "p", "x"), ("x", "q", "b"), ("a", "q", "c")];
+    let qmark = PropertyPathExpression::ZeroOrOne(Box::new(named("p")));
+    let path = PropertyPathExpression::Sequence(Box::new(qmark), Box::new(named("q")));
+    assert_parity(&edges, &path, End::Iri("a"), End::Var("o"));
+}
+
+#[test]
+fn parity_optional_plus() {
+    // `:a (:p?)+ ?o`: OneOrMore of a reflexive inner; exercises OneOrMore carrying
+    // inner reflexivity through `lower`'s `OneOrMore` arm (tc, rp).
+    // Edges: a-p->b, b-p->c.  From a: {a (identity via rp), b, c}.
+    let edges = [("a", "p", "b"), ("b", "p", "c")];
+    let qmark = PropertyPathExpression::ZeroOrOne(Box::new(named("p")));
+    let path = PropertyPathExpression::OneOrMore(Box::new(qmark));
+    assert_parity(&edges, &path, End::Iri("a"), End::Var("o"));
+}
+
+#[test]
+fn parity_optional_star() {
+    // `:a (:p?)* ?o`: ZeroOrMore of a reflexive inner; should agree on the
+    // reflexive-closure universe from a.
+    let edges = [("a", "p", "b")];
+    let qmark = PropertyPathExpression::ZeroOrOne(Box::new(named("p")));
+    let path = PropertyPathExpression::ZeroOrMore(Box::new(qmark));
+    assert_parity(&edges, &path, End::Iri("a"), End::Var("o"));
+}
+
+#[test]
+fn parity_zero_or_one_on_cycle() {
+    // `:a :p? ?o` on a 2-cycle a<->b: `?` must NOT loop; expect {a (identity), b (one hop)}.
+    let edges = [("a", "p", "b"), ("b", "p", "a")];
+    let qmark = PropertyPathExpression::ZeroOrOne(Box::new(named("p")));
+    assert_parity(&edges, &qmark, End::Iri("a"), End::Var("o"));
 }

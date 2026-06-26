@@ -161,6 +161,13 @@ fn answer_to_pairs(
 /// Add the zero-length identity pairs when the path is reflexive, relative to the
 /// bound endpoint (so no node-universe enumeration is needed unless both endpoints
 /// are variable).
+///
+/// A ground endpoint that is **absent from the graph** (i.e. does not appear as a
+/// subject or object of any edge) mirrors the in-engine evaluator's `resolve_end`
+/// behaviour: an absent ground IRI makes the whole path empty (SPARQL §18.3.2.1 —
+/// a term not in the active graph cannot contribute any ALP pair, including the
+/// zero-length identity). We enforce this by checking node-universe membership for
+/// every bound (IRI) endpoint before inserting the identity pair.
 fn add_reflexive(
     out: &mut BTreeSet<(String, String)>,
     reflexive: bool,
@@ -171,21 +178,29 @@ fn add_reflexive(
     if !reflexive {
         return;
     }
+    let universe = node_universe(edges);
     match (subject, object) {
         (PathEnd::Iri(s), PathEnd::Variable) => {
-            out.insert((n3(s), n3(s)));
+            // Only insert the identity if the subject node exists in the graph.
+            if universe.contains(s) {
+                out.insert((n3(s), n3(s)));
+            }
         }
         (PathEnd::Variable, PathEnd::Iri(o)) => {
-            out.insert((n3(o), n3(o)));
+            // Only insert the identity if the object node exists in the graph.
+            if universe.contains(o) {
+                out.insert((n3(o), n3(o)));
+            }
         }
         (PathEnd::Iri(s), PathEnd::Iri(o)) => {
-            if s == o {
+            // Identity holds only when s == o AND the node exists in the graph.
+            if s == o && universe.contains(s) {
                 out.insert((n3(s), n3(o)));
             }
         }
         (PathEnd::Variable, PathEnd::Variable) => {
-            for n in node_universe(edges) {
-                out.insert((n3(&n), n3(&n)));
+            for n in &universe {
+                out.insert((n3(n), n3(n)));
             }
         }
     }
