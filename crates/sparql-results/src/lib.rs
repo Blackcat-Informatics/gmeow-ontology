@@ -22,10 +22,12 @@
 
 mod error;
 mod graph;
+mod json;
 mod model;
 mod term;
 
 pub use error::Error;
+pub use json::to_json;
 pub use model::{ResultProvenance, SolutionProvenance};
 
 /// Re-export of the egress result model this crate serializes, so consumers name

@@ -17,9 +17,8 @@ use gmeow_rdf_core::{emit_annotation, emit_quad, emit_reifier, RdfDataset};
 /// annotations and reifiers). Each kernel `emit_*` call already terminates its
 /// output with `\n`, so the parts are concatenated in order: quads, then
 /// annotations, then reifiers.
-// Consumed by the CONSTRUCT result-document path landing in Task 3; the lib-only
-// build can't see that call site yet (the test module exercises it).
-#[allow(dead_code)]
+// Consumed by the JSON CONSTRUCT-graph branch (`crate::json`) and, in Task 3, by
+// the remaining result-document writers.
 pub(crate) fn dataset_to_ntriples(dataset: &RdfDataset) -> String {
     let mut out = String::new();
     for quad in dataset.owned_quads() {
