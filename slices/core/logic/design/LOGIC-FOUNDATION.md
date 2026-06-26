@@ -193,7 +193,22 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
 
 - **Levels are path-relative.** Holarchies are DAGs, not strict ladders, so an entity has no single
   global "level." A level is meaningful only relative to a path through the holarchy; two paths may
-  place the same entity at different depths, and both are correct.
+  place the same entity at different depths, and both are correct. The construct is concrete:
+  `logic:holonicLevel` is a literal **read off a `logic:HolonicPosition`** (`rdfs:domain
+  logic:HolonicPosition`), never an intrinsic attribute of the entity — because a position fixes one
+  path, the level it carries is automatically per-path. The per-entity **min/max band** across an
+  entity's positions is materialized as `logic:holonicLevelMin` / `logic:holonicLevelMax`, and the
+  derived marker `logic:multiplyPositioned` (an entity occupying two or more distinct positions, by
+  negation-of-equality over the position set) certifies that a non-trivial band exists — the positive
+  companion to `logic:HolonicLevelIncoherence`. **Honest scope (ME9, #775):** the foundation chase is
+  all-IRI under `logic:StratifiedNAFProfile`, with no numeric comparison or aggregation, so it grounds
+  only the band's *existence* (`logic:multiplyPositioned`); it can neither derive nor check that the
+  band endpoints are the true extrema of the borne per-position levels — those endpoints are
+  operator-asserted, not engine-verified. The single source remains the per-position `logic:holonicLevel`
+  literals; the band is a materialized convenience. Because the native foundation evaluator hard-rejects
+  non-IRI (literal) objects, the level literals and the band live OUTSIDE the foundation conformance
+  world: the `holonic-band` case (below) proves the engine-verified path-relativity structure IRI-only,
+  while the literal band is dogfooded as ABox data in `examples/holonic-band.ttl`.
 - **Emergence is assessed, not asserted.** Emergence is an **EmergenceAssessment** relative to a
   declared *reduction theory* — the claim that a whole's property is not derivable from its parts
   *under that theory*. Failure to derive is **not** proof of irreducibility; the assessment records
@@ -292,11 +307,17 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   holon kernel — the assessed holons are wired into a holarchy so `logic:isHolon` co-fires); the full
   agency corpus and the lossy OWL projection of the verdict accrete in C5 (#708).
 - **C5 addendum — holonic conformance corpus, level-coherence rule, and OWL projection (#708).**
-  The six holonic conformance cases now live under `conformance/logic/cases/holonic/`:
+  The seven holonic conformance cases now live under `conformance/logic/cases/holonic/`:
   `holarchy-closure`, `weak-supplementation`, `emergence`, `downward-constraint`,
-  `holon-integrity`, and `holonic-level`. Every case is validated against a derivation-graph
-  golden under the native solver, and the Rust test suite asserts golden quad-set parity for
-  each single-world case.
+  `holon-integrity`, `holonic-level`, and `holonic-band`. Every case is validated against a
+  derivation-graph golden under the native solver, and the Rust test suite asserts golden
+  quad-set parity for each single-world case. `holonic-band` (ME9, #775) is the positive
+  path-relativity proof: a holon occupying two `logic:HolonicPosition`s along two distinct
+  `logic:positionPath`s on a genuine multi-parent DAG fires the engine-derived
+  `logic:multiplyPositioned` (with `logic:isHolon` / `logic:hasHolonicPosition` and, because it
+  occupies positions, NO `logic:HolonicLevelIncoherence`). It is IRI-only — the literal
+  `logic:holonicLevel` values and the min/max band the all-IRI evaluator cannot hold are
+  materialized as ABox data in `examples/holonic-band.ttl`.
 
   The **holonicLevel coherence rule is position-based**: because the foundation chase is
   all-IRI and `logic:holonicLevel` is a literal read off a `logic:HolonicPosition`, coherence
