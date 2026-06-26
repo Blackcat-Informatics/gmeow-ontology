@@ -24,7 +24,7 @@
 //! - IRI: `<iri>`
 //! - Blank node: `_:label` (or `[]` for an empty/anonymous reifier subject —
 //!   see [`emit_reifier`] / [`emit_annotation`])
-//! - Literal: `"lex"`, `"lex"@lang`, `"lex"^^<datatype>` (escaped)
+//! - Literal: `"lex"`, `"lex"@lang`, `"lex"@lang--ltr`/`"lex"@lang--rtl`, `"lex"^^<datatype>` (escaped)
 //! - Triple term (RDF 1.2): `<< <s> <p> <o> >>` (the reifier-shorthand form)
 
 use crate::{RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple};
@@ -75,12 +75,23 @@ fn escape_literal(value: &str) -> String {
         .replace('\t', "\\t")
 }
 
-/// Serialize an [`RdfLiteral`] to its Turtle form (`"lex"`, `"lex"@lang`, or
-/// `"lex"^^<datatype>`).
+/// Render an [`RdfLiteral`] as an N-Triples/Turtle literal token.
+///
+/// Forms produced:
+/// - `"lex"@lang` — plain language-tagged string
+/// - `"lex"@lang--ltr` / `"lex"@lang--rtl` — RDF 1.2 directional language-tagged string
+/// - `"lex"^^<datatype>` — datatype literal
+/// - `"lex"` — plain literal (no lang, no datatype)
+///
+/// Direction without a language tag is malformed RDF and is silently ignored.
+/// This function is infallible.
 fn emit_literal(literal: &RdfLiteral) -> String {
     let lex = escape_literal(&literal.lexical_form);
     if let Some(lang) = &literal.language {
-        format!("\"{lex}\"@{lang}")
+        match literal.direction {
+            Some(dir) => format!("\"{lex}\"@{lang}--{}", dir.as_str()),
+            None => format!("\"{lex}\"@{lang}"),
+        }
     } else if let Some(datatype) = &literal.datatype {
         format!("\"{lex}\"^^<{datatype}>")
     } else {
@@ -249,6 +260,31 @@ mod tests {
             )),
             "\"42\"^^<http://www.w3.org/2001/XMLSchema#integer>"
         );
+    }
+
+    #[test]
+    fn emit_directional_literal_rtl() {
+        use crate::model::RdfTextDirection;
+        let lit = RdfLiteral {
+            lexical_form: "hello".to_string(),
+            datatype: None,
+            language: Some("ar".to_string()),
+            direction: Some(RdfTextDirection::Rtl),
+        };
+        let term = RdfTerm::Literal(lit);
+        assert_eq!(emit_term(&term), "\"hello\"@ar--rtl");
+    }
+
+    #[test]
+    fn emit_lang_literal_no_direction() {
+        let lit = RdfLiteral {
+            lexical_form: "x".to_string(),
+            datatype: None,
+            language: Some("en".to_string()),
+            direction: None,
+        };
+        let term = RdfTerm::Literal(lit);
+        assert_eq!(emit_term(&term), "\"x\"@en");
     }
 
     #[test]

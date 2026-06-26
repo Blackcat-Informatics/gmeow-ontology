@@ -186,4 +186,21 @@ mod tests {
             "<< <http://example.org/s> <http://example.org/p> <http://example.org/o> >>"
         );
     }
+
+    #[test]
+    fn directional_literal_ltr_carries_direction_suffix() {
+        use gmeow_rdf_core::RdfTextDirection;
+        let v = TermValue::Literal {
+            lexical_form: "hello".to_string(),
+            datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString".to_string(),
+            language: Some("en".to_string()),
+            direction: Some(RdfTextDirection::Ltr),
+        };
+        let token = ntriples_token(&v);
+        assert!(
+            token.contains("--ltr"),
+            "expected --ltr direction suffix in token, got: {token}"
+        );
+        assert_eq!(token, "\"hello\"@en--ltr");
+    }
 }
