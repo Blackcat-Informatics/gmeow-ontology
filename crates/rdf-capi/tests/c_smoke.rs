@@ -27,10 +27,18 @@ fn c_abi_smoke() {
         .expect("profile dir")
         .to_path_buf();
 
-    let lib = profile_dir.join("libpurrdf.so");
+    // Build the platform-correct shared-library file name: `libpurrdf.so` on
+    // Linux, `libpurrdf.dylib` on macOS, `purrdf.dll` on Windows. `DLL_SUFFIX`
+    // already includes the leading dot.
+    let lib_name = format!(
+        "{}purrdf{}",
+        std::env::consts::DLL_PREFIX,
+        std::env::consts::DLL_SUFFIX
+    );
+    let lib = profile_dir.join(&lib_name);
     assert!(
         lib.exists(),
-        "libpurrdf.so not found at {} — the cdylib should be built with the crate",
+        "{lib_name} not found at {} — the cdylib should be built with the crate",
         lib.display()
     );
 
@@ -49,8 +57,17 @@ fn c_abi_smoke() {
         .expect("failed to invoke the C compiler");
     assert!(compile.success(), "C smoke failed to compile/link");
 
+    // The loader's library-search env var is platform-specific: `LD_LIBRARY_PATH`
+    // on Linux/BSD, `DYLD_LIBRARY_PATH` on macOS, `PATH` on Windows.
+    let loader_path_var = if cfg!(target_os = "macos") {
+        "DYLD_LIBRARY_PATH"
+    } else if cfg!(target_os = "windows") {
+        "PATH"
+    } else {
+        "LD_LIBRARY_PATH"
+    };
     let run = Command::new(&bin)
-        .env("LD_LIBRARY_PATH", &profile_dir)
+        .env(loader_path_var, &profile_dir)
         .status()
         .expect("failed to run the C smoke binary");
     assert!(run.success(), "C smoke binary returned a failure exit code");
