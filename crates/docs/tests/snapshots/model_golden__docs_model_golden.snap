@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/model_golden.rs
-assertion_line: 182
 expression: summary
 ---
 {
@@ -161,7 +160,22 @@ expression: summary
         "https://blackcatinformatics.ca/logic/QualityValue"
       ],
       "domain": [],
-      "range": []
+      "range": [],
+      "scope_notes": [],
+      "examples": [
+        "ex:aboutnessDescribes a gmeow:AboutnessMode ."
+      ],
+      "use_when": [
+        "Use as the value vocabulary for the mention/use axis — whether a carrier describes its subject (reports, quotes, depicts) or enacts it (performs, demands, embodies), the distinction rubrics and evidence assessments depend on."
+      ],
+      "avoid_when": [
+        "Avoid collapsing it into the other epistemic axes (granularity, determinacy, sensitivity, confidence) and avoid per-mode subclasses; aboutness is a value vocabulary of individuals applied through gmeow:hasAboutness."
+      ],
+      "how_to_use": [
+        "Reference gmeow:aboutnessDescribes or gmeow:aboutnessEnacts from a carrier via gmeow:hasAboutness; carry the subject toward which the mode holds on the surrounding construct (citation, exemplar, statement cell), never inferred."
+      ],
+      "use_for_consumer": [],
+      "avoid_for_consumer": []
     },
     {
       "iri": "https://blackcatinformatics.ca/gmeow/abstract",
@@ -176,7 +190,22 @@ expression: summary
       ],
       "range": [
         "http://www.w3.org/2000/01/rdf-schema#Literal"
-      ]
+      ],
+      "scope_notes": [],
+      "examples": [
+        "ex:paper gmeow:abstract \"We present a method for...\"@en ."
+      ],
+      "use_when": [
+        "Use for a prose summary of a creative work's content — a paper abstract or executive summary; non-functional, so localized abstracts coexist with language tags."
+      ],
+      "avoid_when": [
+        "Avoid it for a structured list of subunits (use gmeow:tableOfContents) and for a short display caption (use gmeow:caption)."
+      ],
+      "how_to_use": [
+        "Carry the summary literal on gmeow:abstract with a language tag per rendition; projects to schema:abstract / dcterms:abstract."
+      ],
+      "use_for_consumer": [],
+      "avoid_for_consumer": []
     },
     {
       "iri": "https://blackcatinformatics.ca/gmeow/langEnglish",
@@ -187,7 +216,14 @@ expression: summary
       "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/language",
       "parents": [],
       "domain": [],
-      "range": []
+      "range": [],
+      "scope_notes": [],
+      "examples": [],
+      "use_when": [],
+      "avoid_when": [],
+      "how_to_use": [],
+      "use_for_consumer": [],
+      "avoid_for_consumer": []
     }
   ],
   "mapping_set_count": 54,

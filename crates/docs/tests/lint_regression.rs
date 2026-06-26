@@ -77,6 +77,13 @@ fn term(local: &str, definition: Option<&str>, label: Option<&str>) -> DocTerm {
         parents: Vec::new(),
         domain: Vec::new(),
         range: Vec::new(),
+        scope_notes: Vec::new(),
+        examples: Vec::new(),
+        use_when: Vec::new(),
+        avoid_when: Vec::new(),
+        how_to_use: Vec::new(),
+        use_for_consumer: Vec::new(),
+        avoid_for_consumer: Vec::new(),
     }
 }
 

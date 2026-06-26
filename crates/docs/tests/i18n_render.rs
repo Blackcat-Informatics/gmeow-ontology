@@ -41,6 +41,13 @@ fn labeled_term(local: &str, label: &str, def: &str) -> DocTerm {
         parents: Vec::new(),
         domain: Vec::new(),
         range: Vec::new(),
+        scope_notes: Vec::new(),
+        examples: Vec::new(),
+        use_when: Vec::new(),
+        avoid_when: Vec::new(),
+        how_to_use: Vec::new(),
+        use_for_consumer: Vec::new(),
+        avoid_for_consumer: Vec::new(),
     }
 }
 
