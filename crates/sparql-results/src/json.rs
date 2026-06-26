@@ -14,7 +14,7 @@
 //! When the supplied [`ResultProvenance`] is non-empty, an additive top-level
 //! `"gmeow"` member is appended to the result object. W3C SRJ parsers ignore the
 //! unknown key, so populated output stays a valid superset of the standard form.
-//! Likewise the per-literal `"gmeow:direction"` key is emitted only for
+//! Likewise the per-literal SPARQL 1.2 `"dir"` key is emitted only for
 //! directional literals, so non-directional output is unchanged.
 
 use crate::error::Error;
@@ -76,7 +76,7 @@ fn write_srj(
 
 /// Write the pure-W3C SRJ object (no `gmeow` extension at the top level). This is
 /// the byte-identity contract with the legacy rdf-capi emitter, save for the
-/// `Graph` branch and the additive per-literal `gmeow:direction` key.
+/// `Graph` branch and the additive per-literal SPARQL 1.2 `"dir"` key.
 fn write_base(result: &SparqlResult, out: &mut String) -> Result<(), Error> {
     match result {
         SparqlResult::Boolean(value) => {
@@ -199,9 +199,8 @@ fn json_string(value: &str, out: &mut String) {
 
 /// Append a SPARQL-JSON binding object for a term value (recursive for triples).
 ///
-/// Byte-identical to the rdf-capi emitter except for the additive
-/// `gmeow:direction` key, which is emitted only when the literal carries a base
-/// direction.
+/// Byte-identical to the rdf-capi emitter except for the SPARQL 1.2 `"dir"`
+/// key, emitted only when the literal carries a base direction.
 fn json_binding(value: &TermValue, out: &mut String) {
     match value {
         TermValue::Iri(iri) => {
@@ -230,7 +229,7 @@ fn json_binding(value: &TermValue, out: &mut String) {
                 json_string(datatype, out);
             }
             if let Some(direction) = direction {
-                out.push_str(",\"gmeow:direction\":\"");
+                out.push_str(",\"dir\":\"");
                 out.push_str(direction.as_str());
                 out.push('"');
             }
@@ -370,9 +369,10 @@ mod tests {
         );
     }
 
-    // 3. DIRECTION ADDITIVE — directional literal carries the key; plain does not.
+    // 3. DIRECTION ADDITIVE — directional literal carries the SPARQL 1.2 "dir" key;
+    //    plain literals must not.
     #[test]
-    fn directional_literal_carries_gmeow_direction() {
+    fn directional_literal_carries_dir_key() {
         let result = SparqlResult::Solutions {
             variables: vec!["d".to_string()],
             rows: vec![vec![Some(TermValue::Literal {
@@ -384,21 +384,21 @@ mod tests {
         };
         let text = json_text(&result, &ResultProvenance::default());
         assert!(
-            text.contains("\"gmeow:direction\":\"ltr\""),
-            "expected gmeow:direction key: {text}"
+            text.contains("\"dir\":\"ltr\""),
+            "expected SPARQL 1.2 dir key: {text}"
         );
     }
 
     #[test]
-    fn non_directional_literal_omits_gmeow_direction() {
+    fn non_directional_literal_omits_dir_key() {
         let result = SparqlResult::Solutions {
             variables: vec!["v".to_string()],
             rows: vec![vec![Some(lit("x", XSD_STRING))]],
         };
         let text = json_text(&result, &ResultProvenance::default());
         assert!(
-            !text.contains("gmeow:direction"),
-            "plain literal must not carry gmeow:direction: {text}"
+            !text.contains("\"dir\""),
+            "plain literal must not carry dir key: {text}"
         );
     }
 
