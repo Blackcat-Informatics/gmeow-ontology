@@ -9,7 +9,7 @@
 //! collection is sorted by a stable key so the serialized model is
 //! byte-reproducible.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
@@ -100,6 +100,22 @@ const SKOS_RELATED: &str = "http://www.w3.org/2004/02/skos/core#related";
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 const GMEOW_PAIRS_WITH: &str = "https://blackcatinformatics.ca/gmeow/pairsWith";
 const GMEOW_GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
+
+// ── Per-term lifecycle surface (#1026) ──────────────────────────────────────────
+const OWL_DEPRECATED: &str = "http://www.w3.org/2002/07/owl#deprecated";
+const GMEOW_TERM_STABILITY: &str = "https://blackcatinformatics.ca/gmeow/termStability";
+const GMEOW_ADDED_IN_VERSION: &str = "https://blackcatinformatics.ca/gmeow/addedInVersion";
+const GMEOW_HAS_CHANGELOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/hasChangelogEntry";
+const GMEOW_ENTRY_VERSION: &str = "https://blackcatinformatics.ca/gmeow/entryVersion";
+const GMEOW_ENTRY_NOTE: &str = "https://blackcatinformatics.ca/gmeow/entryNote";
+const STABILITY_STABLE_CURIE: &str = "gmeow:stabilityStable";
+const STABILITY_EXPERIMENTAL_CURIE: &str = "gmeow:stabilityExperimental";
+const STABILITY_DEPRECATED_CURIE: &str = "gmeow:stabilityDeprecated";
+/// The name of the everything-aggregation profile (root + every extension);
+/// every documented term belongs to it (#330 `full.ttl`).
+const FULL_PROFILE_NAME: &str = "full";
+const GMEOW_WORK: &str = "https://blackcatinformatics.ca/gmeow/Work";
+const DCTERMS_IDENTIFIER: &str = "http://purl.org/dc/terms/identifier";
 
 // ── SHACL constraint surface (#1020) ────────────────────────────────────────────
 
@@ -262,6 +278,43 @@ impl DocSlice {
     }
 }
 
+/// The maturity status of a vocabulary term (#1026). Serializes as a lowercase
+/// string (`stable` / `experimental` / `deprecated`). Resolved from an explicit
+/// `gmeow:termStability` annotation, else `owl:deprecated`, else the owner
+/// slice's tier (core → stable, extension → experimental).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum DocTermStability {
+    /// Mature, committed; safe to rely on. The core-tier default.
+    #[default]
+    Stable,
+    /// Provisional; may change or be withdrawn. The extension-tier default.
+    Experimental,
+    /// Retained for continuity but should no longer be used.
+    Deprecated,
+}
+
+impl DocTermStability {
+    /// The lowercase badge label shown on a term page.
+    pub fn label(&self) -> &'static str {
+        match self {
+            DocTermStability::Stable => "stable",
+            DocTermStability::Experimental => "experimental",
+            DocTermStability::Deprecated => "deprecated",
+        }
+    }
+}
+
+/// One reified per-release changelog entry for a term (#1026). Ordered by
+/// `(version, note)` for deterministic rendering.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Default)]
+pub struct DocChangelogEntry {
+    /// `gmeow:entryVersion` — the release this entry pertains to.
+    pub version: String,
+    /// `gmeow:entryNote` — optional prose describing the change (English carrier).
+    pub note: Option<String>,
+}
+
 /// A documented vocabulary term parsed from a slice's `module.ttl`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Default)]
 pub struct DocTerm {
@@ -313,6 +366,20 @@ pub struct DocTerm {
     /// subjects that declare `logic:formalizes <this term>` (sorted/deduped).
     /// Empty until the central logic slice carries such back-refs.
     pub formalized_by: Vec<String>,
+    /// The term's maturity badge (#1026), always resolved: explicit
+    /// `gmeow:termStability` > `owl:deprecated` > owner-slice tier default.
+    pub stability: DocTermStability,
+    /// `gmeow:addedInVersion` — the release a term first appeared in (the
+    /// lowest-sorted literal when multiply asserted); `None` until seeded (#1026).
+    pub added_in_version: Option<String>,
+    /// `gmeow:hasChangelogEntry` — reified per-release change records, sorted by
+    /// `(version, note)` (#1026). Empty when the term carries no changelog.
+    pub changelog: Vec<DocChangelogEntry>,
+    /// The named profiles whose membership closure includes this term's owner
+    /// slice, plus the always-present `full` aggregate (sorted/deduped, #1026).
+    /// Computed in `from_catalog` from the slices' `sliceProfile` /
+    /// `sliceDependsOn` declarations.
+    pub profiles: Vec<String>,
 }
 
 /// A cross-slice dependency edge projected from the ownership report.
@@ -541,6 +608,11 @@ pub struct DocsModel {
     /// The curated "four boxes" doctrine prose, read at build time from
     /// `<root>/docs/four-boxes.md` if present (`None` when absent).
     pub four_boxes: Option<String>,
+    /// The ontology's concept DOI (`dcterms:identifier` on the `gmeow:Work`
+    /// subject of `<root>/metadata/gmeow-self.ttl`), read in `discover()`. Drives
+    /// the per-term citation block's "cite the ontology" line (#1026). `None`
+    /// when the metadata file is absent.
+    pub concept_doi: Option<String>,
     /// Available documentation languages: the English carrier (`"english"`)
     /// first, then the BCP-47 codes (`fr`, `zh`) of every slice translation
     /// catalog, sorted. Deterministic.
@@ -563,7 +635,7 @@ pub struct DocsModel {
 
 impl DocsModel {
     /// The model schema version. Bump when the serialized shape changes.
-    pub const VERSION: &'static str = "4";
+    pub const VERSION: &'static str = "5";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report.
@@ -592,7 +664,7 @@ impl DocsModel {
                 let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
                     panic!("module.ttl for slice {owner} failed to parse: {e}")
                 });
-                terms.extend(extract_terms(&store, owner));
+                terms.extend(extract_terms(&store, owner, record.manifest.tier.as_ref()));
                 formalizes_edges.extend(extract_formalizes(&store));
             }
         }
@@ -631,6 +703,58 @@ impl DocsModel {
                 t.related_terms.dedup();
                 t.formalized_by.sort();
                 t.formalized_by.dedup();
+            }
+        }
+
+        // ── Per-term profile membership (#1026) ─────────────────────────────
+        // A term belongs to a named profile P iff P's declared-member-plus-
+        // sliceDependsOn closure contains the term's owner slice; every term
+        // also belongs to `full` (root + every extension). This MIRRORS the
+        // pipeline `profiles` stage's closure (#330) from the same manifest
+        // data, without touching that byte-identical stage.
+        {
+            // slice IRI → its sliceDependsOn list (for the closure walk).
+            let depends: BTreeMap<&str, &[String]> = slices
+                .iter()
+                .map(|s| (s.iri.as_str(), s.depends_on.as_slice()))
+                .collect();
+            // profile name → declared member slice IRIs (from gmeow:sliceProfile).
+            let mut declared: BTreeMap<String, Vec<String>> = BTreeMap::new();
+            for s in &slices {
+                for name in &s.profiles {
+                    declared
+                        .entry(name.clone())
+                        .or_default()
+                        .push(s.iri.clone());
+                }
+            }
+            // profile name → full membership closure over sliceDependsOn.
+            let closures: BTreeMap<String, BTreeSet<String>> = declared
+                .iter()
+                .map(|(name, members)| {
+                    let mut closed: BTreeSet<String> = BTreeSet::new();
+                    let mut frontier: Vec<String> = members.clone();
+                    while let Some(iri) = frontier.pop() {
+                        if !closed.insert(iri.clone()) {
+                            continue;
+                        }
+                        if let Some(deps) = depends.get(iri.as_str()) {
+                            frontier.extend(deps.iter().cloned());
+                        }
+                    }
+                    (name.clone(), closed)
+                })
+                .collect();
+            for t in &mut terms {
+                let mut profiles: Vec<String> = closures
+                    .iter()
+                    .filter(|(_, closed)| closed.contains(&t.owner_slice))
+                    .map(|(name, _)| name.clone())
+                    .collect();
+                profiles.push(FULL_PROFILE_NAME.to_string());
+                profiles.sort();
+                profiles.dedup();
+                t.profiles = profiles;
             }
         }
 
@@ -778,6 +902,7 @@ impl DocsModel {
             recipes,
             learning_paths,
             four_boxes: None,
+            concept_doi: None,
             available_languages,
             translations,
             ui_catalog: UiCatalog::default(),
@@ -792,6 +917,9 @@ impl DocsModel {
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         let mut model = Self::from_catalog(&catalog, &ownership);
         model.four_boxes = std::fs::read_to_string(root.join("docs/four-boxes.md")).ok();
+        // Concept DOI for the per-term citation block (#1026): the
+        // `dcterms:identifier` on the `gmeow:Work` subject of the self-description.
+        model.concept_doi = read_concept_doi(root);
         // Root-level SHACL shapes (`<root>/shapes/*.ttl`) — aggregate node shapes
         // not owned by any single slice — merged into the slice-level shapes and
         // deduped by (target term, messages).
@@ -800,6 +928,28 @@ impl DocsModel {
         model.ui_catalog = UiCatalog::from_dir(&root.join("i18n"));
         Ok(model)
     }
+}
+
+/// Read the ontology's concept DOI from `<root>/metadata/gmeow-self.ttl`: the
+/// `dcterms:identifier` literal on the `gmeow:Work` subject (#1026). Returns
+/// `None` if the file is absent, unparsable, or carries no Work DOI — the
+/// citation block degrades to the term-IRI permalink alone.
+fn read_concept_doi(root: &Path) -> Option<String> {
+    let bytes = std::fs::read(root.join("metadata/gmeow-self.ttl")).ok()?;
+    let store = parse_turtle_lenient(&bytes).ok()?;
+    let work = store
+        .quads_for_pattern(
+            None,
+            Some(named(RDF_TYPE).as_ref()),
+            Some(named(GMEOW_WORK).as_ref().into()),
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+        .find_map(|q| match q.subject {
+            NamedOrBlankNode::NamedNode(n) => Some(n),
+            _ => None,
+        })?;
+    first_literal(&store, work.as_str(), DCTERMS_IDENTIFIER)
 }
 
 // ── Turtle parsing + term extraction ──────────────────────────────────────────
@@ -819,7 +969,7 @@ pub(crate) fn parse_turtle_lenient(bytes: &[u8]) -> Result<Store, SliceError> {
 }
 
 /// Extract documented terms (GMEOW-namespaced typed subjects) from a module store.
-fn extract_terms(store: &Store, owner_slice: &str) -> Vec<DocTerm> {
+fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> Vec<DocTerm> {
     // First pass: collect every GMEOW subject with a recognized vocabulary type,
     // keyed by IRI, recording the strongest category seen.
     let mut categories: BTreeMap<String, DocTermCategory> = BTreeMap::new();
@@ -900,6 +1050,12 @@ fn extract_terms(store: &Store, owner_slice: &str) -> Vec<DocTerm> {
             .into_iter()
             .next();
 
+        // Per-term lifecycle (#1026): maturity badge (fully resolved with the
+        // owner-slice tier in hand), added-in version, and reified changelog.
+        let stability = resolve_stability(store, &iri, tier);
+        let added_in_version = first_literal(store, &iri, GMEOW_ADDED_IN_VERSION);
+        let changelog = extract_changelog(store, &iri);
+
         let curie = to_curie(&iri);
         terms.push(DocTerm {
             iri,
@@ -922,9 +1078,80 @@ fn extract_terms(store: &Store, owner_slice: &str) -> Vec<DocTerm> {
             related_terms,
             box_role,
             formalized_by: Vec::new(),
+            stability,
+            added_in_version,
+            changelog,
+            // Profile membership needs the full slice set; computed in
+            // `from_catalog`'s second pass.
+            profiles: Vec::new(),
         });
     }
     terms
+}
+
+/// Resolve a term's stability badge (#1026): an explicit `gmeow:termStability`
+/// annotation wins (the lowest-sorted CURIE when multiply asserted, a
+/// deterministic and conservative tiebreak); else `owl:deprecated true` →
+/// Deprecated; else the owner-slice tier default (extension → Experimental,
+/// everything else → Stable).
+fn resolve_stability(store: &Store, iri: &str, tier: Option<&SliceTier>) -> DocTermStability {
+    if let Some(curie) = curie_objects(store, iri, GMEOW_TERM_STABILITY)
+        .into_iter()
+        .next()
+    {
+        match curie.as_str() {
+            STABILITY_STABLE_CURIE => return DocTermStability::Stable,
+            STABILITY_EXPERIMENTAL_CURIE => return DocTermStability::Experimental,
+            STABILITY_DEPRECATED_CURIE => return DocTermStability::Deprecated,
+            // An unrecognized value falls through to the derived default rather
+            // than guessing — keeps the badge total without inventing a status.
+            _ => {}
+        }
+    }
+    if literals(store, iri, OWL_DEPRECATED)
+        .iter()
+        .any(|v| v == "true")
+    {
+        return DocTermStability::Deprecated;
+    }
+    match tier {
+        Some(SliceTier::Extension) => DocTermStability::Experimental,
+        _ => DocTermStability::Stable,
+    }
+}
+
+/// Extract a term's reified changelog entries (#1026): each
+/// `?term gmeow:hasChangelogEntry ?entry` whose `?entry` carries a
+/// `gmeow:entryVersion` (required) and optional `gmeow:entryNote`. Sorted by
+/// `(version, note)`; oxigraph blank-node iteration order is not stable.
+fn extract_changelog(store: &Store, iri: &str) -> Vec<DocChangelogEntry> {
+    let Ok(subject) = oxigraph::model::NamedNode::new(iri) else {
+        return Vec::new();
+    };
+    let mut entries: Vec<DocChangelogEntry> = Vec::new();
+    for quad in store
+        .quads_for_pattern(
+            Some(subject.as_ref().into()),
+            Some(named(GMEOW_HAS_CHANGELOG_ENTRY).as_ref()),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+    {
+        let entry_node = match quad.object {
+            Term::NamedNode(n) => NamedOrBlankNode::NamedNode(n),
+            Term::BlankNode(b) => NamedOrBlankNode::BlankNode(b),
+            _ => continue,
+        };
+        let version = first_literal_of(store, entry_node.as_ref(), GMEOW_ENTRY_VERSION);
+        let note = first_literal_of(store, entry_node.as_ref(), GMEOW_ENTRY_NOTE);
+        if let Some(version) = version {
+            entries.push(DocChangelogEntry { version, note });
+        }
+    }
+    entries.sort();
+    entries.dedup();
+    entries
 }
 
 /// The logic stereotypes of a subject: its `rdf:type` values under the `logic:`
@@ -1019,7 +1246,7 @@ fn sort_dedup_shapes(shapes: &mut Vec<DocShape>) {
 
 /// Read the root `<root>/shapes/*.ttl` files, extract their node shapes, and merge
 /// them (deduped) into the model's shapes. A missing `shapes/` directory is a
-/// no-op; a present-but-unparseable file is a hard fault.
+/// no-op; a present-but-unparsable file is a hard fault.
 fn merge_root_shapes(model: &mut DocsModel, shapes_dir: &Path) {
     let Ok(entries) = std::fs::read_dir(shapes_dir) else {
         return;
@@ -1656,6 +1883,31 @@ fn first_literal(store: &Store, subject: &str, predicate: &str) -> Option<String
     values.into_iter().next()
 }
 
+/// The first literal value for `subject predicate ?o` where `subject` is a
+/// named-or-blank node (deterministic: lowest lexical form), or `None`. Used to
+/// read reified changelog-entry blank nodes (#1026).
+fn first_literal_of(
+    store: &Store,
+    subject: oxigraph::model::NamedOrBlankNodeRef,
+    predicate: &str,
+) -> Option<String> {
+    let mut values: Vec<String> = store
+        .quads_for_pattern(
+            Some(subject),
+            Some(named(predicate).as_ref()),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+        .filter_map(|q| match q.object {
+            Term::Literal(lit) => Some(lit.value().to_string()),
+            _ => None,
+        })
+        .collect();
+    values.sort();
+    values.into_iter().next()
+}
+
 /// All literal values for `subject predicate ?o`, sorted and deduped
 /// (deterministic; carries the English-carrier text from `module.ttl`).
 fn literals(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
@@ -1751,7 +2003,7 @@ gmeow:hasOwner a owl:ObjectProperty ;
     rdfs:comment "Ownership relation." .
 "#;
         let store = store_from(ttl);
-        let terms = extract_terms(&store, "https://example.org/slice/zoo");
+        let terms = extract_terms(&store, "https://example.org/slice/zoo", None);
 
         let cat = terms.iter().find(|t| t.iri.ends_with("Cat")).unwrap();
         assert_eq!(cat.category, DocTermCategory::Class);
@@ -1778,6 +2030,78 @@ gmeow:hasOwner a owl:ObjectProperty ;
 <https://example.org/Foo> a owl:Class .
 "#;
         let store = store_from(ttl);
-        assert!(extract_terms(&store, "s").is_empty());
+        assert!(extract_terms(&store, "s", None).is_empty());
+    }
+
+    /// Stability derivation precedence (#1026): explicit `gmeow:termStability`
+    /// wins; else `owl:deprecated`; else the owner-slice tier default.
+    #[test]
+    fn stability_resolves_by_precedence() {
+        let ttl = r#"
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+gmeow:CoreDefault a owl:Class .
+gmeow:ExtDefault  a owl:Class .
+gmeow:Deprecated  a owl:Class ; owl:deprecated true .
+gmeow:Explicit    a owl:Class ;
+    owl:deprecated true ;
+    gmeow:termStability gmeow:stabilityExperimental .
+"#;
+        let store = store_from(ttl);
+        let core = extract_terms(&store, "s", Some(&SliceTier::Core));
+        let by = |ts: &[DocTerm], suffix: &str| {
+            ts.iter()
+                .find(|t| t.iri.ends_with(suffix))
+                .unwrap()
+                .stability
+        };
+        // Core tier → Stable default.
+        assert_eq!(by(&core, "CoreDefault"), DocTermStability::Stable);
+        // owl:deprecated overrides the tier default.
+        assert_eq!(by(&core, "Deprecated"), DocTermStability::Deprecated);
+        // Explicit annotation beats owl:deprecated.
+        assert_eq!(by(&core, "Explicit"), DocTermStability::Experimental);
+
+        // Same terms under an extension tier → ExtDefault becomes Experimental.
+        let ext = extract_terms(&store, "s", Some(&SliceTier::Extension));
+        assert_eq!(by(&ext, "ExtDefault"), DocTermStability::Experimental);
+    }
+
+    /// Reified changelog entries are parsed from blank nodes and sorted by
+    /// `(version, note)` (#1026); `addedInVersion` is the lowest literal.
+    #[test]
+    fn changelog_entries_parse_and_sort() {
+        let ttl = r#"
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+gmeow:Thing a owl:Class ;
+    gmeow:addedInVersion "1.0.2" ;
+    gmeow:hasChangelogEntry [
+        a gmeow:ChangelogEntry ;
+        gmeow:entryVersion "1.1.0" ;
+        gmeow:entryNote "Widened range." ] ;
+    gmeow:hasChangelogEntry [
+        a gmeow:ChangelogEntry ;
+        gmeow:entryVersion "1.0.2" ] .
+"#;
+        let store = store_from(ttl);
+        let terms = extract_terms(&store, "s", Some(&SliceTier::Core));
+        let thing = terms.iter().find(|t| t.iri.ends_with("Thing")).unwrap();
+        assert_eq!(thing.added_in_version.as_deref(), Some("1.0.2"));
+        assert_eq!(
+            thing.changelog,
+            vec![
+                DocChangelogEntry {
+                    version: "1.0.2".to_string(),
+                    note: None,
+                },
+                DocChangelogEntry {
+                    version: "1.1.0".to_string(),
+                    note: Some("Widened range.".to_string()),
+                },
+            ]
+        );
     }
 }
