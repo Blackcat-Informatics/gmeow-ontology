@@ -1,0 +1,39 @@
+---
+source: crates/logic/src/explain/tests.rs
+expression: render_markdown(&exp)
+---
+<!-- cited-iri-skeleton
+  https://blackcatinformatics.ca/gmeow/reifier/7bc71a01dd4a10190c216f0ac61fc6093c7b9c78
+  https://blackcatinformatics.ca/gmeow/reifier/7bd6045105fb47da9c065d63dcd5cb476f902b67
+  https://blackcatinformatics.ca/logic/assert
+  https://blackcatinformatics.ca/logic/overlaps
+  https://blackcatinformatics.ca/logic/properPartOf
+  https://blackcatinformatics.ca/logic/rule/anonymous
+  https://example.org/holon/Henchman
+  https://example.org/holon/Warlord
+  https://example.org/holon/d-overlaps
+  https://example.org/holon/d-properPartOf
+  https://example.org/holon/schema
+-->
+
+<!-- step-skeleton
+  step derivation=https://example.org/holon/d-overlaps
+    rule=https://blackcatinformatics.ca/logic/rule/anonymous
+    term=https://blackcatinformatics.ca/logic/overlaps
+    term=https://example.org/holon/Warlord
+  step derivation=https://example.org/holon/d-properPartOf
+    rule=https://blackcatinformatics.ca/logic/assert
+    term=https://blackcatinformatics.ca/logic/properPartOf
+    term=https://example.org/holon/Henchman
+    term=https://example.org/holon/Warlord
+-->
+
+# Explanation for `<https://blackcatinformatics.ca/gmeow/reifier/7bd6045105fb47da9c065d63dcd5cb476f902b67>`
+
+**World:** `<https://example.org/holon/schema>`
+**Target derivation:** `<https://example.org/holon/d-overlaps>`
+
+**Derived** by rule `<https://blackcatinformatics.ca/logic/rule/anonymous>`:
+  `<https://example.org/holon/Warlord>` `<https://blackcatinformatics.ca/logic/overlaps>` `<https://example.org/holon/Warlord>` *(in `<https://example.org/holon/schema>`)*
+  **Asserted fact** (input — `<https://blackcatinformatics.ca/gmeow/reifier/7bc71a01dd4a10190c216f0ac61fc6093c7b9c78>`):
+    `<https://example.org/holon/Henchman>` `<https://blackcatinformatics.ca/logic/properPartOf>` `<https://example.org/holon/Warlord>` *(in `<https://example.org/holon/schema>`)*

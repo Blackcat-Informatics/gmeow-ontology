@@ -11,11 +11,14 @@
 //! deterministic canonical form (sorted-key pretty JSON; the compiler's
 //! byte-stable projection text); a subsequent assert run is self-consistent.
 //!
-//! Two artifact kinds are deliberately NOT regenerated and are logged on each run
-//! (no silent caps): `explanation/*.md` (content-hash-named, prose-bearing — the
-//! gate compares only the cited-IRI skeleton, which is verified against the
-//! existing goldens) and `witnesses.json` (a bless-only side file the diff never
-//! consumed). Authoring those for a brand-new case remains manual.
+//! `explanation/*.md` goldens (content-hash-named, prose-bearing) follow the same
+//! refresh-or-seed rule as every other golden: an existing file is refreshed from the
+//! fresh outputs, and a brand-new one is written only in seed/init mode. The gate
+//! itself compares only the cited-IRI skeleton (not the prose), so prose drift is
+//! pinned separately by the renderer's unit/snapshot tests rather than the corpus.
+//!
+//! The one artifact kind genuinely never written by bless is `witnesses.json` — a
+//! bless-only side file the diff never consumed; authoring it remains manual.
 //!
 //! ## Curated corpus + idempotency
 //!
@@ -206,8 +209,9 @@ mod tests {
     /// Bless self-consistency: regenerating a case's goldens and re-running the diff
     /// yields no mismatches. Comparison is canonical/graph-iso, so the freshly
     /// blessed (canonical) goldens are accepted by the gate. (Explanation `.md` is
-    /// not regenerated — the copied originals remain and their cited-IRI skeleton
-    /// still matches.)
+    /// refreshed like every other existing golden, but the renderer is deterministic,
+    /// so it regenerates to byte-identical content and the cited-IRI skeleton still
+    /// matches.)
     #[test]
     fn bless_is_self_consistent() {
         let src = crate::paths::cases_root()
