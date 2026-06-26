@@ -1773,6 +1773,7 @@ dependencies = [
  "criterion",
  "gmeow-diagnostics",
  "gmeow-rdf",
+ "gmeow-sparql-algebra",
  "insta",
  "nemo",
  "oxigraph",

@@ -45,8 +45,8 @@ use super::graphutil::{
     RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
 };
 use super::ir::{
-    ComplexityClass, ContextualScope, LogicAxiom, LogicModality, LogicProgram, LogicRule,
-    ReasoningContract, SemanticProfileId, LOGIC_NAMESPACE,
+    ComplexityClass, ContextualScope, LogicAxiom, LogicModality, LogicProgram, LogicRule, PathBase,
+    PathShapeIr, ReasoningContract, SemanticProfileId, LOGIC_NAMESPACE,
 };
 
 fn logic_iri(local: &str) -> String {
@@ -907,6 +907,163 @@ fn extract_rules(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicR
 }
 
 // --------------------------------------------------------------------------- //
+// Path-shape extraction (#1010; absent logic:PathShape → empty list)
+// --------------------------------------------------------------------------- //
+
+/// Parse a positive-integer literal's lexical value (`xsd:positiveInteger`),
+/// returning `None` on a non-numeric, overflowing, or non-positive value.
+fn parse_positive_int(lexical: &str) -> Option<u32> {
+    match lexical.trim().parse::<u32>() {
+        Ok(n) if n >= 1 => Some(n),
+        _ => None,
+    }
+}
+
+/// Read `logic:PathShape` individuals (#1010) into [`PathShapeIr`]s.
+///
+/// Fail-soft, like the rest of the front-end: a malformed shape (a step that is
+/// both named and wildcard, neither named nor wildcard, a non-positive-integer
+/// depth, or `min > max`) emits a `MALFORMED_PATH_SHAPE` warning and is skipped —
+/// never silently dropped.
+fn extract_path_shapes(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<PathShapeIr> {
+    let mut shapes: Vec<PathShapeIr> = Vec::new();
+
+    let path_shape_ty = Term::NamedNode(nn(&logic_iri("PathShape")));
+    let p_step = nn(&logic_iri("pathStepPredicate"));
+    let p_wildcard = nn(&logic_iri("pathWildcard"));
+    let p_min = nn(&logic_iri("pathMinDepth"));
+    let p_max = nn(&logic_iri("pathMaxDepth"));
+    let p_ns = nn(&logic_iri("pathNamespaceScope"));
+    let p_param = nn(&logic_iri("pathDepthParam"));
+
+    for node in subjects_with(store, &nn(RDF_TYPE), &path_shape_ty) {
+        let subj = subject_str(&node);
+
+        // Base step: named-predicate XOR wildcard.
+        let step_pred = value(store, &node, &p_step);
+        // xsd:boolean lexical space: "true"/"1" = true, "false"/"0" = false.
+        // Any other literal is a hard-fail (no silent coercion to false).
+        let wildcard_result: Result<bool, ()> = match value(store, &node, &p_wildcard) {
+            None => Ok(false),
+            Some(t) => match term_str(&t).as_str() {
+                "true" | "1" => Ok(true),
+                "false" | "0" => Ok(false),
+                other => {
+                    diagnostics.push(Diagnostic::warning(
+                        "MALFORMED_PATH_SHAPE",
+                        format!(
+                            "logic:pathWildcard has unrecognized boolean literal {:?}; \
+                             expected \"true\", \"false\", \"1\", or \"0\"; shape skipped",
+                            other
+                        ),
+                        Some(subj.clone()),
+                    ));
+                    Err(())
+                }
+            },
+        };
+        let wildcard = match wildcard_result {
+            Ok(b) => b,
+            Err(()) => continue,
+        };
+
+        let base = match (step_pred.as_ref(), wildcard) {
+            (Some(_), true) => {
+                diagnostics.push(Diagnostic::warning(
+                    "MALFORMED_PATH_SHAPE",
+                    "logic:PathShape declares BOTH logic:pathStepPredicate and \
+                     logic:pathWildcard true (a step is a named predicate XOR a \
+                     wildcard); shape skipped",
+                    Some(subj.clone()),
+                ));
+                continue;
+            }
+            (Some(p), false) => match p {
+                // A step predicate MUST be an IRI: a literal or blank-node object
+                // would produce a malformed predicate IRI downstream (no silent
+                // coercion). Skip the shape with a diagnostic, like every other
+                // malformed-shape branch.
+                Term::NamedNode(_) => PathBase::NamedPredicate(term_str(p)),
+                _ => {
+                    diagnostics.push(Diagnostic::warning(
+                        "MALFORMED_PATH_SHAPE",
+                        "logic:pathStepPredicate must be an IRI named node; shape skipped",
+                        Some(subj.clone()),
+                    ));
+                    continue;
+                }
+            },
+            (None, true) => PathBase::Wildcard,
+            (None, false) => {
+                diagnostics.push(Diagnostic::warning(
+                    "MALFORMED_PATH_SHAPE",
+                    "logic:PathShape declares neither logic:pathStepPredicate nor \
+                     logic:pathWildcard true (a step needs a named predicate or a \
+                     wildcard); shape skipped",
+                    Some(subj.clone()),
+                ));
+                continue;
+            }
+        };
+
+        // Depth bounds (min defaults to 1; absent max ⇒ unbounded).
+        let min_depth = match value(store, &node, &p_min) {
+            Some(t) => match parse_positive_int(&term_str(&t)) {
+                Some(n) => n,
+                None => {
+                    diagnostics.push(Diagnostic::warning(
+                        "MALFORMED_PATH_SHAPE",
+                        format!(
+                            "logic:pathMinDepth is not a positive integer ({:?}); shape skipped",
+                            term_str(&t)
+                        ),
+                        Some(subj.clone()),
+                    ));
+                    continue;
+                }
+            },
+            None => 1,
+        };
+        let max_depth = match value(store, &node, &p_max) {
+            Some(t) => match parse_positive_int(&term_str(&t)) {
+                Some(n) => Some(n),
+                None => {
+                    diagnostics.push(Diagnostic::warning(
+                        "MALFORMED_PATH_SHAPE",
+                        format!(
+                            "logic:pathMaxDepth is not a positive integer ({:?}); shape skipped",
+                            term_str(&t)
+                        ),
+                        Some(subj.clone()),
+                    ));
+                    continue;
+                }
+            },
+            None => None,
+        };
+
+        let namespace_scope = value(store, &node, &p_ns).map(|t| term_str(&t));
+        let depth_param = value(store, &node, &p_param).map(|t| term_str(&t));
+
+        match PathShapeIr::new(
+            subj.clone(),
+            base,
+            min_depth,
+            max_depth,
+            namespace_scope,
+            depth_param,
+        ) {
+            Ok(shape) => shapes.push(shape),
+            Err(msg) => {
+                diagnostics.push(Diagnostic::warning("MALFORMED_PATH_SHAPE", msg, Some(subj)))
+            }
+        }
+    }
+
+    shapes
+}
+
+// --------------------------------------------------------------------------- //
 // Public API
 // --------------------------------------------------------------------------- //
 
@@ -951,8 +1108,10 @@ pub fn parse_logic_store(
 
     let contracts = extract_contracts(store, &mut diagnostics);
     let rules = extract_rules(store, &mut diagnostics);
+    let path_shapes = extract_path_shapes(store, &mut diagnostics);
 
-    let program = LogicProgram::new(all_axioms, rules, contracts, source_iri);
+    let program =
+        LogicProgram::new(all_axioms, rules, contracts, source_iri).with_path_shapes(path_shapes);
     Ok((program, diagnostics))
 }
 

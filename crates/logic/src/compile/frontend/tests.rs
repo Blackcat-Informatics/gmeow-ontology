@@ -612,3 +612,273 @@ fn diagnostics_report_for_no_diagnostics_is_an_empty_ok_report() {
     assert!(report.findings.is_empty());
     assert!(report.ok());
 }
+
+// ── Path shapes (#1010) ──────────────────────────────────────────────────────
+
+fn path_shape<'a>(prog: &'a LogicProgram, iri_suffix: &str) -> &'a PathShapeIr {
+    prog.path_shapes
+        .iter()
+        .find(|s| s.iri.ends_with(iri_suffix))
+        .unwrap_or_else(|| {
+            panic!(
+                "no path shape ending in {iri_suffix:?}: {:?}",
+                prog.path_shapes
+            )
+        })
+}
+
+#[test]
+fn parse_wildcard_namespace_scoped_bounded_path_shape() {
+    let (prog, diags) = parse(
+        "ex:nearbyOrgs a logic:PathShape ;
+            logic:pathWildcard true ;
+            logic:pathNamespaceScope \"https://example.org/org/\"^^xsd:anyURI ;
+            logic:pathMinDepth 1 ;
+            logic:pathMaxDepth 2 ;
+            logic:pathDepthParam \"maxDepth\" .",
+    );
+    assert!(
+        diags.iter().all(|d| d.code != "MALFORMED_PATH_SHAPE"),
+        "unexpected path-shape diagnostics: {diags:?}"
+    );
+    let s = path_shape(&prog, "/nearbyOrgs");
+    assert_eq!(s.base, PathBase::Wildcard);
+    assert_eq!(s.min_depth, 1);
+    assert_eq!(s.max_depth, Some(2));
+    assert_eq!(
+        s.namespace_scope.as_deref(),
+        Some("https://example.org/org/")
+    );
+    assert_eq!(s.depth_param.as_deref(), Some("maxDepth"));
+}
+
+#[test]
+fn parse_named_predicate_bounded_path_shape_defaults_min_one() {
+    // No logic:pathMinDepth → defaults to 1; named-predicate step.
+    let (prog, _diags) = parse(
+        "ex:ancestorsTo3 a logic:PathShape ;
+            logic:pathStepPredicate ex:parentOf ;
+            logic:pathMaxDepth 3 ;
+            logic:pathDepthParam \"maxDepth\" .",
+    );
+    let s = path_shape(&prog, "/ancestorsTo3");
+    assert_eq!(
+        s.base,
+        PathBase::NamedPredicate("https://example.org/test/parentOf".to_owned())
+    );
+    assert_eq!(s.min_depth, 1);
+    assert_eq!(s.max_depth, Some(3));
+    assert_eq!(s.namespace_scope, None);
+}
+
+#[test]
+fn parse_unbounded_path_shape_has_no_max() {
+    // No logic:pathMaxDepth → unbounded (transitive-closure reading).
+    let (prog, _diags) = parse(
+        "ex:reaches a logic:PathShape ;
+            logic:pathStepPredicate ex:linksTo .",
+    );
+    let s = path_shape(&prog, "/reaches");
+    assert_eq!(s.max_depth, None);
+    assert_eq!(s.min_depth, 1);
+}
+
+#[test]
+fn malformed_path_shape_both_named_and_wildcard_is_skipped_with_diagnostic() {
+    let (prog, diags) = parse(
+        "ex:bad a logic:PathShape ;
+            logic:pathStepPredicate ex:p ;
+            logic:pathWildcard true .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "malformed shape must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("BOTH")),
+        "expected a BOTH-step diagnostic: {diags:?}"
+    );
+}
+
+#[test]
+fn malformed_path_shape_min_above_max_is_skipped_with_diagnostic() {
+    let (prog, diags) = parse(
+        "ex:inverted a logic:PathShape ;
+            logic:pathWildcard true ;
+            logic:pathMinDepth 3 ;
+            logic:pathMaxDepth 1 .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "inverted range must be skipped"
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("must not exceed")),
+        "expected a min>max diagnostic: {diags:?}"
+    );
+}
+
+#[test]
+fn malformed_path_shape_no_step_is_skipped_with_diagnostic() {
+    let (prog, diags) = parse("ex:nostep a logic:PathShape ; logic:pathMaxDepth 2 .");
+    assert!(prog.path_shapes.is_empty());
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("neither")),
+        "expected a neither-step diagnostic: {diags:?}"
+    );
+}
+
+#[test]
+fn path_shapes_are_canonically_ordered() {
+    let (prog, _diags) = parse(
+        "ex:zeta  a logic:PathShape ; logic:pathStepPredicate ex:p .
+         ex:alpha a logic:PathShape ; logic:pathStepPredicate ex:p .",
+    );
+    let iris: Vec<&str> = prog.path_shapes.iter().map(|s| s.iri.as_str()).collect();
+    let mut sorted = iris.clone();
+    sorted.sort_unstable();
+    assert_eq!(
+        iris, sorted,
+        "path shapes must be in canonical (sorted) order"
+    );
+}
+
+// ── G7: pathWildcard boolean fidelity ───────────────────────────────────────
+
+#[test]
+fn path_shape_wildcard_accepts_xsd_boolean_one() {
+    // G7: the xsd:boolean value "1" must be accepted as wildcard = true.
+    let (prog, diags) = parse(
+        "ex:wc a logic:PathShape ;
+            logic:pathWildcard \"1\"^^xsd:boolean .",
+    );
+    assert!(
+        diags.iter().all(|d| d.code != "MALFORMED_PATH_SHAPE"),
+        "\"1\" must not produce a path-shape diagnostic: {diags:?}"
+    );
+    let s = path_shape(&prog, "/wc");
+    assert_eq!(
+        s.base,
+        PathBase::Wildcard,
+        "\"1\" must parse as wildcard=true"
+    );
+}
+
+#[test]
+fn path_shape_wildcard_rejects_unrecognized_literal() {
+    // G7: an unrecognized boolean literal must produce a MALFORMED_PATH_SHAPE
+    // diagnostic and the shape must be skipped (hard-fail, no silent coercion).
+    let (prog, diags) = parse(
+        "ex:bad a logic:PathShape ;
+            logic:pathWildcard \"yes\" .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "shape with unrecognized wildcard literal must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("unrecognized")),
+        "expected a MALFORMED_PATH_SHAPE diagnostic mentioning unrecognized: {diags:?}"
+    );
+}
+
+#[test]
+fn path_shape_wildcard_false_literal_yields_no_wildcard() {
+    // G7: "false" is valid and must NOT mark the shape as wildcard.
+    // Here we pair it with a step predicate to verify "false" is accepted cleanly
+    // (i.e., does not trigger the unrecognized-literal hard-fail).
+    let (prog, diags) = parse(
+        "ex:notWild a logic:PathShape ;
+            logic:pathStepPredicate ex:p ;
+            logic:pathWildcard \"false\" .",
+    );
+    assert!(
+        diags.iter().all(|d| d.code != "MALFORMED_PATH_SHAPE"),
+        "\"false\" must not produce a path-shape diagnostic: {diags:?}"
+    );
+    let s = path_shape(&prog, "/notWild");
+    assert_eq!(
+        s.base,
+        PathBase::NamedPredicate("https://example.org/test/p".to_owned()),
+        "step predicate must win when wildcard is false"
+    );
+}
+
+// ── CR1: a non-IRI logic:pathStepPredicate is rejected ───────────────────────
+
+#[test]
+fn path_shape_literal_step_predicate_is_skipped_with_diagnostic() {
+    // CR1: a logic:pathStepPredicate that is a LITERAL (not an IRI named node)
+    // would build a malformed predicate IRI downstream — reject the shape with a
+    // MALFORMED_PATH_SHAPE diagnostic, never silently coerce it.
+    let (prog, diags) = parse(
+        "ex:litStep a logic:PathShape ;
+            logic:pathStepPredicate \"not-an-iri\" .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "a literal step predicate must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("IRI named node")),
+        "expected a MALFORMED_PATH_SHAPE diagnostic about an IRI named node: {diags:?}"
+    );
+}
+
+// ── CR2: PathShapeIr::new() Err branches surface as MALFORMED_PATH_SHAPE + skip ──
+
+#[test]
+fn path_shape_empty_namespace_scope_is_skipped_with_diagnostic() {
+    // CR2: an empty logic:pathNamespaceScope makes PathShapeIr::new() Err; the
+    // front-end must surface it as MALFORMED_PATH_SHAPE and skip the shape.
+    let (prog, diags) = parse(
+        "ex:emptyNs a logic:PathShape ;
+            logic:pathWildcard true ;
+            logic:pathNamespaceScope \"\"^^xsd:anyURI .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "an empty namespace scope must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags.iter().any(|d| d.code == "MALFORMED_PATH_SHAPE"),
+        "expected a MALFORMED_PATH_SHAPE diagnostic for an empty namespace scope: {diags:?}"
+    );
+}
+
+#[test]
+fn path_shape_max_depth_above_cap_is_skipped_with_diagnostic() {
+    // CR2: a logic:pathMaxDepth above MAX_PATH_DEPTH (1000) makes PathShapeIr::new()
+    // Err; the front-end must surface it as MALFORMED_PATH_SHAPE and skip the shape.
+    let (prog, diags) = parse(
+        "ex:tooDeep a logic:PathShape ;
+            logic:pathWildcard true ;
+            logic:pathMinDepth 1 ;
+            logic:pathMaxDepth 1001 .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "a max depth above the cap must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("hard cap")),
+        "expected a MALFORMED_PATH_SHAPE diagnostic mentioning the hard cap: {diags:?}"
+    );
+}

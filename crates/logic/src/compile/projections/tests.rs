@@ -354,3 +354,100 @@ fn parity_kind_hierarchy() {
 fn parity_relator_mediation() {
     run_case("relator-mediation");
 }
+
+// ── G1: path-projection wiring ───────────────────────────────────────────────
+//
+// Verifies that `compile_program` genuinely populates `path_projections` (not
+// dead code) and extends `preservation_ledger` with a `"property-path:<iri>"`
+// entry for every declared `logic:PathShape`.  Uses the same nearbyOrgs fixture
+// the per-function tests in paths/tests.rs use.
+
+#[test]
+fn compile_program_wires_path_projections_and_ledger() {
+    let ttl = "\
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/test/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+ex:nearbyOrgs a logic:PathShape ;
+    logic:pathWildcard true ;
+    logic:pathNamespaceScope \"https://example.org/org/\"^^xsd:anyURI ;
+    logic:pathMinDepth 1 ; logic:pathMaxDepth 2 ; logic:pathDepthParam \"maxDepth\" .";
+    let (program, _diags) = parse_logic_str(ttl, None).expect("parse");
+    let arts = compile_program(&program).expect("compile");
+
+    // G1a: path_projections is non-empty and carries both surfaces.
+    assert_eq!(
+        arts.path_projections.len(),
+        1,
+        "one PathShape → one PathProjection"
+    );
+    let pp = &arts.path_projections[0];
+    assert_eq!(pp.shape_iri, "https://example.org/test/nearbyOrgs");
+    assert!(
+        !pp.property_path.is_empty(),
+        "property_path surface must be non-empty"
+    );
+    assert!(!pp.datalog.is_empty(), "datalog surface must be non-empty");
+
+    // G1b: preservation_ledger contains a property-path row keyed by IRI.
+    let expected_key = format!("property-path:{}", pp.shape_iri);
+    let ledger_entry = arts
+        .preservation_ledger
+        .iter()
+        .find(|e| e.target == expected_key)
+        .unwrap_or_else(|| {
+            panic!(
+                "preservation_ledger must contain a \"{expected_key}\" entry; \
+                 found: {:?}",
+                arts.preservation_ledger
+                    .iter()
+                    .map(|e| &e.target)
+                    .collect::<Vec<_>>()
+            )
+        });
+    assert_eq!(ledger_entry.preservation, "SoundUnderApproximation");
+    assert!(
+        !ledger_entry.lossy_drops.is_empty(),
+        "property-path ledger entry must declare lossy_drops"
+    );
+}
+
+// ── CR5: the projection report includes the property-path targets ────────────
+//
+// build_projection_report runs over the SAME target list the preservation ledger
+// is built from (path projections are folded into `owned` BEFORE the report), so
+// the report Turtle and the ledger must AGREE — both carry a property-path row for
+// every declared logic:PathShape (maximal information flow; no suppression).
+
+#[test]
+fn projection_report_includes_property_path_targets() {
+    let ttl = "\
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/test/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+ex:nearbyOrgs a logic:PathShape ;
+    logic:pathWildcard true ;
+    logic:pathNamespaceScope \"https://example.org/org/\"^^xsd:anyURI ;
+    logic:pathMinDepth 1 ; logic:pathMaxDepth 2 ; logic:pathDepthParam \"maxDepth\" .";
+    let (program, _diags) = parse_logic_str(ttl, None).expect("parse");
+    let arts = compile_program(&program).expect("compile");
+
+    // The report Turtle must carry the property-path target as an rdfs:label, in
+    // lock-step with the ledger row keyed `property-path:<iri>`.
+    let pp = &arts.path_projections[0];
+    let expected_label = format!("property-path:{}", pp.shape_iri);
+    assert!(
+        arts.report.contains(&expected_label),
+        "the projection report must include a property-path target labelled {expected_label:?}; \
+         report:\n{}",
+        arts.report
+    );
+
+    // And it must agree with the preservation ledger (same target list).
+    assert!(
+        arts.preservation_ledger
+            .iter()
+            .any(|e| e.target == expected_label),
+        "report and ledger must agree on the property-path target {expected_label:?}"
+    );
+}

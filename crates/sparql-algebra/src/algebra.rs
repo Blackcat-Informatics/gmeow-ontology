@@ -222,6 +222,88 @@ pub enum PropertyPathExpression {
     ZeroOrOne(Box<PropertyPathExpression>),
     /// `!(p1|...|pn)` — negated property set.
     NegatedPropertySet(Vec<NamedNode>),
+    /// `path{min,max}` — **bounded repetition** (a GMEOW extension *beyond* SPARQL
+    /// 1.1 §9, which has only `*`/`+`/`?`).  `max == None` means unbounded (`{n,}`);
+    /// `max == Some(min)` is exactly-`n` (`{n}`).  The invariant `min <= max` (when
+    /// `max` is `Some`) is enforced at construction by the parser.
+    Range {
+        /// The repeated sub-path.
+        inner: Box<PropertyPathExpression>,
+        /// Inclusive lower bound on repetitions.
+        min: u32,
+        /// Inclusive upper bound; `None` ⇒ unbounded.
+        max: Option<u32>,
+    },
+    /// A **predicate wildcard** matching ANY predicate (a GMEOW extension beyond
+    /// SPARQL 1.1 §9, which can only name predicates).  Optionally scoped to a
+    /// predicate namespace IRI prefix (`namespace`), bounding the otherwise
+    /// unbounded fan-out.
+    Wildcard {
+        /// A predicate-namespace IRI prefix the wildcard is restricted to, or
+        /// `None` for any namespace.
+        namespace: Option<NamedNode>,
+    },
+}
+
+impl core::fmt::Display for PropertyPathExpression {
+    /// Serialize a property path to its SPARQL surface syntax.  The standard
+    /// operators round-trip with the parser; the two GMEOW extensions render as
+    /// `path{min,max}` (bounded repetition — round-trips) and `<any>` / `<any:ns>`
+    /// (predicate wildcard — **emit-only**, no parse, per `LOGIC-PATHS.md`).
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::NamedNode(n) => write!(f, "<{}>", n.as_str()),
+            Self::Reverse(a) => write!(f, "^{}", PathElt(a)),
+            Self::Sequence(a, b) => write!(f, "{a}/{b}"),
+            Self::Alternative(a, b) => write!(f, "{a}|{b}"),
+            Self::ZeroOrMore(a) => write!(f, "{}*", PathElt(a)),
+            Self::OneOrMore(a) => write!(f, "{}+", PathElt(a)),
+            Self::ZeroOrOne(a) => write!(f, "{}?", PathElt(a)),
+            Self::Range { inner, min, max } => match max {
+                Some(m) if *m == *min => write!(f, "{}{{{min}}}", PathElt(inner)),
+                Some(m) => write!(f, "{}{{{min},{m}}}", PathElt(inner)),
+                None => write!(f, "{}{{{min},}}", PathElt(inner)),
+            },
+            Self::NegatedPropertySet(nodes) => {
+                let inner = nodes
+                    .iter()
+                    .map(|n| format!("<{}>", n.as_str()))
+                    .collect::<Vec<_>>()
+                    .join("|");
+                write!(f, "!({inner})")
+            }
+            Self::Wildcard { namespace } => match namespace {
+                Some(ns) => write!(f, "<any:{}>", ns.as_str()),
+                None => write!(f, "<any>"),
+            },
+        }
+    }
+}
+
+/// Wraps a property path in parentheses when it must be grouped to sit under a
+/// postfix operator (`*`/`+`/`?`/`{n,m}`) — i.e. when it is a sequence,
+/// alternative, or **inverse** (`^`) path.
+///
+/// The postfix quantifiers bind tighter than `^` in the SPARQL grammar:
+/// `parse_path_elt_or_inverse` applies `^` and then delegates to
+/// `parse_path_elt` for the quantified primary.  So `^<p>*` reparses as
+/// `Reverse(ZeroOrMore(<p>))`, not `ZeroOrMore(Reverse(<p>))`.  Wrapping a
+/// `Reverse` inner in parentheses — `(^<p>)*` — forces the parser to treat
+/// the whole inverse path as the primary before the quantifier is applied,
+/// preserving the original AST on round-trip.
+struct PathElt<'a>(&'a PropertyPathExpression);
+
+impl core::fmt::Display for PathElt<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self.0 {
+            PropertyPathExpression::Sequence(..)
+            | PropertyPathExpression::Alternative(..)
+            | PropertyPathExpression::Reverse(..) => {
+                write!(f, "({})", self.0)
+            }
+            other => write!(f, "{other}"),
+        }
+    }
 }
 
 /// A SPARQL expression (filter/bind/having/order/select-expression position).

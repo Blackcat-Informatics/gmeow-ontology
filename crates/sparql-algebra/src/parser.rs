@@ -708,8 +708,82 @@ impl Parser {
                 self.pos += 1;
                 PropertyPathExpression::ZeroOrOne(Box::new(primary))
             }
+            // `{n}` / `{n,}` / `{n,m}` / `{,m}` — bounded repetition (a GMEOW
+            // extension beyond SPARQL 1.1 §9; symmetric parse for the serializer).
+            Some(Token::LBrace) => self.parse_path_range(primary)?,
             _ => primary,
         })
+    }
+
+    /// Parse a bounded-repetition postfix `{n}` / `{n,}` / `{n,m}` / `{,m}` — a
+    /// GMEOW extension beyond SPARQL 1.1 §9.  The opening `{` is the current token.
+    /// Hard-fails (no silent degradation) on an empty `{}`, a non-integer bound,
+    /// or a lower bound exceeding the upper bound.
+    fn parse_path_range(
+        &mut self,
+        primary: PropertyPathExpression,
+    ) -> Result<PropertyPathExpression> {
+        self.expect(&Token::LBrace)?;
+        let lower = self.eat_integer()?;
+        let has_comma = self.eat(&Token::Comma);
+        let upper = if has_comma { self.eat_integer()? } else { None };
+        self.expect(&Token::RBrace)?;
+
+        let (min, max) = if has_comma {
+            // `{,}` — both bounds absent — is a silent-degrade to `*`; hard-fail instead.
+            if lower.is_none() && upper.is_none() {
+                return Err(ParseError::syntax(
+                    "empty path range {,} is not allowed (use * for zero-or-more)",
+                    self.span(),
+                ));
+            }
+            // `{n,}` / `{n,m}` / `{,m}` (missing lower ⇒ 0).
+            (lower.unwrap_or(0), upper)
+        } else {
+            // `{n}` ⇒ exactly n; an empty `{}` is invalid.
+            match lower {
+                Some(n) => (n, Some(n)),
+                None => {
+                    return Err(ParseError::syntax(
+                        "empty path range {} is not allowed",
+                        self.span(),
+                    ))
+                }
+            }
+        };
+        if let Some(m) = max {
+            if min > m {
+                return Err(ParseError::syntax(
+                    format!("path range lower bound {min} exceeds upper bound {m}"),
+                    self.span(),
+                ));
+            }
+        }
+        Ok(PropertyPathExpression::Range {
+            inner: Box::new(primary),
+            min,
+            max,
+        })
+    }
+
+    /// Consume an `Integer` token and parse it to `u32`, returning `Ok(None)` when
+    /// the current token is not an integer (so the caller can distinguish a missing
+    /// bound from a present one).  An out-of-`u32`-range integer is a hard error.
+    fn eat_integer(&mut self) -> Result<Option<u32>> {
+        let Some(Token::Integer(lex)) = self.peek() else {
+            return Ok(None);
+        };
+        let lex = lex.clone();
+        match lex.parse::<u32>() {
+            Ok(n) => {
+                self.pos += 1;
+                Ok(Some(n))
+            }
+            Err(_) => Err(ParseError::syntax(
+                format!("path range bound {lex:?} is not a valid u32"),
+                self.span(),
+            )),
+        }
     }
 
     fn parse_path_primary(&mut self) -> Result<PropertyPathExpression> {
@@ -2144,5 +2218,213 @@ mod tests {
             matches!(err, ParseError::Unsupported(_)),
             "expected Unsupported for aggregate in filter position, got {err:?}"
         );
+    }
+
+    // ── Bounded repetition {n,m} + predicate wildcard (#1010 GMEOW extensions) ──
+
+    fn path_of(q: &str) -> PropertyPathExpression {
+        match unproject(select_pattern(q)) {
+            GraphPattern::Path { path, .. } => path,
+            other => panic!("expected Path, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn property_path_bounded_range() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{1,3}} ?y . }}");
+        assert!(matches!(
+            path_of(&q),
+            PropertyPathExpression::Range {
+                min: 1,
+                max: Some(3),
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn property_path_exact_repetition() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{2}} ?y . }}");
+        assert!(matches!(
+            path_of(&q),
+            PropertyPathExpression::Range {
+                min: 2,
+                max: Some(2),
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn property_path_at_least_n() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{2,}} ?y . }}");
+        assert!(matches!(
+            path_of(&q),
+            PropertyPathExpression::Range {
+                min: 2,
+                max: None,
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn property_path_range_round_trips_through_display() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{1,3}} ?y . }}");
+        let path = path_of(&q);
+        assert_eq!(path.to_string(), "<https://x/p>{1,3}");
+        // Re-parse the serialized surface → the same algebra node.
+        let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
+        assert_eq!(path_of(&q2), path);
+    }
+
+    #[test]
+    fn property_path_inverted_range_is_a_hard_error() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{2,1}} ?y . }}");
+        let err = SparqlParser::new().parse_query(&q).unwrap_err();
+        assert!(
+            err.to_string().contains("exceeds upper bound"),
+            "expected a min>max hard error, got {err}"
+        );
+    }
+
+    #[test]
+    fn property_path_empty_range_is_a_hard_error() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{}} ?y . }}");
+        let err = SparqlParser::new().parse_query(&q).unwrap_err();
+        assert!(
+            err.to_string().contains("empty path range"),
+            "expected an empty-range hard error, got {err}"
+        );
+    }
+
+    #[test]
+    fn property_path_both_bounds_absent_range_is_a_hard_error() {
+        // `{,}` with BOTH bounds absent must hard-fail — it is NOT a silent `*`.
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{,}} ?y . }}");
+        let err = SparqlParser::new().parse_query(&q).unwrap_err();
+        assert!(
+            err.to_string().contains("empty path range {,}"),
+            "expected a {{,}} hard error, got {err}"
+        );
+    }
+
+    #[test]
+    fn property_path_partial_bounds_still_parse() {
+        // `{n}`, `{n,}`, `{,m}`, `{n,m}` must all still succeed.
+        let cases = [
+            (
+                format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{2}} ?y . }}"),
+                "<https://x/p>{2}",
+            ),
+            (
+                format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{1,}} ?y . }}"),
+                "<https://x/p>{1,}",
+            ),
+            (
+                format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{,2}} ?y . }}"),
+                "<https://x/p>{0,2}",
+            ),
+            (
+                format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{1,3}} ?y . }}"),
+                "<https://x/p>{1,3}",
+            ),
+        ];
+        for (q, expected_display) in &cases {
+            let path = path_of(q);
+            assert_eq!(
+                path.to_string(),
+                *expected_display,
+                "path range failed to parse correctly for input: {q}"
+            );
+        }
+    }
+
+    #[test]
+    fn property_path_unterminated_range_is_a_hard_error() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{1 ?y . }}");
+        assert!(
+            SparqlParser::new().parse_query(&q).is_err(),
+            "an unterminated path range must hard-fail"
+        );
+    }
+
+    #[test]
+    fn predicate_wildcard_serializes_emit_only() {
+        // The wildcard is emit-only (no parse surface), per LOGIC-PATHS.md.
+        let any = PropertyPathExpression::Wildcard { namespace: None };
+        assert_eq!(any.to_string(), "<any>");
+        let scoped = PropertyPathExpression::Wildcard {
+            namespace: Some(NamedNode::new_unchecked("https://x/org/")),
+        };
+        assert_eq!(scoped.to_string(), "<any:https://x/org/>");
+    }
+
+    #[test]
+    fn star_over_grouped_sequence_round_trips_with_parens() {
+        // Display must re-parenthesize a compound operand under a postfix operator.
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x (gmeow:p/gmeow:q){{1,2}} ?y . }}");
+        let path = path_of(&q);
+        assert_eq!(path.to_string(), "(<https://x/p>/<https://x/q>){1,2}");
+        let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
+        assert_eq!(path_of(&q2), path);
+    }
+
+    // CR6: postfix quantifier over an inverse path must parenthesize the inverse
+    // so that Display + re-parse preserves the original AST.
+    //
+    // Before the fix `ZeroOrMore(Reverse(p))` serialised as `^<p>*`, which
+    // reparses as `Reverse(ZeroOrMore(p))` — the nesting is inverted.  The
+    // corrected form is `(^<p>)*`.
+
+    #[test]
+    fn zero_or_more_over_inverse_round_trips_with_parens() {
+        // Parse `(^gmeow:p)*`  →  ZeroOrMore(Reverse(NamedNode(p)))
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x (^gmeow:p)* ?y . }}");
+        let path = path_of(&q);
+        assert_eq!(path.to_string(), "(^<https://x/p>)*");
+        // Re-parse the serialised surface — must give the identical algebra node.
+        let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
+        assert_eq!(path_of(&q2), path);
+    }
+
+    #[test]
+    fn one_or_more_over_inverse_round_trips_with_parens() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x (^gmeow:p)+ ?y . }}");
+        let path = path_of(&q);
+        assert_eq!(path.to_string(), "(^<https://x/p>)+");
+        let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
+        assert_eq!(path_of(&q2), path);
+    }
+
+    #[test]
+    fn zero_or_one_over_inverse_round_trips_with_parens() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x (^gmeow:p)? ?y . }}");
+        let path = path_of(&q);
+        assert_eq!(path.to_string(), "(^<https://x/p>)?");
+        let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
+        assert_eq!(path_of(&q2), path);
+    }
+
+    #[test]
+    fn range_over_inverse_round_trips_with_parens() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x (^gmeow:p){{1,2}} ?y . }}");
+        let path = path_of(&q);
+        assert_eq!(path.to_string(), "(^<https://x/p>){1,2}");
+        let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
+        assert_eq!(path_of(&q2), path);
+    }
+
+    #[test]
+    fn inverse_over_zero_or_more_stays_distinct_from_zero_or_more_over_inverse() {
+        // `^gmeow:p*` parses as Reverse(ZeroOrMore(p)) — the star is inside.
+        // Display of Reverse(ZeroOrMore(p)) must remain `^<p>*` (no extra parens
+        // needed for Reverse; the inner `ZeroOrMore` is already a named-node-like
+        // primary from the `^` perspective).
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x ^gmeow:p* ?y . }}");
+        let path = path_of(&q);
+        assert_eq!(path.to_string(), "^<https://x/p>*");
+        let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
+        assert_eq!(path_of(&q2), path);
     }
 }

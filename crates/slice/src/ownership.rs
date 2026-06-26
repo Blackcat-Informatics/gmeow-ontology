@@ -819,6 +819,7 @@ fn walk_path(p: &gmeow_sparql_algebra::PropertyPathExpression, out: &mut BTreeSe
     match p {
         P::NamedNode(n) => insert_oxiri(n, out),
         P::Reverse(a) | P::ZeroOrMore(a) | P::OneOrMore(a) | P::ZeroOrOne(a) => walk_path(a, out),
+        P::Range { inner, .. } => walk_path(inner, out),
         P::Sequence(a, b) | P::Alternative(a, b) => {
             walk_path(a, out);
             walk_path(b, out);
@@ -828,6 +829,8 @@ fn walk_path(p: &gmeow_sparql_algebra::PropertyPathExpression, out: &mut BTreeSe
                 insert_oxiri(n, out);
             }
         }
+        // A predicate wildcard references no named predicate to collect.
+        P::Wildcard { .. } => {}
     }
 }
 

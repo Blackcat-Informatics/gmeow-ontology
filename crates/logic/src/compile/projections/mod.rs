@@ -17,14 +17,16 @@
 //! claims `ExactPreservation` but dropped content.  [`report::build_projection_report`]
 //! aggregates the loss ledger.
 
+pub mod paths;
 pub mod rdf;
 pub mod report;
 pub mod text;
 
 use super::ir::{LogicAxiom, LogicModality, LogicProgram, PreservationKind};
+use paths::PathProjection;
 
-/// All eight committed artifacts produced from one [`LogicProgram`] — the unit
-/// the `LogicGenerator` (and the PyO3 `compile_logic`) writes to disk.
+/// All artifacts produced from one [`LogicProgram`] — the unit the
+/// `LogicGenerator` (and the PyO3 `compile_logic`) writes to disk.
 #[derive(Debug, Clone)]
 pub struct CompiledArtifacts {
     /// `generated/owl/gmeow-dl.ttl`.
@@ -51,6 +53,11 @@ pub struct CompiledArtifacts {
     /// structural lossy-drop notes)`.  Surfaced as JSON by `compile_logic` so the
     /// conformance runner no longer rebuilds it from Python `ProjectionResult`s.
     pub preservation_ledger: Vec<LedgerEntry>,
+    /// Per-shape property-path projections for every `logic:PathShape` declared in
+    /// the program.  Each entry carries the SPARQL property-path expression, the
+    /// depth-bounded Datalog rule scheme, and the `"property-path"` ledger row.
+    /// Empty when the program declares no path shapes — never absent.
+    pub path_projections: Vec<PathProjection>,
 }
 
 /// One preservation-ledger row (the per-target metadata the conformance runner
@@ -87,12 +94,44 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         &canonical_rdf12,
         &nemo,
     ];
-    let owned: Vec<ProjectionResult> = results.iter().map(|r| (*r).clone()).collect();
+    let mut owned: Vec<ProjectionResult> = results.iter().map(|r| (*r).clone()).collect();
+
+    // Property-path projections: every logic:PathShape → (property_path, datalog,
+    // ledger row).  Wired here so the target is genuinely exercised in the compile
+    // funnel, not inert vocabulary (#1010 / gap G1).  Computed BEFORE the report so
+    // the per-shape `property-path:<iri>` rows appear in BOTH exported summaries
+    // (the report Turtle and the preservation ledger) — they must agree (maximal
+    // information flow; the two summaries are surfaced together via compile_logic
+    // and run_case).
+    let path_projections = paths::project_path_shapes(program);
+
+    // One ProjectionResult per path shape, keyed `property-path:<iri>`, fed into the
+    // report alongside the seven whole-program projections so the report carries the
+    // path targets too.  The kind is the declared `property-path` preservation; a
+    // path projection records no `actual_drops` (the overclaim gate is a no-op for
+    // its SoundUnder kind).
+    let (pp_kind, _, _) = target_meta("property-path");
+    let path_results: Vec<ProjectionResult> = path_projections
+        .iter()
+        .map(|pp| ProjectionResult {
+            target: format!("property-path:{}", pp.shape_iri),
+            content: pp.property_path.clone(),
+            is_rdf: false,
+            preservation: pp_kind,
+            complexity: pp.ledger.complexity.clone(),
+            lossy_drops: pp.ledger.lossy_drops.clone(),
+            actual_drops: Vec::new(),
+        })
+        .collect();
+    owned.extend(path_results);
+
     let report = report::build_projection_report(program, &owned).map_err(|e| e.to_string())?;
 
     // Preservation ledger: per-target (kind, complexity, structural drops).  The
     // runner compares only the structural `lossy_drops` (not `actual_drops`), so
-    // this mirrors the Python `ledger_json` builder exactly.
+    // this mirrors the Python `ledger_json` builder exactly.  `owned` already carries
+    // the path `property-path:<iri>` rows (appended above), so the ledger and the
+    // report are built from the SAME target list and cannot drift.
     let preservation_ledger: Vec<LedgerEntry> = owned
         .iter()
         .map(|p| LedgerEntry {
@@ -117,6 +156,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         report,
         nemo_rules,
         preservation_ledger,
+        path_projections,
     })
 }
 
@@ -233,6 +273,18 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
             vec![],
         ),
         "nemo" => (PreservationKind::Exact, "PTIME/datalog", vec![]),
+        "property-path" => (
+            PreservationKind::SoundUnder,
+            "terminating/PTIME-data (bounded); regular (unbounded)",
+            vec![
+                "bounded depth {n,m} and the predicate wildcard are GMEOW property-path \
+                 extensions beyond SPARQL 1.1 §9; a consumer restricted to standard SPARQL \
+                 receives the unrolled (bounded) or approximated (wildcard) form",
+                "a predicate wildcard has no SPARQL §9 operator; its edge relation is \
+                 materialized by a namespace-scoped pre-pass before the depth closure",
+                "modal/world context and contextual scope are not carried by a path surface",
+            ],
+        ),
         other => panic!("unknown projection target: {other}"),
     }
 }
