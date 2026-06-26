@@ -510,9 +510,31 @@ enum J {
 impl J {
     /// `json.dumps(obj, ensure_ascii=False)` compact form (`, ` / `: ` separators).
     fn compact(&self, out: &mut String) {
+        self.compact_opt(out, false);
+    }
+
+    /// `json.dumps(obj)` compact form with the DEFAULT `ensure_ascii=True` — every
+    /// non-ASCII scalar is `\uXXXX`-escaped (astral chars as surrogate pairs).
+    /// The consumer's `gmeow_lookup_term` returns `json.dumps(result)` (no
+    /// `ensure_ascii=False`), so its envelope is ASCII-escaped — unlike the
+    /// OKF index, which is explicitly `ensure_ascii=False`. Only the MCP consumer
+    /// surface (`python`/`test`) calls it.
+    #[cfg(any(feature = "python", test))]
+    fn compact_ascii(&self, out: &mut String) {
+        self.compact_opt(out, true);
+    }
+
+    fn compact_opt(&self, out: &mut String, ascii: bool) {
+        let key_or_str = |s: &str| {
+            if ascii {
+                json_str_ascii(s)
+            } else {
+                json_str(s)
+            }
+        };
         match self {
             J::Bool(b) => out.push_str(if *b { "true" } else { "false" }),
-            J::Str(s) => out.push_str(&json_str(s)),
+            J::Str(s) => out.push_str(&key_or_str(s)),
             J::RawNum(n) => out.push_str(n),
             J::Arr(items) => {
                 out.push('[');
@@ -520,7 +542,7 @@ impl J {
                     if i > 0 {
                         out.push_str(", ");
                     }
-                    it.compact(out);
+                    it.compact_opt(out, ascii);
                 }
                 out.push(']');
             }
@@ -530,9 +552,9 @@ impl J {
                     if i > 0 {
                         out.push_str(", ");
                     }
-                    out.push_str(&json_str(k));
+                    out.push_str(&key_or_str(k));
                     out.push_str(": ");
-                    v.compact(out);
+                    v.compact_opt(out, ascii);
                 }
                 out.push('}');
             }
@@ -604,6 +626,38 @@ fn json_str(s: &str) -> String {
             '\t' => out.push_str("\\t"),
             c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
             c => out.push(c),
+        }
+    }
+    out.push('"');
+    out
+}
+
+/// `json.dumps(s)` of a string with the DEFAULT `ensure_ascii=True`: ASCII
+/// printables `0x20..=0x7E` (bar `"`/`\`) pass through; everything else is
+/// `\uXXXX`-escaped, with astral scalars (> U+FFFF) as UTF-16 surrogate pairs —
+/// byte-for-byte what CPython's `json` encoder emits.
+fn json_str_ascii(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 2);
+    out.push('"');
+    for c in s.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (0x20..0x7f).contains(&(c as u32)) => out.push(c),
+            c => {
+                let cp = c as u32;
+                if cp <= 0xffff {
+                    out.push_str(&format!("\\u{cp:04x}"));
+                } else {
+                    let v = cp - 0x10000;
+                    let hi = 0xd800 + (v >> 10);
+                    let lo = 0xdc00 + (v & 0x3ff);
+                    out.push_str(&format!("\\u{hi:04x}\\u{lo:04x}"));
+                }
+            }
         }
     }
     out.push('"');
@@ -1407,6 +1461,222 @@ fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
     (lines.join("\n") + "\n").into_bytes()
 }
 
+// ── MCP consumer surfaces (#1031) ────────────────────────────────────────────
+//
+// The consumer-safe MCP server (`gmeow_tools.mcp_server_consumer`) exposes three
+// `export`-backed surfaces. These renderers reproduce the Python consumer's wire
+// format EXACTLY (NOT the export-generator `llms.txt`/JSONL format above): the
+// llms.txt header is three lines, the subclass marker is `subClassOf` (not `⊑`),
+// the property arrow is ASCII `->`, and the per-term summary carries no box-roles
+// suffix. Python is now thin FastMCP wiring; all of this logic lives here.
+//
+// Gated to `python` (the only runtime consumer, via `crate::mcp`) and `test`
+// (the byte-format goldens) so a plain rlib build carries no dead code.
+
+#[cfg(any(feature = "python", test))]
+pub(crate) use consumer::{consumer_llms_txt, lookup_envelope, okf_index_envelope};
+
+#[cfg(any(feature = "python", test))]
+mod consumer {
+    use super::*;
+
+    /// `mcp_server_consumer._summary`: the selected definition-or-label with the
+    /// `[fallback: en]` marker when it resolved via the English fallback. NO
+    /// box-roles suffix (that is the export-generator `term_summary`).
+    fn consumer_summary(t: &Term) -> String {
+        let base = if t.definition.is_empty() {
+            &t.label
+        } else {
+            &t.definition
+        };
+        marked(base, t.definition_fallback || t.label_fallback)
+    }
+
+    /// `gmeow_lookup_term`: resolve a CURIE / local name / IRI / unambiguous prefix
+    /// to its `as_record()` JSON with `"ok": true` appended, or the
+    /// `{"ok": false, "error": "Term not found: <query>"}` envelope. Mirrors
+    /// `mcp_server_consumer._lookup_term` + the tool's envelope wrapping.
+    pub(crate) fn lookup_envelope(terms: &[Term], query: &str) -> String {
+        let needle = query.trim();
+        let mut out = String::new();
+        if needle.is_empty() {
+            return lookup_not_found(query);
+        }
+        let lower = needle.to_lowercase();
+        let mut matches: Vec<&Term> = Vec::new();
+        for term in terms {
+            let local = term.iri.strip_prefix(NAMESPACE).unwrap_or(&term.iri);
+            let candidates = [
+                term.curie.as_str(),
+                term.iri.as_str(),
+                local,
+                term.label.as_str(),
+            ];
+            let exact = candidates
+                .iter()
+                .any(|c| !c.is_empty() && c.to_lowercase() == lower);
+            if exact {
+                matches = vec![term];
+                break;
+            }
+            if term.curie.to_lowercase().starts_with(&lower)
+                || term.label.to_lowercase().starts_with(&lower)
+            {
+                matches.push(term);
+            }
+        }
+        if matches.len() != 1 {
+            return lookup_not_found(query);
+        }
+        // `result = term.as_record(); result["ok"] = True` — `ok` is appended LAST.
+        let J::Obj(mut rec) = term_record(matches[0]) else {
+            unreachable!("term_record always yields a JSON object")
+        };
+        rec.push(("ok".to_string(), J::Bool(true)));
+        // The consumer tool returns `json.dumps(result)` — default ensure_ascii.
+        J::Obj(rec).compact_ascii(&mut out);
+        out
+    }
+
+    fn lookup_not_found(query: &str) -> String {
+        let mut out = String::new();
+        J::Obj(vec![
+            ("ok".to_string(), J::Bool(false)),
+            (
+                "error".to_string(),
+                J::Str(format!("Term not found: {query}")),
+            ),
+        ])
+        .compact_ascii(&mut out);
+        out
+    }
+
+    /// `gmeow_llms_txt`: a compact vocabulary index. Reproduces
+    /// `mcp_server_consumer.gmeow_llms_txt` line-for-line.
+    pub(crate) fn consumer_llms_txt(terms: &[Term], title: &str, version: &str) -> String {
+        let classes: Vec<&Term> = terms.iter().filter(|t| t.category == "class").collect();
+        let properties: Vec<&Term> = terms.iter().filter(|t| t.category == "property").collect();
+        let individuals: Vec<&Term> = terms
+            .iter()
+            .filter(|t| t.category == "individual")
+            .collect();
+        let mut lines: Vec<String> = vec![
+            format!("# {title}"),
+            String::new(),
+            format!("Vocabulary {version}. Namespace: {NAMESPACE}."),
+            String::new(),
+            "## Classes".into(),
+            String::new(),
+        ];
+        for t in &classes {
+            let parents = if t.parents.is_empty() {
+                String::new()
+            } else {
+                format!(" (subClassOf {})", t.parents.join(", "))
+            };
+            lines.push(format!("- {}{parents}: {}", t.curie, consumer_summary(t)));
+        }
+        lines.push(String::new());
+        lines.push("## Properties".into());
+        lines.push(String::new());
+        for t in &properties {
+            let signature = if !t.domain.is_empty() || !t.range.is_empty() {
+                let d = if t.domain.is_empty() { "?" } else { &t.domain };
+                let r = if t.range.is_empty() { "?" } else { &t.range };
+                format!(" [{d} -> {r}]")
+            } else {
+                String::new()
+            };
+            let functional = if t.functional { " (functional)" } else { "" };
+            lines.push(format!(
+                "- {}{signature}{functional}: {}",
+                t.curie,
+                consumer_summary(t)
+            ));
+        }
+        if !individuals.is_empty() {
+            lines.push(String::new());
+            lines.push("## Individuals".into());
+            lines.push(String::new());
+            for t in &individuals {
+                let types = if t.types.is_empty() {
+                    String::new()
+                } else {
+                    format!(" (a {})", t.types.join(", "))
+                };
+                lines.push(format!("- {}{types}: {}", t.curie, consumer_summary(t)));
+            }
+        }
+        lines.join("\n") + "\n"
+    }
+
+    fn okf_category_dir(category: &str) -> &'static str {
+        match category {
+            "class" => "classes",
+            "property" => "properties",
+            _ => "individuals",
+        }
+    }
+
+    fn okf_category_type(category: &str) -> &'static str {
+        match category {
+            "class" => "Class",
+            "property" => "Property",
+            _ => "Individual",
+        }
+    }
+
+    /// The OKF document stem: the CURIE local part (`gmeow:Foo` → `Foo`). Mirrors
+    /// `okf_export._slug` (`curie.split(":", 1)[-1]`).
+    fn okf_slug(curie_str: &str) -> &str {
+        curie_str
+            .split_once(':')
+            .map(|(_, rest)| rest)
+            .unwrap_or(curie_str)
+    }
+
+    /// `gmeow_okf_index`: the OKF manifest envelope
+    /// `{ok, format, lossy, count, documents:[{path, type, title, resource}]}`.
+    /// Mirrors `okf_export.okf_index_records` + the resource's envelope wrapping.
+    pub(crate) fn okf_index_envelope(terms: &[Term]) -> String {
+        let documents: Vec<J> = terms
+            .iter()
+            .map(|t| {
+                let path = format!(
+                    "gmeow-okf/{}/{}.md",
+                    okf_category_dir(t.category),
+                    okf_slug(&t.curie)
+                );
+                let title = if t.label.is_empty() {
+                    t.curie.clone()
+                } else {
+                    t.label.clone()
+                };
+                J::Obj(vec![
+                    ("path".to_string(), J::Str(path)),
+                    (
+                        "type".to_string(),
+                        J::Str(okf_category_type(t.category).to_string()),
+                    ),
+                    ("title".to_string(), J::Str(title)),
+                    ("resource".to_string(), J::Str(t.iri.clone())),
+                ])
+            })
+            .collect();
+        let count = documents.len();
+        let mut out = String::new();
+        J::Obj(vec![
+            ("ok".to_string(), J::Bool(true)),
+            ("format".to_string(), J::Str("okf".to_string())),
+            ("lossy".to_string(), J::Bool(true)),
+            ("count".to_string(), J::RawNum(count.to_string())),
+            ("documents".to_string(), J::Arr(documents)),
+        ])
+        .compact(&mut out);
+        out
+    }
+}
+
 // ── dataset forms: N-Quads / TriG (gmeow-gts serializers) ──────────────────────
 
 /// A shallow clone of the graph with internal `x-gmeow-*` language tags remapped
@@ -2135,5 +2405,142 @@ mod tests {
         let fr = label_of(vec!["fr".to_string()], "gmeow:langFrench");
         assert_eq!(fr.label, "français");
         assert!(!fr.label_fallback);
+    }
+
+    fn english_terms() -> (Vec<Term>, String, String) {
+        let root = repo_root();
+        let graph = read_fold(&root).expect("read fold");
+        let view = FoldView::new(&graph);
+        let (title, version) = fold_meta(&view).expect("fold_meta");
+        (collect_terms(&view), title, version)
+    }
+
+    /// `gmeow_lookup_term`: exact CURIE match → `as_record` with `ok:true`;
+    /// unknown → `{"ok": false, "error": "Term not found: …"}`; per-language label.
+    #[test]
+    fn lookup_envelope_matches_consumer_contract() {
+        let (terms, _t, _v) = english_terms();
+
+        let hit: serde_json::Value =
+            serde_json::from_str(&lookup_envelope(&terms, "gmeow:langFrench")).unwrap();
+        assert_eq!(hit["ok"], serde_json::json!(true));
+        assert_eq!(hit["curie"], serde_json::json!("gmeow:langFrench"));
+        assert_eq!(hit["label"], serde_json::json!("French"));
+        assert_eq!(hit["category"], serde_json::json!("individual"));
+
+        // Local-name resolution (IRI minus the gmeow namespace) is accepted.
+        let by_local: serde_json::Value =
+            serde_json::from_str(&lookup_envelope(&terms, "langFrench")).unwrap();
+        assert_eq!(by_local["curie"], serde_json::json!("gmeow:langFrench"));
+
+        let miss: serde_json::Value =
+            serde_json::from_str(&lookup_envelope(&terms, "gmeow:NoSuchTerm")).unwrap();
+        assert_eq!(miss["ok"], serde_json::json!(false));
+        assert_eq!(
+            miss["error"],
+            serde_json::json!("Term not found: gmeow:NoSuchTerm")
+        );
+
+        // Per-language record: `fr` selects the French label, and the envelope is
+        // ASCII-escaped (`json.dumps` default) — `ç` is emitted as `ç`.
+        let root = repo_root();
+        let graph = read_fold(&root).expect("read fold");
+        let fr_terms = collect_terms(&FoldView::with_requested(&graph, vec!["fr".to_string()]));
+        let fr_raw = lookup_envelope(&fr_terms, "gmeow:langFrench");
+        assert!(
+            fr_raw.contains("\\u00e7"),
+            "lookup envelope must be ASCII-escaped (ensure_ascii)"
+        );
+        assert!(
+            !fr_raw.contains('ç'),
+            "raw non-ASCII leaked into lookup envelope"
+        );
+        let fr: serde_json::Value = serde_json::from_str(&fr_raw).unwrap();
+        assert_eq!(fr["label"], serde_json::json!("français"));
+    }
+
+    /// `gmeow_llms_txt`: the CONSUMER format (3-line header, `subClassOf`, ASCII
+    /// `->`, NO box-roles suffix) — distinct from the export-generator `llms.txt`.
+    #[test]
+    fn consumer_llms_txt_uses_consumer_format() {
+        let (terms, title, version) = english_terms();
+        let txt = consumer_llms_txt(&terms, &title, &version);
+
+        // Exact 3-line header + section banners.
+        let header =
+            format!("# {title}\n\nVocabulary {version}. Namespace: {NAMESPACE}.\n\n## Classes\n\n");
+        assert!(
+            txt.starts_with(&header),
+            "header mismatch:\n{}",
+            &txt[..200]
+        );
+        assert!(txt.contains("\n## Properties\n\n"));
+        assert!(txt.ends_with('\n'));
+
+        // Consumer markers present (`subClassOf` + ASCII `->` signature). These
+        // alone catch an accidental swap to the export-generator `write_llms_txt`,
+        // which emits neither (`⊑` / `→`). The box-roles suffix and blurb header
+        // are export-only structural strings and must NOT leak. (The `⊑`/`→`
+        // glyphs themselves appear inside logic-slice definitions, so we assert on
+        // the export *markers*, not the bare glyphs.)
+        assert!(
+            txt.contains("(subClassOf "),
+            "missing consumer subclass marker"
+        );
+        assert!(
+            txt.contains(" -> "),
+            "missing consumer ASCII arrow signature"
+        );
+        assert!(
+            !txt.contains("[box roles:"),
+            "leaked export-format box roles"
+        );
+        assert!(
+            !txt.contains("A reasoning-centric"),
+            "leaked export-format blurb header"
+        );
+
+        // `fr` request threads French summaries into the index: the rendered
+        // body differs from English, and the French label `français` (for the
+        // label-only `gmeow:langFrench` summary path) is present.
+        let root = repo_root();
+        let graph = read_fold(&root).expect("read fold");
+        let fr_terms = collect_terms(&FoldView::with_requested(&graph, vec!["fr".to_string()]));
+        let fr_txt = consumer_llms_txt(&fr_terms, &title, &version);
+        assert_ne!(fr_txt, txt, "fr index did not thread the French selection");
+        assert!(
+            fr_txt.contains("- gmeow:langFrench (a "),
+            "langFrench individual line present in the fr index"
+        );
+    }
+
+    /// `gmeow_okf_index`: the manifest envelope + per-document `{path,type,title,
+    /// resource}`, mirroring `okf_export.okf_index_records`.
+    #[test]
+    fn okf_index_envelope_matches_records() {
+        let (terms, _t, _v) = english_terms();
+        let env: serde_json::Value = serde_json::from_str(&okf_index_envelope(&terms)).unwrap();
+        assert_eq!(env["ok"], serde_json::json!(true));
+        assert_eq!(env["format"], serde_json::json!("okf"));
+        assert_eq!(env["lossy"], serde_json::json!(true));
+        assert_eq!(env["count"].as_u64().unwrap() as usize, terms.len());
+
+        let docs = env["documents"].as_array().unwrap();
+        assert_eq!(docs.len(), terms.len());
+        // A known class document path/type/resource.
+        let langfrench = terms
+            .iter()
+            .find(|t| t.curie == "gmeow:langFrench")
+            .expect("term present");
+        let doc = docs
+            .iter()
+            .find(|d| d["resource"] == serde_json::json!(langfrench.iri))
+            .expect("okf doc present");
+        assert_eq!(
+            doc["path"],
+            serde_json::json!("gmeow-okf/individuals/langFrench.md")
+        );
+        assert_eq!(doc["type"], serde_json::json!("Individual"));
+        assert_eq!(doc["title"], serde_json::json!("French"));
     }
 }
