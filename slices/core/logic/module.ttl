@@ -1547,10 +1547,27 @@ logic:formulaFragment
 
 logic:holonicLevel
     a owl:DatatypeProperty ;
+    rdfs:domain logic:HolonicPosition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "holonic level"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
-    skos:definition "The compositional depth of an entity within a holarchy, measured along a path: how many proper-part steps lie between the entity and a root whole. It is path-relative, not intrinsic — holarchies are DAGs, so an entity has no single global level; two paths may place it at different depths and both are correct, so the level is recorded per path (e.g. as a min/max band) rather than as one value. Distinct from logic:orderedType: logic:orderedType is the HiLog deep-instantiation order (an order-n type instantiates an order-(n+1) type), a property of the instantiation tower, whereas logic:holonicLevel is mereological compositional depth in a whole/part DAG; the two must not be conflated (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    skos:definition "The compositional depth at which an entity sits within a holarchy, measured along one path: how many proper-part steps lie between the entity and a root whole. It is a literal read off a logic:HolonicPosition (hence rdfs:domain logic:HolonicPosition), never an intrinsic attribute of the entity — holarchies are DAGs, so an entity has no single global level; two paths may place the same entity at different depths and both are correct, and the level is therefore recorded per position (per path). The per-entity min/max band across an entity's positions is materialized separately as logic:holonicLevelMin and logic:holonicLevelMax. Distinct from logic:orderedType: logic:orderedType is the HiLog deep-instantiation order (an order-n type instantiates an order-(n+1) type), a property of the instantiation tower, whereas logic:holonicLevel is mereological compositional depth in a whole/part DAG; the two must not be conflated (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:holonicLevelMax
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "holonic level max"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The deepest of the logic:holonicLevel values an entity carries across all the logic:HolonicPositions it occupies within a holarchy — the upper endpoint of the path-relative depth band. Because holarchies are DAGs, a single intrinsic level is ill-defined, so the band (min..max) is stored instead of one value. NOTE — honest scope: this endpoint is operator-asserted, NOT engine-verified. The all-IRI logic:StratifiedNAFProfile foundation chase cannot compare or aggregate the integer literals, so it cannot derive or check that this value is the true maximum of the borne per-position levels; the engine grounds only that a non-trivial band exists, via the derived marker logic:multiplyPositioned (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:holonicLevelMin
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "holonic level min"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The shallowest of the logic:holonicLevel values an entity carries across all the logic:HolonicPositions it occupies within a holarchy — the lower endpoint of the path-relative depth band. Because holarchies are DAGs, a single intrinsic level is ill-defined, so the band (min..max) is stored instead of one value. NOTE — honest scope: this endpoint is operator-asserted, NOT engine-verified. The all-IRI logic:StratifiedNAFProfile foundation chase cannot compare or aggregate the integer literals, so it cannot derive or check that this value is the true minimum of the borne per-position levels; the engine grounds only that a non-trivial band exists, via the derived marker logic:multiplyPositioned (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:instanceOf
@@ -1631,6 +1648,13 @@ logic:modelSemantics
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "model semantics"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:ModelSemantics it selects — which models are authoritative. Single-valued on the contract. Domain logic:ReasoningContract, range logic:ModelSemantics (stated in prose, matching the module's convention). Probabilistic reasoning is never a value here — graded belief is carried on logic:uncertaintyMeasure alongside whatever model semantics is in force."@x-gmeow-english .
+
+logic:multiplyPositioned
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "multiply positioned"@x-gmeow-english ;
+    skos:definition "The derived marker that an entity occupies two or more distinct logic:HolonicPositions — the structural signature of a DAG node sitting on multiple paths through a holarchy, the ground on which a non-trivial path-relative depth band (logic:holonicLevelMin .. logic:holonicLevelMax) exists. It is the positive companion to logic:HolonicLevelIncoherence: where the incoherence violation fires for a profiled holon that occupies NO position, this marker certifies that a holon occupies SEVERAL, so its level is genuinely path-relative rather than single-valued. Never asserted by hand; it is entailed by the foundation lowering by negation-of-equality over the position set (two distinct positionEntity reifiers for the same entity), all-IRI and without any numeric comparison. It grounds only the band's existence, not its endpoint values, which the logic:StratifiedNAFProfile chase cannot compute (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:negatedBody
     a owl:ObjectProperty ;
