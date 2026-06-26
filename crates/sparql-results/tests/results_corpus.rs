@@ -21,7 +21,7 @@
 
 use gmeow_rdf_core::{
     BlankScope, RdfAnnotation, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfReifier, RdfTerm,
-    RdfTriple, TermValue,
+    RdfTextDirection, RdfTriple, TermValue,
 };
 use gmeow_sparql_results::{
     serialize, to_csv, to_tsv, ResultProvenance, SolutionProvenance, SparqlResult,
@@ -59,6 +59,17 @@ fn lang(lex: &str, tag: &str) -> TermValue {
         datatype: RDF_LANGSTRING.to_string(),
         language: Some(tag.to_string()),
         direction: None,
+    }
+}
+
+/// A directional (base-direction-carrying) language-tagged literal — RDF-1.2
+/// `rdf:dirLangString`.
+fn dir_lang(lex: &str, tag: &str, direction: RdfTextDirection) -> TermValue {
+    TermValue::Literal {
+        lexical_form: lex.to_string(),
+        datatype: RDF_LANGSTRING.to_string(),
+        language: Some(tag.to_string()),
+        direction: Some(direction),
     }
 }
 
@@ -321,4 +332,91 @@ fn select_books_tsv_drops_provenance_and_stays_pure() {
         !body.contains("gmeow"),
         "TSV must stay pure W3C (no gmeow leak): {body}"
     );
+}
+
+// ---------------------------------------------------------------------------
+// 5. EDGE CASES — directional (rtl/ltr) language literals + escaping triggers,
+//    across all four formats.  Verifies Gap 3 (direction suffix) flows through
+//    TSV/CSV/JSON/XML, and that escaping-trigger characters render correctly per
+//    each format's spec.
+// ---------------------------------------------------------------------------
+
+/// Edge-case dataset pinning the two cross-format dimensions the books corpus
+/// omits: an RDF-1.2 directional (rtl) language literal, and a cell whose value
+/// triggers escaping in every format (comma/quote for CSV RFC-4180, `&`/`<` for
+/// XML/JSON).
+fn edge_cases() -> SparqlResult {
+    SparqlResult::Solutions {
+        variables: vec!["term".to_string(), "note".to_string()],
+        rows: vec![
+            // Directional rtl literal (Arabic) + a plain note.
+            vec![
+                Some(dir_lang("مرحبا", "ar", RdfTextDirection::Rtl)),
+                Some(plain("right-to-left greeting")),
+            ],
+            // Escaping-trigger cell + an ltr directional literal.
+            vec![
+                Some(plain("a, \"b\" & <c>")),
+                Some(dir_lang("hello", "en", RdfTextDirection::Ltr)),
+            ],
+        ],
+    }
+}
+
+#[test]
+fn edge_cases_json() {
+    insta::assert_snapshot!(text(
+        &edge_cases(),
+        SparqlResultsFormat::Json,
+        &ResultProvenance::default()
+    ));
+}
+
+#[test]
+fn edge_cases_xml() {
+    insta::assert_snapshot!(text(
+        &edge_cases(),
+        SparqlResultsFormat::Xml,
+        &ResultProvenance::default()
+    ));
+}
+
+#[test]
+fn edge_cases_csv() {
+    // `insta` normalizes CRLF→LF in text snapshots, so the snapshot pins the
+    // content shape while the byte-level CRLF requirement is asserted on raw bytes.
+    let outcome = serialize(
+        &edge_cases(),
+        SparqlResultsFormat::Csv,
+        &ResultProvenance::default(),
+    )
+    .expect("csv serializes");
+    let raw = String::from_utf8(outcome.bytes).expect("UTF-8");
+    assert!(
+        raw.contains("\r\n"),
+        "CSV records must be CRLF-terminated (RFC 4180): {raw:?}"
+    );
+    insta::assert_snapshot!(raw);
+}
+
+#[test]
+fn edge_cases_tsv() {
+    // TSV uses bare LF line ends (no CR); the direction suffix (--rtl/--ltr)
+    // must appear in the output — this is the proof Gap 3 flows through TSV.
+    let outcome = serialize(
+        &edge_cases(),
+        SparqlResultsFormat::Tsv,
+        &ResultProvenance::default(),
+    )
+    .expect("tsv serializes");
+    let raw = String::from_utf8(outcome.bytes).expect("UTF-8");
+    assert!(
+        !raw.contains('\r'),
+        "TSV must use bare LF line ends, no CR: {raw:?}"
+    );
+    assert!(
+        raw.contains("--rtl") || raw.contains("--ltr"),
+        "TSV must carry direction suffix from Gap 3 kernel fix: {raw:?}"
+    );
+    insta::assert_snapshot!(raw);
 }
