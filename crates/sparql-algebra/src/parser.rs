@@ -730,6 +730,13 @@ impl Parser {
         self.expect(&Token::RBrace)?;
 
         let (min, max) = if has_comma {
+            // `{,}` — both bounds absent — is a silent-degrade to `*`; hard-fail instead.
+            if lower.is_none() && upper.is_none() {
+                return Err(ParseError::syntax(
+                    "empty path range {,} is not allowed (use * for zero-or-more)",
+                    self.span(),
+                ));
+            }
             // `{n,}` / `{n,m}` / `{,m}` (missing lower ⇒ 0).
             (lower.unwrap_or(0), upper)
         } else {
@@ -2289,6 +2296,48 @@ mod tests {
             err.to_string().contains("empty path range"),
             "expected an empty-range hard error, got {err}"
         );
+    }
+
+    #[test]
+    fn property_path_both_bounds_absent_range_is_a_hard_error() {
+        // `{,}` with BOTH bounds absent must hard-fail — it is NOT a silent `*`.
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{,}} ?y . }}");
+        let err = SparqlParser::new().parse_query(&q).unwrap_err();
+        assert!(
+            err.to_string().contains("empty path range {,}"),
+            "expected a {{,}} hard error, got {err}"
+        );
+    }
+
+    #[test]
+    fn property_path_partial_bounds_still_parse() {
+        // `{n}`, `{n,}`, `{,m}`, `{n,m}` must all still succeed.
+        let cases = [
+            (
+                format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{2}} ?y . }}"),
+                "<https://x/p>{2}",
+            ),
+            (
+                format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{1,}} ?y . }}"),
+                "<https://x/p>{1,}",
+            ),
+            (
+                format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{,2}} ?y . }}"),
+                "<https://x/p>{0,2}",
+            ),
+            (
+                format!("{GM}SELECT ?x WHERE {{ ?x gmeow:p{{1,3}} ?y . }}"),
+                "<https://x/p>{1,3}",
+            ),
+        ];
+        for (q, expected_display) in &cases {
+            let path = path_of(q);
+            assert_eq!(
+                path.to_string(),
+                *expected_display,
+                "path range failed to parse correctly for input: {q}"
+            );
+        }
     }
 
     #[test]
