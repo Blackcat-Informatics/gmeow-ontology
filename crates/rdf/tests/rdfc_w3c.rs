@@ -15,6 +15,23 @@
 //! The suite includes the hard automorphism vectors (test053–test058 etc.) whose
 //! blank-node symmetries can only be resolved by RDFC-1.0's n-degree permutation
 //! backtracking — a weaker (hash-only) implementation fails them.
+//!
+//! ## Sharding + heavy carve-out for the 25 s per-test budget (#1045)
+//!
+//! The full 65-fixture suite runs ~28–32 s on CI, over the always-on 25 s budget.
+//! Per-fixture timing (2026-06-26) showed the cost is NOT spread: exactly one
+//! vector — `test074` (the sole negative/poison fixture; ~5.3 s isolated-local on
+//! the call-budget guard) — dominates, while every other fixture canonicalizes in
+//! ≤ ~0.02 s. So:
+//!
+//! - `test074` is carved into the OFF-GATE [`w3c_rdfc10_heavy_offgate`] test (maint
+//!   lane only; excluded from the per-commit gate via `default-filter` in
+//!   `.config/nextest.toml`), mirroring the `corpus_parity_heavy_offgate` precedent.
+//! - The remaining 64 (all cheap) vectors are split across [`NUM_SHARDS`] gated
+//!   `#[test]` fns (`w3c_rdfc10_shard_{0..3}`) by a stable FNV-1a hash of the test
+//!   stem so nextest runs them in parallel; each gated shard is well under 1 s.
+//! - A cheap [`w3c_inventory`] test guards against fixture loss (incl. the carved
+//!   heavy stems) without running any canonicalization.
 
 #![cfg(feature = "oxigraph")]
 
@@ -30,12 +47,41 @@ use gmeow_rdf::{canonical_nquads_with, CanonHash};
 /// ("blank node - diamond (uses SHA-384)").
 const SHA384_TESTS: &[&str] = &["test075"];
 
+/// How many independent shard tests the GATED (non-heavy) subset is split across (#1045).
+const NUM_SHARDS: usize = 4;
+
+/// OFF-GATE heavy fixtures: stems whose canonicalization is too slow to fit the 25 s
+/// always-on per-test budget (#1045). Carved out of the gated shards and exercised
+/// only on the maint lane via [`w3c_rdfc10_heavy_offgate`].
+///
+/// Current entry: `test074` — the suite's sole negative/poison vector. The native
+/// canonicalizer takes ~5.3 s isolated-local before the call-budget guard aborts (the
+/// pathological all-blank graph); on a contended 4-core CI runner that can balloon
+/// past budget. Every other vector canonicalizes in ≤ ~0.02 s. Mirrors the
+/// `corpus_parity_heavy_offgate` precedent in `sparql_eval_parity.rs`.
+const HEAVY_OFFGATE_STEMS: &[&str] = &["test074"];
+
+fn is_heavy_offgate(stem: &str) -> bool {
+    HEAVY_OFFGATE_STEMS.contains(&stem)
+}
+
 fn hash_for(stem: &str) -> CanonHash {
     if SHA384_TESTS.contains(&stem) {
         CanonHash::Sha384
     } else {
         CanonHash::Sha256
     }
+}
+
+/// Stable FNV-1a hash of a test stem → shard id. Identical algorithm to
+/// `sparql_eval_parity.rs` so the sharding pattern is uniform across the codebase.
+fn shard_of(stem: &str) -> usize {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for b in stem.as_bytes() {
+        h ^= u64::from(*b);
+        h = h.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    (h % NUM_SHARDS as u64) as usize
 }
 
 fn fixtures_dir() -> PathBuf {
@@ -62,10 +108,9 @@ fn norm_lines(s: &str) -> Vec<String> {
     v
 }
 
-#[test]
-fn w3c_rdfc10_suite() {
-    let dir = fixtures_dir();
-    let mut inputs: Vec<PathBuf> = std::fs::read_dir(&dir)
+/// All `testNNN-in.nq` input fixture paths, sorted.
+fn all_inputs(dir: &Path) -> Vec<PathBuf> {
+    let mut inputs: Vec<PathBuf> = std::fs::read_dir(dir)
         .expect("fixtures/rdfc present")
         .filter_map(|e| e.ok().map(|e| e.path()))
         .filter(|p| {
@@ -75,37 +120,40 @@ fn w3c_rdfc10_suite() {
         })
         .collect();
     inputs.sort();
-    // Exact count, not a floor: silent fixture loss must fail the gate rather
-    // than degrade coverage unnoticed. Bump this (and the eval/negative split
-    // below) when the vendored W3C suite is intentionally re-synced.
-    assert_eq!(
-        inputs.len(),
-        65,
-        "expected exactly 65 vendored W3C rdf-canon inputs, found {}",
-        inputs.len()
-    );
+    inputs
+}
+
+fn stem_of(path: &Path) -> String {
+    path.file_name()
+        .and_then(|n| n.to_str())
+        .and_then(|n| n.strip_suffix("-in.nq"))
+        .expect("input stem")
+        .to_owned()
+}
+
+/// Run the W3C RDFC-1.0 fixtures whose stem satisfies `include`, collecting failures.
+/// This is the SINGLE correctness path shared by the gated shards and the off-gate
+/// heavy test — same eval (positive) and negative (poison call-budget) semantics.
+fn run_w3c_fixtures(scope: &str, include: &dyn Fn(&str) -> bool) {
+    let dir = fixtures_dir();
+    let inputs: Vec<PathBuf> = all_inputs(&dir)
+        .into_iter()
+        .filter(|p| include(&stem_of(p)))
+        .collect();
 
     // Suppress panic noise; we report failures by test name through `failures`.
     let prev_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(|_| {}));
 
     let mut failures: Vec<String> = Vec::new();
-    let mut eval = 0usize;
-    let mut negative = 0usize;
 
     for input in &inputs {
-        let stem = input
-            .file_name()
-            .and_then(|n| n.to_str())
-            .and_then(|n| n.strip_suffix("-in.nq"))
-            .expect("input stem")
-            .to_owned();
+        let stem = stem_of(input);
         let expected_path = dir.join(format!("{stem}-rdfc10.nq"));
         let in_text = std::fs::read_to_string(input).expect("read input");
         let quads = parse_nquads(&in_text);
 
         if expected_path.exists() {
-            eval += 1;
             let outcome = std::panic::catch_unwind(|| {
                 canonical_nquads_with(quads.iter(), hash_for(&stem)).expect("canonicalize")
             });
@@ -125,7 +173,6 @@ fn w3c_rdfc10_suite() {
         } else {
             // Negative (poison) test: canonicalization must abort (the poison call
             // budget trips on the pathological blank graph).
-            negative += 1;
             let outcome = std::panic::catch_unwind(|| {
                 canonical_nquads_with(quads.iter(), hash_for(&stem)).expect("canonicalize")
             });
@@ -155,22 +202,114 @@ fn w3c_rdfc10_suite() {
 
     std::panic::set_hook(prev_hook);
 
-    eprintln!(
-        "W3C RDFC-1.0: {eval} eval + {negative} negative tests, {} failures",
-        failures.len()
-    );
-    // Pin the exact eval/negative split so a fixture that loses its expected
-    // output (silently turning an eval vector into a negative one, or vice
-    // versa) fails the gate instead of quietly weakening it.
-    assert_eq!(
-        (eval, negative),
-        (64, 1),
-        "expected 64 eval + 1 negative W3C vectors, ran {eval} eval + {negative} negative"
-    );
     assert!(
         failures.is_empty(),
-        "W3C RDFC-1.0 conformance failures ({}):\n\n{}",
+        "W3C RDFC-1.0 [{scope}] conformance failures ({}):\n\n{}",
         failures.len(),
         failures.join("\n\n")
     );
+}
+
+/// One gated shard: the cheap fixtures assigned to `shard` by [`shard_of`], with the
+/// [`HEAVY_OFFGATE_STEMS`] carved out so the gated wall time stays well under budget.
+fn run_w3c_shard(shard: usize) {
+    run_w3c_fixtures(&format!("shard {shard}/{NUM_SHARDS}"), &|stem| {
+        !is_heavy_offgate(stem) && shard_of(stem) == shard
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Gated shard entry points (#1045)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn w3c_rdfc10_shard_0() {
+    run_w3c_shard(0);
+}
+
+#[test]
+fn w3c_rdfc10_shard_1() {
+    run_w3c_shard(1);
+}
+
+#[test]
+fn w3c_rdfc10_shard_2() {
+    run_w3c_shard(2);
+}
+
+#[test]
+fn w3c_rdfc10_shard_3() {
+    run_w3c_shard(3);
+}
+
+// ---------------------------------------------------------------------------
+// Off-gate heavy vectors (maint lane only; excluded from the per-commit gate via
+// `default-filter` in `.config/nextest.toml`) (#1045)
+// ---------------------------------------------------------------------------
+
+/// OFF-GATE: runs exactly the [`HEAVY_OFFGATE_STEMS`] (the sole negative/poison
+/// vector `test074`, ~5.3 s) with the SAME eval/negative correctness logic as the
+/// gated shards. Kept always-runnable (NOT `#[ignore]`d) and exercised on the
+/// `maint-rust-heavy` nextest profile / `make maint-rust-heavy`; the per-commit gate
+/// excludes it via the default profile's `default-filter`. Preserves full RDFC-1.0
+/// conformance coverage for the heavy vector off the critical path.
+#[test]
+fn w3c_rdfc10_heavy_offgate() {
+    run_w3c_fixtures("heavy-offgate", &|stem| is_heavy_offgate(stem));
+}
+
+// ---------------------------------------------------------------------------
+// Inventory tripwire (no canonicalization — milliseconds)
+// ---------------------------------------------------------------------------
+
+/// Cheap whole-suite guard: counts inputs and verifies the eval/negative split
+/// WITHOUT running any canonicalization. Guards against silent fixture loss that
+/// a per-shard test (each seeing only its slice) cannot detect on its own — and
+/// asserts the carved [`HEAVY_OFFGATE_STEMS`] still exist so they cannot silently
+/// vanish off the gate. Bump these counts when the vendored W3C suite is
+/// intentionally re-synced.
+#[test]
+fn w3c_inventory() {
+    let dir = fixtures_dir();
+    let inputs = all_inputs(&dir);
+
+    // Exact total count — silent fixture loss must fail the gate.
+    assert_eq!(
+        inputs.len(),
+        65,
+        "expected exactly 65 vendored W3C rdf-canon inputs, found {}",
+        inputs.len()
+    );
+
+    // Verify the eval/negative split: eval inputs have a matching `-rdfc10.nq`
+    // expected output; negative inputs do not.
+    let mut eval = 0usize;
+    let mut negative = 0usize;
+    for input in &inputs {
+        let stem = stem_of(input);
+        let expected_path = dir.join(format!("{stem}-rdfc10.nq"));
+        if expected_path.exists() {
+            eval += 1;
+        } else {
+            negative += 1;
+        }
+    }
+    // Pin the exact split so a fixture that loses its expected output (silently
+    // turning an eval vector into a negative one) fails the gate.
+    assert_eq!(
+        (eval, negative),
+        (64, 1),
+        "expected 64 eval + 1 negative W3C vectors, found {eval} eval + {negative} negative"
+    );
+
+    // The carved off-gate stems must still exist — otherwise heavy-vector coverage
+    // would silently vanish (the off-gate test would run zero fixtures unnoticed).
+    let present: std::collections::HashSet<String> = inputs.iter().map(|p| stem_of(p)).collect();
+    for stem in HEAVY_OFFGATE_STEMS {
+        assert!(
+            present.contains(*stem),
+            "off-gate heavy fixture {stem:?} is missing — its coverage would silently vanish; \
+             update HEAVY_OFFGATE_STEMS if the vendored suite intentionally dropped it"
+        );
+    }
 }

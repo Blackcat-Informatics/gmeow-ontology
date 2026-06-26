@@ -268,8 +268,13 @@ render/competency/extract/lint/i18n/model binaries (each rebuilds the full
 back on-gate); `gmeow-logic::ontology_entailments` (Nemo RL); the
 `gmeow-pipeline` `end_to_end`/`fold_parity`/full-fold/snapshot-codec/mapping-parity
 /scoreboards-acceptance tests; a Nemo conformance case; a few whole-ontology
-`gmeow-slice`/`gmeow-slicetest` emit/closure checks; and the off-gate corpus parity
-query. `gmeow-docs::rdf_golden` stays gated as the docs representative subset.
+`gmeow-slice`/`gmeow-slicetest` emit/closure checks; the off-gate corpus parity
+query; `gmeow-rdf-capi::c_smoke` (self-builds the libpurrdf cdylib, ~33 s cold
+compile on CI — build-time-bound, already covered by the dedicated `capi` CI job);
+and `w3c_rdfc10_heavy_offgate` (the sole RDFC-1.0 negative/poison vector `test074`,
+~5.3 s on the call-budget guard — the rest of the W3C suite is sharded+gated, each
+shard under 1 s). `gmeow-docs::rdf_golden` stays gated as the docs representative
+subset.
 
 The bias is **fix, don't off-gate**: prefer making a test fast (shard it like the
 corpus parity sweep in `crates/rdf/tests/sparql_eval_parity.rs`, or share an
