@@ -438,6 +438,408 @@ fn num_f32(v: &XsdValue) -> Option<f32> {
     })
 }
 
+// ── Numeric arithmetic (SPARQL §17.4 / XPath op:numeric-*) ──────────────────
+
+/// Promote both operands to the least common type in the numeric tower, perform
+/// the given exact-integer operation (add/sub/mul), and return an `XsdValue::Integer`
+/// result. Returns `Err(OutOfRange)` on overflow.
+fn int_binop(
+    x: i128,
+    y: i128,
+    op: impl Fn(i128, i128) -> Option<i128>,
+) -> Result<XsdValue, XsdError> {
+    op(x, y)
+        .map(|value| XsdValue::Integer {
+            value,
+            datatype: XsdDatatype::Integer,
+        })
+        .ok_or_else(|| XsdError::OutOfRange {
+            datatype: XsdDatatype::Integer,
+            lexical: "overflow in integer arithmetic".to_string(),
+            reason: "integer arithmetic overflow",
+        })
+}
+
+/// Align two decimals to the same (higher) scale by scaling up the mantissa of
+/// the lower-scale operand. Returns `(a_mantissa, b_mantissa, common_scale)`.
+///
+/// ## Overflow-safety argument
+///
+/// Both operands satisfy `|mantissa| < 10^scale ≤ 10^MAX_DECIMAL_SCALE` (= 10^18).
+/// The scale-up factor is `10^diff` where `diff ≤ 18`.
+/// Product `< 10^18 × 10^18 = 10^36 < i128::MAX (≈ 1.70×10^38)`. No overflow.
+/// However, the mantissa of an *add/sub result* can be up to `2 × 10^36` which still
+/// fits in i128; the caller must not further scale without checking.
+fn align_decimals(a: &Decimal, b: &Decimal) -> (i128, i128, u8) {
+    if a.scale() == b.scale() {
+        return (a.mantissa(), b.mantissa(), a.scale());
+    }
+    if a.scale() > b.scale() {
+        let diff = u32::from(a.scale() - b.scale());
+        // SAFETY: b.mantissa < 10^b.scale ≤ 10^18; diff ≤ 18; product < 10^36 < i128::MAX
+        let b_scaled = b.mantissa() * 10i128.pow(diff);
+        (a.mantissa(), b_scaled, a.scale())
+    } else {
+        let diff = u32::from(b.scale() - a.scale());
+        // SAFETY: a.mantissa < 10^a.scale ≤ 10^18; diff ≤ 18; product < 10^36 < i128::MAX
+        let a_scaled = a.mantissa() * 10i128.pow(diff);
+        (a_scaled, b.mantissa(), b.scale())
+    }
+}
+
+/// Promote an `Integer` to a `Decimal` with scale 0.
+fn integer_to_decimal(value: i128) -> Decimal {
+    Decimal::from_parts(value, 0)
+}
+
+/// SPARQL `op:numeric-add` (`+`). Follows the numeric promotion tower:
+/// `integer ⊂ decimal ⊂ float ⊂ double`. Integer addition is exact (`i128`);
+/// decimal addition is exact within the representable range; float/double are IEEE.
+///
+/// Returns `Err(OutOfRange)` on exact-type overflow, `Err(TypeMismatch)` if either
+/// operand is not numeric.
+pub fn numeric_add(a: &XsdValue, b: &XsdValue) -> Result<XsdValue, XsdError> {
+    use XsdValue::{Decimal as Dec, Double, Float, Integer};
+    match (a, b) {
+        // Both double OR either double → f64
+        (Double(_), _) | (_, Double(_)) => {
+            let x = num_f64(a).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in add",
+            })?;
+            let y = num_f64(b).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in add",
+            })?;
+            Ok(XsdValue::Double(x + y))
+        }
+        // Either float (no double) → f32
+        (Float(_), _) | (_, Float(_)) => {
+            let x = num_f32(a).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in add",
+            })?;
+            let y = num_f32(b).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in add",
+            })?;
+            Ok(XsdValue::Float(x + y))
+        }
+        // Either decimal (no float/double) → exact decimal
+        (Dec(x), Dec(y)) => decimal_add(x, y),
+        (Integer { value: x, .. }, Dec(y)) => decimal_add(&integer_to_decimal(*x), y),
+        (Dec(x), Integer { value: y, .. }) => decimal_add(x, &integer_to_decimal(*y)),
+        // Both integer → exact i128
+        (Integer { value: x, .. }, Integer { value: y, .. }) => {
+            int_binop(*x, *y, i128::checked_add)
+        }
+        _ => Err(XsdError::TypeMismatch {
+            reason: "non-numeric operand in add",
+        }),
+    }
+}
+
+fn decimal_add(a: &Decimal, b: &Decimal) -> Result<XsdValue, XsdError> {
+    let (am, bm, scale) = align_decimals(a, b);
+    let result = am.checked_add(bm).ok_or_else(|| XsdError::OutOfRange {
+        datatype: XsdDatatype::Decimal,
+        lexical: String::new(),
+        reason: "decimal addition overflow",
+    })?;
+    Ok(XsdValue::Decimal(Decimal::from_parts(result, scale)))
+}
+
+/// SPARQL `op:numeric-subtract` (`-`). Same promotion tower as `numeric_add`.
+///
+/// Returns `Err(OutOfRange)` on exact-type overflow, `Err(TypeMismatch)` if either
+/// operand is not numeric.
+pub fn numeric_sub(a: &XsdValue, b: &XsdValue) -> Result<XsdValue, XsdError> {
+    use XsdValue::{Decimal as Dec, Double, Float, Integer};
+    match (a, b) {
+        (Double(_), _) | (_, Double(_)) => {
+            let x = num_f64(a).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in sub",
+            })?;
+            let y = num_f64(b).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in sub",
+            })?;
+            Ok(XsdValue::Double(x - y))
+        }
+        (Float(_), _) | (_, Float(_)) => {
+            let x = num_f32(a).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in sub",
+            })?;
+            let y = num_f32(b).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in sub",
+            })?;
+            Ok(XsdValue::Float(x - y))
+        }
+        (Dec(x), Dec(y)) => decimal_sub(x, y),
+        (Integer { value: x, .. }, Dec(y)) => decimal_sub(&integer_to_decimal(*x), y),
+        (Dec(x), Integer { value: y, .. }) => decimal_sub(x, &integer_to_decimal(*y)),
+        (Integer { value: x, .. }, Integer { value: y, .. }) => {
+            int_binop(*x, *y, i128::checked_sub)
+        }
+        _ => Err(XsdError::TypeMismatch {
+            reason: "non-numeric operand in sub",
+        }),
+    }
+}
+
+fn decimal_sub(a: &Decimal, b: &Decimal) -> Result<XsdValue, XsdError> {
+    let (am, bm, scale) = align_decimals(a, b);
+    let result = am.checked_sub(bm).ok_or_else(|| XsdError::OutOfRange {
+        datatype: XsdDatatype::Decimal,
+        lexical: String::new(),
+        reason: "decimal subtraction overflow",
+    })?;
+    Ok(XsdValue::Decimal(Decimal::from_parts(result, scale)))
+}
+
+/// SPARQL `op:numeric-multiply` (`*`). Same promotion tower as `numeric_add`.
+///
+/// Decimal multiplication: `new_mantissa = a.mantissa × b.mantissa`,
+/// `new_scale = a.scale + b.scale`. If `new_scale > MAX_DECIMAL_SCALE`, the result
+/// is rounded (truncated toward zero) to scale 18. Mantissa overflow → `OutOfRange`.
+///
+/// Returns `Err(OutOfRange)` on exact-type overflow, `Err(TypeMismatch)` if either
+/// operand is not numeric.
+pub fn numeric_mul(a: &XsdValue, b: &XsdValue) -> Result<XsdValue, XsdError> {
+    use XsdValue::{Decimal as Dec, Double, Float, Integer};
+    match (a, b) {
+        (Double(_), _) | (_, Double(_)) => {
+            let x = num_f64(a).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in mul",
+            })?;
+            let y = num_f64(b).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in mul",
+            })?;
+            Ok(XsdValue::Double(x * y))
+        }
+        (Float(_), _) | (_, Float(_)) => {
+            let x = num_f32(a).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in mul",
+            })?;
+            let y = num_f32(b).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in mul",
+            })?;
+            Ok(XsdValue::Float(x * y))
+        }
+        (Dec(x), Dec(y)) => decimal_mul(x, y),
+        (Integer { value: x, .. }, Dec(y)) => decimal_mul(&integer_to_decimal(*x), y),
+        (Dec(x), Integer { value: y, .. }) => decimal_mul(x, &integer_to_decimal(*y)),
+        (Integer { value: x, .. }, Integer { value: y, .. }) => {
+            int_binop(*x, *y, i128::checked_mul)
+        }
+        _ => Err(XsdError::TypeMismatch {
+            reason: "non-numeric operand in mul",
+        }),
+    }
+}
+
+fn decimal_mul(a: &Decimal, b: &Decimal) -> Result<XsdValue, XsdError> {
+    let new_mantissa =
+        a.mantissa()
+            .checked_mul(b.mantissa())
+            .ok_or_else(|| XsdError::OutOfRange {
+                datatype: XsdDatatype::Decimal,
+                lexical: String::new(),
+                reason: "decimal multiplication overflow",
+            })?;
+    let raw_scale = u32::from(a.scale()) + u32::from(b.scale());
+    if raw_scale <= u32::from(MAX_DECIMAL_SCALE) {
+        Ok(XsdValue::Decimal(Decimal::from_parts(
+            new_mantissa,
+            raw_scale as u8,
+        )))
+    } else {
+        // Truncate toward zero to MAX_DECIMAL_SCALE fractional digits.
+        let excess = raw_scale - u32::from(MAX_DECIMAL_SCALE);
+        // SAFETY: excess ≤ 36 (max raw_scale is 36); 10^excess ≤ 10^36 < i128::MAX.
+        // But we cannot represent 10^36 in i128 (i128::MAX ≈ 1.70×10^38 > 10^36),
+        // however 10^38 > i128::MAX, so we need to be careful.
+        // excess ≤ raw_scale - 0 ≤ 18 + 18 = 36; 10^36 ≈ 1×10^36 < 1.70×10^38 = i128::MAX.
+        // So 10i128.pow(excess) does not overflow for excess ≤ 36.
+        let divisor = 10i128.pow(excess);
+        let truncated = new_mantissa / divisor;
+        Ok(XsdValue::Decimal(Decimal::from_parts(
+            truncated,
+            MAX_DECIMAL_SCALE,
+        )))
+    }
+}
+
+/// SPARQL `op:numeric-divide` (`/`). Integer ÷ integer returns **decimal** (not
+/// integer), per XPath `op:numeric-divide` semantics. All other pairs follow the
+/// numeric promotion tower.
+///
+/// Division by zero:
+/// - `xsd:integer` or `xsd:decimal` divisor = 0 → `Err(DivisionByZero)` (hard error).
+/// - `xsd:float` or `xsd:double` divisor = 0.0 → IEEE result (±INF, or NaN for 0÷0).
+///
+/// Returns `Err(TypeMismatch)` if either operand is not numeric.
+pub fn numeric_div(a: &XsdValue, b: &XsdValue) -> Result<XsdValue, XsdError> {
+    use XsdValue::{Decimal as Dec, Double, Float, Integer};
+    match (a, b) {
+        (Double(_), _) | (_, Double(_)) => {
+            let x = num_f64(a).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in div",
+            })?;
+            let y = num_f64(b).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in div",
+            })?;
+            Ok(XsdValue::Double(x / y))
+        }
+        (Float(_), _) | (_, Float(_)) => {
+            let x = num_f32(a).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in div",
+            })?;
+            let y = num_f32(b).ok_or(XsdError::TypeMismatch {
+                reason: "non-numeric operand in div",
+            })?;
+            Ok(XsdValue::Float(x / y))
+        }
+        // Integer ÷ Integer → Decimal (XPath op:numeric-divide spec rule)
+        (Integer { value: x, .. }, Integer { value: y, .. }) => {
+            if *y == 0 {
+                return Err(XsdError::DivisionByZero {
+                    datatype: XsdDatatype::Integer,
+                });
+            }
+            decimal_div(&integer_to_decimal(*x), &integer_to_decimal(*y))
+        }
+        (Dec(x), Dec(y)) => {
+            if y.is_zero() {
+                return Err(XsdError::DivisionByZero {
+                    datatype: XsdDatatype::Decimal,
+                });
+            }
+            decimal_div(x, y)
+        }
+        (Integer { value: x, .. }, Dec(y)) => {
+            if y.is_zero() {
+                return Err(XsdError::DivisionByZero {
+                    datatype: XsdDatatype::Decimal,
+                });
+            }
+            decimal_div(&integer_to_decimal(*x), y)
+        }
+        (Dec(x), Integer { value: y, .. }) => {
+            if *y == 0 {
+                return Err(XsdError::DivisionByZero {
+                    datatype: XsdDatatype::Decimal,
+                });
+            }
+            decimal_div(x, &integer_to_decimal(*y))
+        }
+        _ => Err(XsdError::TypeMismatch {
+            reason: "non-numeric operand in div",
+        }),
+    }
+}
+
+/// Exact decimal long division, producing up to `MAX_DECIMAL_SCALE` (18) fractional
+/// digits by truncation toward zero.
+///
+/// Algorithm: scale the dividend mantissa up by `10^target_scale` to capture enough
+/// fractional precision, then integer-divide by the divisor mantissa. The result
+/// mantissa is `(dividend_m × 10^shift) / divisor_m` at scale `target_scale`.
+///
+/// The shift factor is chosen as `MAX_DECIMAL_SCALE + divisor.scale()` minus the
+/// dividend scale so that the final result lands at exactly scale `MAX_DECIMAL_SCALE`.
+fn decimal_div(dividend: &Decimal, divisor: &Decimal) -> Result<XsdValue, XsdError> {
+    // We want: result = dividend / divisor at scale MAX_DECIMAL_SCALE.
+    // dividend = dm × 10^(-ds), divisor = vm × 10^(-vs).
+    // result mantissa at scale S = dm × 10^(S + vs - ds) / vm
+    // where S = MAX_DECIMAL_SCALE.
+    let dm = dividend.mantissa();
+    let vm = divisor.mantissa();
+    // Combined scale shift: (MAX_DECIMAL_SCALE + vs) - ds.
+    // vs and ds are both ≤ 18, and MAX_DECIMAL_SCALE = 18, so the net exponent
+    // is in [-18, 36]. We must keep the dividend mantissa from overflowing i128.
+    let target_scale = MAX_DECIMAL_SCALE;
+    let vs = i32::from(divisor.scale());
+    let ds = i32::from(dividend.scale());
+    let shift_exp: i32 = i32::from(target_scale) + vs - ds;
+    // Scale dm up (or down) by 10^shift_exp.
+    let scaled_dm: i128 = if shift_exp >= 0 {
+        // Scale up: dm × 10^shift_exp. Max shift is 18 + 18 - 0 = 36.
+        // 10^36 ≈ 10^36, and i128::MAX ≈ 1.70×10^38, so we can represent 10^36.
+        // dm itself can be up to i128::MAX / 10 (from multiplication), but in the
+        // typical case |dm| ≤ 10^18. If the scale-up overflows, return OutOfRange.
+        let factor = 10i128.pow(shift_exp as u32);
+        dm.checked_mul(factor).ok_or_else(|| XsdError::OutOfRange {
+            datatype: XsdDatatype::Decimal,
+            lexical: String::new(),
+            reason: "decimal division intermediate overflow",
+        })?
+    } else {
+        // Scale down: dm / 10^(-shift_exp). Precision is lost; this only happens
+        // when the dividend has more fractional digits than target_scale + vs,
+        // which is unusual but possible.
+        let factor = 10i128.pow((-shift_exp) as u32);
+        dm / factor
+    };
+    Ok(XsdValue::Decimal(Decimal::from_parts(
+        scaled_dm / vm,
+        target_scale,
+    )))
+}
+
+/// SPARQL `op:numeric-unary-minus` (unary `-`). Negates the value, preserving its type.
+///
+/// For integers, negation uses checked arithmetic; `i128::MIN` negated overflows →
+/// `Err(OutOfRange)`. For float/double, IEEE negation (−0.0 negates to +0.0 and
+/// vice-versa; NaN negates to NaN with sign flipped per IEEE 754-2008 §6.3).
+///
+/// Returns `Err(TypeMismatch)` for non-numeric operands.
+pub fn numeric_unary_minus(a: &XsdValue) -> Result<XsdValue, XsdError> {
+    match a {
+        XsdValue::Integer { value, datatype } => value
+            .checked_neg()
+            .map(|v| XsdValue::Integer {
+                value: v,
+                datatype: *datatype,
+            })
+            .ok_or_else(|| XsdError::OutOfRange {
+                datatype: *datatype,
+                lexical: value.to_string(),
+                reason: "integer unary minus overflow (i128::MIN has no positive counterpart)",
+            }),
+        XsdValue::Decimal(d) => {
+            // Decimal negation: negate the mantissa. No overflow: i128::MIN has no
+            // positive counterpart, but parse_decimal rejects values that would place
+            // the mantissa at i128::MIN (it parses the magnitude separately as unsigned).
+            // Defensive check retained for safety.
+            d.mantissa()
+                .checked_neg()
+                .map(|m| XsdValue::Decimal(Decimal::from_parts(m, d.scale())))
+                .ok_or_else(|| XsdError::OutOfRange {
+                    datatype: XsdDatatype::Decimal,
+                    lexical: d.canonical_lexical(),
+                    reason: "decimal unary minus overflow (mantissa is i128::MIN)",
+                })
+        }
+        XsdValue::Float(f) => Ok(XsdValue::Float(-f)),
+        XsdValue::Double(d) => Ok(XsdValue::Double(-d)),
+        _ => Err(XsdError::TypeMismatch {
+            reason: "unary minus applied to non-numeric value",
+        }),
+    }
+}
+
+/// SPARQL `op:numeric-unary-plus` (unary `+`). Identity for numeric types.
+///
+/// Returns `Err(TypeMismatch)` for non-numeric operands (e.g. `+true` is a type
+/// error in SPARQL/XPath, not a no-op).
+pub fn numeric_unary_plus(a: &XsdValue) -> Result<XsdValue, XsdError> {
+    match a {
+        XsdValue::Integer { .. }
+        | XsdValue::Decimal(_)
+        | XsdValue::Float(_)
+        | XsdValue::Double(_) => Ok(a.clone()),
+        _ => Err(XsdError::TypeMismatch {
+            reason: "unary plus applied to non-numeric value",
+        }),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -696,5 +1098,281 @@ mod tests {
         };
         assert!(numeric_eq(&int5, &long5));
         assert_eq!(numeric_cmp(&int5, &long5), Some(Ordering::Equal));
+    }
+
+    // ── Arithmetic tests ─────────────────────────────────────────────────────
+
+    fn dec_val(s: &str) -> XsdValue {
+        XsdValue::Decimal(parse_decimal(s).unwrap())
+    }
+
+    fn float_val(f: f32) -> XsdValue {
+        XsdValue::Float(f)
+    }
+
+    fn double_val(d: f64) -> XsdValue {
+        XsdValue::Double(d)
+    }
+
+    /// Helper: extract the Decimal from an XsdValue::Decimal, panic otherwise.
+    fn as_decimal(v: &XsdValue) -> Decimal {
+        match v {
+            XsdValue::Decimal(d) => *d,
+            other => panic!("expected Decimal, got {other:?}"),
+        }
+    }
+
+    /// Helper: extract the i128 from an XsdValue::Integer, panic otherwise.
+    fn as_integer(v: &XsdValue) -> i128 {
+        match v {
+            XsdValue::Integer { value, .. } => *value,
+            other => panic!("expected Integer, got {other:?}"),
+        }
+    }
+
+    /// Helper: extract f64 from XsdValue::Double, panic otherwise.
+    fn as_double(v: &XsdValue) -> f64 {
+        match v {
+            XsdValue::Double(d) => *d,
+            other => panic!("expected Double, got {other:?}"),
+        }
+    }
+
+    /// Helper: extract f32 from XsdValue::Float, panic otherwise.
+    fn as_float(v: &XsdValue) -> f32 {
+        match v {
+            XsdValue::Float(f) => *f,
+            other => panic!("expected Float, got {other:?}"),
+        }
+    }
+
+    // -- integer + integer → integer --
+
+    #[test]
+    fn add_integer_integer() {
+        let result = numeric_add(&int_val(3), &int_val(4)).unwrap();
+        assert_eq!(as_integer(&result), 7);
+    }
+
+    #[test]
+    fn add_integer_overflow() {
+        // i128::MAX + 1 must be OutOfRange, never wrap.
+        let max = int_val(i128::MAX);
+        let one = int_val(1);
+        assert!(matches!(
+            numeric_add(&max, &one),
+            Err(XsdError::OutOfRange { .. })
+        ));
+    }
+
+    // -- integer division returns Decimal (SPARQL §17.4 / XPath op:numeric-divide) --
+
+    #[test]
+    fn div_integer_integer_returns_decimal() {
+        // 1 / 2 must be Decimal(0.5), NOT Integer(0)
+        let result = numeric_div(&int_val(1), &int_val(2)).unwrap();
+        assert!(
+            matches!(result, XsdValue::Decimal(_)),
+            "expected Decimal, got {result:?}"
+        );
+        let d = as_decimal(&result);
+        // 0.5 at scale 18: mantissa = 5×10^17
+        assert_eq!(d.to_f64(), 0.5, "1/2 must equal 0.5");
+    }
+
+    #[test]
+    fn div_4_2_is_decimal_two() {
+        // 4 / 2 must be Decimal(2.0), NOT Integer(2)
+        let result = numeric_div(&int_val(4), &int_val(2)).unwrap();
+        assert!(matches!(result, XsdValue::Decimal(_)));
+        let d = as_decimal(&result);
+        assert_eq!(d.to_f64(), 2.0, "4/2 must equal 2.0 as decimal");
+    }
+
+    #[test]
+    fn div_1_3_is_18_digit_decimal() {
+        // 1 / 3 → Decimal, 18 fractional digits of 3s
+        let result = numeric_div(&int_val(1), &int_val(3)).unwrap();
+        let d = as_decimal(&result);
+        // Canonical form should start with "0.333333333333333333"
+        let lex = d.canonical_lexical();
+        assert!(
+            lex.starts_with("0.333333333333333333"),
+            "expected 0.333...333 (18 threes), got {lex}"
+        );
+        // Exactly 18 fractional digits
+        let frac = lex.split('.').nth(1).unwrap_or("");
+        assert_eq!(
+            frac.len(),
+            18,
+            "should have 18 fractional digits, got {frac}"
+        );
+    }
+
+    // -- decimal exactness: 0.1 + 0.2 == 0.3 (the classic float failure) --
+
+    #[test]
+    fn decimal_add_exact_no_float_error() {
+        // IEEE double: 0.1 + 0.2 ≠ 0.3; exact decimal: 0.1 + 0.2 == 0.3.
+        let result = numeric_add(&dec_val("0.1"), &dec_val("0.2")).unwrap();
+        let d = as_decimal(&result);
+        let expected = parse_decimal("0.3").unwrap();
+        assert_eq!(
+            d.cmp_exact(&expected),
+            Ordering::Equal,
+            "0.1 + 0.2 must equal 0.3 exactly in decimal; got {}",
+            d.canonical_lexical()
+        );
+    }
+
+    // -- numeric promotion: integer + double → double --
+
+    #[test]
+    fn add_integer_double_promotes_to_double() {
+        let result = numeric_add(&int_val(1), &double_val(1.5)).unwrap();
+        assert!(
+            matches!(result, XsdValue::Double(_)),
+            "expected Double, got {result:?}"
+        );
+        let d = as_double(&result);
+        assert_eq!(d, 2.5);
+    }
+
+    // -- numeric promotion: decimal + float → float --
+
+    #[test]
+    fn add_decimal_float_promotes_to_float() {
+        let result = numeric_add(&dec_val("1.5"), &float_val(0.5)).unwrap();
+        assert!(
+            matches!(result, XsdValue::Float(_)),
+            "expected Float, got {result:?}"
+        );
+        // 1.5 + 0.5 = 2.0
+        assert_eq!(as_float(&result), 2.0_f32);
+    }
+
+    // -- numeric promotion: integer × decimal → decimal --
+
+    #[test]
+    fn mul_integer_decimal_promotes_to_decimal() {
+        // 3 × 1.5 = 4.5
+        let result = numeric_mul(&int_val(3), &dec_val("1.5")).unwrap();
+        assert!(
+            matches!(result, XsdValue::Decimal(_)),
+            "expected Decimal, got {result:?}"
+        );
+        let d = as_decimal(&result);
+        let expected = parse_decimal("4.5").unwrap();
+        assert_eq!(
+            d.cmp_exact(&expected),
+            Ordering::Equal,
+            "3 × 1.5 must equal 4.5; got {}",
+            d.canonical_lexical()
+        );
+    }
+
+    // -- division by zero --
+
+    #[test]
+    fn div_integer_by_zero_is_error() {
+        assert!(matches!(
+            numeric_div(&int_val(5), &int_val(0)),
+            Err(XsdError::DivisionByZero {
+                datatype: XsdDatatype::Integer
+            })
+        ));
+    }
+
+    #[test]
+    fn div_decimal_by_zero_is_error() {
+        assert!(matches!(
+            numeric_div(&dec_val("5.0"), &dec_val("0")),
+            Err(XsdError::DivisionByZero {
+                datatype: XsdDatatype::Decimal
+            })
+        ));
+    }
+
+    #[test]
+    fn div_double_by_zero_is_inf_not_error() {
+        // IEEE 754: positive / +0.0 = +INF
+        let result = numeric_div(&double_val(5.0), &double_val(0.0)).unwrap();
+        let d = as_double(&result);
+        assert!(
+            d.is_infinite() && d.is_sign_positive(),
+            "5.0 / 0.0 must be +INF"
+        );
+    }
+
+    #[test]
+    fn div_double_zero_by_zero_is_nan_not_error() {
+        // IEEE 754: 0.0 / 0.0 = NaN (no error)
+        let result = numeric_div(&double_val(0.0), &double_val(0.0)).unwrap();
+        let d = as_double(&result);
+        assert!(d.is_nan(), "0.0 / 0.0 must be NaN");
+    }
+
+    // -- unary minus --
+
+    #[test]
+    fn unary_minus_integer() {
+        assert_eq!(as_integer(&numeric_unary_minus(&int_val(5)).unwrap()), -5);
+        assert_eq!(as_integer(&numeric_unary_minus(&int_val(-3)).unwrap()), 3);
+    }
+
+    #[test]
+    fn unary_minus_decimal() {
+        let result = numeric_unary_minus(&dec_val("1.5")).unwrap();
+        let d = as_decimal(&result);
+        assert_eq!(d.canonical_lexical(), "-1.5");
+    }
+
+    #[test]
+    fn unary_minus_float() {
+        let result = numeric_unary_minus(&float_val(2.5)).unwrap();
+        assert_eq!(as_float(&result), -2.5_f32);
+    }
+
+    #[test]
+    fn unary_minus_double() {
+        // Use a value that is not an approx of a named constant (clippy::approx_constant).
+        let result = numeric_unary_minus(&double_val(1.23456)).unwrap();
+        assert!((as_double(&result) - (-1.23456)).abs() < 1e-12);
+    }
+
+    // -- unary plus --
+
+    #[test]
+    fn unary_plus_is_identity_for_numerics() {
+        // integer
+        let i = int_val(42);
+        let r = numeric_unary_plus(&i).unwrap();
+        assert_eq!(as_integer(&r), 42);
+        // decimal
+        let d_in = dec_val("1.5");
+        let d_out = numeric_unary_plus(&d_in).unwrap();
+        assert_eq!(as_decimal(&d_out).canonical_lexical(), "1.5");
+        // float
+        let f_in = float_val(3.0);
+        let f_out = numeric_unary_plus(&f_in).unwrap();
+        assert_eq!(as_float(&f_out), 3.0_f32);
+        // double — use a value that is not an approx of a named constant
+        let dbl_in = double_val(9.876);
+        let dbl_out = numeric_unary_plus(&dbl_in).unwrap();
+        assert!((as_double(&dbl_out) - 9.876).abs() < 1e-12);
+    }
+
+    #[test]
+    fn unary_plus_non_numeric_is_error() {
+        let boolean = XsdValue::Boolean(true);
+        assert!(matches!(
+            numeric_unary_plus(&boolean),
+            Err(XsdError::TypeMismatch { .. })
+        ));
+        let string = XsdValue::String("hello".to_string());
+        assert!(matches!(
+            numeric_unary_plus(&string),
+            Err(XsdError::TypeMismatch { .. })
+        ));
     }
 }

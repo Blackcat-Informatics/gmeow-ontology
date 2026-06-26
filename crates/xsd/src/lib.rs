@@ -79,6 +79,9 @@ pub mod value;
 
 pub use binary::{canonical_base64, canonical_hex, parse_base64, parse_binary, parse_hex};
 pub use datatype::{XsdDatatype, XSD_NS};
-pub use numeric::Decimal;
+pub use numeric::{
+    numeric_add, numeric_div, numeric_mul, numeric_sub, numeric_unary_minus, numeric_unary_plus,
+    Decimal,
+};
 pub use ops::{effective_boolean_value, value_cmp, value_eq};
 pub use value::{parse, parse_by_iri, XsdError, XsdValue};
