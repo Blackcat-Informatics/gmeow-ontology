@@ -3,7 +3,7 @@ source: crates/docs/tests/render_golden.rs
 expression: "format!(\"{header}\\n---\\n{sample}\")"
 ---
 # GMEOW Ontology Documentation
-# version: 3
+# version: 4
 # terms: 2165  slices: 75  concerns: 7  linkages: 1381
 
 ---
