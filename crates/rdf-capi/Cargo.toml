@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-rdf-capi"
+description = "GMEOW purrdf C-ABI: libpurrdf cdylib/staticlib over the gmeow-rdf semantic kernel (purrdf P8)"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["rdf", "rdf-12", "ffi", "c-abi", "sparql"]
+
+[lib]
+# `purrdf` → libpurrdf.{so,a}. The shipped artifacts are the cdylib + staticlib;
+# `rlib` is added so the in-crate integration tests (tests/abi.rs) can link the
+# extern "C" symbols directly without dlopen.
+name = "purrdf"
+crate-type = ["staticlib", "cdylib", "rlib"]
+path = "src/lib.rs"
+
+[features]
+# cargo-c enables this feature when driving `cargo capi build`/`cargo cinstall`.
+# It carries no conditional code — the C-ABI surface is always built — but the
+# feature must exist for the cargo-c subcommand to resolve.
+capi = []
+
+[dependencies]
+# Both features ON: `oxigraph` provides the parse/serialize/SPARQL backends;
+# `gts` provides the oxigraph-free GTS read/write core (gts_write +
+# import_gts_events) — the spec's "libpurrdf statically reuses gmeow-gts so a
+# language shim links one .so" clause. The `python` feature stays OFF: this is a
+# C-ABI, not a PyO3 extension.
+gmeow-rdf = { path = "../rdf", default-features = false, features = ["gts", "oxigraph"] }
+# gmeow-rdf re-exports the core types, but the capi depends on the kernel
+# directly too so it can name MutableDataset/QuadValues/GraphMatchValue/DatasetMut
+# without leaning on re-export aliasing. Harmless to crate-check (acyclic).
+gmeow-rdf-core = { path = "../rdf-core", default-features = false, features = ["gts"] }
+
+# === cargo-c packaging (the spec-letter build mechanism) ===
+[package.metadata.capi]
+min_version = "0.10.0"
+
+[package.metadata.capi.header]
+name = "purrdf"
+subdirectory = "purrdf"
+
+[package.metadata.capi.pkg_config]
+name = "purrdf"
+description = "GMEOW purrdf semantic RDF-1.2 C-ABI"
+
+[package.metadata.capi.library]
+name = "purrdf"
+version = "0.1.0"
