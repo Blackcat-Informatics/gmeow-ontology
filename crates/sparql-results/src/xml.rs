@@ -39,6 +39,11 @@ const GMEOW_NS: &str = "https://gmeow.dev/ns/results#";
 ///
 /// Returns [`Error::Format`] for a `Graph` (CONSTRUCT) result, which has no
 /// defined SRX representation.
+///
+/// Returns [`Error::Format`] if any dynamic string value contains an
+/// XML-1.0-illegal C0 control character (U+0001–U+001F excluding U+0009,
+/// U+000A, U+000D), which cannot be represented even as a numeric character
+/// reference in XML 1.0.
 pub fn to_xml(
     result: &SparqlResult,
     provenance: &ResultProvenance,
@@ -62,7 +67,7 @@ fn write_srx(
 
     match result {
         SparqlResult::Solutions { variables, rows } => {
-            write_head(variables, out);
+            write_head(variables, out)?;
             write_results(variables, rows, out)?;
         }
         SparqlResult::Boolean(value) => {
@@ -81,7 +86,7 @@ fn write_srx(
     }
 
     if !provenance.is_empty() {
-        write_provenance(result, provenance, out);
+        write_provenance(result, provenance, out)?;
     }
 
     out.push_str("</sparql>\n");
@@ -89,18 +94,19 @@ fn write_srx(
 }
 
 /// Write the `<head>` of `<variable>` declarations.
-fn write_head(variables: &[String], out: &mut String) {
+fn write_head(variables: &[String], out: &mut String) -> Result<(), Error> {
     if variables.is_empty() {
         out.push_str("  <head></head>\n");
-        return;
+        return Ok(());
     }
     out.push_str("  <head>\n");
     for var in variables {
         out.push_str("    <variable name=\"");
-        xml_escape_attr(var, out);
+        xml_escape_attr(var, out)?;
         out.push_str("\"/>\n");
     }
     out.push_str("  </head>\n");
+    Ok(())
 }
 
 /// Write the `<results>` block (one `<result>` per row; unbound cells omitted).
@@ -121,9 +127,9 @@ fn write_results(
                     ))
                 })?;
                 out.push_str("      <binding name=\"");
-                xml_escape_attr(var, out);
+                xml_escape_attr(var, out)?;
                 out.push_str("\">");
-                write_term(value, out);
+                write_term(value, out)?;
                 out.push_str("</binding>\n");
             }
         }
@@ -134,16 +140,16 @@ fn write_results(
 }
 
 /// Write a single bound term element (`<uri>`/`<bnode>`/`<literal>`/`<triple>`).
-fn write_term(value: &TermValue, out: &mut String) {
+fn write_term(value: &TermValue, out: &mut String) -> Result<(), Error> {
     match value {
         TermValue::Iri(iri) => {
             out.push_str("<uri>");
-            xml_escape_text(iri, out);
+            xml_escape_text(iri, out)?;
             out.push_str("</uri>");
         }
         TermValue::Blank { label, .. } => {
             out.push_str("<bnode>");
-            xml_escape_text(label, out);
+            xml_escape_text(label, out)?;
             out.push_str("</bnode>");
         }
         TermValue::Literal {
@@ -155,11 +161,11 @@ fn write_term(value: &TermValue, out: &mut String) {
             out.push_str("<literal");
             if let Some(language) = language {
                 out.push_str(" xml:lang=\"");
-                xml_escape_attr(language, out);
+                xml_escape_attr(language, out)?;
                 out.push('"');
             } else if datatype != XSD_STRING {
                 out.push_str(" datatype=\"");
-                xml_escape_attr(datatype, out);
+                xml_escape_attr(datatype, out)?;
                 out.push('"');
             }
             if let Some(direction) = direction {
@@ -170,23 +176,28 @@ fn write_term(value: &TermValue, out: &mut String) {
                 out.push('"');
             }
             out.push('>');
-            xml_escape_text(lexical_form, out);
+            xml_escape_text(lexical_form, out)?;
             out.push_str("</literal>");
         }
         TermValue::Triple { s, p, o } => {
             out.push_str("<triple><subject>");
-            write_term(s, out);
+            write_term(s, out)?;
             out.push_str("</subject><predicate>");
-            write_term(p, out);
+            write_term(p, out)?;
             out.push_str("</predicate><object>");
-            write_term(o, out);
+            write_term(o, out)?;
             out.push_str("</object></triple>");
         }
     }
+    Ok(())
 }
 
 /// Write the additive `<gmeow:provenance>` element (only present fields).
-fn write_provenance(result: &SparqlResult, provenance: &ResultProvenance, out: &mut String) {
+fn write_provenance(
+    result: &SparqlResult,
+    provenance: &ResultProvenance,
+    out: &mut String,
+) -> Result<(), Error> {
     out.push_str("  <gmeow:provenance xmlns:gmeow=\"");
     out.push_str(GMEOW_NS);
     out.push_str("\">\n");
@@ -197,25 +208,26 @@ fn write_provenance(result: &SparqlResult, provenance: &ResultProvenance, out: &
 
     if let Some(query_hash) = &provenance.query_hash {
         out.push_str("    <gmeow:queryHash>");
-        xml_escape_text(query_hash, out);
+        xml_escape_text(query_hash, out)?;
         out.push_str("</gmeow:queryHash>\n");
     }
     if let Some(engine) = &provenance.engine {
         out.push_str("    <gmeow:engine>");
-        xml_escape_text(engine, out);
+        xml_escape_text(engine, out)?;
         out.push_str("</gmeow:engine>\n");
     }
     for solution in &provenance.solutions {
         out.push_str("    <gmeow:solution>\n");
         for source in &solution.sources {
             out.push_str("      <gmeow:source>");
-            xml_escape_text(source, out);
+            xml_escape_text(source, out)?;
             out.push_str("</gmeow:source>\n");
         }
         out.push_str("    </gmeow:solution>\n");
     }
 
     out.push_str("  </gmeow:provenance>\n");
+    Ok(())
 }
 
 /// The `queryForm` discriminator emitted in provenance. The `Graph` arm is
@@ -228,29 +240,72 @@ fn query_form(result: &SparqlResult) -> &'static str {
     }
 }
 
-/// Escape XML *text content*: `&`→`&amp;` first, then `<`/`>`.
-fn xml_escape_text(value: &str, out: &mut String) {
+/// Escape XML *text content*: `&`→`&amp;`, `<`→`&lt;`, `>`→`&gt;`.
+/// Tab, newline, and CR are legal in XML 1.0 text content and are passed
+/// through literally.
+///
+/// # Errors
+///
+/// Returns [`Error::Format`] if `value` contains any XML-1.0-illegal C0
+/// control character (U+0001–U+001F, excluding U+0009, U+000A, U+000D and
+/// U+0000). These characters cannot be represented in XML 1.0, not even as
+/// numeric character references, so the only safe policy is to hard-fail.
+fn xml_escape_text(value: &str, out: &mut String) -> Result<(), Error> {
     for ch in value.chars() {
         match ch {
             '&' => out.push_str("&amp;"),
             '<' => out.push_str("&lt;"),
             '>' => out.push_str("&gt;"),
+            // U+0009 (tab), U+000A (LF), U+000D (CR) are legal in XML 1.0
+            // text content — pass them through literally.
+            '\t' | '\n' | '\r' => out.push(ch),
+            c if (c as u32) < 0x20 => {
+                return Err(Error::Format(format!(
+                    "XML 1.0 cannot represent control character U+{:04X}",
+                    c as u32
+                )));
+            }
             c => out.push(c),
         }
     }
+    Ok(())
 }
 
-/// Escape an XML *attribute value*: as text plus `"`→`&quot;`. `&` first.
-fn xml_escape_attr(value: &str, out: &mut String) {
+/// Escape an XML *attribute value*: `&`→`&amp;`, `<`→`&lt;`, `>`→`&gt;`,
+/// `"`→`&quot;`. Tab, newline, and CR are subject to XML attribute-value
+/// normalization (collapsed to spaces on parse), so they are emitted as
+/// numeric character references (`&#x9;`, `&#xA;`, `&#xD;`) to round-trip
+/// faithfully.
+///
+/// # Errors
+///
+/// Returns [`Error::Format`] if `value` contains any XML-1.0-illegal C0
+/// control character (U+0001–U+001F, excluding U+0009, U+000A, U+000D and
+/// U+0000). These characters cannot be represented in XML 1.0, not even as
+/// numeric character references, so the only safe policy is to hard-fail.
+fn xml_escape_attr(value: &str, out: &mut String) -> Result<(), Error> {
     for ch in value.chars() {
         match ch {
             '&' => out.push_str("&amp;"),
             '<' => out.push_str("&lt;"),
             '>' => out.push_str("&gt;"),
             '"' => out.push_str("&quot;"),
+            // Tab/LF/CR are subject to attribute-value normalization in XML
+            // 1.0 (§3.3.3), so emit as numeric character references to
+            // preserve their identity across a parse round-trip.
+            '\t' => out.push_str("&#x9;"),
+            '\n' => out.push_str("&#xA;"),
+            '\r' => out.push_str("&#xD;"),
+            c if (c as u32) < 0x20 => {
+                return Err(Error::Format(format!(
+                    "XML 1.0 cannot represent control character U+{:04X}",
+                    c as u32
+                )));
+            }
             c => out.push(c),
         }
     }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -506,5 +561,93 @@ mod tests {
         let result = SparqlResult::Graph(dataset);
         let err = to_xml(&result, &ResultProvenance::default()).expect_err("graph rejected");
         assert!(matches!(err, Error::Format(_)), "expected Format: {err:?}");
+    }
+
+    #[test]
+    fn illegal_control_char_is_format_error() {
+        // U+0001 in the lexical form of a literal → must hard-fail with Format error.
+        let result = SparqlResult::Solutions {
+            variables: vec!["v".to_string()],
+            rows: vec![vec![Some(lit("bad\u{1}value", XSD_STRING))]],
+        };
+        let err = to_xml(&result, &ResultProvenance::default())
+            .expect_err("illegal C0 control char must be rejected");
+        match &err {
+            Error::Format(msg) => {
+                assert!(
+                    msg.contains("U+0001"),
+                    "error message must mention U+0001, got: {msg}"
+                );
+            }
+            other => panic!("expected Error::Format, got: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn attribute_tab_newline_become_char_refs() {
+        // A tab in the datatype IRI lands in a `datatype="..."` attribute.
+        // It must be written as &#x9; so it round-trips past attribute-value normalization.
+        let result = SparqlResult::Solutions {
+            variables: vec!["v".to_string()],
+            rows: vec![vec![Some(TermValue::Literal {
+                lexical_form: "value".to_string(),
+                datatype: "http://example.org/d\tt".to_string(),
+                language: None,
+                direction: None,
+            })]],
+        };
+        let text = xml_text(&result, &ResultProvenance::default());
+        assert!(
+            text.contains("&#x9;"),
+            "tab in datatype attr must become &#x9;, got: {text}"
+        );
+        // Also verify newline and CR in an attribute value become char refs.
+        let result2 = SparqlResult::Solutions {
+            variables: vec!["v".to_string()],
+            rows: vec![vec![Some(TermValue::Literal {
+                lexical_form: "value".to_string(),
+                datatype: "http://example.org/d\nt".to_string(),
+                language: None,
+                direction: None,
+            })]],
+        };
+        let text2 = xml_text(&result2, &ResultProvenance::default());
+        assert!(
+            text2.contains("&#xA;"),
+            "newline in datatype attr must become &#xA;, got: {text2}"
+        );
+        let result3 = SparqlResult::Solutions {
+            variables: vec!["v".to_string()],
+            rows: vec![vec![Some(TermValue::Literal {
+                lexical_form: "value".to_string(),
+                datatype: "http://example.org/d\rt".to_string(),
+                language: None,
+                direction: None,
+            })]],
+        };
+        let text3 = xml_text(&result3, &ResultProvenance::default());
+        assert!(
+            text3.contains("&#xD;"),
+            "CR in datatype attr must become &#xD;, got: {text3}"
+        );
+    }
+
+    #[test]
+    fn text_content_keeps_legal_whitespace() {
+        // A literal lexical form with \n must appear as a literal newline in
+        // the <literal> text content — NOT as &#xA;.
+        let result = SparqlResult::Solutions {
+            variables: vec!["v".to_string()],
+            rows: vec![vec![Some(lit("a\nb", XSD_STRING))]],
+        };
+        let text = xml_text(&result, &ResultProvenance::default());
+        assert!(
+            text.contains("<literal>a\nb</literal>"),
+            "literal newline in text content must be passed through literally, got: {text}"
+        );
+        assert!(
+            !text.contains("&#xA;"),
+            "text content must NOT use &#xA; for newline, got: {text}"
+        );
     }
 }
