@@ -1875,6 +1875,7 @@ version = "0.1.0"
 dependencies = [
  "gmeow-rdf",
  "gmeow-rdf-core",
+ "gmeow-sparql-results",
 ]
 
 [[package]]
@@ -1975,6 +1976,15 @@ dependencies = [
  "regex",
  "sha1 0.10.6",
  "sha2",
+]
+
+[[package]]
+name = "gmeow-sparql-results"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf-core",
+ "insta",
+ "pretty_assertions",
 ]
 
 [[package]]

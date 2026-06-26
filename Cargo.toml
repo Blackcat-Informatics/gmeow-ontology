@@ -56,6 +56,11 @@ members = [
     # any default/ci-profile test exceeds the 25 s always-on budget. Std-only leaf,
     # no gmeow deps.
     "crates/test-budget",
+    # Native, wasm-clean serializer for the SPARQL result model → SPARQL Results
+    # JSON/XML/CSV/TSV + a provenance-carrying gmeow extension: the canonical
+    # results-serialization authority replacing oxigraph-family `sparesults`
+    # (purrdf S9, EPIC #906). Depends only on `crates/rdf-core`.
+    "crates/sparql-results",
     "crates/validate",
     # Native XSD value space (parse / value-space equality+ordering / canonical
     # lexical / SPARQL numeric promotion): the zero-dep leaf that replaces the
@@ -174,6 +179,9 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-sparql-eval]
+codegen-units = 1
+
+[profile.release.package.gmeow-sparql-results]
 codegen-units = 1
 
 # The wasm cdylib (purrdf P10, #846). codegen-units = 1 for a single optimization
