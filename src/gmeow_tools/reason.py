@@ -414,13 +414,20 @@ def reason_native(
 
     derived = [a for a in result.get("inferred", []) if not a.get("is_edb")]
     gaps = result.get("gaps", [])
+    # Thin passthrough of the typed shared-result status fields (#768 ME2): the
+    # native lane emits the four-valued information state + computation status in
+    # the Rust dict; surface them in the summary (no Python logic — a dict read).
+    status = result.get("status", {})
     report = diagnostics.report(tool="reason")
     report.add(
         diagnostics.finding(
             severity="note",
             code="reason.native.summary",
             message=(
-                f"native EL/DL reasoning: consistent={result['consistent']}, "
+                f"native EL/DL reasoning: consistent={result['consistent']} "
+                f"(information={status.get('information', 'n/a')}, "
+                f"evaluation={status.get('evaluation', 'n/a')}, "
+                f"completeness={status.get('completeness', 'n/a')}), "
                 f"{len(derived)} entailments, {len(gaps)} DL coverage defects"
             ),
             tool="reason",

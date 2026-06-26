@@ -87,13 +87,22 @@ pub(crate) fn reason_closure(
 /// scanning fails.
 pub fn reason_all(edb: &RdfDataset) -> Result<ReasoningResult, String> {
     let (inferred, verdict) = reason_closure(edb)?;
-    // The native consistency run spans every world in the bundle; the per-axiom
-    // worlds are carried on the closure payload, so the result-level context world
-    // is left unset (the aggregate run is not pinned to one world).
+    Ok(typed_result(inferred, &verdict))
+}
+
+/// Fold a `(closure, DlVerdict)` pair into the typed [`ReasoningResult`] under the
+/// native reasoning contract. Shared by [`reason_all`] and the PyO3 boundary so
+/// the typed result and the historical DL dict are projected from one fold.
+///
+/// The native consistency run spans every world in the bundle; the per-axiom
+/// worlds are carried on the closure payload, so the result-level context world
+/// is left unset (the aggregate run is not pinned to one world).
+pub(crate) fn typed_result(
+    inferred: Vec<InferredAxiom>,
+    verdict: &dl::DlVerdict,
+) -> ReasoningResult {
     let provenance = ResultProvenance::native(native_contract_hash(), "");
-    Ok(ReasoningResult::from_dl_verdict(
-        inferred, &verdict, provenance,
-    ))
+    ReasoningResult::from_dl_verdict(inferred, verdict, provenance)
 }
 
 /// Decode one antecedent chase row into a `(subject, predicate, object)` triple.
