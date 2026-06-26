@@ -18,12 +18,12 @@ pub enum EvalError {
     /// parse error.
     Parse(String),
 
-    /// A well-formed but out-of-S6-scope algebra node, query form, or builtin.
+    /// A well-formed but out-of-scope algebra node, query form, or builtin.
     ///
-    /// This is the hard-fail boundary: property paths (`Path`, → S8 #914),
-    /// `SERVICE`, `LATERAL`, `DESCRIBE`, SPARQL `UPDATE`, and not-yet-implemented
-    /// builtins all surface here rather than being partially evaluated. The string
-    /// names the unsupported construct.
+    /// This is the hard-fail boundary: `SERVICE`, `LATERAL`, `DESCRIBE`, SPARQL
+    /// `UPDATE`, and not-yet-implemented builtins all surface here rather than being
+    /// partially evaluated. The string names the unsupported construct. (Property
+    /// paths are now evaluated in-engine — S8 #914 — so they are no longer here.)
     Unsupported(String),
 
     /// An internal invariant was violated — e.g. a solution row whose width does
@@ -79,8 +79,8 @@ mod tests {
 
     #[test]
     fn unsupported_names_the_construct() {
-        let e = EvalError::unsupported("property paths");
-        assert!(e.to_string().contains("property paths"));
-        assert!(e.to_string().contains("S6 scope"));
+        let e = EvalError::unsupported("SERVICE");
+        assert!(e.to_string().contains("SERVICE"));
+        assert!(e.to_string().contains("scope"));
     }
 }
