@@ -1917,7 +1917,7 @@ fn consumer_link(model: &DocsModel, from: &str, curie: &str) -> String {
 fn align_tag(predicate: &str) -> String {
     predicate
         .rsplit(['#', '/'])
-        .next()
+        .find(|s| !s.is_empty())
         .unwrap_or(predicate)
         .to_string()
 }
@@ -2428,6 +2428,23 @@ mod tests {
         assert_eq!(md_escape("a|b"), "a\\|b");
         assert_eq!(md_escape("<x>"), "\\<x\\>");
         assert_eq!(md_escape("line\nbreak"), "line break");
+    }
+
+    #[test]
+    fn align_tag_handles_trailing_separators() {
+        assert_eq!(
+            align_tag("http://www.w3.org/2004/02/skos/core#closeMatch"),
+            "closeMatch"
+        );
+        assert_eq!(
+            align_tag("http://www.w3.org/2002/07/owl#equivalentClass"),
+            "equivalentClass"
+        );
+        // trailing separator must not yield an empty tag
+        assert_eq!(align_tag("http://example.org/vocab#"), "vocab");
+        assert_eq!(align_tag("http://example.org/vocab/"), "vocab");
+        // no separator at all -> whole predicate
+        assert_eq!(align_tag("bareword"), "bareword");
     }
 
     /// A minimal two-term model with one French translation, used to assert the
