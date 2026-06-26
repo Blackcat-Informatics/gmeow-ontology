@@ -1,0 +1,126 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — an AI agent's goal/action trajectory as a HOLARCHY (issue #709, C6).
+#
+# This is the named Principle-15 CONSUMER of the Holons epic (#703): the gmeow:-domain twin
+# of the engine-verified conformance case at
+# conformance/logic/cases/holonic/agent-goal-holarchy/. It applies the holon kernel (C1-C5)
+# to agent self-decomposition — an agent's goals and actions modelled as nested whole/part
+# structures, each interior node simultaneously a whole (over its sub-steps) and a part (of
+# its parent). This file is the DOMAIN-TYPED, SHACL-validated surface; the holon-ness,
+# emergence, and agency VERDICTS are ENGINE-DERIVED (see the companion conformance case), not
+# asserted here. The two mirror the same plan in the two canonical forms (gmeow: domain terms
+# here; pure logic: terms there).
+#
+# THE REACHABLE CONSUMER. This holarchy is exactly what the MCP `decompose` / `recompose`
+# surface and Project Lillith's agent-memory decomposition read: `decompose` walks
+# logic:properPartOf to expand a goal (or action) into its sub-trajectory; `recompose` folds a
+# sub-trajectory back to the holon that governs it and re-reads that holon's agency verdict.
+#
+# THE DECOMPOSITION-vs-MEREOLOGY SEAM (#804 LOGIC-TELEOLOGY.md / #775 ME9). The holarchy rides
+# logic:properPartOf — STRUCTURAL part-hood, the spine holon-ness is read off. The OTHER
+# decomposition family — the satisfaction-dependency relations (refines / necessary-for /
+# sufficient-for, where means-end search runs) — is a solver-layer concern and is deliberately
+# NOT asserted here; collapsing the two would lose the distinction the seam protects.
+#
+# It wires four slices: gmeow:Goal (teleology), gmeow:ModelInvocation / gmeow:ToolCall
+# (agentic), and gmeow:MentalProcess (mentation), all onto the one logic:properPartOf spine.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agentic/holarchy/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# The agent and the intention that aims it at the top goal.
+# --------------------------------------------------------------------------- #
+
+ex:assistant a gmeow:SoftwareAgent ;
+    rdfs:label "assistant model agent"@x-gmeow-english ;
+    gmeow:hasGoal ex:shipAssistant .
+
+# An intentional mode borne by the agent, aimed at the root goal (a gmeow:SoftwareAgent is a
+# gmeow:Agent, so it can bear the intention and experience the deliberation below).
+ex:intention a gmeow:Intention ;
+    gmeow:intentBearer  ex:assistant ;
+    gmeow:intentionGoal ex:shipAssistant .
+
+# --------------------------------------------------------------------------- #
+# The GOAL holarchy — a four-level strict-parthood chain of gmeow:Goal nodes.
+#   ex:searchQuery ⊏ ex:retrieveContext ⊏ ex:answerQuery ⊏ ex:shipAssistant
+# The engine derives logic:isHolon on the two interior goals (retrieveContext, answerQuery):
+# each is BOTH a proper part of its parent AND a whole over its sub-goal. The root goal
+# (shipAssistant) and the atomic leaf (searchQuery) are NOT holons.
+# --------------------------------------------------------------------------- #
+
+ex:shipAssistant a gmeow:Goal ;
+    rdfs:label "Ship a grounded answer to the user"@x-gmeow-english .
+
+ex:answerQuery a gmeow:Goal ;
+    rdfs:label "Answer the user's query"@x-gmeow-english ;
+    logic:properPartOf ex:shipAssistant .
+
+ex:retrieveContext a gmeow:Goal ;
+    rdfs:label "Retrieve grounding context"@x-gmeow-english ;
+    logic:properPartOf ex:answerQuery .
+
+ex:searchQuery a gmeow:Goal ;
+    rdfs:label "Search the corpus for the query"@x-gmeow-english ;
+    logic:properPartOf ex:retrieveContext .
+
+# --------------------------------------------------------------------------- #
+# The ACTION holarchy — the agent's actions decomposed, on the same spine.
+#   ex:searchCall ⊏ ex:toolPhase ⊏ ex:agentTurn
+# The engine derives logic:isHolon on the interior action (toolPhase). The ModelInvocation
+# turn is the root; the leaf tool call is atomic.
+# --------------------------------------------------------------------------- #
+
+ex:agentTurn a gmeow:ModelInvocation ;
+    rdfs:label "turn 7 model invocation"@x-gmeow-english ;
+    gmeow:usedModel ex:assistant ;
+    gmeow:samplingTemperature "0.2"^^xsd:decimal ;
+    gmeow:atTime "2026-06-19T14:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:toolPhase a gmeow:Activity ;
+    rdfs:label "tool-use phase of the turn"@x-gmeow-english ;
+    logic:properPartOf ex:agentTurn .
+
+ex:searchCall a gmeow:ToolCall ;
+    rdfs:label "turn 7, call 1: corpus search"@x-gmeow-english ;
+    logic:properPartOf ex:toolPhase ;
+    gmeow:calledByInvocation ex:agentTurn ;
+    gmeow:usedTool ex:webSearch ;
+    gmeow:toolArguments "{\"query\": \"holon goal decomposition\"}" ;
+    gmeow:toolResult "blake3:1c5f7e2a9d4b06c83f51a7e0b9d62c48f30a1e9b7c5d2f846a0e3b1c9d7f5a02" ;
+    gmeow:atTime "2026-06-19T14:00:03Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:webSearch a gmeow:SoftwareAgent ;
+    rdfs:label "corpus search tool"@x-gmeow-english .
+
+# The entity the call produced links BACK to it (P5: no forward output property).
+ex:retrievedDoc a gmeow:Document ;
+    rdfs:label "retrieved grounding document"@x-gmeow-english ;
+    gmeow:wasGeneratedBy ex:searchCall ;
+    gmeow:wasAttributedTo ex:assistant .
+
+# --------------------------------------------------------------------------- #
+# The MENTAL process that produced the decomposition — the deliberation that planned the
+# holarchy. It manifests in time like an event and PRODUCES a new mental moment (the plan
+# decision). The mode is typed WITHOUT asserting a bearer (gufo:inheresIn is an alignment
+# target, never asserted — P5).
+# --------------------------------------------------------------------------- #
+
+ex:deliberation a gmeow:MentalProcess ;
+    rdfs:label "the agent's deliberation that planned the trajectory"@x-gmeow-english ;
+    gmeow:experiencer ex:assistant ;
+    gmeow:mentalProcessType gmeow:processDeliberation ;
+    gmeow:eventTime "2026-06-19T13:59:55Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:producesMentalMoment ex:planDecision .
+
+ex:planDecision a gmeow:MentalMoment ;
+    rdfs:label "decision: decompose into retrieve-then-answer"@x-gmeow-english .
