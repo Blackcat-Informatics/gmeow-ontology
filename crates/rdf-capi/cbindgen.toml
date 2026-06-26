@@ -27,9 +27,15 @@ parse_deps = false
 [export]
 # Symbols are already prefixed purrdf_ / Purrdf; no extra prefix.
 prefix = ""
+# `PurrdfStatus` is only used internally (functions return `int32_t`, the status
+# cast to an int), so cbindgen would not emit it — but its constants are part of
+# the ABI contract, so force its inclusion.
+include = ["PurrdfStatus"]
 
 [enum]
-prefix_with_name = true
+# `QualifiedScreamingSnakeCase` already qualifies each variant with the enum name
+# (e.g. `PURRDF_STATUS_OK`); do NOT also set `prefix_with_name` or the prefix
+# doubles.
 rename_variants = "QualifiedScreamingSnakeCase"
 
 [fn]

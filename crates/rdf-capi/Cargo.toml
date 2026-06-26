@@ -8,6 +8,7 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+readme = "README.md"
 keywords = ["rdf", "rdf-12", "ffi", "c-abi", "sparql"]
 
 [lib]
@@ -35,16 +36,6 @@ gmeow-rdf = { path = "../rdf", default-features = false, features = ["gts", "oxi
 # directly too so it can name MutableDataset/QuadValues/GraphMatchValue/DatasetMut
 # without leaning on re-export aliasing. Harmless to crate-check (acyclic).
 gmeow-rdf-core = { path = "../rdf-core", default-features = false, features = ["gts"] }
-
-[build-dependencies]
-# cargo-c drives header generation via cbindgen-as-a-library at `cargo cbuild`
-# time; the build-dep keeps a plain `cargo build` self-sufficient for the header
-# the C smoke test consumes (build.rs writes include/purrdf.h).
-cbindgen = "0.27"
-
-[dev-dependencies]
-# Compiles tests/smoke.c and links it against the staticlib in the C-smoke test.
-cc = "1"
 
 # === cargo-c packaging (the spec-letter build mechanism) ===
 [package.metadata.capi]
