@@ -2513,9 +2513,14 @@ mod tests {
             "leaked export-format blurb header"
         );
 
-        // `fr` request threads French summaries into the index: the rendered
-        // body differs from English, and the French label `français` (for the
-        // label-only `gmeow:langFrench` summary path) is present.
+        // `fr` request threads the French language selector into the index: the
+        // corpus has almost no French text, so the *observable* effect is the
+        // `[fallback: en]` markers `consumer_summary` adds when a term's
+        // requested-language text resolves via the English fallback. The English
+        // index carries no such marker; the `fr` index does. This is the real
+        // evidence the selector ran (a `français` label is NOT rendered: summaries
+        // use definition-or-label, and `gmeow:langFrench` has an English
+        // definition, so its summary is the English definition, not the label).
         let root = repo_root();
         let graph = read_fold(&root).expect("read fold");
         let fr_terms = collect_terms(&FoldView::with_requested(&graph, vec!["fr".to_string()]));
@@ -2524,6 +2529,14 @@ mod tests {
         assert!(
             fr_txt.contains("- gmeow:langFrench (a "),
             "langFrench individual line present in the fr index"
+        );
+        assert!(
+            !txt.contains("[fallback: en]"),
+            "English index must not carry fallback markers"
+        );
+        assert!(
+            fr_txt.contains("[fallback: en]"),
+            "fr index must carry English-fallback markers (proves the selector threaded)"
         );
     }
 
