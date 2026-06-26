@@ -55,11 +55,16 @@ impl<'d> EvalCtx<'d> {
 /// returns [`EvalError::Unsupported`] naming the construct. Out-of-S6-scope nodes
 /// (`Path`, `Service`, `Lateral`) remain permanent hard errors (property paths are
 /// S8 #914; SERVICE is S6b #928).
-pub fn eval(pattern: &GraphPattern, _ctx: &mut EvalCtx<'_>) -> Result<SolutionSeq, EvalError> {
-    Err(EvalError::Unsupported(format!(
-        "graph pattern `{}` is not yet implemented in sparql-eval",
-        pattern_kind(pattern)
-    )))
+pub fn eval(pattern: &GraphPattern, ctx: &mut EvalCtx<'_>) -> Result<SolutionSeq, EvalError> {
+    match pattern {
+        GraphPattern::Bgp { patterns } => crate::bgp::eval_bgp(patterns, ctx),
+        // Implemented incrementally over the remaining S6 build tasks; until then
+        // (and permanently, for out-of-scope nodes) a hard error names the construct.
+        other => Err(EvalError::Unsupported(format!(
+            "graph pattern `{}` is not yet implemented in sparql-eval",
+            pattern_kind(other)
+        ))),
+    }
 }
 
 /// A short, stable name for a [`GraphPattern`] variant, for diagnostics.
@@ -92,12 +97,26 @@ mod tests {
     use gmeow_rdf_core::RdfDatasetBuilder;
 
     #[test]
-    fn stub_hard_errors_with_the_variant_name() {
+    fn empty_bgp_is_the_unit_sequence() {
         let ds = RdfDatasetBuilder::new().freeze().expect("freeze empty");
         let mut ctx = EvalCtx::new(&ds);
-        let pattern = GraphPattern::Bgp { patterns: vec![] };
+        let seq = eval(&GraphPattern::Bgp { patterns: vec![] }, &mut ctx).expect("empty BGP");
+        // The identity table Z: exactly one solution that binds nothing.
+        assert_eq!(seq.len(), 1);
+        assert!(seq.schema.is_empty());
+    }
+
+    #[test]
+    fn unimplemented_variant_hard_errors_with_its_name() {
+        let ds = RdfDatasetBuilder::new().freeze().expect("freeze empty");
+        let mut ctx = EvalCtx::new(&ds);
+        let inner = Box::new(GraphPattern::Bgp { patterns: vec![] });
+        let pattern = GraphPattern::Minus {
+            left: inner.clone(),
+            right: inner,
+        };
         let err = eval(&pattern, &mut ctx).unwrap_err();
         assert!(matches!(err, EvalError::Unsupported(_)));
-        assert!(err.to_string().contains("BGP"));
+        assert!(err.to_string().contains("MINUS"));
     }
 }

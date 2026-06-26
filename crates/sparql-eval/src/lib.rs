@@ -36,6 +36,8 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+mod bgp;
+mod convert;
 pub mod error;
 pub mod eval;
 pub mod scratch;
