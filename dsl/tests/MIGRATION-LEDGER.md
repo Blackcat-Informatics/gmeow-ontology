@@ -610,6 +610,31 @@ All migrated twins use fixture-only `validate()` (every Python original is `run_
 
 **Conformance batch-4 GRAND tally:** places 3 + images 11 + music_collections 11 + music_pitch 9 + ai_claims 1 + agentic 1 + verifiable_release_chain 1 = **37 converted**. Total native conformance suite = **158 tests**. The 4 `validate_with_ontology` (merged) users — finance, music_analysis, ai_claims, agentic — are all faithful (Python `g = _graph()`/`load_merged_graph()`). The run_shacl pytest population is now exhausted: every remaining run_shacl call is a faithful RETAIN (custom-shapes, dynamic disk/sweep, post-SHACL graph-membership, or cross-slice `_graph()` TBox) documented per-file above. `uv run mypy` clean (281 files).
 
+## #867 structural batch 12 (author-fresh: accounts / guides / inference / dreaming)
+
+Four slices with real asserted-TBox vocabulary but **no migratable rdflib pytest** (they never
+had a `tests/test_<slice>.py` of structural assertions). Rather than leave them uncovered, fresh
+`structural.ttl` cells pin their keystone invariants — MAXIMAL coverage + dogfooding (`.goals`).
+No pytest is deleted (there was none to delete); these are net-new declarative coverage. All green
+(`cargo nextest -p gmeow-slicetest`); every `mustNot` cell red-proofed (2026-06-25).
+
+| Slice | Cells (must / mustNot) | Keystone invariants pinned |
+|---|---|---|
+| `extensions/dreaming` | 4 (2 / 2) | DreamReport = composed recollection Experience + the 2 hasValue restrictions; dreamElement domain-Experience object property + open range; no-new-named-class (pure composition, Principle 4/6) |
+| `core/accounts` | 5 (4 / 1) | AccountStatus/ServiceStatus QualityValue vocabs (OPEN — seeds present, NOT closed); OnlineAccount/OnlineService InformationObject Kinds; accountService/serviceShutdownDate functional shapes; accountStatus/serviceStatus NOT functional (Principle 9, prevents sameAs collapse) |
+| `core/guides` | 5 (2 / 3) | Recipe/LearningPath QualityValue vocabs; includesRecipe LearningPath→Recipe shape; every dogfooded Recipe well-formed (slug+title+goal); every LearningPath has audience+goal; includesRecipe referential integrity (targets are typed Recipes) |
+| `core/inference` | 7 (5 / 2) | Analogy/Correspondence/InferenceCommitment = Relator Kinds; Process/Tenure endurant-occurrent spine; InferenceMode/DefeaterKind value vocabs + Peirce tetrad + Pollock seeds; functional argument edges (conclusion/inferenceModeOf/correspondingSource-Target/tenureOf); competesWith symmetric; NO subclass of InferenceCommitment (Principle 9 — modes are values); open-range (Principle 13) argument inputs |
+
+**#869 Gap-1:** the two `mustNot` VALUES patterns (accounts status-properties, inference open-range
+inputs) enumerate the **fixed, closed set of properties each slice declares**, not a stand-in for
+an open universal. The two OPEN value vocabularies (AccountStatus, ServiceStatus) and the
+"closed-but-open" InferenceMode/DefeaterKind vocabularies are asserted present-but-not-closed,
+faithfully matching their module doctrine.
+
+**Batch-12 tally:** 21 fresh structural cells across 4 slices (13 must + 8 mustNot); 0 pytest
+deleted (none existed); net-new coverage. With kernel (batch 11) + these four, the 5 author/migrate
+slices of the #867 structural closeout are done.
+
 ## #867 structural batch 11 (kernel — the universal aboutness axis)
 
 `tests/test_aboutness.py` (the kernel-resident #349/EPIC-#348 aboutness axis, 7 fns) migrated
