@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the dreaming slice (#867 Tier-B
+# closeout). The dreaming slice has no migratable rdflib pytest; these cells are
+# authored fresh to pin its keystone invariants (MAXIMAL coverage, dogfooding).
+# Each runs as a SPARQL ASK over the module graph (gmeow:scopeModule). The
+# dreaming slice is a pure composition that mints exactly two terms
+# (gmeow:DreamReport, gmeow:dreamElement) — Principle 4/6, no new primitives.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/dreaming/tests/> .
+
+# --- 1. DreamReport is a composed recollection Experience (MUST hold) ---------
+ex:saDreamReportComposition a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:DreamReport a owl:Class , logic:Event ;
+        rdfs:subClassOf gmeow:Experience ;
+        rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty gmeow:mentalProcessType ; owl:hasValue gmeow:processRecollection ] ;
+        rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty gmeow:contentOrigin ; owl:hasValue gmeow:originImagined ] .
+}""" ;
+    gmeow:saRationale "gmeow:DreamReport MUST be a composed recollection gmeow:Experience: a logic:Event owl:Class that is rdfs:subClassOf gmeow:Experience with the two hasValue restrictions (mentalProcessType=processRecollection, contentOrigin=originImagined). It inherits the occurrent mental-timeline machinery rather than minting a new claim class (Principle 4/6)." .
+
+# --- 2. dreamElement is a domain-Experience object property (MUST hold) -------
+ex:saDreamElementProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:dreamElement a owl:ObjectProperty ;
+        rdfs:domain gmeow:Experience .
+}""" ;
+    gmeow:saRationale "gmeow:dreamElement MUST be an owl:ObjectProperty whose rdfs:domain is gmeow:Experience — the single new edge that decomposes a dream experience into its imagined constituents." .
+
+# --- 3. dreamElement is open-range: NO rdfs:range (MUST-NOT hold) -------------
+ex:saDreamElementOpenRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:dreamElement rdfs:range ?r . }""" ;
+    gmeow:saRationale "gmeow:dreamElement MUST NOT declare an rdfs:range: the range is deliberately left open (Principle 13) so a dream element may be any entity, description, or proposition." .
+
+# --- 4. No new primitives beyond the two minted terms (MUST-NOT hold) ---------
+ex:saDreamingNoNewClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    ?c a owl:Class ;
+        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> .
+    FILTER (?c != gmeow:DreamReport)
+}""" ;
+    gmeow:saRationale "The dreaming slice is a pure composition (Principle 4/6): it MUST NOT define any named owl:Class other than gmeow:DreamReport. Every finer dream kind (lucid, REM, consolidation) is a value-tagged or restriction-typed composition over existing core classes, never a new subclass." .

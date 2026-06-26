@@ -1,0 +1,115 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the inference slice (#867 Tier-B
+# closeout). The inference slice has no migratable rdflib pytest; these cells are
+# authored fresh to pin its keystone invariants (MAXIMAL coverage, dogfooding).
+# Each runs as a SPARQL ASK over the module graph (gmeow:scopeModule). Inference
+# is the epistemic face of a logic: derivation — Peirce's tetrad (deduction,
+# induction, abduction, analogy) riding one InferenceMode value vocabulary, with
+# a clean gUFO endurant/occurrent split.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inference/tests/> .
+
+# --- 1. The reified argument relators (MUST hold) ----------------------------
+ex:saInferenceRelatorKinds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:Analogy             a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:Correspondence      a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:InferenceCommitment a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:Analogy, gmeow:Correspondence, and gmeow:InferenceCommitment MUST each be a logic:Kind owl:Class subClassOf logic:Relator — the reified, endurant argument/mapping relations (the gmeow:Commitment idiom)." .
+
+# --- 2. Endurant/occurrent split: Process and Tenure spine (MUST hold) --------
+ex:saInferenceProcessTenureSpine a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:InferenceProcess a owl:Class , logic:Event ; rdfs:subClassOf gmeow:MentalProcess .
+    gmeow:InferenceTenure  a owl:Class , logic:Situation ; rdfs:subClassOf gmeow:TimeScopedRelation .
+}""" ;
+    gmeow:saRationale "The gUFO master split MUST hold: gmeow:InferenceProcess is the OCCURRENT reasoning episode (logic:Event subClassOf gmeow:MentalProcess) and gmeow:InferenceTenure is the time-scoped situation (logic:Situation subClassOf gmeow:TimeScopedRelation) — distinct from the endurant gmeow:InferenceCommitment relator." .
+
+# --- 3. Mode/Defeater value vocabularies and their seeds (MUST hold) ----------
+ex:saInferenceValueVocabs a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:InferenceMode a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:DefeaterKind  a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:modeDeduction a gmeow:InferenceMode . gmeow:modeInduction a gmeow:InferenceMode .
+    gmeow:modeAbduction a gmeow:InferenceMode . gmeow:modeAnalogical a gmeow:InferenceMode .
+    gmeow:defeaterRebutting a gmeow:DefeaterKind . gmeow:defeaterUndercutting a gmeow:DefeaterKind .
+}""" ;
+    gmeow:saRationale "gmeow:InferenceMode and gmeow:DefeaterKind MUST be QualityValue vocabularies; the Peircean tetrad seeds (modeDeduction/modeInduction/modeAbduction/modeAnalogical) and the Pollock defeater seeds (rebutting/undercutting) MUST be present. These are open value vocabularies (no closure asserted)." .
+
+# --- 4. Functional argument properties (MUST hold) ---------------------------
+ex:saInferenceFunctionalProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:conclusion a owl:FunctionalProperty , owl:ObjectProperty ;
+        rdfs:domain gmeow:InferenceCommitment ; rdfs:range gmeow:StandpointClaim .
+    gmeow:inferenceModeOf a owl:FunctionalProperty , owl:ObjectProperty ;
+        rdfs:domain gmeow:InferenceCommitment ; rdfs:range gmeow:InferenceMode .
+    gmeow:correspondingSource a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:Correspondence .
+    gmeow:correspondingTarget a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:Correspondence .
+    gmeow:tenureOf a owl:FunctionalProperty , owl:ObjectProperty ;
+        rdfs:domain gmeow:InferenceTenure ; rdfs:range gmeow:InferenceCommitment .
+}""" ;
+    gmeow:saRationale "The single-valued argument edges MUST be functional: gmeow:conclusion (one commitment, one conclusion), gmeow:inferenceModeOf (one mode per commitment), gmeow:correspondingSource/Target (one mapped pair), gmeow:tenureOf (one tracked commitment)." .
+
+# --- 5. competesWith is a symmetric StandpointClaim relation (MUST hold) ------
+ex:saCompetesWithSymmetric a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:competesWith a owl:SymmetricProperty , owl:ObjectProperty ;
+        rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:StandpointClaim .
+}""" ;
+    gmeow:saRationale "gmeow:competesWith MUST be an owl:SymmetricProperty (competition is mutual) over gmeow:StandpointClaim — the rivalry abductive/analogical selection resolves. Irreflexivity stays in SHACL, not OWL, keeping the DL profile clean." .
+
+# --- 6. Modes ride one class, never a taxonomy (MUST-NOT hold) ----------------
+ex:saInferenceCommitmentNoSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { ?c rdfs:subClassOf gmeow:InferenceCommitment . FILTER (?c != gmeow:InferenceCommitment) }""" ;
+    gmeow:saRationale "Principle 9 (no overtyping): the four Peircean modes differ by a VALUE + a WARRANT, never by subsumption, so the module MUST NOT declare any subclass of gmeow:InferenceCommitment. A deductive vs abductive step is an gmeow:inferenceModeOf value, not a class." .
+
+# --- 7. Open-range argument properties: NO rdfs:range (MUST-NOT hold) ---------
+ex:saInferenceOpenRanges a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?p {
+        gmeow:premise gmeow:inferredFrom gmeow:warrant gmeow:explains gmeow:explanandum
+        gmeow:analogicalSource gmeow:analogicalTarget gmeow:correspondingSource gmeow:correspondingTarget
+    }
+    ?p rdfs:range ?r .
+}""" ;
+    gmeow:saRationale "Principle 13: the argument/mapping inputs are open-range — a premise, warrant, explanandum, or mapped element may be any entity, claim, or proposition. None of these properties MUST declare an rdfs:range. VALUES ranges over the fixed, closed set of open-range properties the inference slice declares (not a stand-in for an open universal)." .
