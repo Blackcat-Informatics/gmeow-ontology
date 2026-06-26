@@ -28,6 +28,11 @@ members = [
     # in-memory RDF dataflow, dogfooding the build graph from gmeow: individuals.
     "crates/pipeline",
     "crates/rdf",
+    # The purrdf semantic C-ABI (purrdf P8 / #842): builds libpurrdf (cdylib +
+    # staticlib) via cargo-c — a SemVer-disciplined extern "C" surface over the
+    # gmeow-rdf semantic layer. Statically reuses gmeow-gts so a language shim
+    # links a single .so. The rich companion to the permissive libgts C-ABI.
+    "crates/rdf-capi",
     "crates/rdf-core",
     # The permissive (MIT OR Apache-2.0) RDF 1.2 ingestion protocol (purrdf P6):
     # the zero-dep event seam both the container and the engine depend ON.
@@ -121,6 +126,9 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-rdf]
+codegen-units = 1
+
+[profile.release.package.gmeow-rdf-capi]
 codegen-units = 1
 
 [profile.release.package.gmeow-diagnostics]
