@@ -4,15 +4,15 @@
 //! Per-case orchestration (`run_case`).
 //!
 //! Drives the `gmeow_logic` native cores for one conformance case and assembles a
-//! typed [`CaseOutputs`], mirroring the retired Python `logic_runner.run` 1:1 by
-//! calling the SAME native functions the PyO3 surface wraps (compile → certify →
-//! materialize+explain / foundation → answers). There is no PyO3, no Python, and
-//! no second engine in this path — the harness is a second *caller* of the engine
-//! cores, so its artifacts are identical by construction.
+//! typed [`CaseOutputs`] by calling the SAME native functions the PyO3 surface wraps
+//! (compile → certify → materialize+explain / foundation → answers). There is no
+//! PyO3, no Python, and no second engine in this path — the harness is a second
+//! *caller* of the engine cores, so its artifacts are identical by construction
+//! (the retired Python `logic_runner.run` this replaced was removed in #727).
 //!
-//! Witnesses (`witnesses.json`) are intentionally NOT produced: the runner-contract
-//! diff (`logic_runner.diff_case`) never compared them — they are a bless-only side
-//! file — so omitting them changes no gate verdict (faithful parity).
+//! Witnesses (`witnesses.json`) are intentionally NOT produced: the diff phase
+//! never compared them — they are a bless-only side file — so omitting them
+//! changes no gate verdict.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -293,7 +293,7 @@ fn read_optional(case_dir: &Path, name: &str) -> Result<String, String> {
     }
 }
 
-/// Strip one outer layer of N3 angle brackets (mirror of `logic_runner._bare_iri`).
+/// Strip one outer layer of N3 angle brackets from a term string.
 fn bare_iri(term: &str) -> String {
     let b = term.as_bytes();
     if b.len() >= 2 && b[0] == b'<' && b[b.len() - 1] == b'>' {
@@ -304,8 +304,7 @@ fn bare_iri(term: &str) -> String {
 }
 
 /// Default (non-foundation) materialization: the profile-routed chase. Returns the
-/// quads plus the aggregate budget status / incomplete flag (mirrors
-/// `logic_runner._materialization_result_from_quad_rows`).
+/// quads plus the aggregate budget status / incomplete flag.
 fn materialize_default(
     case_id: &str,
     nemo_rules: &str,
@@ -343,9 +342,9 @@ fn materialize_default(
     Ok((quads, status.to_string(), exhausted))
 }
 
-/// Foundation-lowering materialization via the native OntoUML evaluator (mirrors
-/// `logic_runner._materialize_foundation`). The foundation evaluator has no budget
-/// governor, so a declared `budget_params` is a hard failure.
+/// Foundation-lowering materialization via the native OntoUML evaluator. The
+/// foundation evaluator has no budget governor, so a declared `budget_params` is
+/// a hard failure.
 fn materialize_foundation(
     case_id: &str,
     input_nq: &str,
@@ -390,8 +389,8 @@ fn materialize_foundation(
     Ok((quads, "ok".to_string(), false))
 }
 
-/// Produce one explanation skeleton per quad (mirrors `logic_runner._run_explanations`
-/// + `_explanations_from_rows`). Asserted quads get a trivial depth-0 explanation.
+/// Produce one explanation skeleton per quad. Asserted quads get a trivial
+/// depth-0 explanation.
 fn run_explanations(case_id: &str, quads: &[RunnerQuad]) -> Result<Vec<ExplanationOut>, String> {
     if quads.is_empty() {
         return Ok(Vec::new());
@@ -423,9 +422,8 @@ fn run_explanations(case_id: &str, quads: &[RunnerQuad]) -> Result<Vec<Explanati
         .collect())
 }
 
-/// Resolve every `queries/*.logic` backward goal over the materialized EDB
-/// (mirrors `logic_runner._resolve_answers`). Empty map when there is no
-/// `queries/` directory.
+/// Resolve every `queries/*.logic` backward goal over the materialized EDB.
+/// Empty map when there is no `queries/` directory.
 fn resolve_answers(
     case_id: &str,
     case_dir: &Path,

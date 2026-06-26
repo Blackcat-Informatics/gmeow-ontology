@@ -472,13 +472,14 @@ fn query(
 
 /// Evaluate the OntoUML *foundation* disciplines natively (issue #636).
 ///
-/// Native Rust port of the Python foundation oracle
-/// (`gmeow_tools.logic_foundation` + the `enable_naf` materializer path).  Parses
+/// Native canonical evaluator for the OntoUML *foundation* disciplines (issue #636).
+/// (The Python foundation oracle — `logic_foundation.py` plus the `enable_naf`
+/// materializer path of `logic_materialize.py` — was retired in #636/#497.)  Parses
 /// `input` N-Quads into a world-indexed [`WorldStore`] (named graphs = worlds),
 /// runs the stratified semi-naive chase plus the cross-world rigidity and
 /// anti-rigidity post-passes, and returns the asserted + derived quads as Python
-/// dicts.  Provenance (reifier + derivation IDs) is byte-identical to the oracle
-/// (see [`crate::foundation`]).
+/// dicts.  Provenance (reifier + derivation IDs) follows the canonical contract
+/// defined in [`crate::foundation`].
 ///
 /// # Arguments
 ///
@@ -552,10 +553,10 @@ fn foundation(
 ///
 /// Reconstructs the derivation tree for every quad in `quads` (one explanation per
 /// input quad, IN INPUT ORDER) and returns the cited-IRI skeleton — the conformance
-/// surface.  This is the byte-faithful Rust port of the retired Python explanation
-/// oracle (`gmeow_tools.logic_explain`); prose rendering is intentionally not
-/// reproduced (the runner compares only `cited_iris` and matches by
-/// `target_quad_reifier`).
+/// surface.  This is the canonical native explanation reconstruction; the Python
+/// explanation oracle (`logic_explain.py`) was retired in #497.  Prose rendering is
+/// intentionally not reproduced (the runner compares only `cited_iris` and matches
+/// by `target_quad_reifier`).
 ///
 /// # Arguments
 ///
@@ -841,15 +842,15 @@ fn stable_models(py: Python<'_>, rules: &str, input: &str) -> PyResult<Py<PyAny>
 /// - `query(world_nquads, query_program, profile, world_iri=None, max_answers=None, max_steps=None) -> dict`
 ///   (under `ProbabilisticProfile` each binding carries a `probability`; #506)
 /// Compile a `logic:` RDF 1.2 source document (Turtle text) into all eight
-/// committed artifacts, in Rust (issue #664).  The drop-in replacement for the
-/// Python `logic_frontend` + `logic_projections` pipeline behind the registered
-/// `LogicGenerator`.
+/// committed artifacts, in Rust (issue #664).  This is the sole compiler behind
+/// the registered `LogicGenerator`; the Python `logic_frontend` +
+/// `logic_projections` pipeline it replaced was retired in #727.
 ///
 /// Returns a dict keyed by artifact name (`owl_dl`, `owl_el`, `datalog`, `n3`,
 /// `gufo`, `canonical_rdf12`, `nemo`, `report`), each mapping to the serialized
-/// content string.  Text targets are byte-identical to the Python compiler; RDF
-/// targets are RDF-isomorphic.  Raises `ValueError` on a parse failure, a Nemo
-/// rule-safety violation, or an overclaim (Principle 7).
+/// content string.  Text targets are byte-stable (pinned by the conformance
+/// goldens); RDF targets are RDF-isomorphic.  Raises `ValueError` on a parse
+/// failure, a Nemo rule-safety violation, or an overclaim (Principle 7).
 #[pyfunction]
 fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, PyDict>> {
     use crate::compile::frontend::parse_logic_str;

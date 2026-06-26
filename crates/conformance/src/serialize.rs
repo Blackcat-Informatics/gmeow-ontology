@@ -16,10 +16,9 @@ use crate::run::RunnerQuad;
 
 /// Serialize the materialized quads to a deterministic N-Quads document.
 ///
-/// One line per quad, `<s> <p> {obj} <g> .`, sorted lexicographically — mirrors
-/// `logic_runner._materialize_to_nquads`. The object is already in N3 form
-/// (`<iri>` or a literal). Empty input yields the empty string (no trailing
-/// newline), matching the Python contract.
+/// One line per quad, `<s> <p> {obj} <g> .`, sorted lexicographically. The
+/// object is already in N3 form (`<iri>` or a literal). Empty input yields the
+/// empty string (no trailing newline).
 pub fn materialized_to_nquads(quads: &[RunnerQuad]) -> String {
     let mut lines: Vec<String> = quads
         .iter()
@@ -42,9 +41,9 @@ pub fn materialized_to_nquads(quads: &[RunnerQuad]) -> String {
 
 /// Build the minimal world-indexed verdicts JSON.
 ///
-/// Mirrors `logic_runner._build_verdicts`: every world that materializes is
-/// `consistent`; each carries its quad count. Worlds with no quads do not appear
-/// (the world set is exactly the set of quad graphs).
+/// Every world that materializes is `consistent`; each carries its quad count.
+/// Worlds with no quads do not appear (the world set is exactly the set of quad
+/// graphs).
 pub fn build_verdicts(quads: &[RunnerQuad]) -> serde_json::Value {
     let mut counts: BTreeMap<String, u64> = BTreeMap::new();
     for q in quads {
