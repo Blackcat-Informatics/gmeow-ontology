@@ -71,7 +71,9 @@ pub fn emit_core_prefixes() -> String {
 /// trailing newline, 2-space indent, registry insertion order preserved — the
 /// same logical document the retired Python builder produced.
 pub fn emit_jsonld_context() -> String {
-    debug_assert_eq!(
+    // Fail-fast in ALL build profiles (CONSTITUTION no-optionality): a release
+    // build that silently skipped this would let a registry/`@vocab` drift ship.
+    assert_eq!(
         registry_ns("gmeow"),
         Some(GMEOW_NS),
         "PREFIX_REGISTRY gmeow entry must match the @context @vocab"
