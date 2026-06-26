@@ -37,6 +37,10 @@ members = [
     # The permissive (MIT OR Apache-2.0) RDF 1.2 ingestion protocol (purrdf P6):
     # the zero-dep event seam both the container and the engine depend ON.
     "crates/rdf-events",
+    # The wasm32, in-memory RDF/JS engine (purrdf P10, #846): compiles the
+    # oxigraph-free gmeow-rdf kernel to wasm + an idiomatic DataFactory/Dataset/
+    # Stream surface, packaged for npm/ESM as `purrdf`.
+    "crates/rdf-wasm",
     "crates/shacl",
     "crates/slice",
     "crates/slicetest",
@@ -166,6 +170,13 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-sparql-eval]
+codegen-units = 1
+
+# The wasm cdylib (purrdf P10, #846). codegen-units = 1 for a single optimization
+# unit; binary-size reduction (opt-level "z" + wasm-opt) is applied by the
+# wasm-pack build in the crate's own package metadata, not the workspace release
+# profile (which native wheels share).
+[profile.release.package.gmeow-rdf-wasm]
 codegen-units = 1
 
 # `cargo bench` (used by `make bench`) runs under the `bench` profile, which

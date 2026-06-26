@@ -491,6 +491,31 @@ jobs:
   # gate is the native, Docker-free reasoning lane in the required `quality`
   # aggregator below.
 
+  # purrdf wasm build (P10, #846). The in-memory RDF/JS engine MUST compile to
+  # wasm32-unknown-unknown; `make wasm` hard-fails if the target is absent in CI.
+  # This is the build-only gate; the node real-execution round-trip lane is added
+  # to THIS job (not a second job) when the JS surface + npm package land.
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      # Nightly to match the workspace toolchain; the wasm32 target is provisioned
+      # explicitly (rust-toolchain.toml also lists it, kept in lockstep here).
+      - name: Install Rust (nightly + wasm32)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Build purrdf for wasm32 (engine + bindings)
+        run: make wasm
+
   # Aggregator gate. Branch protection requires the "quality" context; this job
   # keeps that single required check stable while the work runs in parallel
   # above. `if: always()` guarantees it reports a definite success/failure
@@ -504,7 +529,7 @@ jobs:
   # gmeow-rdf codec inside the `ontology` job's `check-generated` (#667) — there
   # is no separate statements lane.
   quality:
-    needs: [lint, python, rust, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
+    needs: [lint, python, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -513,13 +538,14 @@ jobs:
           LINT: ${{ needs.lint.result }}
           PYTHON: ${{ needs.python.result }}
           RUST: ${{ needs.rust.result }}
+          WASM: ${{ needs.wasm.result }}
           ONTOLOGY_VALIDATE: ${{ needs.ontology-validate.result }}
           ONTOLOGY_GENERATED: ${{ needs.ontology-generated.result }}
           ONTOLOGY_REASON: ${{ needs.ontology-reason.result }}
           ONTOLOGY_MISC: ${{ needs.ontology-misc.result }}
         run: |
-          echo "results: lint=$LINT python=$PYTHON rust=$RUST ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
-          for r in "$LINT" "$PYTHON" "$RUST" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
+          echo "results: lint=$LINT python=$PYTHON rust=$RUST wasm=$WASM ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
+          for r in "$LINT" "$PYTHON" "$RUST" "$WASM" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1
