@@ -40,7 +40,7 @@ meta:enforcedBy a rdfs:Property .
 meta:artifact   a rdfs:Property ; rdfs:comment "Repo-relative path that must exist."@en .
 meta:symbol     a rdfs:Property ; rdfs:comment "Name that must be defined in (one of) the enforcement's .py artifacts, or appear verbatim in a non-Python artifact."@en .
 meta:makeTarget a rdfs:Property ; rdfs:comment "Target that must exist in the Makefile."@en .
-meta:cliCommand a rdfs:Property ; rdfs:comment "Command that must be registered on the gmeow CLI."@en .
+meta:cliCommand a rdfs:Property ; rdfs:comment "Command that must be registered on the public gmeow or repository-maintenance gmeow-dev CLI."@en .
 meta:generator  a rdfs:Property ; rdfs:comment "Registered generator name; the declared set must equal the live registry exactly."@en .
 meta:supersededInPartBy a rdfs:Property ;
     rdfs:comment "Names a later principle whose framing supersedes part of this one; must match a '**Superseded in part by Principle N**' marker in CONSTITUTION.md."@en .

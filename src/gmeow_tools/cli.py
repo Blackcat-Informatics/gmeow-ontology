@@ -302,9 +302,13 @@ def verify(
 @app.command(name="verify-release-bundle")
 def verify_release_bundle(
     bundle: Path = typer.Option(  # noqa: B008
-        Path("dist/gmeow.gts"),
+        ...,
         "--bundle",
-        help="The signed release bundle to verify.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Signed release bundle to verify.",
     ),
     public_key: Path | None = typer.Option(  # noqa: B008
         None,
@@ -330,9 +334,8 @@ def verify_release_bundle(
     except ImportError as exc:
         raise _fail(
             "✗ the native pipeline is unavailable: "
-            f"`import gmeow_native.pipeline` failed ({exc}). Rebuild the unified "
-            "extension (e.g. `maturin develop --manifest-path "
-            "crates/native/Cargo.toml`) to pick up the pipeline submodule."
+            f"`import gmeow_native.pipeline` failed ({exc}). Install or upgrade "
+            "the gmeow package with native extensions, then retry."
         ) from exc
 
     try:

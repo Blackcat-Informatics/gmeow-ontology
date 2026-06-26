@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from gmeow_rdf.compat.rdflib import Graph
     from gmeow_slice import ProjectionDiagnostic
 
+    from gmeow_tools.diagnostics import DiagnosticsReport
     from gmeow_tools.language_tags import LangSelector
 
 
@@ -578,7 +579,7 @@ def validate(
         raise _fail(f"✗ {len(result.errors)} error(s)")
 
 
-def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
+def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
     """The ``(label, thunk)`` table of dev-gate surfaces folded into feedback.
 
     Each thunk re-runs one ``make check`` surface and returns its
@@ -591,7 +592,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
     :func:`feedback`; ROBOT and external-tool lanes are a documented follow-up.)
     """
 
-    def _alignment() -> Any:
+    def _alignment() -> DiagnosticsReport:
         from gmeow_tools import diagnostics
 
         items = [
@@ -606,37 +607,37 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         ]
         return diagnostics.report_from_findings(tool="alignment", findings=items)
 
-    def _coverage() -> Any:
+    def _coverage() -> DiagnosticsReport:
         from gmeow_tools import coverage
 
         return coverage.to_diagnostics_report(coverage.run_coverage())
 
-    def _acceptance() -> Any:
+    def _acceptance() -> DiagnosticsReport:
         import gmeow_native.pipeline as _pipeline
 
         return _pipeline.acceptance_diagnostics_report(str(PROJECT_ROOT))
 
-    def _wikidata() -> Any:
+    def _wikidata() -> DiagnosticsReport:
         return gmeow_validate.wikidata_diagnostics_report(str(MAPPINGS_DIR))
 
-    def _constitution() -> Any:
+    def _constitution() -> DiagnosticsReport:
         return gmeow_validate.constitution_full_report(
             str(PROJECT_ROOT / "governance" / "constitution.ttl"),
             str(PROJECT_ROOT / "CONSTITUTION.md"),
             str(PROJECT_ROOT),
         )
 
-    def _crate_layering() -> Any:
+    def _crate_layering() -> DiagnosticsReport:
         return gmeow_validate.crate_layering_diagnostics_report(
             str(PROJECT_ROOT / "crates")
         )
 
-    def _box_roles() -> Any:
+    def _box_roles() -> DiagnosticsReport:
         from gmeow_tools import box_roles
 
         return box_roles.to_diagnostics_report(box_roles.audit_box_roles())
 
-    def _audit() -> Any:
+    def _audit() -> DiagnosticsReport:
         import gmeow_native.pipeline as _pipeline
 
         from gmeow_tools.config import FIXTURES_DIR
@@ -646,7 +647,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
             str(PROJECT_ROOT), [str(corpus)]
         )
 
-    def _generated() -> Any:
+    def _generated() -> DiagnosticsReport:
         # Drift surface for the build: run the Rust pipeline in CHECK mode (the
         # build authority since #861 P7) and project its drift findings into the
         # canonical diagnostics report folded into the bundle.
@@ -675,7 +676,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         ]
         return diagnostics.report_from_findings(tool="generated", findings=items)
 
-    def _classic_cross_check() -> Any:
+    def _classic_cross_check() -> DiagnosticsReport:
         # The native↔oracle (ELK/HermiT/ROBOT) divergence ledger is already a
         # Rust-backed DiagnosticsReport (gmeow_logic.build_divergence_ledger →
         # classic_cross_check.build_report). Folding it carries the classic-oracle
@@ -686,23 +687,23 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         _passed, _ledger, report = crosscheck.run()
         return report
 
-    def _engine_cross_check() -> Any:
+    def _engine_cross_check() -> DiagnosticsReport:
         from gmeow_tools.oracles import engine_crosscheck
 
         return engine_crosscheck.build_report(engine_crosscheck.crosscheck_all())
 
-    def _logic_compile() -> Any:
+    def _logic_compile() -> DiagnosticsReport:
         from gmeow_tools import logic_compile
 
         return logic_compile.compile_diagnostics_report()
 
-    def _statement_compile() -> Any:
+    def _statement_compile() -> DiagnosticsReport:
         return _statement_compile_report()
 
-    def _mapping_compile() -> Any:
+    def _mapping_compile() -> DiagnosticsReport:
         return _mapping_compile_report()
 
-    def _slice_ownership() -> Any:
+    def _slice_ownership() -> DiagnosticsReport:
         # The FULL native slice-ownership report (#809): ownership-defect errors
         # PLUS the dependency-observation warnings that `make validate` keeps out
         # of its focused gate. Folding it here carries those previously-dropped
