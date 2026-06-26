@@ -136,21 +136,62 @@ pub fn datalog_text(shape: &PathShapeIr) -> String {
             }
         }
         None => {
-            lines.push(format!(
-                "% Unbounded depth (>= {}) — recursive transitive closure.",
-                shape.min_depth
-            ));
-            lines.push(format!(
-                "<{reachable}>(?X, ?Y, ?W) :- <{edge}>(?X, ?Y, ?W) ."
-            ));
-            lines.push(format!(
-                "<{reachable}>(?X, ?Y, ?W) :- <{reachable}>(?X, ?Z, ?W), <{edge}>(?Z, ?Y, ?W) ."
-            ));
-            if shape.min_depth > 1 {
+            if shape.min_depth == 1 {
+                // Standard transitive closure: result(X,Y) for any path length >= 1.
+                lines.push(
+                    "% Unbounded depth (>= 1) — recursive transitive closure, exact.".to_owned(),
+                );
                 lines.push(format!(
-                    "% NOTE: minDepth {} > 1 with an unbounded path is not separately \
-                     lower-bounded in this closure (declared approximation).",
-                    shape.min_depth
+                    "<{reachable}>(?X, ?Y, ?W) :- <{edge}>(?X, ?Y, ?W) ."
+                ));
+                lines.push(format!(
+                    "<{reachable}>(?X, ?Y, ?W) :- <{reachable}>(?X, ?Z, ?W), \
+                     <{edge}>(?Z, ?Y, ?W) ."
+                ));
+            } else {
+                // Exact unbounded closure for min_depth > 1 (CWE-400 note: the
+                // closure auxiliary is recursive but unbounded in the *depth* axis,
+                // not in the number of rules emitted — safe).
+                //
+                // Strategy:
+                //   1.  Build the full transitive closure in an auxiliary relation
+                //       `closure` (any length >= 1).
+                //   2.  Unroll an explicit min_depth-hop chain that seeds the result
+                //       predicate: result(X,Z) holds when there are min_depth edges
+                //       X->N1->...->N_{min-1}->M and closure(M,Z) (or M=Z for the
+                //       exact-min-depth case), guaranteeing at least min_depth hops.
+                let min = shape.min_depth;
+                let closure_iri = format!("{}/closure", shape.iri);
+                lines.push(format!(
+                    "% Unbounded depth (>= {min}) — exact: transitive closure restricted \
+                     to pairs reachable in at least {min} hops."
+                ));
+                // Auxiliary: full closure (any depth >= 1).
+                lines.push(format!(
+                    "<{closure_iri}>(?X, ?Y, ?W) :- <{edge}>(?X, ?Y, ?W) ."
+                ));
+                lines.push(format!(
+                    "<{closure_iri}>(?X, ?Y, ?W) :- <{closure_iri}>(?X, ?Z, ?W), \
+                     <{edge}>(?Z, ?Y, ?W) ."
+                ));
+                // Build the min-depth chain: ?X -> ?N1 -> ?N2 -> ... -> ?N_{min-1}.
+                // The last intermediate is ?N_{min-1}; from there the closure reaches ?Y.
+                // For min=2: body is  edge(X,N1), closure(N1,Y)   [N1 reached in 1, then >=1 more]
+                // For min=3: body is  edge(X,N1), edge(N1,N2), closure(N2,Y)
+                // etc.
+                let mut body_atoms: Vec<String> = Vec::with_capacity(min as usize);
+                let mut prev_var = "?X".to_owned();
+                for k in 1..min {
+                    let next_var = format!("?N{k}");
+                    body_atoms.push(format!("<{edge}>({prev_var}, {next_var}, ?W)"));
+                    prev_var = next_var;
+                }
+                // The final node (?N_{min-1} or ?X for min=1) must reach ?Y via the
+                // closure, which itself covers at least 1 hop — giving >= min hops total.
+                body_atoms.push(format!("<{closure_iri}>({prev_var}, ?Y, ?W)"));
+                lines.push(format!(
+                    "<{reachable}>(?X, ?Y, ?W) :- {} .",
+                    body_atoms.join(", ")
                 ));
             }
         }

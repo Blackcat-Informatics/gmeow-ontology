@@ -728,11 +728,20 @@ pub struct PathShapeIr {
     pub depth_param: Option<String>,
 }
 
+/// Hard cap on `max_depth` accepted by [`PathShapeIr::new`].  A value larger
+/// than this would cause [`datalog_text`](super::super::projections::paths::datalog_text)
+/// to unroll billions of rule lines, exhausting memory (CWE-400).  The cap is
+/// conservative but generous: 1 000 hops covers every practical ontology
+/// traversal; no legitimate graph walk needs more.
+pub const MAX_PATH_DEPTH: usize = 1_000;
+
 impl PathShapeIr {
     /// Construct, validating the depth range and base step:
     ///
     /// * `min_depth` must be ≥ 1;
     /// * when `max_depth` is `Some(m)`, `min_depth` must not exceed `m`;
+    /// * when `max_depth` is `Some(m)`, `m` must not exceed [`MAX_PATH_DEPTH`]
+    ///   (hard cap — prevents runaway Datalog unrolling, CWE-400);
     /// * a [`PathBase::NamedPredicate`] must be non-empty.
     pub fn new(
         iri: impl Into<String>,
@@ -753,6 +762,12 @@ impl PathShapeIr {
             if min_depth > m {
                 return Err(format!(
                     "PathShapeIr min_depth ({min_depth}) must not exceed max_depth ({m})"
+                ));
+            }
+            if m as usize > MAX_PATH_DEPTH {
+                return Err(format!(
+                    "PathShapeIr max_depth ({m}) exceeds the hard cap of {MAX_PATH_DEPTH}; \
+                     use an unbounded path (max_depth = None) for deeper traversals"
                 ));
             }
         }

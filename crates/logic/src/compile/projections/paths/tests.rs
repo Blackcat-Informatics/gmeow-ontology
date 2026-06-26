@@ -222,6 +222,116 @@ fn named_bounded_path_runs_on_the_native_engine() {
     ));
 }
 
+// ── G3: exact unbounded closure for min_depth > 1 ───────────────────────────
+
+#[test]
+fn unbounded_min2_datalog_contains_exact_min_depth_chain_not_bare_step() {
+    // G3 structural: the emitted Datalog for an unbounded shape with min_depth=2
+    // must NOT define reachable directly from a single edge atom (that would admit
+    // 1-hop pairs).  It must contain the auxiliary closure relation and an explicit
+    // 2-hop chain body.
+    let s = shape(
+        "https://x/twoPlus",
+        PathBase::NamedPredicate("https://x/step".to_owned()),
+        2,    // min_depth = 2 — the exact form must kick in
+        None, // unbounded
+        None,
+    );
+    let dl = datalog_text(&s);
+
+    // Must NOT admit 1-hop: the result predicate must not be defined with a body
+    // consisting solely of a single edge atom with ?Y as the direct destination
+    // (that would admit 1-hop pairs).  The exact form must join via the chain.
+    assert!(
+        !dl.contains("<https://x/twoPlus/reachable>(?X, ?Y, ?W) :- <https://x/step>(?X, ?Y, ?W)"),
+        "reachable must not be defined with a bare single-step ?X->?Y body for min_depth=2:\n{dl}"
+    );
+    // Must use the auxiliary closure relation.
+    assert!(
+        dl.contains("<https://x/twoPlus/closure>"),
+        "emitted Datalog must contain the closure auxiliary:\n{dl}"
+    );
+    // Must contain the min-depth chain (edge(X,N1), then closure(N1,Y)).
+    assert!(
+        dl.contains("<https://x/step>(?X, ?N1, ?W)"),
+        "min-depth chain must include an explicit first-hop atom:\n{dl}"
+    );
+    // The approximation note must be gone.
+    assert!(
+        !dl.contains("approximation"),
+        "no approximation note must remain in the exact min_depth>1 branch:\n{dl}"
+    );
+}
+
+#[test]
+fn unbounded_min2_excludes_single_hop_runtime() {
+    // G3 behavioral: a graph with a single edge A->B must yield NO result for an
+    // unbounded shape with min_depth=2, while A->B->C yields (A,C).
+    let s = shape(
+        "https://example.org/p/twoPlus",
+        PathBase::NamedPredicate("https://example.org/p/step".to_owned()),
+        2,    // min_depth = 2
+        None, // unbounded
+        None,
+    );
+    let rules = parse_eval_rules(&datalog_text(&s)).expect("path rules parse");
+    let reachable = "https://example.org/p/twoPlus/reachable";
+    let p = "https://example.org/p/step";
+
+    // Graph with a SINGLE edge A->B only.
+    let mut edb = FactStore::new();
+    edb.insert(fact(
+        "https://example.org/p/a",
+        p,
+        "https://example.org/p/b",
+    ));
+    let res = least_model_of_reduct(&edb, &rules, &FactStore::new()).expect("engine run");
+    // min_depth=2 with one edge → NO result for A->B (only 1 hop).
+    assert!(
+        !reaches(
+            &res.store,
+            "https://example.org/p/a",
+            reachable,
+            "https://example.org/p/b"
+        ),
+        "a single-hop A->B must NOT be reachable under min_depth=2"
+    );
+
+    // Graph with two edges A->B->C.
+    let mut edb2 = FactStore::new();
+    edb2.insert(fact(
+        "https://example.org/p/a",
+        p,
+        "https://example.org/p/b",
+    ));
+    edb2.insert(fact(
+        "https://example.org/p/b",
+        p,
+        "https://example.org/p/c",
+    ));
+    let res2 = least_model_of_reduct(&edb2, &rules, &FactStore::new()).expect("engine run 2");
+    // A can reach C in 2 hops → must be reachable.
+    assert!(
+        reaches(
+            &res2.store,
+            "https://example.org/p/a",
+            reachable,
+            "https://example.org/p/c"
+        ),
+        "A->B->C must be reachable under min_depth=2"
+    );
+    // B can reach C in 1 hop → NOT reachable (min_depth=2 still applies).
+    assert!(
+        !reaches(
+            &res2.store,
+            "https://example.org/p/b",
+            reachable,
+            "https://example.org/p/c"
+        ),
+        "B->C (1 hop) must NOT be reachable under min_depth=2"
+    );
+}
+
 #[test]
 fn nearby_orgs_wildcard_runs_on_the_native_engine() {
     // :nearbyOrgs(?maxDepth := 2): the headline "all nodes within n hops, any

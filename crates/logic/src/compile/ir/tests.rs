@@ -591,3 +591,45 @@ fn canonical_key_appends_path_shapes_when_present() {
     )]);
     assert!(prog.canonical_key().contains("PATHSHAPES"));
 }
+
+// ── G2: max_depth hard cap (CWE-400) ────────────────────────────────────────
+
+#[test]
+fn path_shape_rejects_max_depth_above_cap() {
+    // G2: a max_depth of MAX_PATH_DEPTH + 1 must be hard-rejected.
+    let err = PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::Wildcard,
+        1,
+        Some((MAX_PATH_DEPTH + 1) as u32),
+        None,
+        None,
+    )
+    .unwrap_err();
+    assert!(
+        err.contains("exceeds the hard cap"),
+        "error must mention the cap: {err}"
+    );
+    assert!(
+        err.contains(&MAX_PATH_DEPTH.to_string()),
+        "error must include the cap value: {err}"
+    );
+    assert!(
+        err.contains(&(MAX_PATH_DEPTH + 1).to_string()),
+        "error must include the offending value: {err}"
+    );
+}
+
+#[test]
+fn path_shape_accepts_max_depth_at_cap() {
+    // G2: exactly MAX_PATH_DEPTH must be accepted (the cap is inclusive).
+    PathShapeIr::new(
+        format!("{LOGIC}s"),
+        PathBase::Wildcard,
+        1,
+        Some(MAX_PATH_DEPTH as u32),
+        None,
+        None,
+    )
+    .expect("max_depth == MAX_PATH_DEPTH must be accepted");
+}
