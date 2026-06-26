@@ -668,6 +668,23 @@ pub struct ReasoningResult {
 }
 
 impl ReasoningResult {
+    /// The inferred closure this result carries, or an empty slice when the
+    /// payload is not an [`ResultPayload::Inferred`] surface.
+    pub fn inferred(&self) -> &[InferredAxiom] {
+        match &self.payload {
+            ResultPayload::Inferred(axioms) => axioms,
+            _ => &[],
+        }
+    }
+
+    /// `true` iff the ontology is consistent under this result — i.e. the
+    /// information state is NOT the witnessed-contradiction glut
+    /// [`InformationState::Both`]. The DL consistency surface's projection of the
+    /// four-valued verdict back to the historical boolean.
+    pub fn is_consistent(&self) -> bool {
+        self.information != InformationState::Both
+    }
+
     /// `true` iff this result rests on a conclusive evaluation — a completed run
     /// OR a complete-for-the-fragment answer (SEMANTICS:294-297). This is the
     /// predicate [`InformationState::Neither`] requires.

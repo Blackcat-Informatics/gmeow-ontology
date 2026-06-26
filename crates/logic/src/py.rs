@@ -1112,13 +1112,20 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
         Reason(String),
     }
     let bytes = gts_bytes.to_vec();
-    let read_result: Result<crate::reason::ReasonResult, ReasonNativeError> =
-        py.detach(move || {
-            let bundle = gmeow_rdf::import_gts_events(&bytes)
-                .map_err(|e| ReasonNativeError::GtsRead(format!("GTS read error: {e}")))?;
-            crate::reason::reason_all(bundle.dataset.as_ref()).map_err(ReasonNativeError::Reason)
-        });
-    let result = read_result.map_err(|e| match e {
+    // `reason_closure` is the shared single-chase pipeline that the typed
+    // `reason_all` result folds from; here we read the DL verdict + closure
+    // directly to project the historical native-reason dict (the typed-result
+    // keys are added additively in #768 Task 6).
+    type ClosureAndVerdict = (
+        Vec<crate::reason::el::InferredAxiom>,
+        crate::reason::DlVerdict,
+    );
+    let read_result: Result<ClosureAndVerdict, ReasonNativeError> = py.detach(move || {
+        let bundle = gmeow_rdf::import_gts_events(&bytes)
+            .map_err(|e| ReasonNativeError::GtsRead(format!("GTS read error: {e}")))?;
+        crate::reason::reason_closure(bundle.dataset.as_ref()).map_err(ReasonNativeError::Reason)
+    });
+    let (closure, verdict) = read_result.map_err(|e| match e {
         ReasonNativeError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
         ReasonNativeError::Reason(m) => {
             pyo3::exceptions::PyRuntimeError::new_err(format!("reason error: {m}"))
@@ -1126,10 +1133,10 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     })?;
 
     let out = PyDict::new(py);
-    out.set_item("consistent", result.verdict.consistent)?;
+    out.set_item("consistent", verdict.consistent)?;
 
     let inferred = PyList::empty(py);
-    for ax in &result.inferred {
+    for ax in &closure {
         let d = PyDict::new(py);
         d.set_item("subject", ax.subject.as_str())?;
         d.set_item("predicate", ax.predicate.as_str())?;
@@ -1142,7 +1149,7 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     out.set_item("inferred", inferred)?;
 
     let unsat = PyList::empty(py);
-    for u in &result.verdict.unsatisfiable_classes {
+    for u in &verdict.unsatisfiable_classes {
         let d = PyDict::new(py);
         d.set_item("class", u.class.as_str())?;
         d.set_item("world", u.world.as_str())?;
@@ -1151,7 +1158,7 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     out.set_item("unsatisfiable_classes", unsat)?;
 
     let inconsist = PyList::empty(py);
-    for w in &result.verdict.inconsistencies {
+    for w in &verdict.inconsistencies {
         let d = PyDict::new(py);
         d.set_item("individual", w.individual.as_str())?;
         d.set_item("world", w.world.as_str())?;
@@ -1160,13 +1167,13 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     out.set_item("inconsistencies", inconsist)?;
 
     let coverage = PyDict::new(py);
-    coverage.set_item("present", result.verdict.coverage.present.clone())?;
-    coverage.set_item("decided", result.verdict.coverage.decided.clone())?;
-    coverage.set_item("unsupported", result.verdict.coverage.unsupported.clone())?;
+    coverage.set_item("present", verdict.coverage.present.clone())?;
+    coverage.set_item("decided", verdict.coverage.decided.clone())?;
+    coverage.set_item("unsupported", verdict.coverage.unsupported.clone())?;
     out.set_item("coverage", coverage)?;
 
     let gaps = PyList::empty(py);
-    for g in &result.verdict.gaps {
+    for g in &verdict.gaps {
         let d = PyDict::new(py);
         d.set_item("code", g.code.as_str())?;
         d.set_item("message", g.message.as_str())?;
