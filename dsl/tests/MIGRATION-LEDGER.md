@@ -610,6 +610,48 @@ All migrated twins use fixture-only `validate()` (every Python original is `run_
 
 **Conformance batch-4 GRAND tally:** places 3 + images 11 + music_collections 11 + music_pitch 9 + ai_claims 1 + agentic 1 + verifiable_release_chain 1 = **37 converted**. Total native conformance suite = **158 tests**. The 4 `validate_with_ontology` (merged) users — finance, music_analysis, ai_claims, agentic — are all faithful (Python `g = _graph()`/`load_merged_graph()`). The run_shacl pytest population is now exhausted: every remaining run_shacl call is a faithful RETAIN (custom-shapes, dynamic disk/sweep, post-SHACL graph-membership, or cross-slice `_graph()` TBox) documented per-file above. `uv run mypy` clean (281 files).
 
+## #867 structural batch 11 (kernel — the universal aboutness axis)
+
+`tests/test_aboutness.py` (the kernel-resident #349/EPIC-#348 aboutness axis, 7 fns) migrated
+to `slices/core/kernel/tests/{structural,competency}.ttl`. 3 structural fns → 5
+`gmeow:StructuralAssertion` cells (3 must + 2 mustNot) + 1 competency fn → 1
+`gmeow:CompetencyQuestion` cell; all green (`cargo nextest -p gmeow-slicetest`). `make validate` ✓.
+Per-cell `saRationale`/`cqRationale` names the source fn. kernel is #694-migrated (logic:).
+
+| Source fn | Disposition |
+|---|---|
+| `test_aboutness_class_structure` | → `saAboutnessModeClass` (must): AboutnessMode a owl:Class, logic:AbstractIndividualType; subClassOf logic:QualityValue |
+| `test_has_aboutness_property_structure` | → `saHasAboutnessAnnotationProperty` (must: AnnotationProperty + range) + `saHasAboutnessNotObjectFunctionalOrDomained` (mustNot: ObjectProperty/FunctionalProperty/domain) |
+| `test_value_vocab_spans_two_seeds` | → `saAboutnessSeedsTyped` (must: both seeds typed) + `saAboutnessNoThirdMember` (mustNot: closed two-member enumeration, kernel-scoped) |
+| `test_competency_aboutness_modes_query` | → `cqAboutnessModes` (competency, cqExactRows over `queries/competency/aboutness-modes.rq`) |
+
+**Retained (2 pytest fns) — merged-graph absence, not module-expressible:**
+
+- `test_aboutness_orthogonal_to_other_axes` — asserts NO `rdfs:subPropertyOf`/`owl:equivalentProperty`
+  between any pair of the 6 epistemic axes (`hasAboutness`, `hasGranularity`, `hasDeterminacy`,
+  `hasSensitivity`, `hasDisclosurePolicy`, `confidence`). Those axes are declared/used across
+  10+ slice modules, so the absence must hold over the whole merged graph
+  (`load_merged_graph(include_imports=False)`); a `gmeow:scopeModule` cell sees only kernel and
+  would silently weaken the cross-axis universal.
+- `test_no_aboutness_truth_bridge` — asserts the seeds carry exactly `{AboutnessMode}` as type.
+  `gmeow:aboutnessEnacts` is referenced from `core/citations` and `extensions/norms`, so the
+  exactly-one-type guarantee is a merged-graph property, not a kernel-module one.
+
+**#869 Gap-1:** `saAboutnessNoThirdMember` is a closed two-member enumeration the source already
+pinned (`members == {describes, enacts}`) — a genuinely-closed value vocabulary, not a finite-VALUES
+blacklist standing in for an open universal. The cross-module "no OTHER slice adds a member"
+guarantee is carried by the retained merged-graph pytest, not weakened away.
+
+**Red-proof (2026-06-25).** Injecting a transient `gmeow:aboutnessBOGUS a gmeow:AboutnessMode`
+into `slices/core/kernel/module.ttl` reds `saAboutnessNoThirdMember` (`polarity 'mustNot' but the
+ASK pattern HELD`); reverted, green again. Cells authored by MEASURING the live kernel module.
+
+**Batch-11 tally:** 3 converted structural fns → 5 cells + 1 competency fn → 1 cell; 2
+retained-with-reason; 1 deleted (`test_every_term_labeled_and_defined` — the per-term
+label+definition sweep is subsumed by `make validate`'s `Gmeow*Shape` SHACL + the
+`structural_lint` annotation sweep; break-and-revert confirmed `make validate` reds on a dropped
+label). `tests/test_aboutness.py` is trimmed to the 2 retained fns + the `_graph()` helper.
+
 ## #867 structural batch 10 (places — the 129-fn slice)
 
 The largest single slice (129 pytest fns) migrated to `slices/core/places/tests/structural.ttl`
