@@ -24,6 +24,7 @@ use gmeow_slice::catalog::SliceCatalog;
 use gmeow_slice::ownership::OwnershipAnalyzer;
 use gmeow_slice::{product_unit_key, Phase, ToolchainContext};
 
+use crate::advisory::Advisory;
 use crate::cache::{CachedResult, ValidationCache};
 use crate::findings::finding_from_shacl;
 use crate::gufo::{self, GufoConfig};
@@ -120,6 +121,9 @@ pub struct ValidationRun {
     pub report: Report,
     /// Declared GMEOW-term IRIs, for Python's `guide_anchor_lint`.
     pub declared_terms: Vec<String>,
+    /// The dual-projection claim hooks for advisory findings (#760 D1);
+    /// D4/#763 materialises them as RDF.
+    pub advisory_claims: Vec<crate::advisory::AdvisoryClaim>,
 }
 
 impl ValidationRun {
@@ -224,6 +228,7 @@ impl ValidationRun {
                 timings,
                 report: build_report(Vec::new(), Vec::new(), signature_findings),
                 declared_terms: Vec::new(),
+                advisory_claims: Vec::new(),
             });
         }
 
@@ -257,6 +262,7 @@ impl ValidationRun {
                 timings,
                 report: build_report(errors, warnings, shacl_findings),
                 declared_terms: Vec::new(),
+                advisory_claims: Vec::new(),
             });
         }
 
@@ -443,12 +449,33 @@ impl ValidationRun {
             }
         }
 
+        // Advisory tier (#760 D1): emit one fixed demonstrator advisory on every
+        // normal-completion run, so gmeow validate surfaces a Note finding distinct
+        // from compliance errors. The dual-projection-always contract: ONE
+        // Advisory::project() call yields BOTH the flat finding AND the in-memory
+        // claim hook D4/#763 materialises. NOT emitted on the two early-return
+        // (hard-fail) paths above. D3/#762 replaces this demonstrator with harvested
+        // advisory rules (find via the "advisory-demonstrator" tag).
+        let advisory = Advisory::note(
+            "advice.tier.active",
+            "Advisory tier active — soft (deonticRecommendation) advice will surface here once advisory rules are harvested (#762).",
+        )
+        .with_suggestion("Run `gmeow describe <term>` to see modeling guidance (avoidWhen / useWhen / howToUse).")
+        .with_help_uri("https://blackcatinformatics.ca/gmeow/advice")
+        .with_tag("advisory-demonstrator");
+        let projection = advisory.project();
+        let advisory_claims = vec![projection.claim];
+        let mut report = build_report(errors, warnings, shacl_findings);
+        report.add_finding(projection.finding);
+        report.add_rule(advisory.rule());
+
         Ok(Self {
             store,
             shapes,
             timings,
-            report: build_report(errors, warnings, shacl_findings),
+            report,
             declared_terms,
+            advisory_claims,
         })
     }
 
@@ -1158,5 +1185,112 @@ mod tests {
         assert!(nt.contains("<https://example.org/a>"));
         assert!(nt.contains("<https://example.org/p>"));
         assert!(nt.contains("<https://example.org/b>"));
+    }
+
+    /// The demonstrator advisory appears on every normal-completion run as a Note
+    /// (not an error or warning), proving it is distinct from the compliance surfaces.
+    /// Both the flat finding and the in-memory claim hook are emitted together
+    /// (dual-projection-always contract, #760 D1).
+    #[test]
+    fn clean_run_emits_one_demonstrator_advisory() {
+        let bytes = minimal_gts_bytes();
+        let options = ValidateOptions {
+            gts_bytes: Some(bytes),
+            ..ValidateOptions::default()
+        };
+
+        let run = ValidationRun::run(&[], "", "", "", &minimal_lint_config(), &options)
+            .expect("ValidationRun::run must succeed");
+
+        // The advisory is a Note — it must NOT contaminate the error/warning surfaces.
+        assert!(
+            run.errors().is_empty(),
+            "advisory Note must not appear in errors: {:?}",
+            run.errors()
+        );
+        assert!(
+            run.warnings().is_empty(),
+            "advisory Note must not appear in warnings: {:?}",
+            run.warnings()
+        );
+
+        // A Note never fails the gate.
+        assert!(
+            run.report.normalized().ok(),
+            "report with only a Note must still be ok"
+        );
+
+        // Exactly one finding with code "advice.tier.active" and severity Note.
+        let advisory_findings: Vec<_> = run
+            .report
+            .findings
+            .iter()
+            .filter(|f| f.code == "advice.tier.active")
+            .collect();
+        assert_eq!(
+            advisory_findings.len(),
+            1,
+            "expected exactly one advice.tier.active finding; got: {:?}",
+            advisory_findings
+        );
+        assert_eq!(
+            advisory_findings[0].severity,
+            gmeow_diagnostics::Severity::Note,
+            "demonstrator advisory must be a Note"
+        );
+
+        // The in-memory claim hook is present with correct code and modality.
+        assert_eq!(
+            run.advisory_claims.len(),
+            1,
+            "expected exactly one advisory claim on normal-completion run"
+        );
+        assert_eq!(run.advisory_claims[0].code, "advice.tier.active");
+        assert_eq!(
+            run.advisory_claims[0].modality_iri,
+            crate::advisory::DEONTIC_RECOMMENDATION_IRI
+        );
+    }
+
+    /// The syntax/sameAs short-circuit early return (a hard-failed run) must NOT
+    /// emit any advisory. Triggered with VALID Turtle carrying a banned
+    /// `owl:sameAs` to an external entity: the file parses (so build-store
+    /// succeeds), then Phase 2 records a sameAs-ban error, so `run` returns at the
+    /// `!errors.is_empty()` short-circuit (NOT via an Err) — exercising the real
+    /// Ok early-return path, not the vacuous build-store-failure path.
+    #[test]
+    fn early_return_path_emits_no_advisory() {
+        let banned_ttl_path = write_tmp(
+            "gmeow_validate_advisory_early_return_sameas.ttl",
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             gmeow:Foo owl:sameAs <https://external.example.org/bar> .\n",
+        );
+        let source = banned_ttl_path.to_string_lossy().to_string();
+
+        let options = ValidateOptions::default();
+        let run = ValidationRun::run(&[source], "", "", "", &minimal_lint_config(), &options)
+            .expect("valid-but-banned Turtle must reach the Ok short-circuit, not Err");
+
+        std::fs::remove_file(&banned_ttl_path).ok();
+
+        // The run hard-failed (the sameAs ban is an error), proving we hit the
+        // short-circuit early-return path.
+        assert!(
+            !run.errors().is_empty(),
+            "expected a sameAs-ban error to drive the short-circuit; got none"
+        );
+        // The hard-fail path emits NO advisory claim and NO advisory finding.
+        assert!(
+            run.advisory_claims.is_empty(),
+            "early-return path must emit no advisory claims"
+        );
+        assert!(
+            !run.report
+                .findings
+                .iter()
+                .any(|f| f.code == "advice.tier.active"),
+            "early-return path must emit no advice.tier.active finding"
+        );
     }
 }

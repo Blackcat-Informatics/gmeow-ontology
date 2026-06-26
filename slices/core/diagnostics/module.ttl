@@ -52,6 +52,19 @@ gmeow:findingCode
     gmeow:howToUse "Set it to the Rust finding's code verbatim; it becomes the SARIF ruleId and participates in the partial-fingerprint dedup."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the stable rule code of a finding so consumers can group, route, and suppress by rule."@x-gmeow-english .
 
+gmeow:findingHelpUri
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding help URI"@x-gmeow-english ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "The help link for a finding's rule — the URI a reader follows to learn how to resolve or act on the diagnostic. The gmeow: RDF projection of the Rust rule's help_uri (gmeow_diagnostics::Rule.help_uri), the same link SARIF carries as the rule-level helpUri and the LSP diagnostic carries as codeDescription. Advisory (Severity::Note/Info) findings of the soft tier (epic #759) carry it most, pointing at the modeling guidance behind a recommendation."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingHelpUri \"https://blackcatinformatics.ca/gmeow/advice#sample\"^^xsd:anyURI ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid duplicating the human message here (use gmeow:findingMessage) and avoid run-varying values; the help URI is the stable, rule-level pointer to remediation guidance, not occurrence prose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project it from the Rust rule's help_uri verbatim; render it as the SARIF rule helpUri and the LSP codeDescription.href so every surface offers the same 'learn more' link for the rule."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a finding's 'learn more' link — chiefly on advisory findings whose deonticRecommendation points at modeling guidance."@x-gmeow-english .
+
 gmeow:findingLocation
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
@@ -92,6 +105,19 @@ gmeow:findingSeverity
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Bind one DiagnosticSeverity individual per Finding; read it by inheritance through gmeow:observationResult for cross-slice 'what did this observation conclude' queries."@x-gmeow-english ;
     gmeow:useWhen "Use to grade a gmeow:Finding — pointing it at exactly one gmeow:DiagnosticSeverity so SARIF level, CLI colour, and gate pass/fail all derive from one value."@x-gmeow-english .
+
+gmeow:findingSuggestion
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding suggestion"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "A remediation suggestion attached to a finding — one line of advice on how to act on the diagnostic. A finding may carry several (each a distinct gmeow:findingSuggestion triple), rendered as a list in CLI/HTML, SARIF result properties, and the LSP message. The gmeow: RDF projection of the Rust gmeow_diagnostics::Finding.suggestions, sorted and deduplicated at normalization so the projection is deterministic. The advisory (Severity::Note/Info) soft tier (epic #759) carries these as its 'consider this instead' prose."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingSuggestion \"use gmeow:Kind for rigid sortals\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid overloading it with the verdict (that is gmeow:findingSeverity) or the rule key (gmeow:findingCode); a suggestion is actionable advice about this occurrence, not the finding's identity or grade."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project each Rust suggestion string as one gmeow:findingSuggestion in normalized (sorted, deduplicated) order; render the set as a suggestion list in CLI/HTML and as the SARIF result property gmeow.suggestions."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry one or more remediation suggestions on a finding — chiefly advisory findings recommending a better modeling choice."@x-gmeow-english .
 
 gmeow:findingTool
     a owl:DatatypeProperty ;

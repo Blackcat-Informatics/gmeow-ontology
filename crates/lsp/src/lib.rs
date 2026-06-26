@@ -11,8 +11,10 @@
 //! * [`analyze`] — parse and lint a text buffer, returning a [`Report`].
 //! * [`report_to_diagnostics`] — project a [`Report`] to LSP [`Diagnostic`] objects.
 
-use gmeow_diagnostics::model::{Finding, Location, Report, Severity};
-use lsp_types::{Diagnostic, DiagnosticSeverity, NumberOrString, Position, Range};
+use gmeow_diagnostics::model::{Finding, Location, Report, Rule, Severity};
+use lsp_types::{
+    CodeDescription, Diagnostic, DiagnosticSeverity, NumberOrString, Position, Range, Uri,
+};
 use oxigraph::io::{RdfFormat, RdfParser, RdfSyntaxError};
 
 // ─── Language discriminant ───────────────────────────────────────────────────
@@ -123,7 +125,18 @@ fn analyze_logic(text: &str) -> Report {
 /// Findings whose primary location points at a *different* file are included
 /// with their path stripped so the editor does not try to render them at the
 /// wrong URI.  Findings with no location get a zero-range at line 0.
+/// Parse a URI string into an LSP [`CodeDescription`].
+///
+/// Returns `None` if the URI string fails to parse rather than panicking.
+fn make_code_description(uri: &str) -> Option<CodeDescription> {
+    uri.parse::<Uri>().ok().map(|href| CodeDescription { href })
+}
+
 pub fn report_to_diagnostics(report: &Report) -> Vec<Diagnostic> {
+    // Build a rule lookup once so each finding can resolve its help URI in O(log n).
+    let rules: std::collections::BTreeMap<&str, &Rule> =
+        report.rules.iter().map(|r| (r.id.as_str(), r)).collect();
+
     report
         .findings
         .iter()
@@ -146,12 +159,31 @@ pub fn report_to_diagnostics(report: &Report) -> Vec<Diagnostic> {
                 Range::default()
             };
 
+            // Resolve help URI from the rule registry and build CodeDescription.
+            let code_description = rules
+                .get(finding.code.as_str())
+                .and_then(|rule| rule.help_uri.as_deref())
+                .and_then(make_code_description);
+
+            // Build the message: base message followed by any suggestions.
+            let message = if finding.suggestions.is_empty() {
+                finding.message.clone()
+            } else {
+                let mut msg = finding.message.clone();
+                for s in &finding.suggestions {
+                    msg.push_str("\n  \u{21b3} suggestion: ");
+                    msg.push_str(s);
+                }
+                msg
+            };
+
             Diagnostic {
                 range,
                 severity: Some(severity),
                 code: Some(NumberOrString::String(finding.code.clone())),
                 source: Some(report.tool.clone()),
-                message: finding.message.clone(),
+                message,
+                code_description,
                 ..Default::default()
             }
         })
@@ -226,6 +258,54 @@ mod tests {
         let diags = report_to_diagnostics(&report);
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].range, Range::default());
+    }
+
+    #[test]
+    fn advisory_diagnostic_carries_help_and_suggestions() {
+        let mut report = Report::new("validate");
+
+        // Register the rule with a help URI.
+        let mut rule = Rule::new("advice.sample", Severity::Note);
+        rule.help_uri = Some("https://blackcatinformatics.ca/gmeow/advice#sample".to_owned());
+        report.add_rule(rule);
+
+        // Add a finding with one suggestion.
+        let mut finding = Finding::new(
+            Severity::Note,
+            "advice.sample",
+            "consider a more specific sortal",
+        );
+        finding.suggestions.push("use gmeow:Kind".to_owned());
+        report.add_finding(finding);
+
+        let diags = report_to_diagnostics(&report);
+        assert_eq!(diags.len(), 1);
+        let diag = &diags[0];
+
+        // Note severity must map to INFORMATION.
+        assert_eq!(diag.severity, Some(DiagnosticSeverity::INFORMATION));
+
+        // code_description must carry the help URI.
+        let code_desc = diag
+            .code_description
+            .as_ref()
+            .expect("code_description should be Some");
+        assert_eq!(
+            code_desc.href.as_str(),
+            "https://blackcatinformatics.ca/gmeow/advice#sample"
+        );
+
+        // Message must contain the base text and the suggestion.
+        assert!(
+            diag.message.contains("consider a more specific sortal"),
+            "message missing base text: {:?}",
+            diag.message
+        );
+        assert!(
+            diag.message.contains("\u{21b3} suggestion: use gmeow:Kind"),
+            "message missing suggestion: {:?}",
+            diag.message
+        );
     }
 
     #[test]
