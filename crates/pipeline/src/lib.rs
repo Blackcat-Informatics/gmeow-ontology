@@ -44,6 +44,8 @@ pub mod transform;
 pub mod up_projection;
 
 #[cfg(feature = "python")]
+pub mod mcp;
+#[cfg(feature = "python")]
 pub mod py;
 
 pub use cache::PipelineCache;
