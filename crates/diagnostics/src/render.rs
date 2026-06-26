@@ -343,9 +343,16 @@ pub fn to_gmeow_rdf(report: &Report) -> String {
     out
 }
 
+/// Build a `BTreeMap` from rule id to `&Rule` for O(log n) lookup by finding code.
+/// Built once per render call and shared across findings.
+fn rule_map(report: &Report) -> BTreeMap<&str, &Rule> {
+    report.rules.iter().map(|r| (r.id.as_str(), r)).collect()
+}
+
 /// Render a compact terminal-safe plain-text report.
 pub fn to_text(report: &Report) -> String {
     let normalized = report.normalized();
+    let rules = rule_map(&normalized);
     let mut lines = Vec::new();
     for finding in &normalized.findings {
         let mut line = format!(
@@ -360,13 +367,41 @@ pub fn to_text(report: &Report) -> String {
             line.push(')');
         }
         lines.push(line);
+        // Suggestions (already sorted+deduped by normalize): one indented line each.
+        for suggestion in &finding.suggestions {
+            lines.push(format!("  ↳ suggestion: {suggestion}"));
+        }
+        // Help URI from the rule, if present.
+        if let Some(rule) = rules.get(finding.code.as_str()) {
+            if let Some(uri) = &rule.help_uri {
+                lines.push(format!("  ↳ help: {uri}"));
+            }
+        }
     }
     lines.join("\n")
+}
+
+/// Whether a report has any finding with suggestions or any rule with a help_uri,
+/// used to decide whether to include the `.suggestions`/`.help` CSS rules.
+fn has_advisory_content(report: &Report, rules: &BTreeMap<&str, &Rule>) -> bool {
+    report.findings.iter().any(|f| {
+        !f.suggestions.is_empty()
+            || rules
+                .get(f.code.as_str())
+                .and_then(|r| r.help_uri.as_deref())
+                .is_some()
+    })
 }
 
 /// Render a self-contained static HTML report.
 pub fn to_html(report: &Report) -> String {
     let normalized = report.normalized();
+    let rules = rule_map(&normalized);
+    let advisory_css = if has_advisory_content(&normalized, &rules) {
+        "\n    .suggestions { margin: 0.25rem 0 0 0; padding-left: 1.2rem; color: #4b5563; font-size: 0.9rem; }\n    .help { color: #175cd3; font-size: 0.85rem; margin-left: 0.4rem; text-decoration: none; }\n    .help:hover { text-decoration: underline; }"
+    } else {
+        ""
+    };
     let mut rows = String::new();
     for finding in &normalized.findings {
         let location = finding
@@ -380,7 +415,26 @@ pub fn to_html(report: &Report) -> String {
             escape_html(finding.severity.as_str())
         ));
         rows.push_str(&format!("<td>{}</td>", escape_html(&finding.code)));
-        rows.push_str(&format!("<td>{}</td>", escape_html(&finding.message)));
+
+        // Message cell: message text, optional suggestions list, optional help link.
+        let mut msg_cell = escape_html(&finding.message);
+        if !finding.suggestions.is_empty() {
+            msg_cell.push_str("<ul class=\"suggestions\">");
+            for suggestion in &finding.suggestions {
+                msg_cell.push_str(&format!("<li>{}</li>", escape_html(suggestion)));
+            }
+            msg_cell.push_str("</ul>");
+        }
+        if let Some(rule) = rules.get(finding.code.as_str()) {
+            if let Some(uri) = &rule.help_uri {
+                msg_cell.push_str(&format!(
+                    "<a class=\"help\" href=\"{}\">\u{2139} help</a>",
+                    escape_html(uri)
+                ));
+            }
+        }
+        rows.push_str(&format!("<td>{msg_cell}</td>"));
+
         rows.push_str(&format!("<td>{}</td>", escape_html(&location)));
         rows.push_str("</tr>\n");
     }
@@ -404,7 +458,7 @@ pub fn to_html(report: &Report) -> String {
     .sev {{ border-radius: 4px; color: white; display: inline-block; font-size: 0.8rem; min-width: 4.5rem; padding: 0.2rem 0.4rem; text-align: center; }}
     .sev-error {{ background: #b42318; }}
     .sev-warning {{ background: #b54708; }}
-    .sev-note, .sev-info {{ background: #175cd3; }}
+    .sev-note, .sev-info {{ background: #175cd3; }}{advisory_css}
   </style>
 </head>
 <body>
@@ -423,6 +477,7 @@ pub fn to_html(report: &Report) -> String {
         warnings = normalized.warning_count(),
         total = normalized.findings.len(),
         rows = rows,
+        advisory_css = advisory_css,
     )
 }
 
@@ -692,7 +747,7 @@ fn escape_attr(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{DiagnosticAttribution, Finding, Location, Report, Severity};
+    use crate::model::{DiagnosticAttribution, Finding, Location, Report, Rule, Severity};
 
     // ── Fixtures ─────────────────────────────────────────────────────────────
     //
@@ -1051,6 +1106,43 @@ mod tests {
         let close_rows = html.matches("</tr>").count();
         assert_eq!(html.matches("<tr").count(), close_rows);
         assert_eq!(close_rows, 1 + report.findings.len());
+    }
+
+    /// A report with one advisory finding carrying suggestions and a rule help_uri.
+    /// Used to snapshot-test that `to_text` and `to_html` render these fields.
+    fn advisory_report() -> Report {
+        let mut finding = Finding::new(
+            Severity::Note,
+            "advice.sample",
+            "consider a more specific sortal",
+        )
+        .with_tool("validate");
+        // Push in reverse-alphabetical order so normalize() re-sorts them, confirming
+        // the renderer iterates the already-sorted slice AS-IS.
+        finding
+            .suggestions
+            .push("use gmeow:Kind for rigid sortals".to_owned());
+        finding
+            .suggestions
+            .push("see the modeling guide".to_owned());
+
+        let mut rule = Rule::new("advice.sample", Severity::Note);
+        rule.help_uri = Some("https://blackcatinformatics.ca/gmeow/advice#sample".to_owned());
+
+        let mut report = Report::new("validate");
+        report.add_rule(rule);
+        report.add_finding(finding);
+        report
+    }
+
+    #[test]
+    fn advisory_text_snapshot() {
+        insta::assert_snapshot!(to_text(&advisory_report()));
+    }
+
+    #[test]
+    fn advisory_html_snapshot() {
+        insta::assert_snapshot!(to_html(&advisory_report()));
     }
 
     /// Recursively collect every `"uri"` string value under a JSON node.
