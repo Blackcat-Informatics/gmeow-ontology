@@ -9,8 +9,14 @@ use std::cmp::Ordering;
 use std::rc::Rc;
 
 use gmeow_rdf_core::{GraphMatch, TermId, TermValue};
-use gmeow_sparql_algebra::{Expression, GraphPattern, NamedNodePattern, OrderExpression, Variable};
+use gmeow_sparql_algebra::{
+    AggregateExpression, AggregateFunction, Expression, GraphPattern, NamedNodePattern,
+    OrderExpression, Variable,
+};
 use gmeow_xsd::{parse_by_iri, value_cmp};
+
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
 use crate::convert::{ground_term_to_value, named_node_to_value};
 use crate::error::EvalError;
@@ -323,6 +329,192 @@ fn literal_order(a: (&str, &str, &Option<String>), b: (&str, &str, &Option<Strin
     (dx, gx, lx).cmp(&(dy, gy, ly))
 }
 
+// ---------------------------------------------------------------------------
+// GROUP BY + aggregates
+// ---------------------------------------------------------------------------
+
+/// `GROUP BY ... ` with aggregates: partition the inner solutions by the grouping
+/// key (term identity), then compute each aggregate per group. One output row per
+/// group; the columns are the grouping variables followed by the aggregate outputs.
+///
+/// With **no** grouping variables but aggregates present, the whole input is a
+/// single group — even when empty (so `COUNT(*)` yields one row binding `0`).
+pub(crate) fn eval_group(
+    inner: &GraphPattern,
+    variables: &[Variable],
+    aggregates: &[(Variable, AggregateExpression)],
+    ctx: &mut EvalCtx<'_>,
+) -> Result<SolutionSeq, EvalError> {
+    let seq = eval(inner, ctx)?;
+    let in_schema = seq.schema.clone();
+    let key_cols: Vec<Option<usize>> = variables.iter().map(|v| in_schema.index_of(v)).collect();
+
+    // Partition rows into groups, keeping groups in first-seen order.
+    let mut order: Vec<Vec<Option<SolutionTerm>>> = Vec::new();
+    let mut groups: crate::DetHashMap<Vec<Option<SolutionTerm>>, Vec<usize>> =
+        crate::DetHashMap::default();
+    for (idx, row) in seq.rows.iter().enumerate() {
+        let key: Vec<Option<SolutionTerm>> =
+            key_cols.iter().map(|c| c.and_then(|c| row[c])).collect();
+        if !groups.contains_key(&key) {
+            order.push(key.clone());
+            groups.insert(key.clone(), Vec::new());
+        }
+        groups.get_mut(&key).unwrap().push(idx);
+    }
+    // No GROUP BY + empty input + aggregates → a single empty group.
+    if order.is_empty() && variables.is_empty() && !aggregates.is_empty() {
+        order.push(Vec::new());
+        groups.insert(Vec::new(), Vec::new());
+    }
+
+    let mut out_schema = VarSchema::from_vars(variables.iter().cloned());
+    for (out_var, _) in aggregates {
+        out_schema.push(out_var.clone());
+    }
+    let out_schema = Rc::new(out_schema);
+
+    let mut rows = Vec::with_capacity(order.len());
+    for key in &order {
+        let idxs = &groups[key];
+        let mut row = vec![None; out_schema.len()];
+        for (i, _) in variables.iter().enumerate() {
+            row[i] = key[i];
+        }
+        for (j, (_, agg)) in aggregates.iter().enumerate() {
+            row[variables.len() + j] = eval_aggregate(agg, idxs, &seq.rows, &in_schema, ctx)?;
+        }
+        rows.push(row);
+    }
+
+    Ok(SolutionSeq {
+        schema: out_schema,
+        rows,
+    })
+}
+
+/// Compute one aggregate over a group's rows.
+fn eval_aggregate(
+    agg: &AggregateExpression,
+    idxs: &[usize],
+    rows: &[Solution],
+    schema: &VarSchema,
+    ctx: &mut EvalCtx<'_>,
+) -> Result<Option<SolutionTerm>, EvalError> {
+    match agg {
+        AggregateExpression::CountStar { distinct } => {
+            let count = if *distinct {
+                let mut seen: DetHashSet<&Solution> = DetHashSet::default();
+                idxs.iter().filter(|&&i| seen.insert(&rows[i])).count()
+            } else {
+                idxs.len()
+            };
+            Ok(Some(integer_term(ctx, count as i64)))
+        }
+        AggregateExpression::FunctionCall {
+            function,
+            expression,
+            distinct,
+        } => {
+            // Collect the bound values of the expression over the group.
+            let mut values: Vec<(SolutionTerm, TermValue)> = Vec::new();
+            for &i in idxs {
+                if let Some(term) = eval_expr(expression, &rows[i], schema, ctx)? {
+                    let value = ctx.scratch.value_of(ctx.dataset, term);
+                    values.push((term, value));
+                }
+            }
+            if *distinct {
+                let mut seen: DetHashSet<SolutionTerm> = DetHashSet::default();
+                values.retain(|(t, _)| seen.insert(*t));
+            }
+            apply_aggregate(function, values, ctx)
+        }
+    }
+}
+
+/// Apply a named aggregate to the collected group values.
+fn apply_aggregate(
+    function: &AggregateFunction,
+    values: Vec<(SolutionTerm, TermValue)>,
+    ctx: &mut EvalCtx<'_>,
+) -> Result<Option<SolutionTerm>, EvalError> {
+    match function {
+        AggregateFunction::Count => Ok(Some(integer_term(ctx, values.len() as i64))),
+        AggregateFunction::Sample => Ok(values.first().map(|(t, _)| *t)),
+        AggregateFunction::Min => Ok(extreme(&values, Ordering::Less)),
+        AggregateFunction::Max => Ok(extreme(&values, Ordering::Greater)),
+        AggregateFunction::GroupConcat { separator } => {
+            let sep = separator.as_deref().unwrap_or(" ");
+            let joined = values
+                .iter()
+                .filter_map(|(_, v)| lexical_of(v))
+                .collect::<Vec<_>>()
+                .join(sep);
+            Ok(Some(string_term(ctx, joined)))
+        }
+        // SUM/AVG need full XSD numeric arithmetic (incl. decimal division for AVG),
+        // which is deferred with the rest of arithmetic — hard error, never wrong.
+        AggregateFunction::Sum | AggregateFunction::Avg => Err(EvalError::unsupported(
+            "SUM/AVG aggregate (numeric arithmetic not yet implemented in sparql-eval)",
+        )),
+        AggregateFunction::Custom(iri) => Err(EvalError::unsupported(format!(
+            "custom aggregate <{}>",
+            iri.as_str()
+        ))),
+    }
+}
+
+/// The group's extreme value (`Ordering::Less` = MIN, `Greater` = MAX) under SPARQL
+/// term ordering, returning its solution term; `None` for an empty group.
+fn extreme(values: &[(SolutionTerm, TermValue)], want: Ordering) -> Option<SolutionTerm> {
+    values
+        .iter()
+        .reduce(|acc, cur| {
+            if term_value_order(&cur.1, &acc.1) == want {
+                cur
+            } else {
+                acc
+            }
+        })
+        .map(|(t, _)| *t)
+}
+
+/// The lexical string of a term for GROUP_CONCAT (literal lexical / IRI string).
+fn lexical_of(value: &TermValue) -> Option<String> {
+    match value {
+        TermValue::Literal { lexical_form, .. } => Some(lexical_form.clone()),
+        TermValue::Iri(iri) => Some(iri.clone()),
+        _ => None,
+    }
+}
+
+/// Intern an `xsd:integer` literal.
+fn integer_term(ctx: &mut EvalCtx<'_>, value: i64) -> SolutionTerm {
+    ctx.scratch.intern(
+        ctx.dataset,
+        TermValue::Literal {
+            lexical_form: value.to_string(),
+            datatype: XSD_INTEGER.to_owned(),
+            language: None,
+            direction: None,
+        },
+    )
+}
+
+/// Intern an `xsd:string` literal.
+fn string_term(ctx: &mut EvalCtx<'_>, lexical: String) -> SolutionTerm {
+    ctx.scratch.intern(
+        ctx.dataset,
+        TermValue::Literal {
+            lexical_form: lexical,
+            datatype: XSD_STRING.to_owned(),
+            language: None,
+            direction: None,
+        },
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -438,6 +630,125 @@ mod tests {
         let seq = eval_project(&age_bgp(), &[Variable::new("n")], &mut ctx).expect("project");
         assert_eq!(seq.schema.vars(), &[Variable::new("n")]);
         assert_eq!(seq.len(), 3);
+    }
+
+    #[test]
+    fn group_by_with_count() {
+        let ds = ages();
+        let mut ctx = EvalCtx::new(&ds);
+        // GROUP BY ?n COUNT(*) — group by age: {30→2, 17→1}.
+        let group = GraphPattern::Group {
+            inner: Box::new(age_bgp()),
+            variables: vec![Variable::new("n")],
+            aggregates: vec![(
+                Variable::new("c"),
+                AggregateExpression::CountStar { distinct: false },
+            )],
+        };
+        let seq = eval(&group, &mut ctx).expect("group");
+        assert_eq!(seq.len(), 2);
+        let ncol = seq.schema.index_of(&Variable::new("n")).unwrap();
+        let ccol = seq.schema.index_of(&Variable::new("c")).unwrap();
+        let scratch = crate::scratch::ScratchInterner::new();
+        let mut pairs: Vec<(String, String)> = seq
+            .rows
+            .iter()
+            .map(|r| {
+                let n = match scratch.value_of(&ds, r[ncol].unwrap()) {
+                    TermValue::Literal { lexical_form, .. } => lexical_form,
+                    o => format!("{o:?}"),
+                };
+                // The count is a computed term — resolve via the eval scratch.
+                let c = match ctx.scratch.value_of(&ds, r[ccol].unwrap()) {
+                    TermValue::Literal { lexical_form, .. } => lexical_form,
+                    o => format!("{o:?}"),
+                };
+                (n, c)
+            })
+            .collect();
+        pairs.sort();
+        assert_eq!(
+            pairs,
+            vec![
+                ("17".to_owned(), "1".to_owned()),
+                ("30".to_owned(), "2".to_owned())
+            ]
+        );
+    }
+
+    #[test]
+    fn count_star_over_empty_is_one_group_zero() {
+        // No GROUP BY, COUNT(*) over an empty result → one row binding 0.
+        let ds = ages();
+        let mut ctx = EvalCtx::new(&ds);
+        // A BGP that matches nothing.
+        let empty_bgp = GraphPattern::Bgp {
+            patterns: vec![TriplePattern {
+                subject: TermPattern::Variable(Variable::new("s")),
+                predicate: NamedNodePattern::NamedNode(NamedNode::new_unchecked("http://ex/none")),
+                object: TermPattern::Variable(Variable::new("o")),
+            }],
+        };
+        let group = GraphPattern::Group {
+            inner: Box::new(empty_bgp),
+            variables: vec![],
+            aggregates: vec![(
+                Variable::new("c"),
+                AggregateExpression::CountStar { distinct: false },
+            )],
+        };
+        let seq = eval(&group, &mut ctx).expect("group");
+        assert_eq!(seq.len(), 1);
+        let ccol = seq.schema.index_of(&Variable::new("c")).unwrap();
+        let c = match ctx.scratch.value_of(&ds, seq.rows[0][ccol].unwrap()) {
+            TermValue::Literal { lexical_form, .. } => lexical_form,
+            o => format!("{o:?}"),
+        };
+        assert_eq!(c, "0");
+    }
+
+    #[test]
+    fn group_min_and_sum_hard_errors() {
+        let ds = ages();
+        let mut ctx = EvalCtx::new(&ds);
+        // MIN(?n) over the whole input → 17.
+        let group_min = GraphPattern::Group {
+            inner: Box::new(age_bgp()),
+            variables: vec![],
+            aggregates: vec![(
+                Variable::new("m"),
+                AggregateExpression::FunctionCall {
+                    function: AggregateFunction::Min,
+                    expression: Box::new(Expression::Variable(Variable::new("n"))),
+                    distinct: false,
+                },
+            )],
+        };
+        let seq = eval(&group_min, &mut ctx).expect("min");
+        let mcol = seq.schema.index_of(&Variable::new("m")).unwrap();
+        let m = match ctx.scratch.value_of(&ds, seq.rows[0][mcol].unwrap()) {
+            TermValue::Literal { lexical_form, .. } => lexical_form,
+            o => format!("{o:?}"),
+        };
+        assert_eq!(m, "17");
+
+        // SUM is deferred → hard error.
+        let group_sum = GraphPattern::Group {
+            inner: Box::new(age_bgp()),
+            variables: vec![],
+            aggregates: vec![(
+                Variable::new("s"),
+                AggregateExpression::FunctionCall {
+                    function: AggregateFunction::Sum,
+                    expression: Box::new(Expression::Variable(Variable::new("n"))),
+                    distinct: false,
+                },
+            )],
+        };
+        assert!(matches!(
+            eval(&group_sum, &mut ctx),
+            Err(EvalError::Unsupported(_))
+        ));
     }
 
     #[test]

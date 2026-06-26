@@ -90,6 +90,11 @@ pub fn eval(pattern: &GraphPattern, ctx: &mut EvalCtx<'_>) -> Result<SolutionSeq
             crate::modifier::eval_order_by(inner, expression, ctx)
         }
         GraphPattern::Graph { name, inner } => crate::modifier::eval_graph(name, inner, ctx),
+        GraphPattern::Group {
+            inner,
+            variables,
+            aggregates,
+        } => crate::modifier::eval_group(inner, variables, aggregates, ctx),
         // Implemented incrementally over the remaining S6 build tasks; until then
         // (and permanently, for out-of-scope nodes) a hard error names the construct.
         other => Err(EvalError::Unsupported(format!(
