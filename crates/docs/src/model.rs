@@ -12,7 +12,6 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 use serde::Serialize;
@@ -596,21 +595,18 @@ impl DocsModel {
 
 // ── Turtle parsing + term extraction ──────────────────────────────────────────
 
-/// Parse Turtle bytes into an oxigraph store using the SAME lenient parser the
-/// slice catalog uses (accepts `@x-gmeow-*` language tags).
+/// Parse Turtle bytes into an oxigraph store via the native codecs (the
+/// gmeow-gts codecs are lenient on GMEOW's `@x-gmeow-*` language tags). The store
+/// is kept for the term-extraction queries (SPARQL/pattern matching, scope-OUT of
+/// #909); only the TEXT parse is routed natively.
 pub(crate) fn parse_turtle_lenient(bytes: &[u8]) -> Result<Store, SliceError> {
-    let store =
-        Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes)
-    {
-        let quad = quad.map_err(|e| SliceError::Parse(format!("syntax error: {e}")))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(store)
+    let dataset = gmeow_rdf::parse_dataset(bytes, "text/turtle", None)
+        .map_err(|e| SliceError::Parse(format!("syntax error: {e}")))?;
+    gmeow_rdf::oxigraph::store_from_dataset(
+        &dataset,
+        gmeow_rdf::oxigraph::GraphPolicy::PreserveNamedGraphs,
+    )
+    .map_err(|e| SliceError::Parse(format!("store build failed: {e}")))
 }
 
 /// Extract documented terms (GMEOW-namespaced typed subjects) from a module store.

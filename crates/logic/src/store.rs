@@ -16,7 +16,7 @@ use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
 use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-use gmeow_rdf::RdfDataset;
+use gmeow_rdf::{parse_dataset, RdfDataset};
 
 /// A world-indexed RDF store.
 ///
@@ -39,18 +39,20 @@ impl WorldStore {
     /// Load N-Quads text into the store, preserving named graphs (worlds).
     ///
     /// Each quad's graph component becomes its world. The default graph and
-    /// blank-node graphs are loaded as-is by oxigraph but are not addressable as
-    /// worlds via the world-indexed API. Mirrors the `load_from_reader` path used
-    /// by `py.rs::materialize` so the backward-goal EDB parses identically.
+    /// blank-node graphs are folded as-is but are not addressable as worlds via the
+    /// world-indexed API. The N-Quads text is parsed through the native codec
+    /// (`parse_dataset`) into the frozen `RdfDataset` IR, then routed into the
+    /// world-indexed store via [`load_dataset`](Self::load_dataset) — the same
+    /// text-free IR → store path the GTS-backed EDB takes, so both sources fold
+    /// identically (no codec drift).
     ///
     /// # Errors
     ///
     /// Returns `Err(String)` if the N-Quads text is malformed.
     pub fn load_nquads(&self, nquads: &str) -> Result<(), String> {
-        self.inner
-            .load_from_reader(oxigraph::io::RdfFormat::NQuads, nquads.as_bytes())
+        let dataset = parse_dataset(nquads.as_bytes(), "application/n-quads", None)
             .map_err(|e| format!("N-Quads parse error: {e}"))?;
-        Ok(())
+        self.load_dataset(dataset.as_ref())
     }
 
     /// Load a frozen RDF dataset into the world-indexed store, preserving named graphs.

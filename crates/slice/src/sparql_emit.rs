@@ -19,7 +19,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphNameRef, NamedNode, NamedOrBlankNode, Term};
 pub(crate) use oxigraph::store::Store;
 
@@ -382,17 +381,7 @@ fn collect_ttl_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<()
 }
 
 fn load_into_store(store: &Store, bytes: &[u8], path: &Path) -> Result<(), SliceError> {
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes)
-    {
-        let quad = quad
-            .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(())
+    crate::rdf_text::turtle_bytes_into_store(store, bytes, &path.display().to_string())
 }
 
 // ── DSL parsing ────────────────────────────────────────────────────────────────

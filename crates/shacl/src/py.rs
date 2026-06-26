@@ -17,7 +17,6 @@
 //! `constraints`, `path`, `report`, `model`) are PyO3-free so the rlib links
 //! into the future Rust compiler without any Python dependency.
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::store::Store;
 use pyo3::prelude::*;
 use pyo3::types::{PyAny, PyCapsule, PyCapsuleMethods, PyDict, PyList};
@@ -107,18 +106,10 @@ impl PyShapes {
 
     /// Validate an N-Triples data graph against these parsed shapes.
     fn validate_nt(&self, data_nt: String) -> PyResult<PyValidationReport> {
-        let data = Store::new().map_err(|e| {
-            pyo3::exceptions::PyValueError::new_err(format!("data store creation failed: {e}"))
-        })?;
-        if !data_nt.is_empty() {
-            data.load_from_reader(
-                RdfParser::from_format(RdfFormat::NTriples).lenient(),
-                data_nt.as_bytes(),
-            )
-            .map_err(|e| {
-                pyo3::exceptions::PyValueError::new_err(format!("N-Triples parse error: {e}"))
-            })?;
-        }
+        // Native codec ingest (#909): lenient on private-use language tags, every
+        // malformed line reported in one pass.
+        let data = crate::text_ingest::parse_ntriples_to_store(&data_nt)
+            .map_err(|errors| pyo3::exceptions::PyValueError::new_err(errors.join("\n")))?;
         Ok(PyValidationReport::new(engine::validate(
             &data,
             &self.inner,

@@ -27,20 +27,6 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:title ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri bibframe:title ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "title → bf:title"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
                 edoal:uri gmeow:hasTitle ;
             ] ;
             align:entity2 [
@@ -62,8 +48,8 @@
                 edoal:uri bibframe:identifiedBy ;
             ] ;
             align:relation "<=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "DOI identifier → bf:identifiedBy minted bf:Doi node"@en ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "non-DOI identifier → bf:identifiedBy minted bf:Identifier node"@en ;
         ] ,
         [
             a align:Cell ;
@@ -76,8 +62,22 @@
                 edoal:uri bibframe:identifiedBy ;
             ] ;
             align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "non-DOI identifier → bf:identifiedBy minted bf:Identifier node"@en ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "DOI identifier → bf:identifiedBy minted bf:Doi node"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:title ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri bibframe:title ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "title → bf:title"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

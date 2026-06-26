@@ -16,7 +16,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::Term;
 use oxigraph::store::Store;
 
@@ -24,6 +23,7 @@ use crate::error::PipelineError;
 use crate::graph::StageGraph;
 use crate::node::{Stage, StageKind, GMEOW};
 use crate::registry::StageRegistry;
+use crate::stages::source_load::turtle_bytes_into_store;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
@@ -117,15 +117,7 @@ impl PipelineSpec {
         let store = Store::new()
             .map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
         for doc in docs {
-            for quad in RdfParser::from_format(RdfFormat::Turtle)
-                .lenient()
-                .for_reader(doc.as_bytes())
-            {
-                let quad = quad.map_err(|e| PipelineError::Parse(format!("syntax error: {e}")))?;
-                store
-                    .insert(&quad)
-                    .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-            }
+            turtle_bytes_into_store(&store, doc.as_bytes(), "pipeline-spec")?;
         }
         Self::from_store(&store)
     }

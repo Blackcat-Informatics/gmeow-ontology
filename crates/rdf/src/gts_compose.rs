@@ -24,8 +24,10 @@ use ciborium::value::Value;
 use gmeow_gts::model::{Term, TermKind};
 use gmeow_gts::wire::{blake3_256, canonical, hex};
 use gmeow_gts::writer::{term_to_wire, Writer};
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphName, NamedOrBlankNode, Quad, Term as OxTerm};
+
+use crate::oxigraph::flat_oxigraph_quads_from_dataset;
+use crate::{parse_dataset, NativeRdfFormat};
 
 /// The `rdf:reifies` predicate IRI (RDF 1.2 statement layer).
 pub const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
@@ -536,14 +538,17 @@ pub fn emit_gts(
     Ok(writer.to_bytes())
 }
 
-/// Parse RDF bytes leniently into oxigraph quads (private-use language tags such
-/// as `@x-gmeow-*` must survive). The pyo3-free twin of `py_store::parse_quads`.
-pub fn parse_quads_lenient(data: &[u8], format: RdfFormat) -> Result<Vec<Quad>, String> {
-    let mut quads = Vec::new();
-    for quad in RdfParser::from_format(format).lenient().for_slice(data) {
-        quads.push(quad.map_err(|e| e.to_string())?);
-    }
-    Ok(quads)
+/// Parse RDF bytes into the flat oxigraph quad stream via the native codec (#909).
+///
+/// Routes through the native [`parse_dataset`](crate::parse_dataset) → IR → flat
+/// quad un-fold so the `SnapshotBuilder` ingests the same set of quads it did when it
+/// re-parsed N-Quads/Turtle text (base quads plus the `rdf:reifies` / annotation rows
+/// re-materialized from the folded statement layer). Private-use language tags such
+/// as `@x-gmeow-*` are valid BCP-47 `x-…` privateuse tags and survive the native
+/// parse. The pyo3-free twin of `py_store::parse_quads`.
+pub fn parse_quads_lenient(data: &[u8], format: NativeRdfFormat) -> Result<Vec<Quad>, String> {
+    let dataset = parse_dataset(data, format.media_type(), None).map_err(|e| e.to_string())?;
+    flat_oxigraph_quads_from_dataset(&dataset).map_err(|e| e.to_string())
 }
 
 #[cfg(test)]
@@ -551,10 +556,9 @@ mod tests {
     //! Pure-Rust coverage of the `SnapshotBuilder` core (no Python interpreter):
     //! interning order, content sort, the snapshot payload, and the content-id.
     use super::*;
-    use oxigraph::io::RdfFormat;
 
     fn ingest(nq: &str) -> SnapshotBuilder {
-        let quads = parse_quads_lenient(nq.as_bytes(), RdfFormat::NQuads).expect("parse");
+        let quads = parse_quads_lenient(nq.as_bytes(), NativeRdfFormat::NQuads).expect("parse");
         let mut b = SnapshotBuilder::default();
         b.add_quads(&quads, None, None);
         b
@@ -608,7 +612,7 @@ mod tests {
                 "<https://e/r> <https://e/confidence> \"0.9\" .\n",
             )
             .as_bytes(),
-            RdfFormat::NTriples,
+            NativeRdfFormat::NTriples,
         )
         .expect("parse rdf12");
         let mut b = SnapshotBuilder::default();
@@ -621,7 +625,16 @@ mod tests {
 
     #[test]
     fn conflicting_reifier_rebind_is_rejected() {
-        let quads = parse_quads_lenient(
+        // FINDING (#909): two DIFFERENT `rdf:reifies` triple terms for one reifier
+        // subject is still HARD-rejected (CONSTITUTION P7, never silently
+        // last-write-win), but the rejection now fires EARLIER — the native
+        // `parse_dataset` folds the statement layer during parse and detects the
+        // conflicting rebind there ("conflicting rdf:reifies binding"), before the
+        // bytes ever reach `SnapshotBuilder::add_rdf12`. Previously the flat lenient
+        // oxigraph parse passed both rows through and `add_rdf12`'s `bind_reifier`
+        // caught the conflict ("conflicting reifier rebind"). Either way the conflict
+        // is surfaced, not dropped.
+        let err = parse_quads_lenient(
             concat!(
                 "<https://e/r> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
                 "<<( <https://e/s> <https://e/p> <https://e/o1> )>> .\n",
@@ -629,13 +642,9 @@ mod tests {
                 "<<( <https://e/s> <https://e/p> <https://e/o2> )>> .\n",
             )
             .as_bytes(),
-            RdfFormat::NTriples,
+            NativeRdfFormat::NTriples,
         )
-        .expect("parse");
-        let mut b = SnapshotBuilder::default();
-        let err = b
-            .add_rdf12(&quads, None, None)
-            .expect_err("conflict must error");
-        assert!(err.contains("conflicting reifier rebind"), "{err}");
+        .expect_err("conflicting rdf:reifies must hard-fail at parse");
+        assert!(err.contains("conflicting rdf:reifies binding"), "{err}");
     }
 }

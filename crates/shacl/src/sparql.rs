@@ -162,13 +162,8 @@ mod tests {
 
     /// Build a tiny in-memory store from a slice of N-Triples lines.
     fn store_from_ntriples(lines: &[&str]) -> Store {
-        use oxigraph::io::RdfFormat;
-        let store = Store::new().expect("in-memory store");
         let ntriples = lines.join("\n");
-        store
-            .load_from_reader(RdfFormat::NTriples, ntriples.as_bytes())
-            .expect("valid N-Triples");
-        store
+        crate::text_ingest::parse_ntriples_to_store(&ntriples).expect("valid N-Triples")
     }
 
     fn named(iri: &str) -> NamedNode {

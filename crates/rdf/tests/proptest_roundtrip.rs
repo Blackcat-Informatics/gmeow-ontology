@@ -41,6 +41,17 @@
 //!   N-Quads/TriG carry the quoted-triple coverage.
 //! * **CLIF / CGIF / XCL** round-trips: depend on the open Common Logic epic
 //!   (#718/#719) and do not exist yet.
+//!
+//! # INTENTIONAL oxigraph cross-check (#909) — NOT a production native-codec path
+//!
+//! The `oxigraph::io` parse/serialize used here is deliberate: this gate cross-checks
+//! the python-gated `py_store::{canonicalize_quads, parse_quads}` core (which wraps
+//! oxigraph and is unreachable from a plain `cargo nextest` run) against oxigraph's
+//! own public RDFC-1.0 comparator and codecs. Re-using the *independent* oxigraph
+//! implementation as the reference is the whole point. The native text codec's own
+//! round-trip fidelity is covered separately by the isomorphism round-trips in
+//! `crates/rdf/src/native_codecs/mod.rs`. So the `oxigraph::io` use here is an
+//! explicit, documented carve-out from the #909 grep gate, not a production codec.
 
 use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
 use gmeow_rdf::{

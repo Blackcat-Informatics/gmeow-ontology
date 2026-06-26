@@ -61,7 +61,7 @@ gmeow-diagnostics = { path = "../diagnostics" }
 # GTS format engine: cache-key derivation reads `gmeow_gts::model::Graph::segment_heads`,
 # and the toolchain salt mixes `gmeow_gts::wire::VERSION`. Runtime GTS ingestion itself
 # lives in gmeow-rdf (#683).
-gmeow-gts = "0.9.5"
+gmeow-gts = "0.9.9"
 # pyo3 is an UNCONDITIONAL native-only dependency: this crate is native-only and
 # carries NO architecture cfgs (never a [target.'cfg(...)'] table). A capability
 # cfg would be optionality, not compliance (#579). The engine core

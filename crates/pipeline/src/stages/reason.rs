@@ -16,7 +16,7 @@ use gmeow_logic::reason::artifacts::{
     build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
 };
 use gmeow_logic::reason::reason_all;
-use oxigraph::io::RdfFormat;
+use gmeow_rdf::NativeRdfFormat;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
@@ -42,7 +42,7 @@ pub const LEDGER_PATH: &str = "pipeline/reason-dl-el-crosscheck-report.ttl";
 /// `(closure, explanations, ledger)`. Mirrors `reason_native_artifacts` in
 /// non-merge mode (the regenerate path).
 pub fn reason_artifacts(composed_nquads: &[u8]) -> Result<(String, String, String), PipelineError> {
-    let edb = gmeow_rdf::dataset_from_bytes(composed_nquads, RdfFormat::NQuads)
+    let edb = gmeow_rdf::dataset_from_bytes(composed_nquads, NativeRdfFormat::NQuads)
         .map_err(|e| PipelineError::Parse(format!("reason input parse: {e}")))?;
     let result = reason_all(edb.as_ref()).map_err(|e| PipelineError::Stage {
         stage: "stage-reason".to_string(),

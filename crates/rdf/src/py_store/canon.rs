@@ -37,7 +37,7 @@ pub fn canonicalize_quads(quads: Vec<Quad>, _algorithm: PyCanonicalizationAlgori
 
 #[cfg(test)]
 mod tests {
-    use oxigraph::io::RdfFormat;
+    use crate::NativeRdfFormat;
 
     use super::*;
     use crate::py_store::io::parse_quads;
@@ -49,11 +49,11 @@ mod tests {
         let g1 = "_:a <https://example.org/p> _:b .\n_:b <https://example.org/q> _:a .";
         let g2 = "_:x <https://example.org/p> _:y .\n_:y <https://example.org/q> _:x .";
         let c1 = canonicalize_quads(
-            parse_quads(g1.as_bytes(), RdfFormat::NTriples).unwrap(),
+            parse_quads(g1.as_bytes(), NativeRdfFormat::NTriples).unwrap(),
             PyCanonicalizationAlgorithm::RDFC_1_0,
         );
         let c2 = canonicalize_quads(
-            parse_quads(g2.as_bytes(), RdfFormat::NTriples).unwrap(),
+            parse_quads(g2.as_bytes(), NativeRdfFormat::NTriples).unwrap(),
             PyCanonicalizationAlgorithm::RDFC_1_0,
         );
         let s1: Vec<String> = c1.iter().map(Quad::to_string).collect();
@@ -65,11 +65,11 @@ mod tests {
     fn canonicalize_quads_unstable_is_self_consistent() {
         let g = "_:a <https://example.org/p> _:b .";
         let c1 = canonicalize_quads(
-            parse_quads(g.as_bytes(), RdfFormat::NTriples).unwrap(),
+            parse_quads(g.as_bytes(), NativeRdfFormat::NTriples).unwrap(),
             PyCanonicalizationAlgorithm::UNSTABLE,
         );
         let c2 = canonicalize_quads(
-            parse_quads(g.as_bytes(), RdfFormat::NTriples).unwrap(),
+            parse_quads(g.as_bytes(), NativeRdfFormat::NTriples).unwrap(),
             PyCanonicalizationAlgorithm::UNSTABLE,
         );
         let s1: Vec<String> = c1.iter().map(Quad::to_string).collect();

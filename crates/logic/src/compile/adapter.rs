@@ -25,9 +25,11 @@
 use std::collections::HashSet;
 use std::path::Path;
 
-use oxigraph::io::RdfFormat;
 use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
+
+use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+use gmeow_rdf::parse_dataset;
 
 use super::frontend::{Diagnostic, LogicParseError, Severity};
 use super::graphutil::{
@@ -485,11 +487,11 @@ pub fn adapt_legacy_str(
     turtle: &str,
     source_iri: Option<String>,
 ) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
-    let store =
-        Store::new().map_err(|e| LogicParseError(format!("in-memory store init failed: {e}")))?;
-    store
-        .load_from_reader(RdfFormat::Turtle, turtle.as_bytes())
+    // Native codec parse → frozen IR → oxigraph Store (text-free hop, #909).
+    let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)
         .map_err(|e| LogicParseError(format!("Failed to parse Turtle source: {e}")))?;
+    let store = store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
+        .map_err(|e| LogicParseError(format!("Failed to materialize Turtle source: {e}")))?;
     adapt_legacy_store(&store, source_iri)
 }
 

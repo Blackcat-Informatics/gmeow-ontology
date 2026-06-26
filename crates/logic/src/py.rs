@@ -22,9 +22,7 @@
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 
-use oxigraph::io::RdfFormat;
 use oxigraph::model::NamedNode;
-use oxigraph::store::Store;
 
 use crate::certify::certify as certify_rules;
 use crate::dispatch::dispatch_query;
@@ -1287,7 +1285,7 @@ fn compute_rl_closure(py: Python<'_>, input: &str) -> PyResult<crate::reason::rl
     // generic-triple RL chase with the GIL released.
     let bytes = input.as_bytes().to_vec();
     let closure: Result<crate::reason::rl::RlClosure, (bool, String)> = py.detach(move || {
-        let dataset = gmeow_rdf::dataset_from_bytes(&bytes, RdfFormat::NQuads)
+        let dataset = gmeow_rdf::dataset_from_bytes(&bytes, gmeow_rdf::NativeRdfFormat::NQuads)
             .map_err(|e| (true, format!("N-Quads parse error: {e}")))?;
         crate::reason::rl::rl_closure(dataset.as_ref()).map_err(|e| (false, e))
     });
@@ -1330,15 +1328,20 @@ fn rl_closure_quads(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
         return Ok(vec![]);
     }
     let nt = compute_rl_closure(py, input)?.to_ntriples();
-    // Re-parse the rendered closure with oxigraph so the tricky literal/datatype
-    // and blank-node grammar is decoded by the same engine that serialized it,
-    // then hand each quad to Python as a native `gmeow_rdf.Quad` (#630).
+    // Re-parse the rendered closure through the native codec (#909), then fold it into
+    // an in-memory oxigraph Store (text-free IR → Store hop) so each quad is handed to
+    // Python as a native `gmeow_rdf.Quad` (#630). The native codec is the same engine
+    // that the rest of the stack parses with — literal/datatype and blank-node grammar
+    // decode identically.
     let quads = py
         .detach(move || -> Result<Vec<oxigraph::model::Quad>, String> {
-            let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
-            store
-                .load_from_reader(RdfFormat::NTriples, nt.as_bytes())
+            let dataset = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
                 .map_err(|e| format!("RL closure re-parse failed: {e}"))?;
+            let store = gmeow_rdf::oxigraph::store_from_dataset(
+                dataset.as_ref(),
+                gmeow_rdf::oxigraph::GraphPolicy::PreserveNamedGraphs,
+            )
+            .map_err(|e| format!("RL closure store materialization failed: {e}"))?;
             store
                 .iter()
                 .collect::<Result<Vec<_>, _>>()

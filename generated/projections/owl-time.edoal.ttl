@@ -13,30 +13,16 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Relation ;
-            edoal:uri gmeow:startedAtTime ;
+            edoal:uri gmeow:endedAtTime ;
         ] ;
         align:entity2 [
             a edoal:Property ;
-            edoal:uri time:hasBeginning ;
+            edoal:uri time:hasEnd ;
         ] ;
         align:relation "<=" ;
         edoal:measure "0.9"^^xsd:double ;
-        rdfs:label "startedAtTime → time:hasBeginning minted Instant"@en ;
+        rdfs:label "endedAtTime → time:hasEnd minted Instant"@en ;
     ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:endedAtTime ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri time:hasEnd ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "endedAtTime → time:hasEnd minted Instant"@en ;
-        ] ,
         [
             a align:Cell ;
             align:entity1 [
@@ -50,6 +36,20 @@
             align:relation "<=" ;
             edoal:measure "0.9"^^xsd:double ;
             rdfs:label "eventTime → time:hasTime minted Instant"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:startedAtTime ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri time:hasBeginning ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "startedAtTime → time:hasBeginning minted Instant"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

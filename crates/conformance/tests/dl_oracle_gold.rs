@@ -35,8 +35,7 @@ use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 use gmeow_logic::reason::reason_all;
-use gmeow_rdf::dataset_from_bytes;
-use oxigraph::io::RdfFormat;
+use gmeow_rdf::{dataset_from_bytes, NativeRdfFormat};
 use serde_json::Value;
 
 /// The frozen-gold root, `coverage/external/697-dl-oracle-gold/`.
@@ -89,7 +88,7 @@ fn read_gold(path: &std::path::Path) -> OracleGold {
 fn native_verdict(dataset_path: &std::path::Path) -> (bool, BTreeSet<String>) {
     let bytes = std::fs::read(dataset_path)
         .unwrap_or_else(|e| panic!("read {}: {e}", dataset_path.display()));
-    let dataset = dataset_from_bytes(&bytes, RdfFormat::Turtle)
+    let dataset = dataset_from_bytes(&bytes, NativeRdfFormat::Turtle)
         .unwrap_or_else(|e| panic!("parse {}: {e}", dataset_path.display()));
     let result = reason_all(dataset.as_ref())
         .unwrap_or_else(|e| panic!("native reason_all on {}: {e}", dataset_path.display()));

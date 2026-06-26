@@ -17,9 +17,10 @@
 mod conformance_support;
 use conformance_support::*;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::GraphNameRef;
-use oxigraph::store::Store;
+
+use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+use gmeow_rdf::parse_dataset;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -30,13 +31,10 @@ const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
 /// Parse `data_nt` (N-Triples) into an in-memory oxigraph store and check
 /// that the triple `(subject, predicate, object)` is present (all named nodes).
 fn has_triple_nnn(data_nt: &str, subject: &str, predicate: &str, object: &str) -> bool {
-    let store = Store::new().expect("in-memory store");
-    store
-        .load_from_reader(
-            RdfParser::from_format(RdfFormat::NTriples),
-            data_nt.as_bytes(),
-        )
+    let dataset = parse_dataset(data_nt.as_bytes(), "application/n-triples", None)
         .expect("N-Triples parse must succeed");
+    let store = store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph)
+        .expect("store from dataset");
     let s = oxigraph::model::NamedNode::new(subject).expect("valid IRI");
     let p = oxigraph::model::NamedNode::new(predicate).expect("valid IRI");
     let o = oxigraph::model::NamedNode::new(object).expect("valid IRI");

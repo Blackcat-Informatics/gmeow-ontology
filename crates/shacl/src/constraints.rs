@@ -1360,7 +1360,6 @@ fn build_regex(pattern: &str, flags: Option<&str>) -> Result<regex::Regex, Strin
 mod tests {
     use super::*;
     use crate::report::Severity;
-    use oxigraph::io::RdfFormat;
     use oxigraph::model::{Literal, NamedNode};
     use oxigraph::store::Store;
     use std::sync::{Arc, OnceLock};
@@ -1420,11 +1419,7 @@ mod tests {
     }
 
     fn load_store(ttl: &str) -> Store {
-        let store = Store::new().unwrap();
-        store
-            .load_from_reader(RdfFormat::Turtle, ttl.as_bytes())
-            .unwrap();
-        store
+        crate::text_ingest::parse_turtle_to_store(ttl).expect("Turtle parse")
     }
 
     fn component_iri(results: &[ValidationResult]) -> Vec<String> {
@@ -1968,10 +1963,7 @@ mod tests {
     fn unique_lang_fail() {
         // Load two English-tagged literals via N-Triples (Turtle deduplicates in the store).
         let nt = format!("<{EX}a> <{EX}label> \"Hello\"@en .\n<{EX}a> <{EX}label> \"Hi\"@en .\n");
-        let store = Store::new().unwrap();
-        store
-            .load_from_reader(RdfFormat::NTriples, nt.as_bytes())
-            .unwrap();
+        let store = crate::text_ingest::parse_ntriples_to_store(&nt).expect("N-Triples parse");
         let shape = prop_shape(
             "S",
             &format!("{EX}label"),

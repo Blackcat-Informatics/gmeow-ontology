@@ -5,23 +5,27 @@
 //!
 //! The syntax check and the `owl:sameAs` ban scan overlapping source files. Both
 //! only need parse success plus a per-quad scan, so this module parses each
-//! Turtle file with oxigraph directly (the same parser the SHACL engine uses)
-//! rather than building short-lived rdflib graphs.
+//! Turtle file with the native gmeow-rdf codecs (#909) rather than building
+//! short-lived rdflib graphs or driving the oxigraph `io` parser directly. The parsed IR is
+//! flattened back into the source-faithful oxigraph quad stream so the existing
+//! `Quad`/`Store`-shaped callers are unchanged.
 //!
-//! Parsing is **lenient** (`.lenient()`), preserving the legacy behavior of
-//! oxigraph's default `parse()` exactly (#579 is a no-behavior-change port).
-//! The real GMEOW ontology carries private-use `@x-gmeow-*` language tags whose
-//! subtag exceeds BCP-47's 8-char limit (e.g. `@x-gmeow-afrikaans`); the strict
-//! parser rejects the whole file on these (`imports/languages-reference.ttl`),
-//! which would make the ontology un-syntax-checkable. Leniency skips that one
-//! check while still surfacing every real Turtle syntax error — the same stance
-//! the SHACL engine takes for the same files (#597).
+//! Parsing is **lenient by construction**: the native codecs accept the GMEOW
+//! ontology's private-use `@x-gmeow-*` language tags whose subtag exceeds
+//! BCP-47's 8-char limit (e.g. `@x-gmeow-afrikaans`). The strict oxigraph `io`
+//! parser used to reject the whole file on these
+//! (`imports/languages-reference.ttl`); the native path keeps the file
+//! syntax-checkable while still surfacing every real Turtle syntax error (#597).
 
 use std::path::{Path, PathBuf};
 
-use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Quad, Term};
-use oxigraph::store::{SerializerError, Store};
+use oxigraph::model::{NamedOrBlankNode, Quad, Term};
+use oxigraph::store::Store;
+
+use gmeow_rdf::oxigraph::{
+    dataset_from_store, flat_oxigraph_quads_from_dataset_scoped, store_from_dataset, GraphPolicy,
+};
+use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
 
 use crate::model::owl;
 
@@ -38,15 +42,11 @@ use crate::model::owl;
 /// parse.
 pub fn parse_file(path: &Path) -> Result<Vec<Quad>, String> {
     let bytes = std::fs::read(path).map_err(|e| e.to_string())?;
-    let mut quads: Vec<Quad> = Vec::new();
-    for triple in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes.as_slice())
-    {
-        let triple = triple.map_err(|e| e.to_string())?;
-        quads.push(triple);
-    }
-    Ok(quads)
+    let dataset = parse_dataset(&bytes, "text/turtle", None).map_err(|e| e.to_string())?;
+    // Scope blank labels by the source path so this file's quads stay disjoint from
+    // other files' when `build_store_from_parsed` merges them into one store (#909).
+    flat_oxigraph_quads_from_dataset_scoped(&dataset, &path.display().to_string())
+        .map_err(|e| e.to_string())
 }
 
 /// Parse every Turtle file in `paths` into one oxigraph [`Store`].
@@ -73,14 +73,18 @@ pub fn load_sources_into_store(paths: &[PathBuf]) -> Result<Store, String> {
     for path in paths {
         let bytes =
             std::fs::read(path).map_err(|e| format!("failed to read {}: {e}", path.display()))?;
-        for triple in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(bytes.as_slice())
-        {
-            let triple = triple.map_err(|e| format!("syntax error in {}: {e}", path.display()))?;
+        let path_str = path.display().to_string();
+        let dataset = parse_dataset(&bytes, "text/turtle", None)
+            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
+        // Scope blank labels per source file so several Turtle documents merged into one
+        // store keep their anonymous blanks disjoint (the native codecs restart the
+        // blank counter per parse and `store.insert` does not rename them) (#909).
+        let quads = flat_oxigraph_quads_from_dataset_scoped(&dataset, &path_str)
+            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
+        for quad in quads {
             store
-                .insert(&triple)
-                .map_err(|e| format!("store insert failed for {}: {e}", path.display()))?;
+                .insert(&quad)
+                .map_err(|e| format!("store insert failed for {path_str}: {e}"))?;
         }
     }
     Ok(store)
@@ -254,17 +258,10 @@ pub fn sameas_violations(
 ///
 /// Returns `Err(message)` if the N-Triples fails to parse.
 pub fn build_store_from_nt(data_nt: &str) -> Result<Store, String> {
-    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
-    for triple in RdfParser::from_format(RdfFormat::NTriples)
-        .lenient()
-        .for_reader(data_nt.as_bytes())
-    {
-        let triple = triple.map_err(|e| format!("N-Triples parse error: {e}"))?;
-        store
-            .insert(&triple)
-            .map_err(|e| format!("store insert failed: {e}"))?;
-    }
-    Ok(store)
+    let dataset = parse_dataset(data_nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| format!("N-Triples parse error: {e}"))?;
+    store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph)
+        .map_err(|e| format!("store insert failed: {e}"))
 }
 
 /// Parse GTS bytes into a [`gmeow_gts::model::Graph`].
@@ -310,24 +307,37 @@ pub fn build_store_from_gts(bytes: &[u8]) -> Result<Store, String> {
     build_store_from_graph(&graph)
 }
 
-/// Serialize a [`Store`]'s default graph to canonical N-Triples text.
+/// Serialize a [`Store`]'s default graph to N-Triples text.
 ///
-/// Uses oxigraph's own N-Triples serializer (no hand-rolled literal escaping),
-/// the same primitive the SHACL report uses. This is the rdflib-free replacement
-/// for `rdflib.Graph.serialize(format="nt")` on the validation path (#579):
-/// `merge_to_ntriples` builds the store from the Turtle sources and dumps it so
-/// the SHACL data graph never touches rdflib.
+/// Folds the store back into the gmeow-rdf IR ([`dataset_from_store`]) and emits
+/// it through the native codec (#909) — no oxigraph `io` serializer. This is the
+/// rdflib-free replacement for `rdflib.Graph.serialize(format="nt")` on the
+/// validation path (#579): `merge_to_ntriples` builds the store from the Turtle
+/// sources and dumps it so the SHACL data graph never touches rdflib.
+///
+/// The `DefaultGraph` selection collapses the store to its default graph, so
+/// every emitted row is graphless and the output is exactly N-Triples. We request
+/// the `application/n-quads` codec (not `application/n-triples`) deliberately: the
+/// N-Quads writer is byte-lenient on language tags (it writes the lexical tag
+/// verbatim), matching the legacy oxigraph N-Triples serializer, whereas the
+/// native N-Triples writer re-validates tags through oxrdf and would reject the
+/// GMEOW ontology's private-use `@x-gmeow-*` tags (>8-char subtags). With a
+/// default-graph-only store the two formats are byte-identical apart from that
+/// validation, so this preserves the legacy output while staying serializable.
 ///
 /// # Errors
 ///
-/// Returns `Err(SerializerError)` if the oxigraph serializer fails (e.g., an
-/// unexpected `Storage` error from the underlying store).
-pub fn dump_store_to_ntriples(store: &Store) -> Result<String, SerializerError> {
-    let mut buf: Vec<u8> = Vec::new();
-    store.dump_graph_to_writer(GraphNameRef::DefaultGraph, RdfFormat::NTriples, &mut buf)?;
-    // SAFETY: The W3C N-Triples spec mandates US-ASCII output; oxigraph
-    // escapes all non-ASCII codepoints, so the byte buffer is valid UTF-8.
-    Ok(String::from_utf8(buf).expect("oxigraph N-Triples output is guaranteed UTF-8"))
+/// Returns `Err(message)` if the store cannot be folded into the IR or the native
+/// serializer fails.
+pub fn dump_store_to_ntriples(store: &Store) -> Result<String, String> {
+    let dataset = dataset_from_store(store).map_err(|e| e.to_string())?;
+    let bytes = serialize_dataset(
+        &dataset,
+        "application/n-quads",
+        SerializeGraph::DefaultGraph,
+    )
+    .map_err(|e| e.to_string())?;
+    String::from_utf8(bytes).map_err(|e| e.to_string())
 }
 
 #[cfg(test)]
@@ -667,7 +677,7 @@ mod tests {
     fn build_store_from_graph_flattens_quads() {
         use gmeow_gts::model::{Term, TermKind};
         use gmeow_gts::writer::Writer;
-        use oxigraph::model::{NamedNode, Quad};
+        use oxigraph::model::{GraphNameRef, NamedNode, Quad};
 
         let s = "https://example.org/s";
         let p = "https://example.org/p";

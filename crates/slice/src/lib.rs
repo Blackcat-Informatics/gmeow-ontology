@@ -17,6 +17,7 @@ pub mod fno_emit;
 pub mod mapping_emit;
 pub mod ownership;
 pub mod projection_lint;
+pub(crate) mod rdf_text;
 pub mod sparql_emit;
 pub mod standpoint_emit;
 

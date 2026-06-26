@@ -15,23 +15,49 @@
             a edoal:Relation ;
             edoal:compose ( [
                 a edoal:Relation ;
-                edoal:uri gmeow:eventType ;
+                edoal:inverse [
+                    a edoal:Relation ;
+                    edoal:uri gmeow:participationEvent ;
+                ] ;
             ] [
                 a edoal:Relation ;
-                edoal:uri rdfs:label ;
+                edoal:uri gmeow:participationParticipant ;
             ] ) ;
         ] ;
         align:entity2 [
             a edoal:Property ;
-            edoal:uri ical:summary ;
+            edoal:uri ical:attendee ;
         ] ;
         align:relation "<=" ;
-        edoal:measure "0.6"^^xsd:double ;
+        edoal:measure "0.8"^^xsd:double ;
         edoal:transformation [
-            rdfs:seeAlso gmeow:fnEventTypeToSummary ;
+            rdfs:seeAlso gmeow:fnParticipationToEventRole ;
         ] ;
-        rdfs:label "Event type label → iCalendar SUMMARY"@en ;
+        rdfs:label "Participation participant → iCalendar ATTENDEE"@en ;
     ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:compose ( [
+                    a edoal:Relation ;
+                    edoal:uri gmeow:eventType ;
+                ] [
+                    a edoal:Relation ;
+                    edoal:uri rdfs:label ;
+                ] ) ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri ical:summary ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.6"^^xsd:double ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnEventTypeToSummary ;
+            ] ;
+            rdfs:label "Event type label → iCalendar SUMMARY"@en ;
+        ] ,
         [
             a align:Cell ;
             align:entity1 [
@@ -48,32 +74,6 @@
                 rdfs:seeAlso gmeow:fnParticipantToAttendee ;
             ] ;
             rdfs:label "hasParticipant → iCalendar ATTENDEE"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:compose ( [
-                    a edoal:Relation ;
-                    edoal:inverse [
-                        a edoal:Relation ;
-                        edoal:uri gmeow:participationEvent ;
-                    ] ;
-                ] [
-                    a edoal:Relation ;
-                    edoal:uri gmeow:participationParticipant ;
-                ] ) ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri ical:attendee ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.8"^^xsd:double ;
-            edoal:transformation [
-                rdfs:seeAlso gmeow:fnParticipationToEventRole ;
-            ] ;
-            rdfs:label "Participation participant → iCalendar ATTENDEE"@en ;
         ] ,
         [
             a align:Cell ;

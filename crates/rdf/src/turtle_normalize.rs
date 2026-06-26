@@ -5,11 +5,13 @@
 //!
 //! Replaces rdflib's `longturtle` as the on-disk normalizer (`gmeow normalize`).
 //! Per the #819 thesis, the IR ([`RdfDataset`]) — not oxigraph — is the
-//! representation that is read, ordered, and rendered here; oxigraph appears only
-//! as the text *parser* at the ingest edge (a compatibility backend at the edge,
-//! never the identity oracle, C0). Every triple is interned into the IR verbatim
+//! representation that is read, ordered, and rendered here; the native
+//! [`parse_dataset`](crate::parse_dataset) codec (#909) appears only as the text
+//! *parser* at the ingest edge. Every triple is interned into the IR verbatim
 //! (RDF-star triple terms stay triple-term objects, NOT split into reifier
-//! tables), so the rendered graph is identical to the input.
+//! tables — the native parser folds the statement layer, so the ingest flattens it
+//! back to the un-folded flat quad stream before re-interning), so the rendered
+//! graph is identical to the input.
 //!
 //! The output is a pure function of the graph and improves on `longturtle`:
 //!
@@ -29,11 +31,9 @@ use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::sync::Arc;
 
-use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::model::{NamedOrBlankNode, Term as OxTerm};
-
 use crate::ir::{RdfDataset, RdfDatasetBuilder, TermId, TermRef};
-use crate::BlankScope;
+use crate::oxigraph::flat_rdf_quads_from_dataset;
+use crate::{parse_dataset, BlankScope, NativeRdfFormat, RdfTerm};
 
 const RDF: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
@@ -56,57 +56,32 @@ pub fn canonical_turtle(
     Ok(render(&dataset, extra_prefixes))
 }
 
-/// Ingest: oxigraph parses the Turtle text at the edge; every triple is interned
-/// into the IR verbatim (triple-term objects preserved), nothing reclassified.
+/// Ingest: the native codec parses the Turtle text at the edge into the IR, which
+/// is flattened back to the un-folded flat quad stream (RDF-star triple terms
+/// preserved as triple-term objects, nothing reclassified) and re-interned verbatim
+/// into a fresh builder so the rendered graph is identical to the input.
 fn ingest(input: &[u8]) -> Result<Arc<RdfDataset>, String> {
-    let mut parser = RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(input);
+    let parsed = parse_dataset(input, NativeRdfFormat::Turtle.media_type(), None)
+        .map_err(|e| format!("Turtle parse error: {e}"))?;
     let mut builder = RdfDatasetBuilder::new();
-    for quad in parser.by_ref() {
-        let quad = quad.map_err(|e| format!("Turtle parse error: {e}"))?;
-        let s = intern_subject(&mut builder, &quad.subject);
-        let p = builder.intern_iri(quad.predicate.as_str().to_owned());
-        let o = intern_object(&mut builder, &quad.object)?;
+    for quad in flat_rdf_quads_from_dataset(&parsed) {
+        let s = intern_term(&mut builder, &quad.subject)?;
+        let p = builder.intern_iri(quad.predicate);
+        let o = intern_term(&mut builder, &quad.object)?;
         builder.push_quad(s, p, o, None);
     }
     builder.freeze().map_err(|e| e.to_string())
 }
 
-fn intern_subject(builder: &mut RdfDatasetBuilder, subject: &NamedOrBlankNode) -> TermId {
-    match subject {
-        NamedOrBlankNode::NamedNode(n) => builder.intern_iri(n.as_str().to_owned()),
-        NamedOrBlankNode::BlankNode(b) => {
-            builder.intern_blank(b.as_str().to_owned(), BlankScope::DEFAULT)
-        }
-    }
-}
-
-fn intern_object(builder: &mut RdfDatasetBuilder, object: &OxTerm) -> Result<TermId, String> {
-    Ok(match object {
-        OxTerm::NamedNode(n) => builder.intern_iri(n.as_str().to_owned()),
-        OxTerm::BlankNode(b) => builder.intern_blank(b.as_str().to_owned(), BlankScope::DEFAULT),
-        OxTerm::Literal(l) => {
-            let direction = l.direction().map(|d| match d {
-                oxigraph::model::BaseDirection::Ltr => crate::RdfTextDirection::Ltr,
-                oxigraph::model::BaseDirection::Rtl => crate::RdfTextDirection::Rtl,
-            });
-            builder.intern_literal(crate::RdfLiteral {
-                lexical_form: l.value().to_owned(),
-                datatype: Some(l.datatype().as_str().to_owned()),
-                language: l.language().map(str::to_owned),
-                direction,
-            })
-        }
-        OxTerm::Triple(t) => {
-            let s = match &t.subject {
-                NamedOrBlankNode::NamedNode(n) => builder.intern_iri(n.as_str().to_owned()),
-                NamedOrBlankNode::BlankNode(b) => {
-                    builder.intern_blank(b.as_str().to_owned(), BlankScope::DEFAULT)
-                }
-            };
-            let p = builder.intern_iri(t.predicate.as_str().to_owned());
-            let o = intern_object(builder, &t.object)?;
+fn intern_term(builder: &mut RdfDatasetBuilder, term: &RdfTerm) -> Result<TermId, String> {
+    Ok(match term {
+        RdfTerm::Iri(n) => builder.intern_iri(n.clone()),
+        RdfTerm::BlankNode(b) => builder.intern_blank(b.clone(), BlankScope::DEFAULT),
+        RdfTerm::Literal(l) => builder.intern_literal(l.clone()),
+        RdfTerm::Triple(t) => {
+            let s = intern_term(builder, &t.subject)?;
+            let p = builder.intern_iri(t.predicate.clone());
+            let o = intern_term(builder, &t.object)?;
             builder.intern_triple(s, p, o)
         }
     })
@@ -145,19 +120,49 @@ struct Renderer<'a> {
 
 impl<'a> Renderer<'a> {
     fn new(dataset: &'a RdfDataset, prefixes: Vec<(String, String)>) -> Self {
-        let mut by_subject: HashMap<TermId, Props> = HashMap::new();
+        // Phase 1: collect each subject's predicate→object multiset as raw `TermId`s,
+        // and count blank object references. We deliberately do NOT order objects yet:
+        // the ordering of blank/triple objects is a pure function of their subtree
+        // CONTENT (computed in phase 2), never of `TermId` interning order — that is
+        // what makes the render idempotent regardless of how the parser interned terms.
+        let mut raw: HashMap<TermId, BTreeMap<TermId, Vec<TermId>>> = HashMap::new();
         let mut object_refs: HashMap<TermId, usize> = HashMap::new();
         for q in dataset.quads() {
-            by_subject
-                .entry(q.s)
+            raw.entry(q.s)
                 .or_default()
                 .entry(q.p)
                 .or_default()
-                .insert(ObjKey::new(dataset, q.o));
+                .push(q.o);
             if matches!(dataset.resolve(q.o), TermRef::Blank { .. }) {
                 *object_refs.entry(q.o).or_default() += 1;
             }
         }
+
+        // Phase 2: a content-derived ordering key for every blank/triple term, walked
+        // recursively over `raw` (the sorted (predicate, object-key) pairs of a blank's
+        // properties), bounded against cycles. Grounded objects use their own lexical
+        // key, so the result distinguishes sibling restrictions by their actual content
+        // (`owl:onProperty`/`owl:someValuesFrom`/…) rather than by interning order.
+        let content = ContentKeys::new(dataset, &raw);
+
+        // Materialize the ordered `Props`: grounded objects keep their lexical key,
+        // blank/triple objects sort by the content key computed above.
+        let by_subject: HashMap<TermId, Props> = raw
+            .iter()
+            .map(|(&s, preds)| {
+                let props: Props = preds
+                    .iter()
+                    .map(|(&p, objs)| {
+                        let set: BTreeSet<ObjKey> = objs
+                            .iter()
+                            .map(|&o| ObjKey::new(dataset, o, &content))
+                            .collect();
+                        (p, set)
+                    })
+                    .collect();
+                (s, props)
+            })
+            .collect();
 
         // Deterministic labels for blanks that cannot inline (referenced 0 or >1
         // times as an object), ordered by a structural signature so the labeling is
@@ -172,7 +177,10 @@ impl<'a> Renderer<'a> {
         shared.sort();
         shared.dedup();
         let sigs = blank_signatures(dataset, &by_subject, &shared);
-        shared.sort_by_key(|id| (sigs.get(id).copied().unwrap_or(0), id.index()));
+        // Order labels by the structural-signature hash; on a hash tie fall back to the
+        // fuller content key (still pure graph content), NEVER to `id.index()`, so the
+        // `_:bN` numbering is idempotent under any interning order.
+        shared.sort_by_cached_key(|id| (sigs.get(id).copied().unwrap_or(0), content.key_for(*id)));
         let shared_labels = shared
             .into_iter()
             .enumerate()
@@ -476,6 +484,146 @@ impl<'a> Renderer<'a> {
     }
 }
 
+/// Content-derived ordering keys for every blank/triple term in the graph.
+///
+/// The key for a blank is a canonical string built from the sorted
+/// `(predicate-iri, object-key)` pairs of its properties; the key for a triple term
+/// is built from its `s`/`p`/`o` component keys. Both recurse through nested
+/// blank/triple objects so the key is a pure function of the term's subtree CONTENT —
+/// independent of `TermId` interning order — which is what makes the render idempotent.
+/// Recursion is bounded by a `seen` set so cyclic blank graphs terminate (a back-edge
+/// to an in-progress node renders as a fixed `^` marker), and a depth budget caps
+/// pathological chains; ties under the budget are harmless because they only affect
+/// sort order between structurally indistinguishable subtrees.
+struct ContentKeys {
+    keys: HashMap<TermId, String>,
+}
+
+impl ContentKeys {
+    const MAX_DEPTH: usize = 40;
+
+    fn new(dataset: &RdfDataset, raw: &HashMap<TermId, BTreeMap<TermId, Vec<TermId>>>) -> Self {
+        // `keys` doubles as the memoization cache: every acyclic blank/triple term
+        // `compute_content_key` fully resolves is inserted, so a single traversal from
+        // the top-level subjects/objects populates keys for ALL reachable nested
+        // blank/triple terms (not just `q.s`/`q.o`) and never recomputes a shared
+        // subtree. Cyclic / depth-capped subtrees are deliberately left out (see the
+        // `cacheable` flag in `compute_content_key`).
+        let mut keys: HashMap<TermId, String> = HashMap::new();
+        for q in dataset.quads() {
+            for term in [q.s, q.o] {
+                if matches!(
+                    dataset.resolve(term),
+                    TermRef::Blank { .. } | TermRef::Triple { .. }
+                ) && !keys.contains_key(&term)
+                {
+                    let mut seen = BTreeSet::new();
+                    compute_content_key(dataset, raw, term, &mut seen, 0, &mut keys);
+                }
+            }
+        }
+        Self { keys }
+    }
+
+    /// The content key of a blank/triple term (empty for grounded terms, which never
+    /// consult this map).
+    fn key_for(&self, id: TermId) -> String {
+        self.keys.get(&id).cloned().unwrap_or_default()
+    }
+}
+
+/// Recursively fold a term into a canonical content string. Grounded terms map to
+/// their lexical form; blank/triple terms descend into their subtree.
+///
+/// Returns `(key, cacheable)`. `cacheable` is `false` iff the subtree hit a back-edge
+/// or the depth budget — those `^` markers are entry-point-RELATIVE, so an enclosing
+/// key that embeds one must not be memoized (it would otherwise return an
+/// interning-order-dependent value when the same node is later reached from a different
+/// root, reintroducing the very non-determinism this fold exists to remove). Only fully
+/// resolved acyclic subtrees are written to `cache`; cyclic / over-budget blank graphs
+/// fall through to the `id.index()` tiebreak in [`ObjKey`], exactly as before this fix.
+fn compute_content_key(
+    dataset: &RdfDataset,
+    raw: &HashMap<TermId, BTreeMap<TermId, Vec<TermId>>>,
+    id: TermId,
+    seen: &mut BTreeSet<TermId>,
+    depth: usize,
+    cache: &mut HashMap<TermId, String>,
+) -> (String, bool) {
+    // A memoized key is always a fully-resolved acyclic blank/triple key (leaf terms are
+    // never cached), so reusing it is sound and cannot be a live back-edge: a node is
+    // only inserted AFTER `seen.remove`, hence a cached id is never simultaneously in
+    // `seen`.
+    if let Some(k) = cache.get(&id) {
+        return (k.clone(), true);
+    }
+    match dataset.resolve(id) {
+        TermRef::Iri(iri) => (format!("I{iri}"), true),
+        TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            ..
+        } => {
+            let dt = match dataset.resolve(datatype) {
+                TermRef::Iri(iri) => iri,
+                _ => "",
+            };
+            (
+                format!("L{dt}\u{1}{}\u{1}{lexical}", language.unwrap_or("")),
+                true,
+            )
+        }
+        TermRef::Blank { .. } => {
+            if depth >= ContentKeys::MAX_DEPTH || !seen.insert(id) {
+                // Back-edge or budget exhausted: a stable marker keeps the fold finite,
+                // but the enclosing key is NOT safe to memoize.
+                return ("^".to_string(), false);
+            }
+            let mut cacheable = true;
+            let mut parts: Vec<String> = Vec::new();
+            if let Some(props) = raw.get(&id) {
+                for (&pred, objs) in props {
+                    let pk = match dataset.resolve(pred) {
+                        TermRef::Iri(iri) => iri,
+                        _ => "",
+                    };
+                    // Sort the per-predicate object keys so the fold is order-free.
+                    let mut oks: Vec<String> = objs
+                        .iter()
+                        .map(|&o| {
+                            let (k, c) =
+                                compute_content_key(dataset, raw, o, seen, depth + 1, cache);
+                            cacheable &= c;
+                            k
+                        })
+                        .collect();
+                    oks.sort();
+                    parts.push(format!("{pk}\u{2}{}", oks.join("\u{3}")));
+                }
+            }
+            parts.sort();
+            seen.remove(&id);
+            let key = format!("B[{}]", parts.join("\u{4}"));
+            if cacheable {
+                cache.insert(id, key.clone());
+            }
+            (key, cacheable)
+        }
+        TermRef::Triple { s, p, o } => {
+            let (sk, cs) = compute_content_key(dataset, raw, s, seen, depth + 1, cache);
+            let (pk, cp) = compute_content_key(dataset, raw, p, seen, depth + 1, cache);
+            let (ok, co) = compute_content_key(dataset, raw, o, seen, depth + 1, cache);
+            let cacheable = cs && cp && co;
+            let key = format!("T<{sk}\u{1}{pk}\u{1}{ok}>");
+            if cacheable {
+                cache.insert(id, key.clone());
+            }
+            (key, cacheable)
+        }
+    }
+}
+
 /// An object term keyed for deterministic sorting, carrying its `TermId`.
 #[derive(Clone)]
 struct ObjKey {
@@ -484,7 +632,7 @@ struct ObjKey {
 }
 
 impl ObjKey {
-    fn new(dataset: &RdfDataset, id: TermId) -> Self {
+    fn new(dataset: &RdfDataset, id: TermId, content: &ContentKeys) -> Self {
         let key = match dataset.resolve(id) {
             TermRef::Iri(iri) => (0, iri.to_owned()),
             TermRef::Literal {
@@ -502,10 +650,12 @@ impl ObjKey {
                     format!("{dt}\u{1}{}\u{1}{lexical}", language.unwrap_or("")),
                 )
             }
-            // Blanks/triples sort after grounded terms; the id keeps them distinct
-            // and stable within a single render.
-            TermRef::Blank { .. } => (2, format!("{:08x}", id.index())),
-            TermRef::Triple { .. } => (3, format!("{:08x}", id.index())),
+            // Blanks/triples sort after grounded terms, ordered by a CONTENT-derived
+            // key (the recursive structural signature of their subtree) so sibling
+            // inline blocks order by what they say, idempotently under any interning
+            // order — never by `id.index()`.
+            TermRef::Blank { .. } => (2, content.key_for(id)),
+            TermRef::Triple { .. } => (3, content.key_for(id)),
         };
         Self { id, key }
     }
@@ -776,5 +926,45 @@ mod tests {
         assert!(out.contains("_:b0"), "shared blank labeled:\n{out}");
         assert_eq!(out, norm(&out), "idempotent with shared blank");
         assert!(iso(src, &out));
+    }
+
+    #[test]
+    fn nested_sibling_blanks_order_by_deep_content() {
+        // Two inline blank siblings under the SAME predicate that are identical except
+        // for a value buried two levels down. Their order must be decided by that deep
+        // content — NOT by blank-node interning order — so presenting the siblings in
+        // either source order normalizes to byte-identical output. Before the
+        // ContentKeys cache threaded nested terms through `compute_content_key`, the
+        // inner `ex:child` blanks were absent from the key map, so `key_for` returned
+        // "" for them and the sort fell back to `id.index()` (interning order),
+        // breaking this property.
+        let a = r#"
+            @prefix ex: <http://example.org/> .
+            ex:S ex:p
+                [ ex:tag "same" ; ex:child [ ex:leaf "alpha" ] ] ,
+                [ ex:tag "same" ; ex:child [ ex:leaf "beta" ] ] .
+        "#;
+        // Same graph, siblings written in the opposite source order.
+        let b = r#"
+            @prefix ex: <http://example.org/> .
+            ex:S ex:p
+                [ ex:tag "same" ; ex:child [ ex:leaf "beta" ] ] ,
+                [ ex:tag "same" ; ex:child [ ex:leaf "alpha" ] ] .
+        "#;
+        let na = norm(a);
+        let nb = norm(b);
+        assert_eq!(
+            na, nb,
+            "source order must not affect output:\n{na}\n---\n{nb}"
+        );
+        assert_eq!(na, norm(&na), "idempotent");
+        assert!(iso(a, &na), "isomorphic to input:\n{na}");
+        // The deep value that breaks the tie must appear before its sibling's.
+        let pos_alpha = na.find("alpha").expect("alpha present");
+        let pos_beta = na.find("beta").expect("beta present");
+        assert!(
+            pos_alpha < pos_beta,
+            "deep content orders the siblings:\n{na}"
+        );
     }
 }

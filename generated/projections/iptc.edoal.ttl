@@ -15,29 +15,29 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Class ;
-            edoal:uri gmeow:StandpointClaim ;
+            edoal:uri gmeow:ObservationalActivity ;
         ] ;
         align:entity2 [
             a edoal:Class ;
-            edoal:uri bbc:NewsEvent ;
+            edoal:uri iptc:NewsMessage ;
         ] ;
         align:relation "<=" ;
-        edoal:measure "0.75"^^xsd:double ;
-        rdfs:label "StandpointClaim → bbc:NewsEvent"@en ;
+        edoal:measure "0.7"^^xsd:double ;
+        rdfs:label "ObservationalActivity → iptc:NewsMessage"@en ;
     ] ,
         [
             a align:Cell ;
             align:entity1 [
                 a edoal:Class ;
-                edoal:uri gmeow:ObservationalActivity ;
+                edoal:uri gmeow:StandpointClaim ;
             ] ;
             align:entity2 [
                 a edoal:Class ;
-                edoal:uri iptc:NewsMessage ;
+                edoal:uri bbc:NewsEvent ;
             ] ;
             align:relation "<=" ;
-            edoal:measure "0.7"^^xsd:double ;
-            rdfs:label "ObservationalActivity → iptc:NewsMessage"@en ;
+            edoal:measure "0.75"^^xsd:double ;
+            rdfs:label "StandpointClaim → bbc:NewsEvent"@en ;
         ] ,
         [
             a align:Cell ;

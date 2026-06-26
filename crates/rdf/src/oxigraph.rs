@@ -55,9 +55,160 @@ pub fn store_from_dataset(
     Ok(store)
 }
 
+/// Flatten a frozen [`RdfDataset`] back into the source-faithful **flat** oxigraph
+/// quad stream — base quads PLUS the RDF 1.2 statement layer re-materialized as
+/// `<reifier> rdf:reifies <<( s p o )>>` rows and annotation rows.
+///
+/// This is the text-free replacement (#909) for re-parsing N-Quads/Turtle text into a
+/// flat oxigraph quad list: a consumer that wants the un-folded quad stream
+/// (`gts_compose::SnapshotBuilder`, the `py_store`/`py_gts` producer surfaces) parses
+/// once via the native [`parse_dataset`](crate::parse_dataset) into the IR and then
+/// flattens it here. The IR fold + this un-fold are exact inverses (set-equal to the
+/// original parse), so the GTS producer's content-id stays byte-stable.
+pub fn flat_oxigraph_quads_from_dataset(dataset: &RdfDataset) -> Result<Vec<Quad>, RdfDiagnostic> {
+    let mut quads = Vec::new();
+    for quad in dataset.owned_quads() {
+        quads.push(oxigraph_quad_from_rdf(
+            &quad,
+            GraphPolicy::PreserveNamedGraphs,
+        )?);
+    }
+    let rdf_reifies = NamedNode::new(RDF_REIFIES)
+        .map_err(|e| RdfDiagnostic::error("oxigraph-rdf-reifies-iri", e.to_string()))?;
+    for reifier in dataset.owned_reifiers() {
+        quads.push(oxigraph_reifier_quad(&reifier, &rdf_reifies)?);
+    }
+    for annotation in dataset.owned_annotations() {
+        quads.push(oxigraph_annotation_quad(&annotation)?);
+    }
+    Ok(quads)
+}
+
+/// Like [`flat_oxigraph_quads_from_dataset`], but every blank node label is prefixed
+/// with a deterministic, collision-resistant scope derived from `scope_key`.
+///
+/// The native text codecs mint anonymous blank labels (`gts_<counter>`) that restart
+/// at 0 on every parse, so two *different* source documents independently produce the
+/// same labels. When several documents are accumulated into one store (the build's
+/// per-file slice load), those distinct blanks would silently merge. Scoping by the
+/// SOURCE identity keeps them disjoint — and because the prefix is a pure function of
+/// `scope_key`, every stage that re-parses the same source derives the SAME labels, so
+/// cross-stage blank references (reifiers, mapping atoms) stay consistent.
+pub fn flat_oxigraph_quads_from_dataset_scoped(
+    dataset: &RdfDataset,
+    scope_key: &str,
+) -> Result<Vec<Quad>, RdfDiagnostic> {
+    let prefix = blank_scope_prefix(scope_key);
+    Ok(flat_oxigraph_quads_from_dataset(dataset)?
+        .iter()
+        .map(|quad| rescope_quad_blanks(quad, &prefix))
+        .collect())
+}
+
+/// A stable (FNV-1a) blank-node label prefix for a source document. Deterministic
+/// across processes and stages — the same `scope_key` always yields the same prefix.
+fn blank_scope_prefix(scope_key: &str) -> String {
+    let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
+    for byte in scope_key.bytes() {
+        hash ^= u64::from(byte);
+        hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    format!("g{hash:016x}")
+}
+
+fn rescope_blank(node: &BlankNode, prefix: &str) -> BlankNode {
+    BlankNode::new_unchecked(format!("{prefix}{}", node.as_str()))
+}
+
+fn rescope_subject(subject: &NamedOrBlankNode, prefix: &str) -> NamedOrBlankNode {
+    match subject {
+        NamedOrBlankNode::BlankNode(b) => rescope_blank(b, prefix).into(),
+        NamedOrBlankNode::NamedNode(n) => n.clone().into(),
+    }
+}
+
+fn rescope_term(term: &Term, prefix: &str) -> Term {
+    match term {
+        Term::BlankNode(b) => rescope_blank(b, prefix).into(),
+        Term::Triple(triple) => Term::Triple(Box::new(rescope_triple(triple, prefix))),
+        other => other.clone(),
+    }
+}
+
+fn rescope_triple(triple: &Triple, prefix: &str) -> Triple {
+    Triple::new(
+        rescope_subject(&triple.subject, prefix),
+        triple.predicate.clone(),
+        rescope_term(&triple.object, prefix),
+    )
+}
+
+fn rescope_graph(graph: &GraphName, prefix: &str) -> GraphName {
+    match graph {
+        GraphName::BlankNode(b) => rescope_blank(b, prefix).into(),
+        other => other.clone(),
+    }
+}
+
+fn rescope_quad_blanks(quad: &Quad, prefix: &str) -> Quad {
+    Quad::new(
+        rescope_subject(&quad.subject, prefix),
+        quad.predicate.clone(),
+        rescope_term(&quad.object, prefix),
+        rescope_graph(&quad.graph_name, prefix),
+    )
+}
+
+/// Flatten a frozen [`RdfDataset`] into the source-faithful flat [`RdfQuad`] stream —
+/// the `gmeow-rdf` owned-model twin of [`flat_oxigraph_quads_from_dataset`], for
+/// consumers (e.g. the native `statements` codec) that fold over [`RdfQuad`] rather
+/// than oxigraph quads. Base quads first, then the re-materialized `rdf:reifies` rows
+/// and annotation rows.
+pub fn flat_rdf_quads_from_dataset(dataset: &RdfDataset) -> Vec<RdfQuad> {
+    let mut quads: Vec<RdfQuad> = dataset.owned_quads().collect();
+    for reifier in dataset.owned_reifiers() {
+        let statement = RdfTerm::triple(reifier.statement.clone());
+        quads.push(RdfQuad::new(
+            reifier.reifier.clone(),
+            RDF_REIFIES,
+            statement,
+        ));
+    }
+    for annotation in dataset.owned_annotations() {
+        quads.push(RdfQuad::new(
+            annotation.reifier.clone(),
+            annotation.predicate.clone(),
+            annotation.object.clone(),
+        ));
+    }
+    quads
+}
+
+/// Materialize an in-memory oxigraph [`Store`] back into the frozen [`RdfDataset`]
+/// IR, text-free.
+///
+/// This is the reverse of [`store_from_dataset`]: it iterates the store's
+/// `oxigraph::model` quads (NOT `oxigraph::io`) and folds them through the SAME
+/// `dataset_from_oxigraph_quads` path used by the parser ingress, so the RDF 1.2
+/// statement layer (`rdf:reifies` reifiers + annotations) is reconstructed
+/// identically whether the quads came from a text parse or a SPARQL/SHACL store.
+///
+/// # Errors
+///
+/// Returns an [`RdfDiagnostic`] if the store cannot be iterated or the folded
+/// quads fail dataset validation.
+pub fn dataset_from_store(store: &Store) -> Result<std::sync::Arc<RdfDataset>, RdfDiagnostic> {
+    let quads: Vec<Quad> = store
+        .iter()
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| RdfDiagnostic::error("oxigraph-store-iter", e.to_string()))?;
+    crate::dataset_from_oxigraph_quads(&quads)
+        .map_err(|e| RdfDiagnostic::error("oxigraph-store-fold", e))
+}
+
 /// Convert an oxigraph [`Quad`] into the gmeow-rdf model.
 ///
-/// Public so streaming parsers (`oxigraph::io::RdfParser`) can convert quads
+/// Public so an oxigraph quad source can convert quads
 /// without an intermediate `Store` — the `Store` canonicalizes typed-literal
 /// lexical forms (e.g. `+00:00` → `Z`, `0.70` → `0.7`), which a faithful codec
 /// must preserve.
@@ -371,5 +522,27 @@ mod tests {
         assert!(dataset_quads
             .iter()
             .any(|quad| quad.contains("https://example.org/confidence")));
+    }
+
+    #[test]
+    fn dataset_from_store_round_trips_via_native_codecs() {
+        // text -> dataset -> store_from_dataset -> dataset_from_store must be
+        // isomorphic to the original dataset.
+        let nt = concat!(
+            "<https://e/s> <https://e/p> <https://e/o> .\n",
+            "<https://e/s> <https://e/p2> \"lit\"@en .\n",
+            "<https://e/r> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
+            "<<( <https://e/s> <https://e/p> <https://e/o> )>> .\n",
+            "<https://e/r> <https://e/confidence> \"0.9\" .\n",
+        );
+        let original = crate::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+            .expect("parse native");
+        let store = store_from_dataset(original.as_ref(), GraphPolicy::PreserveNamedGraphs)
+            .expect("store from dataset");
+        let round_tripped = dataset_from_store(&store).expect("dataset from store");
+        assert!(
+            crate::datasets_isomorphic(original.as_ref(), round_tripped.as_ref()),
+            "store -> dataset round-trip must be isomorphic to the parsed dataset"
+        );
     }
 }

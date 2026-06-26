@@ -16,13 +16,12 @@
 
 use std::sync::Arc;
 
-use oxigraph::io::RdfFormat;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
 
 use crate::py_store::PyRdfFormat;
-use crate::{dataset_from_bytes, gts_write, RdfDataset, RdfLookaside};
+use crate::{dataset_from_bytes, gts_write, NativeRdfFormat, RdfDataset, RdfLookaside};
 
 /// A Python handle to a frozen [`RdfDataset`].
 #[pyclass(name = "RdfDataset", frozen)]
@@ -80,13 +79,8 @@ fn read_bytes(data: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
     Err(PyValueError::new_err("data must be bytes or str"))
 }
 
-fn rdf_format(format: PyRdfFormat) -> RdfFormat {
-    match format {
-        PyRdfFormat::TURTLE => RdfFormat::Turtle,
-        PyRdfFormat::N_TRIPLES => RdfFormat::NTriples,
-        PyRdfFormat::N_QUADS => RdfFormat::NQuads,
-        PyRdfFormat::TRIG => RdfFormat::TriG,
-    }
+fn rdf_format(format: PyRdfFormat) -> NativeRdfFormat {
+    format.to_native()
 }
 
 // PyRdfDataset is registered via `py_gts::register`; no standalone `register` here
@@ -104,7 +98,7 @@ mod tests {
     fn dataset_from_bytes_counts_quads() {
         let nt = "<https://e/s> <https://e/p> <https://e/o> .\n\
                   <https://e/s> <https://e/p2> \"lit\" .\n";
-        let ds = dataset_from_bytes(nt.as_bytes(), RdfFormat::NTriples).expect("build");
+        let ds = dataset_from_bytes(nt.as_bytes(), NativeRdfFormat::NTriples).expect("build");
         assert_eq!(ds.quad_count(), 2);
         assert!(ds.term_count() >= 4);
     }
@@ -118,7 +112,7 @@ mod tests {
             "<<( <https://e/s> <https://e/p> <https://e/o> )>> .\n",
             "<https://e/r> <https://e/confidence> \"0.9\" .\n",
         );
-        let ds = dataset_from_bytes(nt.as_bytes(), RdfFormat::NTriples).expect("build");
+        let ds = dataset_from_bytes(nt.as_bytes(), NativeRdfFormat::NTriples).expect("build");
         assert_eq!(ds.quad_count(), 0, "reifier rows are not base quads");
         assert_eq!(ds.reifiers().count(), 1);
         assert_eq!(ds.annotations().count(), 1);
@@ -127,7 +121,7 @@ mod tests {
     #[test]
     fn dataset_to_gts_folds_back() {
         let nt = "<https://e/s> <https://e/p> <https://e/o> .\n";
-        let ds = dataset_from_bytes(nt.as_bytes(), RdfFormat::NTriples).expect("build");
+        let ds = dataset_from_bytes(nt.as_bytes(), NativeRdfFormat::NTriples).expect("build");
         let bytes =
             gts_write::to_gts(ds.as_ref(), &RdfLookaside::default(), "dist").expect("to_gts");
         let graph = gmeow_gts::reader::read(&bytes, false, None);

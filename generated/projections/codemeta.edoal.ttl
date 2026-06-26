@@ -12,27 +12,40 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Class ;
-            edoal:uri gmeow:SoftwareProduct ;
+            edoal:uri gmeow:Package ;
         ] ;
         align:entity2 [
             a edoal:Class ;
             edoal:uri codemeta:SoftwareSourceCode ;
         ] ;
         align:relation "<=" ;
-        rdfs:label "SoftwareProduct → codemeta:SoftwareSourceCode"@en ;
+        rdfs:label "Package → codemeta:SoftwareSourceCode (package-as-product)"@en ;
     ] ,
         [
             a align:Cell ;
             align:entity1 [
                 a edoal:Class ;
-                edoal:uri gmeow:Package ;
+                edoal:uri gmeow:SoftwareProduct ;
             ] ;
             align:entity2 [
                 a edoal:Class ;
                 edoal:uri codemeta:SoftwareSourceCode ;
             ] ;
             align:relation "<=" ;
-            rdfs:label "Package → codemeta:SoftwareSourceCode (package-as-product)"@en ;
+            rdfs:label "SoftwareProduct → codemeta:SoftwareSourceCode"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:contentDigest ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri codemeta:identifier ;
+            ] ;
+            align:relation "=" ;
+            rdfs:label "contentDigest → codemeta:identifier"@en ;
         ] ,
         [
             a align:Cell ;
@@ -51,19 +64,6 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:releaseVersion ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri codemeta:softwareVersion ;
-            ] ;
-            align:relation "=" ;
-            rdfs:label "releaseVersion → codemeta:softwareVersion"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
                 edoal:uri gmeow:projectLicense ;
             ] ;
             align:entity2 [
@@ -77,14 +77,14 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:contentDigest ;
+                edoal:uri gmeow:releaseVersion ;
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri codemeta:identifier ;
+                edoal:uri codemeta:softwareVersion ;
             ] ;
             align:relation "=" ;
-            rdfs:label "contentDigest → codemeta:identifier"@en ;
+            rdfs:label "releaseVersion → codemeta:softwareVersion"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

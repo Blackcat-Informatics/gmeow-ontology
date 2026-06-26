@@ -38,7 +38,7 @@ use gmeow_rdf::gts_compose::{
     emit_gts, parse_quads_lenient, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD,
     RDF_REIFIES,
 };
-use oxigraph::io::RdfFormat;
+use gmeow_rdf::NativeRdfFormat;
 use oxigraph::model::Quad;
 
 /// The named graph the release-manifest + per-artifact attestations ride in.
@@ -111,7 +111,7 @@ pub fn fold_release_bundle(
 
     let attestations_nq =
         build_attestations_nquads(&sorted, attester_iri, issued_at, release_subject_iri);
-    let att_quads = parse_quads_lenient(attestations_nq.as_bytes(), RdfFormat::NQuads)
+    let att_quads = parse_quads_lenient(attestations_nq.as_bytes(), NativeRdfFormat::NQuads)
         .map_err(|e| format!("parsing minted attestations graph: {e}"))?;
     builder.add_quads(&att_quads, None, None);
 
@@ -207,7 +207,7 @@ pub fn verify_release_bundle(
     //            backed by a blob actually present in the bundle.
     let graph = read(bundle_bytes, true, None);
     let nquads = gmeow_gts::nquads::to_nquads(&graph);
-    let quads = parse_quads_lenient(nquads.as_bytes(), RdfFormat::NQuads)
+    let quads = parse_quads_lenient(nquads.as_bytes(), NativeRdfFormat::NQuads)
         .map_err(|e| format!("re-parsing bundle for the attestation walk: {e}"))?;
 
     let content_digest_pred = format!("{GMEOW_NS}contentDigest");
@@ -309,7 +309,7 @@ fn replay_graph(graph: &Graph, builder: &mut SnapshotBuilder) -> Result<(), Stri
     lines.sort_unstable();
     let sorted_nquads = lines.join("\n");
 
-    let quads = parse_quads_lenient(sorted_nquads.as_bytes(), RdfFormat::NQuads)
+    let quads = parse_quads_lenient(sorted_nquads.as_bytes(), NativeRdfFormat::NQuads)
         .map_err(|e| format!("re-parsing committed snapshot N-Quads: {e}"))?;
 
     // Pass 1: the subjects of `rdf:reifies` quads are reifiers; everything a
@@ -646,7 +646,7 @@ mod tests {
     fn tiny_snapshot() -> Vec<u8> {
         let nq = "<https://e/s> <https://e/p> <https://e/o> .\n\
                   <https://e/s> <https://e/q> \"hello\" .\n";
-        let quads = parse_quads_lenient(nq.as_bytes(), RdfFormat::NTriples).expect("parse");
+        let quads = parse_quads_lenient(nq.as_bytes(), NativeRdfFormat::NTriples).expect("parse");
         let mut b = SnapshotBuilder::new();
         b.add_quads(&quads, None, None);
         emit_gts(
@@ -832,7 +832,7 @@ mod tests {
     /// stand-in for e.g. the in-snapshot SHACL SARIF), under `rep`.
     fn snapshot_with_report_blob(data: &[u8], rep: &str) -> Vec<u8> {
         let nq = "<https://e/s> <https://e/p> <https://e/o> .\n";
-        let quads = parse_quads_lenient(nq.as_bytes(), RdfFormat::NTriples).expect("parse");
+        let quads = parse_quads_lenient(nq.as_bytes(), NativeRdfFormat::NTriples).expect("parse");
         let mut b = SnapshotBuilder::new();
         b.add_quads(&quads, None, None);
         emit_gts(
@@ -938,7 +938,8 @@ mod tests {
     /// Emit a `dist` snapshot from raw N-Quads text (the committed-snapshot
     /// stand-in for the determinism fixtures).
     fn snapshot_from_nquads(nq: &str) -> Vec<u8> {
-        let quads = parse_quads_lenient(nq.as_bytes(), RdfFormat::NQuads).expect("parse fixture");
+        let quads =
+            parse_quads_lenient(nq.as_bytes(), NativeRdfFormat::NQuads).expect("parse fixture");
         let mut b = SnapshotBuilder::new();
         b.add_quads(&quads, None, None);
         emit_gts(
@@ -1023,7 +1024,7 @@ mod tests {
         let mut lines: Vec<&str> = nq.lines().collect();
         lines.sort_unstable();
         let sorted = lines.join("\n");
-        let quads = parse_quads_lenient(sorted.as_bytes(), RdfFormat::NQuads).expect("parse");
+        let quads = parse_quads_lenient(sorted.as_bytes(), NativeRdfFormat::NQuads).expect("parse");
 
         use oxigraph::model::NamedOrBlankNode;
         let mut reifier_subjects: std::collections::HashSet<NamedOrBlankNode> =
@@ -1129,7 +1130,7 @@ mod tests {
         // A snapshot with a named graph must round-trip the graph name.
         let nq = "<https://e/s> <https://e/p> <https://e/o> \
                   <https://blackcatinformatics.ca/gmeow/graph/metadata> .\n";
-        let quads = parse_quads_lenient(nq.as_bytes(), RdfFormat::NQuads).expect("parse");
+        let quads = parse_quads_lenient(nq.as_bytes(), NativeRdfFormat::NQuads).expect("parse");
         let mut b = SnapshotBuilder::new();
         b.add_quads(&quads, None, None);
         let snapshot = emit_gts(

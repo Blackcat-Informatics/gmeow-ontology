@@ -45,7 +45,6 @@ use gmeow_rdf::fno::{
     FnoCatalog,
 };
 use gmeow_rdf::{turtle, RdfQuad, RdfTerm};
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphNameRef, NamedNode, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 
@@ -338,17 +337,7 @@ fn collect_ttl_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<()
 /// Parse one Turtle source into the shared store (lenient, so GMEOW's `@x-gmeow-*`
 /// language tags parse — mirrors `mapping_emit::load_into_store`).
 fn load_into_store(store: &Store, bytes: &[u8], path: &Path) -> Result<(), SliceError> {
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes)
-    {
-        let quad = quad
-            .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(())
+    crate::rdf_text::turtle_bytes_into_store(store, bytes, &path.display().to_string())
 }
 
 // ── Function / cell extraction ───────────────────────────────────────────────────

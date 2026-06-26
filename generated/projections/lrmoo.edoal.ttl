@@ -12,27 +12,27 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Class ;
-            edoal:uri gmeow:MusicalWork ;
+            edoal:uri gmeow:Expression ;
         ] ;
         align:entity2 [
             a edoal:Class ;
-            edoal:uri lrmoo:F1_Work ;
+            edoal:uri lrmoo:F2_Expression ;
         ] ;
         align:relation "<=" ;
-        rdfs:label "MusicalWork → LRMoo F1 Work"@en ;
+        rdfs:label "Expression → LRMoo F2 Expression"@en ;
     ] ,
         [
             a align:Cell ;
             align:entity1 [
                 a edoal:Class ;
-                edoal:uri gmeow:Expression ;
+                edoal:uri gmeow:MusicalWork ;
             ] ;
             align:entity2 [
                 a edoal:Class ;
-                edoal:uri lrmoo:F2_Expression ;
+                edoal:uri lrmoo:F1_Work ;
             ] ;
             align:relation "<=" ;
-            rdfs:label "Expression → LRMoo F2 Expression"@en ;
+            rdfs:label "MusicalWork → LRMoo F1 Work"@en ;
         ] ,
         [
             a align:Cell ;

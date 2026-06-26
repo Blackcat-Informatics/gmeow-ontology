@@ -12,31 +12,17 @@
     align:map [
         a align:Cell ;
         align:entity1 [
-            a edoal:Relation ;
-            edoal:uri gmeow:hasLicense ;
+            a edoal:Class ;
+            edoal:uri gmeow:License ;
         ] ;
         align:entity2 [
-            a edoal:Property ;
-            edoal:uri cc:license ;
+            a edoal:Class ;
+            edoal:uri cc:License ;
         ] ;
         align:relation "<=" ;
         edoal:measure "0.8"^^xsd:double ;
-        rdfs:label "hasLicense → cc:license"@en ;
+        rdfs:label "License → cc:License"@en ;
     ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
-                edoal:uri gmeow:License ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri cc:License ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.8"^^xsd:double ;
-            rdfs:label "License → cc:License"@en ;
-        ] ,
         [
             a align:Cell ;
             align:entity1 [
@@ -64,6 +50,20 @@
             align:relation "=" ;
             edoal:measure "0.85"^^xsd:double ;
             rdfs:label "attributionUrl → cc:attributionURL"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasLicense ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri cc:license ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.8"^^xsd:double ;
+            rdfs:label "hasLicense → cc:license"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

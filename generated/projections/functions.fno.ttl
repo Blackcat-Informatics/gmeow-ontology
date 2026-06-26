@@ -54,11 +54,11 @@ _:l_https___blackcatinformatics_ca_gmeow_fnBirthEventToDate_returns_0 <http://ww
 <https://blackcatinformatics.ca/gmeow/fnCoarsenToGranularity> <http://www.w3.org/2004/02/skos/core#definition> "Disclosure control by generalization (#72, CONSTITUTION P10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise point — a coarser region rather than exact coordinates, never deletion. Aligns by reference to dpv:Generalisation. Ancestor SELECTION is performed declaratively in the SPARQL projection (the gmeow:containedInPlace+ path matching the ancestor whose gmeow:hasGranularity is the target level); this transform documents the resulting generalization, receiving the already-selected ancestor's coordinates (paramLatitude/paramLongitude) and re-emitting them as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (P12)."@en .
 <https://blackcatinformatics.ca/gmeow/fnCoarsenToGranularity> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
 <https://blackcatinformatics.ca/gmeow/fnCoarsenToGranularity> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_0 .
-_:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLongitude> .
+_:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramCoarsenTo> .
 _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_1 .
-_:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLatitude> .
+_:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLongitude> .
 _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_2 .
-_:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramCoarsenTo> .
+_:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLatitude> .
 _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
 <https://blackcatinformatics.ca/gmeow/outCoarsenToGranularity> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Output> .
 <https://blackcatinformatics.ca/gmeow/outCoarsenToGranularity> <https://w3id.org/function/ontology#predicate> <http://www.opengis.net/ont/geosparql#asWKT> .
@@ -314,9 +314,9 @@ _:l_https___blackcatinformatics_ca_gmeow_fnOrganizationTypeToClass_returns_0 <ht
 <https://blackcatinformatics.ca/gmeow/fnParsePitchName> <http://www.w3.org/2004/02/skos/core#definition> "Parses a spelled pitch name in a given PitchSpellingSystem and TuningSystem into a frame-relative PitchValue."@en .
 <https://blackcatinformatics.ca/gmeow/fnParsePitchName> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
 <https://blackcatinformatics.ca/gmeow/fnParsePitchName> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnParsePitchName_expects_0 .
-_:l_https___blackcatinformatics_ca_gmeow_fnParsePitchName_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramSpellingSystem> .
+_:l_https___blackcatinformatics_ca_gmeow_fnParsePitchName_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramSpelledName> .
 _:l_https___blackcatinformatics_ca_gmeow_fnParsePitchName_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnParsePitchName_expects_1 .
-_:l_https___blackcatinformatics_ca_gmeow_fnParsePitchName_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramSpelledName> .
+_:l_https___blackcatinformatics_ca_gmeow_fnParsePitchName_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramSpellingSystem> .
 _:l_https___blackcatinformatics_ca_gmeow_fnParsePitchName_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
 <https://blackcatinformatics.ca/gmeow/outParsePitchName> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Output> .
 <https://blackcatinformatics.ca/gmeow/outParsePitchName> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/projectedParsedPitch> .
@@ -900,6 +900,10 @@ _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_returns_0 <http://www.w3
 <https://blackcatinformatics.ca/gmeow/paramEventTime> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/eventTime> .
 <https://blackcatinformatics.ca/gmeow/paramEventTime> <https://w3id.org/function/ontology#type> <http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://blackcatinformatics.ca/gmeow/paramEventTime> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<https://blackcatinformatics.ca/gmeow/paramCoarsenTo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
+<https://blackcatinformatics.ca/gmeow/paramCoarsenTo> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/coarsenTo> .
+<https://blackcatinformatics.ca/gmeow/paramCoarsenTo> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/GranularityLevel> .
+<https://blackcatinformatics.ca/gmeow/paramCoarsenTo> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramLongitude> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramLongitude> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/longitude> .
 <https://blackcatinformatics.ca/gmeow/paramLongitude> <https://w3id.org/function/ontology#type> <http://www.w3.org/2001/XMLSchema#decimal> .
@@ -908,10 +912,6 @@ _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_returns_0 <http://www.w3
 <https://blackcatinformatics.ca/gmeow/paramLatitude> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/latitude> .
 <https://blackcatinformatics.ca/gmeow/paramLatitude> <https://w3id.org/function/ontology#type> <http://www.w3.org/2001/XMLSchema#decimal> .
 <https://blackcatinformatics.ca/gmeow/paramLatitude> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-<https://blackcatinformatics.ca/gmeow/paramCoarsenTo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
-<https://blackcatinformatics.ca/gmeow/paramCoarsenTo> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/coarsenTo> .
-<https://blackcatinformatics.ca/gmeow/paramCoarsenTo> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/GranularityLevel> .
-<https://blackcatinformatics.ca/gmeow/paramCoarsenTo> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramAsGeoJSON> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramAsGeoJSON> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/asGeoJSON> .
 <https://blackcatinformatics.ca/gmeow/paramAsGeoJSON> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
@@ -992,14 +992,14 @@ _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_returns_0 <http://www.w3
 <https://blackcatinformatics.ca/gmeow/paramOrganizationType> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/organizationType> .
 <https://blackcatinformatics.ca/gmeow/paramOrganizationType> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/OrganizationType> .
 <https://blackcatinformatics.ca/gmeow/paramOrganizationType> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-<https://blackcatinformatics.ca/gmeow/paramSpellingSystem> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
-<https://blackcatinformatics.ca/gmeow/paramSpellingSystem> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/spellingSystem> .
-<https://blackcatinformatics.ca/gmeow/paramSpellingSystem> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/PitchSpellingSystem> .
-<https://blackcatinformatics.ca/gmeow/paramSpellingSystem> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramSpelledName> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramSpelledName> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/spelledName> .
 <https://blackcatinformatics.ca/gmeow/paramSpelledName> <https://w3id.org/function/ontology#type> <http://www.w3.org/2001/XMLSchema#string> .
 <https://blackcatinformatics.ca/gmeow/paramSpelledName> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<https://blackcatinformatics.ca/gmeow/paramSpellingSystem> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
+<https://blackcatinformatics.ca/gmeow/paramSpellingSystem> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/spellingSystem> .
+<https://blackcatinformatics.ca/gmeow/paramSpellingSystem> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/PitchSpellingSystem> .
+<https://blackcatinformatics.ca/gmeow/paramSpellingSystem> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramHasParticipant> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramHasParticipant> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/hasParticipant> .
 <https://blackcatinformatics.ca/gmeow/paramHasParticipant> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/Agent> .

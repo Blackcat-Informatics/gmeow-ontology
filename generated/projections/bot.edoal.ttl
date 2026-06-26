@@ -24,19 +24,19 @@
                     edoal:uri gmeow:placeType ;
                 ] ;
                 edoal:value [
-                    edoal:uri gmeow:placeTypeRoom ;
+                    edoal:uri gmeow:placeTypeBuilding ;
                 ] ;
             ] ) ;
         ] ;
         align:entity2 [
             a edoal:Class ;
-            edoal:uri bot:Space ;
+            edoal:uri bot:Building ;
         ] ;
         align:relation "=" ;
         edoal:transformation [
             rdfs:seeAlso gmeow:fnPlaceTypeToClass ;
         ] ;
-        rdfs:label "gmeow:Place [gmeow:placeTypeRoom] → bot:Space"@en ;
+        rdfs:label "gmeow:Place [gmeow:placeTypeBuilding] → bot:Building"@en ;
     ] ,
         [
             a align:Cell ;
@@ -82,19 +82,19 @@
                         edoal:uri gmeow:placeType ;
                     ] ;
                     edoal:value [
-                        edoal:uri gmeow:placeTypeBuilding ;
+                        edoal:uri gmeow:placeTypeRoom ;
                     ] ;
                 ] ) ;
             ] ;
             align:entity2 [
                 a edoal:Class ;
-                edoal:uri bot:Building ;
+                edoal:uri bot:Space ;
             ] ;
             align:relation "=" ;
             edoal:transformation [
                 rdfs:seeAlso gmeow:fnPlaceTypeToClass ;
             ] ;
-            rdfs:label "gmeow:Place [gmeow:placeTypeBuilding] → bot:Building"@en ;
+            rdfs:label "gmeow:Place [gmeow:placeTypeRoom] → bot:Space"@en ;
         ] ,
         [
             a align:Cell ;
@@ -136,11 +136,11 @@
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri bot:hasStorey ;
+                edoal:uri bot:hasSpace ;
             ] ;
             align:relation "<=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "building contains floor → bot:hasStorey"@en ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "building contains room directly → bot:hasSpace"@en ;
         ] ,
         [
             a align:Cell ;
@@ -170,24 +170,11 @@
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri bot:hasSpace ;
+                edoal:uri bot:hasStorey ;
             ] ;
             align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "building contains room directly → bot:hasSpace"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:containsPlace ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri bot:containsZone ;
-            ] ;
-            align:relation "=" ;
-            rdfs:label "containsPlace → bot:containsZone (indoor topology)"@en ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "building contains floor → bot:hasStorey"@en ;
         ] ,
         [
             a align:Cell ;
@@ -201,6 +188,19 @@
             ] ;
             align:relation "=" ;
             rdfs:label "adjacentTo → bot:adjacentZone (indoor topology)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:containsPlace ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri bot:containsZone ;
+            ] ;
+            align:relation "=" ;
+            rdfs:label "containsPlace → bot:containsZone (indoor topology)"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

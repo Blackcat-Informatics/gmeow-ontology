@@ -914,14 +914,13 @@ fn validate_all_native(
 /// Load a Turtle string into `store` (lenient parsing, matching the rest of the
 /// validation path), mapping a parse failure to a Python `ValueError`.
 fn insert_turtle(store: &oxigraph::store::Store, ttl: &str) -> PyResult<()> {
-    use oxigraph::io::{RdfFormat, RdfParser};
-    for triple in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(ttl.as_bytes())
-    {
-        let triple = triple.map_err(|e| {
-            pyo3::exceptions::PyValueError::new_err(format!("Turtle parse error: {e}"))
-        })?;
+    use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
+    use gmeow_rdf::parse_dataset;
+    let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("Turtle parse error: {e}")))?;
+    let quads = flat_oxigraph_quads_from_dataset(&dataset)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    for triple in quads {
         store
             .insert(&triple)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
@@ -932,14 +931,15 @@ fn insert_turtle(store: &oxigraph::store::Store, ttl: &str) -> PyResult<()> {
 /// Load an N-Triples string into `store` (lenient parsing), mapping a parse
 /// failure to a Python `ValueError`.
 fn insert_ntriples(store: &oxigraph::store::Store, data_nt: &str) -> PyResult<()> {
-    use oxigraph::io::{RdfFormat, RdfParser};
-    for triple in RdfParser::from_format(RdfFormat::NTriples)
-        .lenient()
-        .for_reader(data_nt.as_bytes())
-    {
-        let triple = triple.map_err(|e| {
+    use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
+    use gmeow_rdf::parse_dataset;
+    let dataset =
+        parse_dataset(data_nt.as_bytes(), "application/n-triples", None).map_err(|e| {
             pyo3::exceptions::PyValueError::new_err(format!("N-Triples parse error: {e}"))
         })?;
+    let quads = flat_oxigraph_quads_from_dataset(&dataset)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    for triple in quads {
         store
             .insert(&triple)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;

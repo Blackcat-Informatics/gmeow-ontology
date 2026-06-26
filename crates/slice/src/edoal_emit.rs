@@ -145,29 +145,16 @@ pub fn emit_edoal_sets(root: &Path) -> Result<BTreeMap<String, String>, SliceErr
 /// N-Triples — reproducing Python's `Graph.add(...)` → `store.dump(NT)` step so the
 /// blank-node ordering canonical_turtle reads matches the historical emitter exactly.
 fn oxigraph_redump(nt: &str) -> Result<String, SliceError> {
-    use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
-    let store = Store::new().map_err(|e| SliceError::Parse(format!("store: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::NTriples)
-        .lenient()
-        .for_reader(nt.as_bytes())
-    {
-        let quad = quad.map_err(|e| SliceError::Parse(format!("edoal NT parse: {e}")))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("edoal store insert: {e}")))?;
-    }
-    let mut buf: Vec<u8> = Vec::new();
-    let mut writer = RdfSerializer::from_format(RdfFormat::NTriples).for_writer(&mut buf);
-    for quad in store.iter() {
-        let quad = quad.map_err(|e| SliceError::Parse(format!("edoal store iter: {e}")))?;
-        writer
-            .serialize_quad(&quad)
-            .map_err(|e| SliceError::Parse(format!("edoal NT serialize: {e}")))?;
-    }
-    writer
-        .finish()
-        .map_err(|e| SliceError::Parse(format!("edoal NT finish: {e}")))?;
-    String::from_utf8(buf).map_err(|e| SliceError::Parse(format!("edoal NT utf8: {e}")))
+    // Parse the N-Triples into an oxigraph store via the native codecs (the store
+    // is kept — its insertion/iteration order is the blank-node interning order
+    // `canonical_turtle` reads), then serialize the store back to N-Triples via
+    // the native codec (store → IR → text, no `oxigraph::io`).
+    let store = crate::rdf_text::rdf_bytes_to_store(
+        nt.as_bytes(),
+        gmeow_rdf::NativeRdfFormat::NTriples.media_type(),
+        "edoal NT",
+    )?;
+    crate::rdf_text::store_to_ntriples(&store, "edoal NT")
 }
 
 // ── Language-tag retag map ───────────────────────────────────────────────────────

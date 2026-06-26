@@ -13,14 +13,14 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Class ;
-            edoal:uri gmeow:SoftwareProject ;
+            edoal:uri gmeow:Release ;
         ] ;
         align:entity2 [
             a edoal:Class ;
-            edoal:uri doap:Project ;
+            edoal:uri doap:Version ;
         ] ;
         align:relation "<=" ;
-        rdfs:label "SoftwareProject → doap:Project (facet collapse)"@en ;
+        rdfs:label "Release → doap:Version (event conflation)"@en ;
     ] ,
         [
             a align:Cell ;
@@ -39,151 +39,14 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Class ;
-                edoal:uri gmeow:Release ;
+                edoal:uri gmeow:SoftwareProject ;
             ] ;
             align:entity2 [
                 a edoal:Class ;
-                edoal:uri doap:Version ;
+                edoal:uri doap:Project ;
             ] ;
             align:relation "<=" ;
-            rdfs:label "Release → doap:Version (event conflation)"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:hasRepository ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri doap:repository ;
-            ] ;
-            align:relation "<=" ;
-            rdfs:label "hasRepository → doap:repository"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:releaseVersion ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri doap:revision ;
-            ] ;
-            align:relation "=" ;
-            rdfs:label "releaseVersion → doap:revision"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:projectLicense ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri doap:license ;
-            ] ;
-            align:relation "<=" ;
-            rdfs:label "projectLicense → doap:license"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:webUrl ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri doap:browse ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "Repository webUrl → doap:browse"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:repositoryType ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri doap:GitRepository ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.95"^^xsd:double ;
-            rdfs:label "Repository(repoTypeGit) → doap:GitRepository"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:hasTag ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri doap:category ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.8"^^xsd:double ;
-            rdfs:label "SoftwareProject hasTag → doap:category"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:fullName ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri doap:name ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "SoftwareProject fullName → doap:name"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:description ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri doap:shortdesc ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "SoftwareProject description → doap:shortdesc"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:dateCreated ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri doap:created ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "SoftwareProject dateCreated → doap:created"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:projectHomepage ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri doap:homepage ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.95"^^xsd:double ;
-            rdfs:label "projectHomepage → doap:homepage"@en ;
+            rdfs:label "SoftwareProject → doap:Project (facet collapse)"@en ;
         ] ,
         [
             a align:Cell ;
@@ -203,6 +66,34 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
+                edoal:uri gmeow:dateCreated ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri doap:created ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "SoftwareProject dateCreated → doap:created"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:description ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri doap:shortdesc ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "SoftwareProject description → doap:shortdesc"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
                 edoal:uri gmeow:downloadPage ;
             ] ;
             align:entity2 [
@@ -217,6 +108,47 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
+                edoal:uri gmeow:fullName ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri doap:name ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "SoftwareProject fullName → doap:name"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasRepository ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri doap:repository ;
+            ] ;
+            align:relation "<=" ;
+            rdfs:label "hasRepository → doap:repository"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasTag ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri doap:category ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.8"^^xsd:double ;
+            rdfs:label "SoftwareProject hasTag → doap:category"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
                 edoal:uri gmeow:programmingLanguage ;
             ] ;
             align:entity2 [
@@ -226,6 +158,74 @@
             align:relation "<=" ;
             edoal:measure "0.85"^^xsd:double ;
             rdfs:label "programmingLanguage → doap:programming-language (label)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:projectHomepage ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri doap:homepage ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.95"^^xsd:double ;
+            rdfs:label "projectHomepage → doap:homepage"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:projectLicense ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri doap:license ;
+            ] ;
+            align:relation "<=" ;
+            rdfs:label "projectLicense → doap:license"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:releaseVersion ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri doap:revision ;
+            ] ;
+            align:relation "=" ;
+            rdfs:label "releaseVersion → doap:revision"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:repositoryType ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri doap:GitRepository ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.95"^^xsd:double ;
+            rdfs:label "Repository(repoTypeGit) → doap:GitRepository"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:webUrl ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri doap:browse ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "Repository webUrl → doap:browse"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;
