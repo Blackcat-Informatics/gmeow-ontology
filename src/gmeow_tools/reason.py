@@ -6,8 +6,8 @@ the primary path: ``make check`` and the required ``quality`` gate reason
 natively (``make reason`` / ``gmeow-dev reason --mode native``, Java/Docker-free),
 and every pytest that drives these functions is ``docker``/``classic_cross_check``
 marked or mocks them out. The only live callers are the classic-cross-check lane
-(``classic_cross_check.py``), the maintainer ``gmeow-dev`` docker subcommands, and
-the divergence-ledger oracle — never normal repo use.
+(``gmeow_tools.oracles.classic_cross_check``), the maintainer ``gmeow-dev``
+docker subcommands, and the divergence-ledger oracle — never normal repo use.
 
 The pipeline always *merges the import closure into a single ontology first*,
 then reasons/validates that product. This is deliberate: ROBOT's

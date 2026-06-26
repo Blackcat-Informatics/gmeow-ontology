@@ -4,7 +4,8 @@
 //!
 //! ## What this replaces
 //! The `python` CI lane (~45 min) was dominated by OWL/EL/DL reasoning tests that each rebuilt
-//! a reasoned graph via the OWL-2-RL chase (`gmeow_tools.native_rl_rdflib.native_rl_closure`).
+//! a reasoned graph via the OWL-2-RL chase
+//! (`gmeow_tools.oracles.native_rl_rdflib.native_rl_closure`).
 //! The per-slice entailment tests follow a single shape — parse the relevant slice `module.ttl`
 //! files, inject a tiny test A-Box, close under RL, assert a derived triple is present (and a
 //! contrasting one absent). This harness is the native twin of that
@@ -209,8 +210,8 @@ fn smoke_property_chain_entailment_and_negative() {
 // ── Migrated from tests/test_reasoning_entailments.py ───────────────────────────────────────
 // The native twins of the `_materialize(module, *abox)` positive-entailment tests (#38). The
 // three `reasoning_cases` monkeypatch tests (two-axis / two-kind / run_all order) are NOT migrated
-// — they exercise the Python Docker-orchestration layer (`gmeow_tools.reasoning_cases`), an
-// independent live Python impl with no Rust twin (retain-with-reason, see MIGRATION-LEDGER.md).
+// — they exercise the Python Docker-orchestration layer (`gmeow_tools.oracles.reasoning_cases`),
+// an independent live Python impl with no Rust twin (retain-with-reason, see MIGRATION-LEDGER.md).
 
 #[test]
 fn ancestry_is_derived_not_asserted() {

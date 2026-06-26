@@ -294,7 +294,7 @@ spike); C6 generalizes output; C7/C8 are end-state cleanups gated on the Python 
   `crates/shacl/src/engine.rs` (`validate`, `validate_dataset`, `parse_shapes`, target
   helpers `:64-110`), `report.rs`; `crates/validate/src/store.rs`, `validate_all.rs`;
   `crates/slicetest/src/stores.rs`.
-- FFI scaffolding to retire: `src/gmeow_tools/native_rl_rdflib.py`, `logic_runner.py`,
+- FFI scaffolding to retire: `src/gmeow_tools/oracles/native_rl_rdflib.py`, `logic_runner.py`,
   `shacl_engine.py`, `tests/_graph_nt.py` (the RL-closure shim `native_rl.py` is already retired).
 
 ## Verification — stronger acceptance gates

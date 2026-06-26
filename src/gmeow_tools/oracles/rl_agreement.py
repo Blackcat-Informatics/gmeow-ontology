@@ -163,7 +163,7 @@ def _told_graph(gts: Path) -> Graph:
     axioms, the SAME facts both RL closures are computed over (so any divergence
     is a reasoner disagreement, not an input mismatch).
     """
-    from gmeow_tools import classic_cross_check as crosscheck
+    from gmeow_tools.oracles import classic_cross_check as crosscheck
 
     native = crosscheck.reason_native(gts)
     told_facts = crosscheck.write_told_facts(native)
@@ -180,7 +180,7 @@ def compare(gts: Path = GTS_SNAPSHOT_FILE) -> dict[str, object]:
     """
     import owlrl
 
-    from gmeow_tools.native_rl_rdflib import native_rl_closure
+    from gmeow_tools.oracles.native_rl_rdflib import native_rl_closure
 
     base = _told_graph(gts)
 

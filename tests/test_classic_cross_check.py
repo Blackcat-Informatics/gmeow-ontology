@@ -15,7 +15,7 @@ import json
 import gmeow_logic
 import pytest
 
-from gmeow_tools import classic_cross_check as crosscheck
+from gmeow_tools.oracles import classic_cross_check as crosscheck
 
 CROSSCHECK_WORLD = crosscheck.CROSSCHECK_WORLD
 

@@ -299,6 +299,73 @@ def verify(
     console.print("[green]verification passed[/green]")
 
 
+@app.command(name="verify-release-bundle")
+def verify_release_bundle(
+    bundle: Path = typer.Option(  # noqa: B008
+        ...,
+        "--bundle",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Signed release bundle to verify.",
+    ),
+    public_key: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--public-key",
+        help=(
+            "Optional out-of-band trusted Ed25519 OpenPGP PUBLIC certificate. "
+            "When given, the signature is checked against it, not just the "
+            "bundle's embedded transport key."
+        ),
+    ),
+) -> None:
+    """Consumer verification of a signed release bundle (#673, §18).
+
+    Verifies the COSE signature + trust policy AND walks the
+    ``graph/attestations`` frames, hard-failing if any attested artifact's bytes
+    are absent — so a consumer confirms exactly which checks ran over exactly
+    which bytes, not merely that *something* was signed. This Python layer does
+    NO verification logic; it only marshals paths + bytes into the native
+    ``gmeow_native.pipeline.verify_release_bundle_native``.
+    """
+    try:
+        import gmeow_native.pipeline as _pipeline
+    except ImportError as exc:
+        raise _fail(
+            "✗ the native pipeline is unavailable: "
+            f"`import gmeow_native.pipeline` failed ({exc}). Install or upgrade "
+            "the gmeow package with native extensions, then retry."
+        ) from exc
+
+    try:
+        bundle_bytes = bundle.read_bytes()
+    except OSError as exc:
+        raise _fail(f"✗ release bundle {bundle} is unreadable: {exc}") from exc
+
+    expected_armor: str | None = None
+    if public_key is not None:
+        try:
+            expected_armor = public_key.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise _fail(f"✗ public key {public_key} is unreadable: {exc}") from exc
+
+    try:
+        signed, valid, kid, fingerprint, artifacts = (
+            _pipeline.verify_release_bundle_native(bundle_bytes, expected_armor)
+        )
+    except ValueError as exc:
+        raise _fail(f"✗ release verification failed: {exc}") from exc
+
+    key_line = f", key {kid}" if kid else ""
+    fp_line = f", fingerprint {fingerprint}" if fingerprint else ""
+    console.print(
+        f"[green]✓ release verified: {bundle} "
+        f"({valid}/{signed} valid signature(s){key_line}{fp_line}, "
+        f"{artifacts} attested artifact(s) present)[/green]"
+    )
+
+
 @app.command()
 def describe(
     term: str = typer.Argument(
