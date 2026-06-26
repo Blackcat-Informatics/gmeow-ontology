@@ -1,6 +1,5 @@
 ---
 source: crates/diagnostics/src/render.rs
-assertion_line: 1185
 expression: to_gmeow_rdf(&advisory_report())
 ---
 <https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Finding> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
@@ -10,4 +9,4 @@ expression: to_gmeow_rdf(&advisory_report())
 <https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <https://blackcatinformatics.ca/gmeow/findingTool> "validate" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
 <https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <https://blackcatinformatics.ca/gmeow/findingSuggestion> "see the modeling guide" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
 <https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <https://blackcatinformatics.ca/gmeow/findingSuggestion> "use gmeow:Kind for rigid sortals" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
-<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <https://blackcatinformatics.ca/gmeow/findingHelpUri> "https://blackcatinformatics.ca/gmeow/advice#sample" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <https://blackcatinformatics.ca/gmeow/findingHelpUri> "https://blackcatinformatics.ca/gmeow/advice#sample"^^<http://www.w3.org/2001/XMLSchema#anyURI> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .

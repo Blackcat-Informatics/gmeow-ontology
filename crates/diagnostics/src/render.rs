@@ -204,6 +204,7 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 /// The named graph the diagnostics projection lives in.
 const DIAGNOSTICS_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const XSD_ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
 const XSD_NNI: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 
 /// The `gmeow:DiagnosticSeverity` individual IRI for a severity.
@@ -309,7 +310,7 @@ pub fn to_gmeow_rdf(report: &Report) -> String {
                 triple(
                     &subject,
                     &format!("{GMEOW}findingHelpUri"),
-                    &format!("\"{}\"", nq_escape(uri)),
+                    &format!("\"{}\"^^<{XSD_ANY_URI}>", nq_escape(uri)),
                     &mut lines,
                 );
             }
