@@ -62,14 +62,14 @@ pub fn to_tsv(
     out.push('\n');
 
     for row in rows {
-        for (column, cell) in row.iter().enumerate() {
+        for column in 0..variables.len() {
             if column > 0 {
                 out.push('\t');
             }
-            if let Some(value) = cell {
+            if let Some(Some(value)) = row.get(column) {
                 out.push_str(&ntriples_token(value));
             }
-            // None → empty field.
+            // None or missing column → empty field.
         }
         out.push('\n');
     }
@@ -194,6 +194,19 @@ mod tests {
         let err = to_tsv(&SparqlResult::Graph(dataset), &ResultProvenance::default())
             .expect_err("graph rejected");
         assert!(matches!(err, Error::Format(_)), "expected Format: {err:?}");
+    }
+
+    #[test]
+    fn short_row_pads_trailing_unbound() {
+        // Row has only 1 bound cell for 3 variables; trailing 2 fields must be empty.
+        let result = SparqlResult::Solutions {
+            variables: vec!["a".to_string(), "b".to_string(), "c".to_string()],
+            rows: vec![vec![Some(TermValue::Iri(
+                "http://example.org/x".to_string(),
+            ))]],
+        };
+        let expected = concat!("?a\t?b\t?c\n", "<http://example.org/x>\t\t\n",);
+        assert_eq!(tsv_text(&result, &ResultProvenance::default()), expected);
     }
 
     #[test]

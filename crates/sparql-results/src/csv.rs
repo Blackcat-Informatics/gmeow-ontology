@@ -59,14 +59,14 @@ pub fn to_csv(
     out.push_str("\r\n");
 
     for row in rows {
-        for (column, cell) in row.iter().enumerate() {
+        for column in 0..variables.len() {
             if column > 0 {
                 out.push(',');
             }
-            if let Some(value) = cell {
+            if let Some(Some(value)) = row.get(column) {
                 push_field(&cell_value(value), &mut out);
             }
-            // None → empty field (nothing emitted between separators).
+            // None or missing column → empty field (nothing emitted between separators).
         }
         out.push_str("\r\n");
     }
@@ -238,6 +238,19 @@ mod tests {
         let err = to_csv(&SparqlResult::Graph(dataset), &ResultProvenance::default())
             .expect_err("graph rejected");
         assert!(matches!(err, Error::Format(_)), "expected Format: {err:?}");
+    }
+
+    #[test]
+    fn short_row_pads_trailing_unbound() {
+        // Row has only 1 bound cell for 3 variables; trailing 2 fields must be empty.
+        let result = SparqlResult::Solutions {
+            variables: vec!["a".to_string(), "b".to_string(), "c".to_string()],
+            rows: vec![vec![Some(TermValue::Iri(
+                "http://example.org/x".to_string(),
+            ))]],
+        };
+        let expected = concat!("a,b,c\r\n", "http://example.org/x,,\r\n",);
+        assert_eq!(csv_text(&result, &ResultProvenance::default()), expected);
     }
 
     #[test]
