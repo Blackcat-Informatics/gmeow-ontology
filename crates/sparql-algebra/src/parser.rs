@@ -2369,4 +2369,62 @@ mod tests {
         let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
         assert_eq!(path_of(&q2), path);
     }
+
+    // CR6: postfix quantifier over an inverse path must parenthesize the inverse
+    // so that Display + re-parse preserves the original AST.
+    //
+    // Before the fix `ZeroOrMore(Reverse(p))` serialised as `^<p>*`, which
+    // reparses as `Reverse(ZeroOrMore(p))` — the nesting is inverted.  The
+    // corrected form is `(^<p>)*`.
+
+    #[test]
+    fn zero_or_more_over_inverse_round_trips_with_parens() {
+        // Parse `(^gmeow:p)*`  →  ZeroOrMore(Reverse(NamedNode(p)))
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x (^gmeow:p)* ?y . }}");
+        let path = path_of(&q);
+        assert_eq!(path.to_string(), "(^<https://x/p>)*");
+        // Re-parse the serialised surface — must give the identical algebra node.
+        let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
+        assert_eq!(path_of(&q2), path);
+    }
+
+    #[test]
+    fn one_or_more_over_inverse_round_trips_with_parens() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x (^gmeow:p)+ ?y . }}");
+        let path = path_of(&q);
+        assert_eq!(path.to_string(), "(^<https://x/p>)+");
+        let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
+        assert_eq!(path_of(&q2), path);
+    }
+
+    #[test]
+    fn zero_or_one_over_inverse_round_trips_with_parens() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x (^gmeow:p)? ?y . }}");
+        let path = path_of(&q);
+        assert_eq!(path.to_string(), "(^<https://x/p>)?");
+        let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
+        assert_eq!(path_of(&q2), path);
+    }
+
+    #[test]
+    fn range_over_inverse_round_trips_with_parens() {
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x (^gmeow:p){{1,2}} ?y . }}");
+        let path = path_of(&q);
+        assert_eq!(path.to_string(), "(^<https://x/p>){1,2}");
+        let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
+        assert_eq!(path_of(&q2), path);
+    }
+
+    #[test]
+    fn inverse_over_zero_or_more_stays_distinct_from_zero_or_more_over_inverse() {
+        // `^gmeow:p*` parses as Reverse(ZeroOrMore(p)) — the star is inside.
+        // Display of Reverse(ZeroOrMore(p)) must remain `^<p>*` (no extra parens
+        // needed for Reverse; the inner `ZeroOrMore` is already a named-node-like
+        // primary from the `^` perspective).
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x ^gmeow:p* ?y . }}");
+        let path = path_of(&q);
+        assert_eq!(path.to_string(), "^<https://x/p>*");
+        let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
+        assert_eq!(path_of(&q2), path);
+    }
 }

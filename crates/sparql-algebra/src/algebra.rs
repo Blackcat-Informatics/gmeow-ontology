@@ -281,14 +281,24 @@ impl core::fmt::Display for PropertyPathExpression {
 }
 
 /// Wraps a property path in parentheses when it must be grouped to sit under a
-/// postfix operator (`*`/`+`/`?`/`{n,m}`) or `^` — i.e. when it is a sequence or
-/// alternative (the lower-precedence binary operators).
+/// postfix operator (`*`/`+`/`?`/`{n,m}`) — i.e. when it is a sequence,
+/// alternative, or **inverse** (`^`) path.
+///
+/// The postfix quantifiers bind tighter than `^` in the SPARQL grammar:
+/// `parse_path_elt_or_inverse` applies `^` and then delegates to
+/// `parse_path_elt` for the quantified primary.  So `^<p>*` reparses as
+/// `Reverse(ZeroOrMore(<p>))`, not `ZeroOrMore(Reverse(<p>))`.  Wrapping a
+/// `Reverse` inner in parentheses — `(^<p>)*` — forces the parser to treat
+/// the whole inverse path as the primary before the quantifier is applied,
+/// preserving the original AST on round-trip.
 struct PathElt<'a>(&'a PropertyPathExpression);
 
 impl core::fmt::Display for PathElt<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self.0 {
-            PropertyPathExpression::Sequence(..) | PropertyPathExpression::Alternative(..) => {
+            PropertyPathExpression::Sequence(..)
+            | PropertyPathExpression::Alternative(..)
+            | PropertyPathExpression::Reverse(..) => {
                 write!(f, "({})", self.0)
             }
             other => write!(f, "{other}"),
