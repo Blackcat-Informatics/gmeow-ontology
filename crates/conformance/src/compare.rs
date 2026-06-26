@@ -59,8 +59,7 @@ fn parse_oxigraph_quads(
 /// Parses `text` in `format`, applies RDFC-1.0 canonical blank-node labelling,
 /// and returns the canonicalized quads as a sorted `Vec` of their N-Quads
 /// strings. Two RDF documents are graph-isomorphic iff their canonical quad
-/// lists are equal — the rdflib-free replacement for `rdflib.compare.isomorphic`
-/// (mirrors `logic_runner._canonical_quads`).
+/// lists are equal — the rdflib-free replacement for `rdflib.compare.isomorphic`.
 fn canonical_quads(text: &str, media_type: &str) -> Result<Vec<String>, String> {
     // Native text ingress (#909): parse via the gmeow-gts codecs, not oxigraph::io.
     let quads: Vec<Quad> = parse_oxigraph_quads(text, media_type)?;
@@ -190,7 +189,6 @@ pub fn compare_explanation_skeleton(
 ///
 /// Reads every non-empty line between the `<!-- cited-iri-skeleton` opening
 /// comment and its closing `-->` marker; lines are trimmed before collection.
-/// Mirrors `logic_runner._parse_cited_iri_skeleton`.
 pub fn parse_cited_iri_skeleton(text: &str) -> BTreeSet<String> {
     let mut in_block = false;
     let mut iris = BTreeSet::new();
@@ -215,8 +213,7 @@ pub fn parse_cited_iri_skeleton(text: &str) -> BTreeSet<String> {
 /// Parse the `target_quad_reifier` from the prose header of an explanation file.
 ///
 /// Looks for the line `` # Explanation for `<REIFIER>` ``. Returns the reifier
-/// IRI, or an empty string if the header is absent. Mirrors
-/// `logic_runner._parse_explanation_reifier`.
+/// IRI, or an empty string if the header is absent.
 pub fn parse_explanation_reifier(text: &str) -> String {
     let prefix = "# Explanation for `<";
     let suffix = ">`";
@@ -236,7 +233,7 @@ pub fn parse_explanation_reifier(text: &str) -> String {
 /// Buckets every quad by its named-graph IRI and re-serializes each world's
 /// triples as an N-Triples string. Default-graph (and blank-node-graph) triples
 /// are dropped — the materialized-corpus comparison asserts only over named
-/// worlds (issue #501 AC(a)/(b)). Mirrors `logic_runner._nquads_by_named_graph`.
+/// worlds (issue #501 AC(a)/(b)).
 pub fn nquads_by_named_graph(nquads_text: &str) -> Result<BTreeMap<String, String>, String> {
     let mut by_graph: BTreeMap<String, Vec<String>> = BTreeMap::new();
     if nquads_text.trim().is_empty() {
@@ -332,8 +329,8 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
     let expected = case_dir.join("expected");
     let proj = expected.join("projections");
 
-    // Re-read the raw profile for the opt-in flags (mirrors _read_case_profile:
-    // lenient — an unreadable/non-object profile is treated as "no opt-in").
+    // Re-read the raw profile for the opt-in flags (lenient: an unreadable/non-object
+    // profile is treated as "no opt-in").
     let profile_val = read_profile_value(case_dir);
     let cert_opt_in = profile_val
         .get("certify")
@@ -640,7 +637,8 @@ fn diff_json_golden(
 }
 
 /// Read a case's `profile.json` as a JSON value, returning `{}` on any error
-/// (mirrors `logic_runner._read_case_profile`'s lenient diff-phase read).
+/// (lenient diff-phase read: an unreadable or non-object profile is treated as
+/// "no opt-in").
 pub(crate) fn read_profile_value(case_dir: &Path) -> serde_json::Value {
     std::fs::read_to_string(case_dir.join("profile.json"))
         .ok()
@@ -678,7 +676,7 @@ fn sorted_files_with_ext(dir: &Path, ext: &str) -> Vec<PathBuf> {
 mod tests {
     use super::*;
 
-    // ---- compare_rdf (ports tests/test_logic_runner.py::TestCompareRdf) ----
+    // ---- compare_rdf tests ----
 
     #[test]
     fn rdf_identical_graphs_match() {
