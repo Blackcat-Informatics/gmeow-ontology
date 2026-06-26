@@ -51,6 +51,7 @@ fn small_model() -> DocsModel {
                 how_to_use: Vec::new(),
                 use_for_consumer: Vec::new(),
                 avoid_for_consumer: Vec::new(),
+                ..Default::default()
             },
             DocTerm {
                 iri: format!("{GMEOW}hasOwner"),
@@ -69,6 +70,7 @@ fn small_model() -> DocsModel {
                 how_to_use: Vec::new(),
                 use_for_consumer: Vec::new(),
                 avoid_for_consumer: Vec::new(),
+                ..Default::default()
             },
         ],
         dependency_edges: Vec::new(),
@@ -84,6 +86,8 @@ fn small_model() -> DocsModel {
         }],
         linkages: Vec::new(),
         examples: Vec::new(),
+        shapes: Vec::new(),
+        competencies: Vec::new(),
         concerns: vec![DocConcern {
             iri: format!("{GMEOW}concern/animals"),
             curie: "gmeow:concern/animals".to_string(),

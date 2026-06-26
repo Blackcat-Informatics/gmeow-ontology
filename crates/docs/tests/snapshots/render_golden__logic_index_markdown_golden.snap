@@ -1,0 +1,14 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: head
+---
+# Logic & Reasoning
+
+Terms grouped by their lowered OntoUML/UFO stereotype (the `logic:` discipline each term carries). See the slice doctrine under `slices/core/logic` for the stereotype semantics.
+
+## logic:AbstractIndividualType \(219 term\(s\)\)
+
+- [`gmeow:AboutnessMode`](../terms/aboutnessmode/index.md)
+- [`gmeow:AccessibilityFacet`](../terms/accessibilityfacet/index.md)
+- [`gmeow:AccessibilityPolarity`](../terms/accessibilitypolarity/index.md)
+- [`gmeow:AccountStatus`](../terms/accountstatus/index.md)
