@@ -10,11 +10,13 @@
 //!    (a variable column) or a [`Pos::Bound`] (a ground constant resolved once via
 //!    `term_id_by_value`, P4 #838). If a ground constant is absent from the dataset
 //!    the whole BGP is empty — that constant cannot match.
-//! 2. **Index-nested-loop join**: process patterns left to right; for each partial
-//!    solution, substitute its already-bound variables into the next pattern's
-//!    positions and call the indexed `quads_for_pattern` (P4b #891), then extend.
-//!    Repeated variables (`?x p ?x`) and previously-bound variables are enforced at
-//!    bind time.
+//! 2. **Order** the patterns most-selective-first with a minimal static heuristic
+//!    ([`selectivity_order`], #913): score by constrained positions, keep the join
+//!    connected. Full cardinality-stats cost planning is S7b (#929).
+//! 3. **Index-nested-loop join** in that order; for each partial solution, substitute
+//!    its already-bound variables into the next pattern's positions and call the
+//!    indexed `quads_for_pattern` (P4b #891), then extend. Repeated variables
+//!    (`?x p ?x`) and previously-bound variables are enforced at bind time.
 //!
 //! ## Blank nodes are non-distinguished variables
 //!
@@ -86,9 +88,16 @@ pub(crate) fn eval_bgp(
         }
     }
 
+    // Reorder the patterns most-selective-first before the join (#913). This is a
+    // pure permutation of a commutative join: `Pos::Slot` is an absolute column
+    // index into `working`, so reordering cannot change which columns bind — the
+    // multiset result is identical, only the join shape (and so the cost) changes.
+    let order = selectivity_order(&compiled);
+
     // Index-nested-loop evaluation. Rows start as a single all-unbound solution.
     let mut rows: Vec<Solution> = vec![vec![None; working.len()]];
-    for cp in &compiled {
+    for &i in &order {
+        let cp = &compiled[i];
         let mut next = Vec::new();
         for row in &rows {
             let s = query_id(&cp.s, row);
@@ -107,6 +116,117 @@ pub(crate) fn eval_bgp(
     }
 
     Ok(project_out_blanks(&working, rows))
+}
+
+/// Order compiled BGP patterns most-selective-first (the minimal static heuristic,
+/// #913). Full cardinality-stats cost planning is S7b (#929); this never probes the
+/// dataset — it scores patterns purely by their *structure* (Principle 12: evaluation
+/// order is computed in the engine, never asserted or materialised as triples).
+///
+/// A pattern's score is how many of its three positions are already *constrained*: a
+/// ground constant ([`Pos::Bound`]), or a variable already bound by an
+/// earlier-scheduled pattern. The order is built greedily, most-constrained-first,
+/// under one hard rule:
+///
+/// > **never schedule a pattern disconnected from the bindings produced so far while
+/// > a connected pattern still remains.**
+///
+/// That keeps the join left-deep and connected (no accidental Cartesian product),
+/// which is what guarantees the reorder is never *slower* than the naive
+/// left-to-right order on the corpus's chain/star shapes. Note that while the
+/// reorder preserves the result *multiset*, it does not preserve the observable row
+/// *sequence* of a `SELECT` without `ORDER BY` — which is spec-permitted (SPARQL §11
+/// leaves solution order unspecified absent `ORDER BY`), so any golden harness over
+/// an un-`ORDER BY`-ed query must be order-tolerant.
+///
+/// Returns a permutation of `0..compiled.len()`. Determinism: a dense `Vec<bool>`
+/// bound-mask (indexed by the dense `0..n_cols` working columns — no hashing, so no
+/// hash-iteration order can ever leak into the result) plus a strict-`>` scan in
+/// original index order (lowest index wins ties) make the order identical run to run.
+fn selectivity_order(compiled: &[CompiledPattern]) -> Vec<usize> {
+    let n = compiled.len();
+    // Working columns are dense `0..n_cols`; size the bound-mask to the highest slot.
+    let n_cols = compiled
+        .iter()
+        .flat_map(|cp| [&cp.s, &cp.p, &cp.o])
+        .filter_map(|pos| match pos {
+            Pos::Slot(c) => Some(*c + 1),
+            Pos::Bound(_) => None,
+        })
+        .max()
+        .unwrap_or(0);
+
+    let mut bound = vec![false; n_cols];
+    let mut scheduled = vec![false; n];
+    let mut order = Vec::with_capacity(n);
+
+    for _ in 0..n {
+        // If any remaining pattern is connected to the bindings so far, only such
+        // patterns are eligible this round — never force a Cartesian product while a
+        // connected join is available. (Round 1: `bound` is empty, nothing is
+        // connected, so every pattern is eligible and the most-constrained — i.e.
+        // the one with the most ground constants — is chosen.)
+        let any_connected =
+            (0..n).any(|i| !scheduled[i] && pattern_connected(&compiled[i], &bound));
+
+        let mut best: Option<usize> = None;
+        let mut best_score = 0usize;
+        for i in 0..n {
+            if scheduled[i] {
+                continue;
+            }
+            if any_connected && !pattern_connected(&compiled[i], &bound) {
+                continue;
+            }
+            let score = pattern_score(&compiled[i], &bound);
+            // Strict `>` over an index-order scan ⇒ lowest original index wins ties.
+            if best.is_none() || score > best_score {
+                best = Some(i);
+                best_score = score;
+            }
+        }
+
+        let chosen = best.expect("an unscheduled pattern always remains");
+        scheduled[chosen] = true;
+        mark_bound(&compiled[chosen], &mut bound);
+        order.push(chosen);
+    }
+    order
+}
+
+/// How many of a pattern's three positions are already constrained — a ground
+/// constant or an already-bound slot. The structural selectivity proxy used by
+/// [`selectivity_order`].
+fn pattern_score(cp: &CompiledPattern, bound: &[bool]) -> usize {
+    [&cp.s, &cp.p, &cp.o]
+        .into_iter()
+        .filter(|pos| pos_is_constrained(pos, bound))
+        .count()
+}
+
+/// Whether a pattern shares at least one already-bound variable with the bindings
+/// produced so far (so joining it cannot be a Cartesian product).
+fn pattern_connected(cp: &CompiledPattern, bound: &[bool]) -> bool {
+    [&cp.s, &cp.p, &cp.o]
+        .into_iter()
+        .any(|pos| matches!(pos, Pos::Slot(c) if bound[*c]))
+}
+
+/// A position is constrained iff it is a ground constant or an already-bound slot.
+fn pos_is_constrained(pos: &Pos, bound: &[bool]) -> bool {
+    match pos {
+        Pos::Bound(_) => true,
+        Pos::Slot(c) => bound[*c],
+    }
+}
+
+/// Record a scheduled pattern's slot columns as now-bound.
+fn mark_bound(cp: &CompiledPattern, bound: &mut [bool]) {
+    for pos in [&cp.s, &cp.p, &cp.o] {
+        if let Pos::Slot(c) = pos {
+            bound[*c] = true;
+        }
+    }
 }
 
 /// The slot variables a triple pattern introduces, in `(s, p, o)` order. A ground
@@ -475,5 +595,188 @@ mod tests {
         // Only ?o is a real column; the blank slot was projected away.
         assert_eq!(seq.schema.vars(), &[Variable::new("o")]);
         assert_eq!(seq.len(), 3); // three knows-edges, one row each.
+    }
+
+    // ---- selectivity_order (#913) -----------------------------------------
+
+    /// A dataset-local id for a hand-built compiled pattern. The actual value is
+    /// irrelevant to ordering — `selectivity_order` only inspects `Bound` vs `Slot`.
+    fn tid(i: u32) -> TermId {
+        TermId::from_index(i)
+    }
+
+    fn cp(s: Pos, p: Pos, o: Pos) -> CompiledPattern {
+        CompiledPattern { s, p, o }
+    }
+
+    /// Reordering the *source* order of a BGP never changes its result multiset:
+    /// `Pos::Slot` is an absolute column index, so the join is commutative.
+    #[test]
+    fn reordering_source_patterns_preserves_results() {
+        let ds = social_graph();
+        // A 3-cycle: { ?a :knows ?b . ?b :knows ?c . ?c :knows ?a } → the 3 rotations.
+        let p0 = triple(var_pos("a"), pred("http://ex/knows"), var_pos("b"));
+        let p1 = triple(var_pos("b"), pred("http://ex/knows"), var_pos("c"));
+        let p2 = triple(var_pos("c"), pred("http://ex/knows"), var_pos("a"));
+
+        let forward = run(&ds, &[p0.clone(), p1.clone(), p2.clone()], &["a", "b", "c"]);
+        let reversed = run(&ds, &[p2, p1, p0], &["a", "b", "c"]);
+
+        assert_eq!(forward.len(), 3);
+        assert_eq!(forward, reversed);
+    }
+
+    /// A more-constrained pattern (more ground constants) is scheduled first.
+    #[test]
+    fn most_constrained_pattern_goes_first() {
+        // index 0: all variables (score 0); index 1: two constants (score 2).
+        let all_vars = cp(Pos::Slot(0), Pos::Slot(1), Pos::Slot(2));
+        let two_const = cp(Pos::Bound(tid(0)), Pos::Bound(tid(1)), Pos::Slot(3));
+        let order = selectivity_order(&[all_vars, two_const]);
+        assert_eq!(order, vec![1, 0]);
+    }
+
+    /// The no-cross-product invariant: a disconnected pattern is never scheduled
+    /// while a connected one remains, even when the disconnected one scores higher.
+    #[test]
+    fn connected_pattern_beats_a_higher_scoring_disconnected_one() {
+        // Component A: P0 (:alice :knows ?b)  score 2, anchors the join (slots {b=0}).
+        //              P1 (?b :name ?n)        score 1, connected via ?b.
+        // Component B: P2 (:bob :age ?x)       score 2, disconnected from A.
+        let p0 = cp(Pos::Bound(tid(10)), Pos::Bound(tid(11)), Pos::Slot(0)); // ?b = col 0
+        let p1 = cp(Pos::Slot(0), Pos::Bound(tid(12)), Pos::Slot(1)); // ?n = col 1
+        let p2 = cp(Pos::Bound(tid(13)), Pos::Bound(tid(14)), Pos::Slot(2)); // ?x = col 2
+
+        let order = selectivity_order(&[p0, p1, p2]);
+        // P0 (score 2) and P2 (score 2) tie for the seed → lowest index P0 wins.
+        // Then P1 (connected, score 1) MUST precede P2 (disconnected, score 2).
+        assert_eq!(order, vec![0, 1, 2]);
+        let pos_of = |i: usize| order.iter().position(|&x| x == i).unwrap();
+        assert!(
+            pos_of(1) < pos_of(2),
+            "connected P1 must precede disconnected P2"
+        );
+    }
+
+    /// A fully disconnected BGP still yields a complete, valid permutation
+    /// (most-constrained first), without panicking.
+    #[test]
+    fn disconnected_bgp_yields_a_valid_permutation() {
+        let p0 = cp(Pos::Slot(0), Pos::Bound(tid(1)), Pos::Slot(1)); // score 1
+        let p1 = cp(Pos::Slot(2), Pos::Bound(tid(2)), Pos::Bound(tid(3))); // score 2
+        let order = selectivity_order(&[p0, p1]);
+        assert_eq!(order, vec![1, 0]); // higher-scoring disconnected pattern first.
+        let mut sorted = order.clone();
+        sorted.sort_unstable();
+        assert_eq!(sorted, vec![0, 1]); // a genuine permutation of 0..n.
+    }
+
+    /// The order is identical run to run (no hash-iteration nondeterminism).
+    #[test]
+    fn order_is_deterministic() {
+        let make = || {
+            vec![
+                cp(Pos::Slot(0), Pos::Bound(tid(1)), Pos::Slot(1)),
+                cp(Pos::Slot(0), Pos::Bound(tid(2)), Pos::Slot(2)),
+                cp(Pos::Slot(0), Pos::Bound(tid(3)), Pos::Slot(3)),
+            ]
+        };
+        assert_eq!(selectivity_order(&make()), selectivity_order(&make()));
+    }
+
+    /// Equal-scoring patterns are broken by lowest original index (stable).
+    #[test]
+    fn ties_break_on_lowest_original_index() {
+        // Two disconnected patterns, each score 1 → index 0 must lead.
+        let p0 = cp(Pos::Slot(0), Pos::Bound(tid(9)), Pos::Slot(1));
+        let p1 = cp(Pos::Slot(2), Pos::Bound(tid(9)), Pos::Slot(3));
+        assert_eq!(selectivity_order(&[p0, p1]), vec![0, 1]);
+    }
+
+    /// An empty BGP produces an empty order — the `0..n` loop runs zero times so the
+    /// `.expect("an unscheduled pattern always remains")` inside the loop is never
+    /// reached. Guards the n == 0 boundary.
+    #[test]
+    fn empty_bgp_orders_to_empty() {
+        assert_eq!(selectivity_order(&[]), Vec::<usize>::new());
+    }
+
+    /// All-ground patterns contain no `Pos::Slot` positions, so `n_cols == 0` and
+    /// the bound-mask is zero-length. `pattern_connected` and `mark_bound` must not
+    /// index the empty mask. Every position is `Pos::Bound`, so every pattern scores 3
+    /// (all constrained) and none is ever "connected" (no slots). Two such patterns tie
+    /// at score 3 — lowest-index-wins gives [0, 1].
+    #[test]
+    fn all_ground_bgp_orders_by_score() {
+        // p0 and p1: all three positions Bound → score 3 each, n_cols == 0.
+        let p0 = cp(Pos::Bound(tid(0)), Pos::Bound(tid(1)), Pos::Bound(tid(2)));
+        let p1 = cp(Pos::Bound(tid(3)), Pos::Bound(tid(4)), Pos::Bound(tid(5)));
+        let order = selectivity_order(&[p0, p1]);
+        // Tie at score 3 → lowest original index wins → [0, 1].
+        assert_eq!(order, vec![0, 1]);
+        // Confirm it is a genuine permutation of 0..2.
+        let mut sorted = order.clone();
+        sorted.sort_unstable();
+        assert_eq!(sorted, vec![0, 1]);
+    }
+
+    /// A ≥3-pattern STAR shape: one shared hub variable (?hub = col 0) appears in
+    /// every spoke. Guards two invariants simultaneously:
+    ///
+    /// 1. **Connectivity**: after the seed pattern binds `?hub`, every remaining spoke
+    ///    shares col 0 — so `pattern_connected` returns `true` for all of them and no
+    ///    Cartesian product is ever forced.
+    /// 2. **Score-then-index ordering among connected spokes**: once all spokes are
+    ///    connected the algorithm still picks the highest-scoring eligible pattern,
+    ///    breaking ties by lowest original index.
+    ///
+    /// Pattern layout (col 0 = ?hub, cols 1–4 are distinct leaf slots):
+    ///   P0 (index 0): Bound Bound Slot(0)   — seed; score 2 in round 1 (two constants)
+    ///   P1 (index 1): Slot(0) Bound Slot(1) — spoke A; score 2 after hub bound
+    ///   P2 (index 2): Slot(0) Slot(2) Slot(3) — spoke B; score 1 after hub bound
+    ///   P3 (index 3): Slot(0) Bound Slot(4) — spoke C; score 2 after hub bound
+    ///
+    /// Hand-simulated rounds:
+    ///   Round 1: nothing bound; scores P0=2, P1=1, P2=0, P3=1 → P0 wins; binds col 0.
+    ///   Round 2: col 0 bound; all of P1/P2/P3 connected; scores P1=2, P2=1, P3=2
+    ///            → P1 and P3 tie at 2; lowest index → P1 wins; binds col 0,1.
+    ///   Round 3: cols 0,1 bound; P2 and P3 connected; scores P2=1, P3=2 → P3 wins;
+    ///            binds cols 0,1,4.
+    ///   Round 4: only P2 remains, connected → P2 scheduled.
+    ///   Expected order: [0, 1, 3, 2].
+    #[test]
+    fn star_bgp_schedules_spokes_connected_after_hub() {
+        // P0: seed — two ground constants anchor ?hub (col 0) in the object position.
+        let p0 = cp(Pos::Bound(tid(10)), Pos::Bound(tid(11)), Pos::Slot(0));
+        // P1: spoke A — hub in subject, one ground predicate, leaf in object (col 1).
+        let p1 = cp(Pos::Slot(0), Pos::Bound(tid(12)), Pos::Slot(1));
+        // P2: spoke B — hub in subject, two free leaf slots (cols 2, 3); lowest score.
+        let p2 = cp(Pos::Slot(0), Pos::Slot(2), Pos::Slot(3));
+        // P3: spoke C — hub in subject, one ground predicate, leaf in object (col 4).
+        let p3 = cp(Pos::Slot(0), Pos::Bound(tid(13)), Pos::Slot(4));
+
+        let order = selectivity_order(&[p0, p1, p2, p3]);
+
+        // The unique deterministic output derived by hand-simulation above.
+        assert_eq!(order, vec![0, 1, 3, 2]);
+
+        // Connectivity invariant: every pattern scheduled after the seed (position 0)
+        // must share the hub column (col 0), so no Cartesian product is forced.
+        let pos_of = |i: usize| order.iter().position(|&x| x == i).unwrap();
+        assert!(pos_of(0) == 0, "P0 is the seed");
+        // P1, P2, P3 all share col 0 with P0 — assert each follows the seed.
+        assert!(pos_of(1) > pos_of(0), "P1 (spoke A) follows the seed");
+        assert!(pos_of(2) > pos_of(0), "P2 (spoke B) follows the seed");
+        assert!(pos_of(3) > pos_of(0), "P3 (spoke C) follows the seed");
+        // Score ordering among connected spokes: P3 (score 2) before P2 (score 1).
+        assert!(
+            pos_of(3) < pos_of(2),
+            "higher-scoring spoke P3 precedes lower-scoring P2"
+        );
+        // Tie-break: P1 and P3 both score 2 as connected; P1 (index 1) precedes P3 (index 3).
+        assert!(
+            pos_of(1) < pos_of(3),
+            "lower-index P1 beats equal-scoring P3 in the tie"
+        );
     }
 }
