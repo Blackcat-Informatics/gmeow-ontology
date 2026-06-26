@@ -14,7 +14,7 @@
 //! mirroring the Python `_TERMS_CACHE`.
 
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -32,8 +32,11 @@ pub struct McpView {
     /// resolved once at construction.
     title: String,
     version: String,
-    /// `requested.join(",")` → collected terms, mirroring `_TERMS_CACHE`.
-    cache: Mutex<HashMap<String, Vec<Term>>>,
+    /// `requested.join(",")` → collected terms, mirroring `_TERMS_CACHE`. Stored
+    /// behind an `Arc` so the cache mutex is released before the (potentially
+    /// large) render runs — concurrent reads of a cached entry never serialize
+    /// behind one another's rendering.
+    cache: Mutex<HashMap<String, Arc<Vec<Term>>>>,
 }
 
 #[pymethods]
@@ -82,11 +85,13 @@ impl McpView {
     /// on first use per requested-tag list.
     fn with_terms<R>(&self, requested: Vec<String>, f: impl FnOnce(&[Term]) -> R) -> R {
         let key = requested.join(",");
-        let mut cache = self.cache.lock().expect("McpView term cache poisoned");
-        let terms = cache.entry(key).or_insert_with(|| {
-            let view = FoldView::with_requested(&self.graph, requested);
-            export::collect_terms(&view)
-        });
-        f(terms)
+        let terms = {
+            let mut cache = self.cache.lock().expect("McpView term cache poisoned");
+            Arc::clone(cache.entry(key).or_insert_with(|| {
+                let view = FoldView::with_requested(&self.graph, requested);
+                Arc::new(export::collect_terms(&view))
+            }))
+        };
+        f(terms.as_slice())
     }
 }
