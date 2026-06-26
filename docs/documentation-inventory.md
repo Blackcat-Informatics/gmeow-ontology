@@ -35,6 +35,8 @@ checking generated site files into git.
 | `merge-with-slice-docs` | Merge useful material into existing `slices/*/*/docs.md` or slice design docs, then retire the root duplicate. |
 | `promote-to-ontology` | Extract term-level material into ontology annotations or mapping metadata. |
 | `update-or-archive` | Refresh stale paths/history or archive after useful content is preserved. |
+| `migrated` | Completed state: curated content extracted into slice annotations/docs; root doc retired. |
+| `moved` | Completed state: relocated to another location/repository and referenced by URL. |
 
 ## Root docs inventory
 

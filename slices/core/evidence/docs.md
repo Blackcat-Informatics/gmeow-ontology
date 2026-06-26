@@ -98,7 +98,7 @@ primary, and routine).
 | Primary legal filing | `evidenceLegalFiling` — high | `sourceIndependenceSelfOrIssuerOriginated` + `sourceTierPrimary` + `coverageDepthRoutineFiling` → `supportsNotability false` |
 | Self-published blog post | `evidenceSelfControlledSite` — low–medium | `sourceIndependenceSelfOrIssuerOriginated` + `sourceTierPrimary` + `coverageDepthSignificantCoverage` → `supportsNotability false` |
 | Family anecdote | `evidenceFamilyNarrative` — low | `sourceIndependenceIndependent` + `sourceTierSecondary` + `coverageDepthPassingMention` → `supportsNotability false` |
-| Rumour on social media | `evidenceRUMOR` — very low | `sourceIndependenceIndependent` + `sourceTierTertiary` + `coverageDepthPassingMention` → `supportsNotability false` |
+| Rumour on social media | `evidenceRUMOR` — very low | `sourceIndependenceIndependent` + `sourceTierPrimary` + `coverageDepthPassingMention` → `supportsNotability false` |
 
 ## Open-world policy & solver boundary
 
