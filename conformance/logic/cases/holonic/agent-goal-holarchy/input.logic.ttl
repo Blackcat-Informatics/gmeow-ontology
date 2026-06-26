@@ -1,0 +1,196 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: holonic/agent-goal-holarchy
+# AC: APPLIED — an AI agent's goal/action trajectory as a holarchy (issue #709, C6).
+#
+# This is the named Principle-15 CONSUMER of the Holons epic (#703): the product-facing
+# payoff that the C1–C5 kernel (holon projection #704, emergence #705, downward constraint
+# #706, autonomy/integration #707, conformance corpus #708) was built for. It mints NO new
+# foundation logic; it APPLIES the existing kernel to agent self-decomposition. One agent
+# plan exercises all four faculties at once, and the SAME holon plays several roles — a
+# derived holon (C1), a governed sub-goal (C3), and an integral agency locus (C4) — which is
+# exactly the dogfooding the issue asks for.
+#
+# ── The DECOMPOSITION-vs-MEREOLOGY seam (#804 LOGIC-TELEOLOGY.md / #775 ME9) ────────────────
+# Goal/action decomposition has TWO distinct relation families. The satisfaction-dependency
+# relations (refines / necessary-for / sufficient-for — designed in LOGIC-TELEOLOGY.md, where
+# means–end search reads them) carry whether a sub-goal SETTLES its parent; they are a
+# solver-layer concern and are deliberately NOT asserted here (they are not minted foundation
+# terms). The holarchy below rides the OTHER family — logic:properPartOf, STRUCTURAL part-hood
+# — because holon-ness is read off the mereology spine, never off the dependency graph. A
+# sub-goal may be both logic:properPartOf its parent AND (at the solver layer) necessary-for
+# it; this case asserts only the structural edge, honoring the seam by not collapsing the two.
+#
+# ── C1: the goal holarchy and the action holarchy (logic:isHolon derived) ──────────────────
+# Holon-ness is contextual (the canonical construct is the relational logic:HolonicPosition);
+# logic:isHolon is its lossy unary projection: an entity that, within a holarchy, is BOTH a
+# proper part of some whole AND itself has a proper part. Two parallel strict-parthood chains
+# model the agent's plan — a GOAL holarchy and an ACTION holarchy:
+#   Goal:   ex:SearchQuery ⊏ ex:RetrieveContext ⊏ ex:AnswerQuery ⊏ ex:ShipAssistant
+#     * ex:RetrieveContext, ex:AnswerQuery — mid-chain (proper part AND whole) → logic:isHolon.
+#     * ex:ShipAssistant — the root goal (no whole above it) → NOT a holon.
+#     * ex:SearchQuery — an atomic leaf sub-goal (no proper part) → NOT a holon.
+#   Action: ex:SearchCall ⊏ ex:ToolPhase ⊏ ex:AgentTurn
+#     * ex:ToolPhase — mid-chain → logic:isHolon.
+#     * ex:AgentTurn — the root turn → NOT a holon; ex:SearchCall — leaf → NOT a holon.
+# The C1 kernel co-firings (logic:overlaps, and on the chains logic:disjoint /
+# logic:hasDisjointCopart) are expected on this parthood input and are NOT suppressed —
+# suppressing them would misreport the engine.
+#
+# ── C2: emergence over a plan-level property (logic:EmergenceAssessment, tri-valued) ────────
+# The root goal ex:ShipAssistant bears three plan-level properties; one reduction theory
+# (ex:CostTheory, whose logic:reductionBasis carries ex:TotalTokenCost but NOT ex:PlanCoherence)
+# exercises all three verdicts:
+#   * ex:AssessCost      (ShipAssistant, TotalTokenCost, CostTheory) → logic:Aggregate — the
+#     theory reduces token cost AND a proper part (ex:AnswerQuery) bears it: it sums from parts.
+#   * ex:AssessCoherence (ShipAssistant, PlanCoherence, CostTheory) → logic:Emergent — the whole
+#     plan is coherent but the theory does not reduce it and no part bears it; reached by
+#     negation-as-failure over the aggregate derivation WHILE the theory is bound (theory-relative).
+#   * ex:AssessTrust     (ShipAssistant, UserTrust, NO theory) → logic:EmergenceUnknown — no
+#     reduction theory is declared, so the reducibility question cannot be posed (the first-class
+#     third value; failure-to-derive is not irreducibility).
+# NON-PROPAGATION: no rule propagates logic:bearsProperty down logic:properPartOf, so the
+# emergent ex:PlanCoherence stays on ex:ShipAssistant and never reaches the sub-goals — the
+# golden materialized.nq carries bearsProperty(ShipAssistant, PlanCoherence) but visibly OMITS
+# bearsProperty on the sub-goals. That omission is the non-inheritance demonstration, not a gap.
+#
+# ── C3: downward constraint — a parent goal governs a sub-goal's role (tri-valued) ──────────
+# Governance is the DOWNWARD face of a holon: a parent goal CONSTRAINS the permissible state of
+# a sub-goal (here, whether retrieval must stay grounded). This is constraint, NOT causation.
+# One regime (ex:SafetyRegime, whose logic:activationBasis carries ex:GroundedOnlyState but NOT
+# ex:UngroundedState) exercises all three verdicts over the (AnswerQuery ▷ RetrieveContext) edge:
+#   * ex:GovGrounded    (AnswerQuery→RetrieveContext, GroundedOnlyState, SafetyRegime, no override)
+#       → logic:ConstraintBinding — the regime activates GroundedOnlyState, so the parent binds
+#       the sub-goal to grounded-only retrieval.
+#   * ex:GovWaived      (… + override ex:HumanApprovalWaiver, which RetrieveContext bears)
+#       → logic:ConstraintOverridden — the binding is DEFEATED because the sub-goal bears the
+#       declared waiver token (a structured, human-in-the-loop escape hatch).
+#   * ex:GovExploratory (AnswerQuery→RetrieveContext, UngroundedState, SafetyRegime, no override)
+#       → logic:ConstraintUnknown — the regime does NOT activate UngroundedState, so the binding
+#       question cannot be posed (the first-class third value).
+# NON-TRANSITIVITY (the C3 guarantee, #775): governance does NOT cascade down logic:properPartOf.
+# ex:SearchQuery is a proper part of ex:RetrieveContext (hence transitively of ex:AnswerQuery),
+# but NO logic:DownwardConstraint names ex:SearchQuery as its logic:constraintTarget, so NO
+# logic:constraintVerdict is ever derived for it. The golden materialized.nq carries the three
+# verdicts on GovGrounded/GovWaived/GovExploratory but visibly OMITS any constraintVerdict
+# touching ex:SearchQuery. That omission is the non-transitivity demonstration, not a gap.
+#
+# ── C4: agency — the sub-agent holon's Janus faces (logic:AgencyAssessment, four-valued) ────
+# Each plan node is Janus-faced: SELF-ASSERTIVE (it plans its own substeps, as a whole) and
+# INTEGRATIVE (it serves the parent goal, as a part) — co-equal facets (Principle 9). One
+# declared profile (ex:AgentProfile: logic:selfAssertiveBasis ex:PlansSubsteps,
+# logic:integrativeBasis ex:ServesParentGoal) exercises all four verdicts by varying which
+# capacities each assessed node bears, with structural position mirroring the verdict:
+#   * ex:IntegralRetrieve  (ex:RetrieveContext bears BOTH) → logic:HolonIntegral — the balanced
+#     sub-agent: it plans its own retrieval substeps AND subordinates to answering the query. It
+#     is also a structural holon (mid-chain), so C1's logic:isHolon co-fires — fittingly.
+#   * ex:DeficientAutonomyAnswer (ex:AnswerQuery bears integrative only) → logic:AutonomyDeficient
+#     — a "part" that serves its parent but asserts no substep-planning autonomy of its own.
+#   * ex:DeficientIntegrationShip (ex:ShipAssistant bears self-assertive only)
+#     → logic:IntegrationDeficient — the root goal plans substeps but subordinates to nothing
+#     (it is part of no larger whole), the co-equal mirror pathology.
+#   * ex:UnknownSearch (ex:SearchCall bears NEITHER) → logic:AgencyUnknown — a bare leaf action
+#     evidences neither tendency, so the integrity question has no positive footing (the
+#     first-class fourth value; failure-to-evidence is not integrity).
+# Agency is profile-scoped, NOT gated on structural holon-ness, so the leaf ex:SearchCall and the
+# root ex:ShipAssistant still receive verdicts. Every verdict rule re-binds logic:agencyHolon and
+# logic:agencyProfile, so a malformed assessment naming no holon/profile gets no verdict.
+#
+# ── Profile hygiene ────────────────────────────────────────────────────────────────────────
+# No logic:underMereologyProfile is declared anywhere, so weak supplementation stays inert and a
+# single-refinement chain node never trips a logic:WeakSupplementation violation (the #775
+# guard: conceptual goal decomposition is exactly a context where weak supplementation is
+# inappropriate). The absence of a violation is intentional.
+#
+# ── The reachable consumer ─────────────────────────────────────────────────────────────────
+# This holarchy is the canonical form the MCP `decompose` / `recompose` surface and Project
+# Lillith's agent-memory decomposition read: `decompose` walks logic:properPartOf to expand a
+# goal/action into its sub-trajectory; `recompose` folds a sub-trajectory back to the holon that
+# governs it (logic:constraintWhole) and re-reads its agency verdict. The gmeow:-domain twin of
+# this plan ships on the slice surface at
+# slices/extensions/agentic/examples/agent-goal-holarchy.ttl.
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so every fact below is duplicated
+# there in the named world ex:schema; these are the program axioms.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/holonic/agent-goal-holarchy/> .
+
+# ── C1: goal holarchy (a four-level strict-parthood chain) ──────────────────────────────────
+ex:SearchQuery     logic:properPartOf ex:RetrieveContext .
+ex:RetrieveContext logic:properPartOf ex:AnswerQuery .
+ex:AnswerQuery     logic:properPartOf ex:ShipAssistant .
+
+# ── C1: action holarchy (a three-level strict-parthood chain) ───────────────────────────────
+ex:SearchCall logic:properPartOf ex:ToolPhase .
+ex:ToolPhase  logic:properPartOf ex:AgentTurn .
+
+# ── C2: plan-level properties borne by the root goal (and the cost, by a part) ──────────────
+ex:ShipAssistant logic:bearsProperty ex:PlanCoherence ;
+    logic:bearsProperty ex:TotalTokenCost ;
+    logic:bearsProperty ex:UserTrust .
+ex:AnswerQuery logic:bearsProperty ex:TotalTokenCost .
+
+# The reduction theory: additive token cost reduces to parts; nothing else is in its basis.
+ex:CostTheory logic:reductionBasis ex:TotalTokenCost .
+
+# Three emergence assessments over the one root goal.
+ex:AssessCost logic:assessmentWhole ex:ShipAssistant ;
+    logic:assessmentProperty ex:TotalTokenCost ;
+    logic:assessmentReductionTheory ex:CostTheory .
+
+ex:AssessCoherence logic:assessmentWhole ex:ShipAssistant ;
+    logic:assessmentProperty ex:PlanCoherence ;
+    logic:assessmentReductionTheory ex:CostTheory .
+
+# No logic:assessmentReductionTheory — the reducibility question cannot be posed.
+ex:AssessTrust logic:assessmentWhole ex:ShipAssistant ;
+    logic:assessmentProperty ex:UserTrust .
+
+# ── C3: downward constraint — the parent goal governs the retrieval sub-goal ────────────────
+# The safety regime activates grounded-only retrieval as binding; nothing else is in its basis.
+ex:SafetyRegime logic:activationBasis ex:GroundedOnlyState .
+
+# The override token borne by the retrieval sub-goal (defeats the waived constraint).
+ex:RetrieveContext logic:bearsProperty ex:HumanApprovalWaiver .
+
+ex:GovGrounded logic:constraintWhole ex:AnswerQuery ;
+    logic:constraintTarget ex:RetrieveContext ;
+    logic:constraintState ex:GroundedOnlyState ;
+    logic:constraintRegime ex:SafetyRegime .
+
+ex:GovWaived logic:constraintWhole ex:AnswerQuery ;
+    logic:constraintTarget ex:RetrieveContext ;
+    logic:constraintState ex:GroundedOnlyState ;
+    logic:constraintRegime ex:SafetyRegime ;
+    logic:constraintOverride ex:HumanApprovalWaiver .
+
+# UngroundedState is NOT in the regime's activation basis — the binding question cannot be posed.
+ex:GovExploratory logic:constraintWhole ex:AnswerQuery ;
+    logic:constraintTarget ex:RetrieveContext ;
+    logic:constraintState ex:UngroundedState ;
+    logic:constraintRegime ex:SafetyRegime .
+
+# ── C4: agency — the sub-agent holons' Janus faces, scoped to one declared profile ──────────
+ex:AgentProfile logic:selfAssertiveBasis ex:PlansSubsteps ;
+    logic:integrativeBasis ex:ServesParentGoal .
+
+# The capacities each node bears (the evidence the profile reasons over).
+ex:RetrieveContext logic:bearsProperty ex:PlansSubsteps ;
+    logic:bearsProperty ex:ServesParentGoal .            # both faces  → HolonIntegral
+ex:AnswerQuery     logic:bearsProperty ex:ServesParentGoal .   # integrative only → AutonomyDeficient
+ex:ShipAssistant   logic:bearsProperty ex:PlansSubsteps .      # self-assertive only → IntegrationDeficient
+# ex:SearchCall bears NEITHER capacity → AgencyUnknown.
+
+ex:IntegralRetrieve logic:agencyHolon ex:RetrieveContext ;
+    logic:agencyProfile ex:AgentProfile .
+
+ex:DeficientAutonomyAnswer logic:agencyHolon ex:AnswerQuery ;
+    logic:agencyProfile ex:AgentProfile .
+
+ex:DeficientIntegrationShip logic:agencyHolon ex:ShipAssistant ;
+    logic:agencyProfile ex:AgentProfile .
+
+ex:UnknownSearch logic:agencyHolon ex:SearchCall ;
+    logic:agencyProfile ex:AgentProfile .

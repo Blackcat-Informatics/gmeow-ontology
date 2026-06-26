@@ -1,0 +1,6 @@
+{
+  "https://example.org/holonic/agent-goal-holarchy/schema": {
+    "quads": 83,
+    "status": "consistent"
+  }
+}
