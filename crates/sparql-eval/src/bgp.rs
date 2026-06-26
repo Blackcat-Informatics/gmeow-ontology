@@ -10,11 +10,13 @@
 //!    (a variable column) or a [`Pos::Bound`] (a ground constant resolved once via
 //!    `term_id_by_value`, P4 #838). If a ground constant is absent from the dataset
 //!    the whole BGP is empty — that constant cannot match.
-//! 2. **Index-nested-loop join**: process patterns left to right; for each partial
-//!    solution, substitute its already-bound variables into the next pattern's
-//!    positions and call the indexed `quads_for_pattern` (P4b #891), then extend.
-//!    Repeated variables (`?x p ?x`) and previously-bound variables are enforced at
-//!    bind time.
+//! 2. **Order** the patterns most-selective-first with a minimal static heuristic
+//!    ([`selectivity_order`], #913): score by constrained positions, keep the join
+//!    connected. Full cardinality-stats cost planning is S7b (#929).
+//! 3. **Index-nested-loop join** in that order; for each partial solution, substitute
+//!    its already-bound variables into the next pattern's positions and call the
+//!    indexed `quads_for_pattern` (P4b #891), then extend. Repeated variables
+//!    (`?x p ?x`) and previously-bound variables are enforced at bind time.
 //!
 //! ## Blank nodes are non-distinguished variables
 //!
@@ -86,9 +88,16 @@ pub(crate) fn eval_bgp(
         }
     }
 
+    // Reorder the patterns most-selective-first before the join (#913). This is a
+    // pure permutation of a commutative join: `Pos::Slot` is an absolute column
+    // index into `working`, so reordering cannot change which columns bind — the
+    // multiset result is identical, only the join shape (and so the cost) changes.
+    let order = selectivity_order(&compiled);
+
     // Index-nested-loop evaluation. Rows start as a single all-unbound solution.
     let mut rows: Vec<Solution> = vec![vec![None; working.len()]];
-    for cp in &compiled {
+    for &i in &order {
+        let cp = &compiled[i];
         let mut next = Vec::new();
         for row in &rows {
             let s = query_id(&cp.s, row);
@@ -107,6 +116,112 @@ pub(crate) fn eval_bgp(
     }
 
     Ok(project_out_blanks(&working, rows))
+}
+
+/// Order compiled BGP patterns most-selective-first (the minimal static heuristic,
+/// #913). Full cardinality-stats cost planning is S7b (#929); this never probes the
+/// dataset — it scores patterns purely by their *structure*.
+///
+/// A pattern's score is how many of its three positions are already *constrained*: a
+/// ground constant ([`Pos::Bound`]), or a variable already bound by an
+/// earlier-scheduled pattern. The order is built greedily, most-constrained-first,
+/// under one hard rule:
+///
+/// > **never schedule a pattern disconnected from the bindings produced so far while
+/// > a connected pattern still remains.**
+///
+/// That keeps the join left-deep and connected (no accidental Cartesian product),
+/// which is what guarantees the reorder is never *slower* than the naive
+/// left-to-right order on the corpus's chain/star shapes.
+///
+/// Returns a permutation of `0..compiled.len()`. Determinism: a dense `Vec<bool>`
+/// bound-mask (indexed by the dense `0..n_cols` working columns — no hashing, so no
+/// hash-iteration order can ever leak into the result) plus a strict-`>` scan in
+/// original index order (lowest index wins ties) make the order identical run to run.
+fn selectivity_order(compiled: &[CompiledPattern]) -> Vec<usize> {
+    let n = compiled.len();
+    // Working columns are dense `0..n_cols`; size the bound-mask to the highest slot.
+    let n_cols = compiled
+        .iter()
+        .flat_map(|cp| [&cp.s, &cp.p, &cp.o])
+        .filter_map(|pos| match pos {
+            Pos::Slot(c) => Some(*c + 1),
+            Pos::Bound(_) => None,
+        })
+        .max()
+        .unwrap_or(0);
+
+    let mut bound = vec![false; n_cols];
+    let mut scheduled = vec![false; n];
+    let mut order = Vec::with_capacity(n);
+
+    for _ in 0..n {
+        // If any remaining pattern is connected to the bindings so far, only such
+        // patterns are eligible this round — never force a Cartesian product while a
+        // connected join is available. (Round 1: `bound` is empty, nothing is
+        // connected, so every pattern is eligible and the most-constrained — i.e.
+        // the one with the most ground constants — is chosen.)
+        let any_connected =
+            (0..n).any(|i| !scheduled[i] && pattern_connected(&compiled[i], &bound));
+
+        let mut best: Option<usize> = None;
+        let mut best_score = 0usize;
+        for i in 0..n {
+            if scheduled[i] {
+                continue;
+            }
+            if any_connected && !pattern_connected(&compiled[i], &bound) {
+                continue;
+            }
+            let score = pattern_score(&compiled[i], &bound);
+            // Strict `>` over an index-order scan ⇒ lowest original index wins ties.
+            if best.is_none() || score > best_score {
+                best = Some(i);
+                best_score = score;
+            }
+        }
+
+        let chosen = best.expect("an unscheduled pattern always remains");
+        scheduled[chosen] = true;
+        mark_bound(&compiled[chosen], &mut bound);
+        order.push(chosen);
+    }
+    order
+}
+
+/// How many of a pattern's three positions are already constrained — a ground
+/// constant or an already-bound slot. The structural selectivity proxy used by
+/// [`selectivity_order`].
+fn pattern_score(cp: &CompiledPattern, bound: &[bool]) -> usize {
+    [&cp.s, &cp.p, &cp.o]
+        .into_iter()
+        .filter(|pos| pos_is_constrained(pos, bound))
+        .count()
+}
+
+/// Whether a pattern shares at least one already-bound variable with the bindings
+/// produced so far (so joining it cannot be a Cartesian product).
+fn pattern_connected(cp: &CompiledPattern, bound: &[bool]) -> bool {
+    [&cp.s, &cp.p, &cp.o]
+        .into_iter()
+        .any(|pos| matches!(pos, Pos::Slot(c) if bound[*c]))
+}
+
+/// A position is constrained iff it is a ground constant or an already-bound slot.
+fn pos_is_constrained(pos: &Pos, bound: &[bool]) -> bool {
+    match pos {
+        Pos::Bound(_) => true,
+        Pos::Slot(c) => bound[*c],
+    }
+}
+
+/// Record a scheduled pattern's slot columns as now-bound.
+fn mark_bound(cp: &CompiledPattern, bound: &mut [bool]) {
+    for pos in [&cp.s, &cp.p, &cp.o] {
+        if let Pos::Slot(c) = pos {
+            bound[*c] = true;
+        }
+    }
 }
 
 /// The slot variables a triple pattern introduces, in `(s, p, o)` order. A ground
