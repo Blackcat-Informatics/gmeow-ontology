@@ -120,7 +120,8 @@ pub(crate) fn eval_bgp(
 
 /// Order compiled BGP patterns most-selective-first (the minimal static heuristic,
 /// #913). Full cardinality-stats cost planning is S7b (#929); this never probes the
-/// dataset — it scores patterns purely by their *structure*.
+/// dataset — it scores patterns purely by their *structure* (Principle 12: evaluation
+/// order is computed in the engine, never asserted or materialised as triples).
 ///
 /// A pattern's score is how many of its three positions are already *constrained*: a
 /// ground constant ([`Pos::Bound`]), or a variable already bound by an
@@ -132,7 +133,11 @@ pub(crate) fn eval_bgp(
 ///
 /// That keeps the join left-deep and connected (no accidental Cartesian product),
 /// which is what guarantees the reorder is never *slower* than the naive
-/// left-to-right order on the corpus's chain/star shapes.
+/// left-to-right order on the corpus's chain/star shapes. Note that while the
+/// reorder preserves the result *multiset*, it does not preserve the observable row
+/// *sequence* of a `SELECT` without `ORDER BY` — which is spec-permitted (SPARQL §11
+/// leaves solution order unspecified absent `ORDER BY`), so any golden harness over
+/// an un-`ORDER BY`-ed query must be order-tolerant.
 ///
 /// Returns a permutation of `0..compiled.len()`. Determinism: a dense `Vec<bool>`
 /// bound-mask (indexed by the dense `0..n_cols` working columns — no hashing, so no
