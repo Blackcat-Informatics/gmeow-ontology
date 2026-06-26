@@ -2796,6 +2796,7 @@ fn alias_redirect_html(alias_dir: &str, target_dir: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::DocTermStability;
 
     #[test]
     fn rel_computes_relative_dir_paths() {
@@ -3031,5 +3032,39 @@ mod tests {
             !bar_md.contains("## Alignments"),
             "empty alignments suppressed"
         );
+    }
+
+    /// The always-present Stability badge must render every `DocTermStability`
+    /// variant. The `deprecated` arm is otherwise never exercised by the term
+    /// goldens (no production term is `owl:deprecated` — this project deletes
+    /// rather than deprecates), so this is the only coverage of that render
+    /// path (#1026). The derivation logic itself is unit-tested separately in
+    /// `model::tests::stability_resolves_by_precedence`.
+    #[test]
+    fn stability_badge_renders_every_state() {
+        let mut model = tiny_model();
+        model.terms.iter_mut().for_each(|t| {
+            t.stability = match t.curie.as_str() {
+                "gmeow:Foo" => DocTermStability::Deprecated,
+                _ => DocTermStability::Experimental,
+            };
+        });
+
+        let foo_md = to_markdown(&model, &Page::Term("foo".to_string()));
+        assert!(foo_md.contains("## Stability"), "stability heading present");
+        assert!(
+            foo_md.contains("- **Status:** deprecated"),
+            "deprecated badge renders: {foo_md}"
+        );
+
+        let bar_md = to_markdown(&model, &Page::Term("bar".to_string()));
+        assert!(
+            bar_md.contains("- **Status:** experimental"),
+            "experimental badge renders: {bar_md}"
+        );
+
+        // The default (no override, core-tier) resolves to `stable` and still
+        // renders unconditionally — assert via the variant label directly.
+        assert_eq!(DocTermStability::Stable.label(), "stable");
     }
 }
