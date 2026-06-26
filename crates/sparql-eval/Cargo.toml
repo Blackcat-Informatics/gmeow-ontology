@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-sparql-eval"
+description = "Native, RDF-1.2-first multiset SPARQL evaluator over the DatasetView read trait in interned TermId space — the runtime that consumes gmeow-sparql-algebra (S5) and replaces the oxigraph-family spareval on the query path (purrdf S6, EPIC #906)"
+version = "0.1.0"
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords = ["sparql", "rdf", "rdf-12", "evaluator", "query"]
+
+[lib]
+# rlib-only, wasm-clean: the SPARQL evaluation runtime of the native query stack.
+# It must NOT pull any oxigraph-family crate (it replaces the oxigraph-family
+# `spareval`). It consumes the wasm-clean `gmeow-sparql-algebra` (#911) front-end,
+# evaluates over the `gmeow-rdf-core` (#885) IR `DatasetView` in interned `TermId`
+# space (depended on with `default-features = false` to drop the GTS/Ed25519 signer
+# surface this crate never touches and keep the wasm tree minimal), and uses
+# `gmeow-xsd` (#907) for FILTER/BIND/ORDER value-space semantics.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+name = "gmeow_sparql_eval"
+
+[dependencies]
+# The IR + DatasetView read trait + SparqlEngine seam, in TermId space. No default
+# features: the `gts` signer path (ciborium/ed25519-dalek/gmeow-gts) is irrelevant
+# to evaluation and would bloat the wasm dependency tree.
+gmeow-rdf-core = { path = "../rdf-core", default-features = false }
+# The query algebra this crate evaluates (parser + GraphPattern/Expression AST).
+gmeow-sparql-algebra = { path = "../sparql-algebra" }
+
+[dev-dependencies]
+# Colored line-diffs on assert_eq! failure (repo convention).
+pretty_assertions = "1"

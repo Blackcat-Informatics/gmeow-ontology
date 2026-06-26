@@ -1952,6 +1952,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-sparql-eval"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf-core",
+ "gmeow-sparql-algebra",
+ "pretty_assertions",
+]
+
+[[package]]
 name = "gmeow-validate"
 version = "0.1.0"
 dependencies = [
