@@ -1143,16 +1143,21 @@ fn holonic_agency_four_valued_verdicts() {
     // the conformance harness asserts (the case input.nq).  One declared
     // logic:HolonicAgencyProfile (KoestlerProfile: command ⇒ self-assertion, subordination
     // ⇒ integration) drives all four logic:AgencyVerdict values, and the two Janus markers
-    // are co-equal (Principle 9).
+    // are co-equal (Principle 9).  A second, basis-free profile (VoidProfile) pins AgencyUnknown's
+    // SECOND trigger — a declared profile that names no basis — distinct from the holon-bears-
+    // nothing trigger (AssessInert).
     let base = "https://example.org/foundation/holonic-autonomy-integration";
     let quads = run(HOLONIC_AGENCY_INPUT, AntiRigidityPolicy::WitnessObligation);
 
-    // The four verdicts, each on its own assessment.
-    let expect: [(&str, &str); 4] = [
+    // The four verdicts (each on its own assessment) plus the basis-free AgencyUnknown: the SAME
+    // both-capacity holon (Captain) is HolonIntegral under KoestlerProfile yet AgencyUnknown under
+    // the basis-free VoidProfile (AssessSilentCaptain) — agency is profile-relative.
+    let expect: [(&str, &str); 5] = [
         ("AssessCaptain", "HolonIntegral"),
         ("AssessPrivate", "AutonomyDeficient"),
         ("AssessWarlord", "IntegrationDeficient"),
         ("AssessInert", "AgencyUnknown"),
+        ("AssessSilentCaptain", "AgencyUnknown"),
     ];
     let all_verdicts = [
         "HolonIntegral",
@@ -1207,6 +1212,25 @@ fn holonic_agency_four_valued_verdicts() {
     assert!(
         has_marker(&quads, &format!("{base}/Captain"), "isHolon"),
         "the mid-chain ex:Captain must co-fire the C1 holon projection"
+    );
+
+    // Basis-free trigger: ex:AssessSilentCaptain assesses the SAME both-capacity holon (Captain)
+    // under the basis-free ex:VoidProfile.  No basis means NEITHER marker can derive, so the
+    // verdict is Unknown — not deficient (deficiency needs the mirror marker to hold) and not
+    // integral.  This proves the verdict is PROFILE-RELATIVE: the identical holon that is
+    // HolonIntegral under KoestlerProfile is AgencyUnknown here, purely because the profile
+    // declares no basis to reason over.
+    assert!(
+        !has_marker(
+            &quads,
+            &format!("{base}/AssessSilentCaptain"),
+            "selfAssertive"
+        ) && !has_marker(
+            &quads,
+            &format!("{base}/AssessSilentCaptain"),
+            "integrative"
+        ),
+        "a basis-free profile must evidence NEITHER Janus marker, even for a both-capacity holon"
     );
 
     // B1 well-formedness guard: a malformed assessment (no logic:agencyProfile) receives NO
