@@ -22,9 +22,14 @@ use crate::convert::{quad_to_quad_values, quad_values_to_quad, rdf_term_to_term_
 use crate::term::{Quad, Term, TermInner};
 
 /// Lower an optional pattern [`Term`] to an optional [`TermValue`] (None = wildcard).
+///
+/// A `Variable` term is the RDF/JS idiom for a wildcard position in `match()` (the same
+/// role an omitted/`undefined` argument plays), so it lowers to `None` rather than
+/// erroring — only a concrete RDF term constrains the position.
 fn pattern_value(term: &Option<Term>) -> Result<Option<TermValue>, JsError> {
     match term {
         None => Ok(None),
+        Some(t) if matches!(t.inner, TermInner::Variable(_)) => Ok(None),
         Some(t) => {
             let rdf = t.to_rdf_term().map_err(|e| JsError::new(&e))?;
             Ok(Some(rdf_term_to_term_value(&rdf)))
@@ -141,21 +146,23 @@ impl Dataset {
         let p = pattern_value(&predicate)?;
         let o = pattern_value(&object)?;
         // The graph slot needs the three-way Any / Default / Named distinction that a
-        // bare Option<TermValue> cannot express.
+        // bare Option<TermValue> cannot express. A `Variable` graph term is a wildcard
+        // (`Any`), like an omitted argument — never resolved as a named graph.
         let named_graph = match &graph {
-            Some(t) if !matches!(t.inner, TermInner::DefaultGraph) => Some(rdf_term_to_term_value(
-                &t.to_rdf_term().map_err(|e| JsError::new(&e))?,
-            )),
+            Some(t) if !matches!(t.inner, TermInner::DefaultGraph | TermInner::Variable(_)) => {
+                Some(rdf_term_to_term_value(
+                    &t.to_rdf_term().map_err(|e| JsError::new(&e))?,
+                ))
+            }
             _ => None,
         };
         let graph_match = match &graph {
             None => GraphMatchValue::Any,
             Some(t) if matches!(t.inner, TermInner::DefaultGraph) => GraphMatchValue::Default,
-            Some(_) => GraphMatchValue::Named(
-                named_graph
-                    .as_ref()
-                    .expect("a named-graph value is computed for a non-default graph term"),
-            ),
+            Some(t) if matches!(t.inner, TermInner::Variable(_)) => GraphMatchValue::Any,
+            Some(_) => GraphMatchValue::Named(named_graph.as_ref().expect(
+                "a named-graph value is computed for a non-default, non-variable graph term",
+            )),
         };
         let matched = self
             .inner
@@ -174,6 +181,10 @@ mod tests {
 
     fn named(iri: &str) -> Term {
         Term::from_inner(TermInner::Named(iri.to_owned()))
+    }
+
+    fn variable(name: &str) -> Term {
+        Term::from_inner(TermInner::Variable(name.to_owned()))
     }
 
     fn triple(s: &str, p: &str, o: &str) -> Quad {
@@ -253,6 +264,45 @@ mod tests {
             .match_pattern(Some(named("https://e/absent")), None, None, None)
             .unwrap();
         assert_eq!(no_match.size(), 0);
+    }
+
+    #[test]
+    fn match_treats_variable_as_wildcard() {
+        // RDF/JS idiom: a Variable in a match() slot is a wildcard, equivalent to an
+        // omitted (None) argument — it must NOT error, and must NOT constrain the slot.
+        let mut ds = Dataset::new().unwrap();
+        ds.add(&triple("https://e/s1", "https://e/p", "https://e/o1"))
+            .unwrap();
+        ds.add(&triple("https://e/s2", "https://e/p", "https://e/o2"))
+            .unwrap();
+
+        // A Variable in every term slot matches everything, exactly like all-None.
+        let all_vars = ds
+            .match_pattern(
+                Some(variable("s")),
+                Some(variable("p")),
+                Some(variable("o")),
+                Some(variable("g")),
+            )
+            .unwrap();
+        assert_eq!(all_vars.size(), 2);
+
+        // A Variable wildcard composes with a concrete constraint in another slot.
+        let by_predicate = ds
+            .match_pattern(
+                Some(variable("s")),
+                Some(named("https://e/p")),
+                None,
+                Some(variable("g")),
+            )
+            .unwrap();
+        assert_eq!(by_predicate.size(), 2);
+
+        // A Variable graph term is a wildcard (Any), not a named-graph lookup that throws.
+        let any_graph = ds
+            .match_pattern(Some(named("https://e/s1")), None, None, Some(variable("g")))
+            .unwrap();
+        assert_eq!(any_graph.size(), 1);
     }
 
     #[test]

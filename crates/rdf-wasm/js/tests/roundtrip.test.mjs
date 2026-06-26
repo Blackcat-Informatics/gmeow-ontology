@@ -91,6 +91,43 @@ test("DatasetCore add/has/delete/match/iterate", () => {
   assert.equal(ds.size, 1);
 });
 
+test("DatasetCore.match treats a Variable as a wildcard (RDF/JS idiom)", () => {
+  const f = new DataFactory();
+  const q1 = f.quad(
+    f.namedNode("https://e/s1"),
+    f.namedNode("https://e/p"),
+    f.namedNode("https://e/o1"),
+  );
+  const q2 = f.quad(
+    f.namedNode("https://e/s2"),
+    f.namedNode("https://e/p"),
+    f.namedNode("https://e/o2"),
+  );
+  const ds = new Dataset();
+  ds.add(q1);
+  ds.add(q2);
+
+  // A Variable in any slot is a wildcard (must NOT throw, must NOT constrain) — here in
+  // the subject, predicate, object, AND graph slots simultaneously.
+  const all = ds.match(
+    f.variable("s"),
+    f.variable("p"),
+    f.variable("o"),
+    f.variable("g"),
+  );
+  assert.equal(all.size, 2);
+
+  // A Variable graph term is Any (not a named-graph lookup that would throw), composed
+  // with a concrete predicate constraint.
+  const byPredicate = ds.match(
+    f.variable("s"),
+    f.namedNode("https://e/p"),
+    undefined,
+    f.variable("g"),
+  );
+  assert.equal(byPredicate.size, 2);
+});
+
 test("RDF-1.2 wedge — directional literal round-trips through N-Quads", () => {
   const f = new DataFactory();
   const dir = f.directionalLiteral("مرحبا", "ar", "rtl");
