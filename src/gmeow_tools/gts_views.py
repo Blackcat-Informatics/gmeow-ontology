@@ -497,7 +497,11 @@ def extract_docs_site(
                 if not member.isfile() or not member.name.startswith(prefix):
                     continue
                 rel = member.name[len(prefix) :]
-                target = out_dir / rel
+                target = (out_dir / rel).resolve()
+                if not target.is_relative_to(out_dir.resolve()):
+                    raise ValueError(
+                        f"path traversal in docs blob member: {member.name!r}"
+                    )
                 target.parent.mkdir(parents=True, exist_ok=True)
                 fileobj = tar.extractfile(member)
                 if fileobj is not None:
