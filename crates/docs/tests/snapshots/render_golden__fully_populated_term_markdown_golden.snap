@@ -39,3 +39,7 @@ The entity whose data quality is being assessed — the feature of interest of t
 ## Alignments
 
 - `closeMatch` → [http://www\.w3\.org/ns/dqv\#computedOn](http://www\.w3\.org/ns/dqv\#computedOn)
+
+## Box role
+
+[RBox (`gmeow:boxRBox`)](../../four-boxes/index.md)

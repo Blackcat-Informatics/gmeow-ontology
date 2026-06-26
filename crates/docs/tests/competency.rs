@@ -222,3 +222,195 @@ fn learning_path_index_and_page_sequence_audience_goal_and_recipes() {
         );
     }
 }
+
+// ── #1020 relational/structural surfaces ────────────────────────────────────────
+
+/// The live model must actually extract the new reverse-mapped collections, else
+/// every per-term surface below would be vacuously empty.
+#[test]
+fn model_extracts_shapes_competencies_and_stereotypes() {
+    let model = model();
+    assert!(
+        !model.shapes.is_empty(),
+        "live model must reverse-map SHACL shapes from slices' shapes.ttl + root shapes/"
+    );
+    assert!(
+        !model.competencies.is_empty(),
+        "live model must reverse-map competency questions from tests/competency.ttl"
+    );
+    assert!(
+        model.terms.iter().any(|t| !t.logic_stereotypes.is_empty()),
+        "live model must surface logic stereotypes on at least one term"
+    );
+    assert!(
+        model.terms.iter().any(|t| t.box_role.is_some()),
+        "live model must surface a graphBoxRole on at least one term"
+    );
+    assert!(
+        model.terms.iter().any(|t| !t.related_terms.is_empty()),
+        "live model must surface related terms on at least one term"
+    );
+}
+
+/// The bidirectional related-terms pass must mirror every forward edge: if A
+/// lists B (and B is documented), B must list A.
+#[test]
+fn related_terms_are_bidirectional() {
+    let model = model();
+    let documented: std::collections::BTreeSet<&str> =
+        model.terms.iter().map(|t| t.iri.as_str()).collect();
+    for term in &model.terms {
+        for related in &term.related_terms {
+            if !documented.contains(related.as_str()) {
+                continue; // edge to an undocumented IRI — no reciprocal expected
+            }
+            let back = model
+                .terms
+                .iter()
+                .find(|t| &t.iri == related)
+                .expect("documented related term resolves");
+            assert!(
+                back.related_terms.contains(&term.iri),
+                "related edge {} -> {} is not mirrored back",
+                term.iri,
+                related
+            );
+        }
+    }
+}
+
+/// A term page surfaces its Constraints section (SHACL messages) — DISTINCT from
+/// the integrity-constraints (verify-query) index.
+#[test]
+fn term_page_surfaces_constraints() {
+    let model = model();
+    let Some(shape) = model
+        .shapes
+        .iter()
+        .find(|s| !s.messages.is_empty() && model.terms.iter().any(|t| t.iri == s.target_term))
+    else {
+        panic!("expected at least one SHACL shape with a message targeting a documented term");
+    };
+    let term = model
+        .terms
+        .iter()
+        .find(|t| t.iri == shape.target_term)
+        .expect("shape target is documented");
+    let md = to_markdown(&model, &Page::Term(term_slug(term)));
+    assert!(
+        md.contains("## Constraints"),
+        "term {} missing the Constraints section",
+        term.iri
+    );
+    let probe = escape_free_probe(&shape.messages[0]);
+    assert!(
+        probe.is_empty() || md.contains(&probe),
+        "term {} Constraints missing message prose `{probe}`",
+        term.iri
+    );
+}
+
+/// A term page surfaces its Logic stereotypes section, and the Logic index lists it.
+#[test]
+fn term_and_logic_index_surface_stereotypes() {
+    let model = model();
+    let term = model
+        .terms
+        .iter()
+        .find(|t| !t.logic_stereotypes.is_empty())
+        .expect("a stereotyped term exists");
+    let md = to_markdown(&model, &Page::Term(term_slug(term)));
+    assert!(
+        md.contains("## Logic stereotypes"),
+        "term {} missing the Logic stereotypes section",
+        term.iri
+    );
+    let stereotype = &term.logic_stereotypes[0];
+    assert!(
+        md.contains(stereotype),
+        "term {} missing stereotype `{stereotype}`",
+        term.iri
+    );
+
+    let logic = to_markdown(&model, &Page::Logic);
+    assert!(
+        logic.contains("Logic & Reasoning"),
+        "logic index missing its heading"
+    );
+    assert!(
+        logic.contains(stereotype),
+        "logic index missing stereotype group `{stereotype}`"
+    );
+    assert!(
+        logic.contains(&term.curie),
+        "logic index missing stereotyped term `{}`",
+        term.curie
+    );
+}
+
+/// A term page surfaces its box-role badge.
+#[test]
+fn term_page_surfaces_box_role() {
+    let model = model();
+    let term = model
+        .terms
+        .iter()
+        .find(|t| t.box_role.is_some())
+        .expect("a term with a box role exists");
+    let md = to_markdown(&model, &Page::Term(term_slug(term)));
+    assert!(
+        md.contains("## Box role"),
+        "term {} missing the Box role section",
+        term.iri
+    );
+}
+
+/// A term page surfaces its "Tested by" competency block.
+#[test]
+fn term_page_surfaces_tested_by() {
+    let model = model();
+    let Some(cq) = model.competencies.iter().find(|c| {
+        c.exercises
+            .iter()
+            .any(|e| model.terms.iter().any(|t| &t.iri == e))
+    }) else {
+        panic!("expected a competency question exercising a documented term");
+    };
+    let target = cq
+        .exercises
+        .iter()
+        .find(|e| model.terms.iter().any(|t| &t.iri == *e))
+        .expect("competency exercises a documented term");
+    let term = model.terms.iter().find(|t| &t.iri == target).unwrap();
+    let md = to_markdown(&model, &Page::Term(term_slug(term)));
+    assert!(
+        md.contains("## Tested by"),
+        "term {} missing the Tested by section",
+        term.iri
+    );
+}
+
+/// A term page surfaces its "Examples using this term" cross-links.
+#[test]
+fn term_page_surfaces_example_cross_links() {
+    let model = model();
+    let Some(example) = model.examples.iter().find(|e| {
+        e.terms_referenced
+            .iter()
+            .any(|c| model.terms.iter().any(|t| &t.curie == c))
+    }) else {
+        panic!("expected an example referencing a documented term");
+    };
+    let curie = example
+        .terms_referenced
+        .iter()
+        .find(|c| model.terms.iter().any(|t| &t.curie == *c))
+        .unwrap();
+    let term = model.terms.iter().find(|t| &t.curie == curie).unwrap();
+    let md = to_markdown(&model, &Page::Term(term_slug(term)));
+    assert!(
+        md.contains("## Examples using this term"),
+        "term {} missing the Examples cross-link section",
+        term.iri
+    );
+}

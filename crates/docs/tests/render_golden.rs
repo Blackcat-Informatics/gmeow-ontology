@@ -76,6 +76,54 @@ fn fully_populated_term_slug(model: &DocsModel) -> String {
     term_slug(term)
 }
 
+/// A deterministic term that exercises the #1020 relational surfaces: the term
+/// (by stable curie/iri sort) carrying the MOST of {logic stereotype, SHACL
+/// constraint, related term, competency back-ref, example cross-link, box role}.
+/// Locks a byte-golden that actually renders the new term-page sections.
+fn richest_surface_term_slug(model: &DocsModel) -> String {
+    let surface_count = |t: &gmeow_docs::DocTerm| -> usize {
+        let has_constraint = model.shapes.iter().any(|s| s.target_term == t.iri);
+        let has_competency = model
+            .competencies
+            .iter()
+            .any(|c| c.exercises.iter().any(|e| e == &t.iri));
+        let has_example = model
+            .examples
+            .iter()
+            .any(|e| e.terms_referenced.iter().any(|c| c == &t.curie));
+        usize::from(!t.logic_stereotypes.is_empty())
+            + usize::from(!t.related_terms.is_empty())
+            + usize::from(t.box_role.is_some())
+            + usize::from(has_constraint)
+            + usize::from(has_competency)
+            + usize::from(has_example)
+    };
+    let mut terms: Vec<&gmeow_docs::DocTerm> = model.terms.iter().collect();
+    terms.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
+    let term = terms
+        .iter()
+        .max_by_key(|t| surface_count(t))
+        .expect("model has terms");
+    term_slug(term)
+}
+
+#[test]
+fn richest_surface_term_markdown_golden() {
+    let model = model();
+    let slug = richest_surface_term_slug(&model);
+    insta::assert_snapshot!(to_markdown(&model, &Page::Term(slug)));
+}
+
+#[test]
+fn logic_index_markdown_golden() {
+    // The logic index groups every stereotyped term; lock the header + the first
+    // stereotype group block (the deterministic, low-churn part).
+    let model = model();
+    let md = to_markdown(&model, &Page::Logic);
+    let head: String = md.lines().take(10).collect::<Vec<_>>().join("\n");
+    insta::assert_snapshot!(head);
+}
+
 #[test]
 fn landing_markdown_golden() {
     let model = model();
@@ -232,6 +280,8 @@ fn render_site_is_byte_stable() {
     assert!(a.files.contains_key("concerns/index.html"));
     assert!(a.files.contains_key("external-ontologies/index.html"));
     assert!(a.files.contains_key("integrity-constraints/index.html"));
+    // The #1020 logic-stereotypes index (resolves the formerly-dangling nav_logic).
+    assert!(a.files.contains_key("logic/index.html"));
     // The T3b guides surfaces: recipe/learning-path indexes + the four-boxes page.
     assert!(a.files.contains_key("recipes/index.html"));
     assert!(a.files.contains_key("learning-paths/index.html"));
