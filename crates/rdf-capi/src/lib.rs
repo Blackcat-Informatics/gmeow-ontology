@@ -85,6 +85,8 @@ pub mod error;
 pub mod graph;
 pub mod handles;
 pub mod parse;
+pub mod query;
+pub mod rowcursor;
 pub mod serialize;
 pub mod status;
 pub mod term;

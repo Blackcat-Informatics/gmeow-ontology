@@ -236,6 +236,56 @@ pub(crate) unsafe fn render_term(dataset: &RdfDataset, id: TermId, view: &mut Pu
     }
 }
 
+/// Render an owned, dataset-independent [`TermValue`] into a borrowed structured
+/// view whose `PurrdfStr` pointers borrow into `value`'s strings (so `value`
+/// must outlive every use of the view). `term_id` is `0` (the value is not
+/// dataset-interned). Used by the SPARQL row cursor. Quoted-triple solution
+/// values render as `kind == Triple` with empty slices and no id (a documented
+/// v0.1 limitation — they cannot be re-materialized via `term_to_ntriples`).
+///
+/// # Safety
+/// `value` must outlive every use of the slices written into `view`.
+pub(crate) unsafe fn render_value(value: &TermValue, view: &mut PurrdfTermView) {
+    view.term_id = 0;
+    view.blank_scope = 0;
+    view.datatype = PurrdfStr::empty();
+    view.language = PurrdfStr::empty();
+    view.direction = PurrdfDirection::None;
+    match value {
+        TermValue::Iri(iri) => {
+            view.kind = PurrdfTermKind::Iri;
+            view.lexical = PurrdfStr::from_str(iri);
+        }
+        TermValue::Blank { label, scope } => {
+            view.kind = PurrdfTermKind::Blank;
+            view.lexical = PurrdfStr::from_str(label);
+            view.blank_scope = scope.ordinal();
+        }
+        TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            direction,
+        } => {
+            view.kind = PurrdfTermKind::Literal;
+            view.lexical = PurrdfStr::from_str(lexical_form);
+            view.datatype = PurrdfStr::from_str(datatype);
+            if let Some(language) = language {
+                view.language = PurrdfStr::from_str(language);
+            }
+            view.direction = match direction {
+                Option::None => PurrdfDirection::None,
+                Some(RdfTextDirection::Ltr) => PurrdfDirection::Ltr,
+                Some(RdfTextDirection::Rtl) => PurrdfDirection::Rtl,
+            };
+        }
+        TermValue::Triple { .. } => {
+            view.kind = PurrdfTermKind::Triple;
+            view.lexical = PurrdfStr::empty();
+        }
+    }
+}
+
 /// Convert an input term view to an owned, dataset-independent [`TermValue`].
 /// Quoted-triple terms cannot be reconstructed from a flat view, so they are
 /// rejected as inputs (a documented v0.1 limitation).

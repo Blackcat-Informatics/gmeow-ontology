@@ -21,6 +21,11 @@ use purrdf::handles::{
     purrdf_dataset_free, purrdf_dataset_quad_count, purrdf_dataset_term_count, PurrdfDataset,
 };
 use purrdf::parse::purrdf_parse;
+use purrdf::query::{purrdf_query, purrdf_query_json};
+use purrdf::rowcursor::{
+    purrdf_rowcursor_free, purrdf_rowcursor_next, purrdf_rowcursor_term,
+    purrdf_rowcursor_variable_count, purrdf_rowcursor_variable_name, PurrdfRowCursor,
+};
 use purrdf::serialize::purrdf_serialize;
 use purrdf::status::{PurrdfAbiVersion, PurrdfStatus};
 use purrdf::term::{
@@ -521,5 +526,180 @@ fn graph_reinsert_unsuppresses_a_removed_base_quad() {
         assert_eq!(quad_count(frozen), 3);
         purrdf_dataset_free(frozen);
         purrdf_graph_free(graph);
+    }
+}
+
+unsafe fn run_select(dataset: *const PurrdfDataset, query: &str) -> *mut PurrdfRowCursor {
+    let cq = CString::new(query).unwrap();
+    let mut kind: i32 = -1;
+    let mut rows: *mut PurrdfRowCursor = std::ptr::null_mut();
+    let mut graph: *mut PurrdfDataset = std::ptr::null_mut();
+    let mut boolean: u8 = 0;
+    let mut error: *mut PurrdfError = std::ptr::null_mut();
+    let status = purrdf_query(
+        dataset,
+        cq.as_ptr(),
+        std::ptr::null(),
+        &mut kind,
+        &mut rows,
+        &mut graph,
+        &mut boolean,
+        &mut error,
+    );
+    assert_eq!(status, PurrdfStatus::Ok as i32);
+    assert!(error.is_null());
+    assert_eq!(kind, 0, "expected a SELECT (Solutions) result");
+    rows
+}
+
+#[test]
+fn select_lists_subjects() {
+    unsafe {
+        let dataset = parse("application/n-triples", THREE_QUADS);
+        let rows = run_select(dataset, "SELECT ?s WHERE { ?s ?p ?o }");
+
+        let mut var_count: usize = 0;
+        assert_eq!(
+            purrdf_rowcursor_variable_count(rows, &mut var_count),
+            PurrdfStatus::Ok as i32
+        );
+        assert_eq!(var_count, 1);
+        let mut name_ptr: *const std::os::raw::c_char = std::ptr::null();
+        assert_eq!(
+            purrdf_rowcursor_variable_name(rows, 0, &mut name_ptr),
+            PurrdfStatus::Ok as i32
+        );
+        assert_eq!(std::ffi::CStr::from_ptr(name_ptr).to_str().unwrap(), "s");
+
+        let mut subjects = Vec::new();
+        while purrdf_rowcursor_next(rows) == PurrdfStatus::Ok as i32 {
+            let mut view = out_view();
+            let mut bound: u8 = 0;
+            assert_eq!(
+                purrdf_rowcursor_term(rows, 0, &mut view, &mut bound),
+                PurrdfStatus::Ok as i32
+            );
+            assert_eq!(bound, 1);
+            subjects.push(view_str(&view));
+        }
+        subjects.sort();
+        subjects.dedup();
+        assert_eq!(
+            subjects,
+            vec!["http://s1".to_string(), "http://s2".to_string()]
+        );
+
+        purrdf_rowcursor_free(rows);
+        purrdf_dataset_free(dataset);
+    }
+}
+
+#[test]
+fn ask_returns_boolean() {
+    unsafe {
+        let dataset = parse("application/n-triples", THREE_QUADS);
+        let cq = CString::new("ASK { ?s ?p ?o }").unwrap();
+        let mut kind: i32 = -1;
+        let mut rows: *mut PurrdfRowCursor = std::ptr::null_mut();
+        let mut graph: *mut PurrdfDataset = std::ptr::null_mut();
+        let mut boolean: u8 = 9;
+        let mut error: *mut PurrdfError = std::ptr::null_mut();
+        let status = purrdf_query(
+            dataset,
+            cq.as_ptr(),
+            std::ptr::null(),
+            &mut kind,
+            &mut rows,
+            &mut graph,
+            &mut boolean,
+            &mut error,
+        );
+        assert_eq!(status, PurrdfStatus::Ok as i32);
+        assert_eq!(kind, 2);
+        assert_eq!(boolean, 1);
+        purrdf_dataset_free(dataset);
+    }
+}
+
+#[test]
+fn construct_returns_graph() {
+    unsafe {
+        let dataset = parse("application/n-triples", THREE_QUADS);
+        let cq = CString::new("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }").unwrap();
+        let mut kind: i32 = -1;
+        let mut rows: *mut PurrdfRowCursor = std::ptr::null_mut();
+        let mut graph: *mut PurrdfDataset = std::ptr::null_mut();
+        let mut boolean: u8 = 0;
+        let mut error: *mut PurrdfError = std::ptr::null_mut();
+        let status = purrdf_query(
+            dataset,
+            cq.as_ptr(),
+            std::ptr::null(),
+            &mut kind,
+            &mut rows,
+            &mut graph,
+            &mut boolean,
+            &mut error,
+        );
+        assert_eq!(status, PurrdfStatus::Ok as i32);
+        assert_eq!(kind, 1);
+        assert!(!graph.is_null());
+        assert_eq!(quad_count(graph), 3);
+        purrdf_dataset_free(graph);
+        purrdf_dataset_free(dataset);
+    }
+}
+
+#[test]
+fn query_json_has_sparql_results_shape() {
+    unsafe {
+        let dataset = parse("application/n-triples", THREE_QUADS);
+        let cq = CString::new("SELECT ?s ?o WHERE { ?s ?p ?o }").unwrap();
+        let mut buffer: *mut PurrdfBuffer = std::ptr::null_mut();
+        let mut error: *mut PurrdfError = std::ptr::null_mut();
+        let status = purrdf_query_json(
+            dataset,
+            cq.as_ptr(),
+            std::ptr::null(),
+            &mut buffer,
+            &mut error,
+        );
+        assert_eq!(status, PurrdfStatus::Ok as i32);
+        assert!(error.is_null());
+        let json = String::from_utf8(buffer_bytes(buffer)).unwrap();
+        assert!(json.contains("\"head\""), "got: {json}");
+        assert!(json.contains("\"vars\""), "got: {json}");
+        assert!(json.contains("\"bindings\""), "got: {json}");
+        assert!(json.contains("\"type\":\"uri\""), "got: {json}");
+        assert!(json.contains("http://s1"), "got: {json}");
+        purrdf_buffer_free(buffer);
+        purrdf_dataset_free(dataset);
+    }
+}
+
+#[test]
+fn rowcursor_reports_unbound_optional() {
+    unsafe {
+        let dataset = parse("application/n-triples", THREE_QUADS);
+        let rows = run_select(
+            dataset,
+            "SELECT ?s ?missing WHERE { ?s ?p ?o OPTIONAL { ?s <http://never> ?missing } }",
+        );
+        // Column 1 (?missing) is unbound in every row.
+        let mut saw_unbound = false;
+        while purrdf_rowcursor_next(rows) == PurrdfStatus::Ok as i32 {
+            let mut view = out_view();
+            let mut bound: u8 = 1;
+            assert_eq!(
+                purrdf_rowcursor_term(rows, 1, &mut view, &mut bound),
+                PurrdfStatus::Ok as i32
+            );
+            if bound == 0 {
+                saw_unbound = true;
+            }
+        }
+        assert!(saw_unbound, "expected at least one unbound ?missing");
+        purrdf_rowcursor_free(rows);
+        purrdf_dataset_free(dataset);
     }
 }
