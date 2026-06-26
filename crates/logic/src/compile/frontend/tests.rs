@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Tests for the front-end parser — the Rust mirror of
-//! `tests/test_logic_frontend.py`, driven by Turtle source strings.
+//! Tests for the front-end parser, driven by Turtle source strings.  These are
+//! the authoritative parser tests; the Python `tests/test_logic_frontend.py` they
+//! superseded was retired in #727.
 
 use super::*;
 use crate::compile::ir::LogicModality;
