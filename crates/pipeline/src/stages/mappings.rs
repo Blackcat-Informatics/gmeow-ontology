@@ -575,7 +575,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         let core = artifacts
             .get(CORE_PREFIXES_PATH)
             .expect("core-prefixes artifact");
-        let triples = triple_set(core, RdfFormat::Turtle);
+        let triples = triple_set(core, "text/turtle");
         // owl:Ontology declaration + at least one sh:declare per registry entry.
         let has_node = triples.iter().any(|t| {
             t.contains("CorePrefixes")
@@ -615,7 +615,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         let lf = artifacts
             .get(LIST_FUNCTIONS_PATH)
             .expect("list-functions artifact");
-        let triples = triple_set(lf, RdfFormat::NTriples);
+        let triples = triple_set(lf, "application/n-triples");
         let functions = triples
             .iter()
             .filter(|t| t.contains("https://w3id.org/function/ontology#Function"))
