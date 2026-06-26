@@ -341,11 +341,12 @@ fn extract_owl_structural_axioms(
     store: &RdfDataset,
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<MappedAxiom> {
+    let quads = default_graph_quads(store);
     let mut result = Vec::new();
     for (ns, owl_local, logic_local) in OWL_PRED_TO_LOGIC {
         let owl_pred_iri = format!("{ns}{owl_local}");
         let logic_pred = logic(logic_local);
-        for quad in default_graph_quads(store) {
+        for quad in &quads {
             if quad.predicate.as_str() != owl_pred_iri {
                 continue;
             }
