@@ -3,8 +3,8 @@ source: crates/docs/tests/render_golden.rs
 expression: "format!(\"{header}\\n---\\n{sample}\")"
 ---
 # GMEOW Ontology Documentation
-# version: 4
-# terms: 2165  slices: 75  concerns: 7  linkages: 1381
+# version: 5
+# terms: 2170  slices: 75  concerns: 7  linkages: 1381
 
 ---
 gmeow:AboutnessMode — Aboutness Mode: The rhetorical relation between an information carrier and its subject matter — whether the carrier describes the subject (mention: reporting, quoting, depicting, analyzing) or enacts it (use: performing, demanding, exemplifying, embodying). A value vocabulary of individuals (never subclasses). Orthogonal to granularity, determinacy, sensitivity, confidence, and standpoint modality (Principle 9): a carrier may describe one subject while enacting another, and distinct vantages may classify the same carrier differently through the statement layer. The distinction every rubric, citation, and evidence assessment eventually needs: text ABOUT deception is not text THAT deceives. (Class, kernel) | parents: QualityValue | logic: logic:AbstractIndividualType | box: gmeow:boxTBox | use-when: Use as the value vocabulary for the mention/use axis — whether a carrier describes its subject (reports, quotes, depicts) or enacts it (performs, demands, embodies), the distinction rubrics and evidence assessments depend on. | avoid-when: Avoid collapsing it into the other epistemic axes (granularity, determinacy, sensitivity, confidence) and avoid per-mode subclasses; aboutness is a value vocabulary of individuals applied through gmeow:hasAboutness.

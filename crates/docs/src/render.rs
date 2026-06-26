@@ -954,6 +954,74 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
+    // ── Stability (#1026 — always present; tier-derived default or explicit) ─────
+    heading(&mut out, 2, "Stability");
+    push_line(
+        &mut out,
+        &format!("- **Status:** {}", term.stability.label()),
+    );
+    blank(&mut out);
+
+    // ── Profiles (#1026 — named profiles whose membership includes this term) ────
+    if !term.profiles.is_empty() {
+        heading(&mut out, 2, "Profiles");
+        let chips = term
+            .profiles
+            .iter()
+            .map(|p| format!("`{}`", code_escape(p)))
+            .collect::<Vec<_>>()
+            .join(" · ");
+        push_line(&mut out, &format!("- {chips}"));
+        blank(&mut out);
+    }
+
+    // ── Changelog (#1026 — added-in version + reified per-release entries) ───────
+    if term.added_in_version.is_some() || !term.changelog.is_empty() {
+        heading(&mut out, 2, "Changelog");
+        if let Some(version) = &term.added_in_version {
+            push_line(&mut out, &format!("- **Added in:** {}", md_escape(version)));
+        }
+        for entry in &term.changelog {
+            match &entry.note {
+                Some(note) => push_line(
+                    &mut out,
+                    &format!("- **{}** — {}", md_escape(&entry.version), md_escape(note)),
+                ),
+                None => push_line(&mut out, &format!("- **{}**", md_escape(&entry.version))),
+            }
+        }
+        blank(&mut out);
+    }
+
+    // ── Citation (#1026 — content-addressed permalink + cite-this affordance) ────
+    // The term IRI is the dereferenceable, content-addressed permalink; the
+    // concept DOI (read from metadata/gmeow-self.ttl) cites the whole ontology;
+    // the owner slice's identifier cites the slice when one is registered.
+    heading(&mut out, 2, "Citation");
+    push_line(&mut out, &format!("- **Permalink:** <{}>", term.iri));
+    if let Some(doi) = &model.concept_doi {
+        push_line(
+            &mut out,
+            &format!(
+                "- **Cite the ontology:** [{}](https://doi.org/{})",
+                md_escape(doi),
+                doi
+            ),
+        );
+    }
+    if let Some(identifier) = model
+        .slices
+        .iter()
+        .find(|s| s.iri == term.owner_slice)
+        .and_then(|s| s.identifier.as_ref())
+    {
+        push_line(
+            &mut out,
+            &format!("- **Cite the slice:** {}", md_escape(identifier)),
+        );
+    }
+    blank(&mut out);
+
     out
 }
 

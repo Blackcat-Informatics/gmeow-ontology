@@ -1,0 +1,55 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: "to_markdown(&model, &Page::Term(slug))"
+---
+# Changelog Entry
+
+`gmeow:ChangelogEntry` · Class
+
+| Field | Value |
+| --- | --- |
+| CURIE | `gmeow:ChangelogEntry` |
+| IRI | `https://blackcatinformatics.ca/gmeow/ChangelogEntry` |
+| Category | Class |
+| Slice | [GMEOW Versions Module](../../slices/versions/index.md) |
+
+## Definition
+
+A reified record of one change to a vocabulary term in a given release — a first\-class information object carrying a version \(gmeow:entryVersion\) and optional prose \(gmeow:entryNote\)\. Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per\-release history without any per\-instance lifecycle modelling\.
+
+## Super\-classes
+
+- [`gmeow:InformationObject`](../informationobject/index.md)
+
+## Usage Advice
+
+- **Example:** \[ a gmeow:ChangelogEntry ; gmeow:entryVersion "1\.0\.2" ; gmeow:entryNote "Range tightened to gmeow:Entity\."@x\-gmeow\-english \]
+- **Use when:** Use to narrate a single per\-release change to a term — what changed and in which version — building the term's changelog block in the docs\.
+- **Avoid when:** Avoid for a concrete artifact's release record \(that is a gmeow:VersionMembership\) and avoid overwriting an entry to revise history; add a new entry per release \(Principle 10\)\.
+- **How to use:** Mint one entry per \(term, release\) change, fill gmeow:entryVersion and optionally gmeow:entryNote, and attach it with gmeow:hasChangelogEntry\.
+
+## Logic stereotypes
+
+`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
+
+## Box role
+
+[TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
+
+## Stability
+
+- **Status:** experimental
+
+## Profiles
+
+- `full` · `music`
+
+## Changelog
+
+- **Added in:** 1\.0\.2
+- **1\.0\.2** — Introduced the reified per\-term changelog record \(\#1026\); entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
+
+## Citation
+
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/ChangelogEntry>
+- **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)

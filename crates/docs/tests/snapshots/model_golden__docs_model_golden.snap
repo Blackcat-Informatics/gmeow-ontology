@@ -4,15 +4,15 @@ expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "4",
+  "version": "5",
   "slice_count": 75,
-  "term_count": 2165,
-  "dependency_edge_count": 784,
+  "term_count": 2170,
+  "dependency_edge_count": 781,
   "term_count_by_category": {
-    "Class": 651,
+    "Class": 653,
     "Datatype": 1,
     "Individual": 3,
-    "Property": 1510
+    "Property": 1513
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -103,6 +103,11 @@ expression: summary
     "consumers": [
       "Accessibility facets over places and routes; the schema.org accessibility projection."
     ],
+    "profiles": [],
+    "depends_on": [
+      "https://blackcatinformatics.ca/gmeow/slices/kernel",
+      "https://blackcatinformatics.ca/gmeow/slices/places"
+    ],
     "artifacts": [
       {
         "role": "Documentation",
@@ -181,7 +186,18 @@ expression: summary
       ],
       "related_terms": [],
       "box_role": "gmeow:boxTBox",
-      "formalized_by": []
+      "formalized_by": [],
+      "stability": "stable",
+      "added_in_version": null,
+      "changelog": [],
+      "profiles": [
+        "claims",
+        "dreaming",
+        "full",
+        "memory",
+        "music",
+        "narrative"
+      ]
     },
     {
       "iri": "https://blackcatinformatics.ca/gmeow/abstract",
@@ -215,7 +231,18 @@ expression: summary
       "logic_stereotypes": [],
       "related_terms": [],
       "box_role": "gmeow:boxRBox",
-      "formalized_by": []
+      "formalized_by": [],
+      "stability": "stable",
+      "added_in_version": null,
+      "changelog": [],
+      "profiles": [
+        "claims",
+        "dreaming",
+        "full",
+        "memory",
+        "music",
+        "narrative"
+      ]
     },
     {
       "iri": "https://blackcatinformatics.ca/gmeow/langEnglish",
@@ -237,12 +264,23 @@ expression: summary
       "logic_stereotypes": [],
       "related_terms": [],
       "box_role": "gmeow:boxABox",
-      "formalized_by": []
+      "formalized_by": [],
+      "stability": "stable",
+      "added_in_version": null,
+      "changelog": [],
+      "profiles": [
+        "claims",
+        "dreaming",
+        "full",
+        "memory",
+        "music",
+        "narrative"
+      ]
     }
   ],
   "mapping_set_count": 54,
   "linkage_count": 1381,
-  "example_count": 100,
+  "example_count": 98,
   "concern_count": 7,
   "external_term_count": 1206,
   "sample_mapping_set": {
