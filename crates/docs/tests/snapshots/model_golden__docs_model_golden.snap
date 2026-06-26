@@ -361,5 +361,33 @@ expression: summary
       "prov",
       "schema"
     ]
+  },
+  "shape_count": 274,
+  "competency_count": 49,
+  "sample_shape": {
+    "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
+    "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
+    "messages": [
+      "A retracted or superseded accessibility assertion (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted."
+    ],
+    "owner_slice": "root"
+  },
+  "sample_competency": {
+    "iri": "https://blackcatinformatics.ca/gmeow/examples/citations/tests/cqCitationIntents",
+    "rationale": "GMEOW must model citation intents (CiTO-aligned): cites-as-data-source, uses-method-in, extends, is-inspired-by, conforms-to, derived-from, documents, supports, disagrees-with, bridged-by-reference.",
+    "query_file": "queries/competency/citation-intents.rq",
+    "exercises": [
+      "https://blackcatinformatics.ca/gmeow/intentBridgedByReference",
+      "https://blackcatinformatics.ca/gmeow/intentCitesAsDataSource",
+      "https://blackcatinformatics.ca/gmeow/intentConformsTo",
+      "https://blackcatinformatics.ca/gmeow/intentDerivedFrom",
+      "https://blackcatinformatics.ca/gmeow/intentDisagreesWith",
+      "https://blackcatinformatics.ca/gmeow/intentDocuments",
+      "https://blackcatinformatics.ca/gmeow/intentExtends",
+      "https://blackcatinformatics.ca/gmeow/intentIsInspiredBy",
+      "https://blackcatinformatics.ca/gmeow/intentSupports",
+      "https://blackcatinformatics.ca/gmeow/intentUsesMethodIn"
+    ],
+    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/citations"
   }
 }
