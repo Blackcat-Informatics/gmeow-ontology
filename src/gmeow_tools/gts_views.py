@@ -15,6 +15,8 @@ graph: the authored import-free ontology), a named-graph IRI string, or
 
 from __future__ import annotations
 
+import io
+import tarfile
 from typing import TYPE_CHECKING, Final
 
 from gts import read
@@ -424,3 +426,91 @@ class FoldView:
                 index.setdefault((p, o), []).append(s)
             self._po[scope] = index
         return self._po[scope]
+
+
+# --------------------------------------------------------------------------- #
+# Docs-site extraction (#1019): unpack the Rust-rendered `ontology-docs` site
+# blob (#897) from the bundle. The Markdown/HTML tree is rendered at
+# `regenerate` time by `gmeow_docs::render_site_lang` and packed verbatim into
+# the single `ontology-docs` blob, one INTERNAL-tag (`x-gmeow-<lang>/`) prefix
+# per language. `gmeow extract-docs` is now nothing but this blob-unpack — the
+# Rust site IS the docs tree (the Python projection retired with #1019).
+# --------------------------------------------------------------------------- #
+
+_REP_ONTOLOGY_DOCS: Final = "ontology-docs"
+
+
+def _resolve_doc_language(
+    selector: LangSelector | None, tag_map: dict[str, str]
+) -> str:
+    """Internal documentation language tag for *selector*.
+
+    The first requested public BCP-47 tag that maps to an internal tag wins;
+    otherwise the English carrier (``x-gmeow-english``) is returned.
+    """
+    if selector is not None:
+        public_to_internal = {v: k for k, v in tag_map.items()}
+        for public in selector.requested:
+            if public in public_to_internal:
+                return public_to_internal[public]
+    return "x-gmeow-english"
+
+
+def extract_docs_site(
+    view: FoldView,
+    out_dir: Path,
+    *,
+    selector: LangSelector | None = None,
+    force: bool = False,
+) -> None:
+    """Unpack the bundled ``ontology-docs`` site for one language into *out_dir*.
+
+    The site is rendered at ``regenerate`` time and embedded in the snapshot;
+    this only unpacks it — nothing is re-projected here.
+
+    Raises:
+        FileExistsError: ``out_dir`` is non-empty and ``force`` is False.
+        ValueError: the snapshot carries no ``ontology-docs`` site blob.
+    """
+    if out_dir.exists() and any(out_dir.iterdir()) and not force:
+        raise FileExistsError(
+            f"output directory is not empty: {out_dir}; use force=True to overwrite"
+        )
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    if selector is None:
+        from gmeow_tools.language_tags import resolve_lang_input
+
+        selector = resolve_lang_input(None, view.tag_map())
+    doc_lang = _resolve_doc_language(selector, view.tag_map())
+
+    prefix = f"{doc_lang}/"
+    extracted = False
+    for digest, meta in view.graph.blob_meta.items():
+        if meta.get("rep") != _REP_ONTOLOGY_DOCS:
+            continue
+        raw = view.graph.blobs.get(digest)
+        if raw is None:
+            continue
+        with tarfile.open(fileobj=io.BytesIO(raw), mode="r") as tar:
+            for member in tar.getmembers():
+                if not member.isfile() or not member.name.startswith(prefix):
+                    continue
+                rel = member.name[len(prefix) :]
+                target = (out_dir / rel).resolve()
+                if not target.is_relative_to(out_dir.resolve()):
+                    raise ValueError(
+                        f"path traversal in docs blob member: {member.name!r}"
+                    )
+                target.parent.mkdir(parents=True, exist_ok=True)
+                fileobj = tar.extractfile(member)
+                if fileobj is not None:
+                    target.write_bytes(fileobj.read())
+                    extracted = True
+        break
+
+    if not extracted:
+        raise ValueError(
+            "snapshot carries no ontology-docs site blob "
+            f"(rep {_REP_ONTOLOGY_DOCS!r}); regenerate the bundle to embed it"
+        )

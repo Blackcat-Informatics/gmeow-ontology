@@ -710,6 +710,73 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
+    // ── Usage Advice (per-term advisory metadata) ───────────────────────────────
+    // Field order mirrors the retired Python `_append_usage_advice`: prose first,
+    // then consumer-profile guidance. The whole section is suppressed when empty.
+    let advice_text: [(&str, &[String]); 5] = [
+        ("Scope", &term.scope_notes),
+        ("Example", &term.examples),
+        ("Use when", &term.use_when),
+        ("Avoid when", &term.avoid_when),
+        ("How to use", &term.how_to_use),
+    ];
+    let advice_consumer: [(&str, &[String]); 2] = [
+        ("Use for consumers", &term.use_for_consumer),
+        ("Avoid for consumers", &term.avoid_for_consumer),
+    ];
+    let has_advice = advice_text.iter().any(|(_, v)| !v.is_empty())
+        || advice_consumer.iter().any(|(_, v)| !v.is_empty());
+    if has_advice {
+        heading(&mut out, 2, "Usage Advice");
+        for (label, values) in advice_text {
+            if !values.is_empty() {
+                let joined = values
+                    .iter()
+                    .map(|v| md_escape(v))
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                push_line(&mut out, &format!("- **{label}:** {joined}"));
+            }
+        }
+        for (label, values) in advice_consumer {
+            if !values.is_empty() {
+                let joined = values
+                    .iter()
+                    .map(|c| consumer_link(model, &from, c))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                push_line(&mut out, &format!("- **{label}:** {joined}"));
+            }
+        }
+        blank(&mut out);
+    }
+
+    // ── Alignments (per-term cross-walks projected from the slice mappings) ──────
+    let mut aligns: Vec<&crate::model::DocLinkage> = model
+        .linkages
+        .iter()
+        .filter(|l| l.subject == term.iri)
+        .collect();
+    aligns.sort_by(|a, b| {
+        a.predicate
+            .cmp(&b.predicate)
+            .then_with(|| a.object.cmp(&b.object))
+    });
+    if !aligns.is_empty() {
+        heading(&mut out, 2, "Alignments");
+        for link in aligns {
+            push_line(
+                &mut out,
+                &format!(
+                    "- `{}` → {}",
+                    code_escape(&align_tag(&link.predicate)),
+                    term_link(model, &from, &link.object)
+                ),
+            );
+        }
+        blank(&mut out);
+    }
+
     out
 }
 
@@ -1835,6 +1902,26 @@ fn term_link(model: &DocsModel, from: &str, iri: &str) -> String {
 
 /// A link to a slice page given its IRI, or a `code` rendering when the slice is
 /// not in the model.
+/// Render a consumer-profile CURIE (e.g. `gmeow:ClaimsProfile`) as a doc link
+/// when it expands to a documented GMEOW term, else as a plain code span.
+fn consumer_link(model: &DocsModel, from: &str, curie: &str) -> String {
+    if let Some(local) = curie.strip_prefix("gmeow:") {
+        return term_link(model, from, &format!("{GMEOW_NS}{local}"));
+    }
+    format!("`{}`", code_escape(curie))
+}
+
+/// Short relation tag for an alignment predicate IRI — the local name after the
+/// final `#`/`/` (`skos:closeMatch` → `closeMatch`, `owl:equivalentClass` →
+/// `equivalentClass`), mirroring the SSSOM-style tags the Python projection used.
+fn align_tag(predicate: &str) -> String {
+    predicate
+        .rsplit(['#', '/'])
+        .find(|s| !s.is_empty())
+        .unwrap_or(predicate)
+        .to_string()
+}
+
 fn slice_link(model: &DocsModel, from: &str, iri: &str) -> String {
     if let Some(slice) = model.slices.iter().find(|s| s.iri == iri) {
         let href = rel(from, &Page::Slice(slice_slug(slice)).dir());
@@ -2343,6 +2430,23 @@ mod tests {
         assert_eq!(md_escape("line\nbreak"), "line break");
     }
 
+    #[test]
+    fn align_tag_handles_trailing_separators() {
+        assert_eq!(
+            align_tag("http://www.w3.org/2004/02/skos/core#closeMatch"),
+            "closeMatch"
+        );
+        assert_eq!(
+            align_tag("http://www.w3.org/2002/07/owl#equivalentClass"),
+            "equivalentClass"
+        );
+        // trailing separator must not yield an empty tag
+        assert_eq!(align_tag("http://example.org/vocab#"), "vocab");
+        assert_eq!(align_tag("http://example.org/vocab/"), "vocab");
+        // no separator at all -> whole predicate
+        assert_eq!(align_tag("bareword"), "bareword");
+    }
+
     /// A minimal two-term model with one French translation, used to assert the
     /// language-parametrized renderer picks the translation and falls back to
     /// English elsewhere.
@@ -2357,6 +2461,13 @@ mod tests {
             parents: Vec::new(),
             domain: Vec::new(),
             range: Vec::new(),
+            scope_notes: Vec::new(),
+            examples: Vec::new(),
+            use_when: Vec::new(),
+            avoid_when: Vec::new(),
+            how_to_use: Vec::new(),
+            use_for_consumer: Vec::new(),
+            avoid_for_consumer: Vec::new(),
         };
         let bar = DocTerm {
             iri: format!("{GMEOW_NS}Bar"),
@@ -2368,6 +2479,13 @@ mod tests {
             parents: Vec::new(),
             domain: Vec::new(),
             range: Vec::new(),
+            scope_notes: Vec::new(),
+            examples: Vec::new(),
+            use_when: Vec::new(),
+            avoid_when: Vec::new(),
+            how_to_use: Vec::new(),
+            use_for_consumer: Vec::new(),
+            avoid_for_consumer: Vec::new(),
         };
 
         let translations = crate::i18n::Translations::from_entries(
@@ -2439,5 +2557,76 @@ mod tests {
         let en_keys: Vec<&String> = en.files.keys().collect();
         let fr_keys: Vec<&String> = fr.files.keys().collect();
         assert_eq!(en_keys, fr_keys, "no dangling/extra links per language");
+    }
+
+    #[test]
+    fn term_page_renders_usage_advice_and_alignments() {
+        let mut model = tiny_model();
+        // Enrich Foo with every advisory field + one consumer profile, and add a
+        // documented consumer term so the consumer link resolves internally.
+        let foo = model
+            .terms
+            .iter_mut()
+            .find(|t| t.curie == "gmeow:Foo")
+            .expect("Foo present");
+        foo.scope_notes = vec!["Scope of the foo.".to_string()];
+        foo.examples = vec!["ex:x a gmeow:Foo .".to_string()];
+        foo.use_when = vec!["Use when foo-ing.".to_string()];
+        foo.avoid_when = vec!["Avoid when bar-ing.".to_string()];
+        foo.how_to_use = vec!["Reference via gmeow:hasFoo.".to_string()];
+        foo.use_for_consumer = vec!["gmeow:Bar".to_string(), "ext:Other".to_string()];
+
+        // One alignment cross-walk on Foo.
+        model.linkages.push(crate::model::DocLinkage {
+            mapping_set: None,
+            subject: format!("{GMEOW_NS}Foo"),
+            subject_curie: "gmeow:Foo".to_string(),
+            predicate: "http://www.w3.org/2004/02/skos/core#closeMatch".to_string(),
+            object: "http://www.wikidata.org/entity/Q42".to_string(),
+            justification: None,
+            confidence: None,
+            owner_slice: format!("{GMEOW_NS}slices/demo"),
+        });
+
+        let md = to_markdown(&model, &Page::Term("foo".to_string()));
+
+        // Usage Advice section + every field label, in order.
+        assert!(md.contains("## Usage Advice"), "advice heading present");
+        for label in [
+            "Scope",
+            "Example",
+            "Use when",
+            "Avoid when",
+            "How to use",
+            "Use for consumers",
+        ] {
+            assert!(
+                md.contains(&format!("**{label}:**")),
+                "missing advice label {label}"
+            );
+        }
+        // Documented consumer resolves to an internal link; undocumented stays a CURIE.
+        assert!(md.contains("[`gmeow:Bar`]"), "documented consumer linked");
+        assert!(
+            md.contains("`ext:Other`"),
+            "undocumented consumer shown as code"
+        );
+
+        // Alignments section uses the short predicate tag and links the object.
+        assert!(md.contains("## Alignments"), "alignments heading present");
+        assert!(md.contains("`closeMatch`"), "predicate short tag");
+        // The external object IRI is md-escaped (`.` → `\.`); match a dot-free tail.
+        assert!(md.contains("entity/Q42"), "alignment object linked");
+
+        // Bar carries no advice/alignments → neither section appears on its page.
+        let bar_md = to_markdown(&model, &Page::Term("bar".to_string()));
+        assert!(
+            !bar_md.contains("## Usage Advice"),
+            "empty advice suppressed"
+        );
+        assert!(
+            !bar_md.contains("## Alignments"),
+            "empty alignments suppressed"
+        );
     }
 }

@@ -2,29 +2,40 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# analysis frame
+# assessed entity
 
-`gmeow:analysisFrame` · Property
+`gmeow:assessedEntity` · Property
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:analysisFrame` |
-| IRI | `https://blackcatinformatics.ca/gmeow/analysisFrame` |
+| CURIE | `gmeow:assessedEntity` |
+| IRI | `https://blackcatinformatics.ca/gmeow/assessedEntity` |
 | Category | Property |
-| Slice | [GMEOW Music — frame\-relative content, lossy notation projections](../../slices/music/index.md) |
+| Slice | [GMEOW Data Quality Module](../../slices/quality/index.md) |
 
 ## Definition
 
-The music\-theory reference frame in which the analysis result is expressed — orthogonal to the analyst vantage \(Principle 11\)\.
+The entity whose data quality is being assessed — the feature of interest of the quality observation\. Sub\-property of gmeow:observedFeature so generic consumers can query 'all observations about Alice' without knowing whether the claim is a name, a coordinate, or a quality assessment\.
 
 ## Super\-properties
 
-- [`gmeow:hasReferenceFrame`](../hasreferenceframe/index.md)
+- [`gmeow:observedFeature`](../observedfeature/index.md)
 
 ## Domain
 
-- [`gmeow:MusicAnalysisClaim`](../musicanalysisclaim/index.md)
+- [`gmeow:QualityAssessment`](../qualityassessment/index.md)
 
 ## Range
 
-- [`gmeow:ReferenceFrame`](../referenceframe/index.md)
+- [`gmeow:Entity`](../entity/index.md)
+
+## Usage Advice
+
+- **Example:** ex:posAcc gmeow:assessedEntity ex:roadLayer \.
+- **Use when:** Use on a QualityAssessment to name the entity or dataset whose quality is under evaluation — the quality observation's feature of interest\.
+- **Avoid when:** Avoid for the assessment's numeric verdict \(that is gmeow:observationResult\) and for non\-quality observations, which use gmeow:observedFeature directly\.
+- **How to use:** Assert gmeow:assessedEntity from the QualityAssessment to the subject entity; it specializes gmeow:observedFeature, so generic 'all observations about X' queries find it by inheritance\.
+
+## Alignments
+
+- `closeMatch` → [http://www\.w3\.org/ns/dqv\#computedOn](http://www\.w3\.org/ns/dqv\#computedOn)

@@ -64,6 +64,15 @@ const GMEOW_ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObje
 const GMEOW_JUSTIFICATION: &str = "https://blackcatinformatics.ca/gmeow/justification";
 const GMEOW_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
 
+// ── Per-term usage-advice predicates (rendered as the "Usage Advice" section) ────
+const SKOS_SCOPE_NOTE: &str = "http://www.w3.org/2004/02/skos/core#scopeNote";
+const SKOS_EXAMPLE: &str = "http://www.w3.org/2004/02/skos/core#example";
+const GMEOW_USE_WHEN: &str = "https://blackcatinformatics.ca/gmeow/useWhen";
+const GMEOW_AVOID_WHEN: &str = "https://blackcatinformatics.ca/gmeow/avoidWhen";
+const GMEOW_HOW_TO_USE: &str = "https://blackcatinformatics.ca/gmeow/howToUse";
+const GMEOW_USE_FOR_CONSUMER: &str = "https://blackcatinformatics.ca/gmeow/useForConsumer";
+const GMEOW_AVOID_FOR_CONSUMER: &str = "https://blackcatinformatics.ca/gmeow/avoidForConsumer";
+
 const GMEOW_DOCS_CONCERN: &str = "https://blackcatinformatics.ca/gmeow/docsConcern";
 
 // ── Guides-slice predicates / classes (recipes + learning paths, #853 T3b) ─────
@@ -228,6 +237,20 @@ pub struct DocTerm {
     pub domain: Vec<String>,
     /// `rdfs:range` values (IRIs, sorted).
     pub range: Vec<String>,
+    /// `skos:scopeNote` — usage-advice prose (English carrier, sorted).
+    pub scope_notes: Vec<String>,
+    /// `skos:example` — worked-usage prose (English carrier, sorted).
+    pub examples: Vec<String>,
+    /// `gmeow:useWhen` — when to reach for this term (English carrier, sorted).
+    pub use_when: Vec<String>,
+    /// `gmeow:avoidWhen` — when NOT to use this term (English carrier, sorted).
+    pub avoid_when: Vec<String>,
+    /// `gmeow:howToUse` — idiomatic-use guidance (English carrier, sorted).
+    pub how_to_use: Vec<String>,
+    /// `gmeow:useForConsumer` — consumer profiles this term serves (CURIEs, sorted).
+    pub use_for_consumer: Vec<String>,
+    /// `gmeow:avoidForConsumer` — consumer profiles to steer away (CURIEs, sorted).
+    pub avoid_for_consumer: Vec<String>,
 }
 
 /// A cross-slice dependency edge projected from the ownership report.
@@ -666,6 +689,15 @@ fn extract_terms(store: &Store, owner_slice: &str) -> Vec<DocTerm> {
         range.sort();
         range.dedup();
 
+        // Per-term usage advice (English carrier from this slice's module.ttl).
+        let scope_notes = literals(store, &iri, SKOS_SCOPE_NOTE);
+        let examples = literals(store, &iri, SKOS_EXAMPLE);
+        let use_when = literals(store, &iri, GMEOW_USE_WHEN);
+        let avoid_when = literals(store, &iri, GMEOW_AVOID_WHEN);
+        let how_to_use = literals(store, &iri, GMEOW_HOW_TO_USE);
+        let use_for_consumer = curie_objects(store, &iri, GMEOW_USE_FOR_CONSUMER);
+        let avoid_for_consumer = curie_objects(store, &iri, GMEOW_AVOID_FOR_CONSUMER);
+
         let curie = to_curie(&iri);
         terms.push(DocTerm {
             iri,
@@ -677,6 +709,13 @@ fn extract_terms(store: &Store, owner_slice: &str) -> Vec<DocTerm> {
             parents,
             domain,
             range,
+            scope_notes,
+            examples,
+            use_when,
+            avoid_when,
+            how_to_use,
+            use_for_consumer,
+            avoid_for_consumer,
         });
     }
     terms
@@ -1204,6 +1243,41 @@ fn first_literal(store: &Store, subject: &str, predicate: &str) -> Option<String
         .collect();
     values.sort();
     values.into_iter().next()
+}
+
+/// All literal values for `subject predicate ?o`, sorted and deduped
+/// (deterministic; carries the English-carrier text from `module.ttl`).
+fn literals(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
+    let Ok(subject) = oxigraph::model::NamedNode::new(subject) else {
+        return Vec::new();
+    };
+    let mut values: Vec<String> = store
+        .quads_for_pattern(
+            Some(subject.as_ref().into()),
+            Some(named(predicate).as_ref()),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+        .filter_map(|q| match q.object {
+            Term::Literal(lit) => Some(lit.value().to_string()),
+            _ => None,
+        })
+        .collect();
+    values.sort();
+    values.dedup();
+    values
+}
+
+/// Named object IRIs for `subject predicate ?o` as CURIEs, sorted and deduped.
+fn curie_objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
+    let mut values: Vec<String> = named_objects(store, subject, predicate)
+        .iter()
+        .map(|iri| to_curie(iri))
+        .collect();
+    values.sort();
+    values.dedup();
+    values
 }
 
 /// All NamedNode object IRIs for `subject predicate ?o`.
