@@ -120,11 +120,25 @@ fn parse_testcases(xml: &str) -> Vec<TestCase> {
 }
 
 /// Extract the value of `key="..."` from a single XML opening tag.
+///
+/// The match is only accepted when the character immediately preceding `key="`
+/// is ASCII whitespace, preventing `name` from matching the tail of `classname`
+/// regardless of attribute order in the tag.
 fn attr(tag: &str, key: &str) -> Option<String> {
     let needle = format!("{key}=\"");
-    let i = tag.find(&needle)? + needle.len();
-    let j = tag[i..].find('"')? + i;
-    Some(unescape_xml(&tag[i..j]))
+    let bytes = tag.as_bytes();
+    for (pos, _) in tag.match_indices(needle.as_str()) {
+        // Accept only if the preceding byte is whitespace (attribute boundary).
+        // pos == 0 would mean the tag starts with the key, which can't be a
+        // valid attribute position (the tag starts with `<testcase`), but we
+        // guard it anyway for correctness.
+        if pos == 0 || bytes[pos - 1].is_ascii_whitespace() {
+            let val_start = pos + needle.len();
+            let val_end = tag[val_start..].find('"')? + val_start;
+            return Some(unescape_xml(&tag[val_start..val_end]));
+        }
+    }
+    None
 }
 
 /// Minimal XML attribute unescaping for the five predefined entities.
@@ -172,5 +186,22 @@ mod tests {
     #[test]
     fn attr_handles_missing_key() {
         assert_eq!(attr("<testcase name=\"x\">", "time"), None);
+    }
+
+    /// Regression test: `classname` appears BEFORE `name` in the tag.
+    /// The old substring `find` would match `name="` inside `classname="..."`
+    /// and return the classname value instead of the real name.
+    #[test]
+    fn attr_classname_before_name_does_not_shadow_name() {
+        let xml = r#"<testsuites>
+  <testsuite name="gmeow-rdf">
+    <testcase classname="gmeow-rdf::pkg" name="real_name" time="2.0"/>
+  </testsuite>
+</testsuites>"#;
+        let cases = parse_testcases(xml);
+        assert_eq!(cases.len(), 1);
+        assert_eq!(cases[0].name, "real_name");
+        assert_eq!(cases[0].classname, "gmeow-rdf::pkg");
+        assert_eq!(cases[0].time, 2.0);
     }
 }
