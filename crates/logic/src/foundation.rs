@@ -60,15 +60,15 @@ use crate::store::WorldStore;
 /// Matches `gmeow_tools.config.LOGIC_NAMESPACE`.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 
-/// The `rdf:type` predicate IRI (string form), matching `logic_foundation._RDF_TYPE`.
+/// The `rdf:type` predicate IRI (string form).
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /// Sentinel rule IRI stamped on asserted (input) quads (`logic:assert`).
 pub const ASSERT_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/assert";
 
 /// Rule IRI stamped on every in-world foundation rule firing.  The foundation
-/// rules carry no `scope.provenance`, so the Python chase stamps them all with
-/// `logic:rule/anonymous` (see `_chase_world`).
+/// rules carry no `scope.provenance`, so this evaluator stamps them all with
+/// `logic:rule/anonymous`.
 const ANON_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/rule/anonymous";
 
 /// Rule IRI for the cross-world rigidity closure pass (`logic:rule/cross-world-rigidity`).
@@ -79,25 +79,22 @@ const ANTI_RIGIDITY_RULE_IRI: &str =
     "https://blackcatinformatics.ca/logic/rule/anti-rigidity-witness";
 
 /// The semantic-profile IRI stamped on every emitted quad — the only profile the
-/// v1 oracle applies.  Matches `py.rs::ASSERTED_PROFILE` and the Python
-/// `_LOGIC_NS + str(SemanticProfileId.POSITIVE_HORN)`.
+/// v1 oracle applies.  Matches `py.rs::ASSERTED_PROFILE`.
 const PROFILE_IRI: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
 
 /// Budget status stamped on every quad — this evaluator runs to full fixpoint with
-/// no budget ceiling, so every quad is `"ok"` (matching the unbounded oracle path).
+/// no budget ceiling, so every quad is `"ok"`.
 const BUDGET_OK: &str = "ok";
 
-/// Rigid sortals (supply / inherit a principle of identity).  Mirrors
-/// `logic_foundation._RIGID_SORTALS`; the **primary** rigid-type path.
+/// Rigid sortals (supply / inherit a principle of identity) — the **primary**
+/// rigid-type path.
 const RIGID_SORTALS: [&str; 2] = ["Kind", "SubKind"];
 
-/// Anti-rigid sortals (classify instances only contingently).  Mirrors
-/// `logic_foundation._ANTI_RIGID_SORTALS`.
+/// Anti-rigid sortals (classify instances only contingently).
 const ANTI_RIGID_SORTALS: [&str; 2] = ["Phase", "Role"];
 
 /// Marker the schema may carry to declare a type rigid explicitly (honoured in
-/// addition to the stereotype-derived path).  Mirrors
-/// `logic_foundation._P_RIGIDLY_APPLIES_TO`.
+/// addition to the stereotype-derived path).
 const RIGIDLY_APPLIES_TO: &str = "https://blackcatinformatics.ca/logic/rigidlyAppliesTo";
 
 // ── Anti-rigidity witness policy ────────────────────────────────────────────────
@@ -2036,7 +2033,7 @@ fn join_body(
 // ── Per-world chase ──────────────────────────────────────────────────────────────
 
 /// Run the stratified semi-naive chase in one world, producing asserted + derived
-/// quads with full provenance.  Mirrors `_chase_world` with `enable_naf=True`.
+/// quads with full provenance, with NAF (negation-as-failure) enabled.
 ///
 /// # Winner selection (quality-ordered total-order tiebreak)
 ///
@@ -2077,7 +2074,7 @@ fn chase_world(world_iri: &str, initial: &[Fact]) -> Result<Vec<FoundationQuad>,
 
     for stratum in STRATA {
         // Reset delta to ALL current facts so this stratum re-derives against
-        // everything settled below it (mirrors `_chase_world`'s per-stratum reset).
+        // everything settled below it (per-stratum reset).
         let mut delta: HashSet<(String, String, String)> = store.keys.clone();
 
         loop {

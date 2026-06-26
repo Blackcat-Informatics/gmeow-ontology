@@ -311,26 +311,24 @@ fn budget_sort_key(dq: &DerivedQuad) -> (String, String, String, String) {
 
 /// Apply the post-hoc budget ceilings to the materialized quads.
 ///
-/// Enforcement (mirrors the Python `materialize_program` ceilings, applied
-/// post-fixpoint — see `gmeow_tools.logic_materialize`):
+/// Enforcement rules (applied post-fixpoint; the retired Python oracle
+/// `gmeow_tools.logic_materialize` used the same contract):
 /// - **Asserted EDB facts are GIVEN and are NEVER truncated by a derivation
 ///   budget.** They are always kept in full; only **derived (IDB)** quads are
 ///   bounded. This is the sound-partial contract: a budget bounds derivation
-///   work, not the input. (The Python oracle keeps EDB in a separate list that
-///   the truncation never touches; this mirrors that.)
+///   work, not the input.
 /// - `max_rule_firings` and `max_answers` each bound the count of **derived**
 ///   quads; the effective derived cap is the minimum of the declared ceilings.
 ///   The kept derived set is the canonical-sort PREFIX (by [`budget_sort_key`])
-///   so a truncation is a reproducible, sound subset, identical to the Python
-///   oracle's `(graph, subject, predicate, obj)` prefix.
+///   so a truncation is a reproducible, sound subset keyed on
+///   `(graph, subject, predicate, obj)`.
 /// - `time_ms` bounds the post-fixpoint wall-clock; when exceeded the result is
 ///   marked exhausted but never truncated below the count ceilings (we keep the
 ///   sound subset computed so far; we never fabricate).
 ///
 /// When a ceiling trips, **every kept quad** (EDB and derived alike) is stamped
-/// `BudgetStatus::Exhausted`, matching the Python oracle, which stamps every quad
-/// of an exhausted run so the kept set is unambiguously a sound subset of the
-/// full fixpoint, not the complete answer.
+/// `BudgetStatus::Exhausted`, so the kept set is unambiguously a sound subset of
+/// the full fixpoint, not the complete answer.
 fn apply_budget(
     quads: Vec<(DerivedQuad, bool)>,
     max_rule_firings: Option<u64>,
