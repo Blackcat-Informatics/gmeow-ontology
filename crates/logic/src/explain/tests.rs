@@ -151,6 +151,93 @@ fn explain_all_is_input_order() {
     }
 }
 
+// ── Reflexive self-overlap dedup (#1044) ────────────────────────────────────────
+
+/// Build the two rows for a reflexive `overlaps(X, X)` derivation (one asserted
+/// `properPartOf(P, X)` witness + the derived self-overlap).  The shared-part rule
+/// `properPartOf(P, X) ∧ properPartOf(P, Y) → overlaps(X, Y)` binds a *single* witness
+/// to both conjuncts when `X = Y`, so the chase records that one witness reifier
+/// **twice** in the derived row's `source_quad_ids`.  This fixture reproduces that
+/// exact provenance shape so the renderer's dedup is exercised in isolation.
+fn reflexive_self_overlap_rows() -> Vec<Row> {
+    let world = "https://example.org/holon/schema".to_owned();
+    let part = "https://example.org/holon/Henchman".to_owned();
+    let whole = "https://example.org/holon/Warlord".to_owned();
+    let proper_part_of = "https://blackcatinformatics.ca/logic/properPartOf".to_owned();
+    let overlaps = "https://blackcatinformatics.ca/logic/overlaps".to_owned();
+
+    // properPartOf(Henchman, Warlord) — asserted; carries its own reifier as the
+    // self-reference, mirroring how the runner emits asserted rows.
+    let witness_obj = format!("<{whole}>");
+    let witness_reifier = reifier_from_strings(&part, &proper_part_of, &witness_obj);
+
+    // overlaps(Warlord, Warlord) — derived; the single witness fills BOTH conjuncts,
+    // so source_quad_ids lists `witness_reifier` twice (the #1044 condition).
+    let overlap_obj = format!("<{whole}>");
+
+    vec![
+        Row {
+            graph: world.clone(),
+            subject: part.clone(),
+            predicate: proper_part_of.clone(),
+            obj: witness_obj.clone(),
+            derivation_id: "https://example.org/holon/d-properPartOf".to_owned(),
+            rule_iri: ASSERT_RULE_IRI.to_owned(),
+            source_quad_ids: vec![witness_reifier.clone()],
+        },
+        Row {
+            graph: world.clone(),
+            subject: whole.clone(),
+            predicate: overlaps.clone(),
+            obj: overlap_obj.clone(),
+            derivation_id: "https://example.org/holon/d-overlaps".to_owned(),
+            rule_iri: "https://blackcatinformatics.ca/logic/rule/anonymous".to_owned(),
+            // The duplicate witness — both conjuncts satisfied by the one part.
+            source_quad_ids: vec![witness_reifier.clone(), witness_reifier.clone()],
+        },
+    ]
+}
+
+#[test]
+fn reflexive_self_overlap_cites_witness_once() {
+    let rows = reflexive_self_overlap_rows();
+    // Explain the derived overlaps(Warlord, Warlord) quad (row index 1).
+    let exp = explain_one(&rows, 1).expect("reflexive self-overlap must reconstruct");
+
+    // Without the dedup the derived step would descend the duplicate witness twice,
+    // yielding 3 steps (1 derived + 2 identical asserted).  With it: exactly 2.
+    assert_eq!(
+        exp.step_skeleton.len(),
+        2,
+        "the single properPartOf witness must be cited once, not twice"
+    );
+    let asserted_steps: Vec<_> = exp.step_skeleton.iter().filter(|s| s.is_asserted).collect();
+    assert_eq!(
+        asserted_steps.len(),
+        1,
+        "exactly one asserted-fact step for the lone witness"
+    );
+
+    // The derived step's source_step_ids must likewise carry the witness derivation
+    // once (it feeds the BTreeSet-backed cited_iris, so this also pins that surface).
+    assert_eq!(
+        exp.step_skeleton[0].source_step_ids,
+        vec!["https://example.org/holon/d-properPartOf".to_owned()],
+        "the deduped antecedent yields a single source_step_id"
+    );
+}
+
+#[test]
+fn reflexive_self_overlap_render_markdown_snapshot() {
+    // Byte-level prose snapshot — the SOLE regression guard for the #1044 double-cite.
+    // The native `crates/conformance` harness compares only the cited-IRI skeleton
+    // (a BTreeSet, byte-identical with or without the dedup), so it cannot catch a
+    // duplicated `**Asserted fact**` prose block.  This snapshot can.
+    let rows = reflexive_self_overlap_rows();
+    let exp = explain_one(&rows, 1).expect("reflexive self-overlap must reconstruct");
+    insta::assert_snapshot!(render_markdown(&exp));
+}
+
 // ── Asserted-fact trivial explanation ──────────────────────────────────────────
 
 #[test]
