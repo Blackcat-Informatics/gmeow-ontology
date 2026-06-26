@@ -85,6 +85,21 @@ distinct from factual verification. The keystone of the two-axis doctrine: warra
 notability never bridge automatically — a citation must be *claimed* as notability
 evidence, and competing notability assessments coexist (Principle 9).
 
+## Orthogonality at a glance
+
+A source can score high on one axis and low on the other; the two never bridge
+automatically. The canonical case is the **primary legal filing** — high warrant (it
+verifies a fact with court authority) yet zero notability (it is self-originated,
+primary, and routine).
+
+| Source | Evidential warrant (Axis A) | Notability support (Axis B) |
+|---|---|---|
+| Independent newspaper profile | `evidenceIndependentTradePress` — high | `sourceIndependenceIndependent` + `sourceTierSecondary` + `coverageDepthSignificantCoverage` → `supportsNotability true` |
+| Primary legal filing | `evidenceLegalFiling` — high | `sourceIndependenceSelfOrIssuerOriginated` + `sourceTierPrimary` + `coverageDepthRoutineFiling` → `supportsNotability false` |
+| Self-published blog post | `evidenceSelfControlledSite` — low–medium | `sourceIndependenceSelfOrIssuerOriginated` + `sourceTierPrimary` + `coverageDepthSignificantCoverage` → `supportsNotability false` |
+| Family anecdote | `evidenceFamilyNarrative` — low | `sourceIndependenceIndependent` + `sourceTierSecondary` + `coverageDepthPassingMention` → `supportsNotability false` |
+| Rumour on social media | `evidenceRUMOR` — very low | `sourceIndependenceIndependent` + `sourceTierTertiary` + `coverageDepthPassingMention` → `supportsNotability false` |
+
 ## Open-world policy & solver boundary
 
 No existential restrictions are asserted on `CitationAct`: every facet here is an
@@ -93,6 +108,22 @@ instance-validation time (Principles 7–8). And the question the axes exist to 
 "is this subject notable?", "is this claim adequately evidenced?" — is **never** answered
 in OWL: eligibility folds over independence × tier × depth × warrant are projection-time
 solver policy (Principle 12). The graph records the facets; the consumer's policy decides.
+
+## Who reads which axis
+
+The two axes exist because different consumers ask different questions, and a single
+verdict cannot answer both:
+
+- **Fact-checkers read warrant** (`hasEvidenceClass`): is the claim backed by verified
+  evidence or only by rumour? Notability is irrelevant to that judgement.
+- **Notability reviewers read the WP:GNG triad** — an independent source
+  (`sourceIndependence`), a secondary tier (`sourceTier`), and significant coverage depth
+  (`coverageDepth`), summarised by `supportsNotability`: has the subject been covered in
+  depth by sources unconnected to it? Warrant alone never settles this.
+- **Projection layers read the axes separately**: a biography projection may suppress
+  low-warrant claims regardless of notability, while a Wikipedia-style projection may
+  suppress claims with `supportsNotability false` regardless of warrant. Every such
+  eligibility fold is solver policy (Principle 12), never an OWL entailment.
 
 ## Dependencies
 
