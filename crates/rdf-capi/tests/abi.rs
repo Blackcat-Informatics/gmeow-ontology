@@ -752,7 +752,8 @@ fn gts_round_trips_a_plain_graph() {
 /// covered this path (their GTS round-trip tests are star-free and stop at
 /// Graph→N-Quads). This test pins the CURRENT behavior so the limitation is
 /// visible and a future kernel fix flips it to a hard failure here (prompting the
-/// assertion to be tightened to "must survive"). See the PR for the tracking note.
+/// assertion to be tightened to "must survive"). Tracked in #1032 (blocks the
+/// libpurrdf 1.0 ABI freeze).
 #[test]
 fn gts_star_roundtrip_is_a_known_kernel_gap() {
     unsafe {
