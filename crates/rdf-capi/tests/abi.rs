@@ -380,8 +380,11 @@ fn cursor_survives_dataset_free() {
 #[test]
 fn quoted_triple_object_renders_to_ntriples() {
     unsafe {
+        // A quoted triple as an ordinary object (NOT an `rdf:reifies` statement,
+        // which the native codec folds into the reifier layer rather than the
+        // base-quad set) — so it iterates as a base quad with a Triple object.
         let doc = concat!(
-            "<https://e/r> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
+            "<https://e/a> <https://e/b> ",
             "<<( <https://e/s> <https://e/p> <https://e/o> )>> .\n",
         );
         let dataset = parse("application/n-triples", doc);
@@ -742,20 +745,14 @@ fn gts_round_trips_a_plain_graph() {
     }
 }
 
-/// Characterization test (HONEST, not aspirational): the C-ABI's
-/// `purrdf_to_gts` → `purrdf_from_gts` round-trip CANNOT yet preserve the RDF-1.2
-/// star layer (quoted triples / reifier bindings). The C-ABI calls the canonical
-/// kernel path (`to_gts` → `read_graph` → `import_gts_graph`); the gap is upstream
-/// in the kernel/gmeow-gts GTS↔IR star round-trip: `to_gts` emits a triple-term
-/// reifier slot but the binding rows are dropped through `read_graph`, so
-/// `import_gts_graph` fails with `gts-missing-reifier-binding`. No kernel test
-/// covered this path (their GTS round-trip tests are star-free and stop at
-/// Graph→N-Quads). This test pins the CURRENT behavior so the limitation is
-/// visible and a future kernel fix flips it to a hard failure here (prompting the
-/// assertion to be tightened to "must survive"). Tracked in #1032 (blocks the
-/// libpurrdf 1.0 ABI freeze).
+/// The C-ABI's `purrdf_to_gts` → `purrdf_from_gts` round-trip preserves the
+/// RDF-1.2 star layer (quoted triples + reifier bindings) losslessly. The C-ABI
+/// calls the canonical kernel path (`to_gts` → `read_graph` → `import_gts_graph`);
+/// the earlier `gts-missing-reifier-binding` gap (formerly tracked in #1032) was
+/// closed by the native text-codec work (#909), so a reifier-bound quoted triple
+/// now survives intact rather than failing with a `GtsError`.
 #[test]
-fn gts_star_roundtrip_is_a_known_kernel_gap() {
+fn gts_star_roundtrip_preserves_the_statement_layer() {
     unsafe {
         let doc = concat!(
             "<https://e/r> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
@@ -769,24 +766,34 @@ fn gts_star_roundtrip_is_a_known_kernel_gap() {
         let mut error: *mut PurrdfError = std::ptr::null_mut();
         let status = purrdf_from_gts(gts.as_ptr(), gts.len(), &mut restored, &mut error);
 
-        // CURRENT behavior: the star round-trip surfaces the kernel gap as a clean
-        // GtsError, not a panic and not silent corruption.
+        // The star round-trip now SUCCEEDS — no GtsError, a live restored handle.
         assert_eq!(
             status,
-            PurrdfStatus::GtsError as i32,
-            "star GTS round-trip unexpectedly changed — if the kernel now preserves \
-             reifier bindings, tighten this test to assert quoted_triples/reifiers survive"
+            PurrdfStatus::Ok as i32,
+            "star GTS round-trip should succeed now that the reifier-binding gap is closed"
         );
-        assert!(restored.is_null());
-        assert!(!error.is_null());
-        let msg = std::ffi::CStr::from_ptr(purrdf_error_message(error))
-            .to_str()
-            .unwrap();
-        assert!(
-            msg.contains("reifier-binding"),
-            "expected the missing-reifier-binding diagnostic, got: {msg}"
+        assert!(error.is_null());
+        assert!(!restored.is_null());
+
+        // The star layer genuinely survived (not silently dropped): the restored
+        // dataset still carries the quoted triple and the reifier binding.
+        let mut caps = PurrdfCapabilities {
+            named_graphs: 0,
+            quoted_triples: 0,
+            reifiers: 0,
+            annotations: 0,
+            source_locations: 0,
+            loss_records: 0,
+            lookaside: 0,
+        };
+        assert_eq!(
+            purrdf_capabilities(restored, &mut caps),
+            PurrdfStatus::Ok as i32
         );
-        purrdf_error_free(error);
+        assert_eq!(caps.quoted_triples, 1, "the quoted triple must survive");
+        assert_eq!(caps.reifiers, 1, "the reifier binding must survive");
+
+        purrdf_dataset_free(restored);
         purrdf_dataset_free(dataset);
     }
 }

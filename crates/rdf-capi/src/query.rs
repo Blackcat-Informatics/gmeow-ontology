@@ -8,8 +8,8 @@ use std::os::raw::c_char;
 
 use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
 use gmeow_rdf::{
-    format_from_media_type, serialize_dataset_to_format, OxigraphBackend, SparqlEngine,
-    SparqlRequest, SparqlResult,
+    classify, serialize_dataset_to_format, OxigraphBackend, SparqlEngine, SparqlRequest,
+    SparqlResult,
 };
 use gmeow_rdf_core::{RdfDiagnostic, TermValue};
 
@@ -177,7 +177,7 @@ fn result_to_json(result: &SparqlResult) -> Result<String, RdfDiagnostic> {
         SparqlResult::Graph(graph) => {
             // No native SPARQL-JSON shape for a graph result; render N-Triples in a
             // documented envelope so the caller still gets the full triples.
-            let format = format_from_media_type("application/n-triples")?;
+            let format = classify("application/n-triples")?;
             let outcome = serialize_dataset_to_format(graph.as_ref(), format, None)?;
             let nt = String::from_utf8_lossy(&outcome.bytes);
             out.push_str("{\"graph\":");

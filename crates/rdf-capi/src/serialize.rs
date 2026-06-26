@@ -6,7 +6,7 @@
 
 use std::os::raw::c_char;
 
-use gmeow_rdf::{format_from_media_type, serialize_dataset_to_format};
+use gmeow_rdf::{classify, serialize_dataset_to_format};
 
 use crate::buffer::PurrdfBuffer;
 use crate::error::PurrdfError;
@@ -44,7 +44,7 @@ pub unsafe extern "C" fn purrdf_serialize(
         let base_iri = opt_cstr_to_str(base_iri)?;
 
         // The media-type registry is the single source of truth (no duplicated map).
-        let format = format_from_media_type(media).map_err(|diagnostic| {
+        let format = classify(media).map_err(|diagnostic| {
             PurrdfError::from_diagnostic(PurrdfStatus::UnsupportedFormat, &diagnostic)
         })?;
 

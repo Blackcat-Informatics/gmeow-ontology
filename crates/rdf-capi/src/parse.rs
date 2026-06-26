@@ -5,7 +5,7 @@
 
 use std::os::raw::c_char;
 
-use gmeow_rdf::{DatasetSink, OxigraphBackend, RdfParseRequest, RdfParserBackend};
+use gmeow_rdf::{DatasetSink, GtsCodecBackend, RdfParseRequest, RdfParserBackend};
 use gmeow_rdf_core::RdfDiagnostic;
 
 use crate::error::PurrdfError;
@@ -53,7 +53,7 @@ pub unsafe extern "C" fn purrdf_parse(
         let source_name = opt_cstr_to_str(source_name)?;
 
         let mut sink = DatasetSink::new();
-        OxigraphBackend
+        GtsCodecBackend
             .parse_into(
                 RdfParseRequest {
                     bytes: slice,
