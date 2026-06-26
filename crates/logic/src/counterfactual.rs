@@ -516,6 +516,7 @@ fn hash_rules(program: &QProgram) -> [u8; 32] {
                 .map(|lit| match lit {
                     crate::query_ir::QBodyLit::Atom(a) => atom_str(a),
                     crate::query_ir::QBodyLit::Cut => "!".to_owned(),
+                    crate::query_ir::QBodyLit::Builtin(b) => builtin_str(b),
                 })
                 .collect();
             format!("{head} :- {}", body.join(", "))
@@ -532,9 +533,39 @@ fn atom_str(a: &QAtom) -> String {
         .map(|t| match t {
             QTerm::Const(c) => c.clone(),
             QTerm::Var(v) => format!("?{v}"),
+            QTerm::Num(n) => n.to_string(),
         })
         .collect();
     format!("<{}>({})", a.pred, args.join(", "))
+}
+
+/// Canonical text for a `QBuiltin` used only in the rule-hash serialization.
+fn builtin_str(b: &crate::query_ir::QBuiltin) -> String {
+    use crate::query_ir::QBuiltin;
+    fn term(t: &QTerm) -> String {
+        match t {
+            QTerm::Const(c) => c.clone(),
+            QTerm::Var(v) => format!("?{v}"),
+            QTerm::Num(n) => n.to_string(),
+        }
+    }
+    match b {
+        QBuiltin::Is {
+            target,
+            lhs,
+            op,
+            rhs,
+        } => format!(
+            "{} is {} {} {}",
+            term(target),
+            term(lhs),
+            op.token(),
+            term(rhs)
+        ),
+        QBuiltin::Compare { lhs, op, rhs } => {
+            format!("{} {} {}", term(lhs), op.token(), term(rhs))
+        }
+    }
 }
 
 /// Strip a single pair of angle brackets from a canonical `<iri>` constant.
@@ -549,7 +580,7 @@ fn strip_brackets(s: &str) -> String {
 fn const_iri(t: &QTerm) -> Option<String> {
     match t {
         QTerm::Const(c) => Some(strip_brackets(c)),
-        QTerm::Var(_) => None,
+        QTerm::Var(_) | QTerm::Num(_) => None,
     }
 }
 

@@ -46,7 +46,9 @@ use oxigraph::model::{NamedNode, Term as OxTerm};
 use scryer_prolog::{LeafAnswer, MachineBuilder, Term as PlTerm};
 
 use crate::provenance::term_n3;
-use crate::query_ir::{AnswerSet, Binding, Budget, QAtom, QBodyLit, QGoal, QProgram, QTerm};
+use crate::query_ir::{
+    AnswerSet, Binding, Budget, QAtom, QBodyLit, QBuiltin, QGoal, QProgram, QTerm,
+};
 use crate::seam::{BudgetStatus, ScryerForeign};
 
 /// Default per-query inference ceiling when the caller specifies no `max_steps`.
@@ -63,6 +65,13 @@ const BUDGET_RESULT_VAR: &str = "ScryerBudgetResult__";
 
 /// The atom `call_with_inference_limit/3` binds its result to when the budget is hit.
 const INFERENCE_LIMIT_EXCEEDED: &str = "inference_limit_exceeded";
+
+/// `xsd:integer` datatype IRI — the canonical type of an arithmetic answer (#1009 G2a).
+///
+/// A Scryer `Integer` answer is rendered as the canonical typed-literal string
+/// `"N"^^<…#integer>`, matching the [`crate::provenance::literal_n3`] form so that
+/// computed list lengths/indices read back identically to a materialized literal.
+const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
 /// Serialises every Scryer machine's lifetime (`build` → `run_query` → `Drop`).
 ///
@@ -166,6 +175,14 @@ pub fn run_scryer(
                                 Some(PlTerm::Atom(s)) => {
                                     bind.insert(v.clone(), s.clone());
                                 }
+                                Some(PlTerm::Integer(i)) => {
+                                    // A computed arithmetic answer (e.g. a list length or
+                                    // index). Render as the canonical typed integer literal,
+                                    // identical to provenance::literal_n3 for xsd:integer, so
+                                    // it reads back like a materialized literal (#1009 G2a).
+                                    // `Integer` is arbitrary-precision; use Display.
+                                    bind.insert(v.clone(), format!("\"{i}\"^^<{XSD_INTEGER}>"));
+                                }
                                 Some(PlTerm::Var(_)) | None => {
                                     // Unbound goal variable — omit (matches the oracle).
                                 }
@@ -214,8 +231,17 @@ fn build_module(
     out.push_str(":- use_module(library(iso_ext)).\n");
 
     // Tabling directives for the cyclic IDB predicates (bounded recursion).
+    // The arity is taken from the predicate's rule head, so n-ary IDB predicates
+    // (e.g. `get/3`/`idx/3` for list indexing — #1009 G2a) are tabled at the right
+    // arity, not a hardcoded `/2`.
     for pred in table_preds {
-        out.push_str(&format!(":- table({}/2).\n", prolog_quote(pred)));
+        let arity = program
+            .rules
+            .iter()
+            .find(|r| &r.head.pred == pred)
+            .map(|r| r.head.args.len())
+            .unwrap_or(2);
+        out.push_str(&format!(":- table({}/{arity}).\n", prolog_quote(pred)));
     }
 
     // EDB facts: snapshot the whole world and emit one binary fact per quad.
@@ -262,6 +288,7 @@ fn serialize_rule(rule: &crate::query_ir::QRule) -> String {
         .map(|lit| match lit {
             QBodyLit::Atom(a) => serialize_atom(a),
             QBodyLit::Cut => "!".to_owned(),
+            QBodyLit::Builtin(b) => serialize_builtin(b),
         })
         .collect();
     format!("{head} :- {}.", body.join(", "))
@@ -274,11 +301,42 @@ fn serialize_atom(atom: &QAtom) -> String {
 }
 
 /// Serialize a `QTerm`: a `Const` becomes a quoted atom carrying its canonical string;
-/// a `Var` becomes the bare Prolog variable name.
+/// a `Var` becomes the bare Prolog variable name; a `Num` becomes BARE digits.
+///
+/// The `Num` arm emits unquoted digits deliberately: a quoted `'1'` is a Prolog atom,
+/// not an integer, and `is`/comparisons would not evaluate it (#1009 G2a).
 fn serialize_term(term: &QTerm) -> String {
     match term {
         QTerm::Const(c) => prolog_quote(c),
         QTerm::Var(v) => v.clone(),
+        QTerm::Num(n) => n.to_string(),
+    }
+}
+
+/// Serialize a `QBuiltin` to NATIVE Prolog infix (Scryer evaluates it directly).
+///
+/// - `Is{target,lhs,op,rhs}` → `target is lhs op rhs` (op ∈ `+ - * //`).
+/// - `Compare{lhs,op,rhs}`   → `lhs op rhs` (op ∈ `> < >= =< =:=`).
+fn serialize_builtin(b: &QBuiltin) -> String {
+    match b {
+        QBuiltin::Is {
+            target,
+            lhs,
+            op,
+            rhs,
+        } => format!(
+            "{} is {} {} {}",
+            serialize_term(target),
+            serialize_term(lhs),
+            op.token(),
+            serialize_term(rhs)
+        ),
+        QBuiltin::Compare { lhs, op, rhs } => format!(
+            "{} {} {}",
+            serialize_term(lhs),
+            op.token(),
+            serialize_term(rhs)
+        ),
     }
 }
 
