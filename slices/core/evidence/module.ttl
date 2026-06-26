@@ -342,6 +342,7 @@ gmeow:supportsNotability
     rdfs:range xsd:boolean ;
     skos:definition "Whether this citation is asserted to support notability (encyclopedic significance) as distinct from factual verification. A citation may verify a fact (high evidential warrant) without supporting notability (e.g. a primary legal filing or a routine listing). Non-functional: competing notability assessments from different standpoints coexist (Principle 9)."@x-gmeow-english ;
     skos:example "ex:citation gmeow:supportsNotability true ."@x-gmeow-english ;
+    skos:scopeNote "Notability turns on the WP:GNG triad — an independent source (gmeow:sourceIndependence), a secondary tier (gmeow:sourceTier), and significant coverage depth (gmeow:coverageDepth). gmeow:supportsNotability is the summary judgement those three Axis B facets feed; it never follows from evidential warrant (Axis A) alone, so a high-warrant primary legal filing can still carry supportsNotability false."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it to claim a fact is true (notability is not verification — a strong-warrant primary filing may carry supportsNotability false) and avoid treating one assessment as final; competing standpoint judgements coexist, so it stays non-functional (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox ;
