@@ -229,7 +229,9 @@ pub fn emit_list_functions() -> String {
         ));
     }
 
-    out
+    // Exactly one trailing newline (idempotent with the end-of-file-fixer hook, so
+    // the committed artifact and a fresh regenerate agree — no drift).
+    format!("{}\n", out.trim_end())
 }
 
 #[cfg(test)]
@@ -292,5 +294,13 @@ mod tests {
     #[test]
     fn is_deterministic() {
         assert_eq!(emit_list_functions(), emit_list_functions());
+    }
+
+    #[test]
+    fn ends_with_exactly_one_trailing_newline() {
+        // Idempotent with the end-of-file-fixer hook → committed == regenerate.
+        let ttl = emit_list_functions();
+        assert!(ttl.ends_with(".\"@en .\n"));
+        assert!(!ttl.ends_with("\n\n"));
     }
 }
