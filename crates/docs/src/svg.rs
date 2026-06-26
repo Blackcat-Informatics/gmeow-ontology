@@ -216,8 +216,13 @@ pub fn term_neighbours(term: &DocTerm) -> (Vec<&str>, Vec<&str>) {
 /// predicate keeps the two in lockstep: a page never embeds a diagram path that
 /// was not emitted (which would trip the no-dangling-link invariant).
 pub fn term_has_neighbourhood(term: &DocTerm) -> bool {
-    let (up, out) = term_neighbours(term);
-    !up.is_empty() || !out.is_empty()
+    term.parents
+        .iter()
+        .chain(term.formalized_by.iter())
+        .chain(term.related_terms.iter())
+        .chain(term.domain.iter())
+        .chain(term.range.iter())
+        .any(|n| n != &term.iri)
 }
 
 /// Render a per-term neighbourhood SVG: the term (centre column) flanked by its
