@@ -282,6 +282,19 @@ pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
         llms_full_txt(model).into_bytes(),
     );
 
+    // Prompt-ready per-term cards (#1027): a compact, link-free Markdown card per
+    // term at `terms/{slug}/card.md`, for context-window injection. The alignment
+    // facets are precomputed once so emitting every card stays O(N), not O(N²).
+    {
+        let alignment_facets = precompute_alignment_facets(model);
+        for term in &model.terms {
+            files.insert(
+                format!("terms/{}/card.md", term_slug(term)),
+                term_card_md_inner(term, &alignment_facets).into_bytes(),
+            );
+        }
+    }
+
     // Casefolded slash-namespace aliases (tiny redirect pages).
     for (alias_dir, target_dir) in term_aliases(model) {
         files.insert(
@@ -2580,10 +2593,14 @@ fn term_advice_facet(term: &DocTerm) -> Vec<String> {
         .collect()
 }
 
+/// Maps each subject IRI to its sorted+deduped `tag:object` alignment tokens.
+/// Borrows the subject IRIs from the model, so it is lifetime-bound to it.
+type AlignmentFacets<'a> = std::collections::HashMap<&'a str, Vec<String>>;
+
 /// Precompute alignment facets for all terms in one pass: maps each subject IRI
 /// to a sorted+deduped `tag:object` token list. Avoids the O(N×M) per-term
 /// linear scan of `model.linkages` when rendering the search and llms surfaces.
-fn precompute_alignment_facets(model: &DocsModel) -> std::collections::HashMap<&str, Vec<String>> {
+fn precompute_alignment_facets(model: &DocsModel) -> AlignmentFacets<'_> {
     let mut map: std::collections::HashMap<&str, Vec<String>> = std::collections::HashMap::new();
     for l in &model.linkages {
         map.entry(l.subject.as_str()).or_default().push(format!(
@@ -2905,9 +2922,10 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
     )];
     let mut out = llms::llms_header(&model.title, &prose);
 
+    let alignment_facets = precompute_alignment_facets(model);
     out.push_str("## Terms\n\n");
     for term in &model.terms {
-        out.push_str(&term_full_block(model, term));
+        out.push_str(&term_full_block(term, &alignment_facets));
     }
 
     if !model.concerns.is_empty() {
@@ -2937,14 +2955,13 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
     out
 }
 
-/// The full, plaintext content block for one term — used by [`llms_full_txt`] and
-/// (via [`term_card_md`]) the per-term prompt cards. A `### {curie}{signature}`
-/// heading, the label, the definition, then every advisory field the model
-/// carries (maximal information flow). Pure markdown text (no links), so it is
-/// safe to inline anywhere.
-fn term_full_block(model: &DocsModel, term: &DocTerm) -> String {
+/// The metadata + definition + advisory-field body of a term (NO heading). The
+/// shared core of both the per-term card and the `llms-full.txt` inlined block.
+/// Pure markdown text (no links), so it is safe to inline anywhere. Takes the
+/// precomputed alignment facets so a caller emitting every term pays the linkage
+/// scan ONCE (not O(N²)).
+fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
     let mut out = String::new();
-    out.push_str(&format!("### {}{}\n\n", term.curie, term_signature(term)));
     out.push_str(&format!(
         "- category: {}\n- iri: {}\n- slice: {}\n",
         category_singular(term.category),
@@ -2966,7 +2983,6 @@ fn term_full_block(model: &DocsModel, term: &DocTerm) -> String {
         out.push_str("\n\n");
     }
 
-    let alignment_facets = precompute_alignment_facets(model);
     let mut field = |label: &str, values: &[String]| {
         if !values.is_empty() {
             out.push_str(&format!("**{label}:** {}\n\n", values.join("; ")));
@@ -2990,6 +3006,37 @@ fn term_full_block(model: &DocsModel, term: &DocTerm) -> String {
             .unwrap_or_default(),
     );
     out
+}
+
+/// The full inlined block for one term in `llms-full.txt`: a `### {curie}{signature}`
+/// heading followed by the shared [`term_body`].
+fn term_full_block(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
+    format!(
+        "### {}{}\n\n{}",
+        term.curie,
+        term_signature(term),
+        term_body(term, alignment_facets)
+    )
+}
+
+/// A prompt-ready, standalone Markdown card for one term (#1027): a `# {curie}{signature}`
+/// title followed by the shared [`term_body`] (metadata + definition + every
+/// advisory field). Compact, link-free, and self-contained for context-window
+/// injection. Emitted at `terms/{slug}/card.md` and served live over MCP.
+pub fn term_card_md(model: &DocsModel, term: &DocTerm) -> String {
+    let alignment_facets = precompute_alignment_facets(model);
+    term_card_md_inner(term, &alignment_facets)
+}
+
+/// [`term_card_md`] with the alignment facets supplied — lets `render_site_lang`
+/// emit every card while paying the linkage scan once.
+fn term_card_md_inner(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
+    format!(
+        "# {}{}\n\n{}",
+        term.curie,
+        term_signature(term),
+        term_body(term, alignment_facets)
+    )
 }
 
 /// The local names of a list of IRIs as an owned `Vec` (for the advisory-field
