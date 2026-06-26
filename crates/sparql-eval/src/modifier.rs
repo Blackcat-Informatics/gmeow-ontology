@@ -13,7 +13,7 @@ use gmeow_sparql_algebra::{
     AggregateExpression, AggregateFunction, Expression, GraphPattern, NamedNodePattern,
     OrderExpression, Variable,
 };
-use gmeow_xsd::{parse_by_iri, value_cmp};
+use gmeow_xsd::{numeric_add, numeric_div, parse_by_iri, value_cmp, XsdDatatype, XsdValue};
 
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
@@ -21,7 +21,7 @@ const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 use crate::convert::{ground_term_to_value, named_node_to_value};
 use crate::error::EvalError;
 use crate::eval::{eval, EvalCtx};
-use crate::expr::eval_expr;
+use crate::expr::{eval_expr, xsd_of, xsd_to_term};
 use crate::scratch::SolutionTerm;
 use crate::solution::{Solution, SolutionSeq, VarSchema};
 use crate::DetHashSet;
@@ -453,16 +453,75 @@ fn apply_aggregate(
                 .join(sep);
             Ok(Some(string_term(ctx, joined)))
         }
-        // SUM/AVG need full XSD numeric arithmetic (incl. decimal division for AVG),
-        // which is deferred with the rest of arithmetic — hard error, never wrong.
-        AggregateFunction::Sum | AggregateFunction::Avg => Err(EvalError::unsupported(
-            "SUM/AVG aggregate (numeric arithmetic not yet implemented in sparql-eval)",
-        )),
+        AggregateFunction::Sum => {
+            // Empty group → 0^^xsd:integer (SPARQL §18.5.1).
+            if values.is_empty() {
+                return Ok(Some(integer_term(ctx, 0)));
+            }
+            // Extract numeric XsdValues; any non-numeric → unbound.
+            let mut numerics: Vec<XsdValue> = Vec::with_capacity(values.len());
+            for (_, v) in &values {
+                match xsd_of(v) {
+                    Some(xv) if is_numeric_xsd(&xv) => numerics.push(xv),
+                    _ => return Ok(None),
+                }
+            }
+            // Fold left with numeric_add; any error (overflow) → unbound.
+            let mut acc = numerics.remove(0);
+            for xv in numerics {
+                match numeric_add(&acc, &xv) {
+                    Ok(sum) => acc = sum,
+                    Err(_) => return Ok(None),
+                }
+            }
+            Ok(Some(xsd_to_term(ctx, &acc)))
+        }
+        AggregateFunction::Avg => {
+            // Empty group → 0^^xsd:integer.
+            if values.is_empty() {
+                return Ok(Some(integer_term(ctx, 0)));
+            }
+            let n = values.len();
+            // Extract numeric XsdValues; any non-numeric → unbound.
+            let mut numerics: Vec<XsdValue> = Vec::with_capacity(n);
+            for (_, v) in &values {
+                match xsd_of(v) {
+                    Some(xv) if is_numeric_xsd(&xv) => numerics.push(xv),
+                    _ => return Ok(None),
+                }
+            }
+            // Sum.
+            let mut acc = numerics.remove(0);
+            for xv in numerics {
+                match numeric_add(&acc, &xv) {
+                    Ok(sum) => acc = sum,
+                    Err(_) => return Ok(None),
+                }
+            }
+            // Divide by count to get average.
+            let count_val = XsdValue::Integer {
+                value: n as i128,
+                datatype: XsdDatatype::Integer,
+            };
+            match numeric_div(&acc, &count_val) {
+                Ok(avg) => Ok(Some(xsd_to_term(ctx, &avg))),
+                Err(_) => Ok(None),
+            }
+        }
         AggregateFunction::Custom(iri) => Err(EvalError::unsupported(format!(
             "custom aggregate <{}>",
             iri.as_str()
         ))),
     }
+}
+
+/// Whether an [`XsdValue`] belongs to the SPARQL numeric tower (integer / decimal /
+/// float / double). Boolean, string, temporal, and binary values are NOT numeric.
+fn is_numeric_xsd(v: &XsdValue) -> bool {
+    matches!(
+        v,
+        XsdValue::Integer { .. } | XsdValue::Decimal(_) | XsdValue::Float(_) | XsdValue::Double(_)
+    )
 }
 
 /// The group's extreme value (`Ordering::Less` = MIN, `Greater` = MAX) under SPARQL
@@ -708,7 +767,7 @@ mod tests {
     }
 
     #[test]
-    fn group_min_and_sum_hard_errors() {
+    fn group_min() {
         let ds = ages();
         let mut ctx = EvalCtx::new(&ds);
         // MIN(?n) over the whole input → 17.
@@ -731,9 +790,28 @@ mod tests {
             o => format!("{o:?}"),
         };
         assert_eq!(m, "17");
+    }
 
-        // SUM is deferred → hard error.
-        let group_sum = GraphPattern::Group {
+    /// Helper: resolve an aggregate column via the eval scratch.
+    fn agg_lex(
+        ds: &std::sync::Arc<RdfDataset>,
+        ctx: &mut EvalCtx<'_>,
+        seq: &SolutionSeq,
+        var: &str,
+    ) -> String {
+        let col = seq.schema.index_of(&Variable::new(var)).unwrap();
+        match ctx.scratch.value_of(ds, seq.rows[0][col].unwrap()) {
+            TermValue::Literal { lexical_form, .. } => lexical_form,
+            o => format!("{o:?}"),
+        }
+    }
+
+    #[test]
+    fn sum_integers() {
+        // SUM(?n) over {30, 17, 30} → 77.
+        let ds = ages();
+        let mut ctx = EvalCtx::new(&ds);
+        let group = GraphPattern::Group {
             inner: Box::new(age_bgp()),
             variables: vec![],
             aggregates: vec![(
@@ -745,10 +823,266 @@ mod tests {
                 },
             )],
         };
-        assert!(matches!(
-            eval(&group_sum, &mut ctx),
-            Err(EvalError::Unsupported(_))
-        ));
+        let seq = eval(&group, &mut ctx).expect("sum");
+        assert_eq!(agg_lex(&ds, &mut ctx, &seq, "s"), "77");
+    }
+
+    #[test]
+    fn sum_with_decimal() {
+        // Dataset: {1^^xsd:integer, 0.5^^xsd:decimal} → SUM = 1.5 (decimal).
+        use gmeow_rdf_core::{RdfDatasetBuilder, RdfLiteral};
+        const XDEC: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+        let mut b = RdfDatasetBuilder::new();
+        let p = b.intern_iri("http://ex/v".to_owned());
+        for (s, lex, dt) in [("a", "1", XINT), ("b", "0.5", XDEC)] {
+            let subj = b.intern_iri(format!("http://ex/{s}"));
+            let val = b.intern_literal(RdfLiteral {
+                lexical_form: lex.to_owned(),
+                datatype: Some(dt.to_owned()),
+                language: None,
+                direction: None,
+            });
+            b.push_quad(subj, p, val, None);
+        }
+        let ds = b.freeze().expect("freeze");
+        let mut ctx = EvalCtx::new(&ds);
+        let bgp = GraphPattern::Bgp {
+            patterns: vec![gmeow_sparql_algebra::TriplePattern {
+                subject: gmeow_sparql_algebra::TermPattern::Variable(Variable::new("s")),
+                predicate: NamedNodePattern::NamedNode(NamedNode::new_unchecked("http://ex/v")),
+                object: gmeow_sparql_algebra::TermPattern::Variable(Variable::new("n")),
+            }],
+        };
+        let group = GraphPattern::Group {
+            inner: Box::new(bgp),
+            variables: vec![],
+            aggregates: vec![(
+                Variable::new("s"),
+                AggregateExpression::FunctionCall {
+                    function: AggregateFunction::Sum,
+                    expression: Box::new(Expression::Variable(Variable::new("n"))),
+                    distinct: false,
+                },
+            )],
+        };
+        let seq = eval(&group, &mut ctx).expect("sum decimal");
+        let result = agg_lex(&ds, &mut ctx, &seq, "s");
+        assert!(
+            result.starts_with("1.5"),
+            "SUM(1, 0.5) should be 1.5…, got {result}"
+        );
+    }
+
+    #[test]
+    fn sum_empty_group_is_zero() {
+        // SUM over an empty group with no GROUP BY → one row with 0^^xsd:integer.
+        let ds = ages();
+        let mut ctx = EvalCtx::new(&ds);
+        let empty_bgp = GraphPattern::Bgp {
+            patterns: vec![gmeow_sparql_algebra::TriplePattern {
+                subject: gmeow_sparql_algebra::TermPattern::Variable(Variable::new("s")),
+                predicate: NamedNodePattern::NamedNode(NamedNode::new_unchecked("http://ex/none")),
+                object: gmeow_sparql_algebra::TermPattern::Variable(Variable::new("n")),
+            }],
+        };
+        let group = GraphPattern::Group {
+            inner: Box::new(empty_bgp),
+            variables: vec![],
+            aggregates: vec![(
+                Variable::new("s"),
+                AggregateExpression::FunctionCall {
+                    function: AggregateFunction::Sum,
+                    expression: Box::new(Expression::Variable(Variable::new("n"))),
+                    distinct: false,
+                },
+            )],
+        };
+        let seq = eval(&group, &mut ctx).expect("sum empty");
+        assert_eq!(agg_lex(&ds, &mut ctx, &seq, "s"), "0");
+    }
+
+    #[test]
+    fn sum_non_numeric_is_unbound() {
+        // SUM over a string value → unbound (Ok(None) in the aggregate output).
+        use gmeow_rdf_core::{RdfDatasetBuilder, RdfLiteral};
+        let mut b = RdfDatasetBuilder::new();
+        let p = b.intern_iri("http://ex/label".to_owned());
+        let subj = b.intern_iri("http://ex/x".to_owned());
+        let val = b.intern_literal(RdfLiteral::simple("hello"));
+        b.push_quad(subj, p, val, None);
+        let ds = b.freeze().expect("freeze");
+        let mut ctx = EvalCtx::new(&ds);
+        let bgp = GraphPattern::Bgp {
+            patterns: vec![gmeow_sparql_algebra::TriplePattern {
+                subject: gmeow_sparql_algebra::TermPattern::Variable(Variable::new("s")),
+                predicate: NamedNodePattern::NamedNode(NamedNode::new_unchecked("http://ex/label")),
+                object: gmeow_sparql_algebra::TermPattern::Variable(Variable::new("n")),
+            }],
+        };
+        let group = GraphPattern::Group {
+            inner: Box::new(bgp),
+            variables: vec![],
+            aggregates: vec![(
+                Variable::new("agg"),
+                AggregateExpression::FunctionCall {
+                    function: AggregateFunction::Sum,
+                    expression: Box::new(Expression::Variable(Variable::new("n"))),
+                    distinct: false,
+                },
+            )],
+        };
+        let seq = eval(&group, &mut ctx).expect("sum non-numeric");
+        assert_eq!(seq.len(), 1);
+        let col = seq.schema.index_of(&Variable::new("agg")).unwrap();
+        // Non-numeric → unbound (None).
+        assert!(
+            seq.rows[0][col].is_none(),
+            "SUM of non-numeric must be unbound"
+        );
+    }
+
+    #[test]
+    fn avg_integers() {
+        // AVG(?n) over {2, 4} → 3.0 (decimal, NOT integer).
+        use gmeow_rdf_core::{RdfDatasetBuilder, RdfLiteral};
+        let mut b = RdfDatasetBuilder::new();
+        let p = b.intern_iri("http://ex/v".to_owned());
+        for (s, n) in [("a", "2"), ("b", "4")] {
+            let subj = b.intern_iri(format!("http://ex/{s}"));
+            let val = b.intern_literal(RdfLiteral {
+                lexical_form: n.to_owned(),
+                datatype: Some(XINT.to_owned()),
+                language: None,
+                direction: None,
+            });
+            b.push_quad(subj, p, val, None);
+        }
+        let ds = b.freeze().expect("freeze");
+        let mut ctx = EvalCtx::new(&ds);
+        let bgp = GraphPattern::Bgp {
+            patterns: vec![gmeow_sparql_algebra::TriplePattern {
+                subject: gmeow_sparql_algebra::TermPattern::Variable(Variable::new("s")),
+                predicate: NamedNodePattern::NamedNode(NamedNode::new_unchecked("http://ex/v")),
+                object: gmeow_sparql_algebra::TermPattern::Variable(Variable::new("n")),
+            }],
+        };
+        let group = GraphPattern::Group {
+            inner: Box::new(bgp),
+            variables: vec![],
+            aggregates: vec![(
+                Variable::new("avg"),
+                AggregateExpression::FunctionCall {
+                    function: AggregateFunction::Avg,
+                    expression: Box::new(Expression::Variable(Variable::new("n"))),
+                    distinct: false,
+                },
+            )],
+        };
+        let seq = eval(&group, &mut ctx).expect("avg");
+        let result = agg_lex(&ds, &mut ctx, &seq, "avg");
+        // AVG(2, 4) = 6 / 2 = 3.0 — result is decimal (integer ÷ integer → decimal).
+        assert!(
+            result.starts_with("3.0"),
+            "AVG(2,4) should be 3.0…, got {result}"
+        );
+    }
+
+    #[test]
+    fn avg_empty_group_is_zero() {
+        // AVG over an empty group → 0^^xsd:integer.
+        let ds = ages();
+        let mut ctx = EvalCtx::new(&ds);
+        let empty_bgp = GraphPattern::Bgp {
+            patterns: vec![gmeow_sparql_algebra::TriplePattern {
+                subject: gmeow_sparql_algebra::TermPattern::Variable(Variable::new("s")),
+                predicate: NamedNodePattern::NamedNode(NamedNode::new_unchecked("http://ex/none")),
+                object: gmeow_sparql_algebra::TermPattern::Variable(Variable::new("n")),
+            }],
+        };
+        let group = GraphPattern::Group {
+            inner: Box::new(empty_bgp),
+            variables: vec![],
+            aggregates: vec![(
+                Variable::new("avg"),
+                AggregateExpression::FunctionCall {
+                    function: AggregateFunction::Avg,
+                    expression: Box::new(Expression::Variable(Variable::new("n"))),
+                    distinct: false,
+                },
+            )],
+        };
+        let seq = eval(&group, &mut ctx).expect("avg empty");
+        assert_eq!(agg_lex(&ds, &mut ctx, &seq, "avg"), "0");
+    }
+
+    #[test]
+    fn sum_group_by_integration() {
+        // GROUP BY ?s, SUM(?n) per group: dataset has two subjects each with two values.
+        use gmeow_rdf_core::{RdfDatasetBuilder, RdfLiteral};
+        let mut b = RdfDatasetBuilder::new();
+        let p = b.intern_iri("http://ex/score".to_owned());
+        // :alice → 10, 20 ; :bob → 5, 15
+        for (s, vals) in [("alice", vec!["10", "20"]), ("bob", vec!["5", "15"])] {
+            for v in vals {
+                let subj = b.intern_iri(format!("http://ex/{s}"));
+                let val = b.intern_literal(RdfLiteral {
+                    lexical_form: v.to_owned(),
+                    datatype: Some(XINT.to_owned()),
+                    language: None,
+                    direction: None,
+                });
+                b.push_quad(subj, p, val, None);
+            }
+        }
+        let ds = b.freeze().expect("freeze");
+        let mut ctx = EvalCtx::new(&ds);
+        let bgp = GraphPattern::Bgp {
+            patterns: vec![gmeow_sparql_algebra::TriplePattern {
+                subject: gmeow_sparql_algebra::TermPattern::Variable(Variable::new("who")),
+                predicate: NamedNodePattern::NamedNode(NamedNode::new_unchecked("http://ex/score")),
+                object: gmeow_sparql_algebra::TermPattern::Variable(Variable::new("n")),
+            }],
+        };
+        let group = GraphPattern::Group {
+            inner: Box::new(bgp),
+            variables: vec![Variable::new("who")],
+            aggregates: vec![(
+                Variable::new("total"),
+                AggregateExpression::FunctionCall {
+                    function: AggregateFunction::Sum,
+                    expression: Box::new(Expression::Variable(Variable::new("n"))),
+                    distinct: false,
+                },
+            )],
+        };
+        let seq = eval(&group, &mut ctx).expect("group sum");
+        assert_eq!(seq.len(), 2);
+        let who_col = seq.schema.index_of(&Variable::new("who")).unwrap();
+        let total_col = seq.schema.index_of(&Variable::new("total")).unwrap();
+        let scratch = crate::scratch::ScratchInterner::new();
+        let mut pairs: Vec<(String, String)> = seq
+            .rows
+            .iter()
+            .map(|r| {
+                let who = match scratch.value_of(&ds, r[who_col].unwrap()) {
+                    TermValue::Iri(iri) => iri.split('/').next_back().unwrap_or("").to_owned(),
+                    o => format!("{o:?}"),
+                };
+                let total = match ctx.scratch.value_of(&ds, r[total_col].unwrap()) {
+                    TermValue::Literal { lexical_form, .. } => lexical_form,
+                    o => format!("{o:?}"),
+                };
+                (who, total)
+            })
+            .collect();
+        pairs.sort();
+        assert_eq!(
+            pairs,
+            vec![
+                ("alice".to_owned(), "30".to_owned()),
+                ("bob".to_owned(), "20".to_owned()),
+            ]
+        );
     }
 
     #[test]

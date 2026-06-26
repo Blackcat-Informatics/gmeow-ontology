@@ -241,7 +241,7 @@ fn typed(lexical: &str, datatype: &str) -> TermValue {
 
 /// The XSD value of a term, if it is an XSD-typed literal; `None` otherwise
 /// (non-literal, unknown datatype, or malformed lexical form).
-fn xsd_of(value: &TermValue) -> Option<XsdValue> {
+pub(crate) fn xsd_of(value: &TermValue) -> Option<XsdValue> {
     if let TermValue::Literal {
         lexical_form,
         datatype,
@@ -834,7 +834,7 @@ fn xsd_int_of(v: &TermValue) -> Option<i64> {
 
 /// Convert a computed [`XsdValue`] back into an interned [`SolutionTerm`] using the
 /// canonical typed-literal form. The datatype IRI comes from `v.datatype().iri()`.
-fn xsd_to_term(ctx: &mut EvalCtx<'_>, v: &XsdValue) -> SolutionTerm {
+pub(crate) fn xsd_to_term(ctx: &mut EvalCtx<'_>, v: &XsdValue) -> SolutionTerm {
     intern(ctx, typed(&v.canonical_lexical(), v.datatype().iri()))
 }
 
