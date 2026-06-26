@@ -622,6 +622,29 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
+    // ── Holonic level coherence: presence marker (issue #708, C5) ────────────────────
+    // A positive presence marker keyed ONLY on logic:holonicLevel — the mereological
+    // compositional depth in a whole/part DAG.  logic:orderedType (HiLog deep-
+    // instantiation order) does NOT feed this marker: the two axes are orthogonal and
+    // must not be conflated.  A holon carrying orderedType but no holonicLevel will
+    // still fail the NAF in stratum 4 and receive a HolonicLevelIncoherence violation.
+    // Settles in stratum 1 so the stratum-4 NAF is stratified.  Inert on inputs with
+    // no logic:holonicLevel assertions.  (LOGIC-FOUNDATION.md §mereology+holons.)
+    //
+    // hasHolonicLevel(?X, ?X) :- holonicLevel(?X, ?L)
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("hasHolonicLevel")),
+            var("?X"),
+        ),
+        body: &[pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("holonicLevel")),
+            var("?L"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
 ];
 
 const STRATUM_2: &[Rule] = &[
@@ -1308,6 +1331,48 @@ const STRATUM_4: &[Rule] = &[
             pos(
                 var("?X"),
                 TermPat::Const(logic_iri!("supplementationScoped")),
+                var("?X"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic level coherence: incoherence violation (issue #708, C5) ─────────────────
+    // PROFILE-SCOPED, exactly like weak supplementation (and per #775 profile-relativity):
+    // a holon (isHolon — both a proper part of some whole AND itself has a proper part) is
+    // charged with this coherence violation ONLY when it is declared under a mereology
+    // profile (underMereologyProfile) yet carries no logic:holonicLevel assertion.  A holon
+    // outside any logic:MereologyProfile is NEVER charged — parthood is profiled, not
+    // universal, and holonicLevel is path-relative (a min/max band), optional outside a
+    // profile.  The NAF target hasHolonicLevel settles in stratum 1 (armed only by
+    // logic:holonicLevel), isHolon also settles in stratum 1, and underMereologyProfile is
+    // an asserted EDB relation, so the negation is stratified — this mirrors the
+    // weak-supplementation violation exactly.  ?X is positively bound by isHolon(?X, ?X) and
+    // underMereologyProfile(?X, ?M), so the rule is DL-safe.
+    //
+    // CRITICAL NON-CONFLATION: logic:orderedType (HiLog deep-instantiation order) does NOT
+    // feed hasHolonicLevel — the two axes are orthogonal.  A profiled holon carrying
+    // orderedType but no holonicLevel still fires this violation, because holonicLevel
+    // (mereological compositional depth in a whole/part DAG) and orderedType (instantiation
+    // tower order) must not be conflated.  (LOGIC-FOUNDATION.md §mereology+holons.)
+    //
+    // violation(?X, logic:HolonicLevelIncoherence) :- isHolon(?X, ?X),
+    //     underMereologyProfile(?X, ?M), NOT hasHolonicLevel(?X, ?X)
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("violation")),
+            TermPat::Const(logic_iri!("HolonicLevelIncoherence")),
+        ),
+        body: &[
+            pos(var("?X"), TermPat::Const(logic_iri!("isHolon")), var("?X")),
+            pos(
+                var("?X"),
+                TermPat::Const(logic_iri!("underMereologyProfile")),
+                var("?M"),
+            ),
+            neg(
+                var("?X"),
+                TermPat::Const(logic_iri!("hasHolonicLevel")),
                 var("?X"),
             ),
         ],
