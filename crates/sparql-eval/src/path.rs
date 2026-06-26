@@ -118,14 +118,22 @@ pub(crate) fn eval_path(
         // two endpoints are the *same* variable, keep only the reflexive pairs.
         (Endpoint::Free { var: sv }, Endpoint::Free { var: ov }) => {
             let same = sv == ov;
-            for x in node_universe(dataset, graph) {
-                let ends = reach(path, x, true, dataset, graph);
-                if same {
-                    if ends.contains(&x) {
+            if same {
+                // Reflexive paths (p*, p?, p{0,m}) admit the zero-length identity, so
+                // every node trivially reaches itself — skip the reach call entirely.
+                // Non-reflexive paths (p, p+, p{n,…} with n>0, etc.) require an actual
+                // traversal to discover whether x cycles back to itself.
+                let reflexive = path_is_reflexive(path);
+                for x in node_universe(dataset, graph) {
+                    if reflexive || reach(path, x, true, dataset, graph).contains(&x) {
                         push_pair(&mut rows, Some(x), Some(x));
                     }
-                } else {
-                    for y in ends {
+                }
+            } else {
+                // PINNED: spec-mandated distinct-var enumeration — enumerate every node
+                // in the universe and materialise all forward reachability. DO NOT alter.
+                for x in node_universe(dataset, graph) {
+                    for y in reach(path, x, true, dataset, graph) {
                         push_pair(&mut rows, Some(x), Some(y));
                     }
                 }
@@ -249,6 +257,32 @@ fn reach(
         P::Wildcard { namespace } => {
             step_wildcard(namespace.as_ref(), node, forward, dataset, graph)
         }
+    }
+}
+
+/// Whether `path` admits the zero-length identity, i.e. `reach(path, n, …)` always
+/// contains `n` itself regardless of the graph. Mirrors the identity-insertion in
+/// [`reach`] exactly:
+///
+/// - `ZeroOrMore` / `ZeroOrOne` — both unconditionally insert `node` (reflexive).
+/// - `Range { min, .. }` — `range_reach` starts `current = {node}` at k=0 and emits
+///   `current` into `out` as soon as `k >= min`; so `node` enters `out` iff `min == 0`.
+/// - `Reverse(inner)` — only flips the direction flag; reflexivity is preserved.
+/// - `Sequence(a, b)` — the zero-length identity passes through both sides, so both
+///   must individually admit the identity.
+/// - `Alternative(a, b)` — either sub-path suffices.
+/// - Everything else (`NamedNode`, `OneOrMore`, `NegatedPropertySet`, `Wildcard`) is
+///   non-reflexive: `OneOrMore` returns `closure` only (node is included iff it cycles
+///   back to itself, which is not a static guarantee).
+fn path_is_reflexive(path: &PropertyPathExpression) -> bool {
+    use PropertyPathExpression as P;
+    match path {
+        P::ZeroOrMore(_) | P::ZeroOrOne(_) => true,
+        P::Range { min, .. } => *min == 0,
+        P::Reverse(inner) => path_is_reflexive(inner),
+        P::Sequence(a, b) => path_is_reflexive(a) && path_is_reflexive(b),
+        P::Alternative(a, b) => path_is_reflexive(a) || path_is_reflexive(b),
+        P::NamedNode(_) | P::OneOrMore(_) | P::NegatedPropertySet(_) | P::Wildcard { .. } => false,
     }
 }
 
@@ -776,6 +810,50 @@ mod tests {
         // ?x :p+ ?x  → a, b (each reaches itself via the cycle).
         let rows = run(&ds, var("x"), plus, var("x"), &["x"]);
         assert_eq!(rows, col1(&["a", "b"]));
+    }
+
+    // ---- same-variable reflexive short-circuit (Gap D) ---------------------
+
+    #[test]
+    fn same_var_reflexive_star() {
+        // Graph a -> b -> c. Node universe = {a, b, c}.
+        // ?x :p* ?x — p* is reflexive, so every node is a solution via zero-length identity.
+        let ds = graph_of(&[("a", "p", "b"), ("b", "p", "c")]);
+        let star = PropertyPathExpression::ZeroOrMore(Box::new(named("p")));
+        let rows = run(&ds, var("x"), star, var("x"), &["x"]);
+        assert_eq!(rows, col1(&["a", "b", "c"]));
+    }
+
+    #[test]
+    fn same_var_reflexive_optional() {
+        // Graph a -> b -> c. Node universe = {a, b, c}.
+        // ?x :p? ?x — p? is reflexive, so every node is a solution via zero-length identity.
+        let ds = graph_of(&[("a", "p", "b"), ("b", "p", "c")]);
+        let opt = PropertyPathExpression::ZeroOrOne(Box::new(named("p")));
+        let rows = run(&ds, var("x"), opt, var("x"), &["x"]);
+        assert_eq!(rows, col1(&["a", "b", "c"]));
+    }
+
+    #[test]
+    fn same_var_reflexive_range_zero_min() {
+        // ?x :p{0,2} ?x — min=0 makes it reflexive; every node is a solution.
+        let ds = graph_of(&[("a", "p", "b"), ("b", "p", "c")]);
+        let rng = PropertyPathExpression::Range {
+            inner: Box::new(named("p")),
+            min: 0,
+            max: Some(2),
+        };
+        let rows = run(&ds, var("x"), rng, var("x"), &["x"]);
+        assert_eq!(rows, col1(&["a", "b", "c"]));
+    }
+
+    #[test]
+    fn same_var_nonreflexive_no_cycle_is_empty() {
+        // Acyclic a -> b -> c. ?x :p+ ?x — p+ is non-reflexive; no node cycles back.
+        let ds = graph_of(&[("a", "p", "b"), ("b", "p", "c")]);
+        let plus = PropertyPathExpression::OneOrMore(Box::new(named("p")));
+        let rows = run(&ds, var("x"), plus, var("x"), &["x"]);
+        assert_eq!(rows, col1(&[]));
     }
 
     #[test]
