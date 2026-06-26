@@ -13,8 +13,9 @@ dependencies = [
     # dependency. The `sssom` path is now subsumed natively (#848): SSSOM codec +
     # validation live in `gmeow_rdf` (crates/rdf/src/sssom.rs) and FnO emission in
     # `gmeow_slice`, so `sssom` is gone as a dependency. `rdflib` still arrives
-    # transitively via `linkml` (tracked separately); the classic_cross_check
-    # oracle lane pins it explicitly through the `crosscheck` extra below.
+    # transitively via `linkml` (tracked separately); the dev-only
+    # `gmeow_tools.oracles` lane pins it explicitly through the `crosscheck`
+    # extra below.
     "httpx>=0.28",
     "typer>=0.15",
     "rich>=13.9",
@@ -46,8 +47,9 @@ music = [
 # The classic_cross_check oracle lane (#666) — the ONLY place gmeow uses upstream
 # rdflib/owlrl, as the independent reasoner/engine oracle. Installed via
 # `pip install '.[crosscheck]'` for `make maint-classic-cross-check`; never needed for
-# normal repo use. The engine_crosscheck / rl_agreement tests pytest.importorskip
-# these, so the default `make check`/`make test` lanes pass without them.
+# normal repo use. The gmeow_tools.oracles engine_crosscheck / rl_agreement tests
+# pytest.importorskip these, so the default `make check`/`make test` lanes pass
+# without them.
 crosscheck = [
     "rdflib>=7.6",
     "owlrl>=6.0.2",  # pure-Python OWL 2 RL oracle (#38)

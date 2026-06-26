@@ -28,6 +28,7 @@ fail-fast = false
 # the ~360 fast gmeow-logic unit tests stay fully parallel.
 [test-groups]
 engine = { max-threads = 2 }
+mapping-stage = { max-threads = 1 }
 
 [[profile.default.overrides]]
 # The whole gmeow-conformance datatest harness (its foundation/* cases materialize
@@ -64,12 +65,22 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 
 [[profile.default.overrides]]
 # Full-snapshot round-trip tests decode the ~9.3 MB committed `gmeow.gts` and
-# re-emit / extract it back through the native gmeow-gts codecs (#909). A
-# whole-bundle native round-trip is ~80-100s locally and tips past the 120s
-# default terminate cliff under CI load (the native codec round-trip is heavier
-# than the retired oxigraph path). They are codec / I-O-bound — NOT engine-bound —
-# so they stay OUTSIDE the `engine` memory group (no OOM risk) but need a longer
-# terminate cliff: `gts_sink::sink_re_emits_the_snapshot_bytes_verbatim`
-# (re-emits the whole snapshot) and the `gmeow-docs` extract round-trip suite.
-filter = '(package(gmeow-pipeline) & test(/gts_sink/)) | (package(gmeow-docs) & binary(extract_roundtrip))'
+# re-emit / extract it back through the native gmeow-gts codecs (#909). Snapshot
+# archive tests also render and pack the embedded ontology-docs site. Under CI
+# load these can tip past the 120s default terminate cliff. They are codec /
+# I-O-bound — NOT engine-bound — so they stay OUTSIDE the `engine` memory group
+# (no OOM risk) but need a longer terminate cliff: `gts_sink` re-emits the whole
+# snapshot, `gmeow-docs` extract round-trips it, and the snapshot docs-archive
+# test renders/packs the embedded site.
+filter = '(package(gmeow-pipeline) & test(/gts_sink|stages::snapshot::ustar_tests::build_docs_archive_packs_the_rendered_site/)) | (package(gmeow-docs) & binary(extract_roundtrip))'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# Mapping-stage integration tests run the full `compile_mappings` registry check.
+# Under CI shard contention, concurrent full mapping compiles can exceed the
+# default 120s terminate cliff even though the artifacts are deterministic. Keep
+# them serialized and give them the same long-running integration budget used by
+# the other full-stage parity checks.
+filter = 'package(gmeow-pipeline) & test(/stages::mappings::tests::(sssom_emits_and_overlaps_byte_identically_with_committed|edoal_and_sparql_emit_byte_identically_with_committed|standpoint_and_dsl_stats_emit_byte_identically_with_committed|fno_is_well_formed_ntriples|prefix_set_projections_are_emitted_and_parse|list_functions_are_emitted_and_parse)/)'
+test-group = 'mapping-stage'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }

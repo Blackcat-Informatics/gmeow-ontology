@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from gmeow_rdf.compat.rdflib import Graph
     from gmeow_slice import ProjectionDiagnostic
 
+    from gmeow_tools.diagnostics import DiagnosticsReport
     from gmeow_tools.language_tags import LangSelector
 
 
@@ -429,70 +430,6 @@ def release_bundle(
     )
 
 
-@app.command(name="verify-release-bundle")
-def verify_release_bundle(
-    bundle: Path = typer.Option(  # noqa: B008
-        Path("dist/gmeow.gts"),
-        "--bundle",
-        help="The signed release bundle to verify.",
-    ),
-    public_key: Path | None = typer.Option(  # noqa: B008
-        None,
-        "--public-key",
-        help=(
-            "Optional out-of-band trusted Ed25519 OpenPGP PUBLIC certificate. "
-            "When given, the signature is checked against it, not just the "
-            "bundle's embedded transport key."
-        ),
-    ),
-) -> None:
-    """Consumer verification of a signed release bundle (#673, §18).
-
-    Verifies the COSE signature + trust policy AND walks the
-    ``graph/attestations`` frames, hard-failing if any attested artifact's bytes
-    are absent — so a consumer confirms exactly which checks ran over exactly
-    which bytes, not merely that *something* was signed. This Python layer does
-    NO verification logic; it only marshals paths + bytes into the native
-    ``gmeow_native.pipeline.verify_release_bundle_native``.
-    """
-    try:
-        import gmeow_native.pipeline as _pipeline
-    except ImportError as exc:
-        raise _fail(
-            "✗ the native pipeline is unavailable: "
-            f"`import gmeow_native.pipeline` failed ({exc}). Rebuild the unified "
-            "extension (e.g. `maturin develop --manifest-path "
-            "crates/native/Cargo.toml`) to pick up the pipeline submodule."
-        ) from exc
-
-    try:
-        bundle_bytes = bundle.read_bytes()
-    except OSError as exc:
-        raise _fail(f"✗ release bundle {bundle} is unreadable: {exc}") from exc
-
-    expected_armor: str | None = None
-    if public_key is not None:
-        try:
-            expected_armor = public_key.read_text(encoding="utf-8")
-        except OSError as exc:
-            raise _fail(f"✗ public key {public_key} is unreadable: {exc}") from exc
-
-    try:
-        signed, valid, kid, fingerprint, artifacts = (
-            _pipeline.verify_release_bundle_native(bundle_bytes, expected_armor)
-        )
-    except ValueError as exc:
-        raise _fail(f"✗ release verification failed: {exc}") from exc
-
-    key_line = f", key {kid}" if kid else ""
-    fp_line = f", fingerprint {fingerprint}" if fingerprint else ""
-    console.print(
-        f"[green]✓ release verified: {bundle} "
-        f"({valid}/{signed} valid signature(s){key_line}{fp_line}, "
-        f"{artifacts} attested artifact(s) present)[/green]"
-    )
-
-
 @app.command()
 def check_generated(
     jobs: int | None = typer.Option(
@@ -642,7 +579,7 @@ def validate(
         raise _fail(f"✗ {len(result.errors)} error(s)")
 
 
-def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
+def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
     """The ``(label, thunk)`` table of dev-gate surfaces folded into feedback.
 
     Each thunk re-runs one ``make check`` surface and returns its
@@ -655,7 +592,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
     :func:`feedback`; ROBOT and external-tool lanes are a documented follow-up.)
     """
 
-    def _alignment() -> Any:
+    def _alignment() -> DiagnosticsReport:
         from gmeow_tools import diagnostics
 
         items = [
@@ -670,37 +607,37 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         ]
         return diagnostics.report_from_findings(tool="alignment", findings=items)
 
-    def _coverage() -> Any:
+    def _coverage() -> DiagnosticsReport:
         from gmeow_tools import coverage
 
         return coverage.to_diagnostics_report(coverage.run_coverage())
 
-    def _acceptance() -> Any:
+    def _acceptance() -> DiagnosticsReport:
         import gmeow_native.pipeline as _pipeline
 
         return _pipeline.acceptance_diagnostics_report(str(PROJECT_ROOT))
 
-    def _wikidata() -> Any:
+    def _wikidata() -> DiagnosticsReport:
         return gmeow_validate.wikidata_diagnostics_report(str(MAPPINGS_DIR))
 
-    def _constitution() -> Any:
+    def _constitution() -> DiagnosticsReport:
         return gmeow_validate.constitution_full_report(
             str(PROJECT_ROOT / "governance" / "constitution.ttl"),
             str(PROJECT_ROOT / "CONSTITUTION.md"),
             str(PROJECT_ROOT),
         )
 
-    def _crate_layering() -> Any:
+    def _crate_layering() -> DiagnosticsReport:
         return gmeow_validate.crate_layering_diagnostics_report(
             str(PROJECT_ROOT / "crates")
         )
 
-    def _box_roles() -> Any:
+    def _box_roles() -> DiagnosticsReport:
         from gmeow_tools import box_roles
 
         return box_roles.to_diagnostics_report(box_roles.audit_box_roles())
 
-    def _audit() -> Any:
+    def _audit() -> DiagnosticsReport:
         import gmeow_native.pipeline as _pipeline
 
         from gmeow_tools.config import FIXTURES_DIR
@@ -710,7 +647,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
             str(PROJECT_ROOT), [str(corpus)]
         )
 
-    def _generated() -> Any:
+    def _generated() -> DiagnosticsReport:
         # Drift surface for the build: run the Rust pipeline in CHECK mode (the
         # build authority since #861 P7) and project its drift findings into the
         # canonical diagnostics report folded into the bundle.
@@ -739,34 +676,34 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         ]
         return diagnostics.report_from_findings(tool="generated", findings=items)
 
-    def _classic_cross_check() -> Any:
+    def _classic_cross_check() -> DiagnosticsReport:
         # The native↔oracle (ELK/HermiT/ROBOT) divergence ledger is already a
         # Rust-backed DiagnosticsReport (gmeow_logic.build_divergence_ledger →
         # classic_cross_check.build_report). Folding it carries the classic-oracle
         # cross-check findings into the bundle. Guarded: it needs the Docker/Java
         # lane, so on a Docker-less host the fold loop records a visible skip.
-        from gmeow_tools import classic_cross_check as crosscheck
+        from gmeow_tools.oracles import classic_cross_check as crosscheck
 
         _passed, _ledger, report = crosscheck.run()
         return report
 
-    def _engine_cross_check() -> Any:
-        from gmeow_tools import engine_crosscheck
+    def _engine_cross_check() -> DiagnosticsReport:
+        from gmeow_tools.oracles import engine_crosscheck
 
         return engine_crosscheck.build_report(engine_crosscheck.crosscheck_all())
 
-    def _logic_compile() -> Any:
+    def _logic_compile() -> DiagnosticsReport:
         from gmeow_tools import logic_compile
 
         return logic_compile.compile_diagnostics_report()
 
-    def _statement_compile() -> Any:
+    def _statement_compile() -> DiagnosticsReport:
         return _statement_compile_report()
 
-    def _mapping_compile() -> Any:
+    def _mapping_compile() -> DiagnosticsReport:
         return _mapping_compile_report()
 
-    def _slice_ownership() -> Any:
+    def _slice_ownership() -> DiagnosticsReport:
         # The FULL native slice-ownership report (#809): ownership-defect errors
         # PLUS the dependency-observation warnings that `make validate` keeps out
         # of its focused gate. Folding it here carries those previously-dropped
@@ -1145,7 +1082,7 @@ def crosscheck_queries() -> None:
     The agreement matrix is also written as JSON/SARIF/HTML via the diagnostics
     rail (#667 — the surface no longer terminates at stdout only).
     """
-    from gmeow_tools.engine_crosscheck import run
+    from gmeow_tools.oracles.engine_crosscheck import run
 
     _passed, results, _report = run()
     diverged = [r for r in results if not r.agree and not r.skipped]
@@ -1178,7 +1115,7 @@ def classic_cross_check() -> None:
     native coverage defect (``DlGap``). NEVER part of ``make check`` or the
     required ``quality`` gate.
     """
-    from gmeow_tools import classic_cross_check as crosscheck
+    from gmeow_tools.oracles import classic_cross_check as crosscheck
     from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
 
     try:
@@ -1219,7 +1156,7 @@ def classic_cross_check_rl() -> None:
     agreement matrix + per-engine timing as SARIF/JSON, and fails NON-ZERO on any
     real RL divergence. NEVER part of ``make check`` or the required gate.
     """
-    from gmeow_tools import rl_agreement
+    from gmeow_tools.oracles import rl_agreement
 
     passed, result, _report = rl_agreement.run()
 

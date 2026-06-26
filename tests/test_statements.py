@@ -17,12 +17,12 @@ import pytest
 from gmeow_rdf.compat.rdflib import Graph
 from gmeow_rdf.compat.rdflib.compare import isomorphic
 
-from gmeow_tools import statements_docker_check
 from gmeow_tools.config import (
     PROJECT_ROOT,
     STATEMENT_OWL_FILE,
     STATEMENT_RDF12_FILE,
 )
+from gmeow_tools.oracles import statements_docker_check
 from gmeow_tools.rdf12 import project_owl_to_rdf12
 from gmeow_tools.runner import ToolUnavailableError
 

@@ -40,7 +40,7 @@ meta:enforcedBy a rdfs:Property .
 meta:artifact   a rdfs:Property ; rdfs:comment "Repo-relative path that must exist."@en .
 meta:symbol     a rdfs:Property ; rdfs:comment "Name that must be defined in (one of) the enforcement's .py artifacts, or appear verbatim in a non-Python artifact."@en .
 meta:makeTarget a rdfs:Property ; rdfs:comment "Target that must exist in the Makefile."@en .
-meta:cliCommand a rdfs:Property ; rdfs:comment "Command that must be registered on the gmeow CLI."@en .
+meta:cliCommand a rdfs:Property ; rdfs:comment "Command that must be registered on the public gmeow or repository-maintenance gmeow-dev CLI."@en .
 meta:generator  a rdfs:Property ; rdfs:comment "Registered generator name; the declared set must equal the live registry exactly."@en .
 meta:supersededInPartBy a rdfs:Property ;
     rdfs:comment "Names a later principle whose framing supersedes part of this one; must match a '**Superseded in part by Principle N**' marker in CONSTITUTION.md."@en .
@@ -103,7 +103,7 @@ meta:tests-alignment a meta:TestSuite ;
 
 meta:gate-crosscheck a meta:Gate ;
     rdfs:label "dual-engine query crosscheck (rdflib vs native gmeow_rdf)"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/engine_crosscheck.py" ;
+    meta:artifact "src/gmeow_tools/oracles/engine_crosscheck.py" ;
     meta:makeTarget "maint-crosscheck" ;
     meta:cliCommand "crosscheck-queries" .
 
@@ -305,7 +305,8 @@ meta:gate-dl-el-crosscheck a meta:Gate ;
 # agreement + timing through the gmeow-diagnostics SARIF rail.
 meta:gate-classic-cross-check a meta:Gate ;
     rdfs:label "classic-cross-check lane — native vs ELK/HermiT/owlrl agreement, ENFORCED (non-required Docker/Java oracle lane)"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/classic_cross_check.py", "src/gmeow_tools/rl_agreement.py" ;
+    meta:artifact "src/gmeow_tools/oracles/classic_cross_check.py",
+        "src/gmeow_tools/oracles/rl_agreement.py" ;
     meta:symbol "enforce", "run" ;
     meta:makeTarget "maint-classic-cross-check" ;
     meta:cliCommand "classic-cross-check", "classic-cross-check-rl" .

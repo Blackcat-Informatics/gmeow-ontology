@@ -459,8 +459,8 @@ replication of ROBOT (SLME extraction + verify) is future work — until then th
 *Embodied in:* the native reason lane ([`src/gmeow_tools/reason.py`](./src/gmeow_tools/reason.py)),
 the `reason --mode native` CLI command, the `native-reasoning` registered generator
 ([`src/gmeow_tools/native_reason_gen.py`](./src/gmeow_tools/native_reason_gen.py)), and the enforcing
-`classic-cross-check` lane ([`src/gmeow_tools/classic_cross_check.py`](./src/gmeow_tools/classic_cross_check.py),
-[`src/gmeow_tools/rl_agreement.py`](./src/gmeow_tools/rl_agreement.py)). *Tested by:* the
+`classic-cross-check` lane ([`src/gmeow_tools/oracles/classic_cross_check.py`](./src/gmeow_tools/oracles/classic_cross_check.py),
+[`src/gmeow_tools/oracles/rl_agreement.py`](./src/gmeow_tools/oracles/rl_agreement.py)). *Tested by:* the
 native-reasoning authority gate (`meta:gate-reason-native`), the native gap-zero divergence ledger
 gate (`meta:gate-dl-el-crosscheck`), the native ⊇ oracle anti-regression superset gate
 (`meta:gate-native-oracle-superset`), the enforcing classic-cross-check lane gate

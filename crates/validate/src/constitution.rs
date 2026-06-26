@@ -399,8 +399,8 @@ fn apply_command_decorator(
     }
 }
 
-/// Every command registered on the gmeow-dev Typer app.
-pub fn cli_command_names(cli_dev_text: &str) -> BTreeSet<String> {
+/// Every command registered on a Typer app.
+pub fn cli_command_names(cli_text: &str) -> BTreeSet<String> {
     let decorator_re = CLI_DECORATOR_RE.get_or_init(|| {
         Regex::new(r"^@app\.command\((.*)\)\s*(?:#.*)?$").expect("valid decorator regex")
     });
@@ -419,7 +419,7 @@ pub fn cli_command_names(cli_dev_text: &str) -> BTreeSet<String> {
     let mut in_string: Option<char> = None;
     let mut escape = false;
 
-    for line in cli_dev_text.lines() {
+    for line in cli_text.lines() {
         let stripped = line.trim();
         if depth > 0 {
             for ch in stripped.chars() {
@@ -504,6 +504,16 @@ pub fn cli_command_names(cli_dev_text: &str) -> BTreeSet<String> {
             }
             pending = false;
         }
+    }
+    names
+}
+
+/// Every command registered on the public or repository-maintenance CLI.
+pub fn cli_surface_command_names(root: &Path) -> BTreeSet<String> {
+    let mut names = BTreeSet::new();
+    for rel in ["src/gmeow_tools/cli.py", "src/gmeow_tools/cli_dev.py"] {
+        let text = fs::read_to_string(root.join(rel)).unwrap_or_default();
+        names.extend(cli_command_names(&text));
     }
     names
 }
@@ -669,9 +679,7 @@ pub fn check_references(enforcements: &BTreeMap<String, Enforcement>, root: &Pat
     let makefile_text = fs::read_to_string(root.join("Makefile")).unwrap_or_default();
     let make_targets = makefile_targets(&makefile_text);
 
-    let cli_dev_text =
-        fs::read_to_string(root.join("src/gmeow_tools/cli_dev.py")).unwrap_or_default();
-    let cli_commands = cli_command_names(&cli_dev_text);
+    let cli_commands = cli_surface_command_names(root);
 
     for enforcement in enforcements.values() {
         let name = enforcement.local_name();
@@ -716,7 +724,7 @@ pub fn check_references(enforcements: &BTreeMap<String, Enforcement>, root: &Pat
                 findings.push(error(
                     "stale-cli-command",
                     format!(
-                        "{name}: gmeow CLI command {} is not registered",
+                        "{name}: CLI command {} is not registered on gmeow or gmeow-dev",
                         py_repr(command)
                     ),
                 ));
@@ -1103,6 +1111,27 @@ top_level = 42
                 pass\n";
         let got = cli_command_names(py);
         assert!(got.contains("paren-cmd"));
+    }
+
+    #[test]
+    fn cli_surface_command_names_includes_public_and_dev_cli() {
+        let tmp = tempfile::tempdir().unwrap();
+        let src = tmp.path().join("src/gmeow_tools");
+        fs::create_dir_all(&src).unwrap();
+        fs::write(
+            src.join("cli.py"),
+            "\n@app.command(name=\"verify-release-bundle\")\ndef public_cmd():\n    pass\n",
+        )
+        .unwrap();
+        fs::write(
+            src.join("cli_dev.py"),
+            "\n@app.command(name=\"release-bundle\")\ndef dev_cmd():\n    pass\n",
+        )
+        .unwrap();
+
+        let got = cli_surface_command_names(tmp.path());
+        assert!(got.contains("verify-release-bundle"));
+        assert!(got.contains("release-bundle"));
     }
 
     // ------------------------------------------------------------------
