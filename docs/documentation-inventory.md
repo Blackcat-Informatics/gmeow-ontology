@@ -35,6 +35,8 @@ checking generated site files into git.
 | `merge-with-slice-docs` | Merge useful material into existing `slices/*/*/docs.md` or slice design docs, then retire the root duplicate. |
 | `promote-to-ontology` | Extract term-level material into ontology annotations or mapping metadata. |
 | `update-or-archive` | Refresh stale paths/history or archive after useful content is preserved. |
+| `migrated` | Completed state: curated content extracted into slice annotations/docs; root doc retired. |
+| `moved` | Completed state: relocated to another location/repository and referenced by URL. |
 
 ## Root docs inventory
 
@@ -50,7 +52,7 @@ checking generated site files into git.
 | `docs/deception.md` | Older deception doctrine | Duplicates rich slice docs; stale paths | `merge-with-slice-docs` | `slices/core/deception/docs.md` appears newer and more complete. Preserve any missing examples/QID links, then retire root duplicate. |
 | `docs/dublin-core.md` | Dublin Core alignment and projection guide | Rights/projection overlap; stale generated paths | `promote-to-ontology`, `move-to-slice-design` | Split between mapping DSL metadata and an interop/projection design note. Avoid leaving hand-maintained generated-file paths. |
 | `docs/engine-crosscheck.md` | gmeow_rdf engine trust note | Historical ticket note | `update-or-archive` | Likely implementation history. Keep only if still useful for test/toolchain rationale. |
-| `docs/evidence-warrant-notability.md` | Evidence, warrant, and notability distinction | Strong evidence/quality doctrine | `move-to-slice-design`, `promote-to-ontology` | Likely split across `slices/core/evidence/design/` and `slices/core/quality/design/`. Extract use/avoid guidance for warrant and notability terms. |
+| `docs/evidence-warrant-notability.md` | Evidence, warrant, and notability distinction | Strong evidence/quality doctrine | `migrated` | Migrated into the evidence slice (`slices/core/evidence/docs.md` orthogonality table + consumer-perspective notes, and `slices/core/evidence/module.ttl` term annotations incl. the `supportsNotability` WP:GNG-triad scope note); root doc retired (#1022). The quality slice owed nothing — the source was evidence-only. |
 | `docs/foundational-bridging.md` | gUFO/BFO upper-ontology bridge | External-vocabulary doctrine; stale paths | `move-to-slice-design`, `promote-to-ontology` | Likely belongs near `slices/core/logic/design/` until the planned internal upper-ontology replacement exists. Extract consumer-facing explanations for gUFO/BFO terms. |
 | `docs/git-provenance-boundary.md` | Git/source provenance boundary | Provenance, sources, temporal, software overlap | `move-to-slice-design`, `promote-to-ontology` | Likely target: `slices/core/provenance/design/`, with software-specific parts later moving to `slices/extensions/software/design/`. |
 | `docs/gts-narrow-waist.md` | GTS architectural doctrine | GTS doctrine; ticket-heavy | `merge-with-slice-docs` | Fold into GTS design docs or GTS spec introduction. Avoid a separate root note after migration. |
@@ -109,8 +111,9 @@ extract concise, term-scoped prose into:
 | `docs/standpoints.md` and `docs/deception.md` | `slices/core/standpoint`, `slices/core/deception`, statement metadata docs | These explain contested facts, refutation, and no-winner semantics. They should drive generated examples and usage advice. |
 | `docs/import-provenance.md`, `docs/git-provenance-boundary.md`, `docs/projects-mapping.md` | `slices/core/provenance`, `slices/core/sources`, `slices/core/attestation`, `slices/extensions/software` | The boundary between carrier provenance, source provenance, software provenance, and claim provenance is easy to misuse. Generated docs should teach it. |
 | `docs/identity-mapping.md` | `slices/core/names`, `slices/core/gender`, `slices/core/sexuality` | Identity docs need co-equal, non-privileged modeling guidance directly on terms. |
-| `docs/evidence-warrant-notability.md` | `slices/core/evidence`, `slices/core/quality` | Warrant and notability are adoption-critical distinctions and should become term-level guidance. |
 | `docs/hallucination-resistant-kg.md`, `docs/research-objects.md`, `docs/mcp-server.md` | `slices/core/ai`, `slices/extensions/graphrag`, GTS/export docs | Useful educational patterns should be generated from ontology and slice metadata instead of hidden in root notes. |
+
+(`docs/evidence-warrant-notability.md` has been migrated into the evidence slice and retired — see the inventory row above, #1022.)
 
 ## Suggested follow-up batches
 
