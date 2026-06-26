@@ -188,7 +188,9 @@ fn select_books_tsv() {
 }
 
 // ---------------------------------------------------------------------------
-// 2. ASK — JSON + XML snapshot; CSV/TSV must Err (no W3C representation).
+// 2. ASK + CONSTRUCT — JSON + XML snapshot; CSV/TSV must Err (no W3C
+//    tabular representation exists for either an ASK boolean or a CONSTRUCT
+//    graph).
 // ---------------------------------------------------------------------------
 
 #[test]
@@ -210,13 +212,16 @@ fn ask_true_xml() {
 }
 
 #[test]
-fn ask_csv_and_tsv_are_errors() {
-    // CSV and TSV have no W3C representation for an ASK boolean → must `Err`.
+fn csv_and_tsv_reject_non_tabular_results() {
+    // CSV and TSV are defined ONLY for SELECT variable bindings; ASK booleans
+    // and CONSTRUCT graphs have no W3C tabular representation → both must `Err`.
     // (`is_err()` rather than `matches!(.., Err(_))` to satisfy clippy's
     // `redundant_pattern_matching`; semantically the same assertion.)
     let prov = ResultProvenance::default();
     assert!(to_csv(&SparqlResult::Boolean(true), &prov).is_err());
     assert!(to_tsv(&SparqlResult::Boolean(true), &prov).is_err());
+    assert!(to_csv(&starred_graph(), &prov).is_err());
+    assert!(to_tsv(&starred_graph(), &prov).is_err());
 }
 
 // ---------------------------------------------------------------------------
