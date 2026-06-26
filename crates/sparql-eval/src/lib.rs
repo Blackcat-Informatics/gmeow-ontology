@@ -42,6 +42,7 @@ mod convert;
 pub mod error;
 pub mod eval;
 mod expr;
+mod modifier;
 pub mod scratch;
 pub mod solution;
 
@@ -69,3 +70,6 @@ pub(crate) type DetHasher =
 
 /// A deterministic, seed-free [`HashMap`](std::collections::HashMap). See [`DetHasher`].
 pub(crate) type DetHashMap<K, V> = std::collections::HashMap<K, V, DetHasher>;
+
+/// A deterministic, seed-free [`HashSet`](std::collections::HashSet). See [`DetHasher`].
+pub(crate) type DetHashSet<K> = std::collections::HashSet<K, DetHasher>;

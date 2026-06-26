@@ -72,6 +72,24 @@ pub fn eval(pattern: &GraphPattern, ctx: &mut EvalCtx<'_>) -> Result<SolutionSeq
             variable,
             expression,
         } => crate::expr::eval_extend(inner, variable, expression, ctx),
+        GraphPattern::Values {
+            variables,
+            bindings,
+        } => crate::modifier::eval_values(variables, bindings, ctx),
+        GraphPattern::Project { inner, variables } => {
+            crate::modifier::eval_project(inner, variables, ctx)
+        }
+        GraphPattern::Distinct { inner } => crate::modifier::eval_distinct(inner, ctx),
+        GraphPattern::Reduced { inner } => crate::modifier::eval_reduced(inner, ctx),
+        GraphPattern::Slice {
+            inner,
+            start,
+            length,
+        } => crate::modifier::eval_slice(inner, *start, *length, ctx),
+        GraphPattern::OrderBy { inner, expression } => {
+            crate::modifier::eval_order_by(inner, expression, ctx)
+        }
+        GraphPattern::Graph { name, inner } => crate::modifier::eval_graph(name, inner, ctx),
         // Implemented incrementally over the remaining S6 build tasks; until then
         // (and permanently, for out-of-scope nodes) a hard error names the construct.
         other => Err(EvalError::Unsupported(format!(
@@ -125,10 +143,16 @@ mod tests {
         let ds = RdfDatasetBuilder::new().freeze().expect("freeze empty");
         let mut ctx = EvalCtx::new(&ds);
         let inner = Box::new(GraphPattern::Bgp { patterns: vec![] });
-        // REDUCED is not implemented until Task 6.
-        let pattern = GraphPattern::Reduced { inner };
+        // SERVICE (federation) is permanently out of S6 scope (→ S6b #928).
+        let pattern = GraphPattern::Service {
+            name: gmeow_sparql_algebra::NamedNodePattern::NamedNode(
+                gmeow_sparql_algebra::NamedNode::new_unchecked("http://ex/endpoint"),
+            ),
+            inner,
+            silent: false,
+        };
         let err = eval(&pattern, &mut ctx).unwrap_err();
         assert!(matches!(err, EvalError::Unsupported(_)));
-        assert!(err.to_string().contains("REDUCED"));
+        assert!(err.to_string().contains("SERVICE"));
     }
 }

@@ -11,7 +11,9 @@
 //! matches the dataset's interned (already-lowercased) form.
 
 use gmeow_rdf_core::{RdfTextDirection, TermValue};
-use gmeow_sparql_algebra::{BaseDirection, Literal, NamedNode, TermPattern, TriplePattern};
+use gmeow_sparql_algebra::{
+    BaseDirection, GroundTerm, GroundTriple, Literal, NamedNode, TermPattern, TriplePattern,
+};
 
 use crate::error::EvalError;
 
@@ -83,5 +85,24 @@ pub(crate) fn ground_term_pattern_to_value(pattern: &TermPattern) -> Result<Term
         TermPattern::Variable(_) => Err(EvalError::unsupported(
             "variable inside a quoted triple term in a BGP",
         )),
+    }
+}
+
+/// Convert a [`GroundTerm`] (a `VALUES` cell or quoted-triple component) to a
+/// [`TermValue`]. Always succeeds — a `GroundTerm` carries no variables.
+pub(crate) fn ground_term_to_value(term: &GroundTerm) -> TermValue {
+    match term {
+        GroundTerm::NamedNode(n) => named_node_to_value(n),
+        GroundTerm::Literal(l) => literal_to_value(l),
+        GroundTerm::Triple(t) => ground_triple_to_value(t),
+    }
+}
+
+/// Convert a [`GroundTriple`] to a [`TermValue::Triple`].
+pub(crate) fn ground_triple_to_value(triple: &GroundTriple) -> TermValue {
+    TermValue::Triple {
+        s: Box::new(ground_term_to_value(&triple.subject)),
+        p: Box::new(named_node_to_value(&triple.predicate)),
+        o: Box::new(ground_term_to_value(&triple.object)),
     }
 }
