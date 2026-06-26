@@ -335,9 +335,28 @@ impl Lowering {
         tc
     }
 
-    /// Lower `inner{min,max}` by the stratified unroll (LOGIC-PATHS canon): the union
-    /// over `k ∈ [min, max]` of `inner` composed exactly `k` times. The positive part
-    /// excludes `k = 0` (carried by the `reflexive` flag).
+    /// Lower `inner{min,max}` via **iterative O(max) rule emission** (LOGIC-PATHS
+    /// canon, lines 87-97): instead of building an O(max²) AST of cloned
+    /// `PropertyPathExpression` nodes, lower `inner` ONCE and emit a flat chain of
+    /// per-level composition rules.
+    ///
+    /// The chain is:
+    /// ```text
+    /// step_1(X,Z) :- pp(X,Z).
+    /// step_2(X,Z) :- step_1(X,Y), pp(Y,Z).
+    /// …
+    /// step_m(X,Z) :- step_{m-1}(X,Y), pp(Y,Z).
+    /// result(X,Y) :- step_k(X,Y).   % for each k in the in-range window
+    /// ```
+    ///
+    /// Reflexive-inner semantics: if `inner` is itself reflexive (e.g. `p?`, `p*`,
+    /// or a composed reflexive path), then each application of `inner` may take the
+    /// zero-length identity, so `k` applications of a reflexive `inner` reach nodes
+    /// at *at most k* positive hops (any application can "idle" via the identity
+    /// leg). Consequently `{min,max}` of a reflexive inner is equivalent to
+    /// "at most max positive hops, always reflexive" — we union steps 1..=m and
+    /// return `reflexive = true`. For a non-reflexive inner, only the steps
+    /// `max(min,1)..=m` are in-range, and `reflexive = (min == 0)`.
     fn lower_range(
         &mut self,
         inner: &PropertyPathExpression,
@@ -352,10 +371,47 @@ impl Lowering {
                     .to_owned(),
             ),
             Some(m) => {
-                // positive = ⋃_{k = max(min,1)}^{m} inner^k.
-                let expr = alt_pow_chain(inner, min.max(1), m);
-                let (pos, refl) = self.lower(&expr)?;
-                Ok((pos, refl || min == 0))
+                // Lower inner once to its positive predicate.
+                let (pp, refl) = self.lower(inner)?;
+
+                // Build the iterative step chain: step_1 = pp alias,
+                // step_i(X,Z) :- step_{i-1}(X,Y), pp(Y,Z).
+                let step_1 = self.fresh();
+                self.push_rule(
+                    Self::atom(&step_1, "X", "Z"),
+                    vec![Self::atom(&pp, "X", "Z")],
+                );
+                let mut steps: Vec<String> = vec![step_1];
+                for _i in 2..=m {
+                    let prev = steps.last().unwrap().clone();
+                    let next = self.fresh();
+                    self.push_rule(
+                        Self::atom(&next, "X", "Z"),
+                        vec![Self::atom(&prev, "X", "Y"), Self::atom(&pp, "Y", "Z")],
+                    );
+                    steps.push(next);
+                }
+
+                // Determine the in-range window and final reflexivity.
+                // If inner is reflexive, each step application can idle via the identity
+                // leg, so step_k reaches nodes at *at most k* positive hops. Unioning
+                // all k in 1..=m covers "at most max" and the result is always
+                // reflexive (identity is reachable by idling all m steps).
+                let (start_k, reflexive) = if refl {
+                    (1usize, true)
+                } else {
+                    (min.max(1) as usize, min == 0)
+                };
+
+                // Mint the result predicate and union the in-range step levels.
+                let result = self.fresh();
+                for step in steps.iter().skip(start_k - 1) {
+                    self.push_rule(
+                        Self::atom(&result, "X", "Y"),
+                        vec![Self::atom(step, "X", "Y")],
+                    );
+                }
+                Ok((result, reflexive))
             }
             None if min == 0 => {
                 // {0,} ≡ inner* : reflexive transitive closure.
@@ -364,36 +420,59 @@ impl Lowering {
                 Ok((tc, true))
             }
             None => {
-                // {n,} ≡ inner^n / inner* : at least n applications.
-                let expr = PropertyPathExpression::Sequence(
-                    Box::new(pow(inner, min)),
-                    Box::new(PropertyPathExpression::ZeroOrMore(Box::new(inner.clone()))),
+                // {n,} ≡ at least n applications: iterative prefix of n steps,
+                // then zero-or-more additional applications via transitive closure.
+                let (pp, refl) = self.lower(inner)?;
+
+                // Reflexive inner: each of the n required applications can idle via the
+                // identity leg, so `inner{n,}` collapses to `inner*` (reflexive
+                // transitive closure: 0-or-more positive hops). The in-engine
+                // `range_reach` reaches fewer-than-n-hop nodes the same way (each
+                // `reach(inner, ·)` includes identity), so parity demands the collapse —
+                // the step-min prefix would otherwise miss them.
+                if refl {
+                    let tc = self.transitive_closure(&pp);
+                    return Ok((tc, true));
+                }
+
+                // Build the iterative step chain up to step_min.
+                let step_1 = self.fresh();
+                self.push_rule(
+                    Self::atom(&step_1, "X", "Z"),
+                    vec![Self::atom(&pp, "X", "Z")],
                 );
-                self.lower(&expr)
+                let mut steps: Vec<String> = vec![step_1];
+                for _i in 2..=min {
+                    let prev = steps.last().unwrap().clone();
+                    let next = self.fresh();
+                    self.push_rule(
+                        Self::atom(&next, "X", "Z"),
+                        vec![Self::atom(&prev, "X", "Y"), Self::atom(&pp, "Y", "Z")],
+                    );
+                    steps.push(next);
+                }
+                let step_min = steps.last().unwrap().clone();
+
+                // Transitive closure of pp for the zero-or-more tail.
+                let tc = self.transitive_closure(&pp);
+
+                // result(X,Y) :- step_min(X,Y).          [exactly min hops]
+                // result(X,Z) :- step_min(X,Y), tc(Y,Z). [min + 1 or more additional hops]
+                let result = self.fresh();
+                self.push_rule(
+                    Self::atom(&result, "X", "Y"),
+                    vec![Self::atom(&step_min, "X", "Y")],
+                );
+                self.push_rule(
+                    Self::atom(&result, "X", "Z"),
+                    vec![Self::atom(&step_min, "X", "Y"), Self::atom(&tc, "Y", "Z")],
+                );
+                // Non-reflexive inner: `refl` is false here (the reflexive case
+                // returned above), so the range is non-reflexive.
+                Ok((result, false))
             }
         }
     }
-}
-
-/// `inner^k` — `inner` composed in a left-leaning `Sequence` chain `k` times
-/// (`k ≥ 1`; `inner^1 == inner`).
-fn pow(inner: &PropertyPathExpression, k: u32) -> PropertyPathExpression {
-    let mut e = inner.clone();
-    for _ in 1..k {
-        e = PropertyPathExpression::Sequence(Box::new(inner.clone()), Box::new(e));
-    }
-    e
-}
-
-/// `⋃_{k=lo}^{hi} inner^k` as a right-leaning `Alternative` chain (`1 ≤ lo ≤ hi`).
-fn alt_pow_chain(inner: &PropertyPathExpression, lo: u32, hi: u32) -> PropertyPathExpression {
-    let mut e = pow(inner, hi);
-    let mut k = hi;
-    while k > lo {
-        k -= 1;
-        e = PropertyPathExpression::Alternative(Box::new(pow(inner, k)), Box::new(e));
-    }
-    e
 }
 
 #[cfg(test)]
@@ -508,6 +587,25 @@ mod tests {
         assert_eq!(forward(&edges, "a", &rng(2, Some(2))), vec!["c"]);
         assert_eq!(forward(&edges, "a", &rng(0, Some(2))), vec!["a", "b", "c"]);
         assert_eq!(forward(&edges, "a", &rng(2, None)), vec!["c", "d", "e"]);
+    }
+
+    #[test]
+    fn range_unbounded_reflexive_inner_collapses_to_star() {
+        // `(:p?){2,}` — a REFLEXIVE inner with an unbounded lower bound. Each of the
+        // (>=2) required applications can idle via `?`'s identity leg, so the path
+        // collapses to `:p*` = the reflexive transitive closure (0-or-more positive
+        // hops), reaching {a, b, c} from `a` over a->b->c — NOT just the >=2-hop nodes.
+        // Before the reflexive short-circuit this returned only {a, c} (step_min was
+        // p^2 = {c}, plus reflexive self {a}), diverging from the in-engine
+        // `range_reach` which reaches `b` via an idled leg. The short-circuit fixes it.
+        let edges = [edge("a", "p", "b"), edge("b", "p", "c")];
+        let inner = PropertyPathExpression::ZeroOrOne(Box::new(named("p")));
+        let rng = PropertyPathExpression::Range {
+            inner: Box::new(inner),
+            min: 2,
+            max: None,
+        };
+        assert_eq!(forward(&edges, "a", &rng), vec!["a", "b", "c"]);
     }
 
     #[test]
