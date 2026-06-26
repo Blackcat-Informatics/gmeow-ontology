@@ -62,11 +62,16 @@ fn collect_sources(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SliceError>
         return Ok(());
     }
     for entry in std::fs::read_dir(dir)? {
-        let path = entry?.path();
-        if path.is_dir() {
-            if path.is_symlink() {
-                continue;
-            }
+        let entry = entry?;
+        // `read_dir` already populates the entry's file type, so `file_type()` avoids
+        // the extra `stat()` syscalls that `path.is_dir()` + `path.is_symlink()` would
+        // each issue per entry. `FileType::is_dir()` does NOT follow symlinks, so a
+        // symlinked directory is `false` here and is naturally skipped (no recursion)
+        // without a separate `is_symlink()` check — while a symlinked `.ttl`/`.rq`
+        // file still falls through to the extension test and is scanned, as before.
+        let file_type = entry.file_type()?;
+        let path = entry.path();
+        if file_type.is_dir() {
             collect_sources(&path, out)?;
         } else if matches!(
             path.extension().and_then(|s| s.to_str()),
