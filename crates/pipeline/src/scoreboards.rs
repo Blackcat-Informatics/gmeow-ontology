@@ -670,6 +670,20 @@ fn shapes_turtle(root: &Path) -> Result<String, String> {
     }
     files.extend(generated);
     files.extend(slice_files(root, "shapes.ttl")?);
+    // The importable named prefix set (`gmeow:CorePrefixes`) must live in the
+    // shapes graph the reader parses so that `sh:prefixes gmeow:CorePrefixes`
+    // references on production shapes RESOLVE (not just fall back to the
+    // document's own `@prefix` lines). This is the §2 "generalize sh:declare"
+    // dogfood: the set is consumed, proving it is importable (#1009 §2).
+    // It is a generated artifact, so a missing file is a real pipeline error.
+    let core_prefixes = root.join(crate::stages::mappings::CORE_PREFIXES_PATH);
+    if !core_prefixes.exists() {
+        return Err(format!(
+            "core prefix set not found (run `make regenerate`): {}",
+            core_prefixes.display()
+        ));
+    }
+    files.push(core_prefixes);
     files
         .iter()
         .map(|path| {

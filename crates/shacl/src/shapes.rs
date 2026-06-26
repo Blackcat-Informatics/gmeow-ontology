@@ -1529,6 +1529,69 @@ mod tests {
         );
     }
 
+    // ── #1009 §2: importable prefix set resolves through the production reader ────
+    #[test]
+    fn core_prefixes_import_resolves_registry_only_prefixes() {
+        // Dogfood proof: a shape that declares `sh:prefixes gmeow:CorePrefixes`
+        // (the real emitted §2 set) must have its SPARQL constraint's prefixes
+        // resolved FROM that imported set — not from any local `@prefix` line.
+        //
+        // The shape's SPARQL uses three registry prefixes (skos:, dcterms:,
+        // prov:) that are NOT declared in the document's `@prefix` header (the
+        // emitted set declares only gmeow:/owl:/rdfs:/sh:/xsd:). So they can
+        // ONLY resolve via `gmeow:CorePrefixes` → `sh:declare`. An undeclared
+        // prefix would make the query unparsable and hard-fail `parse_shapes`;
+        // a successful parse with the injected PREFIX lines is the proof.
+        let core_set = gmeow_slice::emit_core_prefixes();
+        let shape = r#"
+            gmeow:SpanImportProofShape a sh:NodeShape ;
+                sh:prefixes gmeow:CorePrefixes ;
+                sh:targetClass gmeow:Thing ;
+                sh:sparql [
+                    a sh:SPARQLConstraint ;
+                    sh:message "registry-only prefixes must resolve via the imported set" ;
+                    sh:select """
+                        SELECT $this WHERE {
+                            $this skos:prefLabel ?l ; dcterms:title ?t ; prov:wasDerivedFrom ?d .
+                        }
+                    """ ;
+                ] .
+        "#;
+        let ttl = format!("{core_set}\n{shape}");
+
+        // Parse via the production reader (recovers doc_prefixes like the CLI).
+        let shapes = crate::engine::parse_shapes(&ttl)
+            .expect("sh:prefixes gmeow:CorePrefixes must resolve the registry-only prefixes");
+
+        let select = shapes
+            .node_shapes
+            .iter()
+            .find(|s| s.id.to_string().contains("SpanImportProofShape"))
+            .and_then(|s| {
+                s.constraints.iter().find_map(|c| match c {
+                    Constraint::Sparql { select, .. } => Some(select.clone()),
+                    _ => None,
+                })
+            })
+            .expect("expected a Constraint::Sparql on the proof shape");
+
+        // The injected PREFIX header carries the registry-only namespaces,
+        // proving the constraint's prefixes came from gmeow:CorePrefixes and
+        // not from a local declaration (there is none for these three).
+        for (prefix, ns) in [
+            ("skos", "http://www.w3.org/2004/02/skos/core#"),
+            ("dcterms", "http://purl.org/dc/terms/"),
+            ("prov", "http://www.w3.org/ns/prov#"),
+        ] {
+            let line = format!("PREFIX {prefix}: <{ns}>");
+            assert!(
+                select.contains(&line),
+                "registry prefix `{prefix}:` must resolve via gmeow:CorePrefixes; \
+                 missing `{line}` in injected header:\n{select}"
+            );
+        }
+    }
+
     // ── Test 4b: sh:sparql with malformed query → Err at parse time ──────────────
 
     #[test]

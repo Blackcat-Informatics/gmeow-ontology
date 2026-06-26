@@ -1894,6 +1894,7 @@ dependencies = [
  "criterion",
  "gmeow-gts",
  "gmeow-rdf",
+ "gmeow-slice",
  "gmeow-sparql-algebra",
  "oxigraph",
  "proptest",
