@@ -372,33 +372,57 @@ fn rule_map(report: &Report) -> BTreeMap<&str, &Rule> {
     report.rules.iter().map(|r| (r.id.as_str(), r)).collect()
 }
 
+/// Render the text lines for a single finding (message line + suggestion/help lines)
+/// into `out`. Shared by [`to_text`] and [`to_text_advisories`].
+fn finding_text_lines(finding: &Finding, rules: &BTreeMap<&str, &Rule>, out: &mut Vec<String>) {
+    let mut line = format!(
+        "{} {}: {}",
+        finding.severity.as_str(),
+        finding.code,
+        finding.message
+    );
+    if let Some(location) = finding.primary_location() {
+        line.push_str(" (");
+        line.push_str(&location.display());
+        line.push(')');
+    }
+    out.push(line);
+    // Suggestions (already sorted+deduped by normalize): one indented line each.
+    for suggestion in &finding.suggestions {
+        out.push(format!("  ↳ suggestion: {suggestion}"));
+    }
+    // Help URI from the rule, if present.
+    if let Some(rule) = rules.get(finding.code.as_str()) {
+        if let Some(uri) = &rule.help_uri {
+            out.push(format!("  ↳ help: {uri}"));
+        }
+    }
+}
+
 /// Render a compact terminal-safe plain-text report.
 pub fn to_text(report: &Report) -> String {
     let normalized = report.normalized();
     let rules = rule_map(&normalized);
     let mut lines = Vec::new();
     for finding in &normalized.findings {
-        let mut line = format!(
-            "{} {}: {}",
-            finding.severity.as_str(),
-            finding.code,
-            finding.message
-        );
-        if let Some(location) = finding.primary_location() {
-            line.push_str(" (");
-            line.push_str(&location.display());
-            line.push(')');
-        }
-        lines.push(line);
-        // Suggestions (already sorted+deduped by normalize): one indented line each.
-        for suggestion in &finding.suggestions {
-            lines.push(format!("  ↳ suggestion: {suggestion}"));
-        }
-        // Help URI from the rule, if present.
-        if let Some(rule) = rules.get(finding.code.as_str()) {
-            if let Some(uri) = &rule.help_uri {
-                lines.push(format!("  ↳ help: {uri}"));
-            }
+        finding_text_lines(finding, &rules, &mut lines);
+    }
+    lines.join("\n")
+}
+
+/// Render ONLY the advisory (Note/Info) findings as text — the block the
+/// legacy CLI appends after its error/warning lines so advisory-tier findings
+/// (#760) are visible on the default `gmeow validate` surface. Reuses the same
+/// per-finding rendering as `to_text` (message line + suggestion/help lines).
+/// Returns an empty string when there are no advisory findings.
+pub fn to_text_advisories(report: &Report) -> String {
+    use crate::model::Severity;
+    let normalized = report.normalized();
+    let rules = rule_map(&normalized);
+    let mut lines = Vec::new();
+    for finding in &normalized.findings {
+        if matches!(finding.severity, Severity::Note | Severity::Info) {
+            finding_text_lines(finding, &rules, &mut lines);
         }
     }
     lines.join("\n")
@@ -1167,6 +1191,44 @@ mod tests {
     #[test]
     fn advisory_text_snapshot() {
         insta::assert_snapshot!(to_text(&advisory_report()));
+    }
+
+    #[test]
+    fn to_text_advisories_renders_only_notes_and_infos() {
+        // comprehensive_report() has Error + Warning findings but no Note/Info:
+        // result must be empty.
+        assert_eq!(
+            to_text_advisories(&comprehensive_report()),
+            "",
+            "expected empty string for a report with no Note/Info findings"
+        );
+
+        // advisory_report() has one Note finding with suggestions and a help URI.
+        let text = to_text_advisories(&advisory_report());
+        assert!(
+            text.contains("note advice.sample"),
+            "expected 'note advice.sample' prefix line in advisory text, got: {text}"
+        );
+        assert!(
+            text.contains("↳ suggestion:"),
+            "expected suggestion lines in advisory text, got: {text}"
+        );
+        assert!(
+            text.contains("↳ help:"),
+            "expected help line in advisory text, got: {text}"
+        );
+        // Must NOT contain any error or warning severity prefix.
+        for line in text.lines() {
+            assert!(
+                !line.starts_with("error ") && !line.starts_with("warning "),
+                "advisory text must not contain error/warning severity lines, found: {line}"
+            );
+        }
+    }
+
+    #[test]
+    fn advisory_only_text_snapshot() {
+        insta::assert_snapshot!(to_text_advisories(&advisory_report()));
     }
 
     #[test]
