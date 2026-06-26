@@ -572,7 +572,8 @@ realizes it* is deliberate rather than implied.
   vocabulary, and the `FormalizationCandidate` / `NonEntailmentObligation` governance constructs) —
   declarations that add no axioms to the reasoned core until they pass the formalization lifecycle;
 - the **gUFO ⊇ coverage discipline** — the standing requirement that every gUFO term have a `logic:`
-  counterpart.
+  counterpart, enforced natively by the `meta:gate-logic-gufo-superset` gate
+  (`crates/logic/tests/gufo_superset.rs`, #731).
 
 **Realized in the engine and the rest of the set:**
 
