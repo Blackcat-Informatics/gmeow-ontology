@@ -363,7 +363,7 @@ expression: summary
     ]
   },
   "shape_count": 274,
-  "competency_count": 49,
+  "competency_count": 50,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
