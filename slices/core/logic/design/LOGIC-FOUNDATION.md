@@ -291,6 +291,29 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   construction, the C4 analogue of C3's per-target gating. The minimal case lands here (dogfooding C1's
   holon kernel — the assessed holons are wired into a holarchy so `logic:isHolon` co-fires); the full
   agency corpus and the lossy OWL projection of the verdict accrete in C5 (#708).
+- **C5 addendum — holonic conformance corpus, level-coherence rule, and OWL projection (#708).**
+  The six holonic conformance cases now live under `conformance/logic/cases/holonic/`:
+  `holarchy-closure`, `weak-supplementation`, `emergence`, `downward-constraint`,
+  `holon-integrity`, and `holonic-level`. Every case is validated against a derivation-graph
+  golden under the native solver, and the Rust test suite asserts golden quad-set parity for
+  each single-world case.
+
+  The **holonicLevel coherence rule is position-based**: because the foundation chase is
+  all-IRI and `logic:holonicLevel` is a literal read off a `logic:HolonicPosition`, coherence
+  is keyed on the IRI-valued canonical construct. A holon declared under a
+  `logic:MereologyProfile` that occupies no `logic:HolonicPosition` is charged with
+  `logic:HolonicLevelIncoherence` (profile-scoped, #775); a holon outside any profile is
+  never charged. **Non-conflation**: `logic:instanceOf` and `logic:orderedType` (the HiLog
+  instantiation tower) do not supply a holonic position, so a profiled holon high in the
+  instantiation tower but lacking a `logic:HolonicPosition` still fires the incoherence
+  verdict — the tower and the position are orthogonal constructs.
+
+  The **lossy OWL projection** (Principle 17 / Principle 4): `logic:Holon`,
+  `logic:HolonicPosition`, and `logic:Holarchy` project to `owl:Class`;
+  `logic:properPartOf` projects to `owl:ObjectProperty` with `owl:TransitiveProperty`. The
+  strict-order characteristics (asymmetric + irreflexive), the five-place
+  `logic:HolonicPosition` relation, and the WeakSupplementation axiom are **not** lowered —
+  these losses are recorded in `projection-report.ttl`.
 
 This is the Ithkuil discipline applied to systems theory: the loose word "holon" is decomposed into
 the position, the path, the reduction theory, and the profile that the word silently conflates.
