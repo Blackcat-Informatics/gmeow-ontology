@@ -622,6 +622,12 @@ fn sarif_result(finding: &Finding) -> Value {
         });
         props.insert("gmeow.attributions".to_owned(), json!(sorted));
     }
+    // Advisory suggestions land in properties as a plain string array.
+    // SARIF `fixes` (with artifactChanges) is deliberately left to D5/#764
+    // where suggestions become concrete edits with file mutations.
+    if !finding.suggestions.is_empty() {
+        props.insert("gmeow.suggestions".to_owned(), json!(finding.suggestions));
+    }
     if !props.is_empty() {
         result["properties"] = serde_json::Value::Object(props);
     }
@@ -1143,6 +1149,51 @@ mod tests {
     #[test]
     fn advisory_html_snapshot() {
         insta::assert_snapshot!(to_html(&advisory_report()));
+    }
+
+    #[test]
+    fn advisory_sarif_snapshot() {
+        let value: Value = serde_json::from_str(&to_sarif(&advisory_report()).unwrap()).unwrap();
+        insta::assert_json_snapshot!(value);
+    }
+
+    #[test]
+    fn advisory_suggestions_are_properties_not_locations() {
+        let sarif_str = to_sarif(&advisory_report()).unwrap();
+        let value: Value = serde_json::from_str(&sarif_str).unwrap();
+        let result = &value["runs"][0]["results"][0];
+
+        // suggestions land in properties, not as locations or relatedLocations
+        let suggestions = &result["properties"]["gmeow.suggestions"];
+        assert!(suggestions.is_array(), "gmeow.suggestions must be an array");
+        assert_eq!(
+            suggestions.as_array().unwrap().len(),
+            2,
+            "expected 2 suggestions"
+        );
+
+        // exactly one location (the synthetic fallback for the location-less Note)
+        let locations = result["locations"].as_array().unwrap();
+        assert_eq!(locations.len(), 1, "expected exactly 1 location");
+
+        // no relatedLocations key at all
+        assert!(
+            result.get("relatedLocations").is_none(),
+            "relatedLocations must not be present"
+        );
+
+        // rule-level helpUri carried via rules array
+        let rules = value["runs"][0]["tool"]["driver"]["rules"]
+            .as_array()
+            .unwrap();
+        let advice_rule = rules
+            .iter()
+            .find(|r| r["id"].as_str() == Some("advice.sample"))
+            .expect("advice.sample rule must be present");
+        assert!(
+            advice_rule.get("helpUri").is_some(),
+            "advice.sample rule must carry helpUri"
+        );
     }
 
     /// Recursively collect every `"uri"` string value under a JSON node.
