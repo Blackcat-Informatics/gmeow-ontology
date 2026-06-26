@@ -11,7 +11,7 @@ Tier-2 uplift backlog.
 | accessibility | extension | extensions | 2 | 3 | 6 | 0 | 1 | - | full |
 | accounts | core | core | 1 | 4 | 10 | 0 | 1 | 14/14 | full |
 | affect | extension | extensions | 2 | 5 | 6 | 0 | 1 | - | full |
-| agentic | extension | extensions | 6 | 1 | 4 | 0 | 1 | - | full |
+| agentic | extension | extensions | 6 | 1 | 4 | 0 | 2 | - | full |
 | aggregation | extension | extensions | 2 | 3 | 3 | 0 | 1 | - | full |
 | agreements | core | core | 2 | 3 | 2 | 0 | 1 | 5/5 | full |
 | ai | core | core | 5 | 11 | 23 | 0 | 1 | 34/34 | full |
