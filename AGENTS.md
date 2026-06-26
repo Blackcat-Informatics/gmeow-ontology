@@ -239,6 +239,48 @@ A surviving mutant is a real test-strength gap: kill it by strengthening a test
 or document why it is acceptable. Coverage/mutation/bench numbers are *evidence
 to act on*, never a fabricated metric — report exactly what ran.
 
+#### The 25 s per-test budget (#1045)
+
+**Every test on the always-on gate must complete under 25 s of real wall time.**
+The policy is *enforced*, not advisory: `make rust-test` / `make rust-gate` (and the
+CI rust shards) run `cargo nextest run --profile ci` and then
+`cargo run -p gmeow-test-budget -- target/nextest/ci/junit.xml`, which parses the
+JUnit report and **hard-fails if any test exceeds the budget**
+(`crates/test-budget`, std-only, no Python). Override the threshold with
+`GMEOW_TEST_BUDGET_SECS` only for local experiments — never to weaken the gate.
+
+The nextest `slow-timeout` (`.config/nextest.toml`) stays at the 120 s terminate
+cliff purely as a runaway/hang backstop; the 25 s **policy** is the JUnit gate.
+
+A test that is *irreducibly* heavier than the budget (full-fold reasoning, full-DAG
+parity, snapshot codec round-trips, Nemo closures, the native-pathological corpus
+parity query, the uncached docs-model render cluster) does NOT get a per-test
+timeout override. Instead it is **carved out of the default/ci profiles and runs on
+the `maint-heavy` profile** (`make maint-rust-heavy`), so its coverage still runs —
+off the per-commit gate, on a maint/scheduled lane. The single source of truth for
+what is off-gate is the **`default-filter` expression in `.config/nextest.toml`**;
+every excluded group is justified by an inline comment there. Adding a new off-gate
+exception requires a comment in that filter AND a one-line entry here.
+
+Default off-gate groups (2026-06-26, #1045): the `gmeow-docs`
+render/competency/extract/lint/i18n/model binaries (each rebuilds the full
+`DocsModel` per test — a shared-fixture cache is the tracked fix that brings them
+back on-gate); `gmeow-logic::ontology_entailments` (Nemo RL); the
+`gmeow-pipeline` `end_to_end`/`fold_parity`/full-fold/snapshot-codec/mapping-parity
+/scoreboards-acceptance tests; a Nemo conformance case; a few whole-ontology
+`gmeow-slice`/`gmeow-slicetest` emit/closure checks; the off-gate corpus parity
+query; `gmeow-rdf-capi::c_smoke` (self-builds the libpurrdf cdylib, ~33 s cold
+compile on CI — build-time-bound, already covered by the dedicated `capi` CI job);
+and `w3c_rdfc10_heavy_offgate` (the sole RDFC-1.0 negative/poison vector `test074`,
+~5.3 s on the call-budget guard — the rest of the W3C suite is sharded+gated, each
+shard under 1 s). `gmeow-docs::rdf_golden` stays gated as the docs representative
+subset.
+
+The bias is **fix, don't off-gate**: prefer making a test fast (shard it like the
+corpus parity sweep in `crates/rdf/tests/sparql_eval_parity.rs`, or share an
+expensive fixture once per run) over moving it to maint-heavy. Off-gate is for the
+genuinely irreducible.
+
 #### GTS engines (moved to the `gmeow-gts` repo)
 
 The four GTS engines (Python, Rust, Go, TypeScript) and the frozen conformance

@@ -69,7 +69,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
 	maint-test-network maint-pull-images maint-quality maint-evals-score \
-	maint-compliance-report-full maint-bench-baseline
+	maint-compliance-report-full maint-bench-baseline maint-rust-heavy
 
 ##@ Core Workflows
 
@@ -113,7 +113,8 @@ test-fast: native-py ## Run the fast pytest suite, excluding maintainer, Docker,
 rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
 
 rust-test: rust-build ## Run the Rust workspace tests and doctests.
-	cargo nextest run $(NEXTEST_PARTITION_ARG)
+	cargo nextest run --profile ci $(NEXTEST_PARTITION_ARG)
+	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc
 
 lsp-build: $(RUST_READY_STAMP) ## Build the gmeow-lsp binary (debug profile).
@@ -277,9 +278,10 @@ lint-alignment: ## Lint SSSOM mappings for inverse and domain/range mismatches.
 doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 	$(GMEOW_DEV) doc-lint
 
-rust-gate: rust-build ## Warm Rust once, then run clippy, nextest, and doctests serially.
+rust-gate: rust-build ## Warm Rust once, then run clippy, nextest, the 25s budget gate, and doctests serially.
 	cargo clippy --all-targets -- -D warnings
-	cargo nextest run $(NEXTEST_PARTITION_ARG)
+	cargo nextest run --profile ci $(NEXTEST_PARTITION_ARG)
+	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc
 
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
@@ -403,6 +405,9 @@ wasm-pkg: ## Build the purrdf npm/ESM package (release wasm + wasm-bindgen web b
 
 wasm-pkg-test: wasm-pkg ## Build the purrdf package and run the Node real-execution round-trip lane.
 	cd crates/rdf-wasm/js && node --test tests/*.test.mjs
+
+maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (#1045 maint-heavy profile).
+	cargo nextest run --profile maint-heavy $(NEXTEST_PARTITION_ARG)
 
 slicetest: ## Run the slice-resident test-DSL harness in isolation.
 	cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)
