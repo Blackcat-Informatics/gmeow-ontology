@@ -17,6 +17,10 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 
 A reified record of one change to a vocabulary term in a given release — a first\-class information object carrying a version \(gmeow:entryVersion\) and optional prose \(gmeow:entryNote\)\. Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per\-release history without any per\-instance lifecycle modelling\.
 
+## Neighborhood
+
+![Term neighborhood](../../diagrams/terms/changelogentry.svg)
+
 ## Super\-classes
 
 - [`gmeow:InformationObject`](../informationobject/index.md)
