@@ -31,6 +31,7 @@ use gmeow_sparql_results::{
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 const RDF_LANGSTRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
+const RDF_DIRLANGSTRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString";
 
 /// A plain (untyped, non-language) literal — i.e. an `xsd:string`.
 fn plain(lex: &str) -> TermValue {
@@ -67,7 +68,7 @@ fn lang(lex: &str, tag: &str) -> TermValue {
 fn dir_lang(lex: &str, tag: &str, direction: RdfTextDirection) -> TermValue {
     TermValue::Literal {
         lexical_form: lex.to_string(),
-        datatype: RDF_LANGSTRING.to_string(),
+        datatype: RDF_DIRLANGSTRING.to_string(),
         language: Some(tag.to_string()),
         direction: Some(direction),
     }
@@ -398,8 +399,8 @@ fn edge_cases_csv() {
     .expect("csv serializes");
     let raw = String::from_utf8(outcome.bytes).expect("UTF-8");
     assert!(
-        raw.contains("\r\n"),
-        "CSV records must be CRLF-terminated (RFC 4180): {raw:?}"
+        raw.contains("\r\n") && !raw.replace("\r\n", "").contains('\n'),
+        "edge-case CSV must use exclusive CRLF line endings (RFC 4180): {raw:?}"
     );
     insta::assert_snapshot!(raw);
 }
