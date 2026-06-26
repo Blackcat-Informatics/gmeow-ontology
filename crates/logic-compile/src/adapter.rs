@@ -32,8 +32,9 @@ use gmeow_rdf::{parse_dataset, RdfDataset};
 
 use super::frontend::{Diagnostic, LogicParseError, Severity};
 use super::graphutil::{
-    default_graph_quads, is_empty, nn, subject_is_blank, subject_str, subjects_with,
-    term_as_subject, term_is_blank, term_is_literal, term_str, value, Node, Subject, RDF_TYPE,
+    default_graph_quads, iri_of, is_empty, nn, subject_is_blank, subject_of, subject_str,
+    subjects_with, term_as_subject, term_is_blank, term_is_literal, term_str, value, Node, Subject,
+    RDF_TYPE,
 };
 use super::ir::{
     ContextualScope, LogicAxiom, LogicProgram, LogicRule, ReasoningContract, LOGIC_NAMESPACE,
@@ -391,8 +392,9 @@ fn extract_unmapped_owl_triples(store: &RdfDataset, diagnostics: &mut Vec<Diagno
         .iter()
         .map(|(ns, local, _)| format!("{ns}{local}"))
         .collect();
-    for quad in default_graph_quads(store) {
-        let p_str = quad.predicate.as_str();
+    for q in store.quads().filter(|q| q.g.is_none()) {
+        let predicate = iri_of(store, q.p);
+        let p_str = predicate.as_str();
         if !p_str.starts_with(OWL_NS) {
             continue;
         }
@@ -402,10 +404,11 @@ fn extract_unmapped_owl_triples(store: &RdfDataset, diagnostics: &mut Vec<Diagno
         if p_str == RDF_TYPE {
             continue;
         }
-        if subject_is_blank(&quad.subject) {
+        let subject = subject_of(store, q.s);
+        if subject_is_blank(&subject) {
             continue;
         }
-        let s_str = subject_str(&quad.subject);
+        let s_str = subject_str(&subject);
         diagnostics.push(warn(
             "UNMAPPED_OWL_CONSTRUCT",
             format!("OWL predicate {p_str:?} on {s_str:?} has no logic: equivalent; skipped"),

@@ -150,7 +150,7 @@ pub(crate) fn nn(iri: &str) -> Iri {
 // --------------------------------------------------------------------------- //
 
 /// Resolve a predicate (always an IRI) to its string.
-fn iri_of(ds: &RdfDataset, id: TermId) -> Iri {
+pub(crate) fn iri_of(ds: &RdfDataset, id: TermId) -> Iri {
     match ds.resolve(id) {
         TermRef::Iri(s) => Iri(s.to_owned()),
         // A predicate is always an IRI; the remaining cases are unreachable for a
@@ -161,7 +161,7 @@ fn iri_of(ds: &RdfDataset, id: TermId) -> Iri {
 }
 
 /// Resolve a subject position to the pure [`Subject`] model.
-fn subject_of(ds: &RdfDataset, id: TermId) -> Subject {
+pub(crate) fn subject_of(ds: &RdfDataset, id: TermId) -> Subject {
     match ds.resolve(id) {
         TermRef::Iri(s) => Subject::Iri(s.to_owned()),
         TermRef::Blank { label, scope } => Subject::Blank {
@@ -338,4 +338,21 @@ pub(crate) fn contains(ds: &RdfDataset, subject: &Subject, predicate: &Iri, obje
     };
     ds.quads()
         .any(|q| q.g.is_none() && q.s == s_id && q.p == p_id && q.o == o_id)
+}
+
+/// Whether any triple in the default graph has predicate `predicate`.
+pub(crate) fn has_predicate(ds: &RdfDataset, predicate: &Iri) -> bool {
+    let Some(p_id) = predicate_id(ds, predicate) else {
+        return false;
+    };
+    ds.quads().any(|q| q.g.is_none() && q.p == p_id)
+}
+
+/// Whether any triple in the default graph has predicate `predicate` and object `object`.
+pub(crate) fn has_predicate_object(ds: &RdfDataset, predicate: &Iri, object: &Node) -> bool {
+    let (Some(p_id), Some(o_id)) = (predicate_id(ds, predicate), object_id(ds, object)) else {
+        return false;
+    };
+    ds.quads()
+        .any(|q| q.g.is_none() && q.p == p_id && q.o == o_id)
 }

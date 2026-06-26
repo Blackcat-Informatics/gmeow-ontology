@@ -37,9 +37,10 @@ use gmeow_rdf::{parse_dataset, RdfDataset};
 
 use super::compat;
 use super::graphutil::{
-    canonicalize_blank_nodes, contains, default_graph_quads, is_empty, nn, objects, subject_str,
-    subjects_with, term_as_subject, term_is_literal, term_str, value, Node, Subject, RDF_OBJECT,
-    RDF_PREDICATE, RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
+    canonicalize_blank_nodes, contains, default_graph_quads, has_predicate, has_predicate_object,
+    is_empty, nn, objects, subject_str, subjects_with, term_as_subject, term_is_literal, term_str,
+    value, Node, Subject, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT,
+    RDF_TYPE,
 };
 use super::ir::{
     ComplexityClass, ContextualScope, LogicAxiom, LogicModality, LogicProgram, LogicRule, PathBase,
@@ -489,16 +490,12 @@ fn route_facet_value(contract: &mut ReasoningContract, facet_class: &str, value_
 /// silently assume independence over un-modelled confidence metadata).
 fn graph_declares_probability_model(store: &RdfDataset) -> bool {
     // Any triple whose predicate is logic:probabilityModel.
-    let prob_model_pred = logic_iri("probabilityModel");
-    if default_graph_quads(store)
-        .iter()
-        .any(|q| q.predicate.as_str() == prob_model_pred)
-    {
+    if has_predicate(store, &nn(&logic_iri("probabilityModel"))) {
         return true;
     }
     // Any individual typed logic:ProbabilityModel.
     let prob_model_class = Node::iri(logic_iri("ProbabilityModel"));
-    !subjects_with(store, &nn(RDF_TYPE), &prob_model_class).is_empty()
+    has_predicate_object(store, &nn(RDF_TYPE), &prob_model_class)
 }
 
 fn extract_contracts(
