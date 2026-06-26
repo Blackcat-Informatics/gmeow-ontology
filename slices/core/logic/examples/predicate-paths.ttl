@@ -26,7 +26,7 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
-@prefix org:   <https://blackcatinformatics.ca/gmeow/examples/logic/org/> .
+@prefix exorg: <https://blackcatinformatics.ca/gmeow/examples/logic/org/> .
 
 #### §1  Wildcard, namespace-scoped, bounded-depth path ########################
 
@@ -44,13 +44,13 @@ ex:nearbyOrgsCall
     logic:invokesPathShape ex:nearbyOrgs ;
     logic:pathDepthArg 2 .
 
-# Sample org graph (predicates all in org:, so the namespace scope admits them).
-# From ex:acme the ≤2-hop set by ANY org: predicate is { ex:beta, ex:gamma,
+# Sample org graph (predicates all in exorg:, so the namespace scope admits them).
+# From ex:acme the ≤2-hop set by ANY exorg: predicate is { ex:beta, ex:gamma,
 # ex:delta }; ex:epsilon is 3 hops away and is NOT reached at maxDepth := 2.
-ex:acme    org:partnersWith ex:beta .
-ex:beta    org:subsidiary   ex:gamma .
-ex:acme    org:acquired     ex:delta .
-ex:gamma   org:partnersWith ex:epsilon .
+ex:acme    exorg:partnersWith ex:beta .
+ex:beta    exorg:subsidiary   ex:gamma .
+ex:acme    exorg:acquired     ex:delta .
+ex:gamma   exorg:partnersWith ex:epsilon .
 
 #### §2  Named-predicate bounded-depth path ####################################
 
