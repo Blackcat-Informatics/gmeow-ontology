@@ -643,6 +643,8 @@ fn json_str_ascii(s: &str) -> String {
         match c {
             '"' => out.push_str("\\\""),
             '\\' => out.push_str("\\\\"),
+            '\u{08}' => out.push_str("\\b"),
+            '\u{0c}' => out.push_str("\\f"),
             '\n' => out.push_str("\\n"),
             '\r' => out.push_str("\\r"),
             '\t' => out.push_str("\\t"),
@@ -2298,6 +2300,17 @@ mod tests {
             .join("..")
             .canonicalize()
             .unwrap()
+    }
+
+    #[test]
+    fn json_str_ascii_matches_cpython_short_escapes() {
+        // `json.dumps(s)` (ensure_ascii=True) uses the short escapes `\b`/`\f`/
+        // `\n`/`\r`/`\t` for these control chars, NOT `\uXXXX`. Pin byte-parity.
+        assert_eq!(json_str_ascii("\u{08}"), r#""\b""#);
+        assert_eq!(json_str_ascii("\u{0c}"), r#""\f""#);
+        assert_eq!(json_str_ascii("\n\r\t"), r#""\n\r\t""#);
+        // Other C0 controls still fall through to lowercase `\uXXXX`.
+        assert_eq!(json_str_ascii("\u{00}\u{1f}"), "\"\\u0000\\u001f\"");
     }
 
     #[test]
