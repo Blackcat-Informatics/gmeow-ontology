@@ -2,28 +2,27 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Declarative competency question for the logic slice (crates/slicetest, #784):
-# does GMEOW express a named, parametric predicate path (logic:PathShape, #1010)
-# with the facets SPARQL §9 property paths lack? TBox subset over the asserted
-# merged ontology (subset/contains-check, no gmeow:cqExactRows).
+# does GMEOW's logic:PathShape actually support bounded-depth traversal — the
+# headline capability of issue #1010 that SPARQL §9 property paths lack?
+#
+# This question overlays a synthetic ABox (path-traversal.ttl) and runs a
+# depth-bounded SPARQL property-path query (ex:linkedTo{1,2}) over it.  The
+# expected result is exactly {ex:orgB, ex:orgC}; ex:orgD is 3 hops away and
+# must NOT appear (cqExactRows true pins the closed set).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
 
 ex:cqNamedParametricPaths a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/logic/queries/competency/named-parametric-paths.rq" ;
-    gmeow:cqRationale "GMEOW must express a named, parametric predicate path (logic:PathShape) carrying a base step (named predicate or wildcard), a bounded depth, a namespace scope, and a depth parameter — the §9-extension surface SPARQL property paths lack." ;
-    gmeow:cqExpectRow ex:pfStep, ex:pfWildcard, ex:pfNamespace, ex:pfMinDepth, ex:pfMaxDepth, ex:pfDepthParam .
+    gmeow:cqDataFile  "tests/fixtures/path-traversal.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A named, parametric, depth-bounded path (logic:PathShape, issue #1010) with pathMaxDepth 2 applied to a four-node chain A→B→C→D must return exactly {B, C}; D is 3 hops away and must be excluded (bounded traversal, not unbounded closure)." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:rowOrgB, ex:rowOrgC .
 
-ex:pfStep a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "facet" ; gmeow:cellValueIri logic:pathStepPredicate ] .
-ex:pfWildcard a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "facet" ; gmeow:cellValueIri logic:pathWildcard ] .
-ex:pfNamespace a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "facet" ; gmeow:cellValueIri logic:pathNamespaceScope ] .
-ex:pfMinDepth a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "facet" ; gmeow:cellValueIri logic:pathMinDepth ] .
-ex:pfMaxDepth a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "facet" ; gmeow:cellValueIri logic:pathMaxDepth ] .
-ex:pfDepthParam a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "facet" ; gmeow:cellValueIri logic:pathDepthParam ] .
+ex:rowOrgB a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "neighbor" ; gmeow:cellValueIri ex:orgB ] .
+
+ex:rowOrgC a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "neighbor" ; gmeow:cellValueIri ex:orgC ] .

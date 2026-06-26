@@ -1,13 +1,22 @@
-# Competency question: "What facets does GMEOW's named, parametric predicate path
-# (logic:PathShape) carry?" Expected the base-step, depth-bound, namespace-scope,
-# and depth-parameter properties that make a path a reusable, by-name, bounded,
-# wildcard-capable traversal — the §9-extension surface SPARQL property paths lack.
-# Asserted (reasoningNone) lane: rdfs:domain is stated directly in the module.
+# Competency question: "What nodes are reachable from a start node within a
+# bounded depth of 2 via a named step predicate?"  This exercises the headline
+# capability of logic:PathShape (issue #1010): named, parametric, depth-bounded
+# traversal that SPARQL §9 cannot express as a named/reusable construct.
+#
+# The fixture (path-traversal.ttl) supplies the chain:
+#   ex:orgA --ex:linkedTo--> ex:orgB --ex:linkedTo--> ex:orgC
+#                                                        --ex:linkedTo--> ex:orgD
+#
+# "Within 2 hops" = 1-hop OR 2-hop, expressed in SPARQL §9 as:
+#   ex:linkedTo | ex:linkedTo/ex:linkedTo
+#
+# This is the standard §9 projection of a logic:PathShape with
+# pathStepPredicate ex:linkedTo, pathMinDepth 1, pathMaxDepth 2.
+# ex:orgD is 3 hops away and must NOT appear (cqExactRows true).
 
-PREFIX logic: <https://blackcatinformatics.ca/logic/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ex: <https://blackcatinformatics.ca/gmeow/examples/logic/tests/>
 
-SELECT ?facet WHERE {
-    ?facet rdfs:domain logic:PathShape .
+SELECT ?neighbor WHERE {
+    ex:orgA (ex:linkedTo | ex:linkedTo/ex:linkedTo) ?neighbor .
 }
-ORDER BY ?facet
+ORDER BY ?neighbor
