@@ -1860,6 +1860,7 @@ dependencies = [
  "gmeow-gts",
  "gmeow-rdf-core",
  "gmeow-rdf-events",
+ "gmeow-sparql-eval",
  "gmeow-xsd",
  "oxigraph",
  "pretty_assertions",

@@ -40,6 +40,7 @@ mod bgp;
 mod binop;
 mod construct;
 mod convert;
+pub mod engine;
 pub mod error;
 pub mod eval;
 mod expr;
@@ -47,6 +48,7 @@ mod modifier;
 pub mod scratch;
 pub mod solution;
 
+pub use engine::{NativeSparqlEngine, PlanCache, PreparedQuery};
 pub use error::EvalError;
 pub use eval::{eval, evaluate_query, EvalCtx, Outcome};
 pub use scratch::{ScratchId, ScratchInterner, SolutionTerm};
