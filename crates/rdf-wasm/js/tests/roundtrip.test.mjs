@@ -23,6 +23,7 @@ await ready();
 
 const XSD_INTEGER = "http://www.w3.org/2001/XMLSchema#integer";
 const RDF_LANG_STRING = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
+const RDF_DIR_LANG_STRING = "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString";
 
 test("version() returns the crate semver", () => {
   assert.match(version(), /^\d+\.\d+\.\d+/);
@@ -143,4 +144,89 @@ test("datasetToStream → streamToDataset round-trips via the Sink", async () =>
 
 test("an unsupported format is a rejected error", () => {
   assert.throws(() => Dataset.parse("", "yaml-ld"));
+});
+
+// RDF-1.2 directional-literal datatype reporting: the engine STORES rdf:langString
+// (with the base direction in a separate identity field, matching how it interns a
+// parsed literal), while the .datatype getter DERIVES the RDF-1.2 effective datatype
+// rdf:dirLangString from the presence of a direction. The two surfaces are deliberately
+// distinct: storage is the lookup key, reporting is the spec-correct view.
+test("RDF-1.2 — directional literal: .datatype.value derives rdf:dirLangString", () => {
+  const f = new DataFactory();
+  const dir = f.directionalLiteral("مرحبا", "ar", "rtl");
+  assert.equal(
+    dir.datatype.value,
+    RDF_DIR_LANG_STRING,
+    "directional literal .datatype.value must be rdf:dirLangString",
+  );
+  assert.equal(dir.language, "ar");
+  assert.equal(dir.direction, "rtl");
+  // A plain language-tagged literal must still report rdf:langString.
+  const langOnly = f.literal("مرحبا", "ar");
+  assert.equal(langOnly.datatype.value, RDF_LANG_STRING);
+});
+
+test("RDF-1.2 — directional literal: in-memory add/has without serialize round-trip", () => {
+  const f = new DataFactory();
+  const s = f.namedNode("https://e/s");
+  const p = f.namedNode("https://e/p");
+  // Build the directional literal twice, independently: if the lookup key (the stored
+  // RdfLiteral fed into the value→id lookup) diverges between two factory calls, the
+  // TermValues mismatch and has() returns false.
+  const dir1 = f.directionalLiteral("مرحبا", "ar", "rtl");
+  const dir2 = f.directionalLiteral("مرحبا", "ar", "rtl");
+  const q1 = f.quad(s, p, dir1);
+  const q2 = f.quad(s, p, dir2);
+
+  const ds = new Dataset();
+  ds.add(q1);
+  // has() must find the quad via a separately-constructed but value-identical term.
+  assert.equal(
+    ds.has(q2),
+    true,
+    "has() must return true for a separately-built identical directional literal",
+  );
+  // The dataset reports the stored literal's effective datatype as rdf:dirLangString.
+  const stored = ds.quads()[0].object;
+  assert.equal(
+    stored.datatype.value,
+    RDF_DIR_LANG_STRING,
+    "the stored literal's .datatype.value must be rdf:dirLangString",
+  );
+  assert.equal(stored.direction, "rtl");
+  assert.equal(stored.language, "ar");
+});
+
+// CROSS-PATH regression (the adversarial case): a directional literal PARSED from text
+// is interned by the engine as rdf:langString + a separate direction. A factory-built
+// identical literal (whose lookup key is also rdf:langString + direction) must be found
+// by has(). If canonicalize_literal were to stamp rdf:dirLangString into the lookup key,
+// this MISSES (datatype-string mismatch against the parse-interned langString).
+test("RDF-1.2 — directional literal: parse then factory-built has() (cross-path)", () => {
+  const input = '<https://e/s> <https://e/p> "مرحبا"@ar--rtl .\n';
+  const ds = Dataset.parse(input, "nquads");
+  assert.equal(ds.size, 1);
+
+  const f = new DataFactory();
+  const dir = f.directionalLiteral("مرحبا", "ar", "rtl");
+  const query = f.quad(f.namedNode("https://e/s"), f.namedNode("https://e/p"), dir);
+  assert.equal(
+    ds.has(query),
+    true,
+    "a factory-built directional literal must match the parse-interned one (cross-path)",
+  );
+  // The parsed literal reports the RDF-1.2 effective datatype via the getter.
+  const obj = ds.quads()[0].object;
+  assert.equal(obj.datatype.value, RDF_DIR_LANG_STRING);
+  assert.equal(obj.direction, "rtl");
+
+  // RDF-1.2 inequality: a plain (non-directional) langString literal of the same text
+  // and language must NOT be has()-equal to the directional one.
+  const plain = f.literal("مرحبا", "ar");
+  const plainQuery = f.quad(f.namedNode("https://e/s"), f.namedNode("https://e/p"), plain);
+  assert.equal(
+    ds.has(plainQuery),
+    false,
+    "a plain langString literal must NOT match a directional one (RDF-1.2 distinguishes them)",
+  );
 });

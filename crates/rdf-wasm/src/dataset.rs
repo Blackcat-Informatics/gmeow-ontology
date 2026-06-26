@@ -301,6 +301,83 @@ mod tests {
         assert!(out.contains("https://example.org/rel"));
     }
 
+    /// CROSS-PATH regression (the adversarial case): a directional literal PARSED
+    /// from text (the engine interns it as `rdf:langString` + a separate `direction`)
+    /// must be found by a `has` whose query literal is built via the SAME path a
+    /// `DataFactory` literal would take — `rdf_term_to_term_value` →
+    /// `canonicalize_literal`. The whole point of `canonicalize_literal` is byte
+    /// identity with how the engine stores/interns the literal after a parse: if the
+    /// canonical datatype diverges from what the engine interned, this `has` MISSES.
+    #[test]
+    fn parsed_directional_literal_is_found_by_factory_built_has() {
+        use gmeow_rdf::{RdfLiteral, RdfTextDirection};
+
+        // Parse a directional language-tagged literal from N-Triples text. The native
+        // codec interns it with `direction = Some(Rtl)` and datatype `rdf:langString`
+        // (see crates/rdf/src/native_codecs/parse.rs: a language tag forces
+        // rdf:langString at intern time, direction kept separately).
+        let input =
+            "<https://e/s> <https://e/p> \"\u{0645}\u{0631}\u{062d}\u{0628}\u{0627}\"@ar--rtl .\n";
+        let ds = Dataset::parse(input, "ntriples", None).unwrap();
+        assert_eq!(ds.size(), 1, "the directional literal parsed into one quad");
+
+        // Build the IDENTICAL directional literal the way a DataFactory would (which
+        // routes through `Term::literal` → `canonicalize_literal`).
+        let factory_literal = Term::literal(RdfLiteral {
+            lexical_form: "\u{0645}\u{0631}\u{062d}\u{0628}\u{0627}".to_owned(),
+            datatype: None,
+            language: Some("ar".to_owned()),
+            direction: Some(RdfTextDirection::Rtl),
+        });
+        let query = Quad::from_parts(
+            named("https://e/s"),
+            named("https://e/p"),
+            factory_literal,
+            Term::from_inner(TermInner::DefaultGraph),
+        );
+
+        // The decisive assertion: the parse-interned literal must be `has`-equal to the
+        // factory-built one, even though the engine stored `rdf:langString` while the
+        // RDF-1.2 effective datatype is `rdf:dirLangString`.
+        assert!(
+            ds.has(&query).unwrap(),
+            "a factory-built directional literal must match the parse-interned one (cross-path)"
+        );
+    }
+
+    /// RDF-1.2 inequality: a directional literal must NOT be `has`-equal to a plain
+    /// (non-directional) langString literal with the same lexical form + language tag.
+    /// The base direction participates in identity (engine C0.1), so the two are
+    /// distinct terms.
+    #[test]
+    fn directional_literal_is_not_equal_to_plain_lang_literal() {
+        use gmeow_rdf::{RdfLiteral, RdfTextDirection};
+
+        // Parse the plain (no-direction) language-tagged literal into the base.
+        let input =
+            "<https://e/s> <https://e/p> \"\u{0645}\u{0631}\u{062d}\u{0628}\u{0627}\"@ar .\n";
+        let ds = Dataset::parse(input, "ntriples", None).unwrap();
+        assert_eq!(ds.size(), 1);
+
+        // A directional query literal of the same text + language must NOT match it.
+        let directional = Term::literal(RdfLiteral {
+            lexical_form: "\u{0645}\u{0631}\u{062d}\u{0628}\u{0627}".to_owned(),
+            datatype: None,
+            language: Some("ar".to_owned()),
+            direction: Some(RdfTextDirection::Rtl),
+        });
+        let query = Quad::from_parts(
+            named("https://e/s"),
+            named("https://e/p"),
+            directional,
+            Term::from_inner(TermInner::DefaultGraph),
+        );
+        assert!(
+            !ds.has(&query).unwrap(),
+            "a directional literal must NOT match a plain langString literal (RDF-1.2 distinguishes them)"
+        );
+    }
+
     // The unsupported-format error path builds a JsError (wasm-only); the pure
     // resolver is unit-tested in `codec`, and the node test in Task 5 exercises the
     // JS-boundary error.
