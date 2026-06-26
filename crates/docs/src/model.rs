@@ -89,6 +89,34 @@ const GMEOW_INCLUDES_RECIPE: &str = "https://blackcatinformatics.ca/gmeow/includ
 const GMEOW_ADOPTION_TARGET: &str = "https://blackcatinformatics.ca/gmeow/adoptionTarget";
 const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/followsGuidePath";
 
+// ── Logic stereotypes + relational surfaces (#1020) ─────────────────────────────
+
+/// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
+/// values under it are surfaced as the term's logic stereotypes.
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+
+const SKOS_RELATED: &str = "http://www.w3.org/2004/02/skos/core#related";
+const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
+const GMEOW_PAIRS_WITH: &str = "https://blackcatinformatics.ca/gmeow/pairsWith";
+const GMEOW_GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
+
+// ── SHACL constraint surface (#1020) ────────────────────────────────────────────
+
+const SH_TARGET_CLASS: &str = "http://www.w3.org/ns/shacl#targetClass";
+const SH_TARGET_SUBJECTS_OF: &str = "http://www.w3.org/ns/shacl#targetSubjectsOf";
+const SH_TARGET_OBJECTS_OF: &str = "http://www.w3.org/ns/shacl#targetObjectsOf";
+const SH_MESSAGE: &str = "http://www.w3.org/ns/shacl#message";
+
+// ── Competency-question surface (#1020) ─────────────────────────────────────────
+
+const GMEOW_COMPETENCY_QUESTION: &str = "https://blackcatinformatics.ca/gmeow/CompetencyQuestion";
+const GMEOW_CQ_RATIONALE: &str = "https://blackcatinformatics.ca/gmeow/cqRationale";
+const GMEOW_CQ_QUERY_FILE: &str = "https://blackcatinformatics.ca/gmeow/cqQueryFile";
+const GMEOW_CQ_EXPECT_ROW: &str = "https://blackcatinformatics.ca/gmeow/cqExpectRow";
+const GMEOW_ROW_CELL: &str = "https://blackcatinformatics.ca/gmeow/rowCell";
+const GMEOW_CELL_VALUE_IRI: &str = "https://blackcatinformatics.ca/gmeow/cellValueIri";
+
 /// An error building the documentation model.
 #[derive(Debug)]
 pub enum DocsError {
@@ -115,7 +143,7 @@ impl From<SliceError> for DocsError {
 // ── Model types ───────────────────────────────────────────────────────────────
 
 /// The vocabulary kind of a documented term, derived from its `rdf:type`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Default)]
 pub enum DocTermCategory {
     /// `owl:Class` / `rdfs:Class`.
     Class,
@@ -128,6 +156,7 @@ pub enum DocTermCategory {
     Datatype,
     /// A GMEOW subject that carries definitional metadata but no recognized
     /// vocabulary `rdf:type`.
+    #[default]
     Other,
 }
 
@@ -217,7 +246,7 @@ impl DocSlice {
 }
 
 /// A documented vocabulary term parsed from a slice's `module.ttl`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Default)]
 pub struct DocTerm {
     /// The full term IRI.
     pub iri: String,
@@ -251,6 +280,22 @@ pub struct DocTerm {
     pub use_for_consumer: Vec<String>,
     /// `gmeow:avoidForConsumer` — consumer profiles to steer away (CURIEs, sorted).
     pub avoid_for_consumer: Vec<String>,
+    /// Logic stereotypes co-asserted as `rdf:type` values in the `logic:`
+    /// namespace (`logic:Kind`, `logic:SubKind`, `logic:Relator`, …), rendered
+    /// as `logic:`-prefixed CURIEs, sorted/deduped. The lowered OntoUML/UFO
+    /// discipline of the term (see `slices/core/logic`).
+    pub logic_stereotypes: Vec<String>,
+    /// Related-term IRIs: the union of `skos:related`, `gmeow:pairsWith`, and
+    /// `rdfs:seeAlso` objects, resolved BIDIRECTIONALLY in `from_catalog`
+    /// (sorted/deduped).
+    pub related_terms: Vec<String>,
+    /// `gmeow:graphBoxRole` — the four-boxes role CURIE (`gmeow:boxTBox`,
+    /// `gmeow:boxABox`, …); the lowest-sorted when multiply asserted.
+    pub box_role: Option<String>,
+    /// Reverse `logic:formalizes` back-references: the IRIs of logic axioms /
+    /// subjects that declare `logic:formalizes <this term>` (sorted/deduped).
+    /// Empty until the central logic slice carries such back-refs.
+    pub formalized_by: Vec<String>,
 }
 
 /// A cross-slice dependency edge projected from the ownership report.
@@ -326,6 +371,42 @@ pub struct DocExample {
     pub text: String,
     /// GMEOW CURIEs referenced anywhere in the example (sorted, deduped).
     pub terms_referenced: Vec<String>,
+}
+
+/// A SHACL node shape, reverse-mapped to the term it constrains. Parsed from a
+/// slice's `shapes.ttl` (`ArtifactRole::Shapes`) and the root `shapes/*.ttl`
+/// files. DISTINCT from the integrity-constraint index (SPARQL verify queries):
+/// this surface is SHACL structural validation per target term.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Default)]
+pub struct DocShape {
+    /// The `sh:NodeShape` IRI (or a `_:`-prefixed blank-node id for anonymous shapes).
+    pub shape_iri: String,
+    /// The constrained term IRI, resolved from `sh:targetClass` /
+    /// `sh:targetSubjectsOf` / `sh:targetObjectsOf`.
+    pub target_term: String,
+    /// The `sh:message` strings reachable within the shape (including nested
+    /// property shapes and `sh:or` lists), sorted/deduped.
+    pub messages: Vec<String>,
+    /// The slice IRI that owns the shapes artifact, or `"root"` for `shapes/*.ttl`.
+    pub owner_slice: String,
+}
+
+/// A competency question (`gmeow:CompetencyQuestion`) reverse-mapped to the terms
+/// it exercises, so each term page can surface a "Tested by" block. Parsed from
+/// each slice's `tests/competency.ttl`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Default)]
+pub struct DocCompetency {
+    /// The competency-question IRI.
+    pub iri: String,
+    /// `gmeow:cqRationale` — why the ontology must answer this.
+    pub rationale: Option<String>,
+    /// `gmeow:cqQueryFile` — the slice-relative SPARQL query path.
+    pub query_file: Option<String>,
+    /// The term IRIs this CQ exercises, reached via
+    /// `gmeow:cqExpectRow → gmeow:rowCell → gmeow:cellValueIri` (sorted/deduped).
+    pub exercises: Vec<String>,
+    /// The slice IRI that owns the competency artifact.
+    pub owner_slice: String,
 }
 
 /// A documentation concern (`gmeow:DocumentationConcern`) and the terms that
@@ -408,7 +489,7 @@ pub struct DocLearningPath {
 ///
 /// Holds [`DocLinkage`] (with an `f64` confidence), so this type is `PartialEq`
 /// but not `Eq`.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Default)]
 pub struct DocsModel {
     /// A fixed human title for the documentation surface.
     pub title: String,
@@ -426,6 +507,12 @@ pub struct DocsModel {
     pub linkages: Vec<DocLinkage>,
     /// All worked examples (sorted by slice/logical-path).
     pub examples: Vec<DocExample>,
+    /// All SHACL node shapes reverse-mapped to the terms they constrain
+    /// (sorted by target term then shape IRI).
+    pub shapes: Vec<DocShape>,
+    /// All competency questions reverse-mapped to the terms they exercise
+    /// (sorted by IRI).
+    pub competencies: Vec<DocCompetency>,
     /// All documentation concerns (sorted by IRI).
     pub concerns: Vec<DocConcern>,
     /// All external (non-GMEOW) terms referenced (sorted by IRI).
@@ -459,7 +546,7 @@ pub struct DocsModel {
 
 impl DocsModel {
     /// The model schema version. Bump when the serialized shape changes.
-    pub const VERSION: &'static str = "3";
+    pub const VERSION: &'static str = "4";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report.
@@ -474,6 +561,8 @@ impl DocsModel {
 
         // ── Terms (parsed from each slice's module.ttl) ─────────────────────
         let mut terms: Vec<DocTerm> = Vec::new();
+        // `logic:formalizes` back-references, collected while modules are parsed.
+        let mut formalizes_edges: Vec<(String, String)> = Vec::new();
         for record in catalog.records() {
             let owner = &record.manifest.slice_iri;
             for artifact in &record.artifacts {
@@ -487,9 +576,46 @@ impl DocsModel {
                     panic!("module.ttl for slice {owner} failed to parse: {e}")
                 });
                 terms.extend(extract_terms(&store, owner));
+                formalizes_edges.extend(extract_formalizes(&store));
             }
         }
         terms.sort_by(|a, b| a.iri.cmp(&b.iri));
+
+        // Bidirectional related terms: if A lists B, ensure B lists A. The
+        // forward edges were collected per-term in `extract_terms`; here we mirror
+        // each one onto the (already-documented) target term.
+        {
+            let index: BTreeMap<String, usize> = terms
+                .iter()
+                .enumerate()
+                .map(|(i, t)| (t.iri.clone(), i))
+                .collect();
+            let reverse_edges: Vec<(usize, String)> = terms
+                .iter()
+                .flat_map(|t| {
+                    let from = t.iri.clone();
+                    t.related_terms
+                        .iter()
+                        .filter_map(|to| index.get(to).map(|&i| (i, from.clone())))
+                        .collect::<Vec<_>>()
+                })
+                .collect();
+            for (target_idx, from_iri) in reverse_edges {
+                terms[target_idx].related_terms.push(from_iri);
+            }
+            // `logic:formalizes` reverse pass: subject formalizes target term.
+            for (subject, target) in &formalizes_edges {
+                if let Some(&i) = index.get(target) {
+                    terms[i].formalized_by.push(subject.clone());
+                }
+            }
+            for t in &mut terms {
+                t.related_terms.sort();
+                t.related_terms.dedup();
+                t.formalized_by.sort();
+                t.formalized_by.dedup();
+            }
+        }
 
         // ── Dependency edges ────────────────────────────────────────────────
         let mut dependency_edges: Vec<DocDependencyEdge> = ownership
@@ -569,6 +695,43 @@ impl DocsModel {
                 .then_with(|| a.logical_path.cmp(&b.logical_path))
         });
 
+        // ── SHACL shapes (reverse-mapped from each slice's shapes.ttl) ──────────
+        let mut shapes: Vec<DocShape> = Vec::new();
+        for record in catalog.records() {
+            let owner = &record.manifest.slice_iri;
+            for artifact in &record.artifacts {
+                if artifact.role != ArtifactRole::Shapes {
+                    continue;
+                }
+                let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
+                    panic!("shapes.ttl for slice {owner} failed to parse: {e}")
+                });
+                shapes.extend(extract_shapes(&store, owner));
+            }
+        }
+        sort_dedup_shapes(&mut shapes);
+
+        // ── Competency questions (reverse-mapped from each slice's competency.ttl) ─
+        let mut competencies: Vec<DocCompetency> = Vec::new();
+        for record in catalog.records() {
+            let owner = &record.manifest.slice_iri;
+            for artifact in &record.artifacts {
+                // The CQ data overlay lives under tests/competency.ttl, carried as
+                // a TestDsl artifact (there is no dedicated role for the .ttl).
+                if artifact.role != ArtifactRole::TestDsl
+                    || !artifact.logical_path.ends_with("competency.ttl")
+                {
+                    continue;
+                }
+                let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
+                    panic!("competency.ttl for slice {owner} failed to parse: {e}")
+                });
+                competencies.extend(extract_competency(&store, owner));
+            }
+        }
+        competencies.sort_by(|a, b| a.iri.cmp(&b.iri));
+        competencies.dedup_by(|a, b| a.iri == b.iri);
+
         // ── Concerns (collected from module graphs via gmeow:docsConcern) ──────
         let concerns = extract_concerns(catalog);
 
@@ -591,6 +754,8 @@ impl DocsModel {
             mapping_sets,
             linkages,
             examples,
+            shapes,
+            competencies,
             concerns,
             external_terms,
             recipes,
@@ -610,6 +775,10 @@ impl DocsModel {
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         let mut model = Self::from_catalog(&catalog, &ownership);
         model.four_boxes = std::fs::read_to_string(root.join("docs/four-boxes.md")).ok();
+        // Root-level SHACL shapes (`<root>/shapes/*.ttl`) — aggregate node shapes
+        // not owned by any single slice — merged into the slice-level shapes and
+        // deduped by (target term, messages).
+        merge_root_shapes(&mut model, &root.join("shapes"));
         // Optional UI-chrome overrides: `<root>/i18n/ontology-docs-templates.<lang>.po`.
         model.ui_catalog = UiCatalog::from_dir(&root.join("i18n"));
         Ok(model)
@@ -698,6 +867,22 @@ fn extract_terms(store: &Store, owner_slice: &str) -> Vec<DocTerm> {
         let use_for_consumer = curie_objects(store, &iri, GMEOW_USE_FOR_CONSUMER);
         let avoid_for_consumer = curie_objects(store, &iri, GMEOW_AVOID_FOR_CONSUMER);
 
+        // Logic stereotypes: co-asserted `rdf:type` values under the logic NS.
+        let logic_stereotypes = logic_stereotypes(store, &iri);
+
+        // Related terms: union of skos:related + gmeow:pairsWith + rdfs:seeAlso
+        // (IRIs; resolved bidirectionally in `from_catalog`).
+        let mut related_terms = named_objects(store, &iri, SKOS_RELATED);
+        related_terms.extend(named_objects(store, &iri, GMEOW_PAIRS_WITH));
+        related_terms.extend(named_objects(store, &iri, RDFS_SEE_ALSO));
+        related_terms.sort();
+        related_terms.dedup();
+
+        // Four-boxes role: the lowest-sorted gmeow:graphBoxRole CURIE.
+        let box_role = curie_objects(store, &iri, GMEOW_GRAPH_BOX_ROLE)
+            .into_iter()
+            .next();
+
         let curie = to_curie(&iri);
         terms.push(DocTerm {
             iri,
@@ -716,9 +901,218 @@ fn extract_terms(store: &Store, owner_slice: &str) -> Vec<DocTerm> {
             how_to_use,
             use_for_consumer,
             avoid_for_consumer,
+            logic_stereotypes,
+            related_terms,
+            box_role,
+            formalized_by: Vec::new(),
         });
     }
     terms
+}
+
+/// The logic stereotypes of a subject: its `rdf:type` values under the `logic:`
+/// namespace, rendered as `logic:`-prefixed CURIEs (sorted/deduped).
+fn logic_stereotypes(store: &Store, subject: &str) -> Vec<String> {
+    let mut out: Vec<String> = named_objects(store, subject, RDF_TYPE)
+        .into_iter()
+        .filter(|t| t.starts_with(LOGIC_NS))
+        .map(|t| format!("logic:{}", local_name(&t)))
+        .collect();
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// All `(subject, target)` pairs of `?s logic:formalizes ?target` in the store
+/// (named subjects + named targets only).
+fn extract_formalizes(store: &Store) -> Vec<(String, String)> {
+    store
+        .quads_for_pattern(
+            None,
+            Some(named(LOGIC_FORMALIZES).as_ref()),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+        .filter_map(|q| {
+            let NamedOrBlankNode::NamedNode(subject) = &q.subject else {
+                return None;
+            };
+            match q.object {
+                Term::NamedNode(target) => {
+                    Some((subject.as_str().to_string(), target.as_str().to_string()))
+                }
+                _ => None,
+            }
+        })
+        .collect()
+}
+
+/// Extract SHACL node shapes reverse-mapped to the GMEOW terms they target.
+/// Each `sh:targetClass` / `sh:targetSubjectsOf` / `sh:targetObjectsOf` edge to a
+/// GMEOW IRI yields a [`DocShape`] carrying every `sh:message` reachable within
+/// the shape (its nested property shapes and `sh:or` lists).
+fn extract_shapes(store: &Store, owner_slice: &str) -> Vec<DocShape> {
+    let mut out = Vec::new();
+    for target_pred in [SH_TARGET_CLASS, SH_TARGET_SUBJECTS_OF, SH_TARGET_OBJECTS_OF] {
+        for quad in store
+            .quads_for_pattern(
+                None,
+                Some(named(target_pred).as_ref()),
+                None,
+                Some(GraphNameRef::DefaultGraph),
+            )
+            .flatten()
+        {
+            let Term::NamedNode(target) = &quad.object else {
+                continue;
+            };
+            let target_term = target.as_str().to_string();
+            // Term pages exist only for GMEOW terms — only those are documentable.
+            if !target_term.starts_with(GMEOW_NS) {
+                continue;
+            }
+            let messages = shape_messages(store, &quad.subject);
+            let shape_iri = match &quad.subject {
+                NamedOrBlankNode::NamedNode(n) => n.as_str().to_string(),
+                NamedOrBlankNode::BlankNode(b) => format!("_:{}", b.as_str()),
+            };
+            out.push(DocShape {
+                shape_iri,
+                target_term,
+                messages,
+                owner_slice: owner_slice.to_string(),
+            });
+        }
+    }
+    out
+}
+
+/// Sort SHACL shapes by `(target term, messages, shape IRI)` and dedup
+/// shapes that target the same term with the same messages (root + slice copies).
+fn sort_dedup_shapes(shapes: &mut Vec<DocShape>) {
+    shapes.sort_by(|a, b| {
+        a.target_term
+            .cmp(&b.target_term)
+            .then_with(|| a.messages.cmp(&b.messages))
+            .then_with(|| a.shape_iri.cmp(&b.shape_iri))
+    });
+    shapes.dedup_by(|a, b| a.target_term == b.target_term && a.messages == b.messages);
+}
+
+/// Read the root `<root>/shapes/*.ttl` files, extract their node shapes, and merge
+/// them (deduped) into the model's shapes. A missing `shapes/` directory is a
+/// no-op; a present-but-unparseable file is a hard fault.
+fn merge_root_shapes(model: &mut DocsModel, shapes_dir: &Path) {
+    let Ok(entries) = std::fs::read_dir(shapes_dir) else {
+        return;
+    };
+    let mut paths: Vec<std::path::PathBuf> = entries
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| p.extension().and_then(|s| s.to_str()) == Some("ttl"))
+        .collect();
+    paths.sort();
+    for path in paths {
+        let bytes = std::fs::read(&path)
+            .unwrap_or_else(|e| panic!("root shapes file {} unreadable: {e}", path.display()));
+        let store = parse_turtle_lenient(&bytes)
+            .unwrap_or_else(|e| panic!("root shapes file {} failed to parse: {e}", path.display()));
+        model.shapes.extend(extract_shapes(&store, "root"));
+    }
+    sort_dedup_shapes(&mut model.shapes);
+}
+
+/// Every `sh:message` literal reachable from a shape subject by walking blank-node
+/// objects (property shapes, `sh:or` / `sh:and` lists), sorted/deduped. Named-node
+/// objects are NOT followed (they point out into the wider graph).
+fn shape_messages(store: &Store, start: &NamedOrBlankNode) -> Vec<String> {
+    use std::collections::BTreeSet;
+    let mut seen: BTreeSet<String> = BTreeSet::new();
+    let mut queue: Vec<NamedOrBlankNode> = vec![start.clone()];
+    let mut msgs: Vec<String> = Vec::new();
+    while let Some(node) = queue.pop() {
+        if !seen.insert(node.to_string()) {
+            continue;
+        }
+        for quad in store
+            .quads_for_pattern(
+                Some(node.as_ref()),
+                None,
+                None,
+                Some(GraphNameRef::DefaultGraph),
+            )
+            .flatten()
+        {
+            let is_message = quad.predicate.as_str() == SH_MESSAGE;
+            match quad.object {
+                Term::Literal(lit) if is_message => msgs.push(lit.value().to_string()),
+                Term::BlankNode(b) => queue.push(NamedOrBlankNode::BlankNode(b)),
+                _ => {}
+            }
+        }
+    }
+    msgs.sort();
+    msgs.dedup();
+    msgs
+}
+
+/// Extract competency questions reverse-mapped to the terms they exercise. The
+/// terms are reached via `gmeow:cqExpectRow → gmeow:rowCell → gmeow:cellValueIri`.
+fn extract_competency(store: &Store, owner_slice: &str) -> Vec<DocCompetency> {
+    let mut out = Vec::new();
+    for cq in subjects_of_type(store, GMEOW_COMPETENCY_QUESTION) {
+        let rationale = first_literal(store, &cq, GMEOW_CQ_RATIONALE);
+        let query_file = first_literal(store, &cq, GMEOW_CQ_QUERY_FILE);
+        let mut exercises: Vec<String> = Vec::new();
+        for row in named_objects(store, &cq, GMEOW_CQ_EXPECT_ROW) {
+            for cell in blank_objects(store, &row, GMEOW_ROW_CELL) {
+                for quad in store
+                    .quads_for_pattern(
+                        Some(cell.as_ref().into()),
+                        Some(named(GMEOW_CELL_VALUE_IRI).as_ref()),
+                        None,
+                        Some(GraphNameRef::DefaultGraph),
+                    )
+                    .flatten()
+                {
+                    if let Term::NamedNode(v) = quad.object {
+                        exercises.push(v.as_str().to_string());
+                    }
+                }
+            }
+        }
+        exercises.sort();
+        exercises.dedup();
+        out.push(DocCompetency {
+            iri: cq,
+            rationale,
+            query_file,
+            exercises,
+            owner_slice: owner_slice.to_string(),
+        });
+    }
+    out
+}
+
+/// All BlankNode objects of `subject predicate ?o` in the default graph.
+fn blank_objects(store: &Store, subject: &str, predicate: &str) -> Vec<oxigraph::model::BlankNode> {
+    let Ok(subject) = oxigraph::model::NamedNode::new(subject) else {
+        return Vec::new();
+    };
+    store
+        .quads_for_pattern(
+            Some(subject.as_ref().into()),
+            Some(named(predicate).as_ref()),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+        .filter_map(|q| match q.object {
+            Term::BlankNode(b) => Some(b),
+            _ => None,
+        })
+        .collect()
 }
 
 /// Extract mapping sets + term equivalences from a `mappings/*.ttl` store.

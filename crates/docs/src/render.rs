@@ -84,6 +84,9 @@ pub enum Page {
     /// The integrity-constraints (verify queries) index
     /// (`integrity-constraints/index`).
     IntegrityIndex,
+    /// The logic-stereotypes index (`logic/index`) — terms grouped by their
+    /// lowered OntoUML/UFO stereotype. Resolves the `nav_logic` chrome string.
+    Logic,
     /// The adoption-recipes index (`recipes/index`).
     RecipeIndex,
     /// A single recipe page (`recipes/<slug>/index`).
@@ -115,6 +118,7 @@ impl Page {
             Page::Concern(slug) => format!("concerns/{slug}"),
             Page::ExternalIndex => "external-ontologies".to_string(),
             Page::IntegrityIndex => "integrity-constraints".to_string(),
+            Page::Logic => "logic".to_string(),
             Page::RecipeIndex => "recipes".to_string(),
             Page::Recipe(slug) => format!("recipes/{slug}"),
             Page::LearningPathIndex => "learning-paths".to_string(),
@@ -165,6 +169,7 @@ impl Page {
                 .unwrap_or_else(|| slug.clone()),
             Page::ExternalIndex => "External ontologies".to_string(),
             Page::IntegrityIndex => "Integrity constraints".to_string(),
+            Page::Logic => "Logic & Reasoning".to_string(),
             Page::RecipeIndex => "Recipes".to_string(),
             Page::Recipe(slug) => model
                 .recipes
@@ -306,6 +311,7 @@ fn pages(model: &DocsModel) -> Vec<Page> {
         Page::ConcernIndex,
         Page::ExternalIndex,
         Page::IntegrityIndex,
+        Page::Logic,
         Page::RecipeIndex,
         Page::LearningPathIndex,
     ];
@@ -366,6 +372,7 @@ pub fn to_markdown(model: &DocsModel, page: &Page) -> String {
         Page::Concern(slug) => md_concern(model, slug),
         Page::ExternalIndex => md_external_index(model),
         Page::IntegrityIndex => md_integrity_index(model),
+        Page::Logic => md_logic_index(model),
         Page::RecipeIndex => md_recipe_index(model),
         Page::Recipe(slug) => md_recipe(model, slug),
         Page::LearningPathIndex => md_learning_path_index(model),
@@ -777,6 +784,205 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
+    // ── Logic stereotypes (lowered OntoUML/UFO discipline) ──────────────────────
+    if !term.logic_stereotypes.is_empty() {
+        heading(&mut out, 2, "Logic stereotypes");
+        let badges = term
+            .logic_stereotypes
+            .iter()
+            .map(|s| format!("`{}`", code_escape(s)))
+            .collect::<Vec<_>>()
+            .join(" · ");
+        let logic_href = rel(&from, &Page::Logic.dir());
+        line(
+            &mut out,
+            &format!("{badges} — see the [Logic & Reasoning]({logic_href}index.md) index."),
+        );
+    }
+
+    // ── Box role badge (links the four-boxes doctrine when that page exists) ─────
+    if let Some(role) = &term.box_role {
+        heading(&mut out, 2, "Box role");
+        let label = box_role_label(role);
+        if model.four_boxes.is_some() {
+            let href = rel(&from, &Page::FourBoxes.dir());
+            line(
+                &mut out,
+                &format!(
+                    "[{} (`{}`)]({}index.md)",
+                    md_escape(&label),
+                    code_escape(role),
+                    href
+                ),
+            );
+        } else {
+            line(
+                &mut out,
+                &format!("{} (`{}`)", md_escape(&label), code_escape(role)),
+            );
+        }
+    }
+
+    // ── Constraints (SHACL node shapes — DISTINCT from the verify-query index) ───
+    let constraints: Vec<&str> = model
+        .shapes
+        .iter()
+        .filter(|s| s.target_term == term.iri)
+        .flat_map(|s| s.messages.iter().map(String::as_str))
+        .collect();
+    let mut constraint_msgs: Vec<&str> = constraints;
+    constraint_msgs.sort_unstable();
+    constraint_msgs.dedup();
+    if !constraint_msgs.is_empty() {
+        heading(&mut out, 2, "Constraints");
+        for msg in constraint_msgs {
+            push_line(&mut out, &format!("- {}", md_escape(msg)));
+        }
+        blank(&mut out);
+    }
+
+    // ── Related terms (bidirectional: skos:related / pairsWith / seeAlso) ────────
+    if !term.related_terms.is_empty() {
+        heading(&mut out, 2, "Related terms");
+        for related in &term.related_terms {
+            push_line(&mut out, &format!("- {}", term_link(model, &from, related)));
+        }
+        blank(&mut out);
+    }
+
+    // ── Tested by (competency questions that exercise this term) ─────────────────
+    let mut tested_by: Vec<&crate::model::DocCompetency> = model
+        .competencies
+        .iter()
+        .filter(|c| c.exercises.iter().any(|t| t == &term.iri))
+        .collect();
+    tested_by.sort_by(|a, b| a.iri.cmp(&b.iri));
+    if !tested_by.is_empty() {
+        heading(&mut out, 2, "Tested by");
+        for cq in tested_by {
+            let rationale = cq
+                .rationale
+                .as_deref()
+                .map(one_line)
+                .unwrap_or_else(|| local_name(&cq.iri).to_string());
+            match &cq.query_file {
+                Some(qf) => push_line(
+                    &mut out,
+                    &format!("- {} (`{}`)", md_escape(&rationale), code_escape(qf)),
+                ),
+                None => push_line(&mut out, &format!("- {}", md_escape(&rationale))),
+            }
+        }
+        blank(&mut out);
+    }
+
+    // ── Examples using this term (cross-links to the full source on slice pages) ─
+    let mut term_examples: Vec<&crate::model::DocExample> = model
+        .examples
+        .iter()
+        .filter(|e| e.terms_referenced.iter().any(|c| c == &term.curie))
+        .collect();
+    term_examples.sort_by(|a, b| {
+        a.slice
+            .cmp(&b.slice)
+            .then_with(|| a.logical_path.cmp(&b.logical_path))
+    });
+    if !term_examples.is_empty() {
+        heading(&mut out, 2, "Examples using this term");
+        for example in term_examples {
+            let slice_href = model
+                .slices
+                .iter()
+                .find(|s| s.iri == example.slice)
+                .map(|s| rel(&from, &Page::Slice(slice_slug(s)).dir()));
+            match slice_href {
+                Some(href) => push_line(
+                    &mut out,
+                    &format!(
+                        "- [{}]({}index.md) — `{}`",
+                        md_escape(&example.title),
+                        href,
+                        code_escape(&example.logical_path)
+                    ),
+                ),
+                None => push_line(
+                    &mut out,
+                    &format!(
+                        "- {} — `{}`",
+                        md_escape(&example.title),
+                        code_escape(&example.logical_path)
+                    ),
+                ),
+            }
+        }
+        blank(&mut out);
+    }
+
+    // ── Formalized by (reverse logic:formalizes back-refs) ──────────────────────
+    if !term.formalized_by.is_empty() {
+        heading(&mut out, 2, "Formalized by");
+        for subject in &term.formalized_by {
+            push_line(&mut out, &format!("- {}", term_link(model, &from, subject)));
+        }
+        blank(&mut out);
+    }
+
+    out
+}
+
+/// The short four-boxes label for a `gmeow:box*` role CURIE (`gmeow:boxTBox` →
+/// `TBox`); the CURIE unchanged when it does not match the expected shape.
+fn box_role_label(role: &str) -> String {
+    role.strip_prefix("gmeow:box")
+        .filter(|s| !s.is_empty())
+        .unwrap_or(role)
+        .to_string()
+}
+
+/// The logic-stereotypes index: every term grouped by its `logic:` stereotype.
+/// Resolves the `nav_logic` chrome string to a real page.
+fn md_logic_index(model: &DocsModel) -> String {
+    let from = Page::Logic.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, "Logic & Reasoning");
+    line(
+        &mut out,
+        "Terms grouped by their lowered OntoUML/UFO stereotype (the `logic:` discipline \
+         each term carries). See the slice doctrine under `slices/core/logic` for the \
+         stereotype semantics.",
+    );
+
+    // Group terms by each stereotype they carry (a term may carry several).
+    let mut by_stereotype: BTreeMap<String, Vec<&DocTerm>> = BTreeMap::new();
+    for term in &model.terms {
+        for stereotype in &term.logic_stereotypes {
+            by_stereotype
+                .entry(stereotype.clone())
+                .or_default()
+                .push(term);
+        }
+    }
+
+    if by_stereotype.is_empty() {
+        line(&mut out, "No logic stereotypes are declared yet.");
+        return out;
+    }
+
+    for (stereotype, mut terms) in by_stereotype {
+        terms.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
+        heading(
+            &mut out,
+            2,
+            &format!("{stereotype} ({} term(s))", terms.len()),
+        );
+        for term in terms {
+            push_line(
+                &mut out,
+                &format!("- {}", term_link(model, &from, &term.iri)),
+            );
+        }
+        blank(&mut out);
+    }
     out
 }
 
@@ -1664,6 +1870,11 @@ pub fn to_html_lang(model: &DocsModel, page: &Page, lang: &str) -> String {
         ),
         nav_item(
             &root,
+            &Page::Logic.dir(),
+            &label("nav_logic", "Logic & Reasoning"),
+        ),
+        nav_item(
+            &root,
             &Page::ExampleIndex.dir(),
             &label("nav_examples", "Examples"),
         ),
@@ -2468,6 +2679,7 @@ mod tests {
             how_to_use: Vec::new(),
             use_for_consumer: Vec::new(),
             avoid_for_consumer: Vec::new(),
+            ..Default::default()
         };
         let bar = DocTerm {
             iri: format!("{GMEOW_NS}Bar"),
@@ -2486,6 +2698,7 @@ mod tests {
             how_to_use: Vec::new(),
             use_for_consumer: Vec::new(),
             avoid_for_consumer: Vec::new(),
+            ..Default::default()
         };
 
         let translations = crate::i18n::Translations::from_entries(
@@ -2519,6 +2732,8 @@ mod tests {
             mapping_sets: Vec::new(),
             linkages: Vec::new(),
             examples: Vec::new(),
+            shapes: Vec::new(),
+            competencies: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
             recipes: Vec::new(),

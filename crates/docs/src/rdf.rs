@@ -263,6 +263,7 @@ mod tests {
                     how_to_use: Vec::new(),
                     use_for_consumer: Vec::new(),
                     avoid_for_consumer: Vec::new(),
+                    ..Default::default()
                 },
                 DocTerm {
                     iri: format!("{GMEOW}hasOwner"),
@@ -281,12 +282,15 @@ mod tests {
                     how_to_use: Vec::new(),
                     use_for_consumer: Vec::new(),
                     avoid_for_consumer: Vec::new(),
+                    ..Default::default()
                 },
             ],
             dependency_edges: Vec::new(),
             mapping_sets: Vec::new(),
             linkages: Vec::new(),
             examples: Vec::new(),
+            shapes: Vec::new(),
+            competencies: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
             recipes: Vec::new(),
@@ -334,6 +338,8 @@ mod tests {
             mapping_sets: Vec::new(),
             linkages: Vec::new(),
             examples: Vec::new(),
+            shapes: Vec::new(),
+            competencies: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
             recipes: Vec::new(),

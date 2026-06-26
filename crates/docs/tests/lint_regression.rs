@@ -84,6 +84,7 @@ fn term(local: &str, definition: Option<&str>, label: Option<&str>) -> DocTerm {
         how_to_use: Vec::new(),
         use_for_consumer: Vec::new(),
         avoid_for_consumer: Vec::new(),
+        ..Default::default()
     }
 }
 
@@ -98,6 +99,8 @@ fn model_with_terms(terms: Vec<DocTerm>) -> DocsModel {
         mapping_sets: Vec::new(),
         linkages: Vec::new(),
         examples: Vec::new(),
+        shapes: Vec::new(),
+        competencies: Vec::new(),
         concerns: Vec::new(),
         external_terms: Vec::new(),
         recipes: Vec::new(),
