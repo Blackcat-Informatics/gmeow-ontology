@@ -546,6 +546,82 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
+    // ── Holonic agency: the two co-equal tendency markers (issue #707, C4) ────────────
+    // Koestler's Janus-faced holon carries a self-assertive (autonomy-as-a-whole) and an
+    // integrative (subordination-as-a-part) tendency.  These are CO-EQUAL vantage facets
+    // (Principle 9): the two markers are built by IDENTICAL rules — a holon evidences a
+    // tendency when its declared logic:HolonicAgencyProfile carries a basis value (the
+    // selfAssertiveBasis / integrativeBasis twin) and the holon bears that value — so
+    // neither face is privileged in the vocabulary or the firing order.  Both settle in
+    // stratum 1 so the pathology NAF (stratum 3) and the unknown NAF (stratum 4) are
+    // stratified.  Inert on inputs with no logic:AgencyAssessment.  Agency is a DECLARED
+    // profile a holarchy adopts, not a universal rule (#775).  (LOGIC-FOUNDATION.md
+    // §mereology+holons.)
+    //
+    // selfAssertive(?A, ?A) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
+    //     selfAssertiveBasis(?Pr, ?V), bearsProperty(?H, ?V)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("selfAssertive")),
+            var("?A"),
+        ),
+        body: &[
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyHolon")),
+                var("?H"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyProfile")),
+                var("?Pr"),
+            ),
+            pos(
+                var("?Pr"),
+                TermPat::Const(logic_iri!("selfAssertiveBasis")),
+                var("?V"),
+            ),
+            pos(
+                var("?H"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?V"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // integrative(?A, ?A) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
+    //     integrativeBasis(?Pr, ?V), bearsProperty(?H, ?V)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("integrative")),
+            var("?A"),
+        ),
+        body: &[
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyHolon")),
+                var("?H"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyProfile")),
+                var("?Pr"),
+            ),
+            pos(
+                var("?Pr"),
+                TermPat::Const(logic_iri!("integrativeBasis")),
+                var("?V"),
+            ),
+            pos(
+                var("?H"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?V"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
 ];
 
 const STRATUM_2: &[Rule] = &[
@@ -667,6 +743,47 @@ const STRATUM_2: &[Rule] = &[
             TermPat::Const(logic_iri!("overriddenConstraint")),
             var("?C"),
         )],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic agency: integral verdict projection (issue #707, C4) ─────────────────
+    // The positive, derivation-grounded verdict, mirroring the C2 Aggregate and C3
+    // Overridden projections: a holon is INTEGRAL when BOTH co-equal tendency markers
+    // hold — it asserts itself as a whole AND subordinates itself as a part.  The
+    // agencyHolon/agencyProfile atoms re-bind the well-formedness existence guard kept
+    // symmetric across all four verdict rules, so a malformed assessment (no holon or no
+    // profile) provably receives no verdict.  Both markers settle in stratum 1, so this
+    // pure-positive rule sits correctly in stratum 2.
+    //
+    // agencyVerdict(?A, logic:HolonIntegral) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
+    //     selfAssertive(?A, ?A), integrative(?A, ?A)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("agencyVerdict")),
+            TermPat::Const(logic_iri!("HolonIntegral")),
+        ),
+        body: &[
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyHolon")),
+                var("?H"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyProfile")),
+                var("?Pr"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("selfAssertive")),
+                var("?A"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("integrative")),
+                var("?A"),
+            ),
+        ],
         distinct_pairs: NO_GUARD,
     },
 ];
@@ -912,6 +1029,82 @@ const STRATUM_3: &[Rule] = &[
             TermPat::Const(logic_iri!("bindingConstraint")),
             var("?C"),
         )],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic agency: the two co-equal pathology verdicts (issue #707, C4) ──────────
+    // Koestler's two pathologies, each the collapse of ONE tendency, reached by
+    // negation-as-failure over the corresponding stratum-1 marker WHILE the opposite
+    // marker still holds — so each verdict is profile-relative, never a bare default.
+    // The two rules are MIRROR IMAGES settling in the same stratum, so the duality is
+    // genuinely co-equal rather than one tendency defaulting to the other.  selfAssertive
+    // and integrative settle in stratum 1, so the NAF is stratified; ?A/?H/?Pr are all
+    // positively bound, so each rule is DL-safe.  Every verdict rule re-binds the
+    // agencyHolon/agencyProfile well-formedness guard.
+    //
+    // agencyVerdict(?A, logic:AutonomyDeficient) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
+    //     integrative(?A, ?A), NOT selfAssertive(?A, ?A)
+    // The first pathology — a "part" with no autonomy: it integrates but does not assert itself.
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("agencyVerdict")),
+            TermPat::Const(logic_iri!("AutonomyDeficient")),
+        ),
+        body: &[
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("selfAssertive")),
+                var("?A"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyHolon")),
+                var("?H"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyProfile")),
+                var("?Pr"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("integrative")),
+                var("?A"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // agencyVerdict(?A, logic:IntegrationDeficient) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
+    //     selfAssertive(?A, ?A), NOT integrative(?A, ?A)
+    // The second pathology — a "whole" refusing to integrate: it asserts itself but does not subordinate.
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("agencyVerdict")),
+            TermPat::Const(logic_iri!("IntegrationDeficient")),
+        ),
+        body: &[
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("integrative")),
+                var("?A"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyHolon")),
+                var("?H"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyProfile")),
+                var("?Pr"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("selfAssertive")),
+                var("?A"),
+            ),
+        ],
         distinct_pairs: NO_GUARD,
     },
 ];
@@ -1209,6 +1402,49 @@ const STRATUM_4: &[Rule] = &[
                 var("?P"),
                 TermPat::Const(logic_iri!("properPartOf")),
                 var("?W"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic agency: unknown verdict (issue #707, C4) ─────────────────────────────
+    // The first-class fourth value: the assessment names a holon and a profile, but the
+    // holon evidences NEITHER tendency — neither the self-assertive nor the integrative
+    // marker can fire — so the integrity question has no positive footing.  This subsumes
+    // the "cannot pose the question" case: it fires both when the holon bears no basis
+    // value and when the profile declares no basis at all (no marker can derive), so a
+    // basis-free profile is unknown, not deficient.  Both NAF targets (selfAssertive,
+    // integrative) settle in stratum 1, below stratum 4, so the negation is stratified;
+    // ?A/?H/?Pr are positively bound, so the rule is DL-safe.  agencyHolon/agencyProfile
+    // are the well-formedness existence guard symmetric with the other three verdict rules.
+    //
+    // agencyVerdict(?A, logic:AgencyUnknown) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
+    //     NOT selfAssertive(?A, ?A), NOT integrative(?A, ?A)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("agencyVerdict")),
+            TermPat::Const(logic_iri!("AgencyUnknown")),
+        ),
+        body: &[
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("selfAssertive")),
+                var("?A"),
+            ),
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("integrative")),
+                var("?A"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyHolon")),
+                var("?H"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyProfile")),
+                var("?Pr"),
             ),
         ],
         distinct_pairs: NO_GUARD,

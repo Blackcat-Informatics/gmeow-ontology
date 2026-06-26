@@ -257,7 +257,40 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   lossy OWL projection of the verdict accrete in C5 (#708).
 - **Autonomy/integration is a named profile.** The Koestlerian balance of part-autonomy against
   whole-integration is a **declared profile** a holarchy may adopt, not a universal well-formedness
-  rule every holon must satisfy.
+  rule every holon must satisfy — a bolt, a file-segment, or a process-phase needs no autonomy, so
+  the integrity calculus runs only where it is declared. The construct mirrors the emergence (C2) and
+  governance (C3) calculi exactly. Koestler's holon is **Janus-faced**: it carries a *self-assertive*
+  tendency (autonomy, as a whole) and an *integrative* tendency (subordination, as a part). These are
+  **co-equal vantage facets** under Principle 9 — neither is the primary face — and the foundation
+  refuses to privilege one over the other in either the vocabulary or the rule firing order. The
+  construct is concrete: `logic:AgencyAssessment` is reified with the role properties
+  `logic:agencyHolon` and `logic:agencyProfile`, and the engine *derives* its `logic:agencyVerdict` —
+  one of the four closed `logic:AgencyVerdict` values `logic:HolonIntegral`, `logic:AutonomyDeficient`,
+  `logic:IntegrationDeficient`, `logic:AgencyUnknown`. Agency is **profile-relative**: a
+  `logic:HolonicAgencyProfile` carries, via `logic:selfAssertiveBasis` and `logic:integrativeBasis`,
+  the property-values that respectively evidence each tendency, exactly as a `logic:ReductionTheory`
+  carries its `logic:reductionBasis` and a `logic:GovernanceRegime` its `logic:activationBasis`; an
+  entity carries those values through `logic:bearsProperty`, dogfooding the same bearer relation the
+  emergence calculus uses. The verdict is computed by six stratified rules in the same
+  marker→projection shape: **two co-equal positive markers** settle first — `logic:selfAssertive`
+  (the holon bears a self-assertive basis value) and `logic:integrative` (it bears an integrative
+  basis value), built by identical rules so neither facet is privileged; a holon is **HolonIntegral**
+  when *both* markers hold (the positive, derivation-grounded verdict); it is **AutonomyDeficient** —
+  the first Koestlerian pathology, a "part" with no autonomy — by negation-as-failure over the
+  self-assertive marker *while the integrative marker holds*, and symmetrically **IntegrationDeficient**
+  — the second pathology, a "whole" refusing to integrate — by NAF over the integrative marker while
+  the self-assertive marker holds; and it is **AgencyUnknown** when *neither* marker fires, so the
+  integrity question has no positive footing. The two pathology rules are mirror images, settling in
+  the same stratum, so the duality is genuinely co-equal rather than one tendency defaulting to the
+  other. `AgencyUnknown` is the first-class fourth value (the C4 analogue of `EmergenceUnknown` /
+  `ConstraintUnknown`): it subsumes the "cannot pose the question" case, firing both when the holon
+  bears no basis value and when the profile declares no basis at all — failure-to-evidence is not
+  integrity, and a basis-free profile is *unknown*, not deficient. Crucially, **every verdict rule
+  re-binds `logic:agencyHolon` and `logic:agencyProfile`** as a well-formedness existence guard, so a
+  malformed assessment (naming no holon, or no profile) provably receives *no* verdict — robustness by
+  construction, the C4 analogue of C3's per-target gating. The minimal case lands here (dogfooding C1's
+  holon kernel — the assessed holons are wired into a holarchy so `logic:isHolon` co-fires); the full
+  agency corpus and the lossy OWL projection of the verdict accrete in C5 (#708).
 
 This is the Ithkuil discipline applied to systems theory: the loose word "holon" is decomposed into
 the position, the path, the reduction theory, and the profile that the word silently conflates.
