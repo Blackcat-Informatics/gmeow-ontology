@@ -2255,6 +2255,7 @@ export enum ProfileEnum {
 }
 
 export enum ProjectionContextEnum {
+    consumerAdviceCatalog = "consumerAdviceCatalog",
     consumerAgentMemory = "consumerAgentMemory",
     consumerFoafExport = "consumerFoafExport",
     consumerInternalArchive = "consumerInternalArchive",

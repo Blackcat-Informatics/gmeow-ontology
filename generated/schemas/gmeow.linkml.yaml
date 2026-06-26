@@ -18638,6 +18638,9 @@ enums:
   ProjectionContextEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ProjectionContext
     permissible_values:
+      consumerAdviceCatalog:
+        meaning: https://blackcatinformatics.ca/gmeow/consumerAdviceCatalog
+        title: advice catalog
       consumerAgentMemory:
         meaning: https://blackcatinformatics.ca/gmeow/consumerAgentMemory
         title: agent memory
