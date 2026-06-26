@@ -100,7 +100,8 @@ fn extract_rdf_error(err: &RdfSyntaxError) -> (u32, u32, String) {
 // ─── Logic analysis ──────────────────────────────────────────────────────────
 
 fn analyze_logic(text: &str) -> Report {
-    use gmeow_logic::compile::frontend::{diagnostics_report, parse_logic_str};
+    use gmeow_logic::compile::frontend::parse_logic_str;
+    use gmeow_logic::logic_diagnostics::diagnostics_report;
 
     match parse_logic_str(text, None) {
         Ok((_program, diags)) => {

@@ -21,6 +21,9 @@ pub mod encode;
 pub mod entrenchment;
 pub mod explain;
 pub mod foundation;
+// Runtime-side projection of compiler parse diagnostics into the PyO3-tainted
+// gmeow-diagnostics Report (#732/#856) — kept out of the wasm-able compiler crate.
+pub mod logic_diagnostics;
 pub mod materialize;
 pub mod probabilistic;
 pub mod profile_gate;

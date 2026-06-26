@@ -865,7 +865,7 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     // dict→finding reshaper. Normalize before handing it over so the live report
     // (and any downstream content hash / render) is deterministic — mirroring
     // `verify_native`.
-    let diag_report = crate::compile::frontend::diagnostics_report(&diagnostics).normalized();
+    let diag_report = crate::logic_diagnostics::diagnostics_report(&diagnostics).normalized();
 
     let out = PyDict::new(py);
     out.set_item("owl_dl", arts.owl_dl)?;

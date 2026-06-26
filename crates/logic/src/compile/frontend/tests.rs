@@ -129,12 +129,6 @@ fn unsupported_contract_is_a_hard_compile_failure() {
         unsupported.iter().any(|d| d.severity == Severity::Error),
         "expected a Severity::Error UNSUPPORTED_CONTRACT finding; got: {diags:?}"
     );
-    // Projecting into the canonical report, the firewall holds: the report is not ok.
-    let report = diagnostics_report(&diags);
-    assert!(
-        !report.ok(),
-        "an unsupported contract must make the compile report not ok"
-    );
 }
 
 #[test]
@@ -190,11 +184,6 @@ fn paraconsistent_valuation_under_counterfactual_revision_is_a_hard_compile_fail
             .any(|d| d.code == "UNSUPPORTED_CONTRACT" && d.severity == Severity::Error),
         "paraconsistent valuation under counterfactual revision must be a hard error; got: {diags:?}"
     );
-    let report = diagnostics_report(&diags);
-    assert!(
-        !report.ok(),
-        "an unsupported contract must make the compile report not ok"
-    );
 }
 
 #[test]
@@ -215,11 +204,6 @@ fn closed_world_closure_under_counterfactual_revision_is_a_hard_compile_failure(
             .iter()
             .any(|d| d.code == "UNSUPPORTED_CONTRACT" && d.severity == Severity::Error),
         "closed-world closure under counterfactual revision must be a hard error; got: {diags:?}"
-    );
-    let report = diagnostics_report(&diags);
-    assert!(
-        !report.ok(),
-        "an unsupported contract must make the compile report not ok"
     );
 }
 
@@ -296,11 +280,6 @@ fn closure_entry_missing_value_is_a_hard_error() {
             .iter()
             .any(|d| d.code == "MALFORMED_CLOSURE_ENTRY" && d.severity == Severity::Error),
         "a closureEntry missing closureValue must be a hard error; got: {diags:?}"
-    );
-    let report = diagnostics_report(&diags);
-    assert!(
-        !report.ok(),
-        "a malformed closure entry must make the compile report not ok"
     );
 }
 
@@ -548,71 +527,9 @@ fn confidence_scoped_axiom_case_produces_expected_ir() {
     assert!(has_axiom(&prog, "/Bird", "subClassOf", LogicModality::None));
 }
 
-// ── diagnostics_report projection (#856) ─────────────────────────────────────
-
-#[test]
-fn diagnostics_report_projects_findings_with_logic_compile_namespace() {
-    let diagnostics = vec![
-        Diagnostic {
-            severity: Severity::Warning,
-            code: "unknown-stereotype".to_owned(),
-            message: "term has no recognised stereotype".to_owned(),
-            subject: Some("https://blackcatinformatics.ca/gmeow/Foo".to_owned()),
-        },
-        Diagnostic {
-            severity: Severity::Info,
-            code: "redundant-axiom".to_owned(),
-            message: "axiom is entailed".to_owned(),
-            subject: None,
-        },
-        // An empty subject string carries no logical grouping key.
-        Diagnostic {
-            severity: Severity::Error,
-            code: "malformed-axiom".to_owned(),
-            message: "axiom is malformed".to_owned(),
-            subject: Some(String::new()),
-        },
-    ];
-
-    let report = diagnostics_report(&diagnostics);
-
-    assert_eq!(report.tool, "logic-compile");
-    assert_eq!(report.findings.len(), 3);
-
-    // Severity is mapped enum→enum (no string round-trip); the code carries the
-    // `logic-compile.` prefix; tool is set; subject → logical location.
-    let warning = &report.findings[0];
-    assert_eq!(warning.severity, gmeow_diagnostics::Severity::Warning);
-    assert_eq!(warning.code, "logic-compile.unknown-stereotype");
-    assert_eq!(warning.message, "term has no recognised stereotype");
-    assert_eq!(warning.tool.as_deref(), Some("logic-compile"));
-    assert_eq!(
-        warning
-            .primary_location()
-            .and_then(|l| l.logical.as_deref()),
-        Some("https://blackcatinformatics.ca/gmeow/Foo")
-    );
-
-    // No subject ⇒ no location.
-    let info = &report.findings[1];
-    assert_eq!(info.severity, gmeow_diagnostics::Severity::Info);
-    assert_eq!(info.code, "logic-compile.redundant-axiom");
-    assert!(info.locations.is_empty());
-
-    // Empty subject string ⇒ no location either.
-    let error = &report.findings[2];
-    assert_eq!(error.severity, gmeow_diagnostics::Severity::Error);
-    assert_eq!(error.code, "logic-compile.malformed-axiom");
-    assert!(error.locations.is_empty());
-}
-
-#[test]
-fn diagnostics_report_for_no_diagnostics_is_an_empty_ok_report() {
-    let report = diagnostics_report(&[]);
-    assert_eq!(report.tool, "logic-compile");
-    assert!(report.findings.is_empty());
-    assert!(report.ok());
-}
+// The diagnostics_report projection (#856) is tested in crate::logic_diagnostics
+// (it returns the PyO3-tainted gmeow_diagnostics::Report and lives runtime-side,
+// out of the wasm-able compiler — #732).
 
 // ── Path shapes (#1010) ──────────────────────────────────────────────────────
 
