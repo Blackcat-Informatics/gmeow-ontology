@@ -22,6 +22,7 @@
 //! Rust-first (`.goals`): no Python, no XML crate — nextest's JUnit is small and
 //! regular, so a std-only attribute scan is sufficient and dependency-free.
 
+use std::env::VarError;
 use std::process::ExitCode;
 
 /// The always-on per-test budget, in seconds.
@@ -30,14 +31,54 @@ const DEFAULT_BUDGET_SECS: f64 = 25.0;
 /// The default JUnit location for the `ci` nextest profile.
 const DEFAULT_JUNIT: &str = "target/nextest/ci/junit.xml";
 
+/// Resolve the test-budget from the environment variable result.
+///
+/// - `Err(NotPresent)` → legitimate unset, return `DEFAULT_BUDGET_SECS`.
+/// - `Err(NotUnicode)` → set but not valid UTF-8 → hard error.
+/// - `Ok(s)` where `s` parses to a finite f64 > 0 → use it.
+/// - `Ok(s)` where `s` is unparsable, <= 0, or non-finite → hard error.
+///
+/// Returns `Ok(budget)` on success, `Err(message)` on hard failure.
+fn resolve_budget(var: Result<String, VarError>) -> Result<f64, String> {
+    match var {
+        Err(VarError::NotPresent) => Ok(DEFAULT_BUDGET_SECS),
+        Err(VarError::NotUnicode(raw)) => Err(format!(
+            "GMEOW_TEST_BUDGET_SECS is set but contains non-UTF-8 bytes: {raw:?}"
+        )),
+        Ok(s) => {
+            let v: f64 = s.parse().map_err(|_| {
+                format!(
+                    "GMEOW_TEST_BUDGET_SECS={s:?} is not a valid number — \
+                     expected a positive finite f64 (e.g. \"30.0\")"
+                )
+            })?;
+            if !v.is_finite() {
+                return Err(format!(
+                    "GMEOW_TEST_BUDGET_SECS={s:?} is non-finite (NaN or infinity) — \
+                     expected a positive finite f64"
+                ));
+            }
+            if v <= 0.0 {
+                return Err(format!(
+                    "GMEOW_TEST_BUDGET_SECS={s:?} is <= 0 — budget must be a positive number"
+                ));
+            }
+            Ok(v)
+        }
+    }
+}
+
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let junit_path = args.next().unwrap_or_else(|| DEFAULT_JUNIT.to_owned());
 
-    let budget = std::env::var("GMEOW_TEST_BUDGET_SECS")
-        .ok()
-        .and_then(|s| s.parse::<f64>().ok())
-        .unwrap_or(DEFAULT_BUDGET_SECS);
+    let budget = match resolve_budget(std::env::var("GMEOW_TEST_BUDGET_SECS")) {
+        Ok(b) => b,
+        Err(msg) => {
+            eprintln!("test-budget: {msg}");
+            return ExitCode::FAILURE;
+        }
+    };
 
     let xml = match std::fs::read_to_string(&junit_path) {
         Ok(s) => s,
@@ -51,7 +92,13 @@ fn main() -> ExitCode {
         }
     };
 
-    let cases = parse_testcases(&xml);
+    let cases = match parse_testcases(&xml) {
+        Ok(c) => c,
+        Err(msg) => {
+            eprintln!("test-budget: {msg}");
+            return ExitCode::FAILURE;
+        }
+    };
     if cases.is_empty() {
         eprintln!("test-budget: no <testcase> elements found in {junit_path} — refusing to pass a vacuous gate.");
         return ExitCode::FAILURE;
@@ -90,6 +137,7 @@ fn main() -> ExitCode {
 }
 
 /// A single parsed JUnit test case.
+#[derive(Debug)]
 struct TestCase {
     classname: String,
     name: String,
@@ -99,24 +147,49 @@ struct TestCase {
 /// Scan every `<testcase ...>` opening tag and pull its `classname`, `name`, and
 /// `time` attributes. nextest emits one regular `<testcase>` element per test with
 /// these attributes on the opening tag, so a tag-level attribute scan is robust.
-fn parse_testcases(xml: &str) -> Vec<TestCase> {
+///
+/// Returns `Err(message)` if any testcase element is missing a parseable `time`
+/// attribute (hard-fail: a silent drop would weaken the gate).
+fn parse_testcases(xml: &str) -> Result<Vec<TestCase>, String> {
     let mut out = Vec::new();
     let mut rest = xml;
     while let Some(start) = rest.find("<testcase") {
         rest = &rest[start..];
+
+        // Boundary guard: the char after "<testcase" must be whitespace, '>', or '/'
+        // so that a hypothetical "<testcasex" element is not treated as a testcase.
+        let boundary_char = rest.as_bytes().get("<testcase".len()).copied();
+        let is_testcase = matches!(
+            boundary_char,
+            Some(b' ') | Some(b'\t') | Some(b'\n') | Some(b'\r') | Some(b'>') | Some(b'/')
+        );
+
         let Some(end) = rest.find('>') else { break };
         let tag = &rest[..end];
-        let time = attr(tag, "time").and_then(|s| s.parse::<f64>().ok());
-        if let Some(time) = time {
-            out.push(TestCase {
-                classname: attr(tag, "classname").unwrap_or_default(),
-                name: attr(tag, "name").unwrap_or_default(),
-                time,
-            });
+
+        if is_testcase {
+            let name = attr(tag, "name").unwrap_or_default();
+            let classname = attr(tag, "classname").unwrap_or_default();
+            match attr(tag, "time").and_then(|s| s.parse::<f64>().ok()) {
+                Some(time) => {
+                    out.push(TestCase {
+                        classname,
+                        name,
+                        time,
+                    });
+                }
+                None => {
+                    return Err(format!(
+                        "testcase {classname}::{name} has no parseable `time` attribute — \
+                         JUnit report is malformed or a new testcase shape is missing timing data"
+                    ));
+                }
+            }
         }
+
         rest = &rest[end..];
     }
-    out
+    Ok(out)
 }
 
 /// Extract the value of `key="..."` from a single XML opening tag.
@@ -168,7 +241,7 @@ mod tests {
 
     #[test]
     fn parses_all_testcases_with_times() {
-        let cases = parse_testcases(SAMPLE);
+        let cases = parse_testcases(SAMPLE).unwrap();
         assert_eq!(cases.len(), 3);
         assert_eq!(cases[0].name, "fast_one");
         assert_eq!(cases[1].time, 42.0);
@@ -177,7 +250,7 @@ mod tests {
 
     #[test]
     fn detects_over_budget() {
-        let cases = parse_testcases(SAMPLE);
+        let cases = parse_testcases(SAMPLE).unwrap();
         let over: Vec<_> = cases.iter().filter(|c| c.time > 25.0).collect();
         assert_eq!(over.len(), 1);
         assert_eq!(over[0].classname, "gmeow-rdf::b");
@@ -198,10 +271,72 @@ mod tests {
     <testcase classname="gmeow-rdf::pkg" name="real_name" time="2.0"/>
   </testsuite>
 </testsuites>"#;
-        let cases = parse_testcases(xml);
+        let cases = parse_testcases(xml).unwrap();
         assert_eq!(cases.len(), 1);
         assert_eq!(cases[0].name, "real_name");
         assert_eq!(cases[0].classname, "gmeow-rdf::pkg");
         assert_eq!(cases[0].time, 2.0);
+    }
+
+    /// A testcase element with no `time` attribute must hard-fail, not silently drop.
+    #[test]
+    fn rejects_testcase_without_time() {
+        let xml = r#"<testsuites>
+  <testsuite name="gmeow-rdf">
+    <testcase name="no_time_test" classname="gmeow-rdf::x"></testcase>
+  </testsuite>
+</testsuites>"#;
+        let result = parse_testcases(xml);
+        assert!(result.is_err(), "expected Err for missing time, got Ok");
+        let msg = result.unwrap_err();
+        assert!(
+            msg.contains("no_time_test"),
+            "error message should name the offending testcase, got: {msg}"
+        );
+    }
+
+    /// `resolve_budget` with `NotPresent` (var unset) → default.
+    #[test]
+    fn resolve_budget_unset_gives_default() {
+        let result = resolve_budget(Err(VarError::NotPresent));
+        assert_eq!(result.unwrap(), DEFAULT_BUDGET_SECS);
+    }
+
+    /// `resolve_budget` with a valid positive value → that value.
+    #[test]
+    fn resolve_budget_valid_value() {
+        let result = resolve_budget(Ok("30.0".to_owned()));
+        assert_eq!(result.unwrap(), 30.0);
+    }
+
+    /// `resolve_budget` with an unparsable string → Err.
+    #[test]
+    fn resolve_budget_rejects_non_numeric() {
+        let result = resolve_budget(Ok("foo".to_owned()));
+        assert!(result.is_err(), "expected Err for non-parsable string");
+    }
+
+    /// `resolve_budget` with zero → Err.
+    #[test]
+    fn resolve_budget_rejects_zero() {
+        let result = resolve_budget(Ok("0".to_owned()));
+        assert!(result.is_err(), "expected Err for zero budget");
+    }
+
+    /// `resolve_budget` with a negative value → Err.
+    #[test]
+    fn resolve_budget_rejects_negative() {
+        let result = resolve_budget(Ok("-5".to_owned()));
+        assert!(result.is_err(), "expected Err for negative budget");
+    }
+
+    /// `resolve_budget` with NotUnicode → Err.
+    #[test]
+    fn resolve_budget_rejects_not_unicode() {
+        use std::ffi::OsString;
+        use std::os::unix::ffi::OsStringExt;
+        let bad = OsString::from_vec(vec![0xFF, 0xFE]);
+        let result = resolve_budget(Err(VarError::NotUnicode(bad)));
+        assert!(result.is_err(), "expected Err for non-UTF-8 var");
     }
 }
