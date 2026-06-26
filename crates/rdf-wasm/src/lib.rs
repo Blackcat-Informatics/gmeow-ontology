@@ -47,15 +47,17 @@ use wasm_bindgen::prelude::*;
 //   * `convert` — Quad/Term ↔ engine value space (QuadValues/TermValue)
 //   * `dataset` — the mutable RDF/JS DatasetCore over `MutableDataset`/`DatasetMut`
 //                 (parse/serialize/size/add/delete/has/match/quads)
-//   * `stream`  — the RDF/JS Stream/Sink over the `gmeow-rdf-events` protocol  [Task 4]
+//   * `stream`  — the RDF/JS Sink over the `gmeow-rdf-events` ingestion protocol
 mod codec;
 mod convert;
 mod dataset;
 mod factory;
+mod stream;
 mod term;
 
 pub use dataset::Dataset;
 pub use factory::DataFactory;
+pub use stream::Sink;
 pub use term::{Quad, Term};
 
 /// The purrdf engine version (the crate's SemVer), exposed to JS as `version()`.
