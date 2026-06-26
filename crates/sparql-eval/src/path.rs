@@ -37,6 +37,7 @@
 //! solution order is the dataset's `TermId` order over the frozen dataset — the
 //! same canonical discipline the rest of the evaluator follows.
 
+use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::rc::Rc;
 
@@ -48,6 +49,53 @@ use crate::error::EvalError;
 use crate::eval::EvalCtx;
 use crate::scratch::SolutionTerm;
 use crate::solution::{Solution, SolutionSeq, VarSchema};
+
+/// Excluded-predicate sets for every `NegatedPropertySet` in the path, resolved to
+/// dataset ids ONCE per `eval_path` call and keyed by the excluded slice's data
+/// pointer (stable for the immutable path AST).
+type NegatedCache = BTreeMap<usize, BTreeSet<TermId>>;
+
+/// The immutable, traversal-wide context shared by every `reach` recursion: the
+/// frozen dataset, the active graph match, and the once-resolved negated-set cache.
+/// Bundling these keeps the recursive path-evaluation signatures small.
+struct PathCtx<'a> {
+    dataset: &'a RdfDataset,
+    graph: GraphMatch,
+    cache: NegatedCache,
+}
+
+/// Build a `NegatedCache` by walking `path` once and pre-resolving every
+/// `NegatedPropertySet`'s excluded predicates to `TermId`s. The result is
+/// threaded through all `reach`/`closure`/`step_negated` calls so that IRI
+/// resolution is not repeated on every traversal step.
+fn build_negated_cache(path: &PropertyPathExpression, dataset: &RdfDataset) -> NegatedCache {
+    let mut cache = NegatedCache::new();
+    collect_negated(path, dataset, &mut cache);
+    cache
+}
+
+fn collect_negated(path: &PropertyPathExpression, dataset: &RdfDataset, cache: &mut NegatedCache) {
+    use PropertyPathExpression as P;
+    match path {
+        P::NegatedPropertySet(ps) => {
+            let key = ps.as_ptr() as usize;
+            cache.entry(key).or_insert_with(|| {
+                ps.iter()
+                    .filter_map(|p| dataset.term_id_by_value(&named_node_to_value(p)))
+                    .collect()
+            });
+        }
+        P::Reverse(i) | P::ZeroOrOne(i) | P::ZeroOrMore(i) | P::OneOrMore(i) => {
+            collect_negated(i, dataset, cache);
+        }
+        P::Range { inner, .. } => collect_negated(inner, dataset, cache),
+        P::Sequence(a, b) | P::Alternative(a, b) => {
+            collect_negated(a, dataset, cache);
+            collect_negated(b, dataset, cache);
+        }
+        P::NamedNode(_) | P::Wildcard { .. } => {}
+    }
+}
 
 /// Evaluate a property-path constraint `subject path object` to a multiset of
 /// solutions over its variable endpoint(s).
@@ -81,6 +129,13 @@ pub(crate) fn eval_path(
         return Ok(SolutionSeq::empty(Rc::new(schema)));
     };
 
+    // Pre-resolve all NegatedPropertySet excluded predicates once for this eval call.
+    let pctx = PathCtx {
+        dataset,
+        graph,
+        cache: build_negated_cache(path, dataset),
+    };
+
     let mut rows: Vec<Solution> = Vec::new();
     let push_pair = |rows: &mut Vec<Solution>, s_id: Option<TermId>, o_id: Option<TermId>| {
         let mut row = vec![None; width];
@@ -97,19 +152,19 @@ pub(crate) fn eval_path(
         // Both ground: an ASK-shaped membership test. The schema is empty, so a hit
         // is the unit solution (one row binding nothing) and a miss is no rows.
         (Endpoint::Bound(sid), Endpoint::Bound(oid)) => {
-            if reach(path, sid, true, dataset, graph).contains(&oid) {
+            if reach(path, sid, true, &pctx).contains(&oid) {
                 rows.push(vec![None; width]);
             }
         }
         // Subject ground, object variable: walk forward from the subject.
         (Endpoint::Bound(sid), Endpoint::Free { .. }) => {
-            for y in reach(path, sid, true, dataset, graph) {
+            for y in reach(path, sid, true, &pctx) {
                 push_pair(&mut rows, Some(sid), Some(y));
             }
         }
         // Object ground, subject variable: walk backward from the object.
         (Endpoint::Free { .. }, Endpoint::Bound(oid)) => {
-            for x in reach(path, oid, false, dataset, graph) {
+            for x in reach(path, oid, false, &pctx) {
                 push_pair(&mut rows, Some(x), Some(oid));
             }
         }
@@ -125,7 +180,7 @@ pub(crate) fn eval_path(
                 // traversal to discover whether x cycles back to itself.
                 let reflexive = path_is_reflexive(path);
                 for x in node_universe(dataset, graph) {
-                    if reflexive || reach(path, x, true, dataset, graph).contains(&x) {
+                    if reflexive || reach(path, x, true, &pctx).contains(&x) {
                         push_pair(&mut rows, Some(x), Some(x));
                     }
                 }
@@ -133,7 +188,7 @@ pub(crate) fn eval_path(
                 // PINNED: spec-mandated distinct-var enumeration — enumerate every node
                 // in the universe and materialise all forward reachability. DO NOT alter.
                 for x in node_universe(dataset, graph) {
-                    for y in reach(path, x, true, dataset, graph) {
+                    for y in reach(path, x, true, &pctx) {
                         push_pair(&mut rows, Some(x), Some(y));
                     }
                 }
@@ -217,46 +272,41 @@ fn reach(
     path: &PropertyPathExpression,
     node: TermId,
     forward: bool,
-    dataset: &RdfDataset,
-    graph: GraphMatch,
+    ctx: &PathCtx<'_>,
 ) -> BTreeSet<TermId> {
     use PropertyPathExpression as P;
     match path {
-        P::NamedNode(p) => step_predicate(p, node, forward, dataset, graph),
-        P::Reverse(inner) => reach(inner, node, !forward, dataset, graph),
+        P::NamedNode(p) => step_predicate(p, node, forward, ctx),
+        P::Reverse(inner) => reach(inner, node, !forward, ctx),
         P::Sequence(a, b) => {
             // Forward: step `a` then `b`. Backward (predecessors): step `b` then `a`,
             // each backward — so the composition order swaps with the direction.
             let (first, second): (&P, &P) = if forward { (a, b) } else { (b, a) };
             let mut out = BTreeSet::new();
-            for mid in reach(first, node, forward, dataset, graph) {
-                out.extend(reach(second, mid, forward, dataset, graph));
+            for mid in reach(first, node, forward, ctx) {
+                out.extend(reach(second, mid, forward, ctx));
             }
             out
         }
         P::Alternative(a, b) => {
-            let mut out = reach(a, node, forward, dataset, graph);
-            out.extend(reach(b, node, forward, dataset, graph));
+            let mut out = reach(a, node, forward, ctx);
+            out.extend(reach(b, node, forward, ctx));
             out
         }
         P::ZeroOrOne(inner) => {
-            let mut out = reach(inner, node, forward, dataset, graph);
+            let mut out = reach(inner, node, forward, ctx);
             out.insert(node); // the zero-length step is the identity
             out
         }
         P::ZeroOrMore(inner) => {
-            let mut out = closure(inner, node, forward, dataset, graph);
+            let mut out = closure(inner, node, forward, ctx);
             out.insert(node); // zero-length: every node reaches itself
             out
         }
-        P::OneOrMore(inner) => closure(inner, node, forward, dataset, graph),
-        P::Range { inner, min, max } => {
-            range_reach(inner, node, forward, *min, *max, dataset, graph)
-        }
-        P::NegatedPropertySet(ps) => step_negated(ps, node, forward, dataset, graph),
-        P::Wildcard { namespace } => {
-            step_wildcard(namespace.as_ref(), node, forward, dataset, graph)
-        }
+        P::OneOrMore(inner) => closure(inner, node, forward, ctx),
+        P::Range { inner, min, max } => range_reach(inner, node, forward, *min, *max, ctx),
+        P::NegatedPropertySet(ps) => step_negated(ps, node, forward, ctx),
+        P::Wildcard { namespace } => step_wildcard(namespace.as_ref(), node, forward, ctx),
     }
 }
 
@@ -292,19 +342,24 @@ fn step_predicate(
     p: &NamedNode,
     node: TermId,
     forward: bool,
-    dataset: &RdfDataset,
-    graph: GraphMatch,
+    ctx: &PathCtx<'_>,
 ) -> BTreeSet<TermId> {
-    let Some(pid) = dataset.term_id_by_value(&named_node_to_value(p)) else {
+    let Some(pid) = ctx.dataset.term_id_by_value(&named_node_to_value(p)) else {
         return BTreeSet::new();
     };
     let mut out = BTreeSet::new();
     if forward {
-        for q in dataset.quads_for_pattern(Some(node), Some(pid), None, graph) {
+        for q in ctx
+            .dataset
+            .quads_for_pattern(Some(node), Some(pid), None, ctx.graph)
+        {
             out.insert(q.o);
         }
     } else {
-        for q in dataset.quads_for_pattern(None, Some(pid), Some(node), graph) {
+        for q in ctx
+            .dataset
+            .quads_for_pattern(None, Some(pid), Some(node), ctx.graph)
+        {
             out.insert(q.s);
         }
     }
@@ -312,26 +367,29 @@ fn step_predicate(
 }
 
 /// `!(p1|…|pn)`: one hop along any predicate NOT in the excluded set.
+/// Uses the pre-resolved `cache` to avoid re-resolving excluded IRIs on every call.
 fn step_negated(
     excluded: &[NamedNode],
     node: TermId,
     forward: bool,
-    dataset: &RdfDataset,
-    graph: GraphMatch,
+    ctx: &PathCtx<'_>,
 ) -> BTreeSet<TermId> {
-    let excluded: BTreeSet<TermId> = excluded
-        .iter()
-        .filter_map(|p| dataset.term_id_by_value(&named_node_to_value(p)))
-        .collect();
+    let excluded = &ctx.cache[&(excluded.as_ptr() as usize)];
     let mut out = BTreeSet::new();
     if forward {
-        for q in dataset.quads_for_pattern(Some(node), None, None, graph) {
+        for q in ctx
+            .dataset
+            .quads_for_pattern(Some(node), None, None, ctx.graph)
+        {
             if !excluded.contains(&q.p) {
                 out.insert(q.o);
             }
         }
     } else {
-        for q in dataset.quads_for_pattern(None, None, Some(node), graph) {
+        for q in ctx
+            .dataset
+            .quads_for_pattern(None, None, Some(node), ctx.graph)
+        {
             if !excluded.contains(&q.p) {
                 out.insert(q.s);
             }
@@ -346,25 +404,32 @@ fn step_wildcard(
     namespace: Option<&NamedNode>,
     node: TermId,
     forward: bool,
-    dataset: &RdfDataset,
-    graph: GraphMatch,
+    ctx: &PathCtx<'_>,
 ) -> BTreeSet<TermId> {
     let prefix = namespace.map(NamedNode::as_str);
     let pred_ok = |pid: TermId| -> bool {
         match prefix {
             None => true,
-            Some(pfx) => matches!(dataset.resolve(pid), TermRef::Iri(iri) if iri.starts_with(pfx)),
+            Some(pfx) => {
+                matches!(ctx.dataset.resolve(pid), TermRef::Iri(iri) if iri.starts_with(pfx))
+            }
         }
     };
     let mut out = BTreeSet::new();
     if forward {
-        for q in dataset.quads_for_pattern(Some(node), None, None, graph) {
+        for q in ctx
+            .dataset
+            .quads_for_pattern(Some(node), None, None, ctx.graph)
+        {
             if pred_ok(q.p) {
                 out.insert(q.o);
             }
         }
     } else {
-        for q in dataset.quads_for_pattern(None, None, Some(node), graph) {
+        for q in ctx
+            .dataset
+            .quads_for_pattern(None, None, Some(node), ctx.graph)
+        {
             if pred_ok(q.p) {
                 out.insert(q.s);
             }
@@ -381,20 +446,17 @@ fn closure(
     inner: &PropertyPathExpression,
     node: TermId,
     forward: bool,
-    dataset: &RdfDataset,
-    graph: GraphMatch,
+    ctx: &PathCtx<'_>,
 ) -> BTreeSet<TermId> {
     let mut result = BTreeSet::new();
     let mut visited = BTreeSet::new();
-    let mut frontier: Vec<TermId> = reach(inner, node, forward, dataset, graph)
-        .into_iter()
-        .collect();
+    let mut frontier: Vec<TermId> = reach(inner, node, forward, ctx).into_iter().collect();
     while let Some(n) = frontier.pop() {
         if !visited.insert(n) {
             continue;
         }
         result.insert(n);
-        for next in reach(inner, n, forward, dataset, graph) {
+        for next in reach(inner, n, forward, ctx) {
             if !visited.contains(&next) {
                 frontier.push(next);
             }
@@ -411,21 +473,20 @@ fn closure_multi(
     inner: &PropertyPathExpression,
     seeds: &BTreeSet<TermId>,
     forward: bool,
-    dataset: &RdfDataset,
-    graph: GraphMatch,
+    ctx: &PathCtx<'_>,
 ) -> BTreeSet<TermId> {
     let mut result = BTreeSet::new();
     let mut visited = BTreeSet::new();
     let mut frontier: Vec<TermId> = Vec::new();
     for &s in seeds {
-        frontier.extend(reach(inner, s, forward, dataset, graph));
+        frontier.extend(reach(inner, s, forward, ctx));
     }
     while let Some(n) = frontier.pop() {
         if !visited.insert(n) {
             continue;
         }
         result.insert(n);
-        for next in reach(inner, n, forward, dataset, graph) {
+        for next in reach(inner, n, forward, ctx) {
             if !visited.contains(&next) {
                 frontier.push(next);
             }
@@ -445,8 +506,7 @@ fn range_reach(
     forward: bool,
     min: u32,
     max: Option<u32>,
-    dataset: &RdfDataset,
-    graph: GraphMatch,
+    ctx: &PathCtx<'_>,
 ) -> BTreeSet<TermId> {
     let mut out = BTreeSet::new();
     // `current` = nodes reachable in exactly `k` applications; k starts at 0.
@@ -460,7 +520,7 @@ fn range_reach(
             None if k >= min => {
                 // Unbounded tail: `*`-close from the exactly-`min` frontier in a
                 // single joint traversal (avoids redundant per-seed re-traversal).
-                out.extend(closure_multi(inner, &current, forward, dataset, graph));
+                out.extend(closure_multi(inner, &current, forward, ctx));
                 break;
             }
             _ => {}
@@ -470,7 +530,7 @@ fn range_reach(
         }
         let mut next = BTreeSet::new();
         for n in &current {
-            next.extend(reach(inner, *n, forward, dataset, graph));
+            next.extend(reach(inner, *n, forward, ctx));
         }
         current = next;
     }
@@ -576,7 +636,12 @@ mod tests {
         let sid = ds
             .term_id_by_value(&named_node_to_value(&nn(start)))
             .expect("start present");
-        let mut v: Vec<String> = reach(path, sid, forward, ds, GraphMatch::Default)
+        let pctx = PathCtx {
+            dataset: ds,
+            graph: GraphMatch::Default,
+            cache: build_negated_cache(path, ds),
+        };
+        let mut v: Vec<String> = reach(path, sid, forward, &pctx)
             .into_iter()
             .map(|id| local_of(ds, id))
             .collect();
@@ -921,5 +986,19 @@ mod tests {
             seq.rows.iter().map(|r| r[0]).collect()
         };
         assert_eq!(ids(&first), ids(&second));
+    }
+
+    // ---- negated property set under transitive closure (Gap F) -------------
+
+    #[test]
+    fn negated_under_one_or_more() {
+        // Graph: a -r-> b -r-> c, a -p-> x.
+        // !(:p)+ from a: the negated step excludes :p so from a it follows :r to b,
+        // then from b it follows :r to c. The :p edge is never followed.
+        // Expected: {b, c}.
+        let ds = graph_of(&[("a", "r", "b"), ("b", "r", "c"), ("a", "p", "x")]);
+        let neg = PropertyPathExpression::NegatedPropertySet(vec![nn("p")]);
+        let plus = PropertyPathExpression::OneOrMore(Box::new(neg));
+        assert_eq!(reach_locals(&ds, &plus, "a", true), vec!["b", "c"]);
     }
 }
