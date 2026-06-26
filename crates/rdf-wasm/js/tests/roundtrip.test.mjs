@@ -230,3 +230,103 @@ test("RDF-1.2 — directional literal: parse then factory-built has() (cross-pat
     "a plain langString literal must NOT match a directional one (RDF-1.2 distinguishes them)",
   );
 });
+
+// --- RDF/JS spec conformance: Term.equals and Quad.equals with null/undefined ---
+
+test("Term.equals(null) returns false (RDF/JS spec)", () => {
+  const f = new DataFactory();
+  const n = f.namedNode("https://e/s");
+  assert.equal(n.equals(null), false, "Term.equals(null) must return false");
+});
+
+test("Term.equals(undefined) returns false (RDF/JS spec)", () => {
+  const f = new DataFactory();
+  const n = f.namedNode("https://e/s");
+  assert.equal(n.equals(undefined), false, "Term.equals(undefined) must return false");
+});
+
+test("Term.equals sanity: same term is true, different term is false", () => {
+  const f = new DataFactory();
+  const a = f.namedNode("https://e/x");
+  const b = f.namedNode("https://e/x");
+  const c = f.namedNode("https://e/y");
+  assert.equal(a.equals(b), true, "Term.equals(sameTerm) must be true");
+  assert.equal(a.equals(c), false, "Term.equals(differentTerm) must be false");
+});
+
+test("Quad.equals(null) returns false (RDF/JS spec)", () => {
+  const f = new DataFactory();
+  const q = f.quad(
+    f.namedNode("https://e/s"),
+    f.namedNode("https://e/p"),
+    f.namedNode("https://e/o"),
+  );
+  assert.equal(q.equals(null), false, "Quad.equals(null) must return false");
+});
+
+test("Quad.equals(undefined) returns false (RDF/JS spec)", () => {
+  const f = new DataFactory();
+  const q = f.quad(
+    f.namedNode("https://e/s"),
+    f.namedNode("https://e/p"),
+    f.namedNode("https://e/o"),
+  );
+  assert.equal(q.equals(undefined), false, "Quad.equals(undefined) must return false");
+});
+
+test("Quad.equals sanity: same quad is true, different quad is false", () => {
+  const f = new DataFactory();
+  const q1 = f.quad(
+    f.namedNode("https://e/s"),
+    f.namedNode("https://e/p"),
+    f.namedNode("https://e/o"),
+  );
+  const q2 = f.quad(
+    f.namedNode("https://e/s"),
+    f.namedNode("https://e/p"),
+    f.namedNode("https://e/o"),
+  );
+  const q3 = f.quad(
+    f.namedNode("https://e/s"),
+    f.namedNode("https://e/p"),
+    f.namedNode("https://e/DIFFERENT"),
+  );
+  assert.equal(q1.equals(q2), true, "Quad.equals(sameQuad) must be true");
+  assert.equal(q1.equals(q3), false, "Quad.equals(differentQuad) must be false");
+});
+
+// NON-CONSUMPTION regression: a comparison MUST NOT consume its argument. If equals()
+// takes a #[wasm_bindgen] struct BY VALUE, the generated glue moves the object into Rust
+// and zeroes the JS handle — any later use of the argument throws "null pointer passed to
+// rust". RDF/JS comparison must be read-only; the argument must remain fully usable after.
+test("Term.equals does not consume its argument", () => {
+  const f = new DataFactory();
+  const a = f.namedNode("https://e/x");
+  const b = f.namedNode("https://e/x");
+  assert.equal(a.equals(b), true);
+  // b MUST still be usable after being passed to equals().
+  assert.equal(b.value, "https://e/x", "b.value must work after a.equals(b)");
+  assert.equal(b.termType, "NamedNode", "b.termType must work after a.equals(b)");
+  assert.equal(b.equals(a), true, "b.equals(a) must work after a.equals(b)");
+});
+
+test("Quad.equals does not consume its argument", () => {
+  const f = new DataFactory();
+  const qa = f.quad(
+    f.namedNode("https://e/s"),
+    f.namedNode("https://e/p"),
+    f.namedNode("https://e/o"),
+  );
+  const qb = f.quad(
+    f.namedNode("https://e/s"),
+    f.namedNode("https://e/p"),
+    f.namedNode("https://e/o"),
+  );
+  assert.equal(qa.equals(qb), true);
+  // qb MUST still be usable after being passed to equals() — read accessors AND
+  // dataset insertion (a second downstream consumer of the same handle).
+  assert.equal(qb.subject.value, "https://e/s", "qb.subject must work after qa.equals(qb)");
+  assert.equal(qb.equals(qa), true, "qb.equals(qa) must work after qa.equals(qb)");
+  const ds = new Dataset();
+  assert.equal(ds.add(qb), true, "dataset.add(qb) must succeed after qa.equals(qb)");
+});

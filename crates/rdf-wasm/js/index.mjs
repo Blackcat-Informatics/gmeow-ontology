@@ -52,6 +52,22 @@ export async function ready(wasmBytesOrUrl) {
     };
   }
 
+  // RDF/JS spec: Term.equals(other) / Quad.equals(other) MUST return false when `other`
+  // is null or undefined — "Returns false if other is undefined or null." The wasm
+  // `equals` takes a borrowed `&Term`/`&Quad` (non-consuming — the argument stays usable
+  // afterwards), but wasm-bindgen throws on a null borrow, so the null/undefined guard is
+  // applied here, one layer out (the same boundary where the polymorphic literal() lives).
+  for (const Klass of [Term, Quad]) {
+    if (!Klass.prototype.__purrdfNullSafeEquals) {
+      const wasmEquals = Klass.prototype.equals;
+      Klass.prototype.equals = function (other) {
+        if (other === null || other === undefined) return false;
+        return wasmEquals.call(this, other);
+      };
+      Klass.prototype.__purrdfNullSafeEquals = true;
+    }
+  }
+
   // Present the RDF/JS-spec polymorphic literal(value, languageOrDatatype). The wasm
   // method takes `(value, language?)`; a NamedNode second argument is a datatype.
   if (!DataFactory.prototype.__purrdfPolymorphicLiteral) {
