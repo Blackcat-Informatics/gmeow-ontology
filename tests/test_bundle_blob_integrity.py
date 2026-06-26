@@ -8,8 +8,8 @@ named RDF graphs alone and folded ZERO content-addressed blobs: every wheel-mode
 consumer archive (``mappings``/``cells``/``queries``/``tests``) vanished, and all
 75 per-slice ``gmeow:guideBlob`` reference triples dangled with no backing blob.
 Nothing caught it: ``docs_model_golden`` snapshots only a term count, and the one
-test that exercised real bundle output (``test_create_docs_from_bundled_snapshot``)
-was red and being bypassed.
+test that exercised real bundle output
+(``test_extract_docs_unpacks_site_from_bundled_snapshot``) was red and being bypassed.
 
 These two assertions ARE that missing coverage — they read the committed bundle
 through the same loaders the wheel-mode tools use and fail loudly if the blob

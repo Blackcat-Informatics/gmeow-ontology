@@ -37,8 +37,10 @@ fn model() -> DocsModel {
 }
 
 /// A deterministic, fully-populated term: the first by (curie, iri) sort that is
-/// a Property carrying a definition, at least one parent, and a domain + range,
-/// so the term page exercises every section.
+/// a Property carrying a definition, at least one parent, and a domain + range.
+/// Among those, prefer one that ALSO carries usage advice and a per-term
+/// alignment, so the golden exercises every term-page section (Usage Advice +
+/// Alignments included). Falls back through advice-only, then any.
 fn fully_populated_term_slug(model: &DocsModel) -> String {
     let mut candidates: Vec<&gmeow_docs::DocTerm> = model
         .terms
@@ -52,8 +54,24 @@ fn fully_populated_term_slug(model: &DocsModel) -> String {
         })
         .collect();
     candidates.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
+
+    let has_advice = |t: &gmeow_docs::DocTerm| {
+        !t.scope_notes.is_empty()
+            || !t.examples.is_empty()
+            || !t.use_when.is_empty()
+            || !t.avoid_when.is_empty()
+            || !t.how_to_use.is_empty()
+            || !t.use_for_consumer.is_empty()
+            || !t.avoid_for_consumer.is_empty()
+    };
+    let has_align = |t: &gmeow_docs::DocTerm| model.linkages.iter().any(|l| l.subject == t.iri);
+
     let term = candidates
-        .first()
+        .iter()
+        .find(|t| has_advice(t) && has_align(t))
+        .or_else(|| candidates.iter().find(|t| has_advice(t)))
+        .or_else(|| candidates.first())
+        .copied()
         .expect("at least one fully-populated property term exists");
     term_slug(term)
 }
