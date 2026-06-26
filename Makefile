@@ -59,7 +59,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	native-py validate validate-gts reason verify test test-fast rust-build rust-test check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene wasm \
+	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene wasm wasm-pkg wasm-pkg-test \
 	capi-build capi-header capi-check capi-install \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
@@ -382,6 +382,27 @@ wasm: ## Build the purrdf wasm engine (P10, #846) for wasm32-unknown-unknown.
 	else \
 		echo "SKIP: wasm32-unknown-unknown target not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' to enable the purrdf wasm build"; \
 	fi
+
+wasm-pkg: ## Build the purrdf npm/ESM package (release wasm + wasm-bindgen web bindings).
+	@# Release-build the cdylib, then run `wasm-bindgen` (pinned =0.2.125, matching the
+	@# crate) to emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
+	@# `~/.cargo/bin` carries the cli on both CI runners and local dev installs.
+	cargo build -p gmeow-rdf-wasm --target wasm32-unknown-unknown --release
+	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
+		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_rdf_wasm.wasm \
+		--out-dir crates/rdf-wasm/js/pkg --target web
+	@# Size optimization is best-effort: wasm-opt -Oz roughly halves the artifact, but
+	@# the package is correct without it. Absence is a note, not a failure.
+	@if command -v wasm-opt >/dev/null 2>&1; then \
+		wasm-opt -Oz -o crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm && \
+		echo "OK: wasm-opt -Oz applied"; \
+	else \
+		echo "note: wasm-opt not found — shipping unoptimized wasm (size-opt is a follow-up)"; \
+	fi
+	@echo "OK: purrdf npm package built (crates/rdf-wasm/js/, pkg/ generated)"
+
+wasm-pkg-test: wasm-pkg ## Build the purrdf package and run the Node real-execution round-trip lane.
+	cd crates/rdf-wasm/js && node --test tests/*.test.mjs
 
 slicetest: ## Run the slice-resident test-DSL harness in isolation.
 	cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)
