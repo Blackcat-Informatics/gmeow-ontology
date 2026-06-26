@@ -61,3 +61,15 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 filter = 'package(gmeow-logic) & binary(ontology_entailments)'
 test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# Full-snapshot round-trip tests decode the ~9.3 MB committed `gmeow.gts` and
+# re-emit / extract it back through the native gmeow-gts codecs (#909). A
+# whole-bundle native round-trip is ~80-100s locally and tips past the 120s
+# default terminate cliff under CI load (the native codec round-trip is heavier
+# than the retired oxigraph path). They are codec / I-O-bound — NOT engine-bound —
+# so they stay OUTSIDE the `engine` memory group (no OOM risk) but need a longer
+# terminate cliff: `gts_sink::sink_re_emits_the_snapshot_bytes_verbatim`
+# (re-emits the whole snapshot) and the `gmeow-docs` extract round-trip suite.
+filter = '(package(gmeow-pipeline) & test(/gts_sink/)) | (package(gmeow-docs) & binary(extract_roundtrip))'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
