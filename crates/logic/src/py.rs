@@ -472,13 +472,14 @@ fn query(
 
 /// Evaluate the OntoUML *foundation* disciplines natively (issue #636).
 ///
-/// Native Rust port of the Python foundation oracle
-/// (`gmeow_tools.logic_foundation` + the `enable_naf` materializer path).  Parses
+/// Native canonical evaluator for the OntoUML *foundation* disciplines (issue #636).
+/// (The Python foundation oracle — `logic_foundation.py` plus the `enable_naf`
+/// materializer path of `logic_materialize.py` — was retired in #636/#497.)  Parses
 /// `input` N-Quads into a world-indexed [`WorldStore`] (named graphs = worlds),
 /// runs the stratified semi-naive chase plus the cross-world rigidity and
 /// anti-rigidity post-passes, and returns the asserted + derived quads as Python
-/// dicts.  Provenance (reifier + derivation IDs) is byte-identical to the oracle
-/// (see [`crate::foundation`]).
+/// dicts.  Provenance (reifier + derivation IDs) follows the canonical contract
+/// defined in [`crate::foundation`].
 ///
 /// # Arguments
 ///
@@ -552,10 +553,10 @@ fn foundation(
 ///
 /// Reconstructs the derivation tree for every quad in `quads` (one explanation per
 /// input quad, IN INPUT ORDER) and returns the cited-IRI skeleton — the conformance
-/// surface.  This is the byte-faithful Rust port of the retired Python explanation
-/// oracle (`gmeow_tools.logic_explain`); prose rendering is intentionally not
-/// reproduced (the runner compares only `cited_iris` and matches by
-/// `target_quad_reifier`).
+/// surface.  This is the canonical native explanation reconstruction; the Python
+/// explanation oracle (`logic_explain.py`) was retired in #497.  Prose rendering is
+/// intentionally not reproduced (the runner compares only `cited_iris` and matches
+/// by `target_quad_reifier`).
 ///
 /// # Arguments
 ///

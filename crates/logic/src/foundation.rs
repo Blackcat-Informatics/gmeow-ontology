@@ -3,22 +3,23 @@
 
 //! Native Rust evaluator for the OntoUML *foundation* disciplines (issue #636).
 //!
-//! This module is the byte-faithful Rust port of the Python *foundation oracle*
-//! (`gmeow_tools.logic_foundation` + the `enable_naf` path of
-//! `gmeow_tools.logic_materialize._chase_world`).  It lowers five OntoUML
+//! This module is the **canonical** native evaluator for the OntoUML *foundation*
+//! disciplines.  (The Python foundation oracle that preceded it —
+//! `logic_foundation.py` plus the `enable_naf` chase path of
+//! `logic_materialize.py` — was retired in #636/#497.)  It lowers five OntoUML
 //! structural disciplines into a small stratified Datalog program with
 //! negation-as-failure and inequality guards, runs that program *per world* as a
 //! semi-naive chase, and then applies two cross-world post-passes (positive
 //! cross-world rigidity and the anti-rigidity witness policy).
 //!
-//! # Parity is the whole point
+//! # Canonical evaluation contract
 //!
 //! The materialized quad *set* alone is not enough: the explanation goldens are
 //! content-addressed by **derivation IRIs**, and a derivation IRI is
 //! `mint_derivation_id(rule_iri, sorted(source_reifiers))`.  For a quad derivable
-//! by more than one rule firing, the Python oracle records the **first** firing
-//! under its evaluation order (first-wins dedup).  To reproduce the same
-//! derivation IRIs by construction this evaluator mirrors that order exactly:
+//! by more than one rule firing, this crate records the **first** firing under its
+//! evaluation order (first-wins dedup).  The following ordering constraints are
+//! this crate's normative contract:
 //!
 //! 1. **Stratum order** — the foundation rules are partitioned into the same five
 //!    strata the certifier's `stratify` produces (helpers/markers before the
