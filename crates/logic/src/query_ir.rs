@@ -36,27 +36,122 @@ pub enum QTerm {
     Const(String),
     /// A logic variable name, e.g. `X`, `_Y`.
     Var(String),
+    /// An integer literal term (arithmetic operand), e.g. `0`, `1` (#1009 G2a).
+    ///
+    /// Distinct from `Const("\"0\"^^<…#integer>")`: a `Num` is a *bare* arithmetic
+    /// operand that Scryer's native `is`/comparison evaluates, never a quoted atom.
+    Num(i64),
 }
 
-/// A binary predicate atom over RDF.
+/// A predicate atom over RDF (or an n-ary IDB predicate).
 ///
-/// `pred(Subject, Object)` maps to the triple `(Subject, predIRI, Object)`.
-/// `pred` is the bare IRI string (no angle brackets); `args` always has length 2.
+/// `pred(Subject, Object)` maps to the triple `(Subject, predIRI, Object)`. EDB
+/// (RDF) atoms are binary; IDB predicates may have any arity ≥ 1 (e.g. `get/3`
+/// for list indexing — #1009 G2a). `pred` is the bare IRI string (no angle brackets).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QAtom {
     /// Bare IRI string for the predicate (no angle brackets).
     pub pred: String,
-    /// Exactly two terms: `[subject, object]`.
+    /// The argument terms (≥ 1). Binary EDB atoms carry `[subject, object]`.
     pub args: Vec<QTerm>,
 }
 
-/// A body literal in a rule: either a predicate atom or the cut marker.
+/// A body literal in a rule: a predicate atom, the cut marker, or an arithmetic /
+/// comparison builtin (#1009 G2a, `logic:builtinArithmetic`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum QBodyLit {
     /// A normal predicate atom.
     Atom(QAtom),
     /// The Prolog cut `!`. Procedural — not supported by the declarative oracle.
     Cut,
+    /// An arithmetic (`X is Y op Z`) or comparison (`L cmp R`) builtin.
+    ///
+    /// Gated to `ProceduralPrologProfile` (per `slices/core/logic/module.ttl`) and
+    /// evaluated SOLELY by the Scryer engine (the declarative oracle rejects it, as
+    /// it does cut). Used to compute over `rdf:first`/`rdf:rest` chains.
+    Builtin(QBuiltin),
+}
+
+/// An arithmetic or comparison builtin (bounded — no recursive expression AST).
+///
+/// Operands are `QTerm` (`Var` or `Num`; a `Const` IRI is invalid in arithmetic
+/// but is serialized verbatim — Scryer raises an error only if it is ever reached,
+/// which never happens for well-formed list programs).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum QBuiltin {
+    /// `target is lhs op rhs` — arithmetic evaluation (op ∈ `+ - * //`).
+    Is {
+        /// The variable (or operand) that receives the computed value.
+        target: QTerm,
+        /// Left arithmetic operand.
+        lhs: QTerm,
+        /// The arithmetic operator.
+        op: ArithOp,
+        /// Right arithmetic operand.
+        rhs: QTerm,
+    },
+    /// `lhs cmp rhs` — arithmetic comparison (cmp ∈ `> < >= =< =:=`).
+    Compare {
+        /// Left comparison operand.
+        lhs: QTerm,
+        /// The comparison operator.
+        op: CmpOp,
+        /// Right comparison operand.
+        rhs: QTerm,
+    },
+}
+
+/// Arithmetic operators recognized in `X is Y op Z` builtins.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ArithOp {
+    /// Addition (`+`).
+    Add,
+    /// Subtraction (`-`).
+    Sub,
+    /// Multiplication (`*`).
+    Mul,
+    /// Integer division (`//`).
+    Div,
+}
+
+impl ArithOp {
+    /// The native Prolog infix token for this operator.
+    pub fn token(self) -> &'static str {
+        match self {
+            ArithOp::Add => "+",
+            ArithOp::Sub => "-",
+            ArithOp::Mul => "*",
+            ArithOp::Div => "//",
+        }
+    }
+}
+
+/// Comparison operators recognized in `L cmp R` builtins.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CmpOp {
+    /// Greater than (`>`).
+    Gt,
+    /// Less than (`<`).
+    Lt,
+    /// Greater than or equal (`>=`).
+    Ge,
+    /// Less than or equal (`=<`).
+    Le,
+    /// Arithmetic equality (`=:=`).
+    Eq,
+}
+
+impl CmpOp {
+    /// The native Prolog infix token for this comparison.
+    pub fn token(self) -> &'static str {
+        match self {
+            CmpOp::Gt => ">",
+            CmpOp::Lt => "<",
+            CmpOp::Ge => ">=",
+            CmpOp::Le => "=<",
+            CmpOp::Eq => "=:=",
+        }
+    }
 }
 
 /// A rule: `head :- body1, body2, ... .`  or a fact `head.` (empty body).
@@ -789,7 +884,14 @@ fn find_neck(s: &str) -> Option<usize> {
 
 // ── Body literal list ─────────────────────────────────────────────────────────
 
-/// Parse a comma-separated list of body literals (atoms or `!`).
+/// Parse a comma-separated list of body literals (atoms, `!`, or builtins).
+///
+/// Builtins are detected BEFORE the `parse_atom` fallback. A builtin token has no
+/// outer `pred(...)` parens; an atom does — that disambiguates robustly:
+/// - `!`                              → [`QBodyLit::Cut`].
+/// - `target is lhs op rhs`           → [`QBuiltin::Is`] (op ∈ `+ - * //`).
+/// - `lhs cmp rhs` (no `name(...)`)   → [`QBuiltin::Compare`] (cmp ∈ `> < >= =< =:=`).
+/// - otherwise                        → [`QBodyLit::Atom`].
 fn parse_body_lit_list(
     s: &str,
     prefixes: &BTreeMap<String, String>,
@@ -800,11 +902,139 @@ fn parse_body_lit_list(
             let tok = tok.trim();
             if tok == "!" {
                 Ok(QBodyLit::Cut)
+            } else if let Some(builtin) = try_parse_builtin(tok, prefixes)? {
+                Ok(QBodyLit::Builtin(builtin))
             } else {
                 parse_atom(tok, prefixes).map(QBodyLit::Atom)
             }
         })
         .collect()
+}
+
+/// Attempt to parse `tok` as an arithmetic or comparison builtin.
+///
+/// Returns `Ok(Some(_))` if `tok` is a builtin, `Ok(None)` if it is an ordinary
+/// atom (a `pred(...)` form), or `Err` if it looks like a builtin but is malformed.
+fn try_parse_builtin(
+    tok: &str,
+    prefixes: &BTreeMap<String, String>,
+) -> Result<Option<QBuiltin>, String> {
+    // `X is Y op Z` — the ` is ` infix (with surrounding spaces) is unambiguous.
+    if let Some(is_pos) = find_infix_top(tok, " is ") {
+        let target_str = tok[..is_pos].trim();
+        let rhs_str = tok[is_pos + 4..].trim();
+        let target = parse_term(target_str, prefixes)?;
+        // Split RHS on the arithmetic operator (multi-char `//` checked first).
+        let (lhs_str, op, rhs_op_str) = split_arith(rhs_str)
+            .ok_or_else(|| format!("malformed arithmetic builtin RHS {rhs_str:?} in {tok:?}"))?;
+        let lhs = parse_term(lhs_str.trim(), prefixes)?;
+        let rhs = parse_term(rhs_op_str.trim(), prefixes)?;
+        return Ok(Some(QBuiltin::Is {
+            target,
+            lhs,
+            op,
+            rhs,
+        }));
+    }
+
+    // `L cmp R` — only when `tok` is NOT a `pred(...)` atom (atoms own outer parens).
+    // Multi-char comparison operators are checked FIRST so `>=`/`=<`/`=:=` are not
+    // mistaken for `>`/`<`/`=`.
+    if !is_atom_shaped(tok) {
+        if let Some((lhs_str, op, rhs_str)) = split_compare(tok) {
+            let lhs = parse_term(lhs_str.trim(), prefixes)?;
+            let rhs = parse_term(rhs_str.trim(), prefixes)?;
+            return Ok(Some(QBuiltin::Compare { lhs, op, rhs }));
+        }
+    }
+
+    Ok(None)
+}
+
+/// Find a top-level (not inside parens/quotes) occurrence of `needle` in `s`.
+fn find_infix_top(s: &str, needle: &str) -> Option<usize> {
+    let bytes = s.as_bytes();
+    let needle_bytes = needle.as_bytes();
+    let mut depth = 0usize;
+    let mut i = 0;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'\'' => {
+                i += 1;
+                while i < bytes.len() && bytes[i] != b'\'' {
+                    if bytes[i] == b'\\' {
+                        i += 1;
+                    }
+                    i += 1;
+                }
+                i += 1;
+            }
+            b'(' => {
+                depth += 1;
+                i += 1;
+            }
+            b')' => {
+                depth = depth.saturating_sub(1);
+                i += 1;
+            }
+            _ if depth == 0 && bytes[i..].starts_with(needle_bytes) => {
+                return Some(i);
+            }
+            _ => {
+                i += 1;
+            }
+        }
+    }
+    None
+}
+
+/// `true` if `tok` is shaped like an atom `name(...)` — has an opening paren and
+/// ends with `)`. Builtins never have an outer `pred(...)` wrapper.
+fn is_atom_shaped(tok: &str) -> bool {
+    let tok = tok.trim();
+    tok.ends_with(')') && tok.contains('(')
+}
+
+/// Split an arithmetic RHS `lhs op rhs` on the first top-level arithmetic operator.
+/// `//` is checked before `/`-family single chars; returns `(lhs, op, rhs)`.
+fn split_arith(s: &str) -> Option<(&str, ArithOp, &str)> {
+    // Multi-char first.
+    if let Some(pos) = find_infix_top(s, "//") {
+        return Some((&s[..pos], ArithOp::Div, &s[pos + 2..]));
+    }
+    // Single-char operators. `-` is searched as ` - ` (spaces) to avoid colliding
+    // with a leading sign; `+ * ` likewise require surrounding context only loosely.
+    for (tok, op) in [
+        ("+", ArithOp::Add),
+        ("*", ArithOp::Mul),
+        ("-", ArithOp::Sub),
+    ] {
+        if let Some(pos) = find_infix_top(s, tok) {
+            // Skip a leading-sign `-`/`+` (operator at position 0 with no LHS).
+            if pos == 0 {
+                continue;
+            }
+            return Some((&s[..pos], op, &s[pos + tok.len()..]));
+        }
+    }
+    None
+}
+
+/// Split a comparison `lhs cmp rhs` on the first top-level comparison operator.
+/// Multi-char operators (`>=`, `=<`, `=:=`) are checked before single chars.
+fn split_compare(s: &str) -> Option<(&str, CmpOp, &str)> {
+    for (tok, op) in [
+        ("=:=", CmpOp::Eq),
+        (">=", CmpOp::Ge),
+        ("=<", CmpOp::Le),
+        (">", CmpOp::Gt),
+        ("<", CmpOp::Lt),
+    ] {
+        if let Some(pos) = find_infix_top(s, tok) {
+            return Some((&s[..pos], op, &s[pos + tok.len()..]));
+        }
+    }
+    None
 }
 
 /// Parse a comma-separated list of atoms (for `?-` goal).
@@ -860,10 +1090,11 @@ fn split_comma_top(s: &str) -> Vec<&str> {
 
 // ── Atom parser ───────────────────────────────────────────────────────────────
 
-/// Parse a single atom `pred(SubjTerm, ObjTerm)`.
+/// Parse a single atom `pred(Arg0, Arg1, ...)`.
 ///
 /// The predicate may be a prefixed name (`ex:foo`) or a single-quoted IRI
-/// (`'https://...'`).  Args must be exactly two terms.
+/// (`'https://...'`). Args are one or more terms (binary EDB RDF atoms carry two;
+/// n-ary IDB predicates like `get/3` carry more — #1009 G2a).
 fn parse_atom(s: &str, prefixes: &BTreeMap<String, String>) -> Result<QAtom, String> {
     let s = s.trim();
     // Find the opening paren.
@@ -882,11 +1113,8 @@ fn parse_atom(s: &str, prefixes: &BTreeMap<String, String>) -> Result<QAtom, Str
     let pred = strip_angle_brackets(&pred);
 
     let arg_tokens = split_comma_top(args_str);
-    if arg_tokens.len() != 2 {
-        return Err(format!(
-            "atom {s:?} has {} args; expected exactly 2",
-            arg_tokens.len()
-        ));
+    if arg_tokens.is_empty() {
+        return Err(format!("atom {s:?} has no args; expected at least 1"));
     }
 
     let args: Vec<QTerm> = arg_tokens
@@ -910,6 +1138,12 @@ fn parse_term(s: &str, prefixes: &BTreeMap<String, String>) -> Result<QTerm, Str
     let first = s.chars().next().unwrap();
     if first.is_uppercase() || first == '_' {
         return Ok(QTerm::Var(s.to_owned()));
+    }
+
+    // Integer literal: a bare `i64` arithmetic operand (#1009 G2a). Checked before
+    // the prefixed-name branch so `0`/`1`/`-1` are numbers, not failed IRIs.
+    if let Ok(n) = s.parse::<i64>() {
+        return Ok(QTerm::Num(n));
     }
 
     // Single-quoted full IRI: `'https://...'`
@@ -988,7 +1222,7 @@ impl QBodyLit {
     pub fn into_atom(self) -> Option<QAtom> {
         match self {
             QBodyLit::Atom(a) => Some(a),
-            QBodyLit::Cut => None,
+            QBodyLit::Cut | QBodyLit::Builtin(_) => None,
         }
     }
 }
@@ -1155,13 +1389,83 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
     }
 
     #[test]
-    fn reject_atom_wrong_arity() {
-        let result = parse_query_program(
+    fn parse_ternary_atom_is_accepted() {
+        // Arity is now arbitrary (≥1): n-ary IDB predicates like get/3 are valid
+        // (#1009 G2a). EDB RDF atoms remain binary naturally.
+        let prog = parse_query_program(
             ":- prefix(ex, 'https://example.org/').\n\
              ex:p(ex:a, ex:b, ex:c).\n\
-             ?- ex:p(ex:a, ex:b).\n",
-        );
-        assert!(result.is_err(), "must reject atom with arity != 2");
+             ?- ex:p(ex:a, ex:b, ex:c).\n",
+        )
+        .unwrap();
+        assert_eq!(prog.rules[0].head.args.len(), 3);
+        assert_eq!(prog.goal.atoms[0].args.len(), 3);
+    }
+
+    // ── Arithmetic / comparison builtin parsing (#1009 G2a) ───────────────────
+
+    #[test]
+    fn parse_is_arith_builtin_roundtrip() {
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ex:len(L, N) :- ex:rest(L, R), ex:len(R, M), N is M + 1.\n\
+             ?- ex:len(ex:l0, N).\n",
+        )
+        .unwrap();
+        let body = &prog.rules[0].body;
+        assert_eq!(body.len(), 3, "two atoms + one builtin");
+        match &body[2] {
+            QBodyLit::Builtin(QBuiltin::Is {
+                target,
+                lhs,
+                op,
+                rhs,
+            }) => {
+                assert_eq!(*target, QTerm::Var("N".to_owned()));
+                assert_eq!(*lhs, QTerm::Var("M".to_owned()));
+                assert_eq!(*op, ArithOp::Add);
+                assert_eq!(*rhs, QTerm::Num(1));
+            }
+            other => panic!("expected Is builtin, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_compare_builtin_roundtrip() {
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ex:pos(L, N, X) :- N > 0, ex:rest(L, X).\n\
+             ?- ex:pos(ex:l0, 1, X).\n",
+        )
+        .unwrap();
+        let body = &prog.rules[0].body;
+        assert_eq!(body.len(), 2, "one builtin + one atom");
+        match &body[0] {
+            QBodyLit::Builtin(QBuiltin::Compare { lhs, op, rhs }) => {
+                assert_eq!(*lhs, QTerm::Var("N".to_owned()));
+                assert_eq!(*op, CmpOp::Gt);
+                assert_eq!(*rhs, QTerm::Num(0));
+            }
+            other => panic!("expected Compare builtin, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_combined_builtins_split_on_top_comma() {
+        // `N is M + 1, N > 0` must split into two body literals.
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ex:r(M, N) :- N is M + 1, N > 0.\n\
+             ?- ex:r(ex:a, N).\n",
+        )
+        .unwrap();
+        let body = &prog.rules[0].body;
+        assert_eq!(body.len(), 2);
+        assert!(matches!(body[0], QBodyLit::Builtin(QBuiltin::Is { .. })));
+        assert!(matches!(
+            body[1],
+            QBodyLit::Builtin(QBuiltin::Compare { .. })
+        ));
     }
 
     // ── Answer-set canonicalization ───────────────────────────────────────────

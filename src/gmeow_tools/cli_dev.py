@@ -1900,11 +1900,16 @@ def normalize() -> None:
 
 @app.command()
 def build() -> None:
-    """Build serializations, OWL-native syntaxes, and JSON-LD context into dist/."""
+    """Build serializations and OWL-native syntaxes into dist/.
+
+    The JSON-LD ``@context`` is no longer built here: it is emitted from the Rust
+    ``PREFIX_REGISTRY`` authority by the ``mappings`` stage into
+    ``generated/context.jsonld`` (and folded into ``gmeow.gts``), retiring the
+    orphaned Python ``jsonld_context`` builder (#1009 §2 / #933).
+    """
     from gmeow_rdf.compat.rdflib import Graph
 
     from gmeow_tools import reason as reasoning
-    from gmeow_tools.jsonld_context import write_context
     from gmeow_tools.runner import ToolUnavailableError
     from gmeow_tools.serialize import serialize_graph
 
@@ -1916,8 +1921,7 @@ def build() -> None:
 
     graph = Graph().parse(merged, format="turtle")
     written = serialize_graph(graph, stem="gmeow")
-    context = write_context()
-    for path in (*written.values(), *owl_native, context):
+    for path in (*written.values(), *owl_native):
         console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
 
 

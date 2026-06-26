@@ -1,0 +1,14 @@
+{
+  "bindings": [
+    {
+      "Y": "<https://example.org/profiles/goal-rdf-list-functions/x>"
+    },
+    {
+      "Y": "<https://example.org/profiles/goal-rdf-list-functions/y>"
+    },
+    {
+      "Y": "<https://example.org/profiles/goal-rdf-list-functions/z>"
+    }
+  ],
+  "status": "ok"
+}

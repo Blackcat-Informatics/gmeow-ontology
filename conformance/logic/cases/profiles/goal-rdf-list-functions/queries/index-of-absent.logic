@@ -1,0 +1,11 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: list value lookup, absent-value edge case — gmeow:listIndexOf backing (#1009 §5).
+% ex:absent never appears in the list (x y z): the rdf:first/rdf:rest walk exhausts
+% at rdf:nil with no rdf:first match, so the goal returns empty bindings, status ok.
+:- prefix(ex, 'https://example.org/profiles/goal-rdf-list-functions/').
+:- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+ex:idx(L, X, 0) :- rdf:first(L, X).
+ex:idx(L, X, N) :- rdf:rest(L, R), ex:idx(R, X, M), N is M + 1.
+?- ex:idx(ex:l0, ex:absent, N).

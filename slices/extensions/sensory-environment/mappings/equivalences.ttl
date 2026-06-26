@@ -6,7 +6,7 @@
 @prefix semapv:  <https://w3id.org/semapv/vocab/> .
 @prefix sosa:    <http://www.w3.org/ns/sosa/> .
 @prefix mfoem:   <http://purl.obolibrary.org/obo/MFOEM_> .
-@prefix mf:      <http://purl.obolibrary.org/obo/MF_> .
+@prefix obomf:      <http://purl.obolibrary.org/obo/MF_> .
 
 # Term equivalences for the sensory environment layer — GMEOW authoring source.
 # Compiled to mappings/gmeow-sensory-environment.sssom.tsv by `gmeow compile-mappings`.
@@ -127,7 +127,7 @@ gmeow:eqSenv005 a gmeow:TermEquivalence ;
 gmeow:eqSenv006 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:MentalReferenceFrame ;
     gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject mf:0000020 ;
+    gmeow:alignObject obomf:0000020 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "mental process" ;
@@ -137,11 +137,11 @@ gmeow:eqSenv006 a gmeow:TermEquivalence ;
 gmeow:eqSenv007 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:SensoryPerception ;
     gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject mf:0000019 ;
+    gmeow:alignObject obomf:0000019 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "perceptual process" ;
-    gmeow:comment "A SensoryPerception is a standpoint-indexed perceptual claim; mf:perceptual process is the broader BFO-based process class. Directional: GMEOW adds the reference-frame coordinate result and standpoint indexing." ;
+    gmeow:comment "A SensoryPerception is a standpoint-indexed perceptual claim; obomf:perceptual process is the broader BFO-based process class. Directional: GMEOW adds the reference-frame coordinate result and standpoint indexing." ;
     gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
 
 gmeow:eqSenv008 a gmeow:TermEquivalence ;

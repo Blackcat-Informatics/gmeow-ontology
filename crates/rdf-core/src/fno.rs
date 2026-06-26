@@ -58,7 +58,12 @@ const FNO: &str = "https://w3id.org/function/ontology#";
 /// The `https://w3id.org/function/vocabulary/mapping#` (fnom) namespace.
 const FNOM: &str = "https://w3id.org/function/vocabulary/mapping#";
 /// The GMEOW namespace (`gmeow:ProjectionFunction`).
-const GMEOW_PROJECTION_FUNCTION: &str = "https://blackcatinformatics.ca/gmeow/ProjectionFunction";
+///
+/// `pub` so the `gmeow-slice` FnO emitter can populate
+/// [`FnFunction::kind_types`] with the projection-function type for the
+/// `functions.fno.ttl` path (preserving its byte-identical output).
+pub const GMEOW_PROJECTION_FUNCTION: &str =
+    "https://blackcatinformatics.ca/gmeow/ProjectionFunction";
 
 /// The GMEOW-internal language tag every localizable literal carries until the
 /// projection boundary retags it to public BCP-47.
@@ -94,7 +99,9 @@ pub struct FnoCatalog {
     pub mappings: Vec<FnMapping>,
 }
 
-/// One `fno:Function` / `gmeow:ProjectionFunction` node.
+/// One `fno:Function` node (always typed `fno:Function`; any additional
+/// `rdf:type` IRIs — e.g. `gmeow:ProjectionFunction` for the projection catalog —
+/// come from [`FnFunction::kind_types`]).
 #[derive(Debug, Clone)]
 pub struct FnFunction {
     pub iri: String,
@@ -102,6 +109,11 @@ pub struct FnFunction {
     pub label: String,
     /// `skos:definition` (`@x-gmeow-english`), omitted when empty.
     pub description: Option<String>,
+    /// Extra `rdf:type` IRIs emitted IN ADDITION to `fno:Function`, in vec order.
+    /// The projection-function builder sets `[GMEOW_PROJECTION_FUNCTION]`;
+    /// primitives (e.g. the list functions) leave this empty so they are
+    /// `fno:Function` ONLY.
+    pub kind_types: Vec<String>,
     /// `rdfs:seeAlso` (the first profile's `.rq`).
     pub see_also: String,
     /// Ordered `fno:expects` parameter IRIs (required first, then optional).
@@ -114,22 +126,32 @@ pub struct FnFunction {
 #[derive(Debug, Clone)]
 pub struct FnOutput {
     pub iri: String,
-    /// `fno:predicate` — the GMEOW predicate the output realises.
-    pub predicate: String,
+    /// `fno:predicate` — the GMEOW predicate the output realises. `None` for
+    /// primitives (the list functions bind no data predicate).
+    pub predicate: Option<String>,
     /// `fno:type` — the output's range IRI.
     pub r#type: String,
+    /// `rdfs:label` (`@x-gmeow-english`), emitted when `Some`.
+    pub label: Option<String>,
+    /// `skos:definition` (`@x-gmeow-english`), emitted when `Some`.
+    pub description: Option<String>,
 }
 
 /// One globally-deduped `fno:Parameter` node.
 #[derive(Debug, Clone)]
 pub struct FnParam {
     pub iri: String,
-    /// `fno:predicate` — the source GMEOW predicate.
-    pub predicate: String,
+    /// `fno:predicate` — the source GMEOW predicate. `None` for primitives (the
+    /// list functions bind no data predicate).
+    pub predicate: Option<String>,
     /// `fno:type` — the predicate's ontology `rdfs:range` (the fail-closed type).
     pub r#type: String,
     /// `fno:required` (an `xsd:boolean` literal).
     pub required: bool,
+    /// `rdfs:label` (`@x-gmeow-english`), emitted when `Some`.
+    pub label: Option<String>,
+    /// `skos:definition` (`@x-gmeow-english`), emitted when `Some`.
+    pub description: Option<String>,
 }
 
 /// One `fno:Implementation` node (one per profile `.rq`).
@@ -260,11 +282,9 @@ pub fn to_quads(catalog: &FnoCatalog) -> Vec<RdfQuad> {
             RDF_TYPE,
             RdfTerm::iri(format!("{FNO}Function")),
         ));
-        quads.push(RdfQuad::new(
-            fn_iri.clone(),
-            RDF_TYPE,
-            RdfTerm::iri(GMEOW_PROJECTION_FUNCTION),
-        ));
+        for kind in &func.kind_types {
+            quads.push(RdfQuad::new(fn_iri.clone(), RDF_TYPE, RdfTerm::iri(kind)));
+        }
         quads.push(RdfQuad::new(fn_iri.clone(), RDFS_LABEL, en(&func.label)));
         if let Some(description) = &func.description {
             quads.push(RdfQuad::new(
@@ -296,16 +316,24 @@ pub fn to_quads(catalog: &FnoCatalog) -> Vec<RdfQuad> {
             RDF_TYPE,
             RdfTerm::iri(format!("{FNO}Output")),
         ));
-        quads.push(RdfQuad::new(
-            out.clone(),
-            format!("{FNO}predicate"),
-            RdfTerm::iri(&func.output.predicate),
-        ));
+        if let Some(predicate) = &func.output.predicate {
+            quads.push(RdfQuad::new(
+                out.clone(),
+                format!("{FNO}predicate"),
+                RdfTerm::iri(predicate),
+            ));
+        }
         quads.push(RdfQuad::new(
             out.clone(),
             format!("{FNO}type"),
             RdfTerm::iri(&func.output.r#type),
         ));
+        if let Some(label) = &func.output.label {
+            quads.push(RdfQuad::new(out.clone(), RDFS_LABEL, en(label)));
+        }
+        if let Some(description) = &func.output.description {
+            quads.push(RdfQuad::new(out.clone(), SKOS_DEFINITION, en(description)));
+        }
         attach_list(
             &mut quads,
             &fn_iri,
@@ -323,21 +351,29 @@ pub fn to_quads(catalog: &FnoCatalog) -> Vec<RdfQuad> {
             RDF_TYPE,
             RdfTerm::iri(format!("{FNO}Parameter")),
         ));
-        quads.push(RdfQuad::new(
-            p.clone(),
-            format!("{FNO}predicate"),
-            RdfTerm::iri(&param.predicate),
-        ));
+        if let Some(predicate) = &param.predicate {
+            quads.push(RdfQuad::new(
+                p.clone(),
+                format!("{FNO}predicate"),
+                RdfTerm::iri(predicate),
+            ));
+        }
         quads.push(RdfQuad::new(
             p.clone(),
             format!("{FNO}type"),
             RdfTerm::iri(&param.r#type),
         ));
         quads.push(RdfQuad::new(
-            p,
+            p.clone(),
             format!("{FNO}required"),
             boolean(param.required),
         ));
+        if let Some(label) = &param.label {
+            quads.push(RdfQuad::new(p.clone(), RDFS_LABEL, en(label)));
+        }
+        if let Some(description) = &param.description {
+            quads.push(RdfQuad::new(p, SKOS_DEFINITION, en(description)));
+        }
     }
 
     // ── Implementations (one per profile .rq, deduped) ─────────────────────
@@ -498,6 +534,7 @@ mod tests {
                 iri: "https://blackcatinformatics.ca/gmeow/fnDemo".to_owned(),
                 label: "demo function".to_owned(),
                 description: Some("a demo".to_owned()),
+                kind_types: vec![GMEOW_PROJECTION_FUNCTION.to_owned()],
                 see_also: "https://blackcatinformatics.ca/gmeow/queries/projections/demo.rq"
                     .to_owned(),
                 expects: vec![
@@ -506,22 +543,28 @@ mod tests {
                 ],
                 output: FnOutput {
                     iri: "https://blackcatinformatics.ca/gmeow/outDemo".to_owned(),
-                    predicate: "https://blackcatinformatics.ca/gmeow/fullName".to_owned(),
+                    predicate: Some("https://blackcatinformatics.ca/gmeow/fullName".to_owned()),
                     r#type: "http://www.w3.org/2001/XMLSchema#string".to_owned(),
+                    label: None,
+                    description: None,
                 },
             }],
             params: vec![
                 FnParam {
                     iri: "https://blackcatinformatics.ca/gmeow/paramFoo".to_owned(),
-                    predicate: "https://blackcatinformatics.ca/gmeow/foo".to_owned(),
+                    predicate: Some("https://blackcatinformatics.ca/gmeow/foo".to_owned()),
                     r#type: "http://www.w3.org/2001/XMLSchema#string".to_owned(),
                     required: true,
+                    label: None,
+                    description: None,
                 },
                 FnParam {
                     iri: "https://blackcatinformatics.ca/gmeow/paramBar".to_owned(),
-                    predicate: "https://blackcatinformatics.ca/gmeow/bar".to_owned(),
+                    predicate: Some("https://blackcatinformatics.ca/gmeow/bar".to_owned()),
                     r#type: "http://www.w3.org/2001/XMLSchema#string".to_owned(),
                     required: false,
+                    label: None,
+                    description: None,
                 },
             ],
             implementations: vec![FnImpl {

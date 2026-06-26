@@ -1,0 +1,11 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: list indexed access — the gmeow:listGet backing (#1009 §5).
+% Ternary get/3 over the rdf:first/rdf:rest chain with comparison (`N > 0`) and
+% arithmetic (`M is N - 1`) builtins. Index 1 over the list (x y z) returns X = ex:y.
+:- prefix(ex, 'https://example.org/profiles/goal-rdf-list-functions/').
+:- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+ex:get(L, 0, X) :- rdf:first(L, X).
+ex:get(L, N, X) :- N > 0, rdf:rest(L, R), M is N - 1, ex:get(R, M, X).
+?- ex:get(ex:l0, 1, X).

@@ -534,6 +534,13 @@ fn try_match(
                     b.insert(v.clone(), comp.clone());
                 }
             },
+            // A bare numeric operand only matches its own decimal text. Probabilistic
+            // programs never carry builtins (gated), so this is for exhaustiveness.
+            QTerm::Num(n) => {
+                if n.to_string() != *comp {
+                    return None;
+                }
+            }
         }
     }
     Some(b)
@@ -548,6 +555,7 @@ fn instantiate_head(head: &QAtom, binding: &BTreeMap<String, String>) -> Option<
         match term {
             QTerm::Const(c) => comps.push(c.clone()),
             QTerm::Var(v) => comps.push(binding.get(v)?.clone()),
+            QTerm::Num(n) => comps.push(n.to_string()),
         }
     }
     Some((head.pred.clone(), comps[0].clone(), comps[1].clone()))
@@ -584,6 +592,9 @@ fn ground_atom_to_fact(atom: &QAtom) -> Option<Fact> {
         match term {
             QTerm::Const(c) => comps.push(c.clone()),
             QTerm::Var(_) => return None,
+            // A ground probabilistic atom never carries a bare number; treat it as a
+            // non-ground/invalid term for fact conversion.
+            QTerm::Num(_) => return None,
         }
     }
     if comps.len() != 2 {

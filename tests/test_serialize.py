@@ -9,8 +9,12 @@ from gmeow_rdf.compat.rdflib.compare import isomorphic
 from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools.config import NAMESPACE
-from gmeow_tools.jsonld_context import build_context
 from gmeow_tools.serialize import serialize_graph
+
+# NOTE: the JSON-LD `@context` builder moved to Rust (`gmeow_slice::prefix_emit`,
+# #1009 §2 / #933). Its structure is asserted by the native crate tests in
+# `crates/slice/src/prefix_emit.rs`; the orphaned Python `jsonld_context` builder
+# (and its test) were retired with the cull.
 
 
 def _sample_graph() -> Graph:
@@ -33,10 +37,3 @@ def test_serializations_round_trip(tmp_path: Path) -> None:
     for ext, reader in readers.items():
         reparsed = Graph().parse(written[ext], format=reader)
         assert isomorphic(original, reparsed), f"{ext} round-trip is not isomorphic"
-
-
-def test_jsonld_context_structure() -> None:
-    context = build_context()["@context"]
-    assert context["@vocab"] == NAMESPACE
-    assert context["gmeow"] == NAMESPACE
-    assert "foaf" in context and "wd" in context

@@ -44,6 +44,10 @@ pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
 [dev-dependencies]
 gmeow-gts = "0.9.9"
 proptest = "1"
+# Test-only: prove `sh:prefixes gmeow:CorePrefixes` resolves through the
+# production reader by parsing the REAL emitted prefix set (#1009 §2 dogfood).
+# gmeow-slice does not depend on gmeow-shacl, so this introduces no cycle.
+gmeow-slice = { path = "../slice" }
 # Acceleration-program baselines (#630, Phase 0); light feature set, see crates/logic.
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
 
