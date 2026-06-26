@@ -1016,6 +1016,29 @@ fn holonic_level_coherence_is_position_based_and_profile_scoped() {
 }
 
 #[test]
+fn multiply_positioned_marks_entity_with_two_distinct_positions() {
+    // ME9 (#775): an entity occupying TWO distinct logic:HolonicPositions is the structural
+    // signature of a DAG node on multiple paths → logic:multiplyPositioned fires, grounding
+    // that a path-relative depth band exists.  An entity with a single position does NOT fire.
+    let base = "https://example.org/foundation/multiply-positioned";
+    let nq = format!(
+        "<{base}/posA> <{LOGIC}positionEntity> <{base}/Sensor> <{base}/schema> .\n\
+         <{base}/posB> <{LOGIC}positionEntity> <{base}/Sensor> <{base}/schema> .\n\
+         <{base}/posC> <{LOGIC}positionEntity> <{base}/Bolt> <{base}/schema> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+
+    assert!(
+        has_marker(&quads, &format!("{base}/Sensor"), "multiplyPositioned"),
+        "Sensor (two distinct HolonicPositions) must be multiplyPositioned"
+    );
+    assert!(
+        !has_marker(&quads, &format!("{base}/Bolt"), "multiplyPositioned"),
+        "Bolt (a single HolonicPosition) must NOT be multiplyPositioned"
+    );
+}
+
+#[test]
 fn weak_supplementation_singleton_part_under_profile_fires() {
     // W1 is declared under a MereologyProfile and has exactly ONE proper part P1
     // with no disjoint co-part → weak supplementation is violated.
