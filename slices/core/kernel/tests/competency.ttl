@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency question for the kernel slice, authored as slice-resident
+# test-DSL data and executed by the native Rust slice-test harness
+# (crates/slicetest, #784). One fully-enumerated SELECT — "what aboutness modes
+# can a carrier bear toward its subject?" — the slice-resident twin of
+# test_competency_aboutness_modes_query in tests/test_aboutness.py. Runs in the
+# default asserted lane (gmeow:reasoningNone): the two seeds are directly typed,
+# so the expected rows were MEASURED over the asserted graph. See docs/TESTING.md.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/kernel/tests/> .
+
+# queries/competency/aboutness-modes.rq projects ?mode a gmeow:AboutnessMode.
+# The complete answer is exactly the two mention/use seeds, so cqExactRows true.
+ex:cqAboutnessModes a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/aboutness-modes.rq" ;
+    gmeow:cqRationale "GMEOW must be able to answer 'what aboutness modes can an information carrier bear toward its subject?'. The asserted answer is the complete, closed two-member value vocabulary of the mention/use axis: gmeow:aboutnessDescribes and gmeow:aboutnessEnacts, with no privileged winner (Principle 9, #349)." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow
+        ex:cqAboutnessRowDescribes ,
+        ex:cqAboutnessRowEnacts .
+
+ex:cqAboutnessRowDescribes a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "mode" ;
+        gmeow:cellValueIri gmeow:aboutnessDescribes ] .
+
+ex:cqAboutnessRowEnacts a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "mode" ;
+        gmeow:cellValueIri gmeow:aboutnessEnacts ] .

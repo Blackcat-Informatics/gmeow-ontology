@@ -610,6 +610,117 @@ All migrated twins use fixture-only `validate()` (every Python original is `run_
 
 **Conformance batch-4 GRAND tally:** places 3 + images 11 + music_collections 11 + music_pitch 9 + ai_claims 1 + agentic 1 + verifiable_release_chain 1 = **37 converted**. Total native conformance suite = **158 tests**. The 4 `validate_with_ontology` (merged) users — finance, music_analysis, ai_claims, agentic — are all faithful (Python `g = _graph()`/`load_merged_graph()`). The run_shacl pytest population is now exhausted: every remaining run_shacl call is a faithful RETAIN (custom-shapes, dynamic disk/sweep, post-SHACL graph-membership, or cross-slice `_graph()` TBox) documented per-file above. `uv run mypy` clean (281 files).
 
+## #867 structural batch 13 (author-fresh: entities / sources / language / pipeline / graphrag)
+
+Five further slices that the batch-12 triage had pencilled in as "exempt" but which, on
+re-verification (the `verify-descope-claims` discipline — confirm before documenting), carry
+**genuine assertable asserted-TBox** worth pinning. Per `.goals` MAXIMAL coverage / NO
+COMPROMISES, a slice that *can* hold a faithful structural cell gets one rather than an exemption
+row. None had migratable rdflib pytest (their pytest, where any, is projection/ABox/behavior — KEEP),
+so these are net-new declarative coverage; no pytest deleted. All green
+(`cargo nextest -p gmeow-slicetest`); every `mustNot` cell red-proofed (2026-06-25).
+
+| Slice | Cells (must / mustNot) | Keystone invariants pinned |
+|---|---|---|
+| `core/entities` | 4 (3 / 1) | agent-Kind spine (Person/Organization/SoftwareAgent ⊑ Agent; Group ⊑ Collection+Entity); entity property shapes; Person/Organization/SoftwareAgent in an AllDisjointClasses; Group deliberately NOT disjoint with Organization |
+| `core/sources` | 3 (1 / 2) | contentDigest/sourceLocation/sourceModifiedAt property shapes; contentDigest domain-free; none functional (digests/copies coexist) — complements the existing competency.ttl |
+| `core/language` | 4 (3 / 1) | Language/WritingSystem Kinds ⊑ InformationObject + Formal/Programming SubKind spine; TransliterationScheme vocab + bcp47Tag/writtenInLanguage/transliterationScheme; en/fr/zh seeds; every Language-refinement carries logic:SubKind |
+| `core/pipeline` | 4 (3 / 1) | Pipeline/PipelineStage Kinds ⊑ SocialObject + StageKind vocab; dataflow/stage property shapes; 7 StageKind seeds; every dogfooded PipelineStage carries a stageKind (build-pipeline integrity) |
+| `extensions/graphrag` | 4 (3 / 1) | Corpus/Community/ExtractedEntity/Embedding/VectorIndex Kinds ⊑ InformationObject + RetrievalEvent ⊑ Activity; DistanceMetric/IndexAlgorithm vocabs + seeds; functional retrieval edges; value vocabs never subclassed |
+
+**#869 Gap-1:** the three VALUES `mustNot` patterns (sources not-functional, graphrag
+vocab-not-subclassed; and the language/entities/pipeline FILTER-NOT-EXISTS guards) range over the
+**fixed term sets each slice declares** (its three carrier properties, its two value-vocab classes)
+or use a dynamic `FILTER NOT EXISTS` over an open population (every Language-refinement class, every
+PipelineStage individual) — never a finite blacklist standing in for an open universal.
+
+Both the inference `saInferenceCommitmentNoSubclasses` and the graphrag `saGraphRagVocabsNotSubclassed` `mustNot` cells carry a `FILTER (?c != self)` reflexive self-exclusion guard, matching the idiom already present in language/kernel/dreaming; the guard is RDFS-reasoner-safe and is currently a no-op in the asserted graph, but future-proofs against a `saReasoning` materialization of rdfs10.
+
+**Batch-13 tally:** 19 fresh structural cells across 5 slices (13 must + 6 mustNot); 0 pytest deleted.
+
+## #867 structural Tier-B CLOSEOUT — all 76 slices accounted
+
+With batches 11–13, every one of the 12 slices that previously lacked `tests/structural.ttl` is
+accounted for. **10 now carry a structural cell** (kernel migrated from pytest; accounts, guides,
+inference, dreaming, entities, sources, language, pipeline, graphrag authored fresh). **2 are
+documented exemptions** (re-verified against the live slice, `verify-descope-claims`):
+
+| Exempt slice | Reason (verified 2026-06-25) |
+|---|---|
+| `core/inhabitation` | **No `module.ttl`** — design-only placeholder (`slices/core/inhabitation/design/`, branch `paudley/inhabitation-design`); there is no asserted TBox to assert over. A structural cell follows when the module lands. |
+| `core/logic` | **Principle 17** — `logic:` is the canonical reasoning vocabulary; its structural invariants are enforced by the Rust foundation oracle (`crates/foundation`, `foundation.rs`) and the gufo→logic migration validators, NOT by SHACL/SPARQL projections. A `structural.ttl` over `logic/module.ttl` would duplicate the Rust authority and risk divergence; its pytest (`test_logic_*.py`) exercises the solver ENGINE (KEEP), not TBox shape. |
+
+**Structural Tier-B is now 76/76 accounted: 74 slices carry `structural.ttl` + 2 documented
+exemptions, nothing silently dropped.** (The remaining open #867 work is Tier-C cull-on-retirement,
+gated on #832 / Python-oracle retirement — unchanged by this parcel.)
+
+## #867 structural batch 12 (author-fresh: accounts / guides / inference / dreaming)
+
+Four slices with real asserted-TBox vocabulary but **no migratable rdflib pytest** (they never
+had a `tests/test_<slice>.py` of structural assertions). Rather than leave them uncovered, fresh
+`structural.ttl` cells pin their keystone invariants — MAXIMAL coverage + dogfooding (`.goals`).
+No pytest is deleted (there was none to delete); these are net-new declarative coverage. All green
+(`cargo nextest -p gmeow-slicetest`); every `mustNot` cell red-proofed (2026-06-25).
+
+| Slice | Cells (must / mustNot) | Keystone invariants pinned |
+|---|---|---|
+| `extensions/dreaming` | 4 (2 / 2) | DreamReport = composed recollection Experience + the 2 hasValue restrictions; dreamElement domain-Experience object property + open range; no-new-named-class (pure composition, Principle 4/6) |
+| `core/accounts` | 5 (4 / 1) | AccountStatus/ServiceStatus QualityValue vocabs (OPEN — seeds present, NOT closed); OnlineAccount/OnlineService InformationObject Kinds; accountService/serviceShutdownDate functional shapes; accountStatus/serviceStatus NOT functional (Principle 9, prevents sameAs collapse) |
+| `core/guides` | 5 (2 / 3) | Recipe/LearningPath QualityValue vocabs; includesRecipe LearningPath→Recipe shape; every dogfooded Recipe well-formed (slug+title+goal); every LearningPath has audience+goal; includesRecipe referential integrity (targets are typed Recipes) |
+| `core/inference` | 7 (5 / 2) | Analogy/Correspondence/InferenceCommitment = Relator Kinds; Process/Tenure endurant-occurrent spine; InferenceMode/DefeaterKind value vocabs + Peirce tetrad + Pollock seeds; functional argument edges (conclusion/inferenceModeOf/correspondingSource-Target/tenureOf); competesWith symmetric; NO subclass of InferenceCommitment (Principle 9 — modes are values); open-range (Principle 13) argument inputs |
+
+**#869 Gap-1:** the two `mustNot` VALUES patterns (accounts status-properties, inference open-range
+inputs) enumerate the **fixed, closed set of properties each slice declares**, not a stand-in for
+an open universal. The two OPEN value vocabularies (AccountStatus, ServiceStatus) and the
+"closed-but-open" InferenceMode/DefeaterKind vocabularies are asserted present-but-not-closed,
+faithfully matching their module doctrine.
+
+**Batch-12 tally:** 21 fresh structural cells across 4 slices (13 must + 8 mustNot); 0 pytest
+deleted (none existed); net-new coverage. With kernel (batch 11) + these four, the 5 author/migrate
+slices of the #867 structural closeout are done.
+
+## #867 structural batch 11 (kernel — the universal aboutness axis)
+
+`tests/test_aboutness.py` (the kernel-resident #349/EPIC-#348 aboutness axis, 7 fns) migrated
+to `slices/core/kernel/tests/{structural,competency}.ttl`. 3 structural fns → 5
+`gmeow:StructuralAssertion` cells (3 must + 2 mustNot) + 1 competency fn → 1
+`gmeow:CompetencyQuestion` cell; all green (`cargo nextest -p gmeow-slicetest`). `make validate` ✓.
+Per-cell `saRationale`/`cqRationale` names the source fn. kernel is #694-migrated (logic:).
+
+| Source fn | Disposition |
+|---|---|
+| `test_aboutness_class_structure` | → `saAboutnessModeClass` (must): AboutnessMode a owl:Class, logic:AbstractIndividualType; subClassOf logic:QualityValue |
+| `test_has_aboutness_property_structure` | → `saHasAboutnessAnnotationProperty` (must: AnnotationProperty + range) + `saHasAboutnessNotObjectFunctionalOrDomained` (mustNot: ObjectProperty/FunctionalProperty/domain) |
+| `test_value_vocab_spans_two_seeds` | → `saAboutnessSeedsTyped` (must: both seeds typed) + `saAboutnessNoThirdMember` (mustNot: closed two-member enumeration, kernel-scoped) |
+| `test_competency_aboutness_modes_query` | → `cqAboutnessModes` (competency, cqExactRows over `queries/competency/aboutness-modes.rq`) |
+
+**Retained (2 pytest fns) — merged-graph absence, not module-expressible:**
+
+- `test_aboutness_orthogonal_to_other_axes` — asserts NO `rdfs:subPropertyOf`/`owl:equivalentProperty`
+  between any pair of the 6 epistemic axes (`hasAboutness`, `hasGranularity`, `hasDeterminacy`,
+  `hasSensitivity`, `hasDisclosurePolicy`, `confidence`). Those axes are declared/used across
+  10+ slice modules, so the absence must hold over the whole merged graph
+  (`load_merged_graph(include_imports=False)`); a `gmeow:scopeModule` cell sees only kernel and
+  would silently weaken the cross-axis universal.
+- `test_no_aboutness_truth_bridge` — asserts the seeds carry exactly `{AboutnessMode}` as type.
+  `gmeow:aboutnessEnacts` is referenced from `core/citations` and `extensions/norms`, so the
+  exactly-one-type guarantee is a merged-graph property, not a kernel-module one.
+
+**#869 Gap-1:** `saAboutnessNoThirdMember` is a closed two-member enumeration the source already
+pinned (`members == {describes, enacts}`) — a genuinely-closed value vocabulary, not a finite-VALUES
+blacklist standing in for an open universal. The cross-module "no OTHER slice adds a member"
+guarantee is carried by the retained merged-graph pytest, not weakened away.
+
+**Red-proof (2026-06-25).** Injecting a transient `gmeow:aboutnessBOGUS a gmeow:AboutnessMode`
+into `slices/core/kernel/module.ttl` reds `saAboutnessNoThirdMember` (`polarity 'mustNot' but the
+ASK pattern HELD`); reverted, green again. Cells authored by MEASURING the live kernel module.
+
+**Batch-11 tally:** 3 converted structural fns → 5 cells + 1 competency fn → 1 cell; 2
+retained-with-reason; 1 deleted (`test_every_term_labeled_and_defined` — the per-term
+label+definition sweep is subsumed by `make validate`'s `Gmeow*Shape` SHACL + the
+`structural_lint` annotation sweep; break-and-revert confirmed `make validate` reds on a dropped
+label). `tests/test_aboutness.py` is trimmed to the 2 retained fns + the `_graph()` helper.
+
 ## #867 structural batch 10 (places — the 129-fn slice)
 
 The largest single slice (129 pytest fns) migrated to `slices/core/places/tests/structural.ttl`
