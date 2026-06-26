@@ -52,6 +52,22 @@ export async function ready(wasmBytesOrUrl) {
     };
   }
 
+  // RDF/JS DatasetCore.add(quad)/delete(quad) MUST return the dataset instance so calls
+  // chain (`ds.add(q1).add(q2)`). The wasm methods return a bool ("did the effective set
+  // change?"); the spec surface returns `this` (the changed-bit stays observable via
+  // `size`). The guard applied here is the same boundary the equals/literal shims use.
+  for (const method of ["add", "delete"]) {
+    const flag = `__purrdfChaining_${method}`;
+    if (!Dataset.prototype[flag]) {
+      const wasmMutate = Dataset.prototype[method];
+      Dataset.prototype[method] = function (quad) {
+        wasmMutate.call(this, quad);
+        return this;
+      };
+      Dataset.prototype[flag] = true;
+    }
+  }
+
   // RDF/JS spec: Term.equals(other) / Quad.equals(other) MUST return false when `other`
   // is null or undefined — "Returns false if other is undefined or null." The wasm
   // `equals` takes a borrowed `&Term`/`&Quad` (non-consuming — the argument stays usable

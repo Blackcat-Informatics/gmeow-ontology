@@ -74,8 +74,12 @@ test("DatasetCore add/has/delete/match/iterate", () => {
     f.namedNode("https://e/o2"),
   );
   const ds = new Dataset();
-  assert.equal(ds.add(q1), true);
-  assert.equal(ds.add(q1), false); // idempotent
+  // RDF/JS add/delete return the dataset instance for chaining; the "changed?" bit is
+  // observed via size, not a return value.
+  assert.equal(ds.add(q1), ds, "add returns the dataset instance (RDF/JS)");
+  assert.equal(ds.size, 1);
+  ds.add(q1); // idempotent
+  assert.equal(ds.size, 1, "re-adding the same quad does not grow the set");
   ds.add(q2);
   assert.equal(ds.size, 2);
   assert.equal(ds.has(q1), true);
@@ -87,8 +91,28 @@ test("DatasetCore add/has/delete/match/iterate", () => {
   const subjects = [...ds].map((q) => q.subject.value).sort();
   assert.deepEqual(subjects, ["https://e/s1", "https://e/s2"]);
 
-  assert.equal(ds.delete(q1), true);
+  assert.equal(ds.delete(q1), ds, "delete returns the dataset instance (RDF/JS)");
   assert.equal(ds.size, 1);
+});
+
+test("DatasetCore.add/delete chain (RDF/JS return-this)", () => {
+  const f = new DataFactory();
+  const q1 = f.quad(
+    f.namedNode("https://e/s1"),
+    f.namedNode("https://e/p"),
+    f.namedNode("https://e/o1"),
+  );
+  const q2 = f.quad(
+    f.namedNode("https://e/s2"),
+    f.namedNode("https://e/p"),
+    f.namedNode("https://e/o2"),
+  );
+  const ds = new Dataset();
+  // The spec's headline use case: chained mutation.
+  assert.equal(ds.add(q1).add(q2), ds, "add() chains and returns the dataset");
+  assert.equal(ds.size, 2);
+  assert.equal(ds.delete(q1).delete(q2), ds, "delete() chains and returns the dataset");
+  assert.equal(ds.size, 0);
 });
 
 test("DatasetCore.match treats a Variable as a wildcard (RDF/JS idiom)", () => {
@@ -365,5 +389,6 @@ test("Quad.equals does not consume its argument", () => {
   assert.equal(qb.subject.value, "https://e/s", "qb.subject must work after qa.equals(qb)");
   assert.equal(qb.equals(qa), true, "qb.equals(qa) must work after qa.equals(qb)");
   const ds = new Dataset();
-  assert.equal(ds.add(qb), true, "dataset.add(qb) must succeed after qa.equals(qb)");
+  ds.add(qb);
+  assert.equal(ds.has(qb), true, "dataset.add(qb) must succeed after qa.equals(qb)");
 });

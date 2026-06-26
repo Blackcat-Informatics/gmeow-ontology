@@ -19,7 +19,10 @@ import type { Dataset, Quad } from "./pkg/gmeow_rdf_wasm.js";
  * In Node the wasm bytes load from the colocated file automatically; in a browser,
  * pass the bytes/URL or omit to fetch the colocated `.wasm`.
  *
- * After `ready()`, `Dataset` is iterable (`for (const quad of dataset)`) and
+ * After `ready()`, the RDF/JS surface augmentations are live: `Dataset` is iterable
+ * (`for (const quad of dataset)`); `Dataset.add`/`Dataset.delete` return the dataset
+ * instance so calls chain (`ds.add(q1).add(q2)`); `Term.equals`/`Quad.equals` return
+ * `false` for `null`/`undefined` instead of throwing; and
  * `DataFactory.literal(value, languageOrDatatype)` accepts a `NamedNode` datatype as
  * the RDF/JS spec allows (dispatching to `typedLiteral`).
  */
