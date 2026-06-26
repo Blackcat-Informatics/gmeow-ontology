@@ -52,6 +52,10 @@ members = [
     # in TermId space: consumes `crates/sparql-algebra` and replaces the
     # oxigraph-family `spareval` on the query path (purrdf S6, EPIC #906).
     "crates/sparql-eval",
+    # Post-run JUnit per-test duration budget gate (#1045): hard-fails the suite if
+    # any default/ci-profile test exceeds the 25 s always-on budget. Std-only leaf,
+    # no gmeow deps.
+    "crates/test-budget",
     "crates/validate",
     # Native XSD value space (parse / value-space equality+ordering / canonical
     # lexical / SPARQL numeric promotion): the zero-dep leaf that replaces the

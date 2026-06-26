@@ -207,6 +207,12 @@ jobs:
       - name: Workspace tests (cargo-nextest) (shard ${{ matrix.shard }}/3)
         run: cargo nextest run --profile ci --partition count:${{ matrix.shard }}/3
 
+      # 25s per-test budget gate (#1045): hard-fail if any test on this shard's slice
+      # of the ci profile exceeded the always-on budget. Runs against the exact
+      # junit.xml the nextest step above produced for this shard.
+      - name: Test duration budget gate (25s)
+        run: cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
+
       - name: Doctests
         if: ${{ matrix.shard == 1 }}
         run: cargo test --doc
