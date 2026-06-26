@@ -44,10 +44,12 @@ use wasm_bindgen::prelude::*;
 //                 + the RDF-1.2 Quad-as-term wedge)
 //   * `factory` — the RDF/JS DataFactory over the engine's owned term model
 //   * `codec`   — format-name resolution for the native codecs
+//   * `convert` — Quad/Term ↔ engine value space (QuadValues/TermValue)
 //   * `dataset` — the mutable RDF/JS DatasetCore over `MutableDataset`/`DatasetMut`
-//                 (parse/serialize/size here; add/delete/has/match next commit)
+//                 (parse/serialize/size/add/delete/has/match/quads)
 //   * `stream`  — the RDF/JS Stream/Sink over the `gmeow-rdf-events` protocol  [Task 4]
 mod codec;
+mod convert;
 mod dataset;
 mod factory;
 mod term;

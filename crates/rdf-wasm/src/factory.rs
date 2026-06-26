@@ -73,7 +73,7 @@ impl DataFactory {
             Some(language) => RdfLiteral::language_tagged(value, language),
             None => RdfLiteral::simple(value),
         };
-        Term::from_inner(TermInner::Literal(literal))
+        Term::literal(literal)
     }
 
     /// `typedLiteral(value, datatype)` → a datatyped literal. `datatype` must be a
@@ -85,9 +85,7 @@ impl DataFactory {
             TermInner::Named(iri) => iri.clone(),
             _ => return Err(JsError::new("a literal datatype must be a NamedNode")),
         };
-        Ok(Term::from_inner(TermInner::Literal(RdfLiteral::typed(
-            value, iri,
-        ))))
+        Ok(Term::literal(RdfLiteral::typed(value, iri)))
     }
 
     /// `directionalLiteral(value, language, direction)` → an RDF-1.2 base-direction
@@ -101,12 +99,12 @@ impl DataFactory {
         direction: String,
     ) -> Result<Term, JsError> {
         let direction = parse_direction(&direction).map_err(|e| JsError::new(&e))?;
-        Ok(Term::from_inner(TermInner::Literal(RdfLiteral {
+        Ok(Term::literal(RdfLiteral {
             lexical_form: value,
             datatype: None,
             language: Some(language),
             direction: Some(direction),
-        })))
+        }))
     }
 
     /// `variable(value)` → a `Variable` term.

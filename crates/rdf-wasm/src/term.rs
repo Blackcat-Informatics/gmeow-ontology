@@ -50,20 +50,51 @@ pub struct Term {
     pub(crate) inner: TermInner,
 }
 
+/// Canonicalize a literal's datatype to match the engine's intern-time normalization
+/// (C0.1): a language tag forces `rdf:langString` with a lowercased tag; no language
+/// keeps the explicit datatype, defaulting to `xsd:string`. Applying this whenever a
+/// literal `Term` is built means a factory-constructed literal and the same literal
+/// read back from a parsed dataset have byte-identical fields — so `equals` holds and
+/// the value→id lookup behind `add`/`has`/`match` cannot miss on a datatype mismatch.
+pub(crate) fn canonicalize_literal(lit: RdfLiteral) -> RdfLiteral {
+    let RdfLiteral {
+        lexical_form,
+        datatype,
+        language,
+        direction,
+    } = lit;
+    let (datatype, language) = match language {
+        Some(lang) => (RDF_LANG_STRING.to_owned(), Some(lang.to_lowercase())),
+        None => (datatype.unwrap_or_else(|| XSD_STRING.to_owned()), None),
+    };
+    RdfLiteral {
+        lexical_form,
+        datatype: Some(datatype),
+        language,
+        direction,
+    }
+}
+
 impl Term {
     pub(crate) fn from_inner(inner: TermInner) -> Self {
         Self { inner }
     }
 
+    /// Build a literal [`Term`], canonicalizing the literal (see [`canonicalize_literal`]).
+    pub(crate) fn literal(lit: RdfLiteral) -> Self {
+        Self {
+            inner: TermInner::Literal(canonicalize_literal(lit)),
+        }
+    }
+
     /// Build a [`Term`] from the engine's owned [`RdfTerm`].
     pub(crate) fn from_rdf_term(t: &RdfTerm) -> Self {
-        let inner = match t {
-            RdfTerm::Iri(iri) => TermInner::Named(iri.clone()),
-            RdfTerm::BlankNode(label) => TermInner::Blank(label.clone()),
-            RdfTerm::Literal(lit) => TermInner::Literal(lit.clone()),
-            RdfTerm::Triple(triple) => TermInner::Quoted(triple.clone()),
-        };
-        Self { inner }
+        match t {
+            RdfTerm::Iri(iri) => Self::from_inner(TermInner::Named(iri.clone())),
+            RdfTerm::BlankNode(label) => Self::from_inner(TermInner::Blank(label.clone())),
+            RdfTerm::Literal(lit) => Self::literal(lit.clone()),
+            RdfTerm::Triple(triple) => Self::from_inner(TermInner::Quoted(triple.clone())),
+        }
     }
 
     /// Lower this term to the engine's owned [`RdfTerm`].

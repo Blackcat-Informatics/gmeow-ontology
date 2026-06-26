@@ -6,16 +6,31 @@
 //!
 //! Wraps the engine's COW [`MutableDataset`](gmeow_rdf::ir::MutableDataset): a shared
 //! frozen base plus an append/suppress delta. `parse` builds a frozen base from text
-//! and wraps it; `serialize` compacts the effective set (`freeze`) and emits it. The
-//! mutation surface (`add`/`delete`/`has`/`match`/iteration) lands in the next commit.
+//! and wraps it; `serialize` compacts the effective set (`freeze`) and emits it;
+//! `add`/`delete`/`has`/`match`/`quads` are the RDF/JS `DatasetCore` mutation + query
+//! surface over the COW delta.
 
+use gmeow_rdf::dataset_view::{DatasetMut, GraphMatchValue};
 use gmeow_rdf::ir::MutableDataset;
 use gmeow_rdf::{
-    parse_dataset, serialize_dataset, RdfDatasetBuilder, RdfDiagnostic, SerializeGraph,
+    parse_dataset, serialize_dataset, RdfDatasetBuilder, RdfDiagnostic, SerializeGraph, TermValue,
 };
 use wasm_bindgen::prelude::*;
 
 use crate::codec::resolve_media_type;
+use crate::convert::{quad_to_quad_values, quad_values_to_quad, rdf_term_to_term_value};
+use crate::term::{Quad, Term, TermInner};
+
+/// Lower an optional pattern [`Term`] to an optional [`TermValue`] (None = wildcard).
+fn pattern_value(term: &Option<Term>) -> Result<Option<TermValue>, JsError> {
+    match term {
+        None => Ok(None),
+        Some(t) => {
+            let rdf = t.to_rdf_term().map_err(|e| JsError::new(&e))?;
+            Ok(Some(rdf_term_to_term_value(&rdf)))
+        }
+    }
+}
 
 /// Map an engine diagnostic to a JS error.
 pub(crate) fn diag_to_err(diag: RdfDiagnostic) -> JsError {
@@ -79,16 +94,189 @@ impl Dataset {
     pub fn size(&self) -> usize {
         self.inner.effective_count()
     }
+
+    /// `add(quad)` → insert a quad. Returns `true` if the effective set changed.
+    #[wasm_bindgen(js_name = add)]
+    pub fn add(&mut self, quad: &Quad) -> Result<bool, JsError> {
+        let values = quad_to_quad_values(quad).map_err(|e| JsError::new(&e))?;
+        Ok(self.inner.insert(values))
+    }
+
+    /// `delete(quad)` → remove a quad. Returns `true` if the effective set changed.
+    #[wasm_bindgen(js_name = delete)]
+    pub fn delete(&mut self, quad: &Quad) -> Result<bool, JsError> {
+        let values = quad_to_quad_values(quad).map_err(|e| JsError::new(&e))?;
+        Ok(self.inner.remove(&values))
+    }
+
+    /// `has(quad)` → whether the quad is in the dataset.
+    #[wasm_bindgen(js_name = has)]
+    pub fn has(&self, quad: &Quad) -> Result<bool, JsError> {
+        let values = quad_to_quad_values(quad).map_err(|e| JsError::new(&e))?;
+        Ok(self.inner.contains(&values))
+    }
+
+    /// `quads()` → every effective quad, as a JS array.
+    #[wasm_bindgen(js_name = quads)]
+    pub fn quads(&self) -> Result<Vec<Quad>, JsError> {
+        self.inner
+            .quads_for_pattern(None, None, None, GraphMatchValue::Any)
+            .iter()
+            .map(|qv| quad_values_to_quad(qv).map_err(|e| JsError::new(&e)))
+            .collect()
+    }
+
+    /// `match(subject?, predicate?, object?, graph?)` → a new dataset of the matching
+    /// quads. An omitted (`undefined`) position is a wildcard; `defaultGraph()` matches
+    /// only the default graph, a named node matches that graph.
+    #[wasm_bindgen(js_name = match)]
+    pub fn match_pattern(
+        &self,
+        subject: Option<Term>,
+        predicate: Option<Term>,
+        object: Option<Term>,
+        graph: Option<Term>,
+    ) -> Result<Dataset, JsError> {
+        let s = pattern_value(&subject)?;
+        let p = pattern_value(&predicate)?;
+        let o = pattern_value(&object)?;
+        // The graph slot needs the three-way Any / Default / Named distinction that a
+        // bare Option<TermValue> cannot express.
+        let named_graph = match &graph {
+            Some(t) if !matches!(t.inner, TermInner::DefaultGraph) => Some(rdf_term_to_term_value(
+                &t.to_rdf_term().map_err(|e| JsError::new(&e))?,
+            )),
+            _ => None,
+        };
+        let graph_match = match &graph {
+            None => GraphMatchValue::Any,
+            Some(t) if matches!(t.inner, TermInner::DefaultGraph) => GraphMatchValue::Default,
+            Some(_) => GraphMatchValue::Named(
+                named_graph
+                    .as_ref()
+                    .expect("a named-graph value is computed for a non-default graph term"),
+            ),
+        };
+        let matched = self
+            .inner
+            .quads_for_pattern(s.as_ref(), p.as_ref(), o.as_ref(), graph_match);
+        let mut out = Self::empty_base()?;
+        for qv in &matched {
+            out.insert(qv.clone());
+        }
+        Ok(Dataset { inner: out })
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn named(iri: &str) -> Term {
+        Term::from_inner(TermInner::Named(iri.to_owned()))
+    }
+
+    fn triple(s: &str, p: &str, o: &str) -> Quad {
+        Quad::from_parts(
+            named(s),
+            named(p),
+            named(o),
+            Term::from_inner(TermInner::DefaultGraph),
+        )
+    }
+
     #[test]
     fn empty_dataset_has_zero_size() {
         let ds = Dataset::new().unwrap();
         assert_eq!(ds.size(), 0);
+    }
+
+    #[test]
+    fn add_has_delete_are_consistent() {
+        let mut ds = Dataset::new().unwrap();
+        let q = triple("https://e/s", "https://e/p", "https://e/o");
+        assert!(!ds.has(&q).unwrap());
+        assert!(ds.add(&q).unwrap());
+        assert_eq!(ds.size(), 1);
+        assert!(ds.has(&q).unwrap());
+        // Re-adding is a no-op (the effective set is unchanged).
+        assert!(!ds.add(&q).unwrap());
+        assert!(ds.delete(&q).unwrap());
+        assert_eq!(ds.size(), 0);
+        assert!(!ds.has(&q).unwrap());
+    }
+
+    #[test]
+    fn add_then_has_a_language_literal() {
+        // Exercises the canonicalization seam: a tag added as "EN" is found as the
+        // canonical lowercased rdf:langString literal.
+        use gmeow_rdf::RdfLiteral;
+        let mut ds = Dataset::new().unwrap();
+        let q = Quad::from_parts(
+            named("https://e/s"),
+            named("https://e/p"),
+            Term::literal(RdfLiteral::language_tagged("Hello", "EN")),
+            Term::from_inner(TermInner::DefaultGraph),
+        );
+        assert!(ds.add(&q).unwrap());
+        assert!(ds.has(&q).unwrap());
+    }
+
+    #[test]
+    fn match_filters_by_pattern() {
+        let mut ds = Dataset::new().unwrap();
+        ds.add(&triple("https://e/s1", "https://e/p", "https://e/o1"))
+            .unwrap();
+        ds.add(&triple("https://e/s2", "https://e/p", "https://e/o2"))
+            .unwrap();
+
+        let by_subject = ds
+            .match_pattern(Some(named("https://e/s1")), None, None, None)
+            .unwrap();
+        assert_eq!(by_subject.size(), 1);
+
+        let all = ds.match_pattern(None, None, None, None).unwrap();
+        assert_eq!(all.size(), 2);
+
+        // Both quads are in the default graph.
+        let default_only = ds
+            .match_pattern(
+                None,
+                None,
+                None,
+                Some(Term::from_inner(TermInner::DefaultGraph)),
+            )
+            .unwrap();
+        assert_eq!(default_only.size(), 2);
+
+        let no_match = ds
+            .match_pattern(Some(named("https://e/absent")), None, None, None)
+            .unwrap();
+        assert_eq!(no_match.size(), 0);
+    }
+
+    #[test]
+    fn quads_returns_inserted_quads() {
+        let mut ds = Dataset::new().unwrap();
+        let q = triple("https://e/s", "https://e/p", "https://e/o");
+        ds.add(&q).unwrap();
+        let quads = ds.quads().unwrap();
+        assert_eq!(quads.len(), 1);
+        assert!(quads[0].equals(&q));
+    }
+
+    #[test]
+    fn parse_then_iterate_quads() {
+        let ds = Dataset::parse(
+            "<https://e/s> <https://e/p> <https://e/o> .\n",
+            "ntriples",
+            None,
+        )
+        .unwrap();
+        let quads = ds.quads().unwrap();
+        assert_eq!(quads.len(), 1);
+        assert_eq!(quads[0].subject().value(), "https://e/s");
+        assert_eq!(quads[0].graph().term_type(), "DefaultGraph");
     }
 
     #[test]
