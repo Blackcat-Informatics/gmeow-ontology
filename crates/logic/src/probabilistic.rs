@@ -60,8 +60,12 @@ const MAX_INDEPENDENT_FACTS: usize = 20;
 type Fact = (String, String, String);
 
 /// Status of a probabilistic resolution.
+///
+/// Engine-internal (#768): the *public* answer status is the typed
+/// [`crate::result::ReasoningResult`] on [`ProbAnswer`], folded via [`prob_result`];
+/// the byte-pinned conformance string projects back via [`prob_status_string`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ProbStatus {
+pub(crate) enum ProbStatus {
     /// Marginals computed.
     Ok,
     /// Refused: probabilistic facts present with no declared probability model.
@@ -69,12 +73,60 @@ pub enum ProbStatus {
 }
 
 impl ProbStatus {
-    /// Canonical lowercase wire string.
-    pub fn as_str(self) -> &'static str {
+    /// Canonical lowercase wire string (retained only for the [`prob_status_string`]
+    /// round-trip cross-check; the public status projects from the typed result, #768).
+    #[cfg(test)]
+    pub(crate) fn as_str(self) -> &'static str {
         match self {
             ProbStatus::Ok => "ok",
             ProbStatus::Unknown => "unknown",
         }
+    }
+}
+
+/// Fold the engine-internal [`ProbStatus`] into the typed shared
+/// [`crate::result::ReasoningResult`] (#768) — the canonical answer status. A
+/// no-declared-model refusal is `unsupported` + `not-evaluated` (NOT the Belnap
+/// `neither`); a computed run is `completed` + `complete-for-fragment` with
+/// `information=undetermined` (the graded marginal carries no discretization
+/// policy, SEMANTICS:303-305).
+fn prob_result(status: ProbStatus) -> crate::result::ReasoningResult {
+    use crate::result::{
+        CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
+        ReasoningResult, ResultPayload, ResultProvenance,
+    };
+    let provenance = ResultProvenance::native("probabilistic", "");
+    match status {
+        ProbStatus::Ok => ReasoningResult::new(
+            InputStatus::Valid,
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+            PreservationClaim::exact(),
+            InformationState::Undetermined,
+            provenance,
+            ResultPayload::Empty,
+        ),
+        ProbStatus::Unknown => ReasoningResult::new(
+            InputStatus::Valid,
+            EvaluationStatus::Unsupported,
+            CompletenessStatus::Unknown,
+            PreservationClaim::default(),
+            InformationState::NotEvaluated,
+            provenance,
+            ResultPayload::Empty,
+        ),
+    }
+}
+
+/// Project a probabilistic [`crate::result::ReasoningResult`] back to the
+/// byte-pinned conformance answer string (`ok`/`unknown`). The lossless inverse
+/// of [`prob_result`].
+pub fn prob_status_string(result: &crate::result::ReasoningResult) -> &'static str {
+    use crate::result::EvaluationStatus;
+    if result.evaluation == EvaluationStatus::Unsupported {
+        "unknown"
+    } else {
+        "ok"
     }
 }
 
@@ -93,8 +145,16 @@ pub struct ProbBinding {
 pub struct ProbAnswer {
     /// Bindings with non-zero marginal, canonically sorted.
     pub bindings: Vec<ProbBinding>,
-    /// The resolution status.
-    pub status: ProbStatus,
+    /// The typed shared result status (#768) — the canonical answer status. The
+    /// historical string projects from it via [`prob_status_string`].
+    pub result: crate::result::ReasoningResult,
+}
+
+impl ProbAnswer {
+    /// The byte-pinned conformance status string for this answer.
+    pub fn status_str(&self) -> &'static str {
+        prob_status_string(&self.result)
+    }
 }
 
 /// Evaluate a probabilistic query program against `world` in `store`.
@@ -137,7 +197,7 @@ pub fn evaluate(
     if !program.prob_facts.is_empty() && program.prob_model.is_none() {
         return Ok(ProbAnswer {
             bindings: vec![],
-            status: ProbStatus::Unknown,
+            result: prob_result(ProbStatus::Unknown),
         });
     }
 
@@ -234,7 +294,7 @@ pub fn evaluate(
 
     Ok(ProbAnswer {
         bindings,
-        status: ProbStatus::Ok,
+        result: prob_result(ProbStatus::Ok),
     })
 }
 
@@ -667,7 +727,7 @@ mod tests {
         );
         let prog = parse_query_program(&src).unwrap();
         let ans = evaluate(&store, WORLD, &prog, PROFILE).unwrap();
-        assert_eq!(ans.status, ProbStatus::Ok);
+        assert_eq!(ans.status_str(), "ok");
         assert_eq!(ans.bindings.len(), 1, "exactly one binding: {ans:?}");
         assert_eq!(marginal_for(&ans, "X", "true"), Some(0.75));
     }
@@ -728,7 +788,7 @@ mod tests {
         );
         let prog = parse_query_program(&src).unwrap();
         let ans = evaluate(&store, WORLD, &prog, PROFILE).unwrap();
-        assert_eq!(ans.status, ProbStatus::Ok);
+        assert_eq!(ans.status_str(), "ok");
         let m = marginal_for(&ans, "X", "flu");
         assert_eq!(
             m,
@@ -753,11 +813,35 @@ mod tests {
         );
         let prog = parse_query_program(&src).unwrap();
         let ans = evaluate(&store, WORLD, &prog, PROFILE).unwrap();
-        assert_eq!(ans.status, ProbStatus::Unknown);
+        assert_eq!(ans.status_str(), "unknown");
         assert!(
             ans.bindings.is_empty(),
             "refusal yields no marginals: {ans:?}"
         );
+    }
+
+    #[test]
+    fn prob_status_string_round_trips() {
+        // The typed ReasoningResult losslessly carries the prob status (#768).
+        assert_eq!(
+            prob_status_string(&prob_result(ProbStatus::Ok)),
+            ProbStatus::Ok.as_str()
+        );
+        assert_eq!(
+            prob_status_string(&prob_result(ProbStatus::Unknown)),
+            ProbStatus::Unknown.as_str()
+        );
+    }
+
+    #[test]
+    fn prob_unknown_is_unsupported_not_evaluated() {
+        use crate::result::{EvaluationStatus, InformationState};
+        // A no-declared-model refusal is unsupported + not-evaluated — explicitly
+        // NOT the Belnap `neither`, and distinct from cf's revision-tie unknown.
+        let r = prob_result(ProbStatus::Unknown);
+        assert_eq!(r.evaluation, EvaluationStatus::Unsupported);
+        assert_eq!(r.information, InformationState::NotEvaluated);
+        assert!(r.validate().is_ok());
     }
 
     // ── Deterministic EDB facts participate with probability 1.0 ──────────────

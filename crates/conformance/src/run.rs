@@ -511,7 +511,7 @@ fn resolve_query(
             .collect();
         return Ok(serde_json::json!({
             "bindings": bindings,
-            "status": answer.status.as_str(),
+            "status": answer.status_str(),
         }));
     }
 
@@ -536,7 +536,7 @@ fn resolve_query(
                 depth,
             )
             .map_err(err)?;
-            (cf.bindings, cf.status.as_str().to_string())
+            (cf.bindings.clone(), cf.status_str().to_string())
         } else {
             let foreign =
                 WorldStoreForeign::from_world(&store, &world, profile_str).map_err(err)?;

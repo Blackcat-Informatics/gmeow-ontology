@@ -34,6 +34,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use crate::dispatch::dispatch_query;
 use crate::entrenchment::{Entrenchment, LeastEntrenched};
 use crate::query_ir::{Binding, Budget, QAtom, QProgram, QTerm};
+use crate::result::ReasoningResult;
 use crate::seam::{BudgetStatus, WorldStoreForeign};
 use crate::store::WorldStore;
 use crate::versioning::{counterfactual_world_key, CounterfactualKeyInputs};
@@ -55,8 +56,15 @@ pub const SOLVER_VERSION: &str = concat!("gmeow-logic/", env!("CARGO_PKG_VERSION
 
 /// Status of a counterfactual resolution. A superset of [`BudgetStatus`] that adds
 /// the two Stratum-C-only outcomes.
+///
+/// This is the **engine-internal** computation/aggregation enum (#768): the
+/// per-world resolution and the `worst_status` Lewis fold track outcomes in this
+/// ordered 5-way form. The *public* answer status is the typed
+/// [`crate::result::ReasoningResult`] on [`CfAnswer`], folded from this via
+/// [`cf_result`]; the conformance corpus's byte-pinned `status` string projects
+/// back from the typed result via [`cf_status_string`] (a Principle-17 surface).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CfStatus {
+pub(crate) enum CfStatus {
     /// Construction and resolution completed within budget.
     Ok,
     /// The answer cap was hit during resolution.
@@ -71,8 +79,11 @@ pub enum CfStatus {
 }
 
 impl CfStatus {
-    /// Canonical lowercase serialization used in the conformance answer JSON.
-    pub fn as_str(self) -> &'static str {
+    /// Canonical lowercase serialization (the historical conformance answer string).
+    /// Retained only for the [`cf_status_string`] round-trip cross-check (the public
+    /// status now projects from the typed result, #768).
+    #[cfg(test)]
+    pub(crate) fn as_str(self) -> &'static str {
         match self {
             CfStatus::Ok => "ok",
             CfStatus::Partial => "partial",
@@ -91,15 +102,109 @@ impl CfStatus {
     }
 }
 
+/// Fold the engine-internal [`CfStatus`] into the typed shared
+/// [`crate::result::ReasoningResult`] (#768) — the canonical answer status. The
+/// `BudgetLimit` discriminator keeps the fold lossless: `partial`/`exhausted`/
+/// `incomplete` all map to budget exhaustion of *different* budgets and are
+/// recovered exactly by [`cf_status_string`].
+fn cf_result(status: CfStatus, bindings_present: bool, world: &str) -> ReasoningResult {
+    use crate::result::{
+        BudgetLimit, CompletenessStatus, EvaluationStatus, InformationState, InputStatus,
+        PreservationClaim, ResultPayload, ResultProvenance,
+    };
+    let (evaluation, completeness, limit, information) = match status {
+        // A completed run, complete for the certified fragment: the goal is
+        // supported when answers were found, conclusively absent otherwise.
+        CfStatus::Ok => (
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+            None,
+            if bindings_present {
+                InformationState::Supported
+            } else {
+                InformationState::Neither
+            },
+        ),
+        // Answer cap hit: the run finished but capped its output.
+        CfStatus::Partial => (
+            EvaluationStatus::Completed,
+            CompletenessStatus::Incomplete,
+            Some(BudgetLimit::Answers),
+            InformationState::Undetermined,
+        ),
+        // Inference budget exhausted.
+        CfStatus::Exhausted => (
+            EvaluationStatus::BudgetExhausted,
+            CompletenessStatus::Incomplete,
+            Some(BudgetLimit::Inference),
+            InformationState::Undetermined,
+        ),
+        // Nested-construction depth budget exhausted.
+        CfStatus::Incomplete => (
+            EvaluationStatus::BudgetExhausted,
+            CompletenessStatus::Incomplete,
+            Some(BudgetLimit::Depth),
+            InformationState::Undetermined,
+        ),
+        // A genuine incomparable-entrenchment revision tie: completeness is not a
+        // defined question, and the engine reaches no verdict.
+        CfStatus::Unknown => (
+            EvaluationStatus::Completed,
+            CompletenessStatus::Unknown,
+            None,
+            InformationState::Undetermined,
+        ),
+    };
+    let mut provenance = ResultProvenance::native(SOLVER_VERSION, world);
+    provenance.consumed_budget.limit = limit;
+    ReasoningResult::new(
+        InputStatus::Valid,
+        evaluation,
+        completeness,
+        PreservationClaim::exact(),
+        information,
+        provenance,
+        ResultPayload::Empty,
+    )
+}
+
+/// Project a counterfactual [`ReasoningResult`] back to the byte-pinned
+/// conformance answer string (`ok`/`partial`/`exhausted`/`unknown`/`incomplete`).
+/// The lossless inverse of [`cf_result`] (round-trip cross-checked in the tests),
+/// so the cross-engine corpus is unchanged (#768).
+pub fn cf_status_string(result: &ReasoningResult) -> &'static str {
+    use crate::result::{BudgetLimit, CompletenessStatus, EvaluationStatus};
+    // A revision tie surfaces as completeness=unknown.
+    if result.completeness == CompletenessStatus::Unknown {
+        return "unknown";
+    }
+    match (result.evaluation, result.provenance.consumed_budget.limit) {
+        (EvaluationStatus::Completed, None) => "ok",
+        (EvaluationStatus::Completed, Some(BudgetLimit::Answers)) => "partial",
+        (EvaluationStatus::BudgetExhausted, Some(BudgetLimit::Inference)) => "exhausted",
+        (EvaluationStatus::BudgetExhausted, Some(BudgetLimit::Depth)) => "incomplete",
+        // No other (evaluation, limit) pair is produced by cf_result.
+        _ => "ok",
+    }
+}
+
 /// The result of resolving a counterfactual query.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CfAnswer {
-    /// Goal-variable bindings (empty for `Unknown`/`Incomplete`/no-match).
+    /// Goal-variable bindings (empty for `unknown`/`incomplete`/no-match).
     pub bindings: Vec<Binding>,
-    /// The Stratum-C outcome status.
-    pub status: CfStatus,
+    /// The typed shared result status (#768) — the canonical answer status. The
+    /// historical string projects from it via [`cf_status_string`].
+    pub result: ReasoningResult,
     /// The constructed world IRI `W_cf` (bare IRI), for provenance/inspection.
     pub cf_world: String,
+}
+
+impl CfAnswer {
+    /// The byte-pinned conformance status string for this answer.
+    pub fn status_str(&self) -> &'static str {
+        cf_status_string(&self.result)
+    }
 }
 
 /// Content-addressed cache of constructed counterfactual worlds, with hit/miss
@@ -174,9 +279,10 @@ pub fn construct_and_resolve_cached(
 
     // Depth budget: a request past the budget is incomplete, never unbounded.
     if depth == 0 {
+        let result = cf_result(CfStatus::Incomplete, false, &cf_world);
         return Ok(CfAnswer {
             bindings: vec![],
-            status: CfStatus::Incomplete,
+            result,
             cf_world,
         });
     }
@@ -229,9 +335,10 @@ pub fn construct_and_resolve_cached(
         None
     };
     if let Some(status) = early {
+        let result = cf_result(status, false, &cf_world);
         let r = CfAnswer {
             bindings: vec![],
-            status,
+            result,
             cf_world,
         };
         cache.entries.insert(key, r.clone());
@@ -266,9 +373,11 @@ pub fn construct_and_resolve_cached(
                 .into_iter()
                 .next()
                 .expect("deterministic revision constructs exactly one world");
+            let bindings: Vec<Binding> = bindings.into_iter().collect();
+            let result = cf_result(status, !bindings.is_empty(), &cf_world);
             CfAnswer {
-                bindings: bindings.into_iter().collect(),
-                status,
+                bindings,
+                result,
                 cf_world,
             }
         }
@@ -412,9 +521,11 @@ fn combine_lewis(
         }),
     };
 
+    let bindings: Vec<Binding> = combined.into_iter().collect();
+    let result = cf_result(status, !bindings.is_empty(), &cf_world);
     CfAnswer {
-        bindings: combined.into_iter().collect(),
-        status,
+        bindings,
+        result,
         cf_world,
     }
 }
@@ -637,7 +748,7 @@ mod tests {
         )
         .unwrap();
         let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4).unwrap();
-        assert_eq!(ans.status, CfStatus::Ok, "ans: {ans:?}");
+        assert_eq!(ans.status_str(), "ok", "ans: {ans:?}");
         assert_eq!(ans.bindings.len(), 1, "exactly one consequent: {ans:?}");
         assert_eq!(ans.bindings[0]["Z"], "<https://ex/fired>");
     }
@@ -702,7 +813,7 @@ mod tests {
         )
         .unwrap();
         let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4).unwrap();
-        assert_eq!(ans.status, CfStatus::Ok);
+        assert_eq!(ans.status_str(), "ok");
         assert_eq!(ans.bindings.len(), 1, "exactly one routed value: {ans:?}");
         assert_eq!(
             ans.bindings[0]["Z"], "<https://ex/primary>",
@@ -725,11 +836,7 @@ mod tests {
         )
         .unwrap();
         let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4).unwrap();
-        assert_eq!(
-            ans.status,
-            CfStatus::Unknown,
-            "ambiguous tie must be unknown"
-        );
+        assert_eq!(ans.status_str(), "unknown", "ambiguous tie must be unknown");
         assert!(ans.bindings.is_empty());
     }
 
@@ -746,7 +853,7 @@ mod tests {
         )
         .unwrap();
         let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 0).unwrap();
-        assert_eq!(ans.status, CfStatus::Incomplete);
+        assert_eq!(ans.status_str(), "incomplete");
     }
 
     // ── memoization: identical key -> cache hit, identical answer ─────────────
@@ -785,6 +892,40 @@ mod tests {
         assert_eq!(CfStatus::Incomplete.as_str(), "incomplete");
     }
 
+    #[test]
+    fn cf_status_string_round_trips_every_cfstatus() {
+        // The typed ReasoningResult is a lossless carrier: projecting it back
+        // reproduces the byte-pinned conformance string exactly (#768), so the
+        // cross-engine corpus is unchanged.
+        for s in [
+            CfStatus::Ok,
+            CfStatus::Partial,
+            CfStatus::Exhausted,
+            CfStatus::Unknown,
+            CfStatus::Incomplete,
+        ] {
+            let r = cf_result(s, false, "http://gmeow.example/w");
+            assert_eq!(cf_status_string(&r), s.as_str(), "cf round-trip for {s:?}");
+            assert!(
+                r.validate().is_ok(),
+                "cf_result must be a valid result: {s:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn cf_unknown_is_distinct_typed_state_from_prob_unknown() {
+        use crate::result::{CompletenessStatus, EvaluationStatus, InformationState};
+        // A cf revision tie: completed run, completeness=unknown, no verdict.
+        let r = cf_result(CfStatus::Unknown, false, "http://gmeow.example/w");
+        assert_eq!(r.evaluation, EvaluationStatus::Completed);
+        assert_eq!(r.completeness, CompletenessStatus::Unknown);
+        assert_eq!(r.information, InformationState::Undetermined);
+        // ...which differs from prob's no-model unknown (unsupported + not-evaluated),
+        // even though both project to the same "unknown" corpus string.
+        assert_eq!(cf_status_string(&r), "unknown");
+    }
+
     // ── Lewis multi-world profile (opt-in, budget-capped) ─────────────────────
 
     const LEWIS_SKEPTICAL: &str = "https://blackcatinformatics.ca/logic/LewisSkepticalProfile";
@@ -819,7 +960,7 @@ mod tests {
             4,
         )
         .unwrap();
-        assert_eq!(ans.status, CfStatus::Ok);
+        assert_eq!(ans.status_str(), "ok");
         // Z=blue holds only in the blue-world, Z=green only in the green-world:
         // the intersection is empty.
         assert!(
@@ -839,7 +980,7 @@ mod tests {
             4,
         )
         .unwrap();
-        assert_eq!(ans.status, CfStatus::Ok);
+        assert_eq!(ans.status_str(), "ok");
         // Union over both closest worlds: Z in {blue, green}.
         let zs: BTreeSet<&str> = ans.bindings.iter().map(|b| b["Z"].as_str()).collect();
         assert_eq!(
@@ -873,8 +1014,8 @@ mod tests {
         let ans =
             construct_and_resolve(&store, &prog, LEWIS_SKEPTICAL, &Budget::default(), 4).unwrap();
         assert_eq!(
-            ans.status,
-            CfStatus::Incomplete,
+            ans.status_str(),
+            "incomplete",
             "32 worlds exceeds the branch budget"
         );
     }
@@ -898,7 +1039,7 @@ mod tests {
         .unwrap();
         let ans =
             construct_and_resolve(&store, &prog, LEWIS_CREDULOUS, &Budget::default(), 4).unwrap();
-        assert_eq!(ans.status, CfStatus::Ok);
+        assert_eq!(ans.status_str(), "ok");
         assert_eq!(ans.bindings.len(), 1);
         assert_eq!(ans.bindings[0]["Z"], "<https://ex/down>");
     }

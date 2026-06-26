@@ -417,7 +417,7 @@ fn query(
         }
         let result = PyDict::new(py);
         result.set_item("bindings", bindings)?;
-        result.set_item("status", answer.status.as_str())?;
+        result.set_item("status", answer.status_str())?;
         return Ok(result.into_any().unbind());
     }
 
@@ -446,7 +446,7 @@ fn query(
                 &store, &program, profile, &budget, depth,
             )
             .map_err(value_err)?;
-            (cf.bindings, cf.status.as_str().to_owned())
+            (cf.bindings.clone(), cf.status_str().to_owned())
         } else {
             let answer = dispatch_query(&foreign, &store, &world_nn, &program, profile, &budget)
                 .map_err(value_err)?;
