@@ -1898,6 +1898,16 @@ name = "gmeow-rdf-events"
 version = "0.1.0"
 
 [[package]]
+name = "gmeow-rdf-wasm"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf",
+ "gmeow-rdf-events",
+ "pretty_assertions",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gmeow-shacl"
 version = "0.1.0"
 dependencies = [

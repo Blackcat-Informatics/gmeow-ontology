@@ -439,11 +439,35 @@ contracts: `catch_unwind` everywhere, `int32` status + out-params, `*_free` for 
 documented thread-safety per handle, **SemVer-frozen ABI** (the one sanctioned no-backwards-compat
 exception). Gated on a stable Python beta so the surface is proven before it is frozen.
 
-### P10 spec — WASM build (separate parcel)
+### P10 spec — WASM build (separate parcel) — **DELIVERED (#846)**
 
 `wasm32`, in-memory only (oxigraph RocksDB and `crates/logic` don't compile to wasm). **Not** a C-ABI
 consumer and **not** dependent on `no_std`: WASM has its own ownership model, packaging (npm/ESM), async
 I/O, and idiomatic JS API (RDF/JS `DataFactory`/Stream). Its own parcel, parallel to the C-ABI.
+
+**Delivered** as `crates/rdf-wasm` (the `gmeow-rdf-wasm` cdylib) + the `purrdf` npm/ESM package at
+`crates/rdf-wasm/js/`. It compiles the oxigraph-free / PyO3-free `gmeow-rdf` kernel
+(`--no-default-features --features gts`) to `wasm32-unknown-unknown` — no engine cfg-gating was needed
+(the probed `ed25519`/`getrandom` blocker did not materialize: Ed25519 is deterministic and unreachable
+from the RDF/JS surface). The shipped surface:
+
+- **`DataFactory`** mapped 1:1 onto the owned term model, extended with the RDF-1.2 wedge —
+  `quotedTriple` (a triple term usable as a subject/object) and `directionalLiteral` (base direction) —
+  that no incumbent RDF/JS library carries. The polymorphic `literal(value, languageOrDatatype)` is
+  presented by the TS wrapper (a `#[wasm_bindgen]`-exported type can't be recovered from an untyped
+  `JsValue` in Rust).
+- **`Dataset`** (RDF/JS `DatasetCore`) over the COW `MutableDataset`: `parse`/`serialize`
+  (turtle/ntriples/nquads/trig/rdfxml via the native codecs), `add`/`delete`/`has`/`match`/`quads`/`size`.
+- **`Sink`** streams quads through the `gmeow-rdf-events` P6 ingestion protocol (with `finish()`
+  resolution); the async `EventEmitter`-based RDF/JS `Stream`/`Sink.import` is presented by the TS wrapper
+  (`datasetToStream`/`streamToDataset`).
+- **Gates:** `make wasm` (engine + bindings build for wasm32, hard-fail in CI) and `make wasm-pkg-test`
+  (the Node real-execution lane: the actual wasm round-trips the RDF-1.2 wedge through N-Quads). A
+  **dormant** `npm-publish-purrdf` workflow mirrors `pypi-publish-gmeow`.
+
+**Deferred (out of P10):** the JS-ecosystem conformance suites (N3.js / rdflib.js / RDF-JS), SPARQL over
+wasm (oxigraph-backed, native-only by charter), `wasm-opt -Oz` size optimization, and the actual npm
+publish — tracked under the post-v1 spin-up (EPIC #927/#930).
 
 ### P9 spec — the rdflib compat shim (`gmeow_rdf.compat.rdflib`), LSP-critical
 
