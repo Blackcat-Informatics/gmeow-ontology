@@ -244,18 +244,21 @@ fn nq_escape(value: &str) -> String {
 ///
 /// Each finding becomes a `gmeow:Finding` individual carrying `gmeow:findingCode`,
 /// `gmeow:findingMessage`, `gmeow:findingTool`, a `gmeow:findingSeverity`
-/// pointing at the matching `gmeow:DiagnosticSeverity` individual, and one
-/// `gmeow:findingLocation` blank node per location, whose GTS wire coordinates
-/// are hung on it as datatype properties. This is the native in-bundle form of a
-/// report — a projection of the canonical Rust model (Principle 4), SPARQL-
-/// queryable beside the data it describes. N-Quads is used so the output parses
-/// in any RDF tool (oxigraph, rdflib) without TriG/prefix handling. Output
-/// is deterministic: the report is normalized and findings are emitted in sorted
-/// order with content-addressed finding IRIs.
+/// pointing at the matching `gmeow:DiagnosticSeverity` individual, one
+/// `gmeow:findingSuggestion` per suggestion (already sorted/deduped), an optional
+/// `gmeow:findingHelpUri` from the rule registry, and one `gmeow:findingLocation`
+/// blank node per location, whose GTS wire coordinates are hung on it as datatype
+/// properties. This is the native in-bundle form of a report — a projection of the
+/// canonical Rust model (Principle 4), SPARQL-queryable beside the data it
+/// describes. N-Quads is used so the output parses in any RDF tool (oxigraph,
+/// rdflib) without TriG/prefix handling. Output is deterministic: the report is
+/// normalized and findings are emitted in sorted order with content-addressed
+/// finding IRIs.
 pub fn to_gmeow_rdf(report: &Report) -> String {
     let normalized = report.normalized();
     let graph = format!("<{DIAGNOSTICS_GRAPH}>");
     let mut lines: Vec<String> = Vec::new();
+    let rules = rule_map(&normalized);
 
     let triple = |s: &str, p: &str, o: &str, lines: &mut Vec<String>| {
         lines.push(format!("{s} <{p}> {o} {graph} ."));
@@ -290,6 +293,26 @@ pub fn to_gmeow_rdf(report: &Report) -> String {
                 &format!("\"{}\"", nq_escape(tool)),
                 &mut lines,
             );
+        }
+        // Advisory: one triple per suggestion (already sorted+deduped by normalize).
+        for suggestion in &finding.suggestions {
+            triple(
+                &subject,
+                &format!("{GMEOW}findingSuggestion"),
+                &format!("\"{}\"", nq_escape(suggestion)),
+                &mut lines,
+            );
+        }
+        // Advisory: help URI from the rule registry, if present.
+        if let Some(rule) = rules.get(finding.code.as_str()) {
+            if let Some(uri) = &rule.help_uri {
+                triple(
+                    &subject,
+                    &format!("{GMEOW}findingHelpUri"),
+                    &format!("\"{}\"", nq_escape(uri)),
+                    &mut lines,
+                );
+            }
         }
         for (loc_index, location) in finding.locations.iter().enumerate() {
             // An IRI (not a blank node) so the findings graph round-trips
@@ -1155,6 +1178,33 @@ mod tests {
     fn advisory_sarif_snapshot() {
         let value: Value = serde_json::from_str(&to_sarif(&advisory_report()).unwrap()).unwrap();
         insta::assert_json_snapshot!(value);
+    }
+
+    #[test]
+    fn advisory_gmeow_rdf_snapshot() {
+        insta::assert_snapshot!(to_gmeow_rdf(&advisory_report()));
+    }
+
+    #[test]
+    fn gmeow_rdf_escapes_suggestion_specials() {
+        // A suggestion containing a double-quote and a C0 control char must be
+        // escaped correctly: \" → \\\" and \u{7} → \\u0007. No raw control char
+        // may survive into the N-Quads output.
+        let mut finding = Finding::new(Severity::Note, "advice.escape", "escape test finding");
+        finding
+            .suggestions
+            .push("quote \" and \u{7} bell".to_owned());
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+        let nquads = to_gmeow_rdf(&report);
+        assert!(
+            nquads.contains("quote \\\" and \\u0007 bell"),
+            "escaped form not found in output: {nquads}"
+        );
+        assert!(
+            !nquads.chars().any(|c| (c as u32) < 0x20 && c != '\n'),
+            "raw control character leaked into N-Quads output"
+        );
     }
 
     #[test]

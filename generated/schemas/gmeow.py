@@ -4948,9 +4948,11 @@ class Finding(Observation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Finding"
     is_a: ClassVar[str] = "Observation"
     findingCode: list[str] | None = Field(default=None)
+    findingHelpUri: list[str] | None = Field(default=None)
     findingLocation: list[str] | None = Field(default=None)
     findingMessage: list[str] | None = Field(default=None)
     findingSeverity: list[DiagnosticSeverity] | None = Field(default=None)
+    findingSuggestion: list[str] | None = Field(default=None)
     findingTool: list[str] | None = Field(default=None)
 
 
