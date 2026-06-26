@@ -520,7 +520,7 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      - name: Build purrdf for wasm32 (engine + bindings)
+      - name: Build purrdf + gmeow-logic-compile for wasm32 (engine + bindings + compiler purity gate)
         run: make wasm
 
       # wasm-bindgen CLI must match the pinned `wasm-bindgen` crate (=0.2.125) byte
