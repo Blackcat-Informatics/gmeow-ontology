@@ -5,7 +5,7 @@
 //!
 //! The `logic:` front-end parser (#664); the Python duplicate
 //! (`logic_frontend.py`) was retired in #727.  It parses a `logic:`-vocabulary
-//! RDF graph (Turtle text or a parsed oxigraph [`Store`]) into a typed
+//! RDF graph (Turtle text or a parsed wasm-clean `RdfDataset`) into a typed
 //! [`LogicProgram`] plus a list of [`Diagnostic`] messages.
 //!
 //! # Parse contract
@@ -30,19 +30,16 @@
 
 use std::collections::HashSet;
 use std::fmt;
+#[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
 
-use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
-use oxigraph::store::Store;
-
-use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-use gmeow_rdf::parse_dataset;
+use gmeow_rdf::{parse_dataset, RdfDataset};
 
 use super::compat;
 use super::graphutil::{
-    canonicalize_blank_nodes, contains, default_graph_quads, nn, objects, subject_str,
-    subjects_with, term_as_subject, term_is_literal, term_str, value, RDF_OBJECT, RDF_PREDICATE,
-    RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
+    canonicalize_blank_nodes, contains, default_graph_quads, is_empty, nn, objects, subject_str,
+    subjects_with, term_as_subject, term_is_literal, term_str, value, Node, Subject, RDF_OBJECT,
+    RDF_PREDICATE, RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
 };
 use super::ir::{
     ComplexityClass, ContextualScope, LogicAxiom, LogicModality, LogicProgram, LogicRule, PathBase,
@@ -166,9 +163,9 @@ impl std::error::Error for LogicParseError {}
 // Scope extraction
 // --------------------------------------------------------------------------- //
 
-fn confidence_from_term(term: &Term) -> Option<f64> {
-    if let Term::Literal(lit) = term {
-        if let Ok(val) = lit.value().parse::<f64>() {
+fn confidence_from_term(term: &Node) -> Option<f64> {
+    if let Node::Lit(lexical) = term {
+        if let Ok(val) = lexical.parse::<f64>() {
             if (0.0..=1.0).contains(&val) {
                 return Some(val);
             }
@@ -177,7 +174,7 @@ fn confidence_from_term(term: &Term) -> Option<f64> {
     None
 }
 
-fn modality_from_term(term: Option<&Term>) -> LogicModality {
+fn modality_from_term(term: Option<&Node>) -> LogicModality {
     let Some(term) = term else {
         return LogicModality::None;
     };
@@ -190,8 +187,8 @@ fn modality_from_term(term: Option<&Term>) -> LogicModality {
 
 /// Extract a [`ContextualScope`] from `logic:` annotations on `node`.
 fn scope_from_node(
-    store: &Store,
-    node: &NamedOrBlankNode,
+    store: &RdfDataset,
+    node: &Subject,
     diagnostics: &mut Vec<Diagnostic>,
 ) -> ContextualScope {
     let standpoint = value(store, node, &nn(&logic_iri("standpoint"))).map(|t| term_str(&t));
@@ -242,10 +239,10 @@ fn is_facet_config_predicate(prop_local: &str) -> bool {
 /// `logic:ReasoningContract`, `logic:ReasoningPreset`, OR `logic:ClosureEntry`.
 /// These are the meta-configuration nodes whose facet-config triples must be kept
 /// out of the domain axiom set (#767, Gap 1).
-fn collect_contract_config_subjects(store: &Store) -> HashSet<String> {
+fn collect_contract_config_subjects(store: &RdfDataset) -> HashSet<String> {
     let mut subjects: HashSet<String> = HashSet::new();
     for class_local in ["ReasoningContract", "ReasoningPreset", "ClosureEntry"] {
-        let class_term = Term::NamedNode(nn(&logic_iri(class_local)));
+        let class_term = Node::iri(logic_iri(class_local));
         for subj in subjects_with(store, &nn(RDF_TYPE), &class_term) {
             subjects.insert(subject_str(&subj));
         }
@@ -253,7 +250,7 @@ fn collect_contract_config_subjects(store: &Store) -> HashSet<String> {
     subjects
 }
 
-fn extract_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
+fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
     let mut axioms: Vec<LogicAxiom> = Vec::new();
 
     // Meta-config subjects (contracts / presets / closure entries): facet-config
@@ -295,16 +292,10 @@ fn extract_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Logic
     }
 
     // 2. rdf:type triples whose object is a logic: class.
-    let rdf_type = nn(RDF_TYPE);
-    for quad in store
-        .quads_for_pattern(
-            None,
-            Some(rdf_type.as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .filter_map(Result::ok)
-    {
+    for quad in default_graph_quads(store) {
+        if quad.predicate.as_str() != RDF_TYPE {
+            continue;
+        }
         let o_str = term_str(&quad.object);
         if !o_str.starts_with(LOGIC_NAMESPACE) {
             continue;
@@ -336,23 +327,17 @@ fn extract_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Logic
 // RDF 1.2 + classic reified-statement scope extraction
 // --------------------------------------------------------------------------- //
 
-fn extract_scoped_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
+fn extract_scoped_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
     let mut axioms: Vec<LogicAxiom> = Vec::new();
 
     // RDF 1.2 style: reifier node with rdf:reifies → triple term.
-    let rdf_reifies = nn(RDF_REIFIES);
-    for quad in store
-        .quads_for_pattern(
-            None,
-            Some(rdf_reifies.as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .filter_map(Result::ok)
-    {
+    for quad in default_graph_quads(store) {
+        if quad.predicate.as_str() != RDF_REIFIES {
+            continue;
+        }
         let reifier = quad.subject.clone();
         let scope = scope_from_node(store, &reifier, diagnostics);
-        if let Term::Triple(triple) = &quad.object {
+        if let Node::Triple(triple) = &quad.object {
             let t_p = triple.predicate.as_str();
             if !t_p.starts_with(LOGIC_NAMESPACE) && t_p != RDF_TYPE {
                 continue;
@@ -371,7 +356,7 @@ fn extract_scoped_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Ve
     }
 
     // Classic reification: rdf:Statement nodes with logic: scope annotations.
-    let rdf_type_term = Term::NamedNode(nn(RDF_STATEMENT));
+    let rdf_type_term = Node::iri(RDF_STATEMENT);
     for stmt in subjects_with(store, &nn(RDF_TYPE), &rdf_type_term) {
         let scope = scope_from_node(store, &stmt, diagnostics);
         if scope == ContextualScope::default() {
@@ -437,8 +422,8 @@ const FACET_PROPERTIES: [&str; 16] = [
 /// The local name of `value`'s `rdf:type` that is a facet value-class (i.e. not
 /// `owl:NamedIndividual`, not a preset/contract type). Returns the first matching
 /// recognised facet class, or `None` if the value carries no recognised facet type.
-fn facet_class_of(store: &Store, value_iri: &str) -> Option<String> {
-    let subject = NamedOrBlankNode::NamedNode(nn(value_iri));
+fn facet_class_of(store: &RdfDataset, value_iri: &str) -> Option<String> {
+    let subject = Subject::Iri(value_iri.to_owned());
     for ty in objects(store, &subject, &nn(RDF_TYPE)) {
         let ty_str = term_str(&ty);
         if let Some(local) = ty_str.strip_prefix(LOGIC_NAMESPACE) {
@@ -539,28 +524,24 @@ fn route_facet_value(contract: &mut ReasoningContract, facet_class: &str, value_
 /// predicate `logic:probabilityModel`, or any individual typed
 /// `logic:ProbabilityModel` (reviewer C4 — probabilistic inference must never
 /// silently assume independence over un-modelled confidence metadata).
-fn graph_declares_probability_model(store: &Store) -> bool {
+fn graph_declares_probability_model(store: &RdfDataset) -> bool {
     // Any triple whose predicate is logic:probabilityModel.
-    let prob_model_pred = nn(&logic_iri("probabilityModel"));
-    if store
-        .quads_for_pattern(
-            None,
-            Some(prob_model_pred.as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .filter_map(Result::ok)
-        .next()
-        .is_some()
+    let prob_model_pred = logic_iri("probabilityModel");
+    if default_graph_quads(store)
+        .iter()
+        .any(|q| q.predicate.as_str() == prob_model_pred)
     {
         return true;
     }
     // Any individual typed logic:ProbabilityModel.
-    let prob_model_class = Term::NamedNode(nn(&logic_iri("ProbabilityModel")));
+    let prob_model_class = Node::iri(logic_iri("ProbabilityModel"));
     !subjects_with(store, &nn(RDF_TYPE), &prob_model_class).is_empty()
 }
 
-fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<ReasoningContract> {
+fn extract_contracts(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<ReasoningContract> {
     let mut contracts: Vec<ReasoningContract> = Vec::new();
     let mut seen: HashSet<String> = HashSet::new();
 
@@ -569,9 +550,9 @@ fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Re
     let has_probability_model = graph_declares_probability_model(store);
 
     // Subjects typed logic:ReasoningContract OR logic:ReasoningPreset.
-    let mut subjects: Vec<NamedOrBlankNode> = Vec::new();
+    let mut subjects: Vec<Subject> = Vec::new();
     for class_local in ["ReasoningContract", "ReasoningPreset"] {
-        let class_term = Term::NamedNode(nn(&logic_iri(class_local)));
+        let class_term = Node::iri(logic_iri(class_local));
         subjects.extend(subjects_with(store, &nn(RDF_TYPE), &class_term));
     }
 
@@ -589,7 +570,7 @@ fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Re
             store,
             &individual,
             &nn(RDF_TYPE),
-            &Term::NamedNode(nn(&logic_iri("ReasoningPreset"))),
+            &Node::iri(logic_iri("ReasoningPreset")),
         );
         if is_preset {
             let preset = iri_str
@@ -761,8 +742,8 @@ fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Re
 /// a [`LogicAxiom`], returning `Err` with a message on a missing predicate or a
 /// validation failure.
 fn read_reified_axiom(
-    store: &Store,
-    node: &NamedOrBlankNode,
+    store: &RdfDataset,
+    node: &Subject,
     negated: bool,
 ) -> Result<LogicAxiom, String> {
     let p = value(store, node, &nn(RDF_PREDICATE));
@@ -784,10 +765,10 @@ fn read_reified_axiom(
     )
 }
 
-fn extract_rules(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicRule> {
+fn extract_rules(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicRule> {
     let mut rules: Vec<LogicRule> = Vec::new();
 
-    let logic_rule = Term::NamedNode(nn(&logic_iri("Rule")));
+    let logic_rule = Node::iri(logic_iri("Rule"));
     let logic_head = nn(&logic_iri("head"));
     let logic_body = nn(&logic_iri("body"));
     let logic_negated_body = nn(&logic_iri("negatedBody"));
@@ -925,10 +906,10 @@ fn parse_positive_int(lexical: &str) -> Option<u32> {
 /// both named and wildcard, neither named nor wildcard, a non-positive-integer
 /// depth, or `min > max`) emits a `MALFORMED_PATH_SHAPE` warning and is skipped —
 /// never silently dropped.
-fn extract_path_shapes(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<PathShapeIr> {
+fn extract_path_shapes(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<PathShapeIr> {
     let mut shapes: Vec<PathShapeIr> = Vec::new();
 
-    let path_shape_ty = Term::NamedNode(nn(&logic_iri("PathShape")));
+    let path_shape_ty = Node::iri(logic_iri("PathShape"));
     let p_step = nn(&logic_iri("pathStepPredicate"));
     let p_wildcard = nn(&logic_iri("pathWildcard"));
     let p_min = nn(&logic_iri("pathMinDepth"));
@@ -983,7 +964,7 @@ fn extract_path_shapes(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<
                 // would produce a malformed predicate IRI downstream (no silent
                 // coercion). Skip the shape with a diagnostic, like every other
                 // malformed-shape branch.
-                Term::NamedNode(_) => PathBase::NamedPredicate(term_str(p)),
+                Node::Iri(_) => PathBase::NamedPredicate(term_str(p)),
                 _ => {
                     diagnostics.push(Diagnostic::warning(
                         "MALFORMED_PATH_SHAPE",
@@ -1067,17 +1048,13 @@ fn extract_path_shapes(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<
 // Public API
 // --------------------------------------------------------------------------- //
 
-/// Parse a `logic:` RDF source already loaded into an oxigraph [`Store`]
+/// Parse a `logic:` RDF source already loaded into a wasm-clean [`RdfDataset`]
 /// (default graph) into a [`LogicProgram`] + diagnostics.
-pub fn parse_logic_store(
-    store: &Store,
+pub fn parse_logic_dataset(
+    dataset: &RdfDataset,
     source_iri: Option<String>,
 ) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
-    if store
-        .quads_for_pattern(None, None, None, Some(GraphNameRef::DefaultGraph))
-        .next()
-        .is_none()
-    {
+    if is_empty(dataset) {
         return Err(LogicParseError(
             "Source graph is empty — nothing to parse.  Pass a non-empty graph or a \
              Turtle file with logic: triples."
@@ -1088,7 +1065,8 @@ pub fn parse_logic_store(
     // Re-label blank nodes to their RDFC-1.0 canonical ids BEFORE extraction, so
     // every projection (text back-ends included) is a deterministic function of the
     // source graph rather than the parser's random per-parse blank-node labels.
-    let store = &canonicalize_blank_nodes(store).map_err(LogicParseError)?;
+    let canon = canonicalize_blank_nodes(dataset).map_err(LogicParseError)?;
+    let store = canon.as_ref();
 
     let mut diagnostics: Vec<Diagnostic> = Vec::new();
 
@@ -1120,16 +1098,19 @@ pub fn parse_logic_str(
     turtle: &str,
     source_iri: Option<String>,
 ) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
-    // Native codec parse → frozen IR → oxigraph Store (text-free hop, #909).
+    // Native codec parse → frozen wasm-clean IR dataset, straight into the parser
+    // (no oxigraph Store hop, #909/#732).
     let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)
         .map_err(|e| LogicParseError(format!("Failed to parse Turtle source: {e}")))?;
-    let store = store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
-        .map_err(|e| LogicParseError(format!("Failed to materialize Turtle source: {e}")))?;
-    parse_logic_store(&store, source_iri)
+    parse_logic_dataset(dataset.as_ref(), source_iri)
 }
 
 /// Parse a Turtle file into a [`LogicProgram`] + diagnostics.  When `source_iri`
 /// is `None`, the file URI is recorded as the program's provenance source.
+///
+/// Native-only: `wasm32` has no filesystem, so the wasm-able compiler exposes only
+/// the in-memory `parse_logic_str` / `parse_logic_dataset` entry points.
+#[cfg(not(target_arch = "wasm32"))]
 pub fn parse_logic_path(
     path: &Path,
     source_iri: Option<String>,
@@ -1169,6 +1150,7 @@ fn content_dedup_key(ax: &LogicAxiom) -> String {
 }
 
 /// Build a `file://` URI for a path (best-effort; mirrors `Path.as_uri()`).
+#[cfg(not(target_arch = "wasm32"))]
 fn path_to_file_uri(path: &Path) -> Option<String> {
     let abs = std::fs::canonicalize(path).ok()?;
     #[cfg(windows)]
