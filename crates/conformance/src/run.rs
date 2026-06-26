@@ -54,6 +54,17 @@ pub struct ExplanationOut {
     pub markdown: String,
 }
 
+/// One path-shape projection entry in the conformance output.
+#[derive(Debug, Clone)]
+pub struct PathProjectionOut {
+    /// IRI of the projected `logic:PathShape`.
+    pub shape_iri: String,
+    /// The serialized extended SPARQL property path.
+    pub property_path: String,
+    /// The depth-bounded Datalog rule scheme (native-engine syntax).
+    pub datalog: String,
+}
+
 /// The projection artifacts for one case.
 #[derive(Debug, Clone)]
 pub struct ProjectionOutputs {
@@ -66,6 +77,9 @@ pub struct ProjectionOutputs {
     pub ledger: serde_json::Value,
     /// Plain-text projections (`datalog`, `n3`, `nemo`) — kept for bless; not diffed.
     pub text: BTreeMap<String, String>,
+    /// Per-shape property-path projections (`logic:PathShape` → SPARQL + Datalog).
+    /// Empty when the program declares no path shapes — never absent.
+    pub path_projections: Vec<PathProjectionOut>,
 }
 
 /// Everything one case run produces, ready for `diff_case` / bless.
@@ -191,11 +205,22 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     text.insert("n3".to_string(), arts.n3.clone());
     text.insert("nemo".to_string(), arts.nemo.clone());
 
+    let path_projections_out: Vec<PathProjectionOut> = arts
+        .path_projections
+        .iter()
+        .map(|pp| PathProjectionOut {
+            shape_iri: pp.shape_iri.clone(),
+            property_path: pp.property_path.clone(),
+            datalog: pp.datalog.clone(),
+        })
+        .collect();
+
     let projections = ProjectionOutputs {
         rdf,
         report_turtle: arts.report.clone(),
         ledger: serialize::ledger_to_json(&arts.preservation_ledger),
         text,
+        path_projections: path_projections_out,
     };
 
     Ok(CaseOutputs {
@@ -247,6 +272,7 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
             report_turtle: String::new(),
             ledger: serde_json::json!({}),
             text,
+            path_projections: Vec::new(),
         },
         explanations: Vec::new(),
         verdicts: serde_json::json!({}),

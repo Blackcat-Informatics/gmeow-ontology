@@ -891,6 +891,19 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
         ledger.set_item(entry.target.as_str(), row)?;
     }
     out.set_item("preservation_ledger", ledger)?;
+    // Per-shape property-path projections: each entry is a dict with
+    // `shape_iri`, `property_path` (extended SPARQL path string), and
+    // `datalog` (depth-bounded rule scheme for the native engine).
+    // Flows into gmeow.gts via the regenerate pipeline (#1010 / gap G1).
+    let path_projections_list = pyo3::types::PyList::empty(py);
+    for pp in &arts.path_projections {
+        let entry = PyDict::new(py);
+        entry.set_item("shape_iri", pp.shape_iri.as_str())?;
+        entry.set_item("property_path", pp.property_path.as_str())?;
+        entry.set_item("datalog", pp.datalog.as_str())?;
+        path_projections_list.append(entry)?;
+    }
+    out.set_item("path_projections", path_projections_list)?;
     // The parse diagnostics as a live, normalized `gmeow_diagnostics` Report (#856),
     // not a `list[dict]`. The Python surface forwards it directly.
     out.set_item(

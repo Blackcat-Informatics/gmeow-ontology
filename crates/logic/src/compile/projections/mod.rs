@@ -23,9 +23,10 @@ pub mod report;
 pub mod text;
 
 use super::ir::{LogicAxiom, LogicModality, LogicProgram, PreservationKind};
+use paths::PathProjection;
 
-/// All eight committed artifacts produced from one [`LogicProgram`] — the unit
-/// the `LogicGenerator` (and the PyO3 `compile_logic`) writes to disk.
+/// All artifacts produced from one [`LogicProgram`] — the unit the
+/// `LogicGenerator` (and the PyO3 `compile_logic`) writes to disk.
 #[derive(Debug, Clone)]
 pub struct CompiledArtifacts {
     /// `generated/owl/gmeow-dl.ttl`.
@@ -52,6 +53,11 @@ pub struct CompiledArtifacts {
     /// structural lossy-drop notes)`.  Surfaced as JSON by `compile_logic` so the
     /// conformance runner no longer rebuilds it from Python `ProjectionResult`s.
     pub preservation_ledger: Vec<LedgerEntry>,
+    /// Per-shape property-path projections for every `logic:PathShape` declared in
+    /// the program.  Each entry carries the SPARQL property-path expression, the
+    /// depth-bounded Datalog rule scheme, and the `"property-path"` ledger row.
+    /// Empty when the program declares no path shapes — never absent.
+    pub path_projections: Vec<PathProjection>,
 }
 
 /// One preservation-ledger row (the per-target metadata the conformance runner
@@ -94,7 +100,8 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     // Preservation ledger: per-target (kind, complexity, structural drops).  The
     // runner compares only the structural `lossy_drops` (not `actual_drops`), so
     // this mirrors the Python `ledger_json` builder exactly.
-    let preservation_ledger: Vec<LedgerEntry> = owned
+    // Path-shape ledger rows are appended below after project_path_shapes runs.
+    let mut preservation_ledger: Vec<LedgerEntry> = owned
         .iter()
         .map(|p| LedgerEntry {
             target: p.target.clone(),
@@ -107,6 +114,21 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     // The rule section of the nemo projection — the reasoning-engine surface.
     let nemo_rules = text::extract_nemo_rules_section(&nemo.content)?;
 
+    // Property-path projections: every logic:PathShape → (property_path, datalog,
+    // ledger row).  Wired here so the target is genuinely exercised in the compile
+    // funnel, not inert vocabulary (#1010 / gap G1).
+    let path_projections = paths::project_path_shapes(program);
+    // Extend the preservation ledger with one row per path shape so path-surface
+    // information flows to gmeow.gts and the PyO3 surface (maximal information flow).
+    for pp in &path_projections {
+        preservation_ledger.push(LedgerEntry {
+            target: format!("property-path:{}", pp.shape_iri),
+            preservation: pp.ledger.preservation.clone(),
+            complexity: pp.ledger.complexity.clone(),
+            lossy_drops: pp.ledger.lossy_drops.clone(),
+        });
+    }
+
     Ok(CompiledArtifacts {
         owl_dl: owl_dl.content,
         owl_el: owl_el.content,
@@ -118,6 +140,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         report,
         nemo_rules,
         preservation_ledger,
+        path_projections,
     })
 }
 
