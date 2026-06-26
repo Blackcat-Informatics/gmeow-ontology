@@ -228,7 +228,7 @@ fn build_tag_map(store: &Store) -> Result<BTreeMap<String, String>, SliceError> 
 /// Retag a quad's language-tagged literal object through `tag_map` (a public tag —
 /// no `x-gmeow-` mapping — passes through unchanged). Only the object can carry a
 /// localizable literal in the FnO catalog.
-fn retag_quad(mut quad: RdfQuad, tag_map: &BTreeMap<String, String>) -> RdfQuad {
+pub(crate) fn retag_quad(mut quad: RdfQuad, tag_map: &BTreeMap<String, String>) -> RdfQuad {
     if let RdfTerm::Literal(lit) = &mut quad.object {
         if let Some(lang) = &lit.language {
             if let Some(ext) = tag_map.get(lang) {
@@ -743,9 +743,11 @@ fn build_catalog(
                 params_emitted.insert(param.clone(), predicate.clone());
                 catalog_params.push(FnParam {
                     iri: param,
-                    predicate: predicate.clone(),
+                    predicate: Some(predicate.clone()),
                     r#type: rng,
                     required,
+                    label: None,
+                    description: None,
                 });
             }
         }
@@ -758,12 +760,15 @@ fn build_catalog(
             } else {
                 Some(func.description.clone())
             },
+            kind_types: vec![GM_PROJECTION_FUNCTION.to_owned()],
             see_also,
             expects,
             output: FnOutput {
                 iri: output_iri(&func.iri),
-                predicate: func.output.clone(),
+                predicate: Some(func.output.clone()),
                 r#type: func.output_type.clone(),
+                label: None,
+                description: None,
             },
         });
     }

@@ -316,9 +316,11 @@ impl Stage for MappingsStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        // v4: adds the #1009 §2 prefix-set projections (core-prefixes.ttl +
-        // context.jsonld) to the emitted family — bump busts the stage cache.
-        "mappings.v5-list-functions"
+        // v6: routes the list-functions catalog through the shared
+        // `gmeow_rdf::fno::to_quads` serializer (§19 one-path) — the committed
+        // artifact form becomes N-Triples like `functions.fno.ttl`. Bump busts
+        // the stage cache.
+        "mappings.v6-list-functions-fno"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
@@ -605,18 +607,34 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
     #[test]
     fn list_functions_are_emitted_and_parse() {
         // Wiring check (#1009 §5): the mappings stage emits the six list functions
-        // as well-formed FnO that parses, each typed via fno:Output.
+        // as well-formed FnO N-Triples (routed through the shared
+        // `gmeow_rdf::fno::to_quads` serializer, §19 one-path), each typed via
+        // fno:Output and fno:Function.
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile");
         let lf = artifacts
             .get(LIST_FUNCTIONS_PATH)
             .expect("list-functions artifact");
-        let triples = triple_set(lf, RdfFormat::Turtle);
+        let triples = triple_set(lf, RdfFormat::NTriples);
         let functions = triples
             .iter()
             .filter(|t| t.contains("https://w3id.org/function/ontology#Function"))
             .count();
         assert_eq!(functions, 6, "expected six fno:Function declarations");
+        // Primitives are NOT gmeow:ProjectionFunction.
+        assert!(
+            !triples
+                .iter()
+                .any(|t| t.contains("https://blackcatinformatics.ca/gmeow/ProjectionFunction")),
+            "list functions must not be gmeow:ProjectionFunction"
+        );
+        // Primitives bind no fno:predicate.
+        assert!(
+            !triples
+                .iter()
+                .any(|t| t.contains("<https://w3id.org/function/ontology#predicate>")),
+            "list functions must bind no fno:predicate"
+        );
         // Each issue-named function is present.
         for name in [
             "listLength",
