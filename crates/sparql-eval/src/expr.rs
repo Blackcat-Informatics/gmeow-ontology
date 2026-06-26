@@ -14,17 +14,21 @@
 //! ## Scope (S6)
 //!
 //! Implemented: logical `&&`/`||`/`!` (Kleene three-valued), comparisons and
-//! `sameTerm`, `BOUND`, `IN`, `IF`, `COALESCE`, `EXISTS`, and the string/type/RDF
-//! built-ins the corpus uses. **Numeric arithmetic** (`+ - * /`, unary sign,
-//! `ABS/CEIL/FLOOR/ROUND`) and the date/hash/uuid/rand built-ins hard-error
-//! (`Unsupported`) until a corpus query is shown to need them — comparisons over
-//! numbers do NOT need arithmetic (they go through `gmeow_xsd::value_cmp`).
+//! `sameTerm`, `BOUND`, `IN`, `IF`, `COALESCE`, `EXISTS`, the string/type/RDF
+//! built-ins the corpus uses, **numeric arithmetic** (`+ - * /`, unary sign) and
+//! **`ABS`/`CEIL`/`FLOOR`/`ROUND`**. The date/hash/uuid/rand built-ins hard-error
+//! (`Unsupported`) pending Gap 4 — comparisons over numbers do NOT need arithmetic
+//! (they go through `gmeow_xsd::value_cmp`).
 
 use std::cmp::Ordering;
 
 use gmeow_rdf_core::{BlankScope, TermValue};
 use gmeow_sparql_algebra::{Expression, Function, GraphPattern, Variable};
-use gmeow_xsd::{effective_boolean_value, parse_by_iri, value_cmp, XsdValue};
+use gmeow_xsd::{
+    effective_boolean_value, numeric_abs, numeric_add, numeric_ceil, numeric_div, numeric_floor,
+    numeric_mul, numeric_round, numeric_sub, numeric_unary_minus, numeric_unary_plus, parse_by_iri,
+    value_cmp, XsdValue,
+};
 
 use crate::error::EvalError;
 use crate::eval::{eval, EvalCtx};
@@ -118,19 +122,16 @@ pub(crate) fn eval_expr(
             Ok(Some(bool_term(ctx, found)))
         }
 
-        // ---- arithmetic (out of S6 scope; hard error, never a wrong answer) -
-        // Numeric arithmetic needs full XSD value-space ops incl. decimal division
-        // (`xsd:integer / xsd:integer → xsd:decimal`), which `gmeow-xsd` does not
-        // yet expose. Comparisons over numbers go through `value_cmp` and need no
-        // arithmetic, so the FILTER/ORDER paths are unaffected.
-        Expression::Add(..)
-        | Expression::Subtract(..)
-        | Expression::Multiply(..)
-        | Expression::Divide(..)
-        | Expression::UnaryPlus(..)
-        | Expression::UnaryMinus(..) => Err(EvalError::unsupported(
-            "numeric arithmetic expression (not yet implemented in sparql-eval)",
-        )),
+        // ---- arithmetic ---------------------------------------------------
+        // SPARQL three-valued contract: type errors (non-numeric operands,
+        // overflow, divide-by-zero) → Ok(None), NOT Err. A hard EvalError would
+        // propagate out of FILTER and break the query; Ok(None) just drops the row.
+        Expression::Add(a, b) => binary_numeric(a, b, row, schema, ctx, numeric_add),
+        Expression::Subtract(a, b) => binary_numeric(a, b, row, schema, ctx, numeric_sub),
+        Expression::Multiply(a, b) => binary_numeric(a, b, row, schema, ctx, numeric_mul),
+        Expression::Divide(a, b) => binary_numeric(a, b, row, schema, ctx, numeric_div),
+        Expression::UnaryPlus(a) => unary_numeric(a, row, schema, ctx, numeric_unary_plus),
+        Expression::UnaryMinus(a) => unary_numeric(a, row, schema, ctx, numeric_unary_minus),
 
         // ---- functions -----------------------------------------------------
         Expression::FunctionCall(function, args) => eval_function(function, args, row, schema, ctx),
@@ -511,12 +512,15 @@ fn eval_function(
         Function::Predicate => triple_part(ctx, &vals, |_, p, _| p),
         Function::Object => triple_part(ctx, &vals, |_, _, o| o),
 
+        // ---- numeric math functions (ABS/CEIL/FLOOR/ROUND) ----------------
+        // All four are strict in one numeric argument; type errors → Ok(None).
+        Function::Abs => unary_numeric_fn(ctx, &vals, numeric_abs),
+        Function::Ceil => unary_numeric_fn(ctx, &vals, numeric_ceil),
+        Function::Floor => unary_numeric_fn(ctx, &vals, numeric_floor),
+        Function::Round => unary_numeric_fn(ctx, &vals, numeric_round),
+
         // ---- out of S6 scope: hard error (never a wrong answer) -----------
-        Function::Abs
-        | Function::Ceil
-        | Function::Floor
-        | Function::Round
-        | Function::Rand
+        Function::Rand
         | Function::Year
         | Function::Month
         | Function::Day
@@ -828,6 +832,77 @@ fn xsd_int_of(v: &TermValue) -> Option<i64> {
     }
 }
 
+/// Convert a computed [`XsdValue`] back into an interned [`SolutionTerm`] using the
+/// canonical typed-literal form. The datatype IRI comes from `v.datatype().iri()`.
+fn xsd_to_term(ctx: &mut EvalCtx<'_>, v: &XsdValue) -> SolutionTerm {
+    intern(ctx, typed(&v.canonical_lexical(), v.datatype().iri()))
+}
+
+/// Evaluate a binary numeric expression: resolve both operands to [`XsdValue`], call
+/// `op`, and return `Ok(Some(term))` on success or `Ok(None)` on any error (type
+/// error, overflow, divide-by-zero — all SPARQL expression errors).
+fn binary_numeric(
+    a: &Expression,
+    b: &Expression,
+    row: &[Option<SolutionTerm>],
+    schema: &VarSchema,
+    ctx: &mut EvalCtx<'_>,
+    op: impl Fn(&XsdValue, &XsdValue) -> Result<XsdValue, gmeow_xsd::XsdError>,
+) -> Result<Option<SolutionTerm>, EvalError> {
+    let (Some(ta), Some(tb)) = (
+        eval_expr(a, row, schema, ctx)?,
+        eval_expr(b, row, schema, ctx)?,
+    ) else {
+        return Ok(None);
+    };
+    let (va, vb) = (value_of(ctx, ta), value_of(ctx, tb));
+    let (Some(xa), Some(xb)) = (xsd_of(&va), xsd_of(&vb)) else {
+        return Ok(None); // non-numeric operand → SPARQL type error
+    };
+    match op(&xa, &xb) {
+        Ok(result) => Ok(Some(xsd_to_term(ctx, &result))),
+        Err(_) => Ok(None), // overflow / div-by-zero / type-mismatch → expression error
+    }
+}
+
+/// Evaluate a unary numeric expression (`+` / `-`): resolve the operand, call `op`,
+/// return `Ok(None)` on any error.
+fn unary_numeric(
+    a: &Expression,
+    row: &[Option<SolutionTerm>],
+    schema: &VarSchema,
+    ctx: &mut EvalCtx<'_>,
+    op: impl Fn(&XsdValue) -> Result<XsdValue, gmeow_xsd::XsdError>,
+) -> Result<Option<SolutionTerm>, EvalError> {
+    let Some(ta) = eval_expr(a, row, schema, ctx)? else {
+        return Ok(None);
+    };
+    let va = value_of(ctx, ta);
+    let Some(xa) = xsd_of(&va) else {
+        return Ok(None);
+    };
+    match op(&xa) {
+        Ok(result) => Ok(Some(xsd_to_term(ctx, &result))),
+        Err(_) => Ok(None),
+    }
+}
+
+/// Apply a unary numeric function from the `vals` pre-evaluated argument list.
+/// Argument 0 must be a numeric literal; type errors → `Ok(None)`.
+fn unary_numeric_fn(
+    ctx: &mut EvalCtx<'_>,
+    vals: &[Option<TermValue>],
+    op: impl Fn(&XsdValue) -> Result<XsdValue, gmeow_xsd::XsdError>,
+) -> Result<Option<SolutionTerm>, EvalError> {
+    let Some(xa) = arg(vals, 0).and_then(xsd_of) else {
+        return Ok(None);
+    };
+    match op(&xa) {
+        Ok(result) => Ok(Some(xsd_to_term(ctx, &result))),
+        Err(_) => Ok(None),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1003,17 +1078,185 @@ mod tests {
         assert_eq!(lex(&ds, &expr), Some("fallback".to_owned()));
     }
 
+    const XDEC: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+
+    // ---- arithmetic: positive tests ----------------------------------------
+
     #[test]
-    fn arithmetic_hard_errors() {
+    fn arithmetic_add_integers() {
         let ds = empty_ds();
-        let add = Expression::Add(
+        // 1 + 2 = 3
+        let expr = Expression::Add(
             Box::new(typed_lit("1", XINT)),
             Box::new(typed_lit("2", XINT)),
         );
+        assert_eq!(lex(&ds, &expr), Some("3".to_owned()));
+    }
+
+    #[test]
+    fn arithmetic_subtract_integers() {
+        let ds = empty_ds();
+        // 7 - 3 = 4
+        let expr = Expression::Subtract(
+            Box::new(typed_lit("7", XINT)),
+            Box::new(typed_lit("3", XINT)),
+        );
+        assert_eq!(lex(&ds, &expr), Some("4".to_owned()));
+    }
+
+    #[test]
+    fn arithmetic_multiply_integers() {
+        let ds = empty_ds();
+        // 3 * 4 = 12
+        let expr = Expression::Multiply(
+            Box::new(typed_lit("3", XINT)),
+            Box::new(typed_lit("4", XINT)),
+        );
+        assert_eq!(lex(&ds, &expr), Some("12".to_owned()));
+    }
+
+    #[test]
+    fn arithmetic_divide_integer_returns_decimal() {
+        let ds = empty_ds();
+        // 1 / 2 = 0.5 (decimal, per XPath op:numeric-divide)
+        let expr = Expression::Divide(
+            Box::new(typed_lit("1", XINT)),
+            Box::new(typed_lit("2", XINT)),
+        );
+        // The result is a decimal; lexical "0.5" at scale 18 → canonical starts "0.5"
+        let result = lex(&ds, &expr).expect("should produce a value");
+        // Parse it back to verify the value; the canonical form has 18 fractional
+        // digits so we just check that it starts with "0.5".
+        assert!(
+            result.starts_with("0.5"),
+            "1/2 should be 0.5…, got {result}"
+        );
+    }
+
+    #[test]
+    fn arithmetic_divide_10_4() {
+        let ds = empty_ds();
+        // 10 / 4 = 2.5
+        let expr = Expression::Divide(
+            Box::new(typed_lit("10", XINT)),
+            Box::new(typed_lit("4", XINT)),
+        );
+        let result = lex(&ds, &expr).expect("should produce a value");
+        assert!(
+            result.starts_with("2.5"),
+            "10/4 should be 2.5…, got {result}"
+        );
+    }
+
+    // ---- arithmetic: type error and divide-by-zero → Ok(None) --------------
+
+    #[test]
+    fn arithmetic_type_error_is_ok_none() {
+        let ds = empty_ds();
+        // "a" + 1 → type error → Ok(None) (a FILTER drops the row; no hard Err).
+        let expr = Expression::Add(Box::new(lit("a")), Box::new(typed_lit("1", XINT)));
         let mut ctx = EvalCtx::new(&ds);
         let schema = VarSchema::new();
-        let err = eval_expr(&add, &[], &schema, &mut ctx).unwrap_err();
-        assert!(matches!(err, EvalError::Unsupported(_)));
+        let result = eval_expr(&expr, &[], &schema, &mut ctx).expect("no hard error");
+        assert!(
+            result.is_none(),
+            "type error must be Ok(None), not Ok(Some)"
+        );
+    }
+
+    #[test]
+    fn arithmetic_divide_by_zero_is_ok_none() {
+        let ds = empty_ds();
+        // integer/0 → DivisionByZero → Ok(None)
+        let expr = Expression::Divide(
+            Box::new(typed_lit("5", XINT)),
+            Box::new(typed_lit("0", XINT)),
+        );
+        let mut ctx = EvalCtx::new(&ds);
+        let schema = VarSchema::new();
+        let result = eval_expr(&expr, &[], &schema, &mut ctx).expect("no hard error");
+        assert!(result.is_none(), "divide-by-zero must be Ok(None)");
+    }
+
+    // ---- unary operators ---------------------------------------------------
+
+    #[test]
+    fn arithmetic_unary_minus() {
+        let ds = empty_ds();
+        // -5 = -5
+        let expr = Expression::UnaryMinus(Box::new(typed_lit("5", XINT)));
+        assert_eq!(lex(&ds, &expr), Some("-5".to_owned()));
+    }
+
+    // ---- ABS / CEIL / FLOOR / ROUND ----------------------------------------
+
+    #[test]
+    fn function_abs() {
+        let ds = empty_ds();
+        // ABS(-3) = 3
+        let expr = Expression::FunctionCall(Function::Abs, vec![typed_lit("-3", XINT)]);
+        assert_eq!(lex(&ds, &expr), Some("3".to_owned()));
+    }
+
+    #[test]
+    fn function_ceil() {
+        let ds = empty_ds();
+        // CEIL(2.1) = 3 (as xsd:decimal)
+        let expr = Expression::FunctionCall(Function::Ceil, vec![typed_lit("2.1", XDEC)]);
+        assert_eq!(lex(&ds, &expr), Some("3.0".to_owned()));
+    }
+
+    #[test]
+    fn function_floor() {
+        let ds = empty_ds();
+        // FLOOR(2.9) = 2 (as xsd:decimal)
+        let expr = Expression::FunctionCall(Function::Floor, vec![typed_lit("2.9", XDEC)]);
+        assert_eq!(lex(&ds, &expr), Some("2.0".to_owned()));
+    }
+
+    #[test]
+    fn function_round() {
+        let ds = empty_ds();
+        // ROUND(2.5) = 3 (round-half-toward-+infinity per XPath fn:round)
+        let expr = Expression::FunctionCall(Function::Round, vec![typed_lit("2.5", XDEC)]);
+        assert_eq!(lex(&ds, &expr), Some("3.0".to_owned()));
+    }
+
+    // ---- BIND integration: arithmetic column over a real BGP ---------------
+
+    #[test]
+    fn bind_arithmetic_computed_column() {
+        let ds = typed_graph();
+        let mut ctx = EvalCtx::new(&ds);
+        // { ?s :age ?n . BIND(?n + 1 AS ?plus1) }
+        // :a has age 30, so plus1 should be 31.
+        // :b has age 17, so plus1 should be 18.
+        let inner = bgp1("s", "http://ex/age", "n");
+        let expr = Expression::Add(
+            Box::new(Expression::Variable(Variable::new("n"))),
+            Box::new(typed_lit("1", XINT)),
+        );
+        let seq = eval(
+            &GraphPattern::Extend {
+                inner: Box::new(inner),
+                variable: Variable::new("plus1"),
+                expression: expr,
+            },
+            &mut ctx,
+        )
+        .expect("bind arithmetic");
+        let plus1_col = seq.schema.index_of(&Variable::new("plus1")).unwrap();
+        let mut results: Vec<String> = seq
+            .rows
+            .iter()
+            .filter_map(|r| r[plus1_col])
+            .map(|t| match ctx.scratch.value_of(&ds, t) {
+                TermValue::Literal { lexical_form, .. } => lexical_form,
+                other => format!("{other:?}"),
+            })
+            .collect();
+        results.sort();
+        assert_eq!(results, vec!["18".to_owned(), "31".to_owned()]);
     }
 
     // --- integration: FILTER / BIND / EXISTS over a real BGP ---------------

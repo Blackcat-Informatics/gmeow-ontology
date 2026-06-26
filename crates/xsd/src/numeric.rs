@@ -840,6 +840,176 @@ pub fn numeric_unary_plus(a: &XsdValue) -> Result<XsdValue, XsdError> {
     }
 }
 
+// ── Numeric math functions (SPARQL §17.4.4 / XPath fn:abs, fn:ceiling, etc.) ──
+
+/// SPARQL `fn:abs` — absolute value, preserving the operand's numeric type.
+///
+/// Returns `Err(TypeMismatch)` for non-numeric operands.
+pub fn numeric_abs(a: &XsdValue) -> Result<XsdValue, XsdError> {
+    match a {
+        XsdValue::Integer { value, datatype } => value
+            .checked_abs()
+            .map(|v| XsdValue::Integer {
+                value: v,
+                datatype: *datatype,
+            })
+            .ok_or_else(|| XsdError::OutOfRange {
+                datatype: *datatype,
+                lexical: value.to_string(),
+                reason: "abs overflow (i128::MIN has no positive counterpart)",
+            }),
+        XsdValue::Decimal(d) => d
+            .mantissa()
+            .checked_abs()
+            .map(|m| XsdValue::Decimal(Decimal::from_parts(m, d.scale())))
+            .ok_or_else(|| XsdError::OutOfRange {
+                datatype: XsdDatatype::Decimal,
+                lexical: d.canonical_lexical(),
+                reason: "abs overflow (mantissa is i128::MIN)",
+            }),
+        XsdValue::Float(f) => Ok(XsdValue::Float(f.abs())),
+        XsdValue::Double(d) => Ok(XsdValue::Double(d.abs())),
+        _ => Err(XsdError::TypeMismatch {
+            reason: "abs applied to non-numeric value",
+        }),
+    }
+}
+
+/// SPARQL `fn:ceiling` — smallest integer not less than the value, preserving the
+/// operand's numeric type (`integer → integer`, `decimal → decimal` exact,
+/// `float/double → float/double`).
+///
+/// Returns `Err(TypeMismatch)` for non-numeric operands.
+pub fn numeric_ceil(a: &XsdValue) -> Result<XsdValue, XsdError> {
+    match a {
+        // Integer is already an integer; ceiling is identity.
+        XsdValue::Integer { .. } => Ok(a.clone()),
+        XsdValue::Decimal(d) => {
+            // ceiling(n.frac) = whole_part + (if frac > 0 { 1 } else { 0 })
+            let whole = d.whole_part();
+            let frac_m = d.frac_part().mantissa();
+            let result = if frac_m > 0 {
+                whole.checked_add(1).ok_or_else(|| XsdError::OutOfRange {
+                    datatype: XsdDatatype::Decimal,
+                    lexical: d.canonical_lexical(),
+                    reason: "ceiling overflow",
+                })?
+            } else {
+                whole
+            };
+            Ok(XsdValue::Decimal(Decimal::from_parts(result, 0)))
+        }
+        XsdValue::Float(f) => Ok(XsdValue::Float(f.ceil())),
+        XsdValue::Double(d) => Ok(XsdValue::Double(d.ceil())),
+        _ => Err(XsdError::TypeMismatch {
+            reason: "ceiling applied to non-numeric value",
+        }),
+    }
+}
+
+/// SPARQL `fn:floor` — largest integer not greater than the value, preserving the
+/// operand's numeric type (`integer → integer`, `decimal → decimal` exact,
+/// `float/double → float/double`).
+///
+/// Returns `Err(TypeMismatch)` for non-numeric operands.
+pub fn numeric_floor(a: &XsdValue) -> Result<XsdValue, XsdError> {
+    match a {
+        // Integer is already an integer; floor is identity.
+        XsdValue::Integer { .. } => Ok(a.clone()),
+        XsdValue::Decimal(d) => {
+            // floor(n.frac) = whole_part - (if frac < 0 { 1 } else { 0 })
+            let whole = d.whole_part();
+            let frac_m = d.frac_part().mantissa();
+            let result = if frac_m < 0 {
+                whole.checked_sub(1).ok_or_else(|| XsdError::OutOfRange {
+                    datatype: XsdDatatype::Decimal,
+                    lexical: d.canonical_lexical(),
+                    reason: "floor overflow",
+                })?
+            } else {
+                whole
+            };
+            Ok(XsdValue::Decimal(Decimal::from_parts(result, 0)))
+        }
+        XsdValue::Float(f) => Ok(XsdValue::Float(f.floor())),
+        XsdValue::Double(d) => Ok(XsdValue::Double(d.floor())),
+        _ => Err(XsdError::TypeMismatch {
+            reason: "floor applied to non-numeric value",
+        }),
+    }
+}
+
+/// SPARQL `fn:round` — round to the nearest integer, with half-values rounded
+/// toward positive infinity (`fn:round` semantics per XPath §4.4.5). Preserves the
+/// operand's numeric type.
+///
+/// Examples: `round(2.5) = 3`, `round(-2.5) = -2`, `round(2.4999) = 2`.
+///
+/// Returns `Err(TypeMismatch)` for non-numeric operands.
+pub fn numeric_round(a: &XsdValue) -> Result<XsdValue, XsdError> {
+    match a {
+        // Integer is already integral; round is identity.
+        XsdValue::Integer { .. } => Ok(a.clone()),
+        XsdValue::Decimal(d) => {
+            // XPath fn:round: half-values round toward +infinity.
+            // For positive: round-half-up. For negative: round-half toward zero (not
+            // away), so -2.5 rounds to -2, not -3.
+            //
+            // Algorithm: frac_m is the fractional mantissa (same sign as d.mantissa).
+            // scale is the number of fractional digits.
+            // half-threshold = 10^(scale-1) × 5, same sign as d.
+            let whole = d.whole_part();
+            let frac_m = d.frac_part().mantissa();
+            if d.scale() == 0 {
+                // Already integral (scale 0 means the value IS an integer).
+                return Ok(XsdValue::Decimal(Decimal::from_parts(whole, 0)));
+            }
+            let scale = u32::from(d.scale());
+            // threshold = 5 × 10^(scale-1). For scale 1 that is 5, scale 2 → 50, etc.
+            let threshold = 5i128 * 10i128.pow(scale - 1);
+            // frac_m has the same sign as the mantissa (it is mantissa % 10^scale).
+            // We round toward +inf on the half: add 1 if frac_m >= +threshold (positive
+            // half case), leave alone otherwise. For negatives, frac_m is negative and
+            // -2.5 → whole=-2, frac=-5 (at scale 1), threshold=5: frac_m=-5 < 5, so
+            // whole stays -2 (rounds toward zero = toward +inf for negative half).
+            let result = if frac_m >= threshold {
+                whole.checked_add(1).ok_or_else(|| XsdError::OutOfRange {
+                    datatype: XsdDatatype::Decimal,
+                    lexical: d.canonical_lexical(),
+                    reason: "round overflow",
+                })?
+            } else {
+                whole
+            };
+            Ok(XsdValue::Decimal(Decimal::from_parts(result, 0)))
+        }
+        XsdValue::Float(f) => {
+            // f32::round() is round-half-away-from-zero; XPath fn:round is
+            // round-half-toward-+infinity. For positive they agree. For negative halves
+            // they differ: f32::round(-2.5) = -3 but fn:round(-2.5) = -2.
+            // Correction: for negative values at the half-point, add 1.0.
+            let r = if *f == f.floor() + 0.5 && *f < 0.0 {
+                f.ceil()
+            } else {
+                f.round()
+            };
+            Ok(XsdValue::Float(r))
+        }
+        XsdValue::Double(d) => {
+            // Same correction as float.
+            let r = if *d == d.floor() + 0.5 && *d < 0.0 {
+                d.ceil()
+            } else {
+                d.round()
+            };
+            Ok(XsdValue::Double(r))
+        }
+        _ => Err(XsdError::TypeMismatch {
+            reason: "round applied to non-numeric value",
+        }),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
