@@ -256,6 +256,17 @@ pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
             svg::slice_local_svg(model, &slice.iri).into_bytes(),
         );
     }
+    // Per-term neighbourhood diagrams — only for terms that actually have a
+    // neighbourhood, gated on the same predicate as the page embed below so the
+    // two never disagree (no dangling image paths).
+    for term in &model.terms {
+        if svg::term_has_neighbourhood(term) {
+            files.insert(
+                format!("diagrams/terms/{}.svg", term_slug(term)),
+                svg::term_neighbourhood_svg(term).into_bytes(),
+            );
+        }
+    }
 
     // Static indexes (deterministic, pure functions of the model).
     files.insert(
@@ -687,6 +698,22 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     if let Some(def) = &term.definition {
         heading(&mut out, 2, "Definition");
         line(&mut out, &md_escape(def));
+    }
+
+    // ── Neighbourhood diagram (the term and its 1-hop relations) ────────────────
+    // Gated on the identical predicate as the emission loop in `render_site_lang`
+    // so the embedded path always resolves (preserves no-dangling-link).
+    if svg::term_has_neighbourhood(term) {
+        heading(&mut out, 2, "Neighborhood");
+        push_line(
+            &mut out,
+            &format!(
+                "![Term neighborhood]({}diagrams/terms/{}.svg)",
+                root_href(&from),
+                term_slug(term)
+            ),
+        );
+        blank(&mut out);
     }
 
     if !term.parents.is_empty() {

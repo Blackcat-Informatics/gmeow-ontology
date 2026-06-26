@@ -17,6 +17,10 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 
 The entity whose data quality is being assessed — the feature of interest of the quality observation\. Sub\-property of gmeow:observedFeature so generic consumers can query 'all observations about Alice' without knowing whether the claim is a name, a coordinate, or a quality assessment\.
 
+## Neighborhood
+
+![Term neighborhood](../../diagrams/terms/assessedentity.svg)
+
 ## Super\-properties
 
 - [`gmeow:observedFeature`](../observedfeature/index.md)

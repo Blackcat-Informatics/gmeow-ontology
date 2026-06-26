@@ -17,6 +17,10 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 
 A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a tagger, and optionally a scheme and time interval\. Bears provenance \(gmeow:wasAttributedTo\), confidence \(gmeow:confidence\), and suppression \(gmeow:displayable false for retraction without deletion — Principle 10\)\. Structurally the NameUsage/IdentityFacet idiom wearing a different hat, inheriting time\-scoping, confidence\-weighting, and retract\-without\-delete for free\. The canonical form when the act of tagging must itself be a node; the flat shortcut is gmeow:hasTag\.
 
+## Neighborhood
+
+![Term neighborhood](../../diagrams/terms/tagging.svg)
+
 ## Super\-classes
 
 - [https://blackcatinformatics\.ca/logic/Relator](https://blackcatinformatics\.ca/logic/Relator)
