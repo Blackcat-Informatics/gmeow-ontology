@@ -180,3 +180,122 @@ ASK {
     { gmeow:confidence rdfs:subPropertyOf gmeow:credence . }
 }""" ;
     gmeow:saRationale "confidence belongs to the statement layer, not the doxastic state: it must NOT carry domain gmeow:DoxasticState in this slice, and neither credence nor confidence subsumes the other (Principle 6). Mirrors the negative clauses of test_credence_and_confidence_are_distinct." .
+
+# --- 13. ClaimToken is a perdurant assertion act (MUST hold) ------------------
+ex:saClaimTokenIsPerdurantActivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:ClaimToken a owl:Class , logic:Event ; rdfs:subClassOf gmeow:Activity .
+}""" ;
+    gmeow:saRationale "A claim token is 'an event with provenance' (the foundation): gmeow:ClaimToken MUST be an owl:Class stereotyped logic:Event and rdfs:subClassOf gmeow:Activity — a perdurant, NOT a relator alias of gmeow:StandpointClaim." .
+
+# --- 14. expresses: ClaimToken → Proposition (the content axis, MUST hold) ----
+ex:saExpressesContentAxis a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:expresses a owl:ObjectProperty ;
+        rdfs:domain gmeow:ClaimToken ;
+        rdfs:range gmeow:Proposition .
+}""" ;
+    gmeow:saRationale "gmeow:expresses is the content axis of the claim separation: an owl:ObjectProperty from gmeow:ClaimToken to gmeow:Proposition, keeping the truth-apt content distinct from the assertion act." .
+
+# --- 15. heldByAttitude / groundsClaim are an inverse pair (MUST hold) --------
+ex:saAttitudeTokenInversePair a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:heldByAttitude a owl:ObjectProperty ;
+        rdfs:domain gmeow:ClaimToken ;
+        rdfs:range gmeow:MentalMoment ;
+        owl:inverseOf gmeow:groundsClaim .
+    gmeow:groundsClaim a owl:ObjectProperty ;
+        rdfs:domain gmeow:MentalMoment ;
+        rdfs:range gmeow:ClaimToken .
+}""" ;
+    gmeow:saRationale "The attitude↔token link is an inverse pair over gmeow:MentalMoment: gmeow:heldByAttitude (token→attitude) owl:inverseOf gmeow:groundsClaim (attitude→token), covering both DoxasticState (belief) and teleology IntentionalMode (desire/intent) without re-minting (Principle 6)." .
+
+# --- 16. producesClaim: Event → ClaimToken (MUST hold) -----------------------
+ex:saProducesClaimEventToToken a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:producesClaim a owl:ObjectProperty ;
+        rdfs:domain gmeow:Event ;
+        rdfs:range gmeow:ClaimToken .
+}""" ;
+    gmeow:saRationale "gmeow:producesClaim is the event→token link (an observing/speech event may produce several claim tokens): an owl:ObjectProperty from gmeow:Event to gmeow:ClaimToken." .
+
+# --- 17. supports/attacksClaim range ClaimToken (MUST hold) -------------------
+ex:saSupportAttackRangeClaimToken a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:supportsClaim a owl:ObjectProperty ; rdfs:range gmeow:ClaimToken .
+    gmeow:attacksClaim  a owl:ObjectProperty ; rdfs:range gmeow:ClaimToken .
+}""" ;
+    gmeow:saRationale "The bipolar-argumentation edges gmeow:supportsClaim / gmeow:attacksClaim MUST be owl:ObjectProperties ranging over gmeow:ClaimToken (the claim-token end is fixed now)." .
+
+# --- 18. supports/attacksClaim have NO domain pre-argumentation (MUST-NOT) ----
+ex:saSupportAttackOpenDomain a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?p { gmeow:supportsClaim gmeow:attacksClaim }
+    ?p rdfs:domain ?d .
+}""" ;
+    gmeow:saRationale "The support/attack edges keep an OPEN domain (no rdfs:domain) until the argumentation layer mints gmeow:Argument as the proper domain — the open-domain idiom of gmeow:observedFeature. A premature domain would be the regression this guard forbids." .
+
+# --- 19. ClaimEvaluation ⊑ ClaimToken — a claim about a claim (MUST hold) -----
+ex:saClaimEvaluationSubclassOfClaimToken a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ClaimEvaluation a owl:Class ; rdfs:subClassOf gmeow:ClaimToken .
+}""" ;
+    gmeow:saRationale "An evaluation is 'a separate claim with its own standpoint and provenance' (the foundation): gmeow:ClaimEvaluation MUST be an owl:Class rdfs:subClassOf gmeow:ClaimToken — a claim about a claim, reusing the claim apparatus recursively." .
+
+# --- 20. evaluates: ClaimEvaluation → ClaimToken (MUST hold) ------------------
+ex:saEvaluatesEvaluationToToken a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:evaluates a owl:ObjectProperty ;
+        rdfs:domain gmeow:ClaimEvaluation ;
+        rdfs:range gmeow:ClaimToken .
+}""" ;
+    gmeow:saRationale "gmeow:evaluates binds a gmeow:ClaimEvaluation to the single gmeow:ClaimToken it assesses — the subject of the assessment, distinct from gmeow:expresses (the verdict proposition)." .
+
+# --- 21. ClaimToken is NOT in the Observation spine (the separation, MUST-NOT) -
+ex:saClaimTokenNotObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:ClaimToken rdfs:subClassOf gmeow:Observation . }""" ;
+    gmeow:saRationale "The four-way separation: the canonical claim token is a perdurant assertion act (logic:Event ⊑ gmeow:Activity), NOT an Observation relator. gmeow:ClaimToken MUST NOT be rdfs:subClassOf gmeow:Observation — the legacy gmeow:StandpointClaim ⊑ gmeow:Observation surface is the GENERATED union view, not the canonical record." .
