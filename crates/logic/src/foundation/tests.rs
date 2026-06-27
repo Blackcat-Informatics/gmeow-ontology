@@ -665,7 +665,9 @@ const HOLONIC_LEVEL_GOLDEN: &str = include_str!(
 );
 // Holonic agent-goal-holarchy (#709, C6): the named Principle-15 CONSUMER of the Holons epic —
 // an AI agent's goal/action trajectory as a holarchy that applies the C1–C4 kernel at once.
-// Read straight from the conformance case so this Rust test asserts the SAME bytes the harness does.
+// Read straight from the conformance case's input.nq world facts and run through the foundation
+// lowering directly — the same world-fact bytes the harness materializes over for this
+// foundation-profile case (the harness additionally loads input.logic.ttl, which this unit test omits).
 const HOLONIC_AGENT_GOAL_INPUT: &str =
     include_str!("../../../../conformance/logic/cases/holonic/agent-goal-holarchy/input.nq");
 
