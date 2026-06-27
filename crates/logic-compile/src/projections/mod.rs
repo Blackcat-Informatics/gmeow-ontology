@@ -3,8 +3,8 @@
 
 //! Projection back-ends: [`LogicProgram`] → each target format.
 //!
-//! The projection phase of the GMEOW Logic compiler (#664); the Python duplicate
-//! (`logic_projections.py`) was retired in #727.  Seven targets:
+//! The projection phase of the GMEOW Logic compiler; the Python duplicate
+//! (`logic_projections.py`) has been retired.  Seven targets:
 //!
 //! * [`text::project_datalog`], [`text::project_n3`], [`text::project_nemo`] —
 //!   **byte-identical** text targets (the conformance goldens compare bytes).
@@ -98,7 +98,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
 
     // Property-path projections: every logic:PathShape → (property_path, datalog,
     // ledger row).  Wired here so the target is genuinely exercised in the compile
-    // funnel, not inert vocabulary (#1010 / gap G1).  Computed BEFORE the report so
+    // funnel, not inert vocabulary.  Computed BEFORE the report so
     // the per-shape `property-path:<iri>` rows appear in BOTH exported summaries
     // (the report Turtle and the preservation ledger) — they must agree (maximal
     // information flow; the two summaries are surfaced together via compile_logic
@@ -164,7 +164,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
 pub(crate) const LOGIC_NS: &str = super::ir::LOGIC_NAMESPACE;
 // The GMEOW namespace. The runtime mirrors this as `gmeow_logic::provenance::NAMESPACE`;
 // the wasm-able compiler keeps its own copy to stay free of the oxigraph-coupled
-// runtime provenance module (#732).
+// runtime provenance module.
 pub(crate) const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 pub(crate) const RDF_NS: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 pub(crate) const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
@@ -347,7 +347,9 @@ pub fn projection_ledger_rows() -> Vec<ProjectionLedgerRow> {
     rows
 }
 
-/// Raised when a projection's declared preservation is stronger than achieved.
+/// Raised when a projection's declared preservation is inconsistent with its flagged
+/// residue — either an overclaim (too strong) or a silent under-disclosure (the floor
+/// claimed but nothing flagged).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OverclaimError(pub String);
 
@@ -359,21 +361,43 @@ impl std::fmt::Display for OverclaimError {
 
 impl std::error::Error for OverclaimError {}
 
-/// Assert that `declared` is not stronger than what `drops` implies — i.e. an
-/// `ExactPreservation` target must drop nothing (LOGIC-CONFORMANCE §overclaim→red).
+/// Enforce the legalization contract for one projection: a lowering is a total function
+/// into `⟨ legal output ⊕ flagged residue ⟩` (LOGIC-IR.md § IR commitments).  Both
+/// directions are machine-checked, so "never silently degrade" is a typed property, not
+/// a promise:
+///
+/// * **Overclaim** — an [`PreservationKind::Exact`] target must drop nothing.  A
+///   non-empty `residue` under an Exact claim is a build failure
+///   (LOGIC-CONFORMANCE §overclaim→red).
+/// * **Under-disclosure** — [`PreservationKind::Unsupported`] is the legalization floor:
+///   a construct it cannot express must be *carried and flagged* (a non-empty residue),
+///   never silently dropped (LOGIC-IR.md § Lowering — "carried and flagged, never
+///   dropped").  An Unsupported claim with an empty residue is a build failure, because
+///   the construct vanished in silence.
+///
+/// `residue` is the complete flagged residue for the target — the union of its structural
+/// and concrete drops, exactly the set serialized as `gmeow:lossyDrop` in the report.
 pub fn assert_no_overclaim(
     target: &str,
     declared: PreservationKind,
-    drops: &[String],
+    residue: &[&str],
 ) -> Result<(), OverclaimError> {
-    if declared == PreservationKind::Exact && !drops.is_empty() {
-        let shown: Vec<&str> = drops.iter().take(10).map(String::as_str).collect();
+    if declared == PreservationKind::Exact && !residue.is_empty() {
+        let shown: Vec<&str> = residue.iter().take(10).copied().collect();
         return Err(OverclaimError(format!(
             "Overclaim in projection '{target}': declared logic:{} (ExactPreservation) \
              but {} item(s) were dropped:\n  {}",
             PreservationKind::Exact.as_str(),
-            drops.len(),
+            residue.len(),
             shown.join("\n  ")
+        )));
+    }
+    if declared == PreservationKind::Unsupported && residue.is_empty() {
+        return Err(OverclaimError(format!(
+            "Silent under-disclosure in projection '{target}': declared logic:{} (the \
+             legalization floor) but flagged no residue. An unsupported construct must be \
+             carried and flagged in the loss ledger, never silently dropped.",
+            PreservationKind::Unsupported.as_str(),
         )));
     }
     Ok(())
@@ -392,8 +416,8 @@ pub(crate) fn is_modal_or_scoped(axiom: &LogicAxiom) -> bool {
         || axiom.scope.provenance.is_some()
 }
 
-/// Per-contract `actual_drops` notes for a LOSSY down-projection target (#767,
-/// Task 6).  A reasoning contract is reasoning-configuration metadata; the lossy
+/// Per-contract `actual_drops` notes for a LOSSY down-projection target.  A
+/// reasoning contract is reasoning-configuration metadata; the lossy
 /// rule/axiom surfaces (OWL-DL, OWL-EL, gUFO, Datalog, N3) carry no facet
 /// vocabulary, so each contract a program declares is recorded as an explicit
 /// drop rather than silently discarded.  The canonical RDF 1.2 target preserves
