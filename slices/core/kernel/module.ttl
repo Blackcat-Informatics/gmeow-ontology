@@ -575,11 +575,11 @@ gmeow:frameCardinality
     skos:definition "Optional cardinality override for a gmeow:requiresFrame declaration: \"exactly-one\" or \"at-least-one\". Absent, the cardinality is derived from the frame property's character — owl:FunctionalProperty means exactly one, otherwise at least one. The override exists for carriers whose frame property is logically non-functional (the property serves several carrier classes with different multiplicities) but whose instances each live in a single frame, e.g. gmeow:Pose."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:frameRequirementSeverity
+gmeow:ruleSeverity
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
-    rdfs:label "frame requirement severity"@x-gmeow-english ;
-    skos:definition "Optional severity for a gmeow:requiresFrame declaration: \"warning\" downgrades the generated frame-relativity shape from sh:Violation to sh:Warning (used while a module's data corpus is still being brought up to frame completeness). Absent means violation."@x-gmeow-english ;
+    rdfs:label "rule severity"@x-gmeow-english ;
+    skos:definition "Declares whether a harvested rule or a generated shape is binding or advisory. \"binding\" (the default when absent) is compliance: a broken rule is a violation, projected as sh:Violation in the SHACL lane and an error finding in the diagnostic lane. \"advisory\" is advice: a recommendation the consumer may decline, projected as sh:Warning in the SHACL lane and a note finding in the diagnostic lane. Use \"advisory\" while a module's data corpus is still being brought up to a rule's expectations. Any other value is rejected."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:generalizesVia
@@ -790,7 +790,7 @@ gmeow:requiresFrame
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "requires frame"@x-gmeow-english ;
-    skos:definition "Declares that every instance of the annotated class must carry the named reference-frame property (CONSTITUTION P11, frame-relativity gate): 'a value asserted without its frame is ill-formed'. The frame-relativity SHACL shape is GENERATED from this declaration — exactly one frame when the named property is owl:FunctionalProperty, at least one otherwise — so a new frame-relative value class is enforced the moment it is declared, never by remembering to hand-write its shape. Pair with gmeow:frameRequirementSeverity \"warning\" to downgrade from violation."@x-gmeow-english ;
+    skos:definition "Declares that every instance of the annotated class must carry the named reference-frame property (CONSTITUTION P11, frame-relativity gate): 'a value asserted without its frame is ill-formed'. The frame-relativity SHACL shape is GENERATED from this declaration — exactly one frame when the named property is owl:FunctionalProperty, at least one otherwise — so a new frame-relative value class is enforced the moment it is declared, never by remembering to hand-write its shape. Pair with gmeow:ruleSeverity \"advisory\" to downgrade the generated shape from the binding violation to an advisory warning."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:sensitivityConfidential

@@ -371,7 +371,7 @@ gmeow:NetworkAddress
     skos:definition "A network-layer address or locator expressed as a coordinate in a network reference frame — an IP address, MAC address, DNS name, URL, port number, or BGP autonomous-system number. The flat shortcut for the common case is gmeow:accessUrl on a VirtualLocation; promote to NetworkAddress when frame, provenance, confidence, or standpoint matters."@x-gmeow-english ;
     skos:example "ex:siteAddr a gmeow:NetworkAddress ; gmeow:networkAddressType gmeow:networkAddressTypeIPv4 ; gmeow:networkAddressValue \"192.0.2.1\" ; gmeow:networkAddressFrame gmeow:referenceFrameIPv4 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the common case where a bare join URL suffices (use gmeow:accessUrl) and avoid asserting CIDR/DNS containment as triples — that is a solver computation (Principle 12)."@x-gmeow-english ;
-    gmeow:frameRequirementSeverity "warning" ;
+    gmeow:ruleSeverity "advisory" ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type as NetworkAddress, set gmeow:networkAddressType and gmeow:networkAddressValue, and declare gmeow:networkAddressFrame nested under gmeow:referenceFrameInternet via gmeow:parentFrame."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:networkAddressFrame ;
@@ -574,7 +574,7 @@ gmeow:SpatialCoordinates
     skos:definition "A set of coordinate values representing a position in a specific coordinate reference frame."@x-gmeow-english ;
     skos:example "ex:pos a gmeow:SpatialCoordinates ; gmeow:coordinateFrame gmeow:referenceFrameWGS84 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid stating coordinates without gmeow:coordinateFrame (the frame gate warns) and avoid it for the simple lat/long point case (GeoCoordinates)."@x-gmeow-english ;
-    gmeow:frameRequirementSeverity "warning" ;
+    gmeow:ruleSeverity "advisory" ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint SpatialCoordinates, declare gmeow:coordinateFrame, and carry n-D values via gmeow:hasCoordinateMatrix when beyond a simple triple."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:coordinateFrame ;
