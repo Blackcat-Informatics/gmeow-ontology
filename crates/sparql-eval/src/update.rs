@@ -215,8 +215,13 @@ fn delete_insert(
     // value resolution. DELETE before INSERT per row (SPARQL §3.1.3).
     let mut to_remove = Vec::new();
     let mut to_insert = Vec::new();
+    // Blank-label maps are reset PER ROW (template blanks co-refer within a row, are
+    // distinct across rows) but the allocation is hoisted: `.clear()` reuses the
+    // capacity instead of allocating a fresh map for every solution.
+    let mut del_blanks: DetHashMap<String, String> = DetHashMap::default();
+    let mut ins_blanks: DetHashMap<String, String> = DetHashMap::default();
     for row in &seq.rows {
-        let mut del_blanks: DetHashMap<String, String> = DetHashMap::default();
+        del_blanks.clear();
         for qp in delete {
             if let Some(q) = instantiate_quad_with_default(
                 qp,
@@ -229,7 +234,7 @@ fn delete_insert(
                 to_remove.push(q);
             }
         }
-        let mut ins_blanks: DetHashMap<String, String> = DetHashMap::default();
+        ins_blanks.clear();
         for qp in insert {
             if let Some(q) = instantiate_quad_with_default(
                 qp,
