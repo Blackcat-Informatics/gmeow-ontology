@@ -6966,10 +6966,6 @@ slots:
     range: ReferencePosition
     domain: TemporalFrame
     multivalued: false
-  frameRequirementSeverity:
-    slot_uri: https://blackcatinformatics.ca/gmeow/frameRequirementSeverity
-    title: frame requirement severity
-    range: string
   frameSolver:
     slot_uri: https://blackcatinformatics.ca/gmeow/frameSolver
     title: frame solver
@@ -11309,6 +11305,10 @@ slots:
     range: Constraint
     domain: Rule
     multivalued: true
+  ruleSeverity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ruleSeverity
+    title: rule severity
+    range: string
   ruleTarget:
     slot_uri: https://blackcatinformatics.ca/gmeow/ruleTarget
     title: rule target
