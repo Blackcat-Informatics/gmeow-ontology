@@ -391,7 +391,10 @@ def describe(
 def validate(
     instance: Path = typer.Argument(  # noqa: B008
         ...,
-        help="RDF data (.nq/.trig/.ttl/.nt/.rdf/.jsonld) or a JSON/YAML instance.",
+        help=(
+            "RDF data (.nq/.nquads/.trig/.ttl/.turtle/.nt/.ntriples"
+            "/.rdf/.owl/.jsonld) or a JSON/YAML instance."
+        ),
     ),
     schema: Path | None = typer.Option(  # noqa: B008
         None,
@@ -408,8 +411,9 @@ def validate(
 ) -> None:
     """Validate RDF data against the bundle, or a JSON/YAML instance against a schema.
 
-    The mode is chosen by file type. RDF serializations (``.nq``, ``.trig``,
-    ``.ttl``, ``.nt``, ``.rdf``, ``.jsonld``) run repo-free Tier-1 conformance —
+    The mode is chosen by file type. RDF serializations (``.nq``, ``.nquads``,
+    ``.trig``, ``.ttl``, ``.turtle``, ``.nt``, ``.ntriples``, ``.rdf``,
+    ``.owl``, ``.jsonld``) run repo-free Tier-1 conformance —
     SHACL plus the OntoUML disciplines — against the SHACL shape surface folded
     into the bundled ``gmeow.gts``, with no reasoner, repo, or Docker required.
     ``.json``/``.yaml`` run JSON-Schema instance validation, and ``--schema``
@@ -471,8 +475,8 @@ def _validate_instance(instance: Path, schema: Path | None) -> None:
         fmt = "yaml"
     else:
         raise _fail(
-            f"cannot infer format from {instance.name}: expected an RDF file "
-            "(.nq/.trig/.ttl/.nt/.rdf/.jsonld) or a .json/.yaml instance"
+            f"cannot infer format from {instance.name}: expected a .json, "
+            ".jsonld, .yaml, or .yml instance for JSON-Schema validation"
         )
 
     instance_bytes = _read_bytes_or_fail(instance)

@@ -16,9 +16,12 @@ from typing import Any
 Report = Any
 
 #: RDF file extensions the data-conformance path accepts, mapped to the native
-#: format id understood by ``gmeow_validate.validate_data``. ``.jsonld`` is RDF
-#: here (JSON-LD is a graph syntax); the JSON-Schema instance path is selected
-#: only for ``.json``/``.yaml`` or when ``--schema`` is given.
+#: format id understood by ``gmeow_validate.validate_data``. Accepted suffixes:
+#: ``.nq``/``.nquads`` (N-Quads), ``.trig`` (TriG), ``.ttl``/``.turtle``
+#: (Turtle), ``.nt``/``.ntriples`` (N-Triples), ``.rdf``/``.owl`` (RDF/XML),
+#: ``.jsonld`` (JSON-LD, routed before ``parse_dataset`` via ``is_json_ld``).
+#: The JSON-Schema instance path is selected only for ``.json``/``.yaml`` or
+#: when ``--schema`` is given.
 RDF_SUFFIXES: dict[str, str] = {
     ".nq": "nquads",
     ".nquads": "nquads",
