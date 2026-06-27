@@ -564,6 +564,58 @@ mod tests {
         );
     }
 
+    /// A `logic:reviewedBy` whose object is a plain literal is not an auditable
+    /// reviewer node — the tightened gate must still fire.
+    ///
+    /// This proves the inner `FILTER(isIRI(?reviewer) || isBlank(?reviewer))`
+    /// clause is load-bearing: the old query (bare `FILTER NOT EXISTS { ?candidate
+    /// logic:reviewedBy ?reviewer }`) would have passed this case because the
+    /// triple EXISTS; the new query correctly rejects it because the object is a
+    /// literal rather than a node.
+    #[test]
+    fn reviewer_gate_literal_reviewer_is_a_violation() {
+        let cand = "http://ex/cand-lit";
+        let (candidate, lifecycle, accepted, reviewed_by, category, deriv) = (
+            lg("FormalizationCandidate"),
+            lg("candidateLifecycle"),
+            lg("CandidateAccepted"),
+            lg("reviewedBy"),
+            lg("candidateCategory"),
+            lg("CategoryDerivationRule"),
+        );
+        let q = (
+            "queries/verify/reviewer-gate.rq".to_owned(),
+            REVIEWER_Q.to_owned(),
+        );
+        // Build the dataset manually so we can assert a literal-object triple.
+        let mut builder = RdfDatasetBuilder::new();
+        for (s, p, o) in [
+            (cand, RDF_TYPE, candidate.as_str()),
+            (cand, lifecycle.as_str(), accepted.as_str()),
+            (cand, category.as_str(), deriv.as_str()),
+        ] {
+            builder.push_owned_quad(&quad(s, p, o));
+        }
+        // The only reviewedBy value is a plain string literal — not a node.
+        builder.push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri(cand),
+                reviewed_by.clone(),
+                RdfTerm::Literal(RdfLiteral::typed(
+                    "alice",
+                    "http://www.w3.org/2001/XMLSchema#string",
+                )),
+            )
+            .in_graph(RdfTerm::iri(W)),
+        );
+        let dataset = builder.freeze().expect("valid literal-reviewer dataset");
+        let report = verify(dataset.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            has_violation(&report, "verify.reviewer-gate"),
+            "a literal-valued reviewedBy is not an auditable node → gate must fire"
+        );
+    }
+
     // ── Typed formalization governance: conditional-carrier verify queries ───────
 
     const NON_ENT_CARRIER_Q: &str = include_str!(
