@@ -1,0 +1,250 @@
+{
+  "_type": "COMPOSITION",
+  "name": {
+    "_type": "DV_TEXT",
+    "value": "Blutdruck"
+  },
+  "archetype_details": {
+    "archetype_id": {
+      "value": "openEHR-EHR-COMPOSITION.registereintrag.v1"
+    },
+    "template_id": {
+      "value": "Blutdruck"
+    },
+    "rm_version": "1.0.4"
+  },
+  "feeder_audit": {
+    "_type": "FEEDER_AUDIT",
+    "originating_system_item_ids": [
+      {
+        "_type": "DV_IDENTIFIER",
+        "id": "Observation/816ddebd-ef90-4d6a-9c97-cba47eafb292/_history/1",
+        "type": "fhir_logical_id"
+      }
+    ],
+    "originating_system_audit": {
+      "_type": "FEEDER_AUDIT_DETAILS",
+      "system_id": "FHIR-Bridge"
+    },
+    "original_content": {
+      "_type": "DV_PARSABLE",
+      "formalism": "text/turtle",
+      "value": "# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n# SPDX-License-Identifier: CC-BY-4.0\n#\n# The GMEOW in-band complement for the openEHR Blutdruck composition (S ∖ im(get)).\n# This is the payload that rides inside blood_pressure.augmented.json as\n# feeder_audit.original_content (DV_PARSABLE, formalism \"text/turtle\"). It carries\n# exactly what the openEHR RM slice cannot hold; `u` (up-projection) reads it to make\n# u(d(g)) = id_GMEOW hold. Complement nodes link back to RM nodes by archetype path\n# (gmeow:rmPath) — the mnemomorphic witness.\n\n@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n@prefix logic: <https://blackcatinformatics.ca/logic/> .\n@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n\n# --- Persistent qualities the HISTORY events are *of* (YAMATO #1080; not in the RM) ---\n<urn:gmeow:quality:sysBP> a logic:Quality ;\n    logic:genericQuality gmeow:pressure ;            # == OPT property openehr::pressure\n    logic:qualityRole    gmeow:systolicRole ;        # == archetype node at0004 \"Systolisch\"\n    gmeow:bearer         <urn:openehr:subject:PARTY_SELF> ;\n    gmeow:rmPath \"/content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data/events/data/items[at0004]\" .\n\n<urn:gmeow:quality:diaBP> a logic:Quality ;\n    logic:genericQuality gmeow:pressure ;\n    logic:qualityRole    gmeow:diastolicRole ;       # == archetype node at0005 \"Diastolisch\"\n    gmeow:bearer         <urn:openehr:subject:PARTY_SELF> ;\n    gmeow:rmPath \"/content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data/events/data/items[at0005]\" .\n\n# --- The observations as attributed, dated, standpoint-indexed claims (the four axes + ---\n# --- determinacy; none of which has an RM slot) ---\n<urn:gmeow:obs:sys1> a gmeow:Observation ;\n    gmeow:observationOf    <urn:gmeow:quality:sysBP> ;\n    gmeow:rmPathResult     \"…/items[at0004]/value\" ;\n    gmeow:observedAt       \"2012-09-17T00:00:00+02:00\"^^xsd:dateTime ;\n    logic:accordingTo      <urn:gmeow:standpoint:clinic-DE> ;\n    logic:confidence       \"0.98\"^^xsd:decimal ;     # device-calibration confidence\n    logic:evidenceStrength \"device-measured\" ;       # provenance warrant (≠ confidence)\n    logic:determinacy      logic:Crisp ;             # the relationship is crisp (≠ how sure)\n    gmeow:authorityLink    <fhir:Observation/816ddebd-ef90-4d6a-9c97-cba47eafb292/_history/1> .\n\n<urn:gmeow:obs:dia1> a gmeow:Observation ;\n    gmeow:observationOf    <urn:gmeow:quality:diaBP> ;\n    gmeow:rmPathResult     \"…/items[at0005]/value\" ;\n    gmeow:observedAt       \"2012-09-17T00:00:00+02:00\"^^xsd:dateTime ;\n    logic:accordingTo      <urn:gmeow:standpoint:clinic-DE> ;\n    logic:confidence       \"0.98\"^^xsd:decimal ;\n    logic:evidenceStrength \"device-measured\" ;\n    logic:determinacy      logic:Crisp .\n\n# --- RDF-1.2 reifier identity for the systolic value statement (citable; not in the RM) ---\n<urn:gmeow:reifier:sys1-value> logic:reifies\n    <<( <urn:gmeow:quality:sysBP> gmeow:measuredValue \"1.0 mm[Hg]\" )>> ;\n    logic:accordingTo <urn:gmeow:standpoint:clinic-DE> .\n\n# --- The standpoint itself (unindexed ≠ universal: this is the DE clinic vantage) ---\n<urn:gmeow:standpoint:clinic-DE> a logic:Standpoint ;\n    skos:prefLabel \"Secondary-care clinic, Germany (de-DE), 2012-09-17\"@en .\n"
+    }
+  },
+  "language": {
+    "_type": "CODE_PHRASE",
+    "terminology_id": {
+      "_type": "TERMINOLOGY_ID",
+      "value": "ISO_639-1"
+    },
+    "code_string": "de"
+  },
+  "territory": {
+    "_type": "CODE_PHRASE",
+    "terminology_id": {
+      "_type": "TERMINOLOGY_ID",
+      "value": "ISO_3166-1"
+    },
+    "code_string": "DE"
+  },
+  "category": {
+    "_type": "DV_CODED_TEXT",
+    "value": "event",
+    "defining_code": {
+      "_type": "CODE_PHRASE",
+      "terminology_id": {
+        "_type": "TERMINOLOGY_ID",
+        "value": "openehr"
+      },
+      "code_string": "433"
+    }
+  },
+  "composer": {
+    "_type": "PARTY_IDENTIFIED",
+    "identifiers": [
+      {
+        "_type": "DV_IDENTIFIER",
+        "id": "http://external.fhir.server/Practitioner/example"
+      }
+    ]
+  },
+  "context": {
+    "_type": "EVENT_CONTEXT",
+    "start_time": {
+      "_type": "DV_DATE_TIME",
+      "value": "2012-09-17T00:00:00+02:00"
+    },
+    "setting": {
+      "_type": "DV_CODED_TEXT",
+      "value": "secondary medical care",
+      "defining_code": {
+        "_type": "CODE_PHRASE",
+        "terminology_id": {
+          "_type": "TERMINOLOGY_ID",
+          "value": "openehr"
+        },
+        "code_string": "232"
+      }
+    },
+    "other_context": {
+      "_type": "ITEM_TREE",
+      "name": {
+        "_type": "DV_TEXT",
+        "value": "Baum"
+      },
+      "items": [
+        {
+          "_type": "ELEMENT",
+          "name": {
+            "_type": "DV_TEXT",
+            "value": "Status"
+          },
+          "value": {
+            "_type": "DV_CODED_TEXT",
+            "value": "final",
+            "defining_code": {
+              "_type": "CODE_PHRASE",
+              "terminology_id": {
+                "_type": "TERMINOLOGY_ID",
+                "value": "local"
+              },
+              "code_string": "at0012"
+            }
+          },
+          "archetype_node_id": "at0004"
+        },
+        {
+          "_type": "ELEMENT",
+          "name": {
+            "_type": "DV_TEXT",
+            "value": "Kategorie"
+          },
+          "value": {
+            "_type": "DV_TEXT",
+            "value": "vital-signs"
+          },
+          "archetype_node_id": "at0005"
+        }
+      ],
+      "archetype_node_id": "at0001"
+    }
+  },
+  "content": [
+    {
+      "_type": "OBSERVATION",
+      "name": {
+        "_type": "DV_TEXT",
+        "value": "Blutdruck"
+      },
+      "archetype_details": {
+        "archetype_id": {
+          "value": "openEHR-EHR-OBSERVATION.blood_pressure.v2"
+        },
+        "template_id": {
+          "value": "Blutdruck"
+        },
+        "rm_version": "1.0.4"
+      },
+      "language": {
+        "_type": "CODE_PHRASE",
+        "terminology_id": {
+          "_type": "TERMINOLOGY_ID",
+          "value": "ISO_639-1"
+        },
+        "code_string": "de"
+      },
+      "encoding": {
+        "_type": "CODE_PHRASE",
+        "terminology_id": {
+          "_type": "TERMINOLOGY_ID",
+          "value": "IANA_character-sets"
+        },
+        "code_string": "UTF-8"
+      },
+      "subject": {
+        "_type": "PARTY_SELF"
+      },
+      "data": {
+        "name": {
+          "_type": "DV_TEXT",
+          "value": "Historie"
+        },
+        "origin": {
+          "_type": "DV_DATE_TIME",
+          "value": "2012-09-17T00:00:00+02:00"
+        },
+        "events": [
+          {
+            "_type": "POINT_EVENT",
+            "name": {
+              "_type": "DV_TEXT",
+              "value": "Beliebiges Ereignis"
+            },
+            "time": {
+              "_type": "DV_DATE_TIME",
+              "value": "2012-09-17T00:00:00+02:00"
+            },
+            "data": {
+              "_type": "ITEM_TREE",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Blutdruck"
+              },
+              "items": [
+                {
+                  "_type": "ELEMENT",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Systolisch"
+                  },
+                  "value": {
+                    "_type": "DV_QUANTITY",
+                    "units": "mm[Hg]",
+                    "magnitude": 1.0
+                  },
+                  "archetype_node_id": "at0004"
+                },
+                {
+                  "_type": "ELEMENT",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Diastolisch"
+                  },
+                  "value": {
+                    "_type": "DV_QUANTITY",
+                    "units": "mm[Hg]",
+                    "magnitude": 60.0
+                  },
+                  "archetype_node_id": "at0005"
+                }
+              ],
+              "archetype_node_id": "at0003"
+            },
+            "archetype_node_id": "at0006"
+          }
+        ],
+        "archetype_node_id": "at0001"
+      },
+      "archetype_node_id": "openEHR-EHR-OBSERVATION.blood_pressure.v2"
+    }
+  ],
+  "archetype_node_id": "openEHR-EHR-COMPOSITION.registereintrag.v1",
+  "links": [
+    {
+      "_type": "LINK",
+      "meaning": {
+        "_type": "DV_TEXT",
+        "value": "gmeow:in-band-complement"
+      },
+      "type": {
+        "_type": "DV_TEXT",
+        "value": "gmeow:complement-graph"
+      },
+      "target": {
+        "_type": "DV_EHR_URI",
+        "value": "urn:gmeow:complement:blutdruck-1"
+      }
+    }
+  ]
+}

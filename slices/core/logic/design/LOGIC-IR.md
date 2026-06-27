@@ -48,7 +48,14 @@ governs what may be done with it:
   [`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md);
 - **action schema** — a named precondition/effect/invariant template a transaction program may
   invoke;
-- **validation shape** — a closed-world data-shape condition (the SHACL-shaped subset).
+- **validation shape** — a closed-world data-shape condition (the SHACL-shaped subset);
+- **correspondence** — a law-bearing, possibly-lossy, possibly-bidirectional alignment between a
+  source pattern and a target pattern (the **ninth** kind), carrying its morphism class on an ordered
+  law-spine, its claimed laws with discharge status, the separated quantitative axes, FOL/SOL caveats,
+  and standpoint indexing. Its `get`/`put` legs are transaction programs; its caveat/relation envelope
+  is meta-level and stays meta. It is the single kind cross-ontology alignment compiles into, and from
+  which SSSOM/EDOAL/FnO/SPARQL/up-lift are generated lowerings. Fully specified in
+  [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md).
 
 Keeping these kinds distinct is what prevents a constraint from being mistaken for a rule, a query
 operator from being read as a program operator, or a meta-level quotation from collapsing into the
@@ -105,6 +112,39 @@ downstream of a lowering discloses which formulas the target did not evaluate (s
 [`LOGIC-SEMANTICS.md` § The reasoning result](LOGIC-SEMANTICS.md)). The aggregate of these
 judgments is the loss ledger that accompanies the generated artifacts (see
 [`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md)).
+
+## IR commitments — legalization, load-bearing annotations, the relational core
+
+Three commitments shape the IR so that lowering and execution have a sound target. They are cheap to
+honour from the start and expensive to retrofit; the correspondence calculus
+([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)) and the native engine
+([`LOGIC-RUNTIME.md`](LOGIC-RUNTIME.md)) both depend on them. The architecture is MLIR's — dialects,
+per-node verifiers, progressive lowering; **not** LLVM IR's substrate (an imperative SSA IR cannot
+represent open-world entailment, paraconsistency, or modal scope). Patterns and tooling cross over;
+the substrate does not.
+
+- **Lowering is legalization (`logic:ConversionTarget`).** A lowering to a target is a legalization
+  against a declared target — statically, or *dynamically legal* iff a construct falls in the target's
+  certified fragment. **Partial conversion** leaves an illegal construct in place, flagged: this *is*
+  the "unsupported carried and flagged, never dropped" rule above. Every lowering is therefore a total
+  function into `⟨ legal output ⊕ flagged residue ⟩`, and the loss ledger is the residue set.
+- **Every annotation is typed load-bearing or droppable (`logic:loadBearing`).** A display hint /
+  `scopeNote` is **droppable** — correctness must never depend on it, and dropping it only pessimizes.
+  An in-band complement or a quantitative axis is **load-bearing** — the inverse leg needs it for
+  `put∘get = id`. A lowering may drop a droppable annotation silently but must either preserve a
+  load-bearing one or record its loss. Without this bit a section/retraction (perfect-subsumption)
+  claim cannot be verified, which is why it is in the node type from the start.
+- **The relational-core dialect (`logic:RelationalCore`).** A first-class Datalog±-with-stratified-
+  negation sub-language is the lowering waist between the full-FOL IR and the physical execution engine.
+  Every execution strategy, the incremental layer, and the semiring annotation target it. The other
+  prerequisites already hold: the canonical IR is content-addressed (below) and the quantitative axes
+  are semiring-annotatable first-class structure ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)
+  § axes).
+
+**Validation, not trust.** Transforms are validated, not trusted: a round-trip/witness-preservation
+check (the analogue of compiler `debugify`) and a refinement check against the declared preservation
+polarity (the analogue of translation validation) are decidable graph-isomorphism checks over the
+content-addressed canonical form, not semantic-equivalence search.
 
 ## Canonical identity
 

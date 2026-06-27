@@ -1,0 +1,87 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# RCHOPS21 chemotherapy as a GMEOW logic:Plan (the process-axis canonical form).
+#
+# This is GMEOW's OWN rendering, derived from the openEHR PROC 1.6.0 worked example
+# (openEHR/specifications-PROC : docs/process_examples/master05-chemo.adoc, DLM "RCHOPS21",
+# author Thomas Beale, openEHR Foundation). The openEHR DLM/TP-VML text is NOT vendored
+# (specifications-PROC license: "Other"/NOASSERTION); only short excerpts are cited for
+# grounding, and the structure is re-expressed in logic: terms. It exercises exactly the
+# constructs META-EPIC #1054 (W1 #1055) says a pure DAG cannot hold: a loop, guarded branches
+# on real conditions, nondeterministic outcomes, and per-branch compensation — proving the W2
+# DAG must be a *profile* of this superset, not the core.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+<urn:gmeow:plan:rchops21> a logic:Plan ;
+    skos:prefLabel "RCHOPS21 multi-drug chemotherapy"@en ;
+    # DLM:  preconditions  has_lymphoma_diagnosis
+    logic:precondition [ logic:holds gmeow:has_lymphoma_diagnosis ] ;
+    # DLM:  cycle_period = 3w ; cycle_repeats = 6   →  a LOOP (not expressible in a pure DAG)
+    logic:body [ a logic:Loop ;
+        logic:loopVar    "cycle" ;
+        logic:loopCount  6 ;
+        logic:loopPeriod "P3W"^^xsd:duration ;
+        logic:loopBody ( <urn:gmeow:plan:rchops21/cycle> ) ] .
+
+# One cycle: serial ⊗ premedicate → (guarded) administer → observe.
+<urn:gmeow:plan:rchops21/cycle> a logic:Plan ;
+    logic:serial (
+        <urn:gmeow:action:premedicate>
+        <urn:gmeow:guard:patient-fit>
+        <urn:gmeow:action:observe-response> ) .
+
+# --- Action schemas (precondition / effect / resource / capability / observation / compensation) ---
+
+<urn:gmeow:action:premedicate> a logic:ActionSchema ;
+    skos:prefLabel "pre-medication (paracetamol 1g, chlorphenamine 10mg)"@en ;
+    logic:effect       [ logic:ins gmeow:premedicated ] ;
+    logic:resource     gmeow:infusion-nurse ;            # competes-for-resource ⇒ serialized (W3)
+    logic:capability   gmeow:administer-IV ;
+    logic:observation  gmeow:premed-given .
+
+# A guarded branch on a REAL tracked-state condition (not a tag): DLM patient_fit :=
+#   not (platelets.in_range(#very_low) or neutrophils.in_range(#very_low))
+<urn:gmeow:guard:patient-fit> a logic:GuardedBranch ;
+    logic:guard [ logic:and (
+        [ logic:not [ logic:trackedStateInRange ( gmeow:platelets   gmeow:very_low ) ] ]
+        [ logic:not [ logic:trackedStateInRange ( gmeow:neutrophils gmeow:very_low ) ] ] ) ] ;
+    logic:then <urn:gmeow:action:administer-regime> ;
+    logic:else <urn:gmeow:action:defer-cycle> .          # fallback when not fit
+
+# Tracked state with currency → valid-time freshness guards (DLM currency annotations).
+gmeow:neutrophils a gmeow:TrackedState ; logic:currency "P3D"^^xsd:duration .   # currency = 3d
+gmeow:platelets   a gmeow:TrackedState ; logic:currency "PT12H"^^xsd:duration . # currency = 12h
+gmeow:bilirubin   a gmeow:TrackedState ; logic:currency "PT12H"^^xsd:duration .
+gmeow:gfr         a gmeow:TrackedState ; logic:currency "P1D"^^xsd:duration .
+
+<urn:gmeow:action:administer-regime> a logic:ActionSchema ;
+    skos:prefLabel "administer CHOP backbone + conditional R/MTX"@en ;
+    # Doses are dose_per_m2 * BSA, with case-based modification on tracked state (DLM rules -- Main):
+    #   doxorubicin *= case bilirubin.range in {high:0.5, very_high:0.25, crit_high:0.0}
+    #   cyclophosphamide *= case platelets.range × case gfr.range
+    logic:effect       [ logic:ins gmeow:chop-administered ] ;
+    logic:resource     gmeow:infusion-chair , gmeow:cytotoxic-pharmacy ;
+    logic:capability   gmeow:administer-cytotoxic ;
+    # NONDETERMINISTIC outcome set with per-outcome compensation (a pure DAG cannot express this):
+    logic:outcome [ logic:outcomeCase gmeow:tolerated ;        logic:then gmeow:continue ] ;
+    logic:outcome [ logic:outcomeCase gmeow:adverse-reaction ; logic:compensation <urn:gmeow:action:manage-reaction> ] ;
+    # Guarded ADDITION for high-IPI patients (DLM: high_ipi := ipi_risk ∈ {high, intermediate_high}):
+    logic:conditionalStep [ logic:guard [ logic:holds gmeow:high_ipi ] ;
+                            logic:then ( gmeow:add-rituximab gmeow:add-methotrexate ) ] .
+
+<urn:gmeow:action:manage-reaction> a logic:ActionSchema ;          # compensation action
+    skos:prefLabel "manage patient reaction (exception pathway)"@en ;
+    logic:effect [ logic:ins gmeow:reaction-managed ] .
+
+<urn:gmeow:action:defer-cycle> a logic:ActionSchema ;
+    skos:prefLabel "defer cycle until counts recover"@en ;
+    logic:effect [ logic:ins gmeow:cycle-deferred ] .
+
+<urn:gmeow:action:observe-response> a logic:ActionSchema ;
+    skos:prefLabel "observe response; gate next cycle"@en ;
+    logic:observation gmeow:response-assessed .

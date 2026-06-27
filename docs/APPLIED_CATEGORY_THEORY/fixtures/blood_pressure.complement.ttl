@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The GMEOW in-band complement for the openEHR Blutdruck composition (S ∖ im(get)).
+# This is the payload that rides inside blood_pressure.augmented.json as
+# feeder_audit.original_content (DV_PARSABLE, formalism "text/turtle"). It carries
+# exactly what the openEHR RM slice cannot hold; `u` (up-projection) reads it to make
+# u(d(g)) = id_GMEOW hold. Complement nodes link back to RM nodes by archetype path
+# (gmeow:rmPath) — the mnemomorphic witness.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Persistent qualities the HISTORY events are *of* (YAMATO #1080; not in the RM) ---
+<urn:gmeow:quality:sysBP> a logic:Quality ;
+    logic:genericQuality gmeow:pressure ;            # == OPT property openehr::pressure
+    logic:qualityRole    gmeow:systolicRole ;        # == archetype node at0004 "Systolisch"
+    gmeow:bearer         <urn:openehr:subject:PARTY_SELF> ;
+    gmeow:rmPath "/content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data/events/data/items[at0004]" .
+
+<urn:gmeow:quality:diaBP> a logic:Quality ;
+    logic:genericQuality gmeow:pressure ;
+    logic:qualityRole    gmeow:diastolicRole ;       # == archetype node at0005 "Diastolisch"
+    gmeow:bearer         <urn:openehr:subject:PARTY_SELF> ;
+    gmeow:rmPath "/content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data/events/data/items[at0005]" .
+
+# --- The observations as attributed, dated, standpoint-indexed claims (the four axes + ---
+# --- determinacy; none of which has an RM slot) ---
+<urn:gmeow:obs:sys1> a gmeow:Observation ;
+    gmeow:observationOf    <urn:gmeow:quality:sysBP> ;
+    gmeow:rmPathResult     "…/items[at0004]/value" ;
+    gmeow:observedAt       "2012-09-17T00:00:00+02:00"^^xsd:dateTime ;
+    logic:accordingTo      <urn:gmeow:standpoint:clinic-DE> ;
+    logic:confidence       "0.98"^^xsd:decimal ;     # device-calibration confidence
+    logic:evidenceStrength "device-measured" ;       # provenance warrant (≠ confidence)
+    logic:determinacy      logic:Crisp ;             # the relationship is crisp (≠ how sure)
+    gmeow:authorityLink    <fhir:Observation/816ddebd-ef90-4d6a-9c97-cba47eafb292/_history/1> .
+
+<urn:gmeow:obs:dia1> a gmeow:Observation ;
+    gmeow:observationOf    <urn:gmeow:quality:diaBP> ;
+    gmeow:rmPathResult     "…/items[at0005]/value" ;
+    gmeow:observedAt       "2012-09-17T00:00:00+02:00"^^xsd:dateTime ;
+    logic:accordingTo      <urn:gmeow:standpoint:clinic-DE> ;
+    logic:confidence       "0.98"^^xsd:decimal ;
+    logic:evidenceStrength "device-measured" ;
+    logic:determinacy      logic:Crisp .
+
+# --- RDF-1.2 reifier identity for the systolic value statement (citable; not in the RM) ---
+<urn:gmeow:reifier:sys1-value> logic:reifies
+    <<( <urn:gmeow:quality:sysBP> gmeow:measuredValue "1.0 mm[Hg]" )>> ;
+    logic:accordingTo <urn:gmeow:standpoint:clinic-DE> .
+
+# --- The standpoint itself (unindexed ≠ universal: this is the DE clinic vantage) ---
+<urn:gmeow:standpoint:clinic-DE> a logic:Standpoint ;
+    skos:prefLabel "Secondary-care clinic, Germany (de-DE), 2012-09-17"@en .

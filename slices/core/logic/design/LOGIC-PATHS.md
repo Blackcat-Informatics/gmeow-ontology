@@ -7,7 +7,9 @@
 > graph walk — with a predicate wildcard and a bounded depth — is authored as a
 > canonical `logic:` individual and projected to SPARQL property paths and Datalog.
 > It makes precise the doctrine stated once in [`LOGIC.md`](LOGIC.md): `logic:`
-> subsumes a standard as a fragment and then exceeds it.
+> subsumes a standard as a fragment and then exceeds it. `logic:PathShape` is also the
+> pattern substrate reused by the correspondence calculus's `get`/`put` legs
+> ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)).
 
 ## What SPARQL §9 cannot say
 

@@ -59,6 +59,11 @@ unless they themselves cite an external work; they are cross-references within G
   (WonderWeb Deliverable D18)* — DOLCE; Gangemi, A. & Mika, P. (2003). *Understanding the Semantic
   Web through Descriptions and Situations (DnS).* ODBASE.
 - Niles, I. & Pease, A. (2001). *Towards a Standard Upper Ontology (SUMO).* FOIS.
+- Mizoguchi, R. (2010). *YAMATO: Yet Another More Advanced Top-level Ontology.* Hozo ontology
+  library: <https://www.hozo.jp/onto_library/YAMATO101216.pdf>. (Bridge view + refinement source:
+  persistent quality identity, generic-quality→role ladder, unit-independent true quantity,
+  process≠event, action/event open-closed, causal-vs-temporal parts — see
+  [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md) and `docs/foundational-bridging.md`.)
 
 ## Foundational theory (`intentCitesAsDataSource`)
 
@@ -133,6 +138,33 @@ unless they themselves cite an external work; they are cross-references within G
 - Brier, G. W. (1950). *Verification of Forecasts Expressed in Terms of Probability.* Monthly Weather
   Review 78(1). (The Brier score; grounds the calibration-error measurement of cognitive assessment
   — see LOGIC-COGNITION.md.)
+- Foster, J. N., Greenwald, M. B., Moore, J. T., Pierce, B. C. & Schmitt, A. (2007). *Combinators
+  for Bidirectional Tree Transformations: A Linguistic Approach to the View-Update Problem.* ACM
+  TOPLAS 29(3). (Asymmetric lenses; the GetPut/PutGet/PutPut laws — the correspondence get/put legs,
+  see LOGIC-CORRESPONDENCE.md.)
+- Hofmann, M., Pierce, B. & Wagner, D. (2011). *Symmetric Lenses.* POPL. (The complement object — the
+  in-band complement materialized in the OpenEHR subsumption case.)
+- Diskin, Z., Xiong, Y. & Czarnecki, K. (2011). *From State- to Delta-Based Bidirectional Model
+  Transformations.* (Edit/delta lenses; traces — the mnemomorphism witness, deferred extension.)
+- Pickering, M., Gibbons, J. & Wu, N. (2017). *Profunctor Optics: Modular Data Accessors.* The Art,
+  Science, and Engineering of Programming 1(2). (The optic lattice iso/lens/prism/affine/traversal —
+  the correspondence-class taxonomy / law-spine.)
+- Meijer, E., Fokkinga, M. & Paterson, R. (1991). *Functional Programming with Bananas, Lenses,
+  Envelopes and Barbed Wire.* FPCA. — Uustalu, T. & Vene, V. (1999). *Primitive (Co)Recursion and
+  Course-of-Value (Co)Iteration.* (Recursion schemes — paramorphism/histomorphism, the lineage the
+  *mnemomorphism* coins from; the recursion-scheme name is dropped, the witness idea kept.)
+- Cousot, P. & Cousot, R. (1977). *Abstract Interpretation: A Unified Lattice Model for Static
+  Analysis of Programs by Construction or Approximation of Fixpoints.* POPL. (Galois connections —
+  the sound under/over-approximation that *is* the preservation polarities.)
+- Goguen, J. A. & Burstall, R. M. (1992). *Institutions: Abstract Model Theory for Specification and
+  Programming.* JACM 39(1). (Institution (co)morphisms — truth-preserving morphism vs commitment-
+  shifting bridge view; the gUFO-vs-BFO/DOLCE split.)
+- Lenzerini, M. (2002). *Data Integration: A Theoretical Perspective.* PODS. (GAV/LAV/GLAV and
+  certain answers — deriving the `put` leg by query rewriting.)
+- Spivak, D. I. (2012). *Functorial Data Migration.* Information and Computation 217. (The Δ/Σ/Π
+  adjoint triple for schema mappings.)
+- Schürr, A. (1994). *Specification of Graph Translators with Triple Graph Grammars.* WG. (The
+  correspondence graph as a first-class link node.)
 
 ## Engines and tools (`intentBridgedByReference`)
 
@@ -156,6 +188,28 @@ unless they themselves cite an external work; they are cross-references within G
 - OWL-RL — a Python OWL 2 RL/RDFS reasoner (cross-check oracle). <https://owl-rl.readthedocs.io/>
 - PyO3 / maturin — Rust bindings for Python. <https://pyo3.rs/>
 - WebAssembly. <https://webassembly.org/>
+- MLIR — Lattner, C. et al. (2021). *MLIR: Scaling Compiler Infrastructure for Domain Specific
+  Computation.* CGO. (Dialects, per-op verifiers, progressive lowering, dialect conversion /
+  legalization — the architecture the IR + execution stack borrows; the substrate is not.)
+- LLVM — Lattner, C. & Adve, V. (2004). *LLVM: A Compilation Framework for Lifelong Program Analysis
+  & Transformation.* CGO. (Mechanisms: the verifier, droppable `!metadata` vs load-bearing operand
+  bundles, debug-info-through-optimization — the `logic:loadBearing` and validation patterns.)
+- Lopes, N. P., Lee, J., Hur, C.-K., Liu, Z. & Regehr, J. (2021). *Alive2: Bounded Translation
+  Validation for LLVM.* PLDI. (Refinement-checking transform validation — the overclaim/round-trip
+  gate methodology.)
+- Willsey, M., Nandi, C., Wang, Y. R., Flatt, O., Tatlock, Z. & Panchekha, P. (2021). *egg: Fast and
+  Extensible Equality Saturation.* POPL (Rust). — Zhang, Y. et al. (2023). *Better Together: Unifying
+  Datalog and Equality Saturation* (egglog). PLDI. (Plan normalization + the Datalog/e-graph
+  execution substrate.)
+- McSherry, F., Murray, D. G., Isaacs, R. & Isard, M. (2013). *Differential Dataflow.* CIDR (Rust:
+  timely/differential-dataflow). — Ryzhyk, L. & Budiu, M. (2019). *Differential Datalog (DDlog).*
+  Datalog 2.0. (Incremental recursive evaluation — the re-reason-after-edit lever.)
+- Budiu, M., McSherry, F., Ryzhyk, L. & Tannen, V. (2023). *DBSP: Automatic Incremental View
+  Maintenance for Rich Query Languages.* VLDB (Feldera, Rust). (Incremental view maintenance for the
+  relational core.)
+- Ngo, H. Q., Ré, C. & Rudra, A. (2013). *Skew Strikes Back: New Developments in the Theory of Join
+  Algorithms.* SIGMOD Record. — Veldhuizen, T. L. (2014). *Leapfrog Triejoin: A Simple,
+  Worst-Case-Optimal Join Algorithm.* ICDT. (WCOJ for cyclic graph patterns.)
 
 ## Design influence (`intentCitesAsDataSource`)
 

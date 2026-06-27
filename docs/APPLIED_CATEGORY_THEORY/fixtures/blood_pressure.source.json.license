@@ -1,0 +1,7 @@
+SPDX-FileCopyrightText: Berlin Institute of Health (Genkidata project)
+SPDX-License-Identifier: Apache-2.0
+
+Vendored verbatim from https://github.com/Berlin-Institute-of-Health/Genkidata
+compositions/blood_pressure.json — an openEHR "Blutdruck" (GECCO / NUM) sample COMPOSITION.
+Copyright Berlin Institute of Health; licensed Apache-2.0. Used as grounding data by
+docs/APPLIED_CATEGORY_THEORY/usecase_openehr_bloodpressure.md and fixtures/README.md.

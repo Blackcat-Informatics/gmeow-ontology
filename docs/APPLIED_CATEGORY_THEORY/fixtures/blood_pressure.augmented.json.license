@@ -1,0 +1,7 @@
+SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> (GMEOW complement); Berlin Institute of Health (source data)
+SPDX-License-Identifier: CC-BY-4.0 AND Apache-2.0
+
+Derived work: the openEHR Blutdruck source (blood_pressure.source.json — Apache-2.0, Berlin
+Institute of Health) augmented with a GMEOW RDF 1.2 complement (CC-BY-4.0), carried in
+feeder_audit.original_content (DV_PARSABLE, formalism text/turtle) and a COMPOSITION LINK.
+See docs/APPLIED_CATEGORY_THEORY/fixtures/README.md for full provenance.

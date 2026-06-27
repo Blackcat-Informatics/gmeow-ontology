@@ -106,6 +106,14 @@ written *for* these substrates. External OWL reasoners (e.g. ELK, HermiT) remain
 checking the OWL projections of the IR, but they are secondary validators of their projected
 fragments — not authorities over the canonical `logic:` semantics.
 
+**Trajectory.** The named substrates are the current *bootstrap*; the long-term engine subsumes
+their evaluation primitives into a single native relational core (see
+[The native physical engine](#the-native-physical-engine--execution-and-optimization)) and demotes
+Nemo/Scryer to conformance oracles + not-yet-native fallbacks + capability stand-ins, subsumed
+fragment-by-fragment and oracle-gated. The seam above stays correct for the bootstrap; the
+trajectory makes the engine *engine-agnostic* — named engines become stand-ins for capability
+bundles, not architectural commitments.
+
 > Ownership boundary. The existential-rule substrate provides the chase *mechanism* used by
 > `logic:` typed-context construction — it is not, by itself, a context-construction engine.
 > `logic:` defines the typed-context construction *protocol*: graph seeding, revision, scoped
@@ -314,6 +322,47 @@ a contradiction witness (which asserts ⊥ within a context) and is never modell
 updates, write skew, and read/write anomalies are findings of this kind, described by their
 dependency cycle or violated isolation level — never silently linearized, and never conflated with
 within-context inconsistency.
+
+## The native physical engine — execution and optimization
+
+Routing every query to the bootstrap substrates (Nemo's chase, Scryer's SLD) is the starting point,
+not the long-term architecture: two black-box whole-program engines cannot be planned across,
+specialized, parallelized, or made incremental, and each boundary pays re-serialization. The
+long-term engine extends the IR's progressive lowering ([LOGIC-IR.md § IR commitments](LOGIC-IR.md))
+*downward* to a single native physical core in Rust, with the bootstrap substrates demoted to
+conformance oracles, not-yet-native fallbacks, and capability stand-ins — subsumed
+fragment-by-fragment, **oracle-gated** by the divergence ledger ([LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)),
+the same retirement discipline used for the Python oracle.
+
+The execution lowering stack:
+
+```text
+logic: IR (full-FOL, facets)
+  → ReasoningContract / fragment analysis    — route to the weakest sufficient strategy
+  → relational-core dialect (logic:RelationalCore; Datalog± + stratified ¬ + aggregation + existentials)
+  → physical plan (join order · worst-case-optimal joins · magic-sets · semiring annotation)
+  → native core: semi-naive + alternating fixpoint, tabling, incremental, compiled
+```
+
+Seven levers (lowering onto battle-tested Rust dataflow cores, not rebuilding everything): (1) **one
+relational core** — Datalog *is* relational algebra + fixpoint, and forward (materialize) and backward
+(resolve) both reduce to it; (2) **magic-sets / demand transformation** — dissolves the forward-vs-
+backward two-engine split into one bottom-up core; (3) **incremental maintenance** via differential
+dataflow / DBSP — the biggest lever, making re-reason-after-edit proportional to the change (the
+upgrade of the "incremental maintenance belongs to the custom solver layer" note above); (4)
+**worst-case-optimal joins** for cyclic graph patterns; (5) **provenance semirings** — computing
+world/standpoint and the quantitative axes in one pass, where the semiring *is* the axis algebra; (6)
+**compile-don't-interpret** — specialized per content-addressed `contract_hash`; (7) **fragment-routing**
+— the `ReasoningContract` ([LOGIC-CONTRACT.md](LOGIC-CONTRACT.md)) as the physical-plan selector, i.e.
+decidability-as-projection applied to performance.
+
+Honest staging: native subsumption is fragment-by-fragment, oracle-gated. The hard parts —
+well-founded / stable-model semantics *incrementally*, existential-rule chase with termination *and*
+incrementality together, and the paraconsistent/modal facets — stay heavy-path fallbacks longest and
+are flagged non-incremental in the perf ledger. The full rationale and the MLIR/LLVM lineage
+(architecture borrowed, substrate not) are in
+[`docs/APPLIED_CATEGORY_THEORY/take1.md`](../../../../docs/APPLIED_CATEGORY_THEORY/take1.md) §10.1–§10.2;
+the correspondence calculus that rides this engine is in [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md).
 
 ## Generated artifacts and the compiler's projection role
 
