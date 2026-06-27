@@ -24,10 +24,14 @@
 //!   [`scratch`].
 //! - **Multiset (bag) semantics.** Solutions are a bag, preserved until
 //!   `DISTINCT`/`REDUCED`. See [`solution`].
-//! - **Hard-fail, no degraded fallback.** A well-formed but out-of-S6-scope
-//!   algebra node (property paths, `SERVICE`, `LATERAL`, `DESCRIBE`, SPARQL
-//!   `UPDATE`) or an unimplemented builtin is a typed [`EvalError::Unsupported`] —
-//!   never a partial or wrong answer (the project `no-optionality` doctrine).
+//! - **Property paths in-engine (S8 #914).** The `Path` graph pattern is evaluated
+//!   over the same indexed surface, wasm-safe, covering the full algebra
+//!   (`* + ? / | ^ !()` and the GMEOW `{n,m}` / `<any>` extensions) — see the
+//!   `path` module.
+//! - **Hard-fail, no degraded fallback.** A well-formed but out-of-scope algebra
+//!   node (`SERVICE`, `LATERAL`, `DESCRIBE`, SPARQL `UPDATE`) or an unimplemented
+//!   builtin is a typed [`EvalError::Unsupported`] — never a partial or wrong
+//!   answer (the project `no-optionality` doctrine).
 //!
 //! The crate carries **zero oxigraph-family dependencies** and builds for
 //! `wasm32-unknown-unknown` (the wasm query path of EPIC #906); both invariants are
@@ -45,6 +49,7 @@ pub mod error;
 pub mod eval;
 mod expr;
 mod modifier;
+mod path;
 pub mod scratch;
 pub mod solution;
 

@@ -87,12 +87,17 @@ impl<'d> EvalCtx<'d> {
 /// Evaluate a graph pattern to a multiset of solutions.
 ///
 /// Implemented incrementally over the S6 build tasks; an unimplemented variant
-/// returns [`EvalError::Unsupported`] naming the construct. Out-of-S6-scope nodes
-/// (`Path`, `Service`, `Lateral`) remain permanent hard errors (property paths are
-/// S8 #914; SERVICE is S6b #928).
+/// returns [`EvalError::Unsupported`] naming the construct. Property paths are
+/// evaluated in-engine (S8 #914, the `path` module); the remaining out-of-scope
+/// nodes (`Service`, `Lateral`) stay permanent hard errors (SERVICE is S6b #928).
 pub fn eval(pattern: &GraphPattern, ctx: &mut EvalCtx<'_>) -> Result<SolutionSeq, EvalError> {
     match pattern {
         GraphPattern::Bgp { patterns } => crate::bgp::eval_bgp(patterns, ctx),
+        GraphPattern::Path {
+            subject,
+            path,
+            object,
+        } => crate::path::eval_path(subject, path, object, ctx),
         GraphPattern::Join { left, right } => crate::binop::eval_join(left, right, ctx),
         GraphPattern::Union { left, right } => crate::binop::eval_union(left, right, ctx),
         GraphPattern::LeftJoin {
@@ -174,7 +179,7 @@ pub fn evaluate_query(query: &Query, ctx: &mut EvalCtx<'_>) -> Result<Outcome, E
 pub(crate) fn pattern_kind(pattern: &GraphPattern) -> &'static str {
     match pattern {
         GraphPattern::Bgp { .. } => "BGP",
-        GraphPattern::Path { .. } => "property path (S8 #914)",
+        GraphPattern::Path { .. } => "property path",
         GraphPattern::Join { .. } => "Join",
         GraphPattern::LeftJoin { .. } => "OPTIONAL (LeftJoin)",
         GraphPattern::Lateral { .. } => "LATERAL",

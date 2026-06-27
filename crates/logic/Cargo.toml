@@ -79,6 +79,13 @@ scryer-prolog = { git = "https://github.com/mthom/scryer-prolog", branch = "mast
 gmeow-logic-compile = { path = "../logic-compile" }
 proptest = "1"
 serde_json = "1"
+# S8 #914 parity harness only (tests/sparql_path_parity.rs): the wasm-clean
+# in-engine SPARQL property-path evaluator + the IR dataset builder, used to
+# assert in-engine ≡ Scryer-lowered over the corpus path shapes. Dev-only: these
+# do NOT enter the lib graph (so `gmeow-logic` adds no edge to `gmeow-sparql-eval`
+# and the reverse oxigraph-free contract is untouched).
+gmeow-sparql-eval = { path = "../sparql-eval" }
+gmeow-rdf-core = { path = "../rdf-core", default-features = false }
 # insta: snapshot goldens for the projection back-ends + explanation prose (T8,
 # #789). The `.snap` files ARE the byte-exact unit goldens (the native
 # crates/conformance harness owns cross-engine corpus parity). Pinned to match
