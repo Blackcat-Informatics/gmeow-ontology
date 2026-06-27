@@ -107,11 +107,22 @@ impl CfStatus {
 /// `BudgetLimit` discriminator keeps the fold lossless: `partial`/`exhausted`/
 /// `incomplete` all map to budget exhaustion of *different* budgets and are
 /// recovered exactly by [`cf_status_string`].
-fn cf_result(status: CfStatus, bindings_present: bool, world: &str) -> ReasoningResult {
+///
+/// `payload` carries the goal-variable bindings for the resolution path or an
+/// empty [`ResultPayload::Bindings`] for refusal/budget paths — never
+/// [`ResultPayload::Empty`], so the typed model is fully lossless (#768).
+/// `projection_class` mirrors `preservation` (same idiom as result.rs:821/:883).
+fn cf_result(
+    status: CfStatus,
+    world: &str,
+    payload: crate::result::ResultPayload,
+) -> ReasoningResult {
     use crate::result::{
         BudgetLimit, CompletenessStatus, EvaluationStatus, InformationState, InputStatus,
-        PreservationClaim, ResultPayload, ResultProvenance,
+        PreservationClaim, ResultProvenance,
     };
+    let bindings_present =
+        matches!(&payload, crate::result::ResultPayload::Bindings(b) if !b.is_empty());
     let (evaluation, completeness, limit, information) = match status {
         // A completed run, complete for the certified fragment: the goal is
         // supported when answers were found, conclusively absent otherwise.
@@ -155,16 +166,18 @@ fn cf_result(status: CfStatus, bindings_present: bool, world: &str) -> Reasoning
             InformationState::Undetermined,
         ),
     };
+    let preservation = PreservationClaim::exact();
     let mut provenance = ResultProvenance::native(SOLVER_VERSION, world);
     provenance.consumed_budget.limit = limit;
+    provenance.projection_class = preservation.clone();
     ReasoningResult::new(
         InputStatus::Valid,
         evaluation,
         completeness,
-        PreservationClaim::exact(),
+        preservation,
         information,
         provenance,
-        ResultPayload::Empty,
+        payload,
     )
 }
 
@@ -279,7 +292,11 @@ pub fn construct_and_resolve_cached(
 
     // Depth budget: a request past the budget is incomplete, never unbounded.
     if depth == 0 {
-        let result = cf_result(CfStatus::Incomplete, false, &cf_world);
+        let result = cf_result(
+            CfStatus::Incomplete,
+            &cf_world,
+            crate::result::ResultPayload::Bindings(vec![]),
+        );
         return Ok(CfAnswer {
             bindings: vec![],
             result,
@@ -335,7 +352,11 @@ pub fn construct_and_resolve_cached(
         None
     };
     if let Some(status) = early {
-        let result = cf_result(status, false, &cf_world);
+        let result = cf_result(
+            status,
+            &cf_world,
+            crate::result::ResultPayload::Bindings(vec![]),
+        );
         let r = CfAnswer {
             bindings: vec![],
             result,
@@ -374,7 +395,11 @@ pub fn construct_and_resolve_cached(
                 .next()
                 .expect("deterministic revision constructs exactly one world");
             let bindings: Vec<Binding> = bindings.into_iter().collect();
-            let result = cf_result(status, !bindings.is_empty(), &cf_world);
+            let result = cf_result(
+                status,
+                &cf_world,
+                crate::result::ResultPayload::Bindings(bindings.clone()),
+            );
             CfAnswer {
                 bindings,
                 result,
@@ -522,7 +547,11 @@ fn combine_lewis(
     };
 
     let bindings: Vec<Binding> = combined.into_iter().collect();
-    let result = cf_result(status, !bindings.is_empty(), &cf_world);
+    let result = cf_result(
+        status,
+        &cf_world,
+        crate::result::ResultPayload::Bindings(bindings.clone()),
+    );
     CfAnswer {
         bindings,
         result,
@@ -904,7 +933,11 @@ mod tests {
             CfStatus::Unknown,
             CfStatus::Incomplete,
         ] {
-            let r = cf_result(s, false, "http://gmeow.example/w");
+            let r = cf_result(
+                s,
+                "http://gmeow.example/w",
+                crate::result::ResultPayload::Bindings(vec![]),
+            );
             assert_eq!(cf_status_string(&r), s.as_str(), "cf round-trip for {s:?}");
             assert!(
                 r.validate().is_ok(),
@@ -917,7 +950,11 @@ mod tests {
     fn cf_unknown_is_distinct_typed_state_from_prob_unknown() {
         use crate::result::{CompletenessStatus, EvaluationStatus, InformationState};
         // A cf revision tie: completed run, completeness=unknown, no verdict.
-        let r = cf_result(CfStatus::Unknown, false, "http://gmeow.example/w");
+        let r = cf_result(
+            CfStatus::Unknown,
+            "http://gmeow.example/w",
+            crate::result::ResultPayload::Bindings(vec![]),
+        );
         assert_eq!(r.evaluation, EvaluationStatus::Completed);
         assert_eq!(r.completeness, CompletenessStatus::Unknown);
         assert_eq!(r.information, InformationState::Undetermined);
