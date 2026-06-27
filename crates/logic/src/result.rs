@@ -680,6 +680,13 @@ pub struct ReasoningResult {
     pub provenance: ResultProvenance,
     /// The surface-specific answer payload.
     pub payload: ResultPayload,
+    /// The declared row-schema facet: the typed [`ResultShape`](crate::result_shape::ResultShape)
+    /// the result's bindings are contracted to. `None` for surfaces with no row
+    /// schema (e.g. a pure DL-consistency verdict). This is the DECLARED contract a
+    /// caller attaches via [`Self::with_row_schema`] — never derived from the
+    /// result's own bindings (that would be a tautology) — against which a consumer
+    /// validates the bindings.
+    pub row_schema: Option<crate::result_shape::ResultShape>,
 }
 
 impl ReasoningResult {
@@ -762,6 +769,7 @@ impl ReasoningResult {
             information,
             provenance,
             payload,
+            row_schema: None,
         };
         debug_assert!(
             result.validate().is_ok(),
@@ -769,6 +777,73 @@ impl ReasoningResult {
             result.validate()
         );
         result
+    }
+
+    /// Attach the declared row-schema facet (#766) — the typed
+    /// [`ResultShape`](crate::result_shape::ResultShape) the result's bindings are
+    /// contracted to. The schema is the caller's *declaration*, validated against
+    /// the bindings by the consumer; it is never synthesised from the bindings.
+    #[must_use]
+    pub fn with_row_schema(mut self, schema: crate::result_shape::ResultShape) -> Self {
+        self.row_schema = Some(schema);
+        self
+    }
+
+    /// Validate the result's bindings against a caller-declared `schema`, then
+    /// attach the schema via [`Self::with_row_schema`] on success.
+    ///
+    /// This is the **production entry point** for the `row_schema` facet: the
+    /// caller declares the contract it expects (the schema is their *declaration*,
+    /// never derived from the bindings) and this method reads each bound term's
+    /// **actual** term-kind (IRI / literal+datatype / blank-node) to CHECK it
+    /// against that declaration — validation, never synthesis.
+    ///
+    /// # Payload handling
+    ///
+    /// - `Bindings`: each `Binding` row is observed as a `Vec<ObservedBinding>`,
+    ///   one entry per variable in the map.
+    /// - `Marginals`: same, using `ProbBinding::vars`.
+    /// - `Inferred` / `Empty`: zero rows — the schema validates as an empty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns the first [`ContractViolation`] if the bindings do not conform to
+    /// the declared schema (missing required column, undeclared column, wrong
+    /// term-kind, wrong datatype, or wrong row count in `Count` mode).
+    pub fn with_declared_row_schema(
+        self,
+        schema: crate::result_shape::ResultShape,
+    ) -> Result<Self, crate::result_shape::ContractViolation> {
+        use crate::result_shape::ObservedBinding;
+
+        let rows: Vec<Vec<ObservedBinding>> = match &self.payload {
+            ResultPayload::Bindings(bindings) => bindings
+                .iter()
+                .map(|b| {
+                    b.iter()
+                        .map(|(var, val)| {
+                            ObservedBinding::new(var.clone(), observed_term_from_str(val))
+                        })
+                        .collect()
+                })
+                .collect(),
+            ResultPayload::Marginals(marginals) => marginals
+                .iter()
+                .map(|pb| {
+                    pb.vars
+                        .iter()
+                        .map(|(var, val)| {
+                            ObservedBinding::new(var.clone(), observed_term_from_str(val))
+                        })
+                        .collect()
+                })
+                .collect(),
+            // Inferred / Empty payloads carry no SELECT-style bindings; validate as zero rows.
+            ResultPayload::Inferred(_) | ResultPayload::Empty => vec![],
+        };
+
+        schema.validate_bindings(&rows)?;
+        Ok(self.with_row_schema(schema))
     }
 
     /// An ill-formed request: nothing was reasoned (SEMANTICS:249-250). The other
@@ -892,6 +967,83 @@ impl ReasoningResult {
             ResultPayload::Inferred(inferred),
         )
     }
+}
+
+/// Map a canonical binding value string (as produced by `provenance::term_n3` and
+/// stored in [`crate::query_ir::Binding`] / [`crate::probabilistic::ProbBinding`])
+/// to the [`crate::result_shape::ObservedTerm`] surface used by
+/// [`crate::result_shape::ResultShape::validate_bindings`].
+///
+/// Canonical forms (from `provenance::term_n3` / `encode::literal_n3`):
+/// - `<iri>` → `ObservedTerm::Iri`
+/// - `_:id` → `ObservedTerm::BlankNode`
+/// - `"lex"` → `ObservedTerm::Literal { datatype: xsd:string }`
+/// - `"lex"@lang` → `ObservedTerm::Literal { datatype: rdf:langString }`
+/// - `"lex"^^<dtype>` → `ObservedTerm::Literal { datatype: dtype }`
+pub(crate) fn observed_term_from_str(val: &str) -> crate::result_shape::ObservedTerm {
+    use crate::result_shape::ObservedTerm;
+
+    if let Some(iri) = val.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
+        let _ = iri; // the IRI content is not needed for term-kind validation
+        return ObservedTerm::Iri;
+    }
+    if val.starts_with("_:") {
+        return ObservedTerm::BlankNode;
+    }
+    // All remaining forms start with `"`.
+    // Determine the datatype:
+    //   `"lex"^^<dtype>`  — typed literal
+    //   `"lex"@lang`      — language-tagged → rdf:langString
+    //   `"lex"`           — plain → xsd:string
+    const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+    const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
+
+    // Find the closing `"` of the lexical form (the last `"` that is NOT the
+    // opening `"`, accounting for backslash escapes in the lexical form).
+    let datatype = if let Some(rest) = find_literal_suffix(val) {
+        if let Some(dtype) = rest.strip_prefix("^^<").and_then(|s| s.strip_suffix('>')) {
+            dtype.to_owned()
+        } else if rest.starts_with('@') {
+            RDF_LANG_STRING.to_owned()
+        } else {
+            // Bare closing `"` — plain xsd:string.
+            XSD_STRING.to_owned()
+        }
+    } else {
+        // Malformed — treat as plain string defensively.
+        XSD_STRING.to_owned()
+    };
+    ObservedTerm::Literal { datatype }
+}
+
+/// Find the suffix after the closing `"` of a quoted literal canonical string.
+///
+/// Input: the full canonical string starting with `"`. Walks past the lexical
+/// form (handling `\\`, `\"`, `\n`, `\r`, `\t` escapes) and returns everything
+/// after the closing `"`.  Returns `None` if the string is malformed.
+fn find_literal_suffix(s: &str) -> Option<&str> {
+    // s starts with `"` — skip it.
+    let bytes = s.as_bytes();
+    if bytes.first() != Some(&b'"') {
+        return None;
+    }
+    let mut i = 1;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'\\' => {
+                // Escape sequence: skip the next byte.
+                i += 2;
+            }
+            b'"' => {
+                // Closing quote found; return everything after it.
+                return Some(&s[i + 1..]);
+            }
+            _ => {
+                i += 1;
+            }
+        }
+    }
+    None
 }
 
 #[cfg(test)]

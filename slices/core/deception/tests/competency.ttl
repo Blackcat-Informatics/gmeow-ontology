@@ -21,11 +21,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/deception/tests/> .
 @prefix exd:   <https://example.org/test/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 # ── A. TBox: deception-related event types + veridicality values ──────────────
 ex:cqDeceptionTypes a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-types.rq" ;
     gmeow:cqRationale "GMEOW must enumerate the deception-related event types and veridicality values it models. The asserted graph returns at least the deception event-type spine plus the ClaimVeridicality axis; these are the terms test_competency.py pinned." ;
+    gmeow:cqResultShape ex:cqDeceptionTypesShape ;
     gmeow:cqExpectRow
         ex:dtDeception, ex:dtLie, ex:dtPaltering, ex:dtOmission, ex:dtDistortion,
         ex:dtBullshit, ex:dtSelfDeception, ex:dtClaimVeridicality,
@@ -52,10 +54,16 @@ ex:dtVeridicalityUntrue a gmeow:ExpectedRow ;
 ex:dtVeridicalityLicensedFalsehood a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionType" ; gmeow:cellValueIri gmeow:veridicalityLicensedFalsehood ] .
 
+ex:cqDeceptionTypesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "deceptionType" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
 # ── B. TBox: deception participant roles ──────────────────────────────────────
 ex:cqDeceptionRoles a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-roles.rq" ;
     gmeow:cqRationale "GMEOW must model the participant roles a deception event ranges over: deceiver, deceived, beneficiary, dupe, spin-doctor." ;
+    gmeow:cqResultShape ex:cqDeceptionRolesShape ;
     gmeow:cqExpectRow
         ex:drDeceiver, ex:drDeceived, ex:drBeneficiary, ex:drDupe, ex:drSpinDoctor .
 
@@ -70,6 +78,11 @@ ex:drDupe a gmeow:ExpectedRow ;
 ex:drSpinDoctor a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deceptionRole" ; gmeow:cellValueIri gmeow:roleSpinDoctor ] .
 
+ex:cqDeceptionRolesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "deceptionRole" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
 # ── C. Instance classifiers (gmeow:cqDataFile overlay) ────────────────────────
 # Each overlays a synthetic deception event and pins that the classifier returns
 # it. The single projected row is exd:event1 (the fixture event); cqExactRows is
@@ -79,68 +92,125 @@ ex:cqDeceptionLie a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-lie.rq" ;
     gmeow:cqDataFile "tests/fixtures/deception-lie.ttl" ;
     gmeow:cqRationale "A lie (held refuted + projected unequivocal) must be classified as such." ;
+    gmeow:cqResultShape ex:cqDeceptionLieShape ;
     gmeow:cqExpectRow ex:eventRow .
 
 ex:cqDeceptionOmission a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-omission.rq" ;
     gmeow:cqDataFile "tests/fixtures/deception-omission.ttl" ;
     gmeow:cqRationale "An omission (held standpoint, no projected standpoint) must be classified as such." ;
+    gmeow:cqResultShape ex:cqDeceptionOmissionShape ;
     gmeow:cqExpectRow ex:eventRow .
 
 ex:cqDeceptionPaltering a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-paltering.rq" ;
     gmeow:cqDataFile "tests/fixtures/deception-paltering.ttl" ;
     gmeow:cqRationale "Paltering (implicated proposition the held claim refutes, projected literal non-refuted) must be classified as such." ;
+    gmeow:cqResultShape ex:cqDeceptionPalteringShape ;
     gmeow:cqExpectRow ex:eventRow .
 
 ex:cqDeceptionBullshit a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-bullshit.rq" ;
     gmeow:cqDataFile "tests/fixtures/deception-bullshit.ttl" ;
     gmeow:cqRationale "Bullshit (held bullshit modality, projected unequivocal) must be classified as such." ;
+    gmeow:cqResultShape ex:cqDeceptionBullshitShape ;
     gmeow:cqExpectRow ex:eventRow .
 
 ex:cqDeceptionDistortion a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-distortion.rq" ;
     gmeow:cqDataFile "tests/fixtures/deception-distortion.ttl" ;
     gmeow:cqRationale "Distortion (held probable, projected sharpened to unequivocal) must be classified as such." ;
+    gmeow:cqResultShape ex:cqDeceptionDistortionShape ;
     gmeow:cqExpectRow ex:eventRow .
 
 ex:cqDeceptionFabrication a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-fabrication.rq" ;
     gmeow:cqDataFile "tests/fixtures/deception-fabrication.ttl" ;
     gmeow:cqRationale "Fabrication (held refuted + projected unequivocal + a failed-verification fabricated work) must be classified as such." ;
+    gmeow:cqResultShape ex:cqDeceptionFabricationShape ;
     gmeow:cqExpectRow ex:eventRow .
 
 ex:cqDeceptionForgery a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-forgery.rq" ;
     gmeow:cqDataFile "tests/fixtures/deception-forgery.ttl" ;
     gmeow:cqRationale "Forgery (held refuted + projected unequivocal + a forged counterpart work with a failed signature) must be classified as such." ;
+    gmeow:cqResultShape ex:cqDeceptionForgeryShape ;
     gmeow:cqExpectRow ex:eventRow .
 
 ex:cqDeceptionImpersonation a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-impersonation.rq" ;
     gmeow:cqDataFile "tests/fixtures/deception-impersonation.ttl" ;
     gmeow:cqRationale "Impersonation (held refuted + projected unequivocal + an identity facet whose subject differs from the deceiver) must be classified as such." ;
+    gmeow:cqResultShape ex:cqDeceptionImpersonationShape ;
     gmeow:cqExpectRow ex:eventRow .
 
 # Shared single-event expected row for the eight single-projection classifiers.
 ex:eventRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri exd:event1 ] .
 
+# Typed result shapes for the eight single-projection classifiers — each pins a
+# single required IRI-bound ?event column (contains-check, no cqExactRows).
+ex:cqDeceptionLieShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:cqDeceptionOmissionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:cqDeceptionPalteringShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:cqDeceptionBullshitShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:cqDeceptionDistortionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:cqDeceptionFabricationShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:cqDeceptionForgeryShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:cqDeceptionImpersonationShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
 # Self-deception projects TWO variables (?event ?agent); pin both.
 ex:cqDeceptionSelfDeception a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-self-deception.rq" ;
     gmeow:cqDataFile "tests/fixtures/deception-self-deception.ttl" ;
     gmeow:cqRationale "Self-deception (an eventTypeSelfDeception event with a participant) must be classified, binding both the event and its participating agent." ;
+    gmeow:cqResultShape ex:cqDeceptionSelfDeceptionShape ;
     gmeow:cqExpectRow ex:selfDeceptionRow .
 
 ex:selfDeceptionRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri exd:event1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "agent" ; gmeow:cellValueIri exd:agent1 ] .
 
+ex:cqDeceptionSelfDeceptionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "agent" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
 # ── D. Negative safety property: a licensed falsehood is NOT a lie ────────────
 ex:cqDeceptionLicensedFalsehood a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-licensed-falsehood.rq" ;
     gmeow:cqDataFile "tests/fixtures/deception-licensed-falsehood.ttl" ;
     gmeow:cqRationale "A fiction claim asserted accordingTo a narrative frame with licensed-falsehood veridicality, with no lie event projecting it, must NEVER be returned as a lie — the result is empty." ;
+    gmeow:cqResultShape ex:cqDeceptionLicensedFalsehoodShape ;
     gmeow:cqExpectRowCount 0 .
+
+ex:cqDeceptionLicensedFalsehoodShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "fictionClaim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 .

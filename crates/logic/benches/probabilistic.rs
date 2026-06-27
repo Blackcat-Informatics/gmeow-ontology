@@ -64,7 +64,7 @@ fn bench_evaluate(c: &mut Criterion) {
     group.sample_size(10);
     group.bench_function(format!("noisy_or_{n}_indep_facts"), |b| {
         b.iter(|| {
-            let ans = evaluate(&store, WORLD, &prog, PROFILE).expect("evaluate");
+            let ans = evaluate(&store, WORLD, &prog, PROFILE, None).expect("evaluate");
             std::hint::black_box(ans)
         });
     });

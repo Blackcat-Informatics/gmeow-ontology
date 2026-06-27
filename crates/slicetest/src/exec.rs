@@ -19,9 +19,11 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
+use oxigraph::model::Term;
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
+use gmeow_logic_compile::result_shape::{ObservedBinding, ObservedTerm};
 use gmeow_shacl::engine::{parse_shapes, validate};
 use gmeow_validate::findings::finding_from_shacl;
 use gmeow_validate::store::{build_store, parse_file};
@@ -54,8 +56,48 @@ pub fn run_competency_file(path: &Path) -> Result<(), String> {
     let merged = merged_store()?;
     let mut rdfs: Option<Store> = None;
 
+    // Build an IRI→question index so gmeow:cqConsumes can resolve its producer
+    // within this spec file. Built once outside the loop (O(n log n)), reused
+    // per-cell (O(log n) lookup).
+    let by_iri: std::collections::BTreeMap<&str, &CompetencyQuestion> = spec
+        .competency
+        .iter()
+        .map(|cq| (cq.iri.as_str(), cq))
+        .collect();
+
     let mut results: Vec<(&str, Result<(), String>)> = Vec::with_capacity(spec.competency.len());
     for cq in &spec.competency {
+        // Composition pre-check: if this question declares a gmeow:cqConsumes
+        // dependency, verify the producer's output satisfies this question's
+        // declared input contract BEFORE running the query. Hard-fail, surfaced.
+        if let Some(producer_iri) = &cq.consumes {
+            let pre_check = (|| -> Result<(), String> {
+                let producer = by_iri.get(producer_iri.as_str()).ok_or_else(|| {
+                    format!(
+                        "gmeow:cqConsumes references unknown question <{producer_iri}> (not declared in this spec file)"
+                    )
+                })?;
+                let producer_shape = producer.result_shape.as_ref().ok_or_else(|| {
+                    format!(
+                        "producer <{producer_iri}> has no gmeow:cqResultShape — cannot satisfy the input contract"
+                    )
+                })?;
+                let input_shape = cq.input_shape.as_ref().ok_or_else(|| {
+                    format!(
+                        "gmeow:cqConsumes requires a paired gmeow:cqInputShape on <{}>",
+                        cq.iri
+                    )
+                })?;
+                input_shape.is_satisfiable_by(producer_shape).map_err(|e| {
+                    format!("input-shape composition contract (checked before execution): {e}")
+                })
+            })();
+            if let Err(e) = pre_check {
+                results.push((cq.iri.as_str(), Err(e)));
+                continue;
+            }
+        }
+
         let store: &Store = match cq.reasoning {
             ReasoningProfile::None => &merged,
             ReasoningProfile::Rdfs => {
@@ -195,14 +237,33 @@ fn execute_competency_query(
                 .map(|v| v.as_str().to_owned())
                 .collect();
             let mut actual: Vec<CanonRow> = Vec::new();
+            // The observed (var, term-kind) bindings, kept alongside the canonical
+            // rows so the declared output shape can type-check them.
+            let mut observed: Vec<Vec<ObservedBinding>> = Vec::new();
             for sol in solutions {
                 let sol = sol.map_err(|e| format!("solution error: {e}"))?;
-                let mut row: CanonRow = vars
-                    .iter()
-                    .filter_map(|v| sol.get(v.as_str()).map(|t| (v.clone(), t.to_string())))
-                    .collect();
+                let mut row: CanonRow = Vec::new();
+                let mut obs: Vec<ObservedBinding> = Vec::new();
+                for v in &vars {
+                    if let Some(t) = sol.get(v.as_str()) {
+                        row.push((v.clone(), t.to_string()));
+                        obs.push(ObservedBinding::new(
+                            v.clone(),
+                            observed_term(&cq.iri, v, t)?,
+                        ));
+                    }
+                }
                 row.sort();
                 actual.push(row);
+                observed.push(obs);
+            }
+            // Output contract: type-check the bindings against the declared result
+            // shape (term-kind / datatype / requiredness / cardinality) BEFORE the
+            // example-row comparison. Hard-fail, surfaced.
+            if let Some(shape) = &cq.result_shape {
+                shape
+                    .validate_bindings(&observed)
+                    .map_err(|e| format!("result-shape contract: {e}"))?;
             }
             check_select(cq, &actual)
         }
@@ -270,6 +331,41 @@ fn set_diff(a: &BTreeSet<CanonRow>, b: &BTreeSet<CanonRow>) -> String {
         })
         .collect::<Vec<_>>()
         .join(" ")
+}
+
+/// `rdf:langString` — the stable identity datatype of a language-tagged literal.
+const LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
+/// `rdf:dirLangString` — the RDF-1.2 effective datatype of a *directional*
+/// language-tagged literal; normalised to [`LANG_STRING`] for contract checking.
+const DIR_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString";
+
+/// Project one oxigraph result binding into the pure-data [`ObservedTerm`] the
+/// result-shape contract checks. An RDF-star triple term cannot be typed by a
+/// column kind, so it hard-fails rather than being silently misclassified.
+fn observed_term(cq_iri: &str, var: &str, term: &Term) -> Result<ObservedTerm, String> {
+    Ok(match term {
+        Term::NamedNode(_) => ObservedTerm::Iri,
+        Term::BlankNode(_) => ObservedTerm::BlankNode,
+        Term::Literal(l) => {
+            // An RDF-1.2 directional language-tagged literal reports the effective
+            // datatype rdf:dirLangString, but a column declares the stable identity
+            // datatype rdf:langString (the same convention crates/rdf-wasm uses):
+            // normalise so a directional literal conforms to a langString column
+            // rather than false-positiving a DatatypeMismatch.
+            let dt = l.datatype();
+            let datatype = if dt.as_str() == DIR_LANG_STRING {
+                LANG_STRING.to_owned()
+            } else {
+                dt.as_str().to_owned()
+            };
+            ObservedTerm::Literal { datatype }
+        }
+        Term::Triple(_) => {
+            return Err(format!(
+                "{cq_iri}: result binding ?{var} is an RDF-star triple term, which a logic:ResultShape does not type"
+            ));
+        }
+    })
 }
 
 fn canon_expected_row(row: &ExpectedRow) -> CanonRow {
@@ -437,7 +533,106 @@ fn join_codes(codes: &BTreeSet<String>) -> String {
 mod tests {
     use super::*;
     use crate::dsl::{CompetencyQuestion, ExpectedCell, ExpectedRow};
+    use gmeow_logic_compile::result_shape::{
+        ColumnKind, ResultColumn, ResultShape, RowCardinality,
+    };
     use oxigraph::model::{NamedNode, Term};
+
+    /// Materialize inline Turtle into a store via the native codec (#909).
+    fn store_from_turtle(ttl: &str) -> Store {
+        use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+        use gmeow_rdf::parse_dataset;
+        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("valid turtle");
+        store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs).expect("store")
+    }
+
+    /// A minimal SELECT competency question over an inline query.
+    fn cq_with(query: &str) -> CompetencyQuestion {
+        CompetencyQuestion {
+            iri: "https://example.org/cqShape".to_owned(),
+            query_inline: Some(query.to_owned()),
+            query_file: None,
+            expect_ask: None,
+            expect_row_count: None,
+            exact_rows: false,
+            expected_rows: Vec::new(),
+            reasoning: ReasoningProfile::None,
+            data_file: None,
+            result_shape: None,
+            input_shape: None,
+            consumes: None,
+            rationale: None,
+        }
+    }
+
+    const Q_X: &str = "PREFIX ex: <https://example.org/> \
+        SELECT ?x WHERE { ?x a ex:Thing }";
+
+    fn one_thing_store() -> Store {
+        store_from_turtle("@prefix ex: <https://example.org/> .\nex:a a ex:Thing .\n")
+    }
+
+    #[test]
+    fn result_shape_conforming_bindings_pass() {
+        let store = one_thing_store();
+        let mut cq = cq_with(Q_X);
+        // ?x is an IRI, required, exactly one row — matches the data.
+        cq.result_shape = Some(ResultShape::new(
+            vec![ResultColumn::required("x", ColumnKind::Iri)],
+            RowCardinality::Count(1),
+        ));
+        cq.expect_row_count = Some(1); // satisfy the row-comparison tier too
+        execute_competency_query(&store, &cq, Q_X).expect("conforming shape passes");
+    }
+
+    #[test]
+    fn result_shape_term_kind_mismatch_hard_fails() {
+        let store = one_thing_store();
+        let mut cq = cq_with(Q_X);
+        // ?x declared a literal, but the data binds an IRI.
+        cq.result_shape = Some(ResultShape::new(
+            vec![ResultColumn::required(
+                "x",
+                ColumnKind::Literal { datatype: None },
+            )],
+            RowCardinality::Contains,
+        ));
+        let err = execute_competency_query(&store, &cq, Q_X)
+            .expect_err("term-kind mismatch must hard-fail");
+        assert!(
+            err.contains("result-shape contract") && err.contains("term-kind"),
+            "unexpected error: {err}"
+        );
+    }
+
+    /// The composition pre-check (`is_satisfiable_by`) surfaces a mismatch when
+    /// the producer LACKS a column the consumer requires.  The input shape
+    /// declares two required columns {x:IRI, y:IRI}; the producer only provides
+    /// {x:IRI} — so `input.is_satisfiable_by(&producer)` must be `Err` with a
+    /// `MissingColumn` variant naming "y".
+    #[test]
+    fn is_satisfiable_by_surfaces_missing_required_column() {
+        use gmeow_logic_compile::result_shape::Mismatch;
+
+        let input = ResultShape::new(
+            vec![
+                ResultColumn::required("x", ColumnKind::Iri),
+                ResultColumn::required("y", ColumnKind::Iri),
+            ],
+            RowCardinality::Contains,
+        );
+        let producer = ResultShape::new(
+            vec![ResultColumn::required("x", ColumnKind::Iri)],
+            RowCardinality::Contains,
+        );
+        let err = input
+            .is_satisfiable_by(&producer)
+            .expect_err("producer missing required column must be Err");
+        assert!(
+            matches!(err, Mismatch::MissingColumn { ref var } if var == "y"),
+            "expected MissingColumn {{ var: y }}, got: {err:?}"
+        );
+    }
 
     /// A `gmeow:cqDataFile` overlay must (a) make the fixture's instances visible to
     /// the query, (b) be removed afterwards so it never leaks into the shared store,
@@ -474,6 +669,9 @@ mod tests {
             }],
             reasoning: ReasoningProfile::None,
             data_file: Some("data.ttl".to_owned()),
+            result_shape: None,
+            input_shape: None,
+            consumes: None,
             rationale: None,
         };
 

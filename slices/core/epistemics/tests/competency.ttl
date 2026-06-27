@@ -11,6 +11,7 @@
 # See docs/TESTING.md.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/tests/> .
 
 # --- A. Small, fully-enumerated SELECT: "what kinds of agent?" ----------------
@@ -20,6 +21,7 @@ ex:cqAgentKinds a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/agents.rq" ;
     gmeow:cqRationale "GMEOW must be able to answer 'what kinds of agent does it model?'. The reasoned answer is the complete reflexive-transitive subclass closure of gmeow:Agent: Agent itself plus Builder, Organization, Person, Sensor, and SoftwareAgent." ;
     gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqAgentKindsShape ;
     gmeow:cqExpectRow
         ex:cqAgentRowAgent ,
         ex:cqAgentRowBuilder ,
@@ -27,6 +29,11 @@ ex:cqAgentKinds a gmeow:CompetencyQuestion ;
         ex:cqAgentRowPerson ,
         ex:cqAgentRowSensor ,
         ex:cqAgentRowSoftwareAgent .
+
+ex:cqAgentKindsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "agentKind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
 
 ex:cqAgentRowAgent a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ;
@@ -67,6 +74,7 @@ ex:cqContributionRoles a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/contribution-roles.rq" ;
     gmeow:cqRationale "GMEOW must enumerate the contribution roles it supports (the CRediT canon plus GMEOW's domain extensions). The asserted graph returns exactly 48 gmeow:ContributionRole individuals; T3 enumerates every one (cqExactRows true), replacing the T2 coarse-count escape hatch." ;
     gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqContributionRolesShape ;
     gmeow:cqExpectRow
         ex:cqRoleRowAIAssistant,
         ex:cqRoleRowArranger,
@@ -116,6 +124,11 @@ ex:cqContributionRoles a gmeow:CompetencyQuestion ;
         ex:cqRoleRowVisualization,
         ex:cqRoleRowWritingOriginalDraft,
         ex:cqRoleRowWritingReviewEditing .
+
+ex:cqContributionRolesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "role" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
 
 ex:cqRoleRowAIAssistant a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ;

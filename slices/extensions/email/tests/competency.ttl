@@ -6,12 +6,19 @@
 # over the asserted merged ontology (contains-check). No Gap-1 universal.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/email/tests/> .
 
 ex:cqEmailParticipants a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/email-participants.rq" ;
     gmeow:cqRationale "Every RFC 5322 participant role must route through the EmailAddress seam: from, sender, replyTo, to, cc, bcc." ;
+    gmeow:cqResultShape ex:cqEmailParticipantsShape ;
     gmeow:cqExpectRow ex:epFrom, ex:epSender, ex:epReplyTo, ex:epTo, ex:epCc, ex:epBcc .
+
+ex:cqEmailParticipantsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "role" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:epFrom a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:from ] .

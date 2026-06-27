@@ -8,6 +8,7 @@
 //! so the Rust enums and the ontology surface can never silently diverge.
 
 use gmeow_logic::result::{CompletenessStatus, EvaluationStatus, InformationState, InputStatus};
+use gmeow_logic::result_shape::{ColumnBinding, RowCardinality, TermKind};
 
 /// Read the committed logic-slice `module.ttl` (path-independent via the crate
 /// manifest dir, so the test works regardless of the run CWD or worktree).
@@ -68,6 +69,39 @@ fn the_carrier_class_and_value_classes_are_declared() {
             "EvaluationStatus",
             "CompletenessStatus",
             "InformationState",
+        ],
+    );
+}
+
+#[test]
+fn every_term_kind_individual_is_declared() {
+    let ttl = module_ttl();
+    assert_declared(&ttl, TermKind::ALL.iter().map(|v| v.local_name()));
+}
+
+#[test]
+fn every_column_binding_individual_is_declared() {
+    let ttl = module_ttl();
+    assert_declared(&ttl, ColumnBinding::ALL.iter().map(|v| v.local_name()));
+}
+
+#[test]
+fn every_row_cardinality_individual_is_declared() {
+    let ttl = module_ttl();
+    assert_declared(&ttl, RowCardinality::ALL.iter().map(|v| v.local_name()));
+}
+
+#[test]
+fn the_result_shape_classes_and_value_classes_are_declared() {
+    let ttl = module_ttl();
+    assert_declared(
+        &ttl,
+        [
+            "ResultShape",
+            "ResultColumn",
+            "TermKind",
+            "ColumnBinding",
+            "RowCardinality",
         ],
     );
 }

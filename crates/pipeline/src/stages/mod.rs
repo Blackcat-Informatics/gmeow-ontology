@@ -42,6 +42,8 @@ pub mod reason;
 pub mod references;
 pub mod release;
 pub mod research_objects;
+pub mod result_shape_composition;
+pub mod result_shapes;
 pub mod rule_severity;
 pub mod schemas;
 pub mod snapshot;
@@ -70,6 +72,11 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("catalog", Arc::new(catalog::CatalogStage));
     registry.register("profiles", Arc::new(profiles::ProfilesStage));
     registry.register("frame_shapes", Arc::new(frame_shapes::FrameShapesStage));
+    registry.register("result_shapes", Arc::new(result_shapes::ResultShapesStage));
+    registry.register(
+        "result_shape_composition",
+        Arc::new(result_shape_composition::ResultShapeCompositionStage),
+    );
     registry.register("json_schema", Arc::new(json_schema::JsonSchemaStage));
     registry.register("matrix", Arc::new(matrix::MatrixStage));
     registry.register("metadata", Arc::new(metadata::MetadataStage::new()));

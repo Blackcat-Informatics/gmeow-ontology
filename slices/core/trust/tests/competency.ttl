@@ -7,13 +7,20 @@
 # asserted merged ontology (contains-check). No Gap-1 universal — fixed sets.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/trust/tests/> .
 
 # ── Message-trust signature kinds ─────────────────────────────────────────────
 ex:cqMessageTrust a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/message-trust.rq" ;
     gmeow:cqRationale "GMEOW must model cryptographic signature kinds: the CryptographicSignature root plus DKIM, S/MIME, and PGP signatures." ;
+    gmeow:cqResultShape ex:cqMessageTrustShape ;
     gmeow:cqExpectRow ex:mtCryptographic, ex:mtDKIM, ex:mtSMIME, ex:mtPGP .
+
+ex:cqMessageTrustShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "signature" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:mtCryptographic a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "signature" ; gmeow:cellValueIri gmeow:CryptographicSignature ] .
@@ -28,7 +35,13 @@ ex:mtPGP a gmeow:ExpectedRow ;
 ex:cqKeySchemes a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/key-schemes.rq" ;
     gmeow:cqRationale "GMEOW must model key schemes: PGP, X.509, SSH, Nostr." ;
+    gmeow:cqResultShape ex:cqKeySchemesShape ;
     gmeow:cqExpectRow ex:ksPGP, ex:ksX509, ex:ksSSH, ex:ksNostr .
+
+ex:cqKeySchemesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "scheme" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:ksPGP a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "scheme" ; gmeow:cellValueIri gmeow:keySchemePGP ] .
@@ -43,7 +56,13 @@ ex:ksNostr a gmeow:ExpectedRow ;
 ex:cqKeyCertifications a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/key-certifications.rq" ;
     gmeow:cqRationale "GMEOW must model the key-certification roles: certifier, certifiedKey, certifiedIdentity." ;
+    gmeow:cqResultShape ex:cqKeyCertificationsShape ;
     gmeow:cqExpectRow ex:kcCertifier, ex:kcCertifiedKey, ex:kcCertifiedIdentity .
+
+ex:cqKeyCertificationsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "role" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:kcCertifier a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:certifier ] .
@@ -56,7 +75,13 @@ ex:kcCertifiedIdentity a gmeow:ExpectedRow ;
 ex:cqTrustAssertions a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/trust-assertions.rq" ;
     gmeow:cqRationale "GMEOW must model the aspects of a trust assertion: trustor, trustee, trustLevel, introducerDepth." ;
+    gmeow:cqResultShape ex:cqTrustAssertionsShape ;
     gmeow:cqExpectRow ex:taTrustor, ex:taTrustee, ex:taTrustLevel, ex:taIntroducerDepth .
+
+ex:cqTrustAssertionsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "aspect" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:taTrustor a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueIri gmeow:trustor ] .

@@ -18229,6 +18229,9 @@ enums:
       stage-export-research-objects:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-research-objects
         title: 'export: research objects'
+      stage-export-result-shapes:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-result-shapes
+        title: 'export: result shapes'
       stage-export-schemas:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-schemas
         title: 'export: schemas'
@@ -18259,6 +18262,9 @@ enums:
       stage-validate:
         meaning: https://blackcatinformatics.ca/gmeow/stage-validate
         title: validate
+      stage-validate-result-shape-composition:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-validate-result-shape-composition
+        title: 'validate: result-shape composition'
   PitchAnchorEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PitchAnchor
     permissible_values:

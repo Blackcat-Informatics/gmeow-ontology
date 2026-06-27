@@ -10,6 +10,7 @@
 # so the expected rows were MEASURED over the asserted graph. See docs/TESTING.md.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/kernel/tests/> .
 
 # queries/competency/aboutness-modes.rq projects ?mode a gmeow:AboutnessMode.
@@ -18,9 +19,15 @@ ex:cqAboutnessModes a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/aboutness-modes.rq" ;
     gmeow:cqRationale "GMEOW must be able to answer 'what aboutness modes can an information carrier bear toward its subject?'. The asserted answer is the complete, closed two-member value vocabulary of the mention/use axis: gmeow:aboutnessDescribes and gmeow:aboutnessEnacts, with no privileged winner (Principle 9)." ;
     gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqAboutnessModesShape ;
     gmeow:cqExpectRow
         ex:cqAboutnessRowDescribes ,
         ex:cqAboutnessRowEnacts .
+
+ex:cqAboutnessModesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "mode" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
 
 ex:cqAboutnessRowDescribes a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ;

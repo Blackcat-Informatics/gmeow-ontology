@@ -22,11 +22,17 @@ oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 gmeow-validate = { path = "../validate" }
 # SHACL engine: parse_shapes + validate for the ExampleConformance executor.
 gmeow-shacl = { path = "../shacl" }
+# The canonical logic:ResultShape type contract (validate_bindings / is_satisfiable_by)
+# for the cqResultShape / cqInputShape contract check. It lives in the Nemo-FREE
+# gmeow-logic-compile crate (re-exported by gmeow-logic), so the harness gets the
+# canonical authority WITHOUT pulling Nemo into its build graph — see the note below.
+gmeow-logic-compile = { path = "../logic-compile" }
 
 # NOTE: deliberately NO gmeow-logic / Nemo dependency. Competency reasoning is
 # RDFS-only (computed natively in oxigraph; see src/stores.rs and docs/TESTING.md),
 # which is seconds, not the ~4-minute OWL 2 RL chase — and keeps Nemo out of this
-# crate's build graph entirely.
+# crate's build graph entirely. The ResultShape type is taken from the Nemo-free
+# gmeow-logic-compile crate above for exactly this reason.
 
 [dev-dependencies]
 # File-driven test harness: one nextest case per discovered tests/*.ttl spec

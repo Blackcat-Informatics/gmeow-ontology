@@ -2235,6 +2235,165 @@ logic:resultAssumption
     rdfs:label "result assumption"@x-gmeow-english ;
     skos:definition "A declared closure/identity/revision/witness-policy assumption a logic:ReasoningResult rests on (e.g. closed-world, unique-name, entrenchment-revision, skolem-witness) — MULTI-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
 
+# ── The typed logic:ResultShape surface ─────────────────────────────────────────
+# A schema-level type contract on a SPARQL SELECT result set: the declared columns
+# (variable + term-kind + optional datatype + binding requiredness) and the row-set
+# cardinality, plus the shape a query expects on its input. The row-schema facet of
+# logic:ReasoningResult. Authored canonically in crates/logic (Rust); this is a
+# lossy documentation projection (Principle 17). Normative in
+# design/LOGIC-SEMANTICS.md, §The result row schema.
+
+logic:ResultShape
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Result Shape"@x-gmeow-english ;
+    skos:definition "A schema-level type contract on a SPARQL SELECT result set: the declared columns it carries (logic:declaresColumn) and the row-set cardinality (logic:shapeCardinality, with logic:shapeRowCount in count mode). The same construct types a query's expected INPUT (logic:expectsInputShape) and its guaranteed OUTPUT (logic:producesResultShape), so a query's input→output contract is checkable before execution. It generalises the test-DSL example-row idiom: an ExpectedRow is an example-instance of the ResultShape its competency question declares. Authored canonically in crates/logic (Rust); this is a lossy documentation projection (Principle 17). Normative in design/LOGIC-SEMANTICS.md, §The result row schema."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ResultColumn
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Result Column"@x-gmeow-english ;
+    skos:definition "One typed column of a logic:ResultShape: a declared SELECT variable (logic:columnVariable), its term-kind (logic:columnTermKind, mandatory — an untyped column is the bag this contract eliminates), an optional pinned datatype for literal columns (logic:columnDatatype), and whether it is bound in every row (logic:columnBinding). Authored canonically in crates/logic (Rust); this is a lossy documentation projection (Principle 17)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:TermKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Term Kind"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:columnTermKind facet: the RDF term kind a result column binds. Its individuals are logic:TermKindIri, logic:TermKindLiteral and logic:TermKindBlankNode. The set is closed, so a misspelt value names no declared kind and is rejected (design/LOGIC-SEMANTICS.md, §The result row schema)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:TermKindIri
+    a owl:NamedIndividual ,
+        logic:TermKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Term Kind IRI"@x-gmeow-english ;
+    skos:definition "The logic:TermKind value for a column whose values are IRIs (named nodes). Wire value `iri`."@x-gmeow-english .
+
+logic:TermKindLiteral
+    a owl:NamedIndividual ,
+        logic:TermKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Term Kind Literal"@x-gmeow-english ;
+    skos:definition "The logic:TermKind value for a column whose values are literals. A literal column may further pin its datatype with logic:columnDatatype; absent that, any literal conforms. Wire value `literal`."@x-gmeow-english .
+
+logic:TermKindBlankNode
+    a owl:NamedIndividual ,
+        logic:TermKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Term Kind Blank Node"@x-gmeow-english ;
+    skos:definition "The logic:TermKind value for a column whose values are blank nodes. Wire value `blank-node`."@x-gmeow-english .
+
+logic:ColumnBinding
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Column Binding"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:columnBinding facet: whether a column's variable is bound in every row. Its individuals are logic:BindingRequired and logic:BindingOptional. The set is closed, so a misspelt value names no declared binding and is rejected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:BindingRequired
+    a owl:NamedIndividual ,
+        logic:ColumnBinding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Binding Required"@x-gmeow-english ;
+    skos:definition "The logic:ColumnBinding value for a column bound in every result row. An unbound required column is a hard contract violation. Wire value `required`."@x-gmeow-english .
+
+logic:BindingOptional
+    a owl:NamedIndividual ,
+        logic:ColumnBinding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Binding Optional"@x-gmeow-english ;
+    skos:definition "The logic:ColumnBinding value for a column that may be unbound in some rows (e.g. projected from a SPARQL OPTIONAL). Wire value `optional`."@x-gmeow-english .
+
+logic:RowCardinality
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Row Cardinality"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:shapeCardinality facet: the row-set contract a result shape declares. Its individuals are logic:RowsExact (the declared example rows are the complete set), logic:RowsContains (the declared rows must all appear; extras permitted) and logic:RowsCount (only the count is pinned, via logic:shapeRowCount). The set is closed, so a misspelt value names no declared mode and is rejected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RowsExact
+    a owl:NamedIndividual ,
+        logic:RowCardinality ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rows Exact"@x-gmeow-english ;
+    skos:definition "The logic:RowCardinality value pinning the declared example rows as the complete, exact result set. Wire value `exact`."@x-gmeow-english .
+
+logic:RowsContains
+    a owl:NamedIndividual ,
+        logic:RowCardinality ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rows Contains"@x-gmeow-english ;
+    skos:definition "The logic:RowCardinality value requiring the declared example rows to all appear, with extra rows permitted. Wire value `contains`."@x-gmeow-english .
+
+logic:RowsCount
+    a owl:NamedIndividual ,
+        logic:RowCardinality ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rows Count"@x-gmeow-english ;
+    skos:definition "The logic:RowCardinality value pinning only the result row count (carried by logic:shapeRowCount), with no per-row content contract. Wire value `count`."@x-gmeow-english .
+
+logic:resultRowSchema
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result row schema"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the logic:ResultShape its bindings are contracted to — the row-schema facet of the typed result. Single-valued; absent for surfaces with no row schema (e.g. a pure DL-consistency verdict). The schema is the caller's DECLARED contract, validated against the bindings, never synthesised from them. Domain logic:ReasoningResult, range logic:ResultShape (stated in prose)."@x-gmeow-english .
+
+logic:declaresColumn
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "declares column"@x-gmeow-english ;
+    skos:definition "Relates a logic:ResultShape to a logic:ResultColumn it declares. Set-valued: a shape declares one column per SELECT variable it types. Domain logic:ResultShape, range logic:ResultColumn (stated in prose)."@x-gmeow-english .
+
+logic:shapeCardinality
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "shape cardinality"@x-gmeow-english ;
+    skos:definition "Relates a logic:ResultShape to the logic:RowCardinality it declares — the row-set contract. Single-valued. Domain logic:ResultShape, range logic:RowCardinality (stated in prose)."@x-gmeow-english .
+
+logic:shapeRowCount
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "shape row count"@x-gmeow-english ;
+    skos:definition "The pinned result row count for a logic:ResultShape in logic:RowsCount mode. Single-valued, xsd:nonNegativeInteger. Domain logic:ResultShape (stated in prose)."@x-gmeow-english .
+
+logic:columnVariable
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "column variable"@x-gmeow-english ;
+    skos:definition "The bare SPARQL variable name (no leading '?') a logic:ResultColumn types. Single-valued, xsd:string. Domain logic:ResultColumn (stated in prose)."@x-gmeow-english .
+
+logic:columnTermKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "column term kind"@x-gmeow-english ;
+    skos:definition "Relates a logic:ResultColumn to the logic:TermKind it requires — the mandatory RDF term kind of the column's values. Single-valued. Domain logic:ResultColumn, range logic:TermKind (stated in prose)."@x-gmeow-english .
+
+logic:columnDatatype
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "column datatype"@x-gmeow-english ;
+    skos:definition "Relates a literal logic:ResultColumn to the datatype IRI it pins. Single-valued and OPTIONAL: a literal column with no logic:columnDatatype accepts any literal (a declared loosening, not a half-typed column); a non-literal column carries none. Domain logic:ResultColumn, range a datatype IRI (stated in prose)."@x-gmeow-english .
+
+logic:columnBinding
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "column binding"@x-gmeow-english ;
+    skos:definition "Relates a logic:ResultColumn to the logic:ColumnBinding it declares — whether the variable is bound in every row. Single-valued. Domain logic:ResultColumn, range logic:ColumnBinding (stated in prose)."@x-gmeow-english .
+
+logic:expectsInputShape
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "expects input shape"@x-gmeow-english ;
+    skos:definition "Relates a query (or a competency question) to the logic:ResultShape its input is expected to satisfy. The producer feeding the query must satisfy this shape (structural input→output compatibility) BEFORE execution; a mismatch is a hard, surfaced error. Single-valued. Range logic:ResultShape (stated in prose)."@x-gmeow-english .
+
+logic:producesResultShape
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "produces result shape"@x-gmeow-english ;
+    skos:definition "Relates a query (or a competency question) to the logic:ResultShape its result set is guaranteed to satisfy. The query's bindings are validated against this shape after execution; a mismatch is a hard, surfaced error. Single-valued. Range logic:ResultShape (stated in prose)."@x-gmeow-english .
+
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .
 

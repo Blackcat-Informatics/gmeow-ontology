@@ -19,10 +19,16 @@ use oxigraph::model::Term;
 use oxigraph::sparql::{QueryResults, QuerySolution, SparqlEvaluator};
 use oxigraph::store::Store;
 
+use gmeow_logic_compile::result_shape::{
+    ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality, TermKind,
+};
 use gmeow_validate::store::build_store;
 
 /// The GMEOW namespace; the test-DSL terms live directly under it.
 pub const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// The `logic:` namespace; the result-shape terms live directly under it.
+pub const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 
 /// The three cell collections parsed out of one `tests/*.ttl` spec file.
 #[derive(Debug, Clone, Default)]
@@ -54,6 +60,18 @@ pub struct CompetencyQuestion {
     /// merged graph for this one question (instance-classifier questions only).
     /// Honoured only in the [`ReasoningProfile::None`] lane.
     pub data_file: Option<String>,
+    /// `gmeow:cqResultShape` — the typed [`ResultShape`] the SELECT result is
+    /// contracted to (the OUTPUT contract). The actual bindings are validated
+    /// against it after execution.
+    pub result_shape: Option<ResultShape>,
+    /// `gmeow:cqInputShape` — the typed [`ResultShape`] the question's input is
+    /// expected to satisfy (the INPUT contract), checked before execution against
+    /// the upstream producer named by `gmeow:cqConsumes`.
+    pub input_shape: Option<ResultShape>,
+    /// `gmeow:cqConsumes` — the IRI of the upstream [`CompetencyQuestion`] whose
+    /// declared output (`gmeow:cqResultShape`) must satisfy this question's
+    /// `gmeow:cqInputShape` before execution (composition pre-check).
+    pub consumes: Option<String>,
     pub rationale: Option<String>,
 }
 
@@ -139,7 +157,7 @@ pub enum ReasoningProfile {
 const PREFIX: &str = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n";
 
 const Q_COMPETENCY: &str = "
-SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFile ?rationale WHERE {
+SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFile ?resultShape ?inputShape ?consumes ?rationale WHERE {
   ?cq a gmeow:CompetencyQuestion .
   OPTIONAL { ?cq gmeow:cqQueryFile ?queryFile }
   OPTIONAL { ?cq gmeow:cqQuery ?query }
@@ -148,6 +166,9 @@ SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFil
   OPTIONAL { ?cq gmeow:cqExactRows ?exactRows }
   OPTIONAL { ?cq gmeow:cqReasoning ?reasoning }
   OPTIONAL { ?cq gmeow:cqDataFile ?dataFile }
+  OPTIONAL { ?cq gmeow:cqResultShape ?resultShape }
+  OPTIONAL { ?cq gmeow:cqInputShape ?inputShape }
+  OPTIONAL { ?cq gmeow:cqConsumes ?consumes }
   OPTIONAL { ?cq gmeow:cqRationale ?rationale }
 }";
 
@@ -221,6 +242,9 @@ fn parse_competency(store: &Store) -> Result<Vec<CompetencyQuestion>, String> {
                 },
             },
             data_file: opt_string(&sol, "dataFile"),
+            result_shape: opt_shape(store, &sol, "resultShape")?,
+            input_shape: opt_shape(store, &sol, "inputShape")?,
+            consumes: opt_string(&sol, "consumes"),
             rationale: opt_string(&sol, "rationale"),
         };
         // A multi-valued OPTIONAL (or a duplicated triple) can yield more than one
@@ -339,6 +363,133 @@ fn parse_conformance(store: &Store) -> Result<Vec<ExampleConformance>, String> {
         });
     }
     Ok(out)
+}
+
+// ── logic:ResultShape parsing ────────────────────────────────────────────────────
+
+/// The local name of a `logic:` IRI (the part after the namespace).
+fn logic_local(iri: &str) -> &str {
+    iri.strip_prefix(LOGIC_NS).unwrap_or(iri)
+}
+
+/// Resolve an optional `gmeow:cqResultShape` / `gmeow:cqInputShape` IRI binding into
+/// the typed [`ResultShape`] it points at, parsed from the same spec store.
+fn opt_shape(store: &Store, sol: &QuerySolution, var: &str) -> Result<Option<ResultShape>, String> {
+    match sol.get(var).and_then(term_iri) {
+        None => Ok(None),
+        Some(iri) => Ok(Some(parse_result_shape(store, &iri)?)),
+    }
+}
+
+/// Introspect a `logic:ResultShape` individual out of the spec store into the
+/// canonical [`ResultShape`] type (the same authority the contract check uses).
+///
+/// # Errors
+/// Hard-fails on an empty shape, a `logic:declaresColumn` node missing any of
+/// the three required fields (`columnVariable`, `columnTermKind`, `columnBinding`),
+/// an unknown term-kind / binding / cardinality value, or a `logic:RowsCount`
+/// shape missing its `logic:shapeRowCount`.
+///
+/// The three required fields are fetched with OPTIONAL so that every declared
+/// column node yields exactly one solution row — a missing required field becomes
+/// an observable NULL rather than silently dropping the row and narrowing the
+/// contract without error.
+fn parse_result_shape(store: &Store, shape_iri: &str) -> Result<ResultShape, String> {
+    // Match every declared column node unconditionally, then OPTIONAL the three
+    // required fields.  This guarantees one solution row per declared column,
+    // so a missing required field is an observable NULL that we can name precisely
+    // rather than a silently-vanishing row that shrinks the contract undetected.
+    let cols_q = format!(
+        "PREFIX logic: <{LOGIC_NS}>\n\
+         SELECT ?col ?var ?kind ?datatype ?binding WHERE {{\n\
+         \x20 <{shape_iri}> logic:declaresColumn ?col .\n\
+         \x20 OPTIONAL {{ ?col logic:columnVariable ?var }}\n\
+         \x20 OPTIONAL {{ ?col logic:columnTermKind ?kind }}\n\
+         \x20 OPTIONAL {{ ?col logic:columnBinding ?binding }}\n\
+         \x20 OPTIONAL {{ ?col logic:columnDatatype ?datatype }}\n\
+         }}"
+    );
+    let mut columns: Vec<ResultColumn> = Vec::new();
+    for sol in select(store, &cols_q)? {
+        // Name the column node in every error so the spec author can locate the
+        // offending blank node or IRI in their Turtle source.
+        let col = sol
+            .get("col")
+            .map(Term::to_string)
+            .unwrap_or_else(|| "<unknown>".to_owned());
+
+        // All three fields are required; their absence is a hard-fail with a
+        // precise per-field error naming both the shape and the column node.
+        let var = opt_string(&sol, "var").ok_or_else(|| {
+            format!(
+                "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
+                 is missing logic:columnVariable"
+            )
+        })?;
+        let kind_iri = sol.get("kind").and_then(term_iri).ok_or_else(|| {
+            format!(
+                "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
+                 is missing logic:columnTermKind"
+            )
+        })?;
+        let kind_local = logic_local(&kind_iri).to_owned();
+        let term_kind = TermKind::from_local(&kind_local).ok_or_else(|| {
+            format!("ResultShape <{shape_iri}>: unknown logic:columnTermKind logic:{kind_local}")
+        })?;
+        let binding_iri = sol.get("binding").and_then(term_iri).ok_or_else(|| {
+            format!(
+                "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
+                 is missing logic:columnBinding"
+            )
+        })?;
+        let binding_local = logic_local(&binding_iri).to_owned();
+        let binding = ColumnBinding::from_local(&binding_local).ok_or_else(|| {
+            format!("ResultShape <{shape_iri}>: unknown logic:columnBinding logic:{binding_local}")
+        })?;
+        // columnDatatype is genuinely optional — absent for IRI/blank-node columns
+        // and for untyped-literal columns.
+        let datatype = sol.get("datatype").and_then(term_iri);
+        let kind = match term_kind {
+            TermKind::Iri => ColumnKind::Iri,
+            TermKind::BlankNode => ColumnKind::BlankNode,
+            TermKind::Literal => ColumnKind::Literal { datatype },
+        };
+        columns.push(ResultColumn { var, kind, binding });
+    }
+    if columns.is_empty() {
+        return Err(format!(
+            "ResultShape <{shape_iri}> declares no logic:declaresColumn — an empty result shape types nothing"
+        ));
+    }
+
+    let card_q = format!(
+        "PREFIX logic: <{LOGIC_NS}>\n\
+         SELECT ?card ?count WHERE {{\n\
+         \x20 <{shape_iri}> logic:shapeCardinality ?card .\n\
+         \x20 OPTIONAL {{ <{shape_iri}> logic:shapeRowCount ?count }}\n\
+         }}"
+    );
+    let card_sols = select(store, &card_q)?;
+    let card_sol = card_sols
+        .first()
+        .ok_or_else(|| format!("ResultShape <{shape_iri}> has no logic:shapeCardinality"))?;
+    let card_local = logic_local(&require_iri(card_sol, "card")?).to_owned();
+    let cardinality = match card_local.as_str() {
+        "RowsExact" => RowCardinality::Exact,
+        "RowsContains" => RowCardinality::Contains,
+        "RowsCount" => {
+            let count = opt_u64(card_sol, "count")?.ok_or_else(|| {
+                format!("ResultShape <{shape_iri}>: logic:RowsCount requires logic:shapeRowCount")
+            })?;
+            RowCardinality::Count(count)
+        }
+        other => {
+            return Err(format!(
+                "ResultShape <{shape_iri}>: unknown logic:shapeCardinality logic:{other}"
+            ));
+        }
+    };
+    Ok(ResultShape::new(columns, cardinality))
 }
 
 // ── SPARQL + term helpers ──────────────────────────────────────────────────────
@@ -590,6 +741,169 @@ mod tests {
         let err = parse_competency(&store_from_turtle(ttl))
             .expect_err("malformed boolean must hard-fail");
         assert!(err.contains("xsd:boolean"), "unexpected error: {err}");
+    }
+
+    #[test]
+    fn parses_cq_result_shape_into_the_canonical_type() {
+        let ttl = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:cq a gmeow:CompetencyQuestion ;\n\
+                gmeow:cqQueryFile \"q.rq\" ;\n\
+                gmeow:cqResultShape ex:shape .\n\
+            ex:shape a logic:ResultShape ;\n\
+                logic:declaresColumn [ logic:columnVariable \"agent\" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,\n\
+                                     [ logic:columnVariable \"name\" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnDatatype <http://www.w3.org/2001/XMLSchema#string> ; logic:columnBinding logic:BindingOptional ] ;\n\
+                logic:shapeCardinality logic:RowsExact .\n";
+        let spec = parse_competency(&store_from_turtle(ttl)).expect("shape parses");
+        let cq = &spec[0];
+        let shape = cq.result_shape.as_ref().expect("result_shape present");
+        assert_eq!(shape.cardinality, RowCardinality::Exact);
+        assert_eq!(shape.columns.len(), 2);
+        // columns are canonicalised sorted-by-var: agent, name
+        assert_eq!(shape.columns[0].var, "agent");
+        assert_eq!(shape.columns[0].kind, ColumnKind::Iri);
+        assert_eq!(shape.columns[0].binding, ColumnBinding::Required);
+        assert_eq!(shape.columns[1].var, "name");
+        assert_eq!(
+            shape.columns[1].kind,
+            ColumnKind::Literal {
+                datatype: Some("http://www.w3.org/2001/XMLSchema#string".to_owned())
+            }
+        );
+        assert_eq!(shape.columns[1].binding, ColumnBinding::Optional);
+    }
+
+    #[test]
+    fn rejects_result_shape_with_unknown_term_kind() {
+        let ttl = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:cq a gmeow:CompetencyQuestion ;\n\
+                gmeow:cqQueryFile \"q.rq\" ;\n\
+                gmeow:cqResultShape ex:shape .\n\
+            ex:shape a logic:ResultShape ;\n\
+                logic:declaresColumn [ logic:columnVariable \"x\" ; logic:columnTermKind logic:TermKindBogus ; logic:columnBinding logic:BindingRequired ] ;\n\
+                logic:shapeCardinality logic:RowsContains .\n";
+        let err = parse_competency(&store_from_turtle(ttl))
+            .expect_err("unknown term-kind must hard-fail");
+        assert!(err.contains("columnTermKind"), "unexpected error: {err}");
+    }
+
+    // ── ResultShape hard-fail discipline (Gap C5) ─────────────────────────────
+    //
+    // A `logic:declaresColumn` node MISSING any of the three required fields
+    // (`columnVariable`, `columnTermKind`, `columnBinding`) must HARD-FAIL with
+    // a precise per-field error that names the missing predicate and the column
+    // node.  Before the C5 fix the required fields were basic-graph-pattern
+    // triples in the SPARQL query, so a missing field silently dropped that
+    // column's solution row — the contract shrank without any diagnostic.
+
+    #[test]
+    fn rejects_result_shape_column_missing_term_kind() {
+        // columnTermKind is absent; the column must not be silently dropped.
+        let ttl = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:cq a gmeow:CompetencyQuestion ;\n\
+                gmeow:cqQueryFile \"q.rq\" ;\n\
+                gmeow:cqResultShape ex:shape .\n\
+            ex:shape a logic:ResultShape ;\n\
+                logic:declaresColumn [ logic:columnVariable \"x\" ;\n\
+                                       logic:columnBinding logic:BindingRequired ] ;\n\
+                logic:shapeCardinality logic:RowsExact .\n";
+        let err = parse_competency(&store_from_turtle(ttl))
+            .expect_err("missing columnTermKind must hard-fail");
+        assert!(
+            err.contains("columnTermKind"),
+            "error must name the missing predicate; got: {err}"
+        );
+    }
+
+    #[test]
+    fn rejects_result_shape_column_missing_column_variable() {
+        // columnVariable is absent; the column must not be silently dropped.
+        let ttl = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:cq a gmeow:CompetencyQuestion ;\n\
+                gmeow:cqQueryFile \"q.rq\" ;\n\
+                gmeow:cqResultShape ex:shape .\n\
+            ex:shape a logic:ResultShape ;\n\
+                logic:declaresColumn [ logic:columnTermKind logic:TermKindIri ;\n\
+                                       logic:columnBinding logic:BindingRequired ] ;\n\
+                logic:shapeCardinality logic:RowsExact .\n";
+        let err = parse_competency(&store_from_turtle(ttl))
+            .expect_err("missing columnVariable must hard-fail");
+        assert!(
+            err.contains("columnVariable"),
+            "error must name the missing predicate; got: {err}"
+        );
+    }
+
+    #[test]
+    fn rejects_result_shape_column_missing_column_binding() {
+        // columnBinding is absent; the column must not be silently dropped.
+        let ttl = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:cq a gmeow:CompetencyQuestion ;\n\
+                gmeow:cqQueryFile \"q.rq\" ;\n\
+                gmeow:cqResultShape ex:shape .\n\
+            ex:shape a logic:ResultShape ;\n\
+                logic:declaresColumn [ logic:columnVariable \"x\" ;\n\
+                                       logic:columnTermKind logic:TermKindIri ] ;\n\
+                logic:shapeCardinality logic:RowsExact .\n";
+        let err = parse_competency(&store_from_turtle(ttl))
+            .expect_err("missing columnBinding must hard-fail");
+        assert!(
+            err.contains("columnBinding"),
+            "error must name the missing predicate; got: {err}"
+        );
+    }
+
+    #[test]
+    fn well_formed_multi_column_shape_still_parses() {
+        // A complete multi-column shape (all three required fields present on
+        // every column) must still parse to the expected canonical columns after
+        // the C5 OPTIONAL rewrite.  Regression guard for the positive path.
+        let ttl = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:cq a gmeow:CompetencyQuestion ;\n\
+                gmeow:cqQueryFile \"q.rq\" ;\n\
+                gmeow:cqResultShape ex:shape .\n\
+            ex:shape a logic:ResultShape ;\n\
+                logic:declaresColumn\n\
+                    [ logic:columnVariable \"agent\" ;\n\
+                      logic:columnTermKind logic:TermKindIri ;\n\
+                      logic:columnBinding logic:BindingRequired ] ,\n\
+                    [ logic:columnVariable \"score\" ;\n\
+                      logic:columnTermKind logic:TermKindLiteral ;\n\
+                      logic:columnBinding logic:BindingOptional ] ;\n\
+                logic:shapeCardinality logic:RowsContains .\n";
+        let spec = parse_competency(&store_from_turtle(ttl))
+            .expect("well-formed multi-column shape must parse");
+        let cq = &spec[0];
+        let shape = cq.result_shape.as_ref().expect("result_shape present");
+        assert_eq!(shape.cardinality, RowCardinality::Contains);
+        // columns are canonically sorted by var: agent, score
+        assert_eq!(shape.columns.len(), 2, "both columns present, none dropped");
+        assert_eq!(shape.columns[0].var, "agent");
+        assert_eq!(shape.columns[0].kind, ColumnKind::Iri);
+        assert_eq!(shape.columns[0].binding, ColumnBinding::Required);
+        assert_eq!(shape.columns[1].var, "score");
+        assert_eq!(
+            shape.columns[1].kind,
+            ColumnKind::Literal { datatype: None }
+        );
+        assert_eq!(shape.columns[1].binding, ColumnBinding::Optional);
     }
 
     #[test]
