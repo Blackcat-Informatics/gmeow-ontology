@@ -1290,6 +1290,7 @@ fn md_logic_loss_ledger() -> String {
 /// The derivation-graph product page: the reasoning-provenance explanation
 /// skeletons (per-axiom proof skeletons) the reasoning channel ships.
 fn md_logic_derivation_graph() -> String {
+    let from = Page::LogicDerivationGraph.dir();
     let mut out = String::new();
     heading(&mut out, 1, "Derivation graph");
     line(
@@ -1309,10 +1310,15 @@ fn md_logic_derivation_graph() -> String {
          over the same program yield the same justification graph — the basis for \
          the explanation goldens.",
     );
+    let ir_href = rel(&from, &Page::LogicCanonicalIr.dir());
     line(
         &mut out,
-        "This product ships in the bundle's reasoning channel alongside the compiled \
-         programs, so a consumer can carry the conclusions and their proofs together.",
+        &format!(
+            "This product ships in the bundle's `reasoning-archive` channel as \
+             `generated/logic/reasoning-explanations.rdf12.ttl`, folded alongside the \
+             compiled programs the [canonical IR]({ir_href}index.md) projects, so a \
+             consumer can carry the conclusions and their proofs together."
+        ),
     );
     out
 }
