@@ -124,14 +124,15 @@ ex:candidateIthkuilEthosProse
     logic:candidateProjectionBehavior logic:ValidationOnly ;
     logic:candidateSemanticRisk logic:RiskAdvisory .
 
-# Minimal competency-case stubs referenced above (worked competency questions with
-# result shapes live in tests/competency.ttl; these are the candidate's case anchors).
+# Minimal competency-case anchors referenced above. The worked competency questions
+# with result shapes (typed gmeow:CompetencyQuestion) live in tests/competency.ttl;
+# these example-side anchors are left untyped on purpose — gmeow:CompetencyQuestion is
+# a test-DSL term, not part of the declared example-surface vocabulary, and
+# logic:candidatePositiveCase / logic:candidateNegativeCase pin no range.
 ex:cqProperPartAsymmetricHolds
-    a gmeow:CompetencyQuestion ;
     rdfs:label "properPartOf asymmetry holds"@x-gmeow-english .
 
 ex:cqProperPartAsymmetricCountermodel
-    a gmeow:CompetencyQuestion ;
     rdfs:label "properPartOf symmetric pair is rejected"@x-gmeow-english .
 
 # ── §4 Adversarial structures the obligations guard ─────────────────────────────
