@@ -56,8 +56,48 @@ pub fn run_competency_file(path: &Path) -> Result<(), String> {
     let merged = merged_store()?;
     let mut rdfs: Option<Store> = None;
 
+    // Build an IRI→question index so gmeow:cqConsumes can resolve its producer
+    // within this spec file. Built once outside the loop (O(n log n)), reused
+    // per-cell (O(log n) lookup).
+    let by_iri: std::collections::BTreeMap<&str, &CompetencyQuestion> = spec
+        .competency
+        .iter()
+        .map(|cq| (cq.iri.as_str(), cq))
+        .collect();
+
     let mut results: Vec<(&str, Result<(), String>)> = Vec::with_capacity(spec.competency.len());
     for cq in &spec.competency {
+        // Composition pre-check: if this question declares a gmeow:cqConsumes
+        // dependency, verify the producer's output satisfies this question's
+        // declared input contract BEFORE running the query. Hard-fail, surfaced.
+        if let Some(producer_iri) = &cq.consumes {
+            let pre_check = (|| -> Result<(), String> {
+                let producer = by_iri.get(producer_iri.as_str()).ok_or_else(|| {
+                    format!(
+                        "gmeow:cqConsumes references unknown question <{producer_iri}> (not declared in this spec file)"
+                    )
+                })?;
+                let producer_shape = producer.result_shape.as_ref().ok_or_else(|| {
+                    format!(
+                        "producer <{producer_iri}> has no gmeow:cqResultShape — cannot satisfy the input contract"
+                    )
+                })?;
+                let input_shape = cq.input_shape.as_ref().ok_or_else(|| {
+                    format!(
+                        "gmeow:cqConsumes requires a paired gmeow:cqInputShape on <{}>",
+                        cq.iri
+                    )
+                })?;
+                input_shape.is_satisfiable_by(producer_shape).map_err(|e| {
+                    format!("input-shape composition contract (checked before execution): {e}")
+                })
+            })();
+            if let Err(e) = pre_check {
+                results.push((cq.iri.as_str(), Err(e)));
+                continue;
+            }
+        }
+
         let store: &Store = match cq.reasoning {
             ReasoningProfile::None => &merged,
             ReasoningProfile::Rdfs => {
@@ -173,14 +213,6 @@ fn execute_competency_query(
     cq: &CompetencyQuestion,
     query: &str,
 ) -> Result<(), String> {
-    // Input→output contract, checked BEFORE execution (hard-fail, no silent pass):
-    // a declared output shape's required columns must be covered by the declared
-    // input shape — a query that cannot type-check never runs.
-    if let (Some(out), Some(inp)) = (&cq.result_shape, &cq.input_shape) {
-        out.is_satisfiable_by(inp)
-            .map_err(|e| format!("input-shape contract (checked before execution): {e}"))?;
-    }
-
     let results = SparqlEvaluator::new()
         .parse_query(query)
         .map_err(|e| format!("query parse error: {e}"))?
@@ -511,6 +543,7 @@ mod tests {
             data_file: None,
             result_shape: None,
             input_shape: None,
+            consumes: None,
             rationale: None,
         }
     }
@@ -555,25 +588,32 @@ mod tests {
         );
     }
 
+    /// The composition pre-check (`is_satisfiable_by`) surfaces a mismatch when
+    /// the producer LACKS a column the consumer requires.  The input shape
+    /// declares two required columns {x:IRI, y:IRI}; the producer only provides
+    /// {x:IRI} — so `input.is_satisfiable_by(&producer)` must be `Err` with a
+    /// `MissingColumn` variant naming "y".
     #[test]
-    fn input_shape_incompatibility_hard_fails_before_execution() {
-        let store = one_thing_store();
-        let mut cq = cq_with(Q_X);
-        // Output requires a column ?y that the input shape never provides → the
-        // pre-execution input→output check fails before the query runs.
-        cq.result_shape = Some(ResultShape::new(
-            vec![ResultColumn::required("y", ColumnKind::Iri)],
+    fn is_satisfiable_by_surfaces_missing_required_column() {
+        use gmeow_logic_compile::result_shape::Mismatch;
+
+        let input = ResultShape::new(
+            vec![
+                ResultColumn::required("x", ColumnKind::Iri),
+                ResultColumn::required("y", ColumnKind::Iri),
+            ],
             RowCardinality::Contains,
-        ));
-        cq.input_shape = Some(ResultShape::new(
+        );
+        let producer = ResultShape::new(
             vec![ResultColumn::required("x", ColumnKind::Iri)],
             RowCardinality::Contains,
-        ));
-        let err = execute_competency_query(&store, &cq, Q_X)
-            .expect_err("incompatible input shape must hard-fail");
+        );
+        let err = input
+            .is_satisfiable_by(&producer)
+            .expect_err("producer missing required column must be Err");
         assert!(
-            err.contains("input-shape contract") && err.contains("before execution"),
-            "unexpected error: {err}"
+            matches!(err, Mismatch::MissingColumn { ref var } if var == "y"),
+            "expected MissingColumn {{ var: y }}, got: {err:?}"
         );
     }
 
@@ -614,6 +654,7 @@ mod tests {
             data_file: Some("data.ttl".to_owned()),
             result_shape: None,
             input_shape: None,
+            consumes: None,
             rationale: None,
         };
 

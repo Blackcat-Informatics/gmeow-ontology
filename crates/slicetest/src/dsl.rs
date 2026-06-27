@@ -65,8 +65,13 @@ pub struct CompetencyQuestion {
     /// against it after execution.
     pub result_shape: Option<ResultShape>,
     /// `gmeow:cqInputShape` — the typed [`ResultShape`] the question's input is
-    /// expected to satisfy (the INPUT contract), checked before execution.
+    /// expected to satisfy (the INPUT contract), checked before execution against
+    /// the upstream producer named by `gmeow:cqConsumes`.
     pub input_shape: Option<ResultShape>,
+    /// `gmeow:cqConsumes` — the IRI of the upstream [`CompetencyQuestion`] whose
+    /// declared output (`gmeow:cqResultShape`) must satisfy this question's
+    /// `gmeow:cqInputShape` before execution (composition pre-check).
+    pub consumes: Option<String>,
     pub rationale: Option<String>,
 }
 
@@ -152,7 +157,7 @@ pub enum ReasoningProfile {
 const PREFIX: &str = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n";
 
 const Q_COMPETENCY: &str = "
-SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFile ?resultShape ?inputShape ?rationale WHERE {
+SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFile ?resultShape ?inputShape ?consumes ?rationale WHERE {
   ?cq a gmeow:CompetencyQuestion .
   OPTIONAL { ?cq gmeow:cqQueryFile ?queryFile }
   OPTIONAL { ?cq gmeow:cqQuery ?query }
@@ -163,6 +168,7 @@ SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFil
   OPTIONAL { ?cq gmeow:cqDataFile ?dataFile }
   OPTIONAL { ?cq gmeow:cqResultShape ?resultShape }
   OPTIONAL { ?cq gmeow:cqInputShape ?inputShape }
+  OPTIONAL { ?cq gmeow:cqConsumes ?consumes }
   OPTIONAL { ?cq gmeow:cqRationale ?rationale }
 }";
 
@@ -238,6 +244,7 @@ fn parse_competency(store: &Store) -> Result<Vec<CompetencyQuestion>, String> {
             data_file: opt_string(&sol, "dataFile"),
             result_shape: opt_shape(store, &sol, "resultShape")?,
             input_shape: opt_shape(store, &sol, "inputShape")?,
+            consumes: opt_string(&sol, "consumes"),
             rationale: opt_string(&sol, "rationale"),
         };
         // A multi-valued OPTIONAL (or a duplicated triple) can yield more than one

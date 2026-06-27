@@ -43,3 +43,50 @@ ex:rowOrgB a gmeow:ExpectedRow ;
 
 ex:rowOrgC a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "neighbor" ; gmeow:cellValueIri ex:orgC ] .
+
+# ── Composition-contract dogfood ────────────────────────────────────────────────
+#
+# A second question that declares gmeow:cqConsumes ex:cqNamedParametricPaths,
+# proving the composition pre-check mechanism end-to-end:
+#   1. ex:cqNamedParametricPaths produces ex:cqNamedParametricPathsShape
+#      {neighbor:IRI required}.
+#   2. ex:cqNeighborOriginsInputShape declares the same column — the producer
+#      satisfies the input contract.
+#   3. The harness verifies this BEFORE running the query.
+#
+# The query itself selects all subjects that have any outgoing ex:linkedTo edge.
+# Over the four-node fixture (A→B→C→D) the subjects are {orgA, orgB, orgC};
+# orgD has no outgoing link.
+
+ex:cqNeighborOrigins a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX ex: <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> SELECT ?neighbor WHERE { ?neighbor ex:linkedTo ?target } ORDER BY ?neighbor" ;
+    gmeow:cqDataFile  "tests/fixtures/path-traversal.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Every node with an outgoing ex:linkedTo edge is a potential traversal origin; the fixture chain A→B→C→D has exactly three such origins (A, B, C) — D has no outgoing link. This question depends on the upstream bounded-path question via gmeow:cqConsumes and exercises the composition pre-check: the producer's result shape must satisfy this question's declared input shape before execution." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqNeighborOriginsShape ;
+    gmeow:cqInputShape  ex:cqNeighborOriginsInputShape ;
+    gmeow:cqConsumes    ex:cqNamedParametricPaths ;
+    gmeow:cqExpectRow   ex:rowOrgA2, ex:rowOrgB2, ex:rowOrgC2 .
+
+ex:cqNeighborOriginsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "neighbor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+# The declared INPUT contract: what this question requires from its producer.
+# A single {neighbor:IRI required} column — exactly what ex:cqNamedParametricPathsShape
+# provides, so is_satisfiable_by passes.
+ex:cqNeighborOriginsInputShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "neighbor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowOrgA2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "neighbor" ; gmeow:cellValueIri ex:orgA ] .
+
+ex:rowOrgB2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "neighbor" ; gmeow:cellValueIri ex:orgB ] .
+
+ex:rowOrgC2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "neighbor" ; gmeow:cellValueIri ex:orgC ] .

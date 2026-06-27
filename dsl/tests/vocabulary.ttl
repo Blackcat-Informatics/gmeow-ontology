@@ -254,11 +254,20 @@ gmeow:cqResultShape a owl:ObjectProperty ;
 
 gmeow:cqInputShape a owl:ObjectProperty ;
     rdfs:label "competency input shape"@x-gmeow-english ;
-    skos:definition "The typed input-set schema a SELECT competency question's data input (its gmeow:cqDataFile fixture) is expected to satisfy: a logic:ResultShape (range stated in prose). Validated BEFORE the query runs — the fixture's actual shape must satisfy this declared input shape (structural input→output compatibility), so a query whose input cannot type-check never executes. Maps to logic:expectsInputShape."@x-gmeow-english ;
-    skos:example "ex:cq gmeow:cqInputShape ex:inputShape ; gmeow:cqDataFile \"tests/fixtures/agents.ttl\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use to declare and check the typed contract a competency question's overlaid fixture must meet before the query is run."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid on questions with no gmeow:cqDataFile fixture (there is no input set to type), and on ASK questions."@x-gmeow-english ;
-    gmeow:howToUse "Mint a logic:ResultShape for the fixture's required columns and link it via gmeow:cqInputShape; the harness checks the fixture satisfies it before executing the query."@x-gmeow-english ;
+    skos:definition "The typed input contract this question expects from the upstream producer named by gmeow:cqConsumes; validated before execution by checking the producer's gmeow:cqResultShape satisfies it (structural input→output compatibility); maps to logic:expectsInputShape."@x-gmeow-english ;
+    skos:example "ex:cq gmeow:cqInputShape ex:inputShape ; gmeow:cqConsumes ex:upstreamQuestion ."@x-gmeow-english ;
+    gmeow:useWhen "Use together with gmeow:cqConsumes to declare the typed contract a producer's output must satisfy before this question executes — the column set and term-kinds the producer must cover."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid without a paired gmeow:cqConsumes (there is no producer to check against), and on ASK questions."@x-gmeow-english ;
+    gmeow:howToUse "Mint a logic:ResultShape for the required input columns and link it via gmeow:cqInputShape; also declare the upstream question via gmeow:cqConsumes; the harness checks the producer's gmeow:cqResultShape satisfies this shape before executing the query."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cqConsumes a owl:ObjectProperty ;
+    rdfs:label "competency consumes"@x-gmeow-english ;
+    skos:definition "The upstream gmeow:CompetencyQuestion whose declared output (gmeow:cqResultShape) this question's declared input (gmeow:cqInputShape) must be compatible with; the harness checks the structural input→output compatibility contract before executing this question. The composition property between two questions — the producer supplies what this question requires. Maps to the inter-question dependency axis of logic:expectsInputShape."@x-gmeow-english ;
+    skos:example "ex:cqDownstream gmeow:cqConsumes ex:cqUpstream ; gmeow:cqInputShape ex:downstreamInputShape ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare that this question depends on a specific upstream producer, so the harness can enforce the structural contract (producer's gmeow:cqResultShape must satisfy this question's gmeow:cqInputShape) before execution."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid without a paired gmeow:cqInputShape on the same question — the contract requires both the dependency (gmeow:cqConsumes) and the declared input type (gmeow:cqInputShape); avoid on ASK questions."@x-gmeow-english ;
+    gmeow:howToUse "Point gmeow:cqConsumes at the upstream gmeow:CompetencyQuestion IRI and pair it with gmeow:cqInputShape naming the logic:ResultShape the producer must cover; the harness resolves the producer from the same spec file and performs the composition pre-check before execution."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 gmeow:cqReasoning a owl:ObjectProperty ;
