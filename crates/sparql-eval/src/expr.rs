@@ -590,30 +590,52 @@ fn exists(
         Ok(!inner.is_empty())
     } else {
         // Fast memoized path: the inner pattern result is independent of the outer
-        // row's values in expression contexts, so evaluate it once and cache it.
+        // row's values in expression contexts, so evaluate it — and build the probe
+        // index over it — ONCE per site (keyed by inner-pattern, graph, and outer
+        // schema), then existence-probe each outer row against the reused index. This
+        // replaces the former per-row seed-join, whose `join_seqs` rebuilt the inner
+        // hash index on every outer row (O(rows × |inner|)).
+        let key = (
+            pattern as *const GraphPattern as usize,
+            ctx.graph_key(),
+            crate::eval::schema_fingerprint(schema),
+        );
         let cached = if ctx.options.exists_memo {
-            let key = (pattern as *const GraphPattern as usize, ctx.graph_key());
             ctx.exists_inner_cache.get(&key).cloned()
         } else {
             None
         };
-        let inner = match cached {
-            Some(inner) => inner,
+        let entry = match cached {
+            Some(entry) => entry,
             None => {
-                let computed = std::rc::Rc::new(eval(pattern, ctx)?);
+                let inner = std::rc::Rc::new(eval(pattern, ctx)?);
+                // `shared` is computed against the FULL outer schema (not just the
+                // row's bound vars), so one index serves every row: an outer var
+                // unbound in a given row is `None` in the probe and matches anything
+                // via `compatible`, exactly as the prior bound-only seed-join did.
+                let shared = schema.shared_columns(&inner.schema);
+                let (keyed, wild) = crate::binop::build_index(&inner, &shared);
+                let entry = std::rc::Rc::new(crate::eval::ExistsInner {
+                    inner,
+                    shared,
+                    keyed,
+                    wild,
+                });
                 if ctx.options.exists_memo {
-                    let key = (pattern as *const GraphPattern as usize, ctx.graph_key());
-                    ctx.exists_inner_cache.insert(key, computed.clone());
+                    ctx.exists_inner_cache.insert(key, entry.clone());
                 }
-                computed
+                entry
             }
         };
 
-        // Substitute the outer row's bindings by joining a one-row seed (its
-        // bound variables) with the inner result via the standard hash join.
-        let seed = seed_from_row(row, schema);
-        let joined = crate::binop::join_seqs(&seed, &inner);
-        Ok(!joined.is_empty())
+        // Existence-only probe of the full outer row against the reused index.
+        Ok(crate::binop::probe_has_match(
+            row,
+            &entry.shared,
+            &entry.keyed,
+            &entry.wild,
+            &entry.inner.rows,
+        ))
     }
 }
 
@@ -935,23 +957,6 @@ fn outer_bindings_for_substitution(
         }
     }
     bindings
-}
-
-/// A one-solution sequence carrying the current row's *bound* variables — the seed
-/// that constrains an `EXISTS`/`NOT EXISTS` subpattern to the outer bindings.
-fn seed_from_row(row: &[Option<SolutionTerm>], schema: &VarSchema) -> SolutionSeq {
-    let mut seed_schema = VarSchema::new();
-    let mut values = Vec::new();
-    for (i, var) in schema.vars().iter().enumerate() {
-        if let Some(term) = row[i] {
-            seed_schema.push(var.clone());
-            values.push(Some(term));
-        }
-    }
-    SolutionSeq {
-        schema: std::rc::Rc::new(seed_schema),
-        rows: vec![values],
-    }
 }
 
 /// Dispatch a built-in (or custom) function call.

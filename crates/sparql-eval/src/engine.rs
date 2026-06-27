@@ -222,6 +222,36 @@ mod tests {
     }
 
     #[test]
+    fn filter_not_exists_antijoin_returns_correct_rows() {
+        // The #1049 shape end-to-end through the parser: FILTER NOT EXISTS whose inner
+        // references the outer var only in a triple position. In `social()`, :a knows
+        // :b and has a name; :b has neither. The anti-join keeps subjects that are a
+        // knows-subject but have NO name → none here (:a has a name), so zero rows;
+        // flip to a name-less subject to confirm a positive row.
+        let ds = social();
+        // Subjects with a name: only :a. NOT EXISTS { ?s :name ?n } over knows-subjects
+        // ({:a}) → :a is excluded → empty.
+        let empty = run_on(
+            &ds,
+            "SELECT ?s WHERE { ?s <http://ex/knows> ?o \
+             FILTER NOT EXISTS { ?s <http://ex/name> ?n } }",
+        );
+        assert!(
+            col0(empty).is_empty(),
+            ":a has a name, so the anti-join is empty"
+        );
+
+        // EXISTS (the positive form): knows-subjects that DO have a name → :a.
+        let got = col0(run_on(
+            &ds,
+            "SELECT ?s WHERE { ?s <http://ex/knows> ?o \
+             FILTER EXISTS { ?s <http://ex/name> ?n } }",
+        ));
+        assert_eq!(got.len(), 1);
+        assert!(got[0].contains("http://ex/a"));
+    }
+
+    #[test]
     fn select_returns_solutions() {
         let result = run("SELECT ?o WHERE { <http://ex/a> <http://ex/knows> ?o }");
         match result {

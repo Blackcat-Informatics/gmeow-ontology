@@ -46,9 +46,47 @@ impl Default for EvalOptions {
 }
 
 /// A hashable key for an `EXISTS` inner-cache entry: the inner pattern's address
-/// (stable for the immutable AST during a query) plus a compact encoding of the
-/// active graph.
-pub(crate) type ExistsCacheKey = (usize, (u8, u32));
+/// (stable for the immutable AST during a query), a compact encoding of the active
+/// graph, and a fingerprint of the **outer schema**. The schema fingerprint is part
+/// of the key because the cached probe index ([`ExistsInner`]) — its `shared` column
+/// pairing and the keyed/wild split derived from it — depends on the outer schema, not
+/// just the inner pattern and graph. Keying on it makes a cached index correct *by
+/// construction* even if the same `EXISTS` AST node is reached under two outer schemas.
+pub(crate) type ExistsCacheKey = (usize, (u8, u32), u64);
+
+/// A memoized `EXISTS`/`NOT EXISTS` inner pattern together with the probe index built
+/// over it. The inner pattern is evaluated unconstrained **once** per [`ExistsCacheKey`];
+/// the `(shared, keyed, wild)` index is built once and reused to existence-probe every
+/// outer row (see [`crate::binop::probe_has_match`]). This is what turns a `FILTER (NOT)
+/// EXISTS` anti-join from N per-row index rebuilds into N O(1)/scan probes.
+pub(crate) struct ExistsInner {
+    /// The inner pattern's unconstrained result (outer-row-independent).
+    pub inner: Rc<crate::solution::SolutionSeq>,
+    /// Shared columns between the outer schema and `inner.schema`, as
+    /// `(outer_ordinal, inner_ordinal)` pairs (the probe's join key).
+    pub shared: Vec<(usize, usize)>,
+    /// Inner rows fully bound on the shared columns, grouped by their key.
+    pub keyed: DetHashMap<Vec<crate::scratch::SolutionTerm>, Vec<usize>>,
+    /// Inner rows with an unbound shared column (compatible with any probe value).
+    pub wild: Vec<usize>,
+}
+
+/// A cheap FNV-1a fingerprint of an outer schema's variables (names in column order),
+/// for [`ExistsCacheKey`]. Two schemas with the same ordered variable list hash equal,
+/// so the cached probe index is only reused against a matching outer-row layout.
+pub(crate) fn schema_fingerprint(schema: &crate::solution::VarSchema) -> u64 {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for v in schema.vars() {
+        for b in v.as_str().as_bytes() {
+            h ^= u64::from(*b);
+            h = h.wrapping_mul(0x0000_0100_0000_01b3);
+        }
+        // Separator so ["ab","c"] and ["a","bc"] do not collide.
+        h ^= 0xff;
+        h = h.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    h
+}
 
 /// The mutable evaluation context threaded through [`eval`].
 pub struct EvalCtx<'d> {
@@ -79,11 +117,12 @@ pub struct EvalCtx<'d> {
     pub rng_state: u64,
     /// Tunable evaluation behavior (see [`EvalOptions`]). Production default.
     pub options: EvalOptions,
-    /// Memoized `EXISTS`/`NOT EXISTS` inner-pattern evaluations, keyed by
-    /// [`ExistsCacheKey`]. The inner eval is outer-row-independent, so this turns
-    /// `expr::exists`'s per-row re-evaluation into a single evaluation per site.
+    /// Memoized `EXISTS`/`NOT EXISTS` inner patterns **and their probe index**
+    /// ([`ExistsInner`]), keyed by [`ExistsCacheKey`]. The inner eval and the index
+    /// over it are outer-row-independent, so this turns `expr::exists`'s per-row
+    /// re-evaluation *and* per-row index rebuild into a single build per site.
     /// Naturally per-query: a fresh [`EvalCtx`] is built for each `query()` call.
-    pub(crate) exists_inner_cache: DetHashMap<ExistsCacheKey, Rc<SolutionSeq>>,
+    pub(crate) exists_inner_cache: DetHashMap<ExistsCacheKey, Rc<ExistsInner>>,
     /// The `SERVICE` federation source, if one is injected. `None` in
     /// the default engine path: a non-silent `SERVICE` then hard-fails. Tests and
     /// the conformance harness inject an in-memory source via [`EvalCtx::with_remote`].
@@ -327,5 +366,82 @@ mod tests {
         let err = eval(&pattern, &mut ctx).unwrap_err();
         assert!(matches!(err, EvalError::Unsupported(_)));
         assert!(err.to_string().contains("LATERAL"));
+    }
+
+    #[test]
+    fn filter_exists_builds_inner_index_once_across_outer_rows() {
+        use gmeow_sparql_algebra::{
+            Expression, NamedNode, NamedNodePattern, TermPattern, TriplePattern, Variable,
+        };
+
+        // Three typed subjects; two carry a :stereo, one does not — the #1049
+        // anti-join shape: the outer var `?class` appears in the inner ONLY in a BGP
+        // triple position (no expression correlation), so the uncorrelated fast path
+        // is taken and the inner index must be reused across the three outer rows.
+        let mut b = RdfDatasetBuilder::new();
+        let ty = b.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_owned());
+        let cls = b.intern_iri("http://ex/Class".to_owned());
+        let stereo = b.intern_iri("http://ex/stereo".to_owned());
+        let a = b.intern_iri("http://ex/a".to_owned());
+        let bb = b.intern_iri("http://ex/b".to_owned());
+        let c = b.intern_iri("http://ex/c".to_owned());
+        let s = b.intern_iri("http://ex/S".to_owned());
+        b.push_quad(a, ty, cls, None);
+        b.push_quad(bb, ty, cls, None);
+        b.push_quad(c, ty, cls, None);
+        b.push_quad(a, stereo, s, None);
+        b.push_quad(bb, stereo, s, None);
+        let ds = b.freeze().expect("freeze");
+
+        let vp = |n: &str| TermPattern::Variable(Variable::new(n));
+        let pred = |iri: &str| NamedNodePattern::NamedNode(NamedNode::new_unchecked(iri));
+        let bgp = |s, p, o| GraphPattern::Bgp {
+            patterns: vec![TriplePattern {
+                subject: s,
+                predicate: p,
+                object: o,
+            }],
+        };
+
+        // outer: ?class a ?ctype (3 rows). inner: ?class :stereo ?st.
+        let outer = bgp(
+            vp("class"),
+            pred("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            vp("ctype"),
+        );
+        let inner = bgp(vp("class"), pred("http://ex/stereo"), vp("st"));
+        let filter = GraphPattern::Filter {
+            expr: Expression::Exists(Box::new(inner)),
+            inner: Box::new(outer),
+        };
+
+        let mut ctx = EvalCtx::new(&ds);
+        let seq = eval(&filter, &mut ctx).expect("filter exists");
+        // EXISTS keeps the two subjects with a :stereo (a, b); drops c.
+        assert_eq!(seq.len(), 2);
+        // The inner pattern AND its probe index were built exactly once despite three
+        // outer rows — the per-row index rebuild is gone.
+        assert_eq!(ctx.exists_inner_cache.len(), 1);
+    }
+
+    #[test]
+    fn schema_fingerprint_distinguishes_variable_lists() {
+        use gmeow_sparql_algebra::Variable;
+        let s = |names: &[&str]| {
+            crate::solution::VarSchema::from_vars(names.iter().map(|n| Variable::new(*n)))
+        };
+        // Order matters, separator prevents boundary collisions, equal lists match.
+        assert_ne!(
+            schema_fingerprint(&s(&["a", "b"])),
+            schema_fingerprint(&s(&["b", "a"]))
+        );
+        assert_ne!(
+            schema_fingerprint(&s(&["ab", "c"])),
+            schema_fingerprint(&s(&["a", "bc"]))
+        );
+        assert_eq!(
+            schema_fingerprint(&s(&["x", "y"])),
+            schema_fingerprint(&s(&["x", "y"]))
+        );
     }
 }
