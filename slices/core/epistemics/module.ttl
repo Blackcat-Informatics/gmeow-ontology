@@ -10,6 +10,20 @@
 gmeow:Attestation
     rdfs:subClassOf gmeow:JustificationGround .
 
+gmeow:ClaimEvaluation
+    a logic:Event ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Claim Evaluation"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:ClaimToken ;
+    skos:definition "An evaluative claim about a claim — a judgment of a claim token against a standard (warranted / unwarranted, sincere / insincere, sound / unsound), itself a claim token (the foundation: an evaluation is a separate claim with its own standpoint and provenance). Reuses the whole claim apparatus recursively: it gmeow:evaluates the target token, is held according to a frame via inherited gmeow:accordingTo (its CONTEXT — a gmeow:Standpoint, the materialised typed context truth is relative to), and carries its verdict as the gmeow:Proposition it gmeow:expresses under a modality. One token may be evaluated differently under different contexts, and those evaluations coexist (Principle 9); the reasoner never sets a verdict (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:eval1 a gmeow:ClaimEvaluation ; gmeow:evaluates ex:tok1 ; gmeow:accordingTo ex:courtFrame ; gmeow:expresses ex:tok1IsWarranted ."@x-gmeow-english ;
+    skos:scopeNote "The formal four-valued (Belnap / FDE) TRUTH verdict of a reasoner is the logic:ReasoningResult (logic:resultInformation) — a distinct standard, referenced not duplicated. The lightweight defeat flag on a claim is gmeow:defeatedBy → gmeow:JustificationStatus; gmeow:ClaimEvaluation is the heavy, context-indexed, reifiable form whose own identity, frame, and provenance are first-class. Context is gmeow:Standpoint (the materialised typed context); a single undifferentiated world would be a category error (the typed-context-algebra doctrine)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a bare defeat flag (use gmeow:defeatedBy directly on the claim) and for the reasoner's truth verdict (that is logic:ReasoningResult); avoid letting one evaluation win over the rest — competing evaluations under different contexts coexist (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one ClaimEvaluation per (token, context) assessment; point gmeow:evaluates at the target gmeow:ClaimToken, gmeow:accordingTo at the gmeow:Standpoint context, and gmeow:expresses at the verdict proposition; carry the qualitative verdict as its claim modality. Supersede by minting a new evaluation and suppressing the old with gmeow:displayable false (Principle 10)."@x-gmeow-english ;
+    gmeow:useWhen "Use when the assessment of a claim token under a particular context / standard is itself a fact of interest — when the context, the verdict, and the evaluation's own identity and provenance must be queryable or revisable, beyond a bare gmeow:defeatedBy flag."@x-gmeow-english .
+
 gmeow:ClaimToken
     a logic:Event ,
         owl:Class ;
@@ -292,6 +306,19 @@ gmeow:epistemicAgent
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set exactly once per DoxasticState, pairing it with doxasticContent and doxasticClaim."@x-gmeow-english ;
     gmeow:useWhen "Use to bind a DoxasticState to the agent whose believing mode it is."@x-gmeow-english .
+
+gmeow:evaluates
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ClaimEvaluation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "evaluates"@x-gmeow-english ;
+    rdfs:range gmeow:ClaimToken ;
+    skos:definition "The claim token a gmeow:ClaimEvaluation assesses. Each evaluation evaluates exactly one target token; a token may be assessed by many coexisting evaluations under different contexts (Principle 9). Distinct from gmeow:expresses (which carries the evaluation's own verdict proposition) and gmeow:heldByAttitude: gmeow:evaluates names the SUBJECT of the assessment — the assertion act being judged."@x-gmeow-english ;
+    skos:example "ex:eval1 gmeow:evaluates ex:tok1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a bare gmeow:Proposition (evaluate the token, not the content) or at a gmeow:DoxasticState; the target is the assertion act (gmeow:ClaimToken)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set once per gmeow:ClaimEvaluation, pointing at the target gmeow:ClaimToken; carry the evaluation's context on inherited gmeow:accordingTo and its verdict on the proposition it gmeow:expresses."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a gmeow:ClaimEvaluation to the single claim token it assesses."@x-gmeow-english .
 
 gmeow:expresses
     a owl:ObjectProperty ;

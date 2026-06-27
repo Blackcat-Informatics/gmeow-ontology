@@ -3709,6 +3709,12 @@ type CitationIntent {
   iri: String
 }
 
+type ClaimEvaluation {
+  id: String
+  iri: String
+  evaluates: [ClaimToken!]
+}
+
 type ClaimToken {
   id: String
   iri: String

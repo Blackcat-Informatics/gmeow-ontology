@@ -504,6 +504,12 @@ classes:
   CitationIntent:
     class_uri: https://blackcatinformatics.ca/gmeow/CitationIntent
     title: Citation Intent
+  ClaimEvaluation:
+    class_uri: https://blackcatinformatics.ca/gmeow/ClaimEvaluation
+    title: Claim Evaluation
+    is_a: ClaimToken
+    slots:
+    - evaluates
   ClaimToken:
     class_uri: https://blackcatinformatics.ca/gmeow/ClaimToken
     title: Claim Token
@@ -6535,6 +6541,12 @@ slots:
     range: Condition
     domain: ConditionEvaluation
     multivalued: false
+  evaluates:
+    slot_uri: https://blackcatinformatics.ca/gmeow/evaluates
+    title: evaluates
+    range: ClaimToken
+    domain: ClaimEvaluation
+    multivalued: true
   evaluationVerdict:
     slot_uri: https://blackcatinformatics.ca/gmeow/evaluationVerdict
     title: evaluation verdict

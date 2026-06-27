@@ -4032,6 +4032,12 @@ class ClaimToken(Activity):
     heldByAttitude: list[MentalMoment] | None = Field(default=None)
 
 
+class ClaimEvaluation(ClaimToken):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ClaimEvaluation"
+    is_a: ClassVar[str] = "ClaimToken"
+    evaluates: list[ClaimToken] | None = Field(default=None)
+
+
 class ClaimVeridicality(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ClaimVeridicality"
     pass
