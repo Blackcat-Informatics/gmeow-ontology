@@ -81,6 +81,7 @@ impl SparqlParser {
             base: self.base_iri.clone(),
             agg_counter: 0,
             anon_counter: 0,
+            group_counter: 0,
         };
         let u = p.parse_update()?;
         p.expect_eof()?;

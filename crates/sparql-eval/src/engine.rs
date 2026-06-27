@@ -640,18 +640,6 @@ mod tests {
         b.freeze().expect("freeze")
     }
 
-    fn run_on(ds: &Arc<RdfDataset>, query: &str) -> SparqlResult {
-        NativeSparqlEngine::new()
-            .query(
-                ds,
-                SparqlRequest {
-                    query,
-                    base_iri: None,
-                },
-            )
-            .expect("query")
-    }
-
     /// Render a result's rows as a sorted `Vec<Vec<String>>` for stable multiset
     /// comparison (IRIs as `<iri>`, literals as their lexical form).
     fn sorted_rows(result: SparqlResult) -> Vec<Vec<String>> {
