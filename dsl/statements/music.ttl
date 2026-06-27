@@ -49,7 +49,7 @@ ex:claim-bar17-meter-4_4-plus-3_8 a gmeow:StatementMetadata ;
 ex:claim-ai-german-sixth a gmeow:StatementMetadata ;
     rdfs:label "AI-inferred German-sixth chord label, confidence 0.72"@x-gmeow-english ;
     gmeow:reifier    ex:claim-ai-german-sixth ;
-    gmeow:qSubject   gmeow:fixtureRomanNumeralClaim ;
+    gmeow:qSubject   gmeow:fixtureRomanNumeralGermanSixthClaim ;
     gmeow:qPredicate gmeow:analysisResult ;
     gmeow:qObject    gmeow:harmonicFunctionGermanSixth ;
     gmeow:annotation
