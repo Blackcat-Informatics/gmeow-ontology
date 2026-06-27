@@ -47,5 +47,9 @@ Select {
             ?c,
         ],
     },
+    dataset: QueryDataset {
+        default: [],
+        named: [],
+    },
     base_iri: None,
 }

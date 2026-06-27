@@ -41,10 +41,11 @@ use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::rc::Rc;
 
-use gmeow_rdf_core::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef};
+use gmeow_rdf_core::{RdfDataset, TermId, TermRef};
 use gmeow_sparql_algebra::{NamedNode, PropertyPathExpression, TermPattern, Variable};
 
 use crate::convert::{ground_term_pattern_to_value, named_node_to_value};
+use crate::dataset_spec::GraphScope;
 use crate::error::EvalError;
 use crate::eval::EvalCtx;
 use crate::scratch::SolutionTerm;
@@ -56,11 +57,12 @@ use crate::solution::{Solution, SolutionSeq, VarSchema};
 type NegatedCache = BTreeMap<usize, BTreeSet<TermId>>;
 
 /// The immutable, traversal-wide context shared by every `reach` recursion: the
-/// frozen dataset, the active graph match, and the once-resolved negated-set cache.
+/// frozen dataset, the active dataset graph scope (§13: a single graph, or a
+/// `FROM`/`USING`-merged default graph), and the once-resolved negated-set cache.
 /// Bundling these keeps the recursive path-evaluation signatures small.
 struct PathCtx<'a> {
     dataset: &'a RdfDataset,
-    graph: GraphMatch,
+    scope: GraphScope,
     cache: NegatedCache,
 }
 
@@ -111,7 +113,7 @@ pub(crate) fn eval_path(
     ctx: &mut EvalCtx<'_>,
 ) -> Result<SolutionSeq, EvalError> {
     let dataset = ctx.dataset;
-    let graph = ctx.active_graph;
+    let scope = ctx.active_dataset.scope_for(ctx.active_graph);
 
     // The output schema is fixed by which endpoints are *visible* variables, and is
     // independent of whether a ground endpoint happens to be absent — so an empty
@@ -132,7 +134,7 @@ pub(crate) fn eval_path(
     // Pre-resolve all NegatedPropertySet excluded predicates once for this eval call.
     let pctx = PathCtx {
         dataset,
-        graph,
+        scope,
         cache: build_negated_cache(path, dataset),
     };
 
@@ -179,7 +181,7 @@ pub(crate) fn eval_path(
                 // Non-reflexive paths (p, p+, p{n,…} with n>0, etc.) require an actual
                 // traversal to discover whether x cycles back to itself.
                 let reflexive = path_is_reflexive(path);
-                for x in node_universe(dataset, graph) {
+                for x in node_universe(dataset, &pctx.scope) {
                     if reflexive || reach(path, x, true, &pctx).contains(&x) {
                         push_pair(&mut rows, Some(x), Some(x));
                     }
@@ -187,7 +189,7 @@ pub(crate) fn eval_path(
             } else {
                 // PINNED: spec-mandated distinct-var enumeration — enumerate every node
                 // in the universe and materialise all forward reachability. DO NOT alter.
-                for x in node_universe(dataset, graph) {
+                for x in node_universe(dataset, &pctx.scope) {
                     for y in reach(path, x, true, &pctx) {
                         push_pair(&mut rows, Some(x), Some(y));
                     }
@@ -254,14 +256,15 @@ fn visible_var(term: &TermPattern) -> Option<Variable> {
     }
 }
 
-/// All terms that appear as a subject or object of a quad in `graph` — the node
-/// universe for a both-endpoints-variable path (SPARQL §18.1.7).
-fn node_universe(dataset: &RdfDataset, graph: GraphMatch) -> BTreeSet<TermId> {
+/// All terms that appear as a subject or object of a quad in the active-dataset scope
+/// — the node universe for a both-endpoints-variable path (SPARQL §18.1.7). The
+/// `BTreeSet` de-dupes endpoints, so a `FROM`-merged scope needs no extra triple dedup.
+fn node_universe(dataset: &RdfDataset, scope: &GraphScope) -> BTreeSet<TermId> {
     let mut out = BTreeSet::new();
-    for q in dataset.quads_for_pattern(None, None, None, graph) {
+    scope.for_each_quad(dataset, None, None, None, |q| {
         out.insert(q.s);
         out.insert(q.o);
-    }
+    });
     out
 }
 
@@ -349,19 +352,15 @@ fn step_predicate(
     };
     let mut out = BTreeSet::new();
     if forward {
-        for q in ctx
-            .dataset
-            .quads_for_pattern(Some(node), Some(pid), None, ctx.graph)
-        {
-            out.insert(q.o);
-        }
+        ctx.scope
+            .for_each_quad(ctx.dataset, Some(node), Some(pid), None, |q| {
+                out.insert(q.o);
+            });
     } else {
-        for q in ctx
-            .dataset
-            .quads_for_pattern(None, Some(pid), Some(node), ctx.graph)
-        {
-            out.insert(q.s);
-        }
+        ctx.scope
+            .for_each_quad(ctx.dataset, None, Some(pid), Some(node), |q| {
+                out.insert(q.s);
+            });
     }
     out
 }
@@ -377,23 +376,19 @@ fn step_negated(
     let excluded = &ctx.cache[&(excluded.as_ptr() as usize)];
     let mut out = BTreeSet::new();
     if forward {
-        for q in ctx
-            .dataset
-            .quads_for_pattern(Some(node), None, None, ctx.graph)
-        {
-            if !excluded.contains(&q.p) {
-                out.insert(q.o);
-            }
-        }
+        ctx.scope
+            .for_each_quad(ctx.dataset, Some(node), None, None, |q| {
+                if !excluded.contains(&q.p) {
+                    out.insert(q.o);
+                }
+            });
     } else {
-        for q in ctx
-            .dataset
-            .quads_for_pattern(None, None, Some(node), ctx.graph)
-        {
-            if !excluded.contains(&q.p) {
-                out.insert(q.s);
-            }
-        }
+        ctx.scope
+            .for_each_quad(ctx.dataset, None, None, Some(node), |q| {
+                if !excluded.contains(&q.p) {
+                    out.insert(q.s);
+                }
+            });
     }
     out
 }
@@ -417,23 +412,19 @@ fn step_wildcard(
     };
     let mut out = BTreeSet::new();
     if forward {
-        for q in ctx
-            .dataset
-            .quads_for_pattern(Some(node), None, None, ctx.graph)
-        {
-            if pred_ok(q.p) {
-                out.insert(q.o);
-            }
-        }
+        ctx.scope
+            .for_each_quad(ctx.dataset, Some(node), None, None, |q| {
+                if pred_ok(q.p) {
+                    out.insert(q.o);
+                }
+            });
     } else {
-        for q in ctx
-            .dataset
-            .quads_for_pattern(None, None, Some(node), ctx.graph)
-        {
-            if pred_ok(q.p) {
-                out.insert(q.s);
-            }
-        }
+        ctx.scope
+            .for_each_quad(ctx.dataset, None, None, Some(node), |q| {
+                if pred_ok(q.p) {
+                    out.insert(q.s);
+                }
+            });
     }
     out
 }
@@ -638,7 +629,7 @@ mod tests {
             .expect("start present");
         let pctx = PathCtx {
             dataset: ds,
-            graph: GraphMatch::Default,
+            scope: GraphScope::One(gmeow_rdf_core::GraphMatch::Default),
             cache: build_negated_cache(path, ds),
         };
         let mut v: Vec<String> = reach(path, sid, forward, &pctx)
