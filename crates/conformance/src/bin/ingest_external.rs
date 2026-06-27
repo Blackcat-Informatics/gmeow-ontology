@@ -32,6 +32,16 @@
 //!     against the native reasoner, record divergences (DlGap / CorpusOnly) as a
 //!     gmeow:Finding N-Quads graph written to <out.nq>, and print a summary line.
 //!     Entailment tests are counted but not graded (they need conclusion-negation).
+//!
+//! ingest-external --grade-ore <ontology-dir> <corpus-name> <out.nq>
+//!     Grade every `*.owl` ontology under <ontology-dir> against the native DL
+//!     consistency path for SOUNDNESS. The ORE 2015 corpus is curated-consistent and
+//!     ships NO per-ontology reference verdict, so every ontology's published expected
+//!     is `consistent`: a native `inconsistent` is a soundness flag (CorpusOnly →
+//!     hard-fail), and any ontology the native path cannot parse (ORE ships OWL 2
+//!     Functional Syntax, which the native RDF codecs do not read) or cannot decide
+//!     (gaps non-empty) becomes an honest DlGap Finding — never a silent skip. The
+//!     divergences are written as a gmeow:Finding N-Quads graph to <out.nq>.
 //! ```
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -47,13 +57,15 @@ usage:
   ingest-external --szs <problem.p> [--world <iri> --quads <n>]
   ingest-external --manifest <manifest.ttl>
   ingest-external --vendor-el <input.rdf> <out-dir>
-  ingest-external --grade-suite <input.rdf> <corpus-name> <out.nq>";
+  ingest-external --grade-suite <input.rdf> <corpus-name> <out.nq>
+  ingest-external --grade-ore <ontology-dir> <corpus-name> <out.nq>";
 
 fn main() -> Result<(), String> {
     let mut szs: Option<PathBuf> = None;
     let mut manifest: Option<PathBuf> = None;
     let mut vendor_el: Option<(PathBuf, PathBuf)> = None;
     let mut grade_suite: Option<(PathBuf, String, PathBuf)> = None;
+    let mut grade_ore: Option<(PathBuf, String, PathBuf)> = None;
     let mut world: Option<String> = None;
     let mut quads: Option<u64> = None;
 
@@ -72,6 +84,12 @@ fn main() -> Result<(), String> {
                 let corpus_name = next(&mut args, "--grade-suite <corpus-name>")?;
                 let out_nq = PathBuf::from(next(&mut args, "--grade-suite <out.nq>")?);
                 grade_suite = Some((input, corpus_name, out_nq));
+            }
+            "--grade-ore" => {
+                let dir = PathBuf::from(next(&mut args, "--grade-ore")?);
+                let corpus_name = next(&mut args, "--grade-ore <corpus-name>")?;
+                let out_nq = PathBuf::from(next(&mut args, "--grade-ore <out.nq>")?);
+                grade_ore = Some((dir, corpus_name, out_nq));
             }
             "--world" => world = Some(next(&mut args, "--world")?),
             "--quads" => {
@@ -92,16 +110,17 @@ fn main() -> Result<(), String> {
     let mode_count = szs.is_some() as u8
         + manifest.is_some() as u8
         + vendor_el.is_some() as u8
-        + grade_suite.is_some() as u8;
+        + grade_suite.is_some() as u8
+        + grade_ore.is_some() as u8;
     if mode_count > 1 {
         return Err(format!(
-            "--szs, --manifest, --vendor-el, and --grade-suite are mutually exclusive\n{USAGE}"
+            "--szs, --manifest, --vendor-el, --grade-suite, and --grade-ore are mutually exclusive\n{USAGE}"
         ));
     }
 
-    match (szs, manifest, vendor_el, grade_suite) {
-        (Some(path), None, None, None) => ingest_szs(&path, world.as_deref(), quads),
-        (None, Some(path), None, None) => {
+    match (szs, manifest, vendor_el, grade_suite, grade_ore) {
+        (Some(path), None, None, None, None) => ingest_szs(&path, world.as_deref(), quads),
+        (None, Some(path), None, None, None) => {
             // `--world`/`--quads` shape an SZS single-world verdict; they have no
             // meaning for a manifest (one line per entry). Reject loudly rather than
             // parse-and-drop them (no-optionality / no silent misuse).
@@ -112,12 +131,15 @@ fn main() -> Result<(), String> {
             }
             ingest_manifest(&path)
         }
-        (None, None, Some((input, out)), None) => vendor_el_corpus(&input, &out),
-        (None, None, None, Some((input, corpus_name, out_nq))) => {
+        (None, None, Some((input, out)), None, None) => vendor_el_corpus(&input, &out),
+        (None, None, None, Some((input, corpus_name, out_nq)), None) => {
             grade_suite_corpus(&input, &corpus_name, &out_nq)
         }
+        (None, None, None, None, Some((dir, corpus_name, out_nq))) => {
+            grade_ore_corpus(&dir, &corpus_name, &out_nq)
+        }
         _ => Err(format!(
-            "one of --szs / --manifest / --vendor-el / --grade-suite is required\n{USAGE}"
+            "one of --szs / --manifest / --vendor-el / --grade-suite / --grade-ore is required\n{USAGE}"
         )),
     }
 }
@@ -1107,6 +1129,224 @@ fn grade_suite_corpus(input_rdf: &Path, corpus_name: &str, out_nq: &Path) -> Res
     })
 }
 
+/// Detect whether ontology bytes are OWL 2 Functional Syntax.
+///
+/// The ORE 2015 corpus ships every ontology in OWL 2 Functional Syntax
+/// (`Prefix(...)` / `Ontology(...)` headers). The native RDF codecs (Turtle / TriG /
+/// N-Triples / N-Quads / RDF/XML) cannot read that surface, so a Functional-Syntax
+/// ontology is an honest format gap (recorded as a DlGap Finding), never silently
+/// skipped. This is a lexical sniff over the leading non-blank/non-comment line:
+/// a Functional-Syntax document opens with `Prefix(` or `Ontology(` (possibly after
+/// `# comment` lines), whereas an RDF/XML document opens with `<?xml` or `<rdf:RDF`.
+fn is_owl_functional_syntax(bytes: &[u8]) -> bool {
+    let text = match std::str::from_utf8(bytes) {
+        Ok(t) => t,
+        // Non-UTF-8 bytes are not Functional Syntax; let the RDF/XML parser report
+        // the real error so it lands as a parse-failure DlGap with a real message.
+        Err(_) => return false,
+    };
+    for line in text.lines() {
+        let trimmed = line.trim_start();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        return trimmed.starts_with("Prefix(") || trimmed.starts_with("Ontology(");
+    }
+    false
+}
+
+/// One ORE-ontology grade outcome: the comparison row plus the divergence class it
+/// fell into (so the summary can tally without re-deriving from the ledger).
+enum OreOutcome {
+    /// Native agreed with the curated-consistent expected (`consistent`).
+    Agree,
+    /// Native could not parse or could not decide → honest coverage gap.
+    DlGap,
+    /// Native decided `inconsistent` on a curated-consistent ontology → soundness flag.
+    CorpusOnly,
+}
+
+/// Grade one ORE ontology file against the native DL consistency path.
+///
+/// Returns the divergence comparison (native vs. the curated-consistent `published`)
+/// and the outcome class. ORE ships OWL 2 Functional Syntax (unreadable by the native
+/// codecs) and provides no per-ontology reference verdict, so:
+///   * Functional-Syntax / unparsable / undecidable → native `"incomplete"` (DlGap);
+///   * native decided `consistent` → Agree;
+///   * native decided `inconsistent` → `"inconsistent"` vs. published `"consistent"`
+///     (CorpusOnly — a soundness flag, the only hard-fail condition for ORE).
+fn grade_ore_ontology(
+    path: &Path,
+    slug: &str,
+    world_iri: &str,
+) -> (gmeow_logic::reason::ExternalComparison, OreOutcome) {
+    // ORE real-world ontologies are curated-consistent; the distribution ships no
+    // per-ontology reference verdict, so the published expected is `consistent`.
+    let published = "consistent".to_string();
+    let mut comparison = gmeow_logic::reason::ExternalComparison {
+        case: slug.to_string(),
+        world: world_iri.to_string(),
+        native: "incomplete".to_string(),
+        published: published.clone(),
+    };
+
+    let bytes = match std::fs::read(path) {
+        Ok(b) => b,
+        Err(e) => {
+            println!("DL-GAP {slug}: cannot read ontology file: {e}");
+            return (comparison, OreOutcome::DlGap);
+        }
+    };
+
+    // Format gap: OWL 2 Functional Syntax is not in the native codec surface.
+    // Recorded as a coverage DlGap with the named format, never a silent skip.
+    if is_owl_functional_syntax(&bytes) {
+        println!("DL-GAP {slug}: OWL 2 Functional Syntax (native RDF codecs cannot parse)");
+        return (comparison, OreOutcome::DlGap);
+    }
+
+    // Parse as RDF/XML (the only OWL-bearing surface the native codecs read).
+    let ds = match gmeow_rdf::parse_dataset(
+        &bytes,
+        "application/rdf+xml",
+        Some("http://example.org/"),
+    ) {
+        Ok(ds) => ds,
+        Err(e) => {
+            println!("DL-GAP {slug}: ontology unparsable as RDF/XML: {e}");
+            return (comparison, OreOutcome::DlGap);
+        }
+    };
+    if ds.quad_refs().count() == 0 {
+        println!("DL-GAP {slug}: ontology parsed to zero quads (vacuous, not graded)");
+        return (comparison, OreOutcome::DlGap);
+    }
+
+    let verdict = match gmeow_logic::reason::dl_consistency(ds.as_ref()) {
+        Ok(v) => v,
+        Err(e) => {
+            println!("DL-GAP {slug}: native DL consistency run failed: {e}");
+            return (comparison, OreOutcome::DlGap);
+        }
+    };
+
+    if !verdict.gaps.is_empty() {
+        println!("DL-GAP {slug}: native could not decide (coverage gap)");
+        return (comparison, OreOutcome::DlGap);
+    }
+
+    if verdict.consistent {
+        comparison.native = "consistent".to_string();
+        println!("AGREE {slug}: native consistent");
+        (comparison, OreOutcome::Agree)
+    } else {
+        comparison.native = "inconsistent".to_string();
+        println!(
+            "CORPUS-ONLY {slug}: native inconsistent, ORE curated-consistent (soundness flag)"
+        );
+        (comparison, OreOutcome::CorpusOnly)
+    }
+}
+
+/// Grade every `*.owl` ontology under `ontology_dir` against the native DL
+/// consistency path and write divergences as a `gmeow:Finding` N-Quads graph.
+///
+/// The ORE 2015 corpus (Zenodo DOI 10.5281/zenodo.18578) is curated-consistent and
+/// ships OWL 2 Functional Syntax with NO per-ontology reference verdict. We grade for
+/// SOUNDNESS: the published expected is `consistent` for every ontology, a native
+/// `inconsistent` is a CorpusOnly soundness violation (hard-fail), and every ontology
+/// the native path cannot parse (Functional Syntax) or decide is recorded as an honest
+/// DlGap Finding — never a silent skip. ORE is fetched-not-vendored for benchmarking
+/// use only (the corpus license forbids redistribution), so nothing here is committed.
+fn grade_ore_corpus(ontology_dir: &Path, corpus_name: &str, out_nq: &Path) -> Result<(), String> {
+    // Collect `*.owl` ontology files deterministically (sorted by file name).
+    let mut owl_files: Vec<PathBuf> = Vec::new();
+    let rd = std::fs::read_dir(ontology_dir).map_err(|e| {
+        format!(
+            "cannot read ORE ontology dir {}: {e}",
+            ontology_dir.display()
+        )
+    })?;
+    for entry in rd {
+        let entry =
+            entry.map_err(|e| format!("dir entry error in {}: {e}", ontology_dir.display()))?;
+        let path = entry.path();
+        if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("owl") {
+            owl_files.push(path);
+        }
+    }
+    owl_files.sort();
+
+    if owl_files.is_empty() {
+        return Err(format!(
+            "no *.owl ontologies under {} — refusing a vacuous ORE grade (a broken extract \
+             must hard-fail, not silently pass)",
+            ontology_dir.display()
+        ));
+    }
+
+    let world_iri_prefix = format!("https://gmeow.example/{corpus_name}/");
+
+    let mut comparisons: Vec<gmeow_logic::reason::ExternalComparison> = Vec::new();
+    // Every DlGap slug is an ACCEPTED coverage gap for ORE: the corpus is graded for
+    // soundness only, and the Functional-Syntax / undecidable gaps are the expected,
+    // honest output (recorded as data), not a regression. Only CorpusOnly hard-fails.
+    let mut dl_gap_slugs: BTreeSet<String> = BTreeSet::new();
+    let mut graded = 0usize;
+    let mut agree = 0usize;
+    let mut dl_gap = 0usize;
+    let mut corpus_only = 0usize;
+
+    for path in &owl_files {
+        let stem = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .ok_or_else(|| format!("non-UTF-8 ontology file name: {}", path.display()))?;
+        let slug = to_slug(stem);
+        let world_iri = format!("{world_iri_prefix}{slug}/w");
+
+        let (comparison, outcome) = grade_ore_ontology(path, &slug, &world_iri);
+        graded += 1;
+        match outcome {
+            OreOutcome::Agree => agree += 1,
+            OreOutcome::DlGap => {
+                dl_gap += 1;
+                dl_gap_slugs.insert(slug.clone());
+            }
+            OreOutcome::CorpusOnly => corpus_only += 1,
+        }
+        comparisons.push(comparison);
+    }
+
+    // Build + write the divergence graph (DlGap + CorpusOnly rows become Findings).
+    let nq = gmeow_conformance::divergence::emit_divergence_nq(corpus_name, &comparisons);
+    if let Some(parent) = out_nq.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("cannot create output dir {}: {e}", parent.display()))?;
+    }
+    std::fs::write(out_nq, &nq).map_err(|e| format!("cannot write {}: {e}", out_nq.display()))?;
+
+    println!("graded={graded} agree={agree} corpus_only={corpus_only} dl_gap={dl_gap}");
+
+    // ── Soundness gate ────────────────────────────────────────────────────────
+    //
+    // ORE has no manifest entailment tests and no committed quarantine baseline, so
+    // the accepted-DlGap set is the full set of coverage gaps observed this run: a
+    // Functional-Syntax or undecidable gap is the EXPECTED honest output for ORE, not
+    // a regression. The gate's teeth for ORE are CorpusOnly == 0 — a native
+    // `inconsistent` verdict on a curated-consistent real-world ontology is a
+    // soundness defect and the only hard-fail condition.
+    let rows = gmeow_logic::reason::compare_external_corpus(corpus_name, &comparisons);
+    let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    soundness_gate(&ledger, &BTreeSet::new(), &dl_gap_slugs).map_err(|offenders| {
+        let list = offenders.join("\n  ");
+        format!(
+            "ORE soundness gate FAILED: {n} unexpected divergence(s):\n  {list}",
+            n = offenders.len()
+        )
+    })
+}
+
 /// Read the value following a flag, or error with the flag name.
 fn next(args: &mut impl Iterator<Item = String>, flag: &str) -> Result<String, String> {
     args.next()
@@ -1408,6 +1648,113 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             "offender line must name DL-GAP: {:?}",
             offenders[0]
         );
+    }
+
+    // ── ORE grading-adapter unit tests ───────────────────────────────────────
+    //
+    // These are network-free: they synthesize a tiny ORE-shaped ontology directory
+    // (one OWL 2 Functional-Syntax file = format-gap DlGap, one trivial consistent
+    // RDF/XML ontology = Agree) and assert the grade output, the emitted Findings,
+    // and the soundness-gate exit.
+
+    /// `is_owl_functional_syntax` must flag Functional-Syntax headers (the ORE
+    /// surface) and must NOT flag RDF/XML.
+    #[test]
+    fn detects_owl_functional_syntax() {
+        let functional = b"Prefix(owl:=<http://www.w3.org/2002/07/owl#>)\nOntology(<http://x>\n)";
+        assert!(
+            super::is_owl_functional_syntax(functional),
+            "Functional-Syntax header must be detected"
+        );
+        // Leading comment lines are skipped before the sniff.
+        let with_comment = b"# a comment\nOntology(<http://x>)";
+        assert!(super::is_owl_functional_syntax(with_comment));
+
+        let rdfxml = br#"<?xml version="1.0"?><rdf:RDF/>"#;
+        assert!(
+            !super::is_owl_functional_syntax(rdfxml),
+            "RDF/XML must NOT be flagged as Functional Syntax"
+        );
+    }
+
+    /// `grade_ore_corpus` over a synthetic dir: one Functional-Syntax ontology (a
+    /// format-gap DlGap) and one trivial consistent RDF/XML ontology (Agree). The
+    /// DlGap is an ACCEPTED ORE coverage gap, so the soundness gate must pass, the
+    /// DlGap must surface as a `dl-gap` Finding, and the consistent one must NOT.
+    #[test]
+    fn grade_ore_records_functional_syntax_gap_and_passes_soundness() {
+        let base = std::env::temp_dir().join(format!("gmeow-ore-grade-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(&base).expect("create ORE dir");
+
+        // ORE-shaped OWL 2 Functional-Syntax ontology (native codecs cannot read it).
+        std::fs::write(
+            base.join("ore_ont_0001.owl"),
+            "Prefix(owl:=<http://www.w3.org/2002/07/owl#>)\n\
+             Ontology(<http://owl.cs.man.ac.uk/ore/ont1>\n\
+             Declaration(Class(<http://a.com/ont#A>))\n)",
+        )
+        .expect("write functional ontology");
+
+        // A trivial, satisfiable RDF/XML ontology (one class declaration): the native
+        // DL consistency path decides `consistent`, matching the curated expected.
+        std::fs::write(
+            base.join("ore_ont_0002.owl"),
+            r#"<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <owl:Class rdf:about="http://a.com/ont#A"/>
+</rdf:RDF>"#,
+        )
+        .expect("write rdfxml ontology");
+
+        let out_nq = base.join("divergence.nq");
+        let result = super::grade_ore_corpus(&base, "ore-test", &out_nq);
+        assert!(
+            result.is_ok(),
+            "ORE soundness gate must pass (no CorpusOnly): {result:?}"
+        );
+
+        let nq = std::fs::read_to_string(&out_nq).expect("read divergence nq");
+        // The Functional-Syntax ontology must appear as a dl-gap Finding.
+        assert!(
+            nq.contains("reason.divergence.dl-gap"),
+            "format-gap ontology must surface as a dl-gap Finding: {nq:?}"
+        );
+        // Exactly one Finding (the DlGap); the consistent ontology agrees → no row.
+        let finding_count = nq.lines().filter(|l| l.contains("/Finding>")).count();
+        assert_eq!(
+            finding_count, 1,
+            "exactly one dl-gap Finding expected (consistent ontology emits none): {nq:?}"
+        );
+        assert!(
+            !nq.contains("reason.divergence.corpus-only"),
+            "no soundness (corpus-only) divergence expected for trivial consistent ontology: {nq:?}"
+        );
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    /// An empty (or no-`.owl`) directory must hard-fail rather than silently pass a
+    /// vacuous grade — a broken extract is a real error.
+    #[test]
+    fn grade_ore_hard_fails_on_empty_dir() {
+        let base = std::env::temp_dir().join(format!("gmeow-ore-empty-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(&base).expect("create empty ORE dir");
+
+        let out_nq = base.join("divergence.nq");
+        let result = super::grade_ore_corpus(&base, "ore-test", &out_nq);
+        assert!(
+            result.is_err(),
+            "an empty ORE extract must hard-fail, not vacuously pass"
+        );
+        assert!(
+            result.unwrap_err().contains("no *.owl ontologies"),
+            "error must name the empty-extract condition"
+        );
+
+        let _ = std::fs::remove_dir_all(&base);
     }
 
     /// When a ledger has only agreeing rows, the gate passes regardless of what

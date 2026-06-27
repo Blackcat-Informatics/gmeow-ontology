@@ -563,12 +563,40 @@ maint-bench-baseline: ## (maintainer) Refresh bench/baseline.json from a fresh c
 	cargo run -q -p gmeow-pipeline --bin bench-compare -- --emit-baseline > bench/baseline.json
 	@echo "wrote bench/baseline.json ($$(wc -c < bench/baseline.json) bytes) — regenerate + commit"
 
-maint-external-corpora: ## Grade the native reasoner against the full Lane-B external corpora (W3C OWL 2 suite + ORE) over the network; record divergences as a gmeow:Finding graph.
+# The bounded ORE subset cap: the ORE 2015 sample corpus is ~725 MB / 1920
+# ontologies. Grading all of them is intractable for a maint lane, so we cap to
+# the first ORE_GRADE_CAP ontologies of the EL-consistency task (the profile whose
+# fragment the native DL consistency path is closest to deciding). Override on the
+# command line (`make maint-external-corpora ORE_GRADE_CAP=50`) to widen the sweep.
+ORE_GRADE_CAP ?= 12
+
+maint-external-corpora: ## Grade the native reasoner against the full Lane-B external corpora (W3C OWL 2 suite + ORE 2015) over the network; record divergences as a gmeow:Finding graph.
 	mkdir -p .tmp/w3c-owl2 generated/conformance
 	curl -sSL https://www.w3.org/2009/11/owl-test/all.rdf -o .tmp/w3c-owl2/all.rdf
 	cargo run -p gmeow-conformance --bin ingest-external -- --grade-suite .tmp/w3c-owl2/all.rdf w3c-owl2-full generated/conformance/divergence-w3c-owl2-full.nq
-	@echo "ORE corpora are REFERENCE_ONLY (heterogeneous upstream licensing) — fetched live, never vendored."
-	@echo "external-corpora grading complete; divergences in generated/conformance/divergence-w3c-owl2-full.nq"
+	# ── ORE 2015 Reasoner Competition Corpus (Zenodo DOI 10.5281/zenodo.18578) ──
+	# LICENSE: the corpus is licensed for reasoner-BENCHMARKING use ONLY — NOT
+	# redistribution ("the open access extends only to this purpose; all individual
+	# ontologies retain their own license restrictions; removal-on-request"). So we
+	# DOWNLOAD it for benchmarking (license-compliant) and grade in a scratch temp
+	# dir; NOTHING ORE is ever vendored/committed (.tmp + generated/conformance are
+	# gitignored). The grade hard-fails on any fetch/extract/soundness error.
+	bash -euo pipefail -c '\
+	  cap=$(ORE_GRADE_CAP); \
+	  zip=.tmp/ore2015/ore2015_sample.zip; \
+	  sub=.tmp/ore2015/subset; \
+	  mkdir -p .tmp/ore2015 "$$sub"; \
+	  rm -f "$$sub"/*.owl; \
+	  if [ ! -s "$$zip" ]; then \
+	    curl -sSL -o "$$zip" "https://zenodo.org/api/records/18578/files/ore2015_sample.zip/content"; \
+	  fi; \
+	  unzip -o -q -j "$$zip" "pool_sample/el/consistency/fileorder.txt" -d .tmp/ore2015; \
+	  files=$$(head -n "$$cap" .tmp/ore2015/fileorder.txt | tr -d "\r" | sed "s#^#pool_sample/files/#"); \
+	  unzip -o -q -j "$$zip" $$files -d "$$sub"; \
+	  test -n "$$(ls -A "$$sub"/*.owl 2>/dev/null)" || { echo "ORE extract produced no ontologies"; exit 1; }; \
+	  cargo run -p gmeow-conformance --bin ingest-external -- --grade-ore "$$sub" ore2015-el-consistency generated/conformance/divergence-ore2015-el.nq; \
+	'
+	@echo "external-corpora grading complete; divergences in generated/conformance/divergence-w3c-owl2-full.nq + divergence-ore2015-el.nq"
 
 native-py: $(NATIVE_PY_STAMP)
 

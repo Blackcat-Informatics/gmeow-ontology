@@ -40,3 +40,14 @@ External correctness corpora (conformance/logic/cases/external/)
     Beihang). Licensed under the W3C Software and Document License. A curated
     Lane-A subset of 12 cases (those decidable by the native EL reasoner) is
     vendored under conformance/logic/cases/external/w3c-owl2-el/.
+  - ORE 2015 Reasoner Competition Corpus — NOT vendored, fetched live only.
+    Zenodo DOI 10.5281/zenodo.18578 (Matentzoglu & Parsia, University of
+    Manchester). The corpus is licensed for reasoner-BENCHMARKING use ONLY and
+    NOT for redistribution: "the open access extends only to this purpose; all
+    individual ontologies retain their own license restrictions; removal on
+    request". So NO ORE ontology is committed to this repository. The
+    `make maint-external-corpora` Lane-B lane DOWNLOADS a bounded subset to a
+    gitignored scratch dir for benchmarking use (license-compliant) and grades
+    the native reasoner against it for consistency soundness; the per-ontology
+    divergences are written as a gmeow:Finding graph and never folded into the
+    committed bundle.
