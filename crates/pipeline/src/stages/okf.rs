@@ -60,7 +60,7 @@ fn doc_relpath(term: &Term) -> String {
     format!("{}/{}.md", category_dir(term.category), slug(&term.curie))
 }
 
-/// A POSIX relative link from one bundle document to another (mirror `_relative_link`).
+/// A POSIX relative link from one bundle document to another.
 fn relative_link(from_path: &str, to_path: &str) -> String {
     let base_parts: Vec<&str> = {
         let parent = from_path.rsplit_once('/').map(|(p, _)| p).unwrap_or("");
@@ -97,7 +97,7 @@ fn relative_link(from_path: &str, to_path: &str) -> String {
     }
 }
 
-// ── YAML frontmatter value model (mirror yaml.safe_dump scalar/list/bool) ───────
+// ── YAML frontmatter value model (scalar / list / bool) ────────────────────────
 
 enum Yaml {
     Str(String),
@@ -105,9 +105,9 @@ enum Yaml {
     List(Vec<String>),
 }
 
-/// Serialize a mapping of scalar/bool/list values as YAML, matching
-/// `yaml.safe_dump(sort_keys=False, default_flow_style=False, allow_unicode=True)`
-/// over the value shapes this generator emits.
+/// Serialize a mapping of scalar/bool/list values as block YAML: keys emit in
+/// insertion order (not sorted), one entry per line, Unicode preserved verbatim,
+/// and every scalar routed through `yaml_scalar` so it round-trips losslessly.
 fn yaml_dump(entries: &[(String, Yaml)]) -> String {
     let mut out = String::new();
     for (key, value) in entries {
@@ -213,12 +213,13 @@ fn needs_quoting(s: &str) -> bool {
     let lower = s.to_ascii_lowercase();
     if matches!(
         lower.as_str(),
-        "null" | "~" | "true" | "false" | "yes" | "no" | "on" | "off"
+        "null" | "~" | "true" | "false" | "yes" | "no" | "on" | "off" | "y" | "n"
     ) {
         return true;
     }
-    // Number- or base-60-shaped tokens resolve to int/float when left plain.
-    if s.parse::<f64>().is_ok() || looks_like_sexagesimal(s) {
+    // Number-, date-, or base-60-shaped tokens resolve to a non-string when left
+    // plain in a YAML 1.1 reader, so they must be quoted to survive as strings.
+    if resolves_to_yaml_number(s) || looks_like_yaml_timestamp(s) || looks_like_sexagesimal(s) {
         return true;
     }
     let first = s.chars().next().unwrap();
@@ -231,6 +232,69 @@ fn needs_quoting(s: &str) -> bool {
         || s.ends_with(':')
         || s.starts_with(' ')
         || s.ends_with(' ')
+}
+
+/// Whether a control-free string is read as a YAML 1.1 number (integer, float, or
+/// special float) rather than a string. This models the *reader's* grammar, which
+/// is wider than Rust's `f64`: it also resolves radix integers (`0x` / `0o` / `0b`,
+/// digit-grouping underscores allowed), underscore digit groups (`1_000`), and the
+/// `.inf` / `.nan` special-float spellings — all of which `f64::parse` rejects, so
+/// a bare emission would round-trip back as a different type.
+fn resolves_to_yaml_number(s: &str) -> bool {
+    // Special floats: `.inf`, `+.inf`, `-.inf`, `.nan` (any case).
+    if matches!(
+        s.to_ascii_lowercase().as_str(),
+        ".inf" | "+.inf" | "-.inf" | ".nan"
+    ) {
+        return true;
+    }
+    // Canonical decimal integer / float, including exponent forms (this also covers
+    // leading-zero decimals such as `017`, which still resolve to a number).
+    if s.parse::<f64>().is_ok() {
+        return true;
+    }
+    let body = s.strip_prefix(['+', '-']).unwrap_or(s);
+    // Radix integers: hex / octal / binary.
+    if let Some(rest) = body.strip_prefix("0x") {
+        return !rest.is_empty() && rest.bytes().all(|b| b.is_ascii_hexdigit() || b == b'_');
+    }
+    if let Some(rest) = body.strip_prefix("0o") {
+        return !rest.is_empty() && rest.bytes().all(|b| matches!(b, b'0'..=b'7' | b'_'));
+    }
+    if let Some(rest) = body.strip_prefix("0b") {
+        return !rest.is_empty() && rest.bytes().all(|b| matches!(b, b'0' | b'1' | b'_'));
+    }
+    // Underscore digit groups (`1_000`, `3_000.5`). Identifiers such as `has_part`
+    // strip to a non-number, so this only fires on genuine numerics.
+    s.contains('_') && s.replace('_', "").parse::<f64>().is_ok()
+}
+
+/// Whether a string opens with a YAML 1.1 date or timestamp (`YYYY-M-D`, then
+/// either end-of-string or a `T` / `t` / space time separator). A reader resolves
+/// such a plain scalar to a timestamp, so the emitter must quote it.
+fn looks_like_yaml_timestamp(s: &str) -> bool {
+    let b = s.as_bytes();
+    // `YYYY-`
+    if b.len() < 8 || !b[..4].iter().all(u8::is_ascii_digit) || b[4] != b'-' {
+        return false;
+    }
+    let mut i = 5;
+    let month_start = i;
+    while i < b.len() && b[i].is_ascii_digit() {
+        i += 1;
+    }
+    if !(1..=2).contains(&(i - month_start)) || i >= b.len() || b[i] != b'-' {
+        return false;
+    }
+    i += 1;
+    let day_start = i;
+    while i < b.len() && b[i].is_ascii_digit() {
+        i += 1;
+    }
+    if !(1..=2).contains(&(i - day_start)) {
+        return false;
+    }
+    i == b.len() || matches!(b[i], b'T' | b't' | b' ' | b'\t')
 }
 
 /// Whether a string matches the YAML 1.1 base-60 (sexagesimal) int/float grammar
@@ -246,9 +310,12 @@ fn looks_like_sexagesimal(s: &str) -> bool {
         None => body,
     };
     let mut fields = digits.split(':');
-    // First field: one or more base-10 digits (underscores allowed in YAML 1.1).
+    // First field: a base-10 digit lead, then digits (underscores allowed in
+    // YAML 1.1). A leading underscore (`_12:30`) is NOT a valid sexagesimal token.
     match fields.next() {
-        Some(h) if !h.is_empty() && h.chars().all(|c| c.is_ascii_digit() || c == '_') => {}
+        Some(h)
+            if h.starts_with(|c: char| c.is_ascii_digit())
+                && h.chars().all(|c| c.is_ascii_digit() || c == '_') => {}
         _ => return false,
     }
     // At least one `:field`, each a base-60 digit `[0-5]?[0-9]`.
@@ -268,7 +335,7 @@ fn looks_like_sexagesimal(s: &str) -> bool {
     had_colon
 }
 
-// ── frontmatter + body (mirror _frontmatter / _body) ───────────────────────────
+// ── frontmatter + body ─────────────────────────────────────────────────────────
 
 fn frontmatter(term: &Term, version: &str) -> Vec<(String, Yaml)> {
     let mut fm: Vec<(String, Yaml)> = vec![(
@@ -337,7 +404,7 @@ fn frontmatter(term: &Term, version: &str) -> Vec<(String, Yaml)> {
             extension.insert(key.into(), Yaml::List(value.clone()));
         }
     }
-    // BTreeMap drains in sorted key order — matches Python `sorted(extension)`.
+    // BTreeMap drains in sorted key order, so extension keys emit deterministically.
     for (key, value) in extension {
         fm.push((key, value));
     }
@@ -345,7 +412,7 @@ fn frontmatter(term: &Term, version: &str) -> Vec<(String, Yaml)> {
 }
 
 /// In-bundle relation targets (relation, target term) where the target is a
-/// document in the bundle (mirror `_link_targets`).
+/// document in the bundle.
 fn link_targets<'a>(
     term: &Term,
     by_curie: &'a BTreeMap<String, Term>,
@@ -697,6 +764,44 @@ mod tests {
         // A non-numeric head or an out-of-range base-60 field is NOT sexagesimal.
         assert_eq!(yaml_scalar("a:b:c"), "a:b:c");
         assert_eq!(yaml_scalar("12:99"), "12:99");
+        // A leading underscore is not a valid base-60 first field — stays plain.
+        assert_eq!(yaml_scalar("_12:30"), "_12:30");
+    }
+
+    #[test]
+    fn yaml_scalar_quotes_yaml11_number_forms() {
+        // Radix integers and underscore digit groups: a YAML 1.1 reader folds these
+        // to integers/floats, but Rust's `f64::parse` rejects them, so a bare
+        // emission would silently change type on read.
+        for n in ["0x1f", "0b101", "0o17", "1_000", "3_000.5"] {
+            assert_eq!(yaml_scalar(n), format!("'{n}'"), "{n} must be quoted");
+        }
+        // Special-float spellings (`.inf` / `.nan` family, any case).
+        for n in [".inf", "+.inf", "-.inf", ".nan", ".NaN"] {
+            assert_eq!(yaml_scalar(n), format!("'{n}'"), "{n} must be quoted");
+        }
+        // Single-character booleans `y` / `n` resolve to bool in YAML 1.1.
+        for n in ["y", "n", "Y", "N"] {
+            assert_eq!(yaml_scalar(n), format!("'{n}'"), "{n} must be quoted");
+        }
+        // Underscored identifiers / CURIE locals are NOT numbers — stay plain.
+        assert_eq!(yaml_scalar("has_part"), "has_part");
+        assert_eq!(yaml_scalar("P1_2"), "P1_2");
+    }
+
+    #[test]
+    fn yaml_scalar_quotes_timestamps() {
+        // YAML 1.1 resolves a `YYYY-M-D` lead to a timestamp, not a string.
+        assert_eq!(yaml_scalar("2001-12-14"), "'2001-12-14'");
+        assert_eq!(
+            yaml_scalar("2001-12-14T10:00:00Z"),
+            "'2001-12-14T10:00:00Z'"
+        );
+        assert_eq!(yaml_scalar("2001-1-1 10:00:00"), "'2001-1-1 10:00:00'");
+        // A dotted version string is not a date, and a year with a non-date tail
+        // is not a timestamp lead — both stay plain.
+        assert_eq!(yaml_scalar("1.0.0"), "1.0.0");
+        assert_eq!(yaml_scalar("2001-mixed"), "2001-mixed");
     }
 
     #[test]
