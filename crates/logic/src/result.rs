@@ -680,6 +680,13 @@ pub struct ReasoningResult {
     pub provenance: ResultProvenance,
     /// The surface-specific answer payload.
     pub payload: ResultPayload,
+    /// The declared row-schema facet: the typed [`ResultShape`](crate::result_shape::ResultShape)
+    /// the result's bindings are contracted to. `None` for surfaces with no row
+    /// schema (e.g. a pure DL-consistency verdict). This is the DECLARED contract a
+    /// caller attaches via [`Self::with_row_schema`] — never derived from the
+    /// result's own bindings (that would be a tautology) — against which a consumer
+    /// validates the bindings.
+    pub row_schema: Option<crate::result_shape::ResultShape>,
 }
 
 impl ReasoningResult {
@@ -762,6 +769,7 @@ impl ReasoningResult {
             information,
             provenance,
             payload,
+            row_schema: None,
         };
         debug_assert!(
             result.validate().is_ok(),
@@ -769,6 +777,16 @@ impl ReasoningResult {
             result.validate()
         );
         result
+    }
+
+    /// Attach the declared row-schema facet (#766) — the typed
+    /// [`ResultShape`](crate::result_shape::ResultShape) the result's bindings are
+    /// contracted to. The schema is the caller's *declaration*, validated against
+    /// the bindings by the consumer; it is never synthesised from the bindings.
+    #[must_use]
+    pub fn with_row_schema(mut self, schema: crate::result_shape::ResultShape) -> Self {
+        self.row_schema = Some(schema);
+        self
     }
 
     /// An ill-formed request: nothing was reasoned (SEMANTICS:249-250). The other

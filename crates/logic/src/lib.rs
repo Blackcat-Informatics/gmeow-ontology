@@ -38,6 +38,7 @@ pub mod query_ir;
 pub mod reason;
 pub mod reference_resolver;
 pub mod result;
+pub mod result_shape;
 pub mod rule_ir;
 pub mod scryer_engine;
 pub mod seam;
