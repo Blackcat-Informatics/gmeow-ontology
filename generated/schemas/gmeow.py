@@ -3248,6 +3248,7 @@ class Event(ConfiguredBaseModel):
     overlaps: list[Event] | None = Field(default=None)
     performanceOf: list[CreativeWork] | None = Field(default=None)
     predecessorOrganization: list[Organization] | None = Field(default=None)
+    producesClaim: list[ClaimToken] | None = Field(default=None)
     projectedStandpoint: list[DoxasticStandpointClaim] | None = Field(default=None)
     propagationMutationDistance: list[int] | None = Field(default=None)
     startedBy: list[Event] | None = Field(default=None)
@@ -4024,6 +4025,19 @@ class CitationIntent(ConfiguredBaseModel):
     pass
 
 
+class ClaimToken(Activity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ClaimToken"
+    is_a: ClassVar[str] = "Activity"
+    expresses: list[Proposition] | None = Field(default=None)
+    heldByAttitude: list[MentalMoment] | None = Field(default=None)
+
+
+class ClaimEvaluation(ClaimToken):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ClaimEvaluation"
+    is_a: ClassVar[str] = "ClaimToken"
+    evaluates: ClaimToken | None = Field(default=None)
+
+
 class ClaimVeridicality(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ClaimVeridicality"
     pass
@@ -4043,7 +4057,7 @@ class CodecClass(ConfiguredBaseModel):
 
 class MentalMoment(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/MentalMoment"
-    pass
+    groundsClaim: list[ClaimToken] | None = Field(default=None)
 
 
 class CognitiveState(MentalMoment):

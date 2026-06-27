@@ -52,6 +52,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/deception/examples/blame-deflection.ttl", // gmeow:doxasticClaim → StandpointClaim not typed standalone
     "slices/core/diagnostics/examples/shacl-violation-finding.ttl", // gmeow:findingSeverity → shared DiagnosticSeverity untyped standalone
     "slices/core/epistemics/examples/belief-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
+    "slices/core/epistemics/examples/claim-token-split.ttl", // gmeow:observationMethod → shared method individual (methodExpertJudgement) untyped standalone
     "slices/core/epistemics/examples/flagship-epistemic-ledger.ttl", // gmeow:epistemicAgent → Agent not typed standalone
     "slices/core/epistemics/examples/justification-and-defeat.ttl", // gmeow:defeatedBy → JustificationStatus not typed standalone
     "slices/core/gts/examples/dist-package.ttl", // gmeow:gtsProfile → shared profile individual untyped standalone

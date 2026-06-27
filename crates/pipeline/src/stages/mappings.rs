@@ -32,8 +32,8 @@ use gmeow_slice::emit_sssom_sets;
 use gmeow_slice::fno_emit::emit_fno;
 use gmeow_slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
 use gmeow_slice::{
-    emit_dsl_stats, emit_edoal_sets, emit_list_functions, emit_sparql_sets, emit_standpoint_sets,
-    lint_prefix_consistency, lint_projection,
+    emit_claim_view, emit_dsl_stats, emit_edoal_sets, emit_list_functions, emit_sparql_sets,
+    emit_standpoint_sets, lint_prefix_consistency, lint_projection, CLAIM_VIEW_FILE,
 };
 
 use crate::error::PipelineError;
@@ -127,6 +127,14 @@ pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
     for (filename, rq) in standpoint {
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
     }
+
+    // Observation union view — the internal gmeow→gmeow `observation-claim-view.rq`
+    // CONSTRUCT that materialises the legacy Observation / StandpointClaim query
+    // surface from the canonical ClaimToken layer (no DSL input).
+    artifacts.insert(
+        format!("{QUERIES_DIR}/{CLAIM_VIEW_FILE}"),
+        emit_claim_view().into_bytes(),
+    );
 
     // DSL surface-count summary — the committed, drift-gated counts JSON.
     let dsl_stats = emit_dsl_stats(root).map_err(|e| PipelineError::Stage {
@@ -460,11 +468,13 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         for (path, bytes) in &artifacts {
             let name = path.rsplit('/').next().unwrap_or(path);
             let is_edoal = path.starts_with(EDOAL_DIR) && path.ends_with(".edoal.ttl");
-            // The per-profile SPARQL projections only; the seven `standpoint-*.rq`
-            // queries are covered by their own dedicated parity test below.
+            // The per-profile SPARQL projections only; the `standpoint-*.rq`
+            // queries and `observation-claim-view.rq` are covered by their own
+            // dedicated parity tests below.
             let is_sparql = path.starts_with(QUERIES_DIR)
                 && name.ends_with(".rq")
-                && !name.starts_with("standpoint-");
+                && !name.starts_with("standpoint-")
+                && name != CLAIM_VIEW_FILE;
             if !is_edoal && !is_sparql {
                 continue;
             }
@@ -548,6 +558,20 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             stats, &committed_stats,
             "dsl-stats.json drifted from committed"
         );
+    }
+
+    #[test]
+    fn claim_view_emits_byte_identically_with_committed() {
+        // The stage wires `emit_claim_view` — the internal observation union view.
+        // The emitted `observation-claim-view.rq` MUST equal its committed counterpart
+        // byte-for-byte (the emitter's parity contract).
+        let root = repo_root();
+        let artifacts = compile_mappings(&root).expect("compile");
+        let path = format!("{QUERIES_DIR}/{CLAIM_VIEW_FILE}");
+        let bytes = artifacts.get(&path).expect("claim-view artifact");
+        let committed =
+            std::fs::read(root.join(&path)).unwrap_or_else(|_| panic!("committed missing: {path}"));
+        assert_eq!(bytes, &committed, "claim view drifted from committed");
     }
 
     #[test]

@@ -3549,6 +3549,15 @@ export interface CitationAct {
 export interface CitationIntent {
 }
 
+export interface ClaimEvaluation extends ClaimToken {
+    evaluates?: ClaimToken,
+}
+
+export interface ClaimToken extends Activity {
+    expresses?: Proposition[],
+    heldByAttitude?: MentalMoment[],
+}
+
 export interface ClaimVeridicality {
 }
 
@@ -4179,6 +4188,7 @@ export interface Event {
     overlaps?: Event[],
     performanceOf?: CreativeWork[],
     predecessorOrganization?: Organization[],
+    producesClaim?: ClaimToken[],
     projectedStandpoint?: DoxasticStandpointClaim[],
     propagationMutationDistance?: number[],
     startedBy?: Event[],
@@ -4914,6 +4924,7 @@ export interface MemoryKind {
 }
 
 export interface MentalMoment {
+    groundsClaim?: ClaimToken[],
 }
 
 export interface MentalProcess extends Event {

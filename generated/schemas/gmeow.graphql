@@ -3709,6 +3709,19 @@ type CitationIntent {
   iri: String
 }
 
+type ClaimEvaluation {
+  id: String
+  iri: String
+  evaluates: ClaimToken
+}
+
+type ClaimToken {
+  id: String
+  iri: String
+  expresses: [Proposition!]
+  heldByAttitude: [MentalMoment!]
+}
+
 type ClaimVeridicality {
   id: String
   iri: String
@@ -4545,6 +4558,7 @@ type Event {
   overlaps: [Event!]
   performanceOf: [CreativeWork!]
   predecessorOrganization: [Organization!]
+  producesClaim: [ClaimToken!]
   projectedStandpoint: [DoxasticStandpointClaim!]
   propagationMutationDistance: [Int!]
   startedBy: [Event!]
@@ -5582,6 +5596,7 @@ type MemoryKind {
 type MentalMoment {
   id: String
   iri: String
+  groundsClaim: [ClaimToken!]
 }
 
 type MentalProcess {
