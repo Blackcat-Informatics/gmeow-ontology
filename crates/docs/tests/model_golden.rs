@@ -13,7 +13,6 @@
 //! term (that produced a ~1.7 MB churn-magnet snapshot).
 
 use std::collections::BTreeMap;
-use std::path::PathBuf;
 
 use gmeow_docs::{
     DocCompetency, DocConcern, DocExample, DocExternalTerm, DocLearningPath, DocLinkage,
@@ -21,15 +20,7 @@ use gmeow_docs::{
 };
 use serde::Serialize;
 
-/// The repo root is two levels above this crate's manifest dir
-/// (`<repo>/crates/docs`).
-fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("crate is at <repo>/crates/docs")
-        .to_path_buf()
-}
+mod common;
 
 /// A compact, structure-locking summary of a [`DocsModel`]. Captures the
 /// model's shape (counts, slice spine, category histogram) plus a handful of
@@ -191,7 +182,7 @@ fn category_name(category: DocTermCategory) -> &'static str {
 
 #[test]
 fn docs_model_golden() {
-    let model = DocsModel::discover(&repo_root()).expect("build docs model from live slices");
+    let model = common::cached_model();
     let summary = ModelSummary::from_model(&model);
     insta::assert_json_snapshot!(summary);
 }

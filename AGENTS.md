@@ -254,18 +254,15 @@ cliff purely as a runaway/hang backstop; the 25 s **policy** is the JUnit gate.
 
 A test that is *irreducibly* heavier than the budget (full-fold reasoning, full-DAG
 parity, snapshot codec round-trips, Nemo closures, the native-pathological corpus
-parity query, the uncached docs-model render cluster) does NOT get a per-test
-timeout override. Instead it is **carved out of the default/ci profiles and runs on
+parity query) does NOT get a per-test timeout override. Instead it is **carved out of the default/ci profiles and runs on
 the `maint-heavy` profile** (`make maint-rust-heavy`), so its coverage still runs —
 off the per-commit gate, on a maint/scheduled lane. The single source of truth for
 what is off-gate is the **`default-filter` expression in `.config/nextest.toml`**;
 every excluded group is justified by an inline comment there. Adding a new off-gate
 exception requires a comment in that filter AND a one-line entry here.
 
-Default off-gate groups (2026-06-27, #1045): the `gmeow-docs`
-render/competency/extract/lint/i18n/model binaries (each rebuilds the full
-`DocsModel` per test — a shared-fixture cache is the tracked fix that brings them
-back on-gate); `gmeow-logic::ontology_entailments` (Nemo RL); the `gmeow-logic`
+Default off-gate groups (2026-06-27, #1045): `gmeow-logic::ontology_entailments`
+(Nemo RL); the `gmeow-logic`
 `sparql_path_parity` binary + `sparql_path_lower::tests` module (#914 S8 property
 paths — every case drives `run_scryer`, paying a ~9-10 s Scryer
 machine-construction floor that process-per-test cannot share; several reach
@@ -281,13 +278,19 @@ and the heaviest generated CONSTRUCT projections `schema-org`/`vcard`/`foaf`/
 compile on CI — build-time-bound, already covered by the dedicated `capi` CI job);
 and `w3c_rdfc10_heavy_offgate` (the sole RDFC-1.0 negative/poison vector `test074`,
 ~5.3 s on the call-budget guard — the rest of the W3C suite is sharded+gated, each
-shard under 1 s). `gmeow-docs::rdf_golden` stays gated as the docs representative
-subset.
+shard under 1 s).
+
+The whole `gmeow-docs` test cluster is **on-gate**: each test loads a shared
+`DocsModel` from the content-addressed `gmeow_docs::fixture` cache instead of
+rebuilding it. The cache is primed once before the run — the `prime-docs-fixture`
+example, run by the Makefile test lanes and the CI test job ahead of `nextest` — so
+no test pays the ~12 s build or the cold concurrent-rebuild contention. A plain
+`cargo test` still works (a miss falls through to a build).
 
 The bias is **fix, don't off-gate**: prefer making a test fast (shard it like the
 corpus parity sweep in `crates/rdf/tests/sparql_eval_parity.rs`, or share an
-expensive fixture once per run) over moving it to maint-heavy. Off-gate is for the
-genuinely irreducible.
+expensive fixture once per run like the docs-model cluster) over moving it to
+maint-heavy. Off-gate is for the genuinely irreducible.
 
 #### GTS engines (moved to the `gmeow-gts` repo)
 

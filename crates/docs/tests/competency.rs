@@ -14,19 +14,8 @@
 use gmeow_docs::model::{DocSlice, DocTerm};
 use gmeow_docs::render::{term_slug, to_html, to_markdown, Page};
 use gmeow_docs::{DocTermCategory, DocsModel};
-use std::path::PathBuf;
 
-fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("crate is at <repo>/crates/docs")
-        .to_path_buf()
-}
-
-fn model() -> DocsModel {
-    DocsModel::discover(&repo_root()).expect("build docs model from live slices")
-}
+mod common;
 
 /// The first metacharacter-free chunk of `s` that is at least 4 chars, trimmed.
 /// The renderer md-escapes table/inline metacharacters (`-`→`\-`, `.`→`\.`, …),
@@ -80,7 +69,7 @@ fn slice_with_tier_and_consumers(model: &DocsModel) -> &DocSlice {
 
 #[test]
 fn term_page_surfaces_iri_definition_domain_and_range() {
-    let model = model();
+    let model = common::cached_model();
     let term = fully_populated_term(&model);
     let slug = term_slug(term);
     let md = to_markdown(&model, &Page::Term(slug.clone()));
@@ -114,7 +103,7 @@ fn term_page_surfaces_iri_definition_domain_and_range() {
 
 #[test]
 fn slice_page_lists_tier_and_consumers() {
-    let model = model();
+    let model = common::cached_model();
     let slice = slice_with_tier_and_consumers(&model);
     // Slice pages are keyed by slug; the page dir is slices/<slug>. The model's
     // slice slug is the local name of its IRI — reuse render's Page::Slice via the
@@ -147,7 +136,7 @@ fn slice_page_lists_tier_and_consumers() {
 
 #[test]
 fn recipe_index_and_page_surface_goal_and_terms() {
-    let model = model();
+    let model = common::cached_model();
     assert!(
         !model.recipes.is_empty(),
         "the live docs model must carry dogfooded recipes (#853)"
@@ -184,7 +173,7 @@ fn recipe_index_and_page_surface_goal_and_terms() {
 
 #[test]
 fn learning_path_index_and_page_sequence_audience_goal_and_recipes() {
-    let model = model();
+    let model = common::cached_model();
     assert!(
         !model.learning_paths.is_empty(),
         "the live docs model must carry dogfooded learning paths (#853)"
@@ -229,7 +218,7 @@ fn learning_path_index_and_page_sequence_audience_goal_and_recipes() {
 /// every per-term surface below would be vacuously empty.
 #[test]
 fn model_extracts_shapes_competencies_and_stereotypes() {
-    let model = model();
+    let model = common::cached_model();
     assert!(
         !model.shapes.is_empty(),
         "live model must reverse-map SHACL shapes from slices' shapes.ttl + root shapes/"
@@ -256,7 +245,7 @@ fn model_extracts_shapes_competencies_and_stereotypes() {
 /// lists B (and B is documented), B must list A.
 #[test]
 fn related_terms_are_bidirectional() {
-    let model = model();
+    let model = common::cached_model();
     let documented: std::collections::BTreeSet<&str> =
         model.terms.iter().map(|t| t.iri.as_str()).collect();
     for term in &model.terms {
@@ -283,7 +272,7 @@ fn related_terms_are_bidirectional() {
 /// the integrity-constraints (verify-query) index.
 #[test]
 fn term_page_surfaces_constraints() {
-    let model = model();
+    let model = common::cached_model();
     let Some(shape) = model
         .shapes
         .iter()
@@ -313,7 +302,7 @@ fn term_page_surfaces_constraints() {
 /// A term page surfaces its Logic stereotypes section, and the Logic index lists it.
 #[test]
 fn term_and_logic_index_surface_stereotypes() {
-    let model = model();
+    let model = common::cached_model();
     let term = model
         .terms
         .iter()
@@ -351,7 +340,7 @@ fn term_and_logic_index_surface_stereotypes() {
 /// A term page surfaces its box-role badge.
 #[test]
 fn term_page_surfaces_box_role() {
-    let model = model();
+    let model = common::cached_model();
     let term = model
         .terms
         .iter()
@@ -368,7 +357,7 @@ fn term_page_surfaces_box_role() {
 /// A term page surfaces its "Tested by" competency block.
 #[test]
 fn term_page_surfaces_tested_by() {
-    let model = model();
+    let model = common::cached_model();
     let Some(cq) = model.competencies.iter().find(|c| {
         c.exercises
             .iter()
@@ -393,7 +382,7 @@ fn term_page_surfaces_tested_by() {
 /// A term page surfaces its "Examples using this term" cross-links.
 #[test]
 fn term_page_surfaces_example_cross_links() {
-    let model = model();
+    let model = common::cached_model();
     let Some(example) = model.examples.iter().find(|e| {
         e.terms_referenced
             .iter()

@@ -13,12 +13,13 @@
 // Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
 // for this file. Identical behaviour on pass; insta snapshots are unaffected.
 use pretty_assertions::assert_eq;
-use std::path::PathBuf;
 
 use gmeow_docs::lint::lint;
 use gmeow_docs::model::{DocTerm, DocTermCategory};
 use gmeow_docs::render::{render_site_lang, term_slug, Page};
 use gmeow_docs::{DocsModel, Translations};
+
+mod common;
 
 // Marker strings are deliberately metacharacter-free (no `_`/`-`/`.`): the
 // renderer md-escapes those, which would break a substring match.
@@ -153,21 +154,13 @@ fn chinese_render_falls_back_to_english_when_no_catalog() {
     );
 }
 
-fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("crate is at <repo>/crates/docs")
-        .to_path_buf()
-}
-
 #[test]
 fn translated_tree_preserves_the_no_dangling_link_invariant() {
     // Slugs/IRIs are language-independent, so the fr tree of the LIVE model (which
     // has every category page the static nav links to) must lint as cleanly as the
     // English one — zero dangling-link / broken-anchor errors. (A synthetic
     // minimal model would dangle on the static nav's category links.)
-    let model = DocsModel::discover(&repo_root()).expect("build docs model from live slices");
+    let model = common::cached_model();
     let fr = render_site_lang(&model, "fr");
     let report = lint(&model, &fr);
     assert_eq!(

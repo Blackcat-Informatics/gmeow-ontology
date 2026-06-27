@@ -24,11 +24,6 @@
 #   - w3c_rdfc10_heavy_offgate: the sole RDFC-1.0 negative/poison vector (test074),
 #     ~5.3 s on the call-budget guard while every other vector is ≤ ~0.02 s; carved out
 #     so the gated W3C shards stay cheap (see crates/rdf/tests/rdfc_w3c.rs).
-#   - gmeow-docs render/competency/extract/lint/i18n/model binaries: each test rebuilds
-#     the full DocsModel via `DocsModel::discover` (~13 s) + render (~5 s), uncached
-#     across nextest's process-per-test model. A docs-model shared-fixture brings these
-#     back on-gate — tracked as a follow-up. `rdf_golden` stays gated as the docs
-#     representative subset.
 #   - gmeow-logic ontology_entailments: Nemo OWL-2-RL closures (engine-bound by design).
 #   - gmeow-logic sparql_path_parity binary + sparql_path_lower::tests (#914 S8 property
 #     paths): every case drives `run_scryer`, paying a ~9-10 s Scryer machine-construction
@@ -47,7 +42,6 @@ default-filter = '''
   not (
     test(/corpus_parity_heavy_offgate/)
     | test(/w3c_rdfc10_heavy_offgate/)
-    | (package(gmeow-docs) & binary(/competency|extract_roundtrip|i18n_render|lint_regression|model_golden|render_golden/))
     | (package(gmeow-logic) & binary(ontology_entailments))
     | (package(gmeow-logic) & (binary(sparql_path_parity) | test(/sparql_path_lower::tests/)))
     | (package(gmeow-conformance) & test(/goal-rdf-list-functions/))
@@ -139,9 +133,8 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # load these can tip past the 120s default terminate cliff. They are codec /
 # I-O-bound — NOT engine-bound — so they stay OUTSIDE the `engine` memory group
 # (no OOM risk) but need a longer terminate cliff: `gts_sink` re-emits the whole
-# snapshot, `gmeow-docs` extract round-trips it, and the snapshot docs-archive
-# test renders/packs the embedded site.
-filter = '(package(gmeow-pipeline) & test(/gts_sink|stages::snapshot::ustar_tests::build_docs_archive_packs_the_rendered_site/)) | (package(gmeow-docs) & binary(extract_roundtrip))'
+# snapshot and the snapshot docs-archive test renders/packs the embedded site.
+filter = 'package(gmeow-pipeline) & test(/gts_sink|stages::snapshot::ustar_tests::build_docs_archive_packs_the_rendered_site/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
