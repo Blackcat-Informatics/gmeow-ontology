@@ -87,7 +87,11 @@ fn right_to_out_map(right: &VarSchema, out: &VarSchema) -> Vec<usize> {
 /// Build the right-side join index: rows whose shared columns are all bound are
 /// grouped by their key; rows with an unbound shared column are returned separately
 /// (`wild`), since they are compatible with any probe value on that column.
-fn build_index(
+///
+/// Exposed `pub(crate)` so an `EXISTS` site can build the index over its inner
+/// result **once** and reuse it across every outer row (see [`probe_has_match`]),
+/// rather than rebuilding it per probe.
+pub(crate) fn build_index(
     r: &SolutionSeq,
     shared: &[(usize, usize)],
 ) -> (DetHashMap<Vec<SolutionTerm>, Vec<usize>>, Vec<usize>) {
@@ -102,10 +106,35 @@ fn build_index(
     (keyed, wild)
 }
 
-/// Hash-join two already-evaluated solution sequences on their shared variables
-/// (used by `EXISTS` to constrain a subpattern to the outer bindings).
-pub(crate) fn join_seqs(l: &SolutionSeq, r: &SolutionSeq) -> SolutionSeq {
-    hash_join(l, r)
+/// Existence-only probe against a **prebuilt** right-side index: whether any row of
+/// `r_rows` is join-compatible with `probe` on the `shared` columns, without
+/// materializing the join. This is the `EXISTS` primitive — it short-circuits on the
+/// first match and reuses the index ([`build_index`]) built once per `EXISTS` site, so
+/// a `FILTER (NOT) EXISTS` over N outer rows is O(N) probes, not N index rebuilds.
+///
+/// `keyed`/`wild`/`r_rows` must come from the same `build_index(r, shared)` call.
+///
+/// Cliff note: when `probe` has an **unbound** shared column, no exact key exists, so
+/// this falls back to a per-row compatibility scan over the full inner result — that
+/// case is O(|inner|) per probe. A probe fully bound on its shared columns (the common
+/// anti-join shape) hits the keyed bucket in O(1).
+pub(crate) fn probe_has_match(
+    probe: &[Option<SolutionTerm>],
+    shared: &[(usize, usize)],
+    keyed: &DetHashMap<Vec<SolutionTerm>, Vec<usize>>,
+    wild: &[usize],
+    r_rows: &[Solution],
+) -> bool {
+    match bound_key(probe, shared, KeySide::Left) {
+        // Fully bound on shared columns: a present exact-key bucket is a match
+        // (`build_index` only inserts non-empty buckets via `or_default().push`),
+        // else any compatible wild build row (its `None` shared column matches).
+        Some(key) => {
+            keyed.contains_key(&key) || wild.iter().any(|&i| compatible(probe, &r_rows[i], shared))
+        }
+        // Unbound shared column ⇒ wildcard probe: scan for any compatible build row.
+        None => r_rows.iter().any(|rrow| compatible(probe, rrow, shared)),
+    }
 }
 
 /// Hash-join two solution sequences on their shared variables.
@@ -168,7 +197,7 @@ enum KeySide {
 /// Both sides build the key in the same `shared` order, so a left key equals a
 /// right key iff the two rows agree on every (bound) shared column.
 fn bound_key(
-    row: &Solution,
+    row: &[Option<SolutionTerm>],
     shared: &[(usize, usize)],
     side: KeySide,
 ) -> Option<Vec<SolutionTerm>> {
@@ -553,6 +582,82 @@ mod tests {
         );
         // Result schema is the left schema (no right columns introduced).
         assert_eq!(seq.schema.vars(), &[Variable::new("s"), Variable::new("o")]);
+    }
+
+    #[test]
+    fn probe_has_match_hits_index_then_scans_wild() {
+        use crate::scratch::SolutionTerm;
+        use gmeow_rdf_core::TermId;
+        let t = |i: u32| Some(SolutionTerm::Existing(TermId::from_index(i)));
+
+        // Inner over schema [x]: x=1, x=2, and one wild row (x unbound).
+        let inner = SolutionSeq {
+            schema: Rc::new(VarSchema::from_vars([Variable::new("x")])),
+            rows: vec![vec![t(1)], vec![t(2)], vec![None]],
+        };
+        // Probe layout is the FULL outer schema [x, y]; shared = {x} → [(0, 0)].
+        let outer = VarSchema::from_vars([Variable::new("x"), Variable::new("y")]);
+        let shared = outer.shared_columns(&inner.schema);
+        assert_eq!(shared, vec![(0, 0)]);
+        let (keyed, wild) = build_index(&inner, &shared);
+        assert_eq!(wild.len(), 1, "the x-unbound inner row is wild");
+
+        // Bound probe x=1: exact keyed bucket → match.
+        assert!(probe_has_match(
+            &[t(1), None],
+            &shared,
+            &keyed,
+            &wild,
+            &inner.rows
+        ));
+        // Bound probe x=9: no keyed bucket, but the wild inner row matches anything.
+        assert!(probe_has_match(
+            &[t(9), None],
+            &shared,
+            &keyed,
+            &wild,
+            &inner.rows
+        ));
+        // Unbound probe (x = None): wildcard → scan branch finds a compatible row.
+        assert!(probe_has_match(
+            &[None, t(5)],
+            &shared,
+            &keyed,
+            &wild,
+            &inner.rows
+        ));
+
+        // Same shape but NO wild inner row, so a keyed miss is a true non-match.
+        let inner2 = SolutionSeq {
+            schema: Rc::new(VarSchema::from_vars([Variable::new("x")])),
+            rows: vec![vec![t(1)], vec![t(2)]],
+        };
+        let (keyed2, wild2) = build_index(&inner2, &shared);
+        assert!(wild2.is_empty());
+        assert!(
+            !probe_has_match(&[t(9), None], &shared, &keyed2, &wild2, &inner2.rows),
+            "bound probe with no keyed bucket and no wild row does not match"
+        );
+        // Unbound probe scans a non-empty inner → match; an empty inner → no match.
+        assert!(probe_has_match(
+            &[None, t(5)],
+            &shared,
+            &keyed2,
+            &wild2,
+            &inner2.rows
+        ));
+        let empty = SolutionSeq {
+            schema: Rc::new(VarSchema::from_vars([Variable::new("x")])),
+            rows: vec![],
+        };
+        let (ek, ew) = build_index(&empty, &shared);
+        assert!(!probe_has_match(
+            &[None, t(5)],
+            &shared,
+            &ek,
+            &ew,
+            &empty.rows
+        ));
     }
 
     #[test]
