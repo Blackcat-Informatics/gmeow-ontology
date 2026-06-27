@@ -983,6 +983,45 @@
         ],
         "type": "object"
       },
+      "ClaimEvaluation": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:evaluates": {
+            "$comment": "gmeow:ClaimToken has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "gmeow:evaluates"
+        ],
+        "type": "object"
+      },
       "Comment": {
         "properties": {
           "@annotation": {
@@ -7321,6 +7360,31 @@
             },
             "then": {
               "$ref": "#/$defs/CitationAct"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:ClaimEvaluation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ClaimEvaluation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/ClaimEvaluation"
             }
           },
           {

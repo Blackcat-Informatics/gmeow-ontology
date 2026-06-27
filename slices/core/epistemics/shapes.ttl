@@ -97,6 +97,21 @@ gmeow:DoxasticStateShape
         sh:message "If present, gmeow:defeatedBy on a DoxasticState must be an IRI typed as gmeow:JustificationStatus." ;
     ] .
 
+gmeow:ClaimEvaluationShape
+    a sh:NodeShape ;
+    rdfs:label "ClaimEvaluation well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for gmeow:ClaimEvaluation: exactly one evaluated claim token. The OWL functional axiom on gmeow:evaluates carries the cardinality into the reasoned projection; this shape enforces it on raw un-reasoned instance data (Principle 8)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    sh:targetClass gmeow:ClaimEvaluation ;
+    sh:property [
+        sh:path gmeow:evaluates ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ClaimToken ;
+        sh:severity sh:Violation ;
+        sh:message "A ClaimEvaluation must evaluate exactly one target claim token (gmeow:evaluates, range gmeow:ClaimToken)." ;
+    ] .
+
 gmeow:DoxasticTenureShape
     a sh:NodeShape ;
     rdfs:label "DoxasticTenure well-formedness shape"@x-gmeow-english ;

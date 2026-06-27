@@ -9,6 +9,7 @@ pub mod analysis;
 pub mod artifact;
 pub mod cache;
 pub mod catalog;
+pub mod claim_view;
 pub mod dsl_stats_emit;
 pub mod edoal_emit;
 pub mod error;
@@ -42,6 +43,7 @@ pub use cache::{
     CacheKey, LinkUnit, Phase, ProductUnit, ToolchainContext,
 };
 pub use catalog::{ManifestView, SliceCatalog, SliceRecord, SliceTier};
+pub use claim_view::{emit_claim_view, CLAIM_VIEW_FILE};
 pub use dsl_stats_emit::emit_dsl_stats;
 pub use edoal_emit::emit_edoal_sets;
 pub use error::SliceError;
