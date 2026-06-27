@@ -18,44 +18,58 @@ use pretty_assertions::assert_eq;
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
-use gmeow_docs::render::{render_site, render_site_lang};
-use gmeow_docs::{DocsModel, Translations};
+use gmeow_docs::render::render_site_lang;
+use gmeow_docs::Translations;
 
-fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("crate is at <repo>/crates/docs")
-        .to_path_buf()
+mod common;
+
+/// The set of site-relative paths a language's render emits.
+fn path_graph(model: &gmeow_docs::DocsModel, lang: &str) -> BTreeSet<String> {
+    render_site_lang(model, lang).files.into_keys().collect()
 }
 
-fn live_model() -> DocsModel {
-    DocsModel::discover(&repo_root()).expect("build docs model from live slices")
+/// The English (carrier) path graph, taken from the shared once-per-run cached
+/// render rather than re-rendering — so each language case below pays exactly one
+/// live render (its own translation) instead of two.
+fn english_path_graph() -> BTreeSet<String> {
+    common::cached_site().files.into_keys().collect()
+}
+
+// The file/path set is language-independent (only prose changes), so a
+// per-language extract writes the SAME tree shape — the invariant that lets
+// `write_artifacts` / `create_docs` select a language without re-planning the
+// tree, and that keeps every language's links resolving. The English carrier is
+// the canonical graph (`render_site` == `render_site_lang(_, "english")`) and is
+// served from the shared cache; each translation is checked against it in its own
+// test so a single case pays one live render and the cases parallelise.
+
+#[test]
+fn french_tree_shares_the_english_path_graph() {
+    let model = common::cached_model();
+    assert_eq!(
+        path_graph(&model, "fr"),
+        english_path_graph(),
+        "fr tree has a different path graph than english"
+    );
 }
 
 #[test]
-fn language_trees_share_one_path_graph() {
-    // The file/path set is language-independent (only prose changes), so a
-    // per-language extract writes the SAME tree shape — the invariant that lets
-    // `write_artifacts` / `create_docs` select a language without re-planning the
-    // tree, and that keeps every language's links resolving.
-    let model = live_model();
-    let english: BTreeSet<String> = render_site(&model).files.into_keys().collect();
-    for lang in &model.available_languages {
-        let keys: BTreeSet<String> = render_site_lang(&model, lang).files.into_keys().collect();
-        assert_eq!(
-            keys, english,
-            "language `{lang}` tree has a different path graph than english"
-        );
-    }
+fn chinese_tree_shares_the_english_path_graph() {
+    let model = common::cached_model();
+    assert_eq!(
+        path_graph(&model, "zh"),
+        english_path_graph(),
+        "zh tree has a different path graph than english"
+    );
 }
 
 #[test]
 fn english_carrier_tree_matches_render_site() {
     // `render_site_lang(model, "english")` is exactly `render_site(model)` — the
     // carrier needs no rewrite, so the extracted English tree is the canonical one.
-    let model = live_model();
-    assert_eq!(render_site_lang(&model, "english"), render_site(&model));
+    // Compared against the shared cached render (which IS `render_site`).
+    let model = common::cached_model();
+    assert_eq!(render_site_lang(&model, "english"), common::cached_site());
 }
 
 #[test]
@@ -77,7 +91,7 @@ fn live_model_archive_prefix_uses_declared_bcp47_internal_tags() {
     // declared BCP-47 → internal `x-gmeow-*` pairs — NOT the empty-map fallback.
     // This pins the actual production selection (`fr` → French archive, `zh` →
     // Mandarin archive), which the empty-fixture test above cannot exercise.
-    let model = live_model();
+    let model = common::cached_model();
     let tr = &model.translations;
     assert_eq!(tr.internal_tag("english"), "x-gmeow-english");
     assert_eq!(
@@ -99,8 +113,7 @@ fn rendered_tree_is_disk_faithful() {
     // bytes are identical to the in-memory Site, and the returned path list
     // matches the tree. Catches a path-join / create_dir / encoding regression in
     // the actual write contract — not a mirrored copy of it.
-    let model = live_model();
-    let site = render_site_lang(&model, "english");
+    let site = common::cached_site();
     let root = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("docs-extract-roundtrip");
     let _ = std::fs::remove_dir_all(&root);
 

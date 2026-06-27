@@ -113,6 +113,7 @@ test-fast: native-py ## Run the fast pytest suite, excluding maintainer, Docker,
 rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
 
 rust-test: rust-build ## Run the Rust workspace tests and doctests.
+	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile ci $(NEXTEST_PARTITION_ARG)
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc
@@ -280,6 +281,7 @@ doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 
 rust-gate: rust-build ## Warm Rust once, then run clippy, nextest, the 25s budget gate, and doctests serially.
 	cargo clippy --all-targets -- -D warnings
+	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile ci $(NEXTEST_PARTITION_ARG)
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc
@@ -429,6 +431,7 @@ wasm-pkg-test: wasm-pkg ## Build the purrdf package and run the Node real-execut
 	cd crates/rdf-wasm/js && node --test tests/*.test.mjs
 
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (#1045 maint-heavy profile).
+	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile maint-heavy $(NEXTEST_PARTITION_ARG)
 
 slicetest: ## Run the slice-resident test-DSL harness in isolation.
