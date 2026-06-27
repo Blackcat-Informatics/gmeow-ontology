@@ -404,8 +404,8 @@ fn query(
     //     non-probabilistic answers stay byte-identical. confidence/weight/evidence
     //     never enter the marginal — the confidence≠probability guard is structural.
     if crate::profile_gate::is_probabilistic_profile(profile) {
-        let answer =
-            crate::probabilistic::evaluate(&store, &world, &program, profile).map_err(value_err)?;
+        let answer = crate::probabilistic::evaluate(&store, &world, &program, profile, None)
+            .map_err(value_err)?;
         let bindings = PyList::empty(py);
         for binding in &answer.bindings {
             let row = PyDict::new(py);
@@ -443,7 +443,7 @@ fn query(
                 .and_then(|c| c.depth_budget)
                 .unwrap_or(crate::counterfactual::DEFAULT_DEPTH_BUDGET);
             let mut cf = crate::counterfactual::construct_and_resolve(
-                &store, &program, profile, &budget, depth,
+                &store, &program, profile, &budget, depth, None,
             )
             .map_err(value_err)?;
             let status = cf.status_str().to_owned();

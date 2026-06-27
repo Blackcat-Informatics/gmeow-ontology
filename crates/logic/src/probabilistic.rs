@@ -179,16 +179,24 @@ impl ProbAnswer {
 ///
 /// `profile` must denote `logic:ProbabilisticProfile` (the caller routes on this).
 ///
+/// `declared_row_schema`: when `Some`, the result's bindings are validated against
+/// the caller's declared schema and the schema is attached via
+/// [`crate::result::ReasoningResult::with_declared_row_schema`] as a post-step.
+/// When `None`, behaviour is unchanged.
+///
 /// # Errors
 ///
 /// Returns `Err(String)` on a malformed model (bad probability token, joint
 /// probabilities not summing to one, an atom that is both correlated and independent),
-/// a `cut` under the probabilistic profile, or an unbound probability variable.
+/// a `cut` under the probabilistic profile, an unbound probability variable, or a
+/// [`crate::result_shape::ContractViolation`] when the declared schema does not
+/// match the result bindings.
 pub fn evaluate(
     store: &WorldStore,
     world: &str,
     program: &QProgram,
     profile: &str,
+    declared_row_schema: Option<crate::result_shape::ResultShape>,
 ) -> Result<ProbAnswer, String> {
     if !is_probabilistic_profile(profile) {
         return Err(format!(
@@ -213,13 +221,21 @@ pub fn evaluate(
     // ── Refusal guard: probabilistic facts but no declared model → unknown ────
     // Never silently assume independence over the logic:probability facts.
     if !program.prob_facts.is_empty() && program.prob_model.is_none() {
+        let result = prob_result(
+            ProbStatus::Unknown,
+            world,
+            crate::result::ResultPayload::Marginals(vec![]),
+        );
+        let result = if let Some(schema) = declared_row_schema {
+            result
+                .with_declared_row_schema(schema)
+                .map_err(|v| v.to_string())?
+        } else {
+            result
+        };
         return Ok(ProbAnswer {
             bindings: vec![],
-            result: prob_result(
-                ProbStatus::Unknown,
-                world,
-                crate::result::ResultPayload::Marginals(vec![]),
-            ),
+            result,
         });
     }
 
@@ -314,14 +330,19 @@ pub fn evaluate(
         )
     });
 
-    Ok(ProbAnswer {
-        bindings: bindings.clone(),
-        result: prob_result(
-            ProbStatus::Ok,
-            world,
-            crate::result::ResultPayload::Marginals(bindings),
-        ),
-    })
+    let result = prob_result(
+        ProbStatus::Ok,
+        world,
+        crate::result::ResultPayload::Marginals(bindings.clone()),
+    );
+    let result = if let Some(schema) = declared_row_schema {
+        result
+            .with_declared_row_schema(schema)
+            .map_err(|v| v.to_string())?
+    } else {
+        result
+    };
+    Ok(ProbAnswer { bindings, result })
 }
 
 /// Stream every total choice as `(facts true in the choice, P(choice))`, invoking
@@ -752,7 +773,7 @@ mod tests {
              ?- ex:wet(ex:today, X).\n"
         );
         let prog = parse_query_program(&src).unwrap();
-        let ans = evaluate(&store, WORLD, &prog, PROFILE).unwrap();
+        let ans = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap();
         assert_eq!(ans.status_str(), "ok");
         assert_eq!(ans.bindings.len(), 1, "exactly one binding: {ans:?}");
         assert_eq!(marginal_for(&ans, "X", "true"), Some(0.75));
@@ -771,7 +792,7 @@ mod tests {
              ?- ex:both(ex:s, X).\n"
         );
         let prog = parse_query_program(&src).unwrap();
-        let ans = evaluate(&store, WORLD, &prog, PROFILE).unwrap();
+        let ans = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap();
         assert_eq!(marginal_for(&ans, "X", "on"), Some(0.2));
     }
 
@@ -791,7 +812,7 @@ mod tests {
              ?- ex:both(ex:s, X).\n"
         );
         let prog = parse_query_program(&src).unwrap();
-        let ans = evaluate(&store, WORLD, &prog, PROFILE).unwrap();
+        let ans = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap();
         assert_eq!(
             marginal_for(&ans, "X", "on"),
             Some(0.5),
@@ -813,7 +834,7 @@ mod tests {
              ?- ex:diagnosis(ex:patient, X).\n"
         );
         let prog = parse_query_program(&src).unwrap();
-        let ans = evaluate(&store, WORLD, &prog, PROFILE).unwrap();
+        let ans = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap();
         assert_eq!(ans.status_str(), "ok");
         let m = marginal_for(&ans, "X", "flu");
         assert_eq!(
@@ -838,7 +859,7 @@ mod tests {
              ?- ex:wet(ex:today, X).\n"
         );
         let prog = parse_query_program(&src).unwrap();
-        let ans = evaluate(&store, WORLD, &prog, PROFILE).unwrap();
+        let ans = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap();
         assert_eq!(ans.status_str(), "unknown");
         assert!(
             ans.bindings.is_empty(),
@@ -899,7 +920,7 @@ mod tests {
              ?- ex:known(ex:s, X).\n"
         );
         let prog = parse_query_program(&src).unwrap();
-        let ans = evaluate(&store, WORLD, &prog, PROFILE).unwrap();
+        let ans = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap();
         assert_eq!(marginal_for(&ans, "X", "yes"), Some(1.0));
     }
 
@@ -918,7 +939,7 @@ mod tests {
              ?- ex:rain(ex:today, X).\n"
         );
         let prog = parse_query_program(&src).unwrap();
-        let err = evaluate(&store, WORLD, &prog, PROFILE).unwrap_err();
+        let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
         assert!(err.contains("duplicate"), "unexpected error: {err}");
     }
 
@@ -938,7 +959,7 @@ mod tests {
         }
         src.push_str("?- ex:f0(ex:s, X).\n");
         let prog = parse_query_program(&src).unwrap();
-        let err = evaluate(&store, WORLD, &prog, PROFILE).unwrap_err();
+        let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
         assert!(err.contains("too many"), "unexpected error: {err}");
     }
 
@@ -954,7 +975,7 @@ mod tests {
              ?- ex:p(ex:a, Y).\n"
         );
         let prog = parse_query_program(&src).unwrap();
-        let err = evaluate(&store, WORLD, &prog, PROFILE).unwrap_err();
+        let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
         assert!(err.contains("cut"), "unexpected error: {err}");
     }
 
@@ -971,7 +992,7 @@ mod tests {
              ?- ex:a(ex:s, X).\n"
         );
         let prog = parse_query_program(&src).unwrap();
-        let err = evaluate(&store, WORLD, &prog, PROFILE).unwrap_err();
+        let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
         assert!(err.contains("sum to 1"), "unexpected error: {err}");
     }
 
@@ -1061,5 +1082,78 @@ mod tests {
                 );
             }
         }
+    }
+
+    // ── row_schema facet: declared schema is validated and attached ────────────
+
+    /// A matching schema: the result binds IRI-valued `X`; the schema declares
+    /// `Required Iri` for `X`. Schema is attached and `row_schema.is_some()`.
+    #[test]
+    fn declared_schema_matching_attaches_row_schema() {
+        use gmeow_logic_compile::result_shape::{
+            ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality,
+        };
+
+        let store = WorldStore::new();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- probability_model(full_independence).\n\
+             :- probability(ex:rain(ex:today, ex:true), 0.5).\n\
+             ex:wet(D, ex:true) :- ex:rain(D, ex:true).\n\
+             ?- ex:wet(ex:today, X).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+
+        // Declare: one Required IRI column `X`, any number of rows.
+        let schema = ResultShape::new(
+            vec![ResultColumn {
+                var: "X".to_owned(),
+                kind: ColumnKind::Iri,
+                binding: ColumnBinding::Required,
+            }],
+            RowCardinality::Contains,
+        );
+
+        let ans = evaluate(&store, WORLD, &prog, PROFILE, Some(schema)).unwrap();
+        assert_eq!(ans.status_str(), "ok");
+        assert!(
+            ans.result.row_schema.is_some(),
+            "row_schema must be attached when a declared schema matches"
+        );
+    }
+
+    /// A mismatching schema: the result binds IRI-valued `X`; the schema declares
+    /// `Required BlankNode` for `X`. Must return Err (ContractViolation propagated).
+    #[test]
+    fn declared_schema_mismatch_returns_err() {
+        use gmeow_logic_compile::result_shape::{
+            ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality,
+        };
+
+        let store = WorldStore::new();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- probability_model(full_independence).\n\
+             :- probability(ex:rain(ex:today, ex:true), 0.5).\n\
+             ex:wet(D, ex:true) :- ex:rain(D, ex:true).\n\
+             ?- ex:wet(ex:today, X).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+
+        // Declare: `X` must be a blank-node — but the binding is an IRI → mismatch.
+        let schema = ResultShape::new(
+            vec![ResultColumn {
+                var: "X".to_owned(),
+                kind: ColumnKind::BlankNode,
+                binding: ColumnBinding::Required,
+            }],
+            RowCardinality::Contains,
+        );
+
+        let err = evaluate(&store, WORLD, &prog, PROFILE, Some(schema)).unwrap_err();
+        assert!(
+            err.contains("result-shape violation"),
+            "ContractViolation must be propagated as Err: {err}"
+        );
     }
 }
