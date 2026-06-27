@@ -203,6 +203,31 @@ const REP_OKF: &str = "okf-export";
 /// string the runtime consumer (`create_docs._unpack_doc_archive`) looks up —
 /// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow extract-docs` finds it.
 const REP_ONTOLOGY_DOCS: &str = "ontology-docs";
+/// tar of the FULL SHACL shape surface (#746), member = repo-relative path:
+/// every `shapes/*.ttl` (incl. the 4 DSL/manifest lints the consumer's DSL phases
+/// need) + every `generated/shapes/*.ttl` (P11 frame shapes) + every per-slice
+/// `slices/<g>/<n>/shapes.ttl`. The full surface — NOT the validator's filtered
+/// union — so a repo-free `gmeow validate` (#747) can re-derive both the data-graph
+/// union and the DSL phases. The Python reader (`bundle.bundled_shapes`) MUST use
+/// this exact rep string.
+const REP_SHAPES: &str = "shapes-archive";
+/// tar of the compiled logic/DL projection surface (#746), member = repo-relative
+/// path: the small committed projections in [`AXIOM_FILES`]. NOT the big reasoning
+/// OUTPUTS (inferred-closure / reasoning-explanations / dl-el-crosscheck-report),
+/// which ride other channels. The Python reader (`bundle.bundled_axioms`) MUST use
+/// this exact rep string.
+const REP_AXIOMS: &str = "axioms-archive";
+/// The compiled logic/DL projection files folded as [`REP_AXIOMS`] (#746): the
+/// small, committed, drift-gated projections a repo-free consumer (#747) needs. The
+/// big reasoning outputs are deliberately excluded. Order is canonical for the
+/// fail-closed scan; the archive re-sorts members by key for determinism.
+const AXIOM_FILES: [&str; 5] = [
+    "generated/owl/gmeow-dl.ttl",
+    "generated/owl/gmeow-el.ttl",
+    "generated/logic/gmeow.logic.rdf12.ttl",
+    "generated/logic/gmeow.rls",
+    "generated/datalog/gmeow.dl",
+];
 const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
 /// The GNU long-name sentinel: a `'L'`-typeflag record carrying a member path
 /// that overflows the 100-byte USTAR `name` field. The doc-site archive (#897)
@@ -236,10 +261,12 @@ fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
     Ok(blobs)
 }
 
-/// Build the five bundle archive blobs from the repo tree. The SHACL-derived JSON
-/// Schema + OpenAPI bytes are passed in from THIS run's `stage-export-json-schema`
-/// product (not re-read from disk) so a single regenerate folds the fresh schema —
-/// the committed `generated/schemas/*.json` are not flushed until phase 1 returns.
+/// Build the bundle archive blobs from the repo tree: mappings, cells, queries,
+/// tests, schemas, the SHACL shape surface (#746), and the compiled logic/DL axiom
+/// surface (#746). The SHACL-derived JSON Schema + OpenAPI bytes are passed in from
+/// THIS run's `stage-export-json-schema` product (not re-read from disk) so a single
+/// regenerate folds the fresh schema — the committed `generated/schemas/*.json` are
+/// not flushed until phase 1 returns.
 fn build_archive_blobs(
     root: &Path,
     schema_json: &[u8],
@@ -271,12 +298,49 @@ fn build_archive_blobs(
     // tests: slices/*/*/tests/*.ttl (non-recursive), member = repo-relative path.
     let mut tests = members_relpath(root, &slice_files(root, "tests")?)?;
     tests.sort_by(|a, b| a.0.cmp(&b.0));
+    // shapes (#746): the FULL SHACL surface, member = repo-relative path —
+    // shapes/*.ttl + generated/shapes/*.ttl (P11, fail-closed if none) +
+    // slices/<g>/<n>/shapes.ttl. Carried whole so a repo-free `gmeow validate`
+    // (#747) can reassemble both the data-graph union and the DSL phases.
+    let mut shapes: Vec<(String, Vec<u8>)> =
+        members_relpath(root, &list_files(&root.join("shapes"), "ttl")?)?;
+    let generated_shapes = list_files(&root.join("generated/shapes"), "ttl")?;
+    if generated_shapes.is_empty() {
+        // P11 frame-relativity must never silently drop — mirror shape_union's
+        // fail-closed (the validator union requires generated frame shapes).
+        return Err(stage_err(
+            "no generated/shapes/*.ttl to fold into REP_SHAPES — run `gmeow regenerate frame-shapes` (P11 enforcement)",
+        ));
+    }
+    shapes.extend(members_relpath(root, &generated_shapes)?);
+    shapes.extend(members_relpath(
+        root,
+        &slice_named_files(root, "shapes.ttl")?,
+    )?);
+    shapes.sort_by(|a, b| a.0.cmp(&b.0));
+    // axioms (#746): the compiled logic/DL projection surface, member =
+    // repo-relative path. Each file MUST exist (no-optionality, fail-closed): a
+    // partial archive would silently break the consumer.
+    let mut axiom_paths: Vec<PathBuf> = Vec::with_capacity(AXIOM_FILES.len());
+    for rel in AXIOM_FILES {
+        let p = root.join(rel);
+        if !p.is_file() {
+            return Err(stage_err(&format!(
+                "missing axiom artifact {rel} for REP_AXIOMS — run the logic-compile regen (fail-closed)"
+            )));
+        }
+        axiom_paths.push(p);
+    }
+    let mut axioms = members_relpath(root, &axiom_paths)?;
+    axioms.sort_by(|a, b| a.0.cmp(&b.0));
     Ok(vec![
         archive_blob(REP_MAPPINGS, &mappings)?,
         archive_blob(REP_CELLS, &cells)?,
         archive_blob(REP_QUERIES, &queries)?,
         archive_blob(REP_TESTS, &tests)?,
         archive_blob(REP_SCHEMAS, &schemas)?,
+        archive_blob(REP_SHAPES, &shapes)?,
+        archive_blob(REP_AXIOMS, &axioms)?,
     ])
 }
 
@@ -428,6 +492,45 @@ fn slice_files(root: &Path, sub: &str) -> Result<Vec<PathBuf>, PipelineError> {
                 .path();
             if npath.is_dir() {
                 out.extend(list_files(&npath.join(sub), "ttl")?);
+            }
+        }
+    }
+    out.sort();
+    Ok(out)
+}
+
+/// Every `slices/<group>/<name>/<file>` (a single well-known FILE directly under
+/// each slice dir, e.g. `shapes.ttl`), sorted. Unlike [`slice_files`] — which globs
+/// a `<sub>/*.ttl` *directory* — this targets one named file per slice. Mirrors the
+/// shacl crate's private `shape_union::slice_shape_files` walk (re-implemented here
+/// because it is not `pub`, the same way [`slice_files`] duplicates a walk). A read
+/// error HARD-FAILS so a slice subtree is never silently dropped (#746).
+fn slice_named_files(root: &Path, file: &str) -> Result<Vec<PathBuf>, PipelineError> {
+    let slices = root.join("slices");
+    let mut out: Vec<PathBuf> = Vec::new();
+    let groups = match std::fs::read_dir(&slices) {
+        Ok(e) => e,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(out),
+        Err(e) => return Err(stage_err(&format!("read_dir {}: {e}", slices.display()))),
+    };
+    for group in groups {
+        let gpath = group
+            .map_err(|e| stage_err(&format!("slices group: {e}")))?
+            .path();
+        if !gpath.is_dir() {
+            continue;
+        }
+        let names = std::fs::read_dir(&gpath)
+            .map_err(|e| stage_err(&format!("read_dir {}: {e}", gpath.display())))?;
+        for name in names {
+            let npath = name
+                .map_err(|e| stage_err(&format!("slices name: {e}")))?
+                .path();
+            if npath.is_dir() {
+                let candidate = npath.join(file);
+                if candidate.is_file() {
+                    out.push(candidate);
+                }
             }
         }
     }
@@ -611,8 +714,10 @@ impl Stage for SnapshotStage {
         // mappings/cells/queries/tests archive blobs + per-slice docs guide blobs.
         // v7 folds both the JSON-LD-star/YAML-LD-star archive (#699) and the
         // DAG-native SHACL diagnostics graph/report blobs (#936/#937). v8 folds
-        // the Rust-rendered OKF archive into gmeow.gts (#940).
-        "snapshot.v8-okf-archive"
+        // the Rust-rendered OKF archive into gmeow.gts (#940). v9 folds the full
+        // SHACL shape surface (REP_SHAPES) and the compiled logic/DL axiom surface
+        // (REP_AXIOMS) so a repo-free `gmeow validate` is self-sufficient (#746).
+        "snapshot.v9-shapes-axioms"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -621,7 +726,21 @@ impl Stage for SnapshotStage {
         // which the consumed upstream products do not fully reflect. Declare them so
         // a doc-source edit busts this stage and re-renders the embedded site (cache
         // soundness, #897) — shared with `DocsRenderStage` via `docs_source_files`.
-        crate::stages::docs_render::docs_source_files(root)
+        let mut files = crate::stages::docs_render::docs_source_files(root)?;
+        // The folded shape surface (REP_SHAPES) and compiled axiom surface
+        // (REP_AXIOMS) are read from disk in `build_archive_blobs`; declare them so a
+        // shape/axiom edit busts this stage and re-folds the bundle — otherwise a
+        // changed shape could ship a stale gmeow.gts (cache soundness, #746).
+        files.extend(list_files(&root.join("shapes"), "ttl")?);
+        files.extend(list_files(&root.join("generated/shapes"), "ttl")?);
+        files.extend(slice_named_files(root, "shapes.ttl")?);
+        for rel in AXIOM_FILES {
+            let p = root.join(rel);
+            if p.is_file() {
+                files.push(p);
+            }
+        }
+        Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         // THIS run's freshly-emitted JSON Schema + OpenAPI bytes, taken from the
@@ -1519,6 +1638,115 @@ mod ustar_tests {
         eprintln!(
             "ontology-docs: {} members, longest name {max_len}B",
             members.len()
+        );
+    }
+
+    #[test]
+    fn build_archive_blobs_folds_the_shapes_surface() {
+        let root = repo_root();
+        // schema/openapi bytes are irrelevant to the shapes blob; pass empty.
+        let blobs = build_archive_blobs(&root, b"", b"").expect("archive blobs");
+        let blob = blobs
+            .iter()
+            .find(|b| b.rep == REP_SHAPES)
+            .expect("REP_SHAPES blob present");
+        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
+        let members = parse(&blob.data);
+        assert!(!members.is_empty(), "the shape surface must carry members");
+        let names: Vec<&str> = members.iter().map(|(n, _)| n.as_str()).collect();
+
+        // Base hand-authored shape + the generated frame shape (P11) + ≥1 per-slice.
+        assert!(names.contains(&"shapes/gmeow-shapes.ttl"));
+        assert!(names.contains(&"generated/shapes/frame-shapes.ttl"));
+        assert!(
+            names
+                .iter()
+                .any(|n| n.starts_with("slices/") && n.ends_with("/shapes.ttl")),
+            "at least one per-slice shapes.ttl must be folded"
+        );
+        // The FULL surface carries the 4 DSL/manifest lints (the validator filters
+        // them OUT of its data-graph union, but the consumer's DSL phases need them).
+        for dsl in [
+            "shapes/mapping-dsl-shapes.ttl",
+            "shapes/statement-dsl-shapes.ttl",
+            "shapes/test-dsl-shapes.ttl",
+            "shapes/slice-manifest-shapes.ttl",
+        ] {
+            assert!(
+                names.contains(&dsl),
+                "DSL lint {dsl} must be in the FULL shape surface"
+            );
+        }
+        // Member count == on-disk count (no silent drops).
+        let on_disk = list_files(&root.join("shapes"), "ttl").unwrap().len()
+            + list_files(&root.join("generated/shapes"), "ttl")
+                .unwrap()
+                .len()
+            + slice_named_files(&root, "shapes.ttl").unwrap().len();
+        assert_eq!(
+            members.len(),
+            on_disk,
+            "every shape file must be folded exactly once"
+        );
+        // The slice-shape subset matches an independent on-disk enumeration — pins
+        // `slice_named_files` against drift from the shacl crate's private walk.
+        let folded_slices: std::collections::BTreeSet<&str> = names
+            .iter()
+            .copied()
+            .filter(|n| n.starts_with("slices/") && n.ends_with("/shapes.ttl"))
+            .collect();
+        let disk_slices: std::collections::BTreeSet<String> =
+            slice_named_files(&root, "shapes.ttl")
+                .unwrap()
+                .iter()
+                .map(|p| {
+                    p.strip_prefix(&root)
+                        .unwrap()
+                        .to_string_lossy()
+                        .replace('\\', "/")
+                })
+                .collect();
+        let disk_slices_ref: std::collections::BTreeSet<&str> =
+            disk_slices.iter().map(String::as_str).collect();
+        assert_eq!(folded_slices, disk_slices_ref);
+        // Keys sorted (deterministic fold).
+        let mut sorted = names.clone();
+        sorted.sort_unstable();
+        assert_eq!(names, sorted, "shape members must be sorted by key");
+    }
+
+    #[test]
+    fn build_archive_blobs_folds_the_axiom_surface() {
+        let root = repo_root();
+        let blobs = build_archive_blobs(&root, b"", b"").expect("archive blobs");
+        let blob = blobs
+            .iter()
+            .find(|b| b.rep == REP_AXIOMS)
+            .expect("REP_AXIOMS blob present");
+        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
+        let members = parse(&blob.data);
+        let names: std::collections::BTreeSet<&str> =
+            members.iter().map(|(n, _)| n.as_str()).collect();
+        // Exactly the 5 compiled projections — no more, no less.
+        let want: std::collections::BTreeSet<&str> = AXIOM_FILES.iter().copied().collect();
+        assert_eq!(
+            names, want,
+            "REP_AXIOMS must carry exactly the 5 projection files"
+        );
+        // The big reasoning OUTPUTS ride other channels — never in REP_AXIOMS.
+        for big in [
+            "generated/logic/inferred-closure.rdf12.ttl",
+            "generated/logic/reasoning-explanations.rdf12.ttl",
+            "generated/logic/dl-el-crosscheck-report.ttl",
+        ] {
+            assert!(!names.contains(big), "{big} must NOT be in REP_AXIOMS");
+        }
+        // Determinism: rebuild and assert byte-equality.
+        let again = build_archive_blobs(&root, b"", b"").expect("archive blobs");
+        let blob2 = again.iter().find(|b| b.rep == REP_AXIOMS).unwrap();
+        assert_eq!(
+            blob.data, blob2.data,
+            "REP_AXIOMS must be byte-deterministic"
         );
     }
 
