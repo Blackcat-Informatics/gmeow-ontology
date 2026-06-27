@@ -26,6 +26,13 @@ configuration itself. The canonical form is the **`logic:ReasoningContract`**: a
 the facets below. The simplified surface is the **named preset**, generated as a bundle of facet
 selections rather than offered as an indivisible alternative.
 
+**The contract is also the execution selector.** Beyond selecting *what soundness means*, the
+`logic:ReasoningContract` selects *which physical strategy* the runtime uses: its resource and
+fragment facets drive **fragment-routing** — the runtime evaluates a request with the weakest
+sufficient strategy and pays for heavy machinery only on the genuine residue (decidability-as-
+projection applied to performance). One typed object, two roles: soundness and plan. See
+[`LOGIC-RUNTIME.md` § The native physical engine](LOGIC-RUNTIME.md#the-native-physical-engine--execution-and-optimization).
+
 ## The facets
 
 A `logic:ReasoningContract` makes a selection on each facet below. Each facet draws from an open
