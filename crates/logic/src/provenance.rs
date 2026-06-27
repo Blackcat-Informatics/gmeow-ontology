@@ -70,7 +70,9 @@ const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langSt
 
 // ── SHA-1 helper ─────────────────────────────────────────────────────────────
 
-fn sha1_hex(s: &str) -> String {
+/// The lowercase-hex SHA-1 of `s` — the content-addressing primitive the reifier,
+/// derivation-id, and native reasoning-contract hashes all share.
+pub fn sha1_hex(s: &str) -> String {
     let mut hasher = Sha1::new();
     hasher.update(s.as_bytes());
     format!("{:x}", hasher.finalize())

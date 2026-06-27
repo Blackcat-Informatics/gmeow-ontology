@@ -485,6 +485,16 @@ def validate(
         "--trusted-key",
         help="Out-of-band armored OpenPGP public key (optional).",
     ),
+    deep: bool = typer.Option(
+        False,
+        "--deep",
+        help=(
+            "Run the native semantic pass after structural validation: reason over "
+            "the bundle and fold the shared logic:ReasoningResult verdict "
+            "(inconsistency, unsatisfiable classes, undecided constructs) into the "
+            "report. Runs the full reasoner, so it is opt-in (#768)."
+        ),
+    ),
 ) -> None:
     """Validate Turtle syntax, term annotations, and SHACL conformance.
 
@@ -559,7 +569,7 @@ def validate(
                 raise _fail(f"cannot read --trusted-key {trusted_key}: {exc}") from exc
 
     result = validate_all(
-        timings=timings, gts_input=gts, signature_config=signature_config
+        timings=timings, gts_input=gts, signature_config=signature_config, deep=deep
     )
     report = report_from_validation_result(result, tool="validate")
     emit_legacy_cli(report, err_console)

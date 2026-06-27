@@ -417,7 +417,7 @@ fn query(
         }
         let result = PyDict::new(py);
         result.set_item("bindings", bindings)?;
-        result.set_item("status", answer.status.as_str())?;
+        result.set_item("status", answer.status_str())?;
         return Ok(result.into_any().unbind());
     }
 
@@ -442,11 +442,12 @@ fn query(
                 .as_ref()
                 .and_then(|c| c.depth_budget)
                 .unwrap_or(crate::counterfactual::DEFAULT_DEPTH_BUDGET);
-            let cf = crate::counterfactual::construct_and_resolve(
+            let mut cf = crate::counterfactual::construct_and_resolve(
                 &store, &program, profile, &budget, depth,
             )
             .map_err(value_err)?;
-            (cf.bindings, cf.status.as_str().to_owned())
+            let status = cf.status_str().to_owned();
+            (std::mem::take(&mut cf.bindings), status)
         } else {
             let answer = dispatch_query(&foreign, &store, &world_nn, &program, profile, &budget)
                 .map_err(value_err)?;
@@ -1093,6 +1094,10 @@ fn build_divergence_ledger(
 /// - `inconsistencies` (`list[dict]`): each `{individual, world}`
 /// - `coverage` (`dict`): `{present, decided, unsupported}` construct lists
 /// - `gaps` (`list[dict]`): each `{code, message}` — native coverage defects
+/// - `status` (`dict`): the typed shared result's four orthogonal status fields
+///   `{input, evaluation, completeness, information}` (#768 ME2, canonical wire values)
+/// - `preservation` (`dict`): `{polarities, unsupported_constructs}`
+/// - `provenance` (`dict`): `{contract_hash, engine_name, engine_version, consumed_budget}`
 ///
 /// # Errors
 ///
@@ -1112,13 +1117,20 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
         Reason(String),
     }
     let bytes = gts_bytes.to_vec();
-    let read_result: Result<crate::reason::ReasonResult, ReasonNativeError> =
-        py.detach(move || {
-            let bundle = gmeow_rdf::import_gts_events(&bytes)
-                .map_err(|e| ReasonNativeError::GtsRead(format!("GTS read error: {e}")))?;
-            crate::reason::reason_all(bundle.dataset.as_ref()).map_err(ReasonNativeError::Reason)
-        });
-    let result = read_result.map_err(|e| match e {
+    // `reason_closure` is the shared single-chase pipeline that the typed
+    // `reason_all` result folds from; here we read the DL verdict + closure
+    // directly to project the historical native-reason dict (the typed-result
+    // keys are added additively in #768 Task 6).
+    type ClosureAndVerdict = (
+        Vec<crate::reason::el::InferredAxiom>,
+        crate::reason::DlVerdict,
+    );
+    let read_result: Result<ClosureAndVerdict, ReasonNativeError> = py.detach(move || {
+        let bundle = gmeow_rdf::import_gts_events(&bytes)
+            .map_err(|e| ReasonNativeError::GtsRead(format!("GTS read error: {e}")))?;
+        crate::reason::reason_closure(bundle.dataset.as_ref()).map_err(ReasonNativeError::Reason)
+    });
+    let (closure, verdict) = read_result.map_err(|e| match e {
         ReasonNativeError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
         ReasonNativeError::Reason(m) => {
             pyo3::exceptions::PyRuntimeError::new_err(format!("reason error: {m}"))
@@ -1126,10 +1138,10 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     })?;
 
     let out = PyDict::new(py);
-    out.set_item("consistent", result.verdict.consistent)?;
+    out.set_item("consistent", verdict.consistent)?;
 
     let inferred = PyList::empty(py);
-    for ax in &result.inferred {
+    for ax in &closure {
         let d = PyDict::new(py);
         d.set_item("subject", ax.subject.as_str())?;
         d.set_item("predicate", ax.predicate.as_str())?;
@@ -1142,7 +1154,7 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     out.set_item("inferred", inferred)?;
 
     let unsat = PyList::empty(py);
-    for u in &result.verdict.unsatisfiable_classes {
+    for u in &verdict.unsatisfiable_classes {
         let d = PyDict::new(py);
         d.set_item("class", u.class.as_str())?;
         d.set_item("world", u.world.as_str())?;
@@ -1151,7 +1163,7 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     out.set_item("unsatisfiable_classes", unsat)?;
 
     let inconsist = PyList::empty(py);
-    for w in &result.verdict.inconsistencies {
+    for w in &verdict.inconsistencies {
         let d = PyDict::new(py);
         d.set_item("individual", w.individual.as_str())?;
         d.set_item("world", w.world.as_str())?;
@@ -1160,13 +1172,13 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     out.set_item("inconsistencies", inconsist)?;
 
     let coverage = PyDict::new(py);
-    coverage.set_item("present", result.verdict.coverage.present.clone())?;
-    coverage.set_item("decided", result.verdict.coverage.decided.clone())?;
-    coverage.set_item("unsupported", result.verdict.coverage.unsupported.clone())?;
+    coverage.set_item("present", verdict.coverage.present.clone())?;
+    coverage.set_item("decided", verdict.coverage.decided.clone())?;
+    coverage.set_item("unsupported", verdict.coverage.unsupported.clone())?;
     out.set_item("coverage", coverage)?;
 
     let gaps = PyList::empty(py);
-    for g in &result.verdict.gaps {
+    for g in &verdict.gaps {
         let d = PyDict::new(py);
         d.set_item("code", g.code.as_str())?;
         d.set_item("message", g.message.as_str())?;
@@ -1178,6 +1190,37 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
         gaps.append(d)?;
     }
     out.set_item("gaps", gaps)?;
+
+    // ── Typed shared result (#768 ME2): the five status fields + provenance ──────
+    // Additive — the historical keys above are unchanged. Consumers (MCP,
+    // validate --deep, certs) read this single shared model.
+    let typed = crate::reason::typed_result(closure, &verdict);
+    let status = PyDict::new(py);
+    status.set_item("input", typed.input.wire())?;
+    status.set_item("evaluation", typed.evaluation.wire())?;
+    status.set_item("completeness", typed.completeness.wire())?;
+    status.set_item("information", typed.information.wire())?;
+    out.set_item("status", status)?;
+
+    let preservation = PyDict::new(py);
+    let polarities = PyList::empty(py);
+    for kind in &typed.preservation.polarities {
+        polarities.append(kind.as_str())?;
+    }
+    preservation.set_item("polarities", polarities)?;
+    let unsupported = PyList::empty(py);
+    for c in &typed.preservation.unsupported_constructs {
+        unsupported.append(c.as_str())?;
+    }
+    preservation.set_item("unsupported_constructs", unsupported)?;
+    out.set_item("preservation", preservation)?;
+
+    let provenance = PyDict::new(py);
+    provenance.set_item("contract_hash", typed.provenance.contract_hash.as_str())?;
+    provenance.set_item("engine_name", typed.provenance.engine.name.as_str())?;
+    provenance.set_item("engine_version", typed.provenance.engine.version.as_str())?;
+    provenance.set_item("consumed_budget", typed.provenance.consumed_budget.consumed)?;
+    out.set_item("provenance", provenance)?;
 
     Ok(out.into_any().unbind())
 }
@@ -1203,10 +1246,11 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
 ///
 /// # Returns
 ///
-/// A dict with three string keys:
+/// A dict with four string keys:
 /// - `closure` — the told-vs-inferred inferred-closure Turtle.
 /// - `explanations` — the per-axiom proof-skeleton Turtle.
 /// - `ledger` — the native gap-zero DL/EL crosscheck ledger Turtle.
+/// - `result` — the typed `logic:ReasoningResult` + proof-certificate Turtle (#768).
 ///
 /// # Errors
 ///
@@ -1219,18 +1263,19 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
 fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyResult<Py<PyAny>> {
     use crate::reason::artifacts::{
         build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
+        build_reasoning_result_ttl,
     };
 
     // Distinguish the two failure modes (GTS read = ValueError, reasoning /
     // emission = RuntimeError) the same way `reason_native` does. The
-    // The GTS import, reasoning, and three serializations all run inside one
+    // The GTS import, reasoning, and four serializations all run inside one
     // GIL-released closure.
     enum ArtifactsError {
         GtsRead(String),
         Reason(String),
     }
     let bytes = gts_bytes.to_vec();
-    let built: Result<(String, String, String), ArtifactsError> = py.detach(move || {
+    let built: Result<(String, String, String, String), ArtifactsError> = py.detach(move || {
         let bundle = gmeow_rdf::import_gts_events(&bytes)
             .map_err(|e| ArtifactsError::GtsRead(format!("GTS read error: {e}")))?;
         let dataset = bundle.dataset.as_ref();
@@ -1241,9 +1286,12 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
             build_inferred_closure_ttl(&result, merge_store).map_err(ArtifactsError::Reason)?;
         let explanations = build_explanations_ttl(&result).map_err(ArtifactsError::Reason)?;
         let ledger = build_dl_el_ledger_ttl(&result);
-        Ok((closure, explanations, ledger))
+        // The typed reasoning-result + proof-certificate artifact (#768), emitted
+        // unconditionally (single-path; the `merge` flag governs only the closure).
+        let result_ttl = build_reasoning_result_ttl(&result);
+        Ok((closure, explanations, ledger, result_ttl))
     });
-    let (closure, explanations, ledger) = built.map_err(|e| match e {
+    let (closure, explanations, ledger, result_ttl) = built.map_err(|e| match e {
         ArtifactsError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
         ArtifactsError::Reason(m) => {
             pyo3::exceptions::PyRuntimeError::new_err(format!("reason error: {m}"))
@@ -1254,6 +1302,7 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
     out.set_item("closure", closure)?;
     out.set_item("explanations", explanations)?;
     out.set_item("ledger", ledger)?;
+    out.set_item("result", result_ttl)?;
     Ok(out.into_any().unbind())
 }
 

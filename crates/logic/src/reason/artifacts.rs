@@ -4,7 +4,7 @@
 //! Native RDF 1.2 Turtle artifact builders for the reasoning lane (issue #666).
 //!
 //! The Java/Docker-free authority lane (Principles 17/18) emits three committed
-//! artifacts from a single [`ReasonResult`]:
+//! artifacts from a single [`ReasoningResult`]:
 //!
 //! * **inferred-closure** — the told-vs-inferred derived axioms, each carrying an
 //!   RDF 1.2 reifier annotated with its derivation provenance.
@@ -26,8 +26,9 @@ use oxigraph::model::vocab::xsd;
 use oxigraph::model::{Literal, Term};
 
 use crate::encode::decode_nemo_term;
+use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::el::InferredAxiom;
-use crate::reason::ReasonResult;
+use crate::result::ReasoningResult;
 
 // ── Namespaces ──────────────────────────────────────────────────────────────────
 
@@ -153,8 +154,8 @@ fn axiom_triple(axiom: &InferredAxiom) -> RdfTriple {
 /// through. `sort` (stable) is used deliberately WITHOUT dedup: fully
 /// content-equal duplicate derivations must be preserved so the emitted multiset
 /// is unchanged.
-fn derived_sorted(result: &ReasonResult) -> Vec<&InferredAxiom> {
-    let mut axioms: Vec<&InferredAxiom> = result.inferred.iter().filter(|a| !a.is_edb).collect();
+fn derived_sorted(result: &ReasoningResult) -> Vec<&InferredAxiom> {
+    let mut axioms: Vec<&InferredAxiom> = result.inferred().iter().filter(|a| !a.is_edb).collect();
     axioms.sort();
     axioms
 }
@@ -174,7 +175,7 @@ fn derived_sorted(result: &ReasonResult) -> Vec<&InferredAxiom> {
 ///
 /// Returns `Err` if any derived axiom is missing its `rule_name`.
 pub fn build_inferred_closure_ttl(
-    result: &ReasonResult,
+    result: &ReasoningResult,
     merge_asserted: Option<&RdfDataset>,
 ) -> Result<String, String> {
     let mut out = String::from(CLOSURE_HEADER);
@@ -223,7 +224,7 @@ pub fn build_inferred_closure_ttl(
 /// # Errors
 ///
 /// Returns `Err` if any derived axiom is missing its `rule_name`.
-pub fn build_explanations_ttl(result: &ReasonResult) -> Result<String, String> {
+pub fn build_explanations_ttl(result: &ReasoningResult) -> Result<String, String> {
     let mut out = String::from(EXPLANATIONS_HEADER);
     out.push_str("\n# --- derivation proof skeletons ---\n");
     for axiom in derived_sorted(result) {
@@ -308,10 +309,17 @@ fn emit_anonymous_resource(properties: &[(String, String)]) -> String {
 /// derived `rdfs:subClassOf` entailment, one `gmeow:DlGap` per native coverage
 /// defect, and the entailment/gap counts. The committed bundle is expected to
 /// have zero `DlGap` rows.
-pub fn build_dl_el_ledger_ttl(result: &ReasonResult) -> String {
+pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
     const DEFERRED_NOTE: &str =
         "oracle comparison runs in classic-cross-check; native gaps fail #697";
     let mut out = String::from(LEDGER_HEADER);
+
+    // The DL coverage gaps are reconstructed from the shared model's
+    // unsupported-construct set via the one recipe `verdict_from_inferred` uses,
+    // so the ledger stays byte-identical whether built from a DlVerdict or a typed
+    // ReasoningResult (#768). The committed bundle is gap-zero, so this is empty
+    // on a healthy run; the set is already sorted (a BTreeSet).
+    let gaps = gaps_from_unsupported(result.preservation.unsupported_constructs.iter());
 
     out.push_str("\n# --- ledger header (native coverage; #697 gap-zero) ---\n");
     out.push_str(&emit_resource(
@@ -323,7 +331,7 @@ pub fn build_dl_el_ledger_ttl(result: &ReasonResult) -> String {
             ),
             (
                 gmeow("consistent"),
-                if result.verdict.consistent {
+                if result.is_consistent() {
                     "true".to_owned()
                 } else {
                     "false".to_owned()
@@ -367,7 +375,7 @@ pub fn build_dl_el_ledger_ttl(result: &ReasonResult) -> String {
 
     // Native DL coverage defects.
     out.push_str("\n# --- native DL coverage defects ---\n");
-    for (index, gap) in result.verdict.gaps.iter().enumerate() {
+    for (index, gap) in gaps.iter().enumerate() {
         out.push_str(&emit_resource(
             &gmeow(&format!("dl-gap-{index}")),
             &[
@@ -390,10 +398,148 @@ pub fn build_dl_el_ledger_ttl(result: &ReasonResult) -> String {
         &gmeow("dl-el-crosscheck"),
         &[
             (gmeow("entailmentCount"), subsumptions.len().to_string()),
-            (gmeow("gapCount"), result.verdict.gaps.len().to_string()),
+            (gmeow("gapCount"), gaps.len().to_string()),
         ],
     ));
 
+    out
+}
+
+// ── reasoning-result + proof-certificate ────────────────────────────────────────
+
+/// The `logic:` vocabulary namespace (the typed-result terms live here, #768).
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+
+/// `logic:` term IRI helper.
+fn logic(local: &str) -> String {
+    format!("{LOGIC_NS}{local}")
+}
+
+/// Banner for the typed reasoning-result + proof-certificate artifact.
+const RESULT_HEADER: &str = "\
+# GMEOW typed reasoning result + proof certificate (RDF 1.2, #768 ME2).
+# The single shared logic:ReasoningResult the native lane produced, serialized as
+# its five orthogonal status fields (input, evaluation, completeness,
+# preservation, information) plus the provenance bundle (contract hash, engine,
+# proof/counterproof, contradiction witnesses, assumptions, consumed budget) —
+# the proof certificate binding the verdict to what produced it. DO NOT EDIT.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+";
+
+/// Render the typed [`ReasoningResult`] as a `logic:ReasoningResult` individual —
+/// the proof-certificate surface (#768 ME2): the five status fields projected to
+/// their `module.ttl` value individuals plus the provenance bundle (contract
+/// hash, engine, proof/counterproof, contradiction witnesses, assumptions). This
+/// is a NEW, additive artifact — it does not touch the three historical
+/// byte-pinned artifacts.
+///
+/// All multi-valued fields iterate sorted sets, so the output is deterministic.
+pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
+    let mut out = String::from(RESULT_HEADER);
+    out.push_str("\n# --- reasoning result + proof certificate ---\n");
+
+    let subject = gmeow("reasoning-result");
+    let mut props: Vec<(String, String)> = vec![
+        (
+            RDF_TYPE.to_owned(),
+            format!("<{}>", logic("ReasoningResult")),
+        ),
+        (logic("resultInput"), format!("<{}>", result.input.iri())),
+        (
+            logic("resultEvaluation"),
+            format!("<{}>", result.evaluation.iri()),
+        ),
+        (
+            logic("resultCompleteness"),
+            format!("<{}>", result.completeness.iri()),
+        ),
+        (
+            logic("resultInformation"),
+            format!("<{}>", result.information.iri()),
+        ),
+        (
+            logic("contractHash"),
+            format!("\"{}\"", escape_literal(&result.provenance.contract_hash)),
+        ),
+        (
+            logic("engine"),
+            format!(
+                "\"{} {}\"",
+                escape_literal(&result.provenance.engine.name),
+                escape_literal(&result.provenance.engine.version)
+            ),
+        ),
+        (
+            logic("consumedBudget"),
+            result.provenance.consumed_budget.consumed.to_string(),
+        ),
+    ];
+
+    // The preservation polarity set + unsupported constructs (both sorted).
+    for kind in &result.preservation.polarities {
+        props.push((logic("resultPreservation"), format!("<{}>", kind.iri())));
+    }
+    for construct in &result.preservation.unsupported_constructs {
+        props.push((
+            logic("unsupportedConstruct"),
+            format!("\"{}\"", escape_literal(construct)),
+        ));
+    }
+
+    // The proof certificate: query/conclusion + proof/counterproof handles.
+    if !result.provenance.query.is_empty() {
+        props.push((
+            logic("query"),
+            format!("\"{}\"", escape_literal(&result.provenance.query)),
+        ));
+    }
+    if !result.provenance.conclusion.is_empty() {
+        props.push((
+            logic("conclusion"),
+            format!("\"{}\"", escape_literal(&result.provenance.conclusion)),
+        ));
+    }
+    if let Some(proof) = &result.provenance.proof {
+        props.push((
+            logic("resultProof"),
+            format!("<{}>", bare_iri(&proof.derivation_id)),
+        ));
+    }
+    if let Some(counterproof) = &result.provenance.counterproof {
+        props.push((
+            logic("resultCounterproof"),
+            format!("<{}>", bare_iri(&counterproof.derivation_id)),
+        ));
+    }
+
+    // Belnap contradiction witnesses (justify information=both), sorted.
+    for witness in &result.provenance.contradiction_witnesses {
+        props.push((
+            logic("contradictionWitness"),
+            format!("<{}>", bare_iri(&witness.individual)),
+        ));
+    }
+
+    // Declared closure/identity/revision/witness-policy assumptions, sorted.
+    for assumption in &result.provenance.assumptions {
+        props.push((
+            logic("resultAssumption"),
+            format!("\"{}\"", assumption.wire()),
+        ));
+    }
+
+    // The world the answer holds in (when pinned).
+    if !result.provenance.context.world.is_empty() {
+        props.push((
+            gmeow("inWorld"),
+            format!("<{}>", bare_iri(&result.provenance.context.world)),
+        ));
+    }
+
+    out.push_str(&emit_resource(&subject, &props));
     out
 }
 
@@ -449,8 +595,14 @@ fn emit_annotation_triple(annotation: &RdfAnnotation) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::reason::dl::{DlCoverage, DlVerdict};
+    use crate::reason::dl::{DlCoverage, DlVerdict, InconsistencyWitness};
     use crate::reason::el::InferredAxiom;
+    use crate::result::ResultProvenance;
+
+    /// A native provenance bundle for the test results.
+    fn prov() -> ResultProvenance {
+        ResultProvenance::native("test-contract", "")
+    }
 
     fn axiom(s: &str, p: &str, o: &str, rule: Option<&str>) -> InferredAxiom {
         InferredAxiom {
@@ -488,21 +640,29 @@ mod tests {
         assert_eq!(emit_term(&premise_object("\"plain\"")), "\"plain\"");
     }
 
-    fn result_with(inferred: Vec<InferredAxiom>, consistent: bool) -> ReasonResult {
-        ReasonResult {
-            inferred,
-            verdict: DlVerdict {
-                consistent,
-                unsatisfiable_classes: vec![],
-                inconsistencies: vec![],
-                coverage: DlCoverage {
-                    present: vec![],
-                    decided: vec![],
-                    unsupported: vec![],
-                },
-                gaps: vec![],
+    fn result_with(inferred: Vec<InferredAxiom>, consistent: bool) -> ReasoningResult {
+        let verdict = DlVerdict {
+            consistent,
+            unsatisfiable_classes: vec![],
+            // An inconsistent verdict folds to information=both, which requires a
+            // justifying witness; supply one so the (debug-asserted) invariant holds.
+            inconsistencies: if consistent {
+                vec![]
+            } else {
+                vec![InconsistencyWitness {
+                    individual: "http://example.org/x".to_owned(),
+                    world: "https://blackcatinformatics.ca/gmeow/graph/imports".to_owned(),
+                    premises: vec![],
+                }]
             },
-        }
+            coverage: DlCoverage {
+                present: vec![],
+                decided: vec![],
+                unsupported: vec![],
+            },
+            gaps: vec![],
+        };
+        ReasoningResult::from_dl_verdict(inferred, &verdict, prov())
     }
 
     #[test]
@@ -575,30 +735,34 @@ mod tests {
 
     #[test]
     fn ledger_header_entries_gaps_and_counts() {
-        let mut verdict = DlVerdict {
+        let verdict = DlVerdict {
             consistent: false,
             unsatisfiable_classes: vec![],
-            inconsistencies: vec![],
+            // information=both needs a justifying witness (invariant).
+            inconsistencies: vec![InconsistencyWitness {
+                individual: "http://example.org/x".to_owned(),
+                world: "https://blackcatinformatics.ca/gmeow/graph/imports".to_owned(),
+                premises: vec![],
+            }],
             coverage: DlCoverage {
                 present: vec!["complementOf".to_owned()],
                 decided: vec![],
                 unsupported: vec!["complementOf".to_owned()],
             },
-            gaps: vec![gmeow_rdf::RdfLoss::new(
-                "reason.dl-gap.complementOf",
-                "native coverage defect",
-            )],
+            // gaps are reconstructed from coverage.unsupported by the builder, so
+            // the input gaps here are immaterial to the ledger output.
+            gaps: vec![],
         };
-        verdict.consistent = false;
-        let result = ReasonResult {
-            inferred: vec![axiom(
+        let result = ReasoningResult::from_dl_verdict(
+            vec![axiom(
                 "http://example.org/A",
                 RDFS_SUBCLASS_OF,
                 "http://example.org/C",
                 Some("el:subClassOf-transitive"),
             )],
-            verdict,
-        };
+            &verdict,
+            prov(),
+        );
         let ttl = build_dl_el_ledger_ttl(&result);
         assert!(ttl.contains("gmeow/consistent> false"));
         assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/CrosscheckLedger>"));
@@ -607,5 +771,81 @@ mod tests {
         assert!(ttl.contains("reason.dl-gap.complementOf"));
         assert!(ttl.contains("gmeow/entailmentCount> 1"));
         assert!(ttl.contains("gmeow/gapCount> 1"));
+    }
+
+    #[test]
+    fn reasoning_result_ttl_emits_status_fields_and_certificate() {
+        // A consistent run: supported, completed, complete-for-fragment.
+        let result = result_with(vec![], true);
+        let ttl = build_reasoning_result_ttl(&result);
+        assert!(ttl.contains("#type> <https://blackcatinformatics.ca/logic/ReasoningResult>"));
+        assert!(
+            ttl.contains("logic/resultInput> <https://blackcatinformatics.ca/logic/InputValid>")
+        );
+        assert!(ttl.contains(
+            "logic/resultEvaluation> <https://blackcatinformatics.ca/logic/EvaluationCompleted>"
+        ));
+        assert!(ttl.contains(
+            "logic/resultCompleteness> <https://blackcatinformatics.ca/logic/CompleteForFragment>"
+        ));
+        assert!(ttl.contains(
+            "logic/resultInformation> <https://blackcatinformatics.ca/logic/InfoSupported>"
+        ));
+        assert!(ttl.contains("logic/contractHash>"));
+        assert!(ttl.contains("logic/engine>"));
+    }
+
+    #[test]
+    fn reasoning_result_ttl_inconsistent_is_both_with_witness() {
+        // An inconsistent run: information=both, carrying a contradiction witness.
+        let result = result_with(vec![], false);
+        let ttl = build_reasoning_result_ttl(&result);
+        assert!(ttl
+            .contains("logic/resultInformation> <https://blackcatinformatics.ca/logic/InfoBoth>"));
+        assert!(
+            ttl.contains("logic/contradictionWitness> <http://example.org/x>"),
+            "the glut must carry its witness: {ttl}"
+        );
+    }
+
+    #[test]
+    fn proof_and_counterproof_derivation_ids_are_sanitized_by_bare_iri() {
+        // bare_iri strips a surrounding `<>` pair from a derivation_id.
+        // A derivation_id stored as "<urn:x>" must emit as `<urn:x>`, NOT `<<urn:x>>`.
+        use crate::result::{DerivationRef, InformationState};
+        use std::collections::BTreeSet;
+
+        let mut result = result_with(vec![], true);
+        // Inject a proof and counterproof whose derivation_id is pre-wrapped in `<>`.
+        // This simulates a derivation_id that accidentally carries angle-bracket delimiters.
+        result.provenance.proof = Some(DerivationRef {
+            derivation_id: "<urn:proof-x>".to_owned(),
+            cited_iris: BTreeSet::new(),
+        });
+        result.provenance.counterproof = Some(DerivationRef {
+            derivation_id: "<urn:counterproof-x>".to_owned(),
+            cited_iris: BTreeSet::new(),
+        });
+        // Force information=both so validate() does not fire the glut-needs-witness
+        // invariant. We override the information state directly; the unit test is
+        // checking IRI sanitization, not state-machine rules.
+        result.information = InformationState::Both;
+
+        let ttl = build_reasoning_result_ttl(&result);
+
+        // The emitted lines must use exactly one pair of angle brackets, not doubled.
+        assert!(
+            ttl.contains("logic/resultProof> <urn:proof-x>"),
+            "bare_iri must strip the surrounding <> from the proof derivation_id; got:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("logic/resultCounterproof> <urn:counterproof-x>"),
+            "bare_iri must strip the surrounding <> from the counterproof derivation_id; got:\n{ttl}"
+        );
+        // Regression guard: <<urn:…>> must NOT appear (double angle brackets = invalid Turtle).
+        assert!(
+            !ttl.contains("<<urn:"),
+            "double angle-bracket leaked into Turtle output; got:\n{ttl}"
+        );
     }
 }

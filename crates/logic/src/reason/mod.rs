@@ -31,40 +31,98 @@ use crate::encode::{
     decode_iri_term, decode_nemo_term, decode_string_constant, encode_quad_to_nemo_fact,
 };
 use crate::nemo_engine::{run_chase, ChaseRow};
+use crate::result::{ReasoningResult, ResultProvenance};
 use crate::store::WorldStore;
 use gmeow_rdf::RdfDataset;
 
-/// The combined result of a native reasoning run.
+/// The content-addressed identity of the native EL/DL/RL reasoning contract —
+/// the `contract_hash` every native-reason result is produced under.
 ///
-/// `inferred` is the asserted + derived IRI-object closure produced by the
-/// predicate-as-DATA native path; `verdict` is the DL consistency /
-/// unsatisfiability verdict read from that same closure plus the DL post-pass.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ReasonResult {
-    pub inferred: Vec<InferredAxiom>,
-    pub verdict: crate::reason::dl::DlVerdict,
+/// The hash covers ALL source that defines the reasoning contract:
+/// * the three fixed rule texts (`dl_rules()`, `EL_RULES`, `RL_RULES`) whose
+///   change alters which axioms the Nemo chase derives;
+/// * the full source of `dl.rs`, which owns the post-pass functions
+///   `augment_inferred_with_dl`, `verdict_from_inferred`, `scan_coverage`, and
+///   `classify_coverage` — any edit to those changes the contract semantics even
+///   when the rule text is unchanged;
+/// * the source of this file (`mod.rs`), which owns the `run_reasoning` and
+///   `reason_closure` orchestration glue.
+///
+/// A change to any of these files will produce a different hash, invalidating
+/// cached results produced under the old contract.
+fn native_contract_hash() -> String {
+    let contract = format!(
+        "{dl_rules}\n{el_rules}\n{rl_rules}\n{dl_src}\n{mod_src}",
+        dl_rules = dl::dl_rules(),
+        el_rules = el::EL_RULES,
+        rl_rules = rl::RL_RULES,
+        dl_src = include_str!("dl.rs"),
+        mod_src = include_str!("mod.rs"),
+    );
+    crate::provenance::sha1_hex(&contract)
 }
 
-/// Run native predicate-as-DATA entailment + DL consistency.
+/// Run the native single-chase pipeline and return the shared
+/// `(closure, DlVerdict)` it produces.
 ///
-/// Runs the fast DL chase, augments it with data-indexed finite DL consistency
-/// consequences, then reads both surfaces from the shared `Vec<InferredAxiom>`:
+/// `run_reasoning → augment_inferred_with_dl → sort → verdict_from_inferred`:
+/// the closure is the asserted + derived IRI-object triples; the verdict is the
+/// DL consistency / unsatisfiability record read off that same closure. Both the
+/// typed [`reason_all`] result and the verdict-only [`dl::dl_consistency`] entry
+/// point fold from this one pipeline so they can never disagree.
 ///
-/// - `inferred` — asserted and derived IRI-object triples for reporting/verify.
-/// - `verdict` — read off by [`dl::verdict_from_inferred`], with construct
-///   coverage scanned over `edb`.
+/// # Errors
+///
+/// Returns `Err(String)` if the source store cannot be loaded, if the Nemo chase
+/// fails to parse/validate/evaluate/decode, or if coverage/consistency scanning
+/// fails.
+pub(crate) fn reason_closure(
+    edb: &RdfDataset,
+) -> Result<(Vec<InferredAxiom>, dl::DlVerdict), String> {
+    let mut inferred = run_reasoning(edb, &dl::dl_rules())?;
+    dl::augment_inferred_with_dl(&mut inferred, edb)?;
+    inferred.sort();
+    let verdict = dl::verdict_from_inferred(&inferred, edb)?;
+    Ok((inferred, verdict))
+}
+
+/// Run native predicate-as-DATA entailment + DL consistency, returning the typed
+/// [`ReasoningResult`] (#768, ME2) — the single shared result model every
+/// consumer reads.
+///
+/// The DL verdict is folded into the result via
+/// [`ReasoningResult::from_dl_verdict`]: an inconsistent verdict becomes
+/// `information=both` carrying its contradiction witnesses; a consistent verdict
+/// is `information=supported` (conclusively, when no construct is uncovered);
+/// uncovered DL constructs surface in `preservation.unsupported_constructs` and
+/// drop the completeness to `incomplete`. The DL-only diagnostics not part of the
+/// shared model (the construct coverage inventory, the unsatisfiable-class set)
+/// are recovered from the shared closure by [`dl::scan_coverage`] /
+/// [`dl::unsatisfiable_from_inferred`] where a consumer needs them.
 ///
 /// # Errors
 ///
 /// Returns `Err(String)` if the source store cannot be loaded, if the Nemo
 /// chase fails to parse/validate/evaluate/decode, or if coverage/consistency
 /// scanning fails.
-pub fn reason_all(edb: &RdfDataset) -> Result<ReasonResult, String> {
-    let mut inferred = run_reasoning(edb, &dl::dl_rules())?;
-    dl::augment_inferred_with_dl(&mut inferred, edb)?;
-    inferred.sort();
-    let verdict = dl::verdict_from_inferred(&inferred, edb)?;
-    Ok(ReasonResult { inferred, verdict })
+pub fn reason_all(edb: &RdfDataset) -> Result<ReasoningResult, String> {
+    let (inferred, verdict) = reason_closure(edb)?;
+    Ok(typed_result(inferred, &verdict))
+}
+
+/// Fold a `(closure, DlVerdict)` pair into the typed [`ReasoningResult`] under the
+/// native reasoning contract. Shared by [`reason_all`] and the PyO3 boundary so
+/// the typed result and the historical DL dict are projected from one fold.
+///
+/// The native consistency run spans every world in the bundle; the per-axiom
+/// worlds are carried on the closure payload, so the result-level context world
+/// is left unset (the aggregate run is not pinned to one world).
+pub(crate) fn typed_result(
+    inferred: Vec<InferredAxiom>,
+    verdict: &dl::DlVerdict,
+) -> ReasoningResult {
+    let provenance = ResultProvenance::native(native_contract_hash(), "");
+    ReasoningResult::from_dl_verdict(inferred, verdict, provenance)
 }
 
 /// Decode one antecedent chase row into a `(subject, predicate, object)` triple.
@@ -209,21 +267,26 @@ mod tests {
         let result = reason_all(store.as_ref()).expect("reason_all should succeed");
 
         assert!(
-            !result.verdict.consistent,
-            "x forced into owl:Nothing must make the verdict inconsistent"
+            !result.is_consistent(),
+            "x forced into owl:Nothing must make the verdict inconsistent (information=both)"
+        );
+        assert_eq!(
+            result.information,
+            crate::result::InformationState::Both,
+            "an inconsistent verdict is the four-valued Belnap glut"
         );
         assert!(
-            !result.inferred.is_empty(),
+            !result.inferred().is_empty(),
             "the subsumption closure must be non-empty (asserted + derived axioms)"
         );
         assert!(
             result
-                .verdict
-                .inconsistencies
+                .provenance
+                .contradiction_witnesses
                 .iter()
                 .any(|w| w.individual == X),
-            "x must be an inconsistency witness: {:?}",
-            result.verdict.inconsistencies
+            "x must be a contradiction witness: {:?}",
+            result.provenance.contradiction_witnesses
         );
     }
 }

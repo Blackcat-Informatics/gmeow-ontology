@@ -22,6 +22,7 @@ use gmeow_diagnostics::{Finding, Location, Report, Severity};
 use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
 use gmeow_rdf::RdfDataset;
 
+use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::reason_all;
 
 /// Strip a single pair of angle brackets from an IRI term, if present.
@@ -76,6 +77,11 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
     //    type / equivalent-class edges, which is what the inferred-edge verify
     //    queries (class-in-two-disjoint-axes, class-without-stereotype) rely on.
     let result = reason_all(edb)?;
+    // The DL coverage gaps are reconstructed from the shared model's
+    // unsupported-construct set via the one recipe `verdict_from_inferred` uses,
+    // so the verify findings stay byte-identical (#768). The committed bundle is
+    // gap-zero, so this is empty on a healthy run.
+    let gaps = gaps_from_unsupported(result.preservation.unsupported_constructs.iter());
 
     // Report is declared here so the gap-enforcement block below can add
     // findings to it before we reach the query-evaluation section.
@@ -91,7 +97,7 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
     // incomplete closure. The committed bundle is genuinely gap-zero, so this
     // branch is dead on a healthy run — it fires only when a new undecided
     // construct is introduced without being wired into the native handler first.
-    for gap in &result.verdict.gaps {
+    for gap in &gaps {
         let mut finding = Finding::new(
             Severity::Error,
             format!("verify.dl-gap.{}", gap.code),
@@ -108,7 +114,7 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
         ];
         report.add_finding(finding);
     }
-    if !result.verdict.gaps.is_empty() {
+    if !gaps.is_empty() {
         // Return early: the closure is incomplete, so running the verify queries
         // against it would be misleading. The gap findings above are sufficient
         // for the caller to diagnose and fix the coverage hole.
@@ -119,7 +125,7 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
                 format!(
                     "native reasoned-graph verify: aborted — {} DL coverage gap(s) prevent a \
                      complete closure",
-                    result.verdict.gaps.len()
+                    gaps.len()
                 ),
             )
             .with_tool("verify"),
@@ -127,7 +133,7 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
         return Ok(report);
     }
 
-    for ax in &result.inferred {
+    for ax in result.inferred() {
         if ax.is_edb {
             continue;
         }

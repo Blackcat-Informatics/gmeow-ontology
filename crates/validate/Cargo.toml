@@ -58,6 +58,12 @@ gmeow-slice = { path = "../slice" }
 # unconditionally, and gmeow-validate already links pyo3, so this dependency
 # keeps the kernel clean while threading wire-coordinate findings end-to-end.
 gmeow-diagnostics = { path = "../diagnostics" }
+# Native reasoning engine (#768 ME2): the `validate --deep` semantic pass reasons
+# over the bundle (`gmeow_logic::reason::reason_all`) and reads the shared
+# logic:ReasoningResult to emit semantic findings. nemo is already built once for
+# the workspace, so this edge is link-only marginal cost; no cycle (logic does not
+# depend on validate) and layering-legal (the gate only constrains the rdf kernel).
+gmeow-logic = { path = "../logic" }
 # GTS format engine: cache-key derivation reads `gmeow_gts::model::Graph::segment_heads`,
 # and the toolchain salt mixes `gmeow_gts::wire::VERSION`. Runtime GTS ingestion itself
 # lives in gmeow-rdf (#683).
