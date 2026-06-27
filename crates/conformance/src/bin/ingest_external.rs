@@ -34,7 +34,7 @@
 //!     Entailment tests are counted but not graded (they need conclusion-negation).
 //! ```
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_conformance::external::{
@@ -814,6 +814,112 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
     Ok(())
 }
 
+/// Read the quarantine baseline — the set of case slugs in the committed
+/// divergence corpus directory.  These are the accepted, honest DlGap cases
+/// (currently the two `webont-thing-00{4,5}` EL gaps) whose divergence is
+/// known and committed.  Every subdirectory of `quarantine_dir` that is itself
+/// a directory is treated as one quarantined slug.
+///
+/// Returns the slug set, or an error if the directory cannot be read.
+fn load_quarantine_slugs(quarantine_dir: &Path) -> Result<BTreeSet<String>, String> {
+    let mut slugs = BTreeSet::new();
+    let rd = std::fs::read_dir(quarantine_dir).map_err(|e| {
+        format!(
+            "cannot read quarantine baseline dir {}: {e}",
+            quarantine_dir.display()
+        )
+    })?;
+    for entry in rd {
+        let entry = entry.map_err(|e| format!("dir entry error in quarantine dir: {e}"))?;
+        if entry.path().is_dir() {
+            if let Some(name) = entry.file_name().to_str() {
+                slugs.insert(name.to_owned());
+            }
+        }
+    }
+    Ok(slugs)
+}
+
+/// The soundness-scoped gate over one external-corpus grade run.
+///
+/// This is the invariant this whole grading lane protects:
+///
+/// * **`CorpusOnly` rows are always a soundness violation** — the native path
+///   decided a verdict that disagrees with the published external ground truth.
+///   Any `CorpusOnly` in the ledger is unexpected and causes a hard-fail.
+///
+/// * **`DlGap` rows split into three accepted classes and one unexpected class:**
+///   - Entailment-test gaps: the test kind is outside the consistency lane
+///     (needs conclusion-negation); their slugs arrive in `entailment_slugs`
+///     and are always accepted.
+///   - Quarantined consistency gaps: the native path honestly cannot decide a
+///     DL/Full-divergent consistency case; their slugs are in `quarantine_slugs`
+///     (the committed `w3c-owl2-el-divergence/` directory) and are accepted.
+///   - All other `DlGap` rows are unexpected (a new gap appeared outside the
+///     accepted scope) and cause a hard-fail.
+///
+/// Returns `Ok(())` when no unexpected divergences exist.  Returns `Err` with a
+/// sorted, one-line-per-offender list when ANY unexpected divergence is found.
+///
+/// The function is small and side-effect-free so unit tests can drive it
+/// directly without touching the filesystem or the reasoner.
+pub fn soundness_gate(
+    ledger: &gmeow_logic::reason::DivergenceLedger,
+    entailment_slugs: &BTreeSet<String>,
+    quarantine_slugs: &BTreeSet<String>,
+) -> Result<(), Vec<String>> {
+    let mut unexpected: Vec<String> = Vec::new();
+
+    for row in &ledger.rows {
+        match row.kind {
+            gmeow_logic::reason::DivergenceKind::CorpusOnly => {
+                // Always a soundness violation — the native path decided the WRONG
+                // answer for a published external ground-truth case.
+                unexpected.push(format!(
+                    "CORPUS-ONLY case {:?} (world {:?}): {}",
+                    row.subject, row.world, row.detail
+                ));
+            }
+            gmeow_logic::reason::DivergenceKind::DlGap => {
+                // A DlGap from an entailment test is out-of-scope for the
+                // consistency lane — accepted regardless of quarantine.
+                if entailment_slugs.contains(&row.subject) {
+                    continue;
+                }
+                // A DlGap for a consistency case that is in the committed
+                // quarantine baseline is an accepted, honest gap.
+                if quarantine_slugs.contains(&row.subject) {
+                    continue;
+                }
+                // Any other DlGap is unexpected: a new consistency gap appeared
+                // outside the accepted scope.
+                unexpected.push(format!(
+                    "DL-GAP case {:?} (world {:?}) not in quarantine baseline: {}",
+                    row.subject, row.world, row.detail
+                ));
+            }
+            // Agree / NativeOnly / OracleOnly are not produced by
+            // compare_external_corpus; ignore them here.
+            _ => {}
+        }
+    }
+
+    if unexpected.is_empty() {
+        Ok(())
+    } else {
+        unexpected.sort();
+        Err(unexpected)
+    }
+}
+
+/// The default quarantine baseline directory for the W3C OWL 2 EL divergence
+/// corpus, resolved at compile time relative to this crate's manifest.
+fn default_quarantine_dir() -> PathBuf {
+    gmeow_conformance::paths::cases_root()
+        .join("external")
+        .join("w3c-owl2-el-divergence")
+}
+
 /// Grade every ConsistencyTest / InconsistencyTest in `input_rdf` gap-tolerantly
 /// against the native reasoner and write divergences as a `gmeow:Finding` N-Quads
 /// graph to `out_nq`.
@@ -830,6 +936,10 @@ fn grade_suite_corpus(input_rdf: &Path, corpus_name: &str, out_nq: &Path) -> Res
 
     let world_iri_prefix = format!("https://gmeow.example/{corpus_name}/");
 
+    // Track which slugs came from entailment tests: these produce DlGap rows
+    // that are accepted by the soundness gate (out of consistency-lane scope).
+    let mut entailment_slugs: BTreeSet<String> = BTreeSet::new();
+
     // Emit a DlGap Finding for every entailment test: they are out of the
     // consistency-lane scope (need conclusion-negation), so we record them
     // as coverage gaps rather than silently dropping them.
@@ -837,6 +947,7 @@ fn grade_suite_corpus(input_rdf: &Path, corpus_name: &str, out_nq: &Path) -> Res
         let slug = to_slug(&entry.name);
         let world_iri = format!("{world_iri_prefix}{slug}/w");
         let published = entry.outcome().verdict_status().as_str().to_string();
+        entailment_slugs.insert(slug.clone());
         comparisons.push(gmeow_logic::reason::ExternalComparison {
             case: slug,
             world: world_iri,
@@ -951,7 +1062,49 @@ fn grade_suite_corpus(input_rdf: &Path, corpus_name: &str, out_nq: &Path) -> Res
         "graded={graded} agree={agree} corpus_only={corpus_only} dl_gap={dl_gap} entailment_skipped={entailment_skipped} unlowerable={unlowerable}"
     );
 
-    Ok(())
+    // ── Invoke the strict enforce() authority and surface its reasons ─────────
+    //
+    // enforce() is the canonical gate for the classic native↔oracle cross-check;
+    // it fails on ANY DlGap — including the accepted entailment and quarantined
+    // consistency gaps.  We always call it so its structured reasons are printed
+    // (surfaced, not bypassed), but the PASS/FAIL decision for this lane is made
+    // by soundness_gate(), which applies the finer-grained soundness floor.
+    let verdict = gmeow_logic::reason::enforce(&ledger);
+    if !verdict.reasons.is_empty() {
+        println!(
+            "enforce() reasons ({}):",
+            if verdict.passed { "PASS" } else { "FAIL" }
+        );
+        for reason in &verdict.reasons {
+            println!("  - {reason}");
+        }
+    } else {
+        println!("enforce(): PASS (no divergences)");
+    }
+
+    // ── Soundness gate: the invariant this grading lane protects ─────────────
+    //
+    // corpus_only == 0: the native path must NEVER decide a verdict that
+    // disagrees with the published external ground truth.  A corpus_only > 0 is
+    // a wrong decided answer and is always a hard-fail.
+    //
+    // DlGap rows are accepted in two cases:
+    //   - Entailment-test DlGaps: out-of-scope for the consistency lane
+    //     (need conclusion-negation; the test kind is not a consistency check).
+    //   - Quarantined consistency DlGaps: honest gaps committed in the
+    //     `w3c-owl2-el-divergence/` baseline (the native path cannot soundly
+    //     decide a DL/Full-divergent case for this specific slug).
+    // All other DlGap rows are unexpected and cause a hard-fail.
+    let quarantine_dir = default_quarantine_dir();
+    let quarantine_slugs = load_quarantine_slugs(&quarantine_dir)?;
+
+    soundness_gate(&ledger, &entailment_slugs, &quarantine_slugs).map_err(|offenders| {
+        let list = offenders.join("\n  ");
+        format!(
+            "soundness gate FAILED: {n} unexpected divergence(s):\n  {list}",
+            n = offenders.len()
+        )
+    })
 }
 
 /// Read the value following a flag, or error with the flag name.
@@ -1094,11 +1247,30 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         ));
         std::fs::write(&manifest_path, manifest_xml).expect("write manifest");
 
-        // Run grade_suite_corpus.
-        super::grade_suite_corpus(&manifest_path, "test-corpus", &out_nq)
-            .expect("grade_suite_corpus must succeed");
+        // Run grade_suite_corpus.  The `ref-premise` consistency test has an
+        // IRI-reference premise (un-lowerable) and is NOT in the quarantine
+        // baseline, so the soundness gate now correctly hard-fails: the
+        // un-lowerable consistency DlGap is unexpected.  The entailment case
+        // is accepted (entailment_slugs), but the consistency IRI-ref gap is
+        // not — the function returns Err.
+        let result = super::grade_suite_corpus(&manifest_path, "test-corpus", &out_nq);
+        assert!(
+            result.is_err(),
+            "grade_suite_corpus must fail the soundness gate for an un-quarantined \
+             un-lowerable consistency DlGap: {result:?}"
+        );
+        let err_msg = result.unwrap_err();
+        assert!(
+            err_msg.contains("soundness gate FAILED"),
+            "error must name the soundness gate failure: {err_msg:?}"
+        );
+        assert!(
+            err_msg.contains("ref-premise"),
+            "error must name the offending case: {err_msg:?}"
+        );
 
-        // Read the output N-Quads.
+        // The N-Quads output file is written BEFORE the soundness gate check,
+        // so it must exist and contain dl-gap Findings for both cases.
         let nq = std::fs::read_to_string(&out_nq).expect("read output nq");
 
         // Both un-lowerable and entailment cases must appear as dl-gap Findings.
@@ -1117,5 +1289,141 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         // Clean up.
         let _ = std::fs::remove_file(&manifest_path);
         let _ = std::fs::remove_file(&out_nq);
+    }
+
+    // ── soundness_gate unit tests ─────────────────────────────────────────────
+    //
+    // These tests drive the gate helper directly without touching the filesystem
+    // or the reasoner.  They are sub-second and deterministic.
+
+    /// Build a minimal `DivergenceLedger` from a single external comparison.
+    fn ledger_from_one(
+        case: &str,
+        native: &str,
+        published: &str,
+    ) -> gmeow_logic::reason::DivergenceLedger {
+        let rows = gmeow_logic::reason::compare_external_corpus(
+            "test-corpus",
+            &[gmeow_logic::reason::ExternalComparison {
+                case: case.to_owned(),
+                world: format!("https://gmeow.example/test-corpus/{case}/w"),
+                native: native.to_owned(),
+                published: published.to_owned(),
+            }],
+        );
+        gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows)
+    }
+
+    /// A synthetic CorpusOnly row (native decided WRONG) must always cause a
+    /// hard-fail regardless of entailment or quarantine sets.
+    #[test]
+    fn soundness_gate_fails_on_corpus_only() {
+        // native decided "consistent" but the corpus published "inconsistent"
+        // → CorpusOnly → always a soundness violation.
+        let ledger = ledger_from_one("some-case", "consistent", "inconsistent");
+        assert_eq!(ledger.corpus_only, 1, "must be a CorpusOnly row");
+
+        let result = super::soundness_gate(
+            &ledger,
+            &std::collections::BTreeSet::new(),
+            &std::collections::BTreeSet::new(),
+        );
+        assert!(
+            result.is_err(),
+            "CorpusOnly must hard-fail the soundness gate"
+        );
+        let offenders = result.unwrap_err();
+        assert_eq!(offenders.len(), 1);
+        assert!(
+            offenders[0].contains("CORPUS-ONLY"),
+            "offender line must name CORPUS-ONLY: {:?}",
+            offenders[0]
+        );
+    }
+
+    /// A DlGap from an entailment test (slug in entailment_slugs) must be
+    /// accepted: the gate returns Ok.
+    #[test]
+    fn soundness_gate_accepts_entailment_dl_gap() {
+        // native "incomplete" for an entailment test → DlGap, but accepted.
+        let ledger = ledger_from_one("an-entailment-case", "incomplete", "consistent");
+        assert_eq!(ledger.dl_gap, 1);
+
+        let mut entailment_slugs = std::collections::BTreeSet::new();
+        entailment_slugs.insert("an-entailment-case".to_owned());
+
+        let result = super::soundness_gate(
+            &ledger,
+            &entailment_slugs,
+            &std::collections::BTreeSet::new(),
+        );
+        assert!(
+            result.is_ok(),
+            "entailment DlGap must be accepted: {result:?}"
+        );
+    }
+
+    /// A DlGap for a consistency case in the committed quarantine baseline
+    /// must be accepted: the gate returns Ok.
+    #[test]
+    fn soundness_gate_accepts_quarantined_dl_gap() {
+        // native "incomplete" for a consistency case that is in the quarantine.
+        let ledger = ledger_from_one("webont-thing-004", "incomplete", "consistent");
+        assert_eq!(ledger.dl_gap, 1);
+
+        let mut quarantine_slugs = std::collections::BTreeSet::new();
+        quarantine_slugs.insert("webont-thing-004".to_owned());
+
+        let result = super::soundness_gate(
+            &ledger,
+            &std::collections::BTreeSet::new(),
+            &quarantine_slugs,
+        );
+        assert!(
+            result.is_ok(),
+            "quarantined DlGap must be accepted: {result:?}"
+        );
+    }
+
+    /// A DlGap for a consistency case NOT in either accepted set (not an
+    /// entailment test, not in the quarantine baseline) must hard-fail.
+    #[test]
+    fn soundness_gate_fails_on_unexpected_dl_gap() {
+        let ledger = ledger_from_one("new-unknown-gap", "incomplete", "consistent");
+        assert_eq!(ledger.dl_gap, 1);
+
+        let result = super::soundness_gate(
+            &ledger,
+            &std::collections::BTreeSet::new(),
+            &std::collections::BTreeSet::new(),
+        );
+        assert!(
+            result.is_err(),
+            "unexpected DlGap must hard-fail the soundness gate"
+        );
+        let offenders = result.unwrap_err();
+        assert_eq!(offenders.len(), 1);
+        assert!(
+            offenders[0].contains("DL-GAP"),
+            "offender line must name DL-GAP: {:?}",
+            offenders[0]
+        );
+    }
+
+    /// When a ledger has only agreeing rows, the gate passes regardless of what
+    /// the entailment/quarantine sets contain.
+    #[test]
+    fn soundness_gate_passes_on_pure_agreement() {
+        let ledger = ledger_from_one("consistent-case", "consistent", "consistent");
+        assert_eq!(ledger.agree, 1);
+        assert_eq!(ledger.corpus_only, 0);
+        assert_eq!(ledger.dl_gap, 0);
+
+        let result = super::soundness_gate(
+            &ledger,
+            &std::collections::BTreeSet::new(),
+            &std::collections::BTreeSet::new(),
+        );
+        assert!(result.is_ok(), "pure agreement must pass: {result:?}");
     }
 }
