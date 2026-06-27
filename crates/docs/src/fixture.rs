@@ -288,8 +288,10 @@ static TMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 /// Atomically write an envelope: serialize to a uniquely-named temp file in the
 /// destination directory, then rename it into place so a concurrent reader never
 /// observes a partial JSON object. Mirrors the `.cache/validate` write pattern.
-/// Write failures are non-fatal (a parallel writer may have won the rename); the
-/// cache is an optimization and the value is already in hand.
+/// Atomic rename overwrites and every writer serializes byte-identical content,
+/// so concurrent writers race harmlessly (last rename wins) — there is no benign
+/// conflict to absorb. Any write error is therefore a genuine filesystem failure
+/// and hard-fails rather than silently degrading to uncached per-process rebuilds.
 fn write_cache<T: Serialize>(path: &Path, cached: &T) {
     let dir = path.parent().expect("cache path has a parent");
     if let Err(e) = fs::create_dir_all(dir) {
@@ -310,8 +312,9 @@ fn write_cache<T: Serialize>(path: &Path, cached: &T) {
         f.sync_all()?;
         fs::rename(&tmp, path)
     })();
-    if write_result.is_err() {
+    if let Err(e) = write_result {
         let _ = fs::remove_file(&tmp);
+        panic!("writing docs-fixture cache to {}: {e}", path.display());
     }
 }
 
@@ -324,4 +327,103 @@ fn hex(bytes: &[u8]) -> String {
         let _ = write!(s, "{b:02x}");
     }
     s
+}
+
+#[cfg(test)]
+mod tests {
+    //! Hermetic tests for the cache machinery itself — no model build (those are
+    //! the integration suite's job). They pin the envelope round-trips, the
+    //! content-addressing contract, and the integrity-violation panic so a
+    //! key/envelope regression fails here, not as a confusing downstream golden.
+    use super::*;
+
+    /// A fresh, empty temp root (cache_key over absent discovery roots = salt
+    /// only, so these stay cheap). The process id keeps it unique under nextest's
+    /// process-per-test model; the tag keeps tests within a process disjoint.
+    fn temp_root(tag: &str) -> PathBuf {
+        let root = std::env::temp_dir().join(format!(
+            "gmeow-docs-fixture-test-{}-{tag}",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).expect("create temp root");
+        root
+    }
+
+    #[test]
+    fn cached_site_round_trips_to_identical_bytes() {
+        let mut files = BTreeMap::new();
+        files.insert("index.html".to_string(), b"<h1>hi</h1>".to_vec());
+        // Multibyte UTF-8 (éèê + a snowman) to prove the string envelope is faithful.
+        files.insert(
+            "a/b.md".to_string(),
+            "# \u{e9}\u{e8}\u{ea} \u{2603}\n".as_bytes().to_vec(),
+        );
+        let site = Site { files };
+        assert_eq!(site, CachedSite::from_site(&site).into_site());
+    }
+
+    #[test]
+    #[should_panic(expected = "is not UTF-8")]
+    fn cached_site_rejects_non_utf8_files() {
+        let mut files = BTreeMap::new();
+        files.insert("bad.bin".to_string(), vec![0xff, 0xfe, 0x00]);
+        let _ = CachedSite::from_site(&Site { files });
+    }
+
+    #[test]
+    fn cache_key_is_deterministic_and_content_sensitive() {
+        let root = temp_root("key");
+        fs::create_dir_all(root.join("slices")).unwrap();
+        fs::write(root.join("slices/a.ttl"), b"v1").unwrap();
+        let k1 = cache_key(&root);
+        assert_eq!(
+            k1,
+            cache_key(&root),
+            "key must be stable for identical inputs"
+        );
+        fs::write(root.join("slices/a.ttl"), b"v2").unwrap();
+        assert_ne!(
+            k1,
+            cache_key(&root),
+            "key must change when an input byte changes"
+        );
+    }
+
+    #[test]
+    fn model_and_site_cache_paths_share_the_key_with_distinct_suffix() {
+        let root = temp_root("paths");
+        let key = cache_key(&root);
+        assert_eq!(
+            cache_path(&root).file_name().unwrap().to_string_lossy(),
+            format!("{key}.json")
+        );
+        assert_eq!(
+            site_cache_path(&root)
+                .file_name()
+                .unwrap()
+                .to_string_lossy(),
+            format!("{key}.site.json")
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "corrupt docs-fixture cache")]
+    fn present_but_corrupt_model_cache_panics() {
+        let root = temp_root("corrupt-model");
+        let cp = cache_path(&root);
+        fs::create_dir_all(cp.parent().unwrap()).unwrap();
+        fs::write(&cp, b"{ not valid json").unwrap();
+        let _ = load(&root);
+    }
+
+    #[test]
+    #[should_panic(expected = "corrupt docs-fixture site cache")]
+    fn present_but_corrupt_site_cache_panics() {
+        let root = temp_root("corrupt-site");
+        let sp = site_cache_path(&root);
+        fs::create_dir_all(sp.parent().unwrap()).unwrap();
+        fs::write(&sp, b"{ not valid json").unwrap();
+        let _ = load_site(&root);
+    }
 }
