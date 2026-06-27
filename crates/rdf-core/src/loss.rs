@@ -18,7 +18,7 @@
 /// In-band machine code: a `CONSTRUCT` whose `WHERE` bound an RDF-1.2 reifier (via
 /// an `rdf:reifies` triple pattern) but whose template drops that reifier — the
 /// reification layer is lost at the projection. Declared in-band on the output
-/// graph (a `gmeow:ProjectionLoss` node), NOT in this compile-time ledger (#917).
+/// graph (a `logic:ProjectionLoss` node), NOT in this compile-time ledger.
 pub const LOSS_REIFIER_LAYER_DROPPED: &str = "reifier-layer-dropped";
 
 /// In-band machine code: a dropped reifier (see [`LOSS_REIFIER_LAYER_DROPPED`])

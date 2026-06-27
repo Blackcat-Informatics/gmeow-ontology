@@ -3484,7 +3484,7 @@ mod tests {
             .expect("non-empty blank-node property list should still parse");
     }
 
-    // ── gmeow extension-function seam (issue #917) ────────────────────────────
+    // ── gmeow extension-function seam ────────────────────────────────────────
 
     /// A canonical-namespace `gmeow:` prefix (distinct from the generic `GM`
     /// stand-in, which deliberately binds `gmeow:` to `<https://x/>`).

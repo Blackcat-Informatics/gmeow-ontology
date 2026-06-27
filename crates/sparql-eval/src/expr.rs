@@ -2701,7 +2701,7 @@ mod tests {
         );
     }
 
-    // ── gmeow:heldIn extension function (issue #917) ──────────────────────────
+    // ── gmeow:heldIn extension function ───────────────────────────────────────
 
     /// Build a dataset with a reifier `R` of a reified statement, annotated
     /// `R gmeow:accordingTo T1`, plus a direct `T1 gmeow:sharpens T2` edge.

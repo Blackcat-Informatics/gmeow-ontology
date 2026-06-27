@@ -57,9 +57,9 @@ const GMEOW_ACCORDING_TO: &str = "https://blackcatinformatics.ca/gmeow/according
 
 /// Evaluate a `CONSTRUCT` query to a frozen IR dataset.
 ///
-/// **Loss-aware projection (#917):** when the `WHERE` bound an RDF-1.2 reifier (via
+/// **Loss-aware projection:** when the `WHERE` bound an RDF-1.2 reifier (via
 /// an `rdf:reifies` triple pattern) and the template drops it, the dropped
-/// reification layer is declared **in-band** as `gmeow:ProjectionLoss` triples on
+/// reification layer is declared **in-band** as `logic:ProjectionLoss` triples on
 /// the SAME output graph — GTS is lossless, so loss is declared at the projection,
 /// never silently swallowed. When the `WHERE` has no `rdf:reifies` pattern at all
 /// the detection does zero extra work and the output is byte-identical to a plain
@@ -73,7 +73,7 @@ pub(crate) fn eval_construct(
     let schema = seq.schema.clone();
     let mut builder = RdfDatasetBuilder::new();
 
-    // Loss detection (#917). FAST NO-OP PATH: collect the dropped reifies-patterns
+    // Loss detection. FAST NO-OP PATH: collect the dropped reifies-patterns
     // ONCE, before the row loop. With no `rdf:reifies` pattern in the WHERE the set
     // is empty and the per-row emission below is skipped entirely — the output is
     // byte-identical to today's plain CONSTRUCT.
@@ -254,9 +254,9 @@ fn collect_term_pattern_vars(term: &TermPattern, out: &mut BTreeSet<String>) {
 /// from the row's bindings and emits, into the SAME builder:
 ///
 /// ```text
-/// <lossNode> rdf:type        gmeow:ProjectionLoss .
-/// <lossNode> gmeow:lossCode  "reifier-layer-dropped"^^xsd:string .
-/// <lossNode> gmeow:lostReifies <<( s p o )>> .
+/// <lossNode> rdf:type        logic:ProjectionLoss .
+/// <lossNode> logic:lossCode  "reifier-layer-dropped"^^xsd:string .
+/// <lossNode> logic:lostReifies <<( s p o )>> .
 /// ```
 ///
 /// plus the `annotation-layer-dropped` / `standpoint-scope-dropped` sub-codes when
@@ -295,10 +295,10 @@ fn emit_dropped_losses(
         let projection_loss = builder.intern_iri_value(LOGIC_PROJECTION_LOSS);
         builder.push_quad(loss_node, rdf_type, projection_loss, None);
 
-        // gmeow:lossCode "reifier-layer-dropped"
+        // logic:lossCode "reifier-layer-dropped"
         push_loss_code(builder, loss_node, LOSS_REIFIER_LAYER_DROPPED);
 
-        // gmeow:lostReifies <<( s p o )>>
+        // logic:lostReifies <<( s p o )>>
         let lost_reifies = builder.intern_iri_value(LOGIC_LOST_REIFIES);
         let triple_id = builder.intern_value(&inner_term);
         builder.push_quad(loss_node, lost_reifies, triple_id, None);
@@ -314,7 +314,7 @@ fn emit_dropped_losses(
     }
 }
 
-/// Push `<loss_node> gmeow:lossCode "<code>"^^xsd:string .` into `builder`.
+/// Push `<loss_node> logic:lossCode "<code>"^^xsd:string .` into `builder`.
 fn push_loss_code(builder: &mut RdfDatasetBuilder, loss_node: TermId, code: &str) {
     let loss_code = builder.intern_iri_value(LOGIC_LOSS_CODE);
     let code_lit = builder.intern_literal_value(RdfLiteral {
@@ -487,7 +487,7 @@ mod tests {
         assert_eq!(out.quad_count(), 0);
     }
 
-    // ── Loss-aware CONSTRUCT (#917) ───────────────────────────────────────────
+    // ── Loss-aware CONSTRUCT ──────────────────────────────────────────────────
 
     const REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
     const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -532,7 +532,7 @@ mod tests {
         }
     }
 
-    /// Count quads whose predicate is `gmeow:lossCode` and object the given code.
+    /// Count quads whose predicate is `logic:lossCode` and object the given code.
     fn count_loss_code(out: &RdfDataset, code: &str) -> usize {
         out.quads()
             .filter(|q| {
@@ -562,24 +562,24 @@ mod tests {
         });
         assert!(asserted, "the asserted (de-reified) triple is emitted");
 
-        // A gmeow:ProjectionLoss declaration of type with the reifier-layer code.
+        // A logic:ProjectionLoss declaration of type with the reifier-layer code.
         let has_loss_type = out.quads().any(|q| {
             matches!(out.resolve(q.p), TermRef::Iri(p) if p == RDF_TYPE_IRI)
                 && matches!(out.resolve(q.o), TermRef::Iri(o) if o == LOGIC_PROJECTION_LOSS)
         });
-        assert!(has_loss_type, "a gmeow:ProjectionLoss node is declared");
+        assert!(has_loss_type, "a logic:ProjectionLoss node is declared");
         assert_eq!(
             count_loss_code(&out, LOSS_REIFIER_LAYER_DROPPED),
             1,
             "exactly one reifier-layer-dropped code"
         );
 
-        // gmeow:lostReifies points at the concrete triple term <<( :alice :age 42 )>>.
+        // logic:lostReifies points at the concrete triple term <<( :alice :age 42 )>>.
         let lost = out.quads().any(|q| {
             matches!(out.resolve(q.p), TermRef::Iri(p) if p == LOGIC_LOST_REIFIES)
                 && matches!(out.resolve(q.o), TermRef::Triple { .. })
         });
-        assert!(lost, "gmeow:lostReifies carries the dropped triple term");
+        assert!(lost, "logic:lostReifies carries the dropped triple term");
     }
 
     #[test]

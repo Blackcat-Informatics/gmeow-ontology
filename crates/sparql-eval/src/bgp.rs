@@ -893,7 +893,7 @@ mod tests {
         assert_eq!(seq.len(), 3); // three knows-edges, one row each.
     }
 
-    // ---- RDF 1.2 reification layer (issue #917) ---------------------------
+    // ---- RDF 1.2 reification layer -----------------------------------------
 
     /// A dataset with one quoted statement `:alice :age 42` reified by `:r1`, which
     /// carries two annotations:
