@@ -156,21 +156,7 @@ impl SparqlEngine for NativeSparqlEngine {
 fn materialize(outcome: Outcome, ctx: &EvalCtx<'_>) -> SparqlResult {
     match outcome {
         Outcome::Solutions(seq) => {
-            let variables = seq
-                .schema
-                .vars()
-                .iter()
-                .map(|v| v.as_str().to_owned())
-                .collect();
-            let rows = seq
-                .rows
-                .iter()
-                .map(|row| {
-                    row.iter()
-                        .map(|cell| cell.map(|t| ctx.scratch.value_of(ctx.dataset, t)))
-                        .collect()
-                })
-                .collect();
+            let (variables, rows) = crate::eval::materialize_solutions(&seq, ctx);
             SparqlResult::Solutions { variables, rows }
         }
         Outcome::Graph(graph) => SparqlResult::Graph(graph),

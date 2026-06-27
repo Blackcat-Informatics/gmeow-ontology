@@ -18,7 +18,7 @@
 use std::rc::Rc;
 use std::sync::Arc;
 
-use gmeow_rdf_core::{GraphMatch, RdfDataset};
+use gmeow_rdf_core::{GraphMatch, RdfDataset, TermValue};
 use gmeow_sparql_algebra::{GraphPattern, Query};
 
 use crate::dataset_spec::ActiveDataset;
@@ -226,6 +226,35 @@ pub fn evaluate_query(query: &Query, ctx: &mut EvalCtx<'_>) -> Result<Outcome, E
             "DESCRIBE query form (out of S6 scope)",
         )),
     }
+}
+
+/// Materialize a [`SolutionSeq`] into dataset-independent egress form: the
+/// projected variable names plus the owned [`TermValue`] rows (a `None` cell is
+/// an unbound binding). The interned-`TermId` space ends here.
+///
+/// Shared by the engine's `SparqlResult` materializer and the SERVICE result
+/// path (S6b #928), both of which turn an interned solution sequence into owned
+/// term values via the per-query [`ScratchInterner`](crate::scratch::ScratchInterner).
+pub(crate) fn materialize_solutions(
+    seq: &SolutionSeq,
+    ctx: &EvalCtx<'_>,
+) -> (Vec<String>, Vec<Vec<Option<TermValue>>>) {
+    let variables = seq
+        .schema
+        .vars()
+        .iter()
+        .map(|v| v.as_str().to_owned())
+        .collect();
+    let rows = seq
+        .rows
+        .iter()
+        .map(|row| {
+            row.iter()
+                .map(|cell| cell.map(|t| ctx.scratch.value_of(ctx.dataset, t)))
+                .collect()
+        })
+        .collect();
+    (variables, rows)
 }
 
 /// A short, stable name for a [`GraphPattern`] variant, for diagnostics.
