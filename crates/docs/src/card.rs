@@ -34,9 +34,11 @@ pub struct Card {
     pub iri: String,
     /// `rdfs:label`, omitted from the header when it equals the title/CURIE.
     pub label: Option<String>,
-    /// The defining slice as a display string, or `None` when the source cannot
-    /// carry slice provenance (see the folded-snapshot MAXIMAL-INFO GAP). `None`
-    /// is rendered as no `slice:` header line — NEVER a blank value.
+    /// The defining slice as a display string (the owning module's local name).
+    /// Both sources carry it: the docs side from `DocTerm::owner_slice`, the
+    /// folded/MCP side from the documentation graph's `gmeow:docOwnerSlice`.
+    /// `None` only when the source genuinely has no slice for this term, and is
+    /// rendered as no `slice:` header line — NEVER a blank value.
     pub slice: Option<String>,
     /// `gmeow:graphBoxRole` four-boxes role display names (e.g. `boxTBox`).
     pub box_roles: Vec<String>,

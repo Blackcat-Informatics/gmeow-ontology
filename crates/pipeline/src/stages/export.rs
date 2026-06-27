@@ -510,6 +510,13 @@ pub(crate) struct Term {
     /// `rdfs:seeAlso` objects (sorted/deduped). Read per-term directly from the
     /// folded default graph; not bidirectionally reconciled (see G1 note).
     pub(crate) related_terms: Vec<String>,
+    /// The owning slice IRI, recovered from the `gmeow:graph/documentation` named
+    /// graph (`gmeow:DocumentedTerm` ⨝ `gmeow:docOwnerSlice`, keyed by the term
+    /// IRI via `gmeow:documents`). Empty when the doc graph is absent. The shared
+    /// term card (#1027) renders its local name as the `slice:` header, matching
+    /// the docs-site card's `local_name(owner_slice)` — so the MCP card carries
+    /// the same slice provenance the published docs do.
+    pub(crate) owner_slice: String,
 }
 
 // ── JSON helpers (json.dumps ensure_ascii=False, insertion-ordered objects) ────
@@ -817,6 +824,39 @@ fn fold_related_terms(view: &FoldView, t: usize) -> Vec<String> {
     out.into_iter().collect()
 }
 
+/// Build a `term-IRI → owning-slice-IRI` map from the `gmeow:graph/documentation`
+/// named graph (`gmeow:DocumentedTerm` ⨝ `gmeow:docOwnerSlice`, keyed by
+/// `gmeow:documents`). This is the term→slice provenance the docs generator
+/// dogfoods into the bundle (`gmeow_docs::rdf::to_gmeow_rdf`), recovered here so
+/// the folded/MCP term card carries the same slice the published docs do. Empty
+/// when the documentation graph is absent (then the card omits the slice line).
+fn fold_owner_slice_map(view: &FoldView) -> std::collections::HashMap<String, String> {
+    let documents = format!("{NAMESPACE}documents");
+    let owner_slice = format!("{NAMESPACE}docOwnerSlice");
+    let mut map = std::collections::HashMap::new();
+    for s in view.subjects_by_type(&format!("{NAMESPACE}DocumentedTerm"), DOCUMENTATION_GRAPH) {
+        let (Some(iri_tid), Some(slice_tid)) = (
+            view.value(s, &documents, DOCUMENTATION_GRAPH),
+            view.value(s, &owner_slice, DOCUMENTATION_GRAPH),
+        ) else {
+            continue;
+        };
+        map.insert(
+            view.lex(iri_tid).to_string(),
+            view.lex(slice_tid).to_string(),
+        );
+    }
+    map
+}
+
+/// The local name of an IRI: the tail after the last `/` or `#`. Mirrors
+/// `gmeow_docs::render::local_name` so the folded card's `slice:` value matches
+/// the docs-site card byte-for-byte.
+fn slice_local_name(iri: &str) -> &str {
+    let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
+    &iri[cut..]
+}
+
 fn fold_advisory(view: &FoldView, t: usize, term: &mut Term) {
     term.box_roles = fold_curies(view, t, &format!("{NAMESPACE}graphBoxRole"));
     term.scope_notes = fold_public_texts(view, t, &format!("{SKOS}scopeNote"));
@@ -936,6 +976,17 @@ pub(crate) fn collect_terms(view: &FoldView) -> Vec<Term> {
         }
     }
 
+    // Stamp each term with its owning slice, recovered from the documentation
+    // graph's term→slice provenance (the docs generator dogfoods this into the
+    // bundle). Built once, then applied by IRI — so every consumer of a folded
+    // `Term` (the MCP card, JSONL, llms.txt) sees the same slice the docs do.
+    let slice_map = fold_owner_slice_map(view);
+    for term in &mut terms {
+        if let Some(slice) = slice_map.get(&term.iri) {
+            term.owner_slice = slice.clone();
+        }
+    }
+
     terms.sort_by(|a, b| (a.category, &a.curie).cmp(&(b.category, &b.curie)));
     terms
 }
@@ -950,14 +1001,13 @@ pub(crate) fn collect_terms(view: &FoldView) -> Vec<Term> {
 /// Values are resolved to display strings (CURIEs / pre-described domain/range).
 /// The category is human-cased to match the docs side (`Class`/`Property`/…).
 ///
-/// MAXIMAL-INFO GAP (#1027 follow-up): the folded snapshot ingests every slice
-/// module into ONE default graph with no per-term `definedInSlice` provenance
-/// (the numeric ingest "scope" is a dedup key, not a slice id; the
-/// `gmeow:graph/slice-analysis` graph carries per-slice term COUNTS, not the
-/// term→slice map). So the folded card cannot carry the owning slice. Rather
-/// than emit a blank `slice:` line, `Card::slice` is left `None` here and the
-/// header line is omitted. The docs-site card DOES carry it. Wiring term→slice
-/// provenance into the fold is a tracked follow-up.
+/// Slice provenance: the owning slice is recovered from the documentation
+/// graph's `gmeow:docOwnerSlice` (stamped onto every folded `Term` in
+/// [`collect_terms`]) and rendered as its local name — matching the docs-site
+/// card's `local_name(owner_slice)`. So the MCP card and the published docs
+/// carry the SAME slice. When the term has no recovered slice (e.g. a doc graph
+/// is absent), `Card::slice` is `None` and the header line is omitted — never a
+/// blank value.
 #[cfg(any(feature = "python", test))]
 pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
     let category = match t.category {
@@ -1002,8 +1052,14 @@ pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
         category,
         iri: t.iri.clone(),
         label,
-        // See the MAXIMAL-INFO GAP note above: the fold has no term→slice map.
-        slice: None,
+        // Recovered term→slice provenance (see the builder doc above): the local
+        // name of the owning slice IRI, matching the docs-site card. `None` only
+        // when the fold carries no slice for this term — never a blank line.
+        slice: if t.owner_slice.is_empty() {
+            None
+        } else {
+            Some(slice_local_name(&t.owner_slice).to_string())
+        },
         box_roles: t.box_roles.clone(),
         definition,
         parents,
@@ -2741,12 +2797,18 @@ mod tests {
         let card = doc_card_md(&terms, "gmeow:langFrench");
         assert!(card.starts_with("# gmeow:langFrench"), "card head:\n{card}");
         // Canonical card convention (the shared `gmeow_docs::card` renderer):
-        // human-cased category, NO blank `slice:` line on the folded side.
+        // human-cased category, and term→slice provenance recovered from the
+        // documentation graph (the docs generator dogfoods `gmeow:docOwnerSlice`
+        // into the bundle; the fold reads it back — #1027).
         assert!(card.contains("- category: Individual"));
         assert!(card.contains("- iri: https://blackcatinformatics.ca/gmeow/langFrench"));
+        let slice_line = card
+            .lines()
+            .find(|l| l.starts_with("- slice: "))
+            .expect("folded card must carry the owning slice (term→slice provenance)");
         assert!(
-            !card.contains("- slice:"),
-            "fold has no term→slice provenance (MAXIMAL-INFO GAP)"
+            !slice_line.trim_start_matches("- slice: ").trim().is_empty(),
+            "slice value must be non-blank, got {slice_line:?}"
         );
         assert!(card.ends_with('\n'));
 
@@ -2815,17 +2877,18 @@ mod tests {
             avoid_for_consumer: vec!["gmeow:profileNarrative".to_string()],
             logic_stereotypes: vec!["logic:Relator".to_string()],
             related_terms: vec!["gmeow:Bar".to_string()],
+            owner_slice: "https://blackcatinformatics.ca/gmeow/slice/zoo".to_string(),
             ..Term::default()
         };
 
         // The canonical Card the docs side would build for the SAME shared values
-        // (a property → parents come from sub_property_of; slice is the only field
-        // the docs side adds — left None here to compare the shared fields only).
+        // (a property → parents come from sub_property_of; the slice is the LOCAL
+        // NAME of the owning slice IRI, recovered identically on both sides).
         let expected = gmeow_docs::card::Card {
             category: "Property".to_string(),
             iri: "https://blackcatinformatics.ca/gmeow/hasFoo".to_string(),
             label: Some("has foo".to_string()),
-            slice: None,
+            slice: Some("zoo".to_string()),
             box_roles: vec!["gmeow:boxTBox".to_string()],
             definition: Some("Relates a thing to its foo.".to_string()),
             parents: vec!["gmeow:relates".to_string()],
@@ -2866,6 +2929,34 @@ mod tests {
             !from_folded.contains("\n*Use when:* "),
             "labels are bold, not italic"
         );
+    }
+
+    /// `term_to_card` slice handling: a recovered `owner_slice` IRI renders as its
+    /// local name; an absent one yields `None` (no blank `slice:` line). Locks
+    /// both arms of the term→slice provenance recovery (#1027).
+    #[test]
+    fn term_to_card_slice_uses_local_name_or_omits() {
+        let with_slice = Term {
+            category: "class",
+            iri: "https://blackcatinformatics.ca/gmeow/Cat".to_string(),
+            curie: "gmeow:Cat".to_string(),
+            owner_slice: "https://blackcatinformatics.ca/gmeow/slice/zoo".to_string(),
+            ..Term::default()
+        };
+        assert_eq!(term_to_card(&with_slice).slice, Some("zoo".to_string()));
+        assert!(
+            gmeow_docs::card::render_card_body(&term_to_card(&with_slice))
+                .contains("- slice: zoo\n")
+        );
+
+        let no_slice = Term {
+            category: "class",
+            iri: "https://blackcatinformatics.ca/gmeow/Dog".to_string(),
+            curie: "gmeow:Dog".to_string(),
+            ..Term::default()
+        };
+        assert_eq!(term_to_card(&no_slice).slice, None);
+        assert!(!gmeow_docs::card::render_card_body(&term_to_card(&no_slice)).contains("- slice:"));
     }
 
     /// `gmeow_okf_index`: the manifest envelope + per-document `{path,type,title,
