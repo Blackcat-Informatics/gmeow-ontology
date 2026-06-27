@@ -46,6 +46,7 @@ class ValidateOptions:
         project_root: str | None = None,
         gts_bytes: bytes | None = None,
         signature_config: SignatureConfig | None = None,
+        deep: bool = False,
     ) -> None: ...
 
 class ValidationStore:
