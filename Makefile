@@ -68,7 +68,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	maint-reasoning-cases maint-statements-docker-check maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
-	maint-test-network maint-pull-images maint-quality maint-evals-score \
+	maint-test-network maint-test-network-rust maint-pull-images maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-rust-heavy
 
 ##@ Core Workflows
@@ -455,7 +455,7 @@ fuzz-smoke: ## Run bounded coverage-guided fuzz smoke tests for each format fron
 	done
 
 bench: ## Run criterion benchmarks with host-tuned codegen.
-	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate
+	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate -p gmeow-sparql-eval
 
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare
@@ -527,6 +527,9 @@ maint-test-heavy: native-py ## Run kept-Python-module maintainer tests.
 
 maint-test-network: ## Run live network tests.
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
+
+maint-test-network-rust: ## Run the live SERVICE federation test against a public endpoint.
+	GMEOW_RUN_NETWORK=1 cargo test -p gmeow-sparql-eval --test service_live -- --ignored
 
 maint-pull-images: ## Pull or build pinned Docker oracle images.
 	bash scripts/pull-images.sh

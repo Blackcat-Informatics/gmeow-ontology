@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+SELECT ?s ?n WHERE {
+  ?s <http://ex/v> ?val
+  SERVICE <http://gmeow.test/ep> { ?s <http://ex/name> ?n }
+}
