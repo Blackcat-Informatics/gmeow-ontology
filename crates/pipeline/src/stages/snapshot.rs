@@ -1502,6 +1502,15 @@ mod ustar_tests {
                 "expected site asset {want}"
             );
         }
+        // The #1027 per-term card surface: at least one `card.md` file must
+        // be present in the archive under the English carrier tag.
+        let card_md_present = members
+            .iter()
+            .any(|(n, _)| n.starts_with("x-gmeow-english/terms/") && n.ends_with("/card.md"));
+        assert!(
+            card_md_present,
+            "expected at least one x-gmeow-english/terms/<slug>/card.md in the docs archive"
+        );
         // Member names CAN exceed the 100-byte USTAR field (LongLink-covered).
         // Today's longest stays under it, so LongLink is a defensive net rather
         // than currently-triggered — `long_member_name_round_trips_via_longlink`
