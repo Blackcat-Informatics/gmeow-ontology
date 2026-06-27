@@ -106,7 +106,7 @@ fn frame_requirements(
         let severity = RuleSeverity::parse(
             single_value(store, &carrier_nn, &format!("{NS}ruleSeverity")).as_deref(),
         )
-        .map_err(PipelineError::Parse)?;
+        .map_err(PipelineError::InvalidDeclaration)?;
         rows.push((
             carrier.strip_prefix(NS).unwrap_or(&carrier).to_string(),
             frame_prop
