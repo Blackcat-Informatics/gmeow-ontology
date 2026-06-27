@@ -43,13 +43,18 @@ impl RuleSeverity {
     pub fn parse(value: Option<&str>) -> Result<Self, String> {
         match value {
             None => Ok(Self::Binding),
-            Some(raw) => match raw.trim().to_ascii_lowercase().as_str() {
-                "binding" => Ok(Self::Binding),
-                "advisory" => Ok(Self::Advisory),
-                other => Err(format!(
-                    "unknown gmeow:ruleSeverity `{other}`; expected binding or advisory"
-                )),
-            },
+            Some(raw) => {
+                let trimmed = raw.trim();
+                if trimmed.eq_ignore_ascii_case("binding") {
+                    Ok(Self::Binding)
+                } else if trimmed.eq_ignore_ascii_case("advisory") {
+                    Ok(Self::Advisory)
+                } else {
+                    Err(format!(
+                        "unknown gmeow:ruleSeverity `{trimmed}`; expected binding or advisory"
+                    ))
+                }
+            }
         }
     }
 
