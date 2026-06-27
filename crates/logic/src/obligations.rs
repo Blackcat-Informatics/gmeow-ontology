@@ -318,8 +318,14 @@ pub fn formalization_coverage(store: &Store) -> Result<Vec<Finding>, String> {
     let mut buckets: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
     let mut findings = Vec::new();
     // Collapse multiple rows per candidate (a candidate has one category/lifecycle, but
-    // the OPTIONAL join could fan out if the data were malformed): index by candidate.
+    // the OPTIONAL join fans out one row per (cat, life) combination when the data is
+    // well-formed, and additionally produces duplicated rows when malformed).
+    // candidateCategory is single-valued by spec; a second DISTINCT category on the same
+    // candidate is malformed data and is a hard error, not a silent first-wins collapse.
     let mut per_candidate: BTreeMap<String, (Option<String>, Option<String>)> = BTreeMap::new();
+    // Tracks candidates whose candidateCategory violated the single-value constraint so
+    // we emit exactly one deterministic Finding per offender (BTreeSet → sorted order).
+    let mut multi_category_violations: BTreeSet<String> = BTreeSet::new();
     for row in rows {
         let Some(c) = row.get("c") else { continue };
         let candidate = term_value(c);
@@ -329,13 +335,35 @@ pub fn formalization_coverage(store: &Store) -> Result<Vec<Finding>, String> {
         let life = row
             .get("life")
             .map(|t| logic_local(&term_value(t)).to_owned());
-        let entry = per_candidate.entry(candidate).or_insert((None, None));
-        if entry.0.is_none() {
-            entry.0 = cat;
+        let entry = per_candidate
+            .entry(candidate.clone())
+            .or_insert((None, None));
+        match (&entry.0, &cat) {
+            (Some(existing), Some(incoming)) if existing != incoming => {
+                multi_category_violations.insert(candidate);
+            }
+            (None, _) => {
+                entry.0 = cat;
+            }
+            _ => {}
         }
         if entry.1.is_none() {
             entry.1 = life;
         }
+    }
+    for candidate in &multi_category_violations {
+        findings.push(
+            Finding::new(
+                Severity::Error,
+                "verify.formalization.multi-category",
+                format!(
+                    "formalization candidate <{candidate}> has multiple distinct \
+                     logic:candidateCategory values; candidateCategory is single-valued \
+                     by spec — each candidate must carry exactly one category",
+                ),
+            )
+            .with_tool("verify"),
+        );
     }
 
     for (candidate, (cat, life)) in &per_candidate {
@@ -508,5 +536,88 @@ mod tests {
         let findings = check_discharge_conditions(&obl);
         assert_eq!(findings.len(), 1);
         assert!(findings[0].code.contains("no-discharge"));
+    }
+
+    /// Build a minimal in-memory Store with N-Triples and return it for query tests.
+    fn store_from_ntriples(ntriples: &str) -> Store {
+        use oxigraph::io::RdfFormat;
+        let store = Store::new().expect("in-memory store");
+        store
+            .load_from_slice(RdfFormat::NTriples, ntriples)
+            .expect("load N-Triples");
+        store
+    }
+
+    #[test]
+    fn duplicate_category_on_candidate_is_a_hard_error() {
+        // A candidate that carries two DISTINCT candidateCategory values is malformed;
+        // candidateCategory is single-valued by spec. The function must emit exactly one
+        // error Finding with the multi-category code and the report must not be ok().
+        let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let logic = "https://blackcatinformatics.ca/logic/";
+        let ntriples = format!(
+            "<https://ex/cand1> <{logic}candidateCategory> <{logic}CategoryDerivationRule> .\n\
+             <https://ex/cand1> <{logic}candidateCategory> <{logic}CategoryIntegrityConstraint> .\n\
+             <https://ex/cand1> <{rdf_type}> <{logic}FormalizationCandidate> .\n",
+        );
+        let store = store_from_ntriples(&ntriples);
+        let findings = formalization_coverage(&store).expect("query must not error");
+        let errors: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == Severity::Error)
+            .collect();
+        assert_eq!(
+            errors.len(),
+            1,
+            "expected exactly one error finding; got {errors:?}"
+        );
+        assert!(
+            errors[0].code.contains("multi-category"),
+            "error code must contain 'multi-category'; got {:?}",
+            errors[0].code
+        );
+        assert!(
+            errors[0].message.contains("https://ex/cand1"),
+            "error message must name the offending candidate; got {:?}",
+            errors[0].message
+        );
+        // The presence of any error-severity Finding means the run is not ok.
+        let has_error = findings.iter().any(|f| f.severity == Severity::Error);
+        assert!(
+            has_error,
+            "findings must contain at least one error for malformed multi-category candidate"
+        );
+    }
+
+    #[test]
+    fn single_category_candidate_produces_correct_coverage() {
+        // A well-formed candidate with a single valid category must not produce any
+        // error finding; the coverage note must count it under the right category.
+        let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let logic = "https://blackcatinformatics.ca/logic/";
+        let ntriples = format!(
+            "<https://ex/cand2> <{rdf_type}> <{logic}FormalizationCandidate> .\n\
+             <https://ex/cand2> <{logic}candidateCategory> <{logic}CategoryDerivationRule> .\n\
+             <https://ex/cand2> <{logic}candidateLifecycle> <{logic}CandidateAccepted> .\n",
+        );
+        let store = store_from_ntriples(&ntriples);
+        let findings = formalization_coverage(&store).expect("query must not error");
+        let errors: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == Severity::Error)
+            .collect();
+        assert!(
+            errors.is_empty(),
+            "no errors expected for well-formed candidate; got {errors:?}"
+        );
+        let note = findings
+            .iter()
+            .find(|f| f.code == "verify.formalization.coverage")
+            .expect("coverage note must be present");
+        let detail = note.detail.as_deref().unwrap_or("");
+        assert!(
+            detail.contains("CategoryDerivationRule: total=1"),
+            "coverage detail must count the single candidate under CategoryDerivationRule; got {detail:?}",
+        );
     }
 }
