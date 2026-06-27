@@ -2891,6 +2891,29 @@ logic:obligationDischargeVerdict
     skos:definition "Relates a logic:NonEntailmentObligation to the logic:DischargeVerdict the check returned — logic:ObligationDischarged, logic:ObligationUnknown or logic:ObligationViolated. Computed by the engine, not asserted by hand. Domain logic:NonEntailmentObligation, range logic:DischargeVerdict."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:ProjectionLoss
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Projection Loss"@x-gmeow-english ;
+    skos:definition "An in-band declaration that a lossy projection dropped structure its source carried — emitted into the projected graph itself, never a sidecar. GTS stays lossless; loss is declared only at the exit gate (Principle 17 / Principle 4). A loss-aware SPARQL CONSTRUCT mints one when its template omits an RDF-1.2 reification layer that its WHERE matched, so a downstream consumer of the projection can see exactly what was shed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:lossCode
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "loss code"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The stable machine code of a logic:ProjectionLoss — reifier-layer-dropped, annotation-layer-dropped, or standpoint-scope-dropped — naming exactly which structure the projection shed. The codes are shared verbatim with the conversion loss ledger so in-band and contract-level loss declarations agree."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:lostReifies
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ProjectionLoss ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lost reifies"@x-gmeow-english ;
+    skos:definition "Points from a logic:ProjectionLoss to the RDF-1.2 triple term whose reifier (and any annotations) the projection dropped, so a consumer can recover which statement lost its reification layer. The object is a quoted triple term; its range is intentionally left open (stated in prose) to keep the OWL down-projection DL-clean."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .
 

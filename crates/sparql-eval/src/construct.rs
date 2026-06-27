@@ -39,17 +39,18 @@ use crate::DetHashMap;
 const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 /// `rdf:type`.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-/// `xsd:string` — the datatype of an emitted `gmeow:lossCode` literal.
+/// `xsd:string` — the datatype of an emitted `logic:lossCode` literal.
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 
-/// The canonical in-band loss-declaration vocabulary IRIs (#917). These are
-/// declared in the ontology by a later task; the strings here MUST match exactly.
-/// `gmeow:ProjectionLoss` — `rdf:type` of an in-band loss node.
-const GMEOW_PROJECTION_LOSS: &str = "https://blackcatinformatics.ca/gmeow/ProjectionLoss";
-/// `gmeow:lossCode` — the machine code (an `xsd:string`).
-const GMEOW_LOSS_CODE: &str = "https://blackcatinformatics.ca/gmeow/lossCode";
-/// `gmeow:lostReifies` — object is the triple term whose reification was dropped.
-const GMEOW_LOST_REIFIES: &str = "https://blackcatinformatics.ca/gmeow/lostReifies";
+/// The canonical in-band loss-declaration vocabulary IRIs. These are declared in the
+/// `logic` slice (projection loss is a logic-domain concept); the strings here MUST
+/// match the ontology exactly.
+/// `logic:ProjectionLoss` — `rdf:type` of an in-band loss node.
+const LOGIC_PROJECTION_LOSS: &str = "https://blackcatinformatics.ca/logic/ProjectionLoss";
+/// `logic:lossCode` — the machine code (an `xsd:string`).
+const LOGIC_LOSS_CODE: &str = "https://blackcatinformatics.ca/logic/lossCode";
+/// `logic:lostReifies` — object is the triple term whose reification was dropped.
+const LOGIC_LOST_REIFIES: &str = "https://blackcatinformatics.ca/logic/lostReifies";
 /// `gmeow:accordingTo` — a dropped annotation under this predicate also loses the
 /// standpoint scope.
 const GMEOW_ACCORDING_TO: &str = "https://blackcatinformatics.ca/gmeow/accordingTo";
@@ -291,14 +292,14 @@ fn emit_dropped_losses(
         let loss_node = builder.intern_blank_value(&label, gmeow_rdf_core::BlankScope::DEFAULT);
 
         let rdf_type = builder.intern_iri_value(RDF_TYPE);
-        let projection_loss = builder.intern_iri_value(GMEOW_PROJECTION_LOSS);
+        let projection_loss = builder.intern_iri_value(LOGIC_PROJECTION_LOSS);
         builder.push_quad(loss_node, rdf_type, projection_loss, None);
 
         // gmeow:lossCode "reifier-layer-dropped"
         push_loss_code(builder, loss_node, LOSS_REIFIER_LAYER_DROPPED);
 
         // gmeow:lostReifies <<( s p o )>>
-        let lost_reifies = builder.intern_iri_value(GMEOW_LOST_REIFIES);
+        let lost_reifies = builder.intern_iri_value(LOGIC_LOST_REIFIES);
         let triple_id = builder.intern_value(&inner_term);
         builder.push_quad(loss_node, lost_reifies, triple_id, None);
 
@@ -315,7 +316,7 @@ fn emit_dropped_losses(
 
 /// Push `<loss_node> gmeow:lossCode "<code>"^^xsd:string .` into `builder`.
 fn push_loss_code(builder: &mut RdfDatasetBuilder, loss_node: TermId, code: &str) {
-    let loss_code = builder.intern_iri_value(GMEOW_LOSS_CODE);
+    let loss_code = builder.intern_iri_value(LOGIC_LOSS_CODE);
     let code_lit = builder.intern_literal_value(RdfLiteral {
         lexical_form: code.to_owned(),
         datatype: Some(XSD_STRING.to_owned()),
@@ -535,7 +536,7 @@ mod tests {
     fn count_loss_code(out: &RdfDataset, code: &str) -> usize {
         out.quads()
             .filter(|q| {
-                matches!(out.resolve(q.p), TermRef::Iri(p) if p == GMEOW_LOSS_CODE)
+                matches!(out.resolve(q.p), TermRef::Iri(p) if p == LOGIC_LOSS_CODE)
                     && matches!(out.resolve(q.o), TermRef::Literal { lexical, .. } if lexical == code)
             })
             .count()
@@ -564,7 +565,7 @@ mod tests {
         // A gmeow:ProjectionLoss declaration of type with the reifier-layer code.
         let has_loss_type = out.quads().any(|q| {
             matches!(out.resolve(q.p), TermRef::Iri(p) if p == RDF_TYPE_IRI)
-                && matches!(out.resolve(q.o), TermRef::Iri(o) if o == GMEOW_PROJECTION_LOSS)
+                && matches!(out.resolve(q.o), TermRef::Iri(o) if o == LOGIC_PROJECTION_LOSS)
         });
         assert!(has_loss_type, "a gmeow:ProjectionLoss node is declared");
         assert_eq!(
@@ -575,7 +576,7 @@ mod tests {
 
         // gmeow:lostReifies points at the concrete triple term <<( :alice :age 42 )>>.
         let lost = out.quads().any(|q| {
-            matches!(out.resolve(q.p), TermRef::Iri(p) if p == GMEOW_LOST_REIFIES)
+            matches!(out.resolve(q.p), TermRef::Iri(p) if p == LOGIC_LOST_REIFIES)
                 && matches!(out.resolve(q.o), TermRef::Triple { .. })
         });
         assert!(lost, "gmeow:lostReifies carries the dropped triple term");
@@ -648,7 +649,7 @@ mod tests {
         );
         let any_loss = out
             .quads()
-            .any(|q| matches!(out.resolve(q.o), TermRef::Iri(o) if o == GMEOW_PROJECTION_LOSS));
+            .any(|q| matches!(out.resolve(q.o), TermRef::Iri(o) if o == LOGIC_PROJECTION_LOSS));
         assert!(
             !any_loss,
             "no ProjectionLoss node when the reifier is carried"
@@ -670,8 +671,8 @@ mod tests {
         let out = eval_construct(&template, &where_knows(), &mut ctx).expect("construct");
         // No loss triples at all.
         let any_loss = out.quads().any(|q| {
-            matches!(out.resolve(q.p), TermRef::Iri(p) if p == GMEOW_LOSS_CODE)
-                || matches!(out.resolve(q.o), TermRef::Iri(o) if o == GMEOW_PROJECTION_LOSS)
+            matches!(out.resolve(q.p), TermRef::Iri(p) if p == LOGIC_LOSS_CODE)
+                || matches!(out.resolve(q.o), TermRef::Iri(o) if o == LOGIC_PROJECTION_LOSS)
         });
         assert!(
             !any_loss,
