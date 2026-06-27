@@ -196,7 +196,7 @@ fresh individuals carrying `rdfs:label`.
 
 ### gmeow:TermStability · gmeow:termStability · gmeow:addedInVersion · gmeow:ChangelogEntry · gmeow:hasChangelogEntry · gmeow:entryVersion · gmeow:entryNote
 
-Per-term lifecycle metadata (#1026) — maturity and changelog signals about a
+Per-term lifecycle metadata — maturity and changelog signals about a
 **vocabulary term** (a class or property in the TBox), as distinct from the
 standpoint-scoped *instance-level* version roles above. The lineage layer answers
 "what role does this concrete release hold?"; this layer answers "how mature is

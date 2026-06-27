@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the aggregation slice (#101) — the
+# Declarative structural assertions for the aggregation slice — the
 # slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
 # formerly hand-written in tests/test_aggregation.py. Each assertion runs as a
 # SPARQL ASK over the aggregation module graph (gmeow:scopeModule) under the
 # native Rust harness (crates/slicetest).
 #
-# Aggregation is #694-migrated, so class stereotypes are logic:
+# Aggregation is migrated, so class stereotypes are logic:
 # (logic:AbstractIndividualType, logic:SubKind, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (cross-slice subject):
@@ -32,7 +32,7 @@ ASK {
     gmeow:SpatialAggregation a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:Measurement .
 }""" ;
-    gmeow:saRationale "gmeow:SpatialAggregation MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Measurement — every aggregation reuses the universal observation stack without duplication (Principle 4, #101). Mirrors test_spatial_aggregation_is_measurement." .
+    gmeow:saRationale "gmeow:SpatialAggregation MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Measurement — every aggregation reuses the universal observation stack without duplication (Principle 4). Mirrors test_spatial_aggregation_is_measurement." .
 
 # --- 2. SpatialBin is a subclass of Place (MUST) -----------------------------
 ex:saSpatialBinIsPlace a gmeow:StructuralAssertion ;
@@ -46,7 +46,7 @@ ASK {
     gmeow:SpatialBin a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:Place .
 }""" ;
-    gmeow:saRationale "gmeow:SpatialBin MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Place — bins are places that partition space for statistical summarisation (#101). Mirrors test_spatial_bin_is_place." .
+    gmeow:saRationale "gmeow:SpatialBin MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Place — bins are places that partition space for statistical summarisation. Mirrors test_spatial_bin_is_place." .
 
 # --- 3a. AggregationFunction is a value-vocabulary subclass of QualityValue (MUST) ---
 ex:saAggregationFunctionIsValueVocab a gmeow:StructuralAssertion ;
@@ -60,7 +60,7 @@ ASK {
     gmeow:AggregationFunction a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:AggregationFunction MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — the aggregation kinds are an individuals-based value vocabulary, never subclasses (Principle 9, #101). Mirrors test_aggregation_function_is_value_not_subclass (positive half)." .
+    gmeow:saRationale "gmeow:AggregationFunction MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — the aggregation kinds are an individuals-based value vocabulary, never subclasses (Principle 9). Mirrors test_aggregation_function_is_value_not_subclass (positive half)." .
 
 # --- 3b. The seven AggregationFunction seeds exist as individuals (MUST) -----
 ex:saAggregationFunctionSeeds a gmeow:StructuralAssertion ;
@@ -76,7 +76,7 @@ ASK {
     gmeow:aggMinimum a gmeow:AggregationFunction .
     gmeow:aggMaximum a gmeow:AggregationFunction .
 }""" ;
-    gmeow:saRationale "All seven AggregationFunction seed individuals MUST exist — they are the closed enumeration of supported aggregation operations (#101). Mirrors test_aggregation_function_is_value_not_subclass (individual-existence half)." .
+    gmeow:saRationale "All seven AggregationFunction seed individuals MUST exist — they are the closed enumeration of supported aggregation operations. Mirrors test_aggregation_function_is_value_not_subclass (individual-existence half)." .
 
 # --- 3c. No per-function subclasses exist (MUST-NOT) -------------------------
 ex:saNoPerFunctionSubclasses a gmeow:StructuralAssertion ;
@@ -102,7 +102,7 @@ ASK {
         rdfs:domain gmeow:SpatialAggregation ;
         rdfs:range gmeow:AggregationFunction .
 }""" ;
-    gmeow:saRationale "gmeow:aggregationFunction MUST be an owl:ObjectProperty and owl:FunctionalProperty with domain SpatialAggregation and range AggregationFunction — each aggregation uses exactly one statistical function (#101). Mirrors test_aggregation_function_property_is_functional." .
+    gmeow:saRationale "gmeow:aggregationFunction MUST be an owl:ObjectProperty and owl:FunctionalProperty with domain SpatialAggregation and range AggregationFunction — each aggregation uses exactly one statistical function. Mirrors test_aggregation_function_property_is_functional." .
 
 # --- 5a. hasBin is an object property (MUST) ---------------------------------
 ex:saHasBinIsObjectProperty a gmeow:StructuralAssertion ;
@@ -116,7 +116,7 @@ ASK {
         rdfs:domain gmeow:SpatialAggregation ;
         rdfs:range gmeow:SpatialBin .
 }""" ;
-    gmeow:saRationale "gmeow:hasBin MUST be an owl:ObjectProperty with domain SpatialAggregation and range SpatialBin — links an aggregation to its constituent spatial bins (#101). Mirrors test_has_bin_is_non_functional (positive half)." .
+    gmeow:saRationale "gmeow:hasBin MUST be an owl:ObjectProperty with domain SpatialAggregation and range SpatialBin — links an aggregation to its constituent spatial bins. Mirrors test_has_bin_is_non_functional (positive half)." .
 
 # --- 5b. hasBin is NOT functional (MUST-NOT) ---------------------------------
 ex:saHasBinNotFunctional a gmeow:StructuralAssertion ;
@@ -125,7 +125,7 @@ ex:saHasBinNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:hasBin a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:hasBin MUST NOT be functional — a spatial aggregation spans multiple bins (#101). Mirrors test_has_bin_is_non_functional (negative half)." .
+    gmeow:saRationale "gmeow:hasBin MUST NOT be functional — a spatial aggregation spans multiple bins. Mirrors test_has_bin_is_non_functional (negative half)." .
 
 # --- 6. minimumPopulation datatype property shape (MUST) ---------------------
 ex:saMinimumPopulationProperty a gmeow:StructuralAssertion ;
@@ -140,7 +140,7 @@ ASK {
         rdfs:domain gmeow:SpatialAggregation ;
         rdfs:range xsd:nonNegativeInteger .
 }""" ;
-    gmeow:saRationale "gmeow:minimumPopulation MUST be an owl:DatatypeProperty and owl:FunctionalProperty with domain SpatialAggregation and range xsd:nonNegativeInteger — it carries the k-anonymity threshold (Principle 10, #101). Mirrors test_minimum_population_is_datatype." .
+    gmeow:saRationale "gmeow:minimumPopulation MUST be an owl:DatatypeProperty and owl:FunctionalProperty with domain SpatialAggregation and range xsd:nonNegativeInteger — it carries the k-anonymity threshold (Principle 10). Mirrors test_minimum_population_is_datatype." .
 
 # --- 7a. aggregationFunction carries no property chain axiom (MUST-NOT) ------
 ex:saAggregationFunctionNoChain a gmeow:StructuralAssertion ;

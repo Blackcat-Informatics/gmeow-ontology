@@ -96,7 +96,7 @@ gmeow:candidateHypothesis
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "candidate hypothesis"@x-gmeow-english ;
     rdfs:range gmeow:StandpointClaim ;
-    skos:definition "A candidate explanation considered by an abductive gmeow:InferenceCommitment — one of the competing hypotheses (gmeow:competesWith) among which the inference selects the best. NOT functional: inference-to-the-best-explanation weighs several. The winner's gmeow:claimModality is promoted conceivable->probable; the losers are suppressed (gmeow:displayable false), never erased."@x-gmeow-english ;
+    skos:definition "A candidate explanation considered by an abductive gmeow:InferenceCommitment — one of the competing hypotheses (gmeow:competesWith) among which the inference selects the best. NOT functional: inference-to-the-best-explanation weighs several. The winner is promoted conceivable->probable — the axis transition gmeow:polaritySuspend->gmeow:polarityAffirm + gmeow:modalForcePossible->gmeow:modalForceActual + gmeow:credencePossible->gmeow:credenceLikely, whose legacy gmeow:claimModality projection is conceivable->probable; the losers are suppressed (gmeow:displayable false), never erased."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:competesWith
@@ -250,14 +250,14 @@ gmeow:modeAbduction
     a gmeow:InferenceMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "abduction"@x-gmeow-english ;
-    skos:definition "Abductive inference — inference to the best explanation: construct candidate hypotheses (gmeow:candidateHypothesis) for an explanandum, back-check them (gmeow:explains), and rank by gmeow:explanatoryScore. Not truth-preserving; defeasible; default modality gmeow:conceivable, promoted to gmeow:probable for the winner; rivals genuinely compete (gmeow:competesWith)."@x-gmeow-english ;
+    skos:definition "Abductive inference — inference to the best explanation: construct candidate hypotheses (gmeow:candidateHypothesis) for an explanandum, back-check them (gmeow:explains), and rank by gmeow:explanatoryScore. Not truth-preserving; defeasible; default axes (suspend, possible, credencePossible, assume, truth-aimed, neither) — the legacy gmeow:conceivable projection — promoted for the winner to (affirm, actual, credenceLikely, conjecture, truth-aimed, supported) = gmeow:probable; rivals genuinely compete (gmeow:competesWith)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:modeAnalogical
     a gmeow:InferenceMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "analogical"@x-gmeow-english ;
-    skos:definition "Analogical inference — source-to-target structure-mapping (Gentner): transfer relational structure from a familiar source to a target via a gmeow:Analogy, scored by gmeow:systematicity. Not truth-preserving; defeasible; default modality gmeow:conceivable, promoted to gmeow:probable for the best mapping; rival mappings compete."@x-gmeow-english ;
+    skos:definition "Analogical inference — source-to-target structure-mapping (Gentner): transfer relational structure from a familiar source to a target via a gmeow:Analogy, scored by gmeow:systematicity. Not truth-preserving; defeasible; default axes projecting to the legacy gmeow:conceivable, promoted to the gmeow:probable tuple for the best mapping; rival mappings compete."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:modeDeduction
@@ -319,15 +319,15 @@ gmeow:warrant
 
 DOCTRINE.
   * Modes differ by a VALUE + a WARRANT, never by subsumption (the deception discipline — divergence is a gmeow:InferenceMode value, not a subclass). The four Peircean modes (gmeow:modeDeduction / modeInduction / modeAbduction / modeAnalogical) ride one class, never a taxonomy.
-  * No re-minted truth bit (Principle 6): strength rides the EXISTING logic: axes (logic:weight / logic:confidence / logic:evidenceStrength / logic:probability — BY REFERENCE, no asserted triples into logic:); modality reuses the EXISTING gmeow:StandpointModality (gmeow:unequivocal / probable / conceivable / refuted / bullshit).
+  * No re-minted truth bit (Principle 6): strength rides the EXISTING logic: axes (logic:weight / logic:confidence / logic:evidenceStrength / logic:probability — BY REFERENCE, no asserted triples into logic:); modality reuses the EXISTING standpoint modality, now the six factored axes (gmeow:Polarity / ModalForce / CredenceLevel / AssertoricForce / TruthDirectedness / SupportStatus), of which the legacy five-value gmeow:StandpointModality (gmeow:unequivocal / probable / conceivable / refuted / bullshit) is the lossless projection a mode's default reads as.
   * ENDURANT / OCCURRENT SPLIT (gUFO's master split — the reason this slice does NOT mint a single double-typed gmeow:Inference). Two classes:
-      - gmeow:InferenceProcess rdfs:subClassOf gmeow:MentalProcess — the OCCURRENT reasoning episode (perdurant); the reparenting hook the mentation slice (#586) reserves. Carries gmeow:experiencer and gmeow:mentalProcessType gmeow:processReasoning; gmeow:producesMentalMoment the belief it creates.
+      - gmeow:InferenceProcess rdfs:subClassOf gmeow:MentalProcess — the OCCURRENT reasoning episode (perdurant); the reparenting hook the mentation slice reserves. Carries gmeow:experiencer and gmeow:mentalProcessType gmeow:processReasoning; gmeow:producesMentalMoment the belief it creates.
       - gmeow:InferenceCommitment rdfs:subClassOf gufo:Relator — the ENDURANT structured argument relation (premises x conclusion x warrant x defeaters x assessor); the gmeow:Commitment idiom.
       - gmeow:hasInferenceCommitment bridges process to commitment.
   * Three tiers of fidelity (flat-first, reify on demand — Principle 4): (1) FLAT spine on the claim — gmeow:inferredFrom + gmeow:inferenceMode, the 80% case; (2) the REIFIED gmeow:InferenceCommitment relator when the argument structure matters; (3) the OCCURRENT gmeow:InferenceProcess when the reasoning episode joins the agent's mental timeline.
   * BELIEF UPTAKE (seam to epistemics): a deductively-closed belief is gmeow:believes with modality gmeow:unequivocal; an inductive / abductive / analogical belief arrives as gmeow:believes + attributed modality + confidence (the gmeow:deceptiveIntentClaim idiom: attributed, defeasible, vantage = the assessor).
   * BELIEF REVISION = SUPPRESSION (Principle 10): a fired defeater sets the conclusion-claim gmeow:displayable false and closes an gmeow:InferenceTenure; the gmeow:InferenceCommitment is retained as audit, never erased.
-  * COMPUTE OUTSIDE THE LOGIC (Principle 12): gmeow:explanatoryScore (IBE) and gmeow:systematicity (Gentner) are solver-layer decimals; there is no isBest bit — the winner's claimModality is promoted conceivable->probable and the losers are suppressed.
+  * COMPUTE OUTSIDE THE LOGIC (Principle 12): gmeow:explanatoryScore (IBE) and gmeow:systematicity (Gentner) are solver-layer decimals; there is no isBest bit — the winner is promoted conceivable->probable, an axis transition (gmeow:polaritySuspend->gmeow:polarityAffirm, gmeow:modalForcePossible->gmeow:modalForceActual, gmeow:credencePossible->gmeow:credenceLikely) whose legacy projection is conceivable->probable, and the losers are suppressed.
   * eventTypeInference DROPPED (Principle 4): gmeow:InferenceProcess carrying gmeow:mentalProcessType gmeow:processReasoning is the single canonical occurrent marker; a parallel gmeow:EventType value would be a second canonical source for the same fact.
 
 ALIGNMENT (by reference — see mappings/equivalences.ttl). PROV-O (InferenceProcess ~ prov:Activity, inferredFrom ~ prov:wasDerivedFrom); CRMinf (InferenceCommitment ~ I1_Argumentation / I5_Inference_Making, StandpointModality ~ I6_Belief_Value); analogy ~ Gentner structure-mapping engine; AIF / Toulmin / Peirce in prose."""@x-gmeow-english ;

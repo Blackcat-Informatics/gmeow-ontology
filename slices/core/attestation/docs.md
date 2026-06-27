@@ -166,7 +166,7 @@ ex:ctEntry a gmeow:TransparencyLogEntry ;
     gmeow:ledgerInclusionProof "base64:proofData…" .
 ```
 
-## Release-as-evidence: GMEOW dogfoods its own attestations (#673)
+## Release-as-evidence: GMEOW dogfoods its own attestations
 
 GMEOW's own signed release is the flagship use of this slice (CONSTITUTION.md §18,
 the *release-as-evidence* clause). `make full-release` runs the native authority gate,

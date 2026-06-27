@@ -46,6 +46,6 @@ kind-derived value (single source of truth — RDF and Rust cannot disagree); an
 
 ## Consumer
 
-The `gmeow-pipeline` crate (#861). The migrated `meta:gate-generator-registry` queries
+The `gmeow-pipeline` crate. The migrated `meta:gate-generator-registry` queries
 `gmeow:pipeline-build`'s stages instead of the retired Python generator list, so the registry gate is
 itself dogfooded against this slice.

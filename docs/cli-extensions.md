@@ -3,9 +3,9 @@
 
 # CLI extension roll-up: `gmeow` discovers installed slice CLIs
 
-> **Status:** specification (issue #326, design locked 2026-06-11 under #287).
+> **Status:** specification (design locked 2026-06-11).
 > **Implementation is deferred** until a second real extension CLI exists
-> (Principle 15) — Music's render tooling (#319) is the natural first
+> (Principle 15) — Music's render tooling is the natural first
 > consumer, `gmeow-image` the worked exemplar throughout. This document and
 > the manifest fields it consumes are the deliverable; when the first
 > extension CLI ships, no re-architecture is required.
@@ -27,7 +27,7 @@ name their own dependencies.
 ## 1. Discovery and dispatch
 
 An extension slice declares the subcommands it contributes in its
-`manifest.ttl` (#287) with **`gmeow:providesSubcommand`** (multi-valued,
+`manifest.ttl` with **`gmeow:providesSubcommand`** (multi-valued,
 defined in `slices/vocabulary.ttl`, validated structurally by
 `shapes/slice-manifest-shapes.ttl`):
 
@@ -59,9 +59,9 @@ Principle 13.
 
 A GTS file's header declares the profiles its data requires — the `"prof"`
 field (GTS-SPEC §5, §13) and, for slice-built packages, the multi-valued
-`gmeow:sliceProfile` names that double as GTS sub-profile tags (#330 twin
-doctrine: one name is both the OWL composition profile IRI and the package
-tag). **The data file is its own dependency manifest.**
+`gmeow:sliceProfile` names that double as GTS sub-profile tags (one name is
+both the OWL composition profile IRI and the package tag). **The data file is
+its own dependency manifest.**
 
 The base CLI reads the header — a header read, not a fold — and:
 
@@ -108,13 +108,13 @@ for any core slice workflow.
 
 An extension's manifest declares the core version range it was built against
 — **`gmeow:builtAgainstCore`** (`slices/vocabulary.ttl`; required for
-third-party slices). At dispatch the roll-up compares the declaration with
+third-party slices). At dispatch, the roll-up compares the declaration with
 the installed core's `owl:versionInfo` and **warns on mismatch** (it does not
 refuse: the ontology's immutable-release discipline, Principle 6, makes
 skew detectable and usually harmless; refusal is reserved for the extension
 itself when its data contract is actually broken).
 
-## Manifest fields consumed (all already in the #287 schema)
+## Manifest fields consumed
 
 | field | role here |
 | --- | --- |
@@ -126,5 +126,4 @@ itself when its data contract is actually broken).
 
 Constitution: **P13** (tools are the interface), **P12** (solver boundary),
 **P15** (loader deferred until a named consumer), **P16** (extensions),
-**P10** (append-only transforms). Related issues: #287 (manifests), #267
-(GTS), #330 (profile twins), #319 (first consumer), #306 (Music EPIC).
+**P10** (append-only transforms).

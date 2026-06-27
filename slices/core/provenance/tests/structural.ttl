@@ -5,7 +5,7 @@
 # test-DSL twin of the asserted-TBox MUST invariants formerly hand-written in
 # tests/test_provenance.py. Each runs as a SPARQL ASK over the provenance module
 # graph (gmeow:scopeModule) under the native Rust slicetest harness.
-# Provenance is #694-migrated (logic:Event, logic:Kind, logic:SubKind, not gufo:).
+# Provenance is migrated (logic:Event, logic:Kind, logic:SubKind, not gufo:).
 #
 # RETAINED in pytest (all subjects are cross-slice):
 #   test_carrier_and_ingestion_props — gmeow:sourceModifiedAt and gmeow:contentDigest

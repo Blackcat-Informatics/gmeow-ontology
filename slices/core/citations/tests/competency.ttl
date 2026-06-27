@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative competency question for the citations slice (crates/slicetest, #784),
-# migrated from test_competency_citation_intents_query under #867. TBox subset over
+# Declarative competency question for the citations slice (crates/slicetest),
+# migrated from test_competency_citation_intents_query. TBox subset over
 # the asserted merged ontology (contains-check). The source asserted a len >= 10
 # floor; the ten named intents are pinned (the floor has no DSL operator and is a
-# faithful relaxation, never strengthened to exact). No #869 Gap-1 universal.
+# faithful relaxation, never strengthened to exact). No Gap-1 universal.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/citations/tests/> .

@@ -4,12 +4,14 @@
 //! Native standpoint-projection emission — GMEOW's hand-authored
 //! `generated/queries/standpoint-*.rq` SPARQL CONSTRUCT projections (#861).
 //!
-//! Unlike the per-profile SPARQL projections ([`crate::sparql_emit`]), these six
+//! Unlike the per-profile SPARQL projections ([`crate::sparql_emit`]), these
 //! queries are NOT compiled from the `mapping-dsl/` tree: they are fixed,
-//! template-coded SPARQL strings (the `standpointLabel` encoding and its siblings)
-//! that re-express the standpoint axis as each peer model (Standpoint-OWL 2,
-//! CRMinf, PROV-O, Web Annotation, schema.org Claim, BBC News Ontology). The
-//! historical Python emitters were ported here verbatim.
+//! template-coded SPARQL strings. Six re-express the standpoint axis as each
+//! peer model (Standpoint-OWL 2, CRMinf, PROV-O, Web Annotation, schema.org
+//! Claim, BBC News Ontology) — the `standpointLabel` encoding and its siblings,
+//! ported from the historical Python emitters verbatim. The seventh,
+//! `standpoint-modality.rq`, is the table-driven projection of the six canonical
+//! claim-modality axes down to the legacy five-value `gmeow:claimModality`.
 //!
 //! Each emitter assembles a fixed `header` + `body` and threads the body through
 //! the shared [`crate::sparql_emit::prefix_block`] (registry-ordered `PREFIX`
@@ -25,8 +27,8 @@ use crate::sparql_emit::{prefix_block, GENERATED_BANNER};
 /// GMEOW's ontology IRI (no trailing slash), mirroring `config.ONTOLOGY_IRI`.
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
 
-/// The committed file names for the six standpoint projections, in the emission
-/// order Python registers them (`_artifacts`).
+/// The committed file names for the seven standpoint projections (six peer-model
+/// re-expressions plus the legacy-modality projection), in emission order.
 const STANDPOINT_FILES: &[&str] = &[
     "standpoint-owl2.rq",
     "standpoint-crminf.rq",
@@ -34,10 +36,11 @@ const STANDPOINT_FILES: &[&str] = &[
     "standpoint-oa.rq",
     "standpoint-schema.rq",
     "standpoint-bbc.rq",
+    "standpoint-modality.rq",
 ];
 
 /// Emit every standpoint SPARQL projection, returning `{ "standpoint-<x>.rq" →
-/// rq_text }` for all six fixed projections.
+/// rq_text }` for all seven fixed projections.
 ///
 /// These take no DSL input — they are constant template-coded queries — so the
 /// `root` argument is accepted only for call-site symmetry with the other mapping
@@ -58,6 +61,7 @@ pub fn emit_standpoint_sets(
         emit_oa(),
         emit_schema(),
         emit_bbc(),
+        emit_modality(),
     ];
     let mut out: BTreeMap<String, String> = BTreeMap::new();
     for (name, text) in STANDPOINT_FILES.iter().zip(texts) {
@@ -369,6 +373,60 @@ fn emit_bbc() -> String {
     assemble(&header, &body)
 }
 
+// ── Factored claim-modality legacy projection ────────────────────────────────
+
+fn emit_modality() -> String {
+    // Build one UNION arm per row of the DECOMPOSITIONS table — the single source
+    // of truth, read at runtime so the emitter and the logic module share the same
+    // five rows without hard-coding them a second time.
+    let rows = crate::standpoint_modality::decompositions();
+
+    // Build the WHERE arms (one UNION block per row).
+    let mut arms: Vec<String> = Vec::new();
+    for d in rows {
+        let arm = format!(
+            "{{ ?claim a gmeow:StandpointClaim ;\n\
+             \x20       gmeow:claimPolarity gmeow:{polarity} ;\n\
+             \x20       gmeow:claimModalForce gmeow:{modal_force} ;\n\
+             \x20       gmeow:claimCredenceLevel gmeow:{credence} ;\n\
+             \x20       gmeow:claimAssertoricForce gmeow:{assertoric_force} ;\n\
+             \x20       gmeow:claimTruthDirectedness gmeow:{truth_directedness} ;\n\
+             \x20       gmeow:claimSupportStatus gmeow:{support_status} .\n\
+             \x20   BIND(gmeow:{legacy} AS ?legacy) }}",
+            legacy = d.legacy,
+            polarity = d.polarity,
+            modal_force = d.modal_force,
+            credence = d.credence,
+            assertoric_force = d.assertoric_force,
+            truth_directedness = d.truth_directedness,
+            support_status = d.support_status,
+        );
+        arms.push(arm);
+    }
+
+    let where_union = arms.join("\n    UNION\n    ");
+
+    let body = format!(
+        "CONSTRUCT {{\n\
+         \x20   ?claim gmeow:claimModality ?legacy .\n\
+         }}\n\
+         WHERE {{\n\
+         \x20   {where_union}\n\
+         }}\n"
+    );
+
+    let header = format!(
+        "# Projection: GMEOW factored claim-modality axes \u{2192} legacy gmeow:claimModality. {GENERATED_BANNER}\n\
+         # Read the six canonical axis properties (claimPolarity, claimModalForce,\n\
+         # claimCredenceLevel, claimAssertoricForce, claimTruthDirectedness,\n\
+         # claimSupportStatus) and reconstruct the legacy gmeow:claimModality value\n\
+         # for any StandpointClaim whose axis tuple matches one of the five seeded\n\
+         # decompositions. Tuples with no legacy equivalent produce no triple\n\
+         # (hard-unsupported, never approximated \u{2014} Principle 9).\n"
+    );
+    assemble(&header, &body)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -416,6 +474,6 @@ mod tests {
             mismatches.len(),
             mismatches.join("\n")
         );
-        assert_eq!(sets.len(), 6, "expected 6 standpoint files");
+        assert_eq!(sets.len(), 7, "expected 7 standpoint files");
     }
 }

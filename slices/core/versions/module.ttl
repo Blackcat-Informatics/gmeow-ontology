@@ -272,7 +272,7 @@ gmeow:versionSet
     gmeow:howToUse "Set exactly one versionSet, an existing gmeow:VersionSet individual, alongside the relator's gmeow:versionMember."@x-gmeow-english ;
     gmeow:useWhen "Use to name the one lineage a VersionMembership places its member into — the concept-level family the version belongs to."@x-gmeow-english .
 
-# ── Per-term lifecycle metadata (#1026) ─────────────────────────────────────────
+# ── Per-term lifecycle metadata ──────────────────────────────────────────────────
 # Maturity and changelog signals about a VOCABULARY TERM (a class or property in
 # the TBox), distinct from the standpoint-scoped instance-level version roles
 # above. Asserted with owl:AnnotationProperty (the gmeow:accordingTo pattern,
@@ -349,7 +349,7 @@ gmeow:ChangelogEntry
     gmeow:hasChangelogEntry [
         a gmeow:ChangelogEntry ;
         gmeow:entryVersion "1.0.2" ;
-        gmeow:entryNote "Introduced the reified per-term changelog record (#1026); entries are seeded editorially pending release-as-evidence automation (CONSTITUTION §18)."@x-gmeow-english ;
+        gmeow:entryNote "Introduced the reified per-term changelog record; entries are seeded editorially pending release-as-evidence automation (CONSTITUTION §18)."@x-gmeow-english ;
     ] ;
     rdfs:label "Changelog Entry"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -368,7 +368,7 @@ gmeow:hasChangelogEntry
     gmeow:hasChangelogEntry [
         a gmeow:ChangelogEntry ;
         gmeow:entryVersion "1.0.2" ;
-        gmeow:entryNote "Introduced the per-term changelog annotation (#1026) — attaches gmeow:ChangelogEntry records to a vocabulary term."@x-gmeow-english ;
+        gmeow:entryNote "Introduced the per-term changelog annotation — attaches gmeow:ChangelogEntry records to a vocabulary term."@x-gmeow-english ;
     ] ;
     rdfs:label "has changelog entry"@x-gmeow-english ;
     skos:definition "Attaches a gmeow:ChangelogEntry to the vocabulary term it describes. An owl:AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) so a class or property can carry per-release history while the generated OWL stays in OWL 2 DL. Non-functional: a term accrues one entry per release."@x-gmeow-english ;

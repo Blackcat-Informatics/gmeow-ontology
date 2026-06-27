@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the teleology slice (#350, EPIC #348) —
+# Declarative structural assertions for the teleology slice —
 # the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
 # invariants formerly hand-written in tests/test_teleology.py. Each assertion
 # runs as a SPARQL ASK over the teleology module graph (gmeow:scopeModule)
 # under the native Rust slicetest harness (crates/slicetest).
 #
-# Teleology is #694-migrated: class stereotypes are logic:
+# Teleology is migrated: class stereotypes are logic:
 # (logic:Kind, logic:Category, logic:Situation, logic:Relator), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
@@ -44,7 +44,7 @@ ASK {
     gmeow:Goal a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:SocialObject .
 }""" ;
-    gmeow:saRationale "gmeow:Goal MUST be an owl:Class typed logic:Kind and a subclass of gmeow:SocialObject — the propositional content of intentional modes exists by social convention, not by inherence (#350). Mirrors test_goal_is_a_social_object_kind." .
+    gmeow:saRationale "gmeow:Goal MUST be an owl:Class typed logic:Kind and a subclass of gmeow:SocialObject — the propositional content of intentional modes exists by social convention, not by inherence. Mirrors test_goal_is_a_social_object_kind." .
 
 # --- 2. IntentionalMode is a logic:Category subclass of IntentionalMoment and MentalMoment (MUST) ---
 ex:saIntentionalModeIsCategory a gmeow:StructuralAssertion ;
@@ -59,7 +59,7 @@ ASK {
         rdfs:subClassOf gmeow:MentalMoment ;
         rdfs:subClassOf gmeow:IntentionalMoment .
 }""" ;
-    gmeow:saRationale "gmeow:IntentionalMode MUST be an owl:Class typed logic:Category and subclass of both gmeow:MentalMoment and gmeow:IntentionalMoment — the intrinsic branch joins the mental-moment family while spanning the intentional umbrella (#350, #556). Mirrors test_intrinsic_modes_are_grounded (module-local part)." .
+    gmeow:saRationale "gmeow:IntentionalMode MUST be an owl:Class typed logic:Category and subclass of both gmeow:MentalMoment and gmeow:IntentionalMoment — the intrinsic branch joins the mental-moment family while spanning the intentional umbrella. Mirrors test_intrinsic_modes_are_grounded (module-local part)." .
 
 # --- 3. Desire is a logic:Kind subclass of IntentionalMode (MUST) --------------
 ex:saDesireIsKindIntentionalMode a gmeow:StructuralAssertion ;
@@ -73,7 +73,7 @@ ASK {
     gmeow:Desire a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:IntentionalMode .
 }""" ;
-    gmeow:saRationale "gmeow:Desire MUST be an owl:Class typed logic:Kind and a subclass of gmeow:IntentionalMode — wanting without commitment is the lowest grade of the trichotomy (#350). Mirrors test_intrinsic_modes_are_grounded (Desire part)." .
+    gmeow:saRationale "gmeow:Desire MUST be an owl:Class typed logic:Kind and a subclass of gmeow:IntentionalMode — wanting without commitment is the lowest grade of the trichotomy. Mirrors test_intrinsic_modes_are_grounded (Desire part)." .
 
 # --- 4. Intention is a logic:Kind subclass of IntentionalMode (MUST) -----------
 ex:saIntentionIsKindIntentionalMode a gmeow:StructuralAssertion ;
@@ -87,7 +87,7 @@ ASK {
     gmeow:Intention a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:IntentionalMode .
 }""" ;
-    gmeow:saRationale "gmeow:Intention MUST be an owl:Class typed logic:Kind and a subclass of gmeow:IntentionalMode — internal commitment is the middle grade of the trichotomy (#350). Mirrors test_intrinsic_modes_are_grounded (Intention part)." .
+    gmeow:saRationale "gmeow:Intention MUST be an owl:Class typed logic:Kind and a subclass of gmeow:IntentionalMode — internal commitment is the middle grade of the trichotomy. Mirrors test_intrinsic_modes_are_grounded (Intention part)." .
 
 # --- 5. Commitment is a logic:Kind subclass of logic:Relator and IntentionalMoment (MUST) ---
 ex:saCommitmentIsKindRelator a gmeow:StructuralAssertion ;
@@ -102,7 +102,7 @@ ASK {
         rdfs:subClassOf logic:Relator ;
         rdfs:subClassOf gmeow:IntentionalMoment .
 }""" ;
-    gmeow:saRationale "gmeow:Commitment MUST be an owl:Class typed logic:Kind with subClassOf logic:Relator and gmeow:IntentionalMoment — social commitment mediates agents rather than inhering in one, so it is a relator not a mode (#350). Mirrors test_commitment_is_a_relator_not_a_mode (positive part)." .
+    gmeow:saRationale "gmeow:Commitment MUST be an owl:Class typed logic:Kind with subClassOf logic:Relator and gmeow:IntentionalMoment — social commitment mediates agents rather than inhering in one, so it is a relator not a mode. Mirrors test_commitment_is_a_relator_not_a_mode (positive part)." .
 
 # --- 6. Commitment is NOT a subclass of IntentionalMode (MUST-NOT) ------------
 ex:saCommitmentNotSubclassIntentionalMode a gmeow:StructuralAssertion ;
@@ -113,7 +113,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Commitment rdfs:subClassOf gmeow:IntentionalMode .
 }""" ;
-    gmeow:saRationale "gmeow:Commitment MUST NOT be a subclass of gmeow:IntentionalMode — social commitment is a relator (social branch), while IntentionalMode is the intrinsic branch; they are siblings under IntentionalMoment (#350). Mirrors test_commitment_is_a_relator_not_a_mode (negative part)." .
+    gmeow:saRationale "gmeow:Commitment MUST NOT be a subclass of gmeow:IntentionalMode — social commitment is a relator (social branch), while IntentionalMode is the intrinsic branch; they are siblings under IntentionalMoment. Mirrors test_commitment_is_a_relator_not_a_mode (negative part)." .
 
 # --- 7. IntentionalMoment is a logic:Category subclass of Entity (MUST) --------
 ex:saIntentionalMomentIsCategory a gmeow:StructuralAssertion ;
@@ -127,7 +127,7 @@ ASK {
     gmeow:IntentionalMoment a owl:Class , logic:Category ;
         rdfs:subClassOf gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:IntentionalMoment MUST be an owl:Class typed logic:Category and a subclass of gmeow:Entity — the named umbrella provides a generator-visible domain for intentionGoal and motivates rather than an anonymous union (PR #366 review). Mirrors test_goal_properties_carry_named_generator_visible_domains (IntentionalMoment structure part)." .
+    gmeow:saRationale "gmeow:IntentionalMoment MUST be an owl:Class typed logic:Category and a subclass of gmeow:Entity — the named umbrella provides a generator-visible domain for intentionGoal and motivates rather than an anonymous union. Mirrors test_goal_properties_carry_named_generator_visible_domains (IntentionalMoment structure part)." .
 
 # --- 8. intentionGoal and motivates have domain IntentionalMoment (MUST) ------
 ex:saIntentionGoalAndMotivatesDomain a gmeow:StructuralAssertion ;
@@ -139,7 +139,7 @@ ASK {
     gmeow:intentionGoal rdfs:domain gmeow:IntentionalMoment .
     gmeow:motivates     rdfs:domain gmeow:IntentionalMoment .
 }""" ;
-    gmeow:saRationale "gmeow:intentionGoal and gmeow:motivates MUST both have rdfs:domain gmeow:IntentionalMoment — the named umbrella makes the domain generator-visible across the whole intentional family (PR #366 review, Principle 15). Mirrors test_goal_properties_carry_named_generator_visible_domains (domain part)." .
+    gmeow:saRationale "gmeow:intentionGoal and gmeow:motivates MUST both have rdfs:domain gmeow:IntentionalMoment — the named umbrella makes the domain generator-visible across the whole intentional family (Principle 15). Mirrors test_goal_properties_carry_named_generator_visible_domains (domain part)." .
 
 # --- 9. Desire and Intention are declared owl:AllDisjointClasses (MUST) -------
 ex:saDesireIntentionDisjoint a gmeow:StructuralAssertion ;
@@ -153,7 +153,7 @@ ASK {
         owl:members/rdf:rest*/rdf:first gmeow:Desire .
     ?dc owl:members/rdf:rest*/rdf:first gmeow:Intention .
 }""" ;
-    gmeow:saRationale "gmeow:Desire and gmeow:Intention MUST appear together in an owl:AllDisjointClasses declaration — wanting without commitment and internal commitment are mutually exclusive grades of the trichotomy (#350). Mirrors test_desire_intention_disjoint (presence arm)." .
+    gmeow:saRationale "gmeow:Desire and gmeow:Intention MUST appear together in an owl:AllDisjointClasses declaration — wanting without commitment and internal commitment are mutually exclusive grades of the trichotomy. Mirrors test_desire_intention_disjoint (presence arm)." .
 
 # --- 9b. The Desire/Intention disjoint set is CLOSED to exactly those two (MUST-NOT) ---
 ex:saDesireIntentionDisjointClosed a gmeow:StructuralAssertion ;
@@ -183,7 +183,7 @@ ASK {
     gmeow:tenureAgent     a owl:FunctionalProperty .
     gmeow:tenureIntention a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:intentBearer, committedAgent, intentionGoal, tenureAgent, and tenureIntention MUST all be owl:FunctionalProperty — each intrinsic/social mode has exactly one bearer, one committed agent, one goal, one tenure-agent, and one tenure-mode (native single-bearer doctrine, Principle 5; #350). Mirrors test_functional_constituents (functional part)." .
+    gmeow:saRationale "gmeow:intentBearer, committedAgent, intentionGoal, tenureAgent, and tenureIntention MUST all be owl:FunctionalProperty — each intrinsic/social mode has exactly one bearer, one committed agent, one goal, one tenure-agent, and one tenure-mode (native single-bearer doctrine, Principle 5). Mirrors test_functional_constituents (functional part)." .
 
 # --- 11. commitmentBeneficiary, satisfiedBy, motivates, hasGoal are NOT functional (MUST-NOT) ---
 ex:saNonFunctionalProperties a gmeow:StructuralAssertion ;
@@ -209,7 +209,7 @@ ASK {
         rdfs:domain gmeow:Goal ;
         rdfs:range  gmeow:Goal .
 }""" ;
-    gmeow:saRationale "gmeow:counterGoal MUST be an owl:SymmetricProperty with rdfs:domain and rdfs:range gmeow:Goal — constitutive opposition is mutual by definition; each pole defines the other (#350). Mirrors test_counter_goal_is_symmetric_goal_to_goal." .
+    gmeow:saRationale "gmeow:counterGoal MUST be an owl:SymmetricProperty with rdfs:domain and rdfs:range gmeow:Goal — constitutive opposition is mutual by definition; each pole defines the other. Mirrors test_counter_goal_is_symmetric_goal_to_goal." .
 
 # --- 13. IntentionTenure is a logic:Situation subclass of TimeScopedRelation (MUST) ---
 ex:saIntentionTenureIsSituationType a gmeow:StructuralAssertion ;
@@ -223,4 +223,4 @@ ASK {
     gmeow:IntentionTenure a owl:Class , logic:Situation ;
         rdfs:subClassOf gmeow:TimeScopedRelation .
 }""" ;
-    gmeow:saRationale "gmeow:IntentionTenure MUST be an owl:Class typed logic:Situation and a subclass of gmeow:TimeScopedRelation — the StandpointTenure idiom applied to teleology; adoption and revision over time is the fact of interest, never a deletion (Principle 10; #350). Mirrors test_intention_tenure_is_the_standpoint_tenure_idiom." .
+    gmeow:saRationale "gmeow:IntentionTenure MUST be an owl:Class typed logic:Situation and a subclass of gmeow:TimeScopedRelation — the StandpointTenure idiom applied to teleology; adoption and revision over time is the fact of interest, never a deletion (Principle 10). Mirrors test_intention_tenure_is_the_standpoint_tenure_idiom." .

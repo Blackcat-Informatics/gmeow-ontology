@@ -4,7 +4,7 @@
 # Declarative structural assertions for the awareness slice — the slice-resident
 # test-DSL twin of the MUST / MUST-NOT invariants formerly hand-written in
 # tests/test_awareness.py. Authored as gmeow: ontology data so the same
-# annotation discipline and the native Rust harness (crates/slicetest, #784)
+# annotation discipline and the native Rust harness (crates/slicetest)
 # drive the test, not ad-hoc Python. Each assertion runs as a SPARQL ASK over the
 # module graph (gmeow:scopeModule); a positive universal over a fixed term set is
 # a single MUST with a conjunctive pattern (every conjunct anchored on a concrete
@@ -13,7 +13,7 @@
 # ASK FINDS the forbidden pattern across every triple position, so it quantifies
 # over the WHOLE module graph rather than a hand-listed set.
 #
-# NAMESPACE: the awareness module is migrated under #694 — its value
+# NAMESPACE: the awareness module is migrated — its value
 # classes are typed with the canonical logic meta-vocabulary (logic:AbstractIndividualType,
 # logic:QualityValue, logic:Situation). These cells mirror the module's CURRENT
 # logic: shape, not a normalized form.

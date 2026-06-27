@@ -9,7 +9,7 @@ the transitive temporal closures with **no materializing reasoner**.
 
 ## What makes it work
 
-Two model features (added in the #41 temporal deepening) make events temporally
+Two model features (added in the temporal deepening) make events temporally
 queryable in plain SPARQL:
 
 1. **Allen relations between events** — `gmeow:before`/`after`/`meets`/`metBy`/
@@ -36,7 +36,7 @@ traverses the declared `owl:inverseOf` pairs without materialization.
 | `during-event` | `focus` | events temporally within a focus event |
 | `timeline` | — | every event with its effective start instant, ordered |
 | `overlapping-window` | `windowStart`, `windowEnd` | events overlapping a time window |
-| `bitemporal` | `validAt`, `asOf` | claims valid at `validAt` and asserted by `asOf` — standpoint-indexed, **no winner** (#43) |
+| `bitemporal` | `validAt`, `asOf` | claims valid at `validAt` and asserted by `asOf` — standpoint-indexed, **no winner** |
 
 ## Running it
 

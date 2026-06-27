@@ -35,6 +35,7 @@ gmeow:mapsetStandpoint a gmeow:MappingSet ;
         NANOPUBLICATIONS: gmeow:StatementMetadata reuses the nanopublication assertion/provenance split and adds the temporal standpoint axis.
         TRANSCENDENCE: GMEOW supersets the event-centric Attributions model (arXiv:2503.03563) — its stated limitations of static viewpoints (no time) and neutral-stance ambiguity are met by gmeow:StandpointTenure (standpoint-time) and the three orthogonal axes; GMEOW is View-Preserving (no forced propagation), so the aggregate/constituent representation paradox cannot arise.
         CRMinf PARITY: GMEOW is at least as expressive as the CIDOC-CRM Argumentation model — the reified statement is an I4 Proposition Set, a StandpointTenure is a (temporal) I2 Belief, the standpoint is the actor of an I1 Argumentation, and gmeow:standpointModality spans the J5-holds-to-be belief value (true/probable/possible/false), so a denial is first-class, not just an absence. It is GENERATED as a lossless projection (queries/projections/standpoint-crminf.rq).
+        FACTORED MODALITY: claim modality is now the six orthogonal axes (gmeow:Polarity / ModalForce / CredenceLevel / AssertoricForce / TruthDirectedness / SupportStatus), of which the legacy five-value gmeow:standpointModality is the lossless projection — so GMEOW remains at least as expressive as CRMinf (the belief value rides gmeow:Polarity + gmeow:ModalForce + gmeow:CredenceLevel) while ALSO subsuming the Belnap four-valued support status (gmeow:SupportStatus, aligned by prose to logic:InformationState) and the Frankfurt bullshit stance (gmeow:TruthDirectedness indifferent) that CRMinf's belief value cannot express.
         A standpoint-indexed claim is also a PROV-O entity attributed to its standpoint agent, a W3C Web Annotation (body/target/creator), and a DOLCE+DnS Situation read from the standpoint's Description — projected, respectively, by standpoint-prov.rq and standpoint-oa.rq.
         It relates conceptually (no clean GMEOW-term row, or no stable RDF namespace, to align) to: CKR contexts (GMEOW factors time/place into its own modules, keeping only the perspective axis here); MVP-OWL multi-viewpoint classes; ClaiMaker source-anchored claims; the NdFluents/4dFluents family of contextualization mechanisms (GMEOW's RDF-1.2 reification is the benchmarked-best such mechanism); the Argument Interchange Format (AIF: I-nodes for the claims, CA-nodes for the conflicts between coexisting standpoints); and SPAR CiTO citation functions (cito:disputes/supports/refutes) — which GMEOW realises structurally as coexisting, modality-valued claims rather than as inter-entity edges.""" ;
     gmeow:setTrailer "# REFUSED (Principle 9 — no single slot to win): standpoint-indexed claims are co-equal; GMEOW has no preferred/primary claim.\n# gmeow:accordingTo  ✗ REFUSED  wikibase:rank / wikibase:PreferredRank — a preferred rank re-creates the single winner that IS the object of the edit war. GMEOW keeps Wikidata references/qualifiers as relatedMatch targets but never adopts rank." .
@@ -278,4 +279,45 @@ gmeow:eqStandpoint023 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
     gmeow:comment "the bullshit modality (indifference to truth) extends CRMinf's belief value space — it is neither true nor false, but a distinct stance toward correspondence" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# Factored claim-modality axes — per-axis CRMinf alignments. The legacy
+# gmeow:standpointModality (eqStandpoint008) stays the lossless projection these
+# axes decompose; each axis is aligned to the CRMinf belief-value surface it
+# refines, keeping the "at least as expressive as CRMinf" invariant.
+
+gmeow:eqStandpoint024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:standpointPolarity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:J5_holds_to_be ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "the affirm/deny/suspend polarity axis refines CRMinf's J5 holds-to-be — gmeow:polarityDeny is the canonical carrier of the J5 'false' belief value (the legacy gmeow:refuted projection), frame-relative, never global-false (Principle 9)" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+gmeow:eqStandpoint025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:standpointModalForce ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:I6_Belief_Value ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the alethic modal-force axis (Standpoint-Logic box/diamond — necessary/actual/possible/counterfactual) refines the CRMinf belief-value space, carrying the true/possible distinction CRMinf's J5 collapses" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+gmeow:eqStandpoint026 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:standpointTruthDirectedness ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:I6_Belief_Value ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the truth-directedness axis (truth-aimed/indifferent/strategic) extends CRMinf's belief-value space — gmeow:truthIndifferent (Frankfurt bullshit) is a stance toward correspondence CRMinf's J5 cannot express; this is the axis-level successor to eqStandpoint023 (gmeow:bullshit)" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+gmeow:eqStandpoint027 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:standpointSupportStatus ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:I6_Belief_Value ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the Belnap evidential-support axis (supported/opposed/both/neither) extends CRMinf's belief-value space with proof/counterproof status, including the witnessed glut (gmeow:supportBoth) CRMinf cannot carry; the domain twin of logic:InformationState (now merged) — that internal cross-slice bridge stays prose (skos:scopeNote on each value) + a logic:formalizes back-reference from the logic slice, kept out of this external-vocabulary SSSOM by design" ;
     gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .

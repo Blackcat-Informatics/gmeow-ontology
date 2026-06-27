@@ -1,4 +1,4 @@
-# Engine cross-check: trusting gmeow_rdf for speed (#242)
+# Engine cross-check: trusting gmeow_rdf for speed
 
 The test suite and the projection executor run SPARQL on **gmeow_rdf** (Rust,
 in-process) instead of rdflib's pure-Python engine, because it is dramatically
@@ -26,7 +26,7 @@ gate** (`gmeow-dev crosscheck-queries`, `make maint-crosscheck`, and the CI `ont
 job): every committed query under `queries/` is executed on the same merged graph
 under **both** rdflib and gmeow_rdf, and the answers are compared **by value**.
 If the two engines ever disagree, the gate fails. This extends the RDF 1.2
-round-trip cross-check of #177 from the statement compiler to the whole query
+round-trip cross-check from the statement compiler to the whole query
 surface.
 
 ### Value-based comparison

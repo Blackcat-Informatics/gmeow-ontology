@@ -22,8 +22,8 @@ maximally** across everything GMEOW can reach.
 
 | Half | What it does | Doctrine |
 |---|---|---|
-| **Up-projection** (#451) | Lift the source to pure GMEOW. Mechanically-invertible terms become **facts**; non-equivalences become provenance-stamped **claims** (`gmeow:StatementMetadata` carrying `gmeow:confidence` + `gmeow:mappedFrom`). Each edge is resolved by its **position in the graph** — the same consumer predicate maps to different GMEOW terms by the subject's type (`schema:about` on a `MediaObject` → `gmeow:depicts`, on a document → `gmeow:isAbout`). Nothing is guessed: an unresolvable term is reported, never invented. | [up-projection audit](./up-projection-audit.md) |
-| **Maximal down-projection** (#34) | Run `MAXIMAL(G) = G + E(G) + P(G)` over the draft — the canonical base `G`, its strong-equivalence saturation `E(G)`, and every projection profile `P(G)`. | [projections](./projections.md) |
+| **Up-projection** | Lift the source to pure GMEOW. Mechanically-invertible terms become **facts**; non-equivalences become provenance-stamped **claims** (`gmeow:StatementMetadata` carrying `gmeow:confidence` + `gmeow:mappedFrom`). Each edge is resolved by its **position in the graph** — the same consumer predicate maps to different GMEOW terms by the subject's type (`schema:about` on a `MediaObject` → `gmeow:depicts`, on a document → `gmeow:isAbout`). Nothing is guessed: an unresolvable term is reported, never invented. | [up-projection audit](./up-projection-audit.md) |
+| **Maximal down-projection** | Run `MAXIMAL(G) = G + E(G) + P(G)` over the draft — the canonical base `G`, its strong-equivalence saturation `E(G)`, and every projection profile `P(G)`. | [projections](./projections.md) |
 
 The two outputs of the lift compose cleanly with the maximal pass: **facts**
 re-project to every vocabulary, while the **claims** pass through untouched into
@@ -66,7 +66,7 @@ See [projections](./projections.md) for the maximal file family in detail.
 
 ### Two tiers, by audience
 
-The product splits into two tiers (#452):
+The product splits into two tiers:
 
 - **Canonical** (`.gts` / `.nq`) — the source of truth: every derived triple's RDF
   1.2 provenance reifier (`gmeow:mappedFrom`, `gmeow:confidence`), and the

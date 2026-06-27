@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the cognition slice (#556/#557/#558) --
+# Declarative structural assertions for the cognition slice --
 # the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
 # invariants formerly hand-written in tests/test_cognition.py. Each assertion
 # runs as a SPARQL ASK over the cognition module graph (gmeow:scopeModule)
 # under the native Rust slicetest harness (crates/slicetest).
 #
-# Cognition is #694-migrated: class stereotypes are logic:
+# Cognition is migrated: class stereotypes are logic:
 # (logic:Kind, logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
@@ -263,7 +263,7 @@ ASK {
     gmeow:remembers    a owl:ObjectProperty ;
         rdfs:domain gmeow:Agent ; rdfs:range gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:attendsTo, interestedIn, curiousAbout, and remembers MUST all be owl:ObjectProperty with rdfs:domain gmeow:Agent and rdfs:range gmeow:Entity -- the attentional/affective/objectual-memory quartet that constitutes the attention/interest layer (#557). Mirrors test_attention_and_interest_relations_exist." .
+    gmeow:saRationale "gmeow:attendsTo, interestedIn, curiousAbout, and remembers MUST all be owl:ObjectProperty with rdfs:domain gmeow:Agent and rdfs:range gmeow:Entity -- the attentional/affective/objectual-memory quartet that constitutes the attention/interest layer. Mirrors test_attention_and_interest_relations_exist." .
 
 # --- 13. curiousAbout is a subproperty of interestedIn (MUST) ----------------
 ex:saCuriousAboutSpecializesInterestedIn a gmeow:StructuralAssertion ;
@@ -274,7 +274,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:curiousAbout rdfs:subPropertyOf gmeow:interestedIn .
 }""" ;
-    gmeow:saRationale "gmeow:curiousAbout MUST be rdfs:subPropertyOf gmeow:interestedIn -- curiosity is knowledge-seeking interest, so every curious agent is automatically interested (#557). Mirrors test_curious_about_specializes_interested_in." .
+    gmeow:saRationale "gmeow:curiousAbout MUST be rdfs:subPropertyOf gmeow:interestedIn -- curiosity is knowledge-seeking interest, so every curious agent is automatically interested. Mirrors test_curious_about_specializes_interested_in." .
 
 # --- 14. remembers is a subproperty of isAwareOf (MUST) ----------------------
 ex:saRemembersSubpropertyIsAwareOf a gmeow:StructuralAssertion ;

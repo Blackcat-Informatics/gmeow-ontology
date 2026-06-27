@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example — epistemic justification and defeat (#561, Principle 8).
+# Worked example — epistemic justification and defeat (Principle 8).
 #
 # Three cases:
 #   1. Justified belief: Ada believes it is noon because a working wall clock

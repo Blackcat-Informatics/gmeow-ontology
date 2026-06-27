@@ -96,7 +96,7 @@ the result is **exact** — neither missing reachable nodes nor adding spurious 
 and the program is just ordinary Datalog, so it runs on the **existing native
 least-model fixpoint engine** with no new machinery. This is the PathShape *runtime*.
 
-> A note on reuse. The issue suggests reusing the #480 graph-descent resolver as the
+> A note on reuse. The earlier design suggested reusing the graph-descent resolver as the
 > runtime. That resolver performs context-aware, triple-by-triple up-projection
 > lifting — it is not a generic *n*-hop traversal engine, and bending it into one
 > would be the wrong tool. The honest reuse is the Datalog fixpoint above: "all nodes

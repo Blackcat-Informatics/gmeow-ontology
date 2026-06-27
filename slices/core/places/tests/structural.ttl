@@ -1,14 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the places slice (#51, #82, #84, #85,
-# #87, #90, #91, #92, #94, #96, #100, #103, #125) -- the slice-resident
+# Declarative structural assertions for the places slice -- the slice-resident
 # test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly
 # hand-written in tests/test_places.py. Each assertion runs as a SPARQL ASK
 # over the places module graph (gmeow:scopeModule) under the native Rust
 # slicetest harness (crates/slicetest).
 #
-# Places IS #694-migrated: class stereotypes are logic:
+# Places IS migrated: class stereotypes are logic:
 # (logic:Kind, logic:QualityValue), NOT gufo:.
 #
 # RETAINED in pytest (not migratable here):
@@ -72,7 +71,7 @@ ASK {
     VALUES ?t { owl:DatatypeProperty owl:ObjectProperty owl:AnnotationProperty }
     gmeow:alternateName a ?t .
 }""" ;
-    gmeow:saRationale "gmeow:alternateName MUST NOT exist as any property -- retired in favour of gmeow:PlaceName appellations via gmeow:hasPlaceName (Principle 6, #105). Mirrors test_alternate_name_retired (not-exist part)." .
+    gmeow:saRationale "gmeow:alternateName MUST NOT exist as any property -- retired in favour of gmeow:PlaceName appellations via gmeow:hasPlaceName (Principle 6). Mirrors test_alternate_name_retired (not-exist part)." .
 
 # --- 4. PlaceType subclasses logic:QualityValue and placeType is non-functional ObjectProperty (MUST) ---
 ex:saPlaceTypeIsQualityValue a gmeow:StructuralAssertion ;
@@ -1199,7 +1198,7 @@ ASK {
         rdfs:domain gmeow:ReferenceFrame ;
         rdfs:range  gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:isHostedBy MUST be an owl:ObjectProperty with domain ReferenceFrame and range Entity (#87). Mirrors test_is_hosted_by_property_exists." .
+    gmeow:saRationale "gmeow:isHostedBy MUST be an owl:ObjectProperty with domain ReferenceFrame and range Entity. Mirrors test_is_hosted_by_property_exists." .
 
 # --- 90. frameRealmPsychological exists as a FrameRealm (MUST) ---------------
 ex:saFrameRealmPsychologicalExists a gmeow:StructuralAssertion ;
@@ -1207,7 +1206,7 @@ ex:saFrameRealmPsychologicalExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:frameRealmPsychological a gmeow:FrameRealm . }""" ;
-    gmeow:saRationale "gmeow:frameRealmPsychological MUST exist as a gmeow:FrameRealm individual (#87). Mirrors test_psychological_frame_realm_exists." .
+    gmeow:saRationale "gmeow:frameRealmPsychological MUST exist as a gmeow:FrameRealm individual. Mirrors test_psychological_frame_realm_exists." .
 
 # --- 91. Psychological axes exist (MUST) -------------------------------------
 ex:saPsychologicalAxesExist a gmeow:StructuralAssertion ;
@@ -1226,7 +1225,7 @@ ASK {
     gmeow:axisImaginedSpaceY       a gmeow:Axis .
     gmeow:axisImaginedSpaceZ       a gmeow:Axis .
 }""" ;
-    gmeow:saRationale "The ten psychological/cognitive axis individuals MUST exist (#87). Mirrors test_psychological_axes_exist." .
+    gmeow:saRationale "The ten psychological/cognitive axis individuals MUST exist. Mirrors test_psychological_axes_exist." .
 
 # --- 92. BiologicalSequenceLocation subclasses Location (MUST) ----------------
 ex:saBiologicalSequenceLocationSubclass a gmeow:StructuralAssertion ;
@@ -1235,7 +1234,7 @@ ex:saBiologicalSequenceLocationSubclass a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:BiologicalSequenceLocation rdfs:subClassOf gmeow:Location . }""" ;
-    gmeow:saRationale "gmeow:BiologicalSequenceLocation MUST be rdfs:subClassOf gmeow:Location (#90). Mirrors test_biological_sequence_location_subclass_of_location." .
+    gmeow:saRationale "gmeow:BiologicalSequenceLocation MUST be rdfs:subClassOf gmeow:Location. Mirrors test_biological_sequence_location_subclass_of_location." .
 
 # --- 93. SequenceFeatureType subclasses logic:QualityValue + seeds (MUST) -----
 ex:saSequenceFeatureTypeGrounding a gmeow:StructuralAssertion ;
@@ -1280,7 +1279,7 @@ ASK {
     gmeow:strandReverse     a gmeow:StrandOrientation .
     gmeow:strandBoth        a gmeow:StrandOrientation .
 }""" ;
-    gmeow:saRationale "gmeow:StrandOrientation MUST be a subclass of logic:QualityValue; three seed individuals MUST exist (#90). Mirrors test_strand_orientation_values." .
+    gmeow:saRationale "gmeow:StrandOrientation MUST be a subclass of logic:QualityValue; three seed individuals MUST exist. Mirrors test_strand_orientation_values." .
 
 # --- 96. SequenceCoordinates core properties (MUST) ---------------------------
 ex:saSequenceCoordinatesProperties a gmeow:StructuralAssertion ;
@@ -1384,7 +1383,7 @@ ASK {
     gmeow:frameKindLinearSequence a gmeow:FrameKind .
     gmeow:axisSequencePosition    a gmeow:Axis .
 }""" ;
-    gmeow:saRationale "Biological realm vocabulary seeds MUST exist (#90). Mirrors test_frame_realm_biological_seeded." .
+    gmeow:saRationale "Biological realm vocabulary seeds MUST exist. Mirrors test_frame_realm_biological_seeded." .
 
 # --- 101. Geocode is a logic:Kind, subclass of Entity (MUST) ------------------
 ex:saGeocodeIsKind a gmeow:StructuralAssertion ;
@@ -1398,7 +1397,7 @@ ASK {
     gmeow:Geocode a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:Geocode MUST be an owl:Class typed logic:Kind and a subclass of gmeow:Entity (#91). Mirrors test_geocode_class_grounding." .
+    gmeow:saRationale "gmeow:Geocode MUST be an owl:Class typed logic:Kind and a subclass of gmeow:Entity. Mirrors test_geocode_class_grounding." .
 
 # --- 102. Geocode object properties (MUST) ------------------------------------
 ex:saGeocodeObjectProperties a gmeow:StructuralAssertion ;
@@ -1488,7 +1487,7 @@ ex:saSpatialMeasurementSubclass a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:SpatialMeasurement rdfs:subClassOf gmeow:Measurement . }""" ;
-    gmeow:saRationale "gmeow:SpatialMeasurement MUST be rdfs:subClassOf gmeow:Measurement (#125). Mirrors test_spatial_measurement_subclass_of_measurement." .
+    gmeow:saRationale "gmeow:SpatialMeasurement MUST be rdfs:subClassOf gmeow:Measurement. Mirrors test_spatial_measurement_subclass_of_measurement." .
 
 # --- 107. CoordinateObservation subclasses SpatialMeasurement (MUST) ----------
 ex:saCoordinateObservationSubclass a gmeow:StructuralAssertion ;
@@ -1497,7 +1496,7 @@ ex:saCoordinateObservationSubclass a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:CoordinateObservation rdfs:subClassOf gmeow:SpatialMeasurement . }""" ;
-    gmeow:saRationale "gmeow:CoordinateObservation MUST be rdfs:subClassOf gmeow:SpatialMeasurement (#125). Mirrors test_coordinate_observation_subclass_of_spatial_measurement." .
+    gmeow:saRationale "gmeow:CoordinateObservation MUST be rdfs:subClassOf gmeow:SpatialMeasurement. Mirrors test_coordinate_observation_subclass_of_spatial_measurement." .
 
 # --- 108. hasCoordinateObservation domain/range/non-functional (MUST) ---------
 ex:saHasCoordinateObservationShape a gmeow:StructuralAssertion ;
@@ -1572,7 +1571,7 @@ ASK {
     gmeow:methodPhotogrammetry  a gmeow:ObservationMethod .
     gmeow:methodGNSSRTK         a gmeow:ObservationMethod .
 }""" ;
-    gmeow:saRationale "The five spatial ObservationMethod seed individuals MUST exist (#125). Mirrors test_spatial_method_seeds_exist." .
+    gmeow:saRationale "The five spatial ObservationMethod seed individuals MUST exist. Mirrors test_spatial_method_seeds_exist." .
 
 # --- 113. LandTenure subclasses TimeScopedRelation (MUST) ---------------------
 ex:saLandTenureGrounding a gmeow:StructuralAssertion ;
@@ -1594,7 +1593,7 @@ ASK {
     gmeow:tenureDeterminacy rdfs:subPropertyOf gmeow:hasDeterminacy ;
         rdfs:domain gmeow:LandTenure ; rdfs:range gmeow:Determinacy .
 }""" ;
-    gmeow:saRationale "gmeow:LandTenure MUST be rdfs:subClassOf TimeScopedRelation; tenurePlace/tenureParty MUST be functional; full property grounding required (#92). Mirrors test_land_tenure_grounding." .
+    gmeow:saRationale "gmeow:LandTenure MUST be rdfs:subClassOf TimeScopedRelation; tenurePlace/tenureParty MUST be functional; full property grounding required. Mirrors test_land_tenure_grounding." .
 
 # --- 114. LandTenureType subclasses logic:QualityValue + seeds (MUST) ---------
 ex:saLandTenureTypeGrounding a gmeow:StructuralAssertion ;
@@ -1651,7 +1650,7 @@ ASK {
         rdfs:range gmeow:Place ;
         a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:CadastralReference MUST be rdfs:subClassOf InformationObject; all core properties MUST be grounded (#92). Mirrors test_cadastral_reference_grounding." .
+    gmeow:saRationale "gmeow:CadastralReference MUST be rdfs:subClassOf InformationObject; all core properties MUST be grounded. Mirrors test_cadastral_reference_grounding." .
 
 # --- 117. CadastralReferenceType subclasses logic:QualityValue + seeds (MUST) -
 ex:saCadastralReferenceTypeGrounding a gmeow:StructuralAssertion ;

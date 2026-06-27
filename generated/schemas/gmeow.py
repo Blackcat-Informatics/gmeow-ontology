@@ -128,6 +128,13 @@ class ArticulationKindEnum(str, Enum):
     articulationTenuto = "articulationTenuto"
 
 
+class AssertoricForceEnum(str, Enum):
+    assertoricAssert = "assertoricAssert"
+    assertoricAssume = "assertoricAssume"
+    assertoricConjecture = "assertoricConjecture"
+    assertoricRetract = "assertoricRetract"
+
+
 class AssetTypeEnum(str, Enum):
     assetTypeBond = "assetTypeBond"
     assetTypeCommodity = "assetTypeCommodity"
@@ -588,6 +595,13 @@ class CreativeWorkTypeEnum(str, Enum):
     workTypeSoftware = "workTypeSoftware"
     workTypeVisual = "workTypeVisual"
     workTypeWritten = "workTypeWritten"
+
+
+class CredenceLevelEnum(str, Enum):
+    credenceCertain = "credenceCertain"
+    credenceLikely = "credenceLikely"
+    credencePossible = "credencePossible"
+    credenceUnspecified = "credenceUnspecified"
 
 
 class CriterionDomainEnum(str, Enum):
@@ -1583,6 +1597,13 @@ class MitigationStatusEnum(str, Enum):
     mitigationRetired = "mitigationRetired"
 
 
+class ModalForceEnum(str, Enum):
+    modalForceActual = "modalForceActual"
+    modalForceCounterfactual = "modalForceCounterfactual"
+    modalForceNecessary = "modalForceNecessary"
+    modalForcePossible = "modalForcePossible"
+
+
 class MotifKindEnum(str, Enum):
     motifKindLeitmotif = "motifKindLeitmotif"
     motifKindRunningGag = "motifKindRunningGag"
@@ -2196,6 +2217,12 @@ class PlayingTechniqueEnum(str, Enum):
     playingTechniquePreparedPiano = "playingTechniquePreparedPiano"
     playingTechniqueSlap = "playingTechniqueSlap"
     playingTechniqueTapping = "playingTechniqueTapping"
+
+
+class PolarityEnum(str, Enum):
+    polarityAffirm = "polarityAffirm"
+    polarityDeny = "polarityDeny"
+    polaritySuspend = "polaritySuspend"
 
 
 class PostingDirectionEnum(str, Enum):
@@ -2828,6 +2855,13 @@ class SupportPolarityEnum(str, Enum):
     polaritySupports = "polaritySupports"
 
 
+class SupportStatusEnum(str, Enum):
+    supportBoth = "supportBoth"
+    supportNeither = "supportNeither"
+    supportOpposed = "supportOpposed"
+    supportSupported = "supportSupported"
+
+
 class SymbolicSystemKindEnum(str, Enum):
     symbolicKindCommunicationConvention = "symbolicKindCommunicationConvention"
     symbolicKindCryptographic = "symbolicKindCryptographic"
@@ -3020,6 +3054,12 @@ class TransliterationSchemeEnum(str, Enum):
 
 class TraversalConstraintEnum(str, Enum):
     fixtureKlavierstuckConstraint = "fixtureKlavierstuckConstraint"
+
+
+class TruthDirectednessEnum(str, Enum):
+    truthAimed = "truthAimed"
+    truthIndifferent = "truthIndifferent"
+    truthStrategic = "truthStrategic"
 
 
 class TuningSystemEnum(str, Enum):
@@ -3548,6 +3588,11 @@ class Article(Work):
 
 class ArticulationKind(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ArticulationKind"
+    pass
+
+
+class AssertoricForce(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AssertoricForce"
     pass
 
 
@@ -4110,7 +4155,14 @@ class StandpointClaim(JustificationSubject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/StandpointClaim"
     is_a: ClassVar[str] = "JustificationSubject"
     argumentAcceptability: list[float] | None = Field(default=None)
+    claimAssertoricForce: AssertoricForce | None = Field(default=None)
+    claimCredence: float | None = Field(default=None)
+    claimCredenceLevel: CredenceLevel | None = Field(default=None)
+    claimModalForce: ModalForce | None = Field(default=None)
     claimModality: StandpointModality | None = Field(default=None)
+    claimPolarity: Polarity | None = Field(default=None)
+    claimSupportStatus: SupportStatus | None = Field(default=None)
+    claimTruthDirectedness: TruthDirectedness | None = Field(default=None)
     claimVeridicality: list[ClaimVeridicality] | None = Field(default=None)
     competesWith: list[StandpointClaim] | None = Field(default=None)
     defeaterKind: list[DefeaterKind] | None = Field(default=None)
@@ -4357,6 +4409,11 @@ class CreativeWorkTitle(Appellation):
 
 class CreativeWorkType(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/CreativeWorkType"
+    pass
+
+
+class CredenceLevel(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/CredenceLevel"
     pass
 
 
@@ -5858,6 +5915,11 @@ class MitigationStatus(ConfiguredBaseModel):
     pass
 
 
+class ModalForce(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ModalForce"
+    pass
+
+
 class ModelCard(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ModelCard"
     is_a: ClassVar[str] = "InformationObject"
@@ -6560,6 +6622,11 @@ class PlaceType(ConfiguredBaseModel):
 
 class PlayingTechnique(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/PlayingTechnique"
+    pass
+
+
+class Polarity(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Polarity"
     pass
 
 
@@ -7427,6 +7494,11 @@ class SupportPolarity(ConfiguredBaseModel):
     pass
 
 
+class SupportStatus(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/SupportStatus"
+    pass
+
+
 class SymbolicSystemKind(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/SymbolicSystemKind"
     pass
@@ -7702,6 +7774,11 @@ class TrustAssertion(ConfiguredBaseModel):
     trustLevel: str | None = Field(default=None)
     trustee: Agent | None = Field(default=None)
     trustor: Agent | None = Field(default=None)
+
+
+class TruthDirectedness(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TruthDirectedness"
+    pass
 
 
 class TuningSystem(ReferenceFrame):

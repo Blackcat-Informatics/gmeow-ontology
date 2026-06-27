@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Declarative competency questions authored as slice-resident test-DSL data,
-# executed by the native Rust slice-test harness (crates/slicetest, #784).
+# executed by the native Rust slice-test harness (crates/slicetest).
 # Two exemplars, both fully-enumerated SELECTs (gmeow:cqExpectRow + gmeow:cqExactRows
 # true): "what kinds of agent?" and "what contribution roles?". Both run in the
 # default asserted lane (gmeow:reasoningNone): the agent query uses an
@@ -60,7 +60,7 @@ ex:cqAgentRowSoftwareAgent a gmeow:ExpectedRow ;
 
 # --- B. Fully-enumerated SELECT: "what contribution roles?" -------------------
 # queries/competency/contribution-roles.rq projects ?role a gmeow:ContributionRole.
-# T3 (#784) finishes the enumeration the T2 escape hatch deferred: all 48
+# T3 finishes the enumeration the T2 escape hatch deferred: all 48
 # gmeow:ContributionRole individuals (the CRediT canon plus GMEOW's domain
 # extensions), MEASURED over the asserted merged graph, with cqExactRows true.
 ex:cqContributionRoles a gmeow:CompetencyQuestion ;

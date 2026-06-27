@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the accounts slice (#867 Tier-B
+# Declarative structural assertions for the accounts slice (Tier-B
 # closeout). The accounts slice has no migratable rdflib pytest; these cells are
 # authored fresh to pin its keystone invariants (MAXIMAL coverage, dogfooding).
 # Each runs as a SPARQL ASK over the module graph (gmeow:scopeModule). Note:

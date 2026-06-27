@@ -4,8 +4,8 @@
 # Declarative structural assertions for the GTS transport slice — the
 # slice-resident test-DSL twin of the MUST / MUST-NOT invariants formerly
 # hand-written in tests/test_gts_slice.py. Authored as gmeow: ontology data so
-# the same annotation discipline and the native Rust harness (crates/slicetest,
-# #784) drive the test, not ad-hoc Python. Each assertion runs as a SPARQL ASK
+# the same annotation discipline and the native Rust harness (crates/slicetest)
+# drive the test, not ad-hoc Python. Each assertion runs as a SPARQL ASK
 # over the slice module graph (gmeow:scopeModule).
 #
 # FAITHFULNESS NOTES:

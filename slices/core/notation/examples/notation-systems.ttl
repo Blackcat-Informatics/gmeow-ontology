@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: notation systems, one machinery for every symbol set (#443). A
+# Worked example: notation systems, one machinery for every symbol set. A
 # gmeow:NotationSystem is classified by an open gmeow:notationSystemKind
 # (musical / mathematical / transcription / encoding / stenographic …), so staff
 # notation, IPA, Morse and a math syntax are the SAME kind of object — a symbolic

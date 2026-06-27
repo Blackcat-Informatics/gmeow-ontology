@@ -65,7 +65,7 @@ human and machine modes as **siblings**, bridged by *analogy*, never by an asser
 | `gmeow:modeDormant` | idle, loaded but not running | `gmeow:modeAsleep` |
 
 The machine modes are **substrate-specific realisations** of the awareness faculty,
-*not* asserted equal to the human ones (umbrella #580 guardrail). The analogue
+*not* asserted equal to the human ones (the mentation program guardrail). The analogue
 column is documented in prose; no equivalence triple is minted. `gmeow:awarenessMode`
 (open domain, range `gmeow:AwarenessMode`) marks an experiencer with its state, and
 is **non-functional and vantage-indexed** (Principle 9): a self-reported mode and an
@@ -146,7 +146,7 @@ composition of two states already modelled elsewhere: it is `gmeow:modeDreaming`
 seam is named in prose; **no triple is asserted** into the mentation or
 metacognition namespaces, exactly as the dreaming *act* (`gmeow:processDreaming`,
 the [mentation](../mentation/) slice) is consumed by reference rather than
-re-minted. This is the composition point for the dreaming & lucidity work (#589).
+re-minted. This is the composition point for the dreaming & lucidity work.
 
 ## No truth or reality bit
 

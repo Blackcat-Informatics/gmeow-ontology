@@ -277,7 +277,7 @@ Wikidata Q188451 bridge for `gmeow:Genre` already lives in the core
 those additional music-specific external dependencies out of core
 (Principle 16).
 
-## Timbre and sensory bridge (issue #317)
+## Timbre and sensory bridge
 
 A `gmeow:TimbreDescriptor` is an open value vocabulary of perceived timbre
 qualities (bright, dark, breathy, gritty, hollow, ...). It is a
@@ -305,7 +305,7 @@ This property plays the `gmeow:observationResult` role but is **not** declared
 Low-level spectral vectors, MFCCs, and embedding arrays live outside the graph
 and are referenced by identifier (Principle 12).
 
-## Notation projection layer (issue #318)
+## Notation projection layer
 
 Every musical notation is a **directional, lossy projection** of frame-relative canonical content. The canonical object is a graph of `MusicalSegment`s carrying `PitchValue`s in explicit `TuningSystem`s and durations in explicit `MusicalTimeFrame`s. A staff score, a MIDI file, a MusicXML export, and a LilyPond engraving are all renders of that content — none is the work itself (Principles 4, 11, 12).
 

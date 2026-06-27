@@ -77,11 +77,11 @@ Tier-2 uplift backlog.
 | sexuality | core | core | 2 | 4 | 4 | 0 | 1 | 8/8 | full |
 | software | extension | extensions | 10 | 33 | 53 | 0 | 1 | - | full |
 | sources | core | core | 1 | 0 | 3 | 0 | 1 | 3/3 | full |
-| standpoint | core | core | 3 | 3 | 7 | 0 | 1 | 8/10 | full |
+| standpoint | core | core | 3 | 9 | 22 | 0 | 1 | 21/31 | full |
 | tags | core | core | 2 | 3 | 11 | 0 | 1 | 14/14 | full |
 | teleology | core | core | 3 | 7 | 10 | 0 | 1 | 17/17 | full |
 | temporal | core | core | 2 | 11 | 41 | 0 | 1 | 48/52 | full |
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 12 | 0 | 1 | 18/18 | full |
 
-**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1174/1462 core class/property terms (#471).
+**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1187/1483 core class/property terms (#471).

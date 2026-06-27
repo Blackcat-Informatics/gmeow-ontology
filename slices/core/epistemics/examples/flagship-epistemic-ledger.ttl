@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Flagship worked example — EPISTEMIC LEDGER (issue #562, Task 3).
+# Flagship worked example — EPISTEMIC LEDGER (Task 3).
 #
 # Scenario: an operator asks whether the flagship LLM recalled a meeting date
 # correctly.  Initially the operator is fairly confident (credence 0.85) and

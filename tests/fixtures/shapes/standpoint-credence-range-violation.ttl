@@ -1,0 +1,10 @@
+# Credence numeric-range VIOLATION fixture. A claim carries a
+# gmeow:claimCredence of 1.5 — outside the [0,1] interval a credence value
+# must lie in. gmeow:ClaimCredenceRangeShape MUST fire sh:Violation: there is
+# no valid credence below 0 or above 1.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:impossible-credence
+    gmeow:claimCredence 1.5 .

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: norms, deontic modality, and compliance (#443). A gmeow:Norm in
+# Worked example: norms, deontic modality, and compliance. A gmeow:Norm in
 # a gmeow:NormativeSystem carries a gmeow:deonticModality — obligation /
 # prohibition / permission / recommendation — the deontic stance the rights slice
 # applies to assets, here applied to CONDUCT. Whether an event lives up to a norm

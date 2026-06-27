@@ -95,7 +95,7 @@ through five roles (`knowledgeProficiencyAgent` / `…Subject` / `…Level` / `�
 ## Attention, interest, and objectual memory
 
 Beyond *what it knows*, an agent records what it attends to, is curious about, and
-remembers about a subject — the salience/recall surface for the flagship (#557):
+remembers about a subject — the salience/recall surface for the flagship:
 
 | Relation | Sense |
 |---|---|
@@ -211,7 +211,7 @@ is solver-side, Principle 12).
 - `expertise` — the applied-competency axis (`hasSkill`, `SkillProficiency`,
   occupations, credentials); `hasSkill ⊑ knowsAbout` bridges the two. The
   `gmeow:ProficiencyScale` / `gmeow:ProficiencyLevel` value vocab it once held now
-  lives in `kernel` (relocated by #556 to break a dependency cycle).
+  lives in `kernel` (relocated to break a dependency cycle).
 - `kernel` — `gmeow:MentalMoment` (the shared mental-state umbrella) and the
   relocated proficiency value vocab.
 - `teleology` — `gmeow:IntentionalMode` (desiring/intending), the conative member

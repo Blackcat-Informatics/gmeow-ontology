@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: release-as-evidence (issue #673, CONSTITUTION.md §18). The
+# Worked example: release-as-evidence (CONSTITUTION.md §18). The
 # `make full-release` lane folds every check / classic-cross-check / conformance
 # / SARIF / compliance / perf result into a single SIGNED gmeow.gts bundle, where
 # each result rides as a content-addressed blob described by a gmeow:Attestation

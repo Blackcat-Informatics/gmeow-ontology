@@ -15,7 +15,7 @@ proficiency machinery, employment, attestation, and surface vocabularies.
 
 ## Reuse, not parallel mechanisms
 
-- The rating vocabulary classes (`ProficiencyScale`, `ProficiencyLevel`, `ProficiencyModality`) live in the `kernel` slice — relocated there by #556 to break a latent `expertise ↔ cognition` dependency cycle (Principle 6/16). They are domain-neutral; CEFR/ILR/ACTFL remain language scales, Dreyfus/NIH/Assessed are skill scales, and `cognition`'s `KnowledgeProficiency` reuses the same classes. `SkillProficiency` and `LanguageProficiency` consume the same value individuals unchanged (same IRIs).
+- The rating vocabulary classes (`ProficiencyScale`, `ProficiencyLevel`, `ProficiencyModality`) live in the `kernel` slice — relocated there to break a latent `expertise ↔ cognition` dependency cycle (Principle 6/16). They are domain-neutral; CEFR/ILR/ACTFL remain language scales, Dreyfus/NIH/Assessed are skill scales, and `cognition`'s `KnowledgeProficiency` reuses the same classes. `SkillProficiency` and `LanguageProficiency` consume the same value individuals unchanged (same IRIs).
 - Temporal scope reuses `validFrom`/`validUntil` (lightweight) and `TimeInterval` / `hasCreationEvent` (heavyweight) from `temporal.ttl` and `lifecycle.ttl`.
 - Standpoint and confidence reuse the cross-cutting `accordingTo` / `confidence` annotation properties from `standpoint.ttl`.
 

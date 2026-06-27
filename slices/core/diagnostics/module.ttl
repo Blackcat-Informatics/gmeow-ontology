@@ -58,7 +58,7 @@ gmeow:findingHelpUri
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding help URI"@x-gmeow-english ;
     rdfs:range xsd:anyURI ;
-    skos:definition "The help link for a finding's rule — the URI a reader follows to learn how to resolve or act on the diagnostic. The gmeow: RDF projection of the Rust rule's help_uri (gmeow_diagnostics::Rule.help_uri), the same link SARIF carries as the rule-level helpUri and the LSP diagnostic carries as codeDescription. Advisory (Severity::Note/Info) findings of the soft tier (epic #759) carry it most, pointing at the modeling guidance behind a recommendation."@x-gmeow-english ;
+    skos:definition "The help link for a finding's rule — the URI a reader follows to learn how to resolve or act on the diagnostic. The gmeow: RDF projection of the Rust rule's help_uri (gmeow_diagnostics::Rule.help_uri), the same link SARIF carries as the rule-level helpUri and the LSP diagnostic carries as codeDescription. Advisory (Severity::Note/Info) findings of the soft tier carry it most, pointing at the modeling guidance behind a recommendation."@x-gmeow-english ;
     skos:example "ex:f1 gmeow:findingHelpUri \"https://blackcatinformatics.ca/gmeow/advice#sample\"^^xsd:anyURI ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid duplicating the human message here (use gmeow:findingMessage) and avoid run-varying values; the help URI is the stable, rule-level pointer to remediation guidance, not occurrence prose."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -112,7 +112,7 @@ gmeow:findingSuggestion
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding suggestion"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "A remediation suggestion attached to a finding — one line of advice on how to act on the diagnostic. A finding may carry several (each a distinct gmeow:findingSuggestion triple), rendered as a list in CLI/HTML, SARIF result properties, and the LSP message. The gmeow: RDF projection of the Rust gmeow_diagnostics::Finding.suggestions, sorted and deduplicated at normalization so the projection is deterministic. The advisory (Severity::Note/Info) soft tier (epic #759) carries these as its 'consider this instead' prose."@x-gmeow-english ;
+    skos:definition "A remediation suggestion attached to a finding — one line of advice on how to act on the diagnostic. A finding may carry several (each a distinct gmeow:findingSuggestion triple), rendered as a list in CLI/HTML, SARIF result properties, and the LSP message. The gmeow: RDF projection of the Rust gmeow_diagnostics::Finding.suggestions, sorted and deduplicated at normalization so the projection is deterministic. The advisory (Severity::Note/Info) soft tier carries these as its 'consider this instead' prose."@x-gmeow-english ;
     skos:example "ex:f1 gmeow:findingSuggestion \"use gmeow:Kind for rigid sortals\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid overloading it with the verdict (that is gmeow:findingSeverity) or the rule key (gmeow:findingCode); a suggestion is actionable advice about this occurrence, not the finding's identity or grade."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -171,7 +171,7 @@ gmeow:gtsReifierId
 # gmeow:gtsSegmentIndex is owned by the gts slice (functional, domain gmeow:GTSSegment;
 # the index that, over the segment heads, IS a document's composite identity — spec §3.1).
 # A finding's location node REFERENCES it as a wire coordinate ("the segment this finding
-# concerns is at index N"); diagnostics does not redeclare it (single-owner invariant, #329).
+# concerns is at index N"); diagnostics does not redeclare it (single-owner invariant).
 
 gmeow:gtsTermId
     a owl:DatatypeProperty ;
@@ -216,7 +216,7 @@ gmeow:severityWarning
 <https://blackcatinformatics.ca/gmeow/slices/diagnostics>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
-    rdfs:comment """The ontological face of the first-class diagnostics system (#654).
+    rdfs:comment """The ontological face of the first-class diagnostics system.
 
 DOCTRINE.
   * Finding IS an Observation (Principle 9): a diagnostic is not a new kind of thing but the universal claim construct applied to tooling. gmeow:Finding rdfs:subClassOf gmeow:Observation, so the tool is the gmeow:vantage (WHO observed), the offending statement is the gmeow:observedFeature (WHAT), and the severity is the gmeow:observationResult (the verdict). Generic 'all observations about X' queries find diagnostics for free.

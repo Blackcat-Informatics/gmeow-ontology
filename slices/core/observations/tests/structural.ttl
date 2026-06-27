@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the observations slice (#66, #69) — the
+# Declarative structural assertions for the observations slice — the
 # slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
 # formerly hand-written in tests/test_observations.py. Each runs as a SPARQL ASK
 # over the observations module graph (gmeow:scopeModule) under the native Rust
-# slicetest harness. Observation is #694-migrated (logic:Relator, not gufo:).
+# slicetest harness. Observation is migrated (logic:Relator, not gufo:).
 #
 # The OWL-RL ENTAILMENT tests were migrated to crates/logic/tests/ontology_entailments.rs
-# (#896). The SOSA/AFO *_mapped_to_* fns read GENERATED mapping artifacts (not the
+# The SOSA/AFO *_mapped_to_* fns read GENERATED mapping artifacts (not the
 # module graph) and are KEPT in pytest (doctrine-guard, generated-artifact reads).
 #
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
@@ -25,7 +25,7 @@ PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:Observation a owl:Class ; rdfs:subClassOf logic:Relator . }""" ;
-    gmeow:saRationale "gmeow:Observation MUST be an owl:Class and a subclass of logic:Relator (the #694 gufo→logic migration). Mirrors test_observation_class_exists." .
+    gmeow:saRationale "gmeow:Observation MUST be an owl:Class and a subclass of logic:Relator (the gufo→logic migration). Mirrors test_observation_class_exists." .
 
 # --- 2. The seven core observation object properties exist (MUST) ------------
 ex:saObservationProperties a gmeow:StructuralAssertion ;
@@ -106,7 +106,7 @@ ASK {
     gmeow:versionMember rdfs:subPropertyOf gmeow:observedFeature .
     gmeow:membershipAuthority rdfs:subPropertyOf gmeow:vantage .
 }""" ;
-    gmeow:saRationale "The observations-module-local domain sub-property bridges expose NameUsage/RightsStatement/IdentityFacet/VersionMembership roles as observation roles (#69). Mirrors the module-local half of test_property_bridges_fire. (The KinRelationship bridges relationshipParent/relationshipChild/hasPartner are asserted in the genealogy module, NOT observations, so a module-scoped cell cannot see them — they are retained in pytest as cross-slice, pending a genealogy-slice migration.)" .
+    gmeow:saRationale "The observations-module-local domain sub-property bridges expose NameUsage/RightsStatement/IdentityFacet/VersionMembership roles as observation roles. Mirrors the module-local half of test_property_bridges_fire. (The KinRelationship bridges relationshipParent/relationshipChild/hasPartner are asserted in the genealogy module, NOT observations, so a module-scoped cell cannot see them — they are retained in pytest as cross-slice, pending a genealogy-slice migration.)" .
 
 # --- 8. Quantity ≡ ScalarQuantity (MUST) ------------------------------------
 ex:saQuantityEquivalentScalarQuantity a gmeow:StructuralAssertion ;
@@ -115,7 +115,7 @@ ex:saQuantityEquivalentScalarQuantity a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:Quantity owl:equivalentClass gmeow:ScalarQuantity . }""" ;
-    gmeow:saRationale "gmeow:Quantity MUST be equivalentClass gmeow:ScalarQuantity (#77). Mirrors test_quantity_equivalent_to_scalar_quantity." .
+    gmeow:saRationale "gmeow:Quantity MUST be equivalentClass gmeow:ScalarQuantity. Mirrors test_quantity_equivalent_to_scalar_quantity." .
 
 # --- 9. MeasuredValue ≡ Quantity (MUST) -------------------------------------
 ex:saMeasuredValueEquivalentQuantity a gmeow:StructuralAssertion ;
@@ -124,7 +124,7 @@ ex:saMeasuredValueEquivalentQuantity a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:MeasuredValue owl:equivalentClass gmeow:Quantity . }""" ;
-    gmeow:saRationale "gmeow:MeasuredValue MUST be equivalentClass gmeow:Quantity (#77). Mirrors test_measured_value_equivalent_to_quantity." .
+    gmeow:saRationale "gmeow:MeasuredValue MUST be equivalentClass gmeow:Quantity. Mirrors test_measured_value_equivalent_to_quantity." .
 
 # --- 10. isResultOf is the inverse of observationResult (MUST) --------------
 ex:saIsResultOfInverseObservationResult a gmeow:StructuralAssertion ;
@@ -133,7 +133,7 @@ ex:saIsResultOfInverseObservationResult a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:isResultOf owl:inverseOf gmeow:observationResult . }""" ;
-    gmeow:saRationale "gmeow:isResultOf MUST be owl:inverseOf gmeow:observationResult (#77). Mirrors test_is_result_of_is_inverse_of_observation_result." .
+    gmeow:saRationale "gmeow:isResultOf MUST be owl:inverseOf gmeow:observationResult. Mirrors test_is_result_of_is_inverse_of_observation_result." .
 
 # --- 11. Stream class (MUST) ------------------------------------------------
 ex:saStreamClass a gmeow:StructuralAssertion ;
@@ -143,7 +143,7 @@ ex:saStreamClass a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:Stream a owl:Class ; rdfs:subClassOf gmeow:Entity . }""" ;
-    gmeow:saRationale "gmeow:Stream MUST be an owl:Class subclass of gmeow:Entity (#96). Mirrors test_stream_class_exists." .
+    gmeow:saRationale "gmeow:Stream MUST be an owl:Class subclass of gmeow:Entity. Mirrors test_stream_class_exists." .
 
 # --- 12. Stream object properties exist (MUST) ------------------------------
 ex:saStreamProperties a gmeow:StructuralAssertion ;

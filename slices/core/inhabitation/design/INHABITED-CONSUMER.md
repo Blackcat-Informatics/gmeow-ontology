@@ -105,7 +105,7 @@ The settled design decisions the rest of this set implements:
 | 4 | Cagle-Persona clash | Fold into `IdentityFacet`/`NameUsage`; `gmeow:Persona` (norms relator) untouched. |
 | 5 | Inhabitation shape | A **situation/tenure** (`InhabitationTenure ⊑ TimeScopedRelation`) plus `InhabitationConfiguration` for the time-scoped facets — not a relator subclassing a situation. |
 | 6 | Manifestation ↔ WEMI | Documentation parallel only; **no** SSSOM term mappings (the spine crosses foundational categories WEMI's Kinds do not). |
-| 7 | Transition & control & Holon | Migration as `eventTypeInhabitationTransition` (lifecycle value) + `TransferManifest`; ending ≠ suppression; control is a `ControlAssessment` (not deception); `gmeow:Holon` deferred (foundation kernel #704). |
+| 7 | Transition & control & Holon | Migration as `eventTypeInhabitationTransition` (lifecycle value) + `TransferManifest`; ending ≠ suppression; control is a `ControlAssessment` (not deception); `gmeow:Holon` deferred (foundation kernel). |
 | 8 | Memory-view | Derived query (P12); promote to a signed `MemoryView` only when attested. |
 | 9 | Continuity | `SubjectStage`/`SubjectLineage` + `IdentityContinuityAssessment` (a single stable node would assert sameness); cross-vendor adds a COSE signature. Never `owl:sameAs`. |
 

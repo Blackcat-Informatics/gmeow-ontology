@@ -1,0 +1,14 @@
+# Credence band/decimal INCONSISTENCY fixture. A claim asserts the
+# gmeow:credenceCertain band ([0.9, 1.0]) but carries a numeric
+# gmeow:claimCredence of 0.3 — squarely in the credencePossible range.
+# gmeow:CredenceBandConsistencyShape MUST fire sh:Violation: the qualitative
+# band is the authoritative projection key, and a decimal that contradicts it
+# is malformed (the decimal is advisory finer-grained detail, never a second,
+# conflicting truth).
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:over-claimed
+    gmeow:claimCredenceLevel gmeow:credenceCertain ;
+    gmeow:claimCredence 0.3 .

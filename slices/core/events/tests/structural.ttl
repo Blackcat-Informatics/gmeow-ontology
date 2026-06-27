@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the events slice (#41) -- the
+# Declarative structural assertions for the events slice -- the
 # slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
 # formerly hand-written in tests/test_events.py. Each assertion runs as a SPARQL
 # ASK over the events module graph (gmeow:scopeModule) under the native Rust
 # slicetest harness (crates/slicetest).
 #
-# Events IS #694-migrated: class stereotypes are logic: (logic:Event, logic:Kind,
+# Events IS migrated: class stereotypes are logic: (logic:Event, logic:Kind,
 # logic:Relator, logic:AbstractIndividualType, logic:QualityValue), NOT gufo:.
 #
 # RETAINED in pytest (not migratable here):
@@ -63,7 +63,7 @@ ASK {
     gmeow:Participation a owl:Class , logic:Kind ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:Participation MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- the reified participation is a relator binding event, participant, and role (#41). Mirrors test_participation_is_a_gufo_relator." .
+    gmeow:saRationale "gmeow:Participation MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- the reified participation is a relator binding event, participant, and role. Mirrors test_participation_is_a_gufo_relator." .
 
 # --- 2. eventType is an ObjectProperty ranging over EventType, non-functional ---
 ex:saEventTypePropertyShape a gmeow:StructuralAssertion ;
@@ -207,7 +207,7 @@ ASK {
         rdfs:domain gmeow:Event ;
         rdfs:range gmeow:LocationState .
 }""" ;
-    gmeow:saRationale "gmeow:eventSpacetime MUST be an owl:ObjectProperty with domain Event and range LocationState -- reuses the 4D location-state facility (trajectory design, #106). Mirrors test_event_spacetime_exists_and_ranges_over_location_state (positive part)." .
+    gmeow:saRationale "gmeow:eventSpacetime MUST be an owl:ObjectProperty with domain Event and range LocationState -- reuses the 4D location-state facility (trajectory design). Mirrors test_event_spacetime_exists_and_ranges_over_location_state (positive part)." .
 
 # --- 14. eventSpacetime is NOT functional (MUST-NOT) ---------------------------
 ex:saEventSpacetimeNotFunctional a gmeow:StructuralAssertion ;
@@ -691,7 +691,7 @@ ASK {
     }
     ?et a owl:Class .
 }""" ;
-    gmeow:saRationale "The five observational event type individuals MUST NOT be typed owl:Class -- the anti-subclass guard for the #128 observational types. Mirrors test_observational_event_types_are_value_individuals (not-class part)." .
+    gmeow:saRationale "The five observational event type individuals MUST NOT be typed owl:Class -- the anti-subclass guard for the observational types. Mirrors test_observational_event_types_are_value_individuals (not-class part)." .
 
 # --- 50. eventTypeCensus still exists (MUST) ----------------------------------
 ex:saEventTypeCensusExists a gmeow:StructuralAssertion ;
@@ -699,7 +699,7 @@ ex:saEventTypeCensusExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypeCensus a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypeCensus (person-enumeration-in-a-census) MUST still be present after #128 added the distinct gmeow:eventTypeCensusActivity -- backward-existence guard. Mirrors test_census_event_type_still_exists." .
+    gmeow:saRationale "gmeow:eventTypeCensus (person-enumeration-in-a-census) MUST still be present — backward-existence guard against the distinct gmeow:eventTypeCensusActivity. Mirrors test_census_event_type_still_exists." .
 
 # --- 51. No primary/preferred observation or activity terms (MUST-NOT) --------
 ex:saNoPreferredPrimaryObservationTerms a gmeow:StructuralAssertion ;

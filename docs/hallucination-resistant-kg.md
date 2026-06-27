@@ -6,9 +6,9 @@
 The difference between *"the model said X"* and *"claim X, asserted by model M
 at time T, grounded in this exact span of this source, true to confidence 0.7,
 contradicted by a higher-confidence claim, source now stale"* — as one
-runnable, copy-pasteable pattern (#55). No new vocabulary: everything here is
+runnable, copy-pasteable pattern. No new vocabulary: everything here is
 the unified observation stance (CONSTITUTION P9) plus the thin seams of
-`slices/core/ai` (#54).
+`slices/core/ai`.
 
 ## The spine
 
@@ -58,7 +58,7 @@ crosscheck like all committed SPARQL.
 `docs/prompts/claim-extraction-v1.md` — instructs a model to emit claims
 **with** an exact quote + character offsets + polarity + calibrated
 confidence, and to **abstain** rather than fabricate. The emission format is
-`evals/claim-emission.schema.json`; the eval suite (#298) scores any model
+`evals/claim-emission.schema.json`; the eval suite scores any model
 against this exact contract with these exact gates.
 
 ## The flat-JSON projection
@@ -85,14 +85,14 @@ JSON API" shape (no RDF knowledge required of consumers, P13):
 
 - **W3C Web Annotation**: `groundedIn` → `oa:Annotation` (body = the claim,
   target = the chunk via `oa:TextPositionSelector` from the typed offsets) —
-  the generated `web-annotation` profile (#54).
+  the generated `web-annotation` profile.
 - **PROV-O**: claims are StandpointClaims, so the existing standpoint→PROV
   projection (`standpoint-prov.rq`) already emits `prov:Entity` /
   `wasAttributedTo` — **reuse, not new cells**.
 - **schema.org**: `schema:Claim` with `text`/`appearance`/`author` — and
   **structurally no `reviewRating`**.
 
-## `schema:ClaimReview` — the corrected translation (#34)
+## `schema:ClaimReview` — the corrected translation
 
 The original blanket refusal of `ClaimReview` was a **translation error**:
 `ClaimReview` is per-REVIEW, not per-claim — each review node carries its

@@ -200,7 +200,7 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   entity's positions is materialized as `logic:holonicLevelMin` / `logic:holonicLevelMax`, and the
   derived marker `logic:multiplyPositioned` (an entity occupying two or more distinct positions, by
   negation-of-equality over the position set) certifies that a non-trivial band exists — the positive
-  companion to `logic:HolonicLevelIncoherence`. **Honest scope (ME9, #775):** the foundation chase is
+  companion to `logic:HolonicLevelIncoherence`. **Honest scope (ME9):** the foundation chase is
   all-IRI under `logic:StratifiedNAFProfile`, with no numeric comparison or aggregation, so it grounds
   only the band's *existence* (`logic:multiplyPositioned`); it can neither derive nor check that the
   band endpoints are the true extrema of the borne per-position levels — those endpoints are
@@ -232,7 +232,7 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   structural guarantee of the rule set, demonstrated positively in the holonic-emergence conformance
   case (present `bearsProperty(whole, Pv)` + present `properPartOf(part, whole)` + visibly *omitted*
   `bearsProperty(part, Pv)`). The minimal case lands here; the full emergence corpus and the lossy OWL
-  projection of the verdict accrete in C5 (#708).
+  projection of the verdict accrete in C5.
 - **Downward constraint is structured and non-transitive.** A whole may constrain its parts, but the
   constraint is a typed, directed relation that does **not** chain transitively by default; a
   constraint from level *n* onto level *n−1* says nothing automatic about level *n−2*. The construct is
@@ -269,7 +269,7 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   demonstrated positively in the holonic-governance conformance case (a grandchild that is a transitive
   proper part of the governing whole, targeted by no constraint, carries *no* `logic:constraintVerdict`
   in the golden `materialized.nq`). The minimal case lands here; the full governance corpus and the
-  lossy OWL projection of the verdict accrete in C5 (#708).
+  lossy OWL projection of the verdict accrete in C5.
 - **Autonomy/integration is a named profile.** The Koestlerian balance of part-autonomy against
   whole-integration is a **declared profile** a holarchy may adopt, not a universal well-formedness
   rule every holon must satisfy — a bolt, a file-segment, or a process-phase needs no autonomy, so
@@ -305,13 +305,13 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   malformed assessment (naming no holon, or no profile) provably receives *no* verdict — robustness by
   construction, the C4 analogue of C3's per-target gating. The minimal case lands here (dogfooding C1's
   holon kernel — the assessed holons are wired into a holarchy so `logic:isHolon` co-fires); the full
-  agency corpus and the lossy OWL projection of the verdict accrete in C5 (#708).
-- **C5 addendum — holonic conformance corpus, level-coherence rule, and OWL projection (#708).**
+  agency corpus and the lossy OWL projection of the verdict accrete in C5.
+- **C5 addendum — holonic conformance corpus, level-coherence rule, and OWL projection.**
   The seven holonic conformance cases now live under `conformance/logic/cases/holonic/`:
   `holarchy-closure`, `weak-supplementation`, `emergence`, `downward-constraint`,
   `holon-integrity`, `holonic-level`, and `holonic-band`. Every case is validated against a
   derivation-graph golden under the native solver, and the Rust test suite asserts golden
-  quad-set parity for each single-world case. `holonic-band` (ME9, #775) is the positive
+  quad-set parity for each single-world case. `holonic-band` (ME9) is the positive
   path-relativity proof: a holon occupying two `logic:HolonicPosition`s along two distinct
   `logic:positionPath`s on a genuine multi-parent DAG fires the engine-derived
   `logic:multiplyPositioned` (with `logic:isHolon` / `logic:hasHolonicPosition` and, because it
@@ -323,7 +323,7 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   all-IRI and `logic:holonicLevel` is a literal read off a `logic:HolonicPosition`, coherence
   is keyed on the IRI-valued canonical construct. A holon declared under a
   `logic:MereologyProfile` that occupies no `logic:HolonicPosition` is charged with
-  `logic:HolonicLevelIncoherence` (profile-scoped, #775); a holon outside any profile is
+  `logic:HolonicLevelIncoherence` (profile-scoped); a holon outside any profile is
   never charged. **Non-conflation**: `logic:instanceOf` and `logic:orderedType` (the HiLog
   instantiation tower) do not supply a holonic position, so a profiled holon high in the
   instantiation tower but lacking a `logic:HolonicPosition` still fires the incoherence
@@ -573,7 +573,7 @@ realizes it* is deliberate rather than implied.
   declarations that add no axioms to the reasoned core until they pass the formalization lifecycle;
 - the **gUFO ⊇ coverage discipline** — the standing requirement that every gUFO term have a `logic:`
   counterpart, enforced natively by the `meta:gate-logic-gufo-superset` gate
-  (`crates/logic/tests/gufo_superset.rs`, #731).
+  (`crates/logic/tests/gufo_superset.rs`).
 
 **Realized in the engine and the rest of the set:**
 

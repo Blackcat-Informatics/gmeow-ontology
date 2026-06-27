@@ -106,7 +106,7 @@ The `developer` property from the original stub is **removed** (Principle 6,
 greenfield). In its place:
 
 - **`gmeow:Contribution`** — a `gufo:Relator` binding {agent} × {target} ×
-  {role} × {degree} × {period} × provenance. Reuses #211's universal credit
+  {role} × {degree} × {period} × provenance. Reuses the universal credit
   relator (CRediT + software/mapping-authorship roles).
 - **Open value vocabulary**: `ContributionRole` carries `roleSoftwareMaintainer`,
   `roleSoftwareDeveloper`, `roleCodeReviewer`, `roleReleaser`,
@@ -152,7 +152,7 @@ cosign signature → Rekor transparency-log entry → DOI + SWHID
 - **`BuildActivity`** (`⊑ Activity`) — consumes a commit, produces a
   `Distribution`, carries `buildConfigUri`.
 - **`Builder`** (`⊑ SoftwareAgent`) — GitHub Actions, GitLab CI, Jenkins, etc.
-- **`Attestation`** — reuses #162's generic attestation infrastructure:
+- **`Attestation`** — reuses the generic attestation infrastructure:
   `attestationTypeSLSAProvenance`, `hasSLSALevel` (Level 1–4 value vocabulary),
   `attestedSubject` (content-digested artifact).
 - **`TransparencyLogEntry`** — Rekor inclusion proof.
@@ -218,9 +218,9 @@ All projections live in `mapping-dsl/projections/` and compile to
 | Primitive | Source module | Used for |
 |---|---|---|
 | `Activity`, `Event`, `Participation` | `events.ttl`, `provenance.ttl` | Commit, Release, Push, Merge, CodeReview, BuildActivity |
-| `Contribution`, `ContributionRole` | `creative-works.ttl` (#211) | Agent × project/commit/release × role |
-| `VersionSet`, `VersionMembership` | `versions.ttl` (#161) | Release versioning without facet collapse |
-| `Attestation`, `CryptographicSignature`, `TransparencyLogEntry` | `attestation.ttl`, `trust.ttl` (#162) | SLSA, cosign, Rekor |
+| `Contribution`, `ContributionRole` | `creative-works.ttl` | Agent × project/commit/release × role |
+| `VersionSet`, `VersionMembership` | `versions.ttl` | Release versioning without facet collapse |
+| `Attestation`, `CryptographicSignature`, `TransparencyLogEntry` | `attestation.ttl`, `trust.ttl` | SLSA, cosign, Rekor |
 | `contentDigest`, `versionFingerprint` | `sources.ttl`, `versions.ttl` | Git hashes, SWHIDs |
 | `TimeInterval`, four clocks | `temporal.ttl` | author-time, committer-time, push-time |
 | `displayable`, `selfAsserted` | `core.ttl` | Suppression, AI authorship |

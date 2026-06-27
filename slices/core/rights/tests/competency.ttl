@@ -1,16 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative competency question for the rights slice (crates/slicetest, #784),
-# migrated from test_competency_rights_query under #867. TBox subset over the
-# asserted merged ontology (contains-check). No #869 Gap-1 universal.
+# Declarative competency question for the rights slice (crates/slicetest),
+# migrated from test_competency_rights_query. TBox subset over the
+# asserted merged ontology (contains-check). No Gap-1 universal.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/rights/tests/> .
 
 ex:cqRights a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/rights.rq" ;
-    gmeow:cqRationale "GMEOW must model the abstract Rule plus the ODRL deontic trio (issue #21): Permission, Prohibition, Duty." ;
+    gmeow:cqRationale "GMEOW must model the abstract Rule plus the ODRL deontic trio: Permission, Prohibition, Duty." ;
     gmeow:cqExpectRow ex:rRule, ex:rPermission, ex:rProhibition, ex:rDuty .
 
 ex:rRule a gmeow:ExpectedRow ;

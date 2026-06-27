@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the sensory slice (#126) -- the
+# Declarative structural assertions for the sensory slice -- the
 # slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
 # formerly hand-written in tests/test_sensory.py. Each assertion runs as a
 # SPARQL ASK over the sensory module graph (gmeow:scopeModule) under the native
 # Rust slicetest harness (crates/slicetest).
 #
-# Sensory is #694-migrated: class stereotypes are logic: (logic:Kind,
+# Sensory is migrated: class stereotypes are logic: (logic:Kind,
 # logic:RoleMixin, logic:AbstractIndividualType), not gufo:.
 #
 # NOTE: gmeow:SensoryObservation a owl:Class is declared in the observations
@@ -93,7 +93,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:SensoryQuantity owl:equivalentClass gmeow:ScalarQuantity .
 }""" ;
-    gmeow:saRationale "gmeow:SensoryQuantity MUST be owl:equivalentClass gmeow:ScalarQuantity -- the domain-specific alias for the scalar quantity stack (#77, #126). Mirrors test_sensory_quantity_equivalent_to_scalar_quantity." .
+    gmeow:saRationale "gmeow:SensoryQuantity MUST be owl:equivalentClass gmeow:ScalarQuantity -- the domain-specific alias for the scalar quantity stack. Mirrors test_sensory_quantity_equivalent_to_scalar_quantity." .
 
 # --- 5. sensoryResult is a subproperty of observationResult (MUST) -----------
 ex:saSensoryResultSubPropertyOfObservationResult a gmeow:StructuralAssertion ;
@@ -104,7 +104,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:sensoryResult rdfs:subPropertyOf gmeow:observationResult .
 }""" ;
-    gmeow:saRationale "gmeow:sensoryResult MUST be rdfs:subPropertyOf gmeow:observationResult so generic consumers can query all observation results without knowing the domain (#126). Mirrors test_sensory_result_subproperty_of_observation_result." .
+    gmeow:saRationale "gmeow:sensoryResult MUST be rdfs:subPropertyOf gmeow:observationResult so generic consumers can query all observation results without knowing the domain. Mirrors test_sensory_result_subproperty_of_observation_result." .
 
 # --- 6. sensoryObservationOf is a subproperty of observedFeature (MUST) ------
 ex:saSensoryObservationOfSubPropertyOfObservedFeature a gmeow:StructuralAssertion ;
@@ -115,7 +115,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:sensoryObservationOf rdfs:subPropertyOf gmeow:observedFeature .
 }""" ;
-    gmeow:saRationale "gmeow:sensoryObservationOf MUST be rdfs:subPropertyOf gmeow:observedFeature so generic observation-about-X queries reach sensory observations (#126). Mirrors test_sensory_observation_of_subproperty_of_observed_feature." .
+    gmeow:saRationale "gmeow:sensoryObservationOf MUST be rdfs:subPropertyOf gmeow:observedFeature so generic observation-about-X queries reach sensory observations. Mirrors test_sensory_observation_of_subproperty_of_observed_feature." .
 
 # --- 7. hasSensoryObservation is inverse of sensoryObservationOf (MUST) ------
 ex:saHasSensoryObservationIsInverse a gmeow:StructuralAssertion ;
@@ -126,4 +126,4 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:hasSensoryObservation owl:inverseOf gmeow:sensoryObservationOf .
 }""" ;
-    gmeow:saRationale "gmeow:hasSensoryObservation MUST be owl:inverseOf gmeow:sensoryObservationOf -- the bidirectional navigation pair for sensory observations (#126). Mirrors test_has_sensory_observation_is_inverse." .
+    gmeow:saRationale "gmeow:hasSensoryObservation MUST be owl:inverseOf gmeow:sensoryObservationOf -- the bidirectional navigation pair for sensory observations. Mirrors test_has_sensory_observation_is_inverse." .

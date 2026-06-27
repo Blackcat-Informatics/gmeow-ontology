@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: a flashback IS a disagreement between two time frames (#443,
-# #358, P9). Narrative time has two co-equal axes, neither the truth of the other:
+# Worked example: a flashback IS a disagreement between two time frames (P9).
+# Narrative time has two co-equal axes, neither the truth of the other:
 # DISCOURSE time (syuzhet — the order of telling, owned by the telling work) and
 # STORY time (fabula — the order of happening, owned by a continuity). Each is a
 # gmeow:NarrativeTimeFrame (a ReferenceFrame). The same diegetic event carries a

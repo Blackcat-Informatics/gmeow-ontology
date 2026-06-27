@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example — named & parametric predicate paths (logic:PathShape, issue
-# #1010). SPARQL 1.1 property paths (§9) are fixed strings with no predicate
+# Worked example — named & parametric predicate paths (logic:PathShape).
+# SPARQL 1.1 property paths (§9) are fixed strings with no predicate
 # wildcard, no bounded depth {1,n}, and no named/parameterized reuse. A
 # logic:PathShape makes "all nodes within n hops, by any predicate" a first-class,
 # reusable, by-name term, invoked with a parametric depth. The PathShape is the

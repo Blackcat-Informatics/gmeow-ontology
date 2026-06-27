@@ -35,7 +35,7 @@ comments, issues, PRs, review comments, or examples:
 - explicit bibliographic citation strings already present in data fixtures or docs
 - GitHub issue, PR, or review text that cites an external source
 
-Do not treat every internal `#123` issue reference as a bibliography item. An
+Do not treat every internal tracker reference as a bibliography item. An
 internal issue or PR becomes a citing carrier when its body or comments cite an
 external work.
 

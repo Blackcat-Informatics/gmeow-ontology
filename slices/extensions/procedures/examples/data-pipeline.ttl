@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: a procedure separates CONTROL flow from DATA flow (#443). A
+# Worked example: a procedure separates CONTROL flow from DATA flow. A
 # gmeow:Procedure has gmeow:ProcedureSteps; gmeow:ControlFlow edges say in what
 # ORDER steps run, while gmeow:DataFlow edges say WHICH DATA moves between them —
 # two distinct graphs over the same steps, because "runs after" and "depends on

@@ -5,7 +5,7 @@
 # test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly
 # hand-written in tests/test_gender.py. Each runs as a SPARQL ASK over the
 # gender module graph (gmeow:scopeModule) under the native Rust slicetest
-# harness. Gender is #694-migrated, so the class stereotypes are
+# harness. Gender is migrated, so the class stereotypes are
 # logic: (logic:SubKind, logic:AbstractIndividualType, logic:QualityValue),
 # not gufo:.
 #

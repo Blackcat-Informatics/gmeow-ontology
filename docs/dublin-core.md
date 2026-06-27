@@ -50,7 +50,7 @@ and surrogate.
 
 ## Terms
 
-The following GMEOW terms have Dublin Core alignments or projections as of issue #60.
+The following GMEOW terms have Dublin Core alignments or projections.
 All DCMI Terms refinements are now aligned. Additional refinements include:
 conformsTo, created, date, dateAccepted, dateSubmitted, extent, medium, modified, provenance,
 requires, rightsHolder, spatialCoverage, tableOfContents, temporalCoverage, and type).
@@ -198,4 +198,4 @@ suitable term exists, never forcing a weak alignment.
   drift-check, the `_PROFILES` registry).
 - [`slices/core/rights/docs.md`](../slices/core/rights/docs.md) — rights-specific DC alignments
   (`license`, `rightsHolder`, `accessRights`, `dateCopyrighted`).
-- Issue #31 — Wikidata enhancement (the same audit→maximal-coverage→projection shape).
+- Wikidata enhancement (the same audit→maximal-coverage→projection shape).

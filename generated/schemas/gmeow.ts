@@ -104,6 +104,13 @@ export enum ArticulationKindEnum {
     articulationTenuto = "articulationTenuto",
 }
 
+export enum AssertoricForceEnum {
+    assertoricAssert = "assertoricAssert",
+    assertoricAssume = "assertoricAssume",
+    assertoricConjecture = "assertoricConjecture",
+    assertoricRetract = "assertoricRetract",
+}
+
 export enum AssetTypeEnum {
     assetTypeBond = "assetTypeBond",
     assetTypeCommodity = "assetTypeCommodity",
@@ -564,6 +571,13 @@ export enum CreativeWorkTypeEnum {
     workTypeSoftware = "workTypeSoftware",
     workTypeVisual = "workTypeVisual",
     workTypeWritten = "workTypeWritten",
+}
+
+export enum CredenceLevelEnum {
+    credenceCertain = "credenceCertain",
+    credenceLikely = "credenceLikely",
+    credencePossible = "credencePossible",
+    credenceUnspecified = "credenceUnspecified",
 }
 
 export enum CriterionDomainEnum {
@@ -1559,6 +1573,13 @@ export enum MitigationStatusEnum {
     mitigationRetired = "mitigationRetired",
 }
 
+export enum ModalForceEnum {
+    modalForceActual = "modalForceActual",
+    modalForceCounterfactual = "modalForceCounterfactual",
+    modalForceNecessary = "modalForceNecessary",
+    modalForcePossible = "modalForcePossible",
+}
+
 export enum MotifKindEnum {
     motifKindLeitmotif = "motifKindLeitmotif",
     motifKindRunningGag = "motifKindRunningGag",
@@ -2172,6 +2193,12 @@ export enum PlayingTechniqueEnum {
     playingTechniquePreparedPiano = "playingTechniquePreparedPiano",
     playingTechniqueSlap = "playingTechniqueSlap",
     playingTechniqueTapping = "playingTechniqueTapping",
+}
+
+export enum PolarityEnum {
+    polarityAffirm = "polarityAffirm",
+    polarityDeny = "polarityDeny",
+    polaritySuspend = "polaritySuspend",
 }
 
 export enum PostingDirectionEnum {
@@ -2804,6 +2831,13 @@ export enum SupportPolarityEnum {
     polaritySupports = "polaritySupports",
 }
 
+export enum SupportStatusEnum {
+    supportBoth = "supportBoth",
+    supportNeither = "supportNeither",
+    supportOpposed = "supportOpposed",
+    supportSupported = "supportSupported",
+}
+
 export enum SymbolicSystemKindEnum {
     symbolicKindCommunicationConvention = "symbolicKindCommunicationConvention",
     symbolicKindCryptographic = "symbolicKindCryptographic",
@@ -2996,6 +3030,12 @@ export enum TransliterationSchemeEnum {
 
 export enum TraversalConstraintEnum {
     fixtureKlavierstuckConstraint = "fixtureKlavierstuckConstraint",
+}
+
+export enum TruthDirectednessEnum {
+    truthAimed = "truthAimed",
+    truthIndifferent = "truthIndifferent",
+    truthStrategic = "truthStrategic",
 }
 
 export enum TuningSystemEnum {
@@ -3260,6 +3300,9 @@ export interface Article extends Work {
 }
 
 export interface ArticulationKind {
+}
+
+export interface AssertoricForce {
 }
 
 export interface Assessment extends Observation {
@@ -3782,6 +3825,9 @@ export interface CreativeWorkTitle extends Appellation {
 }
 
 export interface CreativeWorkType {
+}
+
+export interface CredenceLevel {
 }
 
 export interface Credential extends Entity {
@@ -4981,6 +5027,9 @@ export interface Mitigation {
 export interface MitigationStatus {
 }
 
+export interface ModalForce {
+}
+
 export interface ModelCard extends InformationObject {
     describesModel?: SoftwareAgent,
     modelContextWindow?: number[],
@@ -5516,6 +5565,9 @@ export interface PlaceType {
 }
 
 export interface PlayingTechnique {
+}
+
+export interface Polarity {
 }
 
 export interface Pose extends Entity {
@@ -6103,7 +6155,14 @@ export interface Standpoint extends Entity {
 
 export interface StandpointClaim extends JustificationSubject {
     argumentAcceptability?: number[],
+    claimAssertoricForce?: AssertoricForce,
+    claimCredence?: number,
+    claimCredenceLevel?: CredenceLevel,
+    claimModalForce?: ModalForce,
     claimModality?: StandpointModality,
+    claimPolarity?: Polarity,
+    claimSupportStatus?: SupportStatus,
+    claimTruthDirectedness?: TruthDirectedness,
     claimVeridicality?: ClaimVeridicality[],
     competesWith?: StandpointClaim[],
     defeaterKind?: DefeaterKind[],
@@ -6158,6 +6217,9 @@ export interface Summary extends InformationObject {
 }
 
 export interface SupportPolarity {
+}
+
+export interface SupportStatus {
 }
 
 export interface SymbolicSystem extends InformationObject {
@@ -6368,6 +6430,9 @@ export interface TrustAssertion {
     trustLevel?: string,
     trustee?: Agent,
     trustor?: Agent,
+}
+
+export interface TruthDirectedness {
 }
 
 export interface TuningSystem extends ReferenceFrame {

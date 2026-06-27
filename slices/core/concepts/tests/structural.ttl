@@ -4,11 +4,11 @@
 # Declarative structural assertions for the concepts slice — the slice-resident
 # test-DSL twin of the MUST / MUST-NOT invariants formerly hand-written in
 # tests/test_concepts.py. Authored as gmeow: ontology data so the same annotation
-# discipline and the native Rust harness (crates/slicetest, #784) drive the test,
+# discipline and the native Rust harness (crates/slicetest) drive the test,
 # not ad-hoc Python. Each assertion runs as a SPARQL ASK over the slice module
 # graph (gmeow:scopeModule); every `must` ASK anchors on a concrete term IRI.
 #
-# NAMESPACE: the concepts module is #694-migrated — its value classes are
+# NAMESPACE: the concepts module is migrated — its value classes are
 # typed with the canonical logic meta-vocabulary (logic:Kind, logic:SubKind,
 # logic:Situation). These cells mirror the module's CURRENT logic: shape.
 #

@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the finance slice (#64) -- the
+# Declarative structural assertions for the finance slice -- the
 # slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
 # invariants formerly hand-written in tests/test_finance.py. Each
 # assertion runs as a SPARQL ASK over the finance module graph
 # (gmeow:scopeModule) under the native Rust slicetest harness
 # (crates/slicetest).
 #
-# Finance is #694-migrated: class stereotypes are logic:
+# Finance is migrated: class stereotypes are logic:
 # (logic:Kind, logic:SubKind, logic:Event, logic:AbstractIndividualType,
 # logic:QualityValue, logic:Relator), not gufo:.
 #

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: language proficiency is PER-MODALITY (#443). A flat
+# Worked example: language proficiency is PER-MODALITY. A flat
 # gmeow:nativeLanguage / gmeow:knowsLanguage says WHICH languages an agent has;
 # the reified gmeow:LanguageProficiency says HOW WELL — and crucially per
 # gmeow:proficiencyModality (reading / speaking / listening / signing …), because

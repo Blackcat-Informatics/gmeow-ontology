@@ -3,9 +3,9 @@
 
 # The claim-extraction prompt — v1
 
-The published, versioned extraction prompt (#55 deliverable 2). This is
+The published, versioned extraction prompt. This is
 **data, not code**: it ships so extractors emit the hallucination-resistant
-shape, and so the eval suite (#298) can score any model against the same
+shape, and so the eval suite can score any model against the same
 contract. The emission format is `evals/claim-emission.schema.json`; the
 scoring gates are `queries/audit/` + the SHACL shapes in
 `slices/core/ai/shapes.ttl`.
@@ -65,4 +65,4 @@ The template's identity is its content digest, recorded on the
   unsupported-bait: the constitution's own text refutes several plausible
   claims, and emitting them is measured, not forgiven.
 - **Confidence is calibrated, not decorative**: stated credence is binned
-  against measured grounding (#298's calibration metric).
+  against measured grounding (the calibration metric).

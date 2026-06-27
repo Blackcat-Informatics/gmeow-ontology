@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# Research-object exports (#58)
+# Research-object exports
 
 A GMEOW-described dataset, made discoverable to the ML/research ecosystem —
 **generated, never hand-curated** (P4): the canonical instance data is the
@@ -13,7 +13,7 @@ declares its drops (P5) in its own native slot.
 | **Croissant 1.0** | `<ds>.croissant.jsonld` | Google Dataset Search, Hugging Face, Kaggle, OpenML; loadable via `mlcroissant` | structural (required keys, FileObject/recordSet integrity, sha256 hex) |
 | **RO-Crate 1.1** | `ro-crate/` + `<ds>.crate.zip` | WorkflowHub, Zenodo, crate viewers | structural (descriptor/root/conformsTo/hasPart, flat graph, zip integrity) |
 | **DCAT 3** | `<ds>.dcat.ttl` | W3C data catalogs | the projection round-trip + dual-engine crosscheck (a mapping-DSL profile) |
-| **DataCite kernel-4** | `<ds>.datacite.xml` | DOI registration (#44) | structural ElementTree pins; XSD reference-only (crossref.py stance) |
+| **DataCite kernel-4** | `<ds>.datacite.xml` | DOI registration | structural ElementTree pins; XSD reference-only (crossref.py stance) |
 | **Frictionless** | `datapackage.json` | data pipelines (`frictionless`) | jsonschema against the vendored official Data Package profile |
 
 Two entry points:
@@ -67,14 +67,14 @@ descriptor `description` · Frictionless `notes` · DataCite
   (`src/gmeow_tools/research_objects.py`): their document shapes (Croissant's
   layered JSON-LD, RO-Crate's flat `@graph`, plain-JSON Frictionless, DataCite
   XML) need framing a CONSTRUCT cannot express — a DSL layer would be a dead
-  declarative twin. This deviation from #58's original acceptance wording is
+  declarative twin. This deviation from the original acceptance wording is
   deliberate and authorized by its own "pure-rdflib + hand-rolled packager"
   allowance.
 - **Tiered Run-Crate conformance, honestly earned (P1)**: every crate is at
   least a **Process Run Crate** — `gmeow:ModelInvocation` /
   `gmeow:ImportActivity` map to `CreateAction` (instrument = the
   `SoftwareAgent`, objects from `wasDerivedFrom`, results from
-  `wasGeneratedBy`). When the A-Box carries a **#47 workflow run** — a
+  `wasGeneratedBy`). When the A-Box carries a **workflow run** — a
   `gmeow:BuildActivity` whose `gmeow:buildConfigUri` names the workflow
   definition — the crate upgrades to **Workflow Run Crate**: the definition
   becomes the `ComputationalWorkflow` `mainEntity`, the run's `CreateAction`
@@ -110,8 +110,8 @@ importable; it is never a build dependency.)
 2. **WorkflowHub / Zenodo**: upload the `.crate.zip`; the descriptor's
    `conformsTo` rows drive profile recognition.
 3. **DataCite + re3data**: deposit `<ds>.datacite.xml` under a real DOI (the
-   committed artifact carries the reserved 10.5072 TEST prefix until the #44
-   publish act) and register the hosting repository in re3data for
+   committed artifact carries the reserved 10.5072 TEST prefix until the
+   actual publish act) and register the hosting repository in re3data for
    findability.
 4. **Frictionless ecosystems**: `datapackage.json` at the dataset root is
    auto-discovered by `frictionless describe`/`validate` tooling.

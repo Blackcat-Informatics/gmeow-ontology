@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the calendar slice (#62) — the
+# Declarative structural assertions for the calendar slice — the
 # slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
 # formerly hand-written in tests/test_calendar.py. Each assertion runs as a
 # SPARQL ASK over the calendar module graph (gmeow:scopeModule) under the
 # native Rust harness (crates/slicetest).
 #
-# Calendar is #694-migrated, so class stereotypes are logic:
+# Calendar is migrated, so class stereotypes are logic:
 # (logic:Kind, logic:SubKind, logic:Situation, logic:AbstractIndividualType,
 # logic:QualityValue, logic:Relator, logic:Object, logic:Event), not gufo:.
 #
@@ -49,7 +49,7 @@ ASK {
     gmeow:Calendar a owl:Class ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:Calendar MUST be an owl:Class and a subclass of gmeow:InformationObject — a calendar is a CalDAV-style information object aggregating event members (#62). Mirrors test_calendar_is_information_object." .
+    gmeow:saRationale "gmeow:Calendar MUST be an owl:Class and a subclass of gmeow:InformationObject — a calendar is a CalDAV-style information object aggregating event members. Mirrors test_calendar_is_information_object." .
 
 # --- 2. EventSchedule is a logic:Relator (MUST) -------------------------------
 ex:saEventScheduleIsRelator a gmeow:StructuralAssertion ;
@@ -63,7 +63,7 @@ ASK {
     gmeow:EventSchedule a owl:Class ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:EventSchedule MUST be an owl:Class and a subclass of logic:Relator — it mediates the template event, recurrence rule, and generated occurrences (#62). Mirrors test_event_schedule_is_relator." .
+    gmeow:saRationale "gmeow:EventSchedule MUST be an owl:Class and a subclass of logic:Relator — it mediates the template event, recurrence rule, and generated occurrences. Mirrors test_event_schedule_is_relator." .
 
 # --- 3. ScheduleException is a logic:Relator (MUST) --------------------------
 ex:saScheduleExceptionIsRelator a gmeow:StructuralAssertion ;
@@ -77,7 +77,7 @@ ASK {
     gmeow:ScheduleException a owl:Class ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:ScheduleException MUST be an owl:Class and a subclass of logic:Relator — it mediates the schedule, original date, and optional replacement event (#62). Mirrors test_schedule_exception_is_relator." .
+    gmeow:saRationale "gmeow:ScheduleException MUST be an owl:Class and a subclass of logic:Relator — it mediates the schedule, original date, and optional replacement event. Mirrors test_schedule_exception_is_relator." .
 
 # --- 4. EventInvitation is an Agreement and a logic:Relator (MUST) ------------
 ex:saEventInvitationIsAgreementAndRelator a gmeow:StructuralAssertion ;
@@ -92,7 +92,7 @@ ASK {
         rdfs:subClassOf gmeow:Agreement ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:EventInvitation MUST be an owl:Class and a subclass of both gmeow:Agreement and logic:Relator — it reifies the invitation social act as a relator and inherits the agreement spine (#62). Mirrors test_event_invitation_is_agreement_and_relator." .
+    gmeow:saRationale "gmeow:EventInvitation MUST be an owl:Class and a subclass of both gmeow:Agreement and logic:Relator — it reifies the invitation social act as a relator and inherits the agreement spine. Mirrors test_event_invitation_is_agreement_and_relator." .
 
 # --- 5. Availability is a TimeScopedRelation (MUST) --------------------------
 ex:saAvailabilityIsTimeScopedRelation a gmeow:StructuralAssertion ;
@@ -105,7 +105,7 @@ ASK {
     gmeow:Availability a owl:Class ;
         rdfs:subClassOf gmeow:TimeScopedRelation .
 }""" ;
-    gmeow:saRationale "gmeow:Availability MUST be an owl:Class and a subclass of gmeow:TimeScopedRelation — an availability holds only across its named interval, reusing the time-scoped spine (#62). Mirrors test_availability_is_time_scoped_relation." .
+    gmeow:saRationale "gmeow:Availability MUST be an owl:Class and a subclass of gmeow:TimeScopedRelation — an availability holds only across its named interval, reusing the time-scoped spine. Mirrors test_availability_is_time_scoped_relation." .
 
 # --- 6. Reminder is an Entity (MUST) ----------------------------------------
 ex:saReminderIsEntity a gmeow:StructuralAssertion ;
@@ -118,7 +118,7 @@ ASK {
     gmeow:Reminder a owl:Class ;
         rdfs:subClassOf gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:Reminder MUST be an owl:Class and a subclass of gmeow:Entity — it is an alert object, not an event itself (#62). Mirrors test_reminder_is_entity." .
+    gmeow:saRationale "gmeow:Reminder MUST be an owl:Class and a subclass of gmeow:Entity — it is an alert object, not an event itself. Mirrors test_reminder_is_entity." .
 
 # --- 7. Task is an Event (MUST) ---------------------------------------------
 ex:saTaskIsEvent a gmeow:StructuralAssertion ;
@@ -131,7 +131,7 @@ ASK {
     gmeow:Task a owl:Class ;
         rdfs:subClassOf gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:Task MUST be an owl:Class and a subclass of gmeow:Event — tasks inherit the full event spine (temporal placement, location, participation, scheduling) (#62). Mirrors test_task_is_event." .
+    gmeow:saRationale "gmeow:Task MUST be an owl:Class and a subclass of gmeow:Event — tasks inherit the full event spine (temporal placement, location, participation, scheduling). Mirrors test_task_is_event." .
 
 # --- 8. TimeZone is an Entity (MUST) ----------------------------------------
 ex:saTimeZoneIsEntity a gmeow:StructuralAssertion ;
@@ -144,7 +144,7 @@ ASK {
     gmeow:TimeZone a owl:Class ;
         rdfs:subClassOf gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:TimeZone MUST be an owl:Class and a subclass of gmeow:Entity — a time zone is a named civil offset object, not a temporal frame (#62). Mirrors test_time_zone_is_entity." .
+    gmeow:saRationale "gmeow:TimeZone MUST be an owl:Class and a subclass of gmeow:Entity — a time zone is a named civil offset object, not a temporal frame. Mirrors test_time_zone_is_entity." .
 
 # ===========================================================================
 # Value vocabulary structure — status classes are logic:AbstractIndividualType
@@ -452,7 +452,7 @@ ASK {
         owl:someValuesFrom gmeow:Event
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:EventSchedule MUST carry a someValuesFrom restriction on gmeow:scheduleTemplateEvent with filler gmeow:Event — the EL mediation axiom ensuring every schedule is bound to at least one template event (#62). Mirrors test_event_schedule_mediation_axiom_present." .
+    gmeow:saRationale "gmeow:EventSchedule MUST carry a someValuesFrom restriction on gmeow:scheduleTemplateEvent with filler gmeow:Event — the EL mediation axiom ensuring every schedule is bound to at least one template event. Mirrors test_event_schedule_mediation_axiom_present." .
 
 # --- 29. ScheduleException has someValuesFrom on exceptionSchedule (MUST) ----
 ex:saScheduleExceptionMediationSchedule a gmeow:StructuralAssertion ;
@@ -467,7 +467,7 @@ ASK {
         owl:someValuesFrom gmeow:EventSchedule
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:ScheduleException MUST carry a someValuesFrom restriction on gmeow:exceptionSchedule — every exception must be anchored to its schedule (#62). Mirrors test_schedule_exception_mediation_axiom_present (exceptionSchedule)." .
+    gmeow:saRationale "gmeow:ScheduleException MUST carry a someValuesFrom restriction on gmeow:exceptionSchedule — every exception must be anchored to its schedule. Mirrors test_schedule_exception_mediation_axiom_present (exceptionSchedule)." .
 
 # --- 30. ScheduleException has someValuesFrom on exceptionOriginalDate (MUST) -
 ex:saScheduleExceptionMediationOriginalDate a gmeow:StructuralAssertion ;
@@ -483,7 +483,7 @@ ASK {
         owl:someValuesFrom xsd:dateTime
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:ScheduleException MUST carry a someValuesFrom restriction on gmeow:exceptionOriginalDate with filler xsd:dateTime — the RFC 5545 RECURRENCE-ID anchor must be present (#62). Mirrors test_schedule_exception_mediation_axiom_present (exceptionOriginalDate)." .
+    gmeow:saRationale "gmeow:ScheduleException MUST carry a someValuesFrom restriction on gmeow:exceptionOriginalDate with filler xsd:dateTime — the RFC 5545 RECURRENCE-ID anchor must be present. Mirrors test_schedule_exception_mediation_axiom_present (exceptionOriginalDate)." .
 
 # --- 31. EventInvitation has someValuesFrom on invitationEvent (MUST) --------
 ex:saEventInvitationMediationEvent a gmeow:StructuralAssertion ;
@@ -498,7 +498,7 @@ ASK {
         owl:someValuesFrom gmeow:Event
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:EventInvitation MUST carry a someValuesFrom restriction on gmeow:invitationEvent — every invitation is about a concrete event (#62). Mirrors test_event_invitation_mediation_axiom_present (invitationEvent)." .
+    gmeow:saRationale "gmeow:EventInvitation MUST carry a someValuesFrom restriction on gmeow:invitationEvent — every invitation is about a concrete event. Mirrors test_event_invitation_mediation_axiom_present (invitationEvent)." .
 
 # --- 32. EventInvitation has someValuesFrom on invitationInvitee (MUST) ------
 ex:saEventInvitationMediationInvitee a gmeow:StructuralAssertion ;
@@ -513,7 +513,7 @@ ASK {
         owl:someValuesFrom gmeow:Agent
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:EventInvitation MUST carry a someValuesFrom restriction on gmeow:invitationInvitee — every invitation targets at least one agent (#62). Mirrors test_event_invitation_mediation_axiom_present (invitationInvitee)." .
+    gmeow:saRationale "gmeow:EventInvitation MUST carry a someValuesFrom restriction on gmeow:invitationInvitee — every invitation targets at least one agent. Mirrors test_event_invitation_mediation_axiom_present (invitationInvitee)." .
 
 # --- 33. Availability has someValuesFrom on availabilityAgent (MUST) ---------
 ex:saAvailabilityMediationAgent a gmeow:StructuralAssertion ;
@@ -528,7 +528,7 @@ ASK {
         owl:someValuesFrom gmeow:Agent
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:Availability MUST carry a someValuesFrom restriction on gmeow:availabilityAgent — every free-busy statement names whose availability it describes (#62). Mirrors test_availability_mediation_axiom_present (availabilityAgent)." .
+    gmeow:saRationale "gmeow:Availability MUST carry a someValuesFrom restriction on gmeow:availabilityAgent — every free-busy statement names whose availability it describes. Mirrors test_availability_mediation_axiom_present (availabilityAgent)." .
 
 # --- 34. Availability has someValuesFrom on availabilitySlot (MUST) ----------
 ex:saAvailabilityMediationSlot a gmeow:StructuralAssertion ;
@@ -543,7 +543,7 @@ ASK {
         owl:someValuesFrom gmeow:TimeInterval
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:Availability MUST carry a someValuesFrom restriction on gmeow:availabilitySlot — every free-busy statement is bounded by an interval (#62). Mirrors test_availability_mediation_axiom_present (availabilitySlot)." .
+    gmeow:saRationale "gmeow:Availability MUST carry a someValuesFrom restriction on gmeow:availabilitySlot — every free-busy statement is bounded by an interval. Mirrors test_availability_mediation_axiom_present (availabilitySlot)." .
 
 # --- 35. Reminder has someValuesFrom on reminderTarget (MUST) ----------------
 ex:saReminderMediationTarget a gmeow:StructuralAssertion ;
@@ -558,7 +558,7 @@ ASK {
         owl:someValuesFrom gmeow:Event
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:Reminder MUST carry a someValuesFrom restriction on gmeow:reminderTarget — every reminder is attached to a concrete event (#62). Mirrors test_reminder_mediation_axiom_present." .
+    gmeow:saRationale "gmeow:Reminder MUST carry a someValuesFrom restriction on gmeow:reminderTarget — every reminder is attached to a concrete event. Mirrors test_reminder_mediation_axiom_present." .
 
 # ===========================================================================
 # Value vocabulary seeds — individuals exist in the module
@@ -575,7 +575,7 @@ ASK {
     gmeow:invitationStatusDeclined    a gmeow:InvitationStatus .
     gmeow:invitationStatusTentative   a gmeow:InvitationStatus .
 }""" ;
-    gmeow:saRationale "All four iTIP PARTSTAT seed individuals MUST exist as gmeow:InvitationStatus members — they are the base vocabulary for the organizer's invitation view (#62). Mirrors test_invitation_status_vocabulary_seeded." .
+    gmeow:saRationale "All four iTIP PARTSTAT seed individuals MUST exist as gmeow:InvitationStatus members — they are the base vocabulary for the organizer's invitation view. Mirrors test_invitation_status_vocabulary_seeded." .
 
 # --- 37. RsvpStatus seed individuals exist (MUST) ----------------------------
 ex:saRsvpStatusSeedsExist a gmeow:StructuralAssertion ;
@@ -588,7 +588,7 @@ ASK {
     gmeow:rsvpStatusDeclined    a gmeow:RsvpStatus .
     gmeow:rsvpStatusTentative   a gmeow:RsvpStatus .
 }""" ;
-    gmeow:saRationale "All four RSVP seed individuals MUST exist as gmeow:RsvpStatus members — they seed the invitee's reply vocabulary, distinct from InvitationStatus (Principle 9, #62). Mirrors test_rsvp_status_vocabulary_seeded." .
+    gmeow:saRationale "All four RSVP seed individuals MUST exist as gmeow:RsvpStatus members — they seed the invitee's reply vocabulary, distinct from InvitationStatus (Principle 9). Mirrors test_rsvp_status_vocabulary_seeded." .
 
 # --- 38. AvailabilityStatus seed individuals exist (MUST) --------------------
 ex:saAvailabilityStatusSeedsExist a gmeow:StructuralAssertion ;
@@ -601,7 +601,7 @@ ASK {
     gmeow:availabilityStatusTentative  a gmeow:AvailabilityStatus .
     gmeow:availabilityStatusOutOfOffice a gmeow:AvailabilityStatus .
 }""" ;
-    gmeow:saRationale "All four iCalendar FBTYPE seed individuals MUST exist as gmeow:AvailabilityStatus members (#62). Mirrors test_availability_status_vocabulary_seeded." .
+    gmeow:saRationale "All four iCalendar FBTYPE seed individuals MUST exist as gmeow:AvailabilityStatus members. Mirrors test_availability_status_vocabulary_seeded." .
 
 # --- 39. ReminderAction seed individuals exist (MUST) ------------------------
 ex:saReminderActionSeedsExist a gmeow:StructuralAssertion ;
@@ -613,7 +613,7 @@ ASK {
     gmeow:reminderActionEmail   a gmeow:ReminderAction .
     gmeow:reminderActionAudio   a gmeow:ReminderAction .
 }""" ;
-    gmeow:saRationale "All three iCalendar ACTION seed individuals MUST exist as gmeow:ReminderAction members (#62). Mirrors test_reminder_action_vocabulary_seeded." .
+    gmeow:saRationale "All three iCalendar ACTION seed individuals MUST exist as gmeow:ReminderAction members. Mirrors test_reminder_action_vocabulary_seeded." .
 
 # --- 40. TaskStatus seed individuals exist (MUST) ----------------------------
 ex:saTaskStatusSeedsExist a gmeow:StructuralAssertion ;
@@ -626,7 +626,7 @@ ASK {
     gmeow:taskStatusCompleted  a gmeow:TaskStatus .
     gmeow:taskStatusCancelled  a gmeow:TaskStatus .
 }""" ;
-    gmeow:saRationale "All four iCalendar VTODO STATUS seed individuals MUST exist as gmeow:TaskStatus members (#62). Mirrors test_task_status_vocabulary_seeded." .
+    gmeow:saRationale "All four iCalendar VTODO STATUS seed individuals MUST exist as gmeow:TaskStatus members. Mirrors test_task_status_vocabulary_seeded." .
 
 # --- 41. ExceptionType seed individuals exist (MUST) -------------------------
 ex:saExceptionTypeSeedsExist a gmeow:StructuralAssertion ;
@@ -637,7 +637,7 @@ ASK {
     gmeow:exceptionTypeCancellation  a gmeow:ExceptionType .
     gmeow:exceptionTypeRescheduling  a gmeow:ExceptionType .
 }""" ;
-    gmeow:saRationale "Both ExceptionType seed individuals MUST exist as gmeow:ExceptionType members (#62). Mirrors test_exception_type_vocabulary_seeded." .
+    gmeow:saRationale "Both ExceptionType seed individuals MUST exist as gmeow:ExceptionType members. Mirrors test_exception_type_vocabulary_seeded." .
 
 # ===========================================================================
 # No preferred / primary calendar term (Principle 9)
@@ -685,7 +685,7 @@ ASK {
     gmeow:scheduleOccurrence rdfs:domain gmeow:EventSchedule ;
         rdfs:range gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:scheduleTemplateEvent (functional), scheduleRecurrenceRule, scheduleTimeZone, and scheduleOccurrence MUST all have the correct domain, range, and functionality — these are the four mediating properties of EventSchedule (#62). Mirrors test_event_schedule_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:scheduleTemplateEvent (functional), scheduleRecurrenceRule, scheduleTimeZone, and scheduleOccurrence MUST all have the correct domain, range, and functionality — these are the four mediating properties of EventSchedule. Mirrors test_event_schedule_properties_are_well_typed." .
 
 # --- 44. EventInvitation properties are well-typed (MUST) --------------------
 ex:saInvitationPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -705,7 +705,7 @@ ASK {
     gmeow:rsvpStatus rdfs:domain gmeow:EventInvitation ;
         rdfs:range gmeow:RsvpStatus .
 }""" ;
-    gmeow:saRationale "gmeow:invitationEvent (functional), invitationInvitee, invitationStatus, and rsvpStatus MUST all have the correct domain and range (#62). Mirrors test_invitation_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:invitationEvent (functional), invitationInvitee, invitationStatus, and rsvpStatus MUST all have the correct domain and range. Mirrors test_invitation_properties_are_well_typed." .
 
 # --- 45. Availability properties are well-typed (MUST) -----------------------
 ex:saAvailabilityPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -723,7 +723,7 @@ ASK {
     gmeow:availabilityStatus rdfs:domain gmeow:Availability ;
         rdfs:range gmeow:AvailabilityStatus .
 }""" ;
-    gmeow:saRationale "gmeow:availabilityAgent, availabilitySlot (functional), and availabilityStatus MUST all have the correct domain and range (#62). Mirrors test_availability_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:availabilityAgent, availabilitySlot (functional), and availabilityStatus MUST all have the correct domain and range. Mirrors test_availability_properties_are_well_typed." .
 
 # --- 46. Reminder properties are well-typed (MUST) ---------------------------
 ex:saReminderPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -740,7 +740,7 @@ ASK {
         rdfs:range gmeow:Event ;
         a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:reminderTrigger (domain only), reminderAction, and reminderTarget (functional) MUST all have the correct domain and range (#62). Mirrors test_reminder_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:reminderTrigger (domain only), reminderAction, and reminderTarget (functional) MUST all have the correct domain and range. Mirrors test_reminder_properties_are_well_typed." .
 
 # --- 47. Task properties are well-typed (MUST) --------------------------------
 ex:saTaskPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -760,7 +760,7 @@ ASK {
     gmeow:taskRecurrenceUntilDone rdfs:domain gmeow:Task ;
         rdfs:range xsd:boolean .
 }""" ;
-    gmeow:saRationale "gmeow:taskDueDate, taskStatus, taskPriority, and taskRecurrenceUntilDone MUST all have the correct domain and range (#62). Mirrors test_task_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:taskDueDate, taskStatus, taskPriority, and taskRecurrenceUntilDone MUST all have the correct domain and range. Mirrors test_task_properties_are_well_typed." .
 
 # --- 48. TimeZone properties are well-typed (MUST) ---------------------------
 ex:saTimeZonePropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -778,7 +778,7 @@ ASK {
         rdfs:range gmeow:TimeZone ;
         a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:timeZoneIanaId (functional) and gmeow:eventTimeZone (functional) MUST have the correct domain and range — each event carries at most one civil offset and each zone has one IANA tzid (#62). Mirrors test_time_zone_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:timeZoneIanaId (functional) and gmeow:eventTimeZone (functional) MUST have the correct domain and range — each event carries at most one civil offset and each zone has one IANA tzid. Mirrors test_time_zone_properties_are_well_typed." .
 
 # --- 49. Calendar collection properties are well-typed (MUST) ----------------
 ex:saCalendarCollectionPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -794,7 +794,7 @@ ASK {
     gmeow:calendarMember rdfs:domain gmeow:Calendar ;
         rdfs:range gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:calendarTimeZone (functional) and gmeow:calendarMember MUST have the correct domain and range — one default zone per calendar, membership non-functional (#62). Mirrors test_calendar_collection_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:calendarTimeZone (functional) and gmeow:calendarMember MUST have the correct domain and range — one default zone per calendar, membership non-functional. Mirrors test_calendar_collection_properties_are_well_typed." .
 
 # --- 50. ScheduleException properties are well-typed (MUST) ------------------
 ex:saScheduleExceptionPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -814,4 +814,4 @@ ASK {
     gmeow:exceptionType rdfs:domain gmeow:ScheduleException ;
         rdfs:range gmeow:ExceptionType .
 }""" ;
-    gmeow:saRationale "gmeow:exceptionSchedule, exceptionOriginalDate, exceptionReplacementEvent, and exceptionType MUST all have the correct domain and range (#62). Mirrors test_schedule_exception_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:exceptionSchedule, exceptionOriginalDate, exceptionReplacementEvent, and exceptionType MUST all have the correct domain and range. Mirrors test_schedule_exception_properties_are_well_typed." .

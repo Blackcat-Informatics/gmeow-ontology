@@ -19,4 +19,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ;
-    gmeow:sliceConsumer "The agent-memory timeline — a unified, queryable record of an agent's mental life as it unfolds; the single occurrent substrate that inference (#581), learning (#584), imagination (#587), and dreaming (#589) specialise or compose over."@x-gmeow-english .
+    gmeow:sliceConsumer "The agent-memory timeline — a unified, queryable record of an agent's mental life as it unfolds; the single occurrent substrate that inference, learning, imagination, and dreaming specialise or compose over."@x-gmeow-english .

@@ -280,12 +280,21 @@ and `w3c_rdfc10_heavy_offgate` (the sole RDFC-1.0 negative/poison vector `test07
 ~5.3 s on the call-budget guard — the rest of the W3C suite is sharded+gated, each
 shard under 1 s).
 
-The whole `gmeow-docs` test cluster is **on-gate**: each test loads a shared
+Nearly the whole `gmeow-docs` test cluster is **on-gate**: each test loads a shared
 `DocsModel` from the content-addressed `gmeow_docs::fixture` cache instead of
 rebuilding it. The cache is primed once before the run — the `prime-docs-fixture`
 example, run by the Makefile test lanes and the CI test job ahead of `nextest` — so
 no test pays the ~12 s build or the cold concurrent-rebuild contention. A plain
-`cargo test` still works (a miss falls through to a build).
+`cargo test` still works (a miss falls through to a build). The exception is the
+**full-site-render family** — `render_site_is_byte_stable`,
+`english_carrier_tree_matches_render_site`, `french_tree_shares_the_english_path_graph`,
+`chinese_tree_shares_the_english_path_graph`, and
+`translated_tree_preserves_the_no_dangling_link_invariant`: the shared fixture
+amortizes the model *build*, but each of these renders or walks the WHOLE site
+(every page, English or translated), an O(terms) cost the fixture cannot amortize.
+All five sit at ~23-26 s and cross the zero-headroom 25 s budget as the ontology
+grows, so they are off-gate (still run on maint-heavy); every single-page /
+single-term docs test stays on-gate.
 
 The bias is **fix, don't off-gate**: prefer making a test fast (shard it like the
 corpus parity sweep in `crates/rdf/tests/sparql_eval_parity.rs`, or share an
