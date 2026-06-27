@@ -16,9 +16,9 @@
 //! Three shapes, each over a synthetic dataset:
 //!   - `trivial_inner` — single-row inner (|inner| = 1): isolates the inner-eval
 //!     caching win; the index over one row is negligible.
-//!   - `large_inner` — a wide inner result shared with the outer: this is the
-//!     #1049 shape where rebuilding the inner index per outer row is the quadratic
-//!     cost, so it isolates the **index-reuse** win.
+//!   - `large_inner` — a wide inner result shared with the outer: rebuilding the
+//!     inner index per outer row is the quadratic cost here, so this shape isolates
+//!     the **index-reuse** win.
 //!   - `unbound_scan` — outer rows that leave the shared variable unbound (a UNION
 //!     branch), so each probe falls into the per-row compatibility scan. This makes
 //!     the unbound-shared-column cliff visible to regression tracking — even with a
@@ -86,7 +86,7 @@ fn hub_dataset(n_outer: usize, m_inner: usize) -> Arc<RdfDataset> {
 const TRIVIAL_QUERY: &str = "SELECT ?s ?o WHERE { ?s <http://ex/knows> ?o \
                              FILTER NOT EXISTS { ?o <http://ex/member> ?m } }";
 
-/// Wide inner result shared on `?o` — the #1049 quadratic shape.
+/// Wide inner result shared on `?o` — the quadratic per-row-rebuild shape.
 const LARGE_INNER_QUERY: &str = "SELECT ?s WHERE { ?s <http://ex/knows> ?o \
                                  FILTER NOT EXISTS { ?o <http://ex/member> ?m } }";
 
@@ -124,8 +124,8 @@ fn bench_exists_decorrelation(c: &mut Criterion) {
         &knows_dataset(1_000),
         TRIVIAL_QUERY,
     );
-    // Wide inner shared on the probe key: isolates the index-reuse win (the #1049
-    // anti-join). 1k outer rows × a 1k-row inner = a per-row rebuild of 1M vs a
+    // Wide inner shared on the probe key: isolates the index-reuse win (the
+    // quadratic per-row-rebuild anti-join shape). 1k outer rows × a 1k-row inner = a per-row rebuild of 1M vs a
     // single 1k build plus 1k O(1) probes.
     let hub = hub_dataset(1_000, 1_000);
     bench_pair(c, "exists_large_inner_antijoin", &hub, LARGE_INNER_QUERY);

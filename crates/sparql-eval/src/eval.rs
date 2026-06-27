@@ -374,7 +374,7 @@ mod tests {
             Expression, NamedNode, NamedNodePattern, TermPattern, TriplePattern, Variable,
         };
 
-        // Three typed subjects; two carry a :stereo, one does not — the #1049
+        // Three typed subjects; two carry a :stereo, one does not — the class-without-stereotype
         // anti-join shape: the outer var `?class` appears in the inner ONLY in a BGP
         // triple position (no expression correlation), so the uncorrelated fast path
         // is taken and the inner index must be reused across the three outer rows.

@@ -223,7 +223,7 @@ mod tests {
 
     #[test]
     fn filter_not_exists_antijoin_returns_correct_rows() {
-        // The #1049 shape end-to-end through the parser: FILTER NOT EXISTS whose inner
+        // The class-without-stereotype anti-join shape end-to-end through the parser: FILTER NOT EXISTS whose inner
         // references the outer var only in a triple position. In `social()`, :a knows
         // :b and has a name; :b has neither. The anti-join keeps subjects that are a
         // knows-subject but have NO name → none here (:a has a name), so zero rows;
