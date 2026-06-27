@@ -30,6 +30,23 @@ pub const DEFAULT_SEMANTIC_PROFILE: &str = "PositiveHornProfile";
 /// The default anti-rigidity policy for the foundation-lowering path.
 pub const DEFAULT_ANTI_RIGIDITY_POLICY: &str = "witness-obligation";
 
+/// The verdict-production mode (#753).
+///
+/// `Materialization` (the default) runs the profile-routed chase and counts the
+/// materialized worlds — the pre-#753 behavior. `Consistency` reasons over the
+/// case's RDF EDB (world-scoped N-Quads in `input.nq`) through the native DL
+/// consistency path ([`gmeow_logic::reason::reason_all`]) and emits a per-world
+/// `consistent`/`inconsistent` verdict. This is **modal-by-test-intent** —
+/// materialization and consistency are genuinely different engine operations,
+/// exactly like the existing `foundation_lowering` / `expect_unsupported` modal
+/// fields — NOT a quality knob; an unknown value is a hard error.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum VerdictMode {
+    #[default]
+    Materialization,
+    Consistency,
+}
+
 /// Optional budget governor ceilings (issue #502). Each is an optional positive
 /// integer; absence ⇒ unbounded. This struct is the sole authority for the
 /// budget ceilings (the former Python `logic_seam.BudgetParams` was culled in #932).
@@ -68,6 +85,8 @@ pub struct Profile {
     /// and short-circuits BEFORE evaluating/certifying/materializing — the
     /// "unsupported is a hard stop" guarantee, pinned at the corpus level.
     pub expect_unsupported: bool,
+    /// The verdict-production mode (#753, default [`VerdictMode::Materialization`]).
+    pub verdict_mode: VerdictMode,
 }
 
 impl Profile {
@@ -136,6 +155,8 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
     // truthy non-bool).
     let expect_unsupported = obj.get("expect_unsupported").and_then(Value::as_bool) == Some(true);
 
+    let verdict_mode = parse_verdict_mode(case_id, obj)?;
+
     Ok(Profile {
         semantic_profile,
         budget_params,
@@ -144,7 +165,25 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
         counterfactual_profile,
         certify,
         expect_unsupported,
+        verdict_mode,
     })
+}
+
+/// Parse the optional `verdict_mode` field (#753).
+///
+/// Absent ⇒ [`VerdictMode::Materialization`]. The only accepted values are the
+/// strings `"materialization"` and `"consistency"`; any other value (including a
+/// non-string) is a hard error — no silent coercion to the default.
+fn parse_verdict_mode(case_id: &str, obj: &Map<String, Value>) -> Result<VerdictMode, String> {
+    match obj.get("verdict_mode") {
+        None | Some(Value::Null) => Ok(VerdictMode::Materialization),
+        Some(Value::String(s)) if s == "materialization" => Ok(VerdictMode::Materialization),
+        Some(Value::String(s)) if s == "consistency" => Ok(VerdictMode::Consistency),
+        Some(other) => Err(format!(
+            "case {case_id}: profile.json verdict_mode must be \"materialization\" or \
+             \"consistency\", got {other}"
+        )),
+    }
 }
 
 /// Parse and validate the nested `reasoning_contract` object (#767), returning its
@@ -269,7 +308,38 @@ mod tests {
         assert!(p.counterfactual_profile.is_none());
         assert!(!p.certify);
         assert!(!p.expect_unsupported);
+        assert_eq!(p.verdict_mode, VerdictMode::Materialization);
         assert_eq!(p.query_profile(), DEFAULT_SEMANTIC_PROFILE);
+    }
+
+    #[test]
+    fn verdict_mode_parses_and_defaults() {
+        // Absent ⇒ materialization (the pre-#753 behavior).
+        assert_eq!(
+            parse_profile("c", &json!({})).unwrap().verdict_mode,
+            VerdictMode::Materialization
+        );
+        assert_eq!(
+            parse_profile("c", &json!({ "verdict_mode": "materialization" }))
+                .unwrap()
+                .verdict_mode,
+            VerdictMode::Materialization
+        );
+        assert_eq!(
+            parse_profile("c", &json!({ "verdict_mode": "consistency" }))
+                .unwrap()
+                .verdict_mode,
+            VerdictMode::Consistency
+        );
+    }
+
+    #[test]
+    fn verdict_mode_unknown_value_hard_fails() {
+        // No silent coercion to the default (no-optionality doctrine).
+        let err = parse_profile("c", &json!({ "verdict_mode": "satisfiable" })).unwrap_err();
+        assert!(err.contains("verdict_mode must be"), "{err}");
+        // A non-string is equally a hard error.
+        assert!(parse_profile("c", &json!({ "verdict_mode": 1 })).is_err());
     }
 
     #[test]
