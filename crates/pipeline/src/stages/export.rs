@@ -1639,12 +1639,16 @@ fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
 
 // ── MCP consumer surfaces (#1031) ────────────────────────────────────────────
 //
-// The consumer-safe MCP server (`gmeow_tools.mcp_server_consumer`) exposes three
-// `export`-backed surfaces. These renderers reproduce the Python consumer's wire
-// format EXACTLY (NOT the export-generator `llms.txt`/JSONL format above): the
-// llms.txt header is three lines, the subclass marker is `subClassOf` (not `⊑`),
-// the property arrow is ASCII `->`, and the per-term summary carries no box-roles
-// suffix. Python is now thin FastMCP wiring; all of this logic lives here.
+// The consumer-safe MCP server (`gmeow_tools.mcp_server_consumer`) exposes five
+// `export`-backed surfaces: `lookup_term`, `llms_txt`, `llms_full`, `doc_card`,
+// and `okf_index`. These renderers emit the standard llmstxt.org format via the
+// shared `gmeow_docs::llms` skeleton (`# H1` + `> {GMEOW_SUMMARY}` blockquote +
+// `## Section` markdown-link bullets, `⊑` subclass marker, `→` property arrow) —
+// the same format the dist export and docs SITE index produce, differing only in
+// whether bullets carry a site URL. The per-term card (`doc_card`) and the
+// inlined `llms_full` blocks render through the single `gmeow_docs::card`
+// renderer, so the MCP card is the genuine twin of the docs-site `card.md`
+// (#1027). Python is now thin FastMCP wiring; all of this logic lives here.
 //
 // Gated to `python` (the only runtime consumer, via `crate::mcp`) and `test`
 // (the byte-format goldens) so a plain rlib build carries no dead code.
