@@ -17,6 +17,7 @@
 //! There is no I/O and no TTL emission here — serialization is the job of a later
 //! task. This module produces only the in-memory structured ledger.
 
+use gmeow_diagnostics::{Finding, Severity};
 use gmeow_rdf::RdfLoss;
 use std::collections::BTreeSet;
 
@@ -469,6 +470,48 @@ pub fn build_ledger(
     }
 }
 
+/// The stable kebab code suffix for a divergence kind (the structured signal
+/// that feeds the #697 coverage gate). `Agree` has no code — agreement is not a
+/// divergence and never becomes a finding.
+fn divergence_code_suffix(kind: &DivergenceKind) -> Option<&'static str> {
+    match kind {
+        DivergenceKind::Agree => None,
+        DivergenceKind::NativeOnly => Some("native-only"),
+        DivergenceKind::OracleOnly => Some("oracle-only"),
+        DivergenceKind::DlGap => Some("dl-gap"),
+        DivergenceKind::CorpusOnly => Some("corpus-only"),
+    }
+}
+
+/// Project a [`DivergenceLedger`] into restricted [`gmeow_diagnostics::Finding`]s —
+/// one per NON-`Agree` row.
+///
+/// The diagnostics doctrine declares the native↔oracle / native↔corpus
+/// divergence-ledger entries to BE `gmeow:Finding`s (a `gmeow:Observation` whose
+/// vantage is the conformance tooling), so this reuses the canonical Finding model
+/// rather than minting a parallel vocabulary. Every divergence is gate-failing, so
+/// the severity is [`Severity::Error`]; the `code` carries the structured kind
+/// (`reason.divergence.{kind}`) the #697 coverage gate keys on; the `message` is the
+/// row's `detail`, which for a `CorpusOnly` row carries the native verdict AND the
+/// raw published external expected verbatim (the external ground-truth provenance).
+pub fn divergence_findings(ledger: &DivergenceLedger) -> Vec<Finding> {
+    ledger
+        .rows
+        .iter()
+        .filter_map(|row| {
+            let suffix = divergence_code_suffix(&row.kind)?;
+            Some(
+                Finding::new(
+                    Severity::Error,
+                    format!("reason.divergence.{suffix}"),
+                    row.detail.clone(),
+                )
+                .with_tool("conformance"),
+            )
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -748,5 +791,45 @@ mod tests {
             "no corpus-only row for an undecidable case"
         );
         assert_eq!(ledger.dl_gap, 1);
+    }
+
+    // ── divergence_findings projection (divergence rows ARE gmeow:Findings) ─────
+
+    #[test]
+    fn divergence_findings_skip_agree_and_carry_kind_and_provenance() {
+        let external = compare_external_corpus(
+            "w3c-owl2-el",
+            &[
+                cmp("consistency/open", "w", "consistent", "consistent"), // Agree → dropped
+                cmp("clash", "w", "consistent", "inconsistent"),          // CorpusOnly
+                cmp("beyond/card", "w", "incomplete", "consistent"),      // DlGap
+            ],
+        );
+        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), external);
+        let findings = divergence_findings(&ledger);
+
+        assert_eq!(
+            findings.len(),
+            2,
+            "Agree row is not a finding: {findings:?}"
+        );
+        assert!(findings.iter().all(|f| f.severity == Severity::Error));
+        assert!(findings
+            .iter()
+            .all(|f| f.tool.as_deref() == Some("conformance")));
+
+        let corpus = findings
+            .iter()
+            .find(|f| f.code == "reason.divergence.corpus-only")
+            .expect("a corpus-only finding");
+        // The raw published expected verdict rides verbatim in the message.
+        assert!(
+            corpus.message.contains("inconsistent"),
+            "published expected is carried as provenance: {}",
+            corpus.message
+        );
+        assert!(findings
+            .iter()
+            .any(|f| f.code == "reason.divergence.dl-gap"));
     }
 }
