@@ -10,6 +10,20 @@
 gmeow:Attestation
     rdfs:subClassOf gmeow:JustificationGround .
 
+gmeow:ClaimToken
+    a logic:Event ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Claim Token"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Activity ;
+    skos:definition "A single datable assertion act — one source, on one occasion, putting one or more propositions forward under an assertoric force. A perdurant WITH PROVENANCE (a gmeow:Activity): performed by an agent via gmeow:wasAssociatedWith, held according to a frame via gmeow:accordingTo, datable on the event. The claim TOKEN is distinct from the propositional content it expresses (gmeow:expresses → gmeow:Proposition), from the attitude held toward it (gmeow:heldByAttitude → gmeow:DoxasticState or teleology gmeow:IntentionalMode), and from any evaluation of it (gmeow:ClaimEvaluation). One proposition may be expressed by many coexisting tokens, and one token may express several propositions (Principle 9); a token is retractable by suppression (gmeow:displayable false, Principle 10) without erasing the content it expressed."@x-gmeow-english ;
+    skos:example "ex:tok1 a gmeow:ClaimToken ; gmeow:wasAssociatedWith ex:authorityA ; gmeow:accordingTo ex:standpointA ; gmeow:expresses ex:earthIsRound ."@x-gmeow-english ;
+    skos:scopeNote "The legacy gmeow:StandpointClaim (a gmeow:Observation relator) is the GENERATED projected union view of a claim token — the convenience surface the foundation prescribes (a projected union view over the four constructs), never the canonical record. Author claims as gmeow:ClaimToken; the Observation/StandpointClaim surface is materialised from them so generic 'all observations about X' queries keep working."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a ClaimToken for the propositional content itself (that is gmeow:Proposition, which asserts nothing by itself) or for the held attitude (gmeow:DoxasticState); a token is the datable act of putting a proposition forward, not the content and not the belief."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one ClaimToken per assertion act; link its content with gmeow:expresses (one or many propositions), its performing agent with gmeow:wasAssociatedWith, its frame with gmeow:accordingTo; attach the reported attitude with gmeow:heldByAttitude and the producing event via the inverse of gmeow:producesClaim; evaluations reference it via gmeow:evaluates. Retract by suppression (gmeow:displayable false), never deletion (Principle 10)."@x-gmeow-english ;
+    gmeow:useWhen "Use as the canonical assertion-act token whenever a proposition is PUT FORWARD by a source on an occasion — so the content, the act, the attitude, and the evaluation stay four distinct identities (the foundational claim separation)."@x-gmeow-english .
+
 gmeow:DoxasticStandpointClaim
     a logic:SubKind ,
         owl:Class ;
@@ -48,6 +62,7 @@ gmeow:DoxasticState
         ] ;
     skos:definition "An agent's intrinsic believing mode toward a proposition — the reified, first-class mental moment that grounds the flat doxastic spine (gmeow:believes, gmeow:knowsThat). A sibling of cognition:CognitiveState (knowing) and teleology:IntentionalMode (desiring/intending) under kernel:MentalMoment, so an agent's whole endurant mental life is queryable as one family (Principle 15). Inheres in exactly one agent via epistemicAgent and is directed at exactly one Proposition via doxasticContent; its qualitative belief value is carried by a linked StandpointClaim (doxasticClaim → claimModality), and its graded strength by credence [0,1]. Never instantiated directly when the flat spine suffices (Principle 4)."@x-gmeow-english ;
     skos:example "ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:epistemicAgent ex:alice ; gmeow:doxasticContent ex:earthIsRound ; gmeow:doxasticClaim ex:aliceRoundClaim ; gmeow:credence \"0.92\"^^xsd:decimal ."@x-gmeow-english ;
+    skos:scopeNote "A DoxasticState grounds the canonical claim tokens that report it via gmeow:groundsClaim (the attitude→token link, inverse of gmeow:heldByAttitude), distinct from gmeow:doxasticClaim which links to the standpoint-slice gmeow:StandpointClaim VIEW. An attitude may ground several tokens or none (a belief never put forward) — the held/projected gap (Principle 9)."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the 80% case where an agent simply believes a proposition — use the flat gmeow:believes / gmeow:knowsThat spine and carry modality on the statement layer; avoid double-typing a belief as both a flat relation and a DoxasticState for the same holding (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint one DoxasticState per (agent, proposition, claim-modality) tuple; link it via gmeow:doxasticClaim to a StandpointClaim whose vantage is the agent, observedFeature is the proposition, and claimModality carries the qualitative value; attach credence for graded strength and a DoxasticTenure when belief revision history matters."@x-gmeow-english ;
@@ -135,7 +150,7 @@ gmeow:Proposition
     rdfs:subClassOf gmeow:SocialObject ;
     skos:definition "A truth-apt content — a described state of affairs that can be held true or false, the object of a doxastic attitude (gmeow:believes, gmeow:knowsThat). Existing by social convention like every description, it is a gmeow:SocialObject. A Proposition asserts nothing by itself: that an agent holds it, and with what modality, is a vantage-indexed claim (Principle 9). It is the doxastic sibling of gmeow:Goal (teleology): a belief and a goal may share the SAME proposition but differ in direction of fit — a belief has mind-to-world fit (it aims to be true to the world), a goal has world-to-mind fit (it aims to make the world true to it)."@x-gmeow-english ;
     skos:example "ex:earthIsRound a gmeow:Proposition ; rdfs:label \"the Earth is round\"@en ."@x-gmeow-english ;
-    skos:scopeNote "Direction-of-fit bridge (documentation only — no axiom, no teleology dependency): belief --mind-to-world--> Proposition <--world-to-mind-- Goal. There is deliberately NO gmeow:Goal rdfs:subClassOf gmeow:Proposition; subsumption would erase the direction-of-fit distinction, so the link stays by reference."@x-gmeow-english ;
+    skos:scopeNote "Direction-of-fit bridge (documentation only — no axiom, no teleology dependency): belief --mind-to-world--> Proposition <--world-to-mind-- Goal. There is deliberately NO gmeow:Goal rdfs:subClassOf gmeow:Proposition; subsumption would erase the direction-of-fit distinction, so the link stays by reference. Proposition is the propositional-content axis of the claim separation: the truth-apt content, distinct from the claim token that expresses it (gmeow:ClaimToken via gmeow:expresses), the attitude held toward it (gmeow:DoxasticState), and any evaluation of it (gmeow:ClaimEvaluation). Its logical form, when needed, is a logic:FormulaFragment in the logic slice, linked by reference — not axiomatised here (the gmeow:vantage / gmeow:accordingTo documented-not-axiomatised precedent)."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting the proposition as a global fact (it asserts nothing by itself — that an agent holds it, and how, is a vantage-indexed claim, never a factive knowledge verdict); avoid subsuming a gmeow:Goal under it, which would erase the direction-of-fit distinction."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the Proposition once, link agents to it through the flat doxastic spine (gmeow:believes, gmeow:doubts, gmeow:accepts, gmeow:knowsThat), and carry how-strongly / from-whose-vantage on gmeow:standpointModality and gmeow:accordingTo of the holding statement; a co-aimed goal references the same proposition rather than subclassing it."@x-gmeow-english ;
@@ -156,6 +171,18 @@ gmeow:accepts
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the agent at the proposition or reified statement it works from; keep gmeow:accepts strictly separate from gmeow:believes so the projection layer never silently promotes an accepted premise to a believed or known one (Principle 1)."@x-gmeow-english ;
     gmeow:useWhen "Use to record a pragmatic stance — a premise taken on for argument, a policy default, an 'assume for the sake of argument' — that the agent works from WITHOUT thereby believing it true."@x-gmeow-english .
+
+gmeow:attacksClaim
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "attacks claim"@x-gmeow-english ;
+    rdfs:range gmeow:ClaimToken ;
+    skos:definition "Relates an attacking structure — an argument, a counter-claim — to the claim token it attacks. The attack pole of bipolar argumentation; the support counterpart is gmeow:supportsClaim. Domain is intentionally OPEN (no rdfs:domain) until the argumentation layer mints gmeow:Argument as the proper domain; only the ClaimToken end is fixed now (the open-domain idiom of gmeow:observedFeature). Non-functional; competing attacks coexist (Principle 9). Distinct from gmeow:defeatedBy (a solver-set verdict flag): attacksClaim records the structural attack relation, not the adjudicated outcome."@x-gmeow-english ;
+    skos:example "ex:counterArg gmeow:attacksClaim ex:tok1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with the adjudicated verdict (gmeow:defeatedBy) — an attack is structural, a verdict is the solver's call; and avoid narrowing the domain before the argumentation layer supplies gmeow:Argument."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the attacking structure at the gmeow:ClaimToken; leave the domain open until the argumentation layer supplies gmeow:Argument, then narrow there, not here."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that some structure attacks a claim token — the attack pole of bipolar argumentation, ClaimToken-end only for now."@x-gmeow-english .
 
 gmeow:believes
     a owl:ObjectProperty ;
@@ -266,6 +293,46 @@ gmeow:epistemicAgent
     gmeow:howToUse "Set exactly once per DoxasticState, pairing it with doxasticContent and doxasticClaim."@x-gmeow-english ;
     gmeow:useWhen "Use to bind a DoxasticState to the agent whose believing mode it is."@x-gmeow-english .
 
+gmeow:expresses
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ClaimToken ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "expresses"@x-gmeow-english ;
+    rdfs:range gmeow:Proposition ;
+    skos:definition "The propositional content a claim token puts forward — the gmeow:Proposition it conveys. The content axis of the claim separation: a claim token may express several propositions, and a proposition may be expressed by many coexisting tokens (Principle 9). Distinct from gmeow:doxasticContent (which links the held DoxasticState to the same proposition from the attitude side) and from gmeow:observedFeature (the Observation-spine role the generated union view materialises from this property). The proposition is a first-class content identity, separate from the assertion act that expresses it."@x-gmeow-english ;
+    skos:example "ex:tok1 gmeow:expresses ex:earthIsRound ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the held attitude (gmeow:heldByAttitude) or the asserting agent (gmeow:wasAssociatedWith); expresses names only the truth-apt content the token conveys. Avoid asserting the expressed proposition as a global fact — a Proposition asserts nothing by itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the gmeow:ClaimToken at one or more gmeow:Proposition individuals; the generated observation union view materialises gmeow:observedFeature from these so generic observation consumers find them. Retract a token by suppression without touching the proposition it expressed (Principle 10)."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the truth-apt proposition(s) a claim token asserts, denies, entertains, or assumes — the content axis of the four-way separation, kept distinct from the act, the attitude, and the evaluation."@x-gmeow-english .
+
+gmeow:groundsClaim
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MentalMoment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "grounds claim"@x-gmeow-english ;
+    rdfs:range gmeow:ClaimToken ;
+    skos:definition "Relates a held attitude — a gmeow:DoxasticState (belief) or a teleology gmeow:IntentionalMode (desire / intention), both gmeow:MentalMoment — to a claim token it grounds. The attitude→token canonical link, inverse of gmeow:heldByAttitude. Non-functional: one held attitude may ground several coexisting tokens (re-asserted on different occasions, to different audiences) or none (an attitude never put forward). Distinct from gmeow:doxasticClaim, which links a DoxasticState to its standpoint-slice gmeow:StandpointClaim VIEW; groundsClaim links to the canonical claim token, the assertion act itself."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:groundsClaim ex:tok1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with gmeow:doxasticClaim (the StandpointClaim view link) or with the content link gmeow:doxasticContent; groundsClaim points at the canonical assertion act, not the content and not the projected view."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point a gmeow:DoxasticState (or teleology gmeow:IntentionalMode) at each gmeow:ClaimToken it grounds; read gmeow:heldByAttitude by inversion from the token side. Leave absent for a held attitude never put forward as a claim."@x-gmeow-english ;
+    gmeow:useWhen "Use from a held attitude to reach the claim token(s) it grounds — the attitude-rooted direction of the attitude↔token link."@x-gmeow-english .
+
+gmeow:heldByAttitude
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ClaimToken ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "held by attitude"@x-gmeow-english ;
+    rdfs:range gmeow:MentalMoment ;
+    owl:inverseOf gmeow:groundsClaim ;
+    skos:definition "The held attitude a claim token reports — a gmeow:DoxasticState (belief) or a teleology gmeow:IntentionalMode (desire / intention), the kernel gmeow:MentalMoment parent covering both without re-minting per attitude family (Principle 6). The token-rooted inverse of gmeow:groundsClaim. OPTIONAL by design: a token with no attitude is one asserted without a reported private attitude, and a proposition held as an attitude with NO token is one merely entertained or assumed without being put forward (the canon 'an attitude need not be expressed by any token')."@x-gmeow-english ;
+    skos:example "ex:tok1 gmeow:heldByAttitude ex:aliceBelievesRound ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the propositional content (gmeow:expresses) or the asserting agent (gmeow:wasAssociatedWith); leave it absent to model a merely entertained or assumed token, or a sincerity gap where the projected token diverges from the held attitude."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it as the inverse of gmeow:groundsClaim from the token side; point a doxastic token at its gmeow:DoxasticState, a conative token at its gmeow:IntentionalMode. Omit it to model entertaining or assuming without holding the attitude."@x-gmeow-english ;
+    gmeow:useWhen "Use from a claim token to reach the attitude it reports (belief, desire, intent) — the token-rooted inverse of the attitude→token gmeow:groundsClaim edge."@x-gmeow-english .
+
 gmeow:justificationStatusDefeated
     a gmeow:JustificationStatus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
@@ -320,6 +387,31 @@ gmeow:knowsThat
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the agent at the proposition or reified statement; carry truth-per-frame on gmeow:standpointModality / gmeow:accordingTo of the holding statement, model justification grounds via gmeow:justifiedBy and gmeow:defeatedBy declared in this module, and rely only on the safe entailment knowsThat ⊑ believes — never on a global truth bit."@x-gmeow-english ;
     gmeow:useWhen "Use to record justified, standpoint-true belief held from a vantage — the keystone knowledge-that attitude; asserting it materialises gmeow:believes (knowledge entails belief), so reach for it only when the holding is justified, not merely held."@x-gmeow-english .
+
+gmeow:producesClaim
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "produces claim"@x-gmeow-english ;
+    rdfs:range gmeow:ClaimToken ;
+    skos:definition "A claim token produced during an observing, speech, or deliberation event — the event→token link. One event (a survey, a hearing, a press conference, a reasoning episode) may produce several claim tokens, and those coexist (Principle 9). The event view of where a claim came from; for the performing agent of a single act use the token's own gmeow:wasAssociatedWith (the token is a gmeow:Activity)."@x-gmeow-english ;
+    skos:example "ex:hearing2026 gmeow:producesClaim ex:tok1 , ex:tok2 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the performing agent of a single act (use gmeow:wasAssociatedWith on the token) and for the held attitude (gmeow:heldByAttitude); producesClaim ties a broader event to the tokens uttered within it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point an gmeow:Event at each gmeow:ClaimToken uttered within it; a single observing event producing several claims is the canonical 'one observation, several claims' case."@x-gmeow-english ;
+    gmeow:useWhen "Use from an event to reach the claim tokens it produced — for 'one observation producing several claims' and event-rooted provenance."@x-gmeow-english .
+
+gmeow:supportsClaim
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "supports claim"@x-gmeow-english ;
+    rdfs:range gmeow:ClaimToken ;
+    skos:definition "Relates a supporting structure — an argument, an evidence span, another claim token — to the claim token it supports. The support pole of bipolar argumentation; the attack counterpart is gmeow:attacksClaim. Domain is intentionally OPEN (no rdfs:domain) until the argumentation layer mints gmeow:Argument as the proper domain; only the ClaimToken end is fixed now (the open-domain idiom of gmeow:observedFeature). Non-functional: many structures may support one token, and competing support/attack relations coexist (Principle 9). Distinct from gmeow:justifiedBy (which bases a DoxasticState on grounds) — supportsClaim targets the claim TOKEN — and from gmeow:defeatedBy (an adjudicated solver verdict) — support is a structural relation, not a verdict."@x-gmeow-english ;
+    skos:example "ex:arg1 gmeow:supportsClaim ex:tok1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid narrowing its domain in the core before the argumentation layer mints gmeow:Argument; avoid using it for justification grounds on a DoxasticState (that is gmeow:justifiedBy)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the supporting structure at the gmeow:ClaimToken; leave the domain open until the argumentation layer supplies gmeow:Argument, then narrow there, not here."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that some structure supports a claim token — the support pole of bipolar argumentation, ClaimToken-end only for now."@x-gmeow-english .
 
 gmeow:suspendsJudgementOn
     a owl:ObjectProperty ;

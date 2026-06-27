@@ -504,6 +504,13 @@ classes:
   CitationIntent:
     class_uri: https://blackcatinformatics.ca/gmeow/CitationIntent
     title: Citation Intent
+  ClaimToken:
+    class_uri: https://blackcatinformatics.ca/gmeow/ClaimToken
+    title: Claim Token
+    is_a: Activity
+    slots:
+    - expresses
+    - heldByAttitude
   ClaimVeridicality:
     class_uri: https://blackcatinformatics.ca/gmeow/ClaimVeridicality
     title: Claim Veridicality
@@ -1250,6 +1257,7 @@ classes:
     - overlaps
     - performanceOf
     - predecessorOrganization
+    - producesClaim
     - projectedStandpoint
     - propagationMutationDistance
     - startedBy
@@ -2151,6 +2159,8 @@ classes:
   MentalMoment:
     class_uri: https://blackcatinformatics.ca/gmeow/MentalMoment
     title: Mental Moment
+    slots:
+    - groundsClaim
   MentalProcess:
     class_uri: https://blackcatinformatics.ca/gmeow/MentalProcess
     title: Mental Process
@@ -4663,6 +4673,11 @@ slots:
     title: at time
     range: datetime
     multivalued: true
+  attacksClaim:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attacksClaim
+    title: attacks claim
+    range: ClaimToken
+    multivalued: true
   attendsTo:
     slot_uri: https://blackcatinformatics.ca/gmeow/attendsTo
     title: attends to
@@ -6759,6 +6774,12 @@ slots:
     range: decimal
     domain: StandpointClaim
     multivalued: true
+  expresses:
+    slot_uri: https://blackcatinformatics.ca/gmeow/expresses
+    title: expresses
+    range: Proposition
+    domain: ClaimToken
+    multivalued: true
   expressesNorm:
     slot_uri: https://blackcatinformatics.ca/gmeow/expressesNorm
     title: expresses norm
@@ -7151,6 +7172,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/groundedIn
     title: grounded in
     range: EvidenceSpan
+    multivalued: true
+  groundsClaim:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundsClaim
+    title: grounds claim
+    range: ClaimToken
+    domain: MentalMoment
     multivalued: true
   groupAccentWeight:
     slot_uri: https://blackcatinformatics.ca/gmeow/groupAccentWeight
@@ -8289,6 +8316,12 @@ slots:
     title: heading
     range: double
     domain: Orientation
+    multivalued: true
+  heldByAttitude:
+    slot_uri: https://blackcatinformatics.ca/gmeow/heldByAttitude
+    title: held by attitude
+    range: MentalMoment
+    domain: ClaimToken
     multivalued: true
   heldStandpoint:
     slot_uri: https://blackcatinformatics.ca/gmeow/heldStandpoint
@@ -10615,6 +10648,12 @@ slots:
     range: uriorcurie
     domain: LearningEvent
     multivalued: true
+  producesClaim:
+    slot_uri: https://blackcatinformatics.ca/gmeow/producesClaim
+    title: produces claim
+    range: ClaimToken
+    domain: Event
+    multivalued: true
   producesFormat:
     slot_uri: https://blackcatinformatics.ca/gmeow/producesFormat
     title: produces format
@@ -12228,6 +12267,11 @@ slots:
     range: SupportPolarity
     domain: EvidenceSpan
     multivalued: false
+  supportsClaim:
+    slot_uri: https://blackcatinformatics.ca/gmeow/supportsClaim
+    title: supports claim
+    range: ClaimToken
+    multivalued: true
   supportsNotability:
     slot_uri: https://blackcatinformatics.ca/gmeow/supportsNotability
     title: supports notability
