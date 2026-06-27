@@ -1208,6 +1208,10 @@ classes:
     - existenceCreationEvent
     - existenceDestructionEvent
     - existenceEntity
+  EpistemicContext:
+    class_uri: https://blackcatinformatics.ca/gmeow/EpistemicContext
+    title: Epistemic Context
+    is_a: Entity
   EtymologicalDerivation:
     class_uri: https://blackcatinformatics.ca/gmeow/EtymologicalDerivation
     title: Etymological Derivation
@@ -3381,6 +3385,10 @@ classes:
     slots:
     - quantityUncertainty
     - quantityValue
+  Scenario:
+    class_uri: https://blackcatinformatics.ca/gmeow/Scenario
+    title: Scenario
+    is_a: Entity
   SceneGraphEdge:
     class_uri: https://blackcatinformatics.ca/gmeow/SceneGraphEdge
     title: Scene Graph Edge
@@ -3710,6 +3718,10 @@ classes:
     - standpointClaim
     - tenurePosition
     - tenureStandpoint
+  State:
+    class_uri: https://blackcatinformatics.ca/gmeow/State
+    title: State
+    is_a: Entity
   StepParentChild:
     class_uri: https://blackcatinformatics.ca/gmeow/StepParentChild
     title: Step Parent-Child
@@ -20173,6 +20185,9 @@ enums:
       universalStandpoint:
         meaning: https://blackcatinformatics.ca/gmeow/universalStandpoint
         title: universal standpoint (*)
+      unspecifiedStandpoint:
+        meaning: https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint
+        title: unspecified standpoint
   StandpointModalityEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/StandpointModality
     permissible_values:

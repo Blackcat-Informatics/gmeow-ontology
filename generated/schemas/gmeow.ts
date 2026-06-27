@@ -2796,6 +2796,7 @@ export enum StandpointEnum {
     standpointTranscriberA = "standpointTranscriberA",
     standpointTurkishTheory = "standpointTurkishTheory",
     universalStandpoint = "universalStandpoint",
+    unspecifiedStandpoint = "unspecifiedStandpoint",
 }
 
 export enum StandpointModalityEnum {
@@ -4141,6 +4142,9 @@ export interface EntityExistence extends TimeScopedRelation {
     existenceCreationEvent?: Event[],
     existenceDestructionEvent?: Event[],
     existenceEntity?: Entity,
+}
+
+export interface EpistemicContext extends Entity {
 }
 
 export interface EtymologicalDerivation extends Observation {
@@ -5930,6 +5934,9 @@ export interface ScalarQuantity extends Entity {
     quantityValue?: number,
 }
 
+export interface Scenario extends Entity {
+}
+
 export interface SceneGraphEdge {
     sceneConfidence?: number,
     sceneObject?: ImageRegion,
@@ -6195,6 +6202,9 @@ export interface StandpointTenure extends TimeScopedRelation {
     standpointClaim?: StandpointClaim,
     tenurePosition?: string[],
     tenureStandpoint?: Standpoint,
+}
+
+export interface State extends Entity {
 }
 
 export interface StepParentChild extends ParentChildRelationship {
