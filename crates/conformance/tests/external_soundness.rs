@@ -56,7 +56,11 @@ fn declared_outcome(case_dir: &Path) -> ExternalOutcome {
     }
     if manifest.is_file() {
         let text = std::fs::read_to_string(&manifest).expect("read manifest source");
-        let base = format!("file://{}", manifest.display());
+        // Absolute base IRI → `file:///abs/.../manifest.ttl` (empty authority) even for
+        // a relative case path; `format!("file://{relative}")` would mis-read the first
+        // segment as the authority. `absolute` is lexical (no filesystem / no url dep).
+        let abs = std::path::absolute(&manifest).expect("resolve manifest path");
+        let base = format!("file://{}", abs.display());
         let entries = parse_entailment_manifest(&text, Some(&base))
             .unwrap_or_else(|e| panic!("{}: manifest parse: {e}", manifest.display()));
         // The case directory name selects the entry (falls back to the sole entry).

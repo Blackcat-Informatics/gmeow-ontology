@@ -60,7 +60,17 @@ fn main() -> Result<(), String> {
 
     match (szs, manifest) {
         (Some(path), None) => ingest_szs(&path, world.as_deref(), quads),
-        (None, Some(path)) => ingest_manifest(&path),
+        (None, Some(path)) => {
+            // `--world`/`--quads` shape an SZS single-world verdict; they have no
+            // meaning for a manifest (one line per entry). Reject loudly rather than
+            // parse-and-drop them (no-optionality / no silent misuse).
+            if world.is_some() || quads.is_some() {
+                return Err(format!(
+                    "--world / --quads apply only to --szs, not --manifest\n{USAGE}"
+                ));
+            }
+            ingest_manifest(&path)
+        }
         (Some(_), Some(_)) => Err(format!(
             "--szs and --manifest are mutually exclusive\n{USAGE}"
         )),
@@ -96,7 +106,14 @@ fn ingest_szs(
 fn ingest_manifest(path: &std::path::Path) -> Result<(), String> {
     let text = std::fs::read_to_string(path)
         .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
-    let base = format!("file://{}", path.display());
+    // Build the base IRI from an ABSOLUTE path so a relative `--manifest foo/x.ttl`
+    // yields `file:///abs/foo/x.ttl` (empty authority) rather than the malformed
+    // `file://foo/x.ttl` (where `foo` would be read as the authority). `absolute` is
+    // lexical (no filesystem access) — enough for a Linux-only ingest path without
+    // pulling in a `url` crate dependency edge.
+    let abs =
+        std::path::absolute(path).map_err(|e| format!("cannot resolve {}: {e}", path.display()))?;
+    let base = format!("file://{}", abs.display());
     let entries = parse_entailment_manifest(&text, Some(&base))?;
     if entries.is_empty() {
         return Err(format!("no entailment entries in {}", path.display()));
