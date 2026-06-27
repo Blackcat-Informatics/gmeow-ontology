@@ -660,22 +660,22 @@ gmeow:GenResultRowShape_examples_languages_tests_cqWritingSystemsShape
         sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'role' ; gmeow:cellValueLiteral ?val }""" ;
     ] .
 
-gmeow:GenResultRowShape_examples_logic_tests_cqFormalizationCandidateCategoriesShape
+gmeow:GenResultRowShape_examples_logic_tests_cqKeystoneNoCrossTypeSuperpropertyShape
     a sh:NodeShape ;
-    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqFormalizationCandidateCategoriesShape> (generated)"@en ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqKeystoneNoCrossTypeSuperpropertyShape> (generated)"@en ;
     sh:target [
         a sh:SPARQLTarget ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqFormalizationCandidateCategoriesShape> . ?cq gmeow:cqExpectRow ?this }""" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqKeystoneNoCrossTypeSuperpropertyShape> . ?cq gmeow:cqExpectRow ?this }""" ;
     ] ;
     sh:sparql [
         sh:severity sh:Violation ;
-        sh:message "result column ?category must be present and bind an IRI" ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'category' ; gmeow:cellValueIri ?val } }""" ;
+        sh:message "result column ?typed must be present and bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'typed' ; gmeow:cellValueIri ?val } }""" ;
     ] ;
     sh:sparql [
         sh:severity sh:Violation ;
-        sh:message "result column ?category must bind an IRI" ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'category' ; gmeow:cellValueLiteral ?val }""" ;
+        sh:message "result column ?typed must bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'typed' ; gmeow:cellValueLiteral ?val }""" ;
     ] .
 
 gmeow:GenResultRowShape_examples_logic_tests_cqNamedParametricPathsShape
