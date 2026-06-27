@@ -43,6 +43,39 @@ fn overclaim_gate_fires_on_exact_with_drops() {
 }
 
 #[test]
+fn projection_ledger_rows_are_sorted_and_classified() {
+    let rows = projection_ledger_rows();
+    assert!(!rows.is_empty(), "the static ledger must carry rows");
+
+    // Deterministic: sorted by target, no duplicates.
+    let mut sorted = rows.clone();
+    sorted.sort_by(|a, b| a.target.cmp(&b.target));
+    assert_eq!(rows, sorted, "rows must be returned sorted by target");
+
+    let find = |t: &str| {
+        rows.iter()
+            .find(|r| r.target == t)
+            .unwrap_or_else(|| panic!("ledger must carry the {t:?} target"))
+    };
+
+    // The identity serialization preserves everything (no drops).
+    let canonical = find("canonical-rdf12");
+    assert_eq!(canonical.preservation_kind, "ExactPreservation");
+    assert!(
+        canonical.lossy_drops.is_empty(),
+        "canonical-rdf12 is exact: {:?}",
+        canonical.lossy_drops
+    );
+
+    // A lossy down-projection records its structural drops.
+    let owl_dl = find("owl-dl");
+    assert!(
+        !owl_dl.lossy_drops.is_empty(),
+        "owl-dl is a lossy projection and must declare lossy_drops"
+    );
+}
+
+#[test]
 fn extract_nemo_rules_section_finds_marker() {
     let nemo = text::project_nemo(&parse("ex:A logic:subClassOf ex:B .")).unwrap();
     let rules = text::extract_nemo_rules_section(&nemo.content).unwrap();

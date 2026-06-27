@@ -61,43 +61,20 @@ fn diagnostics_report(report: &gmeow_shacl::report::ValidationReport) -> Report 
     out
 }
 
-fn text_artifact(mut text: String) -> Vec<u8> {
-    if !text.ends_with('\n') {
-        text.push('\n');
-    }
-    text.into_bytes()
-}
-
-/// Render the four committed diagnostics projections for a canonical report.
+/// Render the four committed SHACL diagnostics projections for a canonical report,
+/// through the shared [`crate::stages::diag_render`] renderer (the one path both
+/// this stage and `stage-compile-logic` route their reports through).
 fn render_artifacts(report: &Report) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
-    let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    artifacts.insert(
-        SHACL_JSON_PATH.to_owned(),
-        text_artifact(gmeow_diagnostics::render::to_json(report).map_err(|e| {
-            PipelineError::Stage {
-                stage: "stage-validate".to_owned(),
-                message: format!("render JSON diagnostics: {e}"),
-            }
-        })?),
-    );
-    artifacts.insert(
-        SHACL_SARIF_PATH.to_owned(),
-        text_artifact(gmeow_diagnostics::render::to_sarif(report).map_err(|e| {
-            PipelineError::Stage {
-                stage: "stage-validate".to_owned(),
-                message: format!("render SARIF diagnostics: {e}"),
-            }
-        })?),
-    );
-    artifacts.insert(
-        SHACL_HTML_PATH.to_owned(),
-        text_artifact(gmeow_diagnostics::render::to_html(report)),
-    );
-    artifacts.insert(
-        SHACL_RDF_PATH.to_owned(),
-        text_artifact(gmeow_diagnostics::render::to_gmeow_rdf(report)),
-    );
-    Ok(artifacts)
+    crate::stages::diag_render::render_diagnostics_artifacts(
+        "stage-validate",
+        report,
+        &crate::stages::diag_render::DiagnosticsPaths {
+            json: SHACL_JSON_PATH,
+            sarif: SHACL_SARIF_PATH,
+            html: SHACL_HTML_PATH,
+            rdf: SHACL_RDF_PATH,
+        },
+    )
 }
 
 /// Run SHACL over source-graph N-Quads bytes and return deterministic diagnostics.

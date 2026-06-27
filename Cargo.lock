@@ -1717,6 +1717,7 @@ name = "gmeow-docs"
 version = "0.1.0"
 dependencies = [
  "gmeow-diagnostics",
+ "gmeow-logic-compile",
  "gmeow-rdf",
  "gmeow-slice",
  "insta",

@@ -6,9 +6,9 @@ expression: head
 
 Terms grouped by their lowered OntoUML/UFO stereotype (the `logic:` discipline each term carries). See the slice doctrine under `slices/core/logic` for the stereotype semantics.
 
-## logic:AbstractIndividualType \(220 term\(s\)\)
+## Compiler products
 
-- [`gmeow:AboutnessMode`](../terms/aboutnessmode/index.md)
-- [`gmeow:AccessibilityFacet`](../terms/accessibilityfacet/index.md)
-- [`gmeow:AccessibilityPolarity`](../terms/accessibilitypolarity/index.md)
-- [`gmeow:AccountStatus`](../terms/accountstatus/index.md)
+The `logic:` compiler emits four information products from one canonical program. Each has a dedicated page:
+
+- [Canonical IR](canonical-ir/index.md) — the one AST / RDF 1.2 identity serialization the compiler produces.
+- [Preservation loss ledger](loss-ledger/index.md) — per projection target: preservation kind, complexity class, and structural lossy drops.
