@@ -1893,8 +1893,25 @@ impl Parser {
     ) -> Result<Expression> {
         let node = self.expect_iri_node()?;
         if self.at(&Token::LParen) {
+            // An IRI in call position under the canonical gmeow namespace dispatches to
+            // the CLOSED gmeow extension-function seam, recognized here at parse time.
+            // The local-name MUST resolve; an unknown gmeow:foo(...) is a hard error
+            // (fail-fast), never a silent Function::Custom fallthrough.
+            let func = if let Some(local) = node.as_str().strip_prefix(crate::GMEOW_NS) {
+                match crate::algebra::GmeowFn::from_local_name(local) {
+                    Some(g) => Function::Gmeow(g),
+                    None => {
+                        return Err(ParseError::syntax(
+                            format!("unknown gmeow extension function <{}>", node.as_str()),
+                            self.span(),
+                        ));
+                    }
+                }
+            } else {
+                Function::Custom(node)
+            };
             let args = self.parse_arg_list(aggs)?;
-            Ok(Expression::FunctionCall(Function::Custom(node), args))
+            Ok(Expression::FunctionCall(func, args))
         } else {
             Ok(Expression::NamedNode(node))
         }
@@ -2417,6 +2434,7 @@ fn builtin_function(upper: &str) -> Option<Function> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::algebra::GmeowFn;
     use pretty_assertions::assert_eq;
 
     const GM: &str =
@@ -3464,5 +3482,107 @@ mod tests {
         SparqlParser::new()
             .parse_query(&q)
             .expect("non-empty blank-node property list should still parse");
+    }
+
+    // ── gmeow extension-function seam (issue #917) ────────────────────────────
+
+    /// A canonical-namespace `gmeow:` prefix (distinct from the generic `GM`
+    /// stand-in, which deliberately binds `gmeow:` to `<https://x/>`).
+    const GMNS: &str = "PREFIX g: <https://blackcatinformatics.ca/gmeow/>\n";
+
+    /// Pull the single `BIND(... AS ?v)` expression out of a parsed SELECT.
+    fn bound_expr(q: &str) -> Expression {
+        let GraphPattern::Extend { expression, .. } = unproject(select_pattern(q)) else {
+            panic!("expected Extend");
+        };
+        expression
+    }
+
+    #[test]
+    fn gmeow_held_in_dispatches_to_gmeow_fn() {
+        let q = format!("{GMNS}SELECT ?h WHERE {{ ?r ?p ?o . BIND(g:heldIn(?r, ?s) AS ?h) }}");
+        let Expression::FunctionCall(func, args) = bound_expr(&q) else {
+            panic!("expected a FunctionCall");
+        };
+        assert_eq!(func, Function::Gmeow(GmeowFn::HeldIn));
+        assert_eq!(args.len(), 2);
+    }
+
+    #[test]
+    fn gmeow_held_in_full_iri_dispatches() {
+        // The same dispatch via a full (non-prefixed) IRI under GMEOW_NS.
+        let q = "SELECT ?h WHERE { ?r ?p ?o . BIND(<https://blackcatinformatics.ca/gmeow/heldIn>(?r, ?s) AS ?h) }";
+        let Expression::FunctionCall(func, _) = bound_expr(q) else {
+            panic!("expected a FunctionCall");
+        };
+        assert_eq!(func, Function::Gmeow(GmeowFn::HeldIn));
+    }
+
+    #[test]
+    fn unknown_gmeow_function_is_hard_parse_error() {
+        let q = format!("{GMNS}SELECT ?x WHERE {{ ?r ?p ?o . BIND(g:bogus(?r) AS ?x) }}");
+        let err = SparqlParser::new().parse_query(&q).unwrap_err();
+        assert!(
+            matches!(err, ParseError::Syntax { .. }),
+            "unknown gmeow:bogus(...) must be a hard parse error, got {err:?}"
+        );
+    }
+
+    #[test]
+    fn gmeow_iri_without_call_is_plain_named_node() {
+        // A gmeow IRI NOT in call position stays an ordinary IRI term.
+        let q = format!("{GMNS}SELECT ?x WHERE {{ ?x a g:heldIn }}");
+        let GraphPattern::Bgp { patterns } = unproject(select_pattern(&q)) else {
+            panic!("expected BGP");
+        };
+        assert_eq!(patterns.len(), 1);
+        let TermPattern::NamedNode(n) = &patterns[0].object else {
+            panic!("expected a NamedNode object");
+        };
+        assert_eq!(n.as_str(), "https://blackcatinformatics.ca/gmeow/heldIn");
+    }
+
+    #[test]
+    fn non_gmeow_function_remains_custom() {
+        // An external (non-gmeow) IRI in call position is still Function::Custom.
+        let q = format!("{GM}SELECT ?x WHERE {{ ?r ?p ?o . BIND(gmeow:fn(?r) AS ?x) }}");
+        let Expression::FunctionCall(func, _) = bound_expr(&q) else {
+            panic!("expected a FunctionCall");
+        };
+        // `GM` binds `gmeow:` to `<https://x/>`, so this is an external custom IRI.
+        assert!(matches!(func, Function::Custom(_)), "got {func:?}");
+    }
+
+    #[test]
+    fn gmeow_held_in_serialize_round_trips() {
+        let q = format!("{GMNS}SELECT ?h WHERE {{ ?r ?p ?o . BIND(g:heldIn(?r, ?s) AS ?h) }}");
+        let pattern = select_pattern(&q);
+        let text = crate::serialize::pattern_to_select_query(&pattern);
+        // The serialized query must still re-parse to the same GmeowFn::HeldIn dispatch.
+        let reparsed_expr = find_held_in(&select_pattern(&text))
+            .unwrap_or_else(|| panic!("round-trip lost the GmeowFn dispatch; text = {text}"));
+        assert_eq!(reparsed_expr, Function::Gmeow(GmeowFn::HeldIn));
+    }
+
+    /// Walk a graph pattern for the first `FunctionCall(Function::Gmeow(_), …)`,
+    /// returning its `Function`. Tolerant of the exact `Extend`/`Project` nesting the
+    /// serializer round-trip produces.
+    fn find_held_in(p: &GraphPattern) -> Option<Function> {
+        match p {
+            GraphPattern::Extend {
+                inner, expression, ..
+            } => {
+                if let Expression::FunctionCall(f @ Function::Gmeow(_), _) = expression {
+                    return Some(f.clone());
+                }
+                find_held_in(inner)
+            }
+            GraphPattern::Project { inner, .. }
+            | GraphPattern::Filter { inner, .. }
+            | GraphPattern::Distinct { inner }
+            | GraphPattern::Slice { inner, .. }
+            | GraphPattern::OrderBy { inner, .. } => find_held_in(inner),
+            _ => None,
+        }
     }
 }

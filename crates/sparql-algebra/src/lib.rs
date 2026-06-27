@@ -45,6 +45,16 @@
 
 #![forbid(unsafe_code)]
 
+/// The canonical gmeow ontology namespace.
+///
+/// Every gmeow vocabulary IRI is `{GMEOW_NS}{local-name}` (e.g.
+/// `https://blackcatinformatics.ca/gmeow/heldIn`). The SPARQL front-end treats an
+/// IRI under this namespace that is immediately followed by `(` as a gmeow
+/// extension function ([`algebra::GmeowFn`]) — a CLOSED, exhaustive seam dispatched
+/// at PARSE time. An unknown local-name under this namespace in call position is a
+/// hard [`ParseError`], never a silent [`Function::Custom`] fallthrough.
+pub const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
 pub mod algebra;
 pub mod ast;
 pub mod error;
@@ -53,9 +63,9 @@ pub mod parser;
 pub mod serialize;
 
 pub use algebra::{
-    AggregateExpression, AggregateFunction, Expression, Function, GraphPattern, GraphTarget,
-    GraphUpdateOperation, OrderExpression, PropertyPathExpression, Query, QueryDataset, Update,
-    UsingClause,
+    AggregateExpression, AggregateFunction, Expression, Function, GmeowFn, GraphPattern,
+    GraphTarget, GraphUpdateOperation, OrderExpression, PropertyPathExpression, Query,
+    QueryDataset, Update, UsingClause,
 };
 pub use ast::{
     BaseDirection, BlankNode, GroundTerm, GroundTriple, Literal, NamedNode, NamedNodePattern,
