@@ -205,6 +205,7 @@ gmeow:pipeline-build
     gmeow:hasStage
         gmeow:stage-source-load ,
         gmeow:stage-statements ,
+        gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
         gmeow:stage-gts-compose ,
@@ -251,6 +252,16 @@ gmeow:stage-statements
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindTransform ;
     gmeow:stageImpl "statements" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-compile-logic
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "compile logic"@x-gmeow-english ;
+    skos:definition "Run the logic: compiler (parse → canonical IR → projection back-ends) over the canonical logic source and emit every compiler product as a committed artifact: the eight projection serializations (canonical RDF 1.2 IR, OWL DL/EL, Datalog, N3, gUFO, Nemo, and the projection-report loss ledger) plus the compile diagnostics rendered to JSON, SARIF, HTML, and gmeow:Finding RDF. The single in-DAG producer of the logic projection surface, so the loss ledger and compile diagnostics reach the bundle, docs, and SARIF instead of terminating on disk."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindTransform ;
+    gmeow:stageImpl "compile_logic" ;
     gmeow:carriesEngineLock false .
 
 gmeow:stage-mappings
@@ -325,6 +336,7 @@ gmeow:stage-snapshot
     gmeow:stageKind gmeow:kindTransform ;
     gmeow:stageImpl "snapshot" ;
     gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
         gmeow:stage-docs-render ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-gts-compose ,

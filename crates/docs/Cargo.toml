@@ -28,6 +28,10 @@ gmeow-rdf = { path = "../rdf", features = ["oxigraph"] }
 # Rust SliceCatalog/ownership surface, not gmeow-slice's own PyO3 register fn).
 gmeow-slice = { path = "../slice" }
 gmeow-diagnostics = { path = "../diagnostics" }
+# The wasm-clean logic compiler — the source of truth for the projection loss
+# ledger (`projection_ledger_rows`), surfaced verbatim on the compiler-products
+# documentation pages. Pure-Rust: it carries no reasoning-runtime dependencies.
+gmeow-logic-compile = { path = "../logic-compile" }
 # Term extraction parses each slice's module.ttl with the SAME lenient oxigraph
 # Turtle parser the slice crate uses (accepts @x-gmeow-* language tags). Mirror
 # the slice/rdf crates' exact oxigraph build for a clean lockfile resolution.
