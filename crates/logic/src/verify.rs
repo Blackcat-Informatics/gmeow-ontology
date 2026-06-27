@@ -401,7 +401,7 @@ mod tests {
         );
     }
 
-    // ── Typed formalization governance: Arm B + reviewer gate (issue #772) ───────
+    // ── Typed formalization governance: Arm B + reviewer gate ───────────────────
 
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
     const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
