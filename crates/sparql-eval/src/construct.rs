@@ -14,7 +14,7 @@
 //! 3. An **ill-formed** instantiation (a literal in subject position, or a non-IRI
 //!    predicate) is skipped.
 //!
-//! Each position is instantiated to a [`TermValue`] first so its term *kind* can be
+//! Each position is instantiated to a [`TermValue`](gmeow_rdf_core::TermValue) first so its term *kind* can be
 //! validated before interning into the output builder. Byte-identical parity with
 //! the oxigraph baseline is decided downstream at the RDFC-1.0 canonicalization
 //! layer, so blank-node labels and quad ordering here need not match oxigraph's —
@@ -22,13 +22,13 @@
 
 use std::sync::Arc;
 
-use gmeow_rdf_core::{BlankScope, RdfDataset, RdfDatasetBuilder, TermFactory, TermId, TermValue};
-use gmeow_sparql_algebra::{GraphPattern, NamedNodePattern, TermPattern, TriplePattern};
+use gmeow_rdf_core::{RdfDataset, RdfDatasetBuilder, TermFactory, TermId};
+use gmeow_sparql_algebra::{GraphPattern, TriplePattern};
 
-use crate::convert::{literal_to_value, named_node_to_value};
 use crate::error::EvalError;
 use crate::eval::{eval, EvalCtx};
 use crate::solution::{Solution, VarSchema};
+use crate::template::{instantiate_predicate, instantiate_term, positionally_ill_formed};
 use crate::DetHashMap;
 
 /// Evaluate a `CONSTRUCT` query to a frozen IR dataset.
@@ -73,7 +73,7 @@ fn instantiate(
 
     // Positional validity (§16.2): subject must not be a literal; predicate must be
     // an IRI. Ill-formed instantiations are skipped, not errored.
-    if matches!(s, TermValue::Literal { .. }) || !matches!(p, TermValue::Iri(_)) {
+    if positionally_ill_formed(&s, &p) {
         return None;
     }
 
@@ -84,82 +84,11 @@ fn instantiate(
     ))
 }
 
-/// Instantiate a subject/object template term. `None` = an unbound variable.
-fn instantiate_term(
-    term: &TermPattern,
-    row: &Solution,
-    schema: &VarSchema,
-    blanks: &mut DetHashMap<String, String>,
-    ctx: &mut EvalCtx<'_>,
-) -> Option<TermValue> {
-    match term {
-        TermPattern::NamedNode(n) => Some(named_node_to_value(n)),
-        TermPattern::Literal(l) => Some(literal_to_value(l)),
-        TermPattern::Variable(v) => {
-            let term = schema.index_of(v).and_then(|c| row[c])?;
-            Some(ctx.scratch.value_of(ctx.dataset, term))
-        }
-        TermPattern::BlankNode(b) => Some(fresh_blank(b.as_str(), blanks, ctx)),
-        TermPattern::Triple(t) => {
-            // RDF 1.2 quoted-triple term in the template: instantiate recursively.
-            let s = instantiate_term(&t.subject, row, schema, blanks, ctx)?;
-            let p = instantiate_predicate(&t.predicate, row, schema, ctx)?;
-            let o = instantiate_term(&t.object, row, schema, blanks, ctx)?;
-            Some(TermValue::Triple {
-                s: Box::new(s),
-                p: Box::new(p),
-                o: Box::new(o),
-            })
-        }
-    }
-}
-
-/// Instantiate a predicate template position. `None` = an unbound variable.
-fn instantiate_predicate(
-    predicate: &NamedNodePattern,
-    row: &Solution,
-    schema: &VarSchema,
-    ctx: &mut EvalCtx<'_>,
-) -> Option<TermValue> {
-    match predicate {
-        NamedNodePattern::NamedNode(n) => Some(named_node_to_value(n)),
-        NamedNodePattern::Variable(v) => {
-            let term = schema.index_of(v).and_then(|c| row[c])?;
-            Some(ctx.scratch.value_of(ctx.dataset, term))
-        }
-    }
-}
-
-/// The fresh blank value for a template label within the current solution row: the
-/// first occurrence mints a globally-unique label from the **cross-row** monotonic
-/// `bnode_counter`, later occurrences in the same row reuse it (the `blanks` map
-/// resets per row, so the counter — not the map — is what makes two rows' blanks
-/// distinct).
-fn fresh_blank(
-    template_label: &str,
-    blanks: &mut DetHashMap<String, String>,
-    ctx: &mut EvalCtx<'_>,
-) -> TermValue {
-    if let Some(existing) = blanks.get(template_label) {
-        return TermValue::Blank {
-            label: existing.clone(),
-            scope: BlankScope::DEFAULT,
-        };
-    }
-    ctx.bnode_counter += 1;
-    let fresh = format!("c{}", ctx.bnode_counter);
-    blanks.insert(template_label.to_owned(), fresh.clone());
-    TermValue::Blank {
-        label: fresh,
-        scope: BlankScope::DEFAULT,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use gmeow_rdf_core::{RdfLiteral, TermRef};
-    use gmeow_sparql_algebra::{NamedNode, Variable};
+    use gmeow_sparql_algebra::{NamedNode, NamedNodePattern, TermPattern, Variable};
 
     const KNOWS: &str = "http://ex/knows";
     const RELATED: &str = "http://ex/related";

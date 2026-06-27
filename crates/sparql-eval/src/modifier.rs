@@ -159,15 +159,17 @@ pub(crate) fn eval_graph(
     match name {
         NamedNodePattern::NamedNode(n) => {
             match ctx.dataset.term_id_by_value(&named_node_to_value(n)) {
-                Some(id) => {
+                // Addressable only if the active dataset's named set admits it (a
+                // `FROM NAMED` / `USING NAMED` may restrict which graphs `GRAPH` sees).
+                Some(id) if ctx.active_dataset.named_allows(id) => {
                     let saved = ctx.active_graph;
                     ctx.active_graph = GraphMatch::Named(id);
                     let result = eval(inner, ctx);
                     ctx.active_graph = saved;
                     result
                 }
-                // The named graph IRI is not even a term → it has no quads → empty.
-                None => {
+                // The IRI is not a term (no quads), or not in the named dataset → empty.
+                _ => {
                     let seq = eval(inner, ctx)?;
                     Ok(SolutionSeq::empty(seq.schema))
                 }
@@ -184,7 +186,14 @@ fn eval_graph_var(
     inner: &GraphPattern,
     ctx: &mut EvalCtx<'_>,
 ) -> Result<SolutionSeq, EvalError> {
-    let mut graphs: Vec<TermId> = ctx.dataset.quads().filter_map(|q| q.g).collect();
+    // Enumerate the named graphs, restricted to those the active dataset admits (a
+    // `FROM NAMED` / `USING NAMED` may limit which graphs `GRAPH ?g` binds to).
+    let mut graphs: Vec<TermId> = ctx
+        .dataset
+        .quads()
+        .filter_map(|q| q.g)
+        .filter(|g| ctx.active_dataset.named_allows(*g))
+        .collect();
     graphs.sort();
     graphs.dedup();
 

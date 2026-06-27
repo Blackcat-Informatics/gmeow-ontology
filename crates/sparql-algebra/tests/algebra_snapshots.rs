@@ -23,6 +23,12 @@ fn parse(body: &str) -> impl std::fmt::Debug {
         .expect("snapshot fixture must parse")
 }
 
+fn parse_update(body: &str) -> impl std::fmt::Debug {
+    SparqlParser::new()
+        .parse_update(&format!("{PREFIXES}{body}"))
+        .expect("snapshot update fixture must parse")
+}
+
 #[test]
 fn snapshot_quoted_triple_paren() {
     // RDF 1.2 quoted-triple term → TermPattern::Triple (codec shape).
@@ -58,6 +64,22 @@ fn snapshot_optional_union_bind() {
     // OPTIONAL → LeftJoin, UNION → Union, BIND → Extend in one query.
     insta::assert_debug_snapshot!(parse(
         "SELECT ?k WHERE { { ?a a gmeow:X } UNION { ?a a gmeow:Y } OPTIONAL { ?a gmeow:p ?b } BIND(\"x\" AS ?k) }"
+    ));
+}
+
+#[test]
+fn snapshot_update_insert_data() {
+    // INSERT DATA lowers to ground quads (one default-graph, one GRAPH-scoped).
+    insta::assert_debug_snapshot!(parse_update(
+        "INSERT DATA { gmeow:s gmeow:p gmeow:o . GRAPH gmeow:g { gmeow:s gmeow:p gmeow:o2 } }"
+    ));
+}
+
+#[test]
+fn snapshot_update_delete_insert_modify() {
+    // DELETE/INSERT modify: templates + the shared WHERE pattern.
+    insta::assert_debug_snapshot!(parse_update(
+        "DELETE { ?s gmeow:p ?o } INSERT { ?s gmeow:q ?o } WHERE { ?s gmeow:p ?o }"
     ));
 }
 

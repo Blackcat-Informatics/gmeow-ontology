@@ -20,6 +20,7 @@ use std::sync::Arc;
 use gmeow_rdf_core::{GraphMatch, RdfDataset};
 use gmeow_sparql_algebra::{GraphPattern, Query};
 
+use crate::dataset_spec::ActiveDataset;
 use crate::error::EvalError;
 use crate::scratch::ScratchInterner;
 use crate::solution::SolutionSeq;
@@ -33,7 +34,13 @@ pub struct EvalCtx<'d> {
     /// aggregate output, arithmetic/string-function results).
     pub scratch: ScratchInterner,
     /// The graph currently in scope (set by `GRAPH`; the default graph at the root).
+    /// At the root this is `GraphMatch::Default`, which `active_dataset` resolves to
+    /// either the store default graph or a `FROM`/`USING`-merged default graph.
     pub active_graph: GraphMatch,
+    /// The SPARQL active dataset (§13): how `active_graph == Default` is sourced and
+    /// which named graphs `GRAPH` may address. Set from a query's `FROM` clause (the
+    /// query path) or an UPDATE op's `USING` / `WITH` (the update path).
+    pub(crate) active_dataset: ActiveDataset,
     /// A monotonic counter for minting fresh blank nodes (`BNODE()` and CONSTRUCT
     /// template blanks).
     pub bnode_counter: u64,
@@ -77,6 +84,7 @@ impl<'d> EvalCtx<'d> {
             dataset,
             scratch: ScratchInterner::new(),
             active_graph: GraphMatch::Default,
+            active_dataset: ActiveDataset::store_default(),
             bnode_counter: 0,
             now: now_val,
             rng_state: rng_seed,
@@ -161,6 +169,8 @@ pub enum Outcome {
 /// `SELECT`/`ASK` walk the modifier-wrapped pattern; `CONSTRUCT` emits the IR
 /// dataset directly. `DESCRIBE` is out of S6 scope (a hard error).
 pub fn evaluate_query(query: &Query, ctx: &mut EvalCtx<'_>) -> Result<Outcome, EvalError> {
+    // Install the query's FROM / FROM NAMED active dataset (§13) before evaluating.
+    ctx.active_dataset = ActiveDataset::from_query_dataset(query.dataset(), ctx.dataset);
     match query {
         Query::Select { pattern, .. } => Ok(Outcome::Solutions(eval(pattern, ctx)?)),
         Query::Ask { pattern, .. } => Ok(Outcome::Boolean(!eval(pattern, ctx)?.is_empty())),

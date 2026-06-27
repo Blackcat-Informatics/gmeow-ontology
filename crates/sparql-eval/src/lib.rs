@@ -44,6 +44,7 @@ mod bgp;
 mod binop;
 mod construct;
 mod convert;
+mod dataset_spec;
 pub mod engine;
 pub mod error;
 pub mod eval;
@@ -52,12 +53,15 @@ mod modifier;
 mod path;
 pub mod scratch;
 pub mod solution;
+mod template;
+pub mod update;
 
 pub use engine::{NativeSparqlEngine, PlanCache, PreparedQuery};
 pub use error::EvalError;
 pub use eval::{eval, evaluate_query, EvalCtx, Outcome};
 pub use scratch::{ScratchId, ScratchInterner, SolutionTerm};
 pub use solution::{compatible, Solution, SolutionSeq, VarSchema};
+pub use update::GraphResolver;
 
 /// A deterministic, seed-free hasher builder (`SipHash` with fixed keys).
 ///

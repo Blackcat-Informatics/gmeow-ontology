@@ -276,3 +276,14 @@ pub struct GroundTriple {
     /// The object (an IRI, literal, or nested ground triple).
     pub object: GroundTerm,
 }
+
+/// A quad pattern: a [`TriplePattern`] optionally scoped to a named graph. The
+/// `None` graph denotes the default graph (or, in a `GRAPH ?g { ... }` block, an
+/// unscoped template position). Used by the UPDATE `DELETE`/`INSERT` templates.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct QuadPattern {
+    /// The triple pattern (subject/predicate/object).
+    pub triple: TriplePattern,
+    /// The graph name (IRI or variable), or `None` for the default graph.
+    pub graph: Option<NamedNodePattern>,
+}

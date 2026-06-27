@@ -16,10 +16,13 @@
 use std::cell::RefCell;
 use std::sync::Arc;
 
-use gmeow_rdf_core::{RdfDataset, RdfDiagnostic, SparqlEngine, SparqlRequest, SparqlResult};
+use gmeow_rdf_core::{
+    MutableDataset, RdfDataset, RdfDiagnostic, SparqlEngine, SparqlRequest, SparqlResult,
+};
 use gmeow_sparql_algebra::{Query, SparqlParser};
 
 use crate::eval::{evaluate_query, EvalCtx, Outcome};
+use crate::update::{eval_update, GraphResolver};
 use crate::DetHashMap;
 
 /// A parsed, ready-to-evaluate query (the cached unit of the [`PlanCache`]).
@@ -67,15 +70,40 @@ impl PlanCache {
 }
 
 /// The native, RDF-1.2-first multiset SPARQL engine (purrdf S6, #912).
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct NativeSparqlEngine {
     cache: RefCell<PlanCache>,
+    resolver: Option<Arc<dyn GraphResolver>>,
+}
+
+// `dyn GraphResolver` is not `Debug`, so derive can't apply; report its presence by
+// hand (`Some(..)`/`None`) and keep the cache's own `Debug`.
+impl std::fmt::Debug for NativeSparqlEngine {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NativeSparqlEngine")
+            .field("cache", &self.cache)
+            .field(
+                "resolver",
+                match &self.resolver {
+                    Some(_) => &"Some(..)",
+                    None => &"None",
+                },
+            )
+            .finish()
+    }
 }
 
 impl NativeSparqlEngine {
-    /// A fresh engine with an empty plan cache.
+    /// A fresh engine with an empty plan cache and no `LOAD` resolver.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Install a host `GraphResolver` so SPARQL `LOAD <iri>` can fetch its source.
+    /// Without one, LOAD hard-fails (`native-sparql-load-no-resolver`) unless SILENT.
+    pub fn with_resolver(mut self, resolver: Arc<dyn GraphResolver>) -> Self {
+        self.resolver = Some(resolver);
+        self
     }
 }
 
@@ -99,14 +127,26 @@ impl SparqlEngine for NativeSparqlEngine {
 
     fn update(
         &self,
-        _dataset: &mut Self::Dataset,
-        _request: SparqlRequest<'_>,
+        dataset: &mut Self::Dataset,
+        request: SparqlRequest<'_>,
     ) -> Result<(), RdfDiagnostic> {
-        // SPARQL UPDATE is out of S6 scope (the read query path only).
-        Err(RdfDiagnostic::error(
-            "native-sparql-update-unsupported",
-            "SPARQL UPDATE is not implemented in the native engine (S6 scope)",
-        ))
+        // UPDATE deliberately bypasses the plan cache: these requests are
+        // side-effecting and are not the hot static-query set the cache exists for;
+        // caching a mutating statement would be a correctness hazard.
+        let mut parser = SparqlParser::new();
+        if let Some(base) = request.base_iri {
+            parser = parser.with_base_iri(base);
+        }
+        let update = parser
+            .parse_update(request.query)
+            .map_err(|e| RdfDiagnostic::error("native-sparql-update-parse", e.to_string()))?;
+        // Atomicity is structural: branch a COW MutableDataset off the frozen base,
+        // apply every op to the delta, and only on FULL success freeze back. Any
+        // error drops `m` and leaves `*dataset` untouched.
+        let mut m = MutableDataset::new(Arc::clone(dataset));
+        eval_update(&update, &mut m, self.resolver.as_deref())?;
+        *dataset = m.freeze()?;
+        Ok(())
     }
 }
 
@@ -183,6 +223,116 @@ mod tests {
         }
     }
 
+    /// A dataset with a default graph plus two named graphs that share a triple.
+    ///   default: (a,p,dflt)
+    ///   ex:g1:   (a,p,x), (a,p,shared)
+    ///   ex:g2:   (a,p,y), (a,p,shared)
+    fn multigraph() -> Arc<RdfDataset> {
+        let mut b = RdfDatasetBuilder::new();
+        let p = b.intern_iri("http://ex/p".to_owned());
+        let a = b.intern_iri("http://ex/a".to_owned());
+        let dflt = b.intern_iri("http://ex/dflt".to_owned());
+        let x = b.intern_iri("http://ex/x".to_owned());
+        let y = b.intern_iri("http://ex/y".to_owned());
+        let shared = b.intern_iri("http://ex/shared".to_owned());
+        let g1 = b.intern_iri("http://ex/g1".to_owned());
+        let g2 = b.intern_iri("http://ex/g2".to_owned());
+        b.push_quad(a, p, dflt, None);
+        b.push_quad(a, p, x, Some(g1));
+        b.push_quad(a, p, shared, Some(g1));
+        b.push_quad(a, p, y, Some(g2));
+        b.push_quad(a, p, shared, Some(g2));
+        b.freeze().expect("freeze")
+    }
+
+    fn run_on(ds: &Arc<RdfDataset>, query: &str) -> SparqlResult {
+        NativeSparqlEngine::new()
+            .query(
+                ds,
+                SparqlRequest {
+                    query,
+                    base_iri: None,
+                },
+            )
+            .expect("query")
+    }
+
+    /// The first-column values of a solutions result, as sorted debug strings.
+    fn col0(result: SparqlResult) -> Vec<String> {
+        match result {
+            SparqlResult::Solutions { rows, .. } => {
+                let mut v: Vec<String> = rows.iter().map(|r| format!("{:?}", r[0])).collect();
+                v.sort();
+                v
+            }
+            other => panic!("expected solutions, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn from_merges_named_graphs_into_default_excluding_store_default() {
+        let ds = multigraph();
+        // FROM g1 FROM g2 → active default = RDF-merge(g1, g2); the store default graph
+        // (dflt) is excluded; the shared triple is unioned to a single solution.
+        let got = col0(run_on(
+            &ds,
+            "SELECT ?o FROM <http://ex/g1> FROM <http://ex/g2> \
+             WHERE { <http://ex/a> <http://ex/p> ?o }",
+        ));
+        assert_eq!(got.len(), 3, "x, y, shared (deduped), NOT dflt: {got:?}");
+        assert!(
+            !got.iter().any(|s| s.contains("dflt")),
+            "store default excluded: {got:?}"
+        );
+        assert_eq!(
+            got.iter().filter(|s| s.contains("shared")).count(),
+            1,
+            "RDF-merge unions the shared triple to one solution"
+        );
+    }
+
+    #[test]
+    fn no_from_clause_uses_store_default_graph() {
+        let ds = multigraph();
+        let got = col0(run_on(
+            &ds,
+            "SELECT ?o WHERE { <http://ex/a> <http://ex/p> ?o }",
+        ));
+        assert_eq!(got.len(), 1, "only the store default graph: {got:?}");
+        assert!(got[0].contains("dflt"));
+    }
+
+    #[test]
+    fn from_named_restricts_graph_var() {
+        let ds = multigraph();
+        // FROM NAMED g1 → GRAPH ?g binds only to g1 (g2 not addressable); the default
+        // graph is empty (no plain FROM).
+        let got = col0(run_on(
+            &ds,
+            "SELECT ?g FROM NAMED <http://ex/g1> \
+             WHERE { GRAPH ?g { <http://ex/a> <http://ex/p> ?o } }",
+        ));
+        assert!(!got.is_empty(), "g1 IS addressable");
+        assert!(got.iter().all(|s| s.contains("g1")), "only g1: {got:?}");
+        assert!(
+            !got.iter().any(|s| s.contains("g2")),
+            "g2 not in FROM NAMED"
+        );
+    }
+
+    #[test]
+    fn from_nonexistent_graph_is_empty_not_error() {
+        let ds = multigraph();
+        let got = col0(run_on(
+            &ds,
+            "SELECT ?o FROM <http://ex/absent> WHERE { <http://ex/a> <http://ex/p> ?o }",
+        ));
+        assert!(
+            got.is_empty(),
+            "absent FROM graph → empty default → no rows"
+        );
+    }
+
     #[test]
     fn ask_returns_boolean() {
         let yes = run("ASK { <http://ex/a> <http://ex/knows> <http://ex/b> }");
@@ -227,19 +377,232 @@ mod tests {
         assert_eq!(err.code, "native-sparql-query-parse");
     }
 
+    // ── UPDATE seam (engine end-to-end) ────────────────────────────────────────
+
+    /// A test-only resolver returning a fixed one-quad dataset for any LOAD source.
+    struct TestResolver {
+        ds: Arc<RdfDataset>,
+    }
+    impl GraphResolver for TestResolver {
+        fn resolve(&self, _iri: &str) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
+            Ok(self.ds.clone())
+        }
+    }
+
+    fn loadable() -> Arc<RdfDataset> {
+        // :loaded :p "v" .
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri("http://ex/loaded".to_owned());
+        let p = b.intern_iri("http://ex/p".to_owned());
+        let o = b.intern_literal(RdfLiteral::simple("v"));
+        b.push_quad(s, p, o, None);
+        b.freeze().expect("freeze loadable")
+    }
+
+    /// An empty default-graph dataset.
+    fn empty() -> Arc<RdfDataset> {
+        RdfDatasetBuilder::new().freeze().expect("freeze empty")
+    }
+
+    fn update(engine: &NativeSparqlEngine, ds: &mut Arc<RdfDataset>, query: &str) {
+        engine
+            .update(
+                ds,
+                SparqlRequest {
+                    query,
+                    base_iri: None,
+                },
+            )
+            .expect("update applies");
+    }
+
+    /// The effective quads as a comparable set of value tuples.
+    fn quad_set(ds: &RdfDataset) -> std::collections::BTreeSet<String> {
+        ds.quads()
+            .map(|q| {
+                format!(
+                    "{:?}|{:?}|{:?}|{:?}",
+                    ds.resolve(q.s),
+                    ds.resolve(q.p),
+                    ds.resolve(q.o),
+                    q.g.map(|g| format!("{:?}", ds.resolve(g)))
+                )
+            })
+            .collect()
+    }
+
     #[test]
-    fn update_is_unsupported() {
+    fn insert_data_adds_quad() {
+        let engine = NativeSparqlEngine::new();
+        let mut ds = empty();
+        update(
+            &engine,
+            &mut ds,
+            "INSERT DATA { <http://ex/a> <http://ex/p> <http://ex/b> }",
+        );
+        assert_eq!(ds.quad_count(), 1);
+        assert!(ds
+            .term_id_by_value(&TermValue::Iri("http://ex/a".to_owned()))
+            .is_some());
+    }
+
+    #[test]
+    fn delete_data_removes_quad() {
         let engine = NativeSparqlEngine::new();
         let mut ds = social();
+        update(
+            &engine,
+            &mut ds,
+            "DELETE DATA { <http://ex/a> <http://ex/knows> <http://ex/b> }",
+        );
+        // The :knows quad is gone; the :name quad survives.
+        assert_eq!(ds.quad_count(), 1);
+        assert!(ds
+            .term_id_by_value(&TermValue::Iri("http://ex/knows".to_owned()))
+            .is_none());
+    }
+
+    #[test]
+    fn delete_insert_where_rewrites() {
+        let engine = NativeSparqlEngine::new();
+        let mut ds = social();
+        update(
+            &engine,
+            &mut ds,
+            "DELETE { ?s <http://ex/knows> ?o } INSERT { ?s <http://ex/met> ?o } \
+             WHERE { ?s <http://ex/knows> ?o }",
+        );
+        // :knows replaced by :met; :name untouched.
+        assert!(ds
+            .term_id_by_value(&TermValue::Iri("http://ex/knows".to_owned()))
+            .is_none());
+        assert!(ds
+            .term_id_by_value(&TermValue::Iri("http://ex/met".to_owned()))
+            .is_some());
+        assert_eq!(ds.quad_count(), 2);
+    }
+
+    #[test]
+    fn clear_default_empties_target() {
+        let engine = NativeSparqlEngine::new();
+        let mut ds = social();
+        update(&engine, &mut ds, "CLEAR DEFAULT");
+        assert_eq!(ds.quad_count(), 0);
+    }
+
+    #[test]
+    fn load_with_resolver_inserts_resolved_quads() {
+        let engine =
+            NativeSparqlEngine::new().with_resolver(Arc::new(TestResolver { ds: loadable() }));
+        let mut ds = empty();
+        update(&engine, &mut ds, "LOAD <http://ex/doc>");
+        assert_eq!(ds.quad_count(), 1);
+        assert!(ds
+            .term_id_by_value(&TermValue::Iri("http://ex/loaded".to_owned()))
+            .is_some());
+    }
+
+    #[test]
+    fn load_without_resolver_is_a_hard_error() {
+        let engine = NativeSparqlEngine::new();
+        let mut ds = empty();
         let err = engine
             .update(
                 &mut ds,
                 SparqlRequest {
-                    query: "INSERT DATA { <http://ex/a> <http://ex/p> <http://ex/o> }",
+                    query: "LOAD <http://ex/doc>",
                     base_iri: None,
                 },
             )
             .unwrap_err();
-        assert_eq!(err.code, "native-sparql-update-unsupported");
+        assert_eq!(err.code, "native-sparql-load-no-resolver");
+    }
+
+    #[test]
+    fn load_silent_without_resolver_is_a_noop_ok() {
+        let engine = NativeSparqlEngine::new();
+        let mut ds = social();
+        let before = ds.quad_count();
+        update(&engine, &mut ds, "LOAD SILENT <http://ex/doc>");
+        assert_eq!(ds.quad_count(), before, "silent load no-ops");
+    }
+
+    #[test]
+    fn update_is_atomic_on_a_later_op_failure() {
+        // A two-operation request whose FIRST op would insert and whose SECOND op
+        // hard-fails (LOAD with no resolver, not SILENT). Branch-then-freeze atomicity
+        // requires the whole request to roll back: the dataset must be byte-identical
+        // (same quad set) to before, with the first op's INSERT NOT leaked.
+        let engine = NativeSparqlEngine::new();
+        let mut ds = social();
+        let before = quad_set(&ds);
+
+        let err = engine
+            .update(
+                &mut ds,
+                SparqlRequest {
+                    query: "INSERT DATA { <http://ex/x> <http://ex/y> <http://ex/z> } ; \
+                            LOAD <http://ex/doc>",
+                    base_iri: None,
+                },
+            )
+            .unwrap_err();
+        assert_eq!(err.code, "native-sparql-load-no-resolver");
+
+        let after = quad_set(&ds);
+        assert_eq!(
+            after, before,
+            "the failed request left the dataset untouched"
+        );
+    }
+
+    #[test]
+    fn update_is_atomic_on_a_where_eval_failure() {
+        // A second atomicity proof through a different failure mode: a modify whose
+        // WHERE hits an unsupported construct (SERVICE → `native-sparql-update-eval`)
+        // after a successful INSERT. The INSERT must not leak.
+        let engine = NativeSparqlEngine::new();
+        let mut ds = empty();
+        let before = quad_set(&ds);
+
+        let err = engine
+            .update(
+                &mut ds,
+                SparqlRequest {
+                    query: "INSERT DATA { <http://ex/x> <http://ex/y> <http://ex/z> } ; \
+                            DELETE { ?s <http://ex/p> ?o } \
+                            WHERE { SERVICE <http://ex/svc> { ?s <http://ex/p> ?o } }",
+                    base_iri: None,
+                },
+            )
+            .unwrap_err();
+        assert_eq!(err.code, "native-sparql-update-eval");
+        assert_eq!(
+            quad_set(&ds),
+            before,
+            "INSERT must not leak past the failure"
+        );
+    }
+
+    #[test]
+    fn update_parse_error_becomes_diagnostic() {
+        let engine = NativeSparqlEngine::new();
+        let mut ds = empty();
+        let err = engine
+            .update(
+                &mut ds,
+                SparqlRequest {
+                    query: "this is not an update",
+                    base_iri: None,
+                },
+            )
+            .unwrap_err();
+        assert_eq!(err.code, "native-sparql-update-parse");
+    }
+
+    #[test]
+    fn engine_has_no_resolver_by_default() {
+        assert!(NativeSparqlEngine::new().resolver.is_none());
+        assert!(NativeSparqlEngine::default().resolver.is_none());
     }
 }

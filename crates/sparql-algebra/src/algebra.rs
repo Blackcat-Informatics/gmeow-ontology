@@ -22,7 +22,8 @@
 //! later) rather than cloning a fixed external type.
 
 use crate::ast::{
-    GroundTerm, Literal, NamedNode, NamedNodePattern, TermPattern, TriplePattern, Variable,
+    GroundTerm, Literal, NamedNode, NamedNodePattern, QuadPattern, TermPattern, TriplePattern,
+    Variable,
 };
 
 /// A parsed SPARQL query. The four query forms differ only in their head; the
@@ -33,6 +34,8 @@ pub enum Query {
     Select {
         /// The root graph pattern (already wrapped by projection/modifiers).
         pattern: GraphPattern,
+        /// The `FROM` / `FROM NAMED` dataset clause (empty = the store's default).
+        dataset: QueryDataset,
         /// An explicit `BASE` IRI, if the prologue declared one.
         base_iri: Option<NamedNode>,
     },
@@ -42,6 +45,8 @@ pub enum Query {
         template: Vec<TriplePattern>,
         /// The `WHERE` algebra.
         pattern: GraphPattern,
+        /// The `FROM` / `FROM NAMED` dataset clause (empty = the store's default).
+        dataset: QueryDataset,
         /// An explicit `BASE` IRI, if any.
         base_iri: Option<NamedNode>,
     },
@@ -51,6 +56,8 @@ pub enum Query {
         pattern: GraphPattern,
         /// The resources to describe (IRIs and/or variables).
         targets: Vec<NamedNodePattern>,
+        /// The `FROM` / `FROM NAMED` dataset clause (empty = the store's default).
+        dataset: QueryDataset,
         /// An explicit `BASE` IRI, if any.
         base_iri: Option<NamedNode>,
     },
@@ -58,9 +65,390 @@ pub enum Query {
     Ask {
         /// The `WHERE` algebra.
         pattern: GraphPattern,
+        /// The `FROM` / `FROM NAMED` dataset clause (empty = the store's default).
+        dataset: QueryDataset,
         /// An explicit `BASE` IRI, if any.
         base_iri: Option<NamedNode>,
     },
+}
+
+impl Query {
+    /// The query's `FROM` / `FROM NAMED` dataset clause (empty = the store default).
+    pub fn dataset(&self) -> &QueryDataset {
+        match self {
+            Query::Select { dataset, .. }
+            | Query::Construct { dataset, .. }
+            | Query::Describe { dataset, .. }
+            | Query::Ask { dataset, .. } => dataset,
+        }
+    }
+}
+
+/// A SPARQL query **dataset clause** (`FROM` / `FROM NAMED`, §13.2). An empty
+/// clause (both lists empty) means "use the store's default dataset" — the default
+/// graph plus every named graph. A non-empty clause replaces it: the active default
+/// graph becomes the RDF-merge of the `default` IRIs (the store default graph is then
+/// excluded), and only the `named` IRIs are addressable via `GRAPH`.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
+pub struct QueryDataset {
+    /// `FROM <iri>` graphs, merged to form the active default graph.
+    pub default: Vec<NamedNode>,
+    /// `FROM NAMED <iri>` graphs, the named graphs addressable by `GRAPH`.
+    pub named: Vec<NamedNode>,
+}
+
+/// One `USING` / `USING NAMED` clause of a `DELETE`/`INSERT` operation (§3.1.3) — the
+/// UPDATE counterpart of [`QueryDataset`], scoping the `WHERE` active dataset. The
+/// `NAMED` modifier is preserved (unlike a bare [`GraphTarget`]), because `USING <g>`
+/// (folds `g` into the active default graph) and `USING NAMED <g>` (makes `g`
+/// addressable via `GRAPH`) have distinct semantics.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum UsingClause {
+    /// `USING <iri>` — adds the graph to the active default graph (≡ `FROM`).
+    Default(NamedNode),
+    /// `USING NAMED <iri>` — makes the graph addressable via `GRAPH` (≡ `FROM NAMED`).
+    Named(NamedNode),
+}
+
+/// A parsed SPARQL 1.1 Update request: a sequence of graph-update operations,
+/// applied in order (later operations observe earlier ones' effects).
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Update {
+    /// The operations, in request order.
+    pub operations: Vec<GraphUpdateOperation>,
+    /// An explicit `BASE` IRI, if the prologue declared one.
+    pub base_iri: Option<NamedNode>,
+}
+
+/// The target of a graph-management operation
+/// (`CLEAR`/`DROP`/`ADD`/`MOVE`/`COPY`/`LOAD` destination). Models the SPARQL
+/// `GraphRefAll` production's four forms.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum GraphTarget {
+    /// The `DEFAULT` keyword: the default (unnamed) graph.
+    Default,
+    /// `GRAPH <iri>` (or a bare `<iri>`): a single specific named graph.
+    Named(NamedNode),
+    /// The `NAMED` keyword: every named graph, but **not** the default graph.
+    NamedGraphs,
+    /// The `ALL` keyword: the default graph **and** every named graph.
+    All,
+}
+
+/// One SPARQL 1.1 Update operation (§3.1–§3.2).
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum GraphUpdateOperation {
+    /// `INSERT DATA { ... }` — add concrete quads. The data is variable-free (a
+    /// hard parser invariant) but MAY contain blank nodes (standard SPARQL §3.1.1:
+    /// blanks are minted fresh per request); hence [`QuadPattern`], not a ground
+    /// quad type that cannot hold blanks.
+    InsertData {
+        /// The quads to add (variable-free; blank nodes allowed).
+        data: Vec<QuadPattern>,
+    },
+    /// `DELETE DATA { ... }` — remove concrete quads. The data is variable-free AND
+    /// blank-node-free (both hard parser invariants per §3.1.2), but is modeled as
+    /// [`QuadPattern`] for a single uniform DATA representation.
+    DeleteData {
+        /// The quads to remove (variable-free and blank-node-free).
+        data: Vec<QuadPattern>,
+    },
+    /// `DELETE { ... } INSERT { ... } WHERE { ... }` and its `DELETE WHERE` /
+    /// insert-only / `WITH`/`USING` shorthands. Either template may be empty.
+    DeleteInsert {
+        /// The `DELETE` template (quad patterns to remove per solution). Empty for insert-only.
+        delete: Vec<QuadPattern>,
+        /// The `INSERT` template (quad patterns to add per solution). Empty for delete-only.
+        insert: Vec<QuadPattern>,
+        /// The `WITH <iri>` default graph for the operation, if any.
+        with: Option<NamedNode>,
+        /// The `USING` / `USING NAMED` dataset clauses, if any (the active dataset for WHERE).
+        using: Vec<UsingClause>,
+        /// The `WHERE` graph pattern (the unit pattern for a bare `DELETE WHERE { ... }`).
+        pattern: Box<GraphPattern>,
+    },
+    /// `LOAD [SILENT] <iri> [INTO GRAPH <iri>]`. `destination` is a [`GraphTarget`]
+    /// for uniformity with the other graph-management ops, but only its `Default`
+    /// (no `INTO GRAPH` — load into the default graph) and `Named` (explicit
+    /// `INTO GRAPH <iri>`) variants are valid here; `NamedGraphs`/`All` are not.
+    Load {
+        /// The `SILENT` flag.
+        silent: bool,
+        /// The `<iri>` to dereference and load.
+        source: NamedNode,
+        /// The destination graph (`Default` = no explicit `INTO GRAPH`).
+        destination: GraphTarget,
+    },
+    /// `CLEAR [SILENT] <target>` — remove all quads in the target.
+    Clear {
+        /// The `SILENT` flag.
+        silent: bool,
+        /// The graph(s) to clear.
+        target: GraphTarget,
+    },
+    /// `DROP [SILENT] <target>` — remove the graph(s).
+    Drop {
+        /// The `SILENT` flag.
+        silent: bool,
+        /// The graph(s) to drop.
+        target: GraphTarget,
+    },
+    /// `CREATE [SILENT] GRAPH <iri>`.
+    Create {
+        /// The `SILENT` flag.
+        silent: bool,
+        /// The named graph to create.
+        graph: NamedNode,
+    },
+    /// `ADD [SILENT] <source> TO <destination>` — copy all quads, leaving source intact.
+    Add {
+        /// The `SILENT` flag.
+        silent: bool,
+        /// The source graph.
+        source: GraphTarget,
+        /// The destination graph.
+        destination: GraphTarget,
+    },
+    /// `MOVE [SILENT] <source> TO <destination>` — move all quads (dest cleared first).
+    Move {
+        /// The `SILENT` flag.
+        silent: bool,
+        /// The source graph.
+        source: GraphTarget,
+        /// The destination graph.
+        destination: GraphTarget,
+    },
+    /// `COPY [SILENT] <source> TO <destination>` — copy all quads (dest cleared first).
+    Copy {
+        /// The `SILENT` flag.
+        silent: bool,
+        /// The source graph.
+        source: GraphTarget,
+        /// The destination graph.
+        destination: GraphTarget,
+    },
+}
+
+impl core::fmt::Display for GraphTarget {
+    /// Serialize a graph target to its SPARQL `GraphRefAll` surface syntax.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::Default => write!(f, "DEFAULT"),
+            Self::Named(n) => write!(f, "GRAPH <{}>", n.as_str()),
+            Self::NamedGraphs => write!(f, "NAMED"),
+            Self::All => write!(f, "ALL"),
+        }
+    }
+}
+
+impl core::fmt::Display for UsingClause {
+    /// Serialize a `USING` clause, preserving the `NAMED` modifier.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::Default(n) => write!(f, "USING <{}>", n.as_str()),
+            Self::Named(n) => write!(f, "USING NAMED <{}>", n.as_str()),
+        }
+    }
+}
+
+impl core::fmt::Display for QueryDataset {
+    /// Serialize a query dataset clause: `FROM <iri>` and `FROM NAMED <iri>` per graph.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        for g in &self.default {
+            write!(f, "FROM <{}> ", g.as_str())?;
+        }
+        for g in &self.named {
+            write!(f, "FROM NAMED <{}> ", g.as_str())?;
+        }
+        Ok(())
+    }
+}
+
+impl core::fmt::Display for Update {
+    /// Serialize an Update request: its operations joined by `;`.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        if let Some(base) = &self.base_iri {
+            write!(f, "BASE <{}> ", base.as_str())?;
+        }
+        for (i, op) in self.operations.iter().enumerate() {
+            if i > 0 {
+                write!(f, " ; ")?;
+            }
+            write!(f, "{op}")?;
+        }
+        Ok(())
+    }
+}
+
+/// Render an [`NamedNodePattern`] in SPARQL surface syntax (`<iri>` or `?var`).
+fn fmt_named_node_pattern(n: &NamedNodePattern) -> String {
+    match n {
+        NamedNodePattern::NamedNode(node) => format!("<{}>", node.as_str()),
+        NamedNodePattern::Variable(v) => format!("?{}", v.as_str()),
+    }
+}
+
+/// Render a [`TermPattern`] in SPARQL surface syntax.
+fn fmt_term_pattern(t: &TermPattern) -> String {
+    match t {
+        TermPattern::NamedNode(n) => format!("<{}>", n.as_str()),
+        TermPattern::BlankNode(b) => format!("_:{}", b.as_str()),
+        TermPattern::Literal(l) => fmt_literal(l),
+        TermPattern::Variable(v) => format!("?{}", v.as_str()),
+        TermPattern::Triple(t) => format!(
+            "<<( {} {} {} )>>",
+            fmt_term_pattern(&t.subject),
+            fmt_named_node_pattern(&t.predicate),
+            fmt_term_pattern(&t.object),
+        ),
+    }
+}
+
+/// Render a [`TriplePattern`] as `s p o`.
+fn fmt_triple_pattern(t: &TriplePattern) -> String {
+    format!(
+        "{} {} {}",
+        fmt_term_pattern(&t.subject),
+        fmt_named_node_pattern(&t.predicate),
+        fmt_term_pattern(&t.object),
+    )
+}
+
+/// Render a [`Literal`] in SPARQL surface syntax.
+fn fmt_literal(l: &Literal) -> String {
+    match (l.language(), l.direction()) {
+        (Some(lang), Some(dir)) => {
+            let d = match dir {
+                crate::ast::BaseDirection::Ltr => "ltr",
+                crate::ast::BaseDirection::Rtl => "rtl",
+            };
+            format!("{:?}@{lang}--{d}", l.value())
+        }
+        (Some(lang), None) => format!("{:?}@{lang}", l.value()),
+        (None, _) => format!("{:?}^^<{}>", l.value(), l.datatype().as_str()),
+    }
+}
+
+/// Render a `DELETE`/`INSERT` template (a list of [`QuadPattern`]s) as the body of
+/// a `{ ... }` block, grouping graph-scoped patterns into `GRAPH g { ... }`.
+fn fmt_quad_pattern_body(quads: &[QuadPattern]) -> String {
+    let mut out = String::new();
+    for q in quads {
+        match &q.graph {
+            None => out.push_str(&format!("{} . ", fmt_triple_pattern(&q.triple))),
+            Some(g) => out.push_str(&format!(
+                "GRAPH {} {{ {} . }} ",
+                fmt_named_node_pattern(g),
+                fmt_triple_pattern(&q.triple),
+            )),
+        }
+    }
+    out.trim_end().to_owned()
+}
+
+impl core::fmt::Display for GraphUpdateOperation {
+    /// Serialize one update operation to SPARQL Update surface syntax.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::InsertData { data } => {
+                write!(f, "INSERT DATA {{ {} }}", fmt_quad_pattern_body(data))
+            }
+            Self::DeleteData { data } => {
+                write!(f, "DELETE DATA {{ {} }}", fmt_quad_pattern_body(data))
+            }
+            Self::DeleteInsert {
+                delete,
+                insert,
+                with,
+                using,
+                pattern,
+            } => {
+                if let Some(w) = with {
+                    write!(f, "WITH <{}> ", w.as_str())?;
+                }
+                if !delete.is_empty() {
+                    write!(f, "DELETE {{ {} }} ", fmt_quad_pattern_body(delete))?;
+                }
+                if !insert.is_empty() {
+                    write!(f, "INSERT {{ {} }} ", fmt_quad_pattern_body(insert))?;
+                }
+                for u in using {
+                    write!(f, "{u} ")?;
+                }
+                write!(f, "WHERE {{ {pattern:?} }}")
+            }
+            Self::Load {
+                silent,
+                source,
+                destination,
+            } => {
+                write!(f, "LOAD ")?;
+                if *silent {
+                    write!(f, "SILENT ")?;
+                }
+                write!(f, "<{}>", source.as_str())?;
+                match destination {
+                    GraphTarget::Default => Ok(()),
+                    GraphTarget::Named(n) => write!(f, " INTO GRAPH <{}>", n.as_str()),
+                    other => write!(f, " INTO {other}"),
+                }
+            }
+            Self::Clear { silent, target } => {
+                write!(f, "CLEAR ")?;
+                if *silent {
+                    write!(f, "SILENT ")?;
+                }
+                write!(f, "{target}")
+            }
+            Self::Drop { silent, target } => {
+                write!(f, "DROP ")?;
+                if *silent {
+                    write!(f, "SILENT ")?;
+                }
+                write!(f, "{target}")
+            }
+            Self::Create { silent, graph } => {
+                write!(f, "CREATE ")?;
+                if *silent {
+                    write!(f, "SILENT ")?;
+                }
+                write!(f, "GRAPH <{}>", graph.as_str())
+            }
+            Self::Add {
+                silent,
+                source,
+                destination,
+            } => {
+                write!(f, "ADD ")?;
+                if *silent {
+                    write!(f, "SILENT ")?;
+                }
+                write!(f, "{source} TO {destination}")
+            }
+            Self::Move {
+                silent,
+                source,
+                destination,
+            } => {
+                write!(f, "MOVE ")?;
+                if *silent {
+                    write!(f, "SILENT ")?;
+                }
+                write!(f, "{source} TO {destination}")
+            }
+            Self::Copy {
+                silent,
+                source,
+                destination,
+            } => {
+                write!(f, "COPY ")?;
+                if *silent {
+                    write!(f, "SILENT ")?;
+                }
+                write!(f, "{source} TO {destination}")
+            }
+        }
+    }
 }
 
 /// A node of the SPARQL graph-pattern algebra (§18.2). The empty pattern (the
@@ -479,4 +867,202 @@ pub enum AggregateFunction {
     },
     /// A custom aggregate identified by IRI.
     Custom(NamedNode),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn nn(iri: &str) -> NamedNode {
+        NamedNode::new_unchecked(iri)
+    }
+
+    /// A concrete (variable-free) data quad, for the DATA Display tests.
+    fn data_quad(graph: Option<NamedNodePattern>) -> QuadPattern {
+        QuadPattern {
+            triple: TriplePattern {
+                subject: TermPattern::NamedNode(nn("http://ex/s")),
+                predicate: NamedNodePattern::NamedNode(nn("http://ex/p")),
+                object: TermPattern::NamedNode(nn("http://ex/o")),
+            },
+            graph,
+        }
+    }
+
+    fn quad_pattern(graph: Option<NamedNodePattern>) -> QuadPattern {
+        QuadPattern {
+            triple: TriplePattern {
+                subject: TermPattern::Variable(Variable::new("s")),
+                predicate: NamedNodePattern::NamedNode(nn("http://ex/p")),
+                object: TermPattern::Variable(Variable::new("o")),
+            },
+            graph,
+        }
+    }
+
+    #[test]
+    fn graph_target_display() {
+        assert_eq!(GraphTarget::Default.to_string(), "DEFAULT");
+        assert_eq!(GraphTarget::NamedGraphs.to_string(), "NAMED");
+        assert_eq!(GraphTarget::All.to_string(), "ALL");
+        assert_eq!(
+            GraphTarget::Named(nn("http://ex/g")).to_string(),
+            "GRAPH <http://ex/g>"
+        );
+    }
+
+    #[test]
+    fn insert_data_display() {
+        let op = GraphUpdateOperation::InsertData {
+            data: vec![data_quad(None)],
+        };
+        assert_eq!(
+            op.to_string(),
+            "INSERT DATA { <http://ex/s> <http://ex/p> <http://ex/o> . }"
+        );
+    }
+
+    #[test]
+    fn delete_data_display_with_graph() {
+        let op = GraphUpdateOperation::DeleteData {
+            data: vec![data_quad(Some(NamedNodePattern::NamedNode(nn(
+                "http://ex/g",
+            ))))],
+        };
+        assert_eq!(
+            op.to_string(),
+            "DELETE DATA { GRAPH <http://ex/g> { <http://ex/s> <http://ex/p> <http://ex/o> . } }"
+        );
+    }
+
+    #[test]
+    fn delete_insert_display() {
+        let op = GraphUpdateOperation::DeleteInsert {
+            delete: vec![quad_pattern(None)],
+            insert: vec![quad_pattern(Some(NamedNodePattern::NamedNode(nn(
+                "http://ex/g",
+            ))))],
+            with: Some(nn("http://ex/w")),
+            using: vec![
+                UsingClause::Default(nn("http://ex/u")),
+                UsingClause::Named(nn("http://ex/n")),
+            ],
+            pattern: Box::new(GraphPattern::Bgp { patterns: vec![] }),
+        };
+        let s = op.to_string();
+        assert!(s.starts_with("WITH <http://ex/w> "), "{s}");
+        assert!(s.contains("DELETE { ?s <http://ex/p> ?o . }"), "{s}");
+        assert!(
+            s.contains("INSERT { GRAPH <http://ex/g> { ?s <http://ex/p> ?o . } }"),
+            "{s}"
+        );
+        assert!(s.contains("USING <http://ex/u> "), "{s}");
+        // The NAMED modifier must survive (previously collapsed to a bare USING).
+        assert!(s.contains("USING NAMED <http://ex/n> "), "{s}");
+        assert!(s.contains("WHERE {"), "{s}");
+    }
+
+    #[test]
+    fn load_display() {
+        let bare = GraphUpdateOperation::Load {
+            silent: false,
+            source: nn("http://ex/doc"),
+            destination: GraphTarget::Default,
+        };
+        assert_eq!(bare.to_string(), "LOAD <http://ex/doc>");
+
+        let into = GraphUpdateOperation::Load {
+            silent: true,
+            source: nn("http://ex/doc"),
+            destination: GraphTarget::Named(nn("http://ex/g")),
+        };
+        assert_eq!(
+            into.to_string(),
+            "LOAD SILENT <http://ex/doc> INTO GRAPH <http://ex/g>"
+        );
+    }
+
+    #[test]
+    fn clear_drop_display() {
+        let clear = GraphUpdateOperation::Clear {
+            silent: false,
+            target: GraphTarget::All,
+        };
+        assert_eq!(clear.to_string(), "CLEAR ALL");
+
+        let drop = GraphUpdateOperation::Drop {
+            silent: true,
+            target: GraphTarget::Named(nn("http://ex/g")),
+        };
+        assert_eq!(drop.to_string(), "DROP SILENT GRAPH <http://ex/g>");
+    }
+
+    #[test]
+    fn create_display() {
+        let op = GraphUpdateOperation::Create {
+            silent: false,
+            graph: nn("http://ex/g"),
+        };
+        assert_eq!(op.to_string(), "CREATE GRAPH <http://ex/g>");
+    }
+
+    #[test]
+    fn add_move_copy_display() {
+        let add = GraphUpdateOperation::Add {
+            silent: false,
+            source: GraphTarget::Default,
+            destination: GraphTarget::Named(nn("http://ex/g")),
+        };
+        assert_eq!(add.to_string(), "ADD DEFAULT TO GRAPH <http://ex/g>");
+
+        let mv = GraphUpdateOperation::Move {
+            silent: true,
+            source: GraphTarget::Named(nn("http://ex/a")),
+            destination: GraphTarget::Named(nn("http://ex/b")),
+        };
+        assert_eq!(
+            mv.to_string(),
+            "MOVE SILENT GRAPH <http://ex/a> TO GRAPH <http://ex/b>"
+        );
+
+        let cp = GraphUpdateOperation::Copy {
+            silent: false,
+            source: GraphTarget::Named(nn("http://ex/a")),
+            destination: GraphTarget::Default,
+        };
+        assert_eq!(cp.to_string(), "COPY GRAPH <http://ex/a> TO DEFAULT");
+    }
+
+    #[test]
+    fn update_joins_operations_with_semicolon() {
+        let upd = Update {
+            operations: vec![
+                GraphUpdateOperation::Create {
+                    silent: false,
+                    graph: nn("http://ex/g"),
+                },
+                GraphUpdateOperation::Clear {
+                    silent: false,
+                    target: GraphTarget::Default,
+                },
+            ],
+            base_iri: None,
+        };
+        assert_eq!(
+            upd.to_string(),
+            "CREATE GRAPH <http://ex/g> ; CLEAR DEFAULT"
+        );
+    }
+
+    #[test]
+    fn update_renders_base_iri() {
+        let upd = Update {
+            operations: vec![GraphUpdateOperation::Clear {
+                silent: false,
+                target: GraphTarget::All,
+            }],
+            base_iri: Some(nn("http://ex/base")),
+        };
+        assert_eq!(upd.to_string(), "BASE <http://ex/base> CLEAR ALL");
+    }
 }

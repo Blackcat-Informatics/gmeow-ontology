@@ -64,5 +64,9 @@ Select {
             ?k,
         ],
     },
+    dataset: QueryDataset {
+        default: [],
+        named: [],
+    },
     base_iri: None,
 }

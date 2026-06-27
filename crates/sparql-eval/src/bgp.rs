@@ -29,14 +29,16 @@
 //! **projected away**, so two independent BGPs that happen to reuse the label `_:b`
 //! never accidentally share a join variable.
 
-use gmeow_rdf_core::{DatasetView, QuadIds, RdfDataset, TermId};
+use gmeow_rdf_core::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId};
 use gmeow_sparql_algebra::{NamedNodePattern, TermPattern, TriplePattern, Variable};
 
 use crate::convert::{ground_term_pattern_to_value, named_node_to_value};
+use crate::dataset_spec::GraphScope;
 use crate::error::EvalError;
 use crate::eval::EvalCtx;
 use crate::scratch::SolutionTerm;
 use crate::solution::{Solution, SolutionSeq, VarSchema};
+use crate::DetHashSet;
 use std::rc::Rc;
 
 /// The `NUL`-prefixed marker that distinguishes a synthetic blank-node slot
@@ -94,6 +96,10 @@ pub(crate) fn eval_bgp(
     // multiset result is identical, only the join shape (and so the cost) changes.
     let order = selectivity_order(&compiled);
 
+    // The graph scope for this BGP (resolved once — `active_graph` is fixed across a
+    // single BGP; `GRAPH` wrapping is applied by `eval_graph` before recursing in).
+    let scope = ctx.active_dataset.scope_for(ctx.active_graph);
+
     // Index-nested-loop evaluation. Rows start as a single all-unbound solution.
     let mut rows: Vec<Solution> = vec![vec![None; working.len()]];
     for &i in &order {
@@ -103,9 +109,31 @@ pub(crate) fn eval_bgp(
             let s = query_id(&cp.s, row);
             let p = query_id(&cp.p, row);
             let o = query_id(&cp.o, row);
-            for quad in ctx.dataset.quads_for_pattern(s, p, o, ctx.active_graph) {
-                if let Some(extended) = bind_row(row, cp, &quad) {
-                    next.push(extended);
+            match &scope {
+                // Single-graph scope (store default / a named graph): the indexed
+                // partition_point read, unchanged — no de-dup overhead.
+                GraphScope::One(gm) => {
+                    for quad in ctx.dataset.quads_for_pattern(s, p, o, *gm) {
+                        if let Some(extended) = bind_row(row, cp, &quad) {
+                            next.push(extended);
+                        }
+                    }
+                }
+                // A FROM/USING-merged default graph: union the per-graph reads, but
+                // RDF-merge unions *triples*, so a triple present in two merged graphs
+                // must bind once — de-dupe by (s, p, o) for this pattern+row.
+                GraphScope::Merge(gs) => {
+                    let mut seen: DetHashSet<(TermId, TermId, TermId)> = DetHashSet::default();
+                    for &g in gs {
+                        for quad in ctx.dataset.quads_for_pattern(s, p, o, GraphMatch::Named(g)) {
+                            if !seen.insert((quad.s, quad.p, quad.o)) {
+                                continue;
+                            }
+                            if let Some(extended) = bind_row(row, cp, &quad) {
+                                next.push(extended);
+                            }
+                        }
+                    }
                 }
             }
         }
