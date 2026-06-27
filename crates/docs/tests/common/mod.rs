@@ -14,6 +14,7 @@
 
 use std::path::PathBuf;
 
+use gmeow_docs::render::Site;
 use gmeow_docs::DocsModel;
 
 /// The repository root, derived from this crate's manifest dir (`<repo>/crates/docs`).
@@ -28,4 +29,12 @@ pub fn repo_root() -> PathBuf {
 /// The live documentation model, loaded from the shared once-per-run cache.
 pub fn cached_model() -> DocsModel {
     gmeow_docs::fixture::load(&repo_root())
+}
+
+/// The rendered English static site, loaded from the shared once-per-run cache.
+/// The canonical carrier render (`render_site` ≡ `render_site_lang(_, "english")`);
+/// tests that only need the site (not the live render path) load it from here so
+/// the suite pays the full render once, not once per process.
+pub fn cached_site() -> Site {
+    gmeow_docs::fixture::load_site(&repo_root())
 }

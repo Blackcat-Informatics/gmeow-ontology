@@ -22,6 +22,7 @@
 //! never served. This is the same content-addressed, atomic-temp-then-rename
 //! pattern the validate and slice caches use.
 
+use std::collections::BTreeMap;
 use std::fs;
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
@@ -32,6 +33,7 @@ use sha1::{Digest, Sha1};
 
 use crate::i18n::{Translations, UiCatalog};
 use crate::model::DocsModel;
+use crate::render::{render_site, Site};
 
 /// Load the live documentation model rooted at `root`, from the once-per-run
 /// cache when present, otherwise built via [`DocsModel::discover`] and cached for
@@ -64,13 +66,53 @@ pub fn load(root: &Path) -> DocsModel {
     }
 }
 
-/// Build the model and write the cache if it is not already present. Run once
-/// before a batch of tests so none of them pays the (contended) build. A no-op
-/// when the cache is already warm.
+/// Load the rendered English static site rooted at `root`, from the once-per-run
+/// cache when present, otherwise rendered via [`render_site`] and cached for the
+/// rest of the run. Byte-identical to a fresh `render_site(&load(root))`.
+///
+/// The English render is the canonical carrier (`render_site` ≡
+/// `render_site_lang(_, "english")`), and every gated test that needs the live
+/// site — determinism checks, the carrier-vs-`render_site` identity, English
+/// path-graph comparisons, lint passes — loads it from here instead of paying a
+/// fresh render. That removes the dominant per-test cost (a full site render) and
+/// the cross-process render contention that pushed those tests over the gate.
+///
+/// Corrupt-but-present is an integrity violation and panics; only a genuine
+/// absence falls through to a fresh render (so a plain `cargo test` still works).
+pub fn load_site(root: &Path) -> Site {
+    let cache_path = site_cache_path(root);
+    match fs::read(&cache_path) {
+        Ok(bytes) => {
+            let cached: CachedSite = serde_json::from_slice(&bytes).unwrap_or_else(|e| {
+                panic!(
+                    "corrupt docs-fixture site cache at {}: {e}\n\
+                     delete the file (or run `rm -rf .cache/docs-fixture`) to rebuild",
+                    cache_path.display()
+                )
+            });
+            cached.into_site()
+        }
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            build_site_and_cache(root, &cache_path)
+        }
+        Err(e) => panic!(
+            "cannot read docs-fixture site cache at {}: {e}",
+            cache_path.display()
+        ),
+    }
+}
+
+/// Build the model and the rendered site and write each cache if it is not
+/// already present. Run once before a batch of tests so none of them pays the
+/// (contended) model build or site render. A no-op when both caches are warm.
 pub fn prime(root: &Path) {
     let cache_path = cache_path(root);
     if !cache_path.exists() {
         build_and_cache(root, &cache_path);
+    }
+    let site_path = site_cache_path(root);
+    if !site_path.exists() {
+        build_site_and_cache(root, &site_path);
     }
 }
 
@@ -80,12 +122,31 @@ fn build_and_cache(root: &Path, cache_path: &Path) -> DocsModel {
     model
 }
 
-/// The on-disk cache path for the inputs under `root`.
+fn build_site_and_cache(root: &Path, site_path: &Path) -> Site {
+    // Reuse the warm model cache (built first by `prime`, or built-and-cached
+    // here on a plain `cargo test` miss) rather than re-walking the slices.
+    let model = load(root);
+    let site = render_site(&model);
+    write_cache(site_path, &CachedSite::from_site(&site));
+    site
+}
+
+/// The on-disk cache path for the model built from the inputs under `root`.
 fn cache_path(root: &Path) -> PathBuf {
     let key = cache_key(root);
     root.join(".cache")
         .join("docs-fixture")
         .join(format!("{key}.json"))
+}
+
+/// The on-disk cache path for the rendered site. Shares the model cache key (the
+/// site is a pure function of the model, and a render-logic change is covered by
+/// the crate-version salt), with a distinct suffix.
+fn site_cache_path(root: &Path) -> PathBuf {
+    let key = cache_key(root);
+    root.join(".cache")
+        .join("docs-fixture")
+        .join(format!("{key}.site.json"))
 }
 
 /// The serialized cache envelope. The model serializes with its i18n fields
@@ -120,6 +181,42 @@ impl CachedModel {
         model.translations = translations;
         model.ui_catalog = ui_catalog;
         model
+    }
+}
+
+/// The serialized rendered-site envelope. Every emitted file is UTF-8 text (each
+/// is `String::into_bytes()` at render time), so the file bytes are carried as
+/// JSON strings — far more compact and faster to parse than a `Vec<u8>` number
+/// array, with no extra dependency. A non-UTF-8 file would be a render-layer
+/// regression and hard-fails loudly on cache write.
+#[derive(Serialize, Deserialize)]
+struct CachedSite {
+    files: BTreeMap<String, String>,
+}
+
+impl CachedSite {
+    fn from_site(site: &Site) -> Self {
+        Self {
+            files: site
+                .files
+                .iter()
+                .map(|(path, bytes)| {
+                    let text = std::str::from_utf8(bytes)
+                        .unwrap_or_else(|e| panic!("rendered site file {path} is not UTF-8: {e}"));
+                    (path.clone(), text.to_string())
+                })
+                .collect(),
+        }
+    }
+
+    fn into_site(self) -> Site {
+        Site {
+            files: self
+                .files
+                .into_iter()
+                .map(|(path, text)| (path, text.into_bytes()))
+                .collect(),
+        }
     }
 }
 
@@ -182,12 +279,12 @@ fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) {
 /// Counter making concurrent temp-file names unique within a process.
 static TMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 
-/// Atomically write the envelope: serialize to a uniquely-named temp file in the
+/// Atomically write an envelope: serialize to a uniquely-named temp file in the
 /// destination directory, then rename it into place so a concurrent reader never
 /// observes a partial JSON object. Mirrors the `.cache/validate` write pattern.
 /// Write failures are non-fatal (a parallel writer may have won the rename); the
-/// cache is an optimization and the model is already in hand.
-fn write_cache(path: &Path, cached: &CachedModel) {
+/// cache is an optimization and the value is already in hand.
+fn write_cache<T: Serialize>(path: &Path, cached: &T) {
     let dir = path.parent().expect("cache path has a parent");
     if let Err(e) = fs::create_dir_all(dir) {
         if e.kind() != std::io::ErrorKind::AlreadyExists {

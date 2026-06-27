@@ -7,8 +7,9 @@
 //! landing page, one category index, one fully-populated term page (md + html),
 //! the slice index, and one slice page (md + html). Representatives are chosen
 //! by stable IRI/curie sort so the selection is deterministic. Two further tests
-//! lock the cross-cutting invariants — byte-stability across two `render_site`
-//! calls, and the absence of dangling internal `.html` links.
+//! lock the cross-cutting invariants — byte-stability of a fresh `render_site`
+//! against the cached once-per-run render, and the absence of dangling internal
+//! `.html` links.
 
 // Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
 // for this file. Identical behaviour on pass; insta snapshots are unaffected.
@@ -463,8 +464,7 @@ fn llms_txt_conforms_to_llmstxt_org() {
     // invariants plus the guarantee that every bullet URL resolves to a real file
     // in the published site tree (the anchor-lint equivalent for the .txt surface,
     // which the HTML-only `no_dangling_internal_html_links` does not cover).
-    let model = common::cached_model();
-    let site = render_site(&model);
+    let site = common::cached_site();
     let txt = std::str::from_utf8(&site.files["llms.txt"]).expect("llms.txt is utf-8");
     // The linked index has the full standard section set: Vocabulary, Classes,
     // Properties, Individuals, Slices, Concerns, Reference — at least 5.
@@ -477,8 +477,7 @@ fn llms_full_txt_conforms_structurally() {
     // structural invariants as the linked index, minus the URL-resolution check
     // (the complete form is linkless). Also verify that the `## Terms` section
     // carries `### ` sub-blocks (one per term).
-    let model = common::cached_model();
-    let site = render_site(&model);
+    let site = common::cached_site();
     let txt = std::str::from_utf8(&site.files["llms-full.txt"]).expect("llms-full.txt is utf-8");
 
     // The complete form has Terms + Concerns + Slices — at least 3 sections,
@@ -500,8 +499,11 @@ fn llms_full_txt_conforms_structurally() {
 fn render_site_is_byte_stable() {
     let model = common::cached_model();
     let a = render_site(&model);
-    let b = render_site(&model);
-    assert_eq!(a, b, "render_site must be byte-identical across calls");
+    let b = common::cached_site();
+    assert_eq!(
+        a, b,
+        "a fresh render_site must be byte-identical to the cached once-per-run render"
+    );
     // The CSS asset and the landing pages are always present.
     assert!(a.files.contains_key("assets/gmeow.css"));
     assert!(a.files.contains_key("index.md"));
@@ -555,8 +557,7 @@ fn no_dangling_internal_html_links() {
     // Every internal href in every emitted `.html` file must resolve to a key in
     // the site tree. Internal links are the relative `href="..."` attributes that
     // do NOT start with a scheme (`http`, `mailto`) — those are external.
-    let model = common::cached_model();
-    let site = render_site(&model);
+    let site = common::cached_site();
     let keys: BTreeSet<&String> = site.files.keys().collect();
 
     for (path, bytes) in &site.files {

@@ -17,7 +17,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_docs::lint::lint;
 use gmeow_docs::model::{DocTerm, DocTermCategory};
-use gmeow_docs::render::{render_site, Site};
+use gmeow_docs::render::Site;
 use gmeow_docs::DocsModel;
 
 mod common;
@@ -27,7 +27,7 @@ fn live_docs_lint_is_clean() {
     // The doctrine guarantee: the real rendered docs carry NO lint errors
     // (dangling links / broken anchors). This is the gate `make check` depends on.
     let model = common::cached_model();
-    let site = render_site(&model);
+    let site = common::cached_site();
     let report = lint(&model, &site);
     assert_eq!(
         report.error_count(),
@@ -39,10 +39,10 @@ fn live_docs_lint_is_clean() {
 
 #[test]
 fn live_docs_lint_is_deterministic() {
-    // Two lint passes over the same live model must yield byte-identical finding
+    // Two lint passes over the same site must yield byte-identical finding
     // sequences (code + severity + message), proving the documented sort order.
     let model = common::cached_model();
-    let site = render_site(&model);
+    let site = common::cached_site();
     let a = lint(&model, &site);
     let b = lint(&model, &site);
     let key = |r: &gmeow_diagnostics::Report| {
