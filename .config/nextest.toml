@@ -96,10 +96,12 @@ mapping-stage = { max-threads = 1 }
 # via nemo's run_chase) plus EVERY gmeow-logic test that drives Nemo or Scryer:
 # - Nemo (run_chase / run_reasoning): nemo_engine, materialize, reason, verify, certify
 # - Scryer (run_scryer, directly or via dispatch_query): scryer_engine, dispatch,
-#   profile_gate, counterfactual — so the scryer nightly alloc-abort insurance above
-#   actually covers all scryer execution, not just the scryer_engine module.
+#   profile_gate, counterfactual, sparql_path_lower (S8 #914, the lowered property-path
+#   evaluator) — so the scryer nightly alloc-abort insurance above actually covers all
+#   scryer execution, not just the scryer_engine module. The sparql_path_parity binary
+#   (#914) drives run_scryer per fixture and is serialized for the same reason.
 # foundation/stablemodel unit tests use the NATIVE rust chase (no engine) and stay parallel.
-filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|profile_gate|counterfactual/))'
+filter = 'package(gmeow-conformance) | (package(gmeow-logic) & (binary(sparql_path_parity) | test(/nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|profile_gate|counterfactual|sparql_path_lower/)))'
 test-group = 'engine'
 
 [[profile.default.overrides]]
