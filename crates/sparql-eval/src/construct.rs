@@ -14,7 +14,7 @@
 //! 3. An **ill-formed** instantiation (a literal in subject position, or a non-IRI
 //!    predicate) is skipped.
 //!
-//! Each position is instantiated to a [`TermValue`] first so its term *kind* can be
+//! Each position is instantiated to a [`TermValue`](gmeow_rdf_core::TermValue) first so its term *kind* can be
 //! validated before interning into the output builder. Byte-identical parity with
 //! the oxigraph baseline is decided downstream at the RDFC-1.0 canonicalization
 //! layer, so blank-node labels and quad ordering here need not match oxigraph's —
@@ -22,13 +22,13 @@
 
 use std::sync::Arc;
 
-use gmeow_rdf_core::{RdfDataset, RdfDatasetBuilder, TermFactory, TermId, TermValue};
+use gmeow_rdf_core::{RdfDataset, RdfDatasetBuilder, TermFactory, TermId};
 use gmeow_sparql_algebra::{GraphPattern, TriplePattern};
 
 use crate::error::EvalError;
 use crate::eval::{eval, EvalCtx};
 use crate::solution::{Solution, VarSchema};
-use crate::template::{instantiate_predicate, instantiate_term};
+use crate::template::{instantiate_predicate, instantiate_term, positionally_ill_formed};
 use crate::DetHashMap;
 
 /// Evaluate a `CONSTRUCT` query to a frozen IR dataset.
@@ -73,7 +73,7 @@ fn instantiate(
 
     // Positional validity (§16.2): subject must not be a literal; predicate must be
     // an IRI. Ill-formed instantiations are skipped, not errored.
-    if matches!(s, TermValue::Literal { .. }) || !matches!(p, TermValue::Iri(_)) {
+    if positionally_ill_formed(&s, &p) {
         return None;
     }
 

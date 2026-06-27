@@ -29,6 +29,45 @@ use crate::eval::EvalCtx;
 use crate::solution::{Solution, VarSchema};
 use crate::DetHashMap;
 
+/// SPARQL §16.2 positional validity: an instantiated triple is **ill-formed** (and
+/// the caller skips it) when its subject is a literal or its predicate is not an IRI.
+/// Shared by `CONSTRUCT`, the UPDATE `DELETE`/`INSERT` templates, and the variable-free
+/// `DATA` path so the rule lives in exactly one place.
+pub(crate) fn positionally_ill_formed(subject: &TermValue, predicate: &TermValue) -> bool {
+    matches!(subject, TermValue::Literal { .. }) || !matches!(predicate, TermValue::Iri(_))
+}
+
+/// Instantiate a **variable-free** template term (the `INSERT DATA` / `DELETE DATA`
+/// path). DATA is variable-free by a hard parser invariant, so no solution/dataset is
+/// consulted — a `Variable` here is a malformed-input guard that skips the quad
+/// (`None`). Blank labels mint fresh from `counter`, co-referring within the shared
+/// `blanks` scope (one DATA block), exactly like the solution-driven path.
+pub(crate) fn instantiate_ground_term(
+    term: &TermPattern,
+    blanks: &mut DetHashMap<String, String>,
+    counter: &mut u64,
+) -> Option<TermValue> {
+    match term {
+        TermPattern::NamedNode(n) => Some(named_node_to_value(n)),
+        TermPattern::Literal(l) => Some(literal_to_value(l)),
+        TermPattern::BlankNode(b) => Some(mint_blank(b.as_str(), blanks, counter)),
+        TermPattern::Triple(t) => {
+            let s = instantiate_ground_term(&t.subject, blanks, counter)?;
+            let p = match &t.predicate {
+                NamedNodePattern::NamedNode(n) => named_node_to_value(n),
+                NamedNodePattern::Variable(_) => return None,
+            };
+            let o = instantiate_ground_term(&t.object, blanks, counter)?;
+            Some(TermValue::Triple {
+                s: Box::new(s),
+                p: Box::new(p),
+                o: Box::new(o),
+            })
+        }
+        TermPattern::Variable(_) => None,
+    }
+}
+
 /// Instantiate a subject/object template term. `None` = an unbound variable.
 pub(crate) fn instantiate_term(
     term: &TermPattern,
@@ -85,14 +124,26 @@ pub(crate) fn fresh_blank(
     blanks: &mut DetHashMap<String, String>,
     ctx: &mut EvalCtx<'_>,
 ) -> TermValue {
+    mint_blank(template_label, blanks, &mut ctx.bnode_counter)
+}
+
+/// The blank-minting core (independent of [`EvalCtx`]): first occurrence of
+/// `template_label` mints a unique label from the monotonic `counter`, later
+/// occurrences in the same `blanks` scope reuse it. Used by [`fresh_blank`] (threading
+/// `ctx.bnode_counter`) and the variable-free DATA path (a local counter).
+pub(crate) fn mint_blank(
+    template_label: &str,
+    blanks: &mut DetHashMap<String, String>,
+    counter: &mut u64,
+) -> TermValue {
     if let Some(existing) = blanks.get(template_label) {
         return TermValue::Blank {
             label: existing.clone(),
             scope: BlankScope::DEFAULT,
         };
     }
-    ctx.bnode_counter += 1;
-    let fresh = format!("c{}", ctx.bnode_counter);
+    *counter += 1;
+    let fresh = format!("c{counter}");
     blanks.insert(template_label.to_owned(), fresh.clone());
     TermValue::Blank {
         label: fresh,

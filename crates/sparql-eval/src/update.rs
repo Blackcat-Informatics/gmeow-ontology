@@ -46,7 +46,9 @@ use gmeow_sparql_algebra::{
 use crate::convert::named_node_to_value;
 use crate::eval::{eval, EvalCtx};
 use crate::solution::{Solution, VarSchema};
-use crate::template::{instantiate_predicate, instantiate_term};
+use crate::template::{
+    instantiate_ground_term, instantiate_predicate, instantiate_term, positionally_ill_formed,
+};
 use crate::DetHashMap;
 
 /// Host seam for SPARQL `LOAD <iri>`: resolves a source IRI to a frozen dataset.
@@ -135,52 +137,32 @@ fn apply_operation(
 
 // ── INSERT DATA / DELETE DATA ────────────────────────────────────────────────
 
-/// `INSERT DATA`: instantiate each quad against a single empty solution (no
-/// variables possible) with ONE shared blank-map (blanks co-refer within the op),
-/// and insert the result.
+/// `INSERT DATA`: instantiate each quad (variable-free by parser invariant) with ONE
+/// shared blank-map (blanks co-refer within the op) and insert the result.
+///
+/// DATA never queries the dataset, so it takes the snapshot-free ground path: no
+/// `m.freeze()` (which would compact the whole base+delta for nothing) and no
+/// `EvalCtx`. A local counter mints the op's blanks.
 fn insert_data(data: &[QuadPattern], m: &mut MutableDataset) -> Result<(), RdfDiagnostic> {
-    // A throwaway snapshot/ctx so the template helpers (which take `&mut EvalCtx`)
-    // can mint blank nodes from `ctx.bnode_counter`. No variables are present, so
-    // `value_of` is never hit against the snapshot.
-    let snap = m.freeze()?;
-    let mut ctx = EvalCtx::new(&snap);
-    let schema = VarSchema::new();
-    let row: Solution = Vec::new();
     let mut blanks: DetHashMap<String, String> = DetHashMap::default();
-
-    let mut quads = Vec::new();
+    let mut counter: u64 = 0;
     for qp in data {
-        if let Some(q) = instantiate_quad(qp, &row, &schema, &mut blanks, &mut ctx) {
-            quads.push(q);
+        if let Some(q) = instantiate_ground_quad(qp, &mut blanks, &mut counter) {
+            m.insert(q);
         }
-    }
-    drop(ctx);
-    drop(snap);
-    for q in quads {
-        m.insert(q);
     }
     Ok(())
 }
 
-/// `DELETE DATA`: instantiate each quad (no variables, no blanks — parser
-/// guaranteed) and remove the result.
+/// `DELETE DATA`: instantiate each quad (variable-free AND blank-free — parser
+/// guaranteed) and remove the result. Snapshot-free, like [`insert_data`].
 fn delete_data(data: &[QuadPattern], m: &mut MutableDataset) -> Result<(), RdfDiagnostic> {
-    let snap = m.freeze()?;
-    let mut ctx = EvalCtx::new(&snap);
-    let schema = VarSchema::new();
-    let row: Solution = Vec::new();
     let mut blanks: DetHashMap<String, String> = DetHashMap::default();
-
-    let mut quads = Vec::new();
+    let mut counter: u64 = 0;
     for qp in data {
-        if let Some(q) = instantiate_quad(qp, &row, &schema, &mut blanks, &mut ctx) {
-            quads.push(q);
+        if let Some(q) = instantiate_ground_quad(qp, &mut blanks, &mut counter) {
+            m.remove(&q);
         }
-    }
-    drop(ctx);
-    drop(snap);
-    for q in quads {
-        m.remove(&q);
     }
     Ok(())
 }
@@ -376,23 +358,38 @@ fn graph_op_move(source: &GraphTarget, destination: &GraphTarget, m: &mut Mutabl
 
 // ── shared helpers ───────────────────────────────────────────────────────────
 
-/// Instantiate one `QuadPattern` (subject/pred/object + optional graph) into a
-/// concrete [`QuadValues`]. `None` if any position holds an unbound variable, or the
-/// result is positionally ill-formed (literal subject / non-IRI predicate), or the
-/// graph slot is a variable bound to a non-IRI. The graph slot resolves to the
-/// explicit `QuadPattern.graph` when present, else the default graph.
-fn instantiate_quad(
+/// Instantiate a **variable-free** `DATA` quad (`INSERT DATA` / `DELETE DATA`) into a
+/// concrete [`QuadValues`] with no dataset/snapshot. `None` if the triple is
+/// positionally ill-formed (§16.2) or — a parser-invariant guard — any position holds
+/// a variable. The graph slot is the explicit `GRAPH g { … }` wrapper, else the
+/// default graph (DATA has no `WITH`). Blanks mint from the shared `counter`.
+fn instantiate_ground_quad(
     qp: &QuadPattern,
-    row: &Solution,
-    schema: &VarSchema,
     blanks: &mut DetHashMap<String, String>,
-    ctx: &mut EvalCtx<'_>,
+    counter: &mut u64,
 ) -> Option<QuadValues> {
-    instantiate_quad_with_default(qp, row, schema, blanks, ctx, &None)
+    let s = instantiate_ground_term(&qp.triple.subject, blanks, counter)?;
+    let p = match &qp.triple.predicate {
+        NamedNodePattern::NamedNode(n) => named_node_to_value(n),
+        NamedNodePattern::Variable(_) => return None,
+    };
+    let o = instantiate_ground_term(&qp.triple.object, blanks, counter)?;
+    if positionally_ill_formed(&s, &p) {
+        return None;
+    }
+    let g = match &qp.graph {
+        Some(NamedNodePattern::NamedNode(n)) => Some(named_node_to_value(n)),
+        Some(NamedNodePattern::Variable(_)) => return None,
+        None => None,
+    };
+    Some(QuadValues { s, p, o, g })
 }
 
-/// Like [`instantiate_quad`] but with a `default_graph` (the WITH graph) used when
-/// the pattern's own graph slot is `None`.
+/// Instantiate one solution-driven `QuadPattern` (subject/pred/object + optional
+/// graph) into a concrete [`QuadValues`], with a `default_graph` (the WITH graph) used
+/// when the pattern's own graph slot is `None`. `None` if any position holds an unbound
+/// variable, or the result is positionally ill-formed (literal subject / non-IRI
+/// predicate), or the graph slot is a variable bound to a non-IRI.
 fn instantiate_quad_with_default(
     qp: &QuadPattern,
     row: &Solution,
@@ -407,7 +404,7 @@ fn instantiate_quad_with_default(
 
     // Positional validity (§16.2 / template rules): a literal subject or a non-IRI
     // predicate is ill-formed → skip the quad (do not error).
-    if matches!(s, TermValue::Literal { .. }) || !matches!(p, TermValue::Iri(_)) {
+    if positionally_ill_formed(&s, &p) {
         return None;
     }
 
