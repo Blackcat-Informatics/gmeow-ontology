@@ -18262,6 +18262,9 @@ enums:
       stage-validate:
         meaning: https://blackcatinformatics.ca/gmeow/stage-validate
         title: validate
+      stage-validate-result-shape-composition:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-validate-result-shape-composition
+        title: 'validate: result-shape composition'
   PitchAnchorEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PitchAnchor
     permissible_values:

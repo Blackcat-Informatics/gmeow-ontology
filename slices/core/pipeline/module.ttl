@@ -221,6 +221,7 @@ gmeow:pipeline-build
         gmeow:stage-export-apache ,
         gmeow:stage-export-frame-shapes ,
         gmeow:stage-export-result-shapes ,
+        gmeow:stage-validate-result-shape-composition ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-matrix ,
         gmeow:stage-export-metadata ,
@@ -460,6 +461,16 @@ gmeow:stage-export-result-shapes
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "result_shapes" ;
     gmeow:producesFormat "shacl" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-validate-result-shape-composition
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "validate: result-shape composition"@x-gmeow-english ;
+    skos:definition "Enforce the typed query-composition contract across competency questions: where a question declares it consumes another's result via gmeow:cqConsumes, the producer's gmeow:cqResultShape must satisfy the consumer's gmeow:cqInputShape (structural input→output compatibility). A mismatch hard-fails the build, so a composition that cannot type-check never ships."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindValidate ;
+    gmeow:stageImpl "result_shape_composition" ;
     gmeow:carriesEngineLock false .
 
 gmeow:stage-export-matrix

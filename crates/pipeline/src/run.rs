@@ -162,10 +162,6 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-profiles", "profiles"),
         ("stage-export-frame-shapes", "frame_shapes"),
         ("stage-export-result-shapes", "result_shapes"),
-        (
-            "stage-validate-result-shape-composition",
-            "result_shape_composition",
-        ),
         ("stage-export-json-schema", "json_schema"),
         ("stage-export-matrix", "matrix"),
         ("stage-export-apache", "apache"),
@@ -176,6 +172,15 @@ pub fn full_spec() -> PipelineSpec {
     ] {
         stages.push(st(id, StageKind::ExportLeaf, impl_key, &[]));
     }
+
+    // ── source-reading validation leaf: enforces the typed result-shape
+    //    composition contract across competency files (emits no bundle artifact). ──
+    stages.push(st(
+        "stage-validate-result-shape-composition",
+        StageKind::Validate,
+        "result_shape_composition",
+        &[],
+    ));
 
     // ── the single Sink: re-emits the snapshot bytes (the disk-write target) ──
     stages.push(st(

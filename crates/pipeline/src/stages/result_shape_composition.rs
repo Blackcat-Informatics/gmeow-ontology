@@ -322,7 +322,7 @@ impl Stage for ResultShapeCompositionStage {
         "stage-validate-result-shape-composition"
     }
     fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
+        StageKind::Validate
     }
     fn consumes(&self) -> &[String] {
         &[]
