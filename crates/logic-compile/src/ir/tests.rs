@@ -23,6 +23,16 @@ fn module_ttl_text() -> String {
     std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
+/// The `logic:` local name at the head of a Turtle subject line: everything up to
+/// the first whitespace or Turtle terminal punctuation (`;`, `,`, `.`).  Trimming
+/// the punctuation keeps these parser helpers correct even if `module.ttl` is ever
+/// reformatted to put a separator flush against the subject (e.g. `logic:Foo;`).
+fn local_name(rest: &str) -> String {
+    rest.chars()
+        .take_while(|c| !c.is_whitespace() && !matches!(c, ';' | ',' | '.'))
+        .collect()
+}
+
 /// Collect the local names of every individual in `module.ttl` whose block names
 /// `logic:<type_local>` in an rdf:type position — either the inline `a … logic:T`
 /// clause or a bare `logic:T ;`/`logic:T ,` type-list continuation.  Deliberately
@@ -39,7 +49,7 @@ fn individuals_of_type(text: &str, type_local: &str) -> std::collections::BTreeS
             if let (Some(subj), true) = (current.take(), is_member) {
                 out.insert(subj);
             }
-            current = Some(rest.chars().take_while(|c| !c.is_whitespace()).collect());
+            current = Some(local_name(rest));
             is_member = false;
         }
         let trimmed = line.trim_start();
@@ -92,7 +102,7 @@ fn semantic_profile_ids_match_module_ttl() {
             if let (Some(subj), true) = (current_subject.take(), block_is_preset) {
                 from_ttl.insert(subj);
             }
-            current_subject = Some(rest.chars().take_while(|c| !c.is_whitespace()).collect());
+            current_subject = Some(local_name(rest));
             block_is_preset = false;
         }
         // Only an rdf:type reference flags the block — a type-list line, never the
@@ -164,7 +174,7 @@ fn procedural_preset_carries_procedural_execution_facet() {
             if let Some(subj) = current.take() {
                 carries.insert(subj, has_facet);
             }
-            current = Some(rest.chars().take_while(|c| !c.is_whitespace()).collect());
+            current = Some(local_name(rest));
             has_facet = false;
         }
         if line.contains("logic:ProceduralExecution")
@@ -222,8 +232,7 @@ fn compatibility_rule_ids_match_module_ttl() {
             if let (Some(subj), true) = (current_subject.take(), block_is_rule) {
                 from_ttl.insert(subj);
             }
-            let name: String = rest.chars().take_while(|c| !c.is_whitespace()).collect();
-            current_subject = Some(name);
+            current_subject = Some(local_name(rest));
             block_is_rule = false;
         }
         if line.contains("logic:CompatibilityRule") && !line.contains("a owl:Class") {
