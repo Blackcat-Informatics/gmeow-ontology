@@ -140,12 +140,13 @@ impl Stage for CompileLogicStage {
         // `logic-compile.<code>` by the shared bridge) plus one note finding per
         // structural lossy drop, so the loss ledger reaches the SARIF surface.
         let mut report = gmeow_logic::logic_diagnostics::diagnostics_report(&diagnostics);
+        let lossy_drop_code = format!("{TOOL}.lossy-drop");
         for entry in &arts.preservation_ledger {
             for drop in &entry.lossy_drops {
                 report.add_finding(
                     Finding::new(
                         Severity::Note,
-                        format!("{TOOL}.lossy-drop"),
+                        lossy_drop_code.clone(),
                         format!("projection {} drops: {drop}", entry.target),
                     )
                     .with_tool(TOOL),
