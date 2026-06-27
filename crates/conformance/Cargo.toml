@@ -76,3 +76,11 @@ harness = false
 # the standard libtest harness (not datatest-stable).
 [[test]]
 name = "dl_oracle_gold"
+
+# The W3C OWL 2 EL soundness-divergence regression gate: re-runs the eight
+# correctness-crux cases (seven agreeing soundness fixes + the owl:Thing-oneOf
+# honest gaps) through the native reasoner and pins each verdict + the exact
+# divergence-set membership. Offline + deterministic + sub-second (standard
+# libtest harness, not datatest-stable).
+[[test]]
+name = "el_divergence_gate"

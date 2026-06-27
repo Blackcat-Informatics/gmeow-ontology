@@ -20,9 +20,12 @@
 //!     mf:PositiveEntailment / mf:NegativeEntailment entry.
 //!
 //! ingest-external --vendor-el <input.rdf> <out-dir>
-//!     Vendor a curated Lane-A subset of the W3C OWL 2 EL conformance suite
-//!     (ConsistencyTest / InconsistencyTest only) into <out-dir>. Each emitted case
-//!     is decided by the native reasoner and agrees with the W3C declared outcome.
+//!     Vendor the W3C OWL 2 EL conformance suite (ConsistencyTest /
+//!     InconsistencyTest only). Agreeing deciders land in <out-dir> (the Lane-A
+//!     corpus); every case the native reasoner cannot soundly decide (honest
+//!     DlGap), or where it decides but disagrees with W3C (CorpusOnly), lands in
+//!     the sibling <out-dir>-divergence corpus as committed data carrying BOTH the
+//!     frozen native verdict and the W3C published verdict — never silently dropped.
 //!
 //! ingest-external --grade-suite <input.rdf> <corpus-name> <out.nq>
 //!     Grade EVERY ConsistencyTest / InconsistencyTest in <input.rdf> gap-tolerantly
@@ -327,6 +330,141 @@ fn lower_entry(
 /// Cap for Lane-A cases emitted per vendor run.
 const LANE_A_CAP: usize = 12;
 
+/// The W3C SPDX header prepended to every vendored source/stub file.
+const W3C_SPDX_HEADER: &str =
+    "# SPDX-FileCopyrightText: 2009 W3C (Massachusetts Institute of Technology, ERCIM, Keio, Beihang)\n# SPDX-License-Identifier: W3C\n";
+
+/// Frozen-verdict provenance for one vendored case: the native verdict the
+/// committed golden re-asserts, and the W3C published expected verdict.
+struct CaseVerdicts<'a> {
+    /// The status the committed `expected/verdicts.json` carries (the verdict the
+    /// conformance harness re-asserts the native engine produces).
+    committed_status: &'a str,
+    /// The W3C published expected verdict, carried verbatim as provenance.
+    published_status: &'a str,
+    /// The native token (`consistent` / `inconsistent` / `incomplete`), recorded
+    /// in `profile.json` as the frozen native decision for divergence cases.
+    native_token: &'a str,
+}
+
+/// The soundness-crux W3C EL cases — the consistency checks that exercise the
+/// constructs the native reasoner was made sound on (the empty bottom property,
+/// `owl:hasKey`, the negative property assertions, `owl:FunctionalProperty`, and
+/// the `owl:Thing` edge). These are always vendored, never capped, so the
+/// committed corpus and the soundness gate pin every one of them.
+fn is_soundness_crux_case(slug: &str) -> bool {
+    const CRUX: &[&str] = &[
+        "new-feature-bottomdataproperty-001",
+        "new-feature-bottomobjectproperty-001",
+        "new-feature-keys-002",
+        "new-feature-keys-006",
+        "new-feature-negativedatapropertyassertion-001",
+        "new-feature-negativeobjectpropertyassertion-001",
+        "webont-thing-003",
+    ];
+    CRUX.contains(&slug)
+}
+
+/// The honest-DlGap divergence bucket sibling of the Lane-A `out_dir`:
+/// `<parent>/<name>-divergence`. A name-less path falls back to the literal
+/// `w3c-owl2-el-divergence` under the same parent.
+fn sibling_divergence_dir(out_dir: &Path) -> PathBuf {
+    let parent = out_dir.parent().unwrap_or_else(|| Path::new("."));
+    let name = out_dir
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or("w3c-owl2-el");
+    parent.join(format!("{name}-divergence"))
+}
+
+/// Write one vendored external case directory mirroring the committed layout
+/// (`profile.json`, `input.logic.ttl`, `input.nq`, `expected/verdicts.json`,
+/// `source/manifest.ttl`, `source/premise.rdf`).
+///
+/// `corpus_name` keys the world IRI prefix and the manifest `ex:` namespace.
+/// `verdicts` carries the committed status the harness re-asserts plus the W3C
+/// published verdict (recorded as provenance so a divergence case is queryable
+/// data, never a silent drop).
+#[allow(clippy::too_many_arguments)]
+fn write_case(
+    out_dir: &Path,
+    corpus_name: &str,
+    slug: &str,
+    world_iri: &str,
+    input_nq: &str,
+    quad_count: u64,
+    otest_type: &str,
+    premise_xml: Option<&str>,
+    verdicts: &CaseVerdicts<'_>,
+) -> Result<(), String> {
+    let case_dir = out_dir.join(slug);
+    let source_dir = case_dir.join("source");
+    let expected_dir = case_dir.join("expected");
+    std::fs::create_dir_all(&source_dir)
+        .map_err(|e| format!("cannot create {}: {e}", source_dir.display()))?;
+    std::fs::create_dir_all(&expected_dir)
+        .map_err(|e| format!("cannot create {}: {e}", expected_dir.display()))?;
+
+    // profile.json — consistency mode, native engine. For a divergence case the
+    // native decision and the W3C published verdict are frozen here as provenance.
+    let mut profile = BTreeMap::new();
+    profile.insert("verdict_mode", serde_json::json!("consistency"));
+    profile.insert("mode", serde_json::json!("native"));
+    profile.insert("native_verdict", serde_json::json!(verdicts.native_token));
+    profile.insert(
+        "w3c_published_verdict",
+        serde_json::json!(verdicts.published_status),
+    );
+    let profile_json = serde_json::to_string_pretty(&profile)
+        .map_err(|e| format!("serialize profile.json for {slug}: {e}"))?
+        + "\n";
+    std::fs::write(case_dir.join("profile.json"), profile_json)
+        .map_err(|e| format!("cannot write profile.json for {slug}: {e}"))?;
+
+    // input.logic.ttl — stub required by the per-case anatomy; not compiled in
+    // consistency mode (the native DL consistency path reads input.nq only).
+    let stub_ttl = format!(
+        "{W3C_SPDX_HEADER}#\n\
+         # verdict_mode=consistency external case. The OWL EDB is the world-scoped\n\
+         # N-Quads in input.nq, decided by the native DL consistency path. This file\n\
+         # exists only to satisfy the per-case anatomy; it is NOT compiled in consistency mode.\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n"
+    );
+    std::fs::write(case_dir.join("input.logic.ttl"), stub_ttl)
+        .map_err(|e| format!("cannot write input.logic.ttl for {slug}: {e}"))?;
+
+    // input.nq — already sorted + deduped by the caller.
+    std::fs::write(case_dir.join("input.nq"), input_nq)
+        .map_err(|e| format!("cannot write input.nq for {slug}: {e}"))?;
+
+    // expected/verdicts.json — the verdict the harness re-asserts.
+    let mut world_entry = BTreeMap::new();
+    world_entry.insert("quads", serde_json::json!(quad_count));
+    world_entry.insert("status", serde_json::json!(verdicts.committed_status));
+    let mut verdicts_obj = BTreeMap::new();
+    verdicts_obj.insert(world_iri.to_owned(), world_entry);
+    let verdicts_json = serde_json::to_string_pretty(&verdicts_obj)
+        .map_err(|e| format!("serialize verdicts.json for {slug}: {e}"))?
+        + "\n";
+    std::fs::write(expected_dir.join("verdicts.json"), &verdicts_json)
+        .map_err(|e| format!("cannot write expected/verdicts.json for {slug}: {e}"))?;
+
+    // source/manifest.ttl — carries the W3C otest type and published verdict.
+    let manifest_ttl = format!(
+        "{W3C_SPDX_HEADER}@prefix otest: <http://www.w3.org/2007/OWL/testOntology#> .\n@prefix mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .\n@prefix ex: <https://gmeow.example/{corpus_name}/{slug}/> .\n\nex:{slug} a otest:{otest_type} ;\n    otest:identifier \"{slug}\" ;\n    mf:action ex:premise.rdf .\n"
+    );
+    std::fs::write(source_dir.join("manifest.ttl"), &manifest_ttl)
+        .map_err(|e| format!("cannot write source/manifest.ttl for {slug}: {e}"))?;
+
+    // source/premise.rdf — verbatim inline RDF/XML for provenance.
+    if let Some(xml) = premise_xml {
+        std::fs::write(source_dir.join("premise.rdf"), xml)
+            .map_err(|e| format!("cannot write source/premise.rdf for {slug}: {e}"))?;
+    }
+
+    Ok(())
+}
+
 /// Strip a DOCTYPE declaration with internal entity definitions from RDF/XML and
 /// expand the defined entities inline, so the result is parseable by a non-validating
 /// XML parser that does not load external DTDs.
@@ -464,26 +602,34 @@ fn parse_consistency_entries(
 fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
     let (consistency_entries, entailment_skipped) = parse_consistency_entries(input_rdf)?;
 
+    // The honest-DlGap divergence bucket is a SIBLING of the Lane-A out_dir: every
+    // case the native path cannot soundly decide (`gaps` non-empty → `incomplete`)
+    // is vendored here as committed data — its frozen native verdict AND the W3C
+    // published verdict — rather than silently dropped. The Lane-A corpus carries
+    // agreeing deciders; this corpus carries the named divergence set.
+    let divergence_dir = sibling_divergence_dir(out_dir);
+
     // ── Run native reasoner on each, emit Lane-A cases ────────────────────────
     let mut vendored: usize = 0;
-    let mut skipped_gap: usize = 0;
+    let mut divergence_vendored: usize = 0;
+    let mut skipped_gap_capped: usize = 0;
     let mut skipped_disagree: usize = 0;
     let mut skipped_unparsable: usize = 0;
     let mut capped = false;
 
-    // Ensure output directory exists.
+    // Ensure output directories exist.
     std::fs::create_dir_all(out_dir)
         .map_err(|e| format!("cannot create out-dir {}: {e}", out_dir.display()))?;
+    std::fs::create_dir_all(&divergence_dir).map_err(|e| {
+        format!(
+            "cannot create divergence dir {}: {e}",
+            divergence_dir.display()
+        )
+    })?;
 
     // We need a stable slug→entry list for deterministic output; entries are
     // already sorted by IRI from the manifest parser. Collect slugs in order.
     for entry in &consistency_entries {
-        if vendored >= LANE_A_CAP {
-            capped = true;
-            println!("CAP reached, remaining deciders not vendored");
-            break;
-        }
-
         let lowered = match lower_entry(entry, "https://gmeow.example/w3c-owl2-el/") {
             Some(l) => l,
             None => {
@@ -515,108 +661,117 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
             Ok(v) => v,
             Err(e) => {
                 println!("SKIP {slug}: native DL consistency run failed: {e}");
-                skipped_gap += 1;
+                skipped_unparsable += 1;
                 continue;
             }
         };
 
-        // Zero-defer: gaps means the native path cannot honestly decide this case.
+        let otest_type = match entry.kind {
+            ManifestTestKind::Consistency => "ConsistencyTest",
+            ManifestTestKind::Inconsistency => "InconsistencyTest",
+            _ => unreachable!("only Consistency/Inconsistency reach this branch"),
+        };
+        let premise_xml = match &entry.action {
+            Some(OntologyDoc::InlineRdfXml(xml)) => Some(xml.as_str()),
+            _ => None,
+        };
+        let declared_status = entry.outcome().verdict_status().as_str();
+
+        // ── Honest-DlGap divergence: native cannot decide → vendor as data ────
+        // `gaps` non-empty means the native path admits it cannot decide this
+        // case (e.g. owl:Thing oneOf — the DL/Full-divergent singleton-universe
+        // case). It is NOT dropped: it is committed to the divergence bucket with
+        // its frozen native `incomplete` verdict and the W3C published verdict.
         if !verdict.gaps.is_empty() {
-            let gap_codes: Vec<&str> = verdict.gaps.iter().map(|g| g.code.as_str()).collect();
-            println!("SKIP {slug}: native gap (Lane-B): {gap_codes:?}");
-            skipped_gap += 1;
+            write_case(
+                &divergence_dir,
+                "w3c-owl2-el-divergence",
+                &slug,
+                &world_iri,
+                &input_nq,
+                quad_count as u64,
+                otest_type,
+                premise_xml,
+                &CaseVerdicts {
+                    committed_status: "incomplete",
+                    published_status: declared_status,
+                    native_token: "incomplete",
+                },
+            )?;
+            divergence_vendored += 1;
+            println!("DIVERGENCE {slug}: native incomplete, W3C declares {declared_status}");
             continue;
         }
 
         // Determine declared vs native verdict.
-        let declared_status = entry.outcome().verdict_status().as_str();
         let native_status = if verdict.consistent {
             "consistent"
         } else {
             "inconsistent"
         };
 
+        // A decided native verdict that disagrees with W3C would be a soundness
+        // defect (CorpusOnly). The grade gate pins corpus_only=0; if one ever
+        // reappears here we record it in the divergence bucket so it is durable,
+        // queryable data rather than a silent drop.
         if native_status != declared_status {
-            println!(
-                "SKIP {slug}: native says {native_status}, W3C declares {declared_status} (Lane-B / would be CorpusOnly)"
-            );
+            write_case(
+                &divergence_dir,
+                "w3c-owl2-el-divergence",
+                &slug,
+                &world_iri,
+                &input_nq,
+                quad_count as u64,
+                otest_type,
+                premise_xml,
+                &CaseVerdicts {
+                    committed_status: native_status,
+                    published_status: declared_status,
+                    native_token: native_status,
+                },
+            )?;
+            divergence_vendored += 1;
             skipped_disagree += 1;
+            println!(
+                "DIVERGENCE {slug}: native decided {native_status}, W3C declares {declared_status} (CorpusOnly)"
+            );
             continue;
         }
 
-        // ── EMIT Lane-A case ─────────────────────────────────────────────────
-        let case_dir = out_dir.join(&slug);
-        let source_dir = case_dir.join("source");
-        let expected_dir = case_dir.join("expected");
-        std::fs::create_dir_all(&source_dir)
-            .map_err(|e| format!("cannot create {}: {e}", source_dir.display()))?;
-        std::fs::create_dir_all(&expected_dir)
-            .map_err(|e| format!("cannot create {}: {e}", expected_dir.display()))?;
-
-        // profile.json
-        let profile_json = "{\n  \"verdict_mode\": \"consistency\",\n  \"mode\": \"native\"\n}\n";
-        std::fs::write(case_dir.join("profile.json"), profile_json)
-            .map_err(|e| format!("cannot write profile.json for {slug}: {e}"))?;
-
-        // input.logic.ttl — stub required by the per-case anatomy; not compiled in
-        // consistency mode (the native DL consistency path reads input.nq only).
-        let stub_ttl = "# SPDX-FileCopyrightText: 2009 W3C (Massachusetts Institute of Technology, ERCIM, Keio, Beihang)\n\
-                         # SPDX-License-Identifier: W3C\n\
-                         #\n\
-                         # verdict_mode=consistency external case. The OWL EDB is the world-scoped\n\
-                         # N-Quads in input.nq, decided by the native DL consistency path. This file\n\
-                         # exists only to satisfy the per-case anatomy; it is NOT compiled in consistency mode.\n\
-                         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n";
-        std::fs::write(case_dir.join("input.logic.ttl"), stub_ttl)
-            .map_err(|e| format!("cannot write input.logic.ttl for {slug}: {e}"))?;
-
-        // input.nq — already sorted + deduped above.
-        std::fs::write(case_dir.join("input.nq"), &input_nq)
-            .map_err(|e| format!("cannot write input.nq for {slug}: {e}"))?;
-
-        // Count quads for the verdicts.json.
-        let quad_count = quad_count as u64;
-
-        // expected/verdicts.json
-        // Build the JSON manually using sorted BTreeMap to match expected format.
-        let mut world_entry = BTreeMap::new();
-        world_entry.insert("quads", serde_json::json!(quad_count));
-        world_entry.insert("status", serde_json::json!(declared_status));
-        let mut verdicts_obj = BTreeMap::new();
-        verdicts_obj.insert(world_iri.clone(), world_entry);
-        let verdicts_json = serde_json::to_string_pretty(&verdicts_obj)
-            .map_err(|e| format!("serialize verdicts.json for {slug}: {e}"))?
-            + "\n";
-        std::fs::write(expected_dir.join("verdicts.json"), &verdicts_json)
-            .map_err(|e| format!("cannot write expected/verdicts.json for {slug}: {e}"))?;
-
-        // source/manifest.ttl
-        let otest_type = match entry.kind {
-            ManifestTestKind::Consistency => "ConsistencyTest",
-            ManifestTestKind::Inconsistency => "InconsistencyTest",
-            _ => unreachable!("only Consistency/Inconsistency reach this branch"),
-        };
-        let manifest_ttl = format!(
-            "# SPDX-FileCopyrightText: 2009 W3C (Massachusetts Institute of Technology, ERCIM, Keio, Beihang)\n# SPDX-License-Identifier: W3C\n@prefix otest: <http://www.w3.org/2007/OWL/testOntology#> .\n@prefix mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .\n@prefix ex: <https://gmeow.example/w3c-owl2-el/{slug}/> .\n\nex:{slug} a otest:{otest_type} ;\n    otest:identifier \"{slug}\" ;\n    mf:action ex:premise.rdf .\n"
-        );
-        std::fs::write(source_dir.join("manifest.ttl"), &manifest_ttl)
-            .map_err(|e| format!("cannot write source/manifest.ttl for {slug}: {e}"))?;
-
-        // source/premise.rdf — verbatim inline RDF/XML for provenance.
-        // Retrieve the original XML from the entry action for the source record.
-        if let Some(OntologyDoc::InlineRdfXml(premise_xml)) = &entry.action {
-            std::fs::write(source_dir.join("premise.rdf"), premise_xml)
-                .map_err(|e| format!("cannot write source/premise.rdf for {slug}: {e}"))?;
+        // ── EMIT agreeing Lane-A case ─────────────────────────────────────────
+        // The agreeing deciders are capped to keep the bulk Lane-A corpus tight;
+        // the cap never applies to the divergence bucket (the named divergence
+        // set must be vendored in full) NOR to the soundness-crux cases — the
+        // `new-feature-*` / `webont-*` consistency checks that exercise the
+        // bottom-property, key, negative-assertion, functional-property, and
+        // owl:Thing constructs the native reasoner was just made sound on. Those
+        // are always vendored so the soundness gate pins them regardless of how
+        // many bulk `fs2rdf-*` cases precede them alphabetically.
+        if vendored >= LANE_A_CAP && !is_soundness_crux_case(&slug) {
+            capped = true;
+            skipped_gap_capped += 1;
+            continue;
         }
-
+        write_case(
+            out_dir,
+            "w3c-owl2-el",
+            &slug,
+            &world_iri,
+            &input_nq,
+            quad_count as u64,
+            otest_type,
+            premise_xml,
+            &CaseVerdicts {
+                committed_status: declared_status,
+                published_status: declared_status,
+                native_token: native_status,
+            },
+        )?;
         vendored += 1;
         println!("EMIT {slug}: {declared_status}");
     }
 
-    // Count cases not processed due to cap (only if we hit the cap mid-loop).
-    // (The cap break exits early, so we just report capped bool.)
-
-    // ── Write corpus.json ─────────────────────────────────────────────────────
+    // ── Write corpus.json for both buckets ────────────────────────────────────
     let corpus_json = "{\n  \
         \"name\": \"w3c-owl2-el\",\n  \
         \"spdx_license\": \"W3C\",\n  \
@@ -627,9 +782,23 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
     std::fs::write(out_dir.join("corpus.json"), corpus_json)
         .map_err(|e| format!("cannot write corpus.json: {e}"))?;
 
+    // The divergence bucket's lane is `divergence`: native and W3C disagree there
+    // by construction (honest DlGap), so the soundness gate that asserts
+    // committed==declared must EXCLUDE this lane; the dedicated divergence gate
+    // pins it instead.
+    let divergence_corpus_json = "{\n  \
+        \"name\": \"w3c-owl2-el-divergence\",\n  \
+        \"spdx_license\": \"W3C\",\n  \
+        \"source_url\": \"https://www.w3.org/2009/11/owl-test/profile-EL.rdf\",\n  \
+        \"version_or_commit\": \"w3c-2009-11-archive\",\n  \
+        \"refresh_command\": \"curl -sSL https://www.w3.org/2009/11/owl-test/profile-EL.rdf -o .tmp/w3c-owl2/profile-EL.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --vendor-el .tmp/w3c-owl2/profile-EL.rdf conformance/logic/cases/external/w3c-owl2-el\",\n  \
+        \"lane\": \"divergence\"\n}\n";
+    std::fs::write(divergence_dir.join("corpus.json"), divergence_corpus_json)
+        .map_err(|e| format!("cannot write divergence corpus.json: {e}"))?;
+
     // ── Print final summary ───────────────────────────────────────────────────
     println!(
-        "vendored={vendored} skipped_gap={skipped_gap} skipped_disagree={skipped_disagree} skipped_unparsable={skipped_unparsable} entailment_skipped={entailment_skipped} capped={capped}"
+        "vendored={vendored} divergence_vendored={divergence_vendored} skipped_gap_capped={skipped_gap_capped} skipped_disagree={skipped_disagree} skipped_unparsable={skipped_unparsable} entailment_skipped={entailment_skipped} capped={capped}"
     );
 
     Ok(())

@@ -133,6 +133,15 @@ fn external_corpus_verdicts_match_their_third_party_source() {
             failures.push(format!("{}: license audit: {e}", corpus_dir.display()));
         }
 
+        // The `divergence` lane is the named honest-DlGap quarantine: the native
+        // engine deliberately disagrees with (or cannot decide) the W3C published
+        // verdict there, so `committed == declared` does NOT hold by construction.
+        // The dedicated divergence gate (`el_divergence_gate`) pins those cases
+        // exactly; this soundness check (committed == declared) must skip them.
+        if meta.lane == gmeow_conformance::external::Lane::Divergence {
+            continue;
+        }
+
         for case_dir in subdirs(&corpus_dir) {
             // A case dir has a profile.json; skip any non-case dir defensively.
             if !case_dir.join("profile.json").is_file() {
@@ -155,8 +164,9 @@ fn external_corpus_verdicts_match_their_third_party_source() {
     }
 
     assert!(
-        checked >= 17,
-        "expected ≥17 external cases (szs-mini ×3, w3c-mini ×2, w3c-owl2-el ×12), found {checked}"
+        checked >= 24,
+        "expected ≥24 external cases (szs-mini ×3, w3c-mini ×2, w3c-owl2-el ×19; the \
+         w3c-owl2-el-divergence lane is excluded above), found {checked}"
     );
     assert!(
         failures.is_empty(),

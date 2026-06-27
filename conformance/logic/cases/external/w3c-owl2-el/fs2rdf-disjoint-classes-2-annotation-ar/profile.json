@@ -1,4 +1,6 @@
 {
+  "mode": "native",
+  "native_verdict": "consistent",
   "verdict_mode": "consistency",
-  "mode": "native"
+  "w3c_published_verdict": "consistent"
 }

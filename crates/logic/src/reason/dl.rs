@@ -45,6 +45,19 @@ const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 const XSD_NON_NEGATIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
+const OWL_THING: &str = "http://www.w3.org/2002/07/owl#Thing";
+const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
+const OWL_BOTTOM_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#bottomObjectProperty";
+const OWL_BOTTOM_DATA_PROPERTY: &str = "http://www.w3.org/2002/07/owl#bottomDataProperty";
+const OWL_HAS_KEY: &str = "http://www.w3.org/2002/07/owl#hasKey";
+const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
+const OWL_NEGATIVE_PROPERTY_ASSERTION: &str =
+    "http://www.w3.org/2002/07/owl#NegativePropertyAssertion";
+const OWL_SOURCE_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#sourceIndividual";
+const OWL_ASSERTION_PROPERTY: &str = "http://www.w3.org/2002/07/owl#assertionProperty";
+const OWL_TARGET_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#targetIndividual";
+const OWL_TARGET_VALUE: &str = "http://www.w3.org/2002/07/owl#targetValue";
+
 // DL construct IRIs scanned for the native coverage inventory.
 const OWL_COMPLEMENT_OF: &str = "http://www.w3.org/2002/07/owl#complementOf";
 const OWL_SOME_VALUES_FROM: &str = "http://www.w3.org/2002/07/owl#someValuesFrom";
@@ -128,6 +141,27 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
         OWL_PROPERTY_CHAIN_AXIOM,
         "owl:propertyChainAxiom",
         "propertyChainAxiom",
+    ),
+    (
+        OWL_BOTTOM_OBJECT_PROPERTY,
+        "owl:bottomObjectProperty",
+        "bottomObjectProperty",
+    ),
+    (
+        OWL_BOTTOM_DATA_PROPERTY,
+        "owl:bottomDataProperty",
+        "bottomDataProperty",
+    ),
+    (OWL_HAS_KEY, "owl:hasKey", "hasKey"),
+    (
+        OWL_NEGATIVE_PROPERTY_ASSERTION,
+        "owl:NegativePropertyAssertion",
+        "negativePropertyAssertion",
+    ),
+    (
+        OWL_FUNCTIONAL_PROPERTY,
+        "owl:FunctionalProperty",
+        "functionalProperty",
     ),
 ];
 
@@ -275,6 +309,29 @@ fn term_resource_key(term: &RdfTerm) -> Option<String> {
         RdfTerm::Iri(iri) => Some(iri.clone()),
         RdfTerm::BlankNode(id) => Some(skolem_iri(id)),
         RdfTerm::Literal(_) | RdfTerm::Triple(_) => None,
+    }
+}
+
+/// A comparison key for an RDF term that distinguishes resources from literals
+/// and distinguishes literals by their full value (lexical form + datatype +
+/// language tag). Two terms are the SAME OWL value iff their keys are equal.
+///
+/// Resources use a `R\u{1f}<iri>` prefix; literals use a `L\u{1f}…` prefix so a
+/// literal can never collide with a resource of the same spelling. The literal
+/// key folds lexical form, datatype, and language tag together because the
+/// equality / negative-assertion / key checks below are literal-aware and must
+/// treat `"5"^^xsd:integer` and `"5"^^xsd:string` as distinct values.
+fn term_value_key(term: &RdfTerm) -> String {
+    match term {
+        RdfTerm::Iri(iri) => format!("R\u{1f}{iri}"),
+        RdfTerm::BlankNode(id) => format!("R\u{1f}{}", skolem_iri(id)),
+        RdfTerm::Literal(lit) => format!(
+            "L\u{1f}{}\u{1f}{}\u{1f}{}",
+            lit.lexical_form,
+            lit.datatype.as_deref().unwrap_or(""),
+            lit.language.as_deref().unwrap_or("")
+        ),
+        RdfTerm::Triple(_) => "T\u{1f}".to_owned(),
     }
 }
 
@@ -1498,7 +1555,453 @@ pub(crate) fn augment_inferred_with_dl(
         }
     }
 
+    augment_with_extra_dl_clashes(inferred, &mut facts, &restrictions, edb);
+
     Ok(())
+}
+
+/// The literal-aware DL clashes the resource-only [`Fact`] closure cannot see.
+///
+/// Five direct, sound consistency contradictions are layered here, each of which
+/// asserts `type(x, owl:Nothing)` (the inconsistency witness the verdict reads
+/// off). All are EDB-direct (no value invention, no fixpoint dependence) and run
+/// after the main closure so they observe every propagated `rdf:type` fact:
+///
+/// 1. **`owl:Thing` forced empty** — `owl:Thing ⊑ owl:Nothing` or
+///    `owl:Thing ≡ owl:Nothing`. The extension of `owl:Thing` is never empty, so
+///    forcing it into `owl:Nothing` is inconsistent. A scoped Skolem witness
+///    (`owl:Thing`'s mandatory inhabitant) is forced into `owl:Nothing`.
+/// 2. **Empty bottom property has a value** — any individual typed a restriction
+///    `∃p.X` (or `≥1 p`) where `p` is `owl:bottomObjectProperty` /
+///    `owl:bottomDataProperty`. The bottom property's extension is empty, so an
+///    obligation to have a value on it is unsatisfiable.
+/// 3. **Negative property assertion contradicted** —
+///    `NegativePropertyAssertion(source, p, target)` co-present with the positive
+///    `p(source, target)` (object via `owl:targetIndividual`, data via
+///    `owl:targetValue`). A direct contradiction.
+/// 4. **Functional property with two distinct values** — `p` a
+///    `owl:FunctionalProperty` with `p(x, v1)` and `p(x, v2)` for provably
+///    distinct `v1`, `v2` (distinct literals, or distinct individuals under the
+///    identity stance). The two values are forced equal yet provably distinct.
+/// 5. **Key axiom collision** — `owl:hasKey(C, [k1..kn])` with two instances of
+///    `C` agreeing on every key value yet asserted `owl:differentFrom`. The key
+///    forces them equal; the explicit distinctness clashes.
+fn augment_with_extra_dl_clashes(
+    inferred: &mut Vec<InferredAxiom>,
+    facts: &mut BTreeSet<Fact>,
+    restrictions: &HashMap<(String, String), Restriction>,
+    edb: &RdfDataset,
+) {
+    // ── 1. owl:Thing forced into owl:Nothing ──────────────────────────────────
+    // owl:Thing ⊑ owl:Nothing (asserted or via equivalentClass) makes the always-
+    // populated top class empty — inconsistent. We materialise the mandatory
+    // owl:Thing inhabitant as a scoped witness and force it into owl:Nothing.
+    let thing_empty_worlds: BTreeSet<String> = facts
+        .iter()
+        .filter(|f| {
+            f.subject == OWL_THING
+                && f.object == OWL_NOTHING
+                && (f.predicate == RDFS_SUBCLASSOF || f.predicate == OWL_EQUIVALENT_CLASS)
+        })
+        .map(|f| f.world.clone())
+        .collect();
+    for world in thing_empty_worlds {
+        let witness = witness_iri(&world, OWL_THING, OWL_THING, 0);
+        add_inferred_fact(
+            inferred,
+            facts,
+            Fact::new(
+                witness,
+                RDF_TYPE.to_owned(),
+                OWL_NOTHING.to_owned(),
+                world.clone(),
+            ),
+            "dl:thing-empty-clash",
+            vec![(
+                OWL_THING.to_owned(),
+                RDFS_SUBCLASSOF.to_owned(),
+                OWL_NOTHING.to_owned(),
+            )],
+        );
+    }
+
+    // ── 2. Empty bottom property forced to have a value ───────────────────────
+    // An individual typed a restriction on owl:bottomObjectProperty /
+    // owl:bottomDataProperty that obligates ≥1 value (someValuesFrom, or a
+    // cardinality / qualified minimum ≥ 1) cannot be satisfied: the bottom
+    // property's extension is empty.
+    for ((restriction_world, restriction_node), restriction) in restrictions {
+        let Some(property) = restriction.on_property.as_deref() else {
+            continue;
+        };
+        if property != OWL_BOTTOM_OBJECT_PROPERTY && property != OWL_BOTTOM_DATA_PROPERTY {
+            continue;
+        }
+        let obligates_value = restriction.some_values_from.is_some()
+            || restriction.has_value.is_some()
+            || existential_obligations(restriction)
+                .iter()
+                .any(|(n, _)| *n >= 1);
+        if !obligates_value {
+            continue;
+        }
+        let instances: Vec<String> = facts
+            .iter()
+            .filter(|f| {
+                f.world == *restriction_world
+                    && f.predicate == RDF_TYPE
+                    && f.object == *restriction_node
+            })
+            .map(|f| f.subject.clone())
+            .collect();
+        for instance in instances {
+            add_inferred_fact(
+                inferred,
+                facts,
+                Fact::new(
+                    instance,
+                    RDF_TYPE.to_owned(),
+                    OWL_NOTHING.to_owned(),
+                    restriction_world.clone(),
+                ),
+                "dl:bottom-property-clash",
+                vec![(
+                    restriction_node.clone(),
+                    OWL_ON_PROPERTY.to_owned(),
+                    property.to_owned(),
+                )],
+            );
+        }
+    }
+
+    // ── 3. Negative property assertion contradicted by its positive ───────────
+    // Reify owl:NegativePropertyAssertion(source, p, target) from its RDF shape
+    // and clash it against the literal-aware positive p(source, target).
+    let value_index = build_value_index(edb);
+    for npa in read_negative_property_assertions(edb) {
+        let positive = value_index
+            .get(&(npa.world.clone(), npa.source.clone(), npa.property.clone()))
+            .map(|s| s.contains_key(&npa.target))
+            .unwrap_or(false);
+        if positive {
+            add_inferred_fact(
+                inferred,
+                facts,
+                Fact::new(
+                    npa.source.clone(),
+                    RDF_TYPE.to_owned(),
+                    OWL_NOTHING.to_owned(),
+                    npa.world.clone(),
+                ),
+                "dl:negative-property-assertion-clash",
+                vec![(
+                    npa.source.clone(),
+                    npa.property.clone(),
+                    OWL_NEGATIVE_PROPERTY_ASSERTION.to_owned(),
+                )],
+            );
+        }
+    }
+
+    // ── 4. Functional property with two provably-distinct values ──────────────
+    // For every owl:FunctionalProperty p and subject x, if x has two values on p
+    // that are provably distinct (distinct literals, or distinct named
+    // individuals under the identity stance), x is forced into owl:Nothing.
+    let functional_props: BTreeSet<(String, String)> = facts
+        .iter()
+        .filter(|f| f.predicate == RDF_TYPE && f.object == OWL_FUNCTIONAL_PROPERTY)
+        .map(|f| (f.world.clone(), f.subject.clone()))
+        .collect();
+    for (world, property) in &functional_props {
+        // Group this property's (subject -> distinct value-keys) in this world.
+        let mut by_subject: BTreeMap<String, BTreeMap<String, RdfTerm>> = BTreeMap::new();
+        for (key, terms) in &value_index {
+            let (w, subject, pred) = key;
+            if w != world || pred != property {
+                continue;
+            }
+            by_subject
+                .entry(subject.clone())
+                .or_default()
+                .extend(terms.iter().map(|(k, t)| (k.clone(), t.clone())));
+        }
+        for (subject, values) in by_subject {
+            if values.len() < 2 {
+                continue;
+            }
+            if functional_values_clash(facts, world, &values) {
+                add_inferred_fact(
+                    inferred,
+                    facts,
+                    Fact::new(
+                        subject,
+                        RDF_TYPE.to_owned(),
+                        OWL_NOTHING.to_owned(),
+                        world.clone(),
+                    ),
+                    "dl:functional-property-clash",
+                    vec![(
+                        property.clone(),
+                        RDF_TYPE.to_owned(),
+                        OWL_FUNCTIONAL_PROPERTY.to_owned(),
+                    )],
+                );
+            }
+        }
+    }
+
+    // ── 5. Key-axiom collision ────────────────────────────────────────────────
+    // owl:hasKey(C, [k1..kn]); two instances of C agreeing on every key value yet
+    // explicitly owl:differentFrom are forced into owl:Nothing.
+    let lists = read_lists(edb);
+    for (world, key_class, key_props) in read_key_axioms(edb, &lists) {
+        // Members of C in this world. owl:Thing has every individual as a member,
+        // so for a key on owl:Thing every individual that bears the key props
+        // counts (the trivial-inconsistency case from the OWL primer).
+        let instances: Vec<String> = collect_key_subjects(facts, &value_index, &world, &key_class);
+        for i in 0..instances.len() {
+            for j in (i + 1)..instances.len() {
+                let a = &instances[i];
+                let b = &instances[j];
+                // Explicit distinctness is required: standard OWL does not assume
+                // unique names, so two key-agreeing instances merely named
+                // differently are owl:sameAs and consistent. Only an explicit
+                // owl:differentFrom makes the key collision a contradiction.
+                if !has_fact(facts, &world, a, OWL_DIFFERENT_FROM, b)
+                    && !has_fact(facts, &world, b, OWL_DIFFERENT_FROM, a)
+                {
+                    continue;
+                }
+                if key_values_agree(&value_index, &world, a, b, &key_props) {
+                    let premises = vec![
+                        (key_class.clone(), OWL_HAS_KEY.to_owned(), key_class.clone()),
+                        (a.clone(), OWL_DIFFERENT_FROM.to_owned(), b.clone()),
+                    ];
+                    add_inferred_fact(
+                        inferred,
+                        facts,
+                        Fact::new(
+                            a.clone(),
+                            RDF_TYPE.to_owned(),
+                            OWL_NOTHING.to_owned(),
+                            world.clone(),
+                        ),
+                        "dl:has-key-clash",
+                        premises,
+                    );
+                }
+            }
+        }
+    }
+}
+
+/// A reified `owl:NegativePropertyAssertion`.
+struct NegativeAssertion {
+    world: String,
+    source: String,
+    property: String,
+    /// The target's value key ([`term_value_key`]), object or literal.
+    target: String,
+}
+
+/// Reify every `owl:NegativePropertyAssertion` from its RDF shape
+/// (`owl:sourceIndividual` / `owl:assertionProperty` /
+/// `owl:targetIndividual` | `owl:targetValue`). Incomplete assertions (missing a
+/// component) are skipped — a malformed NPA asserts nothing.
+fn read_negative_property_assertions(edb: &RdfDataset) -> Vec<NegativeAssertion> {
+    // (world, npa_node) → partial components.
+    let mut source: HashMap<(String, String), String> = HashMap::new();
+    let mut property: HashMap<(String, String), String> = HashMap::new();
+    let mut target: HashMap<(String, String), String> = HashMap::new();
+    let mut is_npa: HashSet<(String, String)> = HashSet::new();
+
+    for RdfQuad {
+        subject,
+        predicate,
+        object,
+        graph_name,
+        ..
+    } in edb.owned_quads()
+    {
+        let Some(subject) = term_resource_key(&subject) else {
+            continue;
+        };
+        let world = graph_world_key(&graph_name);
+        let key = (world, subject);
+        match predicate.as_str() {
+            RDF_TYPE => {
+                if matches!(&object, RdfTerm::Iri(o) if o == OWL_NEGATIVE_PROPERTY_ASSERTION) {
+                    is_npa.insert(key);
+                }
+            }
+            OWL_SOURCE_INDIVIDUAL => {
+                if let Some(v) = term_resource_key(&object) {
+                    source.insert(key, v);
+                }
+            }
+            OWL_ASSERTION_PROPERTY => {
+                if let Some(v) = term_resource_key(&object) {
+                    property.insert(key, v);
+                }
+            }
+            OWL_TARGET_INDIVIDUAL | OWL_TARGET_VALUE => {
+                target.insert(key, term_value_key(&object));
+            }
+            _ => {}
+        }
+    }
+
+    let mut out = Vec::new();
+    for key in is_npa {
+        let (Some(s), Some(p), Some(t)) = (source.get(&key), property.get(&key), target.get(&key))
+        else {
+            continue;
+        };
+        out.push(NegativeAssertion {
+            world: key.0.clone(),
+            source: s.clone(),
+            property: p.clone(),
+            target: t.clone(),
+        });
+    }
+    out
+}
+
+/// A literal-aware value index `(world, subject, predicate) → {value_key → term}`.
+/// Unlike the resource-only [`Fact`] index, this retains literal objects so the
+/// negative-assertion, functional-property, and key checks can compare data
+/// values. The value key is [`term_value_key`].
+#[allow(clippy::type_complexity)]
+fn build_value_index(
+    edb: &RdfDataset,
+) -> HashMap<(String, String, String), BTreeMap<String, RdfTerm>> {
+    let mut index: HashMap<(String, String, String), BTreeMap<String, RdfTerm>> = HashMap::new();
+    for RdfQuad {
+        subject,
+        predicate,
+        object,
+        graph_name,
+        ..
+    } in edb.owned_quads()
+    {
+        let Some(subject) = term_resource_key(&subject) else {
+            continue;
+        };
+        let world = graph_world_key(&graph_name);
+        index
+            .entry((world, subject, predicate))
+            .or_default()
+            .insert(term_value_key(&object), object);
+    }
+    index
+}
+
+/// True iff the functional-property value set contains two values that are
+/// provably distinct: any two distinct literals, or two distinct named resources
+/// that are not `owl:sameAs`-merged. (Distinct value keys for two literals are
+/// always genuinely distinct OWL values; for resources we defer to the identity
+/// stance so a `sameAs` merge does not trigger a false clash.)
+fn functional_values_clash(
+    facts: &BTreeSet<Fact>,
+    world: &str,
+    values: &BTreeMap<String, RdfTerm>,
+) -> bool {
+    let entries: Vec<&RdfTerm> = values.values().collect();
+    for i in 0..entries.len() {
+        for j in (i + 1)..entries.len() {
+            let (a, b) = (entries[i], entries[j]);
+            match (a, b) {
+                // Two literals with different value keys are distinct values.
+                (RdfTerm::Literal(_), _) | (_, RdfTerm::Literal(_)) => return true,
+                _ => {
+                    let (Some(ak), Some(bk)) = (term_resource_key(a), term_resource_key(b)) else {
+                        continue;
+                    };
+                    if distinct_individuals(facts, world, &ak, &bk) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    false
+}
+
+/// Reify every `owl:hasKey(C, list)` axiom into `(world, class, key_props)`,
+/// resolving the key-property RDF list. A dangling/empty list yields no axiom.
+fn read_key_axioms(
+    edb: &RdfDataset,
+    lists: &HashMap<(String, String), Vec<String>>,
+) -> Vec<(String, String, Vec<String>)> {
+    let mut out = Vec::new();
+    for (subject, predicate, object, world) in quads_by_subject(edb) {
+        if predicate != OWL_HAS_KEY {
+            continue;
+        }
+        let Some(root) = term_resource_key(&object) else {
+            continue;
+        };
+        let Some(members) = lists.get(&(world.clone(), root)) else {
+            continue;
+        };
+        if members.is_empty() {
+            continue;
+        }
+        out.push((world, subject, members.clone()));
+    }
+    out
+}
+
+/// Collect the candidate key subjects for a key on `class` in `world`: the
+/// individuals asserted `rdf:type class`. `owl:Thing` keys every individual, so
+/// for a key on `owl:Thing` we take every subject that appears in the value index
+/// (every resource that bears at least one property) — the trivial-inconsistency
+/// case from the OWL specification.
+fn collect_key_subjects(
+    facts: &BTreeSet<Fact>,
+    value_index: &HashMap<(String, String, String), BTreeMap<String, RdfTerm>>,
+    world: &str,
+    class: &str,
+) -> Vec<String> {
+    let mut set: BTreeSet<String> = BTreeSet::new();
+    if class == OWL_THING {
+        for (w, subject, _pred) in value_index.keys() {
+            if w == world {
+                set.insert(subject.clone());
+            }
+        }
+    } else {
+        for fact in facts {
+            if fact.world == *world && fact.predicate == RDF_TYPE && fact.object == *class {
+                set.insert(fact.subject.clone());
+            }
+        }
+    }
+    set.into_iter().collect()
+}
+
+/// True iff `a` and `b` agree on every key property: for each key property each
+/// must bear at least one value and share at least one common value. (OWL key
+/// semantics: two instances with the same value for every key property are the
+/// same individual; agreement requires a shared value per key property.)
+fn key_values_agree(
+    value_index: &HashMap<(String, String, String), BTreeMap<String, RdfTerm>>,
+    world: &str,
+    a: &str,
+    b: &str,
+    key_props: &[String],
+) -> bool {
+    for prop in key_props {
+        let av = value_index.get(&(world.to_owned(), a.to_owned(), prop.clone()));
+        let bv = value_index.get(&(world.to_owned(), b.to_owned(), prop.clone()));
+        let (Some(av), Some(bv)) = (av, bv) else {
+            return false;
+        };
+        if av.keys().all(|k| !bv.contains_key(k)) {
+            return false;
+        }
+    }
+    true
 }
 
 /// Decide native DL consistency / unsatisfiability of `edb` via the Nemo chase.
@@ -1750,9 +2253,52 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
         if !present_set.contains(family) {
             continue;
         }
-        if all_list_instances_resolve(edb, iri, &lists) {
+        if !all_list_instances_resolve(edb, iri, &lists) {
+            continue;
+        }
+        // `owl:Thing oneOf …` constrains the (always-fixed, universe-sized) top
+        // class to a finite enumeration. Deciding the resulting consistency
+        // ("the extension of owl:Thing may not be a singleton") needs the
+        // universe-cardinality argument, which is NOT a sound local enumeration
+        // rule — the native post-pass only types the members as `owl:Thing`. We
+        // therefore leave `oneOf` UNDECIDED whenever any instance targets
+        // `owl:Thing`, surfacing it as an honest gap rather than a wrong
+        // `consistent` (soundness over completeness).
+        if family == "oneOf" && one_of_constrains_thing(edb) {
+            continue;
+        }
+        decided.insert(family.to_owned());
+    }
+
+    // owl:bottomObjectProperty / owl:bottomDataProperty: the empty property. The
+    // native post-pass forces any individual obligated to bear a value on the
+    // bottom property (someValuesFrom / hasValue / ≥1 cardinality restriction)
+    // into owl:Nothing. Decided unconditionally when present (the clash is a
+    // direct, local consequence).
+    for family in ["bottomObjectProperty", "bottomDataProperty"] {
+        if present_set.contains(family) {
             decided.insert(family.to_owned());
         }
+    }
+
+    // owl:NegativePropertyAssertion: reified from its RDF shape and clashed
+    // (literal-aware) against the positive assertion. Decided unconditionally
+    // when present — a malformed NPA simply asserts nothing.
+    if present_set.contains("negativePropertyAssertion") {
+        decided.insert("negativePropertyAssertion".to_owned());
+    }
+
+    // owl:FunctionalProperty: a subject with two provably-distinct values on a
+    // functional property is forced into owl:Nothing. Decided unconditionally
+    // when present (literal-aware distinctness + the identity stance).
+    if present_set.contains("functionalProperty") {
+        decided.insert("functionalProperty".to_owned());
+    }
+
+    // owl:hasKey: two key-agreeing instances asserted owl:differentFrom clash.
+    // Decided iff every key axiom resolves to a non-empty key-property list.
+    if present_set.contains("hasKey") && all_list_instances_resolve(edb, OWL_HAS_KEY, &lists) {
+        decided.insert("hasKey".to_owned());
     }
 
     // owl:propertyChainAxiom: only length-2 resolvable chains are composed.
@@ -1808,6 +2354,19 @@ fn all_some_values_from_instances_decidable(
         }
     }
     saw_instance
+}
+
+/// True iff any `owl:oneOf` axiom has `owl:Thing` as its subject (i.e. it
+/// enumerates the top class). Such an axiom needs the universe-cardinality
+/// argument the native post-pass does not perform, so its presence keeps the
+/// `oneOf` family honestly undecided.
+fn one_of_constrains_thing(edb: &RdfDataset) -> bool {
+    for (subject, predicate, _object, _world) in quads_by_subject(edb) {
+        if predicate == OWL_ONE_OF && subject == OWL_THING {
+            return true;
+        }
+    }
+    false
 }
 
 /// True iff every quad whose predicate is `list_predicate` points at a resolved,
@@ -2475,6 +3034,299 @@ mod tests {
                     .present
                     .contains(&"maxCardinality".to_owned()),
             "coverage records hasValue and maxCardinality: {:?}",
+            verdict.coverage
+        );
+    }
+
+    const FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+    const REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+    const NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+
+    fn bnode_quad(s: &str, p: &str, o: &str) -> RdfQuad {
+        RdfQuad::new(RdfTerm::blank_node(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
+    }
+
+    // ── owl:bottomObjectProperty / owl:bottomDataProperty ─────────────────────
+
+    /// `i : ∃ owl:bottomObjectProperty . owl:Thing` is unsatisfiable — the bottom
+    /// property is empty, so an obligation to bear a value on it forces
+    /// owl:Nothing.
+    #[test]
+    fn bottom_object_property_some_values_from_is_inconsistent() {
+        let restriction = "http://gmeow.example/r";
+        let store = dataset(vec![
+            quad(restriction, ON_PROPERTY, OWL_BOTTOM_OBJECT_PROPERTY),
+            quad(restriction, super::OWL_SOME_VALUES_FROM, OWL_THING),
+            quad(X, TYPE, restriction),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "bottom-object-property obligation clashes"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "bottomObjectProperty is decided, not a gap: {:?}",
+            verdict.gaps
+        );
+        assert!(verdict
+            .coverage
+            .decided
+            .contains(&"bottomObjectProperty".to_owned()));
+    }
+
+    /// The data-property analog: `i : ∃ owl:bottomDataProperty . rdfs:Literal`.
+    #[test]
+    fn bottom_data_property_some_values_from_is_inconsistent() {
+        let restriction = "http://gmeow.example/r";
+        let literal_class = "http://www.w3.org/2000/01/rdf-schema#Literal";
+        let store = dataset(vec![
+            quad(restriction, ON_PROPERTY, OWL_BOTTOM_DATA_PROPERTY),
+            quad(restriction, super::OWL_SOME_VALUES_FROM, literal_class),
+            quad(X, TYPE, restriction),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "bottom-data-property obligation clashes"
+        );
+        assert!(verdict.gaps.is_empty(), "bottomDataProperty is decided");
+    }
+
+    // ── owl:NegativePropertyAssertion (object + data) ─────────────────────────
+
+    /// NPA(Peter, hasSon, Meg) co-present with hasSon(Peter, Meg) ⇒ inconsistent.
+    #[test]
+    fn negative_object_property_assertion_clashes_with_positive() {
+        let peter = "http://gmeow.example/Peter";
+        let meg = "http://gmeow.example/Meg";
+        let has_son = "http://gmeow.example/hasSon";
+        let npa = "npa";
+        let store = dataset(vec![
+            quad(peter, has_son, meg),
+            bnode_quad(npa, TYPE, OWL_NEGATIVE_PROPERTY_ASSERTION),
+            bnode_quad(npa, OWL_SOURCE_INDIVIDUAL, peter),
+            bnode_quad(npa, OWL_ASSERTION_PROPERTY, has_son),
+            bnode_quad(npa, OWL_TARGET_INDIVIDUAL, meg),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(!verdict.consistent, "NPA contradicted by its positive");
+        assert!(verdict.gaps.is_empty(), "NPA is decided");
+        assert!(verdict
+            .coverage
+            .decided
+            .contains(&"negativePropertyAssertion".to_owned()));
+    }
+
+    /// The data analog: NPA(Meg, hasAge, "5") + hasAge(Meg, "5") ⇒ inconsistent,
+    /// and a DIFFERENT literal value must NOT clash (literal-aware target match).
+    #[test]
+    fn negative_data_property_assertion_is_literal_aware() {
+        let meg = "http://gmeow.example/Meg";
+        let has_age = "http://gmeow.example/hasAge";
+        let int_ty = "http://www.w3.org/2001/XMLSchema#integer";
+        let npa = "npa";
+        // Positive value "5" matches the negated target "5" — clash.
+        let store = dataset(vec![
+            literal_quad(meg, has_age, "5", int_ty),
+            bnode_quad(npa, TYPE, OWL_NEGATIVE_PROPERTY_ASSERTION),
+            bnode_quad(npa, OWL_SOURCE_INDIVIDUAL, meg),
+            bnode_quad(npa, OWL_ASSERTION_PROPERTY, has_age),
+            RdfQuad::new(
+                RdfTerm::blank_node(npa),
+                OWL_TARGET_VALUE,
+                RdfTerm::Literal(RdfLiteral::typed("5", int_ty)),
+            )
+            .in_graph(RdfTerm::iri(W)),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "matching literal value clashes the NPA"
+        );
+
+        // A DIFFERENT positive value ("6") does not match the negated "5".
+        let store_ok = dataset(vec![
+            literal_quad(meg, has_age, "6", int_ty),
+            bnode_quad(npa, TYPE, OWL_NEGATIVE_PROPERTY_ASSERTION),
+            bnode_quad(npa, OWL_SOURCE_INDIVIDUAL, meg),
+            bnode_quad(npa, OWL_ASSERTION_PROPERTY, has_age),
+            RdfQuad::new(
+                RdfTerm::blank_node(npa),
+                OWL_TARGET_VALUE,
+                RdfTerm::Literal(RdfLiteral::typed("5", int_ty)),
+            )
+            .in_graph(RdfTerm::iri(W)),
+        ]);
+        let verdict_ok = dl_consistency(store_ok.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            verdict_ok.consistent,
+            "a non-matching literal value must NOT clash the NPA"
+        );
+    }
+
+    // ── owl:FunctionalProperty (data values) ──────────────────────────────────
+
+    /// A functional data property with two distinct literal values forces
+    /// owl:Nothing; a single value is consistent.
+    #[test]
+    fn functional_data_property_two_literals_clash() {
+        let peter = "http://gmeow.example/Peter";
+        let has_name = "http://gmeow.example/hasName";
+        let str_ty = "http://www.w3.org/2001/XMLSchema#string";
+        let store = dataset(vec![
+            quad(has_name, TYPE, OWL_FUNCTIONAL_PROPERTY),
+            literal_quad(peter, has_name, "Peter", str_ty),
+            literal_quad(peter, has_name, "Kichwa-Tembo", str_ty),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "two distinct literal values on a functional property clash"
+        );
+        assert!(verdict
+            .coverage
+            .decided
+            .contains(&"functionalProperty".to_owned()));
+
+        let store_ok = dataset(vec![
+            quad(has_name, TYPE, OWL_FUNCTIONAL_PROPERTY),
+            literal_quad(peter, has_name, "Peter", str_ty),
+        ]);
+        let verdict_ok = dl_consistency(store_ok.as_ref()).expect("dl consistency should succeed");
+        assert!(verdict_ok.consistent, "a single value is consistent");
+    }
+
+    // ── owl:hasKey ────────────────────────────────────────────────────────────
+
+    /// hasKey(owl:Thing, [hasSSN]); two differentFrom individuals sharing the key
+    /// literal are forced into owl:Nothing.
+    #[test]
+    fn has_key_collision_with_explicit_distinctness_clashes() {
+        let peter = "http://gmeow.example/Peter";
+        let pg = "http://gmeow.example/Peter_Griffin";
+        let has_ssn = "http://gmeow.example/hasSSN";
+        let str_ty = "http://www.w3.org/2001/XMLSchema#string";
+        let key_list = "keylist";
+        let store = dataset(vec![
+            bnode_quad(key_list, FIRST, has_ssn),
+            bnode_quad(key_list, REST, NIL),
+            RdfQuad::new(
+                RdfTerm::iri(OWL_THING),
+                OWL_HAS_KEY,
+                RdfTerm::blank_node(key_list),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            literal_quad(peter, has_ssn, "123-45-6789", str_ty),
+            literal_quad(pg, has_ssn, "123-45-6789", str_ty),
+            quad(peter, OWL_DIFFERENT_FROM, pg),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "key-agreeing differentFrom individuals clash"
+        );
+        assert!(verdict.gaps.is_empty(), "hasKey is decided");
+        assert!(verdict.coverage.decided.contains(&"hasKey".to_owned()));
+    }
+
+    /// WITHOUT explicit owl:differentFrom, two key-agreeing individuals are
+    /// merely owl:sameAs (no UNA in standard OWL) — consistent, NOT a false clash.
+    #[test]
+    fn has_key_collision_without_distinctness_is_consistent() {
+        let peter = "http://gmeow.example/Peter";
+        let pg = "http://gmeow.example/Peter_Griffin";
+        let has_ssn = "http://gmeow.example/hasSSN";
+        let str_ty = "http://www.w3.org/2001/XMLSchema#string";
+        let key_list = "keylist";
+        let store = dataset(vec![
+            bnode_quad(key_list, FIRST, has_ssn),
+            bnode_quad(key_list, REST, NIL),
+            RdfQuad::new(
+                RdfTerm::iri(OWL_THING),
+                OWL_HAS_KEY,
+                RdfTerm::blank_node(key_list),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            literal_quad(peter, has_ssn, "123-45-6789", str_ty),
+            literal_quad(pg, has_ssn, "123-45-6789", str_ty),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            verdict.consistent,
+            "without differentFrom, key agreement just merges the two (sameAs) — consistent"
+        );
+    }
+
+    // ── owl:Thing forced empty / constrained ──────────────────────────────────
+
+    /// owl:Thing ≡ owl:Nothing (or ⊑) makes the always-populated top class empty
+    /// — inconsistent.
+    #[test]
+    fn thing_equivalent_to_nothing_is_inconsistent() {
+        let store = dataset(vec![quad(
+            OWL_THING,
+            super::OWL_EQUIVALENT_CLASS,
+            OWL_NOTHING,
+        )]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "owl:Thing forced empty must be inconsistent"
+        );
+        assert!(verdict.gaps.is_empty(), "Thing≡Nothing is decided");
+    }
+
+    /// owl:Thing oneOf {s} is the DL/Full-divergent singleton-universe case. The
+    /// native path does NOT perform the universe-cardinality argument, so it must
+    /// stay an HONEST gap (incomplete) — NEVER a wrong `consistent` decided answer.
+    #[test]
+    fn one_of_on_thing_is_an_honest_gap_not_a_decided_answer() {
+        let s = "http://gmeow.example/s";
+        let list = "onelist";
+        let store = dataset(vec![
+            bnode_quad(list, FIRST, s),
+            bnode_quad(list, REST, NIL),
+            RdfQuad::new(
+                RdfTerm::iri(OWL_THING),
+                super::OWL_ONE_OF,
+                RdfTerm::blank_node(list),
+            )
+            .in_graph(RdfTerm::iri(W)),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        // Honesty over a wrong decided answer: oneOf-on-Thing is undecided, so it
+        // surfaces as a gap and the case grades DlGap, never CorpusOnly.
+        assert!(
+            !verdict.gaps.is_empty(),
+            "oneOf-on-owl:Thing must surface as an honest gap"
+        );
+        assert!(
+            verdict.coverage.unsupported.contains(&"oneOf".to_owned()),
+            "oneOf is undecided when it constrains owl:Thing: {:?}",
+            verdict.coverage
+        );
+    }
+
+    /// A normal `owl:oneOf` on an ordinary class (not owl:Thing) stays DECIDED —
+    /// the Thing carve-out must not regress the general enumeration handling.
+    #[test]
+    fn one_of_on_ordinary_class_stays_decided() {
+        let list = "onelist";
+        let store = dataset(vec![
+            bnode_quad(list, FIRST, X),
+            bnode_quad(list, REST, NIL),
+            RdfQuad::new(
+                RdfTerm::iri(A),
+                super::OWL_ONE_OF,
+                RdfTerm::blank_node(list),
+            )
+            .in_graph(RdfTerm::iri(W)),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            verdict.coverage.decided.contains(&"oneOf".to_owned()),
+            "ordinary oneOf stays decided: {:?}",
             verdict.coverage
         );
     }

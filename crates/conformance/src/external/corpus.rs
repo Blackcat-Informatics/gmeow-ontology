@@ -23,11 +23,18 @@ use crate::license::{policy_for_license, LicensePolicy};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Lane {
     /// The fast, required native gate (`make conformance`): small, sub-second,
-    /// deterministic, decided natively.
+    /// deterministic, decided natively, and AGREEING with the external source.
     A,
     /// The heavy, non-required oracle lane (`make maint-classic-cross-check`):
     /// full corpora, Docker-allowed, routed through the divergence ledger.
     B,
+    /// The named honest-DlGap quarantine: cases the native engine cannot soundly
+    /// decide (or decides while disagreeing with the source). The committed
+    /// verdict is the FROZEN NATIVE verdict, NOT the source-declared one, so the
+    /// `committed == declared` soundness check skips this lane; a dedicated
+    /// divergence gate pins each case exactly instead. Fast + sub-second like
+    /// Lane A (consistency checks), but deliberately divergent by construction.
+    Divergence,
 }
 
 impl Lane {
@@ -35,8 +42,9 @@ impl Lane {
         match s {
             "a" | "A" => Ok(Lane::A),
             "b" | "B" => Ok(Lane::B),
+            "divergence" => Ok(Lane::Divergence),
             other => Err(format!(
-                "corpus.json lane must be \"a\" or \"b\", got {other:?}"
+                "corpus.json lane must be \"a\", \"b\", or \"divergence\", got {other:?}"
             )),
         }
     }
@@ -203,6 +211,12 @@ mod tests {
     fn unknown_lane_hard_fails() {
         let err = parse_corpus_meta(&meta_value("CC-BY-4.0", "c")).unwrap_err();
         assert!(err.contains("lane must be"), "{err}");
+    }
+
+    #[test]
+    fn divergence_lane_parses() {
+        let m = parse_corpus_meta(&meta_value("W3C", "divergence")).unwrap();
+        assert_eq!(m.lane, Lane::Divergence);
     }
 
     #[test]

@@ -1,0 +1,5 @@
+<http://example.org/i> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> _:rdfxml_00000000000000000000000001 <https://gmeow.example/w3c-owl2-el/new-feature-bottomdataproperty-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-el/new-feature-bottomdataproperty-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-el/new-feature-bottomdataproperty-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#onProperty> <http://www.w3.org/2002/07/owl#bottomDataProperty> <https://gmeow.example/w3c-owl2-el/new-feature-bottomdataproperty-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#someValuesFrom> <http://www.w3.org/2000/01/rdf-schema#Literal> <https://gmeow.example/w3c-owl2-el/new-feature-bottomdataproperty-001/w> .
