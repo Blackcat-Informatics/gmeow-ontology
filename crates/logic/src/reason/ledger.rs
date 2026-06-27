@@ -471,7 +471,7 @@ pub fn build_ledger(
 }
 
 /// The stable kebab code suffix for a divergence kind (the structured signal
-/// that feeds the #697 coverage gate). `Agree` has no code — agreement is not a
+/// that feeds the native⊇external coverage gate). `Agree` has no code — agreement is not a
 /// divergence and never becomes a finding.
 fn divergence_code_suffix(kind: &DivergenceKind) -> Option<&'static str> {
     match kind {
@@ -491,7 +491,7 @@ fn divergence_code_suffix(kind: &DivergenceKind) -> Option<&'static str> {
 /// vantage is the conformance tooling), so this reuses the canonical Finding model
 /// rather than minting a parallel vocabulary. Every divergence is gate-failing, so
 /// the severity is [`Severity::Error`]; the `code` carries the structured kind
-/// (`reason.divergence.{kind}`) the #697 coverage gate keys on; the `message` is the
+/// (`reason.divergence.{kind}`) the native⊇external coverage gate keys on; the `message` is the
 /// row's `detail`, which for a `CorpusOnly` row carries the native verdict AND the
 /// raw published external expected verbatim (the external ground-truth provenance).
 pub fn divergence_findings(ledger: &DivergenceLedger) -> Vec<Finding> {

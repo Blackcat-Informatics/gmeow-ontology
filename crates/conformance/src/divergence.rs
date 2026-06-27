@@ -28,8 +28,8 @@ use gmeow_logic::reason::{
 };
 
 /// The named graph the conformance divergence findings ride in — a sibling of
-/// `graph/diagnostics`, separating reasoner-correctness evidence (the #697 coverage
-/// signal) from validation/lint findings.
+/// `graph/diagnostics`, separating reasoner-correctness evidence (the native-superset
+/// coverage-gate signal) from validation/lint findings.
 pub const CONFORMANCE_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/conformance";
 
 /// Grade native verdicts against an external corpus's published expected verdicts
@@ -101,7 +101,7 @@ mod tests {
         let finding_types = lines.iter().filter(|l| l.contains("/Finding>")).count();
         assert_eq!(finding_types, 2, "two findings (CorpusOnly + DlGap)");
 
-        // The structured divergence kinds the #697 coverage gate keys on are present.
+        // The structured divergence kinds the native⊇external coverage gate keys on are present.
         assert!(nq.contains("reason.divergence.corpus-only"));
         assert!(nq.contains("reason.divergence.dl-gap"));
         // The raw published expected verdict rides verbatim as provenance.
