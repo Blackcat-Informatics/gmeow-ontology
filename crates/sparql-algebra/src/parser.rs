@@ -16,7 +16,8 @@ use std::collections::HashMap;
 
 use crate::algebra::{
     AggregateExpression, AggregateFunction, Expression, Function, GraphPattern, GraphTarget,
-    GraphUpdateOperation, OrderExpression, PropertyPathExpression, Query, Update,
+    GraphUpdateOperation, OrderExpression, PropertyPathExpression, Query, QueryDataset, Update,
+    UsingClause,
 };
 use crate::ast::{
     BaseDirection, BlankNode, GroundTerm, GroundTriple, Literal, NamedNode, NamedNodePattern,
@@ -315,8 +316,8 @@ impl Parser {
             }
         }
 
-        // Optional dataset clause (FROM / FROM NAMED) — out of scope.
-        self.reject_dataset_clause()?;
+        // Dataset clause (FROM / FROM NAMED), §13.2.
+        let dataset = self.parse_dataset_clauses()?;
 
         self.eat_kw("WHERE");
         let where_pat = self.parse_group_graph_pattern()?;
@@ -375,6 +376,7 @@ impl Parser {
         }
         Ok(Query::Select {
             pattern: p,
+            dataset,
             base_iri,
         })
     }
@@ -385,7 +387,7 @@ impl Parser {
         self.expect(&Token::LBrace)?;
         let template = self.parse_construct_template()?;
         self.expect(&Token::RBrace)?;
-        self.reject_dataset_clause()?;
+        let dataset = self.parse_dataset_clauses()?;
         self.eat_kw("WHERE");
         let where_pat = self.parse_group_graph_pattern()?;
         let mut aggregates = Vec::new();
@@ -411,13 +413,14 @@ impl Parser {
         Ok(Query::Construct {
             template,
             pattern: p,
+            dataset,
             base_iri,
         })
     }
 
     fn parse_ask(&mut self, base_iri: Option<NamedNode>) -> Result<Query> {
         self.expect_kw("ASK")?;
-        self.reject_dataset_clause()?;
+        let dataset = self.parse_dataset_clauses()?;
         self.eat_kw("WHERE");
         let pattern = self.parse_group_graph_pattern()?;
         let mut aggregates = Vec::new();
@@ -427,7 +430,11 @@ impl Parser {
         if !modifiers.is_empty() || !aggregates.is_empty() {
             return Err(ParseError::unsupported("solution modifiers on ASK"));
         }
-        Ok(Query::Ask { pattern, base_iri })
+        Ok(Query::Ask {
+            pattern,
+            dataset,
+            base_iri,
+        })
     }
 
     fn parse_describe(&mut self, base_iri: Option<NamedNode>) -> Result<Query> {
@@ -451,7 +458,7 @@ impl Parser {
                 return Err(ParseError::syntax("DESCRIBE needs a target", self.span()));
             }
         }
-        self.reject_dataset_clause()?;
+        let dataset = self.parse_dataset_clauses()?;
         let pattern = if self.eat_kw("WHERE") || self.at(&Token::LBrace) {
             self.parse_group_graph_pattern()?
         } else {
@@ -465,15 +472,24 @@ impl Parser {
         Ok(Query::Describe {
             pattern,
             targets,
+            dataset,
             base_iri,
         })
     }
 
-    fn reject_dataset_clause(&mut self) -> Result<()> {
-        if self.peek_kw("FROM") {
-            return Err(ParseError::unsupported("FROM / dataset clause"));
+    /// Zero or more `FROM [NAMED] <iri>` dataset clauses (§13.2). `FROM <iri>` adds to
+    /// the active default graph; `FROM NAMED <iri>` adds an addressable named graph.
+    fn parse_dataset_clauses(&mut self) -> Result<QueryDataset> {
+        let mut default = Vec::new();
+        let mut named = Vec::new();
+        while self.eat_kw("FROM") {
+            if self.eat_kw("NAMED") {
+                named.push(self.expect_iri_node()?);
+            } else {
+                default.push(self.expect_iri_node()?);
+            }
         }
-        Ok(())
+        Ok(QueryDataset { default, named })
     }
 
     fn parse_construct_template(&mut self) -> Result<Vec<TriplePattern>> {
@@ -647,17 +663,16 @@ impl Parser {
         })
     }
 
-    /// Zero or more `USING [NAMED] <iri>` clauses.
-    fn parse_using_clauses(&mut self) -> Result<Vec<GraphTarget>> {
+    /// Zero or more `USING [NAMED] <iri>` clauses (§3.1.3). The `NAMED` modifier is
+    /// preserved: `USING <iri>` folds into the active default graph, `USING NAMED
+    /// <iri>` becomes an addressable named graph for the `WHERE`.
+    fn parse_using_clauses(&mut self) -> Result<Vec<UsingClause>> {
         let mut using = Vec::new();
         while self.eat_kw("USING") {
             if self.eat_kw("NAMED") {
-                using.push(GraphTarget::Named(self.expect_iri_node()?));
+                using.push(UsingClause::Named(self.expect_iri_node()?));
             } else {
-                // `USING <iri>` adds to the default graph of the active dataset;
-                // we model the referenced graph as `Named` (the consumer folds it
-                // into the WHERE default graph).
-                using.push(GraphTarget::Named(self.expect_iri_node()?));
+                using.push(UsingClause::Default(self.expect_iri_node()?));
             }
         }
         Ok(using)
@@ -2581,10 +2596,26 @@ mod tests {
     }
 
     #[test]
-    fn from_clause_is_unsupported() {
-        let q = format!("{GM}SELECT ?a FROM <http://g/> WHERE {{ ?a a gmeow:T }}");
-        let err = SparqlParser::new().parse_query(&q).unwrap_err();
-        assert!(matches!(err, ParseError::Unsupported(_)), "got {err:?}");
+    fn from_clause_parses_into_query_dataset() {
+        let q = format!(
+            "{GM}SELECT ?a FROM <http://g/> FROM NAMED <http://n/> WHERE {{ ?a a gmeow:T }}"
+        );
+        let Query::Select { dataset, .. } = parse(&q) else {
+            panic!("expected SELECT");
+        };
+        assert_eq!(dataset.default.len(), 1);
+        assert_eq!(dataset.default[0].as_str(), "http://g/");
+        assert_eq!(dataset.named.len(), 1);
+        assert_eq!(dataset.named[0].as_str(), "http://n/");
+    }
+
+    #[test]
+    fn no_dataset_clause_is_empty() {
+        let q = format!("{GM}SELECT ?a WHERE {{ ?a a gmeow:T }}");
+        let Query::Select { dataset, .. } = parse(&q) else {
+            panic!("expected SELECT");
+        };
+        assert!(dataset.default.is_empty() && dataset.named.is_empty());
     }
 
     #[test]
@@ -3011,6 +3042,9 @@ mod tests {
             panic!("expected DeleteInsert");
         };
         assert_eq!(using.len(), 2);
+        // The NAMED modifier is preserved (USING <g1> vs USING NAMED <g2>).
+        assert!(matches!(&using[0], UsingClause::Default(n) if n.as_str() == "https://x/g1"));
+        assert!(matches!(&using[1], UsingClause::Named(n) if n.as_str() == "https://x/g2"));
     }
 
     #[test]

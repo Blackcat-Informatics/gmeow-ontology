@@ -53,7 +53,8 @@ pub mod parser;
 
 pub use algebra::{
     AggregateExpression, AggregateFunction, Expression, Function, GraphPattern, GraphTarget,
-    GraphUpdateOperation, OrderExpression, PropertyPathExpression, Query, Update,
+    GraphUpdateOperation, OrderExpression, PropertyPathExpression, Query, QueryDataset, Update,
+    UsingClause,
 };
 pub use ast::{
     BaseDirection, BlankNode, GroundTerm, GroundTriple, Literal, NamedNode, NamedNodePattern,

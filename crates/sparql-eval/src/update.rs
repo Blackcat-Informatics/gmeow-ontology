@@ -22,9 +22,11 @@
 //!   helpers do this), so the resulting quads stay valid after the snapshot is
 //!   dropped and are applied back to `m` by value. DELETE is applied before INSERT
 //!   (SPARQL §3.1.3), per solution row.
-//! - **`USING` unsupported.** Custom UPDATE datasets (`USING` / `USING NAMED`) are
-//!   the write-path twin of the query path's unsupported `FROM`: a hard error, not a
-//!   silent skip — the S6 evaluator has no custom-dataset surface.
+//! - **`WITH` / `USING` active dataset.** `WITH <g>` scopes the `WHERE` default graph
+//!   to `g` (and is the default target for template quads). `USING` / `USING NAMED`
+//!   build a custom `WHERE` active dataset (§3.1.3): when present they replace `WITH`'s
+//!   effect on the `WHERE` (but `WITH` still targets the templates). A `USING` IRI that
+//!   names no graph contributes nothing (never an error).
 //! - **Blank nodes.** `INSERT DATA` blanks are minted fresh, ONE shared blank-map
 //!   for the whole op (they co-refer within the op). `DELETE DATA` is blank-free (a
 //!   parser invariant). Template (`DELETE`/`INSERT … WHERE`) blanks are minted fresh
@@ -36,14 +38,14 @@
 use std::sync::Arc;
 
 use gmeow_rdf_core::{
-    DatasetMut, GraphMatch, GraphMatchValue, MutableDataset, QuadValues, RdfDataset, RdfDiagnostic,
-    TermValue,
+    DatasetMut, GraphMatchValue, MutableDataset, QuadValues, RdfDataset, RdfDiagnostic, TermValue,
 };
 use gmeow_sparql_algebra::{
-    GraphTarget, GraphUpdateOperation, NamedNodePattern, QuadPattern, Update,
+    GraphTarget, GraphUpdateOperation, NamedNodePattern, QuadPattern, Update, UsingClause,
 };
 
 use crate::convert::named_node_to_value;
+use crate::dataset_spec::ActiveDataset;
 use crate::eval::{eval, EvalCtx};
 use crate::solution::{Solution, VarSchema};
 use crate::template::{
@@ -65,7 +67,7 @@ pub trait GraphResolver {
 /// Apply a parsed [`Update`] to `m` in request order.
 ///
 /// Returns `Ok(())` on success; a specific [`RdfDiagnostic`] code on the boundary
-/// conditions (`USING` unsupported, `LOAD` with no resolver, an internal eval
+/// conditions (`LOAD` with no resolver, a bad re-key destination, an internal eval
 /// error). `resolver` supplies the `LOAD` host seam (see [`GraphResolver`]); pass
 /// `None` to make any non-`SILENT` `LOAD` a hard error.
 // The in-crate caller is the engine UPDATE seam (`engine::update`).
@@ -165,38 +167,28 @@ fn delete_insert(
     delete: &[QuadPattern],
     insert: &[QuadPattern],
     with: Option<&gmeow_sparql_algebra::NamedNode>,
-    using: &[GraphTarget],
+    using: &[UsingClause],
     pattern: &gmeow_sparql_algebra::GraphPattern,
     m: &mut MutableDataset,
 ) -> Result<(), RdfDiagnostic> {
-    // USING / USING NAMED: a custom UPDATE dataset is out of S6 scope — the
-    // write-path twin of the query path's unsupported FROM. Hard-fail, not a skip.
-    if !using.is_empty() {
-        return Err(RdfDiagnostic::error(
-            "native-sparql-update-using-unsupported",
-            "USING / USING NAMED (custom UPDATE dataset) is not supported in the native engine \
-             (S6 scope); the WHERE evaluates over the dataset under mutation",
-        ));
-    }
-
     // The WITH graph is the default target for delete/insert quads whose own
-    // QuadPattern.graph is None, and scopes the WHERE's default graph.
+    // QuadPattern.graph is None (template target — independent of the WHERE dataset).
     let with_value = with.map(named_node_to_value);
 
     let snap = m.freeze()?;
     let mut ctx = EvalCtx::new(&snap);
 
-    // Honor WITH <g>: scope the WHERE to that named graph. If the graph is absent
-    // from the snapshot it simply matches nothing (a graph exists iff it has quads);
-    // a value-absent graph has no TermId, so we name an out-of-range id
-    // (`TermId::from_index(u32::MAX)` is past the dense `0..term_count`) which no
-    // stored quad's graph slot can equal — `GraphMatch::Named` then matches nothing.
-    if let Some(g) = &with_value {
-        let id = snap
-            .term_id_by_value(g)
-            .unwrap_or_else(|| gmeow_rdf_core::TermId::from_index(u32::MAX));
-        ctx.active_graph = GraphMatch::Named(id);
-    }
+    // Scope the WHERE active dataset (§3.1.3): USING (if present) builds a custom
+    // dataset and replaces WITH's effect on the WHERE; otherwise WITH scopes the WHERE
+    // default graph; otherwise the dataset under mutation. An absent USING/WITH graph
+    // contributes nothing (matches nothing) — never an error.
+    ctx.active_dataset = if !using.is_empty() {
+        ActiveDataset::from_using(using, &snap)
+    } else if let Some(g) = &with_value {
+        ActiveDataset::with_default_graph(&snap, g)
+    } else {
+        ActiveDataset::store_default()
+    };
 
     let seq = eval(pattern, &mut ctx)
         .map_err(|e| RdfDiagnostic::error("native-sparql-update-eval", e.to_string()))?;
@@ -780,16 +772,69 @@ mod tests {
 
     // ── USING ─────────────────────────────────────────────────────────────────
 
+    /// A base with the same (a,p,b) triple in the default graph and in ex:g, plus a
+    /// decoy (a,p,c) only in ex:g.
+    fn base_default_and_named() -> MutableDataset {
+        let mut b = RdfDatasetBuilder::new();
+        let a = b.intern_iri(format!("{EX}a"));
+        let p = b.intern_iri(format!("{EX}p"));
+        let bb = b.intern_iri(format!("{EX}b"));
+        let cc = b.intern_iri(format!("{EX}c"));
+        let g = b.intern_iri(format!("{EX}g"));
+        b.push_quad(a, p, bb, None); // default (a,p,b)
+        b.push_quad(a, p, bb, Some(g)); // ex:g (a,p,b)
+        b.push_quad(a, p, cc, Some(g)); // ex:g (a,p,c)
+        MutableDataset::new(b.freeze().expect("freeze"))
+    }
+
     #[test]
-    fn using_clause_is_unsupported() {
-        let mut m = mut_with(&[("a", "p", "b")]);
-        let err = eval_update(
-            &parse("DELETE { ?s ex:p ?o } USING ex:g WHERE { ?s ex:p ?o }"),
+    fn using_scopes_where_to_the_named_graph() {
+        // USING ex:g folds ex:g into the WHERE default graph: the DELETE template
+        // (default-graph target) removes whatever the WHERE bound from ex:g. The WHERE
+        // sees ex:g's (a,p,b)+(a,p,c), so the default-graph (a,p,b) is deleted but the
+        // default graph's other triples (none here) and ex:g itself are not the target.
+        let mut m = base_default_and_named();
+        // DELETE the default-graph quad whose object the WHERE bound from ex:g.
+        run(
+            "DELETE { ex:a ex:p ?o } USING ex:g WHERE { ex:a ex:p ?o }",
             &mut m,
-            None,
-        )
-        .unwrap_err();
-        assert_eq!(err.code, "native-sparql-update-using-unsupported");
+        );
+        // The WHERE matched ?o ∈ {b, c} in ex:g; the DELETE removed (a,p,b) and (a,p,c)
+        // from the DEFAULT graph. Default had only (a,p,b) → gone; (a,p,c) wasn't there.
+        assert!(!m.contains(&QuadValues::triple(iri("a"), iri("p"), iri("b"))));
+        // ex:g is untouched (USING only scopes the WHERE, not the delete target).
+        let in_g = m.quads_for_pattern(None, None, None, GraphMatchValue::Named(&iri("g")));
+        assert_eq!(
+            in_g.len(),
+            2,
+            "ex:g is the WHERE source, not the delete target"
+        );
+    }
+
+    #[test]
+    fn using_named_restricts_graph_var_in_where() {
+        // USING NAMED ex:g makes ex:g (and only ex:g) addressable by GRAPH ?g in the
+        // WHERE; the default graph of the WHERE is empty (no plain USING).
+        let mut m = base_default_and_named();
+        run(
+            "INSERT { ex:hit ex:in ?g } USING NAMED ex:g WHERE { GRAPH ?g { ex:a ex:p ex:b } }",
+            &mut m,
+        );
+        // ?g bound to ex:g (the only named graph in the USING NAMED set) → one insert.
+        assert!(m.contains(&QuadValues::triple(iri("hit"), iri("in"), iri("g"))));
+    }
+
+    #[test]
+    fn using_nonexistent_graph_matches_nothing() {
+        // USING <absent> → the WHERE default graph is empty → no solutions → no-op,
+        // not an error.
+        let mut m = mut_with(&[("a", "p", "b")]);
+        run(
+            "DELETE { ex:a ex:p ?o } USING ex:absent WHERE { ex:a ex:p ?o }",
+            &mut m,
+        );
+        // Nothing matched in the empty WHERE dataset → the base is unchanged.
+        assert!(m.contains(&QuadValues::triple(iri("a"), iri("p"), iri("b"))));
     }
 
     #[test]

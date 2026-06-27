@@ -31,5 +31,9 @@ Select {
             ?x,
         ],
     },
+    dataset: QueryDataset {
+        default: [],
+        named: [],
+    },
     base_iri: None,
 }

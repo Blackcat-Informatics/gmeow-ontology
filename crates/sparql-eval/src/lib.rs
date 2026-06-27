@@ -44,6 +44,7 @@ mod bgp;
 mod binop;
 mod construct;
 mod convert;
+mod dataset_spec;
 pub mod engine;
 pub mod error;
 pub mod eval;

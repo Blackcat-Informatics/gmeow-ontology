@@ -89,10 +89,6 @@ fn negative_out_of_scope_and_malformed() {
 
     // Out of scope → Unsupported (well-formed SPARQL, deliberately rejected).
     assert!(matches!(
-        err("SELECT ?a FROM <http://g/> WHERE { ?a a gmeow:T }"),
-        ParseError::Unsupported(_)
-    ));
-    assert!(matches!(
         err("CONSTRUCT { ?s a gmeow:O } WHERE { ?s gmeow:x ?x } GROUP BY ?s"),
         ParseError::Unsupported(_)
     ));

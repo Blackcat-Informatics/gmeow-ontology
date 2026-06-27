@@ -34,6 +34,8 @@ pub enum Query {
     Select {
         /// The root graph pattern (already wrapped by projection/modifiers).
         pattern: GraphPattern,
+        /// The `FROM` / `FROM NAMED` dataset clause (empty = the store's default).
+        dataset: QueryDataset,
         /// An explicit `BASE` IRI, if the prologue declared one.
         base_iri: Option<NamedNode>,
     },
@@ -43,6 +45,8 @@ pub enum Query {
         template: Vec<TriplePattern>,
         /// The `WHERE` algebra.
         pattern: GraphPattern,
+        /// The `FROM` / `FROM NAMED` dataset clause (empty = the store's default).
+        dataset: QueryDataset,
         /// An explicit `BASE` IRI, if any.
         base_iri: Option<NamedNode>,
     },
@@ -52,6 +56,8 @@ pub enum Query {
         pattern: GraphPattern,
         /// The resources to describe (IRIs and/or variables).
         targets: Vec<NamedNodePattern>,
+        /// The `FROM` / `FROM NAMED` dataset clause (empty = the store's default).
+        dataset: QueryDataset,
         /// An explicit `BASE` IRI, if any.
         base_iri: Option<NamedNode>,
     },
@@ -59,9 +65,49 @@ pub enum Query {
     Ask {
         /// The `WHERE` algebra.
         pattern: GraphPattern,
+        /// The `FROM` / `FROM NAMED` dataset clause (empty = the store's default).
+        dataset: QueryDataset,
         /// An explicit `BASE` IRI, if any.
         base_iri: Option<NamedNode>,
     },
+}
+
+impl Query {
+    /// The query's `FROM` / `FROM NAMED` dataset clause (empty = the store default).
+    pub fn dataset(&self) -> &QueryDataset {
+        match self {
+            Query::Select { dataset, .. }
+            | Query::Construct { dataset, .. }
+            | Query::Describe { dataset, .. }
+            | Query::Ask { dataset, .. } => dataset,
+        }
+    }
+}
+
+/// A SPARQL query **dataset clause** (`FROM` / `FROM NAMED`, §13.2). An empty
+/// clause (both lists empty) means "use the store's default dataset" — the default
+/// graph plus every named graph. A non-empty clause replaces it: the active default
+/// graph becomes the RDF-merge of the `default` IRIs (the store default graph is then
+/// excluded), and only the `named` IRIs are addressable via `GRAPH`.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
+pub struct QueryDataset {
+    /// `FROM <iri>` graphs, merged to form the active default graph.
+    pub default: Vec<NamedNode>,
+    /// `FROM NAMED <iri>` graphs, the named graphs addressable by `GRAPH`.
+    pub named: Vec<NamedNode>,
+}
+
+/// One `USING` / `USING NAMED` clause of a `DELETE`/`INSERT` operation (§3.1.3) — the
+/// UPDATE counterpart of [`QueryDataset`], scoping the `WHERE` active dataset. The
+/// `NAMED` modifier is preserved (unlike a bare [`GraphTarget`]), because `USING <g>`
+/// (folds `g` into the active default graph) and `USING NAMED <g>` (makes `g`
+/// addressable via `GRAPH`) have distinct semantics.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum UsingClause {
+    /// `USING <iri>` — adds the graph to the active default graph (≡ `FROM`).
+    Default(NamedNode),
+    /// `USING NAMED <iri>` — makes the graph addressable via `GRAPH` (≡ `FROM NAMED`).
+    Named(NamedNode),
 }
 
 /// A parsed SPARQL 1.1 Update request: a sequence of graph-update operations,
@@ -117,7 +163,7 @@ pub enum GraphUpdateOperation {
         /// The `WITH <iri>` default graph for the operation, if any.
         with: Option<NamedNode>,
         /// The `USING` / `USING NAMED` dataset clauses, if any (the active dataset for WHERE).
-        using: Vec<GraphTarget>,
+        using: Vec<UsingClause>,
         /// The `WHERE` graph pattern (the unit pattern for a bare `DELETE WHERE { ... }`).
         pattern: Box<GraphPattern>,
     },
@@ -192,6 +238,29 @@ impl core::fmt::Display for GraphTarget {
             Self::NamedGraphs => write!(f, "NAMED"),
             Self::All => write!(f, "ALL"),
         }
+    }
+}
+
+impl core::fmt::Display for UsingClause {
+    /// Serialize a `USING` clause, preserving the `NAMED` modifier.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::Default(n) => write!(f, "USING <{}>", n.as_str()),
+            Self::Named(n) => write!(f, "USING NAMED <{}>", n.as_str()),
+        }
+    }
+}
+
+impl core::fmt::Display for QueryDataset {
+    /// Serialize a query dataset clause: `FROM <iri>` and `FROM NAMED <iri>` per graph.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        for g in &self.default {
+            write!(f, "FROM <{}> ", g.as_str())?;
+        }
+        for g in &self.named {
+            write!(f, "FROM NAMED <{}> ", g.as_str())?;
+        }
+        Ok(())
     }
 }
 
@@ -304,13 +373,7 @@ impl core::fmt::Display for GraphUpdateOperation {
                     write!(f, "INSERT {{ {} }} ", fmt_quad_pattern_body(insert))?;
                 }
                 for u in using {
-                    match u {
-                        GraphTarget::Named(n) => write!(f, "USING <{}> ", n.as_str())?,
-                        GraphTarget::NamedGraphs => {
-                            write!(f, "USING NAMED ")?;
-                        }
-                        other => write!(f, "USING {other} ")?,
-                    }
+                    write!(f, "{u} ")?;
                 }
                 write!(f, "WHERE {{ {pattern:?} }}")
             }
@@ -881,8 +944,8 @@ mod tests {
             ))))],
             with: Some(nn("http://ex/w")),
             using: vec![
-                GraphTarget::Named(nn("http://ex/u")),
-                GraphTarget::NamedGraphs,
+                UsingClause::Default(nn("http://ex/u")),
+                UsingClause::Named(nn("http://ex/n")),
             ],
             pattern: Box::new(GraphPattern::Bgp { patterns: vec![] }),
         };
@@ -894,7 +957,8 @@ mod tests {
             "{s}"
         );
         assert!(s.contains("USING <http://ex/u> "), "{s}");
-        assert!(s.contains("USING NAMED "), "{s}");
+        // The NAMED modifier must survive (previously collapsed to a bare USING).
+        assert!(s.contains("USING NAMED <http://ex/n> "), "{s}");
         assert!(s.contains("WHERE {"), "{s}");
     }
 

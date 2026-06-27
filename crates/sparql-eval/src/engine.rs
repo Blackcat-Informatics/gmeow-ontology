@@ -223,6 +223,116 @@ mod tests {
         }
     }
 
+    /// A dataset with a default graph plus two named graphs that share a triple.
+    ///   default: (a,p,dflt)
+    ///   ex:g1:   (a,p,x), (a,p,shared)
+    ///   ex:g2:   (a,p,y), (a,p,shared)
+    fn multigraph() -> Arc<RdfDataset> {
+        let mut b = RdfDatasetBuilder::new();
+        let p = b.intern_iri("http://ex/p".to_owned());
+        let a = b.intern_iri("http://ex/a".to_owned());
+        let dflt = b.intern_iri("http://ex/dflt".to_owned());
+        let x = b.intern_iri("http://ex/x".to_owned());
+        let y = b.intern_iri("http://ex/y".to_owned());
+        let shared = b.intern_iri("http://ex/shared".to_owned());
+        let g1 = b.intern_iri("http://ex/g1".to_owned());
+        let g2 = b.intern_iri("http://ex/g2".to_owned());
+        b.push_quad(a, p, dflt, None);
+        b.push_quad(a, p, x, Some(g1));
+        b.push_quad(a, p, shared, Some(g1));
+        b.push_quad(a, p, y, Some(g2));
+        b.push_quad(a, p, shared, Some(g2));
+        b.freeze().expect("freeze")
+    }
+
+    fn run_on(ds: &Arc<RdfDataset>, query: &str) -> SparqlResult {
+        NativeSparqlEngine::new()
+            .query(
+                ds,
+                SparqlRequest {
+                    query,
+                    base_iri: None,
+                },
+            )
+            .expect("query")
+    }
+
+    /// The first-column values of a solutions result, as sorted debug strings.
+    fn col0(result: SparqlResult) -> Vec<String> {
+        match result {
+            SparqlResult::Solutions { rows, .. } => {
+                let mut v: Vec<String> = rows.iter().map(|r| format!("{:?}", r[0])).collect();
+                v.sort();
+                v
+            }
+            other => panic!("expected solutions, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn from_merges_named_graphs_into_default_excluding_store_default() {
+        let ds = multigraph();
+        // FROM g1 FROM g2 → active default = RDF-merge(g1, g2); the store default graph
+        // (dflt) is excluded; the shared triple is unioned to a single solution.
+        let got = col0(run_on(
+            &ds,
+            "SELECT ?o FROM <http://ex/g1> FROM <http://ex/g2> \
+             WHERE { <http://ex/a> <http://ex/p> ?o }",
+        ));
+        assert_eq!(got.len(), 3, "x, y, shared (deduped), NOT dflt: {got:?}");
+        assert!(
+            !got.iter().any(|s| s.contains("dflt")),
+            "store default excluded: {got:?}"
+        );
+        assert_eq!(
+            got.iter().filter(|s| s.contains("shared")).count(),
+            1,
+            "RDF-merge unions the shared triple to one solution"
+        );
+    }
+
+    #[test]
+    fn no_from_clause_uses_store_default_graph() {
+        let ds = multigraph();
+        let got = col0(run_on(
+            &ds,
+            "SELECT ?o WHERE { <http://ex/a> <http://ex/p> ?o }",
+        ));
+        assert_eq!(got.len(), 1, "only the store default graph: {got:?}");
+        assert!(got[0].contains("dflt"));
+    }
+
+    #[test]
+    fn from_named_restricts_graph_var() {
+        let ds = multigraph();
+        // FROM NAMED g1 → GRAPH ?g binds only to g1 (g2 not addressable); the default
+        // graph is empty (no plain FROM).
+        let got = col0(run_on(
+            &ds,
+            "SELECT ?g FROM NAMED <http://ex/g1> \
+             WHERE { GRAPH ?g { <http://ex/a> <http://ex/p> ?o } }",
+        ));
+        assert!(!got.is_empty(), "g1 IS addressable");
+        assert!(got.iter().all(|s| s.contains("g1")), "only g1: {got:?}");
+        assert!(
+            !got.iter().any(|s| s.contains("g2")),
+            "g2 not in FROM NAMED"
+        );
+    }
+
+    #[test]
+    fn from_nonexistent_graph_is_empty_not_error() {
+        let ds = multigraph();
+        let got = col0(run_on(
+            &ds,
+            "SELECT ?o FROM <http://ex/absent> WHERE { <http://ex/a> <http://ex/p> ?o }",
+        ));
+        assert!(
+            got.is_empty(),
+            "absent FROM graph → empty default → no rows"
+        );
+    }
+
     #[test]
     fn ask_returns_boolean() {
         let yes = run("ASK { <http://ex/a> <http://ex/knows> <http://ex/b> }");
@@ -447,9 +557,10 @@ mod tests {
     }
 
     #[test]
-    fn update_is_atomic_on_a_using_failure() {
-        // A second atomicity proof through a different failure mode: a USING-bearing
-        // modify (`native-sparql-update-using-unsupported`) after a successful INSERT.
+    fn update_is_atomic_on_a_where_eval_failure() {
+        // A second atomicity proof through a different failure mode: a modify whose
+        // WHERE hits an unsupported construct (SERVICE → `native-sparql-update-eval`)
+        // after a successful INSERT. The INSERT must not leak.
         let engine = NativeSparqlEngine::new();
         let mut ds = empty();
         let before = quad_set(&ds);
@@ -459,13 +570,13 @@ mod tests {
                 &mut ds,
                 SparqlRequest {
                     query: "INSERT DATA { <http://ex/x> <http://ex/y> <http://ex/z> } ; \
-                            DELETE { ?s <http://ex/p> ?o } USING <http://ex/g> \
-                            WHERE { ?s <http://ex/p> ?o }",
+                            DELETE { ?s <http://ex/p> ?o } \
+                            WHERE { SERVICE <http://ex/svc> { ?s <http://ex/p> ?o } }",
                     base_iri: None,
                 },
             )
             .unwrap_err();
-        assert_eq!(err.code, "native-sparql-update-using-unsupported");
+        assert_eq!(err.code, "native-sparql-update-eval");
         assert_eq!(
             quad_set(&ds),
             before,
