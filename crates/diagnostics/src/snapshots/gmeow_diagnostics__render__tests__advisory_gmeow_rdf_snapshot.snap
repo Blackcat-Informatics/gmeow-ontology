@@ -3,6 +3,9 @@ source: crates/diagnostics/src/render.rs
 expression: to_gmeow_rdf(&advisory_report())
 ---
 <https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Finding> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <http://www.w3.org/2000/01/rdf-schema#label> "advice.sample: consider a more specific sortal" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
 <https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <https://blackcatinformatics.ca/gmeow/findingSeverity> <https://blackcatinformatics.ca/gmeow/severityNote> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
 <https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <https://blackcatinformatics.ca/gmeow/findingCode> "advice.sample" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
 <https://blackcatinformatics.ca/gmeow/diagnostics/finding/1bad5a88c33c332d-0> <https://blackcatinformatics.ca/gmeow/findingMessage> "consider a more specific sortal" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .

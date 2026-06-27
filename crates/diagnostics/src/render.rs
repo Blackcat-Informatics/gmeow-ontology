@@ -204,8 +204,29 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 /// The named graph the diagnostics projection lives in.
 const DIAGNOSTICS_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 const XSD_ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
 const XSD_NNI: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
+
+/// A concise human label for a finding: `"<code>: <message>"`, with the message
+/// truncated to a `char`-boundary-safe 80 characters (an ellipsis marks the
+/// cut). Findings are generated A-Box instance data, so they carry a label and
+/// provenance but no `skos:definition` (assertional-tier validation contract).
+fn finding_label(code: &str, message: &str) -> String {
+    const MAX: usize = 80;
+    let mut trimmed: String = message.chars().take(MAX).collect();
+    if message.chars().nth(MAX).is_some() {
+        trimmed.push('…');
+    }
+    if code.is_empty() {
+        trimmed
+    } else if trimmed.is_empty() {
+        code.to_string()
+    } else {
+        format!("{code}: {trimmed}")
+    }
+}
 
 /// The `gmeow:DiagnosticSeverity` individual IRI for a severity.
 fn severity_individual(severity: crate::model::Severity) -> String {
@@ -269,6 +290,30 @@ pub fn to_gmeow_rdf(report: &Report) -> String {
         let fingerprint = stable_fingerprint(finding);
         let subject = format!("<{GMEOW}diagnostics/finding/{fingerprint}-{index}>");
         triple(&subject, RDF_TYPE, &format!("<{GMEOW}Finding>"), &mut lines);
+        // Assertional-tier annotation: a human label, a named-graph provenance
+        // anchor, and the assertional box role, so the folded bundle's generated
+        // findings are self-describing instance data the validator accepts.
+        triple(
+            &subject,
+            RDFS_LABEL,
+            &format!(
+                "\"{}\"",
+                nq_escape(&finding_label(&finding.code, &finding.message))
+            ),
+            &mut lines,
+        );
+        triple(
+            &subject,
+            RDFS_IS_DEFINED_BY,
+            &format!("<{DIAGNOSTICS_GRAPH}>"),
+            &mut lines,
+        );
+        triple(
+            &subject,
+            &format!("{GMEOW}graphBoxRole"),
+            &format!("<{GMEOW}boxABox>"),
+            &mut lines,
+        );
         triple(
             &subject,
             &format!("{GMEOW}findingSeverity"),
