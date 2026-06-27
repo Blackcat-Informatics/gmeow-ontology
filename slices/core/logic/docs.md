@@ -147,7 +147,9 @@ The hypothetical operator — testing a transaction without committing its effec
 `HypotheticalExecution` of the orthogonal `logic:ExecutionMode` facet (a sibling of the Evolution
 facet, not a value within it), and is distinct from modal possibility (◇): it asks whether a program
 *can execute*, not whether a proposition holds in some accessible world. Modal possibility (◇) stays
-computed as the standard translation over `logic:accessibleFrom`, never reified as a class. Concurrent
+computed as the standard translation over the appropriate typed accessibility relation
+(`logic:epistemicallyPossible` / `logic:doxasticallyAccessible`), never over the bare
+`logic:accessibleFrom` superproperty and never reified as a class. Concurrent
 Transaction Logic extends the path model to interleaved execution, surfacing non-serializable schedules
 as findings.
 
@@ -188,14 +190,16 @@ expands into a full contract facet bundle, documented term-by-term in [`module.t
 **Execution-commitment facet.** The `ExecutionMode` facet is orthogonal to the Evolution facet:
 commitment (commit vs. discard) and state-change shape are independent dimensions. The sandbox
 operator is realized as `logic:HypotheticalExecution` — a facet value, not modal possibility (◇),
-which stays computed as the standard translation over `logic:accessibleFrom` and is never reified as
-a class. The selector property is `logic:executionMode`.
+which stays computed as the standard translation over the appropriate typed accessibility relation
+(`logic:epistemicallyPossible` / `logic:doxasticallyAccessible`), never over the bare
+`logic:accessibleFrom` superproperty, and is never reified as a class. The selector property is
+`logic:executionMode`.
 
 | Term | Kind | Description |
 |---|---|---|
 | `logic:ExecutionMode` | `owl:Class` | The facet value class of the execution-commitment facet — whether a Transaction-Logic program's effects are committed or discarded. Orthogonal to `logic:EvolutionMode`. |
 | `logic:CommittedExecution` | `logic:ExecutionMode` | The execution-mode value under which a transaction program's elementary updates are committed — the effects advance the path and persist. The default execution mode. |
-| `logic:HypotheticalExecution` | `logic:ExecutionMode` | The sandbox/hypothetical operator: a transaction program is executed to test whether it would succeed, with effects discarded. Distinct from modal possibility (◇), which is computed over `logic:accessibleFrom` and never reified. |
+| `logic:HypotheticalExecution` | `logic:ExecutionMode` | The sandbox/hypothetical operator: a transaction program is executed to test whether it would succeed, with effects discarded. Distinct from modal possibility (◇), which is computed over the appropriate typed accessibility relation (`logic:epistemicallyPossible` / `logic:doxasticallyAccessible`), not the bare `logic:accessibleFrom` superproperty, and never reified. |
 | `logic:executionMode` | `owl:ObjectProperty` | Relates a `logic:ReasoningContract` to the `logic:ExecutionMode` it selects. Single-valued on the contract; independent of `logic:evolution`. |
 
 **World/modal terms.** `World`/`accessibleFrom`/`counterfactualOf` and the typed context

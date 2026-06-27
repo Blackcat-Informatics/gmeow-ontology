@@ -99,4 +99,4 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     { logic:Possibility a owl:Class } UNION { logic:ModalOperator a owl:Class }
 }""" ;
-    gmeow:saRationale "No reified modal-possibility class MUST exist -- the sandbox operator (logic:HypotheticalExecution) is DISTINCT from modal possibility, which stays computed as the standard translation over logic:accessibleFrom rather than reified. Conflating sandbox execution with modal possibility is the error this guards against." .
+    gmeow:saRationale "No reified modal-possibility class MUST exist -- the sandbox operator (logic:HypotheticalExecution) is DISTINCT from modal possibility, which stays computed as the standard translation over the appropriate typed accessibility relation (logic:epistemicallyPossible / logic:doxasticallyAccessible) rather than reified. Conflating sandbox execution with modal possibility is the error this guards against." .

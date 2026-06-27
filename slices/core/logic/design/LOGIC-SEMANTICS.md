@@ -613,7 +613,9 @@ translation over the *appropriate* relation, never over a blurred union of all o
 ### The generic superproperty yields no cross-type inference
 
 There is a generic `logic:accessibleFrom` superproperty of which every typed relation above is a
-subproperty — but it exists for *uniform traversal and provenance*, never for inference:
+subproperty **in prose only** — none is asserted `rdfs:subPropertyOf` it, because such an edge would
+re-enable exactly the cross-type entailment forbidden here. It exists for *uniform traversal and
+provenance*, never for inference:
 
 > The generic accessibility superproperty licenses **no cross-type entailment by itself.** An
 > inference may follow a *named, typed* accessibility relation; it may **not** conclude anything by
