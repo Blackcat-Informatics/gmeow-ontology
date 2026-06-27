@@ -46,7 +46,7 @@ gmeow:Instant
     skos:definition "A zero-duration point in time, distinct from a TimeInterval. Carries a crisp instantValue (xsd:dateTime) and/or an edtfValue (EDTF literal) relative to a TemporalFrame."@x-gmeow-english ;
     skos:example "ex:birthInstant a gmeow:Instant ; gmeow:instantValue \"1804-07-12T00:00:00Z\"^^xsd:dateTime ; gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian ; gmeow:hasGranularity gmeow:granularityDay ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for an inline timestamp that needs no facets (use gmeow:atTime or gmeow:startedAtTime) and for a bounded span (use gmeow:TimeInterval); an Instant is the heavyweight, facet-bearing point."@x-gmeow-english ;
-    gmeow:frameRequirementSeverity "warning" ;
+    gmeow:ruleSeverity "advisory" ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Give it a crisp gmeow:instantValue (xsd:dateTime, P3) and/or an approximate gmeow:edtfValue, declare its gmeow:inTemporalFrame (P11), and attach gmeow:hasGranularity / gmeow:hasDeterminacy when the resolution or determinacy is below crisp-to-the-second."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:inTemporalFrame ;
@@ -142,7 +142,7 @@ gmeow:TimeInterval
     skos:definition "A bounded stretch of time, optionally open-ended, delimited by a start and/or end instant."@x-gmeow-english ;
     skos:example "ex:tenureInterval a gmeow:TimeInterval ; gmeow:startedAtTime \"2019-03-01T00:00:00Z\"^^xsd:dateTime ; gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a zero-duration point (use gmeow:Instant) and for the lightweight case where a statement merely holds over a period — there the RDF-star gmeow:validFrom/gmeow:validUntil clocks suffice without minting an interval."@x-gmeow-english ;
-    gmeow:frameRequirementSeverity "warning" ;
+    gmeow:ruleSeverity "advisory" ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Bound it with gmeow:startedAtTime/gmeow:endedAtTime (xsd:dateTime, never xsd:date per P3) or gmeow:hasStartInstant/gmeow:hasEndInstant; declare its gmeow:hasTemporalFrame (P11) and any gmeow:hasGranularity, then attach Allen relations to peers."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:hasTemporalFrame ;
