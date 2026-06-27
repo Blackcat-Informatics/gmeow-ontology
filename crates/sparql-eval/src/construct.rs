@@ -20,7 +20,7 @@
 //! layer, so blank-node labels and quad ordering here need not match oxigraph's —
 //! `freeze` sorts and de-duplicates, and canonicalization relabels blanks.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 use std::sync::Arc;
 
 use gmeow_rdf_core::loss::{
@@ -79,15 +79,66 @@ pub(crate) fn eval_construct(
     // byte-identical to today's plain CONSTRUCT.
     let dropped = collect_dropped_reifiers(template, pattern);
 
+    // Identify which template triple indices are reifier declarations
+    // (predicate == rdf:reifies, object == TermPattern::Triple).  This scan is
+    // done ONCE before the row loop so that per-row emit can fast-path to plain
+    // push_quad when the template contains no reifier declarations.
+    let reifier_decl_indices: Vec<usize> = template
+        .iter()
+        .enumerate()
+        .filter(|(_, tp)| is_reifies(tp) && matches!(&tp.object, TermPattern::Triple(_)))
+        .map(|(i, _)| i)
+        .collect();
+    let has_reifier_decls = !reifier_decl_indices.is_empty();
+
     for row in &seq.rows {
         // Template blank labels are fresh per solution row; the map co-refers a
         // label within this row only.
         let mut blanks: DetHashMap<String, String> = DetHashMap::default();
-        for tp in template {
-            if let Some((s, p, o)) = instantiate(tp, row, &schema, &mut builder, &mut blanks, ctx) {
-                builder.push_quad(s, p, o, None);
+
+        if !has_reifier_decls {
+            // FAST NO-OP PATH: no rdf:reifies triple in the template → plain quads.
+            for tp in template {
+                if let Some((s, p, o)) =
+                    instantiate(tp, row, &schema, &mut builder, &mut blanks, ctx)
+                {
+                    builder.push_quad(s, p, o, None);
+                }
+            }
+        } else {
+            // TWO-PASS EMIT: first collect all instantiated triples, then route
+            // each one to push_reifier / push_annotation / push_quad.
+
+            // Instantiate every template triple for this row (None = skipped).
+            let instantiated: Vec<Option<(TermId, TermId, TermId)>> = template
+                .iter()
+                .map(|tp| instantiate(tp, row, &schema, &mut builder, &mut blanks, ctx))
+                .collect();
+
+            // Pass 1: emit reifier declarations and build the per-row reifier set.
+            let mut reifier_ids: HashSet<TermId> = HashSet::new();
+            for &idx in &reifier_decl_indices {
+                if let Some((s, _p, o)) = instantiated[idx] {
+                    builder.push_reifier(s, o);
+                    reifier_ids.insert(s);
+                }
+            }
+
+            // Pass 2: emit remaining triples, routing by subject membership.
+            for (idx, triple) in instantiated.iter().enumerate() {
+                if reifier_decl_indices.contains(&idx) {
+                    continue; // already handled in pass 1
+                }
+                if let Some((s, p, o)) = *triple {
+                    if reifier_ids.contains(&s) {
+                        builder.push_annotation(s, p, o);
+                    } else {
+                        builder.push_quad(s, p, o, None);
+                    }
+                }
             }
         }
+
         if !dropped.is_empty() {
             emit_dropped_losses(&dropped, row, &schema, &mut builder, ctx);
         }
@@ -679,6 +730,86 @@ mod tests {
             "non-reification CONSTRUCT emits zero loss triples"
         );
         assert_eq!(out.quad_count(), 2, "exactly the two rewritten quads");
+    }
+
+    // ── RDF-1.2 side-table placement ────────────────────────────────────────
+
+    /// CONSTRUCT { ?r rdf:reifies <<( ?s ?p ?o )>> } WHERE { ?r rdf:reifies <<( ?s ?p ?o )>> }
+    /// must emit the reifier into the SIDE TABLE, not as a flat quad with predicate
+    /// rdf:reifies.  This test FAILS before the fix and PASSES after.
+    #[test]
+    fn reifier_triple_goes_to_side_table() {
+        let ds = reified_graph();
+        let mut ctx = EvalCtx::new(&ds);
+        // Template carries the reifier: ?r rdf:reifies <<( ?s ?p ?o )>>
+        let template = vec![TriplePattern {
+            subject: var("r"),
+            predicate: pred(REIFIES),
+            object: TermPattern::Triple(Box::new(TriplePattern {
+                subject: var("s"),
+                predicate: NamedNodePattern::Variable(Variable::new("p")),
+                object: var("o"),
+            })),
+        }];
+        let out = eval_construct(&template, &where_reifies(), &mut ctx).expect("construct");
+
+        // The reification must land in the side table (reifiers), not as a flat quad.
+        assert_eq!(
+            out.reifiers().count(),
+            1,
+            "the reifier must be in the side table"
+        );
+
+        // No flat quad whose predicate is rdf:reifies must exist.
+        let flat_reifies = out
+            .quads()
+            .any(|q| matches!(out.resolve(q.p), TermRef::Iri(p) if p == REIFIES));
+        assert!(
+            !flat_reifies,
+            "no flat quad with predicate rdf:reifies — must be in side table"
+        );
+    }
+
+    /// Build the same logical reifier two ways:
+    ///   (1) via CONSTRUCT evaluation
+    ///   (2) via direct push_reifier + push_annotation
+    /// Both frozen datasets must be isomorphic.
+    #[test]
+    fn construct_reifier_parity_with_direct_ingest() {
+        use gmeow_rdf_core::canonicalize;
+
+        // (1) Via CONSTRUCT
+        let ds = reified_graph();
+        let mut ctx = EvalCtx::new(&ds);
+        let template = vec![TriplePattern {
+            subject: var("r"),
+            predicate: pred(REIFIES),
+            object: TermPattern::Triple(Box::new(TriplePattern {
+                subject: var("s"),
+                predicate: NamedNodePattern::Variable(Variable::new("p")),
+                object: var("o"),
+            })),
+        }];
+        let construct_out =
+            eval_construct(&template, &where_reifies(), &mut ctx).expect("construct");
+
+        // (2) Via direct builder calls — same logical structure as reified_graph() but
+        //     without annotations (the template above carries no annotations).
+        let mut b = RdfDatasetBuilder::new();
+        let _ = b.intern_iri(REIFIES.to_owned());
+        let alice = b.intern_iri("http://ex/alice".to_owned());
+        let age = b.intern_iri("http://ex/age".to_owned());
+        let forty_two = b.intern_literal(RdfLiteral::simple("42"));
+        let triple = b.intern_triple(alice, age, forty_two);
+        let r = b.intern_iri("http://ex/r".to_owned());
+        b.push_reifier(r, triple);
+        let direct_out = b.freeze().expect("freeze direct");
+
+        assert_eq!(
+            canonicalize(&construct_out).nquads,
+            canonicalize(&direct_out).nquads,
+            "CONSTRUCT output must be isomorphic to direct push_reifier ingest"
+        );
     }
 
     #[test]
