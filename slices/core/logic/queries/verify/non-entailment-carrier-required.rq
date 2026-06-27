@@ -1,0 +1,16 @@
+# Non-entailment-obligation carrier required: a
+# logic:FormalizationCandidate typed logic:CategoryNonEntailmentObligation
+# names the kind of constraint — but without a logic:candidateNonEntailment
+# link to the standing obligation it is meant to discharge, the candidate
+# records only the category label, not the actual commitment. Such a candidate
+# is incoherent: it asserts the obligation genre without wiring the governing
+# logic:NonEntailmentObligation individual. Any returned row is a violation
+# (LOGIC-FOUNDATION.md, §Typed formalization governance).
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?candidate WHERE {
+    ?candidate a logic:FormalizationCandidate ;
+               logic:candidateCategory logic:CategoryNonEntailmentObligation .
+    FILTER NOT EXISTS { ?candidate logic:candidateNonEntailment ?o }
+}
+ORDER BY ?candidate

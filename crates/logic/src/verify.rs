@@ -563,4 +563,102 @@ mod tests {
             "an unreviewed accepted candidate → reviewer-gate violation"
         );
     }
+
+    // ── Typed formalization governance: conditional-carrier verify queries ───────
+
+    const NON_ENT_CARRIER_Q: &str = include_str!(
+        "../../../slices/core/logic/queries/verify/non-entailment-carrier-required.rq"
+    );
+    const PROMOTION_CASES_Q: &str =
+        include_str!("../../../slices/core/logic/queries/verify/promotion-cases-required.rq");
+
+    #[test]
+    fn non_entailment_carrier_required_green_then_red() {
+        // A FormalizationCandidate with CategoryNonEntailmentObligation that HAS
+        // a candidateNonEntailment link → zero rows (obligation is wired).
+        let cand = "http://ex/cand-ne";
+        let obl = "http://ex/obl-ne";
+        let (candidate, cat, ne_cat, candidate_ne) = (
+            lg("FormalizationCandidate"),
+            lg("candidateCategory"),
+            lg("CategoryNonEntailmentObligation"),
+            lg("candidateNonEntailment"),
+        );
+        let q = (
+            "queries/verify/non-entailment-carrier-required.rq".to_owned(),
+            NON_ENT_CARRIER_Q.to_owned(),
+        );
+        // Green: candidate with CategoryNonEntailmentObligation AND a candidateNonEntailment.
+        let green = dataset(&[
+            (cand, RDF_TYPE, &candidate),
+            (cand, &cat, &ne_cat),
+            (cand, &candidate_ne, obl),
+        ]);
+        let report = verify(green.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            !has_violation(&report, "verify.non-entailment-carrier-required"),
+            "a CategoryNonEntailmentObligation candidate with candidateNonEntailment is coherent"
+        );
+        // Red: CategoryNonEntailmentObligation candidate MISSING candidateNonEntailment → violation.
+        let red = dataset(&[(cand, RDF_TYPE, &candidate), (cand, &cat, &ne_cat)]);
+        let report = verify(red.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            has_violation(&report, "verify.non-entailment-carrier-required"),
+            "a CategoryNonEntailmentObligation candidate with no candidateNonEntailment → violation"
+        );
+    }
+
+    #[test]
+    fn promotion_cases_required_green_then_red() {
+        // An ACCEPTED candidate in an entailment-asserting category that HAS both
+        // positive and negative cases → zero rows.
+        let (cand, pos, neg, reviewer) = (
+            "http://ex/cand-pc",
+            "http://ex/pos-case",
+            "http://ex/neg-case",
+            "http://ex/reviewer",
+        );
+        let (candidate, lifecycle, accepted, reviewed_by, cat, int_cat, pos_case, neg_case) = (
+            lg("FormalizationCandidate"),
+            lg("candidateLifecycle"),
+            lg("CandidateAccepted"),
+            lg("reviewedBy"),
+            lg("candidateCategory"),
+            lg("CategoryIntegrityConstraint"),
+            lg("candidatePositiveCase"),
+            lg("candidateNegativeCase"),
+        );
+        let q = (
+            "queries/verify/promotion-cases-required.rq".to_owned(),
+            PROMOTION_CASES_Q.to_owned(),
+        );
+        // Green: accepted + entailment category + both cases present.
+        let green = dataset(&[
+            (cand, RDF_TYPE, &candidate),
+            (cand, &lifecycle, &accepted),
+            (cand, &reviewed_by, reviewer),
+            (cand, &cat, &int_cat),
+            (cand, &pos_case, pos),
+            (cand, &neg_case, neg),
+        ]);
+        let report = verify(green.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            !has_violation(&report, "verify.promotion-cases-required"),
+            "an accepted entailment-category candidate with both cases is promotion-ready"
+        );
+        // Red: accepted + entailment category MISSING the negative case → violation.
+        let red = dataset(&[
+            (cand, RDF_TYPE, &candidate),
+            (cand, &lifecycle, &accepted),
+            (cand, &reviewed_by, reviewer),
+            (cand, &cat, &int_cat),
+            (cand, &pos_case, pos),
+            // neg_case intentionally absent
+        ]);
+        let report = verify(red.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            has_violation(&report, "verify.promotion-cases-required"),
+            "an accepted entailment-category candidate missing the negative case → violation"
+        );
+    }
 }

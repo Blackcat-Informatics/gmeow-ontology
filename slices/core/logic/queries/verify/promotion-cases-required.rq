@@ -1,0 +1,29 @@
+# Promotion-cases required: promotion to canonical (logic:CandidateAccepted)
+# requires both the positive competency case the candidate must satisfy
+# (logic:candidatePositiveCase) and the negative case / countermodel it must
+# respect (logic:candidateNegativeCase). logic:CandidateProposed candidates are
+# exempt — cases are required at promotion, not at proposal. The entailment-
+# asserting categories (EquivalenceDefinition, NecessaryCondition,
+# SufficientCondition, IntegrityConstraint, DerivationRule) each claim that
+# something follows logically; without both a positive witness and a negative
+# witness the formal claim is untestable. Any returned row is a violation
+# (LOGIC-FOUNDATION.md, §Typed formalization governance).
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?candidate ?cat WHERE {
+    VALUES ?cat {
+        logic:CategoryEquivalenceDefinition
+        logic:CategoryNecessaryCondition
+        logic:CategorySufficientCondition
+        logic:CategoryIntegrityConstraint
+        logic:CategoryDerivationRule
+    }
+    ?candidate a logic:FormalizationCandidate ;
+               logic:candidateLifecycle logic:CandidateAccepted ;
+               logic:candidateCategory ?cat .
+    FILTER(
+        NOT EXISTS { ?candidate logic:candidatePositiveCase ?p }
+        || NOT EXISTS { ?candidate logic:candidateNegativeCase ?n }
+    )
+}
+ORDER BY ?candidate ?cat
