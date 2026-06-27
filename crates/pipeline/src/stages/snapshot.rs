@@ -95,7 +95,7 @@ pub fn build_snapshot(
         .get("stage-compile-logic")
         .and_then(|p| p.artifact(crate::stages::compile_logic::DIAG_RDF_PATH))
         .ok_or_else(|| stage_err("missing compile-logic diagnostics RDF graph"))?;
-    if !diagnostics.ends_with(b"\n") {
+    if !diagnostics.is_empty() && !diagnostics.ends_with(b"\n") {
         diagnostics.push(b'\n');
     }
     diagnostics.extend_from_slice(compile_diagnostics);
