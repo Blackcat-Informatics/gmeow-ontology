@@ -1,0 +1,113 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# =========================================================================== #
+# Logic slice SHACL shapes — formalization governance enforcement
+# =========================================================================== #
+
+logic:FormalizationCandidateShape
+    a sh:NodeShape ;
+    rdfs:label "FormalizationCandidate well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for logic:FormalizationCandidate: the eight universal carrier properties every candidate must bear — source hash, extraction provenance, scope, reasoning contract, formalization category, lifecycle state, projection behavior, and semantic risk class. Each is single-valued and required; absence of any one is a governance error."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:FormalizationCandidate ;
+    sh:property [
+        sh:path logic:candidateSourceHash ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A FormalizationCandidate must have exactly one logic:candidateSourceHash (xsd:string content hash anchoring the candidate to its source prose)." ;
+    ] ;
+    sh:property [
+        sh:path logic:candidateExtractionProvenance ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A FormalizationCandidate must have exactly one logic:candidateExtractionProvenance (xsd:string recording what produced it)." ;
+    ] ;
+    sh:property [
+        sh:path logic:candidateScope ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A FormalizationCandidate must have exactly one logic:candidateScope (xsd:string describing the terms or context the axiom is meant to constrain)." ;
+    ] ;
+    sh:property [
+        sh:path logic:candidateContract ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:ReasoningContract ;
+        sh:severity sh:Violation ;
+        sh:message "A FormalizationCandidate must have exactly one logic:candidateContract pointing to a logic:ReasoningContract." ;
+    ] ;
+    sh:property [
+        sh:path logic:candidateCategory ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:FormalizationCategory ;
+        sh:severity sh:Violation ;
+        sh:message "A FormalizationCandidate must have exactly one logic:candidateCategory from the closed logic:FormalizationCategory value set." ;
+    ] ;
+    sh:property [
+        sh:path logic:candidateLifecycle ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:CandidateLifecycleState ;
+        sh:severity sh:Violation ;
+        sh:message "A FormalizationCandidate must have exactly one logic:candidateLifecycle from the closed logic:CandidateLifecycleState value set." ;
+    ] ;
+    sh:property [
+        sh:path logic:candidateProjectionBehavior ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:PreservationKind ;
+        sh:severity sh:Violation ;
+        sh:message "A FormalizationCandidate must have exactly one logic:candidateProjectionBehavior from the closed logic:PreservationKind value set." ;
+    ] ;
+    sh:property [
+        sh:path logic:candidateSemanticRisk ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:SemanticRiskClass ;
+        sh:severity sh:Violation ;
+        sh:message "A FormalizationCandidate must have exactly one logic:candidateSemanticRisk from the closed logic:SemanticRiskClass value set." ;
+    ] .
+
+logic:NonEntailmentObligationShape
+    a sh:NodeShape ;
+    rdfs:label "NonEntailmentObligation well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for logic:NonEntailmentObligation: the forbidden predicate IRI (logic:obligationForbiddenPredicate) and at least one discharge condition (logic:obligationDischargeCondition) are required. Together they make the non-entailment record machine-checkable rather than advisory prose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:NonEntailmentObligation ;
+    sh:property [
+        sh:path logic:obligationForbiddenPredicate ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:anyURI ;
+        sh:severity sh:Violation ;
+        sh:message "A NonEntailmentObligation must have exactly one logic:obligationForbiddenPredicate (xsd:anyURI naming the predicate the closure must never contain)." ;
+    ] ;
+    sh:property [
+        sh:path logic:obligationDischargeCondition ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:DischargeCondition ;
+        sh:severity sh:Violation ;
+        sh:message "A NonEntailmentObligation must have at least one logic:obligationDischargeCondition from the closed logic:DischargeCondition value set." ;
+    ] .
