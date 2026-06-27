@@ -142,7 +142,12 @@ diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow
 	./target/debug/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
 check: native-py ## Run the full Docker-free local quality gate.
-	$(MAKE) -j$(NPROC) $(CHECK_TARGETS)
+	# check-generated is one of CHECK_TARGETS, so it already runs as one of the
+	# -j$(NPROC) outer jobs here; cap its inner pipeline pool to the outer count
+	# (a command-line assignment overrides the CHECK_GENERATED_JOBS ?= NPROC*2
+	# default) so the nested pools don't oversubscribe a small box. The standalone
+	# `make check-generated` CI lane keeps the wider NPROC*2 IO-overlap pool.
+	$(MAKE) -j$(NPROC) CHECK_GENERATED_JOBS=$(NPROC) $(CHECK_TARGETS)
 	$(MAKE) test-fast
 	$(MAKE) compliance-report
 	@echo "all checks passed (Docker-free, Java-free)"
