@@ -612,10 +612,13 @@ mod tests {
                 .unwrap_or_else(|| panic!("{path} missing closing fence"));
             let fm = &rest[..close];
             assert!(fm.contains("type:"), "{path} frontmatter has no type");
+            // The `resource` is the term's IRI (an https resource), and every doc
+            // carries the `curie:` extension key.
             assert!(
-                fm.contains("resource:"),
-                "{path} frontmatter has no resource"
+                fm.contains("resource: https://"),
+                "{path} resource is not an https IRI"
             );
+            assert!(fm.contains("curie:"), "{path} frontmatter has no curie");
             term_docs += 1;
         }
         assert!(term_docs > 100, "expected many term docs, got {term_docs}");
@@ -623,6 +626,19 @@ mod tests {
         // Determinism: a second render is byte-identical.
         let arts2 = render_okf(&title, &version, &terms).expect("render okf");
         assert_eq!(arts, arts2, "okf render is not deterministic");
+
+        // Every manifest-envelope document path resolves to a rendered artifact.
+        let envelope: serde_json::Value =
+            serde_json::from_str(&crate::stages::export::okf_index_envelope(&terms)).unwrap();
+        let docs = envelope["documents"].as_array().expect("documents array");
+        assert_eq!(docs.len(), terms.len(), "one manifest record per term");
+        for doc in docs {
+            let rel = doc["path"].as_str().expect("manifest path string");
+            assert!(
+                arts.contains_key(&format!("dist/{rel}")),
+                "manifest path {rel} has no rendered bundle artifact"
+            );
+        }
 
         // A class doc links its parents under ## Relations with a relative path.
         let has_relation = arts.iter().any(|(p, b)| {
