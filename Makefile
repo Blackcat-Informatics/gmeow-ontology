@@ -574,6 +574,7 @@ native-py-wheel: ## Build the unified gmeow_native wheel into dist/wheels (CI pr
 	cd crates/native && VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin build --compatibility linux -o "$(CURDIR)/dist/wheels"
 
 native-py-install: ## Install the prebuilt unified wheel from dist/wheels (CI consumers); hard-fail if absent/ambiguous.
+	set -eu; \
 	shopt -s nullglob; \
 	wheels=(dist/wheels/*.whl); \
 	if [ $${#wheels[@]} -ne 1 ]; then \
