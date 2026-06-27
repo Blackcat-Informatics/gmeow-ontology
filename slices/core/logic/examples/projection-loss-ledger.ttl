@@ -64,7 +64,7 @@ ex:bridgeViewReport a gmeow:InformationObject ;
     logic:preservationKind logic:ValidationOnly ;
     logic:complexityClass "structural validation only" .
 
-# --- The SHACL → JSON Schema projection (#700): a closed-world structural
+# --- The SHACL → JSON Schema projection: a closed-world structural
 #     contract compiled from the SHACL shapes. It validates instance well-formedness
 #     (required/enum/pattern/cardinality/ranges) but is NOT an entailment relation,
 #     and sh:sparql (SHACL-AF) constraints have no JSON Schema equivalent so they are

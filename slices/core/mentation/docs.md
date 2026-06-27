@@ -25,7 +25,7 @@ A mental occurrence that unfolds in time — the perdurant (occurrent) counterpa
 kernel-level umbrella under which every mental event lives, so an agent's mental life can be queried
 as a single occurrent stream. A `gmeow:Event` borne by exactly one agent (`gmeow:experiencer`); the
 kind of process is a `gmeow:mentalProcessType` value, never a subclass (Principle 9).
-`gmeow:InferenceProcess` (inference slice #581) and `gmeow:LearningEvent` (learning slice #584) reparent
+`gmeow:InferenceProcess` (inference slice) and `gmeow:LearningEvent` (learning slice) reparent
 under it from their own slices.
 
 **Stereotype:** `owl:Class, gufo:EventType` · `⊑ gmeow:Event`
@@ -138,7 +138,7 @@ A mind-wandering episode — undirected, stimulus-independent thought that drift
 ### gmeow:processDreaming
 
 A dreaming episode — an offline, typically sleep-bound `gmeow:Experience` of imagined content;
-composed into the dreaming extension (#589) with awareness mode and content-origin.
+composed into the dreaming extension with awareness mode and content-origin.
 
 ## Doctrine highlights
 
@@ -152,7 +152,7 @@ composed into the dreaming extension (#589) with awareness mode and content-orig
   time-scoped tenure). All three are non-functional; the first two range over `gmeow:MentalMoment`,
   the third over `gmeow:TimeScopedRelation`. Renamed from the design's `realizes` to avoid colliding
   with the WEMI `gmeow:realizes` (Expression → Work) — Principle 4.
-- **Reparenting hooks stay open** — `gmeow:InferenceProcess` (#581) and `gmeow:LearningEvent` (#584) declare
+- **Reparenting hooks stay open** — `gmeow:InferenceProcess` and `gmeow:LearningEvent` declare
   `rdfs:subClassOf gmeow:MentalProcess` from their own slices, never pre-declared here.
 
 ## Dependencies

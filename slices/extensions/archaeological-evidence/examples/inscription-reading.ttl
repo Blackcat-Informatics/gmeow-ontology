@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: a damaged inscription has many defensible readings (#443, P9).
+# Worked example: a damaged inscription has many defensible readings (P9).
 # An gmeow:Inscription sits on a physical gmeow:carrierType (tablet, coin, seal …).
 # Reading it is not a fact but a reified gmeow:InscriptionReading — an Observation
 # with its own vantage and method — so two epigraphers' transcriptions of the same

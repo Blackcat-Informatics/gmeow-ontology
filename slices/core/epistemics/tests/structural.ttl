@@ -4,7 +4,7 @@
 # Declarative structural assertions for the epistemics slice — the slice-resident
 # test-DSL twin of the MUST / MUST-NOT invariants formerly hand-written in
 # tests/test_epistemics.py. Authored as gmeow: ontology data so the same
-# annotation discipline and the native Rust harness (crates/slicetest, #784)
+# annotation discipline and the native Rust harness (crates/slicetest)
 # drive the test, not ad-hoc Python. Each assertion runs as a SPARQL ASK over the
 # module graph (gmeow:scopeModule). A positive universal over a fixed term set is
 # a single MUST with a conjunctive pattern (every conjunct must match); a
@@ -86,7 +86,7 @@ ASK {
     VALUES ?p { gmeow:believes gmeow:doubts gmeow:suspendsJudgementOn gmeow:accepts gmeow:knowsThat }
     ?p a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "An agent holds many attitudes and contested ones coexist (Principle 9), so no doxastic-spine property may be declared owl:FunctionalProperty (the no-functional-declaration invariant, #559). Mirrors test_spine_properties_are_not_functional." .
+    gmeow:saRationale "An agent holds many attitudes and contested ones coexist (Principle 9), so no doxastic-spine property may be declared owl:FunctionalProperty (the no-functional-declaration invariant). Mirrors test_spine_properties_are_not_functional." .
 
 # --- 7. DoxasticStandpointClaim ⊑ StandpointClaim (MUST hold) -----------------
 ex:saDoxasticStandpointClaimSubclass a gmeow:StructuralAssertion ;
@@ -95,7 +95,7 @@ ex:saDoxasticStandpointClaimSubclass a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:DoxasticStandpointClaim rdfs:subClassOf gmeow:StandpointClaim . }""" ;
-    gmeow:saRationale "A doxastic standpoint claim is a kind of standpoint claim (#561). Mirrors test_doxastic_standpoint_claim_is_subclass_of_standpoint_claim." .
+    gmeow:saRationale "A doxastic standpoint claim is a kind of standpoint claim. Mirrors test_doxastic_standpoint_claim_is_subclass_of_standpoint_claim." .
 
 # --- 8. claimOfBelief is a functional object property (MUST hold) -------------
 ex:saClaimOfBeliefFunctionalObjectProperty a gmeow:StructuralAssertion ;
@@ -109,7 +109,7 @@ ASK {
         rdfs:domain gmeow:DoxasticStandpointClaim ;
         rdfs:range gmeow:DoxasticState .
 }""" ;
-    gmeow:saRationale "gmeow:claimOfBelief is a functional object property from DoxasticStandpointClaim to DoxasticState (#561). Mirrors test_claim_of_belief_is_functional_object_property." .
+    gmeow:saRationale "gmeow:claimOfBelief is a functional object property from DoxasticStandpointClaim to DoxasticState. Mirrors test_claim_of_belief_is_functional_object_property." .
 
 # --- 9. justifiedBy: named domain/range, non-functional (MUST/-NOT) ----------
 # (The exact owl:unionOf membership of JustificationSubject/JustificationGround
@@ -125,7 +125,7 @@ ASK {
         rdfs:domain gmeow:JustificationSubject ;
         rdfs:range gmeow:JustificationGround .
 }""" ;
-    gmeow:saRationale "gmeow:justifiedBy is an object property with the schema-friendly named domain JustificationSubject and range JustificationGround (#561). Mirrors the domain/range clauses of test_justified_by_has_named_domain_and_range." .
+    gmeow:saRationale "gmeow:justifiedBy is an object property with the schema-friendly named domain JustificationSubject and range JustificationGround. Mirrors the domain/range clauses of test_justified_by_has_named_domain_and_range." .
 
 ex:saJustifiedByNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
@@ -145,7 +145,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:defeatedBy a owl:ObjectProperty ; rdfs:range gmeow:JustificationStatus .
 }""" ;
-    gmeow:saRationale "gmeow:defeatedBy is an object property ranging over gmeow:JustificationStatus (#561). Mirrors test_defeated_by_has_status_range." .
+    gmeow:saRationale "gmeow:defeatedBy is an object property ranging over gmeow:JustificationStatus. Mirrors test_defeated_by_has_status_range." .
 
 # --- 11. JustificationStatus individuals exist (MUST hold) --------------------
 ex:saJustificationStatusIndividuals a gmeow:StructuralAssertion ;
@@ -156,7 +156,7 @@ ASK {
     gmeow:justificationStatusGettier  a gmeow:JustificationStatus .
     gmeow:justificationStatusDefeated a gmeow:JustificationStatus .
 }""" ;
-    gmeow:saRationale "The seeded justification-status individuals (Gettier, Defeated) MUST be typed gmeow:JustificationStatus (#561). Mirrors test_justification_status_individuals_exist." .
+    gmeow:saRationale "The seeded justification-status individuals (Gettier, Defeated) MUST be typed gmeow:JustificationStatus. Mirrors test_justification_status_individuals_exist." .
 
 # --- 12. credence vs confidence are distinct (MUST / MUST-NOT) ----------------
 ex:saCredenceDomainDoxasticState a gmeow:StructuralAssertion ;

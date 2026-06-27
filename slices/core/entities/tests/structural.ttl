@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the entities slice (#867 Tier-B
+# Declarative structural assertions for the entities slice (Tier-B
 # closeout). No migratable rdflib pytest existed; these cells are authored fresh
 # to pin the agent-Kind spine and its disjointness (MAXIMAL coverage,
 # dogfooding). Each runs as a SPARQL ASK over the module graph

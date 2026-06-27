@@ -5,7 +5,7 @@
 
 Every projection of GMEOW data leaves the repository through one artifact:
 **`generated/dist/gmeow.gts`** — the committed, byte-deterministic,
-drift-gated GTS snapshot of the canonical sources (#267, #12).
+drift-gated GTS snapshot of the canonical sources.
 
 ```text
 ontology/ + slices/          statements rdf12        SSSOM mappings
@@ -43,9 +43,9 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
    all five exporters must still render) and a static import seal (AST scan
    of the exporter modules). The registry orders `gts` before every consumer
    from declared inputs — never by hand.
-4. **Equivalence before deletion.** Each re-point (PRs #370/#371/#373/#374)
-   proved value-equivalence against the old implementation inside its own
-   PR before the old path was deleted — no compatibility shims survive.
+4. **Equivalence before deletion.** Each re-point proved value-equivalence
+   against the old implementation before the old path was deleted —
+   no compatibility shims survive.
 5. **Committed without rebase pain.** `generated/dist/gmeow.gts` stays
    committed for reviewability and drift-gate visibility, but `.gitattributes`
    marks it `merge=ours -diff`. Running `make install` bootstraps the local
@@ -73,8 +73,8 @@ verified GTS fold, never the canonical source tree directly.
 ## Why
 
 Exporters that each re-read and re-interpret the sources drift from one
-another; exporters that consume one verified fold cannot. #12's remaining
-tiers shipped exactly this way (#377): N-Quads/TriG, the statements JSONL
+another; exporters that consume one verified fold cannot. The remaining
+export tiers shipped this way: N-Quads/TriG, the statements JSONL
 bundle, SKOS, OBO Graphs, and ShEx are emitters inside the sealed `exports`
 generator, and Parquet is its own sealed `parquet` generator over the
 `gts_db` relational schema — `GTS → *` shims over `gts_views`: no parser, no

@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the norms slice (#351 / #352, EPIC #348) —
+# Declarative structural assertions for the norms slice —
 # the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
 # formerly hand-written in tests/test_norms.py. Each assertion runs as a SPARQL
 # ASK over the norms module graph (gmeow:scopeModule) under the native Rust
 # slicetest harness (crates/slicetest).
 #
-# Norms is #694-migrated: class stereotypes are logic:
+# Norms is migrated: class stereotypes are logic:
 # (logic:Category, logic:Kind, logic:SubKind, logic:Situation,
 # logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
@@ -104,7 +104,7 @@ ex:saNormIssuerDomainFree a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:normIssuer rdfs:domain ?d . }""" ;
-    gmeow:saRationale "gmeow:normIssuer MUST NOT carry an rdfs:domain — domain-free so systemIssuer specialization cannot leak Norm typing onto NormativeSystems (PR #369 review). Mirrors test_no_anonymous_ought_machinery (no-domain part)." .
+    gmeow:saRationale "gmeow:normIssuer MUST NOT carry an rdfs:domain — domain-free so systemIssuer specialization cannot leak Norm typing onto NormativeSystems. Mirrors test_no_anonymous_ought_machinery (no-domain part)." .
 
 # --- 8. normIssuer is NOT functional (MUST-NOT) ---
 ex:saNormIssuerNotFunctional a gmeow:StructuralAssertion ;
@@ -425,7 +425,7 @@ ASK {
     gmeow:ruleAssignee rdfs:subPropertyOf gmeow:normBearer .
     gmeow:ruleAction   rdfs:subPropertyOf gmeow:prescribedConduct .
 }""" ;
-    gmeow:saRationale "gmeow:Rule MUST be rdfs:subClassOf gmeow:Norm and the two subproperty grafts (ruleAssignee/normBearer and ruleAction/prescribedConduct) MUST be asserted in the norms module — zero core churn (#352). Mirrors test_graft_rule_is_a_norm." .
+    gmeow:saRationale "gmeow:Rule MUST be rdfs:subClassOf gmeow:Norm and the two subproperty grafts (ruleAssignee/normBearer and ruleAction/prescribedConduct) MUST be asserted in the norms module — zero core churn. Mirrors test_graft_rule_is_a_norm." .
 
 # --- 38. Rubric is a logic:Kind norm for judging (MUST) ----------------------
 ex:saRubricIsNormForJudging a gmeow:StructuralAssertion ;

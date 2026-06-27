@@ -7,7 +7,7 @@
 # SPARQL ASK over the languages module graph (gmeow:scopeModule) under the
 # native Rust harness (crates/slicetest).
 #
-# Languages is #694-migrated: class stereotypes are logic:
+# Languages is migrated: class stereotypes are logic:
 # (logic:AbstractIndividualType, logic:Kind, logic:SubKind, logic:Event,
 # logic:QualityValue), not gufo:.
 #

@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the agentic extension slice (#390) --
+# Declarative structural assertions for the agentic extension slice --
 # the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
 # invariants formerly hand-written in tests/test_agentic.py. Each assertion
 # runs as a SPARQL ASK over the agentic module graph (gmeow:scopeModule) under
 # the native Rust slicetest harness (crates/slicetest).
 #
-# Agentic is #694-migrated: class stereotypes are logic:
+# Agentic is migrated: class stereotypes are logic:
 # (logic:Event), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
@@ -44,7 +44,7 @@ ASK {
     gmeow:ToolCall a owl:Class , logic:Event ;
         rdfs:subClassOf gmeow:Activity .
 }""" ;
-    gmeow:saRationale "gmeow:ToolCall MUST be an owl:Class typed logic:Event and a subclass of gmeow:Activity -- the ModelInvocation idiom one level down (#390). Mirrors test_toolcall_follows_the_modelinvocation_idiom." .
+    gmeow:saRationale "gmeow:ToolCall MUST be an owl:Class typed logic:Event and a subclass of gmeow:Activity -- the ModelInvocation idiom one level down. Mirrors test_toolcall_follows_the_modelinvocation_idiom." .
 
 # --- 2. Object-property ends: calledByInvocation and usedTool (MUST) ---------
 ex:saAgenticObjectPropertiesEndsAndFunctionality a gmeow:StructuralAssertion ;

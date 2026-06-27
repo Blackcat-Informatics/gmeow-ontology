@@ -23,6 +23,7 @@ pub mod projection_lint;
 pub(crate) mod rdf_text;
 pub mod sparql_emit;
 pub mod standpoint_emit;
+pub mod standpoint_modality;
 
 #[cfg(feature = "python")]
 pub mod py;

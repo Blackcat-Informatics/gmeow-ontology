@@ -446,7 +446,7 @@ gmeow:consumerAdviceCatalog
     a gmeow:ProjectionContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "advice catalog"@x-gmeow-english ;
-    skos:definition "The consumer is the developer-facing advice catalog (issue #765) aggregated from each term's advisory annotations — use-when, avoid-when, how-to-use, and scope — and surfaced on the generated term pages, the search index, and the llms-docs export. It is the #765 consumer of the advice facet."@x-gmeow-english ;
+    skos:definition "The consumer is the developer-facing advice catalog aggregated from each term's advisory annotations — use-when, avoid-when, how-to-use, and scope — and surfaced on the generated term pages, the search index, and the llms-docs export."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:consumerAgentMemory

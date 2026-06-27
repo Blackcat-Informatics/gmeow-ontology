@@ -5,11 +5,10 @@
 
 > **Status.** BFO 2020 (ISO/IEC 21838-2) is bridged and verified. DOLCE/DUL and SUMO
 > are planned next (see [Extending to a new upper ontology](#extending-to-a-new-upper-ontology)).
-> Authoring source: [`mapping-dsl/foundational/`](../mapping-dsl/foundational/). Issue #40,
-> the final phase of the reasoning-depth epic #35.
+> Authoring source: [`mapping-dsl/foundational/`](../mapping-dsl/foundational/).
 
 GMEOW grounds every class in **gUFO** ([`docs/reasoning.md`](./reasoning.md) — the
-meta-grounding pun, issue #37). But gUFO itself was an **island**: it grounded GMEOW
+meta-grounding pun). But gUFO itself was an **island**: it grounded GMEOW
 without being aligned to any *other* top-level ontology, so a GMEOW graph could not
 interoperate with the OBO-Foundry / ISO/IEC 21838 world (BFO) or the descriptive
 DOLCE/SUMO lineage. This module bridges that spine.
@@ -24,7 +23,7 @@ because it is **link-only** — we assert `skos:closeMatch` triples and import n
 ## The one thing to get right: bridge gUFO's *nature*, not its *stereotypes*
 
 GMEOW puns each class with a gUFO **stereotype meta-class** — `gufo:Kind`, `gufo:SubKind`,
-`gufo:Category`, `gufo:Relator`, `gufo:EventType`, … (the OntoUML stereotype system, issue #37).
+`gufo:Category`, `gufo:Relator`, `gufo:EventType`, … (the OntoUML stereotype system).
 **BFO has no meta-level.** It is a flat realist taxonomy of *ground categories* — `entity`,
 `continuant`, `occurrent`, `material entity`, `quality`, … There is no BFO term that corresponds
 to "Kind" or "Role"; those are *modes of classification*, not *categories of being*.
@@ -57,7 +56,7 @@ compiled to [`mappings/gmeow-foundational.sssom.tsv`](../mappings/gmeow-foundati
 | `gufo:Quality` | closeMatch | `BFO_0000019` *quality* | 0.85 | an intrinsic aspect measurable in a value space |
 | `gufo:Event` | closeMatch | `BFO_0000003` *occurrent* | 0.85 | occurs/happens in time |
 
-**Two cells deliberately diverge from the sketch in issue #40**, because Principle 1 (*SOTA by
+**Two cells deliberately diverge from the initial sketch**, because Principle 1 (*SOTA by
 being SOTA*) says model it correctly rather than inherit a weak mapping:
 
 - **`gufo:Object` → `material entity` (`BFO_0000040`), not `object` (`BFO_0000030`).** `gufo:Object`
@@ -105,7 +104,7 @@ BFO axiom ever enters the reasoned import closure or the published CC BY 4.0 art
 `test_bridge_is_link_only_no_import` test asserts exactly this: zero BFO classes in the merged
 reasoned graph.
 
-> **Why a *class*-shaped snapshot?** The same `imports/targets/` machinery (issue #25) vendors
+> **Why a *class*-shaped snapshot?** The same `imports/targets/` machinery vendors
 > *property*-axiom snapshots (domain/range/inverse) for the alignment-direction linter. Upper
 > ontologies are bridged at the **class** level, so `fetch_target_axioms()` switches snapshot
 > *shape* on the target's `kind` (`AlignmentTarget.kind == "upper"` → class facts; `schema` /
@@ -174,7 +173,7 @@ The infrastructure already generalises to any upper ontology (DOLCE/DUL, SUMO, U
 4. **Document** the new bridge and its gaps in this file, and tick it off below.
 
 > **SUMO** is lowest-payoff and not yet registered in `config.py`; it is the natural third target
-> after DOLCE. Tracked as a follow-up to #40/#35.
+> after DOLCE. Deferred to a later follow-up.
 
 ---
 

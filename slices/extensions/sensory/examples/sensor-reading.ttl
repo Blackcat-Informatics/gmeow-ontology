@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: a sensor reading on the observation stack (#443). A
+# Worked example: a sensor reading on the observation stack. A
 # gmeow:SensoryObservation records WHAT was sensed (gmeow:sensoryObservationOf),
 # WHICH gmeow:ObservableProperty (humidity), and the gmeow:SensoryQuantity result.
 # A gmeow:Sensor is a gufo functional complex that is also an Agent, so it is the

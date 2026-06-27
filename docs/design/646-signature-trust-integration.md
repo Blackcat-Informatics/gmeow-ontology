@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# Design: GTS Signature/Trust Verification in `gmeow-validate` (#646)
+# Design: GTS Signature/Trust Verification in `gmeow-validate`
 
 ## Decision Summary
 

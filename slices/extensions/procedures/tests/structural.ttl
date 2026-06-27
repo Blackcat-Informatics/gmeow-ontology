@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the procedures slice (#226) — the slice-resident
+# Declarative structural assertions for the procedures slice — the slice-resident
 # test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly hand-written in
 # tests/test_procedures.py. Each assertion runs as a SPARQL ASK over the procedures
 # module graph (gmeow:scopeModule) under the native Rust harness (crates/slicetest).
-# Procedures is #694-migrated, so class stereotypes are logic:
+# Procedures is migrated, so class stereotypes are logic:
 # (logic:Kind, logic:Event, logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
@@ -29,7 +29,7 @@ ASK {
     gmeow:Procedure a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:Procedure MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject — a procedure is the prescriptive-spec (plan) side of the plan ⟂ execution de-conflation (#226). Mirrors test_procedure_is_information_object." .
+    gmeow:saRationale "gmeow:Procedure MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject — a procedure is the prescriptive-spec (plan) side of the plan ⟂ execution de-conflation. Mirrors test_procedure_is_information_object." .
 
 # --- 2. ProcedureStep is an owl:Class typed logic:Kind and subclass of InformationObject (MUST) ---
 ex:saProcedureStepIsInformationObject a gmeow:StructuralAssertion ;
@@ -43,7 +43,7 @@ ASK {
     gmeow:ProcedureStep a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:ProcedureStep MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject — procedure steps are plan-level specifications, not execution occurrences (#226). Mirrors test_procedure_step_is_information_object." .
+    gmeow:saRationale "gmeow:ProcedureStep MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject — procedure steps are plan-level specifications, not execution occurrences. Mirrors test_procedure_step_is_information_object." .
 
 # --- 3. Execution is an owl:Class typed logic:Event and subclass of Event (MUST) ---
 ex:saExecutionIsEvent a gmeow:StructuralAssertion ;
@@ -57,7 +57,7 @@ ASK {
     gmeow:Execution a owl:Class , logic:Event ;
         rdfs:subClassOf gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:Execution MUST be an owl:Class typed logic:Event and a subclass of gmeow:Event — an execution is the occurrence (plan ⟂ execution de-conflation) that enacts a Procedure (#226). Mirrors test_execution_is_event." .
+    gmeow:saRationale "gmeow:Execution MUST be an owl:Class typed logic:Event and a subclass of gmeow:Event — an execution is the occurrence (plan ⟂ execution de-conflation) that enacts a Procedure. Mirrors test_execution_is_event." .
 
 # --- 4. ControlFlow is an owl:Class typed logic:Kind and subclass of logic:Relator (MUST) ---
 ex:saControlFlowIsRelator a gmeow:StructuralAssertion ;
@@ -71,7 +71,7 @@ ASK {
     gmeow:ControlFlow a owl:Class , logic:Kind ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:ControlFlow MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator — control-flow is a reified relator connecting two ProcedureSteps following the Participation idiom (#226). Mirrors test_control_flow_is_relator." .
+    gmeow:saRationale "gmeow:ControlFlow MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator — control-flow is a reified relator connecting two ProcedureSteps following the Participation idiom. Mirrors test_control_flow_is_relator." .
 
 # --- 5. DataFlow is an owl:Class typed logic:Kind and subclass of logic:Relator (MUST) ---
 ex:saDataFlowIsRelator a gmeow:StructuralAssertion ;
@@ -85,7 +85,7 @@ ASK {
     gmeow:DataFlow a owl:Class , logic:Kind ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:DataFlow MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator — data-flow is a reified relator carrying entities between ProcedureSteps (#226). Mirrors test_data_flow_is_relator." .
+    gmeow:saRationale "gmeow:DataFlow MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator — data-flow is a reified relator carrying entities between ProcedureSteps. Mirrors test_data_flow_is_relator." .
 
 # --- 6a. ProcedureType seed individuals are typed gmeow:ProcedureType (MUST) ---
 ex:saProcedureTypeValuesAreIndividuals a gmeow:StructuralAssertion ;
@@ -102,7 +102,7 @@ ASK {
     gmeow:procedureTypeResearchPlan    a gmeow:ProcedureType .
     gmeow:procedureTypeIngestion       a gmeow:ProcedureType .
 }""" ;
-    gmeow:saRationale "All eight ProcedureType seed individuals MUST be typed gmeow:ProcedureType — the procedure kind is an open value vocabulary of individuals, never subclasses (Principle 9, #226). Mirrors test_procedure_type_values_are_individuals (must arm)." .
+    gmeow:saRationale "All eight ProcedureType seed individuals MUST be typed gmeow:ProcedureType — the procedure kind is an open value vocabulary of individuals, never subclasses (Principle 9). Mirrors test_procedure_type_values_are_individuals (must arm)." .
 
 # --- 6b. ProcedureType seed individuals are NOT owl:Class (MUST-NOT) -----------
 ex:saProcedureTypeValuesNotClasses a gmeow:StructuralAssertion ;
@@ -123,7 +123,7 @@ ASK {
     }
     ?v a owl:Class .
 }""" ;
-    gmeow:saRationale "ProcedureType seed values MUST NOT be owl:Class — overtyping the procedure kind as subclasses is banned (Principle 9, #226). Mirrors test_procedure_type_values_are_individuals (mustNot arm)." .
+    gmeow:saRationale "ProcedureType seed values MUST NOT be owl:Class — overtyping the procedure kind as subclasses is banned (Principle 9). Mirrors test_procedure_type_values_are_individuals (mustNot arm)." .
 
 # --- 7a. StepType seed individuals are typed gmeow:StepType (MUST) -------------
 ex:saStepTypeValuesAreIndividuals a gmeow:StructuralAssertion ;
@@ -138,7 +138,7 @@ ASK {
     gmeow:stepTypeSubprocess a gmeow:StepType .
     gmeow:stepTypeParallel   a gmeow:StepType .
 }""" ;
-    gmeow:saRationale "All six StepType seed individuals MUST be typed gmeow:StepType — step kinds are an open value vocabulary of individuals, never subclasses (Principle 9, #226). Mirrors test_step_type_values_are_individuals (must arm)." .
+    gmeow:saRationale "All six StepType seed individuals MUST be typed gmeow:StepType — step kinds are an open value vocabulary of individuals, never subclasses (Principle 9). Mirrors test_step_type_values_are_individuals (must arm)." .
 
 # --- 7b. StepType seed individuals are NOT owl:Class (MUST-NOT) ----------------
 ex:saStepTypeValuesNotClasses a gmeow:StructuralAssertion ;
@@ -157,7 +157,7 @@ ASK {
     }
     ?v a owl:Class .
 }""" ;
-    gmeow:saRationale "StepType seed values MUST NOT be owl:Class — overtyping step kinds as subclasses is banned (Principle 9, #226). Mirrors test_step_type_values_are_individuals (mustNot arm)." .
+    gmeow:saRationale "StepType seed values MUST NOT be owl:Class — overtyping step kinds as subclasses is banned (Principle 9). Mirrors test_step_type_values_are_individuals (mustNot arm)." .
 
 # --- 8a. ExecutionStatus seed individuals are typed gmeow:ExecutionStatus (MUST) ---
 ex:saExecutionStatusValuesAreIndividuals a gmeow:StructuralAssertion ;
@@ -172,7 +172,7 @@ ASK {
     gmeow:executionStatusCancelled a gmeow:ExecutionStatus .
     gmeow:executionStatusSkipped   a gmeow:ExecutionStatus .
 }""" ;
-    gmeow:saRationale "All six ExecutionStatus seed individuals MUST be typed gmeow:ExecutionStatus — execution status values are an open individual vocabulary, never subclasses (Principle 9, #226). Mirrors test_execution_status_values_are_individuals (must arm)." .
+    gmeow:saRationale "All six ExecutionStatus seed individuals MUST be typed gmeow:ExecutionStatus — execution status values are an open individual vocabulary, never subclasses (Principle 9). Mirrors test_execution_status_values_are_individuals (must arm)." .
 
 # --- 8b. ExecutionStatus seed individuals are NOT owl:Class (MUST-NOT) ---------
 ex:saExecutionStatusValuesNotClasses a gmeow:StructuralAssertion ;
@@ -191,7 +191,7 @@ ASK {
     }
     ?v a owl:Class .
 }""" ;
-    gmeow:saRationale "ExecutionStatus seed values MUST NOT be owl:Class — overtyping execution statuses as subclasses is banned (Principle 9, #226). Mirrors test_execution_status_values_are_individuals (mustNot arm)." .
+    gmeow:saRationale "ExecutionStatus seed values MUST NOT be owl:Class — overtyping execution statuses as subclasses is banned (Principle 9). Mirrors test_execution_status_values_are_individuals (mustNot arm)." .
 
 # --- 9a. BranchConditionType seed individuals are typed gmeow:BranchConditionType (MUST) ---
 ex:saBranchConditionTypeValuesAreIndividuals a gmeow:StructuralAssertion ;
@@ -204,7 +204,7 @@ ASK {
     gmeow:branchConditionLoop     a gmeow:BranchConditionType .
     gmeow:branchConditionParallel a gmeow:BranchConditionType .
 }""" ;
-    gmeow:saRationale "All four BranchConditionType seed individuals MUST be typed gmeow:BranchConditionType — guard condition kinds are an open value vocabulary of individuals, never subclasses (Principle 9, #226). Mirrors test_branch_condition_type_values_are_individuals (must arm)." .
+    gmeow:saRationale "All four BranchConditionType seed individuals MUST be typed gmeow:BranchConditionType — guard condition kinds are an open value vocabulary of individuals, never subclasses (Principle 9). Mirrors test_branch_condition_type_values_are_individuals (must arm)." .
 
 # --- 9b. BranchConditionType seed individuals are NOT owl:Class (MUST-NOT) -----
 ex:saBranchConditionTypeValuesNotClasses a gmeow:StructuralAssertion ;
@@ -221,7 +221,7 @@ ASK {
     }
     ?v a owl:Class .
 }""" ;
-    gmeow:saRationale "BranchConditionType seed values MUST NOT be owl:Class — overtyping guard condition kinds as subclasses is banned (Principle 9, #226). Mirrors test_branch_condition_type_values_are_individuals (mustNot arm)." .
+    gmeow:saRationale "BranchConditionType seed values MUST NOT be owl:Class — overtyping guard condition kinds as subclasses is banned (Principle 9). Mirrors test_branch_condition_type_values_are_individuals (mustNot arm)." .
 
 # --- 10. Research inquiry properties exist with correct RDF types (MUST) -------
 ex:saResearchInquiryProperties a gmeow:StructuralAssertion ;
@@ -235,7 +235,7 @@ ASK {
     gmeow:inquiryStatus      a owl:ObjectProperty .
     gmeow:resolvedByArtifact a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:inquiryPriority and gmeow:inquiryTheme MUST be owl:DatatypeProperty; gmeow:inquiryStatus and gmeow:resolvedByArtifact MUST be owl:ObjectProperty — these four constitute the research-inquiry profile of the procedures slice (#226). Mirrors test_research_inquiry_has_priority_theme_status." .
+    gmeow:saRationale "gmeow:inquiryPriority and gmeow:inquiryTheme MUST be owl:DatatypeProperty; gmeow:inquiryStatus and gmeow:resolvedByArtifact MUST be owl:ObjectProperty — these four constitute the research-inquiry profile of the procedures slice. Mirrors test_research_inquiry_has_priority_theme_status." .
 
 # --- 11. subProcedureOf and hasSubProcedure are transitive and sub-properties (MUST) ---
 ex:saSubprocedureComposition a gmeow:StructuralAssertion ;
@@ -250,7 +250,7 @@ ASK {
     gmeow:hasSubProcedure a owl:TransitiveProperty ;
         rdfs:subPropertyOf gmeow:hasPart .
 }""" ;
-    gmeow:saRationale "gmeow:subProcedureOf and gmeow:hasSubProcedure MUST both be owl:TransitiveProperty and specialisations of the universal mereology spine (partOf / hasPart) — recursive subprocess composition (#226). Mirrors test_subprocedure_composition." .
+    gmeow:saRationale "gmeow:subProcedureOf and gmeow:hasSubProcedure MUST both be owl:TransitiveProperty and specialisations of the universal mereology spine (partOf / hasPart) — recursive subprocess composition. Mirrors test_subprocedure_composition." .
 
 # --- 12. executesProcedure and executesStep are owl:ObjectProperty (MUST) ------
 ex:saExecutionLinksProperties a gmeow:StructuralAssertion ;
@@ -262,7 +262,7 @@ ASK {
     gmeow:executesProcedure a owl:ObjectProperty .
     gmeow:executesStep      a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:executesProcedure and gmeow:executesStep MUST be owl:ObjectProperty — they bridge the execution side to its plan-level counterparts (plan ⟂ execution de-conflation, #226). Mirrors test_execution_links_to_procedure_and_step." .
+    gmeow:saRationale "gmeow:executesProcedure and gmeow:executesStep MUST be owl:ObjectProperty — they bridge the execution side to its plan-level counterparts (plan ⟂ execution de-conflation). Mirrors test_execution_links_to_procedure_and_step." .
 
 # --- 13. ControlFlow relator properties exist (MUST) --------------------------
 ex:saControlFlowProperties a gmeow:StructuralAssertion ;
@@ -275,7 +275,7 @@ ASK {
     gmeow:flowTarget a owl:ObjectProperty .
     gmeow:flowGuard  a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:flowSource, gmeow:flowTarget, and gmeow:flowGuard MUST all be owl:ObjectProperty — they constitute the internal structure of the ControlFlow relator (#226). Mirrors test_control_flow_has_source_target." .
+    gmeow:saRationale "gmeow:flowSource, gmeow:flowTarget, and gmeow:flowGuard MUST all be owl:ObjectProperty — they constitute the internal structure of the ControlFlow relator. Mirrors test_control_flow_has_source_target." .
 
 # --- 14. DataFlow relator properties exist (MUST) -----------------------------
 ex:saDataFlowProperties a gmeow:StructuralAssertion ;
@@ -288,4 +288,4 @@ ASK {
     gmeow:dataFlowTarget a owl:ObjectProperty .
     gmeow:dataFlowEntity a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:dataFlowSource, gmeow:dataFlowTarget, and gmeow:dataFlowEntity MUST all be owl:ObjectProperty — they constitute the internal structure of the DataFlow relator (#226). Mirrors test_data_flow_has_source_target_entity." .
+    gmeow:saRationale "gmeow:dataFlowSource, gmeow:dataFlowTarget, and gmeow:dataFlowEntity MUST all be owl:ObjectProperty — they constitute the internal structure of the DataFlow relator. Mirrors test_data_flow_has_source_target_entity." .

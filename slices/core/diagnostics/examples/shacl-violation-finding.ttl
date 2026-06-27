@@ -4,7 +4,7 @@
 # Worked example — a SHACL violation projected as a gmeow:Finding about a
 # reified RDF 1.2 statement, located by GTS wire coordinates. This is the shape
 # the Rust gmeow_diagnostics engine emits into the gmeow:graph/diagnostics named
-# graph embedded in a feedback .gts bundle (#654).
+# graph embedded in a feedback .gts bundle.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/> .

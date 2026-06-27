@@ -5,6 +5,7 @@
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 gmeow:Standpoint
     a logic:Kind ,
@@ -76,6 +77,12 @@ gmeow:bullshit
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "bullshit (indifference to truth)"@x-gmeow-english ;
     skos:definition "The standpoint asserts P with indifference to its truth-value — Frankfurt's bullshit modality. Distinct from lying (which cares about truth and asserts the opposite) and from error (which cares and gets it wrong). A bullshit claim is neither true nor false under the standpoint; it is held without regard for correspondence."@x-gmeow-english ;
+    gmeow:decomposesToAxis gmeow:polarityAffirm ,
+        gmeow:modalForceActual ,
+        gmeow:credenceUnspecified ,
+        gmeow:assertoricAssert ,
+        gmeow:truthIndifferent ,
+        gmeow:supportNeither ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
@@ -86,9 +93,9 @@ gmeow:claimModality
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim modality"@x-gmeow-english ;
     rdfs:range gmeow:StandpointModality ;
-    skos:definition "The modality (unequivocal, probable, conceivable, refuted, bullshit) assigned to a StandpointClaim. Semantically equivalent to observationResult for StandpointClaims, but not declared rdfs:subPropertyOf because StandpointModality (a gufo:QualityValue / abstract individual) is disjoint from gmeow:Entity (a gufo:Endurant) in the DL profile. When a StandpointClaim is flattened to an annotated statement, claimModality becomes standpointModality."@x-gmeow-english ;
+    skos:definition "The modality (unequivocal, probable, conceivable, refuted, bullshit) assigned to a StandpointClaim. Semantically equivalent to observationResult for StandpointClaims, but not declared rdfs:subPropertyOf because StandpointModality (a gufo:QualityValue / abstract individual) is disjoint from gmeow:Entity (a gufo:Endurant) in the DL profile. When a StandpointClaim is flattened to an annotated statement, claimModality becomes standpointModality. PROJECTION SURFACE: the five-value modality is now the lossless projection of the six canonical axes (gmeow:claimPolarity, gmeow:claimModalForce, gmeow:claimCredence / gmeow:claimCredenceLevel, gmeow:claimAssertoricForce, gmeow:claimTruthDirectedness, gmeow:claimSupportStatus); author the axes, not this convenience twin."@x-gmeow-english ;
     skos:example "ex:recognitionClaim gmeow:claimModality gmeow:unequivocal ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the produced value of a non-standpoint observation (use gmeow:observationResult) and avoid asserting two modalities — it is functional; a refuted value denies the claim from this frame, never marks it globally false (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the produced value of a non-standpoint observation (use gmeow:observationResult) and avoid asserting two modalities — it is functional; a refuted value denies the claim from this frame, never marks it globally false (Principle 9). For new claims prefer the six canonical axes — this five-value twin is a generated projection surface, not a co-equal authoring path."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox ;
     gmeow:howToUse "Point the StandpointClaim at one gmeow:StandpointModality individual; when the claim is flattened to an annotated statement, this becomes gmeow:standpointModality, and an absent value reads as unequivocal."@x-gmeow-english ;
@@ -99,6 +106,12 @@ gmeow:conceivable
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "conceivable (◊, possible)"@x-gmeow-english ;
     skos:definition "◊_S — possible according to the standpoint: the proposition holds in some precisification the standpoint admits, but is not settled (CRMinf belief value 'possible')."@x-gmeow-english ;
+    gmeow:decomposesToAxis gmeow:polaritySuspend ,
+        gmeow:modalForcePossible ,
+        gmeow:credencePossible ,
+        gmeow:assertoricAssume ,
+        gmeow:truthAimed ,
+        gmeow:supportNeither ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
@@ -107,6 +120,12 @@ gmeow:probable
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "probable"@x-gmeow-english ;
     skos:definition "Likely true according to the standpoint — held more strongly than merely possible, but short of settled (CRMinf belief value 'probable')."@x-gmeow-english ;
+    gmeow:decomposesToAxis gmeow:polarityAffirm ,
+        gmeow:modalForceActual ,
+        gmeow:credenceLikely ,
+        gmeow:assertoricConjecture ,
+        gmeow:truthAimed ,
+        gmeow:supportSupported ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
@@ -115,6 +134,12 @@ gmeow:refuted
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "refuted (□¬, false)"@x-gmeow-english ;
     skos:definition "□¬_S — settled false according to the standpoint: the standpoint DENIES the proposition (CRMinf belief value 'false'). Distinct from silence (no claim) and from low gmeow:confidence — an explicit, recorded denial. The proposition is carried as the subject of the denial, never asserted as a fact of the universal standpoint."@x-gmeow-english ;
+    gmeow:decomposesToAxis gmeow:polarityDeny ,
+        gmeow:modalForceNecessary ,
+        gmeow:credenceCertain ,
+        gmeow:assertoricAssert ,
+        gmeow:truthAimed ,
+        gmeow:supportOpposed ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
@@ -153,7 +178,7 @@ gmeow:standpointModality
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpoint modality"@x-gmeow-english ;
     rdfs:range gmeow:StandpointModality ;
-    skos:definition "The belief value a standpoint assigns the annotated proposition — *how* the standpoint holds it, not merely *that* it holds it. This single axis is at least as expressive as BOTH the Standpoint-Logic modal operators (□_S / ◊_S) AND the CRMinf belief value (true / false / probable / possible): gmeow:unequivocal (□, settled true), gmeow:probable (likely true), gmeow:conceivable (◊, possible), gmeow:refuted (□¬, settled false — the standpoint DENIES the proposition), gmeow:bullshit (indifference to truth — Frankfurt). Optional; ABSENT is read as unequivocal. Orthogonal to gmeow:confidence (our certainty about the standpoint's stance) and gmeow:accordingTo (whose frame). Refutation is what lets GMEOW distinguish a standpoint's explicit denial from its silence — the neutral-stance ambiguity flat models cannot resolve."@x-gmeow-english ;
+    skos:definition "The belief value a standpoint assigns the annotated proposition — *how* the standpoint holds it, not merely *that* it holds it. This single axis is at least as expressive as BOTH the Standpoint-Logic modal operators (□_S / ◊_S) AND the CRMinf belief value (true / false / probable / possible): gmeow:unequivocal (□, settled true), gmeow:probable (likely true), gmeow:conceivable (◊, possible), gmeow:refuted (□¬, settled false — the standpoint DENIES the proposition), gmeow:bullshit (indifference to truth — Frankfurt). Optional; ABSENT is read as unequivocal. Orthogonal to gmeow:confidence (our certainty about the standpoint's stance) and gmeow:accordingTo (whose frame). Refutation is what lets GMEOW distinguish a standpoint's explicit denial from its silence — the neutral-stance ambiguity flat models cannot resolve. PROJECTION SURFACE: this five-value axis is now the lossless projection of the six canonical axes (gmeow:standpointPolarity, gmeow:standpointModalForce, gmeow:standpointCredence / gmeow:standpointCredenceLevel, gmeow:standpointAssertoricForce, gmeow:standpointTruthDirectedness, gmeow:standpointSupportStatus); author the axes, not this convenience twin."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernStandpoints ,
         gmeow:concernStatementMetadata ;
     gmeow:graphBoxRole gmeow:boxCBox ,
@@ -192,6 +217,12 @@ gmeow:unequivocal
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "unequivocal (□, true)"@x-gmeow-english ;
     skos:definition "□_S — settled / necessary true according to the standpoint: the proposition holds in every precisification the standpoint admits (CRMinf belief value 'true'). The default when no gmeow:standpointModality is given."@x-gmeow-english ;
+    gmeow:decomposesToAxis gmeow:polarityAffirm ,
+        gmeow:modalForceNecessary ,
+        gmeow:credenceCertain ,
+        gmeow:assertoricAssert ,
+        gmeow:truthAimed ,
+        gmeow:supportSupported ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
@@ -202,6 +233,479 @@ gmeow:universalStandpoint
     skos:definition "The universal standpoint * — the top of the poset, admitting every precisification: the uncontested global facts every standpoint shares. A statement with no gmeow:accordingTo is held according to the universal standpoint; every standpoint gmeow:sharpens it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Factored claim modality.
+# The closed 5-value gmeow:StandpointModality fuses four separable epistemic
+# notions onto one axis. The six orthogonal canonical axes below are what claims
+# author directly; the legacy five values are RETAINED as a lossless projection
+# (see gmeow:decomposesToAxis bundles and crates/slice/src/standpoint_modality.rs).
+# DL-clean: every axis class is rdfs:subClassOf logic:QualityValue (disjoint from
+# gmeow:Entity); the logic: machinery (Standpoint-Logic □/◊, Belnap support) stays
+# central in slices/core/logic and is referenced by prose only — no asserted
+# logic: triples here.
+# ─────────────────────────────────────────────────────────────────────────────
+
+gmeow:Polarity
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "Polarity"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The assertoric-polarity axis of a standpoint claim — the direction in which the standpoint takes the proposition: gmeow:polarityAffirm (holds it), gmeow:polarityDeny (denies it), gmeow:polaritySuspend (withholds — neither affirms nor denies). One of the six orthogonal canonical claim-modality axes from which the legacy gmeow:StandpointModality projects. polarityDeny is frame-relative denial, NEVER a global-false verdict (Principle 9). Formalized by the Standpoint-Logic assertion sign in slices/core/logic — referenced here by prose only."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:claimPolarity gmeow:polarityDeny ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading gmeow:polarityDeny as a global truth verdict — it is one frame's denial, coexisting with rival affirmations (Principle 9) — and avoid conflating gmeow:polaritySuspend (an explicit withholding) with the absence of any claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference one seeded polarity individual from a gmeow:StandpointClaim via gmeow:claimPolarity, or from an annotated statement via gmeow:standpointPolarity; an absent value reads as gmeow:polarityAffirm."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the affirm / deny / suspend direction a standpoint takes toward a proposition — the axis from which the legacy gmeow:refuted (deny) is projected."@x-gmeow-english .
+
+gmeow:polarityAffirm
+    a gmeow:Polarity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "affirm"@x-gmeow-english ;
+    skos:definition "The standpoint holds the proposition — takes it as the case. The affirmative polarity; the default when no gmeow:claimPolarity is given."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:polarityDeny
+    a gmeow:Polarity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "deny"@x-gmeow-english ;
+    skos:definition "The standpoint DENIES the proposition — frame-relative denial, distinct from silence (gmeow:polaritySuspend) and from low credence, NEVER a global-false verdict (Principle 9). The polarity from which the legacy gmeow:refuted projects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:polaritySuspend
+    a gmeow:Polarity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "suspend"@x-gmeow-english ;
+    skos:definition "The standpoint neither affirms nor denies — withholds judgement. Distinct from gmeow:polarityDeny (an explicit denial) and from no claim at all. The polarity from which the legacy gmeow:conceivable projects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:ModalForce
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "Modal Force"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The alethic modal-force axis — the □/◊ register under which a standpoint holds a proposition: gmeow:modalForceNecessary (□, settled across every admitted precisification), gmeow:modalForceActual (holds in the actual case), gmeow:modalForcePossible (◊, holds in some admitted precisification), gmeow:modalForceCounterfactual (holds in a non-actual world). Orthogonal to gmeow:CredenceLevel (graded belief) and to gmeow:confidence (our certainty about the stance) — probability ≠ modal possibility ≠ confidence. One of the six axes; formalized by the Standpoint-Logic □_S/◊_S operators in slices/core/logic."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:claimModalForce gmeow:modalForcePossible ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating gmeow:modalForcePossible (◊, an alethic register) with a low gmeow:CredenceLevel (graded belief) or with low gmeow:confidence (our certainty) — the three are orthogonal axes, not points on one scale."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference one seeded modal-force individual from a gmeow:StandpointClaim via gmeow:claimModalForce, or from an annotated statement via gmeow:standpointModalForce; an absent value reads as gmeow:modalForceNecessary."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the alethic □/◊ register — necessary / actual / possible / counterfactual — under which a standpoint holds a proposition, kept distinct from credence and confidence."@x-gmeow-english .
+
+gmeow:modalForceNecessary
+    a gmeow:ModalForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "necessary (□)"@x-gmeow-english ;
+    skos:definition "□_S — the proposition is settled in every precisification the standpoint admits. The alethic force from which the legacy gmeow:unequivocal and gmeow:refuted project. The default when no gmeow:claimModalForce is given."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:modalForceActual
+    a gmeow:ModalForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "actual"@x-gmeow-english ;
+    skos:definition "The proposition holds in the actual case — neither raised to necessity nor weakened to mere possibility. The alethic force from which the legacy gmeow:probable and gmeow:bullshit project."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:modalForcePossible
+    a gmeow:ModalForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "possible (◊)"@x-gmeow-english ;
+    skos:definition "◊_S — the proposition holds in some precisification the standpoint admits, but is not settled. The alethic force from which the legacy gmeow:conceivable projects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:modalForceCounterfactual
+    a gmeow:ModalForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "counterfactual"@x-gmeow-english ;
+    skos:definition "The proposition holds in a counterfactual / non-actual world — a supposition contrary to fact. Distinct from gmeow:modalForcePossible (◊ over admitted precisifications); no legacy gmeow:StandpointModality value projects from it, so a claim carrying it has no lossless legacy equivalent (hard-unsupported on projection)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:CredenceLevel
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "Credence Level"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The qualitative credence-band axis — a closed companion vocabulary to the numeric gmeow:standpointCredence / gmeow:claimCredence (xsd:decimal in [0,1]): gmeow:credenceCertain, gmeow:credenceLikely, gmeow:credencePossible, gmeow:credenceUnspecified. The lossless legacy projection keys on the qualitative band (the AUTHORITATIVE projection surface); the decimal is the richer ADVISORY authoring surface. Canonical decimal-to-band thresholds: credenceUnspecified ⟺ no decimal present (credence axis left open); credencePossible ⟺ decimal in [0.0, 0.5); credenceLikely ⟺ decimal in [0.5, 0.9); credenceCertain ⟺ decimal in [0.9, 1.0]. Any decimal outside [0,1] is malformed. When BOTH a band and a decimal are present the decimal MUST fall within the band's range (enforced by gmeow:CredenceBandConsistencyShape). Authoring ONLY the decimal (no band) does NOT project to a legacy value — this is intentional non-approximation (Principle 9), not a silent default; author the band for projection. The thresholds make the band deterministically derivable from the decimal by any consumer that needs it. Distinct from gmeow:ModalForce (alethic register) and gmeow:confidence (our certainty about the stance). One of the six axes."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:claimCredenceLevel gmeow:credenceLikely ; gmeow:claimCredence 0.7 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a credence band as a global truth verdict, and avoid conflating it with gmeow:ModalForce (alethic □/◊) or gmeow:confidence (our certainty about the standpoint's stance) — graded belief, modal force, and confidence are three orthogonal axes. Avoid asserting a band and a decimal whose value falls outside the band's canonical threshold range."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference one band individual via gmeow:claimCredenceLevel (or gmeow:standpointCredenceLevel) for the projection-keying qualitative surface, and optionally carry the precise xsd:decimal via gmeow:claimCredence / gmeow:standpointCredence; when both are present the decimal must fall within the band's threshold range. The band is the AUTHORITATIVE projection key; the decimal is advisory finer-grained detail."@x-gmeow-english ;
+    gmeow:useWhen "Use as the closed qualitative band a standpoint's graded belief falls into — certain / likely / possible / unspecified — the AUTHORITATIVE surface the lossless legacy projection keys on, paired with the optional precise decimal that must lie within its threshold range."@x-gmeow-english .
+
+gmeow:credenceCertain
+    a gmeow:CredenceLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "certain"@x-gmeow-english ;
+    skos:definition "The standpoint's graded belief is at or near the top of the credence scale — practically settled. Decimal credence in [0.9, 1.0]. The band from which the legacy gmeow:unequivocal and gmeow:refuted project."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:credenceLikely
+    a gmeow:CredenceLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "likely"@x-gmeow-english ;
+    skos:definition "The standpoint's graded belief is high but short of settled — decimal credence in [0.5, 0.9). The band from which the legacy gmeow:probable projects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:credencePossible
+    a gmeow:CredenceLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "possible"@x-gmeow-english ;
+    skos:definition "The standpoint's graded belief is low — the proposition is entertained but not endorsed — decimal credence in [0.0, 0.5). The band from which the legacy gmeow:conceivable projects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:credenceUnspecified
+    a gmeow:CredenceLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "unspecified"@x-gmeow-english ;
+    skos:definition "No graded belief is asserted — the credence axis is left open; no decimal is present. Carrying a numeric decimal alongside this band is contradictory (a decimal asserts graded belief while this band asserts there is none) and is rejected by gmeow:CredenceBandConsistencyShape. The band from which the legacy gmeow:bullshit projects (the bullshitter has no credence stake in the proposition)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:AssertoricForce
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "Assertoric Force"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The assertoric-force / speech-act axis — what the standpoint DOES with the proposition: gmeow:assertoricAssert (puts it forward as true), gmeow:assertoricConjecture (offers it tentatively), gmeow:assertoricAssume (supposes it for the sake of argument), gmeow:assertoricRetract (withdraws a prior assertion, retained not erased — Principle 10). One of the six axes."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:claimAssertoricForce gmeow:assertoricConjecture ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating gmeow:assertoricAssume (a supposition not endorsed) with gmeow:assertoricAssert (an endorsement), and never delete a retracted assertion — gmeow:assertoricRetract closes it as a retained act (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference one seeded force individual from a gmeow:StandpointClaim via gmeow:claimAssertoricForce, or from an annotated statement via gmeow:standpointAssertoricForce; an absent value reads as gmeow:assertoricAssert."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the speech-act force — assert / conjecture / assume / retract — a standpoint applies to a proposition."@x-gmeow-english .
+
+gmeow:assertoricAssert
+    a gmeow:AssertoricForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "assert"@x-gmeow-english ;
+    skos:definition "The standpoint puts the proposition forward as true — the default assertoric force from which the legacy gmeow:unequivocal, gmeow:refuted, and gmeow:bullshit project."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:assertoricConjecture
+    a gmeow:AssertoricForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "conjecture"@x-gmeow-english ;
+    skos:definition "The standpoint offers the proposition tentatively — a guess put up for testing. The force from which the legacy gmeow:probable projects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:assertoricAssume
+    a gmeow:AssertoricForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "assume"@x-gmeow-english ;
+    skos:definition "The standpoint supposes the proposition for the sake of argument, without endorsing it. The force from which the legacy gmeow:conceivable projects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:assertoricRetract
+    a gmeow:AssertoricForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "retract"@x-gmeow-english ;
+    skos:definition "The standpoint withdraws a prior assertion — retained as a closed act, never erased (Principle 10). No legacy gmeow:StandpointModality value projects from it, so a claim carrying it has no lossless legacy equivalent (hard-unsupported on projection)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:TruthDirectedness
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "Truth Directedness"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The truth-directedness axis — the standpoint's orientation toward the truth of the proposition: gmeow:truthAimed (aims at correspondence), gmeow:truthIndifferent (Frankfurt's bullshit — asserts with indifference to truth-value, neither true nor false under the stance), gmeow:truthStrategic (asserts to achieve an effect rather than to track truth). gmeow:truthIndifferent is what carries the legacy gmeow:bullshit — it is NOT a truth value and NOT a denial. One of the six axes."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:claimTruthDirectedness gmeow:truthIndifferent ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating gmeow:truthIndifferent as a polarity or a truth value — it is an orthogonal orientation (Frankfurt's bullshit); a bullshit claim still has gmeow:polarityAffirm. Avoid conflating gmeow:truthStrategic (instrumental care for truth) with gmeow:truthIndifferent (no care at all)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference one seeded orientation individual from a gmeow:StandpointClaim via gmeow:claimTruthDirectedness, or from an annotated statement via gmeow:standpointTruthDirectedness; an absent value reads as gmeow:truthAimed."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the standpoint's orientation toward truth — truth-aimed / indifferent / strategic — the axis that carries the legacy gmeow:bullshit (indifferent)."@x-gmeow-english .
+
+gmeow:truthAimed
+    a gmeow:TruthDirectedness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "truth-aimed"@x-gmeow-english ;
+    skos:definition "The standpoint aims at correspondence — it asserts in order to track the truth. The orientation from which the four non-bullshit legacy values (gmeow:unequivocal, gmeow:probable, gmeow:conceivable, gmeow:refuted) project. The default when no gmeow:claimTruthDirectedness is given."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:truthIndifferent
+    a gmeow:TruthDirectedness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "indifferent (bullshit)"@x-gmeow-english ;
+    skos:definition "Frankfurt's bullshit — the standpoint asserts with indifference to the truth-value of the proposition, neither true nor false under the stance. This axis value — NOT a polarity, NOT a truth value — is what carries the legacy gmeow:bullshit; a bullshit claim still affirms (gmeow:polarityAffirm) with an open credence (gmeow:credenceUnspecified)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:truthStrategic
+    a gmeow:TruthDirectedness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "strategic"@x-gmeow-english ;
+    skos:definition "The standpoint asserts to achieve an effect (persuasion, manoeuvre) rather than to track truth, while still caring instrumentally about it. Distinct from gmeow:truthIndifferent (no care at all); no legacy gmeow:StandpointModality value projects from it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:SupportStatus
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "Support Status"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The Belnap evidential-support axis — the four-valued status of proof / counterproof a standpoint has for the proposition: gmeow:supportSupported (proof, no counterproof), gmeow:supportOpposed (counterproof, no proof), gmeow:supportBoth (a witnessed glut — proof AND counterproof coexist within one frame), gmeow:supportNeither (a gap — neither). gmeow:supportBoth is admissible. Self-contained gmeow domain vocabulary aligned by prose reference to logic:InformationState; one of the six axes."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:claimSupportStatus gmeow:supportBoth ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading gmeow:supportOpposed as a global-false verdict (it is one frame's counterproof, Principle 9), and avoid suppressing gmeow:supportBoth — a witnessed contradiction within a frame is admissible, not an error to be normalised away."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference one seeded status individual from a gmeow:StandpointClaim via gmeow:claimSupportStatus, or from an annotated statement via gmeow:standpointSupportStatus; the Belnap glut gmeow:supportBoth and gap gmeow:supportNeither are both legal values."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the Belnap evidential status — supported / opposed / both / neither — a standpoint has for a proposition, aligned by prose to logic:InformationState."@x-gmeow-english .
+
+gmeow:supportSupported
+    a gmeow:SupportStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "supported"@x-gmeow-english ;
+    skos:definition "Belnap: a proof and no counterproof. The evidential state from which the legacy gmeow:unequivocal and gmeow:probable project."@x-gmeow-english ;
+    skos:scopeNote "Corresponds (by prose reference, Principle 5) to the now-live logic:InfoSupported — the Belnap reasoning-result information state this domain support status mirrors; the typed bridge stays a logic:formalizes back-reference from the logic slice, never an asserted logic: triple here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:supportOpposed
+    a gmeow:SupportStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "opposed"@x-gmeow-english ;
+    skos:definition "Belnap: a counterproof and no proof. The evidential state from which the legacy gmeow:refuted projects — frame-relative, never a global-false verdict (Principle 9)."@x-gmeow-english ;
+    skos:scopeNote "Corresponds (by prose reference, Principle 5) to the now-live logic:InfoOpposed — the Belnap reasoning-result information state this domain support status mirrors; the typed bridge stays a logic:formalizes back-reference from the logic slice, never an asserted logic: triple here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:supportBoth
+    a gmeow:SupportStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "both"@x-gmeow-english ;
+    skos:definition "Belnap: a witnessed glut — proof AND counterproof coexist within one frame. Admissible; no legacy gmeow:StandpointModality value projects from it, so a claim carrying it has no lossless legacy equivalent (hard-unsupported on projection)."@x-gmeow-english ;
+    skos:scopeNote "Corresponds (by prose reference, Principle 5) to the now-live logic:InfoBoth — the Belnap reasoning-result information state this domain support status mirrors; the typed bridge stays a logic:formalizes back-reference from the logic slice, never an asserted logic: triple here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:supportNeither
+    a gmeow:SupportStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "neither"@x-gmeow-english ;
+    skos:definition "Belnap: a gap — neither proof nor counterproof. The evidential state from which the legacy gmeow:conceivable and gmeow:bullshit project."@x-gmeow-english ;
+    skos:scopeNote "Corresponds (by prose reference, Principle 5) to the now-live logic:InfoNeither — the Belnap reasoning-result information state this domain support status mirrors; the typed bridge stays a logic:formalizes back-reference from the logic slice, never an asserted logic: triple here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+# ── Annotation twins (flattened / annotated-statement form, mirror gmeow:standpointModality) ──
+
+gmeow:standpointPolarity
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "standpoint polarity"@x-gmeow-english ;
+    rdfs:range gmeow:Polarity ;
+    skos:definition "The affirm / deny / suspend direction a standpoint takes toward the annotated proposition. The flattened-statement twin of gmeow:claimPolarity; absent reads as gmeow:polarityAffirm. polarityDeny is frame-relative denial, never global-false (Principle 9)."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernStandpoints ,
+        gmeow:concernStatementMetadata ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:standpointModalForce
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "standpoint modal force"@x-gmeow-english ;
+    rdfs:range gmeow:ModalForce ;
+    skos:definition "The alethic □/◊ register under which a standpoint holds the annotated proposition. The flattened-statement twin of gmeow:claimModalForce; absent reads as gmeow:modalForceNecessary. Orthogonal to credence and gmeow:confidence."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernStandpoints ,
+        gmeow:concernStatementMetadata ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:standpointCredence
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "standpoint credence"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The precise graded belief (xsd:decimal in [0,1]) a standpoint assigns the annotated proposition — the ADVISORY authoring surface paired with the AUTHORITATIVE qualitative gmeow:standpointCredenceLevel band the lossless projection keys on. When both are present the decimal MUST fall within the band's canonical threshold range: credencePossible [0.0, 0.5), credenceLikely [0.5, 0.9), credenceCertain [0.9, 1.0]. Authoring only the decimal (no band) does NOT project to a legacy value — intentional non-approximation (Principle 9). Decimals outside [0,1] are malformed. Distinct from gmeow:ModalForce (alethic register) and gmeow:confidence (our certainty about the stance)."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernStandpoints ,
+        gmeow:concernStatementMetadata ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:standpointCredenceLevel
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "standpoint credence level"@x-gmeow-english ;
+    rdfs:range gmeow:CredenceLevel ;
+    skos:definition "The qualitative credence band a standpoint assigns the annotated proposition — the projection-keying twin of gmeow:standpointCredence. The flattened-statement twin of gmeow:claimCredenceLevel."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernStandpoints ,
+        gmeow:concernStatementMetadata ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:standpointAssertoricForce
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "standpoint assertoric force"@x-gmeow-english ;
+    rdfs:range gmeow:AssertoricForce ;
+    skos:definition "The speech-act force — assert / conjecture / assume / retract — a standpoint applies to the annotated proposition. The flattened-statement twin of gmeow:claimAssertoricForce; absent reads as gmeow:assertoricAssert."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernStandpoints ,
+        gmeow:concernStatementMetadata ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:standpointTruthDirectedness
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "standpoint truth directedness"@x-gmeow-english ;
+    rdfs:range gmeow:TruthDirectedness ;
+    skos:definition "The standpoint's orientation toward the truth of the annotated proposition — truth-aimed / indifferent / strategic. The flattened-statement twin of gmeow:claimTruthDirectedness; absent reads as gmeow:truthAimed. gmeow:truthIndifferent carries the legacy gmeow:bullshit."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernStandpoints ,
+        gmeow:concernStatementMetadata ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:standpointSupportStatus
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "standpoint support status"@x-gmeow-english ;
+    rdfs:range gmeow:SupportStatus ;
+    skos:definition "The Belnap evidential status — supported / opposed / both / neither — a standpoint has for the annotated proposition. The flattened-statement twin of gmeow:claimSupportStatus. Aligned by prose to logic:InformationState."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernStandpoints ,
+        gmeow:concernStatementMetadata ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+# ── Reified twins (StandpointClaim form, mirror gmeow:claimModality; functional; NOT subPropertyOf observationResult) ──
+
+gmeow:claimPolarity
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claim polarity"@x-gmeow-english ;
+    rdfs:range gmeow:Polarity ;
+    skos:definition "The affirm / deny / suspend polarity assigned to a gmeow:StandpointClaim. Not declared rdfs:subPropertyOf gmeow:observationResult because gmeow:Polarity (a logic:QualityValue / abstract individual) is disjoint from gmeow:Entity in the DL profile. When the claim is flattened, claimPolarity becomes gmeow:standpointPolarity. gmeow:polarityDeny is the canonical carrier of the legacy gmeow:refuted — frame-relative, never global-false (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:lieHeldClaim gmeow:claimPolarity gmeow:polarityDeny ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting two polarities — it is functional — and avoid reading gmeow:polarityDeny as a global truth verdict; it denies the claim from this frame only (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point the StandpointClaim at one gmeow:Polarity individual; absent reads as gmeow:polarityAffirm, and on flattening it becomes gmeow:standpointPolarity."@x-gmeow-english ;
+    gmeow:useWhen "Use to assign the affirm / deny / suspend direction a gmeow:StandpointClaim takes — the reified-relator counterpart of gmeow:standpointPolarity and the canonical carrier of the legacy refuted (deny)."@x-gmeow-english .
+
+gmeow:claimModalForce
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claim modal force"@x-gmeow-english ;
+    rdfs:range gmeow:ModalForce ;
+    skos:definition "The alethic □/◊ modal force assigned to a gmeow:StandpointClaim. Not rdfs:subPropertyOf gmeow:observationResult (DL disjointness, as gmeow:claimModality). When the claim is flattened, it becomes gmeow:standpointModalForce. Orthogonal to credence and gmeow:confidence."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:claimModalForce gmeow:modalForceNecessary ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting two modal forces — it is functional — and avoid conflating gmeow:modalForcePossible with a low credence band or low gmeow:confidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point the StandpointClaim at one gmeow:ModalForce individual; absent reads as gmeow:modalForceNecessary, and on flattening it becomes gmeow:standpointModalForce."@x-gmeow-english ;
+    gmeow:useWhen "Use to assign the alethic □/◊ register a gmeow:StandpointClaim carries — the reified-relator counterpart of gmeow:standpointModalForce, kept distinct from credence and confidence."@x-gmeow-english .
+
+gmeow:claimCredence
+    a owl:FunctionalProperty ,
+        owl:DatatypeProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claim credence"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The precise graded belief (xsd:decimal in [0,1]) assigned to a gmeow:StandpointClaim — the ADVISORY authoring surface paired with the AUTHORITATIVE qualitative gmeow:claimCredenceLevel band the projection keys on. When both are present the decimal MUST fall within the band's canonical threshold range: credencePossible [0.0, 0.5), credenceLikely [0.5, 0.9), credenceCertain [0.9, 1.0]. Authoring only the decimal (no band) does NOT project to a legacy value — intentional non-approximation (Principle 9); author the band for projection. Decimals outside [0,1] are malformed and rejected by gmeow:ClaimCredenceRangeShape. When the claim is flattened, it becomes gmeow:standpointCredence. Distinct from gmeow:ModalForce and gmeow:confidence."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:claimCredence 0.7 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting two credence values — it is functional — and avoid treating the decimal as a global truth verdict; pair it with gmeow:claimCredenceLevel, which the lossless legacy projection actually keys on. Avoid decimals outside [0,1] (malformed) and avoid pairing a decimal with a band whose threshold range it does not satisfy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Carry the precise decimal in [0,1] on the StandpointClaim alongside the qualitative gmeow:claimCredenceLevel band; the decimal must lie within the band's threshold range (credencePossible [0,0.5), credenceLikely [0.5,0.9), credenceCertain [0.9,1.0]). On flattening it becomes gmeow:standpointCredence."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the precise numeric credence a gmeow:StandpointClaim carries — the advisory finer-grained surface that must be consistent with the authoritative qualitative band whose threshold range contains it."@x-gmeow-english .
+
+gmeow:claimCredenceLevel
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claim credence level"@x-gmeow-english ;
+    rdfs:range gmeow:CredenceLevel ;
+    skos:definition "The qualitative credence band assigned to a gmeow:StandpointClaim — the projection-keying twin of gmeow:claimCredence. Not rdfs:subPropertyOf gmeow:observationResult (DL disjointness). When the claim is flattened, it becomes gmeow:standpointCredenceLevel."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:claimCredenceLevel gmeow:credenceLikely ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting two bands — it is functional — and avoid using the band as a global truth verdict; it is one frame's graded belief."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point the StandpointClaim at one gmeow:CredenceLevel band, optionally alongside the precise gmeow:claimCredence; on flattening it becomes gmeow:standpointCredenceLevel."@x-gmeow-english ;
+    gmeow:useWhen "Use to assign the qualitative credence band a gmeow:StandpointClaim carries — the surface the lossless legacy projection keys on."@x-gmeow-english .
+
+gmeow:claimAssertoricForce
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claim assertoric force"@x-gmeow-english ;
+    rdfs:range gmeow:AssertoricForce ;
+    skos:definition "The speech-act force — assert / conjecture / assume / retract — assigned to a gmeow:StandpointClaim. Not rdfs:subPropertyOf gmeow:observationResult (DL disjointness). When the claim is flattened, it becomes gmeow:standpointAssertoricForce."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:claimAssertoricForce gmeow:assertoricConjecture ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting two forces — it is functional — and never delete a retracted assertion; gmeow:assertoricRetract closes it as a retained act (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point the StandpointClaim at one gmeow:AssertoricForce individual; absent reads as gmeow:assertoricAssert, and on flattening it becomes gmeow:standpointAssertoricForce."@x-gmeow-english ;
+    gmeow:useWhen "Use to assign the speech-act force a gmeow:StandpointClaim carries — the reified-relator counterpart of gmeow:standpointAssertoricForce."@x-gmeow-english .
+
+gmeow:claimTruthDirectedness
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claim truth directedness"@x-gmeow-english ;
+    rdfs:range gmeow:TruthDirectedness ;
+    skos:definition "The standpoint's orientation toward truth — truth-aimed / indifferent / strategic — assigned to a gmeow:StandpointClaim. Not rdfs:subPropertyOf gmeow:observationResult (DL disjointness). When the claim is flattened, it becomes gmeow:standpointTruthDirectedness. gmeow:truthIndifferent is the canonical carrier of the legacy gmeow:bullshit."@x-gmeow-english ;
+    skos:example "ex:bullshitClaim gmeow:claimTruthDirectedness gmeow:truthIndifferent ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting two orientations — it is functional — and avoid treating gmeow:truthIndifferent as a polarity or truth value; a bullshit claim still affirms (gmeow:polarityAffirm)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point the StandpointClaim at one gmeow:TruthDirectedness individual; absent reads as gmeow:truthAimed, and on flattening it becomes gmeow:standpointTruthDirectedness."@x-gmeow-english ;
+    gmeow:useWhen "Use to assign the standpoint's truth-orientation a gmeow:StandpointClaim carries — the canonical carrier of the legacy bullshit (indifferent)."@x-gmeow-english .
+
+gmeow:claimSupportStatus
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claim support status"@x-gmeow-english ;
+    rdfs:range gmeow:SupportStatus ;
+    skos:definition "The Belnap evidential status — supported / opposed / both / neither — assigned to a gmeow:StandpointClaim. Not rdfs:subPropertyOf gmeow:observationResult (DL disjointness). When the claim is flattened, it becomes gmeow:standpointSupportStatus. Aligned by prose to logic:InformationState."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:claimSupportStatus gmeow:supportBoth ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting two statuses — it is functional — and avoid normalising away gmeow:supportBoth; a witnessed glut within a frame is admissible (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point the StandpointClaim at one gmeow:SupportStatus individual; the glut gmeow:supportBoth and gap gmeow:supportNeither are both legal, and on flattening it becomes gmeow:standpointSupportStatus."@x-gmeow-english ;
+    gmeow:useWhen "Use to assign the Belnap evidential status a gmeow:StandpointClaim carries — the reified-relator counterpart of gmeow:standpointSupportStatus, aligned by prose to logic:InformationState."@x-gmeow-english .
+
+# ── Decomposition bundle property: each legacy gmeow:StandpointModality value declares its canonical six-axis decomposition (mirror of logic:expandsToFacet). The lossless projection in crates/slice/src/standpoint_modality.rs cross-checks the Rust table against these bundles. ──
+
+gmeow:decomposesToAxis
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "decomposes to axis"@x-gmeow-english ;
+    skos:definition "Relates a legacy gmeow:StandpointModality value to its canonical six-axis decomposition — one value individual from each of gmeow:Polarity, gmeow:ModalForce, gmeow:CredenceLevel, gmeow:AssertoricForce, gmeow:TruthDirectedness, gmeow:SupportStatus. The declarative source of truth (mirror of logic:expandsToFacet) the Rust lossless projection round-trips against. The range is intentionally open (the six axis value-classes); an annotation property to keep the OWL downcast DL-clean."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernStandpoints ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/standpoint>
     a owl:Ontology ;
@@ -214,8 +718,9 @@ DOCTRINE.
   * No single slot to win (CONSTITUTION Principle 9): a contested fact is several standpoint-indexed claims that coexist; there is no preferredRank / primary* selector.
   * Suppression, never erasure (Principle 10): a withdrawn claim or a closed tenure sets gmeow:displayable false; it is retained, not deleted.
   * DL-clean by construction (Principle 3): the standpoint axis is an owl:AnnotationProperty, so the generated OWL downcast stays OWL 2 DL.
+  * Factored modality: claim modality is six orthogonal canonical axes — gmeow:Polarity (affirm/deny/suspend) ⟂ gmeow:ModalForce (necessary/actual/possible/counterfactual) ⟂ gmeow:CredenceLevel + numeric gmeow:standpointCredence ⟂ gmeow:AssertoricForce (assert/conjecture/assume/retract) ⟂ gmeow:TruthDirectedness (truth-aimed/indifferent/strategic) ⟂ gmeow:SupportStatus (Belnap supported/opposed/both/neither). The legacy five-value gmeow:StandpointModality is RETAINED as a lossless projection of the axes (each value carries its canonical decomposition via gmeow:decomposesToAxis; the projection is round-tripped in crates/slice/src/standpoint_modality.rs, which hard-fails any axis tuple with no legacy equivalent rather than approximating). bullshit = truthDirectedness indifferent (not a truth value); refuted = polarity deny (frame-relative, never global-false). The logic: machinery (Standpoint-Logic □/◊, Belnap support) stays central in slices/core/logic, referenced here by prose only — no asserted logic: triples.
 
-FORMAL GROUNDING. The facility realises Standpoint Logic (Gómez Álvarez & Rudolph): gmeow:accordingTo is the axiom-level standpoint label (cf. Standpoint-OWL 2 standpointLabel); gmeow:standpointModality unequivocal / conceivable are the □_S / ◊_S operators; gmeow:sharpens is the standpoint ⊆ / precisification relation; gmeow:universalStandpoint is the universal standpoint *. See docs/standpoints.md."""@x-gmeow-english ;
+FORMAL GROUNDING. The facility realises Standpoint Logic (Gómez Álvarez & Rudolph): gmeow:accordingTo is the axiom-level standpoint label (cf. Standpoint-OWL 2 standpointLabel); gmeow:standpointModality unequivocal / conceivable are the □_S / ◊_S operators (gmeow:modalForceNecessary / gmeow:modalForcePossible on the factored axis); gmeow:sharpens is the standpoint ⊆ / precisification relation; gmeow:universalStandpoint is the universal standpoint *. See docs/standpoints.md."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "GMEOW Standpoint Module"@x-gmeow-english ;
     skos:definition "The GMEOW Standpoint Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;

@@ -8,7 +8,7 @@
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
 # =========================================================================== #
-# Finding well-formedness (#654): a projected finding carries exactly one
+# Finding well-formedness: a projected finding carries exactly one
 # severity, exactly one code, and exactly one message — closed-world checks the
 # EL someValuesFrom mediation in module.ttl cannot express.
 # =========================================================================== #

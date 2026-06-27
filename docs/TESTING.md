@@ -110,7 +110,7 @@ type-and-subsumption entailments competency questions actually need at a tiny
 fraction of the cost, and `crates/slicetest` carries **no `gmeow-logic`/Nemo
 dependency** as a result.
 
-### The OWL 2 RL entailment harness (`crates/logic/tests/ontology_entailments.rs`, #896)
+### The OWL 2 RL entailment harness (`crates/logic/tests/ontology_entailments.rs`)
 
 Genuine OWL 2 RL entailment tests — property chains, `owl:equivalentClass`
 classification, sub-class/sub-property subsumptions, EL consistency — live in a
@@ -120,7 +120,7 @@ A-Box, and runs `gmeow_logic::reason::rl_closure` over that small input. Scoping
 load-bearing: the chase is superlinear in fact count, so a one-/few-module closure
 runs in ~1–90 s where the full-ontology chase takes minutes. This is the native
 twin of the old `gmeow_tools` `_materialize(module, *abox)` pytest pattern (the
-reasoning cluster the ~45-min `python` lane was dominated by, migrated under #896).
+reasoning cluster the ~45-min `python` lane was dominated by, now migrated to native Rust).
 The harness runs under the `engine` nextest test-group (memory-capped, serialized)
 via `cargo nextest run -p gmeow-logic`.
 

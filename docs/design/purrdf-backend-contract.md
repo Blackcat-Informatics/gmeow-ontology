@@ -13,8 +13,8 @@ This document is normative for the purrdf backend traits (`DatasetView`,
 `DatasetMut`, `TermFactory`, `RdfParserBackend`, `SparqlEngine`, and
 `RdfSerializer`). `DatasetView` lives in
 [`crates/rdf-core/src/dataset_view.rs`](../../crates/rdf-core/src/dataset_view.rs)
-after the P2b crate split (#885); `DatasetMut` landed as the P5 write substrate
-(#839); the remaining four narrow seams land in P2d (#887).
+after the P2b crate split; `DatasetMut` landed as the P5 write substrate;
+the remaining four narrow seams land in P2d.
 
 ## C1 — Backend-selection: compile-time, single, required
 
@@ -39,7 +39,7 @@ runtime). P2a therefore ships the static trait and does **not** force object saf
 - The read view borrows; it never owns. `DatasetView` yields `QuadIds` (`Copy`,
   id-only) and `QuadRef<'a>` (borrowed term bytes from the backing term table). No
   per-quad heap allocation, no term-string clones (this kills the owned
-  `rdf_quad_from_oxigraph` double-tax of #819).
+  `rdf_quad_from_oxigraph` double-tax).
 - A cursor (the returned iterator) borrows the view for `'a`; it cannot outlive the
   view and does not pin a snapshot beyond the borrow. Concurrent mutation during
   iteration is impossible by construction (the read view is `&self`; mutation needs
@@ -55,12 +55,12 @@ equality** (zero string resolution on the hot path). The graph slot needs its ow
 type because storage keeps `g: Option<TermId>` where `None` = the default graph, and
 `Option<TermId>` cannot distinguish *"any graph"* from *"the default graph"*. Hence
 `enum GraphMatch { Any, Default, Named(TermId) }`. The P2a default impl is a linear
-scan; P4 (#838) overrides it with the lazy access-pattern indexes.
+scan; P4 overrides it with the lazy access-pattern indexes.
 
 ## C4 — Write side (DatasetMut): deferred to P2c/P5
 
 `DatasetMut` (insert/remove, `Base`/`Delta` COW handles) is delivered as the P5
-substrate (#839). SPARQL **UPDATE** and **transactions** are a backend concern
+substrate. SPARQL **UPDATE** and **transactions** are a backend concern
 (oxigraph provides them); the contract: UPDATE APIs live on the SPARQL backend
 trait (P2d), never on `DatasetView` (read-only), and an UPDATE is atomic per the
 backend's transaction semantics (oxigraph: serializable in-memory).
@@ -78,7 +78,7 @@ the in-memory oxigraph backend).
 
 - The read view is **infallible** for a frozen, validated `RdfDataset`: `quads`,
   `quad_refs`, `resolve`, `quads_for_pattern` cannot fail (validation happened at
-  freeze, #819). They therefore return values/iterators, not `Result`.
+  freeze). They therefore return values/iterators, not `Result`.
 - Fallible backend operations (parse, load, SPARQL eval, serialize) return
   `Result<_, RdfDiagnostic>` — the kernel's structured, SARIF-free diagnostic type
   (the single error currency; backends map their native errors into it). This keeps
@@ -96,7 +96,7 @@ is kernel-internal).
 ## C8 — Thread-safety
 
 A frozen `RdfDataset` (and `TermId`/`QuadIds`) is `Send + Sync` (asserted at compile
-time, #841) so a read view can be shared across threads for parallel reasoning.
+time) so a read view can be shared across threads for parallel reasoning.
 Per-handle: a `DatasetView` is `Sync` when its backing data is; mutable backends
 (`DatasetMut`) are `Send` but a single handle is not concurrently mutable (`&mut self`).
 Rayon-style fan-out over a shared `&RdfDataset` is sound today.
@@ -105,12 +105,12 @@ Rayon-style fan-out over a shared `&RdfDataset` is sound today.
 
 | Trait | Layer | Parcel | Object-safe? |
 |---|---|---|---|
-| `DatasetView` | static read | **P2a (#836)** | no (RPITIT) — fine, selection is compile-time |
-| `DatasetMut` | static write | **P5 (#839)** | no |
-| `TermFactory` | interning | **P2d (#887)** | no object-safety requirement |
-| `RdfParserBackend` | ingress | **P2d (#887)** over P6 events | erased only if runtime registry needed |
-| `SparqlEngine` | query/update | **P2d (#887)** | no object-safety requirement |
-| `RdfSerializer` | egress | **P2d (#887)** | no object-safety requirement |
+| `DatasetView` | static read | **P2a** | no (RPITIT) — fine, selection is compile-time |
+| `DatasetMut` | static write | **P5** | no |
+| `TermFactory` | interning | **P2d** | no object-safety requirement |
+| `RdfParserBackend` | ingress | **P2d** over P6 events | erased only if runtime registry needed |
+| `SparqlEngine` | query/update | **P2d** | no object-safety requirement |
+| `RdfSerializer` | egress | **P2d** | no object-safety requirement |
 
 The first concrete P2d adapter is `OxigraphBackend` in
 [`crates/rdf/src/oxigraph/backend.rs`](../../crates/rdf/src/oxigraph/backend.rs).

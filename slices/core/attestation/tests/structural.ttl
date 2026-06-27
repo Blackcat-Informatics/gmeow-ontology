@@ -7,7 +7,7 @@
 # SPARQL ASK over the attestation module graph (gmeow:scopeModule) under the
 # native Rust slicetest harness (crates/slicetest).
 #
-# Attestation is #694-migrated: class stereotypes are logic:
+# Attestation is migrated: class stereotypes are logic:
 # (logic:Kind, logic:AbstractIndividualType, logic:QualityValue, logic:Relator),
 # not gufo:.
 #
@@ -129,7 +129,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The three seeded AttestationType individuals MUST NOT be typed owl:Class -- the type vocabulary is open individuals, never subclasses (Principle 9). Mirrors test_attestation_type_is_value_vocabulary (not-class part)." .
 
-# --- 8a. Release-evidence AttestationType individuals exist (#673) (MUST) ------
+# --- 8a. Release-evidence AttestationType individuals exist (MUST) ------
 ex:saAttestationTypeReleaseEvidence a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -138,7 +138,7 @@ ASK {
     gmeow:attestationTypeConformanceVerdict   a gmeow:AttestationType .
     gmeow:attestationTypeCrossCheckAgreement  a gmeow:AttestationType .
 }""" ;
-    gmeow:saRationale "The two release-as-evidence gmeow:AttestationType individuals (#673) -- conformance verdict and cross-check agreement matrix -- MUST be present as AttestationType individuals so the signed full-release bundle can type its folded evidence frames (CONSTITUTION.md §18 release-as-evidence)." .
+    gmeow:saRationale "The two release-as-evidence gmeow:AttestationType individuals -- conformance verdict and cross-check agreement matrix -- MUST be present as AttestationType individuals so the signed full-release bundle can type its folded evidence frames (CONSTITUTION.md §18 release-as-evidence)." .
 
 # --- 8b. Release-evidence AttestationType individuals are NOT owl:Class (MUST-NOT)
 ex:saAttestationTypeReleaseEvidenceNotClasses a gmeow:StructuralAssertion ;
@@ -153,7 +153,7 @@ ASK {
     }
     ?seed a owl:Class .
 }""" ;
-    gmeow:saRationale "The two release-evidence AttestationType individuals (#673) MUST NOT be typed owl:Class -- like every type-vocabulary member they are open individuals, never subclasses (Principle 9)." .
+    gmeow:saRationale "The two release-evidence AttestationType individuals MUST NOT be typed owl:Class -- like every type-vocabulary member they are open individuals, never subclasses (Principle 9)." .
 
 # --- 9. SignatureScheme subclasses logic:QualityValue (MUST) -------------------
 ex:saSignatureSchemeIsQualityValue a gmeow:StructuralAssertion ;

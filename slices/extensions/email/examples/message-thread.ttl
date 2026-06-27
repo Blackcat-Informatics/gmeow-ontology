@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: an email message and its reply (#443). A gmeow:EmailMessage
+# Worked example: an email message and its reply. A gmeow:EmailMessage
 # carries the RFC 5322 envelope as first-class edges to gmeow:EmailAddresses —
 # gmeow:from, gmeow:to, gmeow:cc — plus a gmeow:subject. Threading is a relation
 # between messages, not a flat field: a reply points at what it answers with

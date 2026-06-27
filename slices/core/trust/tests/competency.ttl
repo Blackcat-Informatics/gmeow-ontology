@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative competency questions for the trust slice (crates/slicetest, #784),
+# Declarative competency questions for the trust slice (crates/slicetest),
 # migrated from the message-trust / key-scheme / key-certification / trust-assertion
-# competency tests in tests/test_competency.py under #867. TBox subsets over the
-# asserted merged ontology (contains-check). No #869 Gap-1 universal — fixed sets.
+# competency tests in tests/test_competency.py. TBox subsets over the
+# asserted merged ontology (contains-check). No Gap-1 universal — fixed sets.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/trust/tests/> .

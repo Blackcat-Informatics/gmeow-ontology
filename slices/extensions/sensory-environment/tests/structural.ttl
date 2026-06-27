@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the sensory-environment slice (#104) --
+# Declarative structural assertions for the sensory-environment slice --
 # the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
 # invariants formerly hand-written in tests/test_sensory_environment.py.
 # Each assertion runs as a SPARQL ASK over the sensory-environment module graph
 # (gmeow:scopeModule) under the native Rust slicetest harness
 # (crates/slicetest).
 #
-# sensory-environment is #694-migrated: class stereotypes are logic:
+# sensory-environment is migrated: class stereotypes are logic:
 # (logic:Kind, logic:SubKind, logic:AbstractIndividualType), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
@@ -89,7 +89,7 @@ ASK {
     gmeow:SensoryPerception a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:StandpointClaim .
 }""" ;
-    gmeow:saRationale "gmeow:SensoryPerception MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf gmeow:StandpointClaim -- perceptual claims are standpoint-indexed (#104). Mirrors test_sensory_perception_class_exists." .
+    gmeow:saRationale "gmeow:SensoryPerception MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf gmeow:StandpointClaim -- perceptual claims are standpoint-indexed. Mirrors test_sensory_perception_class_exists." .
 
 # --- 5. SensoryModality value vocabulary class exists (MUST) ------------------
 ex:saSensoryModalityIsValueVocab a gmeow:StructuralAssertion ;
@@ -222,7 +222,7 @@ ASK {
     ?r owl:onProperty gmeow:isHostedBy ;
        owl:someValuesFrom gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:MentalReferenceFrame MUST carry an rdfs:subClassOf restriction [owl:onProperty isHostedBy ; owl:someValuesFrom Entity] -- a mental frame must have a perceiver (Issue #87). Mirrors test_mental_reference_frame_requires_host (structural restriction-existence arm)." .
+    gmeow:saRationale "gmeow:MentalReferenceFrame MUST carry an rdfs:subClassOf restriction [owl:onProperty isHostedBy ; owl:someValuesFrom Entity] -- a mental frame must have a perceiver. Mirrors test_mental_reference_frame_requires_host (structural restriction-existence arm)." .
 
 # --- 15. Psychological mental reference frame seeds exist (MUST) --------------
 ex:saPsychologicalFrameSeeds a gmeow:StructuralAssertion ;
@@ -236,4 +236,4 @@ ASK {
     gmeow:referenceFrameCognitiveMapAllocentric   a gmeow:MentalReferenceFrame .
     gmeow:referenceFrameImaginedSpace             a gmeow:MentalReferenceFrame .
 }""" ;
-    gmeow:saRationale "All five psychological mental reference frame seeds (affective circumplex, conceptual space, egocentric/allocentric cognitive maps, imagined space) MUST be typed gmeow:MentalReferenceFrame (Issue #87). Mirrors test_psychological_reference_frame_seeds_exist." .
+    gmeow:saRationale "All five psychological mental reference frame seeds (affective circumplex, conceptual space, egocentric/allocentric cognitive maps, imagined space) MUST be typed gmeow:MentalReferenceFrame. Mirrors test_psychological_reference_frame_seeds_exist." .

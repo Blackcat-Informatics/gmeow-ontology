@@ -2,14 +2,14 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Declarative competency questions for the expertise slice, executed by the native
-# Rust slice-test harness (crates/slicetest, #784). Migrated from the expertise
-# competency tests in tests/test_competency.py under #867 (issue #263).
+# Rust slice-test harness (crates/slicetest). Migrated from the expertise
+# competency tests in tests/test_competency.py.
 #
 # All three are instance classifiers overlaying a synthetic ABox via
 # gmeow:cqDataFile (the merged ontology is TBox-only). Each query projects MULTIPLE
 # variables and the harness compares FULL rows, so every projected binding is
 # pinned (the source pytest only checked column 0; pinning all columns is strictly
-# more faithful to the query's answer). No #869 Gap-1 universal — fixed instance
+# more faithful to the query's answer). No Gap-1 universal — fixed instance
 # classifications.
 #
 # NOTE: test_competency_expertise_expiring_credentials is NOT migrated here. Its

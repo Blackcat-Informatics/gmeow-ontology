@@ -123,7 +123,7 @@ gmeow:eventTypeBullshit
     a gmeow:EventType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "bullshit"@x-gmeow-english ;
-    skos:definition "A deception event in which the deceiver projects an unequivocal standpoint while holding the bullshit modality — indifference to the truth-value of the proposition (Frankfurt, On Bullshit, 2005). Distinct from lying (which cares about truth and asserts the opposite) and from error (which cares and gets it wrong). Violates the Gricean maxim of Quality by unconcern rather than by inversion."@x-gmeow-english ;
+    skos:definition "A deception event in which the deceiver projects an unequivocal standpoint while holding gmeow:truthIndifferent — the bullshit truth-directedness axis value: indifference to the truth-value of the proposition (Frankfurt, On Bullshit, 2005). The held claim still affirms (gmeow:polarityAffirm) with an open credence (gmeow:credenceUnspecified) — bullshit is a truth-orientation, NOT a denial or a truth value, and projects to the legacy gmeow:bullshit. Distinct from lying (which cares about truth and asserts the opposite) and from error (which cares and gets it wrong). Violates the Gricean maxim of Quality by unconcern rather than by inversion."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
@@ -179,7 +179,7 @@ gmeow:eventTypeLie
     a gmeow:EventType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "lie / falsification"@x-gmeow-english ;
-    skos:definition "A deception event in which the projected standpoint negates the held standpoint — the deceiver communicates a proposition they believe to be false. The projected claim is held unequivocal by the deceiver's standpoint; the held claim is refuted by the universal standpoint or the assessor's frame. Violates the Gricean maxim of Quality."@x-gmeow-english ;
+    skos:definition "A deception event in which the projected standpoint negates the held standpoint — the deceiver communicates a proposition they believe to be false. The projected claim is held unequivocal (gmeow:polarityAffirm) by the deceiver's standpoint; the held claim is denied (gmeow:claimPolarity gmeow:polarityDeny, projecting to the legacy gmeow:refuted) by the universal standpoint or the assessor's frame — a frame-relative denial, never a global-false verdict (Principle 9). Violates the Gricean maxim of Quality."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
@@ -216,7 +216,7 @@ gmeow:heldStandpoint
     skos:definition "The doxastic standpoint claim that the deceiver actually holds to be true — a gmeow:DoxasticStandpointClaim whose gmeow:claimOfBelief observes the held gmeow:DoxasticState. It is the private belief or position that contrasts with the projected standpoint in a deception event. Non-functional: a complex deception may involve multiple held standpoints."@x-gmeow-english ;
     skos:example "ex:lie gmeow:heldStandpoint ex:heldClaim ."@x-gmeow-english ;
     skos:scopeNote "Range is gmeow:DoxasticStandpointClaim — a StandpointClaim that observes a held gmeow:DoxasticState via gmeow:claimOfBelief."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the communicated position the deceiver presents to the victim (that is gmeow:projectedStandpoint) and avoid using it to flag a proposition false — a falsehood is a refuted StandpointClaim (claimModality gmeow:refuted), never an isFalse flag."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the communicated position the deceiver presents to the victim (that is gmeow:projectedStandpoint) and avoid using it to flag a proposition false — a falsehood is a denied StandpointClaim (gmeow:claimPolarity gmeow:polarityDeny, projecting to the legacy gmeow:refuted), never an isFalse flag."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox ;
     gmeow:howToUse "Mint a gmeow:DoxasticStandpointClaim with the deceiver as gmeow:vantage, link it via gmeow:claimOfBelief to the held gmeow:DoxasticState, attach it via gmeow:heldStandpoint, and pair it with a divergent gmeow:projectedStandpoint; the gap between the two is the deception, asserted without any global truth verdict (Principle 9)."@x-gmeow-english ;
@@ -376,7 +376,7 @@ gmeow:veridicalityUntrue
     rdfs:comment """Cross-cutting deception, falsehood, and misinformation facility. Builds on the standpoint module (standpoint facility) and the event module (event/temporal design) to model deceptive acts as standpoint-indexed divergences between what a party holds true and what they project. Part of the Deception design.
 
 DOCTRINE.
-  * No isFalse / isDeceptive axiom and no boolean truth datatype property (Principles 1, 12). A falsehood is a frame-relative gmeow:StandpointClaim whose claimModality = gmeow:refuted (settled-false per a designated reference frame). Deceptiveness is asserted as a standpoint-indexed, attributed, confidence-weighted claim that coexists with its denial (Principle 9).
+  * No isFalse / isDeceptive axiom and no boolean truth datatype property (Principles 1, 12). A falsehood is a frame-relative gmeow:StandpointClaim whose polarity is gmeow:polarityDeny (the canonical carrier; projecting to the legacy claimModality = gmeow:refuted — settled-false per a designated reference frame). Deceptiveness is asserted as a standpoint-indexed, attributed, confidence-weighted claim that coexists with its denial (Principle 9).
   * A deception is the divergence held-standpoint ≠ projected-standpoint, both modelled as gmeow:DoxasticStandpointClaims; the gap is the act, not a truth verdict.
   * Deception kind is an open gmeow:eventType value, never a subclass (events.ttl doctrine).
   * Intent is kept OUT of the logic: gmeow:deceptiveIntentClaim is a StandpointClaim (attributed/defeasible — vantage = assessor, wasAttributedTo, confidence).

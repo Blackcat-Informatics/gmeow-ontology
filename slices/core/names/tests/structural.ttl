@@ -7,7 +7,7 @@
 # over the names module graph (gmeow:scopeModule) under the native Rust
 # slicetest harness (crates/slicetest).
 #
-# Names IS #694-migrated: class stereotypes are logic: (logic:Kind,
+# Names IS migrated: class stereotypes are logic: (logic:Kind,
 # logic:SubKind, logic:AbstractIndividualType), NOT gufo:.
 #
 # RETAINED in pytest (not migratable here):
@@ -59,7 +59,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:NameUsage rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:NameUsage MUST be rdfs:subClassOf logic:Relator -- stereotype namespace is logic: (post-#694 migration, not gufo:). Mirrors test_name_usage_is_a_relator." .
+    gmeow:saRationale "gmeow:NameUsage MUST be rdfs:subClassOf logic:Relator -- stereotype namespace is logic: (migrated, not gufo:). Mirrors test_name_usage_is_a_relator." .
 
 # --- 4. Constitutive NameUsage roles are functional ObjectProperties (MUST) --
 ex:saNameUsageConstitutiveRolesFunctional a gmeow:StructuralAssertion ;
@@ -124,7 +124,7 @@ ASK {
         rdfs:domain gmeow:Place ;
         rdfs:range gmeow:PlaceName .
 }""" ;
-    gmeow:saRationale "gmeow:hasPlaceName MUST be an owl:ObjectProperty rdfs:subPropertyOf gmeow:hasAppellation with domain gmeow:Place and range gmeow:PlaceName -- place-scoped specialization replacing the retired flat alternateName (#105). Mirrors test_has_place_name_subproperty_of_hasappellation." .
+    gmeow:saRationale "gmeow:hasPlaceName MUST be an owl:ObjectProperty rdfs:subPropertyOf gmeow:hasAppellation with domain gmeow:Place and range gmeow:PlaceName -- place-scoped specialization replacing the retired flat alternateName. Mirrors test_has_place_name_subproperty_of_hasappellation." .
 
 # --- 9. PlaceNaming is an owl:Class subclassing NameUsage (MUST) -------------
 ex:saPlaceNamingIsClass a gmeow:StructuralAssertion ;
@@ -205,7 +205,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:NamePartType rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:NamePartType MUST be rdfs:subClassOf logic:QualityValue -- name-part kinds are an open value vocabulary of individuals (post-#694 migration: logic: not gufo:). Mirrors test_name_part_kinds_are_values_not_subclasses (subClassOf part)." .
+    gmeow:saRationale "gmeow:NamePartType MUST be rdfs:subClassOf logic:QualityValue -- name-part kinds are an open value vocabulary of individuals (migrated: logic: not gufo:). Mirrors test_name_part_kinds_are_values_not_subclasses (subClassOf part)." .
 
 # --- 16. namePartType is a functional ObjectProperty (MUST) ------------------
 ex:saNamePartTypePropertyFunctional a gmeow:StructuralAssertion ;
@@ -254,7 +254,7 @@ ex:saNamePurposeSubclassQualityValue a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:NamePurpose rdfs:subClassOf logic:QualityValue . }""" ;
-    gmeow:saRationale "gmeow:NamePurpose MUST be rdfs:subClassOf logic:QualityValue -- flat value vocabulary (post-#694). Mirrors test_purpose_register_honorific_pronoun_are_value_vocabularies (NamePurpose)." .
+    gmeow:saRationale "gmeow:NamePurpose MUST be rdfs:subClassOf logic:QualityValue -- flat value vocabulary (migrated). Mirrors test_purpose_register_honorific_pronoun_are_value_vocabularies (NamePurpose)." .
 
 # --- 20. NamePurpose sample seeds exist (MUST) --------------------------------
 ex:saNamePurposeSeedsExist a gmeow:StructuralAssertion ;
@@ -275,7 +275,7 @@ ex:saNameRegisterSubclassQualityValue a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:NameRegister rdfs:subClassOf logic:QualityValue . }""" ;
-    gmeow:saRationale "gmeow:NameRegister MUST be rdfs:subClassOf logic:QualityValue -- open register value vocabulary (post-#694). Mirrors test_purpose_register_honorific_pronoun_are_value_vocabularies (NameRegister)." .
+    gmeow:saRationale "gmeow:NameRegister MUST be rdfs:subClassOf logic:QualityValue -- open register value vocabulary (migrated). Mirrors test_purpose_register_honorific_pronoun_are_value_vocabularies (NameRegister)." .
 
 # --- 22. NameRegister sample seeds exist (MUST) ------------------------------
 ex:saNameRegisterSeedsExist a gmeow:StructuralAssertion ;
@@ -296,7 +296,7 @@ ex:saHonorificSubclassQualityValue a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:Honorific rdfs:subClassOf logic:QualityValue . }""" ;
-    gmeow:saRationale "gmeow:Honorific MUST be rdfs:subClassOf logic:QualityValue -- open address-title value vocabulary (post-#694). Mirrors test_purpose_register_honorific_pronoun_are_value_vocabularies (Honorific)." .
+    gmeow:saRationale "gmeow:Honorific MUST be rdfs:subClassOf logic:QualityValue -- open address-title value vocabulary (migrated). Mirrors test_purpose_register_honorific_pronoun_are_value_vocabularies (Honorific)." .
 
 # --- 24. Honorific sample seeds exist (MUST) ---------------------------------
 ex:saHonorificSeedsExist a gmeow:StructuralAssertion ;
@@ -508,7 +508,7 @@ ex:saAudienceNotSubpropertyAccordingTo a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:usageAudience rdfs:subPropertyOf gmeow:accordingTo . }""" ;
-    gmeow:saRationale "gmeow:usageAudience MUST NOT be rdfs:subPropertyOf gmeow:accordingTo -- social scope and standpoint frame are orthogonal axes (the audience/standpoint distinction, #51). Mirrors test_audience_and_standpoint_are_distinct (subPropertyOf part)." .
+    gmeow:saRationale "gmeow:usageAudience MUST NOT be rdfs:subPropertyOf gmeow:accordingTo -- social scope and standpoint frame are orthogonal axes (the audience/standpoint distinction). Mirrors test_audience_and_standpoint_are_distinct (subPropertyOf part)." .
 
 # --- 41. usageAudience and accordingTo are not equivalent (MUST-NOT) ---------
 ex:saAudienceNotEquivalentAccordingTo a gmeow:StructuralAssertion ;
@@ -517,7 +517,7 @@ ex:saAudienceNotEquivalentAccordingTo a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:usageAudience owl:equivalentProperty gmeow:accordingTo . }""" ;
-    gmeow:saRationale "gmeow:usageAudience MUST NOT be owl:equivalentProperty gmeow:accordingTo -- the audience/standpoint distinction is fundamental (#51). Mirrors test_audience_and_standpoint_are_distinct (equivalentProperty part)." .
+    gmeow:saRationale "gmeow:usageAudience MUST NOT be owl:equivalentProperty gmeow:accordingTo -- the audience/standpoint distinction is fundamental. Mirrors test_audience_and_standpoint_are_distinct (equivalentProperty part)." .
 
 # --- 42. hasOrganizationName is a full subproperty graft (MUST) ---------------
 ex:saHasOrganizationNameSubproperty a gmeow:StructuralAssertion ;
@@ -532,7 +532,7 @@ ASK {
         rdfs:domain gmeow:Organization ;
         rdfs:range gmeow:OrganizationName .
 }""" ;
-    gmeow:saRationale "gmeow:hasOrganizationName MUST be an owl:ObjectProperty rdfs:subPropertyOf gmeow:hasAppellation with domain gmeow:Organization and range gmeow:OrganizationName -- organization-scoped mirror of hasName (#97). Mirrors test_has_organization_name_subproperty_of_hasappellation." .
+    gmeow:saRationale "gmeow:hasOrganizationName MUST be an owl:ObjectProperty rdfs:subPropertyOf gmeow:hasAppellation with domain gmeow:Organization and range gmeow:OrganizationName -- organization-scoped mirror of hasName. Mirrors test_has_organization_name_subproperty_of_hasappellation." .
 
 # --- 44. hasAgreementName is a full subproperty graft (MUST) -----------------
 ex:saHasAgreementNameSubproperty a gmeow:StructuralAssertion ;
@@ -547,7 +547,7 @@ ASK {
         rdfs:domain gmeow:Agreement ;
         rdfs:range gmeow:AgreementName .
 }""" ;
-    gmeow:saRationale "gmeow:hasAgreementName MUST be an owl:ObjectProperty rdfs:subPropertyOf gmeow:hasAppellation with domain gmeow:Agreement and range gmeow:AgreementName -- agreement-scoped specialization (#97). Mirrors test_has_agreement_name_subproperty_of_hasappellation." .
+    gmeow:saRationale "gmeow:hasAgreementName MUST be an owl:ObjectProperty rdfs:subPropertyOf gmeow:hasAppellation with domain gmeow:Agreement and range gmeow:AgreementName -- agreement-scoped specialization. Mirrors test_has_agreement_name_subproperty_of_hasappellation." .
 
 # --- 46. hasSoftwareName domain is NOT SoftwareProject (MUST-NOT) ------------
 ex:saHasSoftwareNameNotDomainSoftwareProject a gmeow:StructuralAssertion ;
@@ -556,7 +556,7 @@ ex:saHasSoftwareNameNotDomainSoftwareProject a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:hasSoftwareName rdfs:domain gmeow:SoftwareProject . }""" ;
-    gmeow:saRationale "gmeow:hasSoftwareName MUST NOT have rdfs:domain gmeow:SoftwareProject -- domain is inherited from hasAppellation (Entity) so both projects and products can bear software names (#231). Mirrors test_has_software_name_subproperty_of_hasappellation (mustNot-domain part)." .
+    gmeow:saRationale "gmeow:hasSoftwareName MUST NOT have rdfs:domain gmeow:SoftwareProject -- domain is inherited from hasAppellation (Entity) so both projects and products can bear software names. Mirrors test_has_software_name_subproperty_of_hasappellation (mustNot-domain part)." .
 
 # --- 47. nameLanguage has domain Appellation (MUST) --------------------------
 ex:saNameLanguageDomainAppellation a gmeow:StructuralAssertion ;
@@ -565,4 +565,4 @@ ex:saNameLanguageDomainAppellation a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:nameLanguage rdfs:domain gmeow:Appellation . }""" ;
-    gmeow:saRationale "gmeow:nameLanguage MUST have rdfs:domain gmeow:Appellation -- declared on the superclass so all subclasses inherit it (#97). Mirrors test_name_language_is_functional_on_appellation (domain part)." .
+    gmeow:saRationale "gmeow:nameLanguage MUST have rdfs:domain gmeow:Appellation -- declared on the superclass so all subclasses inherit it. Mirrors test_name_language_is_functional_on_appellation (domain part)." .

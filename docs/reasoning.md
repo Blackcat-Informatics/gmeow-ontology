@@ -30,14 +30,14 @@ profile, costing us the fast ELK pre-check (see [the EL boundary](https://www.w3
 
 So GMEOW keeps two halves of every relator invariant:
 
-| Logic | Axiom (phase 2, #38) | Constraint (phase 3, #39) |
+| Logic | Axiom (phase 2) | Constraint (phase 3) |
 |---|---|---|
 | **OWL 2 EL** (open-world) | `gmeow:GenderIdentity ⊑ ∃ gmeow:genderValue . gmeow:Gender` — *points at some Gender*; the reasoner uses it to **classify**. | — |
 | **SHACL** (closed-world) | — | `sh:minCount 1 ; sh:maxCount 1` on `gmeow:genderValue` — *points at **exactly** one*; `gmeow_shacl` uses it to **validate**. |
 
 The OWL existential lives in `ontology/modules/*.ttl`; the matching SHACL cardinality lives in
 `shapes/gmeow-shapes.ttl`. `ontology/modules/gender.ttl` even says so inline: *"'exactly one'
-lives in SHACL (#39)"*.
+lives in SHACL"*.
 
 ## The four lanes
 
@@ -99,7 +99,7 @@ Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot en
     axes (the closed-world counterpart of the OWL `AllDisjointClasses`, caught without a
     reasoner).
 
-- **Native `verify`, reasoned graph, Java/Docker-free (#695).** `make verify` runs the Rust
+- **Native `verify`, reasoned graph, Java/Docker-free.** `make verify` runs the Rust
   `verify --mode native`: the native EL/DL reasoner (`crates/logic`) materializes the asserted
   graph **unioned with** the derived subsumption/type closure into an oxigraph store, then runs
   the SPARQL **SELECT** "bad-example" queries in `queries/verify/*.rq` (+ per-slice verify

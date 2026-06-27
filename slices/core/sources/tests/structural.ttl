@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the sources slice (#867 Tier-B
+# Declarative structural assertions for the sources slice (Tier-B
 # closeout). The slice already carries competency.ttl; this adds its small but
 # real TBox shape (content-addressing vs audit-location vs mtime). No migratable
 # pytest existed. Each runs as a SPARQL ASK over the module graph

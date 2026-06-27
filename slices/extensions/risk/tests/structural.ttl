@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the risk slice (#354, EPIC #348) — the
+# Declarative structural assertions for the risk slice — the
 # slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
 # formerly hand-written in tests/test_risk.py. Each assertion runs as a SPARQL
 # ASK over the risk module graph (gmeow:scopeModule) under the native Rust
 # slicetest harness (crates/slicetest).
 #
-# Risk IS #694-migrated: class stereotypes are logic: (logic:Kind,
+# Risk IS migrated: class stereotypes are logic: (logic:Kind,
 # logic:Category, logic:AbstractIndividualType, logic:QualityValue,
 # logic:Disposition, logic:Relator), NOT gufo:.
 #
@@ -41,7 +41,7 @@ ASK {
         rdfs:subClassOf logic:Disposition ;
         rdfs:subClassOf gmeow:RiskFactor .
 }""" ;
-    gmeow:saRationale "gmeow:Hazard MUST be an owl:Class typed logic:Kind with rdfs:subClassOf logic:Disposition and gmeow:RiskFactor — a hazard that never manifests is fully real as a disposition; first logic:Disposition use in GMEOW (#354). Mirrors test_hazard_is_a_disposition (class structure part)." .
+    gmeow:saRationale "gmeow:Hazard MUST be an owl:Class typed logic:Kind with rdfs:subClassOf logic:Disposition and gmeow:RiskFactor — a hazard that never manifests is fully real as a disposition; first logic:Disposition use in GMEOW. Mirrors test_hazard_is_a_disposition (class structure part)." .
 
 # --- 2. hazardBearer is functional (MUST) ------------------------------------
 ex:saHazardBearerIsFunctional a gmeow:StructuralAssertion ;
@@ -63,7 +63,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:manifestedAsType rdfs:range gmeow:EventType .
 }""" ;
-    gmeow:saRationale "gmeow:manifestedAsType MUST have rdfs:range gmeow:EventType — the type level is where counterfactuals live without machinery; range is never gmeow:Event (#354). Mirrors test_hazard_is_a_disposition (manifestedAsType range part)." .
+    gmeow:saRationale "gmeow:manifestedAsType MUST have rdfs:range gmeow:EventType — the type level is where counterfactuals live without machinery; range is never gmeow:Event. Mirrors test_hazard_is_a_disposition (manifestedAsType range part)." .
 
 # --- 4. Flat causal properties are owl:ObjectProperty (MUST) -----------------
 ex:saCausalPropertiesAreObjectProperties a gmeow:StructuralAssertion ;
@@ -116,7 +116,7 @@ ASK {
     gmeow:typePrevents  rdfs:domain gmeow:EventType ; rdfs:range gmeow:EventType .
     gmeow:typeMitigates rdfs:domain gmeow:EventType ; rdfs:range gmeow:EventType .
 }""" ;
-    gmeow:saRationale "gmeow:typeCauses, typeEnables, typePrevents, and typeMitigates MUST all have rdfs:domain and rdfs:range gmeow:EventType — flat causal claims relate event TYPES, never instances; this is the no-counterfactual-machinery doctrine (#354). Mirrors test_type_level_links_are_never_transitive (domain/range part)." .
+    gmeow:saRationale "gmeow:typeCauses, typeEnables, typePrevents, and typeMitigates MUST all have rdfs:domain and rdfs:range gmeow:EventType — flat causal claims relate event TYPES, never instances; this is the no-counterfactual-machinery doctrine. Mirrors test_type_level_links_are_never_transitive (domain/range part)." .
 
 # --- 8. CausalLink subclasses logic:Relator and RiskFactor (MUST) ------------
 ex:saCausalLinkSubclassRelatorAndRiskFactor a gmeow:StructuralAssertion ;
@@ -129,7 +129,7 @@ ASK {
     gmeow:CausalLink rdfs:subClassOf logic:Relator ;
         rdfs:subClassOf gmeow:RiskFactor .
 }""" ;
-    gmeow:saRationale "gmeow:CausalLink MUST be a subclass of logic:Relator and gmeow:RiskFactor — reified causal claims are relators (binding antecedent and consequent kinds) and are also risk factors so gmeow:mitigationCounters can reach them (#354). Mirrors test_causal_link_constituents (subClassOf part)." .
+    gmeow:saRationale "gmeow:CausalLink MUST be a subclass of logic:Relator and gmeow:RiskFactor — reified causal claims are relators (binding antecedent and consequent kinds) and are also risk factors so gmeow:mitigationCounters can reach them. Mirrors test_causal_link_constituents (subClassOf part)." .
 
 # --- 9. linkAntecedent, linkConsequent, causalModality are functional (MUST) -
 ex:saCausalLinkCorePropertiesFunctional a gmeow:StructuralAssertion ;
@@ -142,7 +142,7 @@ ASK {
     gmeow:linkConsequent  a owl:FunctionalProperty .
     gmeow:causalModality  a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:linkAntecedent, linkConsequent, and causalModality MUST be owl:FunctionalProperty — if you reified a causal claim you must state exactly one antecedent kind, one consequent kind, and one modality (SHACL-mandatory, PR #354). Mirrors test_causal_link_constituents (functional properties part)." .
+    gmeow:saRationale "gmeow:linkAntecedent, linkConsequent, and causalModality MUST be owl:FunctionalProperty — if you reified a causal claim you must state exactly one antecedent kind, one consequent kind, and one modality (SHACL-mandatory). Mirrors test_causal_link_constituents (functional properties part)." .
 
 # --- 10. Source-variable properties are NOT functional (MUST-NOT) ------------
 ex:saSourceVariablePropertiesNotFunctional a gmeow:StructuralAssertion ;
@@ -154,7 +154,7 @@ ASK {
     VALUES ?p { gmeow:linkStrength gmeow:cascadeSeverity gmeow:hazardSeverity gmeow:mitigationStatus }
     ?p a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:linkStrength, cascadeSeverity, hazardSeverity, and mitigationStatus MUST NOT be owl:FunctionalProperty — divergent estimates/grades/statuses coexist via the statement layer; single-valuedness per base graph is SHACL's job (PR #385, hasAuthorityLevel convention). Mirrors test_causal_link_constituents (multi-source mustNot part)." .
+    gmeow:saRationale "gmeow:linkStrength, cascadeSeverity, hazardSeverity, and mitigationStatus MUST NOT be owl:FunctionalProperty — divergent estimates/grades/statuses coexist via the statement layer; single-valuedness per base graph is SHACL's job (hasAuthorityLevel convention). Mirrors test_causal_link_constituents (multi-source mustNot part)." .
 
 # --- 11. linkMechanism is NOT functional (MUST-NOT) --------------------------
 ex:saLinkMechanismNotFunctional a gmeow:StructuralAssertion ;
@@ -165,7 +165,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:linkMechanism a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:linkMechanism MUST NOT be owl:FunctionalProperty — mechanism prose is localizable; one account per language tag is allowed (localizable-prose convention, #376 lesson). Mirrors test_causal_link_constituents (linkMechanism notFunctional part)." .
+    gmeow:saRationale "gmeow:linkMechanism MUST NOT be owl:FunctionalProperty — mechanism prose is localizable; one account per language tag is allowed (localizable-prose convention). Mirrors test_causal_link_constituents (linkMechanism notFunctional part)." .
 
 # --- 12. linkMechanism has no rdfs:range (MUST-NOT) --------------------------
 ex:saLinkMechanismRangeOpen a gmeow:StructuralAssertion ;
@@ -176,7 +176,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:linkMechanism rdfs:range ?r .
 }""" ;
-    gmeow:saRationale "gmeow:linkMechanism MUST NOT carry any rdfs:range — the range is intentionally open to allow localizable prose (the localizable-prose convention, #376 lesson). Mirrors test_causal_link_constituents (linkMechanism range-open part)." .
+    gmeow:saRationale "gmeow:linkMechanism MUST NOT carry any rdfs:range — the range is intentionally open to allow localizable prose (the localizable-prose convention). Mirrors test_causal_link_constituents (linkMechanism range-open part)." .
 
 # --- 13. SeverityLevel is an ordered value vocabulary (MUST) -----------------
 ex:saSeverityLevelIsValueVocab a gmeow:StructuralAssertion ;
@@ -190,7 +190,7 @@ ASK {
     gmeow:SeverityLevel a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SeverityLevel MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — severity grades are an open ordered value vocabulary (the kernel GranularityLevel pattern, fourth use; #354). Mirrors test_severity_is_the_fourth_ordered_vocabulary (SeverityLevel structure part)." .
+    gmeow:saRationale "gmeow:SeverityLevel MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — severity grades are an open ordered value vocabulary (the kernel GranularityLevel pattern, fourth use). Mirrors test_severity_is_the_fourth_ordered_vocabulary (SeverityLevel structure part)." .
 
 # --- 14. moreSevereThan is transitive with domain SeverityLevel (MUST) -------
 ex:saMoreSevereThanIsTransitive a gmeow:StructuralAssertion ;
@@ -203,7 +203,7 @@ ASK {
     gmeow:moreSevereThan a owl:TransitiveProperty ;
         rdfs:domain gmeow:SeverityLevel .
 }""" ;
-    gmeow:saRationale "gmeow:moreSevereThan MUST be owl:TransitiveProperty with rdfs:domain gmeow:SeverityLevel — transitivity is deliberately scoped to levels only; cascades themselves are never ordered transitively (#354). Mirrors test_severity_is_the_fourth_ordered_vocabulary (moreSevereThan transitive/domain part)." .
+    gmeow:saRationale "gmeow:moreSevereThan MUST be owl:TransitiveProperty with rdfs:domain gmeow:SeverityLevel — transitivity is deliberately scoped to levels only; cascades themselves are never ordered transitively. Mirrors test_severity_is_the_fourth_ordered_vocabulary (moreSevereThan transitive/domain part)." .
 
 # --- 15. Severity ordering chain is asserted (MUST) --------------------------
 ex:saSeverityOrderingChain a gmeow:StructuralAssertion ;
@@ -215,7 +215,7 @@ ASK {
     gmeow:severitySevere       gmeow:moreSevereThan gmeow:severityModerate .
     gmeow:severityModerate     gmeow:moreSevereThan gmeow:severityMinor .
 }""" ;
-    gmeow:saRationale "The three asserted gmeow:moreSevereThan chain steps (catastrophic ≻ severe ≻ moderate ≻ minor) MUST be present — they seed the ISO 31000 / IEC 60812 ordering; transitivity closes the rest (#354). Mirrors test_severity_is_the_fourth_ordered_vocabulary (chain part)." .
+    gmeow:saRationale "The three asserted gmeow:moreSevereThan chain steps (catastrophic ≻ severe ≻ moderate ≻ minor) MUST be present — they seed the ISO 31000 / IEC 60812 ordering; transitivity closes the rest. Mirrors test_severity_is_the_fourth_ordered_vocabulary (chain part)." .
 
 # --- 16. mitigationMeasure has no rdfs:range (MUST-NOT) ----------------------
 ex:saMitigationMeasureRangeOpen a gmeow:StructuralAssertion ;

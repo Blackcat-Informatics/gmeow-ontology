@@ -7,7 +7,7 @@
 # as a SPARQL ASK over the notes module graph (gmeow:scopeModule) under the
 # native Rust slicetest harness (crates/slicetest).
 #
-# Notes is #694-migrated: class stereotypes are logic:
+# Notes is migrated: class stereotypes are logic:
 # (logic:Kind, logic:SubKind, logic:AbstractIndividualType, logic:QualityValue),
 # not gufo:.
 #

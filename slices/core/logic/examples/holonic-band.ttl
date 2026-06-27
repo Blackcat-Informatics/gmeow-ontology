@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Worked example — path-relative holonic levels and the materialized min/max depth
-# band (ME9, issue #775).
+# band (ME9).
 #
 # Holarchies are DAGs, not ladders: an entity can be a proper part of several wholes
 # along several paths, so it has NO single intrinsic "level." A level is meaningful
@@ -33,7 +33,7 @@
 #
 #   * ex:Sensor logic:holonicLevelMin 1 ; logic:holonicLevelMax 2 .
 #
-# HONEST SCOPE (#775): the band endpoints are operator-asserted, NOT engine-derived.
+# HONEST SCOPE: the band endpoints are operator-asserted, NOT engine-derived.
 # The foundation chase is all-IRI (logic:StratifiedNAFProfile) and cannot compare or
 # aggregate the integer levels, so it grounds only that the band EXISTS — via the
 # derived marker logic:multiplyPositioned (ex:Sensor occupies two distinct positions).

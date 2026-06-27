@@ -27,7 +27,7 @@ subclasses and homogeneous kinds as value vocabularies:
 4. **Round-trip fidelity** — full vCard `ADR`/`GEO`/`TZ` (table below).
 5. **Names & timezone** — co-equal `gmeow:PlaceName` toponyms borne via
    `gmeow:hasPlaceName` (multilingual / endonym / exonym / historical, for gazetteer
-   matching; the names module, issue #105 — the structured replacement for the retired
+   matching; the names module — the structured replacement for the retired
    flat `gmeow:alternateName`) and `gmeow:timezone` (IANA, also feeds the calendar slice).
 
 ## Address: surface literals ↔ resolved QID-bearing places
@@ -94,7 +94,7 @@ CONSTRUCT {
 
 Then `geof:within` / `geof:distance` and topological `geo:sfWithin` work natively.
 
-## Indoor topology: BOT and ifcOWL (#83)
+## Indoor topology: BOT and ifcOWL
 
 GMEOW's existing place model already handles sites, buildings, floors, and rooms at the
 **value** level (`gmeow:placeTypeSite`, `gmeow:placeTypeBuilding`,
@@ -145,7 +145,7 @@ ex:floor a bot:Storey ; bot:hasSpace ex:roomA , ex:roomB .
 ex:roomA a bot:Space ; bot:adjacentZone ex:roomB .
 ```
 
-## Privacy by generalization: coarsening coordinates (#72 / #79)
+## Privacy by generalization: coarsening coordinates
 
 A place may declare the coarsest level at which its location should be disclosed:
 
@@ -170,7 +170,7 @@ to OWL-Time `time:TemporalUnit` (temporal) and `gmeow:placeType` / ISO 19112
 LocationType (spatial); the operation aligns to `dpv:Generalisation`. Heavier geomasking
 / k-anonymity stays in the solver layer (P12). The GeoSPARQL and schema.org projections
 both honour it (`mapGeoPointCoarsened`, `mapSchemaPlaceCoordsCoarsened`); the
-access/consent *trigger* on the same control is PRIV-GEN (#73).
+access/consent *trigger* on the same control is PRIV-GEN.
 
 ## Place-type values vs the `schema:Country ⊑ Place` alignment
 
@@ -195,7 +195,7 @@ events, alongside geographic `Place`s.
 
 Every measured or expressed value is relative to an explicit reference system. GMEOW models this by separating frame-independent **structure** (topology, containment, order) from frame-relative **values** through **Reference Frame Profiles**:
 
-These concrete frame profiles are instances of the reusable **`gmeow:Profile`** meta-pattern defined in `ontology/modules/profiles.ttl` (issue #75): a Profile is a closed descriptor schema whose values are drawn from open, extensible value vocabularies, with self-description and a novel-value guard.
+These concrete frame profiles are instances of the reusable **`gmeow:Profile`** meta-pattern defined in `ontology/modules/profiles.ttl`: a Profile is a closed descriptor schema whose values are drawn from open, extensible value vocabularies, with self-description and a novel-value guard.
 
 - **`gmeow:ReferenceFrame`** describes any reference system — not only spatial CRS, but also units of measure, currencies, calendars/timescales, colourspaces, and languages/registers.
 - Each reference frame declares its parameters via descriptors:
@@ -211,7 +211,7 @@ These concrete frame profiles are instances of the reusable **`gmeow:Profile`** 
 
 Seed reference frames are provided for all realms — spatial (WGS-84, local grid, celestial equatorial, robot base, virtual platform), measurement (SI), currency (USD), temporal (Gregorian, Unix epoch), colourspace (sRGB, CMYK), and linguistic (English). External ontologies are aligned by reference: QUDT and OM for measurement, FIBO for currency, OWL-Time `time:TRS` for temporal reference systems, and Lexvo for language instances.
 
-## Distance, Proximity, and Frame-Declared Metrics (#95)
+## Distance, Proximity, and Frame-Declared Metrics
 
 `gmeow:MetricKind` is a value vocabulary (individuals, never subclasses) that names the computational method by which distance or dissimilarity is calculated in a reference frame. A frame declares its metric via **`gmeow:hasMetricKind`**:
 
@@ -268,7 +268,7 @@ To introduce a new domain (e.g. a proprietary robotic configuration space, a cus
 2. **Define a Reference Frame Profile**: Declare a `gmeow:ReferenceFrame` instance with complete profile descriptors (including `gmeow:frameRealm`, `gmeow:hasAxis`, `gmeow:dimensionCount`, `gmeow:frameKind`, `gmeow:requiresHost`, and `gmeow:determinacyModel`). All of these properties are required by the SHACL shapes (validated in `test_shapes.py`), so omitting `gmeow:requiresHost` or any other mandatory descriptor will cause validation to fail.
 3. **Align by Reference**: Add external vocabulary mappings in your domain-specific mapping DSL file (e.g. using `skos:closeMatch` or `skos:relatedMatch` to standard terms), leaving core class definitions untouched.
 
-## Pose: position + orientation (#78)
+## Pose: position + orientation
 
 GMEOW represents a full 6-DOF pose as a compound object — **position** and **orientation** are peers, neither is privileged:
 
@@ -296,13 +296,13 @@ The SHACL `PoseShape` enforces exactly one position, one orientation, and one fr
 
 - **IEEE 1872-2015 CORA/POS**: `gmeow:Pose` ↔ `pos:QuantitativePose`; `gmeow:Orientation` ↔ `pos:OrientationMeasure`; `gmeow:hasPose`/`hasPosePosition`/`hasPoseOrientation` ↔ `pos:pose`/`pos:posePosition`/`pos:poseOrientation`.
 - **Wikidata**: `gmeow:Pose` → `wd:Q1055020`; quaternion properties → `wd:Q462283`; Euler properties → `wd:Q465493`; `heading` → `wd:Q41154`; `bearing` → `wd:Q123429`.
-- **OGC GeoPose 1.0**: structurally compatible (frame + position + orientation), but no RDF terms exist yet — the projection layer will add a GeoPose JSON profile later (out of scope for #78).
+- **OGC GeoPose 1.0**: structurally compatible (frame + position + orientation), but no RDF terms exist yet — the projection layer will add a GeoPose JSON profile in a later parcel.
 
 ### Projection behaviour
 
 GeoSPARQL 1.0/1.1 has no native pose model, so the `geosparql` profile projects **only the translational component** of a pose to a WKT POINT. Orientation is an intentional, documented lossy drop (`fnPosePositionToWktPoint`). Heading/bearing may be projected separately once a GeoPose JSON profile is added. The existing `Place` point projection (`mapGeoPoint`) continues to work independently.
 
-## Spatial Aggregation and Privacy-Preserving Statistics (#101)
+## Spatial Aggregation and Privacy-Preserving Statistics
 
 GMEOW models spatial aggregation as a reified `gmeow:SpatialAggregation` — a `gmeow:Measurement` specialisation that summarises entities located within a `gmeow:Place`. The aggregation function (`gmeow:aggregationFunction`) is a value vocabulary (`gmeow:AggregationFunction`) with seeds for count, sum, average, density, centroid, minimum, and maximum. The aggregation region is the `gmeow:observedFeature`; the result is a `gmeow:ScalarQuantity`. The actual arithmetic is performed by the solver layer (Principle 12), never materialised as asserted triples.
 
@@ -332,7 +332,7 @@ ex:cityCensus a gmeow:SpatialAggregation ;
 - **GeoSPARQL**: `gmeow:hasCentroid` → `geo:hasCentroid`; `gmeow:containsPlace` → `geo:sfContains`.
 - **RDF Data Cube**: `gmeow:SpatialAggregation` → `qb:Observation`; `gmeow:AggregationFunction` → `qb:MeasureProperty`.
 
-## Time-scoped jurisdiction and containment (#82)
+## Time-scoped jurisdiction and containment
 
 A place's **sovereignty** and **parent containment** are time-scoped, contested, and historically varying. GMEOW models them as reified `gmeow:TimeScopedRelation` subtypes:
 
@@ -359,7 +359,7 @@ ex:jurisdictionUA a gmeow:JurisdictionTenure ;
     gmeow:duringInterval [ gmeow:startedAtTime "1991-08-24T00:00:00Z"^^xsd:dateTime ] .
 ```
 
-## Geometry type and GeoJSON (#82)
+## Geometry type and GeoJSON
 
 Every `gmeow:Geometry` may declare its structural kind via `gmeow:geometryType` (a value vocabulary aligned to GeoSPARQL simple-features) and may carry both WKT (`gmeow:asWKT`) and GeoJSON (`gmeow:asGeoJSON`) serializations:
 
@@ -405,9 +405,9 @@ ex:cityBoundary a gmeow:Geometry ;
 
 ---
 
-## Regulatory Overlays (#103)
+## Regulatory Overlays
 
-GMEOW models legal and regulatory spatial overlays as reified **`gmeow:RegulatoryOverlay`** instances — time-scoped situations (⊑ `gmeow:TimeScopedRelation`) that bind a **place**, an **authority**, a **regulation type**, and optional **deontic rules** (`gmeow:RightsStatement`, #21). This covers zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, and customs zones.
+GMEOW models legal and regulatory spatial overlays as reified **`gmeow:RegulatoryOverlay`** instances — time-scoped situations (⊑ `gmeow:TimeScopedRelation`) that bind a **place**, an **authority**, a **regulation type**, and optional **deontic rules** (`gmeow:RightsStatement`). This covers zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, and customs zones.
 
 ### Distinction from JurisdictionTenure
 
@@ -422,7 +422,7 @@ A place may have multiple overlays of different types simultaneously (a national
 - **`gmeow:overlayPlace`** → `gmeow:Place` — the geographic area (functional).
 - **`gmeow:overlayAuthority`** → `gmeow:Agent` — the body that imposed it (functional).
 - **`gmeow:overlayType`** → `gmeow:RegulatoryOverlayType` — the kind of overlay (non-functional, open value vocabulary).
-- **`gmeow:overlayRegulation`** → `gmeow:RightsStatement` — the deontic rules (#21) that govern activity within the overlay.
+- **`gmeow:overlayRegulation`** → `gmeow:RightsStatement` — the deontic rules that govern activity within the overlay.
 - **`gmeow:overlayDeterminacy`** → `gmeow:Determinacy` — crisp, vague, fuzzy, or disputed boundary.
 - **`gmeow:overlayLowerBound` / `gmeow:overlayUpperBound`** → `gmeow:ScalarQuantity` — 3D bounds (altitude, depth, elevation) with QUDT unit and reference frame (Principle 11). Optional for 2D overlays.
 - **`gmeow:duringInterval`** → `gmeow:TimeInterval` — the period during which the overlay is in force (inherited from `TimeScopedRelation`).
@@ -487,7 +487,7 @@ The 2D/3D polygon of the overlay's footprint lives on the `gmeow:Place` via `has
 
 ---
 
-## Accessibility (#102)
+## Accessibility
 
 GMEOW models accessibility as a **cross-cutting facet layer** over locations and routes. A location can have **features** (positive facilitators) and **barriers** (negative impediments) for any accessibility dimension; an entity can declare **needs** for the same dimensions. There is no privileged or primary dimension — wheelchair, step-free, visual, auditory, cognitive, clearance, and life-support are orthogonal, co-equal facets (Principle 9).
 
@@ -523,7 +523,7 @@ An **accessible route** is a `gmeow:Route` of kind `routeKindAccessible`. The ac
 
 ---
 
-## Celestial Locations (#85)
+## Celestial Locations
 
 GMEOW models astronomical and space-domain locations as **`gmeow:CelestialLocation`** — a fourth structural kind under `gmeow:Location`, parallel to `Place`, `VirtualLocation`, and `StorageLocation`. Celestial locations are not geographic: they live on the celestial sphere, in the solar system, or in deep space, and their coordinates are expressed as right ascension, declination, and epoch rather than latitude and longitude.
 

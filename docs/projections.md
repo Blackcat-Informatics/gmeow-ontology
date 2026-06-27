@@ -44,7 +44,7 @@ worked-example fixture (schema.org, GeoSPARQL, vCard, FOAF, iCalendar, OWL-Time 
 complete projection set — those plus ODRL, CC REL, Dublin Core, SPDX, BOT, RDF Data Cube
 (`qb` — now DSD-complete with per-observation DataSet + DataStructureDefinition),
 OntoLex-Lemon, W3C Web Annotation, DCAT 3 (`dcat` — instance datasets +
-distributions + checksums, the #58 catalog leg; see
+distributions + checksums, the DCAT catalog leg; see
 [research-objects.md](./research-objects.md)), and the five standpoint
 projections (CRMinf,
 Web Annotation, PROV-O, schema:Claim, Standpoint-OWL 2) — is generated as
@@ -142,7 +142,7 @@ to catch:
 - the EDOAL `entity2` set and the SPARQL-emitted term set come from the *same*
   binding list — they cannot drift.
 
-The native `gmeow_slice.lint_projection` trio (#854) runs the three cross-layer
+The native `gmeow_slice.lint_projection` trio runs the three cross-layer
 invariants over the committed projection tree and surfaces any problem as a
 `mapping-compile.{fno-type,fno-ref,spec-drift}` finding (folded into the dev-gate
 report). `gmeow-dev check-generated mappings` is wired into CI as the standing
@@ -222,7 +222,7 @@ Key authoring choices, each a single field on the pattern or binding:
   plus EDOAL `AttributeValueRestriction` cells.
 - **suppression** (`gmeow:suppressWhen`) — the displayable/deadname contract, a
   `FILTER NOT EXISTS`.
-- **generalization / coarsening** (`gmeow:coarsenTo`, #72/#79) — the *other* half of
+- **generalization / coarsening** (`gmeow:coarsenTo`) — the *other* half of
   disclosure control by projection (CONSTITUTION P10): a value marked
   `gmeow:coarsenTo <GranularityLevel>` is emitted at a **coarser** level rather than
   withheld. Authored as a pair of complementary cells — the precise value guarded by
@@ -232,7 +232,7 @@ Key authoring choices, each a single field on the pattern or binding:
   the GeoSPARQL (`mapGeoPointCoarsened`) and schema.org (`mapSchemaPlaceCoordsCoarsened`)
   projections; aligned by reference to `dpv:Generalisation`. Heavier geomasking /
   k-anonymity stays in the solver layer (P12). The access/consent *trigger* on this
-  same control is PRIV-GEN (#73).
+  same control is PRIV-GEN.
 - **composed/derived values** (`gmeow:bind` / `gmeow:mint`) — a closed expression
   algebra (`gmeow:opConcat`, `opIf`, `opStrDatatype`, `opStrLang`, … — never raw
   SPARQL); multi-triple outputs use `gmeow:templateAtoms`.

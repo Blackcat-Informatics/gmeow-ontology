@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the notation slice (#172) — the
+# Declarative structural assertions for the notation slice — the
 # slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
 # formerly hand-written in tests/test_notation.py. Each assertion runs as a
 # SPARQL ASK over the notation module graph (gmeow:scopeModule) under the
 # native Rust harness (crates/slicetest).
 #
-# Notation is #694-migrated, so class stereotypes are logic:
+# Notation is migrated, so class stereotypes are logic:
 # (logic:Kind, logic:SubKind, logic:AbstractIndividualType, logic:QualityValue),
 # not gufo:.
 #
@@ -44,7 +44,7 @@ ASK {
     gmeow:SymbolicSystem a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:SymbolicSystem MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject — it is the broad top-level Kind for all convention-bearing symbol systems (#172). Mirrors test_symbolic_system_hierarchy (SymbolicSystem arm)." .
+    gmeow:saRationale "gmeow:SymbolicSystem MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject — it is the broad top-level Kind for all convention-bearing symbol systems. Mirrors test_symbolic_system_hierarchy (SymbolicSystem arm)." .
 
 # --- 2. NotationSystem is a logic:SubKind under SymbolicSystem (MUST) ----------
 ex:saNotationSystemIsSubKind a gmeow:StructuralAssertion ;
@@ -58,7 +58,7 @@ ASK {
     gmeow:NotationSystem a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:SymbolicSystem .
 }""" ;
-    gmeow:saRationale "gmeow:NotationSystem MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:SymbolicSystem — it narrows the parent Kind to structured, rule-governed notation systems (#172). Mirrors test_symbolic_system_hierarchy (NotationSystem arm)." .
+    gmeow:saRationale "gmeow:NotationSystem MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:SymbolicSystem — it narrows the parent Kind to structured, rule-governed notation systems. Mirrors test_symbolic_system_hierarchy (NotationSystem arm)." .
 
 # --- 3. NotationSystemUsage is a subclass of logic:Relator and Observation (MUST) ---
 ex:saNotationSystemUsageRelator a gmeow:StructuralAssertion ;
@@ -73,7 +73,7 @@ ASK {
         rdfs:subClassOf logic:Relator ;
         rdfs:subClassOf gmeow:Observation .
 }""" ;
-    gmeow:saRationale "gmeow:NotationSystemUsage MUST be an owl:Class that is a subclass of both logic:Relator and gmeow:Observation — it is the reified relator that bridges notation use onto the universal observation stack (#172). Mirrors test_notation_system_usage_relator (class hierarchy arm)." .
+    gmeow:saRationale "gmeow:NotationSystemUsage MUST be an owl:Class that is a subclass of both logic:Relator and gmeow:Observation — it is the reified relator that bridges notation use onto the universal observation stack. Mirrors test_notation_system_usage_relator (class hierarchy arm)." .
 
 # --- 4. The four NotationSystemUsage roles are ObjectProperty + FunctionalProperty (MUST) ---
 ex:saNotationUsageRolesFunctional a gmeow:StructuralAssertion ;
@@ -87,7 +87,7 @@ ASK {
     gmeow:notationUsageRole             a owl:ObjectProperty , owl:FunctionalProperty .
     gmeow:notationUsageInterval         a owl:ObjectProperty , owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "All four NotationSystemUsage roles MUST be owl:ObjectProperty and owl:FunctionalProperty — each relator carries exactly one target, notation system, role, and interval (the four-role binding is the canonical reification, #172). Mirrors test_notation_system_usage_relator (functional roles arm)." .
+    gmeow:saRationale "All four NotationSystemUsage roles MUST be owl:ObjectProperty and owl:FunctionalProperty — each relator carries exactly one target, notation system, role, and interval (the four-role binding is the canonical reification). Mirrors test_notation_system_usage_relator (functional roles arm)." .
 
 # --- 5. NotationSystem is NOT a subclass of Language (MUST-NOT) ---------------
 ex:saNotationSystemNotSubclassLanguage a gmeow:StructuralAssertion ;
@@ -96,7 +96,7 @@ ex:saNotationSystemNotSubclassLanguage a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:NotationSystem rdfs:subClassOf gmeow:Language . }""" ;
-    gmeow:saRationale "gmeow:NotationSystem MUST NOT be a subclass of gmeow:Language — the boundary is explicit: a notation system lacks independent generative syntax/semantics and is structurally distinct from a language (Principle 9, #172). Mirrors test_notation_system_not_subclass_of_language." .
+    gmeow:saRationale "gmeow:NotationSystem MUST NOT be a subclass of gmeow:Language — the boundary is explicit: a notation system lacks independent generative syntax/semantics and is structurally distinct from a language (Principle 9). Mirrors test_notation_system_not_subclass_of_language." .
 
 # --- 6. SymbolicSystemKind is a value-vocabulary subclass of logic:QualityValue (MUST) ---
 ex:saSymbolicSystemKindIsValueVocab a gmeow:StructuralAssertion ;
@@ -110,7 +110,7 @@ ASK {
     gmeow:SymbolicSystemKind a owl:Class ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SymbolicSystemKind MUST be an owl:Class that is a subclass of logic:QualityValue — kinds are an open value vocabulary of individuals, not Entity subclasses (Principle 9, #172). Mirrors test_value_vocabularies_not_subclasses (SymbolicSystemKind positive arm)." .
+    gmeow:saRationale "gmeow:SymbolicSystemKind MUST be an owl:Class that is a subclass of logic:QualityValue — kinds are an open value vocabulary of individuals, not Entity subclasses (Principle 9). Mirrors test_value_vocabularies_not_subclasses (SymbolicSystemKind positive arm)." .
 
 # --- 7. NotationUsageRole is a value-vocabulary subclass of logic:QualityValue (MUST) ---
 ex:saNotationUsageRoleIsValueVocab a gmeow:StructuralAssertion ;
@@ -124,7 +124,7 @@ ASK {
     gmeow:NotationUsageRole a owl:Class ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:NotationUsageRole MUST be an owl:Class that is a subclass of logic:QualityValue — roles are an open value vocabulary of individuals, not Entity subclasses (Principle 9, #172). Mirrors test_value_vocabularies_not_subclasses (NotationUsageRole positive arm)." .
+    gmeow:saRationale "gmeow:NotationUsageRole MUST be an owl:Class that is a subclass of logic:QualityValue — roles are an open value vocabulary of individuals, not Entity subclasses (Principle 9). Mirrors test_value_vocabularies_not_subclasses (NotationUsageRole positive arm)." .
 
 # --- 8. symbolicKindStenographic is typed SymbolicSystemKind (MUST) -----------
 ex:saSymbolicKindStenographicTyped a gmeow:StructuralAssertion ;
@@ -132,7 +132,7 @@ ex:saSymbolicKindStenographicTyped a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:symbolicKindStenographic a gmeow:SymbolicSystemKind . }""" ;
-    gmeow:saRationale "gmeow:symbolicKindStenographic MUST be typed gmeow:SymbolicSystemKind — stenography is modelled as a notation-domain kind individual, not a language origin (#172). Mirrors test_stenography_is_notation_not_language (positive existence arm)." .
+    gmeow:saRationale "gmeow:symbolicKindStenographic MUST be typed gmeow:SymbolicSystemKind — stenography is modelled as a notation-domain kind individual, not a language origin. Mirrors test_stenography_is_notation_not_language (positive existence arm)." .
 
 # --- 9. symbolicKindStenographic is NOT typed LanguageOrigin (MUST-NOT) -------
 ex:saSymbolicKindStenographicNotLanguageOrigin a gmeow:StructuralAssertion ;
@@ -140,7 +140,7 @@ ex:saSymbolicKindStenographicNotLanguageOrigin a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:symbolicKindStenographic a gmeow:LanguageOrigin . }""" ;
-    gmeow:saRationale "gmeow:symbolicKindStenographic MUST NOT be typed gmeow:LanguageOrigin — stenography is a shorthand notation for a language, not a language origin value itself (Principle 9, #172). Mirrors test_stenography_is_notation_not_language (mustNot arm)." .
+    gmeow:saRationale "gmeow:symbolicKindStenographic MUST NOT be typed gmeow:LanguageOrigin — stenography is a shorthand notation for a language, not a language origin value itself (Principle 9). Mirrors test_stenography_is_notation_not_language (mustNot arm)." .
 
 # --- 10. symbolicKindCryptographic is typed SymbolicSystemKind (MUST) ---------
 ex:saSymbolicKindCryptographicTyped a gmeow:StructuralAssertion ;
@@ -148,7 +148,7 @@ ex:saSymbolicKindCryptographicTyped a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:symbolicKindCryptographic a gmeow:SymbolicSystemKind . }""" ;
-    gmeow:saRationale "gmeow:symbolicKindCryptographic MUST be typed gmeow:SymbolicSystemKind — cryptographic ciphers are notation-domain kind individuals, not language origins (#172). Mirrors test_cryptography_is_notation_not_language (positive existence arm)." .
+    gmeow:saRationale "gmeow:symbolicKindCryptographic MUST be typed gmeow:SymbolicSystemKind — cryptographic ciphers are notation-domain kind individuals, not language origins. Mirrors test_cryptography_is_notation_not_language (positive existence arm)." .
 
 # --- 11. symbolicKindCryptographic is NOT typed LanguageOrigin (MUST-NOT) -----
 ex:saSymbolicKindCryptographicNotLanguageOrigin a gmeow:StructuralAssertion ;
@@ -156,7 +156,7 @@ ex:saSymbolicKindCryptographicNotLanguageOrigin a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:symbolicKindCryptographic a gmeow:LanguageOrigin . }""" ;
-    gmeow:saRationale "gmeow:symbolicKindCryptographic MUST NOT be typed gmeow:LanguageOrigin — cryptographic encoding is a transform notation scheme, not a language origin value (Principle 9, #172). Mirrors test_cryptography_is_notation_not_language (mustNot arm)." .
+    gmeow:saRationale "gmeow:symbolicKindCryptographic MUST NOT be typed gmeow:LanguageOrigin — cryptographic encoding is a transform notation scheme, not a language origin value (Principle 9). Mirrors test_cryptography_is_notation_not_language (mustNot arm)." .
 
 # --- 12. symbolicKindTranscription is typed SymbolicSystemKind (MUST) ---------
 ex:saSymbolicKindTranscriptionTyped a gmeow:StructuralAssertion ;
@@ -164,7 +164,7 @@ ex:saSymbolicKindTranscriptionTyped a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:symbolicKindTranscription a gmeow:SymbolicSystemKind . }""" ;
-    gmeow:saRationale "gmeow:symbolicKindTranscription MUST be typed gmeow:SymbolicSystemKind — IPA is a transcription notation system kind individual, not a natural language (#172). Mirrors test_ipa_is_notation_not_natural_language." .
+    gmeow:saRationale "gmeow:symbolicKindTranscription MUST be typed gmeow:SymbolicSystemKind — IPA is a transcription notation system kind individual, not a natural language. Mirrors test_ipa_is_notation_not_natural_language." .
 
 # --- 13. symbolicKindMathematical is typed SymbolicSystemKind (MUST) ----------
 ex:saSymbolicKindMathematicalTyped a gmeow:StructuralAssertion ;
@@ -172,7 +172,7 @@ ex:saSymbolicKindMathematicalTyped a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:symbolicKindMathematical a gmeow:SymbolicSystemKind . }""" ;
-    gmeow:saRationale "gmeow:symbolicKindMathematical MUST be typed gmeow:SymbolicSystemKind — mathematical notation is a notation-domain kind individual (#172). Mirrors test_math_notation_not_natural_language (positive existence arm)." .
+    gmeow:saRationale "gmeow:symbolicKindMathematical MUST be typed gmeow:SymbolicSystemKind — mathematical notation is a notation-domain kind individual. Mirrors test_math_notation_not_natural_language (positive existence arm)." .
 
 # --- 14. symbolicKindMathematical is NOT typed LanguageOrigin (MUST-NOT) ------
 ex:saSymbolicKindMathematicalNotLanguageOrigin a gmeow:StructuralAssertion ;
@@ -180,7 +180,7 @@ ex:saSymbolicKindMathematicalNotLanguageOrigin a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:symbolicKindMathematical a gmeow:LanguageOrigin . }""" ;
-    gmeow:saRationale "gmeow:symbolicKindMathematical MUST NOT be typed gmeow:LanguageOrigin — mathematical notation is not inferred as a natural language origin (Principle 9, #172). Mirrors test_math_notation_not_natural_language (mustNot arm)." .
+    gmeow:saRationale "gmeow:symbolicKindMathematical MUST NOT be typed gmeow:LanguageOrigin — mathematical notation is not inferred as a natural language origin (Principle 9). Mirrors test_math_notation_not_natural_language (mustNot arm)." .
 
 # --- 15. symbolicKindMusical is typed SymbolicSystemKind (MUST) ---------------
 ex:saSymbolicKindMusicalTyped a gmeow:StructuralAssertion ;
@@ -188,7 +188,7 @@ ex:saSymbolicKindMusicalTyped a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:symbolicKindMusical a gmeow:SymbolicSystemKind . }""" ;
-    gmeow:saRationale "gmeow:symbolicKindMusical MUST be typed gmeow:SymbolicSystemKind — musical notation is a notation-domain kind individual (#172). Mirrors test_musical_notation_not_natural_language (positive existence arm)." .
+    gmeow:saRationale "gmeow:symbolicKindMusical MUST be typed gmeow:SymbolicSystemKind — musical notation is a notation-domain kind individual. Mirrors test_musical_notation_not_natural_language (positive existence arm)." .
 
 # --- 16. symbolicKindMusical is NOT typed LanguageOrigin (MUST-NOT) -----------
 ex:saSymbolicKindMusicalNotLanguageOrigin a gmeow:StructuralAssertion ;
@@ -196,7 +196,7 @@ ex:saSymbolicKindMusicalNotLanguageOrigin a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:symbolicKindMusical a gmeow:LanguageOrigin . }""" ;
-    gmeow:saRationale "gmeow:symbolicKindMusical MUST NOT be typed gmeow:LanguageOrigin — musical notation is not inferred as a natural language origin (Principle 9, #172). Mirrors test_musical_notation_not_natural_language (mustNot arm)." .
+    gmeow:saRationale "gmeow:symbolicKindMusical MUST NOT be typed gmeow:LanguageOrigin — musical notation is not inferred as a natural language origin (Principle 9). Mirrors test_musical_notation_not_natural_language (mustNot arm)." .
 
 # --- 17. hasNotationSystem property shape (MUST) ------------------------------
 ex:saHasNotationSystemProperty a gmeow:StructuralAssertion ;
@@ -210,7 +210,7 @@ ASK {
         rdfs:domain gmeow:Language ;
         rdfs:range gmeow:NotationSystem .
 }""" ;
-    gmeow:saRationale "gmeow:hasNotationSystem MUST be an owl:ObjectProperty with domain gmeow:Language and range gmeow:NotationSystem — the flat unscoped link from a language to its notation system(s) (#172). Mirrors test_has_notation_system_property_exists." .
+    gmeow:saRationale "gmeow:hasNotationSystem MUST be an owl:ObjectProperty with domain gmeow:Language and range gmeow:NotationSystem — the flat unscoped link from a language to its notation system(s). Mirrors test_has_notation_system_property_exists." .
 
 # --- 18. writingSystemAsNotation property shape (MUST) -----------------------
 ex:saWritingSystemAsNotationProperty a gmeow:StructuralAssertion ;
@@ -224,7 +224,7 @@ ASK {
         rdfs:domain gmeow:WritingSystem ;
         rdfs:range gmeow:NotationSystem .
 }""" ;
-    gmeow:saRationale "gmeow:writingSystemAsNotation MUST be an owl:ObjectProperty with domain gmeow:WritingSystem and range gmeow:NotationSystem — the bridge when a writing system doubles as a notation system (Braille, featural scripts, #172). Mirrors test_writing_system_as_notation_property_exists." .
+    gmeow:saRationale "gmeow:writingSystemAsNotation MUST be an owl:ObjectProperty with domain gmeow:WritingSystem and range gmeow:NotationSystem — the bridge when a writing system doubles as a notation system (Braille, featural scripts). Mirrors test_writing_system_as_notation_property_exists." .
 
 # --- 19. notationSystemKind is a subproperty of symbolicSystemKind (MUST) -----
 ex:saNotationSystemKindIsSubproperty a gmeow:StructuralAssertion ;
@@ -233,4 +233,4 @@ ex:saNotationSystemKindIsSubproperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:notationSystemKind rdfs:subPropertyOf gmeow:symbolicSystemKind . }""" ;
-    gmeow:saRationale "gmeow:notationSystemKind MUST be a subproperty of gmeow:symbolicSystemKind — it is the narrower, intent-revealing form for systems already typed NotationSystem, so the broad symbolicSystemKind query path picks it up transitively (#172). Mirrors test_notation_system_kind_is_subproperty." .
+    gmeow:saRationale "gmeow:notationSystemKind MUST be a subproperty of gmeow:symbolicSystemKind — it is the narrower, intent-revealing form for systems already typed NotationSystem, so the broad symbolicSystemKind query path picks it up transitively. Mirrors test_notation_system_kind_is_subproperty." .

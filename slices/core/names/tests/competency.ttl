@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Declarative competency questions for the names slice, executed by the native Rust
-# slice-test harness (crates/slicetest, #784). Migrated from the appellation /
+# slice-test harness (crates/slicetest). Migrated from the appellation /
 # name-part / pronoun / place-naming competency tests in tests/test_competency.py
-# under #867. All TBox vocabulary questions over the asserted merged ontology; rows
+# All TBox vocabulary questions over the asserted merged ontology; rows
 # are the SUBSET the pytest asserted present (cqExactRows omitted → contains-check).
-# No #869 Gap-1 universal — fixed term sets.
+# No Gap-1 universal — fixed term sets.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/names/tests/> .
@@ -72,7 +72,7 @@ ex:psXeXem a gmeow:ExpectedRow ;
 # ── Place namings (the place-scoped NameUsage subclass, asserted) ─────────────
 ex:cqPlaceNamings a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/place-namings.rq" ;
-    gmeow:cqRationale "GMEOW must expose PlaceNaming, the place-scoped subclass of NameUsage (issue #105), in the asserted graph." ;
+    gmeow:cqRationale "GMEOW must expose PlaceNaming, the place-scoped subclass of NameUsage, in the asserted graph." ;
     gmeow:cqExpectRow ex:pnPlaceNaming .
 
 ex:pnPlaceNaming a gmeow:ExpectedRow ;

@@ -9,7 +9,7 @@
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
 
 # =========================================================================== #
-# Doxastic tier shapes (#560)
+# Doxastic tier shapes
 # =========================================================================== #
 
 gmeow:DoxasticStandpointClaimShape

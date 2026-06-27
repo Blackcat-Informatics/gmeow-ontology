@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Worked example: the score is NOT the work — it is one lossy projection of it
-# (#443, #306, P12). The slice's thesis is "frame-relative musical content; every
+# (P12). The slice's thesis is "frame-relative musical content; every
 # notation is a lossy projection." Here a MusicalWork sits at the head of the WEMI
 # spine. A printed gmeow:ScoreEdition (a Manifestation) embodies a notated
 # Expression — but the notation FIXES only some musical parameters and DELEGATES

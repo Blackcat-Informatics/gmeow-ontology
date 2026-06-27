@@ -1,4 +1,4 @@
-"""Competency query guard for the #320 music stress-corpus fixtures.
+"""Competency query guard for the music stress-corpus fixtures.
 
 Loads the merged ontology plus every fixture under
 ``slices/extensions/music/fixtures/`` and asserts that the

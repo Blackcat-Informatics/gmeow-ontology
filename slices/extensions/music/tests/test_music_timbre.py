@@ -1,4 +1,4 @@
-"""Timbre & sensory bridge guards (issue #317).
+"""Timbre & sensory bridge guards.
 
 Principles 4, 5, 9, 12, 16.
 """

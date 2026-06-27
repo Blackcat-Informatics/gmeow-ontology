@@ -4,11 +4,11 @@
 # Declarative structural assertions for the temporal slice — the slice-resident
 # test-DSL twin of the MUST invariants formerly hand-written in
 # tests/test_temporal.py. Authored as gmeow: ontology data so the same annotation
-# discipline and the native Rust harness (crates/slicetest, #784) drive the test,
+# discipline and the native Rust harness (crates/slicetest) drive the test,
 # not ad-hoc Python. Each assertion runs as a SPARQL ASK over the slice module
 # graph (gmeow:scopeModule); every `must` ASK anchors on a concrete term IRI.
 #
-# NAMESPACE: the temporal module is #694-migrated — its gUFO-stereotyped spine is
+# NAMESPACE: the temporal module is migrated — its gUFO-stereotyped spine is
 # typed with the logic: stereotype vocabulary (logic:Situation,
 # logic:AbstractIndividual, logic:Relator). These cells mirror the module's
 # CURRENT logic: shape.
@@ -36,7 +36,7 @@ ex:saTimeScopedRelationIsLogicSituation a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:TimeScopedRelation rdfs:subClassOf logic:Situation . }""" ;
-    gmeow:saRationale "gmeow:TimeScopedRelation reifies a relation that holds over an interval: it MUST be a subClassOf logic:Situation (the #694-migrated stereotype) so residence and tenure are situations, not relators. Mirrors test_time_scoped_relation_is_a_logic_situation." .
+    gmeow:saRationale "gmeow:TimeScopedRelation reifies a relation that holds over an interval: it MUST be a subClassOf logic:Situation (the migrated stereotype) so residence and tenure are situations, not relators. Mirrors test_time_scoped_relation_is_a_logic_situation." .
 
 # --- 2. validFrom / validUntil are AnnotationProperties (MUST hold) ----------
 ex:saValidityPredicatesAreAnnotationProperties a gmeow:StructuralAssertion ;
@@ -58,7 +58,7 @@ ex:saInstantSubclassesLogicAbstractIndividual a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:Instant rdfs:subClassOf logic:AbstractIndividual . }""" ;
-    gmeow:saRationale "A gmeow:Instant is a reified zero-duration point: it MUST be a subClassOf logic:AbstractIndividual (the #694-migrated stereotype). Mirrors test_instant_subclasses_logic_abstract_individual." .
+    gmeow:saRationale "A gmeow:Instant is a reified zero-duration point: it MUST be a subClassOf logic:AbstractIndividual (the migrated stereotype). Mirrors test_instant_subclasses_logic_abstract_individual." .
 
 # --- 4. TimeInterval has start and end Instants (MUST hold) ------------------
 ex:saTimeIntervalHasStartAndEndInstants a gmeow:StructuralAssertion ;
@@ -99,4 +99,4 @@ ex:saTemporalMeasurementIsLogicRelator a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:TemporalMeasurement rdfs:subClassOf logic:Relator . }""" ;
-    gmeow:saRationale "gmeow:TemporalMeasurement reifies a dating claim (method, age, uncertainty): it MUST be a subClassOf logic:Relator (the #694-migrated stereotype), not a Situation. Mirrors test_temporal_measurement_is_logic_relator." .
+    gmeow:saRationale "gmeow:TemporalMeasurement reifies a dating claim (method, age, uncertainty): it MUST be a subClassOf logic:Relator (the migrated stereotype), not a Situation. Mirrors test_temporal_measurement_is_logic_relator." .

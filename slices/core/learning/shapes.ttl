@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Closed-world half of the learning slice (issue #584). Cardinality and
+# Closed-world half of the learning slice. Cardinality and
 # disjointness constraints that OWL EL cannot (or should not, to keep the DL
 # profile clean) express live here as SHACL: a gmeow:Teaching mediates exactly
 # one teacher, at least one learner, and at least one subject taught, and the

@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the rights slice (#21) — the slice-resident
+# Declarative structural assertions for the rights slice — the slice-resident
 # test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly hand-written
 # in tests/test_rights.py. Each assertion runs as a SPARQL ASK over the rights
 # module graph (gmeow:scopeModule) under the native Rust slicetest harness
 # (crates/slicetest).
 #
-# Rights is #694-migrated, so class stereotypes are logic:
+# Rights is migrated, so class stereotypes are logic:
 # (logic:Kind, logic:SubKind, logic:Category, logic:AbstractIndividualType,
 # logic:QualityValue, logic:Relator), not gufo:.
 #
@@ -80,7 +80,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:RightsStatement rdfs:subClassOf gmeow:Observation .
 }""" ;
-    gmeow:saRationale "gmeow:RightsStatement MUST be a subclass of gmeow:Observation — the observation-spine bridge wires rights into the universal claim stack (observation-spine, #21). Mirrors test_core_relators_are_grounded (RightsStatement→gmeow:Observation part)." .
+    gmeow:saRationale "gmeow:RightsStatement MUST be a subclass of gmeow:Observation — the observation-spine bridge wires rights into the universal claim stack (observation-spine). Mirrors test_core_relators_are_grounded (RightsStatement→gmeow:Observation part)." .
 
 # --- 4. Permission is a subclass of Rule (MUST) --------------------------------
 ex:saPermissionSubclassRule a gmeow:StructuralAssertion ;
@@ -102,7 +102,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:License rdfs:subClassOf gmeow:Agreement .
 }""" ;
-    gmeow:saRationale "gmeow:License MUST be a subclass of gmeow:Agreement — a licence binds licensor and licensee and creates permissions / duties, which IS an agreement (#21). Mirrors test_license_is_an_agreement." .
+    gmeow:saRationale "gmeow:License MUST be a subclass of gmeow:Agreement — a licence binds licensor and licensee and creates permissions / duties, which IS an agreement. Mirrors test_license_is_an_agreement." .
 
 # --- 6. Holder properties are subproperties of wasAttributedTo (MUST) ---------
 ex:saHolderPropertiesSpecialiseAttribution a gmeow:StructuralAssertion ;
@@ -114,7 +114,7 @@ ASK {
     gmeow:copyrightHolder  rdfs:subPropertyOf gmeow:wasAttributedTo .
     gmeow:trademarkHolder  rdfs:subPropertyOf gmeow:wasAttributedTo .
 }""" ;
-    gmeow:saRationale "gmeow:copyrightHolder and gmeow:trademarkHolder MUST both be subproperties of gmeow:wasAttributedTo — holder attribution reuses the generic attribution property (Principle: reuse not duplicate, #21). Mirrors test_holder_and_party_properties_specialise_reused_terms (holder part)." .
+    gmeow:saRationale "gmeow:copyrightHolder and gmeow:trademarkHolder MUST both be subproperties of gmeow:wasAttributedTo — holder attribution reuses the generic attribution property (Principle: reuse not duplicate). Mirrors test_holder_and_party_properties_specialise_reused_terms (holder part)." .
 
 # --- 7. Licence party properties are subproperties of hasParty (MUST) ---------
 ex:saLicencePartyPropertiesSpecialiseHasParty a gmeow:StructuralAssertion ;
@@ -126,7 +126,7 @@ ASK {
     gmeow:licensor rdfs:subPropertyOf gmeow:hasParty .
     gmeow:licensee rdfs:subPropertyOf gmeow:hasParty .
 }""" ;
-    gmeow:saRationale "gmeow:licensor and gmeow:licensee MUST both be subproperties of gmeow:hasParty — licence parties reuse the generic party property rather than a separate model (Principle: reuse not duplicate, #21). Mirrors test_holder_and_party_properties_specialise_reused_terms (party part)." .
+    gmeow:saRationale "gmeow:licensor and gmeow:licensee MUST both be subproperties of gmeow:hasParty — licence parties reuse the generic party property rather than a separate model (Principle: reuse not duplicate). Mirrors test_holder_and_party_properties_specialise_reused_terms (party part)." .
 
 # --- 8. Deontic trio Permission/Prohibition/Duty is pairwise disjoint (MUST) --
 ex:saDeonticTrioIsDisjoint a gmeow:StructuralAssertion ;
@@ -138,7 +138,7 @@ ASK {
     ?adc a owl:AllDisjointClasses ;
          owl:members ( gmeow:Permission gmeow:Prohibition gmeow:Duty ) .
 }""" ;
-    gmeow:saRationale "gmeow:Permission, gmeow:Prohibition, and gmeow:Duty MUST be declared pairwise disjoint via owl:AllDisjointClasses — no rights rule may simultaneously grant and forbid an action (the ODRL closed-world rule model, #21). Mirrors test_deontic_trio_is_disjoint." .
+    gmeow:saRationale "gmeow:Permission, gmeow:Prohibition, and gmeow:Duty MUST be declared pairwise disjoint via owl:AllDisjointClasses — no rights rule may simultaneously grant and forbid an action (the ODRL closed-world rule model). Mirrors test_deontic_trio_is_disjoint." .
 
 # --- 9. Value vocabularies are subclasses of logic:QualityValue (MUST) ---------
 ex:saValueVocabulariesAreQualityValues a gmeow:StructuralAssertion ;
@@ -153,7 +153,7 @@ ASK {
     gmeow:TrademarkStatus  rdfs:subClassOf logic:QualityValue .
     gmeow:CopyrightStatus  rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:RightsAction, LicenseFamily, TrademarkStatus, and CopyrightStatus MUST all be subclasses of logic:QualityValue — they are open individuals-based value vocabularies, never subclassed per value (Principle 9, #21). Mirrors test_value_vocabularies_are_open_individuals (subClassOf part)." .
+    gmeow:saRationale "gmeow:RightsAction, LicenseFamily, TrademarkStatus, and CopyrightStatus MUST all be subclasses of logic:QualityValue — they are open individuals-based value vocabularies, never subclassed per value (Principle 9). Mirrors test_value_vocabularies_are_open_individuals (subClassOf part)." .
 
 # --- 10. One seed individual from each value vocabulary exists (MUST) ----------
 ex:saValueVocabularySeedIndividualsExist a gmeow:StructuralAssertion ;
@@ -179,7 +179,7 @@ ASK {
     gmeow:spdxLicenseId a owl:DatatypeProperty ;
         rdfs:domain gmeow:License .
 }""" ;
-    gmeow:saRationale "gmeow:spdxLicenseId MUST be an owl:DatatypeProperty with rdfs:domain gmeow:License — the SPDX identifier is a mandatory datatype property on every licence (P5 canonical identifier, #21). Mirrors test_spdx_license_id_property_exists." .
+    gmeow:saRationale "gmeow:spdxLicenseId MUST be an owl:DatatypeProperty with rdfs:domain gmeow:License — the SPDX identifier is a mandatory datatype property on every licence (P5 canonical identifier). Mirrors test_spdx_license_id_property_exists." .
 
 # --- 12. Constraint algebra — AtomicConstraint/LogicalConstraint subclasses and ruleConstraint (MUST) ---
 ex:saConstraintAlgebraTermsExist a gmeow:StructuralAssertion ;
@@ -193,7 +193,7 @@ ASK {
     gmeow:LogicalConstraint rdfs:subClassOf gmeow:Constraint .
     gmeow:ruleConstraint    a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:AtomicConstraint and LogicalConstraint MUST be subclasses of gmeow:Constraint, and gmeow:ruleConstraint MUST be an owl:ObjectProperty — the ODRL constraint algebra is modelled as two specialisations of an abstract Constraint base (#21). Mirrors test_constraint_algebra_terms_exist (class/property part)." .
+    gmeow:saRationale "gmeow:AtomicConstraint and LogicalConstraint MUST be subclasses of gmeow:Constraint, and gmeow:ruleConstraint MUST be an owl:ObjectProperty — the ODRL constraint algebra is modelled as two specialisations of an abstract Constraint base. Mirrors test_constraint_algebra_terms_exist (class/property part)." .
 
 # --- 13. ODRL operand/operator/logic/conflict value vocabulary seeds exist (MUST) ---
 ex:saConstraintVocabSeedsExist a gmeow:StructuralAssertion ;
@@ -206,7 +206,7 @@ ASK {
     gmeow:logicAnd        a gmeow:ConstraintLogic .
     gmeow:conflictProhibit a gmeow:ConflictStrategy .
 }""" ;
-    gmeow:saRationale "The four ODRL vocabulary seeds gmeow:leftOpDateTime, gmeow:operatorLteq, gmeow:logicAnd, and gmeow:conflictProhibit MUST exist as individuals of their respective value vocabularies — they are the minimal seeds for the constraint algebra (#21). Mirrors test_constraint_algebra_terms_exist (seed-individual part)." .
+    gmeow:saRationale "The four ODRL vocabulary seeds gmeow:leftOpDateTime, gmeow:operatorLteq, gmeow:logicAnd, and gmeow:conflictProhibit MUST exist as individuals of their respective value vocabularies — they are the minimal seeds for the constraint algebra. Mirrors test_constraint_algebra_terms_exist (seed-individual part)." .
 
 # --- 14. Three rightsType seed individuals exist (MUST) -----------------------
 ex:saRightsTypeSeedsExist a gmeow:StructuralAssertion ;
@@ -218,7 +218,7 @@ ASK {
     gmeow:rightsTypePatent       a gmeow:RightsType .
     gmeow:rightsTypeTradeSecret  a gmeow:RightsType .
 }""" ;
-    gmeow:saRationale "gmeow:rightsTypeCopyright, rightsTypePatent, and rightsTypeTradeSecret MUST exist as gmeow:RightsType individuals — these seed the IP-right-kind vocabulary (copyright, patent, trade-secret, #21). Mirrors test_rights_type_vocabulary_exists." .
+    gmeow:saRationale "gmeow:rightsTypeCopyright, rightsTypePatent, and rightsTypeTradeSecret MUST exist as gmeow:RightsType individuals — these seed the IP-right-kind vocabulary (copyright, patent, trade-secret). Mirrors test_rights_type_vocabulary_exists." .
 
 # --- 15. Four specific RightsAction seeds exist (MUST) -----------------------
 ex:saRightsActionCoreSeedsExist a gmeow:StructuralAssertion ;
@@ -231,7 +231,7 @@ ASK {
     gmeow:actionModify    a gmeow:RightsAction .
     gmeow:actionAnonymize a gmeow:RightsAction .
 }""" ;
-    gmeow:saRationale "The four ODRL Common-Vocabulary action seeds gmeow:actionSell, actionStream, actionModify, and actionAnonymize MUST exist as gmeow:RightsAction individuals — they confirm the maximal ODRL common-vocabulary seeding (the non-numeric part of test_expanded_action_vocabulary_is_seeded, #21). Mirrors test_expanded_action_vocabulary_is_seeded (named-action part)." .
+    gmeow:saRationale "The four ODRL Common-Vocabulary action seeds gmeow:actionSell, actionStream, actionModify, and actionAnonymize MUST exist as gmeow:RightsAction individuals — they confirm the maximal ODRL common-vocabulary seeding (the non-numeric part of test_expanded_action_vocabulary_is_seeded). Mirrors test_expanded_action_vocabulary_is_seeded (named-action part)." .
 
 # --- 16. No RightsAction individual is also an owl:Class (MUST-NOT) -----------
 ex:saNoActionValueIsAClass a gmeow:StructuralAssertion ;
@@ -242,7 +242,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     ?action a gmeow:RightsAction , owl:Class .
 }""" ;
-    gmeow:saRationale "No gmeow:RightsAction individual MUST NOT also be typed owl:Class — actions are values, never per-value subclasses (Principle 9, no overtyping, #21). Mirrors test_no_action_value_is_a_class." .
+    gmeow:saRationale "No gmeow:RightsAction individual MUST NOT also be typed owl:Class — actions are values, never per-value subclasses (Principle 9, no overtyping). Mirrors test_no_action_value_is_a_class." .
 
 # --- 17. No gmeow: term in the rights module starts with 'primary' or 'preferred' (MUST-NOT) ---
 ex:saNoPreferredOrPrimaryRightsTerm a gmeow:StructuralAssertion ;
@@ -259,4 +259,4 @@ ASK {
         )
     )
 }""" ;
-    gmeow:saRationale "No gmeow: term in the rights module MUST start with 'primary' or 'preferred' — Principle 9 forbids preferred/primary selector terms anywhere in the vocabulary (open-world, individuals-first doctrine, #21). Mirrors test_no_preferred_or_primary_rights_term." .
+    gmeow:saRationale "No gmeow: term in the rights module MUST start with 'primary' or 'preferred' — Principle 9 forbids preferred/primary selector terms anywhere in the vocabulary (open-world, individuals-first doctrine). Mirrors test_no_preferred_or_primary_rights_term." .

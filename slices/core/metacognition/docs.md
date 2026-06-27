@@ -26,7 +26,7 @@ an agent's whole mental life is one queryable family:
 |---|---|---|
 | `gmeow:CognitiveState` | `cognition` | a subject the agent knows (objectual, first-order) |
 | `gmeow:IntentionalMode` | `teleology` | a state of affairs the agent aims at (conative, first-order) |
-| doxastic states | `epistemics` (#560/#561) | a proposition the agent holds (first-order) |
+| doxastic states | `epistemics` | a proposition the agent holds (first-order) |
 | **`gmeow:MetacognitiveState`** | **`metacognition`** | **one of the agent's own first-order states / claims (reflexive, second-order)** |
 
 These are **documented siblings, not subsumed**: there is deliberately **no** `rdfs:subClassOf`
@@ -152,7 +152,7 @@ first-order quantities and the cross-slice bridges carry their alignments in the
 | Slice | Why |
 |---|---|
 | `kernel` | `gmeow:MentalMoment` (the mode genus) and `gmeow:Agent` (the known-unknown / self-trust domain) |
-| `epistemics` | the first-order doxastic states and credence (#560/#561) that metacognition assesses — referenced, the reflexive `gmeow:metaTarget` points at them |
+| `epistemics` | the first-order doxastic states and credence that metacognition assesses — referenced, the reflexive `gmeow:metaTarget` points at them |
 | `standpoint` | `gmeow:StandpointClaim` — a metacognitive judgement *is* a standpoint claim over the agent's own state (`gmeow:vantage` = the agent) |
 | `observations` | the Observation spine the metacognitive claim rides (`gmeow:vantage`, `gmeow:observedFeature`) |
 | `cognition` | `gmeow:CognitiveState` (the first-order sibling) and `gmeow:KnowledgeProficiency` (the Dunning–Kruger `gmeow:metaTarget`) |

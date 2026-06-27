@@ -5,7 +5,7 @@
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/diagnostics` · **tier: core**
 
-The ontological face of GMEOW's first-class diagnostics system (#654). A validation violation, a
+The ontological face of GMEOW's first-class diagnostics system. A validation violation, a
 lint warning, a reasoning divergence, an external-tool failure — every diagnostic is modelled as a
 **`gmeow:Finding`**, a specialization of `gmeow:Observation`, the universal claim construct. A
 diagnostic is not a new kind of thing; it is the **observation pattern applied to tooling**: the
@@ -92,7 +92,7 @@ bundle — the same coordinates emitted as SARIF `logicalLocations` and recorded
 `Location`. The four diagnostics-owned coordinates are datatype properties with an **open domain**
 (they decorate whatever node `gmeow:findingLocation` points at) and a `xsd:nonNegativeInteger`
 range. The fifth, `gmeow:gtsSegmentIndex`, is **owned by the gts slice**
-(single-owner invariant, #329) and merely *referenced* here as a coordinate.
+(single-owner invariant) and merely *referenced* here as a coordinate.
 
 ### gmeow:gtsTermId · gmeow:gtsQuadIndex · gmeow:gtsReifierId · gmeow:gtsFrameIndex · gmeow:gtsSegmentIndex
 
@@ -111,7 +111,7 @@ the same position.
 (a few surfaces are folded standalone rather than as literal `make check` targets — `box-roles` is
 a `reason-native` sub-audit and `classic-cross-check` runs its own lane, not under `make check`),
 then writes `dist/gmeow-feedback.{json,sarif,html,gts}` — so the self-attesting bundle is the
-complete picture of the developer gate, not just validation (#654, Principle 5: maximal information
+complete picture of the developer gate, not just validation (Principle 5: maximal information
 flow). Each surface owns its own `Severity`/`code` semantics via a `to_diagnostics_report()` function
 (the facade stays surface-agnostic); the table-driven fold in `cli_dev._surface_reports()` adds a
 surface in one row, and `tests/test_feedback_surfaces.py` pins the fold table against the documented
@@ -134,14 +134,11 @@ stays driven solely by the validation result** — per-surface hard gating lives
 | `classic-cross-check` | `classic-cross-check/{subsumption,consistency}-divergence`, `…/dl-gap` | native↔oracle (ELK/HermiT/ROBOT) divergence ledger, already a Rust-backed report; `NativeOnly`/`OracleOnly` → `error`, `DlGap` → `note` |
 
 The mapping-compiler surface is now **landed**: native compiler failures surface as
-`mapping-compile.dsl-error` ([#809](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/809)),
-and the SSSOM validator + native `gmeow_slice.lint_projection` trio →
-`mapping-compile.{sssom,fno-type,fno-ref,spec-drift}`
-([#854](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/854)); only the `overclaim`
+`mapping-compile.dsl-error`, and the SSSOM validator + native `gmeow_slice.lint_projection` trio →
+`mapping-compile.{sssom,fno-type,fno-ref,spec-drift}`; only the `overclaim`
 leg remains.
 
-**Deferred to [#809](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/809)** (the remaining
-GMEOW-owned `make check` surfaces, tracked, not silently dropped): the mapping-compiler `overclaim`
+The remaining GMEOW-owned `make check` surfaces (not silently dropped): the mapping-compiler `overclaim`
 leg, statement-compiler (round-trip), and logic-compiler (`gmeow_logic` diagnostic
 dicts) surfaces; external-tool failures (`ruff` / `mypy` / `clippy` / `pre-commit`) wrapped with raw
 output; and granular per-check `constitution.*` codes (today the string-only constitution surface

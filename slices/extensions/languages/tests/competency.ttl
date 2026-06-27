@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Declarative competency questions for the languages slice, executed by the native
-# Rust slice-test harness (crates/slicetest, #784). Migrated from the language-origin
+# Rust slice-test harness (crates/slicetest). Migrated from the language-origin
 # / writing-system / proficiency-level competency tests in tests/test_competency.py
-# under #867. TBox vocabulary questions over the asserted merged ontology; rows are
+# TBox vocabulary questions over the asserted merged ontology; rows are
 # the SUBSET the pytest asserted present (cqExactRows omitted → contains-check). No
-# #869 Gap-1 universal — fixed term sets.
+# Gap-1 universal — fixed term sets.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/languages/tests/> .

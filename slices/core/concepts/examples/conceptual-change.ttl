@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example — CONCEPTUAL CHANGE (issue #585, Task 2).
+# Worked example — CONCEPTUAL CHANGE (Task 2).
 #
 # Scenario: the concept "planet" changes its intension around the 2006 IAU  # codespell:ignore
 # redefinition.  The pre-2006 intension ("a body orbiting the Sun") is recorded  # codespell:ignore

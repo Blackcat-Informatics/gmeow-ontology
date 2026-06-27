@@ -74,7 +74,7 @@ overwhelmingly at the **Python compatibility boundary**, not in Rust. Ranked by 
   `native_rl_rdflib.py`).
 - **gmeow-gts (separate Apache/MIT repo, crates.io 0.9.4):** six conformance-gated engines (Rust,
   Python, Go, TypeScript, Smalltalk/Pharo, Kotlin/JVM), a Rust-backed C-ABI `libgts` with C/C++/.NET/
-  PHP/Lua/Swift/Ruby/R/Julia wrappers, RDF-1.2 losslessness (#212/#213/#214 closed), and formats
+  PHP/Lua/Swift/Ruby/R/Julia wrappers, full RDF-1.2 losslessness, and formats
   N-Quads / TriG / JSON-LD-star / YAML-LD-star + relational exports (SQLite/DuckDB/Parquet). It is
   **not** a query engine/reasoner/store by charter.
 
@@ -110,18 +110,18 @@ Migration: port the old consumers (compat bridge, SHACL/validate/logic) to the c
 delete the legacy reader. The write side (`DatasetMut`) + `RdfParserBackend`/`SparqlEngine`/
 `RdfSerializer` + `TermFactory` layer on top.
 
-> **P2c migration reality (refined in #886 and completed in #922).** `DatasetView` is NOT a drop-in
+> **P2c migration reality.** `DatasetView` is NOT a drop-in
 > superset of the retired reader: it is **quad-only** (no `reifiers()`/`annotations()`/`lookaside()`),
 > **`RdfDataset`-only**, and **not object-safe** — while production consumers were previously fed
 > adapter-backed stores, not an `RdfDataset`. So the migration was "**port consumers onto the concrete IR**
 > (`&RdfDataset`, reading the RDF 1.2 statement layer via the IR's inherent id-based accessors), NOT
 > extend the `DatasetView` trait." It is split:
 >
-> - **P2c part 1 (#886, landed):** added the borrowed `RdfDataset::reifier_refs()`/`annotation_refs()`
+> - **P2c part 1 (landed):** added the borrowed `RdfDataset::reifier_refs()`/`annotation_refs()`
 >   read surface; ported the two genuinely IR-native seams — `gts_write::to_writer`/`to_gts` (now
 >   `&RdfDataset` + `&RdfLookaside`) and the SHACL SPARQL materialization (`store_from_dataset`) — off
 >   the owned-quad bridge.
-> - **P2c part 2 (#922, landed):** route production GTS/oxigraph ingress through the IR
+> - **P2c part 2 (landed):** route production GTS/oxigraph ingress through the IR
 >   (`import_gts_graph`/`import_gts_events`), migrate the remaining adapter-sourced consumers
 >   (reasoning EL/DL/RL, metadata folds, `build_lpg`, `asserted_turtle`, SHACL, world loading,
 >   `logic::verify`), swap materialization callers to `store_from_dataset`, then delete the legacy
@@ -151,7 +151,7 @@ The IR resolves `TermId -> TermRef<'_>` (borrows `&str` from the intern table) a
 borrowed `QuadRef<'a>`/`*Ref`; the bridge maps IR refs → oxigraph `*Ref` over the **same backing
 bytes**, so **no intermediate owned `RdfQuad`/`oxrdf::Quad` is allocated** on ingress. That replaces the
 owned `rdf_quad_from_oxigraph`/`oxigraph_quad_from_rdf` conversions and kills the
-`GTS → RdfQuad (clone) → oxigraph (clone again)` double-tax flagged in #819.
+`GTS → RdfQuad (clone) → oxigraph (clone again)` double-tax.
 
 **It is NOT an end-to-end zero-copy store path:** oxigraph still copies/encodes terms into its own
 internal indexes on `insert`, and scoped blank-node qualification (`BlankScope::qualify_label`) may
@@ -187,7 +187,7 @@ loss. *Semantic* loss occurs only at exit-gate projections to genuinely-lossy ex
 container. Per the loss matrix the only remaining entries are `blob-bytes-absent` (recoverable
 by-reference) and `bnode-scope-flatten` (flat-`read()` only; the streaming path is lossless); the
 RDF-1.2 fidelity defects `direction-dropped`/`multi-reifier-collapsed` are closed
-(gmeow-gts #212/#213/#214).
+(losslessness closed in gmeow-gts).
 
 ### The ingestion event protocol (`gmeow-rdf-events`) — a protocol, not a trait rename
 
@@ -282,7 +282,7 @@ Ground: `crates/rdf/src/ir/{term,builder,dataset}.rs`. Today — AoS `InternedTe
 `u32` `TermId`, a `Box<[QuadRow]>` sorted+deduped at freeze — **and the builder also holds each quad
 twice** (a `Vec<QuadRow>` plus a parallel `HashSet<QuadRow>` for dedup, `builder.rs`; an unacknowledged
 build-time cost), **no permutation indexes** (iterate-only), sparse handle-keyed locations. Every change
-is **criterion-gated** (`benches/ir_layout.rs`, #630 baselines) and keeps the conformance corpus green
+is **criterion-gated** (`benches/ir_layout.rs`, criterion baselines) and keeps the conformance corpus green
 (LSP). Benchmarks must include the builder's quad Vec+HashSet duplication, not just the term double-store.
 
 ### Optimizations
@@ -361,7 +361,7 @@ the benchmarks bear it out.
 
 - **Abstraction traits:** `DatasetView` (read) + `DatasetMut` (write) + `TermFactory`/DataFactory —
   one read/write interface across frozen IR, COW delta, and backend adapters; the RDF/JS shim maps
-  onto `TermFactory` 1:1. `DatasetMut` is already delivered by P5 (#839); P2d (#887) adds the
+  onto `TermFactory` 1:1. `DatasetMut` is already delivered by P5; P2d adds the
   remaining term/parser/SPARQL/serializer seams.
 - **std traits:** `Display`/`FromStr` (canonical N-Triples term form) on `TermRef`/`QuadRef`;
   `IntoIterator for &RdfDataset`; `FromIterator`/`Extend` on the builder; `std::error::Error` on
@@ -388,7 +388,7 @@ a criterion baseline before/after.
 - **P2 — Backend traits + oxigraph ring-fence [needs P1].** `DatasetView` + `GraphMatch` (P2a),
   the `gmeow-rdf-core` / `gmeow-rdf` crate boundary (P2b), the concrete-IR consumer migration (P2c),
   and the remaining `TermFactory` + `RdfParserBackend` + `SparqlEngine` + `RdfSerializer` seams (P2d).
-  `DatasetMut` is P5 (#839), not repeated here. The sole `use oxigraph` sites stay in the adapter
+  `DatasetMut` is P5, not repeated here. The sole `use oxigraph` sites stay in the adapter
   crate; `gmeow-rdf-core` remains oxigraph-free under `make rdf-core-hygiene`.
 - **P3 — IR perf [∥; SPLIT into measure-gated steps]:** **P3a** `NonZeroU32` `TermId` + compile-time
   `size_of!` assertions; **P3b** arena / string-range term representation; **P3c** store-once hash table
@@ -397,7 +397,7 @@ a criterion baseline before/after.
 - **P4 — Lazy quad indexes + `term_id_by_value(TermValueRef)` + `GraphMatch` [needs P3a].**
   Access-pattern-driven build; the value lookup keys on a dataset-independent `TermValueRef`.
 - **P5 — COW suppression-delta + `DatasetMut` [needs P2, P4].** Tagged `Base`/`Delta` handles; explicit
-  mutation rules; `freeze` remaps all tables. **Delivered in #839.** A measured hypothesis — benchmark
+  mutation rules; `freeze` remaps all tables. **Delivered.** A measured hypothesis — benchmark
   vs the oxigraph store AND a simple hash-indexed mutable store.
 - **P6 — `gmeow-rdf-events` ingestion protocol crate [needs P2].** New standalone permissive crate (NOT
   a `StreamingSink` rename); rename the existing frozen-dataset visitor `RdfDatasetVisitor`. Object-safe
@@ -439,7 +439,7 @@ contracts: `catch_unwind` everywhere, `int32` status + out-params, `*_free` for 
 documented thread-safety per handle, **SemVer-frozen ABI** (the one sanctioned no-backwards-compat
 exception). Gated on a stable Python beta so the surface is proven before it is frozen.
 
-### P10 spec — WASM build (separate parcel) — **DELIVERED (#846)**
+### P10 spec — WASM build (separate parcel) — **DELIVERED**
 
 `wasm32`, in-memory only (oxigraph RocksDB and `crates/logic` don't compile to wasm). **Not** a C-ABI
 consumer and **not** dependent on `no_std`: WASM has its own ownership model, packaging (npm/ESM), async
@@ -467,7 +467,7 @@ from the RDF/JS surface). The shipped surface:
 
 **Deferred (out of P10):** the JS-ecosystem conformance suites (N3.js / rdflib.js / RDF-JS), SPARQL over
 wasm (oxigraph-backed, native-only by charter), `wasm-opt -Oz` size optimization, and the actual npm
-publish — tracked under the post-v1 spin-up (EPIC #927/#930).
+publish — deferred to the post-v1 spin-up.
 
 ### P9 spec — the rdflib compat shim (`gmeow_rdf.compat.rdflib`), LSP-critical
 
@@ -531,7 +531,7 @@ To bring gmeow-gts "up to snuff" for purrdf:
 6. **Expose the format codec set through the `libgts` C-ABI** — format-parametric parse/serialize + a
    media-type/format registry, beyond today's GTS↔N-Quads.
 
-Losslessness is already done in gmeow-gts (#212/#213/#214 closed).
+Losslessness is already done in gmeow-gts.
 
 ## Risks / open questions
 
@@ -540,7 +540,7 @@ Losslessness is already done in gmeow-gts (#212/#213/#214 closed).
 - **Plugin entry-points** — "full public" parity may be asymptotic; define a concrete downstream
   acceptance list (deferred follow-up).
 - **Performance claims** (~10× parse / ~12× SPARQL) come from comments; publish criterion-backed
-  benchmarks (the #630 infra exists) rather than restate them.
+  benchmarks (the criterion infrastructure exists) rather than restate them.
 
 ## Verification (per-parcel acceptance criteria)
 

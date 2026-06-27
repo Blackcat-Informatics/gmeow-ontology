@@ -4,7 +4,7 @@
 # Declarative structural assertions for the inquiry slice — the slice-resident
 # test-DSL twin of the MUST / MUST-NOT invariants formerly hand-written in
 # tests/test_inquiry.py. Authored as gmeow: ontology data so the same
-# annotation discipline and the native Rust harness (crates/slicetest, #784)
+# annotation discipline and the native Rust harness (crates/slicetest)
 # drive the test, not ad-hoc Python. Each assertion runs as a SPARQL ASK over
 # the module graph (gmeow:scopeModule). A positive universal over a fixed term
 # set is a single MUST with a conjunctive pattern (all conjuncts must match); a

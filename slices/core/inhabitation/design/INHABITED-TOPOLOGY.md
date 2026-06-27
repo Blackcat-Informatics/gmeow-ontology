@@ -235,15 +235,15 @@ embodiment assignments and role fillers, generated on demand, never materialized
 
 ## The holon: deferred at the domain layer, supplied at the foundation layer
 
-A first-class *domain* `gmeow:Holon` Kind is deferred; the **foundation** holon kernel (issue #704,
-in-flight) supplies `logic:Holarchy`, `logic:HolonicPosition` (the five-place entity × holarchy ×
+A first-class *domain* `gmeow:Holon` Kind is deferred; the **foundation** holon kernel supplies
+`logic:Holarchy`, `logic:HolonicPosition` (the five-place entity × holarchy ×
 context × interval × path relation), and `logic:Holon` (its lossy unary projection). The holon/holarchy
 vocabulary is Koestler's (1967; see [`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md)). The kernel's
 doctrine — *"holon-ness is never a bare property of the entity; it is a position"* — is the same
 anti-rigidity argument this slice makes, an independent cross-check. `gmeow:InhabitedSystem` aligns to
 `logic:HolonicPosition` (host = `positionEntity`, tenure interval = `positionInterval`, claim frame =
-`positionContext`), by reference. The references are forward-looking until #704 lands
-([`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md)).
+`positionContext`), by reference (see
+[`INHABITED-REFERENCES.md`](INHABITED-REFERENCES.md)).
 
 ## Scope and seams
 

@@ -81,7 +81,7 @@ rather than deleted (Principle 10). The flagship `store_claim` records a
 **`gmeow:originGenerated` marks provenance, not identity.** It records that content was
 machine-synthesised *without* asserting that generative sampling **is** imagining; the
 human↔machine mapping is a shared faculty with substrate-specific realisations, not an
-equivalence (umbrella #580 guardrail). A generated claim later misread as remembered is
+equivalence (the mentation program guardrail). A generated claim later misread as remembered is
 exactly the failure this value guards against.
 
 Three axes co-apply and stay separate: **origin** (`gmeow:contentOrigin` — where content
