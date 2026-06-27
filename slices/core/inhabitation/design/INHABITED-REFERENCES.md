@@ -65,6 +65,9 @@ is exactly the contested question.
 | `parfit-1984` | Parfit, D. (1984). *Reasons and Persons.* Oxford University Press. (Identity as a matter of degree and relation, not an all-or-nothing further fact.) |
 | `personal-identity-sep` | Olson, E. T. (2023). Personal Identity. *The Stanford Encyclopedia of Philosophy*, E. N. Zalta & U. Nodelman (eds.). |
 | `coreference-no-sameas` | (Internal) the GMEOW coreference doctrine — `gmeow:counterpartOf` over `owl:sameAs`; see `slices/core/coreference/` and Principle 5. |
+| `searle-1995` | Searle, J. R. (1995). *The Construction of Social Reality.* Free Press. (Status functions and institutional facts — the grounding for `gmeow:ContinuityDetermination` as a frame-relative institutional fact, real-for-action, not a metaphysical claim.) |
+| `maccormick-2007` | MacCormick, N. (2007). *Institutions of Law: An Essay in Legal Theory.* Oxford University Press. (Institutional facts in law; determinations as authority-relative and revisable.) |
+| `cagle-determination` | Cagle, K. (2026). Correspondence on the descriptive vs. decisional layers (June 2026). The pushback that prompted the first-class `gmeow:ContinuityDetermination`: accountability frameworks must decide, so a chosen, attributed, grounded verdict belongs beside the contested plurality. |
 
 ## Modeling lineages aligned by reference
 
