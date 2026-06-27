@@ -22,8 +22,7 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 use gmeow_conformance::external::{
-    audit_vendorable, load_corpus_meta, outcome_from_szs, parse_entailment_manifest,
-    ExternalOutcome,
+    audit_vendorable, load_corpus_meta, outcome_from_szs, parse_test_manifest, ExternalOutcome,
 };
 use gmeow_conformance::paths::cases_root;
 
@@ -61,7 +60,7 @@ fn declared_outcome(case_dir: &Path) -> ExternalOutcome {
         // segment as the authority. `absolute` is lexical (no filesystem / no url dep).
         let abs = std::path::absolute(&manifest).expect("resolve manifest path");
         let base = format!("file://{}", abs.display());
-        let entries = parse_entailment_manifest(&text, Some(&base))
+        let entries = parse_test_manifest(&text, Some(&base))
             .unwrap_or_else(|e| panic!("{}: manifest parse: {e}", manifest.display()));
         // The case directory name selects the entry (falls back to the sole entry).
         let case_name = case_dir.file_name().and_then(|s| s.to_str()).unwrap_or("");

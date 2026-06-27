@@ -22,9 +22,7 @@
 
 use std::path::PathBuf;
 
-use gmeow_conformance::external::{
-    outcome_from_szs, parse_entailment_manifest, runner_verdict_json,
-};
+use gmeow_conformance::external::{outcome_from_szs, parse_test_manifest, runner_verdict_json};
 
 const USAGE: &str = "\
 usage:
@@ -114,7 +112,7 @@ fn ingest_manifest(path: &std::path::Path) -> Result<(), String> {
     let abs =
         std::path::absolute(path).map_err(|e| format!("cannot resolve {}: {e}", path.display()))?;
     let base = format!("file://{}", abs.display());
-    let entries = parse_entailment_manifest(&text, Some(&base))?;
+    let entries = parse_test_manifest(&text, Some(&base))?;
     if entries.is_empty() {
         return Err(format!("no entailment entries in {}", path.display()));
     }
