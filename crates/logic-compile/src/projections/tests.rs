@@ -12,7 +12,7 @@
 use std::path::PathBuf;
 
 use super::*;
-use crate::compile::frontend::parse_logic_str;
+use crate::frontend::parse_logic_str;
 
 // ── Unit: helpers ────────────────────────────────────────────────────────────
 
@@ -29,7 +29,7 @@ fn python_repr_matches_cpython() {
 
 #[test]
 fn overclaim_gate_fires_on_exact_with_drops() {
-    use crate::compile::ir::PreservationKind;
+    use crate::ir::PreservationKind;
     assert!(assert_no_overclaim("nemo", PreservationKind::Exact, &[]).is_ok());
     let err = assert_no_overclaim(
         "nemo",
@@ -97,21 +97,27 @@ fn parse(ttl: &str) -> LogicProgram {
 
 /// Canonical sorted triple lines of a Turtle document (default graph), for
 /// triple-set equality (valid because no golden uses blank nodes).
+///
+/// Wasm-clean (#732): native codec parse → frozen IR → canonical N-Triples of the
+/// default graph, one sorted line per triple (the trailing ` .` is stripped so a
+/// line reads `<s> <p> <o>`). No oxigraph Store — the compiler crate's test harness
+/// rides the same `gmeow-rdf` `gts` surface the projections themselves use.
 fn triple_set(turtle: &str) -> Vec<String> {
-    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-    use gmeow_rdf::parse_dataset;
-    // Native codec parse (#909) → frozen IR → oxigraph Store, so the existing
-    // oxigraph-`Display` triple rendering below is unchanged.
+    use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
     let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)
         .unwrap_or_else(|e| panic!("turtle parse failed: {e}\n---\n{turtle}"));
-    let store = store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
-        .unwrap_or_else(|e| panic!("turtle materialize failed: {e}\n---\n{turtle}"));
-    let mut lines: Vec<String> = store
-        .iter()
-        .map(|q| {
-            let q = q.expect("store iteration must not fail");
-            format!("{} {} {}", q.subject, q.predicate, q.object)
-        })
+    let nt = serialize_dataset(
+        dataset.as_ref(),
+        "application/n-triples",
+        SerializeGraph::DefaultGraph,
+    )
+    .unwrap_or_else(|e| panic!("n-triples serialize failed: {e}\n---\n{turtle}"));
+    let nt = String::from_utf8(nt).expect("n-triples is valid UTF-8");
+    let mut lines: Vec<String> = nt
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .map(|l| l.strip_suffix(" .").unwrap_or(l).to_owned())
         .collect();
     lines.sort();
     lines
@@ -170,7 +176,7 @@ fn run_case(case: &str) {
 // reconstructs the byte-identical contract (same `sort_key()`), whether the
 // contract originated from a preset or from direct facets.
 
-use crate::compile::ir::{ReasoningContract, SemanticProfileId};
+use crate::ir::{ReasoningContract, SemanticProfileId};
 
 /// Build a fully-loaded preset contract exercising every facet kind.
 fn loaded_preset_contract() -> ReasoningContract {
@@ -201,7 +207,7 @@ fn loaded_preset_contract() -> ReasoningContract {
         .insert("ex:closedPred".to_owned(), "ClosedWorldClosure".to_owned());
     c.closure_entries
         .insert("ex:openPred".to_owned(), "OpenWorldClosure".to_owned());
-    c.complexity = Some(crate::compile::ir::ComplexityClass::new("PTIME").unwrap());
+    c.complexity = Some(crate::ir::ComplexityClass::new("PTIME").unwrap());
     c
 }
 
@@ -247,7 +253,7 @@ fn contract_round_trip_anonymous_faceted_contract() {
     original
         .closure_entries
         .insert("ex:k".to_owned(), "ClosedWorldClosure".to_owned());
-    original.complexity = Some(crate::compile::ir::ComplexityClass::new("PTIME").unwrap());
+    original.complexity = Some(crate::ir::ComplexityClass::new("PTIME").unwrap());
 
     let program = LogicProgram::new(vec![], vec![], vec![original.clone()], None);
     let reparsed = reparse_canonical(&program);
@@ -301,7 +307,7 @@ fn contract_round_trip_passes_ir_isomorphism_gate_on_contracts() {
     // projection, the canonical-RDF12 facet triples are themselves logic:-predicate
     // triples that the axiom extractor also reads, so the round-trip is an
     // EXACT reconstruction of the *contract*, not a no-op over the whole graph.)
-    use crate::compile::adapter::assert_ir_isomorphic;
+    use crate::adapter::assert_ir_isomorphic;
     let contracts = vec![loaded_preset_contract(), {
         let mut c = ReasoningContract::new();
         c.model_semantics = Some("WellFoundedSemantics".to_owned());

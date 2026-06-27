@@ -1684,6 +1684,7 @@ version = "0.1.0"
 dependencies = [
  "datatest-stable",
  "gmeow-logic",
+ "gmeow-logic-compile",
  "gmeow-rdf",
  "oxigraph",
  "serde_json",
@@ -1772,6 +1773,7 @@ dependencies = [
  "blake3",
  "criterion",
  "gmeow-diagnostics",
+ "gmeow-logic-compile",
  "gmeow-rdf",
  "gmeow-sparql-algebra",
  "insta",
@@ -1788,11 +1790,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-logic-compile"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf",
+ "gmeow-sparql-algebra",
+ "insta",
+ "sha2",
+]
+
+[[package]]
 name = "gmeow-lsp"
 version = "0.1.0"
 dependencies = [
  "gmeow-diagnostics",
  "gmeow-logic",
+ "gmeow-logic-compile",
  "insta",
  "lsp-server",
  "lsp-types 0.97.0",
@@ -1833,6 +1846,7 @@ dependencies = [
  "gmeow-docs",
  "gmeow-gts",
  "gmeow-logic",
+ "gmeow-logic-compile",
  "gmeow-rdf",
  "gmeow-shacl",
  "gmeow-slice",

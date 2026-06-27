@@ -25,18 +25,16 @@
 //! `tests/test_logic_gufo_superset.py`).
 
 use std::collections::HashSet;
+#[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
 
-use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
-use oxigraph::store::Store;
-
-use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-use gmeow_rdf::parse_dataset;
+use gmeow_rdf::{parse_dataset, RdfDataset};
 
 use super::frontend::{Diagnostic, LogicParseError, Severity};
 use super::graphutil::{
-    default_graph_quads, is_empty, nn, subject_is_blank, subject_str, subjects_with,
-    term_as_subject, term_is_blank, term_is_literal, term_str, RDF_TYPE,
+    default_graph_quads, iri_of, is_empty, nn, subject_is_blank, subject_of, subject_str,
+    subjects_with, term_as_subject, term_is_blank, term_is_literal, term_str, value, Node, Subject,
+    RDF_TYPE,
 };
 use super::ir::{
     ContextualScope, LogicAxiom, LogicProgram, LogicRule, ReasoningContract, LOGIC_NAMESPACE,
@@ -271,25 +269,19 @@ struct MappedAxiom {
 
 /// Whether the blank node `node` is a complex OWL restriction (`owl:onProperty`,
 /// `owl:someValuesFrom`, cardinalities, …).
-fn is_complex_restriction(store: &Store, node: &NamedOrBlankNode) -> bool {
-    OWL_RESTRICTION_PREDS.iter().any(|p| {
-        let pred = nn(&owl(p));
-        store
-            .quads_for_pattern(
-                Some(node.as_ref()),
-                Some(pred.as_ref()),
-                None,
-                Some(GraphNameRef::DefaultGraph),
-            )
-            .next()
-            .is_some()
-    })
+fn is_complex_restriction(store: &RdfDataset, node: &Subject) -> bool {
+    OWL_RESTRICTION_PREDS
+        .iter()
+        .any(|p| value(store, node, &nn(&owl(p))).is_some())
 }
 
-fn extract_gufo_sort_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<MappedAxiom> {
+fn extract_gufo_sort_axioms(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<MappedAxiom> {
     let mut result = Vec::new();
     for (gufo_local, logic_local) in GUFO_TO_LOGIC_SORT {
-        let gufo_class = Term::NamedNode(nn(&gufo(gufo_local)));
+        let gufo_class = Node::iri(gufo(gufo_local));
         let logic_type_iri = logic(logic_local);
         for subject in subjects_with(store, &nn(RDF_TYPE), &gufo_class) {
             if subject_is_blank(&subject) {
@@ -315,10 +307,13 @@ fn extract_gufo_sort_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) ->
     result
 }
 
-fn extract_owl_char_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<MappedAxiom> {
+fn extract_owl_char_axioms(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<MappedAxiom> {
     let mut result = Vec::new();
     for (owl_local, logic_local) in OWL_CHARACTERISTIC_TO_LOGIC {
-        let owl_char = Term::NamedNode(nn(&owl(owl_local)));
+        let owl_char = Node::iri(owl(owl_local));
         let logic_type = logic(logic_local);
         for subject in subjects_with(store, &nn(RDF_TYPE), &owl_char) {
             if subject_is_blank(&subject) {
@@ -344,22 +339,18 @@ fn extract_owl_char_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> 
 }
 
 fn extract_owl_structural_axioms(
-    store: &Store,
+    store: &RdfDataset,
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<MappedAxiom> {
+    let quads = default_graph_quads(store);
     let mut result = Vec::new();
     for (ns, owl_local, logic_local) in OWL_PRED_TO_LOGIC {
-        let owl_pred = nn(&format!("{ns}{owl_local}"));
+        let owl_pred_iri = format!("{ns}{owl_local}");
         let logic_pred = logic(logic_local);
-        for quad in store
-            .quads_for_pattern(
-                None,
-                Some(owl_pred.as_ref()),
-                None,
-                Some(GraphNameRef::DefaultGraph),
-            )
-            .filter_map(Result::ok)
-        {
+        for quad in &quads {
+            if quad.predicate.as_str() != owl_pred_iri {
+                continue;
+            }
             if subject_is_blank(&quad.subject) {
                 // Anonymous subject — skip silently (blank reification helper).
                 continue;
@@ -395,14 +386,15 @@ fn extract_owl_structural_axioms(
     result
 }
 
-fn extract_unmapped_owl_triples(store: &Store, diagnostics: &mut Vec<Diagnostic>) {
+fn extract_unmapped_owl_triples(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) {
     let skip = rdfs_skip_preds();
     let mapped_owl: HashSet<String> = OWL_PRED_TO_LOGIC
         .iter()
         .map(|(ns, local, _)| format!("{ns}{local}"))
         .collect();
-    for quad in default_graph_quads(store) {
-        let p_str = quad.predicate.as_str();
+    for q in store.quads().filter(|q| q.g.is_none()) {
+        let predicate = iri_of(store, q.p);
+        let p_str = predicate.as_str();
         if !p_str.starts_with(OWL_NS) {
             continue;
         }
@@ -412,10 +404,11 @@ fn extract_unmapped_owl_triples(store: &Store, diagnostics: &mut Vec<Diagnostic>
         if p_str == RDF_TYPE {
             continue;
         }
-        if subject_is_blank(&quad.subject) {
+        let subject = subject_of(store, q.s);
+        if subject_is_blank(&subject) {
             continue;
         }
-        let s_str = subject_str(&quad.subject);
+        let s_str = subject_str(&subject);
         diagnostics.push(warn(
             "UNMAPPED_OWL_CONSTRUCT",
             format!("OWL predicate {p_str:?} on {s_str:?} has no logic: equivalent; skipped"),
@@ -437,10 +430,10 @@ fn warn(code: &str, message: String, subject: Option<String>) -> Diagnostic {
 // Public API
 // --------------------------------------------------------------------------- //
 
-/// Normalize legacy `owl:*` / `gufo:` RDF already loaded into a [`Store`]
-/// (default graph) into a [`LogicProgram`] + diagnostics.
-pub fn adapt_legacy_store(
-    store: &Store,
+/// Normalize legacy `owl:*` / `gufo:` RDF already loaded into a wasm-clean
+/// [`RdfDataset`] (default graph) into a [`LogicProgram`] + diagnostics.
+pub fn adapt_legacy_dataset(
+    store: &RdfDataset,
     source_iri: Option<String>,
 ) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
     if is_empty(store) {
@@ -489,15 +482,18 @@ pub fn adapt_legacy_str(
     turtle: &str,
     source_iri: Option<String>,
 ) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
-    // Native codec parse → frozen IR → oxigraph Store (text-free hop, #909).
+    // Native codec parse → frozen wasm-clean IR dataset, straight into the adapter
+    // (no oxigraph Store hop, #909/#732).
     let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)
         .map_err(|e| LogicParseError(format!("Failed to parse Turtle source: {e}")))?;
-    let store = store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
-        .map_err(|e| LogicParseError(format!("Failed to materialize Turtle source: {e}")))?;
-    adapt_legacy_store(&store, source_iri)
+    adapt_legacy_dataset(dataset.as_ref(), source_iri)
 }
 
 /// Normalize a legacy `owl:*` / `gufo:` Turtle file into a [`LogicProgram`].
+///
+/// Native-only: `wasm32` has no filesystem, so the wasm-able compiler exposes only
+/// the in-memory `adapt_legacy_str` / `adapt_legacy_dataset` entry points.
+#[cfg(not(target_arch = "wasm32"))]
 pub fn adapt_legacy_path(
     path: &Path,
     source_iri: Option<String>,

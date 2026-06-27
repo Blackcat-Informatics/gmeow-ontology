@@ -390,7 +390,17 @@ wasm: ## Build the purrdf wasm engine (P10, #846) for wasm32-unknown-unknown.
 		cargo build -p gmeow-rdf --no-default-features --features gts --target wasm32-unknown-unknown || { echo "FAIL: gmeow-rdf does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== binding proof: the purrdf cdylib builds for wasm32 =="; \
 		cargo build -p gmeow-rdf-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-rdf-wasm (purrdf) does not build for wasm32-unknown-unknown"; exit 1; }; \
-		echo "OK: purrdf wasm engine + bindings build for wasm32-unknown-unknown"; \
+		echo "== compiler proof: gmeow-logic-compile (pure parse->IR->project) builds for wasm32 (#664/#732) =="; \
+		cargo build -p gmeow-logic-compile --target wasm32-unknown-unknown || { echo "FAIL: gmeow-logic-compile does not build for wasm32-unknown-unknown"; exit 1; }; \
+		echo "== purity gate: no reasoning-runtime crate may appear in the gmeow-logic-compile wasm dep tree =="; \
+		for forbidden in oxigraph oxrocksdb nemo scryer-prolog tokio pyo3; do \
+			if cargo tree -p gmeow-logic-compile -e no-dev --target wasm32-unknown-unknown -i $$forbidden >/dev/null 2>&1; then \
+				echo "FAIL: gmeow-logic-compile leaked $$forbidden into its wasm dependency tree:"; \
+				cargo tree -p gmeow-logic-compile -e no-dev --target wasm32-unknown-unknown -i $$forbidden; \
+				exit 1; \
+			fi; \
+		done; \
+		echo "OK: purrdf wasm engine + bindings + gmeow-logic-compile build for wasm32 (compiler dep tree is reasoning-runtime-free)"; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target absent in CI — the P10 wasm-first criterion (#846) cannot be verified; CI must install it"; exit 1; \
 	else \

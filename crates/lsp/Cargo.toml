@@ -26,6 +26,9 @@ serde_json = "1"
 url = "2"
 gmeow-diagnostics = { path = "../diagnostics" }
 gmeow-logic = { path = "../logic" }
+# The pure compiler surface (parse_logic_str) the LSP analyzer drives, split out of
+# gmeow-logic in #732; the runtime-side diagnostics_report still comes from gmeow-logic.
+gmeow-logic-compile = { path = "../logic-compile" }
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 
 [dev-dependencies]

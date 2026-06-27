@@ -28,7 +28,8 @@ use std::fmt;
 const SEP: char = '\u{0}';
 
 /// The `logic:` namespace; `iri()` helpers expand a local enum name to its IRI.
-/// Matches `gmeow_tools.config.LOGIC_NAMESPACE` (and [`crate::provenance::LOGIC_NAMESPACE`]).
+/// Matches `gmeow_tools.config.LOGIC_NAMESPACE` (and the runtime
+/// `gmeow_logic::provenance::LOGIC_NAMESPACE`).
 pub const LOGIC_NAMESPACE: &str = "https://blackcatinformatics.ca/logic/";
 
 /// The `logic:ResourcePolicy` facet value (local name) that licenses operational SLD

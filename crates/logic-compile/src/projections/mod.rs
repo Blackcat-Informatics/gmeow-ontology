@@ -162,7 +162,10 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
 
 // Namespaces (string constants — the byte-parity surface).
 pub(crate) const LOGIC_NS: &str = super::ir::LOGIC_NAMESPACE;
-pub(crate) const GMEOW_NS: &str = crate::provenance::NAMESPACE;
+// The GMEOW namespace. The runtime mirrors this as `gmeow_logic::provenance::NAMESPACE`;
+// the wasm-able compiler keeps its own copy to stay free of the oxigraph-coupled
+// runtime provenance module (#732).
+pub(crate) const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 pub(crate) const RDF_NS: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 pub(crate) const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 pub(crate) const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";

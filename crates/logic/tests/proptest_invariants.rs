@@ -22,10 +22,10 @@
 
 use std::cmp::Ordering;
 
-use gmeow_logic::compile::adapter::assert_ir_isomorphic;
-use gmeow_logic::compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
 use gmeow_logic::entrenchment::{Entrenchment, OVERRIDES};
 use gmeow_logic::store::WorldStore;
+use gmeow_logic_compile::adapter::assert_ir_isomorphic;
+use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
 use proptest::prelude::*;
 
 const WORLD: &str = "http://world/base";

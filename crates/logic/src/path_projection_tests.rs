@@ -4,11 +4,16 @@
 //! Tests for the `logic:PathShape` projection (#1010): the property-path lowering,
 //! the depth-bounded Datalog scheme, the loss ledger, and the **runtime reuse** —
 //! the unrolled rules running on the existing native least-model engine.
+//!
+//! These live in the runtime crate (not the wasm-able gmeow-logic-compile) because
+//! they execute the projected Datalog through `crate::rule_ir`, the Nemo-coupled
+//! evaluable engine (#732). They consume the path projection's public surface from
+//! `gmeow_logic_compile::projections::paths`.
 
-use super::*;
-use crate::compile::frontend::parse_logic_str;
-use crate::compile::ir::{PathBase, PathShapeIr};
 use crate::rule_ir::{least_model_of_reduct, parse_eval_rules, Fact, FactStore};
+use gmeow_logic_compile::frontend::parse_logic_str;
+use gmeow_logic_compile::ir::{PathBase, PathShapeIr};
+use gmeow_logic_compile::projections::paths::*;
 use oxigraph::model::{NamedNode as OxNamedNode, Term};
 
 fn shape(iri: &str, base: PathBase, min: u32, max: Option<u32>, ns: Option<&str>) -> PathShapeIr {

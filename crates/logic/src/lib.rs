@@ -11,7 +11,6 @@
 //! This crate is single-target native only.
 //! Nemo-based rule evaluation and PyO3 bindings are unconditionally included.
 
-pub mod compile;
 pub mod counterfactual;
 /// Dense-id graph primitives (interner + bitset) for the hot graph algorithms.
 pub(crate) mod dense;
@@ -21,7 +20,17 @@ pub mod encode;
 pub mod entrenchment;
 pub mod explain;
 pub mod foundation;
+// Runtime-side projection of compiler parse diagnostics into the PyO3-tainted
+// gmeow-diagnostics Report (#732/#856) — kept out of the wasm-able compiler crate.
+pub mod logic_diagnostics;
+// Compiler-IR → runtime EvalRule bridge (#732): depends on crate::rule_ir (Nemo),
+// so it stays in the runtime crate, not the wasm-able gmeow-logic-compile crate.
+pub mod lower;
 pub mod materialize;
+// Path-projection runtime tests (#732): they run the projected Datalog through
+// crate::rule_ir (Nemo), so they live runtime-side as an in-crate test module.
+#[cfg(test)]
+mod path_projection_tests;
 pub mod probabilistic;
 pub mod profile_gate;
 pub mod provenance;
