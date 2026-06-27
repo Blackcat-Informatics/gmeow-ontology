@@ -785,6 +785,8 @@ impl Stage for SnapshotStage {
                 files.push(p);
             }
         }
+        files.sort();
+        files.dedup();
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
