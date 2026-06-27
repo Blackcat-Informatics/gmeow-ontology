@@ -33,6 +33,11 @@ use crate::{
 
 use super::term::{arena_str, BlankScope, InternedTerm, TermId, TermValue};
 
+/// The `rdf:reifies` predicate IRI — the indirection edge of the RDF 1.2 reification
+/// layer (`reifier rdf:reifies <<( s p o )>>`). Used to expose the reifier side-table
+/// as virtual triples in [`RdfDataset::reifier_quads`].
+const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+
 /// A handle identifying a pushed quad by its dense (deduplicated) ordinal, used to
 /// attach a source location sparsely. Like [`TermId`], it is local to one frozen
 /// dataset and is **not** persistent or merge-stable.
@@ -821,6 +826,55 @@ impl RdfDataset {
             .map(|(_, p, o)| (*p, *o))
     }
 
+    /// The interned id of the `rdf:reifies` predicate IRI, or `None` if the dataset
+    /// never interned it. A dataset with at least one reifier always has it interned
+    /// (a reifier binding is serialized as `reifier rdf:reifies <<( s p o )>>`), so the
+    /// `None` case can only coincide with an empty reifier table — exactly the case in
+    /// which [`reifier_quads`](Self::reifier_quads) yields nothing anyway.
+    fn rdf_reifies_id(&self) -> Option<TermId> {
+        self.term_id_by_value(&TermValue::Iri(RDF_REIFIES.to_owned()))
+    }
+
+    /// Iterate the reifier side-table AS resolved virtual triples: each
+    /// `(reifier, triple-term)` binding becomes a `(reifier, rdf:reifies, triple-term)`
+    /// quad in the default graph (`g == None`).
+    ///
+    /// The RDF 1.2 reification layer is stored in a SEPARATE side-table — it is NOT in
+    /// the `quads` table — so this view is the only way a triple-pattern matcher can see
+    /// it. Yields in the reifier table's frozen `(reifier, triple)` sorted order, so the
+    /// output is deterministic. If the dataset has no reifiers (and so never interned
+    /// `rdf:reifies`), this yields nothing.
+    pub fn reifier_quads(&self) -> impl Iterator<Item = QuadIds> + '_ {
+        // `flat_map` over the `Option<TermId>` so the iterator type is fixed whether or
+        // not `rdf:reifies` is interned; an empty option ⇒ an empty stream.
+        self.rdf_reifies_id().into_iter().flat_map(move |reifies| {
+            self.reifiers().map(move |(reifier, triple)| QuadIds {
+                s: reifier,
+                p: reifies,
+                o: triple,
+                g: None,
+            })
+        })
+    }
+
+    /// Iterate the annotation side-table AS resolved virtual triples: each
+    /// `(reifier, predicate, object)` annotation becomes a `(reifier, predicate, object)`
+    /// quad in the default graph (`g == None`).
+    ///
+    /// Like [`reifier_quads`](Self::reifier_quads), the annotation layer lives in a
+    /// SEPARATE side-table outside `quads`; this is the only triple-pattern view of it.
+    /// Yields in the annotation table's frozen `(reifier, predicate, object)` sorted
+    /// order, so the output is deterministic.
+    pub fn annotation_quads(&self) -> impl Iterator<Item = QuadIds> + '_ {
+        self.annotations()
+            .map(|(reifier, predicate, object)| QuadIds {
+                s: reifier,
+                p: predicate,
+                o: object,
+                g: None,
+            })
+    }
+
     /// The source location attached to a quad, if any. `O(log n)` binary search over
     /// the handle-sorted sparse table. The handle addresses the quad's FROZEN
     /// ordinal (the position it occupies in [`quads`](Self::quads)).
@@ -1309,6 +1363,105 @@ mod tests {
             }
             other => panic!("annotation object must be the directional literal, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn reifier_quads_expose_the_side_table_as_virtual_triples() {
+        // The reification layer lives outside `quads`; `reifier_quads` exposes each
+        // `(reifier, triple)` binding as a `(reifier, rdf:reifies, triple)` default-graph
+        // quad so a triple-pattern matcher can see it.
+        let mut b = RdfDatasetBuilder::new();
+        let s = iri(&mut b, "s");
+        let p = iri(&mut b, "p");
+        let o = iri(&mut b, "o");
+        let triple = b.intern_triple(s, p, o);
+        let r1 = iri(&mut b, "r1");
+        let r2 = iri(&mut b, "r2");
+        // The ingest path interns `rdf:reifies` as a term alongside the reifier
+        // binding (it is the serialized indirection edge); `reifier_quads` uses that
+        // interned id as the virtual predicate.
+        let reifies = b.intern_iri(RDF_REIFIES.to_owned());
+        b.push_reifier(r1, triple);
+        b.push_reifier(r2, triple);
+        let ds = b.freeze().expect("valid");
+
+        assert_eq!(
+            ds.term_id_by_value(&TermValue::Iri(RDF_REIFIES.to_owned())),
+            Some(reifies)
+        );
+        let rows: Vec<QuadIds> = ds.reifier_quads().collect();
+        // Frozen `(reifier, triple)` sorted order; r1 < r2 by interning order/id.
+        assert_eq!(
+            rows,
+            vec![
+                QuadIds {
+                    s: r1,
+                    p: reifies,
+                    o: triple,
+                    g: None,
+                },
+                QuadIds {
+                    s: r2,
+                    p: reifies,
+                    o: triple,
+                    g: None,
+                },
+            ]
+        );
+        // The reification layer is NOT in the quads table (no double counting).
+        assert_eq!(ds.quad_count(), 0);
+    }
+
+    #[test]
+    fn annotation_quads_expose_the_side_table_as_virtual_triples() {
+        let mut b = RdfDatasetBuilder::new();
+        let s = iri(&mut b, "s");
+        let p = iri(&mut b, "p");
+        let o = iri(&mut b, "o");
+        let triple = b.intern_triple(s, p, o);
+        let r = iri(&mut b, "r");
+        let ap1 = iri(&mut b, "ap1");
+        let ap2 = iri(&mut b, "ap2");
+        let ao1 = iri(&mut b, "ao1");
+        let ao2 = iri(&mut b, "ao2");
+        b.push_reifier(r, triple);
+        b.push_annotation(r, ap1, ao1);
+        b.push_annotation(r, ap2, ao2);
+        let ds = b.freeze().expect("valid");
+
+        let rows: Vec<QuadIds> = ds.annotation_quads().collect();
+        // Frozen `(reifier, predicate, object)` sorted order.
+        assert_eq!(
+            rows,
+            vec![
+                QuadIds {
+                    s: r,
+                    p: ap1,
+                    o: ao1,
+                    g: None,
+                },
+                QuadIds {
+                    s: r,
+                    p: ap2,
+                    o: ao2,
+                    g: None,
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn reifier_quads_empty_when_no_reifiers() {
+        // No reifiers ⇒ `rdf:reifies` is never interned ⇒ an empty virtual stream
+        // (the `None` branch of `rdf_reifies_id`), not a panic.
+        let mut b = RdfDatasetBuilder::new();
+        let s = iri(&mut b, "s");
+        let p = iri(&mut b, "p");
+        let o = iri(&mut b, "o");
+        b.push_quad(s, p, o, None);
+        let ds = b.freeze().expect("valid");
+        assert_eq!(ds.reifier_quads().count(), 0);
+        assert_eq!(ds.annotation_quads().count(), 0);
     }
 
     #[test]

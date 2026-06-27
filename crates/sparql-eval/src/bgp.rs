@@ -29,7 +29,7 @@
 //! **projected away**, so two independent BGPs that happen to reuse the label `_:b`
 //! never accidentally share a join variable.
 
-use gmeow_rdf_core::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId};
+use gmeow_rdf_core::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
 use gmeow_sparql_algebra::{NamedNodePattern, TermPattern, TriplePattern, Variable};
 
 use crate::convert::{ground_term_pattern_to_value, named_node_to_value};
@@ -41,6 +41,12 @@ use crate::solution::{Solution, SolutionSeq, VarSchema};
 use crate::DetHashSet;
 use std::rc::Rc;
 
+/// The `rdf:reifies` predicate IRI — the indirection edge of the RDF 1.2 reification
+/// layer. A triple pattern whose predicate is bound to this IRI (and whose object is a
+/// quoted-triple pattern) draws candidates from the dataset's reifier side-table via
+/// [`RdfDataset::reifier_quads`], which is invisible to the `quads` table.
+const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+
 /// The `NUL`-prefixed marker that distinguishes a synthetic blank-node slot
 /// variable from a real, projectable SPARQL variable.
 const BLANK_VAR_PREFIX: char = '\u{0}';
@@ -51,6 +57,20 @@ enum Pos {
     Slot(usize),
     /// A ground constant resolved to its dataset id.
     Bound(TermId),
+    /// A nested RDF 1.2 quoted-triple pattern `<<( s p o )>>` that contains at least
+    /// one variable (a fully-ground quoted triple resolves to a single [`Pos::Bound`]
+    /// id instead). Binding descends into the candidate row's triple-term value,
+    /// unifying the inner positions and enforcing repeated-variable consistency.
+    Triple(Box<TriplePos>),
+}
+
+/// A compiled nested quoted-triple position: its three component positions, each
+/// itself a [`Pos`] (so quoted triples may nest, and any component may be a variable,
+/// a ground constant, or a further nested triple).
+struct TriplePos {
+    s: Pos,
+    p: Pos,
+    o: Pos,
 }
 
 /// One compiled triple pattern: its three positions in `(s, p, o)` order.
@@ -100,6 +120,13 @@ pub(crate) fn eval_bgp(
     // single BGP; `GRAPH` wrapping is applied by `eval_graph` before recursing in).
     let scope = ctx.active_dataset.scope_for(ctx.active_graph);
 
+    // The interned id of `rdf:reifies`, resolved once. `None` ⇒ the dataset has no
+    // reifier layer at all (the predicate was never interned), so no virtual reifier
+    // candidates exist for any pattern.
+    let reifies_id = ctx
+        .dataset
+        .term_id_by_value(&gmeow_rdf_core::TermValue::Iri(RDF_REIFIES.to_owned()));
+
     // Index-nested-loop evaluation. Rows start as a single all-unbound solution.
     let mut rows: Vec<Solution> = vec![vec![None; working.len()]];
     for &i in &order {
@@ -114,14 +141,28 @@ pub(crate) fn eval_bgp(
                 // partition_point read, unchanged — no de-dup overhead.
                 GraphScope::One(gm) => {
                     for quad in ctx.dataset.quads_for_pattern(s, p, o, *gm) {
-                        if let Some(extended) = bind_row(row, cp, &quad) {
+                        if let Some(extended) = bind_row(row, cp, &quad, ctx.dataset) {
                             next.push(extended);
+                        }
+                    }
+                    // The RDF 1.2 reification layer is a dataset-level (default-graph)
+                    // side-table outside `quads`, so fold its virtual triples in here
+                    // — additively (no double counting) — whenever this scope includes
+                    // the default graph. A `GRAPH ?g`/named scope (`gm` matching only a
+                    // named graph) never sees it, matching the store-default treatment.
+                    if gm.matches(None) {
+                        for quad in virtual_candidates(ctx.dataset, cp, s, p, o, reifies_id) {
+                            if let Some(extended) = bind_row(row, cp, &quad, ctx.dataset) {
+                                next.push(extended);
+                            }
                         }
                     }
                 }
                 // A FROM/USING-merged default graph: union the per-graph reads, but
                 // RDF-merge unions *triples*, so a triple present in two merged graphs
-                // must bind once — de-dupe by (s, p, o) for this pattern+row.
+                // must bind once — de-dupe by (s, p, o) for this pattern+row. The
+                // reification layer is store-default content (not part of an explicitly
+                // FROM-named merge), so it is not folded into a merged scope.
                 GraphScope::Merge(gs) => {
                     let mut seen: DetHashSet<(TermId, TermId, TermId)> = DetHashSet::default();
                     for &g in gs {
@@ -129,7 +170,7 @@ pub(crate) fn eval_bgp(
                             if !seen.insert((quad.s, quad.p, quad.o)) {
                                 continue;
                             }
-                            if let Some(extended) = bind_row(row, cp, &quad) {
+                            if let Some(extended) = bind_row(row, cp, &quad, ctx.dataset) {
                                 next.push(extended);
                             }
                         }
@@ -174,15 +215,13 @@ pub(crate) fn eval_bgp(
 fn selectivity_order(compiled: &[CompiledPattern]) -> Vec<usize> {
     let n = compiled.len();
     // Working columns are dense `0..n_cols`; size the bound-mask to the highest slot.
-    let n_cols = compiled
-        .iter()
-        .flat_map(|cp| [&cp.s, &cp.p, &cp.o])
-        .filter_map(|pos| match pos {
-            Pos::Slot(c) => Some(*c + 1),
-            Pos::Bound(_) => None,
-        })
-        .max()
-        .unwrap_or(0);
+    // A position may be a nested triple, so descend through it to find every slot.
+    let mut n_cols = 0usize;
+    for cp in compiled {
+        for pos in [&cp.s, &cp.p, &cp.o] {
+            for_each_slot(pos, &mut |c| n_cols = n_cols.max(c + 1));
+        }
+    }
 
     let mut bound = vec![false; n_cols];
     let mut scheduled = vec![false; n];
@@ -233,53 +272,87 @@ fn pattern_score(cp: &CompiledPattern, bound: &[bool]) -> usize {
 }
 
 /// Whether a pattern shares at least one already-bound variable with the bindings
-/// produced so far (so joining it cannot be a Cartesian product).
+/// produced so far (so joining it cannot be a Cartesian product). Descends into nested
+/// quoted triples: a triple position is connected if any of its inner slots is bound.
 fn pattern_connected(cp: &CompiledPattern, bound: &[bool]) -> bool {
     [&cp.s, &cp.p, &cp.o]
         .into_iter()
-        .any(|pos| matches!(pos, Pos::Slot(c) if bound[*c]))
+        .any(|pos| pos_has_bound_slot(pos, bound))
 }
 
-/// A position is constrained iff it is a ground constant or an already-bound slot.
+/// Whether a position contains an already-bound slot anywhere (recursively).
+fn pos_has_bound_slot(pos: &Pos, bound: &[bool]) -> bool {
+    match pos {
+        Pos::Bound(_) => false,
+        Pos::Slot(c) => bound[*c],
+        Pos::Triple(t) => [&t.s, &t.p, &t.o]
+            .into_iter()
+            .any(|p| pos_has_bound_slot(p, bound)),
+    }
+}
+
+/// A position is constrained iff it is a ground constant, an already-bound slot, or a
+/// nested triple whose every component is itself constrained.
 fn pos_is_constrained(pos: &Pos, bound: &[bool]) -> bool {
     match pos {
         Pos::Bound(_) => true,
         Pos::Slot(c) => bound[*c],
+        Pos::Triple(t) => [&t.s, &t.p, &t.o]
+            .into_iter()
+            .all(|p| pos_is_constrained(p, bound)),
     }
 }
 
-/// Record a scheduled pattern's slot columns as now-bound.
+/// Record a scheduled pattern's slot columns as now-bound (descending into nested
+/// quoted triples).
 fn mark_bound(cp: &CompiledPattern, bound: &mut [bool]) {
     for pos in [&cp.s, &cp.p, &cp.o] {
-        if let Pos::Slot(c) = pos {
-            bound[*c] = true;
+        for_each_slot(pos, &mut |c| bound[c] = true);
+    }
+}
+
+/// Visit every slot column reachable from a position (itself, or the inner positions
+/// of a nested quoted triple).
+fn for_each_slot(pos: &Pos, f: &mut impl FnMut(usize)) {
+    match pos {
+        Pos::Bound(_) => {}
+        Pos::Slot(c) => f(*c),
+        Pos::Triple(t) => {
+            for inner in [&t.s, &t.p, &t.o] {
+                for_each_slot(inner, f);
+            }
         }
     }
 }
 
-/// The slot variables a triple pattern introduces, in `(s, p, o)` order. A ground
-/// position yields nothing; a blank node yields a synthetic slot variable.
+/// The slot variables a triple pattern introduces, in `(s, p, o)` order — descending
+/// into any nested quoted-triple position so its inner variables become columns too. A
+/// ground position yields nothing; a blank node yields a synthetic slot variable.
 fn slot_keys(pattern: &TriplePattern) -> Vec<Variable> {
     let mut keys = Vec::new();
-    if let Some(v) = term_slot_key(&pattern.subject) {
-        keys.push(v);
-    }
-    if let NamedNodePattern::Variable(v) = &pattern.predicate {
-        keys.push(v.clone());
-    }
-    if let Some(v) = term_slot_key(&pattern.object) {
-        keys.push(v);
-    }
+    collect_triple_slot_keys(pattern, &mut keys);
     keys
 }
 
-/// The slot variable a term position introduces, if any: a real variable, or a
-/// synthetic blank-node variable. Ground terms (incl. quoted triples) yield `None`.
-fn term_slot_key(term: &TermPattern) -> Option<Variable> {
+/// Append a triple pattern's slot variables (recursively through nested quoted
+/// triples) in `(s, p, o)` order.
+fn collect_triple_slot_keys(pattern: &TriplePattern, keys: &mut Vec<Variable>) {
+    collect_term_slot_keys(&pattern.subject, keys);
+    if let NamedNodePattern::Variable(v) = &pattern.predicate {
+        keys.push(v.clone());
+    }
+    collect_term_slot_keys(&pattern.object, keys);
+}
+
+/// Append a term position's slot variables: a real variable, a synthetic blank-node
+/// variable, or — for a quoted triple — its inner variables (recursively). Ground
+/// terms yield nothing.
+fn collect_term_slot_keys(term: &TermPattern, keys: &mut Vec<Variable>) {
     match term {
-        TermPattern::Variable(v) => Some(v.clone()),
-        TermPattern::BlankNode(b) => Some(blank_var(b.as_str())),
-        _ => None,
+        TermPattern::Variable(v) => keys.push(v.clone()),
+        TermPattern::BlankNode(b) => keys.push(blank_var(b.as_str())),
+        TermPattern::Triple(t) => collect_triple_slot_keys(t, keys),
+        TermPattern::NamedNode(_) | TermPattern::Literal(_) => {}
     }
 }
 
@@ -316,20 +389,82 @@ fn compile_pattern(
     Ok(Some(CompiledPattern { s, p, o }))
 }
 
-/// Compile a subject/object term position. `Ok(None)` = an absent ground constant.
+/// Compile a subject/object term position. `Ok(None)` = an absent ground constant
+/// (the pattern — and hence the BGP — cannot match).
 fn compile_term(
     term: &TermPattern,
     schema: &VarSchema,
     dataset: &RdfDataset,
 ) -> Result<Option<Pos>, EvalError> {
-    if let Some(key) = term_slot_key(term) {
-        let col = schema
-            .index_of(&key)
-            .expect("every slot key was registered in pass 1");
-        return Ok(Some(Pos::Slot(col)));
+    match term {
+        TermPattern::Variable(v) => Ok(Some(Pos::Slot(slot_col(schema, v)))),
+        TermPattern::BlankNode(b) => Ok(Some(Pos::Slot(slot_col(schema, &blank_var(b.as_str()))))),
+        // A quoted-triple position: if it contains a variable it is a STRUCTURAL match
+        // that binds inner columns (`Pos::Triple`); a fully-ground quoted triple
+        // resolves to a single interned id (`Pos::Bound`) exactly like any constant.
+        TermPattern::Triple(t) => {
+            if triple_has_variable(t) {
+                match compile_triple_pos(t, schema, dataset)? {
+                    Some(tp) => Ok(Some(Pos::Triple(Box::new(tp)))),
+                    None => Ok(None),
+                }
+            } else {
+                let value = ground_term_pattern_to_value(term)?;
+                Ok(dataset.term_id_by_value(&value).map(Pos::Bound))
+            }
+        }
+        TermPattern::NamedNode(_) | TermPattern::Literal(_) => {
+            let value = ground_term_pattern_to_value(term)?;
+            Ok(dataset.term_id_by_value(&value).map(Pos::Bound))
+        }
     }
-    let value = ground_term_pattern_to_value(term)?;
-    Ok(dataset.term_id_by_value(&value).map(Pos::Bound))
+}
+
+/// Compile a nested quoted-triple pattern's three positions. `Ok(None)` if any
+/// ground component is absent from the dataset (so the whole pattern cannot match).
+fn compile_triple_pos(
+    triple: &TriplePattern,
+    schema: &VarSchema,
+    dataset: &RdfDataset,
+) -> Result<Option<TriplePos>, EvalError> {
+    let s = match compile_term(&triple.subject, schema, dataset)? {
+        Some(pos) => pos,
+        None => return Ok(None),
+    };
+    let p = match compile_predicate(&triple.predicate, schema, dataset) {
+        Some(pos) => pos,
+        None => return Ok(None),
+    };
+    let o = match compile_term(&triple.object, schema, dataset)? {
+        Some(pos) => pos,
+        None => return Ok(None),
+    };
+    Ok(Some(TriplePos { s, p, o }))
+}
+
+/// The working-schema column of a slot variable (registered in pass 1).
+fn slot_col(schema: &VarSchema, var: &Variable) -> usize {
+    schema
+        .index_of(var)
+        .expect("every slot key was registered in pass 1")
+}
+
+/// Whether a quoted-triple pattern contains at least one variable anywhere (including
+/// nested quoted triples). A variable-free quoted triple is a ground constant.
+fn triple_has_variable(triple: &TriplePattern) -> bool {
+    term_has_variable(&triple.subject)
+        || matches!(triple.predicate, NamedNodePattern::Variable(_))
+        || term_has_variable(&triple.object)
+}
+
+/// Whether a term position contains a variable (recursively through quoted triples).
+/// A blank node is a non-distinguished variable, so it counts.
+fn term_has_variable(term: &TermPattern) -> bool {
+    match term {
+        TermPattern::Variable(_) | TermPattern::BlankNode(_) => true,
+        TermPattern::Triple(t) => triple_has_variable(t),
+        TermPattern::NamedNode(_) | TermPattern::Literal(_) => false,
+    }
 }
 
 /// Compile a predicate position (IRI or variable). `None` = an absent ground IRI.
@@ -361,24 +496,157 @@ fn query_id(pos: &Pos, row: &Solution) -> Option<TermId> {
             Some(SolutionTerm::Existing(id)) => Some(id),
             _ => None,
         },
+        // A structural quoted-triple position is not addressable as a single id probe
+        // key for the candidate scan; it degrades to a wildcard and is unified
+        // structurally in `bind_row` (which descends into the candidate's triple term).
+        Pos::Triple(_) => None,
     }
 }
 
-/// Try to extend `row` by binding `cp`'s slot positions from `quad`. Returns `None`
-/// if a repeated or previously-bound variable disagrees with the quad.
-fn bind_row(row: &Solution, cp: &CompiledPattern, quad: &QuadIds) -> Option<Solution> {
+/// Try to extend `row` by binding `cp`'s positions from `quad`. Returns `None` if a
+/// repeated or previously-bound variable disagrees with the quad, if a nested
+/// quoted-triple position fails to unify, or if a ground constant disagrees (the
+/// virtual reification candidates are NOT pre-filtered by `quads_for_pattern`, so a
+/// `Pos::Bound` mismatch must be rejected here).
+fn bind_row(
+    row: &Solution,
+    cp: &CompiledPattern,
+    quad: &QuadIds,
+    dataset: &RdfDataset,
+) -> Option<Solution> {
     let mut out = row.clone();
     for (pos, id) in [(&cp.s, quad.s), (&cp.p, quad.p), (&cp.o, quad.o)] {
-        if let Pos::Slot(col) = pos {
-            let value = SolutionTerm::Existing(id);
-            match out[*col] {
-                Some(existing) if existing != value => return None,
-                Some(_) => {}
-                None => out[*col] = Some(value),
-            }
+        if !bind_pos(&mut out, pos, id, dataset) {
+            return None;
         }
     }
     Some(out)
+}
+
+/// Unify one compiled position against a candidate term id, mutating `out` with any
+/// newly bound slots. Returns `false` (caller rejects the row) on any disagreement:
+/// - a `Pos::Bound` constant that does not equal the candidate id;
+/// - a `Pos::Slot` repeated/previously-bound variable that disagrees;
+/// - a `Pos::Triple` whose candidate id is not a triple term, or whose components fail
+///   to unify recursively.
+fn bind_pos(out: &mut Solution, pos: &Pos, id: TermId, dataset: &RdfDataset) -> bool {
+    match pos {
+        Pos::Bound(want) => *want == id,
+        Pos::Slot(col) => {
+            let value = SolutionTerm::Existing(id);
+            match out[*col] {
+                Some(existing) => existing == value,
+                None => {
+                    out[*col] = Some(value);
+                    true
+                }
+            }
+        }
+        Pos::Triple(t) => match dataset.resolve(id) {
+            TermRef::Triple { s, p, o } => {
+                bind_pos(out, &t.s, s, dataset)
+                    && bind_pos(out, &t.p, p, dataset)
+                    && bind_pos(out, &t.o, o, dataset)
+            }
+            // The candidate term is not a quoted triple, so a structural triple pattern
+            // cannot match it.
+            _ => false,
+        },
+    }
+}
+
+/// The virtual triple candidates from the RDF 1.2 reification layer that match a
+/// pattern's bound `(s, p, o)` probe, deterministically ordered (reifier rows first,
+/// then annotation rows — each in the side-tables' frozen sorted order). The layer is
+/// NOT in `quads`, so these are strictly additive (no double counting).
+///
+/// Two layers contribute:
+/// - **Reifier rows** `(reifier, rdf:reifies, triple-term)` — included only when the
+///   pattern's predicate *can* be `rdf:reifies` (unbound, or bound exactly to it).
+///   When the predicate is bound to some other IRI, no reifier row can match, so the
+///   layer is skipped entirely.
+/// - **Annotation rows** `(reifier, annPred, annObj)` — a reifier's statement
+///   annotations look like ordinary triples whose subject is a reifier. When the
+///   pattern's subject is bound, [`RdfDataset::annotations_of`] indexes straight to
+///   that reifier's run; otherwise the whole annotation table is scanned.
+///
+/// Every candidate is residually filtered by the same id-equality the default scan
+/// applies (`quads_for_pattern`), because — unlike `quads_for_pattern` — the virtual
+/// iterators are not pre-narrowed by the probe.
+fn virtual_candidates(
+    dataset: &RdfDataset,
+    cp: &CompiledPattern,
+    s: Option<TermId>,
+    p: Option<TermId>,
+    o: Option<TermId>,
+    reifies_id: Option<TermId>,
+) -> Vec<QuadIds> {
+    let matches_probe = |q: &QuadIds| {
+        s.is_none_or(|id| q.s == id) && p.is_none_or(|id| q.p == id) && o.is_none_or(|id| q.o == id)
+    };
+
+    let mut out = Vec::new();
+
+    // Reifier layer: only when the predicate can be `rdf:reifies`. The object must also
+    // be triple-term-shaped to be worth scanning — a quoted-triple pattern position
+    // (`Pos::Triple`), a quoted-triple constant (`Pos::Bound` of a triple id), or a
+    // free variable (`Pos::Slot`). A literal/IRI object constant can never be a triple
+    // term, so the reifier scan is skipped. The residual `bind_row` enforces the exact
+    // object match.
+    if let Some(reifies) = reifies_id {
+        let predicate_can_reify = match &cp.p {
+            Pos::Slot(_) => true,
+            Pos::Bound(id) => *id == reifies,
+            // A quoted triple is never a predicate position.
+            Pos::Triple(_) => false,
+        };
+        if predicate_can_reify && object_can_be_triple_term(&cp.o, dataset) {
+            for q in dataset.reifier_quads() {
+                if matches_probe(&q) {
+                    out.push(q);
+                }
+            }
+        }
+    }
+
+    // Annotation layer: index by the bound reifier subject when possible, else scan.
+    match s {
+        Some(reifier) => {
+            for (pred, obj) in dataset.annotations_of(reifier) {
+                let q = QuadIds {
+                    s: reifier,
+                    p: pred,
+                    o: obj,
+                    g: None,
+                };
+                if matches_probe(&q) {
+                    out.push(q);
+                }
+            }
+        }
+        None => {
+            for q in dataset.annotation_quads() {
+                if matches_probe(&q) {
+                    out.push(q);
+                }
+            }
+        }
+    }
+
+    out
+}
+
+/// Whether an object position could resolve to a quoted-triple term (so the reifier
+/// layer — whose object is always a triple term — is worth scanning for it). An IRI or
+/// literal constant never is.
+fn object_can_be_triple_term(pos: &Pos, dataset: &RdfDataset) -> bool {
+    match pos {
+        // A free variable or a structural quoted-triple pattern can match a triple term.
+        Pos::Slot(_) | Pos::Triple(_) => true,
+        // A bound constant is worth scanning only if the constant is itself a triple
+        // term; an IRI/literal/blank object can never match a reifier row.
+        Pos::Bound(id) => matches!(dataset.resolve(*id), TermRef::Triple { .. }),
+    }
 }
 
 /// An empty solution sequence over only the real (non-blank) variables of `working`.
@@ -623,6 +891,272 @@ mod tests {
         // Only ?o is a real column; the blank slot was projected away.
         assert_eq!(seq.schema.vars(), &[Variable::new("o")]);
         assert_eq!(seq.len(), 3); // three knows-edges, one row each.
+    }
+
+    // ---- RDF 1.2 reification layer (issue #917) ---------------------------
+
+    /// A dataset with one quoted statement `:alice :age 42` reified by `:r1`, which
+    /// carries two annotations:
+    ///   :r1 rdf:reifies <<( :alice :age 42 )>> .
+    ///   :r1 :confidence "high" .
+    ///   :r1 :source     :census .
+    /// The reified statement itself is NOT asserted as a plain quad (the only quads
+    /// table content is one unrelated `:bob :age 7` triple), proving the layer is read
+    /// from the side-tables, not from `quads`.
+    fn reified_graph() -> Arc<RdfDataset> {
+        let mut b = RdfDatasetBuilder::new();
+        let age = b.intern_iri("http://ex/age".to_owned());
+        let alice = b.intern_iri("http://ex/alice".to_owned());
+        let bob = b.intern_iri("http://ex/bob".to_owned());
+        let forty_two = b.intern_literal(RdfLiteral::typed(
+            "42",
+            "http://www.w3.org/2001/XMLSchema#integer",
+        ));
+        let seven = b.intern_literal(RdfLiteral::typed(
+            "7",
+            "http://www.w3.org/2001/XMLSchema#integer",
+        ));
+        let statement = b.intern_triple(alice, age, forty_two);
+        let r1 = b.intern_iri("http://ex/r1".to_owned());
+        let reifies = b.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies".to_owned());
+        let confidence = b.intern_iri("http://ex/confidence".to_owned());
+        let source = b.intern_iri("http://ex/source".to_owned());
+        let high = b.intern_literal(RdfLiteral::simple("high"));
+        let census = b.intern_iri("http://ex/census".to_owned());
+
+        // The interned `reifies` id is the virtual predicate; keep it referenced.
+        let _ = reifies;
+        // One unrelated asserted quad to prove the reified statement is NOT in `quads`.
+        b.push_quad(bob, age, seven, None);
+        b.push_reifier(r1, statement);
+        b.push_annotation(r1, confidence, high);
+        b.push_annotation(r1, source, census);
+        b.freeze().expect("freeze")
+    }
+
+    fn int_val(lex: &str) -> Option<TermValue> {
+        Some(TermValue::Literal {
+            lexical_form: lex.to_owned(),
+            datatype: "http://www.w3.org/2001/XMLSchema#integer".to_owned(),
+            language: None,
+            direction: None,
+        })
+    }
+
+    fn str_val(lex: &str) -> Option<TermValue> {
+        Some(TermValue::Literal {
+            lexical_form: lex.to_owned(),
+            datatype: "http://www.w3.org/2001/XMLSchema#string".to_owned(),
+            language: None,
+            direction: None,
+        })
+    }
+
+    /// A predicate-position variable.
+    fn pred_var(name: &str) -> NamedNodePattern {
+        NamedNodePattern::Variable(Variable::new(name))
+    }
+
+    /// A nested quoted-triple object pattern `<<( s p o )>>`.
+    fn triple_obj(s: TermPattern, p: NamedNodePattern, o: TermPattern) -> TermPattern {
+        TermPattern::Triple(Box::new(TriplePattern {
+            subject: s,
+            predicate: p,
+            object: o,
+        }))
+    }
+
+    /// `?r rdf:reifies <<( ?s ?p ?o )>>` binds the reifier and the inner s/p/o from the
+    /// reifier side-table — the reified statement is not in `quads`.
+    #[test]
+    fn reifies_pattern_binds_reifier_and_inner_variables() {
+        let ds = reified_graph();
+        let patterns = [triple(
+            var_pos("r"),
+            pred("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"),
+            triple_obj(var_pos("s"), pred_var("p"), var_pos("o")),
+        )];
+        let rows = run(&ds, &patterns, &["r", "s", "p", "o"]);
+        assert_eq!(
+            rows,
+            vec![vec![
+                iri_val("http://ex/r1"),
+                iri_val("http://ex/alice"),
+                iri_val("http://ex/age"),
+                int_val("42"),
+            ]]
+        );
+    }
+
+    /// `?r rdf:reifies <<( :alice :age ?o )>>` — partially-ground inner pattern still
+    /// binds `?r` and the free inner `?o`, and the ground inner positions filter.
+    #[test]
+    fn reifies_pattern_with_partly_ground_inner() {
+        let ds = reified_graph();
+        let patterns = [triple(
+            var_pos("r"),
+            pred("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"),
+            triple_obj(
+                iri_pos("http://ex/alice"),
+                pred("http://ex/age"),
+                var_pos("o"),
+            ),
+        )];
+        let rows = run(&ds, &patterns, &["r", "o"]);
+        assert_eq!(rows, vec![vec![iri_val("http://ex/r1"), int_val("42")]]);
+    }
+
+    /// A non-matching ground inner position yields no rows (the statement is
+    /// `:alice :age 42`, not `:alice :age 99`).
+    #[test]
+    fn reifies_pattern_inner_mismatch_is_empty() {
+        let ds = reified_graph();
+        let patterns = [triple(
+            var_pos("r"),
+            pred("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"),
+            triple_obj(
+                iri_pos("http://ex/alice"),
+                pred("http://ex/age"),
+                TermPattern::Literal(Literal::new_typed(
+                    "99",
+                    NamedNode::new_unchecked("http://www.w3.org/2001/XMLSchema#integer"),
+                )),
+            ),
+        )];
+        let rows = run(&ds, &patterns, &["r"]);
+        assert!(rows.is_empty());
+    }
+
+    /// A fully-open pattern `?r ?ap ?av` enumerates EVERY triple visible to the BGP:
+    /// the one asserted quad, the virtual `rdf:reifies` edge, and both annotation rows.
+    /// The reification layer is fully folded into ordinary BGP matching.
+    #[test]
+    fn open_pattern_enumerates_assertions_reifies_edge_and_annotations() {
+        let ds = reified_graph();
+        let patterns = [triple(var_pos("r"), pred_var("ap"), var_pos("av"))];
+        let rows = run(&ds, &patterns, &["r", "ap", "av"]);
+        let reifies = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+        // Rows are sorted by their Debug string for order-insensitive comparison, so
+        // the expected order follows that key: bob < r1/confidence < r1/reifies <
+        // r1/source.
+        assert_eq!(
+            rows,
+            vec![
+                // The asserted plain quad.
+                vec![
+                    iri_val("http://ex/bob"),
+                    iri_val("http://ex/age"),
+                    int_val("7"),
+                ],
+                // Annotation rows of :r1 (confidence, source sort before reifies under
+                // the Debug-string key: "http://ex/…" < "http://www.…").
+                vec![
+                    iri_val("http://ex/r1"),
+                    iri_val("http://ex/confidence"),
+                    str_val("high"),
+                ],
+                vec![
+                    iri_val("http://ex/r1"),
+                    iri_val("http://ex/source"),
+                    iri_val("http://ex/census"),
+                ],
+                // The virtual rdf:reifies edge (object is the quoted statement).
+                vec![
+                    iri_val("http://ex/r1"),
+                    iri_val(reifies),
+                    Some(TermValue::Triple {
+                        s: Box::new(TermValue::Iri("http://ex/alice".to_owned())),
+                        p: Box::new(TermValue::Iri("http://ex/age".to_owned())),
+                        o: Box::new(TermValue::Literal {
+                            lexical_form: "42".to_owned(),
+                            datatype: "http://www.w3.org/2001/XMLSchema#integer".to_owned(),
+                            language: None,
+                            direction: None,
+                        }),
+                    }),
+                ],
+            ]
+        );
+    }
+
+    /// An annotation pattern with a bound annotation predicate `?r :confidence ?v`
+    /// binds only the annotation rows of that predicate (here, one).
+    #[test]
+    fn annotation_pattern_bound_predicate() {
+        let ds = reified_graph();
+        let patterns = [triple(
+            var_pos("r"),
+            pred("http://ex/confidence"),
+            var_pos("v"),
+        )];
+        let rows = run(&ds, &patterns, &["r", "v"]);
+        assert_eq!(rows, vec![vec![iri_val("http://ex/r1"), str_val("high")]]);
+    }
+
+    /// A bound-subject annotation pattern `:r1 :confidence ?v` indexes straight to the
+    /// reifier's annotation run via `annotations_of`.
+    #[test]
+    fn annotation_pattern_bound_subject_indexes() {
+        let ds = reified_graph();
+        let patterns = [triple(
+            iri_pos("http://ex/r1"),
+            pred("http://ex/confidence"),
+            var_pos("v"),
+        )];
+        let rows = run(&ds, &patterns, &["v"]);
+        assert_eq!(rows, vec![vec![str_val("high")]]);
+    }
+
+    /// Joining the two layers: find the confidence of every age-statement reifier.
+    /// `?r rdf:reifies <<( ?s :age ?age )>> . ?r :confidence ?c`
+    #[test]
+    fn join_reifier_to_its_annotation() {
+        let ds = reified_graph();
+        let patterns = [
+            triple(
+                var_pos("r"),
+                pred("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"),
+                triple_obj(var_pos("s"), pred("http://ex/age"), var_pos("age")),
+            ),
+            triple(var_pos("r"), pred("http://ex/confidence"), var_pos("c")),
+        ];
+        let rows = run(&ds, &patterns, &["s", "age", "c"]);
+        assert_eq!(
+            rows,
+            vec![vec![
+                iri_val("http://ex/alice"),
+                int_val("42"),
+                str_val("high"),
+            ]]
+        );
+    }
+
+    /// A repeated inner variable `<<( ?x :age ?x )>>` enforces consistency: the only
+    /// reified statement is `:alice :age 42`, where subject ≠ object, so it is rejected.
+    #[test]
+    fn reifies_pattern_repeated_inner_variable_enforced() {
+        let ds = reified_graph();
+        let patterns = [triple(
+            var_pos("r"),
+            pred("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"),
+            triple_obj(var_pos("x"), pred("http://ex/age"), var_pos("x")),
+        )];
+        let rows = run(&ds, &patterns, &["r", "x"]);
+        assert!(rows.is_empty());
+    }
+
+    /// A dataset with no reifiers never interns `rdf:reifies`, so a reifies-pattern
+    /// query returns empty without panicking (the `None` reifies-id branch).
+    #[test]
+    fn reifies_pattern_on_plain_graph_is_empty() {
+        let ds = social_graph();
+        let patterns = [triple(
+            var_pos("r"),
+            pred("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"),
+            triple_obj(var_pos("s"), pred_var("p"), var_pos("o")),
+        )];
+        let rows = run(&ds, &patterns, &["r"]);
+        assert!(rows.is_empty());
     }
 
     // ---- selectivity_order (#913) -----------------------------------------
