@@ -46,10 +46,32 @@ def test_validate_rdf_reports_two_errors_one_warning_with_locations(
     assert severities.count("error") == 2, findings
     assert severities.count("warning") == 1, findings
 
-    messages = " ".join(f["message"] for f in findings)
-    assert "identity axis" in messages  # P9 disjointness error
-    assert "commitmentBeneficiary" in messages  # relator-mediation error
-    assert "reference frame" in messages  # P11 frame warning
+    # Assert stable rule identity via (code, source-shape IRI) — not prose.
+    # Shapes discovered from the Rust engine (data_validate.rs Step 1):
+    #   disjointness: shacl.SPARQLConstraintComponent
+    #                 + IdentityAxisOrthogonalityShape (error)
+    #   commitment:   shacl.MinCountConstraintComponent + CommitmentShape (error)
+    #   frame:        shacl.MinCountConstraintComponent
+    #                 + EventFrameRequirementShape (warning)
+    identity = [(f["severity"], f["code"], f.get("detail", "")) for f in findings]
+    assert any(
+        sev == "error"
+        and code == "shacl.SPARQLConstraintComponent"
+        and "IdentityAxisOrthogonalityShape" in detail
+        for sev, code, detail in identity
+    ), f"missing P9 disjointness error (IdentityAxisOrthogonalityShape): {identity}"
+    assert any(
+        sev == "error"
+        and code == "shacl.MinCountConstraintComponent"
+        and "CommitmentShape" in detail
+        for sev, code, detail in identity
+    ), f"missing Commitment-mediation error (CommitmentShape): {identity}"
+    assert any(
+        sev == "warning"
+        and code == "shacl.MinCountConstraintComponent"
+        and "EventFrameRequirementShape" in detail
+        for sev, code, detail in identity
+    ), f"missing frame-relativity warning (EventFrameRequirementShape): {identity}"
 
     # Every finding carries the data file as its physical location and a logical
     # (focus-node) anchor — the basis for SARIF artifact/logical locations.

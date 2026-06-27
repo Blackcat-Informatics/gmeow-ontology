@@ -74,21 +74,41 @@ fn fail_fixture_yields_two_errors_one_warning_with_locations() {
         "expected exactly one warning, got: {warnings:#?}"
     );
 
-    // The disjointness (P9 orthogonality) error and the Commitment-mediation
-    // error are present, and the warning is the frame-relativity (P11) one.
+    // Assert stable rule identity via (code, source-shape IRI) — not prose.
+    // Shapes discovered by running the test with --nocapture:
+    //   disjointness: shacl.SPARQLConstraintComponent + IdentityAxisOrthogonalityShape
+    //   commitment:   shacl.MinCountConstraintComponent + CommitmentShape
+    //   frame:        shacl.MinCountConstraintComponent + EventFrameRequirementShape (Warning)
+    const IDENTITY_SHAPE: &str = "IdentityAxisOrthogonalityShape";
+    const COMMITMENT_SHAPE: &str = "CommitmentShape";
+    const FRAME_SHAPE: &str = "EventFrameRequirementShape";
+
     assert!(
-        errors.iter().any(|f| f.message.contains("identity axis")),
-        "missing identity-axis disjointness error"
+        errors.iter().any(|f| {
+            f.code == "shacl.SPARQLConstraintComponent"
+                && f.detail
+                    .as_deref()
+                    .is_some_and(|d| d.contains(IDENTITY_SHAPE))
+        }),
+        "missing P9 disjointness error (IdentityAxisOrthogonalityShape / SPARQLConstraintComponent)"
     );
     assert!(
-        errors
-            .iter()
-            .any(|f| f.message.contains("commitmentBeneficiary")),
-        "missing Commitment mediation error"
+        errors.iter().any(|f| {
+            f.code == "shacl.MinCountConstraintComponent"
+                && f.detail
+                    .as_deref()
+                    .is_some_and(|d| d.contains(COMMITMENT_SHAPE))
+        }),
+        "missing Commitment-mediation error (CommitmentShape / MinCountConstraintComponent)"
     );
     assert!(
-        warnings[0].message.contains("reference frame"),
-        "warning is not the frame-relativity one"
+        warnings[0].code == "shacl.MinCountConstraintComponent"
+            && warnings[0]
+                .detail
+                .as_deref()
+                .is_some_and(|d| d.contains(FRAME_SHAPE))
+            && warnings[0].severity == gmeow_diagnostics::Severity::Warning,
+        "warning is not the frame-relativity one (EventFrameRequirementShape)"
     );
 
     // Every finding carries a location: the data file as the physical artifact
