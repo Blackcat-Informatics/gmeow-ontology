@@ -58,7 +58,7 @@ struct Column {
 }
 
 /// Recursively collect every `slices/**/tests/competency.ttl` (sorted).
-fn competency_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+pub(crate) fn competency_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     let mut out = Vec::new();
     let slices = root.join("slices");
     collect_competency(&slices, &mut out)?;

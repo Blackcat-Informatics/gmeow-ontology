@@ -162,6 +162,10 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-profiles", "profiles"),
         ("stage-export-frame-shapes", "frame_shapes"),
         ("stage-export-result-shapes", "result_shapes"),
+        (
+            "stage-validate-result-shape-composition",
+            "result_shape_composition",
+        ),
         ("stage-export-json-schema", "json_schema"),
         ("stage-export-matrix", "matrix"),
         ("stage-export-apache", "apache"),
