@@ -73,7 +73,7 @@ gmeow:ExampleConformance a owl:Class ;
 
 gmeow:ExpectedRow a owl:Class ;
     rdfs:label "expected row"@x-gmeow-english ;
-    skos:definition "One expected SELECT result row — a helper node grouping the per-variable gmeow:ExpectedCell bindings that together make up a single row of a competency question's expected result set."@x-gmeow-english ;
+    skos:definition "One expected SELECT result row — a helper node grouping the per-variable gmeow:ExpectedCell bindings that together make up a single row of a competency question's expected result set. An expected row is an EXAMPLE-INSTANCE of the logic:ResultShape its question declares via gmeow:cqResultShape: the shape types the columns, the row witnesses one concrete binding of them."@x-gmeow-english ;
     skos:example "ex:row1 a gmeow:ExpectedRow ; gmeow:rowCell ex:cellName ."@x-gmeow-english ;
     gmeow:useWhen "Use to enumerate one row of the expected result set of a SELECT competency question — attach it to the question via gmeow:cqExpectRow and hang its cells via gmeow:rowCell."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for ASK questions (pin gmeow:cqExpectAsk instead) and as a place to record the variable bindings directly — each binding belongs in its own gmeow:ExpectedCell."@x-gmeow-english ;
@@ -241,6 +241,24 @@ gmeow:cqExactRows a owl:DatatypeProperty ;
     skos:example "ex:cq gmeow:cqExpectRow ex:row1 ; gmeow:cqExactRows true ."@x-gmeow-english ;
     gmeow:useWhen "Use true when the enumerated rows are the complete expected result (the maximal-fidelity, preferred form); use false for a contains-check that requires those rows to be present but tolerates others."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid leaving it absent on an enumerated SELECT question when you intend an exact match — make the completeness claim explicit with true."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cqResultShape a owl:ObjectProperty ;
+    rdfs:label "competency result shape"@x-gmeow-english ;
+    skos:definition "The typed result-set schema a SELECT competency question's result is contracted to: a logic:ResultShape (range stated in prose, the test-DSL convention) declaring one typed column per projected variable (term-kind, optional datatype, binding) and a row-set cardinality. The schema-level generalisation of the example-row idiom — the question's gmeow:ExpectedRow values become example-instances of this shape, and the harness validates the actual SELECT bindings against it (a wrong term-kind, datatype, missing required column, or extra column hard-fails). Maps to logic:producesResultShape."@x-gmeow-english ;
+    skos:example "ex:cq gmeow:cqResultShape ex:agentShape . ex:agentShape a logic:ResultShape ; logic:declaresColumn [ logic:columnVariable \"agent\" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ; logic:shapeCardinality logic:RowsExact ."@x-gmeow-english ;
+    gmeow:useWhen "Use to pin the typed schema of a SELECT competency question's result — the maximal-fidelity contract that types each projected variable, not just its example bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on ASK questions (use gmeow:cqExpectAsk). The shape complements gmeow:cqExpectRow (the example-instances); it does not replace the rationale."@x-gmeow-english ;
+    gmeow:howToUse "Mint one logic:ResultShape individual in the slice's tests/ directory with one logic:declaresColumn per projected SELECT variable (logic:columnVariable + logic:columnTermKind + optional logic:columnDatatype + logic:columnBinding) and a logic:shapeCardinality; link it to the question via gmeow:cqResultShape; keep the gmeow:ExpectedRow values as its example-instances."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cqInputShape a owl:ObjectProperty ;
+    rdfs:label "competency input shape"@x-gmeow-english ;
+    skos:definition "The typed input-set schema a SELECT competency question's data input (its gmeow:cqDataFile fixture) is expected to satisfy: a logic:ResultShape (range stated in prose). Validated BEFORE the query runs — the fixture's actual shape must satisfy this declared input shape (structural input→output compatibility), so a query whose input cannot type-check never executes. Maps to logic:expectsInputShape."@x-gmeow-english ;
+    skos:example "ex:cq gmeow:cqInputShape ex:inputShape ; gmeow:cqDataFile \"tests/fixtures/agents.ttl\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare and check the typed contract a competency question's overlaid fixture must meet before the query is run."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on questions with no gmeow:cqDataFile fixture (there is no input set to type), and on ASK questions."@x-gmeow-english ;
+    gmeow:howToUse "Mint a logic:ResultShape for the fixture's required columns and link it via gmeow:cqInputShape; the harness checks the fixture satisfies it before executing the query."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 gmeow:cqReasoning a owl:ObjectProperty ;
