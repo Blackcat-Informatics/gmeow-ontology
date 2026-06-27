@@ -130,6 +130,13 @@ fn solution_multiset(variables: &[String], rows: &[Vec<Option<TermValue>>]) -> V
     out
 }
 
+/// Field separator used inside a Literal key.  US (U+001F) cannot appear in
+/// any RDF lexical form, datatype IRI, or language tag, so it is collision-free
+/// as an internal delimiter while the row-level separator at the call site also
+/// uses U+001F.  The type-prefix character (`L:`, `I:`, etc.) keeps variants
+/// mutually unambiguous even without an additional guard byte.
+const FIELD_SEP: char = '\u{1f}';
+
 /// A canonical string key for a term value.
 fn term_key(term: &TermValue) -> String {
     match term {
@@ -141,7 +148,7 @@ fn term_key(term: &TermValue) -> String {
             language,
             direction,
         } => format!(
-            "L:{lexical_form}|{datatype}|{}|{}",
+            "L:{lexical_form}{FIELD_SEP}{datatype}{FIELD_SEP}{}{FIELD_SEP}{}",
             language.as_deref().unwrap_or(""),
             direction.map(|d| d.as_str()).unwrap_or("")
         ),
@@ -189,5 +196,42 @@ fn result_kind(result: &SparqlResult) -> &'static str {
         SparqlResult::Solutions { .. } => "SELECT solutions",
         SparqlResult::Boolean(_) => "ASK boolean",
         SparqlResult::Graph(_) => "graph",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn lit(lexical_form: &str, datatype: &str) -> TermValue {
+        TermValue::Literal {
+            lexical_form: lexical_form.to_owned(),
+            datatype: datatype.to_owned(),
+            language: None,
+            direction: None,
+        }
+    }
+
+    #[test]
+    fn term_key_pipe_in_lexical_form_does_not_collide_with_pipe_in_datatype() {
+        // Prior to the fix, `L:a|b|dt||` and `L:a|b|dt||` were the same key
+        // for two structurally distinct literals.  With FIELD_SEP = U+001F the
+        // keys are distinct because the separator byte cannot appear in either
+        // field.
+        let key1 = term_key(&lit("a|b", "dt"));
+        let key2 = term_key(&lit("a", "b|dt"));
+        assert_ne!(
+            key1, key2,
+            "literals with | in different fields must produce different keys"
+        );
+    }
+
+    #[test]
+    fn term_key_iri_cannot_collide_with_literal() {
+        // An IRI key starts with `I:` and a Literal key starts with `L:`, so
+        // they can never be equal regardless of content.
+        let iri_key = term_key(&TermValue::Iri("L:something".to_owned()));
+        let lit_key = term_key(&lit("something", "dt"));
+        assert_ne!(iri_key, lit_key, "IRI and Literal keys must stay distinct");
     }
 }
