@@ -43,6 +43,67 @@ fn overclaim_gate_fires_on_exact_with_drops() {
 }
 
 #[test]
+fn legalization_gate_enforces_unsupported_carries_residue() {
+    use crate::ir::PreservationKind;
+    // The legalization floor: Unsupported WITH flagged residue is legal (the construct
+    // is carried and flagged, not silently dropped).
+    assert!(assert_no_overclaim(
+        "demo",
+        PreservationKind::Unsupported,
+        &["the construct is inexpressible in demo".to_owned()],
+    )
+    .is_ok());
+    // Unsupported with an EMPTY residue is a silent under-disclosure — a build failure.
+    let err = assert_no_overclaim("demo", PreservationKind::Unsupported, &[]).unwrap_err();
+    assert!(
+        err.0.contains("under-disclosure"),
+        "Unsupported with no residue must hard-fail: {}",
+        err.0
+    );
+}
+
+#[test]
+fn report_emits_unsupported_target_and_flags_residue() {
+    use crate::ir::{LogicProgram, PreservationKind};
+    let program = LogicProgram::new(vec![], vec![], vec![], None);
+    // A target that declares Unsupported and carries its residue serializes the floor
+    // kind and flags the residue — the reserved-machinery path the correspondence
+    // up-lift / OWL-alignment lowering is the first production producer of.
+    let unsupported = ProjectionResult {
+        target: "demo-unsupported".to_owned(),
+        content: String::new(),
+        is_rdf: false,
+        preservation: PreservationKind::Unsupported,
+        complexity: "N/A".to_owned(),
+        lossy_drops: vec!["the whole construct is inexpressible in demo".to_owned()],
+        actual_drops: Vec::new(),
+    };
+    let ttl = report::build_projection_report(&program, &[unsupported]).unwrap();
+    assert!(
+        ttl.contains("Unsupported"),
+        "declares the Unsupported kind:\n{ttl}"
+    );
+    assert!(ttl.contains("lossyDrop"), "flags the residue:\n{ttl}");
+}
+
+#[test]
+fn report_rejects_unsupported_with_no_residue() {
+    use crate::ir::{LogicProgram, PreservationKind};
+    let program = LogicProgram::new(vec![], vec![], vec![], None);
+    let silent = ProjectionResult {
+        target: "demo-silent".to_owned(),
+        content: String::new(),
+        is_rdf: false,
+        preservation: PreservationKind::Unsupported,
+        complexity: "N/A".to_owned(),
+        lossy_drops: Vec::new(),
+        actual_drops: Vec::new(),
+    };
+    let err = report::build_projection_report(&program, &[silent]).unwrap_err();
+    assert!(err.0.contains("under-disclosure"), "got: {}", err.0);
+}
+
+#[test]
 fn projection_ledger_rows_are_sorted_and_classified() {
     let rows = projection_ledger_rows();
     assert!(!rows.is_empty(), "the static ledger must carry rows");

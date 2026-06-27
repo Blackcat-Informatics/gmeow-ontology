@@ -5,10 +5,11 @@
 //! (`generated/logic/projection-report.ttl`).
 //!
 //! The preservation-loss-ledger emitter (`build_projection_report`); the Python
-//! duplicate was retired in #727.  Emits, per target, a
+//! duplicate has been retired.  Emits, per target, a
 //! `logic:ProjectionTarget` node with `logic:preservationKind`,
 //! `logic:complexityClass`, and aggregated `gmeow:lossyDrop` records; runs the
-//! overclaim gate per target so an overclaim blocks serialization (red build).
+//! legalization gate per target so an overclaim — or an `Unsupported` target that
+//! flags no residue — blocks serialization (red build).
 //! Compared by RDF isomorphism, like the other RDF targets.
 
 use gmeow_rdf::RdfLiteral;
@@ -33,7 +34,8 @@ fn int_literal(n: usize) -> RdfLiteral {
 /// # Errors
 ///
 /// Returns [`OverclaimError`] if any projection declares `ExactPreservation` but
-/// produced drops.
+/// produced drops, or declares `Unsupported` (the legalization floor) yet flagged no
+/// residue (a silent under-disclosure).
 pub fn build_projection_report(
     program: &LogicProgram,
     projections: &[ProjectionResult],
@@ -63,8 +65,17 @@ pub fn build_projection_report(
     sorted.sort_by(|a, b| a.target.cmp(&b.target));
 
     for proj in sorted {
-        // Overclaim gate (projection-level drops only; no materialization phase).
-        assert_no_overclaim(&proj.target, proj.preservation, &proj.actual_drops)?;
+        // Legalization gate: a lowering is a total function into ⟨legal ⊕ flagged
+        // residue⟩.  The residue is the full flagged set (structural lossy_drops +
+        // concrete actual_drops) — exactly what is serialized below as gmeow:lossyDrop.
+        // The gate fires on an Exact overclaim OR an Unsupported silent under-disclosure.
+        let residue: Vec<String> = proj
+            .lossy_drops
+            .iter()
+            .chain(proj.actual_drops.iter())
+            .cloned()
+            .collect();
+        assert_no_overclaim(&proj.target, proj.preservation, &residue)?;
 
         let target_iri = format!("{LOGIC_NS}target/{}", proj.target);
         g.add_iri(&report_iri, &logic("hasProjection"), &target_iri);
