@@ -292,6 +292,61 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
     }
 }
 
+/// The fixed set of whole-program projection targets, in the order
+/// [`projection_ledger_rows`] emits them BEFORE sorting.  These are exactly the
+/// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
+/// rows are program-dependent and so are NOT part of this static surface; the
+/// generic `property-path` row IS).
+const LEDGER_TARGETS: [&str; 8] = [
+    "owl-dl",
+    "owl-el",
+    "datalog",
+    "n3",
+    "gufo",
+    "canonical-rdf12",
+    "nemo",
+    "property-path",
+];
+
+/// One row of the preservation loss ledger as a public, owned value: a projection
+/// target with its declared preservation kind, complexity class, and the
+/// structural lossy-drop notes for that target.  This is the documentation-facing
+/// surface over the crate-private [`target_meta`] table — the loss-ledger source
+/// of truth — so the docs renderers never reach into compiler internals.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProjectionLedgerRow {
+    /// Short target name (`"owl-dl"`, `"datalog"`, …).
+    pub target: String,
+    /// The declared preservation kind value string (e.g. `"ExactPreservation"`).
+    pub preservation_kind: String,
+    /// The declared complexity class string.
+    pub complexity: String,
+    /// Structural lossy-drop notes (empty for the exact-preservation targets).
+    pub lossy_drops: Vec<String>,
+}
+
+/// The preservation loss ledger for the standard whole-program projection
+/// targets, as owned rows sorted by target name (deterministic).  Each row is
+/// built from the crate-private [`target_meta`] table, so this and the compile
+/// surface cannot drift.  The per-shape `property-path:<iri>` rows a concrete
+/// program contributes are program-dependent and not part of this static surface.
+pub fn projection_ledger_rows() -> Vec<ProjectionLedgerRow> {
+    let mut rows: Vec<ProjectionLedgerRow> = LEDGER_TARGETS
+        .iter()
+        .map(|target| {
+            let (kind, complexity, lossy_drops) = target_meta(target);
+            ProjectionLedgerRow {
+                target: (*target).to_owned(),
+                preservation_kind: kind.as_str().to_owned(),
+                complexity: complexity.to_owned(),
+                lossy_drops: lossy_drops.into_iter().map(str::to_owned).collect(),
+            }
+        })
+        .collect();
+    rows.sort_by(|a, b| a.target.cmp(&b.target));
+    rows
+}
+
 /// Raised when a projection's declared preservation is stronger than achieved.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OverclaimError(pub String);

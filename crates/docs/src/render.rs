@@ -88,6 +88,20 @@ pub enum Page {
     /// The logic-stereotypes index (`logic/index`) — terms grouped by their
     /// lowered OntoUML/UFO stereotype. Resolves the `nav_logic` chrome string.
     Logic,
+    /// The canonical-IR compiler-product page (`logic/canonical-ir/index`) — the
+    /// one AST / RDF 1.2 identity serialization the `logic:` compiler produces.
+    LogicCanonicalIr,
+    /// The preservation loss-ledger compiler-product page
+    /// (`logic/loss-ledger/index`) — per-target preservation kind, complexity
+    /// class, and structural lossy drops.
+    LogicLossLedger,
+    /// The derivation-graph compiler-product page
+    /// (`logic/derivation-graph/index`) — the reasoning provenance (per-axiom
+    /// proof skeletons).
+    LogicDerivationGraph,
+    /// The compiler-diagnostics product page (`logic/diagnostics/index`) — parse
+    /// findings + lossy-drop notes, surfaced as SARIF.
+    LogicDiagnostics,
     /// The adoption-recipes index (`recipes/index`).
     RecipeIndex,
     /// A single recipe page (`recipes/<slug>/index`).
@@ -120,6 +134,10 @@ impl Page {
             Page::ExternalIndex => "external-ontologies".to_string(),
             Page::IntegrityIndex => "integrity-constraints".to_string(),
             Page::Logic => "logic".to_string(),
+            Page::LogicCanonicalIr => "logic/canonical-ir".to_string(),
+            Page::LogicLossLedger => "logic/loss-ledger".to_string(),
+            Page::LogicDerivationGraph => "logic/derivation-graph".to_string(),
+            Page::LogicDiagnostics => "logic/diagnostics".to_string(),
             Page::RecipeIndex => "recipes".to_string(),
             Page::Recipe(slug) => format!("recipes/{slug}"),
             Page::LearningPathIndex => "learning-paths".to_string(),
@@ -171,6 +189,10 @@ impl Page {
             Page::ExternalIndex => "External ontologies".to_string(),
             Page::IntegrityIndex => "Integrity constraints".to_string(),
             Page::Logic => "Logic & Reasoning".to_string(),
+            Page::LogicCanonicalIr => "Canonical IR".to_string(),
+            Page::LogicLossLedger => "Preservation loss ledger".to_string(),
+            Page::LogicDerivationGraph => "Derivation graph".to_string(),
+            Page::LogicDiagnostics => "Compiler diagnostics".to_string(),
             Page::RecipeIndex => "Recipes".to_string(),
             Page::Recipe(slug) => model
                 .recipes
@@ -340,6 +362,10 @@ fn pages(model: &DocsModel) -> Vec<Page> {
         Page::ExternalIndex,
         Page::IntegrityIndex,
         Page::Logic,
+        Page::LogicCanonicalIr,
+        Page::LogicLossLedger,
+        Page::LogicDerivationGraph,
+        Page::LogicDiagnostics,
         Page::RecipeIndex,
         Page::LearningPathIndex,
     ];
@@ -401,6 +427,10 @@ pub fn to_markdown(model: &DocsModel, page: &Page) -> String {
         Page::ExternalIndex => md_external_index(model),
         Page::IntegrityIndex => md_integrity_index(model),
         Page::Logic => md_logic_index(model),
+        Page::LogicCanonicalIr => md_logic_canonical_ir(),
+        Page::LogicLossLedger => md_logic_loss_ledger(),
+        Page::LogicDerivationGraph => md_logic_derivation_graph(),
+        Page::LogicDiagnostics => md_logic_diagnostics(),
         Page::RecipeIndex => md_recipe_index(model),
         Page::Recipe(slug) => md_recipe(model, slug),
         Page::LearningPathIndex => md_learning_path_index(model),
@@ -1064,6 +1094,52 @@ fn md_logic_index(model: &DocsModel) -> String {
          stereotype semantics.",
     );
 
+    // Cross-link to the four `logic:` compiler-product pages. The compiler turns
+    // one canonical IR into every projection target; these pages document the four
+    // information products that fall out of that compile — the IR itself, the
+    // preservation loss ledger, the derivation-graph explanations, and the
+    // diagnostics. Links use the same `rel` helper the rest of the page does, so
+    // they resolve cleanly under the anchor gate.
+    heading(&mut out, 2, "Compiler products");
+    line(
+        &mut out,
+        "The `logic:` compiler emits four information products from one canonical \
+         program. Each has a dedicated page:",
+    );
+    let ir_href = rel(&from, &Page::LogicCanonicalIr.dir());
+    let ledger_href = rel(&from, &Page::LogicLossLedger.dir());
+    let deriv_href = rel(&from, &Page::LogicDerivationGraph.dir());
+    let diag_href = rel(&from, &Page::LogicDiagnostics.dir());
+    push_line(
+        &mut out,
+        &format!(
+            "- [Canonical IR]({ir_href}index.md) — the one AST / RDF 1.2 identity \
+             serialization the compiler produces."
+        ),
+    );
+    push_line(
+        &mut out,
+        &format!(
+            "- [Preservation loss ledger]({ledger_href}index.md) — per projection \
+             target: preservation kind, complexity class, and structural lossy drops."
+        ),
+    );
+    push_line(
+        &mut out,
+        &format!(
+            "- [Derivation graph]({deriv_href}index.md) — the reasoning provenance: \
+             per-axiom proof skeletons."
+        ),
+    );
+    push_line(
+        &mut out,
+        &format!(
+            "- [Compiler diagnostics]({diag_href}index.md) — parse findings plus \
+             lossy-drop notes, surfaced as SARIF."
+        ),
+    );
+    blank(&mut out);
+
     // Group terms by each stereotype they carry (a term may carry several).
     let mut by_stereotype: BTreeMap<String, Vec<&DocTerm>> = BTreeMap::new();
     for term in &model.terms {
@@ -1095,6 +1171,180 @@ fn md_logic_index(model: &DocsModel) -> String {
         }
         blank(&mut out);
     }
+    out
+}
+
+// ── Logic compiler products (#733 surface) ───────────────────────────────────
+//
+// The `logic:` compiler turns one canonical program into every projection
+// target; four information products fall out of that compile. Each gets a
+// dedicated page under the logic area. The loss-ledger page reads the public
+// `gmeow_logic_compile::projections::projection_ledger_rows` accessor (the
+// crate-private `target_meta` table is the source of truth); the other three are
+// high-level prose pages — they describe products, not fabricated APIs.
+
+/// The canonical-IR product page: the one AST / RDF 1.2 identity serialization
+/// the compiler produces, and the projection targets it feeds.
+fn md_logic_canonical_ir() -> String {
+    let from = Page::LogicCanonicalIr.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, "Canonical IR");
+    line(
+        &mut out,
+        "The `logic:` compiler parses every source surface into a single canonical \
+         intermediate representation — **the one AST**. The IR is a frozen value \
+         hierarchy with an order-independent canonicalization contract: every \
+         ordering and hash the downstream artifacts depend on bottoms out in the \
+         IR's stable sort keys, so the same program always compiles byte-for-byte \
+         identically.",
+    );
+    line(
+        &mut out,
+        "The IR's own faithful serialization is the **canonical RDF 1.2** projection: \
+         a lossless, identity round-trip (`ExactPreservation`). Re-parsing those \
+         triples reconstructs the IR exactly — it is the AST written down, not a \
+         lossy view of it.",
+    );
+
+    heading(&mut out, 2, "Projection surface");
+    line(
+        &mut out,
+        "From the one IR the compiler runs every projection back-end. The standard \
+         whole-program targets are:",
+    );
+    for row in gmeow_logic_compile::projections::projection_ledger_rows() {
+        push_line(&mut out, &format!("- `{}`", code_escape(&row.target)));
+    }
+    blank(&mut out);
+    let ledger_href = rel(&from, &Page::LogicLossLedger.dir());
+    line(
+        &mut out,
+        &format!(
+            "Each target declares how faithfully it preserves the IR; the \
+             [preservation loss ledger]({ledger_href}index.md) records the \
+             preservation kind, complexity class, and structural drops per target."
+        ),
+    );
+    out
+}
+
+/// The preservation loss-ledger product page: a table built from the public
+/// `projection_ledger_rows` accessor — one row per standard projection target.
+fn md_logic_loss_ledger() -> String {
+    let from = Page::LogicLossLedger.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, "Preservation loss ledger");
+    line(
+        &mut out,
+        "Every projection of the canonical IR declares **how much it preserves**. A \
+         lossy down-projection (OWL, gUFO, Datalog, …) is sound but drops structure \
+         the target format cannot carry; the exact targets (canonical RDF 1.2, Nemo) \
+         drop nothing. This ledger is the per-target record — the compiler's \
+         overclaim gate turns the build red if a target claims exact preservation \
+         yet drops anything.",
+    );
+
+    let ir_href = rel(&from, &Page::LogicCanonicalIr.dir());
+    line(
+        &mut out,
+        &format!(
+            "The rows below are the static, whole-program targets the \
+             [canonical IR]({ir_href}index.md) feeds; a concrete program may add a \
+             per-shape property-path row for each declared path shape."
+        ),
+    );
+
+    push_line(
+        &mut out,
+        "| Target | Preservation kind | Complexity class | Lossy drops |",
+    );
+    push_line(&mut out, "| --- | --- | --- | --- |");
+    for row in gmeow_logic_compile::projections::projection_ledger_rows() {
+        // The drops are a structured list; render them as a `<br>`-separated cell so
+        // the four-column grid stays intact (a multi-line cell would break it). An
+        // exact target carries no drops — show an em dash rather than an empty cell.
+        let drops = if row.lossy_drops.is_empty() {
+            "—".to_string()
+        } else {
+            row.lossy_drops
+                .iter()
+                .map(|d| md_escape(&one_line(d)))
+                .collect::<Vec<_>>()
+                .join("<br>")
+        };
+        push_line(
+            &mut out,
+            &format!(
+                "| `{}` | `{}` | `{}` | {} |",
+                code_escape(&row.target),
+                code_escape(&row.preservation_kind),
+                code_escape(&row.complexity),
+                drops,
+            ),
+        );
+    }
+    blank(&mut out);
+    out
+}
+
+/// The derivation-graph product page: the reasoning-provenance explanation
+/// skeletons (per-axiom proof skeletons) the reasoning channel ships.
+fn md_logic_derivation_graph() -> String {
+    let mut out = String::new();
+    heading(&mut out, 1, "Derivation graph");
+    line(
+        &mut out,
+        "Beyond the projected programs, the reasoning channel produces a **derivation \
+         graph** — the provenance of every entailed fact. Each derived statement \
+         carries a proof skeleton: the axiom(s) and the body bindings that justified \
+         it, chained back to the source facts. The graph is the content-addressed \
+         explanation surface — it is what makes a conclusion auditable rather than \
+         opaque.",
+    );
+    line(
+        &mut out,
+        "The skeletons double as the truth-maintenance justification: when a premise \
+         is retracted, the derivation graph identifies exactly which conclusions \
+         lose their support. Because the explanation is keyed by content, two runs \
+         over the same program yield the same justification graph — the basis for \
+         the explanation goldens.",
+    );
+    line(
+        &mut out,
+        "This product ships in the bundle's reasoning channel alongside the compiled \
+         programs, so a consumer can carry the conclusions and their proofs together.",
+    );
+    out
+}
+
+/// The compiler-diagnostics product page: parse findings + lossy-drop notes,
+/// surfaced as SARIF.
+fn md_logic_diagnostics() -> String {
+    let mut out = String::new();
+    heading(&mut out, 1, "Compiler diagnostics");
+    line(
+        &mut out,
+        "Compiling a `logic:` program is also a **diagnostic pass**. The compiler \
+         emits two kinds of finding:",
+    );
+    push_line(
+        &mut out,
+        "- **Parse findings** — malformed or ill-typed source surfaces flagged at \
+         the point they are read.",
+    );
+    push_line(
+        &mut out,
+        "- **`logic-compile.lossy-drop` notes** — one finding per structural item a \
+         lossy projection had to drop, so the loss is never silent. These line up \
+         with the per-target rows in the preservation loss ledger.",
+    );
+    blank(&mut out);
+    line(
+        &mut out,
+        "The findings are surfaced as **SARIF**, the standard static-analysis result \
+         format, so they flow into the same code-scanning surface as the rest of the \
+         repository's diagnostics — no bespoke reader required.",
+    );
     out
 }
 
