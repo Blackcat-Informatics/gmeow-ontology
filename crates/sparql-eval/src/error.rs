@@ -31,6 +31,13 @@ pub enum EvalError {
     /// (a frozen, validated dataset and a parsed algebra cannot legitimately cause
     /// it); it is surfaced rather than panicking so callers fail cleanly.
     Internal(String),
+
+    /// A `SERVICE` federation step failed (transport error, undecodable remote
+    /// response, or no remote source configured) and the `SERVICE` was **not**
+    /// `SILENT`. Per the hard-fail doctrine a non-silent federation failure aborts
+    /// the query rather than silently contributing no bindings; `SERVICE SILENT`
+    /// instead swallows the failure to the join identity (S6b #928).
+    Remote(String),
 }
 
 impl EvalError {
@@ -43,6 +50,11 @@ impl EvalError {
     pub fn internal(what: impl Into<String>) -> Self {
         Self::Internal(what.into())
     }
+
+    /// Construct an [`EvalError::Remote`] from any displayable message.
+    pub fn remote(what: impl Into<String>) -> Self {
+        Self::Remote(what.into())
+    }
 }
 
 impl core::fmt::Display for EvalError {
@@ -53,6 +65,7 @@ impl core::fmt::Display for EvalError {
                 write!(f, "unsupported in sparql-eval (S6 scope): {what}")
             }
             EvalError::Internal(msg) => write!(f, "internal evaluator error: {msg}"),
+            EvalError::Remote(msg) => write!(f, "SERVICE federation error: {msg}"),
         }
     }
 }

@@ -84,6 +84,10 @@ pub struct EvalCtx<'d> {
     /// `expr::exists`'s per-row re-evaluation into a single evaluation per site.
     /// Naturally per-query: a fresh [`EvalCtx`] is built for each `query()` call.
     pub(crate) exists_inner_cache: DetHashMap<ExistsCacheKey, Rc<SolutionSeq>>,
+    /// The `SERVICE` federation source, if one is injected (S6b #928). `None` in
+    /// the default engine path: a non-silent `SERVICE` then hard-fails. Tests and
+    /// the conformance harness inject an in-memory source via [`EvalCtx::with_remote`].
+    pub(crate) remote: Option<&'d dyn crate::remote::RemoteQuerySource>,
 }
 
 impl<'d> EvalCtx<'d> {
@@ -122,7 +126,16 @@ impl<'d> EvalCtx<'d> {
             rng_state: rng_seed,
             options: EvalOptions::default(),
             exists_inner_cache: DetHashMap::default(),
+            remote: None,
         }
+    }
+
+    /// Attach a `SERVICE` federation source for this evaluation. The borrow shares
+    /// the dataset lifetime `'d`; the engine's default path leaves it `None`.
+    #[must_use]
+    pub fn with_remote(mut self, source: &'d dyn crate::remote::RemoteQuerySource) -> Self {
+        self.remote = Some(source);
+        self
     }
 
     /// A compact hashable encoding of the active graph, for [`ExistsCacheKey`].
@@ -186,6 +199,11 @@ pub fn eval(pattern: &GraphPattern, ctx: &mut EvalCtx<'_>) -> Result<SolutionSeq
             variables,
             aggregates,
         } => crate::modifier::eval_group(inner, variables, aggregates, ctx),
+        GraphPattern::Service {
+            name,
+            inner,
+            silent,
+        } => crate::remote::eval_service(name, inner, *silent, ctx),
         // Implemented incrementally over the remaining S6 build tasks; until then
         // (and permanently, for out-of-scope nodes) a hard error names the construct.
         other => Err(EvalError::Unsupported(format!(
@@ -270,7 +288,7 @@ pub(crate) fn pattern_kind(pattern: &GraphPattern) -> &'static str {
         GraphPattern::Graph { .. } => "GRAPH",
         GraphPattern::Extend { .. } => "BIND (Extend)",
         GraphPattern::Minus { .. } => "MINUS",
-        GraphPattern::Service { .. } => "SERVICE (S6b #928)",
+        GraphPattern::Service { .. } => "SERVICE",
         GraphPattern::Values { .. } => "VALUES",
         GraphPattern::OrderBy { .. } => "ORDER BY",
         GraphPattern::Project { .. } => "Project",
@@ -300,17 +318,14 @@ mod tests {
     fn unimplemented_variant_hard_errors_with_its_name() {
         let ds = RdfDatasetBuilder::new().freeze().expect("freeze empty");
         let mut ctx = EvalCtx::new(&ds);
-        let inner = Box::new(GraphPattern::Bgp { patterns: vec![] });
-        // SERVICE (federation) is permanently out of S6 scope (→ S6b #928).
-        let pattern = GraphPattern::Service {
-            name: gmeow_sparql_algebra::NamedNodePattern::NamedNode(
-                gmeow_sparql_algebra::NamedNode::new_unchecked("http://ex/endpoint"),
-            ),
-            inner,
-            silent: false,
+        // LATERAL remains permanently out of scope (SERVICE is now evaluated via
+        // the remote seam, S6b #928); a still-unsupported node names itself.
+        let pattern = GraphPattern::Lateral {
+            left: Box::new(GraphPattern::Bgp { patterns: vec![] }),
+            right: Box::new(GraphPattern::Bgp { patterns: vec![] }),
         };
         let err = eval(&pattern, &mut ctx).unwrap_err();
         assert!(matches!(err, EvalError::Unsupported(_)));
-        assert!(err.to_string().contains("SERVICE"));
+        assert!(err.to_string().contains("LATERAL"));
     }
 }
