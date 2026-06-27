@@ -177,6 +177,52 @@ The infrastructure already generalises to any upper ontology (DOLCE/DUL, SUMO, U
 
 ---
 
+## YAMATO (Mizoguchi 2010) — a bridge view *and* a refinement source
+
+YAMATO ("Yet Another More Advanced Top-level Ontology", Mizoguchi 2010) is bridged like the
+others — **by reference, never imported** (Principle 5), a **bridge view** in the sense of
+[`docs/APPLIED_CATEGORY_THEORY/take1.md`](./APPLIED_CATEGORY_THEORY/take1.md) §5: useful
+conceptual alignment, *not* a truth-preserving morphism. But it occupies a different role from
+BFO/DOLCE/SUMO, and it is worth naming the difference.
+
+For BFO we bridge gUFO's **nature classes → BFO's ground categories**. YAMATO is the inverse
+situation: GMEOW already **out-engineers** YAMATO where the two overlap — explicit anti-rigid
+`logic:Role`/`RoleMixin` vs YAMATO's Hozo-buried roles, and `gmeow:Determinacy` / `confidence` /
+frame-relativity (P11) / standpoint-indexing (P9) that YAMATO lacks. So YAMATO is consumed
+primarily as a **source of selected foundational refinements adopted canonically into `logic:`**
+(Principle 17), with YAMATO's own terms bridged `skos:closeMatch` by reference. This is the
+*bridge-view-as-refinement-source* case.
+
+The adopted refinements (tracked as terms, not yet built):
+
+- **Quality / quantity** (a foundational refinement, tracked as a term): a **persistent
+  `Quality` identity** (one enduring quality whose dated values change); the **generic-quality →
+  quality-role ladder** (`length` playing a `height` role — Principle 11 stated in role terms);
+  and **unit-independent true quantity** (the unit belongs to the *measurement*, not the quantity).
+- **Process / event** (a foundational refinement, tracked as a term): **process ≠
+  event** (the change-asymmetry); **action(open, on-going) vs event(closed, unitary)**
+  (*arrive* vs *arrival*); **causal vs temporal parts** (causal ⊆ temporal); and the
+  research-grade **object-as-interface-of-internal/external-processes** (adopted only where a
+  consumer earns it).
+
+**Bridge mechanics — reference-only.** YAMATO ships as a Hozo model / PDF, with no clean,
+vendorable OWL namespace, so it is **REFERENCE_ONLY** (like DOLCE/DUL above): its terms are
+*cited*, never vendored into `imports/targets/`, and any `closeMatch` cells carry the Mizoguchi
+citation rather than a vendored-IRI verification. We adopt YAMATO's *insights*, not its
+*commitments* — exactly the institution-morphism-vs-bridge-view distinction (take1 §5).
+
+**Grounding.** These refinements are concretely consumed by the correspondence-calculus openEHR
+use cases — the quality ladder grounds the data axis
+([`usecase_openehr_bloodpressure.md`](./APPLIED_CATEGORY_THEORY/usecase_openehr_bloodpressure.md):
+persistent `Quality` = the openEHR `OBSERVATION/HISTORY`; generic→role = the OPT `property` →
+`at0004`/Systolisch; unit-independent quantity = the `DV_QUANTITY` decomposition), and the
+process refinements ground the process axis
+([`usecase_openehr_taskplan_rchops21.md`](./APPLIED_CATEGORY_THEORY/usecase_openehr_taskplan_rchops21.md):
+action/event open-closed = the prescriptive↔descriptive seam). Folded into
+[`take1.md`](./APPLIED_CATEGORY_THEORY/take1.md) §13.
+
+---
+
 ## References
 
 - gUFO — NEMO/UFES lightweight OWL 2 DL UFO: <http://purl.org/nemo/gufo#>; Almeida et al.,
@@ -187,5 +233,8 @@ The infrastructure already generalises to any upper ontology (DOLCE/DUL, SUMO, U
   Trojahn et al., *Foundational ontologies meet ontology matching: a survey* (SWJ 2022).
 - CONSTITUTION Principles **1** (SOTA by being SOTA), **5** (maximal bridging — by reference),
   **7** (verified by construction), **8** (FAIR).
+- YAMATO — Mizoguchi, R. (2010), *YAMATO: Yet Another More Advanced Top-level Ontology*; Hozo
+  ontology library: <https://www.hozo.jp/onto_library/YAMATO101216.pdf>. Adopted by reference as a
+  bridge view + refinement source.
 - The single-source alignment stack: [`docs/projections.md`](./projections.md); the gUFO
   meta-grounding it bridges from: [`docs/reasoning.md`](./reasoning.md).

@@ -7,7 +7,9 @@
 > meaning of the **Evolution = transaction-path** facet of the reasoning contract
 > ([`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md)); it is a value of one orthogonal facet, **not** a
 > separate profile. Member of the GMEOW Logic design set ([`LOGIC.md`](LOGIC.md)). The lineage is
-> the Transaction Logic of Bonner and Kifer (see [`LOGIC-REFERENCES.md`](LOGIC-REFERENCES.md)).
+> the Transaction Logic of Bonner and Kifer (see [`LOGIC-REFERENCES.md`](LOGIC-REFERENCES.md)). The
+> correspondence calculus's `get`/`put` legs are transaction-programs in this sense
+> ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)).
 
 ## Why state change is its own facet
 

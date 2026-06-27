@@ -10,7 +10,10 @@
 > and the decidability stance. Vision is in [LOGIC.md](LOGIC.md); how a request is configured is in
 > [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md); the typed intermediate representation is in
 > [LOGIC-IR.md](LOGIC-IR.md); state-change semantics are in [LOGIC-TRANSACTION.md](LOGIC-TRANSACTION.md);
-> the engine that realizes these semantics is in [LOGIC-RUNTIME.md](LOGIC-RUNTIME.md).
+> the engine that realizes these semantics is in [LOGIC-RUNTIME.md](LOGIC-RUNTIME.md). The
+> cross-ontology correspondence calculus that builds on these semantics — including the fact that the
+> preservation polarities double as lens / Galois-connection soundness conditions, and the standpoint
+> index governs every correspondence — is in [LOGIC-CORRESPONDENCE.md](LOGIC-CORRESPONDENCE.md).
 
 ## The Unified Logic Core
 

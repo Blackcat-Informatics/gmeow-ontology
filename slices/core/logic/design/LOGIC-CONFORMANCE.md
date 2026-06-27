@@ -46,6 +46,7 @@ Cases are organized by category. Each category tests a distinct design invariant
 | Reasoning semantics | Answers under each model-semantics value — and its composed negation, truth, and uncertainty facets — match the semantics declared by the contract |
 | Explanation | Every IRI cited in a generated explanation appears in the proof trace — no justification outside the derivation |
 | Paraconsistency | A cross-world contradiction is confined to separate context graphs; a within-world contradiction emits witnesses |
+| Correspondence | Each `logic:Correspondence` lowering matches its declared preservation and rung; the get/put round-trip holds for iso/section claims; a mnemomorphic witness actually recovers the source; composition only weakens claims; no overclaim (see [Correspondence gates](#correspondence-gates)) |
 
 **Comparison discipline.** No case may depend on iteration order. RDF outputs compare by graph
 isomorphism; verdict and answer outputs compare as canonical sorted structures with normalized
@@ -162,6 +163,34 @@ IR must round-trip perfectly through CL. A program that uses constructs the CL p
 `SoundUnderApproximation` or `unsupported` is checked only on the constructs the projection does
 preserve; the gate does not require that lossy constructs survive. The preservation claim (defined
 in the section below) governs which constructs are in scope for the round-trip check.
+
+## Correspondence gates
+
+The correspondence calculus ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)) **generalizes the
+Common-Logic round-trip gate above to any `logic:Correspondence`.** Five gates govern the
+Correspondence corpus category, each a decidable check over the content-addressed canonical IR
+(graph-isomorphism, not semantic-equivalence search):
+
+- **Law gate** — a correspondence may not claim a law (GetPut / PutGet / PutPut / the section law) it
+  fails; a `proved-in-certified-fragment` discharge status is permitted only when the conformance
+  witness passes, otherwise the claim degrades to `declared-unverified` or `unknown`.
+- **Overclaim gate** — a claimed rung must be satisfiable by the lowered legs: a bridge view may not
+  emit `owl:equivalentClass`; a caveated overlap may not emit `sssom exactMatch`. Overclaiming is a
+  build failure, treated identically to dropping a fact silently (the preservation-overclaim rule
+  below).
+- **Round-trip gate** — `iso` and `section/retraction` claims must pass canonical-IR identity:
+  `put ∘ get = id` (and, for iso, `get ∘ put = id`) over the declared query class. This is the CL
+  round-trip gate applied to a correspondence's get/put legs.
+- **Mnemomorphism gate** — if a correspondence is declared `mnemomorphic`, its retained witness must
+  actually recover the source (the in-band complement reconstructs `S ∖ im(get)`); a
+  declared-recoverable cell that cannot recover is a failure.
+- **Composition gate** — composing correspondences may only preserve or weaken claims (class by
+  lattice-join, law-status by weakest-dominates, loss by union of unsupported-construct sets); a
+  composite claiming more than its parts license is a failure.
+
+A correspondence that uses only its `ExactPreservation` / iso subset round-trips perfectly; a
+lossy-lens or prism cell is checked only on the constructs its preservation claim declares it
+preserves — the same per-construct scoping as the CL gate.
 
 ## The loss ledger and preservation claims
 
