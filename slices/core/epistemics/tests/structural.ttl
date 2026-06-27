@@ -272,10 +272,11 @@ ex:saClaimEvaluationSubclassOfClaimToken a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:ClaimEvaluation a owl:Class ; rdfs:subClassOf gmeow:ClaimToken .
+    gmeow:ClaimEvaluation a owl:Class , logic:Event ; rdfs:subClassOf gmeow:ClaimToken .
 }""" ;
-    gmeow:saRationale "An evaluation is 'a separate claim with its own standpoint and provenance' (the foundation): gmeow:ClaimEvaluation MUST be an owl:Class rdfs:subClassOf gmeow:ClaimToken — a claim about a claim, reusing the claim apparatus recursively." .
+    gmeow:saRationale "An evaluation is 'a separate claim with its own standpoint and provenance' (the foundation): gmeow:ClaimEvaluation MUST be an owl:Class stereotyped logic:Event and rdfs:subClassOf gmeow:ClaimToken — a claim about a claim, reusing the claim apparatus recursively; the logic:Event pin is symmetric with the ClaimToken guard so the perdurant stereotype cannot regress silently." .
 
 # --- 20. evaluates: ClaimEvaluation → ClaimToken (MUST hold) ------------------
 ex:saEvaluatesEvaluationToToken a gmeow:StructuralAssertion ;
