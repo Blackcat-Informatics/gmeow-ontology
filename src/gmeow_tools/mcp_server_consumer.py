@@ -5,8 +5,11 @@ lives in Rust (``gmeow_native.pipeline.McpView``, #1031). Python keeps just the
 language-resolution layer (reusing the shared ``language_tags`` selector) and the
 memory tools, then delegates each surface to the Rust handle. The selector is
 resolved here (raising :class:`UnknownLanguageError` on a bad tag) and its
-``requested`` tag list is threaded into the Rust renderers, which reproduce the
-prior wire format byte-for-byte.
+``requested`` tag list is threaded into the Rust renderers, which emit the
+standard llmstxt.org format (``llms.txt``/``llms-full.txt``) and the prompt-ready
+per-term cards (``doc_card``) — the same shared ``gmeow_docs`` skeletons the
+docs site and dist export use, so the MCP surfaces are the live twins of the
+published documentation (#1027).
 """
 
 from __future__ import annotations
