@@ -1223,11 +1223,16 @@ fn eval_function(
         // ---- gmeow extension functions (CLOSED, exhaustive) ----------------
         Function::Gmeow(GmeowFn::HeldIn) => eval_held_in(&vals, ctx),
 
-        // ---- permanent hard errors (never a wrong answer) -----------------
-        Function::Custom(iri) => Err(EvalError::unsupported(format!(
-            "custom SPARQL function <{}>",
-            iri.as_str()
-        ))),
+        // ---- custom (extension) functions ---------------------------------
+        // GMEOW list functions (`gmeow:listLength`, …) dispatch here; an unknown
+        // custom IRI is a permanent hard error (never a wrong answer).
+        Function::Custom(iri) => match crate::list_fn::dispatch(iri.as_str(), &vals, ctx) {
+            Some(result) => result,
+            None => Err(EvalError::unsupported(format!(
+                "custom SPARQL function <{}>",
+                iri.as_str()
+            ))),
+        },
     }
 }
 
