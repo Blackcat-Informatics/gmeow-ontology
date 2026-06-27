@@ -3,7 +3,7 @@
 
 //! Typed intermediate representation (IR) for the GMEOW Logic compiler.
 //!
-//! The canonical IR (the Python duplicate `logic_ir.py` was retired in #727).
+//! The canonical IR (the Python duplicate `logic_ir.py` has been retired).
 //! This module is **pure data** — no I/O, no graph parsing, no side effects.
 //!
 //! # Canonicalization contract
@@ -16,10 +16,11 @@
 //! and keyed on [`LogicAxiom::sort_key`] / [`LogicRule::sort_key`] /
 //! [`ReasoningContract::sort_key`].  The axiom/rule keys reproduce the Python
 //! `_sort_key()` byte for byte (null-byte separators; Python `bool` `Display`
-//! `True`/`False`; corpus-safety: `negated` / `distinct` are appended to the key
-//! only when set, so every pre-#502/#503 program keeps its exact historical key
-//! string and the downstream artifacts stay byte-identical).  The contract key is
-//! greenfield (#767): it has no Python byte form, only internal determinism.
+//! `True`/`False`; corpus-safety: `negated` / `distinct` / `load_bearing` /
+//! `node_kind` are appended to the key only when non-default, so every historical
+//! program keeps its exact historical key string and the downstream artifacts stay
+//! byte-identical).  The contract key is greenfield: it has no Python byte form, only
+//! internal determinism.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
@@ -43,7 +44,7 @@ pub const PROCEDURAL_EXECUTION_FACET: &str = "ProceduralExecution";
 // --------------------------------------------------------------------------- //
 
 /// The six historical reasoning **preset** ids — the named `logic:ReasoningPreset`
-/// individuals (#767; formerly `logic:SemanticProfile`).
+/// individuals (formerly `logic:SemanticProfile`).
 ///
 /// The string form ([`SemanticProfileId::as_str`]) is the local name (no
 /// `logic:` prefix), taken verbatim from `slices/core/logic/module.ttl` — any
@@ -115,7 +116,90 @@ impl fmt::Display for SemanticProfileId {
     }
 }
 
-/// The six `logic:PreservationKind` named individuals.
+/// The `logic:NodeKind` taxonomy: the typed-sum tag every IR node declares.
+///
+/// The IR is a typed sum, not an untyped triple bag — each node names its kind, and the
+/// kind governs what may be done with it (a constraint is not a derivation rule, a query
+/// operator is not a program operator, a meta-level quotation does not collapse into the
+/// object-level assertion it quotes).  The string form ([`NodeKind::as_str`]) is the
+/// local name taken verbatim from `slices/core/logic/module.ttl`; any change there must
+/// be reflected here (the `node_kind_values_match_module_ttl` test pins it).
+///
+/// [`NodeKind::Correspondence`] is the **reserved** ninth kind: a law-bearing,
+/// possibly-lossy alignment between a source and a target pattern.  Its full machinery
+/// (law-spine, relation lattice, `get`/`put` legs, quantitative axes) is the
+/// correspondence calculus (`design/LOGIC-CORRESPONDENCE.md`); this slice only reserves
+/// the slot so identity and ordering are kind-aware before that body lands.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+pub enum NodeKind {
+    /// `logic:ObjectLevelFormula` — an ordinary first-order formula over the domain.
+    /// The axiom default, and the canonical `NodeKind::default()`.
+    #[default]
+    ObjectLevelFormula,
+    /// `logic:MetaLevelFormula` — a formula *about* formulas (stays meta).
+    MetaLevelFormula,
+    /// `logic:Constraint` — an integrity condition whose violation is a finding.
+    Constraint,
+    /// `logic:DerivationRule` — a head entailed from a body (the productive subset).
+    DerivationRule,
+    /// `logic:Query` — a goal to be resolved, with its answer shape.
+    Query,
+    /// `logic:TransactionProgram` — a state-changing composite over the path semantics.
+    TransactionProgram,
+    /// `logic:ActionSchema` — a named precondition/effect/invariant template.
+    ActionSchema,
+    /// `logic:ValidationShape` — a closed-world data-shape condition (the SHACL subset).
+    ValidationShape,
+    /// `logic:Correspondence` — the reserved ninth kind (the correspondence calculus
+    /// fills its body; see `design/LOGIC-CORRESPONDENCE.md`).
+    Correspondence,
+}
+
+impl NodeKind {
+    /// The local name exactly as it appears in `module.ttl`.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::ObjectLevelFormula => "ObjectLevelFormula",
+            Self::MetaLevelFormula => "MetaLevelFormula",
+            Self::Constraint => "Constraint",
+            Self::DerivationRule => "DerivationRule",
+            Self::Query => "Query",
+            Self::TransactionProgram => "TransactionProgram",
+            Self::ActionSchema => "ActionSchema",
+            Self::ValidationShape => "ValidationShape",
+            Self::Correspondence => "Correspondence",
+        }
+    }
+
+    /// The full IRI (`LOGIC_NAMESPACE + local_name`).
+    pub fn iri(&self) -> String {
+        format!("{LOGIC_NAMESPACE}{}", self.as_str())
+    }
+
+    /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
+    pub fn from_local(name: &str) -> Option<Self> {
+        Some(match name {
+            "ObjectLevelFormula" => Self::ObjectLevelFormula,
+            "MetaLevelFormula" => Self::MetaLevelFormula,
+            "Constraint" => Self::Constraint,
+            "DerivationRule" => Self::DerivationRule,
+            "Query" => Self::Query,
+            "TransactionProgram" => Self::TransactionProgram,
+            "ActionSchema" => Self::ActionSchema,
+            "ValidationShape" => Self::ValidationShape,
+            "Correspondence" => Self::Correspondence,
+            _ => return None,
+        })
+    }
+}
+
+impl fmt::Display for NodeKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// The seven `logic:PreservationKind` named individuals.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum PreservationKind {
     /// `logic:ExactPreservation`.
@@ -130,6 +214,9 @@ pub enum PreservationKind {
     InconsistencyPreserving,
     /// `logic:InconsistencyReflecting`.
     InconsistencyReflecting,
+    /// `logic:Unsupported` — the construct cannot be expressed in the target at all;
+    /// the legalization floor, carried and flagged as residue, never silently dropped.
+    Unsupported,
 }
 
 impl PreservationKind {
@@ -142,6 +229,7 @@ impl PreservationKind {
             Self::ValidationOnly => "ValidationOnly",
             Self::InconsistencyPreserving => "InconsistencyPreserving",
             Self::InconsistencyReflecting => "InconsistencyReflecting",
+            Self::Unsupported => "Unsupported",
         }
     }
 
@@ -350,11 +438,21 @@ pub struct LogicAxiom {
     pub obj: String,
     /// `true` when `obj` is a literal (data value), `false` when it is an IRI.
     pub obj_is_literal: bool,
-    /// `true` when this is a negation-as-failure body literal (#502). Defaults to
+    /// `true` when this is a negation-as-failure body literal. Defaults to
     /// `false`; append-only in the sort key for corpus safety.
     pub negated: bool,
     /// Contextual scope for this axiom.
     pub scope: ContextualScope,
+    /// The `logic:NodeKind` this axiom declares (default
+    /// [`NodeKind::ObjectLevelFormula`]).  Folded into the sort/content key only when
+    /// non-default, so the historical (all-`ObjectLevelFormula`) corpus is byte-stable.
+    pub node_kind: NodeKind,
+    /// Whether this axiom's annotation is load-bearing (`logic:loadBearing`): an in-band
+    /// complement or quantitative axis the inverse leg needs for `put∘get = id`, versus a
+    /// droppable display hint (the default, `false`).  Without this bit a section /
+    /// retraction (perfect-subsumption) claim cannot be verified.  Folded into the keys
+    /// only when `true`.
+    pub load_bearing: bool,
 }
 
 impl LogicAxiom {
@@ -382,7 +480,24 @@ impl LogicAxiom {
             obj_is_literal,
             negated,
             scope,
+            node_kind: NodeKind::ObjectLevelFormula,
+            load_bearing: false,
         })
+    }
+
+    /// Set this axiom's [`NodeKind`] (builder; default
+    /// [`NodeKind::ObjectLevelFormula`]).  Kept off [`Self::new`] so existing call sites
+    /// and the byte-pinned default-kind key are unchanged.
+    pub fn with_node_kind(mut self, node_kind: NodeKind) -> Self {
+        self.node_kind = node_kind;
+        self
+    }
+
+    /// Mark this axiom's annotation load-bearing (builder; default `false` =
+    /// droppable).
+    pub fn with_load_bearing(mut self, load_bearing: bool) -> Self {
+        self.load_bearing = load_bearing;
+        self
     }
 
     /// Convenience constructor for a positive, unscoped axiom.
@@ -403,8 +518,10 @@ impl LogicAxiom {
     }
 
     /// Stable sort key for canonical ordering — the golden-pinned key format.
-    /// Corpus-safety: `negated` is appended only when `true`.  The scope is
-    /// intentionally excluded.
+    /// Corpus-safety: `negated`, then `load_bearing`, then `node_kind` are appended only
+    /// when non-default, in that **fixed order** (frozen once committed — reordering
+    /// would churn every non-default node).  An all-default axiom keeps a byte-identical
+    /// key, so the golden corpus is unchanged.  The scope is intentionally excluded.
     pub fn sort_key(&self) -> String {
         let mut base = format!(
             "{}{SEP}{}{SEP}{}{SEP}{}",
@@ -416,6 +533,16 @@ impl LogicAxiom {
         if self.negated {
             base.push(SEP);
             base.push_str(py_bool(self.negated));
+        }
+        // FIXED segment order: load_bearing (when true) THEN node_kind (when != the
+        // axiom default ObjectLevelFormula).  Do not reorder — it pins the key.
+        if self.load_bearing {
+            base.push(SEP);
+            base.push_str(py_bool(self.load_bearing));
+        }
+        if self.node_kind != NodeKind::ObjectLevelFormula {
+            base.push(SEP);
+            base.push_str(self.node_kind.as_str());
         }
         base
     }
@@ -434,7 +561,7 @@ impl LogicAxiom {
 /// A single `logic:` rule: a head axiom derived from body axioms.
 ///
 /// The `body` is stored in canonical (sorted) order; the `distinct_pairs`
-/// inequality guards (#503) are canonicalized (each pair sorted internally, the
+/// inequality guards are canonicalized (each pair sorted internally, the
 /// whole set sorted).  Construct via [`LogicRule::new`] so the invariants hold.
 #[derive(Debug, Clone, PartialEq)]
 pub struct LogicRule {
@@ -442,11 +569,17 @@ pub struct LogicRule {
     pub head: LogicAxiom,
     /// The condition axioms (antecedents), in canonical order.
     pub body: Vec<LogicAxiom>,
-    /// Inequality body guards (#503): each pair of variable strings must bind to
+    /// Inequality body guards: each pair of variable strings must bind to
     /// unequal values.  Canonicalized; append-only in the sort key.
     pub distinct_pairs: Vec<(String, String)>,
     /// Contextual scope for this rule.
     pub scope: ContextualScope,
+    /// The `logic:NodeKind` this rule declares (default [`NodeKind::DerivationRule`]).
+    /// A **distinct default sentinel** from [`LogicAxiom`]'s (`ObjectLevelFormula`); the
+    /// two must not be conflated.  A rule therefore has two independent kind fold-points:
+    /// its head axiom's kind (folded via `head.sort_key()`) and this, its own rule kind.
+    /// Folded into the rule's keys only when non-default.
+    pub node_kind: NodeKind,
 }
 
 impl LogicRule {
@@ -474,11 +607,22 @@ impl LogicRule {
             body,
             distinct_pairs: pairs,
             scope,
+            node_kind: NodeKind::DerivationRule,
         }
     }
 
+    /// Set this rule's [`NodeKind`] (builder; default [`NodeKind::DerivationRule`]).
+    /// Kept off [`Self::new`] so existing call sites and the byte-pinned default-kind key
+    /// are unchanged.
+    pub fn with_node_kind(mut self, node_kind: NodeKind) -> Self {
+        self.node_kind = node_kind;
+        self
+    }
+
     /// Stable sort key — the golden-pinned key format.
-    /// Corpus-safety: the distinct-pairs segment is appended only when non-empty.
+    /// Corpus-safety: the distinct-pairs segment, then the rule's own `node_kind`, are
+    /// appended only when non-default, in that order.  An all-default rule keeps its
+    /// historical key.
     pub fn sort_key(&self) -> String {
         let body_key = self
             .body
@@ -497,6 +641,13 @@ impl LogicRule {
             base.push(SEP);
             base.push_str(&distinct_key);
         }
+        // The rule's OWN node kind (a distinct fold-point from the head axiom's kind,
+        // which is already folded via head.sort_key() above): append AFTER the
+        // distinct-pairs segment, only when != the rule default DerivationRule.
+        if self.node_kind != NodeKind::DerivationRule {
+            base.push(SEP);
+            base.push_str(self.node_kind.as_str());
+        }
         base
     }
 
@@ -514,15 +665,21 @@ impl LogicRule {
             .map(|(a, b)| format!("{a}{SEP}{b}"))
             .collect::<Vec<_>>()
             .join("|");
-        format!(
+        let mut key = format!(
             "head[{}]{SEP}body[{body}]{SEP}distinct[{distinct}]{SEP}scope[{}]",
             self.head.content_key(),
             self.scope.content_key(),
-        )
+        );
+        // Append-only: the rule's own node kind, when != the DerivationRule default.
+        if self.node_kind != NodeKind::DerivationRule {
+            key.push(SEP);
+            key.push_str(&format!("kind[{}]", self.node_kind.as_str()));
+        }
+        key
     }
 }
 
-/// The canonical reasoning-configuration IR (#767): an independent selection
+/// The canonical reasoning-configuration IR: an independent selection
 /// across the orthogonal reasoning facets, replacing the single monolithic
 /// semantic-profile axis.
 ///
@@ -660,7 +817,7 @@ impl ReasoningContract {
 
     /// Stable sort key over a FIXED field order — used for canonical ordering.
     ///
-    /// Greenfield (#767): there is no Python byte form to match; the only contract
+    /// Greenfield: there is no Python byte form to match; the only contract
     /// is INTERNAL determinism (same contract ⇒ same key, any construction order,
     /// guaranteed by the `BTreeSet`/`BTreeMap` storage and the fixed segment order)
     /// and that a preset's expanded contract has a stable key.  Mirrors the
@@ -687,7 +844,7 @@ impl ReasoningContract {
 }
 
 // --------------------------------------------------------------------------- //
-// Predicate-path shapes (#1010)
+// Predicate-path shapes
 // --------------------------------------------------------------------------- //
 
 /// The base step of a [`PathShapeIr`]: either one named predicate or a wildcard
@@ -703,8 +860,8 @@ pub enum PathBase {
     Wildcard,
 }
 
-/// A named, parametric predicate-path traversal specification (`logic:PathShape`,
-/// #1010): a reusable, by-name graph walk carrying a base step, a bounded depth
+/// A named, parametric predicate-path traversal specification (`logic:PathShape`):
+/// a reusable, by-name graph walk carrying a base step, a bounded depth
 /// range, an optional wildcard namespace scope, and a declared depth parameter.
 ///
 /// This is the canonical form; the SPARQL property-path and Datalog renderings are
@@ -870,10 +1027,10 @@ pub struct LogicProgram {
     pub axioms: Vec<LogicAxiom>,
     /// Rules in canonical order.
     pub rules: Vec<LogicRule>,
-    /// Reasoning contracts in canonical order (#767; was `profiles`).
+    /// Reasoning contracts in canonical order (was `profiles`).
     pub contracts: Vec<ReasoningContract>,
-    /// Named/parametric predicate-path shapes in canonical order (`logic:PathShape`,
-    /// #1010). Attached via [`LogicProgram::with_path_shapes`]; empty for the
+    /// Named/parametric predicate-path shapes in canonical order (`logic:PathShape`).
+    /// Attached via [`LogicProgram::with_path_shapes`]; empty for the
     /// historical path-shape-free corpus, so the canonical key is unchanged there.
     pub path_shapes: Vec<PathShapeIr>,
     /// IRI of the source graph/document (optional provenance).
@@ -904,7 +1061,7 @@ impl LogicProgram {
         }
     }
 
-    /// Attach the program's `logic:PathShape` individuals (#1010), canonicalizing
+    /// Attach the program's `logic:PathShape` individuals, canonicalizing
     /// them into sorted order.  Kept separate from [`Self::new`] so existing call
     /// sites are untouched and the byte-pinned canonical key of a path-shape-free
     /// program is unchanged (the path-shapes segment is append-only when present).

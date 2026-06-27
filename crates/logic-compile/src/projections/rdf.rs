@@ -205,7 +205,8 @@ fn rdf_result(
     actual_drops: Vec<String>,
 ) -> Result<ProjectionResult, OverclaimError> {
     let (kind, cx, drops) = target_meta(target);
-    assert_no_overclaim(target, kind, &actual_drops)?;
+    let residue: Vec<&str> = actual_drops.iter().map(String::as_str).collect();
+    assert_no_overclaim(target, kind, &residue)?;
     let content = sink.serialize(&generated_banner(banner_label));
     Ok(ProjectionResult {
         target: target.to_owned(),
