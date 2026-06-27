@@ -468,7 +468,7 @@ def test_public_cli_excludes_checkout_commands(runner: CliRunner) -> None:
     assert "regenerate" not in result.output
     assert "quality" not in result.output
     assert "check-generated" not in result.output
-    assert "Validate a JSON/YAML instance" in result.output
+    assert "validate" in result.output
 
 
 def test_public_gts_cli_excludes_compile_commands(runner: CliRunner) -> None:

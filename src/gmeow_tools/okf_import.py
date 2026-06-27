@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""OKF (Open Knowledge Format) import — the lift lane of the agent surface (#780).
+"""OKF (Open Knowledge Format) import — the lift lane of the agent surface.
 
-The mirror of :mod:`gmeow_tools.okf_export`: an OKF Markdown bundle (the form an
+The mirror of the OKF export surface: an OKF Markdown bundle (the form an
 LLM or human authors) is lifted back into GMEOW. The fold from Markdown to RDF is
 the Rust ``gts from-okf`` primitive — we **never re-implement that codec** here
 (the seam doctrine: ``gts`` owns the OKF↔graph conversion; gmeow owns the

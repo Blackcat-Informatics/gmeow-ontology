@@ -1,21 +1,21 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `okf` export leaf (#861 P4): Open Knowledge Format projection (dist/, gitignored).
+//! The `okf` export leaf: Open Knowledge Format projection (`dist/`, gitignored).
 //!
-//! A genuine Rust port of `src/gmeow_tools/okf_export.py` (#780): projects the
-//! folded GMEOW term surface into a conformant OKF bundle under
+//! Projects the folded GMEOW term surface into a conformant OKF bundle under
 //! `dist/gmeow-okf/` — one Markdown document per concept (YAML frontmatter +
 //! `[text](path)` body links), per-category indexes, and a root `index.md` that
 //! carries the in-band lossy declaration.
 //!
 //! The bundle structure is GMEOW-specific (Class/Property/Individual docs with the
-//! six recognized OKF frontmatter keys plus `okf:<key>` extensions). The Python
-//! generator builds this layout itself — it does NOT call the `gts to-okf` codec
-//! (which projects an already-OKF-profile graph). So this is a direct structural
-//! port, not a codec call. Output is git-ignored `dist/`, so the bar is
-//! structural validity + determinism, not byte-parity (terms arrive sorted, keys
-//! are fixed-then-sorted, bodies carry no wall-clock content).
+//! six recognized OKF frontmatter keys plus `okf:<key>` extensions). The generator
+//! builds this layout itself — it does NOT call the `gts to-okf` codec (which
+//! projects an already-OKF-profile graph). So this is a direct structural
+//! projection, not a codec call. Output is the git-ignored `dist/` tree, so the
+//! bar is structural validity + determinism: terms arrive sorted, keys are
+//! fixed-then-sorted, and the YAML emitter is a total function over any term
+//! value (no wall-clock content enters the bytes).
 
 use std::collections::BTreeMap;
 
@@ -23,7 +23,7 @@ use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
 use crate::stages::export::{collect_term_surface, read_fold_upstream, Term};
 
-/// The bundle directory name under `dist/` (#780, Task 2).
+/// The bundle directory name under `dist/`.
 pub const OKF_DIR_NAME: &str = "gmeow-okf";
 
 const LOSSY_NOTE: &str = "> LOSSY projection: the flat GMEOW term surface (label, definition, advisories, and IS-A / domain / range / sub-property links). The OWL axioms, the RDF-star statement/reification layer, and the full alignment graph are dropped — the GTS/OWL source is canonical.";
@@ -60,7 +60,7 @@ fn doc_relpath(term: &Term) -> String {
     format!("{}/{}.md", category_dir(term.category), slug(&term.curie))
 }
 
-/// A POSIX relative link from one bundle document to another (mirror `_relative_link`).
+/// A POSIX relative link from one bundle document to another.
 fn relative_link(from_path: &str, to_path: &str) -> String {
     let base_parts: Vec<&str> = {
         let parent = from_path.rsplit_once('/').map(|(p, _)| p).unwrap_or("");
@@ -97,7 +97,7 @@ fn relative_link(from_path: &str, to_path: &str) -> String {
     }
 }
 
-// ── YAML frontmatter value model (mirror yaml.safe_dump scalar/list/bool) ───────
+// ── YAML frontmatter value model (scalar / list / bool) ────────────────────────
 
 enum Yaml {
     Str(String),
@@ -105,103 +105,237 @@ enum Yaml {
     List(Vec<String>),
 }
 
-/// PyYAML `safe_dump` with `sort_keys=False, default_flow_style=False,
-/// allow_unicode=True, width=10**9` over a mapping of scalar/bool/list values.
-fn yaml_dump(entries: &[(String, Yaml)]) -> Result<String, PipelineError> {
+/// Serialize a mapping of scalar/bool/list values as block YAML: keys emit in
+/// insertion order (not sorted), one entry per line, Unicode preserved verbatim,
+/// and every scalar routed through `yaml_scalar` so it round-trips losslessly.
+fn yaml_dump(entries: &[(String, Yaml)]) -> String {
     let mut out = String::new();
     for (key, value) in entries {
         match value {
             Yaml::Str(s) => {
-                out.push_str(&yaml_key(key)?);
+                out.push_str(&yaml_key(key));
                 out.push_str(": ");
-                out.push_str(&yaml_scalar(s)?);
+                out.push_str(&yaml_scalar(s));
                 out.push('\n');
             }
             Yaml::Bool(b) => {
-                out.push_str(&yaml_key(key)?);
+                out.push_str(&yaml_key(key));
                 out.push_str(": ");
                 out.push_str(if *b { "true" } else { "false" });
                 out.push('\n');
             }
             Yaml::List(items) => {
-                out.push_str(&yaml_key(key)?);
+                out.push_str(&yaml_key(key));
                 out.push_str(":\n");
                 for item in items {
                     out.push_str("- ");
-                    out.push_str(&yaml_scalar(item)?);
+                    out.push_str(&yaml_scalar(item));
                     out.push('\n');
                 }
             }
         }
     }
-    Ok(out)
+    out
 }
 
 /// A YAML mapping key (always a plain identifier in this generator).
-fn yaml_key(key: &str) -> Result<String, PipelineError> {
+fn yaml_key(key: &str) -> String {
     yaml_scalar(key)
 }
 
-/// Emit a YAML scalar the way PyYAML `safe_dump(allow_unicode=True)` would:
-/// plain when safe, otherwise single-quoted (PyYAML's preferred quote style).
+/// Emit a YAML scalar that round-trips losslessly through any YAML 1.1 reader.
 ///
-/// NOTE (committed-format-bound, #863): a raw newline in a frontmatter scalar is
-/// NOT handled here — PyYAML would emit a multi-line literal/folded BLOCK scalar,
-/// and a single-quoted scalar with an embedded `\n` is not what `safe_dump`
-/// produces, so it would diverge from the byte-pinned committed OKF output. No
-/// current GMEOW term carries a multi-line label/definition (the parity gate is
-/// green), so rather than re-implement PyYAML's full block-scalar machinery (a
-/// large change that risks the committed bytes), this HARD-fails on a newline-
-/// bearing scalar: a future multi-line value surfaces loudly instead of silently
-/// emitting broken frontmatter. Returns `Err` only on that (currently impossible)
-/// input.
-fn yaml_scalar(s: &str) -> Result<String, PipelineError> {
-    if s.contains('\n') {
-        return Err(PipelineError::Stage {
-            stage: "stage-export-okf".to_string(),
-            message: format!(
-                "OKF frontmatter scalar contains a newline, which the PyYAML-parity \
-                 emitter does not yet render as a block scalar: {s:?}"
-            ),
-        });
-    }
-    Ok(if needs_quoting(s) {
-        // PyYAML single-quote style: double internal single quotes.
+/// Three resolutions, in order of precedence:
+///   1. a double-quoted scalar with escapes when the value carries a newline,
+///      tab, or any other control character (the quote style a YAML emitter must
+///      use when escapes are required) — so a multi-line definition is encoded,
+///      not refused;
+///   2. a single-quoted scalar when the value is escape-free but plain-unsafe
+///      (reserved words, number- or sexagesimal-shaped tokens, indicator-led or
+///      structurally ambiguous strings);
+///   3. otherwise the bare plain scalar.
+///
+/// This is a total function: every possible term value has a correct encoding.
+fn yaml_scalar(s: &str) -> String {
+    if needs_double_quote(s) {
+        double_quoted(s)
+    } else if needs_quoting(s) {
+        // Single-quote style: double internal single quotes.
         format!("'{}'", s.replace('\'', "''"))
     } else {
         s.to_string()
-    })
+    }
 }
 
-/// Whether a string must be quoted to round-trip as a YAML plain scalar.
+/// Whether a scalar carries a character that neither a plain nor a single-quoted
+/// scalar can represent without escaping (newline, carriage return, tab, or any
+/// other control character).
+fn needs_double_quote(s: &str) -> bool {
+    s.chars().any(char::is_control)
+}
+
+/// A double-quoted YAML scalar with the minimal escape set: backslash and double
+/// quote, the `\n` / `\r` / `\t` shortcuts, and `\xXX` / `\uXXXX` for any other
+/// control character.
+fn double_quoted(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 2);
+    out.push('"');
+    for c in s.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if c.is_control() => {
+                let code = c as u32;
+                if code <= 0xff {
+                    out.push_str(&format!("\\x{code:02x}"));
+                } else {
+                    out.push_str(&format!("\\u{code:04x}"));
+                }
+            }
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+    out
+}
+
+/// Whether a control-free string must be single-quoted to round-trip as a YAML
+/// plain scalar (reserved resolutions, number- or sexagesimal-shaped tokens,
+/// indicator-led or structurally ambiguous strings, leading/trailing space).
 fn needs_quoting(s: &str) -> bool {
     if s.is_empty() {
         return true;
     }
-    // Reserved plain-scalar resolutions and indicator-led strings.
+    // Reserved plain-scalar resolutions.
     let lower = s.to_ascii_lowercase();
     if matches!(
         lower.as_str(),
-        "null" | "~" | "true" | "false" | "yes" | "no" | "on" | "off"
+        "null" | "~" | "true" | "false" | "yes" | "no" | "on" | "off" | "y" | "n"
     ) {
         return true;
     }
-    // Looks like a number.
-    if s.parse::<f64>().is_ok() {
+    // Number-, date-, or base-60-shaped tokens resolve to a non-string when left
+    // plain in a YAML 1.1 reader, so they must be quoted to survive as strings.
+    if resolves_to_yaml_number(s) || looks_like_yaml_timestamp(s) || looks_like_sexagesimal(s) {
         return true;
     }
     let first = s.chars().next().unwrap();
     if "!&*[]{},#|>@`\"'%-?:".contains(first) {
         return true;
     }
-    // Indicators / structural chars that break a plain scalar mid-string.
-    if s.contains(": ") || s.contains(" #") || s.ends_with(':') {
-        return true;
-    }
-    s.chars().any(|c| matches!(c, '\n' | '\t')) || s.starts_with(' ') || s.ends_with(' ')
+    // Indicators / structural chars that break a plain scalar mid-string or edge.
+    s.contains(": ")
+        || s.contains(" #")
+        || s.ends_with(':')
+        || s.starts_with(' ')
+        || s.ends_with(' ')
 }
 
-// ── frontmatter + body (mirror _frontmatter / _body) ───────────────────────────
+/// Whether a control-free string is read as a YAML 1.1 number (integer, float, or
+/// special float) rather than a string. This models the *reader's* grammar, which
+/// is wider than Rust's `f64`: it also resolves radix integers (`0x` / `0o` / `0b`,
+/// digit-grouping underscores allowed), underscore digit groups (`1_000`), and the
+/// `.inf` / `.nan` special-float spellings — all of which `f64::parse` rejects, so
+/// a bare emission would round-trip back as a different type.
+fn resolves_to_yaml_number(s: &str) -> bool {
+    // Special floats: `.inf`, `+.inf`, `-.inf`, `.nan` (any case).
+    if matches!(
+        s.to_ascii_lowercase().as_str(),
+        ".inf" | "+.inf" | "-.inf" | ".nan"
+    ) {
+        return true;
+    }
+    // Canonical decimal integer / float, including exponent forms (this also covers
+    // leading-zero decimals such as `017`, which still resolve to a number).
+    if s.parse::<f64>().is_ok() {
+        return true;
+    }
+    let body = s.strip_prefix(['+', '-']).unwrap_or(s);
+    // Radix integers: hex / octal / binary.
+    if let Some(rest) = body.strip_prefix("0x") {
+        return !rest.is_empty() && rest.bytes().all(|b| b.is_ascii_hexdigit() || b == b'_');
+    }
+    if let Some(rest) = body.strip_prefix("0o") {
+        return !rest.is_empty() && rest.bytes().all(|b| matches!(b, b'0'..=b'7' | b'_'));
+    }
+    if let Some(rest) = body.strip_prefix("0b") {
+        return !rest.is_empty() && rest.bytes().all(|b| matches!(b, b'0' | b'1' | b'_'));
+    }
+    // Underscore digit groups (`1_000`, `3_000.5`). Identifiers such as `has_part`
+    // strip to a non-number, so this only fires on genuine numerics.
+    s.contains('_') && s.replace('_', "").parse::<f64>().is_ok()
+}
+
+/// Whether a string opens with a YAML 1.1 date or timestamp (`YYYY-M-D`, then
+/// either end-of-string or a `T` / `t` / space time separator). A reader resolves
+/// such a plain scalar to a timestamp, so the emitter must quote it.
+fn looks_like_yaml_timestamp(s: &str) -> bool {
+    let b = s.as_bytes();
+    // `YYYY-`
+    if b.len() < 8 || !b[..4].iter().all(u8::is_ascii_digit) || b[4] != b'-' {
+        return false;
+    }
+    let mut i = 5;
+    let month_start = i;
+    while i < b.len() && b[i].is_ascii_digit() {
+        i += 1;
+    }
+    if !(1..=2).contains(&(i - month_start)) || i >= b.len() || b[i] != b'-' {
+        return false;
+    }
+    i += 1;
+    let day_start = i;
+    while i < b.len() && b[i].is_ascii_digit() {
+        i += 1;
+    }
+    if !(1..=2).contains(&(i - day_start)) {
+        return false;
+    }
+    i == b.len() || matches!(b[i], b'T' | b't' | b' ' | b'\t')
+}
+
+/// Whether a string matches the YAML 1.1 base-60 (sexagesimal) int/float grammar
+/// — `[-+]?[0-9][0-9_]*(:[0-5]?[0-9])+(\.[0-9_]*)?`, e.g. `12:30`, `1:2:3`,
+/// `12:30.5`. A YAML 1.1 reader folds such a plain scalar to a number, so the
+/// emitter must quote it to preserve the string.
+fn looks_like_sexagesimal(s: &str) -> bool {
+    let body = s.strip_prefix(['+', '-']).unwrap_or(s);
+    // An optional fractional tail attaches to the final field.
+    let digits = match body.split_once('.') {
+        Some((d, frac)) if frac.chars().all(|c| c.is_ascii_digit() || c == '_') => d,
+        Some(_) => return false,
+        None => body,
+    };
+    let mut fields = digits.split(':');
+    // First field: a base-10 digit lead, then digits (underscores allowed in
+    // YAML 1.1). A leading underscore (`_12:30`) is NOT a valid sexagesimal token.
+    match fields.next() {
+        Some(h)
+            if h.starts_with(|c: char| c.is_ascii_digit())
+                && h.chars().all(|c| c.is_ascii_digit() || c == '_') => {}
+        _ => return false,
+    }
+    // At least one `:field`, each a base-60 digit `[0-5]?[0-9]`.
+    let mut had_colon = false;
+    for f in fields {
+        had_colon = true;
+        let bytes = f.as_bytes();
+        let ok = match bytes.len() {
+            1 => bytes[0].is_ascii_digit(),
+            2 => (b'0'..=b'5').contains(&bytes[0]) && bytes[1].is_ascii_digit(),
+            _ => false,
+        };
+        if !ok {
+            return false;
+        }
+    }
+    had_colon
+}
+
+// ── frontmatter + body ─────────────────────────────────────────────────────────
 
 fn frontmatter(term: &Term, version: &str) -> Vec<(String, Yaml)> {
     let mut fm: Vec<(String, Yaml)> = vec![(
@@ -270,7 +404,7 @@ fn frontmatter(term: &Term, version: &str) -> Vec<(String, Yaml)> {
             extension.insert(key.into(), Yaml::List(value.clone()));
         }
     }
-    // BTreeMap drains in sorted key order — matches Python `sorted(extension)`.
+    // BTreeMap drains in sorted key order, so extension keys emit deterministically.
     for (key, value) in extension {
         fm.push((key, value));
     }
@@ -278,7 +412,7 @@ fn frontmatter(term: &Term, version: &str) -> Vec<(String, Yaml)> {
 }
 
 /// In-bundle relation targets (relation, target term) where the target is a
-/// document in the bundle (mirror `_link_targets`).
+/// document in the bundle.
 fn link_targets<'a>(
     term: &Term,
     by_curie: &'a BTreeMap<String, Term>,
@@ -361,7 +495,7 @@ fn body(term: &Term, by_curie: &BTreeMap<String, Term>) -> String {
 }
 
 fn render_doc(frontmatter: &[(String, Yaml)], body: &str) -> Result<String, PipelineError> {
-    let fm = yaml_dump(frontmatter)?;
+    let fm = yaml_dump(frontmatter);
     Ok(format!("---\n{fm}---\n{body}"))
 }
 
@@ -545,10 +679,13 @@ mod tests {
                 .unwrap_or_else(|| panic!("{path} missing closing fence"));
             let fm = &rest[..close];
             assert!(fm.contains("type:"), "{path} frontmatter has no type");
+            // The `resource` is the term's IRI (an https resource), and every doc
+            // carries the `curie:` extension key.
             assert!(
-                fm.contains("resource:"),
-                "{path} frontmatter has no resource"
+                fm.contains("resource: https://"),
+                "{path} resource is not an https IRI"
             );
+            assert!(fm.contains("curie:"), "{path} frontmatter has no curie");
             term_docs += 1;
         }
         assert!(term_docs > 100, "expected many term docs, got {term_docs}");
@@ -556,6 +693,19 @@ mod tests {
         // Determinism: a second render is byte-identical.
         let arts2 = render_okf(&title, &version, &terms).expect("render okf");
         assert_eq!(arts, arts2, "okf render is not deterministic");
+
+        // Every manifest-envelope document path resolves to a rendered artifact.
+        let envelope: serde_json::Value =
+            serde_json::from_str(&crate::stages::export::okf_index_envelope(&terms)).unwrap();
+        let docs = envelope["documents"].as_array().expect("documents array");
+        assert_eq!(docs.len(), terms.len(), "one manifest record per term");
+        for doc in docs {
+            let rel = doc["path"].as_str().expect("manifest path string");
+            assert!(
+                arts.contains_key(&format!("dist/{rel}")),
+                "manifest path {rel} has no rendered bundle artifact"
+            );
+        }
 
         // A class doc links its parents under ## Relations with a relative path.
         let has_relation = arts.iter().any(|(p, b)| {
@@ -567,5 +717,102 @@ mod tests {
             has_relation,
             "expected at least one class doc with relations"
         );
+    }
+
+    #[test]
+    fn yaml_scalar_plain_when_safe() {
+        assert_eq!(yaml_scalar("Dog"), "Dog");
+        // A colon NOT followed by a space is a legal plain scalar (CURIEs, IRIs).
+        assert_eq!(yaml_scalar("gmeow:Dog"), "gmeow:Dog");
+        assert_eq!(
+            yaml_scalar("https://example.org/Dog"),
+            "https://example.org/Dog"
+        );
+        // Multi-dot version strings are not numbers — stay plain.
+        assert_eq!(yaml_scalar("1.0.0"), "1.0.0");
+        // Unicode is emitted directly (allow_unicode).
+        assert_eq!(yaml_scalar("café"), "café");
+    }
+
+    #[test]
+    fn yaml_scalar_single_quotes_plain_unsafe() {
+        assert_eq!(yaml_scalar(""), "''");
+        assert_eq!(yaml_scalar("yes"), "'yes'");
+        assert_eq!(yaml_scalar("Null"), "'Null'");
+        assert_eq!(yaml_scalar("42"), "'42'");
+        // Exponent / non-finite floats would resolve to numbers if left plain.
+        assert_eq!(yaml_scalar("1e3"), "'1e3'");
+        assert_eq!(yaml_scalar("inf"), "'inf'");
+        assert_eq!(yaml_scalar("nan"), "'nan'");
+        // Indicator-led, mid-string `: `, and trailing `:`.
+        assert_eq!(yaml_scalar("- leading"), "'- leading'");
+        assert_eq!(yaml_scalar("key: value"), "'key: value'");
+        assert_eq!(yaml_scalar("trailing:"), "'trailing:'");
+        // An apostrophe is legal mid-plain-scalar — it needs no quoting on its own.
+        assert_eq!(yaml_scalar("it's"), "it's");
+        // But when the value is single-quoted for another reason, it doubles.
+        assert_eq!(yaml_scalar("key: it's"), "'key: it''s'");
+    }
+
+    #[test]
+    fn yaml_scalar_quotes_sexagesimal() {
+        // YAML 1.1 folds these to int/float (e.g. `12:30` → 750) unless quoted.
+        assert_eq!(yaml_scalar("12:30"), "'12:30'");
+        assert_eq!(yaml_scalar("1:2:3"), "'1:2:3'");
+        assert_eq!(yaml_scalar("12:30:00"), "'12:30:00'");
+        assert_eq!(yaml_scalar("12:30.5"), "'12:30.5'");
+        // A non-numeric head or an out-of-range base-60 field is NOT sexagesimal.
+        assert_eq!(yaml_scalar("a:b:c"), "a:b:c");
+        assert_eq!(yaml_scalar("12:99"), "12:99");
+        // A leading underscore is not a valid base-60 first field — stays plain.
+        assert_eq!(yaml_scalar("_12:30"), "_12:30");
+    }
+
+    #[test]
+    fn yaml_scalar_quotes_yaml11_number_forms() {
+        // Radix integers and underscore digit groups: a YAML 1.1 reader folds these
+        // to integers/floats, but Rust's `f64::parse` rejects them, so a bare
+        // emission would silently change type on read.
+        for n in ["0x1f", "0b101", "0o17", "1_000", "3_000.5"] {
+            assert_eq!(yaml_scalar(n), format!("'{n}'"), "{n} must be quoted");
+        }
+        // Special-float spellings (`.inf` / `.nan` family, any case).
+        for n in [".inf", "+.inf", "-.inf", ".nan", ".NaN"] {
+            assert_eq!(yaml_scalar(n), format!("'{n}'"), "{n} must be quoted");
+        }
+        // Single-character booleans `y` / `n` resolve to bool in YAML 1.1.
+        for n in ["y", "n", "Y", "N"] {
+            assert_eq!(yaml_scalar(n), format!("'{n}'"), "{n} must be quoted");
+        }
+        // Underscored identifiers / CURIE locals are NOT numbers — stay plain.
+        assert_eq!(yaml_scalar("has_part"), "has_part");
+        assert_eq!(yaml_scalar("P1_2"), "P1_2");
+    }
+
+    #[test]
+    fn yaml_scalar_quotes_timestamps() {
+        // YAML 1.1 resolves a `YYYY-M-D` lead to a timestamp, not a string.
+        assert_eq!(yaml_scalar("2001-12-14"), "'2001-12-14'");
+        assert_eq!(
+            yaml_scalar("2001-12-14T10:00:00Z"),
+            "'2001-12-14T10:00:00Z'"
+        );
+        assert_eq!(yaml_scalar("2001-1-1 10:00:00"), "'2001-1-1 10:00:00'");
+        // A dotted version string is not a date, and a year with a non-date tail
+        // is not a timestamp lead — both stay plain.
+        assert_eq!(yaml_scalar("1.0.0"), "1.0.0");
+        assert_eq!(yaml_scalar("2001-mixed"), "2001-mixed");
+    }
+
+    #[test]
+    fn yaml_scalar_double_quotes_control_chars() {
+        // A multi-line definition is ENCODED (formerly a hard build failure).
+        assert_eq!(yaml_scalar("line one\nline two"), "\"line one\\nline two\"");
+        assert_eq!(yaml_scalar("a\tb"), "\"a\\tb\"");
+        assert_eq!(yaml_scalar("a\rb"), "\"a\\rb\"");
+        // A bell (U+0007) escapes as \x07.
+        assert_eq!(yaml_scalar("a\u{7}b"), "\"a\\x07b\"");
+        // Double quotes and backslashes escape inside the double-quoted form.
+        assert_eq!(yaml_scalar("say \"hi\"\nbye"), "\"say \\\"hi\\\"\\nbye\"");
     }
 }
