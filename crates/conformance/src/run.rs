@@ -306,8 +306,9 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
 ///
 /// External entailment/SZS corpora are lowered into a world-scoped RDF EDB
 /// (`input.nq`) and decided by the native DL consistency path
-/// ([`gmeow_logic::reason::reason_all`]) — the SAME engine the #697 native-⊇-oracle
-/// gold lane uses. The per-world verdict is `inconsistent` for any world bearing a
+/// ([`gmeow_logic::reason::dl_consistency`]) — the verdict-only entry point that folds
+/// from the SAME shared closure as [`gmeow_logic::reason::reason_all`] (#768), so the
+/// two can never disagree. The per-world verdict is `inconsistent` for any world bearing a
 /// populated `owl:Nothing` clash (an [`InconsistencyWitness`]), else `consistent`.
 /// No compile / certify / materialize / projection / answer artifacts are produced
 /// (a consistency case carries only its `expected/verdicts.json` golden).
@@ -327,19 +328,14 @@ fn run_consistency_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, S
     let dataset = gmeow_rdf::dataset_from_bytes(&bytes, gmeow_rdf::NativeRdfFormat::NQuads)
         .map_err(|e| prefix(format!("input.nq parse failed: {e}")))?;
 
-    let result = gmeow_logic::reason::reason_all(dataset.as_ref())
+    let verdict = gmeow_logic::reason::dl_consistency(dataset.as_ref())
         .map_err(|e| prefix(format!("native DL consistency run failed: {e}")))?;
 
     // Zero-defer (#753): a consistency case MUST be genuinely decided by the native
     // path. A non-empty `gaps` means a construct is present that the native DL path
     // cannot honestly decide — refuse rather than emit a dishonest verdict.
-    if !result.verdict.gaps.is_empty() {
-        let gaps: Vec<&str> = result
-            .verdict
-            .gaps
-            .iter()
-            .map(|g| g.code.as_str())
-            .collect();
+    if !verdict.gaps.is_empty() {
+        let gaps: Vec<&str> = verdict.gaps.iter().map(|g| g.code.as_str()).collect();
         return Err(prefix(format!(
             "verdict_mode=consistency case has undecided native DL construct gap(s) {gaps:?} — \
              the engine cannot honestly decide it (zero-defer violation; route heavy corpora to \
@@ -359,8 +355,7 @@ fn run_consistency_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, S
             .len() as u64;
         world_counts.insert(world, n);
     }
-    let inconsistent_worlds: BTreeSet<String> = result
-        .verdict
+    let inconsistent_worlds: BTreeSet<String> = verdict
         .inconsistencies
         .iter()
         .map(|w| w.world.clone())
