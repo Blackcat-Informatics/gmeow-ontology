@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Lowering the **one canonical AST** ([`crate::compile::ir`]) directly into the
+//! Lowering the **one canonical AST** ([`gmeow_logic_compile::ir`]) directly into the
 //! evaluable rule IR ([`crate::rule_ir::EvalRule`]) — the AST-unification keystone
 //! of issue #664.
 //!
@@ -29,8 +29,8 @@
 
 use oxigraph::model::{Literal, NamedNode, Term};
 
-use super::ir::{LogicAxiom, LogicProgram, LogicRule, LOGIC_NAMESPACE};
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
+use gmeow_logic_compile::ir::{LogicAxiom, LogicProgram, LogicRule, LOGIC_NAMESPACE};
 
 /// Lower one canonical source atom to an [`EvalAtom`] (arity-3 world slot is not
 /// part of the source IR, so nothing is dropped — subject/predicate/object map
@@ -104,9 +104,9 @@ pub(crate) fn lower_eval_rules(program: &LogicProgram) -> Result<Vec<EvalRule>, 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::compile::frontend::parse_logic_str;
-    use crate::compile::projections::text::project_nemo;
     use crate::rule_ir::parse_eval_rules;
+    use gmeow_logic_compile::frontend::parse_logic_str;
+    use gmeow_logic_compile::projections::text::project_nemo;
 
     fn prog(ttl: &str) -> LogicProgram {
         let prefixes = "\
@@ -168,7 +168,8 @@ mod tests {
         let via_canonical =
             crate::certify::certify_program(&program, "PositiveHornProfile").unwrap();
         let rls = project_nemo(&program).unwrap().content;
-        let section = crate::compile::projections::text::extract_nemo_rules_section(&rls).unwrap();
+        let section =
+            gmeow_logic_compile::projections::text::extract_nemo_rules_section(&rls).unwrap();
         let via_rls = crate::certify::certify(&section, "PositiveHornProfile").unwrap();
         assert_eq!(via_canonical.profile_id, "PositiveHornProfile");
         assert_eq!(via_canonical.certified, via_rls.certified);

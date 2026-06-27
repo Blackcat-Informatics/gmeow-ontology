@@ -236,5 +236,6 @@ pub fn project_path_shapes(program: &LogicProgram) -> Vec<PathProjection> {
     program.path_shapes.iter().map(project_path_shape).collect()
 }
 
-#[cfg(test)]
-mod tests;
+// The path-projection tests exercise the runtime rule engine (crate::rule_ir),
+// which lives in gmeow-logic, so they are a gmeow-logic integration test
+// (crates/logic/tests/logic_path_projection.rs) rather than an in-crate unit test (#732).

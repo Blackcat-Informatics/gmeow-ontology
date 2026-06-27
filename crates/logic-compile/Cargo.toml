@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-logic-compile"
+description = "GMEOW logic compiler: the pure, wasm-able parse(RDF 1.2)→IR→project pipeline (the eight committed artifacts), with zero reasoning-runtime deps — no Nemo/Scryer/tokio/PyO3/oxigraph (#664/#732)"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["rdf", "logic", "compiler", "wasm", "owl"]
+
+[lib]
+# rlib-only. The wasm32 build is a `cargo build --target wasm32-unknown-unknown`
+# of this same rlib (a downstream bindings crate, like crates/rdf-wasm, assembles
+# any shipped wasm bundle); there is no standalone cdylib here.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The wasm-clean RDF kernel surface — EXACTLY the crates/rdf-wasm pin (#885
+# ring-fence, #909 native codecs): the `gts` feature with oxigraph OFF and python
+# OFF. Supplies RdfDataset/RdfDatasetBuilder/DatasetView/TermValue/RdfLiteral/
+# TermRef + parse_dataset/serialize_dataset/canonicalize, all oxigraph-free, so the
+# compiler's RDF parse/serialize path builds for wasm32 with no Store dependency.
+gmeow-rdf = { path = "../rdf", default-features = false, features = ["gts"] }
+# SPARQL property-path algebra: the projection target for logic:PathShape (#1010).
+# A wasm-clean leaf (gmeow-iri/gmeow-xsd only) — no oxigraph-family dep.
+gmeow-sparql-algebra = { path = "../sparql-algebra" }
+# sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
+# sha256(sort_key)[:12], matching the legacy compiler byte-for-byte.
+sha2 = "0.10"
+
+[dev-dependencies]
+# insta: snapshot goldens for the projection back-ends (the `.snap` files are the
+# byte-exact unit goldens; crates/conformance owns cross-engine corpus parity).
+# Pinned to match crates/logic. `json` drives `assert_json_snapshot!` where used.
+insta = { version = "1.48", features = ["json"] }

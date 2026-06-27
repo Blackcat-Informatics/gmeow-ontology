@@ -11,8 +11,8 @@
 //! cannot become a spurious timeout. See `crates/rdf/tests/never_panic.rs` for
 //! the contract rationale.
 
-use gmeow_logic::compile::frontend::parse_logic_str;
 use gmeow_logic::query_ir::parse_query_program;
+use gmeow_logic_compile::frontend::parse_logic_str;
 use proptest::prelude::*;
 
 fn arbitrary_bytes() -> impl Strategy<Value = Vec<u8>> {

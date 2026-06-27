@@ -11,7 +11,7 @@
 //! overclaim gate per target so an overclaim blocks serialization (red build).
 //! Compared by RDF isomorphism, like the other RDF targets.
 
-use oxigraph::model::{Literal, NamedNode};
+use gmeow_rdf::RdfLiteral;
 
 use super::super::ir::LogicProgram;
 use super::rdf::TripleSink;
@@ -24,9 +24,8 @@ fn logic(local: &str) -> String {
     format!("{LOGIC_NS}{local}")
 }
 
-fn int_literal(n: usize) -> Literal {
-    let dt = NamedNode::new(format!("{XSD_NS}integer")).expect("xsd:integer is valid");
-    Literal::new_typed_literal(n.to_string(), dt)
+fn int_literal(n: usize) -> RdfLiteral {
+    RdfLiteral::typed(n.to_string(), format!("{XSD_NS}integer"))
 }
 
 /// Build the projection-report Turtle (`generated/logic/projection-report.ttl`).
@@ -73,7 +72,7 @@ pub fn build_projection_report(
         g.add_lit(
             &target_iri,
             &format!("{RDFS_NS}label"),
-            Literal::new_simple_literal(&proj.target),
+            RdfLiteral::simple(&proj.target),
         );
         g.add_iri(
             &target_iri,
@@ -83,14 +82,14 @@ pub fn build_projection_report(
         g.add_lit(
             &target_iri,
             &logic("complexityClass"),
-            Literal::new_simple_literal(&proj.complexity),
+            RdfLiteral::simple(&proj.complexity),
         );
 
         let lossy_drop = format!("{GMEOW_NS}lossyDrop");
         let mut structural = proj.lossy_drops.clone();
         structural.sort();
         for note in &structural {
-            g.add_lit(&target_iri, &lossy_drop, Literal::new_simple_literal(note));
+            g.add_lit(&target_iri, &lossy_drop, RdfLiteral::simple(note));
         }
         let mut actual = proj.actual_drops.clone();
         actual.sort();
@@ -98,7 +97,7 @@ pub fn build_projection_report(
             g.add_lit(
                 &target_iri,
                 &lossy_drop,
-                Literal::new_simple_literal(format!("actual: {a}")),
+                RdfLiteral::simple(format!("actual: {a}")),
             );
         }
     }

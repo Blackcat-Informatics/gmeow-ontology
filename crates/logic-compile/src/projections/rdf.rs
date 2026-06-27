@@ -3,14 +3,13 @@
 
 //! RDF-isomorphic projection back-ends: OWL-DL, OWL-EL, gUFO, canonical-RDF12.
 //!
-//! These build an oxigraph triple set and serialize to Turtle.  The conformance
-//! goldens compare these targets by **graph isomorphism** (not bytes), so the
-//! serialization need only reproduce the same triples.  The Python duplicate was
-//! retired in #727; this is the source of truth.
+//! These build a wasm-clean triple set ([`RdfDatasetBuilder`]) and serialize to
+//! Turtle through the native codec.  The conformance goldens compare these targets
+//! by **graph isomorphism** (not bytes), so the serialization need only reproduce
+//! the same triples.  The Python duplicate was retired in #727; this is the source
+//! of truth.
 
-use oxigraph::model::{GraphName, Literal, NamedNode, Quad, Term};
-
-use gmeow_rdf::{dataset_from_oxigraph_quads, serialize_dataset, SerializeGraph};
+use gmeow_rdf::{serialize_dataset, RdfDatasetBuilder, RdfLiteral, SerializeGraph};
 
 use super::super::ir::{LogicModality, LogicProgram};
 use super::{
@@ -142,43 +141,47 @@ fn is_el_safe_char(obj: &str) -> bool {
 
 /// Accumulates triples (default graph) and serializes them to deterministic
 /// Turtle.  Only IRI subjects/predicates and IRI/Literal objects are used by any
-/// projection, so a triple with an invalid IRI is dropped (it never occurs for a
-/// well-formed program; the corpus is the parity anchor).
+/// projection; a well-formed program only ever supplies valid IRIs (the corpus is
+/// the parity anchor), so triples are interned directly into the wasm-clean
+/// [`RdfDatasetBuilder`].
 #[derive(Default)]
 pub(crate) struct TripleSink {
-    quads: Vec<Quad>,
+    builder: RdfDatasetBuilder,
 }
 
 impl TripleSink {
     pub(crate) fn add_iri(&mut self, s: &str, p: &str, o: &str) {
-        if let (Ok(s), Ok(p), Ok(o)) = (NamedNode::new(s), NamedNode::new(p), NamedNode::new(o)) {
-            self.quads.push(Quad::new(s, p, o, GraphName::DefaultGraph));
-        }
+        let s = self.builder.intern_iri(s.to_owned());
+        let p = self.builder.intern_iri(p.to_owned());
+        let o = self.builder.intern_iri(o.to_owned());
+        self.builder.push_quad(s, p, o, None);
     }
 
-    pub(crate) fn add_lit(&mut self, s: &str, p: &str, lit: Literal) {
-        if let (Ok(s), Ok(p)) = (NamedNode::new(s), NamedNode::new(p)) {
-            self.quads
-                .push(Quad::new(s, p, Term::Literal(lit), GraphName::DefaultGraph));
-        }
+    pub(crate) fn add_lit(&mut self, s: &str, p: &str, lit: RdfLiteral) {
+        let s = self.builder.intern_iri(s.to_owned());
+        let p = self.builder.intern_iri(p.to_owned());
+        let o = self.builder.intern_literal(lit);
+        self.builder.push_quad(s, p, o, None);
     }
 
     /// Add a typed/plain object that may be an IRI or a literal.
     pub(crate) fn add_obj(&mut self, s: &str, p: &str, obj: &str, obj_is_literal: bool) {
         if obj_is_literal {
-            self.add_lit(s, p, Literal::new_simple_literal(obj));
+            self.add_lit(s, p, RdfLiteral::simple(obj));
         } else {
             self.add_iri(s, p, obj);
         }
     }
 
-    /// Serialize to Turtle with a GENERATED banner.  The triple set is folded into the
-    /// frozen `RdfDataset` IR and serialized through the native codec (#909), which
+    /// Serialize to Turtle with a GENERATED banner.  The triple set is frozen into
+    /// the `RdfDataset` IR and serialized through the native codec (#909), which
     /// emits canonical, deterministic Turtle — so no manual pre-sort is needed (the
     /// goldens compare by isomorphism either way). All projected quads live in the
     /// default graph, so `SerializeGraph::DefaultGraph` is the faithful selector.
     pub(crate) fn serialize(self, banner: &str) -> String {
-        let body = dataset_from_oxigraph_quads(&self.quads)
+        let body = self
+            .builder
+            .freeze()
             .ok()
             .and_then(|dataset| {
                 serialize_dataset(
@@ -568,7 +571,7 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
                 g.add_lit(
                     &reifier,
                     &format!("{RDF_NS}object"),
-                    Literal::new_simple_literal(&axiom.obj),
+                    RdfLiteral::simple(&axiom.obj),
                 );
             } else {
                 g.add_iri(&reifier, &format!("{RDF_NS}object"), &axiom.obj);
@@ -578,7 +581,7 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
                 g.add_iri(&reifier, &logic("standpoint"), sp);
             }
             if let Some(t) = &scope.time {
-                g.add_lit(&reifier, &logic("time"), Literal::new_simple_literal(t));
+                g.add_lit(&reifier, &logic("time"), RdfLiteral::simple(t));
             }
             if let Some(c) = scope.confidence {
                 g.add_lit(&reifier, &logic("confidence"), decimal_literal(c));
@@ -649,12 +652,12 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
             g.add_lit(
                 &distinct_node,
                 &format!("{RDF_NS}subject"),
-                Literal::new_simple_literal(var_a),
+                RdfLiteral::simple(var_a),
             );
             g.add_lit(
                 &distinct_node,
                 &format!("{RDF_NS}object"),
-                Literal::new_simple_literal(var_b),
+                RdfLiteral::simple(var_b),
             );
         }
 
@@ -664,7 +667,7 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
             g.add_iri(&rule_node, &logic("standpoint"), sp);
         }
         if let Some(t) = &scope.time {
-            g.add_lit(&rule_node, &logic("time"), Literal::new_simple_literal(t));
+            g.add_lit(&rule_node, &logic("time"), RdfLiteral::simple(t));
         }
         if let Some(c) = scope.confidence {
             g.add_lit(&rule_node, &logic("confidence"), decimal_literal(c));
@@ -757,11 +760,7 @@ fn project_contract(
         let entry = format!("{node}/closureEntry/{i:04}");
         g.add_iri(&node, &logic("closureEntry"), &entry);
         g.add_iri(&entry, RDF_TYPE, &logic("ClosureEntry"));
-        g.add_lit(
-            &entry,
-            &logic("closureKey"),
-            Literal::new_simple_literal(key),
-        );
+        g.add_lit(&entry, &logic("closureKey"), RdfLiteral::simple(key));
         g.add_iri(&entry, &logic("closureValue"), &facet_value_iri(val));
     }
 
@@ -770,7 +769,7 @@ fn project_contract(
         g.add_lit(
             &node,
             &logic("complexityClass"),
-            Literal::new_simple_literal(c.label()),
+            RdfLiteral::simple(c.label()),
         );
     }
 }
@@ -782,16 +781,15 @@ fn add_reified_term(g: &mut TripleSink, node: &str, role: &str, value: &str, is_
     // A `?`-variable round-trips as a plain Literal, exactly like an actual
     // literal object; only proper IRIs are emitted as IRIs.
     if value.starts_with('?') || is_literal {
-        g.add_lit(node, &pred, Literal::new_simple_literal(value));
+        g.add_lit(node, &pred, RdfLiteral::simple(value));
     } else {
         g.add_iri(node, &pred, value);
     }
 }
 
 /// `Literal(value, datatype=xsd:decimal)` with a Python-`str(float)`-style lexical.
-fn decimal_literal(value: f64) -> Literal {
-    let dt = NamedNode::new(format!("{XSD_NS}decimal")).expect("xsd:decimal is valid");
-    Literal::new_typed_literal(format_decimal(value), dt)
+fn decimal_literal(value: f64) -> RdfLiteral {
+    RdfLiteral::typed(format_decimal(value), format!("{XSD_NS}decimal"))
 }
 
 /// Format an f64 the way the lexical of an xsd:decimal literal reads (`0.9`),

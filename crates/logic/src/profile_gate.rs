@@ -23,8 +23,8 @@
 //! [`SemanticProfileId::permits_cut`]).  An unrecognized reference resolves to no preset
 //! and does not license cut — the AC-2 seal is preserved.
 
-use crate::compile::ir::SemanticProfileId;
 use crate::query_ir::{QBodyLit, QProgram};
+use gmeow_logic_compile::ir::SemanticProfileId;
 
 /// The canonical full IRI for the procedural Prolog profile (used in diagnostics).
 pub const PROCEDURAL_PROLOG_PROFILE: &str =
