@@ -34,6 +34,17 @@ const BLESS_ENV: &str = "GMEOW_CONFORMANCE_BLESS";
 fn run_case_file(profile_json: &Utf8Path) -> datatest_stable::Result<()> {
     let case_dir = gmeow_conformance::paths::case_dir(profile_json.as_std_path());
     discover::validate_case(&case_dir)?;
+
+    // Lane routing (#753): a Lane-B external corpus is heavy / oracle-backed and runs
+    // ONLY in the non-required `make maint-classic-cross-check` lane — never in the
+    // fast native gate. Skip it here (Lane-A and endogenous cases always run).
+    if matches!(
+        gmeow_conformance::external::lane_for_case(&case_dir)?,
+        Some(gmeow_conformance::external::Lane::B)
+    ) {
+        return Ok(());
+    }
+
     let outputs = run::run_case(&case_dir)?;
 
     if bless_enabled() {

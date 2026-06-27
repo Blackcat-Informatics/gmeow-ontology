@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# verdict_mode=materialization external case (#753 szs-mini/unknown-budget). A
+# positive-Horn transitive-closure program over an edge chain; profile.json sets
+# budget_params.max_rule_firings = 2 so the governor trips and the run is a sound
+# partial (incomplete) — the engine's mirror of the external SZS "Unknown".
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://gmeow.example/753/szs-mini/unknown-budget/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+ex:Node a logic:Kind .
+
+ex:ruleTcBase a logic:Rule ;
+    logic:provenance ex:ruleTcBase ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:tc ;
+        rdf:object    "?Y"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:edge ;
+        rdf:object    "?Y"
+    ] .
+
+ex:ruleTcStep a logic:Rule ;
+    logic:provenance ex:ruleTcStep ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:tc ;
+        rdf:object    "?Z"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:tc ;
+        rdf:object    "?Y"
+    ] ;
+    logic:body [
+        rdf:subject   "?Y" ;
+        rdf:predicate ex:edge ;
+        rdf:object    "?Z"
+    ] .

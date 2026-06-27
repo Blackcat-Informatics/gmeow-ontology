@@ -19,6 +19,13 @@ path = "src/lib.rs"
 name = "conformance-report"
 path = "src/bin/conformance_report.rs"
 
+# External-corpus ingestion CLI (#753): ingest a TPTP SZS problem / W3C manifest.ttl
+# and print the runner verdict (AC1), and the reproducible refresh entry point the
+# vendoring procedure (X2–X5) follows.
+[[bin]]
+name = "ingest-external"
+path = "src/bin/ingest_external.rs"
+
 [dependencies]
 # The native logic engine: compile / certify / materialize / explain / foundation
 # / scryer / stable-model / probabilistic cores. The harness calls these directly

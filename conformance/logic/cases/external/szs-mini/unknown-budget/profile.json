@@ -1,0 +1,5 @@
+{
+  "reasoning_contract": {"preset": "PositiveHornProfile"},
+  "mode": "native",
+  "budget_params": { "max_rule_firings": 2 }
+}
