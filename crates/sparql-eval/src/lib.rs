@@ -58,7 +58,7 @@ pub mod update;
 
 pub use engine::{NativeSparqlEngine, PlanCache, PreparedQuery};
 pub use error::EvalError;
-pub use eval::{eval, evaluate_query, EvalCtx, Outcome};
+pub use eval::{eval, evaluate_query, EvalCtx, EvalOptions, Outcome};
 pub use scratch::{ScratchId, ScratchInterner, SolutionTerm};
 pub use solution::{compatible, Solution, SolutionSeq, VarSchema};
 pub use update::GraphResolver;

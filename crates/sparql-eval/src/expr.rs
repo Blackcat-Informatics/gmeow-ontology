@@ -383,11 +383,34 @@ fn exists(
     schema: &VarSchema,
     ctx: &mut EvalCtx<'_>,
 ) -> Result<bool, EvalError> {
-    // Substitute the outer row's bindings, then AND the substitution into the
-    // pattern by joining with a one-row VALUES-like seed. We realize the seed as a
-    // BGP-independent solution and Join it via the standard hash join.
+    // The inner pattern is evaluated unconstrained and only THEN joined with the
+    // outer row's seed, so its evaluation is independent of the outer row. Cache
+    // it per (EXISTS site, active graph): a FILTER over N rows evaluates the inner
+    // pattern once, not N times (the decorrelation win, S6b #928). The per-row
+    // seed join below is the cheap part and stays. The cache is keyed on the
+    // pattern's address — stable for the immutable AST across one query — so this
+    // is behavior-preserving: it returns exactly what the naive path would.
+    let cached = if ctx.options.exists_memo {
+        let key = (pattern as *const GraphPattern as usize, ctx.graph_key());
+        ctx.exists_inner_cache.get(&key).cloned()
+    } else {
+        None
+    };
+    let inner = match cached {
+        Some(inner) => inner,
+        None => {
+            let computed = std::rc::Rc::new(eval(pattern, ctx)?);
+            if ctx.options.exists_memo {
+                let key = (pattern as *const GraphPattern as usize, ctx.graph_key());
+                ctx.exists_inner_cache.insert(key, computed.clone());
+            }
+            computed
+        }
+    };
+
+    // Substitute the outer row's bindings by joining a one-row seed (its *bound*
+    // variables) with the inner result via the standard hash join.
     let seed = seed_from_row(row, schema);
-    let inner = eval(pattern, ctx)?;
     let joined = crate::binop::join_seqs(&seed, &inner);
     Ok(!joined.is_empty())
 }
@@ -1855,5 +1878,123 @@ mod tests {
         } else {
             panic!("STRUUID() must produce a literal");
         }
+    }
+
+    // ── EXISTS decorrelation (S6b #928) ──────────────────────────────────────
+
+    /// `:a :knows :b`, `:a :knows :c`, `:b :member :club` — duplicate outer
+    /// subjects (`:a`) so a per-row EXISTS would re-evaluate the inner repeatedly.
+    fn knows_ds() -> Arc<RdfDataset> {
+        let mut b = RdfDatasetBuilder::new();
+        let knows = b.intern_iri("http://ex/knows".to_owned());
+        let member = b.intern_iri("http://ex/member".to_owned());
+        let a = b.intern_iri("http://ex/a".to_owned());
+        let bb = b.intern_iri("http://ex/b".to_owned());
+        let c = b.intern_iri("http://ex/c".to_owned());
+        let club = b.intern_iri("http://ex/club".to_owned());
+        b.push_quad(a, knows, bb, None);
+        b.push_quad(a, knows, c, None);
+        b.push_quad(bb, member, club, None);
+        b.freeze().expect("freeze")
+    }
+
+    /// Run `query` against `ds` with the EXISTS memo on/off, returning sorted
+    /// stringified rows for a multiset comparison.
+    fn run_rows(ds: &RdfDataset, query: &str, memo: bool) -> Vec<Vec<String>> {
+        use crate::eval::evaluate_query;
+        use crate::eval::Outcome;
+        use gmeow_sparql_algebra::SparqlParser;
+
+        let parsed = SparqlParser::new().parse_query(query).expect("parse");
+        let mut ctx = EvalCtx::new(ds);
+        ctx.options.exists_memo = memo;
+        match evaluate_query(&parsed, &mut ctx).expect("eval") {
+            Outcome::Solutions(seq) => {
+                let mut out: Vec<Vec<String>> = seq
+                    .rows
+                    .iter()
+                    .map(|row| {
+                        row.iter()
+                            .map(|c| match c {
+                                None => "UNBOUND".to_owned(),
+                                Some(t) => match value_of(&ctx, *t) {
+                                    TermValue::Iri(i) => format!("<{i}>"),
+                                    TermValue::Literal { lexical_form, .. } => lexical_form,
+                                    TermValue::Blank { label, .. } => format!("_:{label}"),
+                                    TermValue::Triple { .. } => "<<triple>>".to_owned(),
+                                },
+                            })
+                            .collect()
+                    })
+                    .collect();
+                out.sort();
+                out
+            }
+            other => panic!("expected solutions, got {other:?}"),
+        }
+    }
+
+    /// The memo MUST be transparent: identical results with it on and off.
+    fn assert_memo_transparent(query: &str) {
+        let ds = knows_ds();
+        assert_eq!(
+            run_rows(&ds, query, true),
+            run_rows(&ds, query, false),
+            "memo changed results for `{query}`"
+        );
+    }
+
+    #[test]
+    fn exists_memo_matches_naive_positive() {
+        // ?o ∈ {:b, :c}; only :b has a member → keep the :a→:b row.
+        let q = "SELECT ?s ?o WHERE { ?s <http://ex/knows> ?o \
+                 FILTER EXISTS { ?o <http://ex/member> ?m } }";
+        assert_memo_transparent(q);
+        assert_eq!(
+            run_rows(&knows_ds(), q, true),
+            vec![vec!["<http://ex/a>".to_owned(), "<http://ex/b>".to_owned()]]
+        );
+    }
+
+    #[test]
+    fn exists_memo_matches_naive_not_exists() {
+        // NOT EXISTS anti-join: keep the :a→:c row (:c has no member).
+        let q = "SELECT ?s ?o WHERE { ?s <http://ex/knows> ?o \
+                 FILTER NOT EXISTS { ?o <http://ex/member> ?m } }";
+        assert_memo_transparent(q);
+        assert_eq!(
+            run_rows(&knows_ds(), q, true),
+            vec![vec!["<http://ex/a>".to_owned(), "<http://ex/c>".to_owned()]]
+        );
+    }
+
+    #[test]
+    fn exists_memo_uncorrelated_inner() {
+        // The inner shares no variable with the outer row (constant existence):
+        // EXISTS holds for every outer row → both rows kept.
+        let q = "SELECT ?s ?o WHERE { ?s <http://ex/knows> ?o \
+                 FILTER EXISTS { ?x <http://ex/member> ?m } }";
+        assert_memo_transparent(q);
+        assert_eq!(run_rows(&knows_ds(), q, true).len(), 2);
+    }
+
+    #[test]
+    fn exists_memo_populates_cache_once() {
+        // Two outer rows share the same EXISTS site; with the memo on the inner
+        // pattern is evaluated and cached exactly once.
+        let ds = knows_ds();
+        let parsed = gmeow_sparql_algebra::SparqlParser::new()
+            .parse_query(
+                "SELECT ?s ?o WHERE { ?s <http://ex/knows> ?o \
+                 FILTER EXISTS { ?z <http://ex/member> ?m } }",
+            )
+            .expect("parse");
+        let mut ctx = EvalCtx::new(&ds);
+        crate::eval::evaluate_query(&parsed, &mut ctx).expect("eval");
+        assert_eq!(
+            ctx.exists_inner_cache.len(),
+            1,
+            "the single EXISTS site must cache exactly one inner result"
+        );
     }
 }

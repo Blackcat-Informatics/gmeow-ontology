@@ -455,7 +455,7 @@ fuzz-smoke: ## Run bounded coverage-guided fuzz smoke tests for each format fron
 	done
 
 bench: ## Run criterion benchmarks with host-tuned codegen.
-	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate
+	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate -p gmeow-sparql-eval
 
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare

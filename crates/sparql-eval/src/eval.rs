@@ -15,6 +15,7 @@
 //! indexed read surface through `DatasetView` (the inherent `quads_for_pattern`
 //! override, P4b #891).
 
+use std::rc::Rc;
 use std::sync::Arc;
 
 use gmeow_rdf_core::{GraphMatch, RdfDataset};
@@ -24,6 +25,30 @@ use crate::dataset_spec::ActiveDataset;
 use crate::error::EvalError;
 use crate::scratch::ScratchInterner;
 use crate::solution::SolutionSeq;
+use crate::DetHashMap;
+
+/// Tunable evaluation behavior. Every flag defaults to the production-optimal
+/// value; the criterion benches flip individual flags to measure their effect
+/// (the flags are a measurement seam, never a degraded production mode).
+#[derive(Debug, Clone, Copy)]
+pub struct EvalOptions {
+    /// Memoize each `EXISTS`/`NOT EXISTS` inner-pattern evaluation. The inner
+    /// pattern is evaluated unconstrained and then joined with the outer row's
+    /// seed, so its result is **independent of the outer row**: a `FILTER` over N
+    /// rows can evaluate it once instead of N times. Always `true` in production.
+    pub exists_memo: bool,
+}
+
+impl Default for EvalOptions {
+    fn default() -> Self {
+        Self { exists_memo: true }
+    }
+}
+
+/// A hashable key for an `EXISTS` inner-cache entry: the inner pattern's address
+/// (stable for the immutable AST during a query) plus a compact encoding of the
+/// active graph.
+pub(crate) type ExistsCacheKey = (usize, (u8, u32));
 
 /// The mutable evaluation context threaded through [`eval`].
 pub struct EvalCtx<'d> {
@@ -52,6 +77,13 @@ pub struct EvalCtx<'d> {
     /// Splitmix64 PRNG state for RAND()/UUID()/STRUUID().
     /// Seeded from the current time on native targets; fixed to 0 on wasm32.
     pub rng_state: u64,
+    /// Tunable evaluation behavior (see [`EvalOptions`]). Production default.
+    pub options: EvalOptions,
+    /// Memoized `EXISTS`/`NOT EXISTS` inner-pattern evaluations, keyed by
+    /// [`ExistsCacheKey`]. The inner eval is outer-row-independent, so this turns
+    /// `expr::exists`'s per-row re-evaluation into a single evaluation per site.
+    /// Naturally per-query: a fresh [`EvalCtx`] is built for each `query()` call.
+    pub(crate) exists_inner_cache: DetHashMap<ExistsCacheKey, Rc<SolutionSeq>>,
 }
 
 impl<'d> EvalCtx<'d> {
@@ -88,6 +120,17 @@ impl<'d> EvalCtx<'d> {
             bnode_counter: 0,
             now: now_val,
             rng_state: rng_seed,
+            options: EvalOptions::default(),
+            exists_inner_cache: DetHashMap::default(),
+        }
+    }
+
+    /// A compact hashable encoding of the active graph, for [`ExistsCacheKey`].
+    pub(crate) fn graph_key(&self) -> (u8, u32) {
+        match self.active_graph {
+            GraphMatch::Any => (0, 0),
+            GraphMatch::Default => (1, 0),
+            GraphMatch::Named(id) => (2, id.index() as u32),
         }
     }
 }

@@ -1996,6 +1996,7 @@ dependencies = [
 name = "gmeow-sparql-eval"
 version = "0.1.0"
 dependencies = [
+ "criterion",
  "gmeow-rdf-core",
  "gmeow-sparql-algebra",
  "gmeow-xsd",

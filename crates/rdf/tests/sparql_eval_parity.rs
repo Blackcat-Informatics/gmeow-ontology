@@ -134,6 +134,9 @@ fn parity_queries() -> Vec<&'static str> {
         "SELECT (SUM(?n + ?n) AS ?t) WHERE { ?s <http://ex/age> ?n }",
         // Expression-valued GROUP BY with an explicit AS binding.
         "SELECT ?z (COUNT(*) AS ?c) WHERE { ?s <http://ex/age> ?n } GROUP BY (?n + ?n AS ?z)",
+        // Positive FILTER EXISTS (the decorrelation path, S6b #928) — pairs with
+        // the existing FILTER NOT EXISTS anti-join above.
+        "SELECT ?s WHERE { ?s <http://ex/knows> ?o FILTER EXISTS { ?s <http://ex/member> ?c } }",
     ]
 }
 
