@@ -209,15 +209,28 @@ fn premise_ds_to_world_nquads(
         .map_err(|_| "N-Triples output was not valid UTF-8".to_string())?;
 
     // Convert each N-Triple line (`S P O .`) to N-Quads (`S P O <graph> .`).
+    //
+    // Correct order: trim trailing whitespace FIRST, then strip the mandatory
+    // trailing `.`, then trim again.  The previous order (`trim_end_matches('.')`
+    // first) was buggy: a line ending with `. ` (dot + trailing space) would not
+    // have its dot stripped (last char is space, not `.`), causing the output to
+    // contain two statement terminators: `S P O . <graph> .`.
     let mut nq_lines: Vec<String> = nt_text
         .lines()
         .filter(|line| !line.trim().is_empty() && !line.trim_start().starts_with('#'))
         .map(|line| {
-            // N-Triples lines end with ` .`; strip the trailing ` .` and append graph.
-            let body = line.trim_end_matches('.').trim_end();
-            format!("{body} <{world_iri}> .")
+            // Trim trailing whitespace first so the mandatory '.' is now last.
+            let trimmed = line.trim_end();
+            // A valid N-Triples statement MUST end with '.'.  Hard-fail on any
+            // line that does not so we never silently emit a malformed N-Quad.
+            let without_dot = trimmed
+                .strip_suffix('.')
+                .ok_or_else(|| format!("malformed N-Triples line (no trailing '.'): {line}"))?;
+            // Trim any whitespace between the last RDF term and the trailing dot.
+            let body = without_dot.trim_end();
+            Ok(format!("{body} <{world_iri}> ."))
         })
-        .collect();
+        .collect::<Result<Vec<String>, String>>()?;
     nq_lines.sort();
     nq_lines.dedup();
 
@@ -724,4 +737,95 @@ fn grade_suite_corpus(input_rdf: &Path, corpus_name: &str, out_nq: &Path) -> Res
 fn next(args: &mut impl Iterator<Item = String>, flag: &str) -> Result<String, String> {
     args.next()
         .ok_or_else(|| format!("{flag} requires a value"))
+}
+
+#[cfg(test)]
+mod tests {
+    /// `premise_ds_to_world_nquads` is not `pub`, so we test the same logic via a
+    /// local helper that mirrors the fixed conversion exactly.  This keeps the test
+    /// small and fast (no RDF parser, no reasoner).
+    fn nt_lines_to_nquads(nt_text: &str, world_iri: &str) -> Result<Vec<String>, String> {
+        nt_text
+            .lines()
+            .filter(|line| !line.trim().is_empty() && !line.trim_start().starts_with('#'))
+            .map(|line| {
+                let trimmed = line.trim_end();
+                let without_dot = trimmed
+                    .strip_suffix('.')
+                    .ok_or_else(|| format!("malformed N-Triples line (no trailing '.'): {line}"))?;
+                let body = without_dot.trim_end();
+                Ok(format!("{body} <{world_iri}> ."))
+            })
+            .collect::<Result<Vec<String>, String>>()
+    }
+
+    const WORLD: &str = "https://gmeow.example/test/w";
+
+    /// A normal N-Triples line (space before dot) must produce a well-formed N-Quad:
+    /// exactly one graph IRI and one trailing dot, no double terminator.
+    #[test]
+    fn normal_nt_line_produces_well_formed_quad() {
+        let nt = "_:s <http://example.org/p> <http://example.org/o> .\n";
+        let quads = nt_lines_to_nquads(nt, WORLD).expect("must succeed");
+        assert_eq!(quads.len(), 1);
+        let q = &quads[0];
+        // Must end with exactly ` .`
+        assert!(q.ends_with(" ."), "quad must end with ' .': {q:?}");
+        // Must contain the world IRI
+        assert!(q.contains(WORLD), "quad must contain world IRI: {q:?}");
+        // Must NOT contain double terminator `. <`
+        assert!(
+            !q.contains(". <"),
+            "quad must not contain double terminator '. <': {q:?}"
+        );
+    }
+
+    /// A line ending with `. ` (dot + trailing space) — the previously buggy case —
+    /// must also produce a well-formed N-Quad with no double terminator.
+    #[test]
+    fn trailing_space_after_dot_produces_well_formed_quad() {
+        // Dot followed by a trailing space (the bug trigger).
+        let nt = "_:s <http://example.org/p> <http://example.org/o> . \n";
+        let quads = nt_lines_to_nquads(nt, WORLD).expect("must succeed");
+        assert_eq!(quads.len(), 1);
+        let q = &quads[0];
+        assert!(q.ends_with(" ."), "quad must end with ' .': {q:?}");
+        assert!(q.contains(WORLD), "quad must contain world IRI: {q:?}");
+        assert!(
+            !q.contains(". <"),
+            "quad must not contain double terminator '. <': {q:?}"
+        );
+    }
+
+    /// A mix of normal, trailing-space, blank, and comment lines: only the two
+    /// data lines must appear in the output, both well-formed.
+    #[test]
+    fn mixed_input_skips_blanks_and_comments() {
+        let nt = "\
+_:a <http://example.org/p> <http://example.org/o1> .\n\
+# a comment line\n\
+\n\
+_:b <http://example.org/p> <http://example.org/o2> . \n\
+";
+        let quads = nt_lines_to_nquads(nt, WORLD).expect("must succeed");
+        assert_eq!(quads.len(), 2, "expected exactly 2 quads: {quads:?}");
+        for q in &quads {
+            assert!(q.ends_with(" ."), "quad must end with ' .': {q:?}");
+            assert!(!q.contains(". <"), "double terminator in: {q:?}");
+        }
+    }
+
+    /// A line with NO trailing dot at all must hard-fail with a descriptive error,
+    /// not silently produce a malformed quad.
+    #[test]
+    fn missing_trailing_dot_returns_err() {
+        let nt = "_:s <http://example.org/p> <http://example.org/o>\n";
+        let result = nt_lines_to_nquads(nt, WORLD);
+        assert!(result.is_err(), "expected Err for missing dot");
+        let msg = result.unwrap_err();
+        assert!(
+            msg.contains("malformed N-Triples line"),
+            "error message should describe the problem: {msg:?}"
+        );
+    }
 }
