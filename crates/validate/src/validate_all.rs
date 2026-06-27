@@ -543,7 +543,7 @@ impl ValidationRun {
 /// string into a finding, so `report.legacy_errors()/legacy_warnings()`
 /// reproduce the original strings exactly; the SHACL findings add focus-node
 /// locations on top.
-fn build_report(
+pub(crate) fn build_report(
     errors: Vec<String>,
     warnings: Vec<String>,
     shacl_findings: Vec<Finding>,
@@ -642,7 +642,7 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), S
 /// [`finding_from_shacl`] bridge, optionally tagging each with the example/DSL
 /// source (`origin`) as the finding's primary path so SARIF and the `gmeow:`
 /// RDF projection can attribute it.
-fn shacl_findings_from_report(
+pub(crate) fn shacl_findings_from_report(
     report: &gmeow_shacl::report::ValidationReport,
     origin: Option<&str>,
 ) -> Vec<Finding> {

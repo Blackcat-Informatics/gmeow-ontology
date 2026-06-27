@@ -26,7 +26,7 @@ use gmeow_rdf::parse_dataset;
 use crate::shapes::{self, Shapes};
 
 /// Shape files excluded from the data-graph union (DSL / manifest lints).
-const EXCLUDED: &[&str] = &[
+pub const EXCLUDED: &[&str] = &[
     "mapping-dsl-shapes.ttl",
     "statement-dsl-shapes.ttl",
     "test-dsl-shapes.ttl",

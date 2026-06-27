@@ -67,7 +67,10 @@ gmeow-logic = { path = "../logic" }
 # GTS format engine: cache-key derivation reads `gmeow_gts::model::Graph::segment_heads`,
 # and the toolchain salt mixes `gmeow_gts::wire::VERSION`. Runtime GTS ingestion itself
 # lives in gmeow-rdf (#683).
-gmeow-gts = "0.9.9"
+gmeow-gts = { version = "0.9.9", features = ["yaml-ld"] }
+# CBOR reader for the bundle blob metadata: `gmeow_gts::model::Graph::blob_meta`
+# values are `ciborium::value::Value`, read to resolve a blob by its `rep` label.
+ciborium = "0.2"
 # pyo3 is an UNCONDITIONAL native-only dependency: this crate is native-only and
 # carries NO architecture cfgs (never a [target.'cfg(...)'] table). A capability
 # cfg would be optionality, not compliance (#579). The engine core

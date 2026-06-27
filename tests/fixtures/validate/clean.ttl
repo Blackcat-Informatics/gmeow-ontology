@@ -1,0 +1,4 @@
+# A graph with no GMEOW-typed individuals: nothing for the shapes or disciplines
+# to flag, so the repo-free validator passes cleanly.
+@prefix ex: <https://example.org/> .
+ex:a ex:b ex:c .
