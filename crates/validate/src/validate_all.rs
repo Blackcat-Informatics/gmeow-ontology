@@ -481,7 +481,9 @@ impl ValidationRun {
         // canonical report. Opt-in (runs the full reasoner) and gts-bundle-scoped.
         if options.deep {
             if let Some(bytes) = &options.gts_bytes {
-                deep_semantic_findings(bytes, &mut report)?;
+                timed(&mut timings, "deep-semantic", options, None, || {
+                    deep_semantic_findings(bytes, &mut report)
+                })?;
             } else {
                 report.add_finding(
                     Finding::new(
