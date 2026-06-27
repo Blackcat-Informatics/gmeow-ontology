@@ -3,6 +3,6 @@
   "spdx_license": "CC-BY-4.0",
   "source_url": "https://gmeow.example/753/szs-mini (self-authored seed, #753)",
   "version_or_commit": "gmeow-self-authored-1",
-  "refresh_command": "cargo run -p gmeow-conformance --bin ingest-external -- --help",
+  "refresh_command": "cargo run -p gmeow-conformance --bin ingest-external -- --szs conformance/logic/cases/external/szs-mini/unsat-clash/source/problem.p",
   "lane": "a"
 }

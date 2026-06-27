@@ -95,7 +95,11 @@ Following the `imports/targets/` snapshot pattern:
 
 3. Author the lowered `input.nq` (consistency) or `input.logic.ttl` (materialization)
    and `profile.json`, then bless the goldens — filtered to the external tree so no
-   existing golden is touched:
+   existing golden is touched. (Mechanical `input.nq` regeneration from a source —
+   the general `A ∪ ¬C` FOL-negation reduction — is X2/X3 scope (#754–#755); in X1
+   the negated conclusion is pre-baked by hand, so `input.nq` is authored, and the
+   `refresh_command` in `corpus.json` re-derives and verifies the declared *verdict*
+   from `source/` rather than regenerating the EDB.)
 
    ```sh
    GMEOW_CONFORMANCE_BLESS=1 cargo nextest run -p gmeow-conformance -E 'test(/external\//)'

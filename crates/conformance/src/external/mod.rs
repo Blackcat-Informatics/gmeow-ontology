@@ -17,8 +17,8 @@
 //! * [`szs`] — TPTP `% SZS status` ingestion.
 //! * [`manifest`] — W3C `mf:` entailment-manifest ingestion (dogfoods
 //!   `gmeow_rdf::parse_dataset`).
-//! * [`lower`] — pure lowering: the AC1 `runner_verdict_json` surface and the
-//!   consistency-case input scaffold.
+//! * [`lower`] — the pure AC1 `runner_verdict_json` surface (declared external
+//!   outcome → runner verdict value).
 //!
 //! Zero-defer: lowered Lane-A cases are decided by the native engine (the
 //! consistency path's `gaps`-empty guard enforces it); heavy third-party corpora
@@ -32,7 +32,7 @@ pub mod status;
 pub mod szs;
 
 pub use corpus::{audit_vendorable, load_corpus_meta, parse_corpus_meta, CorpusMeta, Lane};
-pub use lower::{lower_consistency_inputs, runner_verdict_json, LoweredInputs};
+pub use lower::runner_verdict_json;
 pub use manifest::{parse_entailment_manifest, EntailmentKind, ManifestEntry};
 pub use status::{outcome_for_szs, ExternalOutcome};
 pub use szs::{outcome_from_szs, parse_szs_status};
