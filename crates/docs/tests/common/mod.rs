@@ -1,0 +1,31 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Shared, once-per-run fixture for the gmeow-docs integration tests.
+//!
+//! The cache machinery lives in [`gmeow_docs::fixture`]; this module only pins
+//! the repo root (via the crate manifest dir) and exposes the loader under the
+//! `common::cached_model()` name every binary calls. The test runner primes the
+//! cache once before the test processes spawn (see the nextest setup script), so
+//! no test pays the ~12 s model build; on a plain `cargo test` (no setup step)
+//! the first caller builds and caches it.
+
+#![allow(dead_code)] // not every binary uses every helper
+
+use std::path::PathBuf;
+
+use gmeow_docs::DocsModel;
+
+/// The repository root, derived from this crate's manifest dir (`<repo>/crates/docs`).
+pub fn repo_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(|p| p.parent())
+        .expect("crate is at <repo>/crates/docs")
+        .to_path_buf()
+}
+
+/// The live documentation model, loaded from the shared once-per-run cache.
+pub fn cached_model() -> DocsModel {
+    gmeow_docs::fixture::load(&repo_root())
+}

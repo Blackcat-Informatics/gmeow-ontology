@@ -14,30 +14,19 @@
 // for this file. Identical behaviour on pass; insta snapshots are unaffected.
 use pretty_assertions::assert_eq;
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::PathBuf;
 
 use gmeow_docs::lint::lint;
 use gmeow_docs::model::{DocTerm, DocTermCategory};
 use gmeow_docs::render::{render_site, Site};
 use gmeow_docs::DocsModel;
 
-fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("crate is at <repo>/crates/docs")
-        .to_path_buf()
-}
-
-fn live_model() -> DocsModel {
-    DocsModel::discover(&repo_root()).expect("build docs model from live slices")
-}
+mod common;
 
 #[test]
 fn live_docs_lint_is_clean() {
     // The doctrine guarantee: the real rendered docs carry NO lint errors
     // (dangling links / broken anchors). This is the gate `make check` depends on.
-    let model = live_model();
+    let model = common::cached_model();
     let site = render_site(&model);
     let report = lint(&model, &site);
     assert_eq!(
@@ -52,7 +41,7 @@ fn live_docs_lint_is_clean() {
 fn live_docs_lint_is_deterministic() {
     // Two lint passes over the same live model must yield byte-identical finding
     // sequences (code + severity + message), proving the documented sort order.
-    let model = live_model();
+    let model = common::cached_model();
     let site = render_site(&model);
     let a = lint(&model, &site);
     let b = lint(&model, &site);
