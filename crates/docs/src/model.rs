@@ -14,7 +14,7 @@ use std::path::Path;
 
 use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use gmeow_slice::{
     ArtifactRecord, ArtifactRole, ManifestView, OwnershipAnalyzer, OwnershipReport, SliceCatalog,
@@ -159,7 +159,7 @@ impl From<SliceError> for DocsError {
 // ── Model types ───────────────────────────────────────────────────────────────
 
 /// The vocabulary kind of a documented term, derived from its `rdf:type`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
 pub enum DocTermCategory {
     /// `owl:Class` / `rdfs:Class`.
     Class,
@@ -177,7 +177,7 @@ pub enum DocTermCategory {
 }
 
 /// A single artifact within a slice, referenced by digest/path (no bytes).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocArtifact {
     /// The artifact role (module, shapes, query, …).
     pub role: ArtifactRole,
@@ -204,7 +204,7 @@ impl DocArtifact {
 }
 
 /// A documented slice: manifest identity + its artifact inventory.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocSlice {
     /// The slice IRI (`a gmeow:Slice`).
     pub iri: String,
@@ -281,7 +281,7 @@ impl DocSlice {
 /// string (`stable` / `experimental` / `deprecated`). Resolved from an explicit
 /// `gmeow:termStability` annotation, else `owl:deprecated`, else the owner
 /// slice's tier (core → stable, extension → experimental).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum DocTermStability {
     /// Mature, committed; safe to rely on. The core-tier default.
@@ -306,7 +306,7 @@ impl DocTermStability {
 
 /// One reified per-release changelog entry for a term (#1026). Ordered by
 /// `(version, note)` for deterministic rendering.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
 pub struct DocChangelogEntry {
     /// `gmeow:entryVersion` — the release this entry pertains to.
     pub version: String,
@@ -315,7 +315,7 @@ pub struct DocChangelogEntry {
 }
 
 /// A documented vocabulary term parsed from a slice's `module.ttl`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct DocTerm {
     /// The full term IRI.
     pub iri: String,
@@ -386,7 +386,7 @@ pub struct DocTerm {
 }
 
 /// A cross-slice dependency edge projected from the ownership report.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocDependencyEdge {
     /// The depending (from) slice IRI.
     pub from: String,
@@ -399,7 +399,7 @@ pub struct DocDependencyEdge {
 }
 
 /// A mapping set (`gmeow:MappingSet`) owned by a slice's `mappings/` artifact.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocMappingSet {
     /// The mapping-set IRI (`a gmeow:MappingSet`).
     pub iri: String,
@@ -423,7 +423,7 @@ pub struct DocMappingSet {
 /// GMEOW term to an external IRI via a SKOS-style alignment predicate.
 ///
 /// `confidence` is an `f64`, so this type is `PartialEq` but not `Eq`.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DocLinkage {
     /// The mapping-set IRI this equivalence belongs to (by `gmeow:sssomFile`).
     pub mapping_set: Option<String>,
@@ -445,7 +445,7 @@ pub struct DocLinkage {
 
 /// A worked example carried IN FULL (examples are small Turtle text, not blobs;
 /// their source must be shown).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocExample {
     /// The slice IRI that owns the example.
     pub slice: String,
@@ -464,7 +464,7 @@ pub struct DocExample {
 /// slice's `shapes.ttl` (`ArtifactRole::Shapes`) and the root `shapes/*.ttl`
 /// files. DISTINCT from the integrity-constraint index (SPARQL verify queries):
 /// this surface is SHACL structural validation per target term.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct DocShape {
     /// The `sh:NodeShape` IRI (or a `_:`-prefixed blank-node id for anonymous shapes).
     pub shape_iri: String,
@@ -481,7 +481,7 @@ pub struct DocShape {
 /// A competency question (`gmeow:CompetencyQuestion`) reverse-mapped to the terms
 /// it exercises, so each term page can surface a "Tested by" block. Parsed from
 /// each slice's `tests/competency.ttl`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct DocCompetency {
     /// The competency-question IRI.
     pub iri: String,
@@ -498,7 +498,7 @@ pub struct DocCompetency {
 
 /// A documentation concern (`gmeow:DocumentationConcern`) and the terms that
 /// declare it via `gmeow:docsConcern`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocConcern {
     /// The concern IRI.
     pub iri: String,
@@ -516,7 +516,7 @@ pub struct DocConcern {
 
 /// An external (non-GMEOW) term referenced by the ontology — via a linkage
 /// object or a term domain/range/parent edge — grouped for an overview.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocExternalTerm {
     /// The external IRI.
     pub iri: String,
@@ -532,7 +532,7 @@ pub struct DocExternalTerm {
 /// A task-oriented adoption recipe (`gmeow:Recipe`), parsed from the guides
 /// slice. A curated guide that sequences canonical examples + terms for one
 /// recurring modelling task (no domain axiom — pure pedagogy).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocRecipe {
     /// `gmeow:guideSlug` — the stable, filesystem-safe identifier.
     pub slug: String,
@@ -550,7 +550,7 @@ pub struct DocRecipe {
 
 /// A curated adoption journey (`gmeow:LearningPath`), parsed from the guides
 /// slice. Sequences recipes, examples, and terms for a named audience.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocLearningPath {
     /// `gmeow:guideSlug` — the stable, filesystem-safe identifier.
     pub slug: String,
@@ -576,7 +576,7 @@ pub struct DocLearningPath {
 ///
 /// Holds [`DocLinkage`] (with an `f64` confidence), so this type is `PartialEq`
 /// but not `Eq`.
-#[derive(Debug, Clone, PartialEq, Serialize, Default)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct DocsModel {
     /// A fixed human title for the documentation surface.
     pub title: String,
