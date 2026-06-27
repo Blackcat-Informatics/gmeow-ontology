@@ -94,6 +94,13 @@ pub struct ValidateOptions {
     /// pre-gate (#646). When `None`, signature verification is disabled and the
     /// orchestration behaves as before.
     pub signature_config: Option<SignatureConfig>,
+    /// When `true`, run the native semantic (`--deep`) pass after the structural
+    /// phases: reason over the bundle (`gmeow_logic::reason::reason_all`) and read
+    /// the shared `logic:ReasoningResult` (#768) to emit semantic findings —
+    /// inconsistency (`information=both`), unsatisfiable classes, and undecided DL
+    /// constructs. Requires `gts_bytes`. This runs the full reasoner, so it is
+    /// opt-in (the structural gate stays fast); the deep pass itself is single-path.
+    pub deep: bool,
 }
 
 /// The result of one validation phase.
@@ -469,6 +476,26 @@ impl ValidationRun {
         report.add_finding(projection.finding);
         report.add_rule(advisory.rule());
 
+        // Semantic (`--deep`) pass (#768 ME2): reason over the bundle and read the
+        // shared logic:ReasoningResult, folding its semantic verdict into the same
+        // canonical report. Opt-in (runs the full reasoner) and gts-bundle-scoped.
+        if options.deep {
+            if let Some(bytes) = &options.gts_bytes {
+                timed(&mut timings, "deep-semantic", options, None, || {
+                    deep_semantic_findings(bytes, &mut report)
+                })?;
+            } else {
+                report.add_finding(
+                    Finding::new(
+                        Severity::Warning,
+                        "validate.deep.skipped",
+                        "validate --deep requires a GTS bundle (gts_bytes); the semantic pass was skipped",
+                    )
+                    .with_tool("validate"),
+                );
+            }
+        }
+
         Ok(Self {
             store,
             shapes,
@@ -526,6 +553,89 @@ fn build_report(
         report.add_finding(finding);
     }
     report
+}
+
+/// The native semantic (`--deep`) pass (#768 ME2): reason over the GTS bundle and
+/// read the shared `logic:ReasoningResult`, folding its verdict into `report`.
+///
+/// Emits an error per contradiction witness when the bundle is inconsistent
+/// (`information=both`), a warning per unsatisfiable (provably-empty) class, and a
+/// warning per DL construct the native reasoner could not decide
+/// (`preservation.unsupported_constructs`). A consistent, fully-covered bundle
+/// adds one informational note. The single shared model is the authority — these
+/// findings are a consumer projection of it, not a re-derivation.
+///
+/// # Errors
+/// Returns `Err` if the GTS bundle cannot be read or the reasoning run fails.
+fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), String> {
+    let bundle = gmeow_rdf::import_gts_events(gts_bytes)
+        .map_err(|e| format!("validate --deep: GTS read error: {e}"))?;
+    let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref())
+        .map_err(|e| format!("validate --deep: native reasoning failed: {e}"))?;
+
+    if !result.is_consistent() {
+        for witness in &result.provenance.contradiction_witnesses {
+            report.add_finding(
+                Finding::new(
+                    Severity::Error,
+                    "validate.deep.inconsistent",
+                    format!(
+                        "individual {} forced into owl:Nothing in world {} \
+                         (logic:ReasoningResult information=both)",
+                        witness.individual, witness.world
+                    ),
+                )
+                .with_tool("validate"),
+            );
+        }
+    }
+
+    for unsat in gmeow_logic::reason::dl::unsatisfiable_from_inferred(result.inferred()) {
+        report.add_finding(
+            Finding::new(
+                Severity::Warning,
+                "validate.deep.unsatisfiable",
+                format!(
+                    "class {} is unsatisfiable (provably empty) in world {}",
+                    unsat.class, unsat.world
+                ),
+            )
+            .with_tool("validate"),
+        );
+    }
+
+    for construct in &result.preservation.unsupported_constructs {
+        report.add_finding(
+            Finding::new(
+                Severity::Warning,
+                "validate.deep.unsupported-construct",
+                format!(
+                    "DL construct {construct} is present but was not decided by the native \
+                     reasoner; the semantic verdict is incomplete for it"
+                ),
+            )
+            .with_tool("validate"),
+        );
+    }
+
+    if result.is_consistent() && result.preservation.unsupported_constructs.is_empty() {
+        report.add_finding(
+            Finding::new(
+                Severity::Note,
+                "validate.deep.consistent",
+                format!(
+                    "native deep semantic pass: consistent (information={}, evaluation={}, \
+                     completeness={})",
+                    result.information.wire(),
+                    result.evaluation.wire(),
+                    result.completeness.wire()
+                ),
+            )
+            .with_tool("validate"),
+        );
+    }
+
+    Ok(())
 }
 
 /// Convert a SHACL [`ValidationReport`] into structured findings via the
@@ -1144,6 +1254,71 @@ mod tests {
         let writer = Writer::deterministic(&graph, "gmeow-validate-test")
             .expect("deterministic GTS writer must succeed");
         writer.to_bytes()
+    }
+
+    #[test]
+    fn deep_semantic_pass_flags_inconsistency_and_consistency() {
+        // An inconsistent bundle: A⊑B, A⊑C, B disjointWith C, x:A forces x into
+        // owl:Nothing — the shared ReasoningResult reports information=both.
+        let inconsistent = "\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix ex: <http://gmeow.example/> .
+ex:A rdfs:subClassOf ex:B .
+ex:A rdfs:subClassOf ex:C .
+ex:B owl:disjointWith ex:C .
+ex:x rdf:type ex:A .
+";
+        let bytes = gts_bytes_from_turtle(inconsistent);
+        let mut report = Report::new("validate");
+        deep_semantic_findings(&bytes, &mut report).expect("deep pass must run");
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code == "validate.deep.inconsistent"),
+            "the deep pass must flag the inconsistency: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+
+        // A consistent bundle: A⊑B, x:A. No clash → a consistency note, no error.
+        let consistent = "\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex: <http://gmeow.example/> .
+ex:A rdfs:subClassOf ex:B .
+ex:x rdf:type ex:A .
+";
+        let bytes = gts_bytes_from_turtle(consistent);
+        let mut report = Report::new("validate");
+        deep_semantic_findings(&bytes, &mut report).expect("deep pass must run");
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code == "validate.deep.consistent"),
+            "a consistent bundle must record the consistency note"
+        );
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.code == "validate.deep.inconsistent"),
+            "a consistent bundle must NOT flag inconsistency"
+        );
+    }
+
+    /// Build canonical GTS bytes from a Turtle string for the deep-pass test.
+    fn gts_bytes_from_turtle(ttl: &str) -> Vec<u8> {
+        let dataset = gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+            .expect("parse test turtle");
+        gmeow_rdf::gts_write::to_gts(
+            &dataset,
+            &gmeow_rdf::RdfLookaside::default(),
+            "gmeow-validate-deep-test",
+        )
+        .expect("encode GTS bytes")
     }
 
     fn minimal_lint_config() -> LintConfig {

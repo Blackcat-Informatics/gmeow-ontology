@@ -207,6 +207,10 @@ struct PyValidateOptions {
     /// Optional signature/trust policy configuration for the GTS verification
     /// pre-gate (#646). When `None`, signature verification is disabled.
     signature_config: Option<PySignatureConfig>,
+    /// When `true`, run the native semantic (`--deep`) pass (#768): reason over
+    /// the bundle and fold the shared `logic:ReasoningResult` verdict into the
+    /// report. Requires `gts_bytes`.
+    deep: bool,
 }
 
 #[pymethods]
@@ -224,6 +228,7 @@ impl PyValidateOptions {
         project_root = None,
         gts_bytes = None,
         signature_config = None,
+        deep = false,
     ))]
     fn new(
         timings: bool,
@@ -236,6 +241,7 @@ impl PyValidateOptions {
         project_root: Option<String>,
         gts_bytes: Option<Vec<u8>>,
         signature_config: Option<PySignatureConfig>,
+        deep: bool,
     ) -> Self {
         Self {
             timings,
@@ -248,6 +254,7 @@ impl PyValidateOptions {
             project_root,
             gts_bytes,
             signature_config,
+            deep,
         }
     }
 }
@@ -265,6 +272,7 @@ impl PyValidateOptions {
             project_root: self.project_root.as_ref().map(PathBuf::from),
             gts_bytes: self.gts_bytes.clone(),
             signature_config: self.signature_config.as_ref().map(|c| c.to_engine()),
+            deep: self.deep,
         }
     }
 }

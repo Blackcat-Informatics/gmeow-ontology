@@ -2015,6 +2015,7 @@ dependencies = [
  "ed25519-dalek",
  "gmeow-diagnostics",
  "gmeow-gts",
+ "gmeow-logic",
  "gmeow-rdf",
  "gmeow-shacl",
  "gmeow-slice",

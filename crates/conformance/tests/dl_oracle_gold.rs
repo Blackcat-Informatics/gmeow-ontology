@@ -92,13 +92,14 @@ fn native_verdict(dataset_path: &std::path::Path) -> (bool, BTreeSet<String>) {
         .unwrap_or_else(|e| panic!("parse {}: {e}", dataset_path.display()));
     let result = reason_all(dataset.as_ref())
         .unwrap_or_else(|e| panic!("native reason_all on {}: {e}", dataset_path.display()));
-    let unsat = result
-        .verdict
-        .unsatisfiable_classes
+    // The unsatisfiable (empty) classes are a DL diagnostic recovered from the
+    // shared result's closure payload (#768); consistency is the shared model's
+    // four-valued verdict (inconsistent = the Belnap `both` glut).
+    let unsat = gmeow_logic::reason::dl::unsatisfiable_from_inferred(result.inferred())
         .iter()
         .map(|u| u.class.clone())
         .collect();
-    (result.verdict.consistent, unsat)
+    (result.is_consistent(), unsat)
 }
 
 /// The single offline assertion: for every frozen oracle verdict, the native
