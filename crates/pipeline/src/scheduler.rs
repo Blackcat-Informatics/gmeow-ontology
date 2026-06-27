@@ -136,8 +136,11 @@ pub fn run(
     // critical path is visible without changing default behaviour.
     let profile = std::env::var_os("GMEOW_PIPELINE_TIMING").is_some();
     let mut stage_timings: Vec<(String, u128, bool)> = Vec::new();
+    // (level_index, slowest-stage ms in the level, slowest-stage id): the sum of the
+    // per-level maxima is the critical-path floor the level-barrier scheduler imposes.
+    let mut level_walls: Vec<(usize, u128, String)> = Vec::new();
 
-    for level in &graph.levels {
+    for (level_idx, level) in graph.levels.iter().enumerate() {
         // Parallel phase: every stage in the level runs concurrently; Reason
         // stages serialize internally under the ENGINE_LOCK. `products` and
         // `cache` are read-only here — siblings in one level never depend on
@@ -159,6 +162,8 @@ pub fn run(
 
         // Sequential commit phase: persist cache entries, stamp provenance, and
         // publish products for the next level.
+        let mut level_max: u128 = 0;
+        let mut level_max_id = String::new();
         for r in runs {
             if !r.cached {
                 ctx.cache.put(&r.key, &r.product)?;
@@ -166,24 +171,37 @@ pub fn run(
             let stage = by_id[r.id.as_str()];
             register_stage_unit(&mut ctx.provenance, &r.id, stage.kind());
             if profile {
+                if r.elapsed_ms > level_max {
+                    level_max = r.elapsed_ms;
+                    level_max_id = r.id.clone();
+                }
                 stage_timings.push((r.id.clone(), r.elapsed_ms, r.cached));
             }
             products.insert(r.id, r.product);
         }
+        if profile {
+            level_walls.push((level_idx, level_max, level_max_id));
+        }
     }
 
     if profile {
-        stage_timings.sort_by_key(|t| std::cmp::Reverse(t.1));
+        let floor: u128 = level_walls.iter().map(|l| l.1).sum();
         let total: u128 = stage_timings.iter().map(|t| t.1).sum();
         eprintln!(
-            "[pipeline-timing] {} stages, summed {total} ms:",
-            stage_timings.len()
+            "[pipeline-timing] {} stages over {} levels; summed {total} ms; level-barrier floor {floor} ms",
+            stage_timings.len(),
+            level_walls.len(),
         );
+        stage_timings.sort_by_key(|t| std::cmp::Reverse(t.1));
         for (id, ms, cached) in stage_timings.iter().take(25) {
             eprintln!(
                 "[pipeline-timing]   {ms:>7} ms  {id}{}",
                 if *cached { " (cached)" } else { "" }
             );
+        }
+        eprintln!("[pipeline-timing] per-level critical stage:");
+        for (idx, ms, id) in &level_walls {
+            eprintln!("[pipeline-timing]   level {idx:>2}: {ms:>7} ms  {id}");
         }
     }
 
