@@ -19,10 +19,16 @@ use oxigraph::model::Term;
 use oxigraph::sparql::{QueryResults, QuerySolution, SparqlEvaluator};
 use oxigraph::store::Store;
 
+use gmeow_logic_compile::result_shape::{
+    ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality, TermKind,
+};
 use gmeow_validate::store::build_store;
 
 /// The GMEOW namespace; the test-DSL terms live directly under it.
 pub const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// The `logic:` namespace; the result-shape terms live directly under it.
+pub const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 
 /// The three cell collections parsed out of one `tests/*.ttl` spec file.
 #[derive(Debug, Clone, Default)]
@@ -54,6 +60,13 @@ pub struct CompetencyQuestion {
     /// merged graph for this one question (instance-classifier questions only).
     /// Honoured only in the [`ReasoningProfile::None`] lane.
     pub data_file: Option<String>,
+    /// `gmeow:cqResultShape` — the typed [`ResultShape`] the SELECT result is
+    /// contracted to (the OUTPUT contract). The actual bindings are validated
+    /// against it after execution.
+    pub result_shape: Option<ResultShape>,
+    /// `gmeow:cqInputShape` — the typed [`ResultShape`] the question's input is
+    /// expected to satisfy (the INPUT contract), checked before execution.
+    pub input_shape: Option<ResultShape>,
     pub rationale: Option<String>,
 }
 
@@ -139,7 +152,7 @@ pub enum ReasoningProfile {
 const PREFIX: &str = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n";
 
 const Q_COMPETENCY: &str = "
-SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFile ?rationale WHERE {
+SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFile ?resultShape ?inputShape ?rationale WHERE {
   ?cq a gmeow:CompetencyQuestion .
   OPTIONAL { ?cq gmeow:cqQueryFile ?queryFile }
   OPTIONAL { ?cq gmeow:cqQuery ?query }
@@ -148,6 +161,8 @@ SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFil
   OPTIONAL { ?cq gmeow:cqExactRows ?exactRows }
   OPTIONAL { ?cq gmeow:cqReasoning ?reasoning }
   OPTIONAL { ?cq gmeow:cqDataFile ?dataFile }
+  OPTIONAL { ?cq gmeow:cqResultShape ?resultShape }
+  OPTIONAL { ?cq gmeow:cqInputShape ?inputShape }
   OPTIONAL { ?cq gmeow:cqRationale ?rationale }
 }";
 
@@ -221,6 +236,8 @@ fn parse_competency(store: &Store) -> Result<Vec<CompetencyQuestion>, String> {
                 },
             },
             data_file: opt_string(&sol, "dataFile"),
+            result_shape: opt_shape(store, &sol, "resultShape")?,
+            input_shape: opt_shape(store, &sol, "inputShape")?,
             rationale: opt_string(&sol, "rationale"),
         };
         // A multi-valued OPTIONAL (or a duplicated triple) can yield more than one
@@ -339,6 +356,96 @@ fn parse_conformance(store: &Store) -> Result<Vec<ExampleConformance>, String> {
         });
     }
     Ok(out)
+}
+
+// ── logic:ResultShape parsing ────────────────────────────────────────────────────
+
+/// The local name of a `logic:` IRI (the part after the namespace).
+fn logic_local(iri: &str) -> &str {
+    iri.strip_prefix(LOGIC_NS).unwrap_or(iri)
+}
+
+/// Resolve an optional `gmeow:cqResultShape` / `gmeow:cqInputShape` IRI binding into
+/// the typed [`ResultShape`] it points at, parsed from the same spec store.
+fn opt_shape(store: &Store, sol: &QuerySolution, var: &str) -> Result<Option<ResultShape>, String> {
+    match sol.get(var).and_then(term_iri) {
+        None => Ok(None),
+        Some(iri) => Ok(Some(parse_result_shape(store, &iri)?)),
+    }
+}
+
+/// Introspect a `logic:ResultShape` individual out of the spec store into the
+/// canonical [`ResultShape`] type (the same authority the contract check uses).
+///
+/// # Errors
+/// Hard-fails on an empty shape, an unknown term-kind / binding / cardinality
+/// value, or a `logic:RowsCount` shape missing its `logic:shapeRowCount`.
+fn parse_result_shape(store: &Store, shape_iri: &str) -> Result<ResultShape, String> {
+    let cols_q = format!(
+        "PREFIX logic: <{LOGIC_NS}>\n\
+         SELECT ?var ?kind ?datatype ?binding WHERE {{\n\
+         \x20 <{shape_iri}> logic:declaresColumn ?col .\n\
+         \x20 ?col logic:columnVariable ?var .\n\
+         \x20 ?col logic:columnTermKind ?kind .\n\
+         \x20 ?col logic:columnBinding ?binding .\n\
+         \x20 OPTIONAL {{ ?col logic:columnDatatype ?datatype }}\n\
+         }}"
+    );
+    let mut columns: Vec<ResultColumn> = Vec::new();
+    for sol in select(store, &cols_q)? {
+        let var = opt_string(&sol, "var").ok_or_else(|| {
+            format!("ResultShape <{shape_iri}>: a column has no logic:columnVariable")
+        })?;
+        let kind_local = logic_local(&require_iri(&sol, "kind")?).to_owned();
+        let term_kind = TermKind::from_local(&kind_local).ok_or_else(|| {
+            format!("ResultShape <{shape_iri}>: unknown logic:columnTermKind logic:{kind_local}")
+        })?;
+        let datatype = sol.get("datatype").and_then(term_iri);
+        let kind = match term_kind {
+            TermKind::Iri => ColumnKind::Iri,
+            TermKind::BlankNode => ColumnKind::BlankNode,
+            TermKind::Literal => ColumnKind::Literal { datatype },
+        };
+        let binding_local = logic_local(&require_iri(&sol, "binding")?).to_owned();
+        let binding = ColumnBinding::from_local(&binding_local).ok_or_else(|| {
+            format!("ResultShape <{shape_iri}>: unknown logic:columnBinding logic:{binding_local}")
+        })?;
+        columns.push(ResultColumn { var, kind, binding });
+    }
+    if columns.is_empty() {
+        return Err(format!(
+            "ResultShape <{shape_iri}> declares no logic:declaresColumn — an empty result shape types nothing"
+        ));
+    }
+
+    let card_q = format!(
+        "PREFIX logic: <{LOGIC_NS}>\n\
+         SELECT ?card ?count WHERE {{\n\
+         \x20 <{shape_iri}> logic:shapeCardinality ?card .\n\
+         \x20 OPTIONAL {{ <{shape_iri}> logic:shapeRowCount ?count }}\n\
+         }}"
+    );
+    let card_sols = select(store, &card_q)?;
+    let card_sol = card_sols
+        .first()
+        .ok_or_else(|| format!("ResultShape <{shape_iri}> has no logic:shapeCardinality"))?;
+    let card_local = logic_local(&require_iri(card_sol, "card")?).to_owned();
+    let cardinality = match card_local.as_str() {
+        "RowsExact" => RowCardinality::Exact,
+        "RowsContains" => RowCardinality::Contains,
+        "RowsCount" => {
+            let count = opt_u64(card_sol, "count")?.ok_or_else(|| {
+                format!("ResultShape <{shape_iri}>: logic:RowsCount requires logic:shapeRowCount")
+            })?;
+            RowCardinality::Count(count)
+        }
+        other => {
+            return Err(format!(
+                "ResultShape <{shape_iri}>: unknown logic:shapeCardinality logic:{other}"
+            ));
+        }
+    };
+    Ok(ResultShape::new(columns, cardinality))
 }
 
 // ── SPARQL + term helpers ──────────────────────────────────────────────────────
@@ -590,6 +697,55 @@ mod tests {
         let err = parse_competency(&store_from_turtle(ttl))
             .expect_err("malformed boolean must hard-fail");
         assert!(err.contains("xsd:boolean"), "unexpected error: {err}");
+    }
+
+    #[test]
+    fn parses_cq_result_shape_into_the_canonical_type() {
+        let ttl = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:cq a gmeow:CompetencyQuestion ;\n\
+                gmeow:cqQueryFile \"q.rq\" ;\n\
+                gmeow:cqResultShape ex:shape .\n\
+            ex:shape a logic:ResultShape ;\n\
+                logic:declaresColumn [ logic:columnVariable \"agent\" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,\n\
+                                     [ logic:columnVariable \"name\" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnDatatype <http://www.w3.org/2001/XMLSchema#string> ; logic:columnBinding logic:BindingOptional ] ;\n\
+                logic:shapeCardinality logic:RowsExact .\n";
+        let spec = parse_competency(&store_from_turtle(ttl)).expect("shape parses");
+        let cq = &spec[0];
+        let shape = cq.result_shape.as_ref().expect("result_shape present");
+        assert_eq!(shape.cardinality, RowCardinality::Exact);
+        assert_eq!(shape.columns.len(), 2);
+        // columns are canonicalised sorted-by-var: agent, name
+        assert_eq!(shape.columns[0].var, "agent");
+        assert_eq!(shape.columns[0].kind, ColumnKind::Iri);
+        assert_eq!(shape.columns[0].binding, ColumnBinding::Required);
+        assert_eq!(shape.columns[1].var, "name");
+        assert_eq!(
+            shape.columns[1].kind,
+            ColumnKind::Literal {
+                datatype: Some("http://www.w3.org/2001/XMLSchema#string".to_owned())
+            }
+        );
+        assert_eq!(shape.columns[1].binding, ColumnBinding::Optional);
+    }
+
+    #[test]
+    fn rejects_result_shape_with_unknown_term_kind() {
+        let ttl = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:cq a gmeow:CompetencyQuestion ;\n\
+                gmeow:cqQueryFile \"q.rq\" ;\n\
+                gmeow:cqResultShape ex:shape .\n\
+            ex:shape a logic:ResultShape ;\n\
+                logic:declaresColumn [ logic:columnVariable \"x\" ; logic:columnTermKind logic:TermKindBogus ; logic:columnBinding logic:BindingRequired ] ;\n\
+                logic:shapeCardinality logic:RowsContains .\n";
+        let err = parse_competency(&store_from_turtle(ttl))
+            .expect_err("unknown term-kind must hard-fail");
+        assert!(err.contains("columnTermKind"), "unexpected error: {err}");
     }
 
     #[test]

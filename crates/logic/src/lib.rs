@@ -38,7 +38,11 @@ pub mod query_ir;
 pub mod reason;
 pub mod reference_resolver;
 pub mod result;
-pub mod result_shape;
+/// The typed `logic:ResultShape` lives in the Nemo-free `gmeow-logic-compile`
+/// crate (alongside `LOGIC_NAMESPACE`/`PreservationKind`) so pure-data consumers
+/// — notably the slice-test harness — can use it without pulling in Nemo;
+/// re-exported here as `gmeow_logic::result_shape` for the result family.
+pub use gmeow_logic_compile::result_shape;
 pub mod rule_ir;
 pub mod scryer_engine;
 pub mod seam;

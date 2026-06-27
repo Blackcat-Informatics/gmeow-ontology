@@ -31,7 +31,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
+use crate::ir::LOGIC_NAMESPACE;
 
 // --------------------------------------------------------------------------- //
 // Term kind — the closed value class a column's kind ranges over.

@@ -19,9 +19,11 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
+use oxigraph::model::Term;
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
+use gmeow_logic_compile::result_shape::{ObservedBinding, ObservedTerm};
 use gmeow_shacl::engine::{parse_shapes, validate};
 use gmeow_validate::findings::finding_from_shacl;
 use gmeow_validate::store::{build_store, parse_file};
@@ -171,6 +173,14 @@ fn execute_competency_query(
     cq: &CompetencyQuestion,
     query: &str,
 ) -> Result<(), String> {
+    // Input→output contract, checked BEFORE execution (hard-fail, no silent pass):
+    // a declared output shape's required columns must be covered by the declared
+    // input shape — a query that cannot type-check never runs.
+    if let (Some(out), Some(inp)) = (&cq.result_shape, &cq.input_shape) {
+        out.is_satisfiable_by(inp)
+            .map_err(|e| format!("input-shape contract (checked before execution): {e}"))?;
+    }
+
     let results = SparqlEvaluator::new()
         .parse_query(query)
         .map_err(|e| format!("query parse error: {e}"))?
@@ -195,14 +205,33 @@ fn execute_competency_query(
                 .map(|v| v.as_str().to_owned())
                 .collect();
             let mut actual: Vec<CanonRow> = Vec::new();
+            // The observed (var, term-kind) bindings, kept alongside the canonical
+            // rows so the declared output shape can type-check them.
+            let mut observed: Vec<Vec<ObservedBinding>> = Vec::new();
             for sol in solutions {
                 let sol = sol.map_err(|e| format!("solution error: {e}"))?;
-                let mut row: CanonRow = vars
-                    .iter()
-                    .filter_map(|v| sol.get(v.as_str()).map(|t| (v.clone(), t.to_string())))
-                    .collect();
+                let mut row: CanonRow = Vec::new();
+                let mut obs: Vec<ObservedBinding> = Vec::new();
+                for v in &vars {
+                    if let Some(t) = sol.get(v.as_str()) {
+                        row.push((v.clone(), t.to_string()));
+                        obs.push(ObservedBinding::new(
+                            v.clone(),
+                            observed_term(&cq.iri, v, t)?,
+                        ));
+                    }
+                }
                 row.sort();
                 actual.push(row);
+                observed.push(obs);
+            }
+            // Output contract: type-check the bindings against the declared result
+            // shape (term-kind / datatype / requiredness / cardinality) BEFORE the
+            // example-row comparison. Hard-fail, surfaced.
+            if let Some(shape) = &cq.result_shape {
+                shape
+                    .validate_bindings(&observed)
+                    .map_err(|e| format!("result-shape contract: {e}"))?;
             }
             check_select(cq, &actual)
         }
@@ -270,6 +299,24 @@ fn set_diff(a: &BTreeSet<CanonRow>, b: &BTreeSet<CanonRow>) -> String {
         })
         .collect::<Vec<_>>()
         .join(" ")
+}
+
+/// Project one oxigraph result binding into the pure-data [`ObservedTerm`] the
+/// result-shape contract checks. An RDF-star triple term cannot be typed by a
+/// column kind, so it hard-fails rather than being silently misclassified.
+fn observed_term(cq_iri: &str, var: &str, term: &Term) -> Result<ObservedTerm, String> {
+    Ok(match term {
+        Term::NamedNode(_) => ObservedTerm::Iri,
+        Term::BlankNode(_) => ObservedTerm::BlankNode,
+        Term::Literal(l) => ObservedTerm::Literal {
+            datatype: l.datatype().as_str().to_owned(),
+        },
+        Term::Triple(_) => {
+            return Err(format!(
+                "{cq_iri}: result binding ?{var} is an RDF-star triple term, which a logic:ResultShape does not type"
+            ));
+        }
+    })
 }
 
 fn canon_expected_row(row: &ExpectedRow) -> CanonRow {
@@ -437,7 +484,98 @@ fn join_codes(codes: &BTreeSet<String>) -> String {
 mod tests {
     use super::*;
     use crate::dsl::{CompetencyQuestion, ExpectedCell, ExpectedRow};
+    use gmeow_logic_compile::result_shape::{
+        ColumnKind, ResultColumn, ResultShape, RowCardinality,
+    };
     use oxigraph::model::{NamedNode, Term};
+
+    /// Materialize inline Turtle into a store via the native codec (#909).
+    fn store_from_turtle(ttl: &str) -> Store {
+        use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+        use gmeow_rdf::parse_dataset;
+        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("valid turtle");
+        store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs).expect("store")
+    }
+
+    /// A minimal SELECT competency question over an inline query.
+    fn cq_with(query: &str) -> CompetencyQuestion {
+        CompetencyQuestion {
+            iri: "https://example.org/cqShape".to_owned(),
+            query_inline: Some(query.to_owned()),
+            query_file: None,
+            expect_ask: None,
+            expect_row_count: None,
+            exact_rows: false,
+            expected_rows: Vec::new(),
+            reasoning: ReasoningProfile::None,
+            data_file: None,
+            result_shape: None,
+            input_shape: None,
+            rationale: None,
+        }
+    }
+
+    const Q_X: &str = "PREFIX ex: <https://example.org/> \
+        SELECT ?x WHERE { ?x a ex:Thing }";
+
+    fn one_thing_store() -> Store {
+        store_from_turtle("@prefix ex: <https://example.org/> .\nex:a a ex:Thing .\n")
+    }
+
+    #[test]
+    fn result_shape_conforming_bindings_pass() {
+        let store = one_thing_store();
+        let mut cq = cq_with(Q_X);
+        // ?x is an IRI, required, exactly one row — matches the data.
+        cq.result_shape = Some(ResultShape::new(
+            vec![ResultColumn::required("x", ColumnKind::Iri)],
+            RowCardinality::Count(1),
+        ));
+        cq.expect_row_count = Some(1); // satisfy the row-comparison tier too
+        execute_competency_query(&store, &cq, Q_X).expect("conforming shape passes");
+    }
+
+    #[test]
+    fn result_shape_term_kind_mismatch_hard_fails() {
+        let store = one_thing_store();
+        let mut cq = cq_with(Q_X);
+        // ?x declared a literal, but the data binds an IRI.
+        cq.result_shape = Some(ResultShape::new(
+            vec![ResultColumn::required(
+                "x",
+                ColumnKind::Literal { datatype: None },
+            )],
+            RowCardinality::Contains,
+        ));
+        let err = execute_competency_query(&store, &cq, Q_X)
+            .expect_err("term-kind mismatch must hard-fail");
+        assert!(
+            err.contains("result-shape contract") && err.contains("term-kind"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn input_shape_incompatibility_hard_fails_before_execution() {
+        let store = one_thing_store();
+        let mut cq = cq_with(Q_X);
+        // Output requires a column ?y that the input shape never provides → the
+        // pre-execution input→output check fails before the query runs.
+        cq.result_shape = Some(ResultShape::new(
+            vec![ResultColumn::required("y", ColumnKind::Iri)],
+            RowCardinality::Contains,
+        ));
+        cq.input_shape = Some(ResultShape::new(
+            vec![ResultColumn::required("x", ColumnKind::Iri)],
+            RowCardinality::Contains,
+        ));
+        let err = execute_competency_query(&store, &cq, Q_X)
+            .expect_err("incompatible input shape must hard-fail");
+        assert!(
+            err.contains("input-shape contract") && err.contains("before execution"),
+            "unexpected error: {err}"
+        );
+    }
 
     /// A `gmeow:cqDataFile` overlay must (a) make the fixture's instances visible to
     /// the query, (b) be removed afterwards so it never leaks into the shared store,
@@ -474,6 +612,8 @@ mod tests {
             }],
             reasoning: ReasoningProfile::None,
             data_file: Some("data.ttl".to_owned()),
+            result_shape: None,
+            input_shape: None,
             rationale: None,
         };
 

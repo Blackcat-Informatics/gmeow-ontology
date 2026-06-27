@@ -1976,6 +1976,7 @@ name = "gmeow-slicetest"
 version = "0.1.0"
 dependencies = [
  "datatest-stable",
+ "gmeow-logic-compile",
  "gmeow-rdf",
  "gmeow-shacl",
  "gmeow-validate",
