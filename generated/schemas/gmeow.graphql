@@ -35,6 +35,7 @@ enum AestheticQualityEnum {
 
 enum AgentEnum {
   fixtureAnalystA
+  fixtureAnalystAI
   fixtureHumanListener
   fixtureKiranaGharanaStandpoint
   fixtureMIRAgent
@@ -1602,6 +1603,7 @@ enum MultipartTypeEnum {
 
 enum MusicAnalysisClaimEnum {
   fixtureRomanNumeralClaim
+  fixtureRomanNumeralGermanSixthClaim
 }
 
 enum MusicalParameterEnum {

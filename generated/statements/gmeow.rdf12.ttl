@@ -480,8 +480,8 @@
    <https://blackcatinformatics.ca/gmeow/confidence> "0.95"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
    <https://blackcatinformatics.ca/gmeow/validFrom> "2026-06-07T10:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
    <https://blackcatinformatics.ca/gmeow/validUntil> "2026-06-07T10:05:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-<https://blackcatinformatics.ca/gmeow/fixtureRomanNumeralClaim> <https://blackcatinformatics.ca/gmeow/analysisResult> <https://blackcatinformatics.ca/gmeow/harmonicFunctionGermanSixth> .
-<https://blackcatinformatics.ca/gmeow/examples/music/claim-ai-german-sixth> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/gmeow/fixtureRomanNumeralClaim> <https://blackcatinformatics.ca/gmeow/analysisResult> <https://blackcatinformatics.ca/gmeow/harmonicFunctionGermanSixth> )>> ;
+<https://blackcatinformatics.ca/gmeow/fixtureRomanNumeralGermanSixthClaim> <https://blackcatinformatics.ca/gmeow/analysisResult> <https://blackcatinformatics.ca/gmeow/harmonicFunctionGermanSixth> .
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-ai-german-sixth> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/gmeow/fixtureRomanNumeralGermanSixthClaim> <https://blackcatinformatics.ca/gmeow/analysisResult> <https://blackcatinformatics.ca/gmeow/harmonicFunctionGermanSixth> )>> ;
    <https://blackcatinformatics.ca/gmeow/accordingTo> <https://blackcatinformatics.ca/gmeow/examples/music/ai-chord-model-v3> ;
    <https://blackcatinformatics.ca/gmeow/assertedAt> "2026-06-14T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
    <https://blackcatinformatics.ca/gmeow/confidence> "0.72"^^<http://www.w3.org/2001/XMLSchema#decimal> ;

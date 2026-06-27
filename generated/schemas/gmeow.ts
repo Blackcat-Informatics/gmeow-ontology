@@ -35,6 +35,7 @@ export enum AestheticQualityEnum {
 
 export enum AgentEnum {
     fixtureAnalystA = "fixtureAnalystA",
+    fixtureAnalystAI = "fixtureAnalystAI",
     fixtureHumanListener = "fixtureHumanListener",
     fixtureKiranaGharanaStandpoint = "fixtureKiranaGharanaStandpoint",
     fixtureMIRAgent = "fixtureMIRAgent",
@@ -1602,6 +1603,7 @@ export enum MultipartTypeEnum {
 
 export enum MusicAnalysisClaimEnum {
     fixtureRomanNumeralClaim = "fixtureRomanNumeralClaim",
+    fixtureRomanNumeralGermanSixthClaim = "fixtureRomanNumeralGermanSixthClaim",
 }
 
 export enum MusicalParameterEnum {

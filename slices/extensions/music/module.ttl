@@ -1949,6 +1949,33 @@ gmeow:fixtureRomanNumeralClaim
         gmeow:boxCBox ;
     gmeow:vantage gmeow:fixtureAnalystA .
 
+gmeow:fixtureAnalystAI
+    a gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "fixture AI chord-analysis agent"@x-gmeow-english ;
+    skos:definition "A placeholder AI agent (a chord-recognition model run) used as the vantage for the machine-inferred German-sixth analysis fixture."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# A coexisting standpoint over the SAME harmonic moment as
+# gmeow:fixtureRomanNumeralClaim: the AI model reads the chord as a German sixth
+# where the human analyst reads a dominant. Modelled as its OWN claim (each
+# MusicAnalysisClaim carries exactly one analysisResult), never as a second
+# result reified onto the human claim — coexisting standpoints, never overwrite
+# the loser (Principle 9).
+gmeow:fixtureRomanNumeralGermanSixthClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "fixture Roman-numeral German-sixth claim (AI standpoint)"@x-gmeow-english ;
+    skos:definition "An AI-standpoint MusicAnalysisClaim over the same harmonic moment as gmeow:fixtureRomanNumeralClaim, asserting a German-sixth result from a chord-recognition model rather than the human analyst's dominant reading (Principle 9: coexisting standpoints)."@x-gmeow-english ;
+    gmeow:analysisFrame gmeow:theoryFrameRomanNumeral ;
+    gmeow:analysisProperty gmeow:analysisPropertyHarmonyLabel ;
+    gmeow:analysisResult gmeow:harmonicFunctionGermanSixth ;
+    gmeow:analysisTarget gmeow:fixtureSessionTake3Event ;
+    gmeow:confidence 0.72 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox ;
+    gmeow:vantage gmeow:fixtureAnalystAI .
+
 gmeow:fixtureSessionBassist
     a gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;

@@ -210,21 +210,31 @@ const XSD_ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
 const XSD_NNI: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 
 /// A concise human label for a finding: `"<code>: <message>"`, with the message
-/// truncated to a `char`-boundary-safe 80 characters (an ellipsis marks the
-/// cut). Findings are generated A-Box instance data, so they carry a label and
-/// provenance but no `skos:definition` (assertional-tier validation contract).
+/// truncated to a `char`-boundary-safe 80 characters on the nearest preceding
+/// word boundary (an ellipsis marks the cut). Truncating on a word boundary
+/// avoids mid-word fragments that spell-checkers flag. Findings are generated
+/// A-Box instance data, so they carry a label and provenance but no
+/// `skos:definition` (assertional-tier validation contract).
 fn finding_label(code: &str, message: &str) -> String {
     const MAX: usize = 80;
-    let mut trimmed: String = message.chars().take(MAX).collect();
-    if message.chars().nth(MAX).is_some() {
-        trimmed.push('…');
-    }
+    let truncated = if message.chars().count() > MAX {
+        // Collect the first MAX chars, then back-track to the last word boundary
+        // so the cut never falls mid-word.
+        let mut s: String = message.chars().take(MAX).collect();
+        if let Some(boundary) = s.rfind(|c: char| c.is_whitespace() || c == '(') {
+            s.truncate(boundary);
+        }
+        s.push('…');
+        s
+    } else {
+        message.to_owned()
+    };
     if code.is_empty() {
-        trimmed
-    } else if trimmed.is_empty() {
+        truncated
+    } else if truncated.is_empty() {
         code.to_string()
     } else {
-        format!("{code}: {trimmed}")
+        format!("{code}: {truncated}")
     }
 }
 

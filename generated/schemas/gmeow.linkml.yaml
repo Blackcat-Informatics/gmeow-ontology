@@ -13330,6 +13330,9 @@ enums:
       fixtureAnalystA:
         meaning: https://blackcatinformatics.ca/gmeow/fixtureAnalystA
         title: fixture analyst A
+      fixtureAnalystAI:
+        meaning: https://blackcatinformatics.ca/gmeow/fixtureAnalystAI
+        title: fixture AI chord-analysis agent
       fixtureHumanListener:
         meaning: https://blackcatinformatics.ca/gmeow/fixtureHumanListener
         title: human listener fixture
@@ -17203,6 +17206,9 @@ enums:
       fixtureRomanNumeralClaim:
         meaning: https://blackcatinformatics.ca/gmeow/fixtureRomanNumeralClaim
         title: fixture Roman-numeral dominant claim
+      fixtureRomanNumeralGermanSixthClaim:
+        meaning: https://blackcatinformatics.ca/gmeow/fixtureRomanNumeralGermanSixthClaim
+        title: fixture Roman-numeral German-sixth claim (AI standpoint)
   MusicalParameterEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/MusicalParameter
     permissible_values:
