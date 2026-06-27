@@ -15,7 +15,8 @@
 | `LOGIC.md` (this) | manifesto | vision, doctrine, lineage |
 | [`LOGIC-FOUNDATION.md`](LOGIC-FOUNDATION.md) | charter | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
 | [`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md) | configuration | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
-| [`LOGIC-IR.md`](LOGIC-IR.md) | intermediate representation | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
+| [`LOGIC-IR.md`](LOGIC-IR.md) | intermediate representation | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment; the three IR commitments (legalization, load-bearing annotations, the relational core) |
+| [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md) | correspondence calculus | cross-ontology alignment as the **ninth** IR node kind; the ordered law-spine, the mnemomorphism keystone, the separated axes, the generated lowerings (SSSOM/EDOAL/FnO/SPARQL/up-lift), and the six-layer OpenEHR subsumption |
 | [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md) | formal semantics | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
 | [`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md) | state change | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
 | [`LOGIC-PATHS.md`](LOGIC-PATHS.md) | traversal | named & parametric predicate paths — `logic:PathShape`, the predicate wildcard and bounded `{1,n}` depth that SPARQL §9 lacks, by-name parametric invocation, and the property-path / Datalog projections with their declared exit loss |
@@ -187,6 +188,16 @@ operational semantics of the foundation are in
 [LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#the-logic-foundation-ufo); its projection discipline is in
 [LOGIC-FOUNDATION.md](LOGIC-FOUNDATION.md#foundation-projection-and-discipline).
 
+**Alignment is a projection too.** The cross-ontology alignment layer follows the identical doctrine,
+recursed one level further: a `logic:Correspondence` is the canonical alignment object (the **ninth**
+IR node kind), and SSSOM, EDOAL, FnO, SPARQL CONSTRUCT, OWL alignment axioms, and the up-projection
+lift map are its generated lossy lowerings, each carrying a preservation judgment in the same loss
+ledger. This makes "GMEOW perfectly subsumes vocabulary V" a CI-checkable section/retraction law
+rather than a slogan. The calculus is in [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md); it is
+the third consolidation under this doctrine, peer to the canonical process model and the typed
+compositional meta-semantics, all three sharing the native execution engine
+([LOGIC-RUNTIME.md](LOGIC-RUNTIME.md#the-native-physical-engine--execution-and-optimization)).
+
 ## Constitutional Alignment
 
 `logic:` is the project's own doctrine applied to logic and to its foundation. The CONSTITUTION
@@ -209,7 +220,10 @@ The end state is not "OWL, but faster." It is:
   chaining; classical OWL tools (Jena, ROBOT, ELK, HermiT) operate as secondary validators for
   exported subsets;
 - OWL, Datalog, SHACL, Prolog, N3, SPARQL, gUFO, and the Common Logic dialects (CLIF, CGIF, XCL)
-  are generated lossy projections; BFO, DOLCE, and SUMO are generated bridge views;
+  are generated lossy projections; BFO, DOLCE, SUMO, and YAMATO are generated bridge views;
+- cross-ontology alignment is the **ninth IR node kind** (`logic:Correspondence`): SSSOM, EDOAL, FnO,
+  SPARQL, OWL-alignment, and the up-lift are generated lowerings, and perfect subsumption is a
+  CI-checkable section/retraction law ([LOGIC-CORRESPONDENCE.md](LOGIC-CORRESPONDENCE.md));
 - projection loss is visible, machine-readable, and tested.
 
 This makes GMEOW's logic match the rest of the project: maximal model, maximal linking, explicit

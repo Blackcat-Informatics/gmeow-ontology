@@ -9,7 +9,9 @@
 > occurrences, goal decomposition, and goal conflict. State change is in
 > [`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md); the typed worlds these constructs reason over are
 > in [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md); the deontic force that ranges over goals is the
-> norms vocabulary, aligned here.
+> norms vocabulary, aligned here. openEHR Task-Planning (PROC) ↔ `logic:Plan` is a process-axis
+> correspondence — the prescriptive↔descriptive seam is a lossy lens
+> ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md); see the canonical process model).
 
 ## Why goals and action are their own layer
 
