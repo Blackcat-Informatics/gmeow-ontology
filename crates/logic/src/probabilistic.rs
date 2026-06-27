@@ -90,31 +90,49 @@ impl ProbStatus {
 /// `neither`); a computed run is `completed` + `complete-for-fragment` with
 /// `information=undetermined` (the graded marginal carries no discretization
 /// policy, SEMANTICS:303-305).
-fn prob_result(status: ProbStatus) -> crate::result::ReasoningResult {
+///
+/// `world` is propagated into [`ResultProvenance`] (lossless, fixes the prior
+/// empty-string drop). `payload` carries the marginal bindings for the `Ok` path
+/// or an empty [`ResultPayload::Marginals`] for the refusal path — never
+/// [`ResultPayload::Empty`], so the typed model is fully lossless (#768).
+/// `projection_class` mirrors `preservation` (same idiom as result.rs:821/:883).
+fn prob_result(
+    status: ProbStatus,
+    world: &str,
+    payload: crate::result::ResultPayload,
+) -> crate::result::ReasoningResult {
     use crate::result::{
         CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
-        ReasoningResult, ResultPayload, ResultProvenance,
+        ReasoningResult, ResultProvenance,
     };
-    let provenance = ResultProvenance::native("probabilistic", "");
+    let mut provenance = ResultProvenance::native("probabilistic", world);
     match status {
-        ProbStatus::Ok => ReasoningResult::new(
-            InputStatus::Valid,
-            EvaluationStatus::Completed,
-            CompletenessStatus::CompleteForFragment,
-            PreservationClaim::exact(),
-            InformationState::Undetermined,
-            provenance,
-            ResultPayload::Empty,
-        ),
-        ProbStatus::Unknown => ReasoningResult::new(
-            InputStatus::Valid,
-            EvaluationStatus::Unsupported,
-            CompletenessStatus::Unknown,
-            PreservationClaim::default(),
-            InformationState::NotEvaluated,
-            provenance,
-            ResultPayload::Empty,
-        ),
+        ProbStatus::Ok => {
+            let preservation = PreservationClaim::exact();
+            provenance.projection_class = preservation.clone();
+            ReasoningResult::new(
+                InputStatus::Valid,
+                EvaluationStatus::Completed,
+                CompletenessStatus::CompleteForFragment,
+                preservation,
+                InformationState::Undetermined,
+                provenance,
+                payload,
+            )
+        }
+        ProbStatus::Unknown => {
+            let preservation = PreservationClaim::default();
+            provenance.projection_class = preservation.clone();
+            ReasoningResult::new(
+                InputStatus::Valid,
+                EvaluationStatus::Unsupported,
+                CompletenessStatus::Unknown,
+                preservation,
+                InformationState::NotEvaluated,
+                provenance,
+                payload,
+            )
+        }
     }
 }
 
@@ -197,7 +215,11 @@ pub fn evaluate(
     if !program.prob_facts.is_empty() && program.prob_model.is_none() {
         return Ok(ProbAnswer {
             bindings: vec![],
-            result: prob_result(ProbStatus::Unknown),
+            result: prob_result(
+                ProbStatus::Unknown,
+                world,
+                crate::result::ResultPayload::Marginals(vec![]),
+            ),
         });
     }
 
@@ -293,8 +315,12 @@ pub fn evaluate(
     });
 
     Ok(ProbAnswer {
-        bindings,
-        result: prob_result(ProbStatus::Ok),
+        bindings: bindings.clone(),
+        result: prob_result(
+            ProbStatus::Ok,
+            world,
+            crate::result::ResultPayload::Marginals(bindings),
+        ),
     })
 }
 
@@ -824,11 +850,19 @@ mod tests {
     fn prob_status_string_round_trips() {
         // The typed ReasoningResult losslessly carries the prob status (#768).
         assert_eq!(
-            prob_status_string(&prob_result(ProbStatus::Ok)),
+            prob_status_string(&prob_result(
+                ProbStatus::Ok,
+                WORLD,
+                crate::result::ResultPayload::Marginals(vec![])
+            )),
             ProbStatus::Ok.as_str()
         );
         assert_eq!(
-            prob_status_string(&prob_result(ProbStatus::Unknown)),
+            prob_status_string(&prob_result(
+                ProbStatus::Unknown,
+                WORLD,
+                crate::result::ResultPayload::Marginals(vec![])
+            )),
             ProbStatus::Unknown.as_str()
         );
     }
@@ -838,7 +872,11 @@ mod tests {
         use crate::result::{EvaluationStatus, InformationState};
         // A no-declared-model refusal is unsupported + not-evaluated — explicitly
         // NOT the Belnap `neither`, and distinct from cf's revision-tie unknown.
-        let r = prob_result(ProbStatus::Unknown);
+        let r = prob_result(
+            ProbStatus::Unknown,
+            WORLD,
+            crate::result::ResultPayload::Marginals(vec![]),
+        );
         assert_eq!(r.evaluation, EvaluationStatus::Unsupported);
         assert_eq!(r.information, InformationState::NotEvaluated);
         assert!(r.validate().is_ok());
