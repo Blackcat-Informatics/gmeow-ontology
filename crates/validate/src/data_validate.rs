@@ -26,6 +26,7 @@
 //! the Python CLI surface, which passes only raw bytes.
 
 use gmeow_diagnostics::Report;
+use gmeow_shacl::shape_union::EXCLUDED;
 use oxigraph::store::Store;
 
 use crate::gufo::{self, GufoConfig};
@@ -36,18 +37,6 @@ use crate::validate_all::{build_report, shacl_findings_from_report};
 /// surface (`shapes-archive`). MUST match the writer in the pipeline snapshot
 /// stage and the Python `bundle` reader.
 const REP_SHAPES: &str = "shapes-archive";
-
-/// Shape files in `shapes/` that lint *authoring* sources (the DSL modules and the
-/// per-slice manifests), not the published data graph. They are excluded from the
-/// data-graph validator union — exactly mirroring the dev validator's own
-/// composition — so validating a user's instance graph never trips manifest- or
-/// DSL-only constraints.
-const NON_DATA_GRAPH_SHAPES: [&str; 4] = [
-    "mapping-dsl-shapes.ttl",
-    "statement-dsl-shapes.ttl",
-    "test-dsl-shapes.ttl",
-    "slice-manifest-shapes.ttl",
-];
 
 /// Run Tier-1 conformance of `data_bytes` (an RDF graph in `data_format`) against
 /// the shapes and disciplines carried in `gts_bytes`.
@@ -163,7 +152,7 @@ fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> Result<String, String> {
             continue;
         }
         let base = name.rsplit('/').next().unwrap_or(name);
-        if NON_DATA_GRAPH_SHAPES.contains(&base) {
+        if EXCLUDED.contains(&base) {
             continue;
         }
         let text = std::str::from_utf8(bytes)
