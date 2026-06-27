@@ -417,6 +417,118 @@ mod tests {
         );
     }
 
+    /// Enforcing lane: every authored `gmeow:ExpectedRow` across all slices must
+    /// conform to the result shape its competency question declares, via the REAL
+    /// generated SHACL projection (not a hand-written substitute).
+    ///
+    /// A failure here means a genuine authoring inconsistency: an `ExpectedRow` is
+    /// missing a `BindingRequired` column, or a cell binds the wrong term-kind, or
+    /// a literal cell has the wrong datatype. This is the enforcement the SHACL
+    /// projection was designed to provide.
+    #[test]
+    fn generated_shapes_conform_to_every_authored_row() {
+        use gmeow_shacl::engine::{parse_shapes, validate};
+
+        let root = repo_root();
+        let shapes_ttl = render_result_shapes(&root).expect("render_result_shapes");
+        let store = load_competency_store(&root).expect("load_competency_store");
+        let shapes = parse_shapes(&shapes_ttl).expect("parse generated result-shapes");
+        let report = validate(&store, &shapes);
+
+        if !report.conforms {
+            let detail: Vec<String> = report
+                .results
+                .iter()
+                .map(|r| {
+                    format!(
+                        "  focus={} message={}",
+                        r.focus_node,
+                        r.message.as_deref().unwrap_or("<none>")
+                    )
+                })
+                .collect();
+            panic!(
+                "generated result-shapes found {} violation(s) against authored ExpectedRows:\n{}",
+                report.results.len(),
+                detail.join("\n")
+            );
+        }
+    }
+
+    /// Negative proof against the REAL generated shapes: plant a bad row that binds
+    /// `cellValueLiteral` for a column the generated shape requires to be an IRI
+    /// (`BindingRequired` + `TermKindIri`), and assert the engine flags it.
+    ///
+    /// The shape IRI and column name are discovered programmatically from the live
+    /// corpus — the test never hard-codes a shape string, so it remains robust to
+    /// corpus changes. If no suitable shape is found the test panics with a
+    /// diagnostic rather than silently vacuously passing.
+    #[test]
+    fn generated_shapes_flag_a_planted_wrong_kind_row() {
+        use gmeow_shacl::engine::{parse_shapes, validate};
+
+        let root = repo_root();
+        let shapes_ttl = render_result_shapes(&root).expect("render_result_shapes");
+        let store = load_competency_store(&root).expect("load_competency_store");
+
+        // Find a real shape IRI that has at least one BindingRequired + TermKindIri
+        // column.  We read this from the corpus via `shapes()` rather than hard-coding
+        // an IRI, so the test stays robust when slices are added or renamed.
+        let projected = shapes(&store).expect("shapes()");
+        let (real_shape_iri, iri_col_var) = projected
+            .iter()
+            .find_map(|(shape_iri, cols)| {
+                cols.iter()
+                    .find(|c| c.kind == Kind::Iri && c.required)
+                    .map(|c| (shape_iri.clone(), c.var.clone()))
+            })
+            .expect(
+                "corpus must contain at least one BindingRequired TermKindIri column to plant against",
+            );
+
+        // Build a synthetic data store containing:
+        //   • the full real competency data (so the SPARQLTarget in the generated
+        //     shape can resolve `?cq gmeow:cqResultShape <real_shape_iri>`)
+        //   • one additional synthetic competency question linking the real shape
+        //   • one planted bad row that binds cellValueLiteral for an IRI column
+        //
+        // We use a fresh store rather than mutating the read-only `store`, loading
+        // everything from bytes so scoped blank-node allocation stays correct.
+        let plant_ns = "https://blackcatinformatics.ca/gmeow/examples/_planted_test/";
+        let planted_ttl = format!(
+            "\
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+@prefix plant: <{plant_ns}> .\n\
+plant:cq gmeow:cqResultShape <{real_shape_iri}> ; gmeow:cqExpectRow plant:badRow .\n\
+plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLiteral \"this-should-be-an-iri\" ] .\n\
+"
+        );
+
+        // Start from the real competency store data so the SPARQLTarget SELECT can
+        // also find the real `?cq gmeow:cqResultShape <real_shape_iri>` triples.
+        let combined = Store::new().unwrap();
+        for path in competency_files(&root).expect("competency_files") {
+            let bytes = std::fs::read(&path).unwrap();
+            turtle_bytes_into_store_scoped(&combined, &bytes, &path.display().to_string()).unwrap();
+        }
+        turtle_bytes_into_store_scoped(&combined, planted_ttl.as_bytes(), "planted").unwrap();
+
+        let shapes = parse_shapes(&shapes_ttl).expect("parse generated result-shapes");
+        let report = validate(&combined, &shapes);
+
+        let flagged: Vec<String> = report
+            .results
+            .iter()
+            .map(|r| r.focus_node.to_string())
+            .collect();
+
+        assert!(
+            flagged.iter().any(|f| f.contains("_planted_test/badRow")),
+            "the planted wrong-kind row must be flagged by the generated shapes; \
+             shape={real_shape_iri} col={iri_col_var}; flagged={flagged:?}"
+        );
+    }
+
     #[test]
     fn datatype_constraint_fires_and_passes() {
         // A literal column with logic:columnDatatype xsd:string must:
