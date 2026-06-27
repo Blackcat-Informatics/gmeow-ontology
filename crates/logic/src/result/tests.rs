@@ -137,6 +137,7 @@ fn neither_without_conclusive_fails_validate() {
         information: InformationState::Neither,
         provenance: prov(),
         payload: ResultPayload::Empty,
+        row_schema: None,
     };
     assert!(
         result.validate().is_err(),
@@ -169,6 +170,7 @@ fn both_without_witness_fails_validate() {
         information: InformationState::Both,
         provenance: prov(),
         payload: ResultPayload::Empty,
+        row_schema: None,
     };
     assert!(
         result.validate().is_err(),
@@ -189,6 +191,7 @@ fn both_proof_only_no_counterproof_fails_validate() {
         information: InformationState::Both,
         provenance: prov_with_proof,
         payload: ResultPayload::Empty,
+        row_schema: None,
     };
     assert!(
         result.validate().is_err(),
@@ -217,6 +220,7 @@ fn both_witness_only_no_proof_counterproof_validates() {
         information: InformationState::Both,
         provenance: prov_with_witness,
         payload: ResultPayload::Empty,
+        row_schema: None,
     };
     assert!(
         result.validate().is_ok(),

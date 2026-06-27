@@ -20,6 +20,8 @@
 # dsl/tests/MIGRATION-LEDGER.md).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/expertise/tests/> .
 @prefix exd:   <https://example.org/test/> .
 
@@ -28,7 +30,15 @@ ex:cqExpertProficiency a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/expertise-expert-python.rq" ;
     gmeow:cqDataFile "tests/fixtures/expertise-expert-python.ttl" ;
     gmeow:cqRationale "An agent holding an expert-level (Dreyfus/NIH/assessed) proficiency in a skill must be returned by the expert-proficiency query." ;
+    gmeow:cqResultShape ex:cqExpertProficiencyShape ;
     gmeow:cqExpectRow ex:expertRow .
+
+ex:cqExpertProficiencyShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "agent" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "skill" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "level" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:expertRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "agent" ; gmeow:cellValueIri exd:agent1 ] ;
@@ -40,7 +50,16 @@ ex:cqEndorsedVsSelfAsserted a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/expertise-endorsed-vs-self-asserted.rq" ;
     gmeow:cqDataFile "tests/fixtures/expertise-endorsed-vs-self-asserted.ttl" ;
     gmeow:cqRationale "Each SkillProficiency must be classified self-asserted when no third-party Attestation vouches for it (including a SELF attestation) and endorsed when an Attestation by a different agent exists." ;
+    gmeow:cqResultShape ex:cqEndorsedVsSelfAssertedShape ;
     gmeow:cqExpectRow ex:rowProfSelf, ex:rowProfEndorsed, ex:rowProfSelfAttested .
+
+ex:cqEndorsedVsSelfAssertedShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "proficiency" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "agent" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "skill" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "assertionKind" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:rowProfSelf a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "proficiency" ; gmeow:cellValueIri exd:profSelf ] ;
@@ -65,7 +84,16 @@ ex:cqEmploymentCredentials a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/expertise-employment-credentials.rq" ;
     gmeow:cqDataFile "tests/fixtures/expertise-employment-credentials.ttl" ;
     gmeow:cqRationale "An employment's occupation joined to the credentials that certify that occupation (and their issuers) must be retrievable." ;
+    gmeow:cqResultShape ex:cqEmploymentCredentialsShape ;
     gmeow:cqExpectRow ex:employmentRow .
+
+ex:cqEmploymentCredentialsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "employment" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "occupation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "credential" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "issuer" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:employmentRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "employment" ; gmeow:cellValueIri exd:emp1 ] ;

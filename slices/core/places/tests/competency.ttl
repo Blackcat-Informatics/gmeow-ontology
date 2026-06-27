@@ -9,13 +9,20 @@
 # omitted → contains-check). No Gap-1 universal — fixed term sets.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/tests/> .
 
 # ── Location kinds ────────────────────────────────────────────────────────────
 ex:cqLocationKinds a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/location-kinds.rq" ;
     gmeow:cqRationale "GMEOW must model the kinds of location it supports: the Location root plus Place, VirtualLocation, and StorageLocation." ;
+    gmeow:cqResultShape ex:cqLocationKindsShape ;
     gmeow:cqExpectRow ex:lkLocation, ex:lkPlace, ex:lkVirtualLocation, ex:lkStorageLocation .
+
+ex:cqLocationKindsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:lkLocation a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:Location ] .
@@ -30,7 +37,13 @@ ex:lkStorageLocation a gmeow:ExpectedRow ;
 ex:cqPlaceTypes a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/place-types.rq" ;
     gmeow:cqRationale "GMEOW must model place-type individuals across scales: country, city, room, premises." ;
+    gmeow:cqResultShape ex:cqPlaceTypesShape ;
     gmeow:cqExpectRow ex:ptCountry, ex:ptCity, ex:ptRoom, ex:ptPremises .
+
+ex:cqPlaceTypesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "placeType" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:ptCountry a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "placeType" ; gmeow:cellValueIri gmeow:placeTypeCountry ] .
@@ -45,7 +58,13 @@ ex:ptPremises a gmeow:ExpectedRow ;
 ex:cqStorageMedia a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/storage-media.rq" ;
     gmeow:cqRationale "GMEOW must model storage media including a cloud service and a physical disk." ;
+    gmeow:cqResultShape ex:cqStorageMediaShape ;
     gmeow:cqExpectRow ex:smCloudService, ex:smPhysicalDisk .
+
+ex:cqStorageMediaShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "medium" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:smCloudService a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:storageMediumCloudService ] .
@@ -56,7 +75,13 @@ ex:smPhysicalDisk a gmeow:ExpectedRow ;
 ex:cqPlaceProperties a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/place-properties.rq" ;
     gmeow:cqRationale "GMEOW must model the spatial properties of a place: containment, coordinates, geometry, and place-type assignment." ;
+    gmeow:cqResultShape ex:cqPlacePropertiesShape ;
     gmeow:cqExpectRow ex:ppContainedInPlace, ex:ppHasCoordinates, ex:ppHasGeometry, ex:ppPlaceType .
+
+ex:cqPlacePropertiesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "property" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:ppContainedInPlace a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:containedInPlace ] .

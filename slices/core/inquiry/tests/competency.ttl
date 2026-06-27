@@ -7,9 +7,19 @@
 # it pins cqExpectRowCount 0 — faithful to the source's `terms == set()`.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inquiry/tests/> .
 
 ex:cqResearchInquiries a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/research-inquiries.rq" ;
     gmeow:cqRationale "Over the asserted TBox there are no open research-inquiry instances, so the open-inquiries query returns the empty set." ;
+    gmeow:cqResultShape ex:cqResearchInquiriesShape ;
     gmeow:cqExpectRowCount 0 .
+
+ex:cqResearchInquiriesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "inquiry" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "theme" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "status" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 .

@@ -54,6 +54,27 @@ gmeow:CompetencyQuestionShape
         sh:message "CompetencyQuestion may have at most one gmeow:cqExactRows (xsd:boolean)"
     ] ;
     sh:property [
+        sh:path gmeow:cqResultShape ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "CompetencyQuestion may have at most one gmeow:cqResultShape (a logic:ResultShape IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:cqInputShape ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "CompetencyQuestion may have at most one gmeow:cqInputShape (a logic:ResultShape IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:cqConsumes ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "CompetencyQuestion may have at most one gmeow:cqConsumes (the upstream CompetencyQuestion IRI this question depends on)"
+    ] ;
+    sh:property [
         sh:path gmeow:cqReasoning ;
         sh:maxCount 1 ;
         sh:in ( gmeow:reasoningNone gmeow:reasoningRdfs ) ;

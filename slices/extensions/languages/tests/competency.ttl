@@ -9,13 +9,20 @@
 # Gap-1 universal — fixed term sets.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/languages/tests/> .
 
 # ── Language origins ──────────────────────────────────────────────────────────
 ex:cqLanguageOrigins a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/language-origins.rq" ;
     gmeow:cqRationale "GMEOW must model language origins: natural, AI-generated, programming, and constructed/engineered." ;
+    gmeow:cqResultShape ex:cqLanguageOriginsShape ;
     gmeow:cqExpectRow ex:loNatural, ex:loAiGenerated, ex:loProgramming, ex:loConstructedEngineered .
+
+ex:cqLanguageOriginsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "origin" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:loNatural a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "origin" ; gmeow:cellValueIri gmeow:originNatural ] .
@@ -30,7 +37,13 @@ ex:loConstructedEngineered a gmeow:ExpectedRow ;
 ex:cqWritingSystems a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/writing-systems.rq" ;
     gmeow:cqRationale "GMEOW must model script roles in mixed writing systems: logographic content, syllabic grammar, loanword, and transliteration." ;
+    gmeow:cqResultShape ex:cqWritingSystemsShape ;
     gmeow:cqExpectRow ex:wsLogographicContent, ex:wsSyllabicGrammar, ex:wsLoanword, ex:wsTransliteration .
+
+ex:cqWritingSystemsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "role" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:wsLogographicContent a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:scriptRoleLogographicContent ] .
@@ -45,7 +58,13 @@ ex:wsTransliteration a gmeow:ExpectedRow ;
 ex:cqProficiencyLevels a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/proficiency-levels.rq" ;
     gmeow:cqRationale "GMEOW must model language proficiency levels: the CEFR scale endpoints A1 and C2, plus native and heritage speaker levels." ;
+    gmeow:cqResultShape ex:cqProficiencyLevelsShape ;
     gmeow:cqExpectRow ex:plA1, ex:plC2, ex:plNative, ex:plHeritage .
+
+ex:cqProficiencyLevelsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "level" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:plA1 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "level" ; gmeow:cellValueIri gmeow:cefrA1 ] .

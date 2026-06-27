@@ -255,25 +255,47 @@ pub fn is_counterfactual(program: &QProgram) -> bool {
 /// Construct the counterfactual world declared by `program` and resolve its goal
 /// inside it, using a fresh cache. Convenience wrapper over
 /// [`construct_and_resolve_cached`].
+///
+/// `declared_row_schema`: when `Some`, the result's bindings are validated against
+/// the caller's declared schema and the schema is attached via
+/// [`crate::result::ReasoningResult::with_declared_row_schema`]. When `None`,
+/// behaviour is unchanged.
 pub fn construct_and_resolve(
     store: &WorldStore,
     program: &QProgram,
     profile: &str,
     budget: &Budget,
     depth: u64,
+    declared_row_schema: Option<crate::result_shape::ResultShape>,
 ) -> Result<CfAnswer, String> {
     let mut cache = CfCache::new();
-    construct_and_resolve_cached(store, program, profile, budget, depth, &mut cache)
+    construct_and_resolve_cached(
+        store,
+        program,
+        profile,
+        budget,
+        depth,
+        &mut cache,
+        declared_row_schema,
+    )
 }
 
 /// Construct + resolve with an explicit memoization `cache` (shared across nested
 /// constructions so repeated identical worlds are built once).
 ///
+/// `declared_row_schema`: when `Some`, the result's bindings are validated against
+/// the caller's declared schema and the schema is attached via
+/// [`crate::result::ReasoningResult::with_declared_row_schema`] as a post-step
+/// (after any cache lookup, so caching is unaffected). When `None`, behaviour is
+/// unchanged.
+///
 /// # Errors
 ///
 /// Returns `Err(String)` on a malformed declaration, an invalid world IRI, or an
-/// engine error. A genuine revision tie or a depth-budget trip are **not** errors:
-/// they are reported as [`CfStatus::Unknown`] / [`CfStatus::Incomplete`].
+/// engine error, including a [`crate::result_shape::ContractViolation`] when the
+/// declared schema does not match the result bindings. A genuine revision tie or a
+/// depth-budget trip are **not** errors: they are reported as
+/// [`CfStatus::Unknown`] / [`CfStatus::Incomplete`].
 pub fn construct_and_resolve_cached(
     store: &WorldStore,
     program: &QProgram,
@@ -281,6 +303,7 @@ pub fn construct_and_resolve_cached(
     budget: &Budget,
     depth: u64,
     cache: &mut CfCache,
+    declared_row_schema: Option<crate::result_shape::ResultShape>,
 ) -> Result<CfAnswer, String> {
     let cf = program
         .counterfactual
@@ -297,11 +320,14 @@ pub fn construct_and_resolve_cached(
             &cf_world,
             crate::result::ResultPayload::Bindings(vec![]),
         );
-        return Ok(CfAnswer {
-            bindings: vec![],
-            result,
-            cf_world,
-        });
+        return apply_schema(
+            CfAnswer {
+                bindings: vec![],
+                result,
+                cf_world,
+            },
+            declared_row_schema,
+        );
     }
 
     // (1) Read the entrenchment ordering and the base EDB.
@@ -335,7 +361,7 @@ pub fn construct_and_resolve_cached(
     });
     if let Some(cached) = cache.entries.get(&key) {
         cache.hits += 1;
-        return Ok(cached.clone());
+        return apply_schema(cached.clone(), declared_row_schema);
     }
     cache.misses += 1;
 
@@ -363,7 +389,7 @@ pub fn construct_and_resolve_cached(
             cf_world,
         };
         cache.entries.insert(key, r.clone());
-        return Ok(r);
+        return apply_schema(r, declared_row_schema);
     }
 
     // (5) Build each closest world (the cartesian product of per-slot choices) as
@@ -409,7 +435,23 @@ pub fn construct_and_resolve_cached(
         Some(mode) => combine_lewis(mode, per_world, cf_world),
     };
     cache.entries.insert(key, result.clone());
-    Ok(result)
+    apply_schema(result, declared_row_schema)
+}
+
+/// Apply an optional caller-declared `schema` to the `CfAnswer` as a post-step.
+/// The cache always stores the bare result; validation is the caller's declared
+/// contract applied after retrieval, so caching is unaffected.
+fn apply_schema(
+    mut answer: CfAnswer,
+    schema: Option<crate::result_shape::ResultShape>,
+) -> Result<CfAnswer, String> {
+    if let Some(s) = schema {
+        answer.result = answer
+            .result
+            .with_declared_row_schema(s)
+            .map_err(|v| v.to_string())?;
+    }
+    Ok(answer)
 }
 
 // ── Antecedent resolution ────────────────────────────────────────────────────
@@ -750,8 +792,9 @@ mod tests {
     #[test]
     fn construct_and_resolve_rejects_plain_program() {
         let store = WorldStore::new();
-        let err = construct_and_resolve(&store, &plain_program(), HORN, &Budget::default(), 4)
-            .unwrap_err();
+        let err =
+            construct_and_resolve(&store, &plain_program(), HORN, &Budget::default(), 4, None)
+                .unwrap_err();
         assert!(err.contains("non-counterfactual"), "got: {err}");
     }
 
@@ -776,7 +819,7 @@ mod tests {
              ?- ex:alert(ex:server, Z).\n",
         )
         .unwrap();
-        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4).unwrap();
+        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4, None).unwrap();
         assert_eq!(ans.status_str(), "ok", "ans: {ans:?}");
         assert_eq!(ans.bindings.len(), 1, "exactly one consequent: {ans:?}");
         assert_eq!(ans.bindings[0]["Z"], "<https://ex/fired>");
@@ -800,7 +843,7 @@ mod tests {
              ?- ex:status(ex:server, Z).\n",
         )
         .unwrap();
-        let _ = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4).unwrap();
+        let _ = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4, None).unwrap();
         // The base world still has exactly its original fact (status up), and the
         // constructed world W_cf never appears in the base store.
         let after = store.quads_in_world(BASE);
@@ -818,7 +861,7 @@ mod tests {
              ?- ex:status(ex:server, Z).\n",
         )
         .unwrap();
-        let ans = construct_and_resolve(&store, &prog2, HORN, &Budget::default(), 4).unwrap();
+        let ans = construct_and_resolve(&store, &prog2, HORN, &Budget::default(), 4, None).unwrap();
         assert_eq!(ans.bindings.len(), 1);
         assert_eq!(
             ans.bindings[0]["Z"], "<https://ex/down>",
@@ -841,7 +884,7 @@ mod tests {
              ?- ex:route(ex:traffic, Z).\n",
         )
         .unwrap();
-        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4).unwrap();
+        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4, None).unwrap();
         assert_eq!(ans.status_str(), "ok");
         assert_eq!(ans.bindings.len(), 1, "exactly one routed value: {ans:?}");
         assert_eq!(
@@ -864,7 +907,7 @@ mod tests {
              ?- ex:flag(ex:x, Z).\n",
         )
         .unwrap();
-        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4).unwrap();
+        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4, None).unwrap();
         assert_eq!(ans.status_str(), "unknown", "ambiguous tie must be unknown");
         assert!(ans.bindings.is_empty());
     }
@@ -881,7 +924,7 @@ mod tests {
              ?- ex:p(ex:s, Z).\n",
         )
         .unwrap();
-        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 0).unwrap();
+        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 0, None).unwrap();
         assert_eq!(ans.status_str(), "incomplete");
     }
 
@@ -903,12 +946,26 @@ mod tests {
         )
         .unwrap();
         let mut cache = CfCache::new();
-        let a =
-            construct_and_resolve_cached(&store, &prog, HORN, &Budget::default(), 4, &mut cache)
-                .unwrap();
-        let b =
-            construct_and_resolve_cached(&store, &prog, HORN, &Budget::default(), 4, &mut cache)
-                .unwrap();
+        let a = construct_and_resolve_cached(
+            &store,
+            &prog,
+            HORN,
+            &Budget::default(),
+            4,
+            &mut cache,
+            None,
+        )
+        .unwrap();
+        let b = construct_and_resolve_cached(
+            &store,
+            &prog,
+            HORN,
+            &Budget::default(),
+            4,
+            &mut cache,
+            None,
+        )
+        .unwrap();
         assert_eq!(a, b, "identical construction must yield identical answers");
         assert_eq!(cache.misses(), 1, "first call is a miss");
         assert_eq!(cache.hits(), 1, "second identical call is a hit");
@@ -995,6 +1052,7 @@ mod tests {
             LEWIS_SKEPTICAL,
             &Budget::default(),
             4,
+            None,
         )
         .unwrap();
         assert_eq!(ans.status_str(), "ok");
@@ -1015,6 +1073,7 @@ mod tests {
             LEWIS_CREDULOUS,
             &Budget::default(),
             4,
+            None,
         )
         .unwrap();
         assert_eq!(ans.status_str(), "ok");
@@ -1049,7 +1108,8 @@ mod tests {
         )
         .unwrap();
         let ans =
-            construct_and_resolve(&store, &prog, LEWIS_SKEPTICAL, &Budget::default(), 4).unwrap();
+            construct_and_resolve(&store, &prog, LEWIS_SKEPTICAL, &Budget::default(), 4, None)
+                .unwrap();
         assert_eq!(
             ans.status_str(),
             "incomplete",
@@ -1075,9 +1135,96 @@ mod tests {
         )
         .unwrap();
         let ans =
-            construct_and_resolve(&store, &prog, LEWIS_CREDULOUS, &Budget::default(), 4).unwrap();
+            construct_and_resolve(&store, &prog, LEWIS_CREDULOUS, &Budget::default(), 4, None)
+                .unwrap();
         assert_eq!(ans.status_str(), "ok");
         assert_eq!(ans.bindings.len(), 1);
         assert_eq!(ans.bindings[0]["Z"], "<https://ex/down>");
+    }
+
+    // ── row_schema facet: declared schema is validated and attached ────────────
+
+    /// A matching schema: the result binds IRI-valued `Z`; the schema declares
+    /// `Required Iri` for `Z`. Schema is attached and `row_schema.is_some()`.
+    #[test]
+    fn declared_schema_matching_attaches_row_schema() {
+        use gmeow_logic_compile::result_shape::{
+            ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality,
+        };
+
+        let store = WorldStore::new();
+        store.insert_quad(
+            BASE,
+            "https://ex/server",
+            "https://ex/status",
+            "https://ex/up",
+        );
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:status(ex:server, ex:down)).\n\
+             ?- ex:status(ex:server, Z).\n",
+        )
+        .unwrap();
+
+        // Declare: one Required IRI column `Z`, any number of rows.
+        let schema = ResultShape::new(
+            vec![ResultColumn {
+                var: "Z".to_owned(),
+                kind: ColumnKind::Iri,
+                binding: ColumnBinding::Required,
+            }],
+            RowCardinality::Contains,
+        );
+
+        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4, Some(schema))
+            .unwrap();
+        assert_eq!(ans.status_str(), "ok");
+        assert_eq!(ans.bindings.len(), 1);
+        assert!(
+            ans.result.row_schema.is_some(),
+            "row_schema must be attached when a declared schema matches"
+        );
+    }
+
+    /// A mismatching schema: the result binds IRI-valued `Z`; the schema declares
+    /// `Required BlankNode` for `Z`. Must return Err (ContractViolation propagated).
+    #[test]
+    fn declared_schema_mismatch_returns_err() {
+        use gmeow_logic_compile::result_shape::{
+            ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality,
+        };
+
+        let store = WorldStore::new();
+        store.insert_quad(
+            BASE,
+            "https://ex/server",
+            "https://ex/status",
+            "https://ex/up",
+        );
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:status(ex:server, ex:down)).\n\
+             ?- ex:status(ex:server, Z).\n",
+        )
+        .unwrap();
+
+        // Declare: `Z` must be a blank-node — but the binding is an IRI → mismatch.
+        let schema = ResultShape::new(
+            vec![ResultColumn {
+                var: "Z".to_owned(),
+                kind: ColumnKind::BlankNode,
+                binding: ColumnBinding::Required,
+            }],
+            RowCardinality::Contains,
+        );
+
+        let err = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4, Some(schema))
+            .unwrap_err();
+        assert!(
+            err.contains("result-shape violation"),
+            "ContractViolation must be propagated as Err: {err}"
+        );
     }
 }

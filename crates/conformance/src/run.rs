@@ -604,8 +604,9 @@ fn resolve_query(
     // Probabilistic profile (#506): weighted model counting; each binding carries a
     // `probability`. This is the only path that emits that key.
     if gmeow_logic::profile_gate::is_probabilistic_profile(profile_str) {
-        let answer = gmeow_logic::probabilistic::evaluate(&store, &world, &program, profile_str)
-            .map_err(err)?;
+        let answer =
+            gmeow_logic::probabilistic::evaluate(&store, &world, &program, profile_str, None)
+                .map_err(err)?;
         let bindings: Vec<serde_json::Value> = answer
             .bindings
             .iter()
@@ -643,6 +644,7 @@ fn resolve_query(
                 profile_str,
                 &budget,
                 depth,
+                None,
             )
             .map_err(err)?;
             let status = cf.status_str().to_string();

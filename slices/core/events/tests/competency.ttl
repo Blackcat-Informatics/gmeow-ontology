@@ -9,12 +9,19 @@
 # to an exact closed set). No Gap-1 universal.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/events/tests/> .
 
 ex:cqLifeEvents a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/life-events.rq" ;
     gmeow:cqRationale "GMEOW must model life-event types as eventType VALUE individuals: birth, death, marriage, burial, census, adoption (among the full genealogical set)." ;
+    gmeow:cqResultShape ex:cqLifeEventsShape ;
     gmeow:cqExpectRow ex:leBirth, ex:leDeath, ex:leMarriage, ex:leBurial, ex:leCensus, ex:leAdoption .
+
+ex:cqLifeEventsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "eventType" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:leBirth a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "eventType" ; gmeow:cellValueIri gmeow:eventTypeBirth ] .

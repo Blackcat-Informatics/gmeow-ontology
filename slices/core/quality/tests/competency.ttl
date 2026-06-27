@@ -15,9 +15,17 @@
 # .rq keeps that dynamic universal intact.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/quality/tests/> .
 
 ex:cqMissingDefinitions a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/qc/missing-definitions.rq" ;
     gmeow:cqRationale "Every gmeow: owl:Class must carry a skos:definition; the QC query that finds undefined classes must return the empty set over the asserted merged ontology." ;
+    gmeow:cqResultShape ex:cqMissingDefinitionsShape ;
     gmeow:cqExpectRowCount 0 .
+
+ex:cqMissingDefinitionsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "class" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 .

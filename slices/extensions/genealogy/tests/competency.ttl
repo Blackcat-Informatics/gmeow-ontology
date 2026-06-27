@@ -6,12 +6,19 @@
 # asserted merged ontology (contains-check).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/genealogy/tests/> .
 
 ex:cqKinship a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/kinship.rq" ;
     gmeow:cqRationale "GMEOW must model the core kinship relationships: hasParent, hasChild, hasSpouse, hasSibling." ;
+    gmeow:cqResultShape ex:cqKinshipShape ;
     gmeow:cqExpectRow ex:kHasParent, ex:kHasChild, ex:kHasSpouse, ex:kHasSibling .
+
+ex:cqKinshipShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "relationship" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:kHasParent a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "relationship" ; gmeow:cellValueIri gmeow:hasParent ] .
