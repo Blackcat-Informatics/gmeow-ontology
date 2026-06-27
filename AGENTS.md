@@ -262,14 +262,22 @@ what is off-gate is the **`default-filter` expression in `.config/nextest.toml`*
 every excluded group is justified by an inline comment there. Adding a new off-gate
 exception requires a comment in that filter AND a one-line entry here.
 
-Default off-gate groups (2026-06-26, #1045): the `gmeow-docs`
+Default off-gate groups (2026-06-27, #1045): the `gmeow-docs`
 render/competency/extract/lint/i18n/model binaries (each rebuilds the full
 `DocsModel` per test — a shared-fixture cache is the tracked fix that brings them
-back on-gate); `gmeow-logic::ontology_entailments` (Nemo RL); the
+back on-gate); `gmeow-logic::ontology_entailments` (Nemo RL); the `gmeow-logic`
+`sparql_path_parity` binary + `sparql_path_lower::tests` module (#914 S8 property
+paths — every case drives `run_scryer`, paying a ~9-10 s Scryer
+machine-construction floor that process-per-test cannot share; several reach
+19-34 s; engine-construction-bound like `ontology_entailments`); the
 `gmeow-pipeline` `end_to_end`/`fold_parity`/full-fold/snapshot-codec/mapping-parity
 /scoreboards-acceptance tests; a Nemo conformance case; a few whole-ontology
 `gmeow-slice`/`gmeow-slicetest` emit/closure checks; the off-gate corpus parity
-query; `gmeow-rdf-capi::c_smoke` (self-builds the libpurrdf cdylib, ~33 s cold
+queries (`OFF_GATE_HEAVY` in `crates/rdf/tests/sparql_eval_parity.rs` — now six:
+the `class-without-stereotype` anti-join, the ~107 s `ontolex` projection outlier,
+and the heaviest generated CONSTRUCT projections `schema-org`/`vcard`/`foaf`/
+`missing-definitions` whose per-shard aggregate × CI slowdown blew the budget);
+`gmeow-rdf-capi::c_smoke` (self-builds the libpurrdf cdylib, ~33 s cold
 compile on CI — build-time-bound, already covered by the dedicated `capi` CI job);
 and `w3c_rdfc10_heavy_offgate` (the sole RDFC-1.0 negative/poison vector `test074`,
 ~5.3 s on the call-budget guard — the rest of the W3C suite is sharded+gated, each

@@ -315,10 +315,10 @@ const CORPUS_MIN_TOTAL: usize = 141;
 //
 // The original whole-corpus green guard was `CORPUS_MIN_GREEN = 113` (observed 115).
 // It is now expressed as per-shard floors (the gated subset) plus
-// [`OFF_GATE_HEAVY_MIN_GREEN`]: `36 + 24 + 26 + 24` (= 110) `+ 1` = a **111**
-// whole-corpus floor — deliberately 2 below the prior 113, the same one-below-each
-// drift margin the per-shard floors use (observed total 115). Not a coverage
-// regression; just a slightly looser floor expressed shard-locally.
+// [`OFF_GATE_HEAVY_MIN_GREEN`]: `39 + 31 + 29 + 29` (= 128) `+ 6` = a **134**
+// whole-corpus floor (observed total 138 on 2026-06-27 — the corpus grew, and five
+// heavy projection queries moved to OFF_GATE_HEAVY, see below). Same one-below-each
+// drift margin the per-shard floors use; expressed shard-locally.
 
 /// How many independent shard tests the gated corpus parity sweep is split across.
 const NUM_SHARDS: usize = 4;
@@ -327,11 +327,12 @@ const NUM_SHARDS: usize = 4;
 /// Sharding is by a STABLE hash of each query's repo-relative path (not its position
 /// in the sorted corpus), so a given file stays in the same shard as the corpus
 /// grows — which keeps these per-shard minimums valid when queries are added.
-/// Observed gated greens on 2026-06-26: `[37, 25, 27, 25]` (sum 114); floors set one
-/// below each for drift margin. With [`OFF_GATE_HEAVY_MIN_GREEN`] (1) the whole-corpus
-/// green floor is 111 (observed total 115). Raising scope (fixing a DEFERRED construct)
-/// MUST raise the affected shard's floor and this comment.
-const CORPUS_MIN_GREEN_PER_SHARD: [usize; NUM_SHARDS] = [36, 24, 26, 24];
+/// Observed gated greens on 2026-06-27: `[40, 32, 30, 30]` (sum 132); floors set one
+/// below each for drift margin. With [`OFF_GATE_HEAVY_MIN_GREEN`] (6) the whole-corpus
+/// green floor is 134 (observed total 138). Raising scope (fixing a DEFERRED construct)
+/// MUST raise the affected shard's floor and this comment; moving a query into
+/// [`OFF_GATE_HEAVY`] lowers the affected shard's observed green (re-measure and reset).
+const CORPUS_MIN_GREEN_PER_SHARD: [usize; NUM_SHARDS] = [39, 31, 29, 29];
 
 /// Stable FNV-1a hash of a query's repo-relative path → shard id. Stable across
 /// machines/worktrees (the key is repo-relative, not absolute) and across corpus
@@ -407,24 +408,48 @@ fn corpus_inventory_floor() {
     );
 }
 
-/// Queries whose NATIVE evaluation is known-pathological on the real ontology and
-/// therefore cannot meet the 25 s always-on per-test budget (#1045). They keep their
-/// full native-vs-oxigraph parity coverage in the OFF-GATE [`corpus_parity_heavy_offgate`]
-/// test (maint lane), not on the per-commit gate.
+/// Queries whose NATIVE evaluation is heavy enough on the real ontology that they
+/// cannot meet the 25 s always-on per-test budget (#1045) — either a single query that
+/// alone blows the budget, or a heavy generated-projection CONSTRUCT that, aggregated
+/// onto its hash-assigned shard, tips that shard over budget under CI contention. They
+/// keep their full native-vs-oxigraph parity coverage in the OFF-GATE
+/// [`corpus_parity_heavy_offgate`] test (maint lane), not on the per-commit gate.
 ///
-/// Current entry: `queries/verify/class-without-stereotype.rq` — a `FILTER NOT EXISTS`
-/// anti-join over every `owl:Class`. oxigraph evaluates it in ~5 ms; the native
-/// `gmeow-sparql-eval` engine takes ~44 s (un-indexed nested-loop NOT EXISTS). Tracked
-/// as a native-engine performance gap; remove from this list once the engine indexes
-/// the anti-join (then it rejoins the gated shards automatically).
+/// Entries (native times measured 2026-06-27 on the dev box; CI is ~5× slower under
+/// shard contention, which is what actually trips the gate):
+///   - `queries/verify/class-without-stereotype.rq` — `FILTER NOT EXISTS` anti-join over
+///     every `owl:Class`; oxigraph ~5 ms, native ~44 s (un-indexed nested-loop NOT EXISTS).
+///   - `generated/queries/ontolex.rq` — GMEOW→ontolex projection CONSTRUCT; native ~107 s
+///     (the single dominant outlier — by itself it pushed its shard past the 120 s
+///     terminate cliff). Landed after the original sharding was tuned, so the design's
+///     "~8 s remainder" estimate no longer held.
+///   - `queries/qc/missing-definitions.rq` — ~2.2 s.
+///   - `generated/queries/schema-org.rq` — ~1.6 s (a 1250-line projection CONSTRUCT).
+///   - `generated/queries/vcard.rq` — ~1.1 s.
+///   - `generated/queries/foaf.rq` — ~1.0 s.
+///
+/// The last four are the heaviest generated CONSTRUCT projections; `schema-org`/`vcard`/
+/// `foaf` all hash into the same shard (shard 1), whose aggregate ~5.5 s × CI ~5× = ~34 s
+/// blew the budget. Carving them out keeps every gated shard well under budget with
+/// headroom. All are tracked as native-engine performance gaps; remove from this list as
+/// the engine speeds up (anti-join indexing / projection planning) and they rejoin the
+/// gated shards automatically.
 ///
 /// Paths are repo-relative (the same key as [`shard_of`]).
-const OFF_GATE_HEAVY: &[&str] = &["queries/verify/class-without-stereotype.rq"];
+const OFF_GATE_HEAVY: &[&str] = &[
+    "queries/verify/class-without-stereotype.rq",
+    "generated/queries/ontolex.rq",
+    "queries/qc/missing-definitions.rq",
+    "generated/queries/schema-org.rq",
+    "generated/queries/vcard.rq",
+    "generated/queries/foaf.rq",
+];
 
 /// Green floor for the off-gate-heavy subset. Equal to the number of in-scope
-/// (parity-matched) entries in [`OFF_GATE_HEAVY`]; observed 1 on 2026-06-26
-/// (`class-without-stereotype` is an in-scope SELECT that matches oxigraph).
-const OFF_GATE_HEAVY_MIN_GREEN: usize = 1;
+/// (parity-matched) entries in [`OFF_GATE_HEAVY`]; observed 6 on 2026-06-27 (all six
+/// entries are in-scope queries that match oxigraph — the five CONSTRUCT projections
+/// plus the `class-without-stereotype` SELECT).
+const OFF_GATE_HEAVY_MIN_GREEN: usize = 6;
 
 /// True if `rel_path` (repo-relative, using `/` separators) is an off-gate-heavy query.
 fn is_off_gate_heavy(rel_path: &str) -> bool {
