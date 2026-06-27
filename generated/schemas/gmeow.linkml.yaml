@@ -6546,7 +6546,7 @@ slots:
     title: evaluates
     range: ClaimToken
     domain: ClaimEvaluation
-    multivalued: true
+    multivalued: false
   evaluationVerdict:
     slot_uri: https://blackcatinformatics.ca/gmeow/evaluationVerdict
     title: evaluation verdict

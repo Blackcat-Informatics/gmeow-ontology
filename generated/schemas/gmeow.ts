@@ -3550,7 +3550,7 @@ export interface CitationIntent {
 }
 
 export interface ClaimEvaluation extends ClaimToken {
-    evaluates?: ClaimToken[],
+    evaluates?: ClaimToken,
 }
 
 export interface ClaimToken extends Activity {

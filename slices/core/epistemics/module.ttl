@@ -308,7 +308,8 @@ gmeow:epistemicAgent
     gmeow:useWhen "Use to bind a DoxasticState to the agent whose believing mode it is."@x-gmeow-english .
 
 gmeow:evaluates
-    a owl:ObjectProperty ;
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
     rdfs:domain gmeow:ClaimEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "evaluates"@x-gmeow-english ;

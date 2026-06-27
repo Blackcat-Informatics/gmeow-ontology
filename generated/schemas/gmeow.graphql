@@ -3712,7 +3712,7 @@ type CitationIntent {
 type ClaimEvaluation {
   id: String
   iri: String
-  evaluates: [ClaimToken!]
+  evaluates: ClaimToken
 }
 
 type ClaimToken {

@@ -4035,7 +4035,7 @@ class ClaimToken(Activity):
 class ClaimEvaluation(ClaimToken):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ClaimEvaluation"
     is_a: ClassVar[str] = "ClaimToken"
-    evaluates: list[ClaimToken] | None = Field(default=None)
+    evaluates: ClaimToken | None = Field(default=None)
 
 
 class ClaimVeridicality(ConfiguredBaseModel):
