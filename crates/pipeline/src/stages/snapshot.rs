@@ -731,7 +731,7 @@ impl Stage for SnapshotStage {
         // (REP_AXIOMS) so a repo-free `gmeow validate` is self-sufficient (#746).
         // v10 wires the orphaned REP_REASONING reader to a writer: folds the native
         // reasoner's explanation + DL/EL cross-check ledger reports from stage-reason's
-        // in-memory product (#667, wired #746). v11 folds the compiler's projection-report
+        // in-memory product routed through the first-class-output rail. v11 folds the compiler's projection-report
         // loss ledger as the projection-ledger named graph, unions the logic-compile
         // diagnostics into the diagnostics graph, and sources REP_AXIOMS from the
         // in-memory stage-compile-logic product (single-pass freshness).
@@ -748,7 +748,7 @@ impl Stage for SnapshotStage {
         // The folded shape surface (REP_SHAPES) is read from disk in
         // `build_archive_blobs`; declare it so a shape edit busts this stage and re-folds
         // the bundle — otherwise a changed shape could ship a stale gmeow.gts (cache
-        // soundness, #746). The compiled axiom surface (REP_AXIOMS) is now sourced from
+        // soundness). The compiled axiom surface (REP_AXIOMS) is now sourced from
         // the consumed `stage-compile-logic` product, whose digest already covers a logic
         // source change, so the AXIOM_FILES are no longer declared here.
         files.extend(list_files(&root.join("shapes"), "ttl")?);

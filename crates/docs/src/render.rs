@@ -1174,7 +1174,7 @@ fn md_logic_index(model: &DocsModel) -> String {
     out
 }
 
-// ── Logic compiler products (#733 surface) ───────────────────────────────────
+// ── Logic compiler products ───────────────────────────────────────────────────
 //
 // The `logic:` compiler turns one canonical program into every projection
 // target; four information products fall out of that compile. Each gets a
