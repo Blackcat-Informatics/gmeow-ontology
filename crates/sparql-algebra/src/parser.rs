@@ -1026,8 +1026,23 @@ impl Parser {
         let mut triples: Vec<TriplePattern> = Vec::new();
         let mut paths: Vec<GraphPattern> = Vec::new();
         loop {
-            let subject = self.parse_term_pattern()?;
-            self.parse_predicate_object_list(&subject, &mut triples, &mut paths)?;
+            // The subject may be a blank-node property list `[ p o ; … ]`, which
+            // emits its own triples and yields a fresh blank node.
+            let (subject, from_bnpl) = if self.at(&Token::LBracket) {
+                (
+                    self.parse_blank_node_property_list(&mut triples, &mut paths)?,
+                    true,
+                )
+            } else {
+                (self.parse_term_pattern()?, false)
+            };
+            // A standalone `[ … ] .` needs no following predicate-object list (its
+            // triples are already emitted); any other subject requires one.
+            let standalone = from_bnpl
+                && (self.at(&Token::Dot) || self.at(&Token::RBrace) || self.block_boundary());
+            if !standalone {
+                self.parse_predicate_object_list(&subject, &mut triples, &mut paths)?;
+            }
             if !self.eat(&Token::Dot) {
                 break;
             }
@@ -1041,6 +1056,22 @@ impl Parser {
             g = join(g, path);
         }
         Ok(g)
+    }
+
+    /// Parse a blank-node property list `[ predicate object … ]` (RDF 1.1 §4.2,
+    /// SPARQL §19.6). Mints a fresh blank node, emits the embedded triples into
+    /// the current block's `triples`/`paths`, and returns the blank node as a term
+    /// for use in subject or object position.
+    fn parse_blank_node_property_list(
+        &mut self,
+        triples: &mut Vec<TriplePattern>,
+        paths: &mut Vec<GraphPattern>,
+    ) -> Result<TermPattern> {
+        self.expect(&Token::LBracket)?;
+        let node = TermPattern::BlankNode(self.fresh_anon());
+        self.parse_predicate_object_list(&node, triples, paths)?;
+        self.expect(&Token::RBracket)?;
+        Ok(node)
     }
 
     /// True when the next token starts a non-triples element of a group.
@@ -1075,7 +1106,12 @@ impl Parser {
             };
             // object list
             loop {
-                let object = self.parse_term_pattern()?;
+                // An object may itself be a blank-node property list `[ … ]`.
+                let object = if self.at(&Token::LBracket) {
+                    self.parse_blank_node_property_list(triples, paths)?
+                } else {
+                    self.parse_term_pattern()?
+                };
                 match &verb {
                     Verb::Simple(pred) => triples.push(TriplePattern {
                         subject: subject.clone(),
@@ -1095,8 +1131,13 @@ impl Parser {
             if !self.eat(&Token::Semicolon) {
                 break;
             }
-            // allow a trailing `;` before `.`/`}`
-            if self.at(&Token::Dot) || self.at(&Token::RBrace) || self.block_boundary() {
+            // allow a trailing `;` before `.`/`}`/`]` (the last closes a
+            // blank-node property list).
+            if self.at(&Token::Dot)
+                || self.at(&Token::RBrace)
+                || self.at(&Token::RBracket)
+                || self.block_boundary()
+            {
                 break;
             }
         }
@@ -3350,5 +3391,42 @@ mod tests {
             matches!(err, ParseError::Unsupported(_)),
             "expected Unsupported for nested aggregate, got {err:?}"
         );
+    }
+
+    // ── blank-node property lists (S6b #928, unblocks W3C subquery tests) ─────
+
+    /// Count the triples in a (possibly Join-wrapped) BGP-only WHERE body.
+    fn bgp_triple_count(p: &GraphPattern) -> usize {
+        match p {
+            GraphPattern::Bgp { patterns } => patterns.len(),
+            GraphPattern::Join { left, right } => bgp_triple_count(left) + bgp_triple_count(right),
+            _ => 0,
+        }
+    }
+
+    #[test]
+    fn blank_node_property_list_in_object_position() {
+        // `?o :hasItem [ rdfs:label ?l ]` → two triples: (?o :hasItem _:b) and
+        // (_:b rdfs:label ?l), with a fresh blank node linking them.
+        let q = format!("{GM}SELECT * WHERE {{ ?o gmeow:hasItem [ rdfs:label ?l ] }}");
+        let body = unproject(select_pattern(&q));
+        assert_eq!(bgp_triple_count(&body), 2, "got {body:?}");
+    }
+
+    #[test]
+    fn blank_node_property_list_standalone_subject() {
+        // `[ :p ?o ] .` is a valid standalone subject — one triple (_:b :p ?o).
+        let q = format!("{GM}SELECT * WHERE {{ [ gmeow:p ?o ] . }}");
+        let body = unproject(select_pattern(&q));
+        assert_eq!(bgp_triple_count(&body), 1, "got {body:?}");
+    }
+
+    #[test]
+    fn blank_node_property_list_multiple_predicates() {
+        // `[ :a 1 ; :b 2 ]` emits two triples sharing the fresh blank node.
+        let q = format!("{GM}SELECT * WHERE {{ ?s gmeow:has [ gmeow:a 1 ; gmeow:b 2 ] }}");
+        let body = unproject(select_pattern(&q));
+        // (?s :has _:b), (_:b :a 1), (_:b :b 2) = three triples.
+        assert_eq!(bgp_triple_count(&body), 3, "got {body:?}");
     }
 }
