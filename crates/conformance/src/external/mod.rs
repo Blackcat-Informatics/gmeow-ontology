@@ -25,11 +25,13 @@
 //! that exceed the native fragment are the Lane-B (`make maint-classic-cross-check`)
 //! destination, vendored by X2–X5 on top of the convention established here.
 
+pub mod corpus;
 pub mod lower;
 pub mod manifest;
 pub mod status;
 pub mod szs;
 
+pub use corpus::{audit_vendorable, load_corpus_meta, parse_corpus_meta, CorpusMeta, Lane};
 pub use lower::{lower_consistency_inputs, runner_verdict_json, LoweredInputs};
 pub use manifest::{parse_entailment_manifest, EntailmentKind, ManifestEntry};
 pub use status::{outcome_for_szs, ExternalOutcome};
