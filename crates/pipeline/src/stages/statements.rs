@@ -547,8 +547,8 @@ mod tests {
     fn multiple_reifiers_per_statement_emit_one_axiom_each() {
         // RDF 1.2: one proposition (the base triple) may carry several reifiers —
         // several claim tokens. Each reifier becomes its own owl:Axiom reifying the
-        // shared triple. (ME4 prereq: the single-reifier cap is relaxed.)
-        let tmp = tempfile::tempdir().expect("tempdir");
+        // shared triple, now that the single-reifier cap is relaxed.
+        let tmp = tempfile::tempdir_in(env!("CARGO_MANIFEST_DIR")).expect("tempdir");
         let dsl = tmp.path().join("dsl").join("statements");
         std::fs::create_dir_all(&dsl).expect("dsl dir");
         std::fs::write(
