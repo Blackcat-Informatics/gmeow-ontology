@@ -152,7 +152,7 @@ fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> Result<String, String> {
         .map_err(|e| format!("`{REP_SHAPES}` blob decode error: {e}"))?
         .to_vec();
 
-    let mut members = untar(&tar)?;
+    let mut members = gmeow_rdf::ustar::read_archive(&tar)?;
     // Deterministic concatenation order regardless of archive member order.
     members.sort_by(|a, b| a.0.cmp(&b.0));
 
@@ -181,57 +181,6 @@ fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> Result<String, String> {
     Ok(ttl)
 }
 
-/// Minimal reader for the byte-deterministic USTAR archive the snapshot stage
-/// writes: per-member 512-byte header + 512-padded body, terminated by zero
-/// blocks. Handles the GNU `'L'` (`LongLink`) record the writer emits for member
-/// names longer than 100 bytes. Returns regular-file members as `(name, bytes)`.
-fn untar(tar: &[u8]) -> Result<Vec<(String, Vec<u8>)>, String> {
-    let mut out: Vec<(String, Vec<u8>)> = Vec::new();
-    let mut i = 0usize;
-    let mut long_name: Option<String> = None;
-
-    while i + 512 <= tar.len() {
-        let header = &tar[i..i + 512];
-        if header.iter().all(|&b| b == 0) {
-            break; // trailing zero block(s) — end of archive
-        }
-        let typeflag = header[156];
-        let size = parse_octal(&header[124..136])
-            .ok_or_else(|| "USTAR archive: unreadable size field".to_string())?;
-        i += 512;
-        let body_end = i
-            .checked_add(size)
-            .filter(|end| *end <= tar.len())
-            .ok_or_else(|| "USTAR archive: member body overruns archive".to_string())?;
-        let body = &tar[i..body_end];
-        // Advance past the 512-padded body.
-        i = body_end + (512 - size % 512) % 512;
-
-        match typeflag {
-            b'L' => {
-                // GNU LongLink: the body is the full path, NUL-terminated.
-                let name = String::from_utf8_lossy(body)
-                    .trim_end_matches('\0')
-                    .to_string();
-                long_name = Some(name);
-            }
-            b'0' | 0 => {
-                let name = long_name.take().unwrap_or_else(|| {
-                    let nb = &header[0..100];
-                    let end = nb.iter().position(|&b| b == 0).unwrap_or(nb.len());
-                    String::from_utf8_lossy(&nb[..end]).to_string()
-                });
-                out.push((name, body.to_vec()));
-            }
-            _ => {
-                // Non-file records (other than LongLink) are not emitted by the
-                // writer; skip defensively without consuming a pending long name.
-            }
-        }
-    }
-    Ok(out)
-}
-
 /// Read a text-valued field out of a CBOR map (`ciborium::value::Value::Map`),
 /// matching the string key `key`. Returns `None` for a non-map value or a
 /// missing/non-text field.
@@ -252,37 +201,9 @@ fn cbor_text_field<'a>(meta: &'a ciborium::value::Value, key: &str) -> Option<&'
     None
 }
 
-/// Parse a NUL/space-padded octal USTAR numeric field.
-fn parse_octal(field: &[u8]) -> Option<usize> {
-    let s: String = field
-        .iter()
-        .map(|&b| b as char)
-        .take_while(|c| *c != '\0' && *c != ' ')
-        .collect();
-    let trimmed = s.trim();
-    if trimmed.is_empty() {
-        return Some(0);
-    }
-    usize::from_str_radix(trimmed, 8).ok()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn parse_octal_reads_zero_padded_nul_terminated_field() {
-        // The snapshot writer emits right-justified, zero-padded octal + NUL.
-        let mut field = [0u8; 12];
-        let octal = b"00000000142"; // 0o142 == 98
-        field[..octal.len()].copy_from_slice(octal);
-        assert_eq!(parse_octal(&field), Some(0o142));
-    }
-
-    #[test]
-    fn parse_octal_empty_field_is_zero() {
-        assert_eq!(parse_octal(&[0u8; 12]), Some(0));
-    }
 
     #[test]
     fn is_json_ld_matches_ids_and_media_type() {
@@ -310,29 +231,5 @@ mod tests {
         assert_eq!(cbor_text_field(&meta, "rep"), Some("shapes-archive"));
         assert_eq!(cbor_text_field(&meta, "absent"), None);
         assert_eq!(cbor_text_field(&Value::Null, "rep"), None);
-    }
-
-    #[test]
-    fn untar_round_trips_a_minimal_archive() {
-        // A 1-record USTAR archive: header (name + octal size + '0' typeflag) +
-        // 512-padded body + two trailing zero blocks. Mirrors the snapshot writer.
-        let name = b"shapes/x.ttl";
-        let body = b"@prefix ex: <https://example.org/> .\n";
-        let mut header = [0u8; 512];
-        header[..name.len()].copy_from_slice(name);
-        let size_field = format!("{:011o}\0", body.len());
-        header[124..136].copy_from_slice(size_field.as_bytes());
-        header[156] = b'0';
-
-        let mut tar = Vec::new();
-        tar.extend_from_slice(&header);
-        tar.extend_from_slice(body);
-        tar.extend(std::iter::repeat_n(0u8, (512 - body.len() % 512) % 512));
-        tar.extend(std::iter::repeat_n(0u8, 1024));
-
-        let members = untar(&tar).expect("untar");
-        assert_eq!(members.len(), 1);
-        assert_eq!(members[0].0, "shapes/x.ttl");
-        assert_eq!(members[0].1, body);
     }
 }
