@@ -36,54 +36,20 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 // ── Tests migrated from tests/test_events.py ─────────────────────────────────
 
-/// `test_wellformed_participation_conforms` — the `participation-wellformed`
-/// fixture (a Participation mediating exactly one event and one participant,
-/// with a suppressed correction) must pass SHACL.
-///
-/// Mirrors:
-/// ```python
-/// def test_wellformed_participation_conforms() -> None:
-///     result = run_shacl(_fixture("participation-wellformed"))
-///     assert result.ok, "\n".join(result.errors)
-/// ```
-#[test]
-fn wellformed_participation_conforms() {
-    let nt = fixture_as_nt("shapes", "participation-wellformed");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "well-formed Participation fixture must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_malformed_participation_is_flagged` — the `participation-malformed`
-/// fixture (Participation without event, Participation without participant)
-/// must fail SHACL with a violation mentioning `participationEvent` or
-/// `participationParticipant`.
-///
-/// Mirrors:
-/// ```python
-/// def test_malformed_participation_is_flagged() -> None:
-///     result = run_shacl(_fixture("participation-malformed"))
-///     assert not result.ok
-///     joined = "\n".join(result.errors)
-///     assert "participationEvent" in joined or "participationParticipant" in joined
-/// ```
-#[test]
-fn malformed_participation_is_flagged() {
-    let nt = fixture_as_nt("shapes", "participation-malformed");
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "malformed Participation fixture must fail SHACL"
-    );
-    let joined = violations(&report).join("\n");
-    assert!(
-        joined.contains("participationEvent") || joined.contains("participationParticipant"),
-        "violation message must mention participationEvent or participationParticipant; got: {joined:?}"
-    );
+#[rstest]
+#[case::wellformed_participation_conforms(Case::file("shapes", "participation-wellformed"))]
+// The `participation-malformed` fixture (Participation without event / participant)
+// must fail SHACL with a violation mentioning one of participationEvent /
+// participationParticipant (case-sensitive disjunction → `any_violation`).
+#[case::malformed_participation_is_flagged(
+    Case::file("shapes", "participation-malformed")
+        .fails()
+        .any_violation(&["participationEvent", "participationParticipant"])
+)]
+fn events(#[case] case: Case) {
+    case.run();
 }

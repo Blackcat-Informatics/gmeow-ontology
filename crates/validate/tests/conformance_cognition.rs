@@ -20,51 +20,21 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 // ── Tests migrated from tests/test_cognition.py ───────────────────────────────
 
-/// `test_wellformed_knowledge_proficiency_conforms` — a well-formed
-/// `KnowledgeProficiency` with exactly one subject, one level, one agent, and
-/// one scale passes SHACL.
-///
-/// Mirrors the `cognition-wellformed.ttl` fixture loaded by the Python test.
-#[test]
-fn wellformed_knowledge_proficiency_conforms() {
-    let nt = fixture_as_nt("shapes", "cognition-wellformed");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "well-formed KnowledgeProficiency must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_malformed_knowledge_proficiency_is_flagged` — a malformed
-/// `KnowledgeProficiency` (no subject, no level, two scales) is rejected with
-/// the expected violation messages.
-///
-/// Mirrors the `cognition-malformed.ttl` fixture loaded by the Python test.
-#[test]
-fn malformed_knowledge_proficiency_is_flagged() {
-    let nt = fixture_as_nt("shapes", "cognition-malformed");
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "malformed KnowledgeProficiency must fail SHACL"
-    );
-    let errs = violations(&report);
-    assert!(!errs.is_empty(), "expected at least one violation");
-    let joined = errs.join("\n");
-    assert!(
-        joined.contains("must reference exactly one subject"),
-        "expected 'must reference exactly one subject' in violations; got:\n{joined}"
-    );
-    assert!(
-        joined.contains("must carry exactly one KnowledgeLevel"),
-        "expected 'must carry exactly one KnowledgeLevel' in violations; got:\n{joined}"
-    );
-    assert!(
-        joined.contains("at most one scale"),
-        "expected 'at most one scale' in violations; got:\n{joined}"
-    );
+#[rstest]
+#[case::wellformed_knowledge_proficiency_conforms(Case::file("shapes", "cognition-wellformed"))]
+#[case::malformed_knowledge_proficiency_is_flagged(
+    Case::file("shapes", "cognition-malformed")
+        .fails()
+        .violations(&[
+            "must reference exactly one subject",
+            "must carry exactly one KnowledgeLevel",
+            "at most one scale",
+        ])
+)]
+fn cognition(#[case] case: Case) {
+    case.run();
 }

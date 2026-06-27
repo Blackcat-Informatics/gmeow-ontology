@@ -16,6 +16,7 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 /// Turtle prefix block shared by all citation tests.
 const PREFIXES: &str = "\
@@ -27,10 +28,9 @@ const PREFIXES: &str = "\
 
 // ── Tests migrated from tests/test_citations.py ───────────────────────────────
 
-/// `test_citation_act_shacl_passes` — a well-formed CitationAct relator passes SHACL.
-#[test]
-fn citation_act_shacl_passes() {
-    let ttl = format!(
+#[rstest]
+#[case::citation_act_shacl_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:citation a gmeow:CitationAct .
 ex:citation gmeow:citingEntity ex:claim .
@@ -40,49 +40,10 @@ ex:claim a gmeow:Entity .
 ex:work a gmeow:Work .
 ex:work rdfs:label \"Test Work\" .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "well-formed CitationAct must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_citation_act_missing_intent_fails_shacl` — a CitationAct without
-/// citationIntent violates SHACL.
-#[test]
-fn citation_act_missing_intent_fails_shacl() {
-    let ttl = format!(
-        "{PREFIXES}\
-ex:citation a gmeow:CitationAct .
-ex:citation gmeow:citingEntity ex:claim .
-ex:citation gmeow:citedEntity ex:work .
-ex:claim a gmeow:Entity .
-ex:work a gmeow:Work .
-ex:work rdfs:label \"Test Work\" .
-"
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "CitationAct missing citationIntent must fail SHACL"
-    );
-    let msgs = violations(&report);
-    assert!(
-        msgs.iter()
-            .any(|e| e.to_lowercase().contains("citation intent")),
-        "violation message must mention 'citation intent'; got: {msgs:?}"
-    );
-}
-
-/// `test_contribution_with_degree_shacl_passes` — a Contribution with an
-/// optional degree passes SHACL.
-#[test]
-fn contribution_with_degree_shacl_passes() {
-    let ttl = format!(
+    ))
+)]
+#[case::contribution_with_degree_shacl_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:contribution a gmeow:Contribution .
 ex:contribution gmeow:contributor ex:alice .
@@ -93,12 +54,24 @@ ex:alice a gmeow:Agent .
 ex:work a gmeow:Work .
 ex:work rdfs:label \"Test Work\" .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "Contribution with optional degree must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
+    ))
+)]
+// A CitationAct without citationIntent violates SHACL; the message check is
+// case-insensitive (`violations_ci`), mirroring the original `.to_lowercase()`.
+#[case::citation_act_missing_intent_fails_shacl(
+    Case::inline(format!(
+        "{PREFIXES}\
+ex:citation a gmeow:CitationAct .
+ex:citation gmeow:citingEntity ex:claim .
+ex:citation gmeow:citedEntity ex:work .
+ex:claim a gmeow:Entity .
+ex:work a gmeow:Work .
+ex:work rdfs:label \"Test Work\" .
+"
+    ))
+    .fails()
+    .violations_ci(&["citation intent"])
+)]
+fn citations(#[case] case: Case) {
+    case.run();
 }

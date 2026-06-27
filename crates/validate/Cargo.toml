@@ -84,6 +84,9 @@ criterion = { version = "0.5", default-features = false, features = ["cargo_benc
 tempfile = "3"
 # Snapshot goldens for the constitution parity regression test (#939 Gap 4).
 insta = { version = "1.48", features = ["json"] }
+# Parameterized #[case] rows for the conformance_*.rs SHACL twins (#1051). rstest
+# subsumes test-case; test-case is deliberately NOT a dependency.
+rstest = "0.26"
 
 [[bench]]
 name = "lint"

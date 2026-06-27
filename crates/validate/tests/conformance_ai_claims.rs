@@ -20,17 +20,13 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
-/// `test_normative_fixture_validates_against_the_full_graph` — evaluation-as-Assessment
-/// and hallucination-as-hazard are pure instance data over the norms and risk
-/// extensions — zero new TBox, SHACL-clean.
-///
-/// Mode: MERGED — fixture is validated together with the full merged ontology
-/// because the instance data references class/property declarations from the
-/// norms and risk slices.
-#[test]
-fn normative_fixture_validates_against_the_full_graph() {
-    let nt = fixture_as_nt("coverage", "ai-normative");
-    let report = validate_with_ontology(&nt);
-    assert!(ok(&report), "violations: {:?}", violations(&report));
+#[rstest]
+#[case::normative_fixture_validates_against_the_full_graph(
+    Case::file("coverage", "ai-normative")
+        .with_ontology()
+)]
+fn ai_claims(#[case] case: Case) {
+    case.run();
 }
