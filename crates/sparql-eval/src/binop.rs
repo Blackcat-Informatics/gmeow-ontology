@@ -126,11 +126,11 @@ pub(crate) fn probe_has_match(
     r_rows: &[Solution],
 ) -> bool {
     match bound_key(probe, shared, KeySide::Left) {
-        // Fully bound on shared columns: a populated exact-key bucket is a match,
+        // Fully bound on shared columns: a present exact-key bucket is a match
+        // (`build_index` only inserts non-empty buckets via `or_default().push`),
         // else any compatible wild build row (its `None` shared column matches).
         Some(key) => {
-            keyed.get(&key).is_some_and(|idxs| !idxs.is_empty())
-                || wild.iter().any(|&i| compatible(probe, &r_rows[i], shared))
+            keyed.contains_key(&key) || wild.iter().any(|&i| compatible(probe, &r_rows[i], shared))
         }
         // Unbound shared column ⇒ wildcard probe: scan for any compatible build row.
         None => r_rows.iter().any(|rrow| compatible(probe, rrow, shared)),
