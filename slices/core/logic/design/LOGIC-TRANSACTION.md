@@ -71,13 +71,17 @@ disclosure policy can be applied independently without altering the validity or 
 ## The hypothetical operator is not modal possibility
 
 A transaction program can be tested **hypothetically** — executed to see whether it *would*
-succeed, with its effects discarded rather than committed. This sandbox operator is a value of the
-Evolution facet's execution semantics. It is **distinct from modal possibility (◇)**: ◇φ asserts
-that φ is possible in some accessible world (an alethic or doxastic claim — see the context algebra
-in [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)); the hypothetical operator asserts that a program
-*can execute* from here without committing. The two may share construction machinery, but they are
-separate typed operators with separate meanings, and conflating them would let an execution
-sandbox masquerade as a statement about what is possible.
+succeed, with its effects discarded rather than committed. This sandbox operator is the value
+`HypotheticalExecution` of a **separate, orthogonal single-valued facet, `ExecutionMode`** (commit
+vs. discard) — a *sibling* of the Evolution facet, not a value within it. Commitment and state-change
+shape are independent dimensions: a program may be hypothetically executed under any Evolution value
+(static, state-transition, or transaction-path), and the default `CommittedExecution` commits its
+effects. It is **distinct from modal possibility (◇)**: ◇φ asserts that φ is possible in some
+accessible world (an alethic or doxastic claim — see the context algebra in
+[`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)); the hypothetical operator asserts that a program *can
+execute* from here without committing. The two may share construction machinery, but they are separate
+typed operators with separate meanings, and conflating them would let an execution sandbox masquerade
+as a statement about what is possible.
 
 ## Concurrent transactions
 

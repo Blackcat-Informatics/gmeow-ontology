@@ -74,3 +74,29 @@ ASK {
     logic:Path          a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
 }""" ;
     gmeow:saRationale "logic:PossibleWorld and logic:Path MUST be owl:Class with gmeow:graphBoxRole gmeow:boxTBox -- the alethic-world and history kernel context types of the typed context algebra." .
+
+# --- 5. ExecutionMode facet exists with both values and selector (MUST) -------
+ex:saExecutionModeFacet a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:ExecutionMode a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:CommittedExecution a logic:ExecutionMode .
+    logic:HypotheticalExecution a logic:ExecutionMode .
+    logic:executionMode a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The execution-commitment facet MUST exist: logic:ExecutionMode (boxTBox class), its two values logic:CommittedExecution (default) and logic:HypotheticalExecution (the sandbox operator), and the selector logic:executionMode. The sandbox operator is realized as a facet value, orthogonal to the evolution facet." .
+
+# --- 6. No reified modal-possibility operator class (MUST-NOT) ----------------
+ex:saNoReifiedPossibilityClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { logic:Possibility a owl:Class } UNION { logic:ModalOperator a owl:Class }
+}""" ;
+    gmeow:saRationale "No reified modal-possibility class MUST exist -- the sandbox operator (logic:HypotheticalExecution) is DISTINCT from modal possibility, which stays computed as the standard translation over logic:accessibleFrom rather than reified. Conflating sandbox execution with modal possibility is the error this guards against." .
