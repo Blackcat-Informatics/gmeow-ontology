@@ -1,0 +1,39 @@
+---
+source: crates/sparql-algebra/tests/algebra_snapshots.rs
+expression: "parse_update(\"INSERT DATA { gmeow:s gmeow:p gmeow:o . GRAPH gmeow:g { gmeow:s gmeow:p gmeow:o2 } }\")"
+---
+Update {
+    operations: [
+        InsertData {
+            data: [
+                GroundQuad {
+                    triple: GroundTriple {
+                        subject: NamedNode(
+                            <https://x/s>,
+                        ),
+                        predicate: <https://x/p>,
+                        object: NamedNode(
+                            <https://x/o>,
+                        ),
+                    },
+                    graph: None,
+                },
+                GroundQuad {
+                    triple: GroundTriple {
+                        subject: NamedNode(
+                            <https://x/s>,
+                        ),
+                        predicate: <https://x/p>,
+                        object: NamedNode(
+                            <https://x/o2>,
+                        ),
+                    },
+                    graph: Some(
+                        <https://x/g>,
+                    ),
+                },
+            ],
+        },
+    ],
+    base_iri: None,
+}

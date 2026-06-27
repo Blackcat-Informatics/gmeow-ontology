@@ -15,12 +15,12 @@
 use std::collections::HashMap;
 
 use crate::algebra::{
-    AggregateExpression, AggregateFunction, Expression, Function, GraphPattern, OrderExpression,
-    PropertyPathExpression, Query,
+    AggregateExpression, AggregateFunction, Expression, Function, GraphPattern, GraphTarget,
+    GraphUpdateOperation, OrderExpression, PropertyPathExpression, Query, Update,
 };
 use crate::ast::{
-    BaseDirection, BlankNode, GroundTerm, GroundTriple, Literal, NamedNode, NamedNodePattern,
-    TermPattern, TriplePattern, Variable,
+    BaseDirection, BlankNode, GroundQuad, GroundTerm, GroundTriple, Literal, NamedNode,
+    NamedNodePattern, QuadPattern, TermPattern, TriplePattern, Variable,
 };
 use crate::error::{ParseError, Result};
 use crate::lexer::{tokenize, Spanned, Token};
@@ -67,6 +67,22 @@ impl SparqlParser {
         let q = p.parse_query()?;
         p.expect_eof()?;
         Ok(q)
+    }
+
+    /// Parse a SPARQL 1.1 Update request into the [`Update`] algebra.
+    pub fn parse_update(&self, update: &str) -> Result<Update> {
+        let tokens = tokenize(update)?;
+        let mut p = Parser {
+            tokens,
+            pos: 0,
+            prefixes: HashMap::new(),
+            base: self.base_iri.clone(),
+            agg_counter: 0,
+            anon_counter: 0,
+        };
+        let u = p.parse_update()?;
+        p.expect_eof()?;
+        Ok(u)
     }
 }
 
@@ -472,6 +488,422 @@ impl Parser {
             }
         }
         Ok(triples)
+    }
+
+    // ── SPARQL 1.1 Update (§3 + grammar §19) ─────────────────────────────────
+
+    /// Parse a full Update request: prologue + a `;`-separated sequence of
+    /// graph-update operations. A request with only a prologue (no operations)
+    /// is valid, and a trailing `;` is allowed.
+    fn parse_update(&mut self) -> Result<Update> {
+        self.parse_prologue()?;
+        let base_iri = self.base.clone().map(NamedNode::new).transpose()?;
+
+        let mut operations = Vec::new();
+        loop {
+            if self.pos >= self.tokens.len() {
+                break;
+            }
+            let op = self.parse_update_operation()?;
+            operations.push(op);
+            // An operation separator. Without it, the request is done (a stray
+            // trailing token is caught by `expect_eof` at the public entry).
+            if !self.eat(&Token::Semicolon) {
+                break;
+            }
+            // A trailing `;` may be followed by more prologue (BASE/PREFIX) and
+            // another operation, or by end-of-input.
+            self.parse_prologue()?;
+        }
+        Ok(Update {
+            operations,
+            base_iri,
+        })
+    }
+
+    fn parse_update_operation(&mut self) -> Result<GraphUpdateOperation> {
+        if self.peek_kw("INSERT") {
+            self.parse_insert()
+        } else if self.peek_kw("DELETE") {
+            self.parse_delete()
+        } else if self.peek_kw("WITH") {
+            self.parse_with_modify()
+        } else if self.peek_kw("LOAD") {
+            self.parse_load()
+        } else if self.peek_kw("CLEAR") {
+            self.parse_clear_or_drop(true)
+        } else if self.peek_kw("DROP") {
+            self.parse_clear_or_drop(false)
+        } else if self.peek_kw("CREATE") {
+            self.parse_create()
+        } else if self.peek_kw("ADD") || self.peek_kw("MOVE") || self.peek_kw("COPY") {
+            self.parse_add_move_copy()
+        } else {
+            Err(ParseError::syntax(
+                format!(
+                    "expected an update operation keyword, found {:?}",
+                    self.peek()
+                ),
+                self.span(),
+            ))
+        }
+    }
+
+    /// `INSERT DATA { QuadData }` or `INSERT { QuadPattern } [USING ...] WHERE { ... }`.
+    fn parse_insert(&mut self) -> Result<GraphUpdateOperation> {
+        self.expect_kw("INSERT")?;
+        if self.eat_kw("DATA") {
+            let quads = self.parse_quad_data()?;
+            let data = self.quads_to_ground(quads, false)?;
+            return Ok(GraphUpdateOperation::InsertData { data });
+        }
+        // INSERT { template } [USING ...] WHERE { ... } — an insert-only modify.
+        let insert = self.parse_quad_pattern_block(false)?;
+        let using = self.parse_using_clauses()?;
+        self.expect_kw("WHERE")?;
+        let pattern = self.parse_group_graph_pattern()?;
+        Ok(GraphUpdateOperation::DeleteInsert {
+            delete: Vec::new(),
+            insert,
+            with: None,
+            using,
+            pattern: Box::new(pattern),
+        })
+    }
+
+    /// `DELETE DATA { QuadData }`, `DELETE WHERE { QuadPattern }`, or
+    /// `DELETE { template } [INSERT { ... }] [USING ...] WHERE { ... }`.
+    fn parse_delete(&mut self) -> Result<GraphUpdateOperation> {
+        self.expect_kw("DELETE")?;
+        if self.eat_kw("DATA") {
+            let quads = self.parse_quad_data()?;
+            let data = self.quads_to_ground(quads, true)?;
+            return Ok(GraphUpdateOperation::DeleteData { data });
+        }
+        if self.eat_kw("WHERE") {
+            // DELETE WHERE { QuadPattern } — the template IS the where pattern.
+            let mark = self.pos;
+            let delete = self.parse_quad_pattern_block(true)?;
+            // Re-parse the same braces as a group graph pattern for the WHERE.
+            self.pos = mark;
+            let pattern = self.parse_group_graph_pattern()?;
+            return Ok(GraphUpdateOperation::DeleteInsert {
+                delete,
+                insert: Vec::new(),
+                with: None,
+                using: Vec::new(),
+                pattern: Box::new(pattern),
+            });
+        }
+        // DELETE { template } [INSERT { ... }] [USING ...] WHERE { ... }.
+        let delete = self.parse_quad_pattern_block(true)?;
+        let insert = if self.eat_kw("INSERT") {
+            self.parse_quad_pattern_block(false)?
+        } else {
+            Vec::new()
+        };
+        let using = self.parse_using_clauses()?;
+        self.expect_kw("WHERE")?;
+        let pattern = self.parse_group_graph_pattern()?;
+        Ok(GraphUpdateOperation::DeleteInsert {
+            delete,
+            insert,
+            with: None,
+            using,
+            pattern: Box::new(pattern),
+        })
+    }
+
+    /// `WITH <iri> (DELETE { ... } | INSERT { ... }) [INSERT { ... }] WHERE { ... }`.
+    fn parse_with_modify(&mut self) -> Result<GraphUpdateOperation> {
+        self.expect_kw("WITH")?;
+        let with = Some(self.expect_iri_node()?);
+        let mut delete = Vec::new();
+        let mut insert = Vec::new();
+        if self.eat_kw("DELETE") {
+            delete = self.parse_quad_pattern_block(true)?;
+            if self.eat_kw("INSERT") {
+                insert = self.parse_quad_pattern_block(false)?;
+            }
+        } else if self.eat_kw("INSERT") {
+            insert = self.parse_quad_pattern_block(false)?;
+        } else {
+            return Err(ParseError::syntax(
+                "WITH must be followed by DELETE and/or INSERT",
+                self.span(),
+            ));
+        }
+        let using = self.parse_using_clauses()?;
+        self.expect_kw("WHERE")?;
+        let pattern = self.parse_group_graph_pattern()?;
+        Ok(GraphUpdateOperation::DeleteInsert {
+            delete,
+            insert,
+            with,
+            using,
+            pattern: Box::new(pattern),
+        })
+    }
+
+    /// Zero or more `USING [NAMED] <iri>` clauses.
+    fn parse_using_clauses(&mut self) -> Result<Vec<GraphTarget>> {
+        let mut using = Vec::new();
+        while self.eat_kw("USING") {
+            if self.eat_kw("NAMED") {
+                using.push(GraphTarget::Named(self.expect_iri_node()?));
+            } else {
+                // `USING <iri>` adds to the default graph of the active dataset;
+                // we model the referenced graph as `Named` (the consumer folds it
+                // into the WHERE default graph).
+                using.push(GraphTarget::Named(self.expect_iri_node()?));
+            }
+        }
+        Ok(using)
+    }
+
+    /// `LOAD [SILENT] <iri> [INTO GRAPH <iri>]`.
+    fn parse_load(&mut self) -> Result<GraphUpdateOperation> {
+        self.expect_kw("LOAD")?;
+        let silent = self.eat_kw("SILENT");
+        let source = self.expect_iri_node()?;
+        let destination = if self.eat_kw("INTO") {
+            self.expect_kw("GRAPH")?;
+            GraphTarget::Named(self.expect_iri_node()?)
+        } else {
+            GraphTarget::Default
+        };
+        Ok(GraphUpdateOperation::Load {
+            silent,
+            source,
+            destination,
+        })
+    }
+
+    /// `CLEAR [SILENT] <GraphRefAll>` / `DROP [SILENT] <GraphRefAll>`.
+    fn parse_clear_or_drop(&mut self, is_clear: bool) -> Result<GraphUpdateOperation> {
+        self.expect_kw(if is_clear { "CLEAR" } else { "DROP" })?;
+        let silent = self.eat_kw("SILENT");
+        let target = self.parse_graph_ref_all()?;
+        Ok(if is_clear {
+            GraphUpdateOperation::Clear { silent, target }
+        } else {
+            GraphUpdateOperation::Drop { silent, target }
+        })
+    }
+
+    /// `CREATE [SILENT] GRAPH <iri>`.
+    fn parse_create(&mut self) -> Result<GraphUpdateOperation> {
+        self.expect_kw("CREATE")?;
+        let silent = self.eat_kw("SILENT");
+        self.expect_kw("GRAPH")?;
+        let graph = self.expect_iri_node()?;
+        Ok(GraphUpdateOperation::Create { silent, graph })
+    }
+
+    /// `ADD|MOVE|COPY [SILENT] <GraphOrDefault> TO <GraphOrDefault>`.
+    fn parse_add_move_copy(&mut self) -> Result<GraphUpdateOperation> {
+        let which = if self.eat_kw("ADD") {
+            0u8
+        } else if self.eat_kw("MOVE") {
+            1
+        } else {
+            self.expect_kw("COPY")?;
+            2
+        };
+        let silent = self.eat_kw("SILENT");
+        let source = self.parse_graph_or_default()?;
+        self.expect_kw("TO")?;
+        let destination = self.parse_graph_or_default()?;
+        Ok(match which {
+            0 => GraphUpdateOperation::Add {
+                silent,
+                source,
+                destination,
+            },
+            1 => GraphUpdateOperation::Move {
+                silent,
+                source,
+                destination,
+            },
+            _ => GraphUpdateOperation::Copy {
+                silent,
+                source,
+                destination,
+            },
+        })
+    }
+
+    /// `GraphRefAll`: `DEFAULT | NAMED | ALL | GRAPH <iri>`.
+    fn parse_graph_ref_all(&mut self) -> Result<GraphTarget> {
+        if self.eat_kw("DEFAULT") {
+            Ok(GraphTarget::Default)
+        } else if self.eat_kw("NAMED") {
+            Ok(GraphTarget::NamedGraphs)
+        } else if self.eat_kw("ALL") {
+            Ok(GraphTarget::All)
+        } else if self.eat_kw("GRAPH") {
+            Ok(GraphTarget::Named(self.expect_iri_node()?))
+        } else {
+            Err(ParseError::syntax(
+                "expected DEFAULT, NAMED, ALL or GRAPH <iri>",
+                self.span(),
+            ))
+        }
+    }
+
+    /// `GraphOrDefault`: `DEFAULT | [GRAPH] <iri>` (no NAMED/ALL here).
+    fn parse_graph_or_default(&mut self) -> Result<GraphTarget> {
+        if self.eat_kw("DEFAULT") {
+            Ok(GraphTarget::Default)
+        } else {
+            self.eat_kw("GRAPH");
+            Ok(GraphTarget::Named(self.expect_iri_node()?))
+        }
+    }
+
+    /// Parse a `{ ... }` quad block into [`QuadPattern`]s. Triple templates plus
+    /// optional nested `GRAPH (<iri>|?var) { triples }` groups. When `is_delete`
+    /// is set, any blank node in the templates is a hard error (DELETE templates
+    /// disallow blanks per §3.1.3).
+    fn parse_quad_pattern_block(&mut self, is_delete: bool) -> Result<Vec<QuadPattern>> {
+        let mut quads = Vec::new();
+        self.expect(&Token::LBrace)?;
+        loop {
+            if self.at(&Token::RBrace) {
+                break;
+            } else if self.eat_kw("GRAPH") {
+                let graph = self.parse_var_or_iri_name()?;
+                self.collect_quad_group(Some(graph), is_delete, &mut quads)?;
+            } else if self.eat(&Token::Dot) {
+                // statement separator between triple blocks
+            } else {
+                let mut triples = Vec::new();
+                let subject = self.parse_term_pattern()?;
+                self.parse_predicate_object_list(&subject, &mut triples, &mut Vec::new())?;
+                self.eat(&Token::Dot);
+                for triple in triples {
+                    if is_delete {
+                        reject_blank_in_triple_pattern(&triple, self.span())?;
+                    }
+                    quads.push(QuadPattern {
+                        triple,
+                        graph: None,
+                    });
+                }
+            }
+        }
+        self.expect(&Token::RBrace)?;
+        Ok(quads)
+    }
+
+    /// Parse a nested `GRAPH g { triples }` group, scoping each parsed triple to
+    /// `graph` and pushing the resulting quad patterns into `quads`.
+    fn collect_quad_group(
+        &mut self,
+        graph: Option<NamedNodePattern>,
+        is_delete: bool,
+        quads: &mut Vec<QuadPattern>,
+    ) -> Result<()> {
+        self.expect(&Token::LBrace)?;
+        let mut triples = Vec::new();
+        while !self.at(&Token::RBrace) {
+            let subject = self.parse_term_pattern()?;
+            self.parse_predicate_object_list(&subject, &mut triples, &mut Vec::new())?;
+            if !self.eat(&Token::Dot) {
+                break;
+            }
+        }
+        self.expect(&Token::RBrace)?;
+        for triple in triples {
+            if is_delete {
+                reject_blank_in_triple_pattern(&triple, self.span())?;
+            }
+            quads.push(QuadPattern {
+                triple,
+                graph: graph.clone(),
+            });
+        }
+        Ok(())
+    }
+
+    /// Parse a `{ QuadData }` block as quad *patterns* (the same surface as
+    /// `parse_quad_pattern_block`, no blank-node rejection — that is enforced
+    /// per-form during ground conversion).
+    fn parse_quad_data(&mut self) -> Result<Vec<QuadPattern>> {
+        self.parse_quad_pattern_block(false)
+    }
+
+    /// Convert quad *patterns* (from an `INSERT DATA` / `DELETE DATA` block) into
+    /// ground quads, hard-failing on any variable. When `is_delete` is set, blank
+    /// nodes are also rejected (DELETE DATA disallows them per §3.1.1).
+    fn quads_to_ground(&self, quads: Vec<QuadPattern>, is_delete: bool) -> Result<Vec<GroundQuad>> {
+        let mut out = Vec::with_capacity(quads.len());
+        for q in quads {
+            let graph = match q.graph {
+                None => None,
+                Some(NamedNodePattern::NamedNode(n)) => Some(n),
+                Some(NamedNodePattern::Variable(_)) => {
+                    return Err(ParseError::syntax(
+                        "variable graph in INSERT/DELETE DATA is not allowed",
+                        self.span(),
+                    ))
+                }
+            };
+            let triple = self.ground_triple_pattern(&q.triple, is_delete)?;
+            out.push(GroundQuad { triple, graph });
+        }
+        Ok(out)
+    }
+
+    /// Convert a [`TriplePattern`] to a [`GroundTriple`], hard-failing on any
+    /// variable (and, when `reject_blank`, any blank node).
+    fn ground_triple_pattern(&self, t: &TriplePattern, reject_blank: bool) -> Result<GroundTriple> {
+        let predicate = match &t.predicate {
+            NamedNodePattern::NamedNode(n) => n.clone(),
+            NamedNodePattern::Variable(_) => {
+                return Err(ParseError::syntax(
+                    "variable predicate in INSERT/DELETE DATA is not allowed",
+                    self.span(),
+                ))
+            }
+        };
+        Ok(GroundTriple {
+            subject: self.ground_term_pattern(&t.subject, reject_blank)?,
+            predicate,
+            object: self.ground_term_pattern(&t.object, reject_blank)?,
+        })
+    }
+
+    /// Convert a [`TermPattern`] to a [`GroundTerm`], hard-failing on a variable
+    /// (and, when `reject_blank`, a blank node). RDF 1.2 quoted triples descend.
+    fn ground_term_pattern(&self, t: &TermPattern, reject_blank: bool) -> Result<GroundTerm> {
+        match t {
+            TermPattern::NamedNode(n) => Ok(GroundTerm::NamedNode(n.clone())),
+            TermPattern::Literal(l) => Ok(GroundTerm::Literal(l.clone())),
+            TermPattern::Triple(tp) => Ok(GroundTerm::Triple(Box::new(
+                self.ground_triple_pattern(tp, reject_blank)?,
+            ))),
+            TermPattern::Variable(_) => Err(ParseError::syntax(
+                "variable in INSERT/DELETE DATA is not allowed",
+                self.span(),
+            )),
+            TermPattern::BlankNode(_) => {
+                if reject_blank {
+                    Err(ParseError::syntax(
+                        "blank node in DELETE DATA is not allowed",
+                        self.span(),
+                    ))
+                } else {
+                    // INSERT DATA blanks would need fresh-blank allocation, which
+                    // the ground-quad shape does not model; reject rather than
+                    // silently dropping them.
+                    Err(ParseError::syntax(
+                        "blank node in INSERT DATA is not supported",
+                        self.span(),
+                    ))
+                }
+            }
+        }
     }
 
     // ── group graph pattern → algebra (§18.2.2) ──────────────────────────────
@@ -1733,6 +2165,25 @@ fn collect_vars(p: &GraphPattern, out: &mut Vec<Variable>) {
     }
 }
 
+/// Hard-fail if any subject/object position of a triple pattern (descending into
+/// RDF 1.2 quoted triples) is a blank node. Blank nodes are disallowed in DELETE
+/// templates and `DELETE WHERE` (SPARQL 1.1 Update §3.1.3 / §3.1.3.2).
+fn reject_blank_in_triple_pattern(t: &TriplePattern, at: usize) -> Result<()> {
+    reject_blank_in_term_pattern(&t.subject, at)?;
+    reject_blank_in_term_pattern(&t.object, at)
+}
+
+fn reject_blank_in_term_pattern(t: &TermPattern, at: usize) -> Result<()> {
+    match t {
+        TermPattern::BlankNode(_) => Err(ParseError::syntax(
+            "blank node in a DELETE template is not allowed",
+            at,
+        )),
+        TermPattern::Triple(tp) => reject_blank_in_triple_pattern(tp, at),
+        _ => Ok(()),
+    }
+}
+
 fn is_absolute_iri(s: &str) -> bool {
     // A scheme followed by ':' — RFC-3986 §3.1 (cheap prefix test).
     let mut chars = s.char_indices();
@@ -2413,6 +2864,288 @@ mod tests {
         assert_eq!(path.to_string(), "(^<https://x/p>){1,2}");
         let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
         assert_eq!(path_of(&q2), path);
+    }
+
+    // ── SPARQL 1.1 Update parsing ─────────────────────────────────────────────
+
+    fn parse_update(u: &str) -> Update {
+        SparqlParser::new()
+            .parse_update(&format!("{GM}{u}"))
+            .expect("update parse")
+    }
+
+    fn update_err(u: &str) -> ParseError {
+        SparqlParser::new()
+            .parse_update(&format!("{GM}{u}"))
+            .expect_err("update should fail")
+    }
+
+    #[test]
+    fn update_insert_data() {
+        let u = parse_update("INSERT DATA { gmeow:s gmeow:p gmeow:o }");
+        assert_eq!(u.operations.len(), 1);
+        let GraphUpdateOperation::InsertData { data } = &u.operations[0] else {
+            panic!("expected InsertData, got {:?}", u.operations[0]);
+        };
+        assert_eq!(data.len(), 1);
+        assert_eq!(data[0].graph, None);
+    }
+
+    #[test]
+    fn update_insert_data_with_graph() {
+        let u = parse_update("INSERT DATA { GRAPH gmeow:g { gmeow:s gmeow:p gmeow:o } }");
+        let GraphUpdateOperation::InsertData { data } = &u.operations[0] else {
+            panic!("expected InsertData");
+        };
+        assert_eq!(data.len(), 1);
+        assert_eq!(data[0].graph, Some(NamedNode::new_unchecked("https://x/g")));
+    }
+
+    #[test]
+    fn update_insert_data_quoted_triple() {
+        // RDF 1.2 INSERT DATA with a quoted-triple object must survive into ground form.
+        let u = parse_update("INSERT DATA { gmeow:s rdf:reifies <<( gmeow:a gmeow:b gmeow:c )>> }");
+        let GraphUpdateOperation::InsertData { data } = &u.operations[0] else {
+            panic!("expected InsertData");
+        };
+        assert_eq!(data.len(), 1);
+        assert!(matches!(data[0].triple.object, GroundTerm::Triple(_)));
+    }
+
+    #[test]
+    fn update_delete_data() {
+        let u = parse_update("DELETE DATA { gmeow:s gmeow:p gmeow:o }");
+        assert!(matches!(
+            u.operations[0],
+            GraphUpdateOperation::DeleteData { .. }
+        ));
+    }
+
+    #[test]
+    fn update_delete_where() {
+        let u = parse_update("DELETE WHERE { ?s gmeow:p ?o }");
+        let GraphUpdateOperation::DeleteInsert {
+            delete,
+            insert,
+            pattern,
+            ..
+        } = &u.operations[0]
+        else {
+            panic!("expected DeleteInsert");
+        };
+        assert_eq!(delete.len(), 1);
+        assert!(insert.is_empty());
+        // The template IS the where pattern.
+        assert!(matches!(**pattern, GraphPattern::Bgp { .. }));
+    }
+
+    #[test]
+    fn update_delete_insert_modify() {
+        let u = parse_update(
+            "DELETE { ?s gmeow:p ?o } INSERT { ?s gmeow:q ?o } WHERE { ?s gmeow:p ?o }",
+        );
+        let GraphUpdateOperation::DeleteInsert {
+            delete,
+            insert,
+            with,
+            using,
+            ..
+        } = &u.operations[0]
+        else {
+            panic!("expected DeleteInsert");
+        };
+        assert_eq!(delete.len(), 1);
+        assert_eq!(insert.len(), 1);
+        assert!(with.is_none());
+        assert!(using.is_empty());
+    }
+
+    #[test]
+    fn update_insert_only_modify() {
+        let u = parse_update("INSERT { ?s gmeow:q gmeow:o } WHERE { ?s a gmeow:T }");
+        let GraphUpdateOperation::DeleteInsert { delete, insert, .. } = &u.operations[0] else {
+            panic!("expected DeleteInsert");
+        };
+        assert!(delete.is_empty());
+        assert_eq!(insert.len(), 1);
+    }
+
+    #[test]
+    fn update_with_modify() {
+        let u = parse_update(
+            "WITH gmeow:g DELETE { ?s gmeow:p ?o } INSERT { ?s gmeow:q ?o } WHERE { ?s gmeow:p ?o }",
+        );
+        let GraphUpdateOperation::DeleteInsert { with, .. } = &u.operations[0] else {
+            panic!("expected DeleteInsert");
+        };
+        assert_eq!(*with, Some(NamedNode::new_unchecked("https://x/g")));
+    }
+
+    #[test]
+    fn update_using_clauses() {
+        let u = parse_update(
+            "DELETE { ?s gmeow:p ?o } USING gmeow:g1 USING NAMED gmeow:g2 WHERE { ?s gmeow:p ?o }",
+        );
+        let GraphUpdateOperation::DeleteInsert { using, .. } = &u.operations[0] else {
+            panic!("expected DeleteInsert");
+        };
+        assert_eq!(using.len(), 2);
+    }
+
+    #[test]
+    fn update_load() {
+        let u = parse_update("LOAD <http://src/data> INTO GRAPH gmeow:g");
+        let GraphUpdateOperation::Load {
+            silent,
+            source,
+            destination,
+        } = &u.operations[0]
+        else {
+            panic!("expected Load");
+        };
+        assert!(!silent);
+        assert_eq!(source.as_str(), "http://src/data");
+        assert_eq!(
+            *destination,
+            GraphTarget::Named(NamedNode::new_unchecked("https://x/g"))
+        );
+    }
+
+    #[test]
+    fn update_load_silent_default_destination() {
+        let u = parse_update("LOAD SILENT <http://src/data>");
+        let GraphUpdateOperation::Load {
+            silent,
+            destination,
+            ..
+        } = &u.operations[0]
+        else {
+            panic!("expected Load");
+        };
+        assert!(silent);
+        assert_eq!(*destination, GraphTarget::Default);
+    }
+
+    #[test]
+    fn update_clear_each_target() {
+        for (text, expected) in [
+            ("CLEAR DEFAULT", GraphTarget::Default),
+            ("CLEAR NAMED", GraphTarget::NamedGraphs),
+            ("CLEAR ALL", GraphTarget::All),
+            (
+                "CLEAR GRAPH gmeow:g",
+                GraphTarget::Named(NamedNode::new_unchecked("https://x/g")),
+            ),
+        ] {
+            let u = parse_update(text);
+            let GraphUpdateOperation::Clear { target, .. } = &u.operations[0] else {
+                panic!("expected Clear for {text}");
+            };
+            assert_eq!(*target, expected, "target mismatch for {text}");
+        }
+    }
+
+    #[test]
+    fn update_drop() {
+        let u = parse_update("DROP SILENT GRAPH gmeow:g");
+        let GraphUpdateOperation::Drop { silent, target } = &u.operations[0] else {
+            panic!("expected Drop");
+        };
+        assert!(silent);
+        assert_eq!(
+            *target,
+            GraphTarget::Named(NamedNode::new_unchecked("https://x/g"))
+        );
+    }
+
+    #[test]
+    fn update_create() {
+        let u = parse_update("CREATE GRAPH gmeow:g");
+        let GraphUpdateOperation::Create { graph, .. } = &u.operations[0] else {
+            panic!("expected Create");
+        };
+        assert_eq!(graph.as_str(), "https://x/g");
+    }
+
+    #[test]
+    fn update_add_move_copy() {
+        let add = parse_update("ADD DEFAULT TO GRAPH gmeow:g");
+        assert!(matches!(
+            add.operations[0],
+            GraphUpdateOperation::Add { .. }
+        ));
+        let mv = parse_update("MOVE GRAPH gmeow:a TO GRAPH gmeow:b");
+        assert!(matches!(
+            mv.operations[0],
+            GraphUpdateOperation::Move { .. }
+        ));
+        let cp = parse_update("COPY GRAPH gmeow:a TO DEFAULT");
+        let GraphUpdateOperation::Copy {
+            source,
+            destination,
+            ..
+        } = &cp.operations[0]
+        else {
+            panic!("expected Copy");
+        };
+        assert_eq!(
+            *source,
+            GraphTarget::Named(NamedNode::new_unchecked("https://x/a"))
+        );
+        assert_eq!(*destination, GraphTarget::Default);
+    }
+
+    #[test]
+    fn update_sequence_of_operations() {
+        let u = parse_update("CREATE GRAPH gmeow:g ; CLEAR DEFAULT ;");
+        assert_eq!(u.operations.len(), 2, "trailing ; must be allowed");
+    }
+
+    #[test]
+    fn update_empty_request_is_valid() {
+        let u = SparqlParser::new()
+            .parse_update("PREFIX ex: <http://e/>")
+            .expect("prologue-only update");
+        assert!(u.operations.is_empty());
+    }
+
+    #[test]
+    fn update_base_iri_resolves_prologue() {
+        let u = SparqlParser::new()
+            .with_base_iri("http://base/")
+            .parse_update("INSERT DATA { <s> <http://base/p> <o> }")
+            .expect("base-resolved update");
+        let GraphUpdateOperation::InsertData { data } = &u.operations[0] else {
+            panic!("expected InsertData");
+        };
+        assert_eq!(
+            data[0].triple.subject,
+            GroundTerm::NamedNode(NamedNode::new_unchecked("http://base/s"))
+        );
+    }
+
+    #[test]
+    fn update_blank_in_delete_data_is_error() {
+        let err = update_err("DELETE DATA { _:b gmeow:p gmeow:o }");
+        assert!(matches!(err, ParseError::Syntax { .. }), "got {err:?}");
+    }
+
+    #[test]
+    fn update_blank_in_delete_template_is_error() {
+        let err = update_err("DELETE { _:b gmeow:p ?o } WHERE { ?s gmeow:p ?o }");
+        assert!(matches!(err, ParseError::Syntax { .. }), "got {err:?}");
+    }
+
+    #[test]
+    fn update_variable_in_insert_data_is_error() {
+        let err = update_err("INSERT DATA { gmeow:s gmeow:p ?o }");
+        assert!(matches!(err, ParseError::Syntax { .. }), "got {err:?}");
+    }
+
+    #[test]
+    fn update_unknown_keyword_is_error() {
+        let err = update_err("FROBNICATE GRAPH gmeow:g");
+        assert!(matches!(err, ParseError::Syntax { .. }), "got {err:?}");
     }
 
     #[test]
