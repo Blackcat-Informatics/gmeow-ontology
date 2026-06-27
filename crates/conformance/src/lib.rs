@@ -36,6 +36,7 @@
 pub mod bless;
 pub mod compare;
 pub mod discover;
+pub mod external;
 pub mod paths;
 pub mod profile;
 pub mod run;
