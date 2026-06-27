@@ -129,7 +129,7 @@ inference: cross-type entailment requires an explicit bridge rule that names bot
 the consequence relation it carries.
 
 The most consequential rule of the algebra: **an unindexed statement holds in an
-`logic:UnspecifiedStandpoint` — it is unspecified, not universal.** Universality is something the
+`gmeow:unspecifiedStandpoint` — it is unspecified, not universal.** Universality is something the
 author asserts explicitly; absence of an index says nothing about what holds where. This is the
 context-algebra counterpart of the open-world assumption: silence about context is not a claim of
 universal context-independent truth.

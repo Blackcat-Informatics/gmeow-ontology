@@ -163,7 +163,7 @@ single `gmeow:confidence` of the old DSL destroys the distinctions:
 
 Every correspondence is **standpoint-indexed** (`logic:accordingTo`, the typed context algebra of
 [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)). An unindexed correspondence holds in
-`UnspecifiedStandpoint` — **unspecified, not universal** — which kills the silent-universality bug where
+`gmeow:unspecifiedStandpoint` — **unspecified, not universal** — which kills the silent-universality bug where
 a curated alignment is applied where it was never validated.
 
 ## Composition and merge

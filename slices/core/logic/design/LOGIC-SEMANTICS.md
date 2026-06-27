@@ -628,7 +628,7 @@ and "ideal" from leaking into "is."
 
 The most consequential rule of the algebra concerns the *absence* of an index:
 
-> A statement asserted with **no context index** holds in an `logic:UnspecifiedStandpoint`. It is
+> A statement asserted with **no context index** holds in an `gmeow:unspecifiedStandpoint`. It is
 > **unspecified — not universal.** It is not implicitly true in every context, in any particular
 > context, or at the top of the `sharpens` poset. Only an **explicit universal assertion** (a
 > statement indexed to `gmeow:universalStandpoint`, or one that explicitly quantifies over all
@@ -636,7 +636,7 @@ The most consequential rule of the algebra concerns the *absence* of an index:
 
 Treating an unindexed statement as universally true is the world-semantics analogue of the closed-world
 collapse: it manufactures a claim the author never made. The default is silence about *where* a
-statement holds, and silence is the `UnspecifiedStandpoint`, which licenses no propagation. Universality
+statement holds, and silence is the `gmeow:unspecifiedStandpoint`, which licenses no propagation. Universality
 is a thing one says, not a thing one omits.
 
 ### Three strata of context reasoning

@@ -34,7 +34,7 @@ gmeow:Standpoint
     gmeow:docsConcern gmeow:concernStandpoints ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxTBox ;
-    gmeow:howToUse "Mint the Standpoint, order it under gmeow:sharpens (every standpoint sharpens gmeow:universalStandpoint), and reference it from a statement via gmeow:accordingTo or from a reified gmeow:Observation via gmeow:vantage; an unindexed statement is held according to gmeow:universalStandpoint by default."@x-gmeow-english ;
+    gmeow:howToUse "Mint the Standpoint, order it under gmeow:sharpens (every standpoint sharpens gmeow:universalStandpoint), and reference it from a statement via gmeow:accordingTo or from a reified gmeow:Observation via gmeow:vantage; an unindexed statement is held in gmeow:unspecifiedStandpoint by default — unspecified, not universal; only an explicit gmeow:universalStandpoint index propagates as universal."@x-gmeow-english ;
     gmeow:useWhen "Use to mint a named frame as a first-class vantage — when a state's official position, a community's usage, or an editorial point of view needs its own identity, labels, or place in the gmeow:sharpens poset to be the value of gmeow:accordingTo or gmeow:vantage."@x-gmeow-english .
 
 gmeow:StandpointModality
@@ -95,7 +95,7 @@ gmeow:accordingTo
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "according to"@x-gmeow-english ;
-    skos:definition "The standpoint / frame within which the annotated statement is asserted true — *according to whom*. DISTINCT from gmeow:wasAttributedTo (which source RECORDED the claim) and gmeow:confidence (how sure we are); a claim may carry all three with no inferential bridge among them. Its value is a gmeow:Agent (a polity, community, or organization IRI) or a gmeow:Standpoint individual (a frame that needs its own identity). When a statement is promoted to a reified gmeow:Observation, gmeow:accordingTo becomes the gmeow:vantage of the relator (vantage ⊑ accordingTo — documented, not axiomatised, because accordingTo is an AnnotationProperty and vantage is an ObjectProperty). Standpoint-TIME — when the frame held this position — rides gmeow:validFrom / gmeow:validUntil on the same statement in the light case, or a reified gmeow:StandpointTenure when the adoption / withdrawal is itself the fact of interest. The range is intentionally open. An unindexed statement is held according to gmeow:universalStandpoint (the uncontested global facts)."@x-gmeow-english ;
+    skos:definition "The standpoint / frame within which the annotated statement is asserted true — *according to whom*. DISTINCT from gmeow:wasAttributedTo (which source RECORDED the claim) and gmeow:confidence (how sure we are); a claim may carry all three with no inferential bridge among them. Its value is a gmeow:Agent (a polity, community, or organization IRI) or a gmeow:Standpoint individual (a frame that needs its own identity). When a statement is promoted to a reified gmeow:Observation, gmeow:accordingTo becomes the gmeow:vantage of the relator (vantage ⊑ accordingTo — documented, not axiomatised, because accordingTo is an AnnotationProperty and vantage is an ObjectProperty). Standpoint-TIME — when the frame held this position — rides gmeow:validFrom / gmeow:validUntil on the same statement in the light case, or a reified gmeow:StandpointTenure when the adoption / withdrawal is itself the fact of interest. The range is intentionally open. An unindexed statement is held in gmeow:unspecifiedStandpoint — unspecified, not universal; only an explicit gmeow:universalStandpoint index (or explicit quantification over all contexts of a stated type) propagates as universal."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernStandpoints ,
         gmeow:concernStatementMetadata ;
     gmeow:graphBoxRole gmeow:boxCBox ,
@@ -259,7 +259,15 @@ gmeow:universalStandpoint
     a gmeow:Standpoint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "universal standpoint (*)"@x-gmeow-english ;
-    skos:definition "The universal standpoint * — the top of the poset, admitting every precisification: the uncontested global facts every standpoint shares. A statement with no gmeow:accordingTo is held according to the universal standpoint; every standpoint gmeow:sharpens it."@x-gmeow-english ;
+    skos:definition "The universal standpoint * — the top of the poset, admitting every precisification: the uncontested global facts every standpoint shares. A statement with no gmeow:accordingTo is held in gmeow:unspecifiedStandpoint, not the universal standpoint; universalStandpoint remains the explicit-universal top of the poset that every standpoint gmeow:sharpens."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:unspecifiedStandpoint
+    a gmeow:Standpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "unspecified standpoint"@x-gmeow-english ;
+    skos:definition "The default-of-silence standpoint: a statement asserted with no context index is held in gmeow:unspecifiedStandpoint — unspecified, not universal. It is not implicitly true in every context, not in any particular context, and not at the top of the gmeow:sharpens poset; silence licenses no propagation. Only an explicit universal assertion — a statement indexed to gmeow:universalStandpoint, or one that explicitly quantifies over all contexts of a stated type — propagates as universal. Treating an unindexed statement as universally true is the world-semantics analogue of the closed-world collapse, manufacturing a claim the author never made. Contrast gmeow:universalStandpoint, which remains the explicit-universal top of the poset; gmeow:unspecifiedStandpoint sits outside the refinement order and carries no gmeow:sharpens edge in either direction."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
