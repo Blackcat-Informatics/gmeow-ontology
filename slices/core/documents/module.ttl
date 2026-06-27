@@ -187,7 +187,7 @@ gmeow:MediaObject
     skos:definition "An image, audio, or video media file — a concrete published artifact. A specialization of gmeow:Manifestation."@x-gmeow-english ;
     skos:example "ex:photo a gmeow:MediaObject ; gmeow:mediaType \"image/avif\" ; gmeow:pixelWidth 4032 ; gmeow:depicts ex:lillith ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for the abstract work the media realises (that is a gmeow:Work) and avoid it for a non-media web page (gmeow:WebPage); the colourspace reference frame should be carried where known (Principle 11)."@x-gmeow-english ;
-    gmeow:frameRequirementSeverity "warning" ;
+    gmeow:ruleSeverity "advisory" ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the file gmeow:MediaObject, set gmeow:mediaType plus pixel/orientation/capture metadata, carry the colourspace frame via gmeow:colourspace, and record subjects with the flat gmeow:depicts (promote to a DepictionUsage relator when context matters)."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:colourspace ;
