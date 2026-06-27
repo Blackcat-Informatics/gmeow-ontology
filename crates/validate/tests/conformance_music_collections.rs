@@ -23,6 +23,7 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 /// Turtle prefix block shared by all music/collections tests.
 const PREFIXES: &str = "\
@@ -32,32 +33,18 @@ const PREFIXES: &str = "\
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 ";
 
-/// `test_pitch_collection_shape_requires_kind` — a PitchCollection missing
-/// collectionKind must fail SHACL with the Principle 9 error message.
-#[test]
-fn pitch_collection_shape_requires_kind() {
-    let nt = ttl_str_to_nt(&format!(
+#[rstest]
+#[case::pitch_collection_shape_requires_kind(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:badCollection a gmeow:PitchCollection .
 "
-    ));
-    let report = validate(&nt);
-    assert!(!ok(&report));
-    assert!(
-        violations(&report)
-            .iter()
-            .any(|v| v
-                .contains("A PitchCollection must have exactly one collectionKind (Principle 9).")),
-        "expected collectionKind violation; got: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_pitch_collection_membership_valid_passes_shacl` — a fully-populated
-/// PitchCollectionMembership passes SHACL.
-#[test]
-fn pitch_collection_membership_valid_passes_shacl() {
-    let nt = ttl_str_to_nt(&format!(
+    ))
+    .fails()
+    .violations(&["A PitchCollection must have exactly one collectionKind (Principle 9)."])
+)]
+#[case::pitch_collection_membership_valid_passes_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:membershipValid a gmeow:PitchCollectionMembership .
 ex:membershipValid gmeow:membershipCollection gmeow:pitchCollectionPCSet027 .
@@ -65,171 +52,86 @@ ex:membershipValid gmeow:membershipPitch      gmeow:pitchValue12EDOOrigin .
 ex:membershipValid gmeow:membershipRole       gmeow:collectionMemberRoleMember .
 ex:membershipValid gmeow:membershipDegreeIndex \"0\"^^xsd:integer .
 "
-    ));
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "valid PitchCollectionMembership must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_pitch_collection_membership_missing_collection_fails_shacl` — a
-/// PitchCollectionMembership missing membershipCollection must fail.
-#[test]
-fn pitch_collection_membership_missing_collection_fails_shacl() {
-    let nt = ttl_str_to_nt(&format!(
+    ))
+)]
+#[case::pitch_collection_membership_missing_collection_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:membershipNoCollection a gmeow:PitchCollectionMembership .
 ex:membershipNoCollection gmeow:membershipPitch gmeow:pitchValue12EDOOrigin .
 ex:membershipNoCollection gmeow:membershipRole  gmeow:collectionMemberRoleMember .
 "
-    ));
-    let report = validate(&nt);
-    assert!(!ok(&report));
-    assert!(
-        violations(&report).iter().any(|v| v
-            .contains("A PitchCollectionMembership must belong to exactly one PitchCollection.")),
-        "expected membershipCollection violation; got: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_pitch_collection_membership_missing_pitch_fails_shacl` — a
-/// PitchCollectionMembership missing membershipPitch must fail.
-#[test]
-fn pitch_collection_membership_missing_pitch_fails_shacl() {
-    let nt = ttl_str_to_nt(&format!(
+    ))
+    .fails()
+    .violations(&["A PitchCollectionMembership must belong to exactly one PitchCollection."])
+)]
+#[case::pitch_collection_membership_missing_pitch_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:membershipNoPitch a gmeow:PitchCollectionMembership .
 ex:membershipNoPitch gmeow:membershipCollection gmeow:pitchCollectionPCSet027 .
 ex:membershipNoPitch gmeow:membershipRole       gmeow:collectionMemberRoleMember .
 "
-    ));
-    let report = validate(&nt);
-    assert!(!ok(&report));
-    assert!(
-        violations(&report)
-            .iter()
-            .any(|v| v.contains("A PitchCollectionMembership must name exactly one PitchValue.")),
-        "expected membershipPitch violation; got: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_pitch_collection_membership_missing_role_fails_shacl` — a
-/// PitchCollectionMembership missing membershipRole must fail.
-#[test]
-fn pitch_collection_membership_missing_role_fails_shacl() {
-    let nt = ttl_str_to_nt(&format!(
+    ))
+    .fails()
+    .violations(&["A PitchCollectionMembership must name exactly one PitchValue."])
+)]
+#[case::pitch_collection_membership_missing_role_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:membershipNoRole a gmeow:PitchCollectionMembership .
 ex:membershipNoRole gmeow:membershipCollection gmeow:pitchCollectionPCSet027 .
 ex:membershipNoRole gmeow:membershipPitch      gmeow:pitchValue12EDOOrigin .
 "
-    ));
-    let report = validate(&nt);
-    assert!(!ok(&report));
-    assert!(
-        violations(&report).iter().any(|v| v.contains(
-            "A PitchCollectionMembership must declare exactly one CollectionMemberRole."
-        )),
-        "expected membershipRole violation; got: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_pitch_spelling_valid_passes_shacl` — a fully-populated PitchSpelling
-/// passes SHACL.
-#[test]
-fn pitch_spelling_valid_passes_shacl() {
-    let nt = ttl_str_to_nt(&format!(
+    ))
+    .fails()
+    .violations(&["A PitchCollectionMembership must declare exactly one CollectionMemberRole."])
+)]
+#[case::pitch_spelling_valid_passes_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:spellingValid a gmeow:PitchSpelling .
 ex:spellingValid gmeow:spellingPitch  gmeow:pitchValue12EDOCSharp4 .
 ex:spellingValid gmeow:spellingSystem gmeow:pitchSpellingSystemCMN .
 ex:spellingValid gmeow:spelledName    \"C\u{266f}4\"^^xsd:string .
 "
-    ));
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "valid PitchSpelling must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_pitch_spelling_missing_pitch_fails_shacl` — a PitchSpelling missing
-/// spellingPitch must fail.
-#[test]
-fn pitch_spelling_missing_pitch_fails_shacl() {
-    let nt = ttl_str_to_nt(&format!(
+    ))
+)]
+#[case::pitch_spelling_missing_pitch_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:spellingNoPitch a gmeow:PitchSpelling .
 ex:spellingNoPitch gmeow:spellingSystem gmeow:pitchSpellingSystemCMN .
 ex:spellingNoPitch gmeow:spelledName    \"C\u{266f}4\"^^xsd:string .
 "
-    ));
-    let report = validate(&nt);
-    assert!(!ok(&report));
-    assert!(
-        violations(&report)
-            .iter()
-            .any(|v| v.contains("A PitchSpelling must name exactly one PitchValue.")),
-        "expected spellingPitch violation; got: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_pitch_spelling_missing_system_fails_shacl` — a PitchSpelling missing
-/// spellingSystem must fail.
-#[test]
-fn pitch_spelling_missing_system_fails_shacl() {
-    let nt = ttl_str_to_nt(&format!(
+    ))
+    .fails()
+    .violations(&["A PitchSpelling must name exactly one PitchValue."])
+)]
+#[case::pitch_spelling_missing_system_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:spellingNoSystem a gmeow:PitchSpelling .
 ex:spellingNoSystem gmeow:spellingPitch gmeow:pitchValue12EDOCSharp4 .
 ex:spellingNoSystem gmeow:spelledName   \"C\u{266f}4\"^^xsd:string .
 "
-    ));
-    let report = validate(&nt);
-    assert!(!ok(&report));
-    assert!(
-        violations(&report)
-            .iter()
-            .any(|v| v.contains("A PitchSpelling must use exactly one PitchSpellingSystem.")),
-        "expected spellingSystem violation; got: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_pitch_spelling_missing_name_fails_shacl` — a PitchSpelling missing
-/// spelledName must fail.
-#[test]
-fn pitch_spelling_missing_name_fails_shacl() {
-    let nt = ttl_str_to_nt(&format!(
+    ))
+    .fails()
+    .violations(&["A PitchSpelling must use exactly one PitchSpellingSystem."])
+)]
+#[case::pitch_spelling_missing_name_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:spellingNoName a gmeow:PitchSpelling .
 ex:spellingNoName gmeow:spellingPitch  gmeow:pitchValue12EDOCSharp4 .
 ex:spellingNoName gmeow:spellingSystem gmeow:pitchSpellingSystemCMN .
 "
-    ));
-    let report = validate(&nt);
-    assert!(!ok(&report));
-    assert!(
-        violations(&report)
-            .iter()
-            .any(|v| v.contains("A PitchSpelling must provide exactly one spelled name string.")),
-        "expected spelledName violation; got: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_standpoint_memberships_pass_shacl` (Arabic theory case) — the Arabic
-/// Rast-third membership individually passes SHACL.
-#[test]
-fn standpoint_memberships_pass_shacl_arabic() {
-    let nt = ttl_str_to_nt(&format!(
+    ))
+    .fails()
+    .violations(&["A PitchSpelling must provide exactly one spelled name string."])
+)]
+#[case::standpoint_memberships_pass_shacl_arabic(
+    Case::inline(format!(
         "{PREFIXES}\
 gmeow:membershipRastThirdArabic a gmeow:PitchCollectionMembership .
 gmeow:membershipRastThirdArabic gmeow:membershipCollection  gmeow:pitchCollectionRastMaqam .
@@ -238,20 +140,10 @@ gmeow:membershipRastThirdArabic gmeow:membershipRole        gmeow:collectionMemb
 gmeow:membershipRastThirdArabic gmeow:membershipDegreeIndex \"2\"^^xsd:integer .
 gmeow:membershipRastThirdArabic gmeow:accordingTo           gmeow:standpointArabicTheory .
 "
-    ));
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "Arabic Rast-third membership must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_standpoint_memberships_pass_shacl` (Turkish theory case) — the Turkish
-/// Rast-third membership individually passes SHACL.
-#[test]
-fn standpoint_memberships_pass_shacl_turkish() {
-    let nt = ttl_str_to_nt(&format!(
+    ))
+)]
+#[case::standpoint_memberships_pass_shacl_turkish(
+    Case::inline(format!(
         "{PREFIXES}\
 gmeow:membershipRastThirdTurkish a gmeow:PitchCollectionMembership .
 gmeow:membershipRastThirdTurkish gmeow:membershipCollection  gmeow:pitchCollectionRastMaqam .
@@ -260,11 +152,8 @@ gmeow:membershipRastThirdTurkish gmeow:membershipRole        gmeow:collectionMem
 gmeow:membershipRastThirdTurkish gmeow:membershipDegreeIndex \"2\"^^xsd:integer .
 gmeow:membershipRastThirdTurkish gmeow:accordingTo           gmeow:standpointTurkishTheory .
 "
-    ));
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "Turkish Rast-third membership must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
+    ))
+)]
+fn music_collections(#[case] case: Case) {
+    case.run();
 }

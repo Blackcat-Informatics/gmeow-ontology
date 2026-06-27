@@ -25,6 +25,7 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 // ── Shared prefix block ───────────────────────────────────────────────────────
 
@@ -58,11 +59,9 @@ gmeow:determinacyCrisp a gmeow:Determinacy .
 
 // ── Tests migrated from tests/test_creative_works.py ─────────────────────────
 
-/// `test_spine_shacl_passes` — a fully-populated WEMI spine passes SHACL.
-#[test]
-fn spine_shacl_passes() {
-    let ttl = format!(
-        "{PREFIXES}\
+#[rstest]
+#[case::spine_shacl_passes(Case::inline(format!(
+    "{PREFIXES}\
 ex:work a gmeow:Work .
 ex:work rdfs:label \"Test Work\" .
 ex:expression a gmeow:Expression .
@@ -77,93 +76,41 @@ ex:item a gmeow:Item .
 ex:item rdfs:label \"Test Item\" .
 ex:item gmeow:exemplifies ex:manifestation .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "fully-populated WEMI spine must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_expression_without_work_fails_shacl` — an Expression that realizes no
-/// Work violates SHACL.
-#[test]
-fn expression_without_work_fails_shacl() {
-    let ttl = format!(
+)))]
+#[case::expression_without_work_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:expression a gmeow:Expression .
 ex:expression rdfs:label \"Orphan Expression\" .
 ex:expression gmeow:hasReferenceFrame ex:englishFrame .
 {REFERENCE_FRAME_TTL}\
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(!ok(&report), "Expression without realizes must fail SHACL");
-    assert!(
-        violations(&report)
-            .iter()
-            .any(|v| v.contains("Expression must realize")),
-        "expected 'Expression must realize' violation; got: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_manifestation_without_expression_fails_shacl` — a Manifestation that
-/// embodies no Expression violates SHACL.
-#[test]
-fn manifestation_without_expression_fails_shacl() {
-    let ttl = format!(
+    ))
+    .fails()
+    .violations(&["Expression must realize"])
+)]
+#[case::manifestation_without_expression_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:manifestation a gmeow:Manifestation .
 ex:manifestation rdfs:label \"Orphan Manifestation\" .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "Manifestation without embodies must fail SHACL"
-    );
-    assert!(
-        violations(&report)
-            .iter()
-            .any(|v| v.contains("Manifestation must embody")),
-        "expected 'Manifestation must embody' violation; got: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_item_without_manifestation_fails_shacl` — an Item without an
-/// `exemplifies` relation fails SHACL validation.
-#[test]
-fn item_without_manifestation_fails_shacl() {
-    let ttl = format!(
+    ))
+    .fails()
+    .violations(&["Manifestation must embody"])
+)]
+#[case::item_without_manifestation_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:item a gmeow:Item .
 ex:item rdfs:label \"Orphan Item\" .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(!ok(&report), "Item without exemplifies must fail SHACL");
-    assert!(
-        violations(&report)
-            .iter()
-            .any(|v| v.contains("Item must exemplify")),
-        "expected 'Item must exemplify' violation; got: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_contribution_shacl_passes` — a well-formed Contribution relator passes
-/// SHACL.
-#[test]
-fn contribution_shacl_passes() {
-    let ttl = format!(
-        "{PREFIXES}\
+    ))
+    .fails()
+    .violations(&["Item must exemplify"])
+)]
+#[case::contribution_shacl_passes(Case::inline(format!(
+    "{PREFIXES}\
 ex:contribution a gmeow:Contribution .
 ex:contribution gmeow:contributor ex:alice .
 ex:contribution gmeow:contributionTarget ex:work .
@@ -172,21 +119,9 @@ ex:alice a gmeow:Agent .
 ex:work a gmeow:Work .
 ex:work rdfs:label \"Test Work\" .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "well-formed Contribution must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_contribution_missing_role_fails_shacl` — a Contribution missing a
-/// contributionRole fails SHACL.
-#[test]
-fn contribution_missing_role_fails_shacl() {
-    let ttl = format!(
+)))]
+#[case::contribution_missing_role_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:contribution a gmeow:Contribution .
 ex:contribution gmeow:contributor ex:alice .
@@ -195,65 +130,29 @@ ex:alice a gmeow:Agent .
 ex:work a gmeow:Work .
 ex:work rdfs:label \"Test Work\" .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "Contribution missing contributionRole must fail SHACL"
-    );
-    assert!(
-        violations(&report)
-            .iter()
-            .any(|v| v.contains("Contribution must specify exactly one role")),
-        "expected 'Contribution must specify exactly one role' violation; got: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_content_segment_shacl_passes` — a well-formed ContentSegment passes
-/// SHACL.
-#[test]
-fn content_segment_shacl_passes() {
-    let ttl = format!(
-        "{PREFIXES}\
+    ))
+    .fails()
+    .violations(&["Contribution must specify exactly one role"])
+)]
+#[case::content_segment_shacl_passes(Case::inline(format!(
+    "{PREFIXES}\
 ex:chapter1 a gmeow:ContentSegment .
 ex:chapter1 rdfs:label \"Chapter 1\" .
 ex:chapter1 gmeow:segmentOf ex:book .
 ex:book a gmeow:LiteraryWork .
 ex:book rdfs:label \"Test Book\" .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "well-formed ContentSegment must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_content_segment_without_container_fails_shacl` — a ContentSegment
-/// with no segmentOf violates SHACL.
-#[test]
-fn content_segment_without_container_fails_shacl() {
-    let ttl = format!(
+)))]
+#[case::content_segment_without_container_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:chapter1 a gmeow:ContentSegment .
 ex:chapter1 rdfs:label \"Orphan Chapter\" .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "ContentSegment without segmentOf must fail SHACL"
-    );
-    assert!(
-        violations(&report)
-            .iter()
-            .any(|v| v.contains("ContentSegment must be part of")),
-        "expected 'ContentSegment must be part of' violation; got: {:?}",
-        violations(&report)
-    );
+    ))
+    .fails()
+    .violations(&["ContentSegment must be part of"])
+)]
+fn creative_works(#[case] case: Case) {
+    case.run();
 }

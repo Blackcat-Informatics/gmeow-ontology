@@ -24,6 +24,7 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 // ── Turtle prefix block ───────────────────────────────────────────────────────
 
@@ -36,79 +37,39 @@ const PREFIXES: &str = "\
 
 // ── Tests migrated from tests/test_music_pitch.py ────────────────────────────
 
-/// `test_pitch_value_ratio_only_passes_shacl` — a PitchValue with ratio
-/// encoding and a tuning frame passes SHACL.
-#[test]
-fn pitch_value_ratio_only_passes_shacl() {
-    let ttl = format!(
+#[rstest]
+#[case::pitch_value_ratio_only_passes_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:valueRatio a gmeow:PitchValue .
 ex:valueRatio gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation .
 ex:valueRatio gmeow:ratioNumerator \"3\"^^xsd:integer .
 ex:valueRatio gmeow:ratioDenominator \"2\"^^xsd:integer .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "PitchValue with ratio encoding must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_pitch_value_cents_only_passes_shacl` — a PitchValue with cents
-/// encoding and a tuning frame passes SHACL.
-#[test]
-fn pitch_value_cents_only_passes_shacl() {
-    let ttl = format!(
+    ))
+)]
+#[case::pitch_value_cents_only_passes_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:valueCents a gmeow:PitchValue .
 ex:valueCents gmeow:hasTuningFrame gmeow:tuningSystem12EDO .
 ex:valueCents gmeow:centsFromOrigin \"700.0\"^^xsd:decimal .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "PitchValue with cents encoding must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_pitch_value_missing_frame_fails_shacl` — a PitchValue with no
-/// `hasTuningFrame` must fail SHACL with the expected message.
-#[test]
-fn pitch_value_missing_frame_fails_shacl() {
-    let ttl = format!(
+    ))
+)]
+#[case::pitch_value_missing_frame_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:valueNoFrame a gmeow:PitchValue .
 ex:valueNoFrame gmeow:ratioNumerator \"3\"^^xsd:integer .
 ex:valueNoFrame gmeow:ratioDenominator \"2\"^^xsd:integer .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "PitchValue without tuning frame must fail SHACL"
-    );
-    let msgs = violations(&report);
-    assert!(!msgs.is_empty(), "expected at least one violation");
-    assert!(
-        msgs.iter().any(|m| m
-            .contains("A PitchValue must be relative to exactly one TuningSystem (Principle 11).")),
-        "expected missing-frame violation message; got: {:?}",
-        msgs
-    );
-}
-
-/// `test_pitch_value_ratio_and_cents_fails_shacl` — a PitchValue with both
-/// ratio and cents encoding must fail SHACL with the XOR message.
-#[test]
-fn pitch_value_ratio_and_cents_fails_shacl() {
-    let ttl = format!(
+    ))
+    .fails()
+    .violations(&["A PitchValue must be relative to exactly one TuningSystem (Principle 11)."])
+)]
+#[case::pitch_value_ratio_and_cents_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:valueBoth a gmeow:PitchValue .
 ex:valueBoth gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation .
@@ -116,83 +77,36 @@ ex:valueBoth gmeow:ratioNumerator \"3\"^^xsd:integer .
 ex:valueBoth gmeow:ratioDenominator \"2\"^^xsd:integer .
 ex:valueBoth gmeow:centsFromOrigin \"701.96\"^^xsd:decimal .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "PitchValue with both ratio and cents must fail SHACL"
-    );
-    let msgs = violations(&report);
-    assert!(!msgs.is_empty(), "expected at least one violation");
-    let expected = "A PitchValue must provide exactly one encoding: \
-        either (ratioNumerator + ratioDenominator) or centsFromOrigin.";
-    assert!(
-        msgs.iter().any(|m| m.contains(expected)),
-        "expected XOR encoding violation message; got: {:?}",
-        msgs
-    );
-}
-
-/// `test_pitch_value_zero_denominator_fails_shacl` — a PitchValue with a zero
-/// ratio denominator must fail SHACL.
-#[test]
-fn pitch_value_zero_denominator_fails_shacl() {
-    let ttl = format!(
+    ))
+    .fails()
+    .violations(&["A PitchValue must provide exactly one encoding: \
+        either (ratioNumerator + ratioDenominator) or centsFromOrigin."])
+)]
+#[case::pitch_value_zero_denominator_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:valueZeroDenom a gmeow:PitchValue .
 ex:valueZeroDenom gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation .
 ex:valueZeroDenom gmeow:ratioNumerator \"3\"^^xsd:integer .
 ex:valueZeroDenom gmeow:ratioDenominator \"0\"^^xsd:integer .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "PitchValue with zero denominator must fail SHACL"
-    );
-    let msgs = violations(&report);
-    assert!(!msgs.is_empty(), "expected at least one violation");
-    assert!(
-        msgs.iter()
-            .any(|m| m.contains("The ratio denominator must be a positive integer.")),
-        "expected positive-denominator violation message; got: {:?}",
-        msgs
-    );
-}
-
-/// `test_pitch_interval_xor_ratio_cents` — a PitchInterval must carry exactly
-/// one encoding (ratio xor cents); tests missing-both, both-present, and
-/// ratio-only cases.
-#[test]
-fn pitch_interval_xor_ratio_cents_missing_both_fails() {
-    let ttl = format!(
+    ))
+    .fails()
+    .violations(&["The ratio denominator must be a positive integer."])
+)]
+#[case::pitch_interval_xor_ratio_cents_missing_both_fails(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:intervalNone a gmeow:PitchInterval .
 ex:intervalNone gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "PitchInterval with no encoding must fail SHACL"
-    );
-    let msgs = violations(&report);
-    assert!(!msgs.is_empty(), "expected at least one violation");
-    let expected = "A PitchInterval must provide exactly one encoding: \
-        either (ratioNumerator + ratioDenominator) or centsFromOrigin.";
-    assert!(
-        msgs.iter().any(|m| m.contains(expected)),
-        "expected missing-encoding violation; got: {:?}",
-        msgs
-    );
-}
-
-#[test]
-fn pitch_interval_xor_ratio_cents_both_fails() {
-    let ttl = format!(
+    ))
+    .fails()
+    .violations(&["A PitchInterval must provide exactly one encoding: \
+        either (ratioNumerator + ratioDenominator) or centsFromOrigin."])
+)]
+#[case::pitch_interval_xor_ratio_cents_both_fails(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:intervalBoth a gmeow:PitchInterval .
 ex:intervalBoth gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation .
@@ -200,67 +114,33 @@ ex:intervalBoth gmeow:ratioNumerator \"3\"^^xsd:integer .
 ex:intervalBoth gmeow:ratioDenominator \"2\"^^xsd:integer .
 ex:intervalBoth gmeow:centsFromOrigin \"701.96\"^^xsd:decimal .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "PitchInterval with both ratio and cents must fail SHACL"
-    );
-    let msgs = violations(&report);
-    assert!(!msgs.is_empty(), "expected at least one violation");
-    let expected = "A PitchInterval must provide exactly one encoding: \
-        either (ratioNumerator + ratioDenominator) or centsFromOrigin.";
-    assert!(
-        msgs.iter().any(|m| m.contains(expected)),
-        "expected XOR encoding violation; got: {:?}",
-        msgs
-    );
-}
-
-#[test]
-fn pitch_interval_xor_ratio_cents_ratio_only_passes() {
-    let ttl = format!(
+    ))
+    .fails()
+    .violations(&["A PitchInterval must provide exactly one encoding: \
+        either (ratioNumerator + ratioDenominator) or centsFromOrigin."])
+)]
+#[case::pitch_interval_xor_ratio_cents_ratio_only_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:intervalRatio a gmeow:PitchInterval .
 ex:intervalRatio gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation .
 ex:intervalRatio gmeow:ratioNumerator \"3\"^^xsd:integer .
 ex:intervalRatio gmeow:ratioDenominator \"2\"^^xsd:integer .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "PitchInterval with ratio-only encoding must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_tuning_system_shape_requires_kind_and_realm` — a TuningSystem missing
-/// `tuningKind` must fail SHACL with the expected message.
-#[test]
-fn tuning_system_shape_requires_kind_and_realm() {
-    let ttl = format!(
+    ))
+)]
+#[case::tuning_system_shape_requires_kind_and_realm(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:tuningBad a gmeow:TuningSystem .
 ex:tuningBad gmeow:frameRealm gmeow:frameRealmMusicalPitch .
 ex:tuningBad gmeow:frameKind gmeow:frameKindScalar .
 ex:tuningBad gmeow:requiresHost \"false\"^^xsd:boolean .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "TuningSystem without tuningKind must fail SHACL"
-    );
-    let msgs = violations(&report);
-    assert!(!msgs.is_empty(), "expected at least one violation");
-    assert!(
-        msgs.iter()
-            .any(|m| m.contains("A TuningSystem must have exactly one tuningKind (Principle 9).")),
-        "expected missing-tuningKind violation; got: {:?}",
-        msgs
-    );
+    ))
+    .fails()
+    .violations(&["A TuningSystem must have exactly one tuningKind (Principle 9)."])
+)]
+fn music_pitch(#[case] case: Case) {
+    case.run();
 }

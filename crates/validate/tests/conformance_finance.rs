@@ -25,81 +25,15 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
-/// `test_finance_fixture_conforms` — a well-formed finance data graph passes
-/// SHACL validation when merged with the full ontology.
-#[test]
-fn finance_fixture_conforms() {
-    let nt = fixture_as_nt("coverage", "finance-wellformed");
-    let report = validate_with_ontology(&nt);
-    assert!(
-        ok(&report),
-        "finance-wellformed.ttl must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_double_entry_fixture_conforms` — a balanced journal entry passes
-/// SHACL validation when merged with the full ontology.
-#[test]
-fn double_entry_fixture_conforms() {
-    let nt = fixture_as_nt("coverage", "finance-transaction");
-    let report = validate_with_ontology(&nt);
-    assert!(
-        ok(&report),
-        "finance-transaction.ttl must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_invoice_fixture_conforms` — a well-formed invoice data graph passes
-/// SHACL validation when merged with the full ontology.
-#[test]
-fn invoice_fixture_conforms() {
-    let nt = fixture_as_nt("coverage", "finance-invoice");
-    let report = validate_with_ontology(&nt);
-    assert!(
-        ok(&report),
-        "finance-invoice.ttl must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_order_fixture_conforms` — a well-formed order data graph passes
-/// SHACL validation when merged with the full ontology.
-#[test]
-fn order_fixture_conforms() {
-    let nt = fixture_as_nt("coverage", "finance-order");
-    let report = validate_with_ontology(&nt);
-    assert!(
-        ok(&report),
-        "finance-order.ttl must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_holding_fixture_conforms` — a well-formed holding data graph passes
-/// SHACL validation when merged with the full ontology.
-#[test]
-fn holding_fixture_conforms() {
-    let nt = fixture_as_nt("coverage", "finance-holding");
-    let report = validate_with_ontology(&nt);
-    assert!(
-        ok(&report),
-        "finance-holding.ttl must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_crypto_fixture_conforms` — a well-formed crypto wallet data graph
-/// passes SHACL validation when merged with the full ontology.
-#[test]
-fn crypto_fixture_conforms() {
-    let nt = fixture_as_nt("coverage", "finance-crypto");
-    let report = validate_with_ontology(&nt);
-    assert!(
-        ok(&report),
-        "finance-crypto.ttl must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
+#[rstest]
+#[case::finance_fixture_conforms(Case::file("coverage", "finance-wellformed").with_ontology())]
+#[case::double_entry_fixture_conforms(Case::file("coverage", "finance-transaction").with_ontology())]
+#[case::invoice_fixture_conforms(Case::file("coverage", "finance-invoice").with_ontology())]
+#[case::order_fixture_conforms(Case::file("coverage", "finance-order").with_ontology())]
+#[case::holding_fixture_conforms(Case::file("coverage", "finance-holding").with_ontology())]
+#[case::crypto_fixture_conforms(Case::file("coverage", "finance-crypto").with_ontology())]
+fn finance(#[case] case: Case) {
+    case.run();
 }

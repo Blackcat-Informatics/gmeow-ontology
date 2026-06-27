@@ -32,6 +32,7 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 // ── Helpers for the inline Turtle snippets ────────────────────────────────────
 
@@ -62,13 +63,9 @@ fn doxastic_claim_ttl(claim: &str, state: &str, agent: &str, prop: &str, method:
 
 // ── Tests migrated from tests/test_deception.py ───────────────────────────────
 
-/// `test_standpoint_divergence_coexists` — Principle 9: held and projected
-/// standpoints are coexisting claims, neither privileged.  The graph must
-/// permit both on the same event.
-#[test]
-fn standpoint_divergence_coexists() {
-    let ttl = format!(
-        "{PREFIXES}\
+#[rstest]
+#[case::standpoint_divergence_coexists(Case::inline(format!(
+    "{PREFIXES}\
 ex:event1 a gmeow:Event .
 ex:event1 gmeow:eventType gmeow:eventTypeDeception .
 ex:agent1 a gmeow:Agent .
@@ -80,36 +77,23 @@ ex:event1 gmeow:projectedStandpoint ex:claimB .
 {claim_b}\
 ex:method1 a gmeow:ObservationMethod .
 ",
-        claim_a = doxastic_claim_ttl(
-            "ex:claimA",
-            "ex:claimAState",
-            "ex:agent1",
-            "ex:propA",
-            "ex:method1"
-        ),
-        claim_b = doxastic_claim_ttl(
-            "ex:claimB",
-            "ex:claimBState",
-            "ex:agent1",
-            "ex:propB",
-            "ex:method1"
-        ),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "standpoint divergence must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_deception_event_shacl_passes` — a fully-populated deception event
-/// passes SHACL.
-#[test]
-fn deception_event_shacl_passes() {
-    let ttl = format!(
-        "{PREFIXES}\
+    claim_a = doxastic_claim_ttl(
+        "ex:claimA",
+        "ex:claimAState",
+        "ex:agent1",
+        "ex:propA",
+        "ex:method1"
+    ),
+    claim_b = doxastic_claim_ttl(
+        "ex:claimB",
+        "ex:claimBState",
+        "ex:agent1",
+        "ex:propB",
+        "ex:method1"
+    ),
+)))]
+#[case::deception_event_shacl_passes(Case::inline(format!(
+    "{PREFIXES}\
 ex:event1 a gmeow:Event .
 ex:event1 gmeow:eventType gmeow:eventTypeDeception .
 ex:agent1 a gmeow:Agent .
@@ -126,35 +110,23 @@ ex:cue1    gmeow:observationResult ex:result1 .
 ex:cue1    gmeow:observedFeature  ex:event1 .
 ex:event1  gmeow:deceptionCue     ex:cue1 .
 ",
-        claim_a = doxastic_claim_ttl(
-            "ex:claimA",
-            "ex:claimAState",
-            "ex:agent1",
-            "ex:propA",
-            "ex:method1"
-        ),
-        claim_b = doxastic_claim_ttl(
-            "ex:claimB",
-            "ex:claimBState",
-            "ex:agent1",
-            "ex:propB",
-            "ex:method1"
-        ),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "fully-populated deception event must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_deception_cue_shacl_passes` — a deception cue observation passes SHACL.
-#[test]
-fn deception_cue_shacl_passes() {
-    let ttl = format!(
-        "{PREFIXES}\
+    claim_a = doxastic_claim_ttl(
+        "ex:claimA",
+        "ex:claimAState",
+        "ex:agent1",
+        "ex:propA",
+        "ex:method1"
+    ),
+    claim_b = doxastic_claim_ttl(
+        "ex:claimB",
+        "ex:claimBState",
+        "ex:agent1",
+        "ex:propB",
+        "ex:method1"
+    ),
+)))]
+#[case::deception_cue_shacl_passes(Case::inline(format!(
+    "{PREFIXES}\
 ex:event1 a gmeow:Event .
 ex:event1 gmeow:eventType gmeow:eventTypeDeception .
 ex:agent1 a gmeow:Agent .
@@ -171,36 +143,23 @@ ex:cue1    gmeow:observationResult ex:result1 .
 ex:cue1    gmeow:observedFeature  ex:event1 .
 ex:event1  gmeow:deceptionCue     ex:cue1 .
 ",
-        claim_a = doxastic_claim_ttl(
-            "ex:claimA",
-            "ex:claimAState",
-            "ex:agent1",
-            "ex:propA",
-            "ex:method1"
-        ),
-        claim_b = doxastic_claim_ttl(
-            "ex:claimB",
-            "ex:claimBState",
-            "ex:agent1",
-            "ex:propB",
-            "ex:method1"
-        ),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "deception cue observation must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_paltering_implicates_structure` — a paltering event can carry
-/// `gmeow:implicates` to a proposition.
-#[test]
-fn paltering_implicates_structure() {
-    let ttl = format!(
-        "{PREFIXES}\
+    claim_a = doxastic_claim_ttl(
+        "ex:claimA",
+        "ex:claimAState",
+        "ex:agent1",
+        "ex:propA",
+        "ex:method1"
+    ),
+    claim_b = doxastic_claim_ttl(
+        "ex:claimB",
+        "ex:claimBState",
+        "ex:agent1",
+        "ex:propB",
+        "ex:method1"
+    ),
+)))]
+#[case::paltering_implicates_structure(Case::inline(format!(
+    "{PREFIXES}\
 ex:event1 a gmeow:Event .
 ex:event1 gmeow:eventType  gmeow:eventTypePaltering .
 ex:event1 gmeow:implicates ex:propositionPprime .
@@ -213,36 +172,23 @@ ex:event1 gmeow:projectedStandpoint ex:claimB .
 {claim_b}\
 ex:method1 a gmeow:ObservationMethod .
 ",
-        claim_a = doxastic_claim_ttl(
-            "ex:claimA",
-            "ex:claimAState",
-            "ex:agent1",
-            "ex:propA",
-            "ex:method1"
-        ),
-        claim_b = doxastic_claim_ttl(
-            "ex:claimB",
-            "ex:claimBState",
-            "ex:agent1",
-            "ex:propB",
-            "ex:method1"
-        ),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "paltering event with implicates must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_self_deception_same_agent` — the same agent can bear both deceiver and
-/// deceived roles on the same event via distinct Participation relators.
-#[test]
-fn self_deception_same_agent() {
-    let ttl = format!(
-        "{PREFIXES}\
+    claim_a = doxastic_claim_ttl(
+        "ex:claimA",
+        "ex:claimAState",
+        "ex:agent1",
+        "ex:propA",
+        "ex:method1"
+    ),
+    claim_b = doxastic_claim_ttl(
+        "ex:claimB",
+        "ex:claimBState",
+        "ex:agent1",
+        "ex:propB",
+        "ex:method1"
+    ),
+)))]
+#[case::self_deception_same_agent(Case::inline(format!(
+    "{PREFIXES}\
 ex:event1 a gmeow:Event .
 ex:event1 gmeow:eventType gmeow:eventTypeSelfDeception .
 ex:agent1 a gmeow:Agent .
@@ -262,36 +208,23 @@ ex:partDeceived gmeow:participationEvent       ex:event1 .
 ex:partDeceived gmeow:participationParticipant ex:agent1 .
 ex:partDeceived gmeow:participationRole        gmeow:roleDeceived .
 ",
-        claim_a = doxastic_claim_ttl(
-            "ex:claimA",
-            "ex:claimAState",
-            "ex:agent1",
-            "ex:propA",
-            "ex:method1"
-        ),
-        claim_b = doxastic_claim_ttl(
-            "ex:claimB",
-            "ex:claimBState",
-            "ex:agent1",
-            "ex:propB",
-            "ex:method1"
-        ),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "self-deception (same agent, two roles) must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_distortion_shacl_passes` — a distortion event with spin-doctor role
-/// passes SHACL.
-#[test]
-fn distortion_shacl_passes() {
-    let ttl = format!(
-        "{PREFIXES}\
+    claim_a = doxastic_claim_ttl(
+        "ex:claimA",
+        "ex:claimAState",
+        "ex:agent1",
+        "ex:propA",
+        "ex:method1"
+    ),
+    claim_b = doxastic_claim_ttl(
+        "ex:claimB",
+        "ex:claimBState",
+        "ex:agent1",
+        "ex:propB",
+        "ex:method1"
+    ),
+)))]
+#[case::distortion_shacl_passes(Case::inline(format!(
+    "{PREFIXES}\
 ex:event1 a gmeow:Event .
 ex:event1 gmeow:eventType gmeow:eventTypeDistortion .
 ex:agent1 a gmeow:Agent .
@@ -307,36 +240,23 @@ ex:partSpin gmeow:participationEvent       ex:event1 .
 ex:partSpin gmeow:participationParticipant ex:spinDoctor .
 ex:partSpin gmeow:participationRole        gmeow:roleSpinDoctor .
 ",
-        claim_a = doxastic_claim_ttl(
-            "ex:claimA",
-            "ex:claimAState",
-            "ex:agent1",
-            "ex:propA",
-            "ex:method1"
-        ),
-        claim_b = doxastic_claim_ttl(
-            "ex:claimB",
-            "ex:claimBState",
-            "ex:agent1",
-            "ex:propB",
-            "ex:method1"
-        ),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "distortion event with spin-doctor role must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_fabrication_refuted_provenance` — a fabrication event with refuted
-/// provenance passes SHACL.
-#[test]
-fn fabrication_refuted_provenance() {
-    let ttl = format!(
-        "{PREFIXES}\
+    claim_a = doxastic_claim_ttl(
+        "ex:claimA",
+        "ex:claimAState",
+        "ex:agent1",
+        "ex:propA",
+        "ex:method1"
+    ),
+    claim_b = doxastic_claim_ttl(
+        "ex:claimB",
+        "ex:claimBState",
+        "ex:agent1",
+        "ex:propB",
+        "ex:method1"
+    ),
+)))]
+#[case::fabrication_refuted_provenance(Case::inline(format!(
+    "{PREFIXES}\
 ex:event1 a gmeow:Event .
 ex:event1 gmeow:eventType gmeow:eventTypeFabrication .
 ex:agent1 a gmeow:Agent .
@@ -352,36 +272,23 @@ ex:event1      gmeow:implicates ex:work1 .
 ex:verification1 a gmeow:VerificationResult .
 ex:verification1 gmeow:hasVerificationStatus gmeow:verificationStatusFailed .
 ",
-        claim_a = doxastic_claim_ttl(
-            "ex:claimA",
-            "ex:claimAState",
-            "ex:agent1",
-            "ex:propA",
-            "ex:method1"
-        ),
-        claim_b = doxastic_claim_ttl(
-            "ex:claimB",
-            "ex:claimBState",
-            "ex:agent1",
-            "ex:propB",
-            "ex:method1"
-        ),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "fabrication with refuted provenance must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_forgery_failed_signature_structure` — a forgery event with
-/// `counterpartOf` + failed `CryptographicSignature` passes SHACL.
-#[test]
-fn forgery_failed_signature_structure() {
-    let ttl = format!(
-        "{PREFIXES}\
+    claim_a = doxastic_claim_ttl(
+        "ex:claimA",
+        "ex:claimAState",
+        "ex:agent1",
+        "ex:propA",
+        "ex:method1"
+    ),
+    claim_b = doxastic_claim_ttl(
+        "ex:claimB",
+        "ex:claimBState",
+        "ex:agent1",
+        "ex:propB",
+        "ex:method1"
+    ),
+)))]
+#[case::forgery_failed_signature_structure(Case::inline(format!(
+    "{PREFIXES}\
 ex:event1 a gmeow:Event .
 ex:event1 gmeow:eventType gmeow:eventTypeForgery .
 ex:agent1 a gmeow:Agent .
@@ -400,36 +307,23 @@ ex:signature1  a gmeow:CryptographicSignature .
 ex:signature1  gmeow:signatureOf             ex:forgedWork .
 ex:signature1  gmeow:hasVerificationStatus   gmeow:verificationStatusFailed .
 ",
-        claim_a = doxastic_claim_ttl(
-            "ex:claimA",
-            "ex:claimAState",
-            "ex:agent1",
-            "ex:propA",
-            "ex:method1"
-        ),
-        claim_b = doxastic_claim_ttl(
-            "ex:claimB",
-            "ex:claimBState",
-            "ex:agent1",
-            "ex:propB",
-            "ex:method1"
-        ),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "forgery with failed CryptographicSignature must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_impersonation_facet_subject_mismatch` — an impersonation event where
-/// projected identity facet subject ≠ deceiver passes SHACL.
-#[test]
-fn impersonation_facet_subject_mismatch() {
-    let ttl = format!(
-        "{PREFIXES}\
+    claim_a = doxastic_claim_ttl(
+        "ex:claimA",
+        "ex:claimAState",
+        "ex:agent1",
+        "ex:propA",
+        "ex:method1"
+    ),
+    claim_b = doxastic_claim_ttl(
+        "ex:claimB",
+        "ex:claimBState",
+        "ex:agent1",
+        "ex:propB",
+        "ex:method1"
+    ),
+)))]
+#[case::impersonation_facet_subject_mismatch(Case::inline(format!(
+    "{PREFIXES}\
 ex:event1 a gmeow:Event .
 ex:event1 gmeow:eventType gmeow:eventTypeImpersonation .
 ex:agent1 a gmeow:Agent .
@@ -447,36 +341,23 @@ ex:facet1     gmeow:observedFeature ex:event1 .
 ex:authResult1 a gmeow:AuthenticationResult .
 ex:authResult1 gmeow:authResult \"fail\" .
 ",
-        claim_a = doxastic_claim_ttl(
-            "ex:claimA",
-            "ex:claimAState",
-            "ex:agent1",
-            "ex:propA",
-            "ex:method1"
-        ),
-        claim_b = doxastic_claim_ttl(
-            "ex:claimB",
-            "ex:claimBState",
-            "ex:agent1",
-            "ex:propB",
-            "ex:method1"
-        ),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "impersonation with victim-subject facet must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_disinformation_propagation_chain` — a 3-hop disinformation chain
-/// (origin + dupe + downstream) passes SHACL.
-#[test]
-fn disinformation_propagation_chain() {
-    let ttl = format!(
-        "{PREFIXES}\
+    claim_a = doxastic_claim_ttl(
+        "ex:claimA",
+        "ex:claimAState",
+        "ex:agent1",
+        "ex:propA",
+        "ex:method1"
+    ),
+    claim_b = doxastic_claim_ttl(
+        "ex:claimB",
+        "ex:claimBState",
+        "ex:agent1",
+        "ex:propB",
+        "ex:method1"
+    ),
+)))]
+#[case::disinformation_propagation_chain(Case::inline(format!(
+    "{PREFIXES}\
 # --- Hop 0: Disinformation origin ---
 ex:originEvent a gmeow:Event .
 ex:originEvent gmeow:eventType gmeow:eventTypeDisinformation .
@@ -519,40 +400,35 @@ ex:downstreamBelief gmeow:claimVeridicality gmeow:veridicalityUntrue .
 # Shared method
 ex:method1 a gmeow:ObservationMethod .
 ",
-        origin_held = doxastic_claim_ttl(
-            "ex:originHeld",
-            "ex:originHeldState",
-            "ex:deceiver",
-            "ex:originHeldProp",
-            "ex:method1"
-        ),
-        origin_projected = doxastic_claim_ttl(
-            "ex:originProjected",
-            "ex:originProjectedState",
-            "ex:deceiver",
-            "ex:originProjectedProp",
-            "ex:method1"
-        ),
-        dupe_belief = doxastic_claim_ttl(
-            "ex:dupeBelief",
-            "ex:dupeBeliefState",
-            "ex:dupe",
-            "ex:dupeProp",
-            "ex:method1"
-        ),
-        downstream_belief = doxastic_claim_ttl(
-            "ex:downstreamBelief",
-            "ex:downstreamBeliefState",
-            "ex:downstream",
-            "ex:downstreamProp",
-            "ex:method1"
-        ),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "3-hop disinformation chain must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
+    origin_held = doxastic_claim_ttl(
+        "ex:originHeld",
+        "ex:originHeldState",
+        "ex:deceiver",
+        "ex:originHeldProp",
+        "ex:method1"
+    ),
+    origin_projected = doxastic_claim_ttl(
+        "ex:originProjected",
+        "ex:originProjectedState",
+        "ex:deceiver",
+        "ex:originProjectedProp",
+        "ex:method1"
+    ),
+    dupe_belief = doxastic_claim_ttl(
+        "ex:dupeBelief",
+        "ex:dupeBeliefState",
+        "ex:dupe",
+        "ex:dupeProp",
+        "ex:method1"
+    ),
+    downstream_belief = doxastic_claim_ttl(
+        "ex:downstreamBelief",
+        "ex:downstreamBeliefState",
+        "ex:downstream",
+        "ex:downstreamProp",
+        "ex:method1"
+    ),
+)))]
+fn deception(#[case] case: Case) {
+    case.run();
 }

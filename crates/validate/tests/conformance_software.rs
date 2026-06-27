@@ -21,6 +21,7 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 /// Turtle prefix block shared by all software tests.
 const PREFIXES: &str = "\
@@ -29,42 +30,18 @@ const PREFIXES: &str = "\
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 ";
 
-/// `test_facet_orthogonality_shacl_rejects_two_facets` — an individual typed in
-/// two software facet classes must be rejected by SHACL (no reasoner needed).
-/// The shape enforces "may fill at most one software facet".
-#[test]
-fn facet_orthogonality_shacl_rejects_two_facets() {
-    let ttl = format!(
+#[rstest]
+#[case::facet_orthogonality_shacl_rejects_two_facets(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:x rdf:type gmeow:Project .
 ex:x rdf:type gmeow:SoftwareProduct .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "dual-facet individual must be rejected by SHACL; got no violations"
-    );
-    let msgs = violations(&report);
-    assert!(
-        msgs.iter()
-            .any(|m| m.contains("may fill at most one software facet")),
-        "expected 'may fill at most one software facet' in violations; got: {msgs:?}"
-    );
-}
-
-/// `test_fixture_parses_and_shacl_passes` — the canonical software fixture
-/// `tests/fixtures/software.ttl` must parse and pass all SHACL shapes.
-#[test]
-fn fixture_parses_and_shacl_passes() {
-    let root = repo_root();
-    let path = root.join("tests").join("fixtures").join("software.ttl");
-    let nt = ttl_file_to_nt(&path);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "software.ttl fixture must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
+    ))
+        .fails()
+        .violations(&["may fill at most one software facet"])
+)]
+#[case::fixture_parses_and_shacl_passes(Case::repo_path("tests/fixtures/software.ttl"))]
+fn software(#[case] case: Case) {
+    case.run();
 }

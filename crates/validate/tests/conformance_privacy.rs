@@ -17,71 +17,28 @@
 //!   - `test_odrl_projection_emits_privacy_policy`: uses `project_graph` (projection, not SHACL).
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 // ── Tests migrated from tests/test_privacy.py ────────────────────────────────
 
-/// `test_wellformed_privacy_fixture_conforms` — the well-formed privacy fixture
-/// must pass SHACL with no violations.
-#[test]
-fn wellformed_privacy_fixture_conforms() {
-    let nt = fixture_as_nt("shapes", "privacy-wellformed");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "well-formed privacy fixture must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_malformed_privacy_fixture_is_flagged` — the malformed privacy fixture
-/// must produce violation-level errors for missing asset/action constraints and
-/// warning-level results for missing consent metadata.
-#[test]
-fn malformed_privacy_fixture_is_flagged() {
-    let nt = fixture_as_nt("shapes", "privacy-malformed");
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "malformed privacy fixture must fail SHACL; violations were empty"
-    );
-    let errs = violations(&report).join("\n");
-    assert!(
-        errs.contains("must govern exactly one asset"),
-        "expected 'must govern exactly one asset' in violations; got: {errs}"
-    );
-    assert!(
-        errs.contains("must regulate exactly one action"),
-        "expected 'must regulate exactly one action' in violations; got: {errs}"
-    );
-    // Consent well-formedness is Warning severity (incomplete metadata is allowed).
-    let warns = warnings(&report).join("\n");
-    assert!(
-        warns.contains("should name exactly one data subject"),
-        "expected 'should name exactly one data subject' in warnings; got: {warns}"
-    );
-    assert!(
-        warns.contains("at least one data controller"),
-        "expected 'at least one data controller' in warnings; got: {warns}"
-    );
-}
-
-/// `test_sensitive_value_warns_but_does_not_fail` — a graph that uses
-/// `gmeow:sensitivitySensitivePersonal` must pass (no violations) but emit
-/// at least one warning mentioning `sensitivitySensitivePersonal`.
-#[test]
-fn sensitive_value_warns_but_does_not_fail() {
-    let nt = fixture_as_nt("shapes", "privacy-sensitive-warning");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "warning-only privacy graph must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-    let warns = warnings(&report);
-    assert!(
-        warns
-            .iter()
-            .any(|w| w.contains("sensitivitySensitivePersonal")),
-        "expected a warning mentioning 'sensitivitySensitivePersonal'; got: {warns:?}"
-    );
+#[rstest]
+#[case::wellformed_privacy_fixture_conforms(Case::file("shapes", "privacy-wellformed"))]
+#[case::malformed_privacy_fixture_is_flagged(
+    Case::file("shapes", "privacy-malformed")
+        .fails()
+        .violations(&[
+            "must govern exactly one asset",
+            "must regulate exactly one action",
+        ])
+        .warnings(&[
+            "should name exactly one data subject",
+            "at least one data controller",
+        ])
+)]
+#[case::sensitive_value_warns_but_does_not_fail(
+    Case::file("shapes", "privacy-sensitive-warning")
+        .warnings(&["sensitivitySensitivePersonal"])
+)]
+fn privacy(#[case] case: Case) {
+    case.run();
 }
