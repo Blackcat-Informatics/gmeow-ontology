@@ -304,21 +304,20 @@ const CORPUS_MIN_TOTAL: usize = 141;
 // ---------------------------------------------------------------------------
 //
 // The full sweep is eval-bound: ~1.5 s shared load (gts decode + oxigraph store +
-// native dataset) then ~49 s of evaluation (141 native + 115 oxigraph queries over
-// the real ontology), ~50 s total — over the 25 s always-on per-test budget. ONE
-// query (`queries/verify/class-without-stereotype.rq`) accounts for ~44 s of that on
-// the native engine alone (see OFF_GATE_HEAVY); carving it out drops the remaining
-// corpus to ~8 s. We then split that remainder across `NUM_SHARDS` independent
-// `#[test]` fns; nextest runs each in its own process, in parallel, so per-shard wall
-// time is ~1.5 s load + ~8/N s eval — observed 1.5–5.2 s each (2026-06-26), well under
-// budget with CI headroom and room for corpus growth.
+// native dataset) then evaluation over the real ontology — over the 25 s always-on
+// per-test budget when run whole. The dominant native outlier is
+// `generated/queries/ontolex.rq` (~107 s, see OFF_GATE_HEAVY); carving the heavy
+// projections out drops the remaining corpus to a few seconds. We then split that
+// remainder across `NUM_SHARDS` independent `#[test]` fns; nextest runs each in its own
+// process, in parallel, so per-shard wall time is ~1.5 s load + a small eval tail —
+// well under budget with CI headroom and room for corpus growth.
 //
 // The original whole-corpus green guard was `CORPUS_MIN_GREEN = 113` (observed 115).
 // It is now expressed as per-shard floors (the gated subset) plus
-// [`OFF_GATE_HEAVY_MIN_GREEN`]: `39 + 31 + 29 + 29` (= 128) `+ 6` = a **134**
-// whole-corpus floor (observed total 138 on 2026-06-27 — the corpus grew, and five
-// heavy projection queries moved to OFF_GATE_HEAVY, see below). Same one-below-each
-// drift margin the per-shard floors use; expressed shard-locally.
+// [`OFF_GATE_HEAVY_MIN_GREEN`]: `39 + 32 + 29 + 29` (= 129) `+ 5` = a **134**
+// whole-corpus floor (observed total 138 on 2026-06-27). The re-gated anti-join adds a
+// green to shard 1 and leaves the off-gate-heavy subset at 5. Same one-below-each drift
+// margin the per-shard floors use; expressed shard-locally.
 
 /// How many independent shard tests the gated corpus parity sweep is split across.
 const NUM_SHARDS: usize = 4;
@@ -327,12 +326,14 @@ const NUM_SHARDS: usize = 4;
 /// Sharding is by a STABLE hash of each query's repo-relative path (not its position
 /// in the sorted corpus), so a given file stays in the same shard as the corpus
 /// grows — which keeps these per-shard minimums valid when queries are added.
-/// Observed gated greens on 2026-06-27: `[40, 32, 30, 30]` (sum 132); floors set one
-/// below each for drift margin. With [`OFF_GATE_HEAVY_MIN_GREEN`] (6) the whole-corpus
-/// green floor is 134 (observed total 138). Raising scope (fixing a DEFERRED construct)
-/// MUST raise the affected shard's floor and this comment; moving a query into
-/// [`OFF_GATE_HEAVY`] lowers the affected shard's observed green (re-measure and reset).
-const CORPUS_MIN_GREEN_PER_SHARD: [usize; NUM_SHARDS] = [39, 31, 29, 29];
+/// Observed gated greens on 2026-06-27: `[40, 33, 30, 30]` (sum 133); floors set one
+/// below each for drift margin. Shard 1 gained a green when the `class-without-stereotype`
+/// anti-join was re-gated (its inner index is now built once and reused). With
+/// [`OFF_GATE_HEAVY_MIN_GREEN`] (5) the whole-corpus green floor is 134 (observed total
+/// 138). Raising scope (fixing a DEFERRED construct) MUST raise the affected shard's floor
+/// and this comment; moving a query into [`OFF_GATE_HEAVY`] lowers the affected shard's
+/// observed green (re-measure and reset).
+const CORPUS_MIN_GREEN_PER_SHARD: [usize; NUM_SHARDS] = [39, 32, 29, 29];
 
 /// Stable FNV-1a hash of a query's repo-relative path → shard id. Stable across
 /// machines/worktrees (the key is repo-relative, not absolute) and across corpus
@@ -415,29 +416,30 @@ fn corpus_inventory_floor() {
 /// keep their full native-vs-oxigraph parity coverage in the OFF-GATE
 /// [`corpus_parity_heavy_offgate`] test (maint lane), not on the per-commit gate.
 ///
-/// Entries (native times measured 2026-06-27 on the dev box; CI is ~5× slower under
-/// shard contention, which is what actually trips the gate):
-///   - `queries/verify/class-without-stereotype.rq` — `FILTER NOT EXISTS` anti-join over
-///     every `owl:Class`; oxigraph ~5 ms, native ~44 s (un-indexed nested-loop NOT EXISTS).
-///   - `generated/queries/ontolex.rq` — GMEOW→ontolex projection CONSTRUCT; native ~107 s
-///     (the single dominant outlier — by itself it pushed its shard past the 120 s
-///     terminate cliff). Landed after the original sharding was tuned, so the design's
-///     "~8 s remainder" estimate no longer held.
-///   - `queries/qc/missing-definitions.rq` — ~2.2 s.
-///   - `generated/queries/schema-org.rq` — ~1.6 s (a 1250-line projection CONSTRUCT).
-///   - `generated/queries/vcard.rq` — ~1.1 s.
-///   - `generated/queries/foaf.rq` — ~1.0 s.
+/// Entries:
+///   - `generated/queries/ontolex.rq` — GMEOW→ontolex projection CONSTRUCT.
+///   - `queries/qc/missing-definitions.rq`.
+///   - `generated/queries/schema-org.rq` — a 1250-line projection CONSTRUCT.
+///   - `generated/queries/vcard.rq`.
+///   - `generated/queries/foaf.rq`.
 ///
-/// The last four are the heaviest generated CONSTRUCT projections; `schema-org`/`vcard`/
-/// `foaf` all hash into the same shard (shard 1), whose aggregate ~5.5 s × CI ~5× = ~34 s
-/// blew the budget. Carving them out keeps every gated shard well under budget with
-/// headroom. All are tracked as native-engine performance gaps; remove from this list as
-/// the engine speeds up (anti-join indexing / projection planning) and they rejoin the
-/// gated shards automatically.
+/// These are heavy generated CONSTRUCT projections; `schema-org`/`vcard`/`foaf` all hash
+/// into the same shard (shard 1), whose aggregate × CI ~5× contention blew the 25 s budget,
+/// and `ontolex` once pushed its shard past the 120 s terminate cliff. They are tracked as
+/// native-engine performance gaps; remove from this list as the engine speeds up (projection
+/// planning) and they rejoin the gated shards automatically.
+///
+/// Anti-join indexing already moved one query out: the `FILTER NOT EXISTS` over every
+/// `owl:Class` was here at ~44 s native, but building the inner pattern's probe index once
+/// per site and reusing it across outer rows made the anti-join roughly linear, so it now
+/// runs on the gate (shard 1). The same indexing also sharply cut these projections' native
+/// time (they use `FILTER NOT EXISTS` too): the whole off-gate-heavy subset now runs in
+/// ~7 s total on the dev box (2026-06-27, down from >110 s pre-fix). They are kept off-gate
+/// conservatively — the CONSTRUCT projections previously tripped CI under contention — until
+/// their gated CI behavior is confirmed.
 ///
 /// Paths are repo-relative (the same key as [`shard_of`]).
 const OFF_GATE_HEAVY: &[&str] = &[
-    "queries/verify/class-without-stereotype.rq",
     "generated/queries/ontolex.rq",
     "queries/qc/missing-definitions.rq",
     "generated/queries/schema-org.rq",
@@ -446,10 +448,10 @@ const OFF_GATE_HEAVY: &[&str] = &[
 ];
 
 /// Green floor for the off-gate-heavy subset. Equal to the number of in-scope
-/// (parity-matched) entries in [`OFF_GATE_HEAVY`]; observed 6 on 2026-06-27 (all six
-/// entries are in-scope queries that match oxigraph — the five CONSTRUCT projections
-/// plus the `class-without-stereotype` SELECT).
-const OFF_GATE_HEAVY_MIN_GREEN: usize = 6;
+/// (parity-matched) entries in [`OFF_GATE_HEAVY`]; observed 5 on 2026-06-27 — the four
+/// CONSTRUCT projections plus `missing-definitions` (the anti-join was re-gated once its
+/// inner index became reusable, so it left this carve-out).
+const OFF_GATE_HEAVY_MIN_GREEN: usize = 5;
 
 /// True if `rel_path` (repo-relative, using `/` separators) is an off-gate-heavy query.
 fn is_off_gate_heavy(rel_path: &str) -> bool {
