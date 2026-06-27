@@ -252,7 +252,10 @@ fn cache_key(root: &Path) -> String {
 
     for path in &files {
         let rel = path.strip_prefix(root).unwrap_or(path);
-        hasher.update(rel.to_string_lossy().as_bytes());
+        // Normalize separators so the key is identical across platforms for the
+        // same repository state (Windows `\` vs Unix `/` would otherwise diverge).
+        let rel = rel.to_string_lossy().replace('\\', "/");
+        hasher.update(rel.as_bytes());
         hasher.update(b"\x1f");
         let bytes = fs::read(path)
             .unwrap_or_else(|e| panic!("hashing fixture input {}: {e}", path.display()));
@@ -314,9 +317,11 @@ fn write_cache<T: Serialize>(path: &Path, cached: &T) {
 
 /// Lowercase hex of a digest.
 fn hex(bytes: &[u8]) -> String {
+    use std::fmt::Write as _;
     let mut s = String::with_capacity(bytes.len() * 2);
     for b in bytes {
-        s.push_str(&format!("{b:02x}"));
+        // Writing into a `String` is infallible — no per-byte allocation.
+        let _ = write!(s, "{b:02x}");
     }
     s
 }
