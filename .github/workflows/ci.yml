@@ -273,13 +273,57 @@ jobs:
       - name: libpurrdf C-ABI gate (header drift + C smoke)
         run: make capi-check
 
+  # Prebuild the unified gmeow_native extension ONCE (#630/#876). The four ontology
+  # consumer jobs below download+install this wheel instead of each running the full
+  # `maturin develop` (nightly toolchain + rust-cache + native compile), which cuts
+  # the per-job setup from minutes to seconds so each lane lands under the 5-minute
+  # target. This job builds ONLY the wheel (no gates), so it stays well under 5 min.
+  # The wheel is a plain linux wheel (same ubuntu-latest image across jobs), debug —
+  # matching the `maturin develop` it replaces.
+  native-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Sync environment
+        run: uv sync --all-packages --frozen
+
+      - name: Install Rust (nightly, native only)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Build the unified gmeow_native wheel (#630)
+        run: make native-py-wheel
+
+      - name: Upload the gmeow_native wheel
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gmeow-native-wheel
+          path: dist/wheels/*.whl
+          if-no-files-found: error
+          retention-days: 1
+
   # === ONTOLOGY GATE LANES ===
-  # The single `ontology` job was split into four parallel jobs that each pay the
-  # shared setup (checkout + uv sync + the `maturin develop` gmeow_native build +
-  # caches) but run a disjoint slice of the gmeow-dev gates. GitHub Actions has no
-  # native step-reuse, so the setup block is copied verbatim into each job. Grouping
-  # balances wall-time, isolating the two long poles (validate ~250s,
-  # check-generated ~178s) into separate jobs.
+  # The single `ontology` job was split into four parallel jobs. Each downloads the
+  # prebuilt gmeow_native wheel from the `native-build` job and installs it (no per-job
+  # cargo build), then runs a disjoint slice of the gmeow-dev gates. GitHub Actions has
+  # no native step-reuse, so the uv-sync + wheel-install setup is repeated per job, but
+  # the expensive native compile happens once in `native-build`. Grouping balances
+  # wall-time, isolating the long poles (validate, check-generated ~178s) into separate
+  # jobs. The `python` job keeps its own in-job build: it independently needs the rust
+  # toolchain for the gmeow-lsp diagnostics SARIF, so converting it would serialize it
+  # behind native-build for no net gain.
   #
   # Every original gate lands in exactly one job:
   #   ontology-validate  : validate
@@ -287,6 +331,7 @@ jobs:
   #   ontology-reason    : verify --mode native, acceptance, coverage
   #   ontology-misc      : mappings, wikidata, lint-alignment, audit, compliance-report
   ontology-validate:
+    needs: [native-build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -317,21 +362,17 @@ jobs:
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
-      # The validate gate now runs SHACL through the gmeow_shacl extension
-      # (#578), so it must be built into this job's venv before validate.
-      - name: Install Rust (nightly, native only)
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+      # The validate gate runs SHACL through the gmeow_shacl extension (#578); the
+      # unified extension is prebuilt once in `native-build` and installed here from
+      # the wheel rather than compiled per-job.
+      - name: Download the prebuilt gmeow_native wheel (#876)
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          toolchain: nightly
+          name: gmeow-native-wheel
+          path: dist/wheels
 
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-
-      # One cdylib folds in rdf + diagnostics + shacl + validate + logic (#630):
-      # the logic generator (#664), SHACL/validate orchestration (#578/#579), and
-      # statement codec (#667) all now live in the single gmeow_native extension.
-      - name: Build + install the unified gmeow_native extension (#630)
-        run: make native-py
+      - name: Install the unified gmeow_native extension from the wheel (#630/#876)
+        run: make native-py-install
 
       # Persist the content-addressed `.cache/validate` (#654) across runs. Every
       # validate phase (merged-SHACL, the per-example SHACL passes, the DSL passes)
@@ -353,6 +394,7 @@ jobs:
         run: make validate
 
   ontology-generated:
+    needs: [native-build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -383,16 +425,14 @@ jobs:
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
-      - name: Install Rust (nightly, native only)
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+      - name: Download the prebuilt gmeow_native wheel (#876)
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          toolchain: nightly
+          name: gmeow-native-wheel
+          path: dist/wheels
 
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-
-      - name: Build + install the unified gmeow_native extension (#630)
-        run: make native-py
+      - name: Install the unified gmeow_native extension from the wheel (#630/#876)
+        run: make native-py-install
 
       - name: Engine cross-check (rdflib ≡ gmeow_rdf on every query)
         run: make maint-crosscheck
@@ -404,6 +444,7 @@ jobs:
         run: make constitution-check
 
   ontology-reason:
+    needs: [native-build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -434,16 +475,14 @@ jobs:
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
-      - name: Install Rust (nightly, native only)
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+      - name: Download the prebuilt gmeow_native wheel (#876)
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          toolchain: nightly
+          name: gmeow-native-wheel
+          path: dist/wheels
 
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-
-      - name: Build + install the unified gmeow_native extension (#630)
-        run: make native-py
+      - name: Install the unified gmeow_native extension from the wheel (#630/#876)
+        run: make native-py-install
 
       - name: Reasoned-graph negative tests (native verify, Docker-free — #695)
         run: make verify
@@ -455,6 +494,7 @@ jobs:
         run: make coverage
 
   ontology-misc:
+    needs: [native-build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -485,16 +525,14 @@ jobs:
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
-      - name: Install Rust (nightly, native only)
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+      - name: Download the prebuilt gmeow_native wheel (#876)
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          toolchain: nightly
+          name: gmeow-native-wheel
+          path: dist/wheels
 
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-
-      - name: Build + install the unified gmeow_native extension (#630)
-        run: make native-py
+      - name: Install the unified gmeow_native extension from the wheel (#630/#876)
+        run: make native-py-install
 
       - name: Mappings → axioms + linksets, QID syntax
         run: make mappings
@@ -571,12 +609,13 @@ jobs:
   # gmeow-rdf codec inside the `ontology` job's `check-generated` (#667) — there
   # is no separate statements lane.
   quality:
-    needs: [lint, python, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
+    needs: [native-build, lint, python, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Require all quality jobs to have succeeded
         env:
+          NATIVE_BUILD: ${{ needs.native-build.result }}
           LINT: ${{ needs.lint.result }}
           PYTHON: ${{ needs.python.result }}
           RUST: ${{ needs.rust.result }}
@@ -586,8 +625,8 @@ jobs:
           ONTOLOGY_REASON: ${{ needs.ontology-reason.result }}
           ONTOLOGY_MISC: ${{ needs.ontology-misc.result }}
         run: |
-          echo "results: lint=$LINT python=$PYTHON rust=$RUST wasm=$WASM ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
-          for r in "$LINT" "$PYTHON" "$RUST" "$WASM" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
+          echo "results: native-build=$NATIVE_BUILD lint=$LINT python=$PYTHON rust=$RUST wasm=$WASM ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
+          for r in "$NATIVE_BUILD" "$LINT" "$PYTHON" "$RUST" "$WASM" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1

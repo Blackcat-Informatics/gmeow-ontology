@@ -56,7 +56,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 
 .PHONY: help \
 	install fmt lint \
-	native-py validate validate-gts reason verify test test-fast rust-build rust-test check \
+	native-py native-py-wheel native-py-install validate validate-gts reason verify test test-fast rust-build rust-test check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene wasm wasm-pkg wasm-pkg-test \
@@ -556,6 +556,41 @@ native-py: $(NATIVE_PY_STAMP)
 $(NATIVE_PY_STAMP): $(NATIVE_PY_INPUTS)
 	VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
 	@touch $@
+
+native-py-wheel: ## Build the unified gmeow_native wheel into dist/wheels (CI prebuild-once).
+	rm -rf dist/wheels
+	# Build from crates/native/ so maturin resolves `python-source = "python"`
+	# (the legacy gmeow_* import shims) relative to that pyproject, not the repo root.
+	# `--compatibility linux` skips auditwheel repair (no system-lib bundling): the
+	# prebuild job and every consumer run on the same ubuntu-latest image, so a plain
+	# linux wheel is correct and avoids the repair step. Debug (no --release) matches
+	# the per-job `maturin develop` it replaces and keeps the Nemo build fast/light.
+	cd crates/native && VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin build --compatibility linux -o "$(CURDIR)/dist/wheels"
+
+native-py-install: ## Install the prebuilt unified wheel from dist/wheels (CI consumers); hard-fail if absent/ambiguous.
+	shopt -s nullglob; \
+	wheels=(dist/wheels/*.whl); \
+	if [ $${#wheels[@]} -ne 1 ]; then \
+		echo "native-py-install: expected exactly one wheel in dist/wheels, found $${#wheels[@]} — no fallback to maturin develop" >&2; \
+		exit 1; \
+	fi; \
+	VIRTUAL_ENV="$(CURDIR)/.venv" uv pip install --no-deps --force-reinstall "$${wheels[0]}"; \
+	site="$$(VIRTUAL_ENV="$(CURDIR)/.venv" uv run python -c 'import sysconfig; print(sysconfig.get_path("purelib"))')"; \
+	if [ -z "$$site" ]; then echo "native-py-install: could not resolve site-packages" >&2; exit 1; fi; \
+	for pkg in gmeow_diagnostics gmeow_docs gmeow_logic gmeow_rdf gmeow_shacl gmeow_slice gmeow_validate; do \
+		rm -rf "$$site/$$pkg"; \
+		cp -r "crates/native/python/$$pkg" "$$site/$$pkg"; \
+	done
+	# The wheel ships only the `gmeow_native` cdylib; the tiny pure-Python legacy
+	# import shims (gmeow_logic → gmeow_native.logic, etc.) live in
+	# crates/native/python/ and `maturin develop` exposes them editable. Here the repo
+	# is checked out, so copy the sibling shim packages into site-packages alongside
+	# the installed cdylib so `import gmeow_logic` (and friends) resolves.
+	@mkdir -p $(dir $(NATIVE_PY_STAMP))
+	@touch $(NATIVE_PY_STAMP)
+	# Mark the native-ext stamp satisfied so downstream gates (`validate`,
+	# `check-generated`, ...) that depend on `native-py` do NOT re-run `maturin
+	# develop` — the unified extension is already installed from the prebuilt wheel.
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)
 	@mkdir -p $(dir $@)
