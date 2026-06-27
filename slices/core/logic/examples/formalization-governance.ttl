@@ -1,0 +1,196 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — typed formalization governance (design/LOGIC-FOUNDATION.md,
+# §Typed formalization governance). It dogfoods the governance surface: the two
+# STANDING logic:NonEntailmentObligations the charter names verbatim, a set of
+# logic:FormalizationCandidates spanning several categories and lifecycle states,
+# and the two adversarial structures the obligations guard (a held≠projected
+# deception gap, and a counterpart chain). The obligations forbid an
+# assertion-only predicate from EVER becoming a foundation rule head — that is the
+# precise meaning of "intent must not be derived from structural deception" and
+# "counterpart must not become transitive": gmeow:deceptiveIntentClaim and
+# gmeow:counterpartOf are attributed/asserted, never entailed. The reasoned
+# closure over the structures below must contain no derived edge for either
+# predicate; the per-slice verify queries check exactly that.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# ── §1 An example reasoning contract (ME1) the candidates are interpreted under ──
+
+ex:contractEL
+    a logic:ReasoningContract ;
+    rdfs:label "EL profile (example)"@x-gmeow-english .
+
+# ── §2 The two standing non-entailment obligations ──────────────────────────────
+# Each forbids an assertion-only predicate from appearing as a foundation rule
+# head. Discharged by syntactic reachability over the rule strata (no head
+# produces the predicate) AND, for deception, finite closure over the gap below.
+
+ex:obligationIntentNotFromDeception
+    a logic:NonEntailmentObligation ;
+    rdfs:label "intent must not be derived from structural deception"@x-gmeow-english ;
+    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim"^^xsd:anyURI ;
+    logic:obligationDischargeCondition
+        logic:DischargeSyntacticReachability ,
+        logic:DischargeFiniteClosure ;
+    logic:obligationDischargeVerdict logic:ObligationDischarged .
+
+ex:obligationCounterpartNotTransitive
+    a logic:NonEntailmentObligation ;
+    rdfs:label "counterpart must not become transitive"@x-gmeow-english ;
+    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/counterpartOf"^^xsd:anyURI ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability ;
+    logic:obligationDischargeVerdict logic:ObligationDischarged .
+
+# ── §3 Formalization candidates (dogfood across categories + lifecycle states) ──
+# An accepted candidate carries a recorded reviewer decision (logic:reviewedBy);
+# a proposed candidate carries none. An LLM extraction always enters as proposed.
+
+ex:reviewerLogicMaintainer
+    rdfs:label "logic-slice maintainer (example reviewer)"@x-gmeow-english .
+
+# Accepted: the strict-partial-order parthood constraint, fully worked.
+ex:candidateProperPartOfAsymmetric
+    a logic:FormalizationCandidate ;
+    rdfs:label "properPartOf is asymmetric"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:0d1a…properpart"^^xsd:string ;
+    logic:candidateExtractionProvenance "logic-foundation-charter §Greenfield features"^^xsd:string ;
+    logic:candidateScope "logic:properPartOf over the endurant spine"^^xsd:string ;
+    logic:candidateContract ex:contractEL ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy ex:reviewerLogicMaintainer ;
+    logic:candidatePositiveCase ex:cqProperPartAsymmetricHolds ;
+    logic:candidateNegativeCase ex:cqProperPartAsymmetricCountermodel ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating .
+
+# Accepted: the counterpart non-transitivity obligation, carried as a candidate.
+ex:candidateCounterpartNonTransitive
+    a logic:FormalizationCandidate ;
+    rdfs:label "counterpart stays non-transitive"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:7c4e…counterpart"^^xsd:string ;
+    logic:candidateExtractionProvenance "logic-foundation-charter §Typed formalization governance"^^xsd:string ;
+    logic:candidateScope "gmeow:counterpartOf across realms"^^xsd:string ;
+    logic:candidateContract ex:contractEL ;
+    logic:candidateCategory logic:CategoryNonEntailmentObligation ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy ex:reviewerLogicMaintainer ;
+    logic:candidateNonEntailment ex:obligationCounterpartNotTransitive ;
+    logic:candidateProjectionBehavior logic:ValidationOnly ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating .
+
+# Accepted: the deception-intent non-entailment obligation, carried as a candidate.
+ex:candidateIntentNotEntailed
+    a logic:FormalizationCandidate ;
+    rdfs:label "deceptive intent is attributed, never entailed"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:b21f…intent"^^xsd:string ;
+    logic:candidateExtractionProvenance "logic-foundation-charter §Typed formalization governance"^^xsd:string ;
+    logic:candidateScope "gmeow:deceptiveIntentClaim over deception events"^^xsd:string ;
+    logic:candidateContract ex:contractEL ;
+    logic:candidateCategory logic:CategoryNonEntailmentObligation ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy ex:reviewerLogicMaintainer ;
+    logic:candidateNonEntailment ex:obligationIntentNotFromDeception ;
+    logic:candidateProjectionBehavior logic:ValidationOnly ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating .
+
+# Proposed: a derivation rule still awaiting review (an extraction, not yet canonical).
+ex:candidateHolonAgencyDerivation
+    a logic:FormalizationCandidate ;
+    rdfs:label "holon agency verdict from the two Janus tendencies"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:9af0…holon"^^xsd:string ;
+    logic:candidateExtractionProvenance "llm-extraction:logic-foundation §holons"^^xsd:string ;
+    logic:candidateScope "logic:AgencyVerdict under a holonic-agency profile"^^xsd:string ;
+    logic:candidateContract ex:contractEL ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:CompleteOverApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly .
+
+# Proposed: a typicality statement (advisory risk), awaiting review.
+ex:candidateTypicalEndurantPersists
+    a logic:FormalizationCandidate ;
+    rdfs:label "endurants typically persist through change"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:1e77…persist"^^xsd:string ;
+    logic:candidateExtractionProvenance "llm-extraction:logic-foundation §endurants"^^xsd:string ;
+    logic:candidateScope "the endurant spine"^^xsd:string ;
+    logic:candidateContract ex:contractEL ;
+    logic:candidateCategory logic:CategoryTypicality ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:ValidationOnly ;
+    logic:candidateSemanticRisk logic:RiskAdvisory .
+
+# Rejected: prose review declined to formalize (documentation-only), recorded for audit.
+ex:candidateIthkuilEthosProse
+    a logic:FormalizationCandidate ;
+    rdfs:label "the Ithkuil precision ethos paragraph"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:5d3c…ethos"^^xsd:string ;
+    logic:candidateExtractionProvenance "llm-extraction:logic-foundation §Ithkuil"^^xsd:string ;
+    logic:candidateScope "charter prose"^^xsd:string ;
+    logic:candidateContract ex:contractEL ;
+    logic:candidateCategory logic:CategoryDocumentationOnly ;
+    logic:candidateLifecycle logic:CandidateRejected ;
+    logic:reviewedBy ex:reviewerLogicMaintainer ;
+    logic:candidateProjectionBehavior logic:ValidationOnly ;
+    logic:candidateSemanticRisk logic:RiskAdvisory .
+
+# Minimal competency-case stubs referenced above (worked competency questions with
+# result shapes live in tests/competency.ttl; these are the candidate's case anchors).
+ex:cqProperPartAsymmetricHolds
+    a gmeow:CompetencyQuestion ;
+    rdfs:label "properPartOf asymmetry holds"@x-gmeow-english .
+
+ex:cqProperPartAsymmetricCountermodel
+    a gmeow:CompetencyQuestion ;
+    rdfs:label "properPartOf symmetric pair is rejected"@x-gmeow-english .
+
+# ── §4 Adversarial structures the obligations guard ─────────────────────────────
+# These are reasoned over by the per-slice verify queries; the closure must derive
+# NO gmeow:deceptiveIntentClaim for the gap event and NO transitive
+# gmeow:counterpartOf for the chain. (A violating fixture — one that DOES contain
+# the forbidden edge — lives in the Rust red-path tests, not here, so make check
+# stays green while the checks remain genuinely falsifiable.)
+
+# A held≠projected deception gap with NO attributed intent: evidence of deception,
+# never entailment of intent. The two standpoint claims are full Observations
+# (vantage + observedFeature + observationMethod, the deception-slice idiom), so the
+# only thing absent is any gmeow:deceptiveIntentClaim — which the closure must not
+# supply.
+ex:gapEvent
+    a gmeow:Event ;
+    gmeow:heldStandpoint ex:gapHeldClaim ;
+    gmeow:projectedStandpoint ex:gapProjectedClaim .
+
+ex:gapHeldClaim
+    a gmeow:DoxasticStandpointClaim ;
+    rdfs:label "what the deceiver privately holds"@x-gmeow-english ;
+    gmeow:vantage ex:gapDeceiver ;
+    gmeow:observedFeature ex:gapHeldProposition ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .
+
+ex:gapProjectedClaim
+    a gmeow:DoxasticStandpointClaim ;
+    rdfs:label "what the deceiver projects"@x-gmeow-english ;
+    gmeow:vantage ex:gapDeceiver ;
+    gmeow:observedFeature ex:gapProjectedProposition ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .
+
+ex:gapDeceiver a gmeow:Person ;
+    gmeow:name "deceiver (example)"@x-gmeow-english .
+
+ex:gapHeldProposition a gmeow:Proposition ;
+    rdfs:label "what is privately held to be the case"@x-gmeow-english .
+
+ex:gapProjectedProposition a gmeow:Proposition ;
+    rdfs:label "what is publicly projected"@x-gmeow-english .
+
+# A counterpart chain A→B→C: counterparts are symmetric but NOT transitive, so the
+# closure must not derive A→C.
+ex:counterpartNodeA gmeow:counterpartOf ex:counterpartNodeB .
+ex:counterpartNodeB gmeow:counterpartOf ex:counterpartNodeC .
