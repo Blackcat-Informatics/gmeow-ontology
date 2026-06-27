@@ -5,8 +5,11 @@ lives in Rust (``gmeow_native.pipeline.McpView``, #1031). Python keeps just the
 language-resolution layer (reusing the shared ``language_tags`` selector) and the
 memory tools, then delegates each surface to the Rust handle. The selector is
 resolved here (raising :class:`UnknownLanguageError` on a bad tag) and its
-``requested`` tag list is threaded into the Rust renderers, which reproduce the
-prior wire format byte-for-byte.
+``requested`` tag list is threaded into the Rust renderers, which emit the
+standard llmstxt.org format (``llms.txt``/``llms-full.txt``) and the prompt-ready
+per-term cards (``doc_card``) — the same shared ``gmeow_docs`` skeletons the
+docs site and dist export use, so the MCP surfaces are the live twins of the
+published documentation (#1027).
 """
 
 from __future__ import annotations
@@ -42,10 +45,12 @@ def _view() -> FoldView:
 
 
 class _McpView(Protocol):
-    """The three Rust MCP surfaces (``gmeow_native.pipeline.McpView``, #1031)."""
+    """The Rust MCP surfaces (``gmeow_native.pipeline.McpView``, #1031/#1027)."""
 
     def lookup_term(self, term: str, requested: list[str]) -> str: ...
     def llms_txt(self, requested: list[str]) -> str: ...
+    def llms_full(self, requested: list[str]) -> str: ...
+    def doc_card(self, term: str, requested: list[str]) -> str: ...
     def okf_index(self, requested: list[str]) -> str: ...
 
 
@@ -99,9 +104,28 @@ def gmeow_lookup_term(term: str, lang: str | None = None) -> str:
     return _rust_view().lookup_term(term, requested)
 
 
+@mcp.tool()
+def gmeow_doc_card(term: str, lang: str | None = None) -> str:
+    """Return a prompt-ready Markdown card for one bundled GMEOW term (#1027).
+
+    The card is a compact, self-contained block (definition + usage advice) for
+    direct context-window injection — the live twin of the docs-site
+    ``terms/{slug}/card.md``.
+
+    Args:
+        term: CURIE, local name, IRI, or label fragment to look up.
+        lang: Optional BCP-47 language tag. Overrides ``GMEOW_LANG``.
+    """
+    try:
+        requested = _requested(lang)
+    except UnknownLanguageError as exc:
+        return f"# Error: {exc}\n"
+    return _rust_view().doc_card(term, requested)
+
+
 @mcp.resource("gmeow://ontology/llms.txt{?lang}")
 def gmeow_llms_txt(lang: str | None = None) -> str:
-    """Expose a compact bundled vocabulary index.
+    """Expose the standard llmstxt.org bundled vocabulary index (#1027).
 
     Args:
         lang: Optional BCP-47 language tag. Overrides ``GMEOW_LANG``.
@@ -111,6 +135,23 @@ def gmeow_llms_txt(lang: str | None = None) -> str:
     except UnknownLanguageError as exc:
         return f"# Error: {exc}\n"
     return _rust_view().llms_txt(requested)
+
+
+@mcp.resource("gmeow://ontology/llms-full.txt{?lang}")
+def gmeow_llms_full(lang: str | None = None) -> str:
+    """Expose the complete inlined bundled vocabulary index (#1027).
+
+    The ``llms-full.txt`` form: every term, its definition, and its usage advice
+    inlined in full (no links) — the single surface an agent can ingest whole.
+
+    Args:
+        lang: Optional BCP-47 language tag. Overrides ``GMEOW_LANG``.
+    """
+    try:
+        requested = _requested(lang)
+    except UnknownLanguageError as exc:
+        return f"# Error: {exc}\n"
+    return _rust_view().llms_full(requested)
 
 
 @mcp.resource("gmeow://ontology/okf-index{?lang}")

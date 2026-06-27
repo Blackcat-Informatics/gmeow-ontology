@@ -16,8 +16,7 @@ use pretty_assertions::assert_eq;
 use std::collections::BTreeSet;
 
 use gmeow_docs::render::{
-    concern_slug, llms_docs_txt, render_site, search_index_json, term_slug, to_html, to_markdown,
-    Page,
+    concern_slug, render_site, search_index_json, term_slug, to_html, to_markdown, Page,
 };
 use gmeow_docs::svg;
 use gmeow_docs::{DocTermCategory, DocsModel};
@@ -302,19 +301,211 @@ fn search_index_json_golden() {
 }
 
 #[test]
-fn llms_docs_txt_golden() {
-    // Lock the header (title/version/counts) plus one representative term line,
-    // not the whole ~2k-line dump.
+fn llms_txt_header_golden() {
+    // The standard llmstxt.org index is ~2k bullets; lock only its deterministic
+    // head — H1 + canonical summary blockquote + prose + the Vocabulary section.
     let model = model();
-    let txt = llms_docs_txt(&model);
-    let header: String = txt.lines().take(4).collect::<Vec<_>>().join("\n");
-    // A deterministic sample line: the first non-empty, non-comment line.
-    let sample = txt
-        .lines()
-        .find(|l| !l.is_empty() && !l.starts_with('#'))
-        .unwrap_or("")
-        .to_string();
-    insta::assert_snapshot!(format!("{header}\n---\n{sample}"));
+    let txt = gmeow_docs::render::llms_txt(&model);
+    let head: String = txt.lines().take(16).collect::<Vec<_>>().join("\n");
+    insta::assert_snapshot!(head);
+}
+
+#[test]
+fn llms_full_txt_header_golden() {
+    // Lock the complete form's header skeleton + the `## Terms` banner.
+    let model = model();
+    let txt = gmeow_docs::render::llms_full_txt(&model);
+    let head: String = txt.lines().take(8).collect::<Vec<_>>().join("\n");
+    insta::assert_snapshot!(head);
+}
+
+#[test]
+fn term_card_md_golden() {
+    // The richest-surface term exercises every advisory field in the card.
+    let model = model();
+    let slug = richest_surface_term_slug(&model);
+    let term = model
+        .terms
+        .iter()
+        .find(|t| term_slug(t) == slug)
+        .expect("the richest-surface term resolves");
+    insta::assert_snapshot!(gmeow_docs::render::term_card_md(&model, term));
+}
+
+#[test]
+fn term_card_md_structural_gate() {
+    // Hard-fail guards on card format invariants: H1 title, bold labels, and
+    // the absence of the legacy italic-label convention (`*Label:*`).
+    let model = model();
+    let slug = richest_surface_term_slug(&model);
+    let term = model
+        .terms
+        .iter()
+        .find(|t| term_slug(t) == slug)
+        .expect("the richest-surface term resolves");
+    let card = gmeow_docs::render::term_card_md(&model, term);
+
+    // 1. The card must start with a `# ` H1 title line.
+    assert!(
+        card.starts_with("# "),
+        "term card must start with a '# ' H1 title line; got: {:?}",
+        card.lines().next().unwrap_or("")
+    );
+
+    // 2. The card must contain at least one `**` bold label (the canonical
+    //    advisory-field convention).
+    assert!(
+        card.contains("**"),
+        "term card must contain at least one '**' bold label (e.g. **Parents:**)"
+    );
+
+    // 3. The card must NOT use the legacy italic-label convention (`*Label:*`):
+    //    single-asterisk italics directly after a newline.
+    let has_italic_label = card.lines().any(|line| {
+        // An italic label starts a line with `*` but NOT `**`.
+        line.starts_with('*') && !line.starts_with("**")
+    });
+    assert!(
+        !has_italic_label,
+        "term card must use bold (**Label:**) not italic (*Label:*) labels"
+    );
+}
+
+/// Extract the `url` of a `- [text](url): note` markdown-link bullet, if the line
+/// is one (else `None`). URLs never contain `)`, so the first `)` closes them.
+fn bullet_url(line: &str) -> Option<&str> {
+    let after = line.strip_prefix("- [")?;
+    let close = after.find("](")?;
+    let rest = &after[close + 2..];
+    let end = rest.find(')')?;
+    Some(&rest[..end])
+}
+
+/// Shared conformance helper for both the linked index form (`llms.txt`) and the
+/// complete inlined form (`llms-full.txt`).
+///
+/// Invariants checked unconditionally:
+/// - Exactly one `# ` H1 line.
+/// - At least one `> ` blockquote line.
+/// - ≥`min_sections` non-empty `## ` section headings.
+/// - Every `## ` section is followed by ≥1 bullet or `### ` sub-block before the
+///   next `## ` or end of document (no empty sections).
+///
+/// When `require_links = true` (the published index surface):
+/// - >100 `- [text](url)` linked bullets in total.
+/// - Every such bullet URL resolves to a key in `site_files`.
+fn assert_llmstxt_conformant(
+    doc: &str,
+    min_sections: usize,
+    require_links: bool,
+    site_files: Option<&std::collections::BTreeMap<String, Vec<u8>>>,
+) {
+    // ── H1 + blockquote ──────────────────────────────────────────────────────
+    assert_eq!(
+        doc.lines().filter(|l| l.starts_with("# ")).count(),
+        1,
+        "llmstxt doc must have exactly one H1"
+    );
+    assert!(
+        doc.lines().any(|l| l.starts_with("> ")),
+        "llmstxt doc must carry a summary blockquote"
+    );
+
+    // ── Section count + non-empty section guard ───────────────────────────────
+    let mut sections = 0usize;
+    let mut linked_bullets = 0usize;
+    // Track whether the current section has seen at least one bullet or sub-block.
+    let mut current_section_has_content = true; // true before first section (preamble is fine)
+    let mut current_section_heading = String::new();
+
+    for line in doc.lines() {
+        if let Some(heading) = line.strip_prefix("## ") {
+            // Close the previous section: if it had no content, fail.
+            if sections > 0 {
+                assert!(
+                    current_section_has_content,
+                    "section '## {current_section_heading}' must have ≥1 bullet or sub-block before the next section"
+                );
+            }
+            sections += 1;
+            assert!(
+                !heading.trim().is_empty(),
+                "section heading must not be empty"
+            );
+            current_section_heading = heading.trim().to_string();
+            current_section_has_content = false;
+        } else if line.starts_with("- ") || line.starts_with("### ") {
+            current_section_has_content = true;
+        }
+
+        if let Some(url) = bullet_url(line) {
+            linked_bullets += 1;
+            if let Some(files) = site_files {
+                assert!(
+                    files.contains_key(url),
+                    "llms.txt bullet URL must resolve to a site file: {url}"
+                );
+            }
+        }
+    }
+    // Close the final section.
+    if sections > 0 {
+        assert!(
+            current_section_has_content,
+            "final section '## {current_section_heading}' must have ≥1 bullet or sub-block"
+        );
+    }
+
+    assert!(
+        sections >= min_sections,
+        "expected at least {min_sections} sections, got {sections}"
+    );
+
+    if require_links {
+        assert!(
+            linked_bullets > 100,
+            "expected the full term vocabulary linked, got {linked_bullets}"
+        );
+    }
+}
+
+#[test]
+fn llms_txt_conforms_to_llmstxt_org() {
+    // The load-bearing correctness gate (NOT insta): the structural llmstxt.org
+    // invariants plus the guarantee that every bullet URL resolves to a real file
+    // in the published site tree (the anchor-lint equivalent for the .txt surface,
+    // which the HTML-only `no_dangling_internal_html_links` does not cover).
+    let model = model();
+    let site = render_site(&model);
+    let txt = std::str::from_utf8(&site.files["llms.txt"]).expect("llms.txt is utf-8");
+    // The linked index has the full standard section set: Vocabulary, Classes,
+    // Properties, Individuals, Slices, Concerns, Reference — at least 5.
+    assert_llmstxt_conformant(txt, 5, true, Some(&site.files));
+}
+
+#[test]
+fn llms_full_txt_conforms_structurally() {
+    // Gate the complete inlined form (`llms-full.txt`) against the same
+    // structural invariants as the linked index, minus the URL-resolution check
+    // (the complete form is linkless). Also verify that the `## Terms` section
+    // carries `### ` sub-blocks (one per term).
+    let model = model();
+    let site = render_site(&model);
+    let txt = std::str::from_utf8(&site.files["llms-full.txt"]).expect("llms-full.txt is utf-8");
+
+    // The complete form has Terms + Concerns + Slices — at least 3 sections,
+    // no link resolution needed.
+    assert_llmstxt_conformant(txt, 3, false, None);
+
+    // `## Terms` must be followed by `### ` sub-blocks (one per inlined term).
+    let term_section_pos = txt
+        .find("## Terms\n")
+        .expect("llms-full.txt must contain a '## Terms' section");
+    let after_terms = &txt[term_section_pos + "## Terms\n".len()..];
+    assert!(
+        after_terms.contains("### "),
+        "the '## Terms' section must contain '### ' per-term sub-blocks"
+    );
 }
 
 #[test]
@@ -331,7 +522,17 @@ fn render_site_is_byte_stable() {
     assert!(a.files.contains_key("diagrams/slices.svg"));
     assert!(a.files.contains_key("diagrams/concerns.svg"));
     assert!(a.files.contains_key("search-index.json"));
-    assert!(a.files.contains_key("llms-docs.txt"));
+    // The #1027 standard llmstxt.org surfaces (superseded `llms-docs.txt`).
+    assert!(a.files.contains_key("llms.txt"));
+    assert!(a.files.contains_key("llms-full.txt"));
+    // The #1027 per-term card surface: at least the richest-surface term's
+    // card.md must be present in the site tree (terms/{slug}/card.md).
+    let card_slug = richest_surface_term_slug(&model);
+    let card_path = format!("terms/{card_slug}/card.md");
+    assert!(
+        a.files.contains_key(card_path.as_str()),
+        "expected per-term card at {card_path}"
+    );
     assert!(a.files.contains_key("linkages/index.html"));
     assert!(a.files.contains_key("examples/index.html"));
     assert!(a.files.contains_key("concerns/index.html"));

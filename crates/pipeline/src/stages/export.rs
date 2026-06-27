@@ -38,10 +38,18 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
 const ALIGNMENTS_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/alignments";
+// Only the MCP consumer surface (`doc_url_map`) reads the documentation graph.
+#[cfg(any(feature = "python", test))]
+const DOCUMENTATION_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/documentation";
 
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+
+/// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
+/// values under it become the term's logic stereotypes. Mirrors
+/// `gmeow_docs::model::LOGIC_NS`.
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 
 const LANGUAGE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Language";
 const LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/gmeow/languageTag";
@@ -494,6 +502,21 @@ pub(crate) struct Term {
     pub(crate) how_to_use: Vec<String>,
     pub(crate) use_for_consumer: Vec<String>,
     pub(crate) avoid_for_consumer: Vec<String>,
+    /// `logic:*` stereotype CURIEs co-asserted as `rdf:type` (sorted/deduped).
+    /// Mirrors `gmeow_docs::model::logic_stereotypes` so the shared term card
+    /// (#1027) carries the lowered OntoUML/UFO discipline.
+    pub(crate) logic_stereotypes: Vec<String>,
+    /// Related-term CURIEs: the union of `skos:related`, `gmeow:pairsWith`, and
+    /// `rdfs:seeAlso` objects (sorted/deduped). Read per-term directly from the
+    /// folded default graph; not bidirectionally reconciled (see G1 note).
+    pub(crate) related_terms: Vec<String>,
+    /// The owning slice IRI, recovered from the `gmeow:graph/documentation` named
+    /// graph (`gmeow:DocumentedTerm` ⨝ `gmeow:docOwnerSlice`, keyed by the term
+    /// IRI via `gmeow:documents`). Empty when the doc graph is absent. The shared
+    /// term card (#1027) renders its local name as the `slice:` header, matching
+    /// the docs-site card's `local_name(owner_slice)` — so the MCP card carries
+    /// the same slice provenance the published docs do.
+    pub(crate) owner_slice: String,
 }
 
 // ── JSON helpers (json.dumps ensure_ascii=False, insertion-ordered objects) ────
@@ -768,6 +791,72 @@ fn term_label_def(view: &FoldView, t: usize, term: &mut Term) {
     }
 }
 
+/// The `logic:*` stereotype CURIEs of a subject: its `rdf:type` values under the
+/// `logic:` namespace, CURIE-rendered (sorted/deduped). Mirrors
+/// `gmeow_docs::model::logic_stereotypes`.
+fn fold_logic_stereotypes(view: &FoldView, t: usize) -> Vec<String> {
+    let mut out: BTreeSet<String> = BTreeSet::new();
+    for o in view.objects(t, RDF_TYPE, DEFAULT_SCOPE) {
+        if view.is_iri(o) && view.lex(o).starts_with(LOGIC_NS) {
+            out.insert(curie(view.lex(o)));
+        }
+    }
+    out.into_iter().collect()
+}
+
+/// The related-term CURIEs of a subject: the union of `skos:related`,
+/// `gmeow:pairsWith`, and `rdfs:seeAlso` objects (sorted/deduped). Read per-term
+/// directly (NOT bidirectionally reconciled — see G1 note). Mirrors the forward
+/// read in `gmeow_docs::model::extract_terms`.
+fn fold_related_terms(view: &FoldView, t: usize) -> Vec<String> {
+    let mut out: BTreeSet<String> = BTreeSet::new();
+    for pred in [
+        format!("{SKOS}related"),
+        format!("{NAMESPACE}pairsWith"),
+        format!("{RDFS}seeAlso"),
+    ] {
+        for o in view.objects(t, &pred, DEFAULT_SCOPE) {
+            if view.is_iri(o) {
+                out.insert(curie(view.lex(o)));
+            }
+        }
+    }
+    out.into_iter().collect()
+}
+
+/// Build a `term-IRI → owning-slice-IRI` map from the `gmeow:graph/documentation`
+/// named graph (`gmeow:DocumentedTerm` ⨝ `gmeow:docOwnerSlice`, keyed by
+/// `gmeow:documents`). This is the term→slice provenance the docs generator
+/// dogfoods into the bundle (`gmeow_docs::rdf::to_gmeow_rdf`), recovered here so
+/// the folded/MCP term card carries the same slice the published docs do. Empty
+/// when the documentation graph is absent (then the card omits the slice line).
+fn fold_owner_slice_map(view: &FoldView) -> std::collections::HashMap<String, String> {
+    let documents = format!("{NAMESPACE}documents");
+    let owner_slice = format!("{NAMESPACE}docOwnerSlice");
+    let mut map = std::collections::HashMap::new();
+    for s in view.subjects_by_type(&format!("{NAMESPACE}DocumentedTerm"), DOCUMENTATION_GRAPH) {
+        let (Some(iri_tid), Some(slice_tid)) = (
+            view.value(s, &documents, DOCUMENTATION_GRAPH),
+            view.value(s, &owner_slice, DOCUMENTATION_GRAPH),
+        ) else {
+            continue;
+        };
+        map.insert(
+            view.lex(iri_tid).to_string(),
+            view.lex(slice_tid).to_string(),
+        );
+    }
+    map
+}
+
+/// The local name of an IRI: the tail after the last `/` or `#`. Mirrors
+/// `gmeow_docs::render::local_name` so the folded card's `slice:` value matches
+/// the docs-site card byte-for-byte.
+fn slice_local_name(iri: &str) -> &str {
+    let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
+    &iri[cut..]
+}
+
 fn fold_advisory(view: &FoldView, t: usize, term: &mut Term) {
     term.box_roles = fold_curies(view, t, &format!("{NAMESPACE}graphBoxRole"));
     term.scope_notes = fold_public_texts(view, t, &format!("{SKOS}scopeNote"));
@@ -777,6 +866,8 @@ fn fold_advisory(view: &FoldView, t: usize, term: &mut Term) {
     term.how_to_use = fold_public_texts(view, t, &format!("{NAMESPACE}howToUse"));
     term.use_for_consumer = fold_curies(view, t, &format!("{NAMESPACE}useForConsumer"));
     term.avoid_for_consumer = fold_curies(view, t, &format!("{NAMESPACE}avoidForConsumer"));
+    term.logic_stereotypes = fold_logic_stereotypes(view, t);
+    term.related_terms = fold_related_terms(view, t);
 }
 
 const PROPERTY_KINDS: &[(&str, &str)] = &[
@@ -885,8 +976,106 @@ pub(crate) fn collect_terms(view: &FoldView) -> Vec<Term> {
         }
     }
 
+    // Stamp each term with its owning slice, recovered from the documentation
+    // graph's term→slice provenance (the docs generator dogfoods this into the
+    // bundle). Built once, then applied by IRI — so every consumer of a folded
+    // `Term` (the MCP card, JSONL, llms.txt) sees the same slice the docs do.
+    let slice_map = fold_owner_slice_map(view);
+    for term in &mut terms {
+        if let Some(slice) = slice_map.get(&term.iri) {
+            term.owner_slice = slice.clone();
+        }
+    }
+
     terms.sort_by(|a, b| (a.category, &a.curie).cmp(&(b.category, &b.curie)));
     terms
+}
+
+/// Build the neutral, shared [`gmeow_docs::card::Card`] from a folded [`Term`].
+///
+/// This is the ONE card builder for the folded/MCP side; together with
+/// `gmeow_docs::render::doc_term_card` (the docs-site side) it feeds the SINGLE
+/// `gmeow_docs::card::render_card_body` renderer, so the MCP card and the site
+/// card never diverge again (#1027, §19 one-path).
+///
+/// Values are resolved to display strings (CURIEs / pre-described domain/range).
+/// The category is human-cased to match the docs side (`Class`/`Property`/…).
+///
+/// Slice provenance: the owning slice is recovered from the documentation
+/// graph's `gmeow:docOwnerSlice` (stamped onto every folded `Term` in
+/// [`collect_terms`]) and rendered as its local name — matching the docs-site
+/// card's `local_name(owner_slice)`. So the MCP card and the published docs
+/// carry the SAME slice. When the term has no recovered slice (e.g. a doc graph
+/// is absent), `Card::slice` is `None` and the header line is omitted — never a
+/// blank value.
+#[cfg(any(feature = "python", test))]
+pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
+    let category = match t.category {
+        "class" => "Class",
+        "property" => "Property",
+        "individual" => "Individual",
+        other => other,
+    }
+    .to_string();
+    let label = if t.label.is_empty() || t.label == t.curie {
+        None
+    } else {
+        Some(marked(&t.label, t.label_fallback))
+    };
+    let definition = if t.definition.is_empty() {
+        None
+    } else {
+        Some(marked(&t.definition, t.definition_fallback))
+    };
+    // Parents: subClassOf for a class, subPropertyOf for a property.
+    let parents = if t.category == "property" {
+        t.sub_property_of.clone()
+    } else {
+        t.parents.clone()
+    };
+    // Domain / range are single pre-described display strings on the folded Term.
+    let domain = if t.domain.is_empty() {
+        Vec::new()
+    } else {
+        vec![t.domain.clone()]
+    };
+    let range = if t.range.is_empty() {
+        Vec::new()
+    } else {
+        vec![t.range.clone()]
+    };
+    // Individuals carry `types` rather than parents; surface them as Related-style
+    // "a Type" is not a card field, so fold types into related_terms is wrong;
+    // instead they ride the `(a …)` signature suffix on the heading. Keep the
+    // card body parent-free for individuals.
+    gmeow_docs::card::Card {
+        category,
+        iri: t.iri.clone(),
+        label,
+        // Recovered term→slice provenance (see the builder doc above): the local
+        // name of the owning slice IRI, matching the docs-site card. `None` only
+        // when the fold carries no slice for this term — never a blank line.
+        slice: if t.owner_slice.is_empty() {
+            None
+        } else {
+            Some(slice_local_name(&t.owner_slice).to_string())
+        },
+        box_roles: t.box_roles.clone(),
+        definition,
+        parents,
+        domain,
+        range,
+        use_when: t.use_when.clone(),
+        avoid_when: t.avoid_when.clone(),
+        how_to_use: t.how_to_use.clone(),
+        scope_notes: t.scope_notes.clone(),
+        examples: t.examples.clone(),
+        logic_stereotypes: t.logic_stereotypes.clone(),
+        related_terms: t.related_terms.clone(),
+        use_for_consumer: t.use_for_consumer.clone(),
+        avoid_for_consumer: t.avoid_for_consumer.clone(),
+        aligns: t.alignments.clone(),
+    }
 }
 
 pub(crate) fn fold_meta(view: &FoldView) -> Result<(String, String), PipelineError> {
@@ -968,6 +1157,8 @@ fn term_record(t: &Term) -> J {
         ("howToUse", &t.how_to_use),
         ("useForConsumer", &t.use_for_consumer),
         ("avoidForConsumer", &t.avoid_for_consumer),
+        ("logicStereotypes", &t.logic_stereotypes),
+        ("relatedTerms", &t.related_terms),
     ];
     for (key, vals) in extra {
         if !vals.is_empty() {
@@ -1393,116 +1584,150 @@ fn write_markdown(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
     (lines.join("\n") + "\n").into_bytes()
 }
 
-// ── llms.txt ────────────────────────────────────────────────────────────────────
+// ── llms.txt (standard llmstxt.org form, #1027) ───────────────────────────────
+//
+// All three llms.txt-family surfaces — this dist export, the live MCP consumer
+// index, and the docs SITE index (`gmeow_docs::render::llms_txt`) — share ONE
+// format via `gmeow_docs::llms`: an `# H1` + `> {GMEOW_SUMMARY}` blockquote +
+// `## Section` markdown-link bullets. The ONLY thing that varies is whether a
+// bullet carries a site URL (`Some` for the MCP index, recovered from the doc
+// graph's `gmeow:docUrl`; `None` here — the dist tarball is not a site to link
+// into). Before #1027 these had silently diverged (`⊑` vs `subClassOf`, `→` vs
+// `->`, a hand-rolled header), each with its own copy of the summary sentence.
 
-fn term_summary(t: &Term) -> String {
+/// The llmstxt.org signature suffix for a term: ` (⊑ parents)` for a class,
+/// ` [domain → range]` (each side `?` when absent) `(functional)?` for a
+/// property, ` (a types)` for an individual. Empty when the term has none.
+fn llms_signature(t: &Term) -> String {
+    match t.category {
+        "property" => {
+            let has_sig = !t.domain.is_empty() || !t.range.is_empty();
+            if !has_sig && !t.functional {
+                return String::new();
+            }
+            let sig = if has_sig {
+                let d = if t.domain.is_empty() { "?" } else { &t.domain };
+                let r = if t.range.is_empty() { "?" } else { &t.range };
+                format!(" [{d} → {r}]")
+            } else {
+                String::new()
+            };
+            let func = if t.functional { " (functional)" } else { "" };
+            format!("{sig}{func}")
+        }
+        "class" => {
+            if t.parents.is_empty() {
+                String::new()
+            } else {
+                format!(" (⊑ {})", t.parents.join(", "))
+            }
+        }
+        _ => {
+            if t.types.is_empty() {
+                String::new()
+            } else {
+                format!(" (a {})", t.types.join(", "))
+            }
+        }
+    }
+}
+
+/// The bullet note for a term: its definition (falling back to the label), with
+/// the `[fallback: en]` marker when resolved via the English fallback. NO
+/// box-roles suffix (those live in the per-term card / `llms-full.txt`).
+fn llms_note(t: &Term) -> String {
     let base = if t.definition.is_empty() {
         &t.label
     } else {
         &t.definition
     };
-    let mut summary = marked(base, t.definition_fallback || t.label_fallback);
-    if !t.box_roles.is_empty() {
-        summary.push_str(&format!(" [box roles: {}]", t.box_roles.join(", ")));
-    }
-    summary
+    marked(base, t.definition_fallback || t.label_fallback)
+}
+
+/// Build the `Classes` / `Properties` / `Individuals` sections from the folded
+/// term model, shared by the dist export and the MCP index. `doc_urls` maps a
+/// term IRI to its published site URL; `Some` makes the bullets markdown links
+/// (the MCP index), `None` leaves them linkless (the dist dump).
+fn llms_sections(
+    terms: &[Term],
+    doc_urls: Option<&std::collections::HashMap<String, String>>,
+) -> Vec<gmeow_docs::llms::LlmsSection> {
+    let bullet = |t: &Term| gmeow_docs::llms::LlmsBullet {
+        text: t.curie.clone(),
+        url: doc_urls.and_then(|m| m.get(&t.iri).cloned()),
+        signature: llms_signature(t),
+        note: gmeow_docs::llms::cap_note(&llms_note(t)),
+    };
+    let section = |heading: &str, category: &str| {
+        let bullets: Vec<_> = terms
+            .iter()
+            .filter(|t| t.category == category)
+            .map(&bullet)
+            .collect();
+        (heading.to_string(), bullets)
+    };
+    [
+        section("Classes", "class"),
+        section("Properties", "property"),
+        section("Individuals", "individual"),
+    ]
+    .into_iter()
+    .filter(|(_, bullets)| !bullets.is_empty())
+    .map(|(heading, bullets)| gmeow_docs::llms::LlmsSection { heading, bullets })
+    .collect()
+}
+
+/// The shared `Vocabulary {version}. Namespace …` prose line for the index forms.
+fn llms_prose(version: &str, suffix: &str) -> Vec<String> {
+    vec![format!(
+        "Vocabulary {version}. Namespace: {NAMESPACE}. {suffix}"
+    )]
 }
 
 fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
-    let classes: Vec<&Term> = terms.iter().filter(|t| t.category == "class").collect();
-    let properties: Vec<&Term> = terms.iter().filter(|t| t.category == "property").collect();
-    let individuals: Vec<&Term> = terms
-        .iter()
-        .filter(|t| t.category == "individual")
-        .collect();
-    let mut lines: Vec<String> = vec![
-        format!("# {title}"),
-        String::new(),
-        "> A reasoning-centric, OWL 2 DL, gUFO-grounded super-vocabulary that unifies a person's or organization's digital existence (entities, contacts, email, trust/keys, time) and aligns it to schema.org, FOAF, PROV, the WOT schema, Wikidata, and more.".into(),
-        String::new(),
-        format!("Vocabulary {version}. Namespace: {NAMESPACE}. Each term below is `curie` — definition; the OWL source is canonical."),
-        String::new(),
-        "## Classes".into(),
-        String::new(),
-    ];
-    for t in &classes {
-        let sub = if t.parents.is_empty() {
-            String::new()
-        } else {
-            format!(" (⊑ {})", t.parents.join(", "))
-        };
-        lines.push(format!("- {}{sub}: {}", t.curie, term_summary(t)));
-    }
-    lines.push(String::new());
-    lines.push("## Properties".into());
-    lines.push(String::new());
-    for t in &properties {
-        let sig = if t.domain.is_empty() && t.range.is_empty() {
-            String::new()
-        } else {
-            let d = if t.domain.is_empty() { "?" } else { &t.domain };
-            let r = if t.range.is_empty() { "?" } else { &t.range };
-            format!(" [{d} → {r}]")
-        };
-        let f_ = if t.functional { " (functional)" } else { "" };
-        lines.push(format!("- {}{sig}{f_}: {}", t.curie, term_summary(t)));
-    }
-    if !individuals.is_empty() {
-        lines.push(String::new());
-        lines.push("## Individuals".into());
-        lines.push(String::new());
-        for t in &individuals {
-            let types = if t.types.is_empty() {
-                String::new()
-            } else {
-                format!(" (a {})", t.types.join(", "))
-            };
-            lines.push(format!("- {}{types}: {}", t.curie, term_summary(t)));
-        }
-    }
-    (lines.join("\n") + "\n").into_bytes()
+    let prose = llms_prose(
+        version,
+        "The OWL source is canonical; this is a self-contained vocabulary index.",
+    );
+    let sections = llms_sections(terms, None);
+    gmeow_docs::llms::render_index(title, &prose, &sections).into_bytes()
 }
 
 // ── MCP consumer surfaces (#1031) ────────────────────────────────────────────
 //
-// The consumer-safe MCP server (`gmeow_tools.mcp_server_consumer`) exposes three
-// `export`-backed surfaces. These renderers reproduce the Python consumer's wire
-// format EXACTLY (NOT the export-generator `llms.txt`/JSONL format above): the
-// llms.txt header is three lines, the subclass marker is `subClassOf` (not `⊑`),
-// the property arrow is ASCII `->`, and the per-term summary carries no box-roles
-// suffix. Python is now thin FastMCP wiring; all of this logic lives here.
+// The consumer-safe MCP server (`gmeow_tools.mcp_server_consumer`) exposes five
+// `export`-backed surfaces: `lookup_term`, `llms_txt`, `llms_full`, `doc_card`,
+// and `okf_index`. These renderers emit the standard llmstxt.org format via the
+// shared `gmeow_docs::llms` skeleton (`# H1` + `> {GMEOW_SUMMARY}` blockquote +
+// `## Section` markdown-link bullets, `⊑` subclass marker, `→` property arrow) —
+// the same format the dist export and docs SITE index produce, differing only in
+// whether bullets carry a site URL. The per-term card (`doc_card`) and the
+// inlined `llms_full` blocks render through the single `gmeow_docs::card`
+// renderer, so the MCP card is the genuine twin of the docs-site `card.md`
+// (#1027). Python is now thin FastMCP wiring; all of this logic lives here.
 //
 // Gated to `python` (the only runtime consumer, via `crate::mcp`) and `test`
 // (the byte-format goldens) so a plain rlib build carries no dead code.
 
 #[cfg(any(feature = "python", test))]
-pub(crate) use consumer::{consumer_llms_txt, lookup_envelope, okf_index_envelope};
+pub(crate) use consumer::{
+    consumer_llms_full, consumer_llms_txt, doc_card_md, doc_url_map, lookup_envelope,
+    okf_index_envelope,
+};
 
 #[cfg(any(feature = "python", test))]
 mod consumer {
     use super::*;
 
-    /// `mcp_server_consumer._summary`: the selected definition-or-label with the
-    /// `[fallback: en]` marker when it resolved via the English fallback. NO
-    /// box-roles suffix (that is the export-generator `term_summary`).
-    fn consumer_summary(t: &Term) -> String {
-        let base = if t.definition.is_empty() {
-            &t.label
-        } else {
-            &t.definition
-        };
-        marked(base, t.definition_fallback || t.label_fallback)
-    }
-
-    /// `gmeow_lookup_term`: resolve a CURIE / local name / IRI / unambiguous prefix
-    /// to its `as_record()` JSON with `"ok": true` appended, or the
-    /// `{"ok": false, "error": "Term not found: <query>"}` envelope. Mirrors
-    /// `mcp_server_consumer._lookup_term` + the tool's envelope wrapping.
-    pub(crate) fn lookup_envelope(terms: &[Term], query: &str) -> String {
+    /// Resolve a CURIE / local name / IRI / case-insensitive label — or a single
+    /// unambiguous CURIE/label prefix — to a term. Exact matches win immediately;
+    /// a prefix resolves only when it matches exactly one term. Mirrors
+    /// `mcp_server_consumer._lookup_term`; shared by `gmeow_lookup_term` and the
+    /// `gmeow_doc_card` surface.
+    fn resolve_term<'a>(terms: &'a [Term], query: &str) -> Option<&'a Term> {
         let needle = query.trim();
-        let mut out = String::new();
         if needle.is_empty() {
-            return lookup_not_found(query);
+            return None;
         }
         let lower = needle.to_lowercase();
         let mut matches: Vec<&Term> = Vec::new();
@@ -1518,8 +1743,7 @@ mod consumer {
                 .iter()
                 .any(|c| !c.is_empty() && c.to_lowercase() == lower);
             if exact {
-                matches = vec![term];
-                break;
+                return Some(term);
             }
             if term.curie.to_lowercase().starts_with(&lower)
                 || term.label.to_lowercase().starts_with(&lower)
@@ -1527,15 +1751,28 @@ mod consumer {
                 matches.push(term);
             }
         }
-        if matches.len() != 1 {
-            return lookup_not_found(query);
+        if matches.len() == 1 {
+            Some(matches[0])
+        } else {
+            None
         }
+    }
+
+    /// `gmeow_lookup_term`: resolve a query to its `as_record()` JSON with
+    /// `"ok": true` appended, or the
+    /// `{"ok": false, "error": "Term not found: <query>"}` envelope. Mirrors
+    /// `mcp_server_consumer._lookup_term` + the tool's envelope wrapping.
+    pub(crate) fn lookup_envelope(terms: &[Term], query: &str) -> String {
+        let Some(term) = resolve_term(terms, query) else {
+            return lookup_not_found(query);
+        };
         // `result = term.as_record(); result["ok"] = True` — `ok` is appended LAST.
-        let J::Obj(mut rec) = term_record(matches[0]) else {
+        let J::Obj(mut rec) = term_record(term) else {
             unreachable!("term_record always yields a JSON object")
         };
         rec.push(("ok".to_string(), J::Bool(true)));
         // The consumer tool returns `json.dumps(result)` — default ensure_ascii.
+        let mut out = String::new();
         J::Obj(rec).compact_ascii(&mut out);
         out
     }
@@ -1553,63 +1790,79 @@ mod consumer {
         out
     }
 
-    /// `gmeow_llms_txt`: a compact vocabulary index. Reproduces
-    /// `mcp_server_consumer.gmeow_llms_txt` line-for-line.
-    pub(crate) fn consumer_llms_txt(terms: &[Term], title: &str, version: &str) -> String {
-        let classes: Vec<&Term> = terms.iter().filter(|t| t.category == "class").collect();
-        let properties: Vec<&Term> = terms.iter().filter(|t| t.category == "property").collect();
-        let individuals: Vec<&Term> = terms
-            .iter()
-            .filter(|t| t.category == "individual")
-            .collect();
-        let mut lines: Vec<String> = vec![
-            format!("# {title}"),
-            String::new(),
-            format!("Vocabulary {version}. Namespace: {NAMESPACE}."),
-            String::new(),
-            "## Classes".into(),
-            String::new(),
-        ];
-        for t in &classes {
-            let parents = if t.parents.is_empty() {
-                String::new()
-            } else {
-                format!(" (subClassOf {})", t.parents.join(", "))
+    /// `gmeow_llms_txt`: the standard llmstxt.org vocabulary index (#1027),
+    /// rendered through the shared `gmeow_docs::llms` emitter so it matches the
+    /// docs-site and dist forms byte-for-byte modulo URLs. `doc_urls` maps a term
+    /// IRI to its published site URL (recovered from the doc graph via
+    /// [`doc_url_map`]); present URLs make the bullets links into the same pages
+    /// the docs site serves.
+    pub(crate) fn consumer_llms_txt(
+        terms: &[Term],
+        title: &str,
+        version: &str,
+        doc_urls: &std::collections::HashMap<String, String>,
+    ) -> String {
+        let prose = llms_prose(
+            version,
+            "The OWL source is canonical; this index links into the published documentation.",
+        );
+        let sections = llms_sections(terms, Some(doc_urls));
+        gmeow_docs::llms::render_index(title, &prose, &sections)
+    }
+
+    /// `gmeow_doc_card`: a prompt-ready Markdown card for one term (#1027) — the
+    /// live MCP twin of the docs-site `terms/{slug}/card.md`. Resolves the query,
+    /// then renders a `# {curie}{signature}` card with the definition and every
+    /// advisory field, through the ONE shared `gmeow_docs::card` renderer the
+    /// docs-site card uses (§19 one-path). Returns a plain not-found line when the
+    /// query does not resolve to exactly one term.
+    pub(crate) fn doc_card_md(terms: &[Term], query: &str) -> String {
+        let Some(t) = resolve_term(terms, query) else {
+            return format!("Term not found: {query}\n");
+        };
+        let title = format!("{}{}", t.curie, llms_signature(t));
+        gmeow_docs::card::render_card(&title, &super::term_to_card(t))
+    }
+
+    /// The `llms-full.txt` MCP resource (#1027): the complete, link-free inlined
+    /// index — the standard header (with the canonical summary blockquote) then
+    /// every term as a `### {curie}{signature}` block with its full card body,
+    /// rendered through the shared `gmeow_docs::card` renderer. The folded-`Term`
+    /// twin of the docs-site `gmeow_docs::render::llms_full_txt`.
+    pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> String {
+        let prose = llms_prose(
+            version,
+            "Complete inlined form — every term, its definition, and its usage advice in full.",
+        );
+        let mut out = gmeow_docs::llms::llms_header(title, &prose);
+        out.push_str("## Terms\n\n");
+        for t in terms {
+            out.push_str(&format!("### {}{}\n\n", t.curie, llms_signature(t)));
+            out.push_str(&gmeow_docs::card::render_card_body(&super::term_to_card(t)));
+            out.push('\n');
+        }
+        out
+    }
+
+    /// Build a `term-IRI → site URL` map from the `gmeow:graph/documentation`
+    /// named graph in the folded snapshot (`gmeow:documents` ⨝ `gmeow:docUrl` on
+    /// each `gmeow:DocumentedTerm`). Lets the MCP index link into the published
+    /// docs site using the SAME URLs the site itself emits. Empty when the doc
+    /// graph is absent (then the index renders linkless).
+    pub(crate) fn doc_url_map(view: &FoldView) -> std::collections::HashMap<String, String> {
+        let documents = format!("{NAMESPACE}documents");
+        let doc_url = format!("{NAMESPACE}docUrl");
+        let mut map = std::collections::HashMap::new();
+        for s in view.subjects_by_type(&format!("{NAMESPACE}DocumentedTerm"), DOCUMENTATION_GRAPH) {
+            let (Some(iri_tid), Some(url_tid)) = (
+                view.value(s, &documents, DOCUMENTATION_GRAPH),
+                view.value(s, &doc_url, DOCUMENTATION_GRAPH),
+            ) else {
+                continue;
             };
-            lines.push(format!("- {}{parents}: {}", t.curie, consumer_summary(t)));
+            map.insert(view.lex(iri_tid).to_string(), view.lex(url_tid).to_string());
         }
-        lines.push(String::new());
-        lines.push("## Properties".into());
-        lines.push(String::new());
-        for t in &properties {
-            let signature = if !t.domain.is_empty() || !t.range.is_empty() {
-                let d = if t.domain.is_empty() { "?" } else { &t.domain };
-                let r = if t.range.is_empty() { "?" } else { &t.range };
-                format!(" [{d} -> {r}]")
-            } else {
-                String::new()
-            };
-            let functional = if t.functional { " (functional)" } else { "" };
-            lines.push(format!(
-                "- {}{signature}{functional}: {}",
-                t.curie,
-                consumer_summary(t)
-            ));
-        }
-        if !individuals.is_empty() {
-            lines.push(String::new());
-            lines.push("## Individuals".into());
-            lines.push(String::new());
-            for t in &individuals {
-                let types = if t.types.is_empty() {
-                    String::new()
-                } else {
-                    format!(" (a {})", t.types.join(", "))
-                };
-                lines.push(format!("- {}{types}: {}", t.curie, consumer_summary(t)));
-            }
-        }
-        lines.join("\n") + "\n"
+        map
     }
 
     fn okf_category_dir(category: &str) -> &'static str {
@@ -2472,64 +2725,60 @@ mod tests {
         assert_eq!(fr["label"], serde_json::json!("français"));
     }
 
-    /// `gmeow_llms_txt`: the CONSUMER format (3-line header, `subClassOf`, ASCII
-    /// `->`, NO box-roles suffix) — distinct from the export-generator `llms.txt`.
+    /// `gmeow_llms_txt`: the STANDARD llmstxt.org format (#1027) — H1 + canonical
+    /// summary blockquote + unified `⊑`/`→` signatures + bullets linking into the
+    /// published docs site (URLs recovered from the doc graph). One format across
+    /// the dist/MCP/site surfaces; the old consumer-specific format is retired.
     #[test]
-    fn consumer_llms_txt_uses_consumer_format() {
+    fn consumer_llms_txt_uses_standard_format() {
         let (terms, title, version) = english_terms();
-        let txt = consumer_llms_txt(&terms, &title, &version);
+        let root = repo_root();
+        let graph = read_fold(&root).expect("read fold");
+        let doc_urls = doc_url_map(&FoldView::new(&graph));
+        let txt = consumer_llms_txt(&terms, &title, &version, &doc_urls);
 
-        // Exact 3-line header + section banners.
-        let header =
-            format!("# {title}\n\nVocabulary {version}. Namespace: {NAMESPACE}.\n\n## Classes\n\n");
+        // Standard header: a single H1 then the canonical summary blockquote.
         assert!(
-            txt.starts_with(&header),
+            txt.starts_with(&format!(
+                "# {title}\n\n> {}\n\n",
+                gmeow_docs::llms::GMEOW_SUMMARY
+            )),
             "header mismatch:\n{}",
-            &txt[..200]
+            &txt[..240]
         );
+        assert!(txt.contains(&format!("Vocabulary {version}. Namespace: {NAMESPACE}.")));
+        assert!(txt.contains("\n## Classes\n\n"));
         assert!(txt.contains("\n## Properties\n\n"));
         assert!(txt.ends_with('\n'));
 
-        // Consumer markers present (`subClassOf` + ASCII `->` signature). These
-        // alone catch an accidental swap to the export-generator `write_llms_txt`,
-        // which emits neither (`⊑` / `→`). The box-roles suffix and blurb header
-        // are export-only structural strings and must NOT leak. (The `⊑`/`→`
-        // glyphs themselves appear inside logic-slice definitions, so we assert on
-        // the export *markers*, not the bare glyphs.)
+        // Unified signature marker (`(⊑ ` for a class) — the consumer index now
+        // matches the dist/site format; the old `subClassOf`/ASCII-`->` markers
+        // and the export box-roles suffix are gone.
+        assert!(txt.contains("(⊑ "), "missing unified subclass marker");
         assert!(
-            txt.contains("(subClassOf "),
-            "missing consumer subclass marker"
-        );
-        assert!(
-            txt.contains(" -> "),
-            "missing consumer ASCII arrow signature"
+            !txt.contains("(subClassOf "),
+            "old consumer subclass marker leaked"
         );
         assert!(
             !txt.contains("[box roles:"),
             "leaked export-format box roles"
         );
-        assert!(
-            !txt.contains("A reasoning-centric"),
-            "leaked export-format blurb header"
-        );
 
-        // `fr` request threads the French language selector into the index: the
-        // corpus has almost no French text, so the *observable* effect is the
-        // `[fallback: en]` markers `consumer_summary` adds when a term's
-        // requested-language text resolves via the English fallback. The English
-        // index carries no such marker; the `fr` index does. This is the real
-        // evidence the selector ran (a `français` label is NOT rendered: summaries
-        // use definition-or-label, and `gmeow:langFrench` has an English
-        // definition, so its summary is the English definition, not the label).
-        let root = repo_root();
-        let graph = read_fold(&root).expect("read fold");
+        // When the doc graph is present in the snapshot, bullets are markdown links
+        // into the published site (the same URLs the docs site emits).
+        if !doc_urls.is_empty() {
+            assert!(
+                txt.contains("](terms/"),
+                "doc-graph URLs should link the term bullets"
+            );
+        }
+
+        // `fr` request threads the French selector: the corpus has almost no French
+        // text, so the observable effect is the `[fallback: en]` markers added when
+        // a term's requested-language text resolves via the English fallback.
         let fr_terms = collect_terms(&FoldView::with_requested(&graph, vec!["fr".to_string()]));
-        let fr_txt = consumer_llms_txt(&fr_terms, &title, &version);
+        let fr_txt = consumer_llms_txt(&fr_terms, &title, &version, &doc_urls);
         assert_ne!(fr_txt, txt, "fr index did not thread the French selection");
-        assert!(
-            fr_txt.contains("- gmeow:langFrench (a "),
-            "langFrench individual line present in the fr index"
-        );
         assert!(
             !txt.contains("[fallback: en]"),
             "English index must not carry fallback markers"
@@ -2538,6 +2787,176 @@ mod tests {
             fr_txt.contains("[fallback: en]"),
             "fr index must carry English-fallback markers (proves the selector threaded)"
         );
+    }
+
+    /// `gmeow_doc_card`: resolves a term and renders a `# {curie}` card with the
+    /// metadata + definition; an unresolved query yields the plain not-found line.
+    #[test]
+    fn doc_card_md_renders_card_and_not_found() {
+        let (terms, _t, _v) = english_terms();
+        let card = doc_card_md(&terms, "gmeow:langFrench");
+        assert!(card.starts_with("# gmeow:langFrench"), "card head:\n{card}");
+        // Canonical card convention (the shared `gmeow_docs::card` renderer):
+        // human-cased category, and term→slice provenance recovered from the
+        // documentation graph (the docs generator dogfoods `gmeow:docOwnerSlice`
+        // into the bundle; the fold reads it back — #1027).
+        assert!(card.contains("- category: Individual"));
+        assert!(card.contains("- iri: https://blackcatinformatics.ca/gmeow/langFrench"));
+        let slice_line = card
+            .lines()
+            .find(|l| l.starts_with("- slice: "))
+            .expect("folded card must carry the owning slice (term→slice provenance)");
+        assert!(
+            !slice_line.trim_start_matches("- slice: ").trim().is_empty(),
+            "slice value must be non-blank, got {slice_line:?}"
+        );
+        assert!(card.ends_with('\n'));
+
+        let miss = doc_card_md(&terms, "gmeow:NoSuchTerm");
+        assert_eq!(miss, "Term not found: gmeow:NoSuchTerm\n");
+    }
+
+    /// `gmeow_llms_full` / `llms-full.txt`: the standard header then a `### ` block
+    /// per term inlined in full (no links).
+    #[test]
+    fn consumer_llms_full_inlines_terms() {
+        let (terms, title, version) = english_terms();
+        let full = consumer_llms_full(&terms, &title, &version);
+        assert!(full.starts_with(&format!(
+            "# {title}\n\n> {}\n\n",
+            gmeow_docs::llms::GMEOW_SUMMARY
+        )));
+        assert!(full.contains("## Terms\n\n"));
+        assert!(full.contains("### gmeow:langFrench"));
+        // No markdown links in the complete form (it is self-contained).
+        assert!(
+            !full.contains("](terms/"),
+            "llms-full must be link-free (inlined content)"
+        );
+        let headings = full.lines().filter(|l| l.starts_with("### ")).count();
+        assert!(
+            headings >= terms.len() / 2,
+            "expected roughly one block per term, got {headings} for {} terms",
+            terms.len()
+        );
+    }
+
+    /// The twin-contract lock (#1027, §19 one-path): the MCP card and the
+    /// docs-site card share ONE renderer (`gmeow_docs::card::render_card_body`)
+    /// AND one convention. This test pins the shared renderer's output for a card
+    /// whose SHARED fields are set, then proves the folded-`Term` builder
+    /// (`term_to_card`) maps those same fields into the SAME canonical `Card`,
+    /// so the two sources can never re-diverge field-for-field.
+    ///
+    /// (The docs-site builder `gmeow_docs::render::doc_term_card` is private; both
+    /// builders are thin field-copies into `gmeow_docs::card::Card`, so locking
+    /// `term_to_card` against an explicit `Card` of the same shared values — fed
+    /// through the SOLE body renderer — is the determinism guard. The docs side's
+    /// own routing through `render_card_body` is pinned by gmeow-docs' tests.)
+    #[test]
+    fn term_card_shares_one_renderer_and_convention() {
+        // A folded Term with every SHARED card field populated.
+        let folded = Term {
+            category: "property",
+            iri: "https://blackcatinformatics.ca/gmeow/hasFoo".to_string(),
+            curie: "gmeow:hasFoo".to_string(),
+            label: "has foo".to_string(),
+            definition: "Relates a thing to its foo.".to_string(),
+            prop_kind: "object",
+            domain: "Thing".to_string(),
+            range: "Foo".to_string(),
+            sub_property_of: vec!["gmeow:relates".to_string()],
+            alignments: vec!["exactMatch=ex:hasFoo".to_string()],
+            box_roles: vec!["gmeow:boxTBox".to_string()],
+            scope_notes: vec!["A scope note.".to_string()],
+            examples: vec!["An example.".to_string()],
+            use_when: vec!["When there is a foo.".to_string()],
+            avoid_when: vec!["When there is no foo.".to_string()],
+            how_to_use: vec!["Use idiomatically.".to_string()],
+            use_for_consumer: vec!["gmeow:profileMemory".to_string()],
+            avoid_for_consumer: vec!["gmeow:profileNarrative".to_string()],
+            logic_stereotypes: vec!["logic:Relator".to_string()],
+            related_terms: vec!["gmeow:Bar".to_string()],
+            owner_slice: "https://blackcatinformatics.ca/gmeow/slice/zoo".to_string(),
+            ..Term::default()
+        };
+
+        // The canonical Card the docs side would build for the SAME shared values
+        // (a property → parents come from sub_property_of; the slice is the LOCAL
+        // NAME of the owning slice IRI, recovered identically on both sides).
+        let expected = gmeow_docs::card::Card {
+            category: "Property".to_string(),
+            iri: "https://blackcatinformatics.ca/gmeow/hasFoo".to_string(),
+            label: Some("has foo".to_string()),
+            slice: Some("zoo".to_string()),
+            box_roles: vec!["gmeow:boxTBox".to_string()],
+            definition: Some("Relates a thing to its foo.".to_string()),
+            parents: vec!["gmeow:relates".to_string()],
+            domain: vec!["Thing".to_string()],
+            range: vec!["Foo".to_string()],
+            use_when: vec!["When there is a foo.".to_string()],
+            avoid_when: vec!["When there is no foo.".to_string()],
+            how_to_use: vec!["Use idiomatically.".to_string()],
+            scope_notes: vec!["A scope note.".to_string()],
+            examples: vec!["An example.".to_string()],
+            logic_stereotypes: vec!["logic:Relator".to_string()],
+            related_terms: vec!["gmeow:Bar".to_string()],
+            use_for_consumer: vec!["gmeow:profileMemory".to_string()],
+            avoid_for_consumer: vec!["gmeow:profileNarrative".to_string()],
+            aligns: vec!["exactMatch=ex:hasFoo".to_string()],
+        };
+
+        // The folded builder must produce exactly that Card (field-for-field).
+        assert_eq!(
+            term_to_card(&folded),
+            expected,
+            "term_to_card must map the folded Term into the canonical shared Card"
+        );
+
+        // …and both render IDENTICALLY through the SOLE body renderer.
+        let from_folded = gmeow_docs::card::render_card_body(&term_to_card(&folded));
+        let from_expected = gmeow_docs::card::render_card_body(&expected);
+        assert_eq!(
+            from_folded, from_expected,
+            "shared renderer must agree byte-for-byte"
+        );
+
+        // Canonical convention: bold labels, `; ` delimiters, no per-item backticks.
+        assert!(from_folded.contains("**Use when:** When there is a foo.\n\n"));
+        assert!(from_folded.contains("**Aligns:** exactMatch=ex:hasFoo\n\n"));
+        assert!(!from_folded.contains('`'), "card body carries no backticks");
+        assert!(
+            !from_folded.contains("\n*Use when:* "),
+            "labels are bold, not italic"
+        );
+    }
+
+    /// `term_to_card` slice handling: a recovered `owner_slice` IRI renders as its
+    /// local name; an absent one yields `None` (no blank `slice:` line). Locks
+    /// both arms of the term→slice provenance recovery (#1027).
+    #[test]
+    fn term_to_card_slice_uses_local_name_or_omits() {
+        let with_slice = Term {
+            category: "class",
+            iri: "https://blackcatinformatics.ca/gmeow/Cat".to_string(),
+            curie: "gmeow:Cat".to_string(),
+            owner_slice: "https://blackcatinformatics.ca/gmeow/slice/zoo".to_string(),
+            ..Term::default()
+        };
+        assert_eq!(term_to_card(&with_slice).slice, Some("zoo".to_string()));
+        assert!(
+            gmeow_docs::card::render_card_body(&term_to_card(&with_slice))
+                .contains("- slice: zoo\n")
+        );
+
+        let no_slice = Term {
+            category: "class",
+            iri: "https://blackcatinformatics.ca/gmeow/Dog".to_string(),
+            curie: "gmeow:Dog".to_string(),
+            ..Term::default()
+        };
+        assert_eq!(term_to_card(&no_slice).slice, None);
+        assert!(!gmeow_docs::card::render_card_body(&term_to_card(&no_slice)).contains("- slice:"));
     }
 
     /// `gmeow_okf_index`: the manifest envelope + per-document `{path,type,title,
