@@ -12,13 +12,13 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::Term;
 use oxigraph::store::Store;
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::stages::source_load::turtle_bytes_to_store;
 
 pub const CSL_PATH: &str = "generated/references/references.csl.json";
 pub const BIB_PATH: &str = "generated/references/references.bib";
@@ -35,20 +35,7 @@ const MD_BANNER: &str =
 
 fn parse_store(path: &Path) -> Result<Store, PipelineError> {
     let bytes = std::fs::read(path)?;
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes.as_slice())
-    {
-        let quad = quad.map_err(|e| {
-            PipelineError::Parse(format!("syntax error in {}: {e}", path.display()))
-        })?;
-        store
-            .insert(&quad)
-            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(store)
+    turtle_bytes_to_store(&bytes, &path.display().to_string())
 }
 
 fn first_literal(store: &Store, subject: &str, predicate: &str) -> String {

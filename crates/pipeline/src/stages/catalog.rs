@@ -11,13 +11,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::Term;
-use oxigraph::store::Store;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::source_load::module_files;
+use crate::stages::source_load::{module_files, turtle_bytes_to_store};
 
 /// Committed logical path of the OASIS catalog.
 pub const CATALOG_PATH: &str = "catalog-v001.xml";
@@ -88,19 +86,7 @@ pub fn render_catalog(root: &Path) -> Result<String, PipelineError> {
 /// Parse one manifest for `(slice_iri, sliceProfile names)`.
 fn parse_manifest(path: &Path) -> Result<(String, Vec<String>), PipelineError> {
     let bytes = std::fs::read(path)?;
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes.as_slice())
-    {
-        let quad = quad.map_err(|e| {
-            PipelineError::Parse(format!("syntax error in {}: {e}", path.display()))
-        })?;
-        store
-            .insert(&quad)
-            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-    }
+    let store = turtle_bytes_to_store(&bytes, &path.display().to_string())?;
     let rdf_type = oxigraph::model::NamedNode::new(RDF_TYPE).unwrap();
     let slice_class = oxigraph::model::NamedNode::new(SLICE_CLASS).unwrap();
     let mut iri: Option<String> = None;

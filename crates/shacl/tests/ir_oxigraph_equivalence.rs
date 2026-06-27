@@ -15,9 +15,10 @@
 //! This is the primary safety net proving the IR backend is conformance-identical
 //! to the oxigraph backend, not a second, divergent engine.
 
-use oxigraph::io::RdfFormat;
 use oxigraph::store::Store;
 
+use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+use gmeow_rdf::parse_dataset;
 use gmeow_shacl::engine::{parse_shapes, validate, validate_dataset};
 
 const PREFIXES: &str = r#"
@@ -28,25 +29,22 @@ const PREFIXES: &str = r#"
     @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 "#;
 
-/// Parse N-Triples (lenient) into an in-memory oxigraph store.
+/// Parse N-Triples (lenient) into an in-memory oxigraph store via the native
+/// codec (#909).
 fn load_data(nt: &str) -> Store {
-    let store = Store::new().expect("in-memory store");
-    if !nt.is_empty() {
-        store
-            .load_from_reader(RdfFormat::NTriples, nt.as_bytes())
-            .expect("valid N-Triples");
+    if nt.is_empty() {
+        return Store::new().expect("in-memory store");
     }
-    store
+    let dataset =
+        parse_dataset(nt.as_bytes(), "application/n-triples", None).expect("valid N-Triples");
+    store_from_dataset(&dataset, GraphPolicy::PreserveNamedGraphs).expect("store from dataset")
 }
 
 /// Parse a Turtle data document (so RDF 1.2 `<<( … )>>` reifier syntax can be
-/// expressed) into an in-memory oxigraph store.
+/// expressed) into an in-memory oxigraph store via the native codec (#909).
 fn load_data_turtle(ttl: &str) -> Store {
-    let store = Store::new().expect("in-memory store");
-    store
-        .load_from_reader(RdfFormat::Turtle, ttl.as_bytes())
-        .expect("valid Turtle");
-    store
+    let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("valid Turtle");
+    store_from_dataset(&dataset, GraphPolicy::PreserveNamedGraphs).expect("store from dataset")
 }
 
 /// Run BOTH backends on the same data and shapes, asserting the reports are equal.

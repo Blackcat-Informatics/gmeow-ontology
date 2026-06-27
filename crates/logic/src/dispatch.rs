@@ -26,7 +26,7 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 use oxigraph::model::NamedNode;
 
 use crate::profile_gate;
-use crate::query_ir::{AnswerSet, Budget, QProgram, QTerm};
+use crate::query_ir::{AnswerSet, Budget, QBodyLit, QProgram, QTerm};
 use crate::scryer_engine;
 use crate::seam::{BudgetStatus, ScryerForeign};
 use crate::store::WorldStore;
@@ -119,10 +119,34 @@ fn reachable_to_self(start: &str, adj: &BTreeMap<String, BTreeSet<String>>) -> b
 
 // ── Goal classification ────────────────────────────────────────────────────────
 
-/// Classify a program: `Fast` if every goal atom pred is EDB, `Scryer` otherwise.
+/// Return `true` if any rule body in `program` contains an arithmetic/comparison
+/// builtin (#1009 G2a). Such a program MUST be resolved by Scryer (the SPARQL fast
+/// path cannot evaluate arithmetic), never the EDB fast path.
+pub fn program_has_builtin(program: &QProgram) -> bool {
+    program.rules.iter().any(|rule| {
+        rule.body
+            .iter()
+            .any(|lit| matches!(lit, QBodyLit::Builtin(_)))
+    })
+}
+
+/// Return `true` if any goal atom has arity ≠ 2. The SPARQL fast path indexes
+/// `atom.args[0]`/`atom.args[1]`; a non-binary goal atom (e.g. `get/3`) must route
+/// to Scryer rather than panic-indexing.
+fn goal_has_non_binary_atom(program: &QProgram) -> bool {
+    program.goal.atoms.iter().any(|a| a.args.len() != 2)
+}
+
+/// Classify a program: `Fast` only if every goal atom is a binary EDB atom and the
+/// program contains no arithmetic builtin; `Scryer` otherwise.
+///
+/// Forcing `Scryer` for builtin programs and for non-binary goal atoms is a hard
+/// invariant: the fast path neither evaluates arithmetic nor handles arity ≠ 2.
 pub fn classify_goal(program: &QProgram) -> Dispatch {
     let idb = idb_predicates(program);
-    let needs_scryer = program.goal.atoms.iter().any(|a| idb.contains(&a.pred));
+    let needs_scryer = program.goal.atoms.iter().any(|a| idb.contains(&a.pred))
+        || program_has_builtin(program)
+        || goal_has_non_binary_atom(program);
     if needs_scryer {
         Dispatch::Scryer
     } else {
@@ -165,6 +189,19 @@ pub fn fast_path(
                 }
             }
         }
+    }
+
+    // Defensive guard: the fast path forms binary triple patterns by indexing
+    // `args[0]`/`args[1]`. A non-binary goal atom must never reach here (classify_goal
+    // routes those to Scryer), but fail with a clear error rather than panic-index if it
+    // somehow does.
+    if let Some(bad) = program.goal.atoms.iter().find(|a| a.args.len() != 2) {
+        return Err(format!(
+            "fast_path requires binary goal atoms; {:?} has arity {} \
+             (non-binary atoms must route to Scryer)",
+            bad.pred,
+            bad.args.len()
+        ));
     }
 
     // Build triple patterns.
@@ -244,6 +281,10 @@ fn term_to_sparql(t: &QTerm) -> String {
     match t {
         QTerm::Const(c) => c.clone(),
         QTerm::Var(v) => format!("?{v}"),
+        // Defensive: a numeric operand in a fast-path goal is not normally reached
+        // (builtin programs route to Scryer), but emit the canonical typed literal so
+        // the SPARQL is still well-formed rather than producing a malformed token.
+        QTerm::Num(n) => format!("\"{n}\"^^<http://www.w3.org/2001/XMLSchema#integer>"),
     }
 }
 
@@ -269,8 +310,9 @@ pub fn dispatch_query(
     profile: &str,
     budget: &Budget,
 ) -> Result<AnswerSet, String> {
-    // (1) Profile gate — cut confinement.
+    // (1) Profile gate — cut + arithmetic-builtin confinement.
     profile_gate::check_cut_profile(program, profile)?;
+    profile_gate::check_builtin_profile(program, profile)?;
 
     // (2) Cyclic IDB predicates for tabling.
     let table_preds = cyclic_predicates(program);
@@ -296,9 +338,30 @@ mod tests {
     const BASE: &str = "https://example.org/";
     const W: &str = "http://logic.test/world/dispatch";
     const HORN_PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
+    const PROCEDURAL_PROFILE: &str = "https://blackcatinformatics.ca/logic/ProceduralPrologProfile";
+    const RDF: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 
     fn p(local: &str) -> String {
         format!("{BASE}{local}")
+    }
+
+    fn rdf(local: &str) -> String {
+        format!("{RDF}{local}")
+    }
+
+    /// Build a 3-element RDF list (x y z) at l0 → l1 → l2 → rdf:nil in a fresh world.
+    fn list_world() -> (WorldStore, NamedNode) {
+        let store = WorldStore::new();
+        let first = rdf("first");
+        let rest = rdf("rest");
+        let nil = rdf("nil");
+        store.insert_quad(W, &p("l0"), &first, &p("x"));
+        store.insert_quad(W, &p("l0"), &rest, &p("l1"));
+        store.insert_quad(W, &p("l1"), &first, &p("y"));
+        store.insert_quad(W, &p("l1"), &rest, &p("l2"));
+        store.insert_quad(W, &p("l2"), &first, &p("z"));
+        store.insert_quad(W, &p("l2"), &rest, &nil);
+        (store, NamedNode::new(W).unwrap())
     }
 
     // ── classify_goal ──────────────────────────────────────────────────────────
@@ -464,6 +527,163 @@ mod tests {
         assert!(
             ys.contains(&format!("<{BASE}d>").as_str()),
             "missing d: {ys:?}"
+        );
+    }
+
+    // ── Arithmetic-builtin list functions (#1009 G2a) ─────────────────────────
+    //
+    // Over the list (x y z): l0 →first x, →rest l1; l1 →first y, →rest l2;
+    // l2 →first z, →rest rdf:nil. Each runs via dispatch_query under the
+    // ProceduralPrologProfile (the builtin gate licenses arithmetic there).
+
+    const XSD_INT: &str = "http://www.w3.org/2001/XMLSchema#integer";
+
+    #[test]
+    fn list_length_via_arithmetic_builtin() {
+        let (store, world) = list_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- prefix(rdf, '{RDF}').\n\
+             ex:len(rdf:nil, 0).\n\
+             ex:len(L, N) :- rdf:rest(L, R), ex:len(R, M), N is M + 1.\n\
+             ?- ex:len(ex:l0, N).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans = dispatch_query(
+            &foreign,
+            &store,
+            &world,
+            &prog,
+            PROCEDURAL_PROFILE,
+            &Budget::default(),
+        )
+        .unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "exactly one length answer: {ans:?}");
+        assert_eq!(ans.bindings[0]["N"], format!("\"3\"^^<{XSD_INT}>"));
+    }
+
+    #[test]
+    fn list_get_via_comparison_and_arithmetic() {
+        let (store, world) = list_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- prefix(rdf, '{RDF}').\n\
+             ex:get(L, 0, X) :- rdf:first(L, X).\n\
+             ex:get(L, N, X) :- N > 0, rdf:rest(L, R), M is N - 1, ex:get(R, M, X).\n\
+             ?- ex:get(ex:l0, 1, X).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans = dispatch_query(
+            &foreign,
+            &store,
+            &world,
+            &prog,
+            PROCEDURAL_PROFILE,
+            &Budget::default(),
+        )
+        .unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "exactly one get answer: {ans:?}");
+        assert_eq!(ans.bindings[0]["X"], format!("<{BASE}y>"));
+    }
+
+    #[test]
+    fn list_index_of_via_arithmetic_builtin() {
+        let (store, world) = list_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- prefix(rdf, '{RDF}').\n\
+             ex:idx(L, X, 0) :- rdf:first(L, X).\n\
+             ex:idx(L, X, N) :- rdf:rest(L, R), ex:idx(R, X, M), N is M + 1.\n\
+             ?- ex:idx(ex:l0, ex:z, N).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans = dispatch_query(
+            &foreign,
+            &store,
+            &world,
+            &prog,
+            PROCEDURAL_PROFILE,
+            &Budget::default(),
+        )
+        .unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "exactly one indexOf answer: {ans:?}");
+        assert_eq!(ans.bindings[0]["N"], format!("\"2\"^^<{XSD_INT}>"));
+    }
+
+    #[test]
+    fn comparison_only_builtin_filters_answers() {
+        // pick/2 binds N to each list index (0,1,2) then keeps only N > 0.
+        let (store, world) = list_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- prefix(rdf, '{RDF}').\n\
+             ex:idx(L, X, 0) :- rdf:first(L, X).\n\
+             ex:idx(L, X, N) :- rdf:rest(L, R), ex:idx(R, X, M), N is M + 1.\n\
+             ex:positive(X, N) :- ex:idx(ex:l0, X, N), N > 0.\n\
+             ?- ex:positive(X, N).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans = dispatch_query(
+            &foreign,
+            &store,
+            &world,
+            &prog,
+            PROCEDURAL_PROFILE,
+            &Budget::default(),
+        )
+        .unwrap();
+        // Indices 1 (y) and 2 (z) survive the N > 0 filter; index 0 (x) is dropped.
+        assert_eq!(
+            ans.bindings.len(),
+            2,
+            "expected 2 positive-index answers: {ans:?}"
+        );
+        let xs: Vec<&str> = ans.bindings.iter().map(|b| b["X"].as_str()).collect();
+        assert!(
+            xs.contains(&format!("<{BASE}y>").as_str()),
+            "missing y: {xs:?}"
+        );
+        assert!(
+            xs.contains(&format!("<{BASE}z>").as_str()),
+            "missing z: {xs:?}"
+        );
+    }
+
+    #[test]
+    fn builtin_under_non_procedural_profile_is_rejected() {
+        let (store, world) = list_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- prefix(rdf, '{RDF}').\n\
+             ex:len(rdf:nil, 0).\n\
+             ex:len(L, N) :- rdf:rest(L, R), ex:len(R, M), N is M + 1.\n\
+             ?- ex:len(ex:l0, N).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let result = dispatch_query(
+            &foreign,
+            &store,
+            &world,
+            &prog,
+            HORN_PROFILE,
+            &Budget::default(),
+        );
+        assert!(
+            result.is_err(),
+            "arithmetic builtin under PositiveHornProfile must be rejected"
+        );
+        let msg = result.unwrap_err();
+        assert!(
+            msg.contains("builtin") && msg.contains(HORN_PROFILE),
+            "error must name the offending profile: {msg:?}"
         );
     }
 }

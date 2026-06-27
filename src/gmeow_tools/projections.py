@@ -134,8 +134,8 @@ def project_graph(
     """Run a profile's CONSTRUCT over a source, returning the projection.
 
     The CONSTRUCT runs on gmeow_rdf (~12x faster than rdflib's engine); the
-    :mod:`gmeow_tools.engine_crosscheck` gate proves the two engines agree, so the
-    output is identical to the former rdflib path.
+    :mod:`gmeow_tools.oracles.engine_crosscheck` gate proves the two engines
+    agree, so the output is identical to the former rdflib path.
 
     Args:
         profile: A key of :data:`PROFILES`.

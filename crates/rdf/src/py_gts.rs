@@ -27,7 +27,6 @@
 //! All CBOR encoding, canonicalization, frame-id chaining, and signing is
 //! delegated to `gmeow-gts` — never hand-rolled.
 
-use oxigraph::io::RdfFormat;
 use oxigraph::model::Quad;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -40,6 +39,7 @@ use crate::gts_compose::{emit_gts, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_T
 use crate::ir::{RdfDataset, RdfDatasetBuilder};
 use crate::provenance::{DatasetProvenance, OriginKind};
 use crate::py_store::{parse_quads, PyRdfFormat};
+use crate::NativeRdfFormat;
 
 /// The `rep`-label prefix every S3 slice-artifact blob carries (#820 S3). A blob
 /// authored from the slice catalog rides ahead of the snapshot with
@@ -558,13 +558,8 @@ fn feedback_bundle_native(
     Ok(PyBytes::new(py, &bytes).unbind())
 }
 
-fn rdf_format(format: PyRdfFormat) -> RdfFormat {
-    match format {
-        PyRdfFormat::TURTLE => RdfFormat::Turtle,
-        PyRdfFormat::N_TRIPLES => RdfFormat::NTriples,
-        PyRdfFormat::N_QUADS => RdfFormat::NQuads,
-        PyRdfFormat::TRIG => RdfFormat::TriG,
-    }
+fn rdf_format(format: PyRdfFormat) -> NativeRdfFormat {
+    format.to_native()
 }
 
 /// Register the native GTS producer surface on the `gmeow_rdf` module.

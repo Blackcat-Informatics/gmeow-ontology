@@ -17,17 +17,17 @@
 //!
 //! # The predicate-naming parity normalization (the crux)
 //!
-//! The Python certifier runs over the typed IR
-//! (`gmeow_tools.logic_ir.LogicProgram`), where each atom carries a *full IRI*
-//! predicate string and an `rdf:type`-folding rule (`_predicate_key`):
+//! The legacy typed-IR certifier ran over a `LogicProgram` value (the `logic_ir`
+//! typed IR was retired in #727), where each atom carries a *full IRI* predicate
+//! string and an `rdf:type`-folding rule (`_predicate_key`):
 //!
 //! * a non-`rdf:type` atom's key is its bare predicate IRI;
 //! * an `rdf:type` atom whose **object** is a non-variable (a named class) folds
 //!   the class into the key as `"{rdf:type-iri} {class-iri}"`, so class-level
 //!   recursion (`?x a C :- ?y a C`) shows up as a self-cycle.
 //!
-//! The Rust certifier instead consumes the **`.rls` text** that
-//! `gmeow_tools.logic_projections.project_nemo` emits.  `project_nemo`:
+//! The Rust certifier instead consumes the **`.rls` text** that the canonical
+//! Nemo projection (`project_nemo`) emits.  `project_nemo`:
 //!
 //! * writes predicates as bare angle-bracketed IRIs — `<http://…/p>(?S, ?O, ?W)`
 //!   — and Nemo's parser resolves an `<iri>` tag to its bare content
@@ -910,16 +910,16 @@ pub fn certify(rules: &str, profile: &str) -> Result<CertificationVerdict, Strin
 /// Certify a program straight from the **canonical source AST** (issue #664).
 ///
 /// This is the canonical-AST front door to the certifier: the program is lowered
-/// to its Nemo rules section by the Rust compiler ([`crate::compile::projections`])
+/// to its Nemo rules section by the Rust compiler ([`gmeow_logic_compile::projections`])
 /// and certified — no Python and no hand-authored `.rls` in the loop, so the
 /// canonical IR is the single source feeding decidability certification too.
 pub fn certify_program(
-    program: &crate::compile::ir::LogicProgram,
+    program: &gmeow_logic_compile::ir::LogicProgram,
     profile: &str,
 ) -> Result<CertificationVerdict, String> {
-    let nemo = crate::compile::projections::text::project_nemo(program)?;
+    let nemo = gmeow_logic_compile::projections::text::project_nemo(program)?;
     let rules_section =
-        crate::compile::projections::text::extract_nemo_rules_section(&nemo.content)?;
+        gmeow_logic_compile::projections::text::extract_nemo_rules_section(&nemo.content)?;
     certify(&rules_section, profile)
 }
 

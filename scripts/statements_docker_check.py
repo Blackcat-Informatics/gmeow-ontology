@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import sys
 
+from gmeow_tools.oracles.statements_docker_check import run_all
 from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
-from gmeow_tools.statements_docker_check import run_all
 
 
 def main() -> int:

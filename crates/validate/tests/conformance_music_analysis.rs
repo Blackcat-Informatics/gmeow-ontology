@@ -30,6 +30,7 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 /// Turtle prefix block shared by all music analysis conformance tests.
 const PREFIXES: &str = "\
@@ -42,13 +43,9 @@ const PREFIXES: &str = "\
 
 // ── Tests migrated from tests/test_music_analysis.py ─────────────────────────
 
-/// `test_music_analysis_claim_shape_passes` — a fully-populated MusicAnalysisClaim
-/// with all required properties passes SHACL.
-///
-/// Mode: `validate_with_ontology` (Python used `g = _graph()` as base).
-#[test]
-fn music_analysis_claim_shape_passes() {
-    let fixture = format!(
+#[rstest]
+#[case::music_analysis_claim_shape_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:claim1 a gmeow:MusicAnalysisClaim .
 ex:claim1 gmeow:analysisTarget   ex:segment1 .
@@ -57,23 +54,11 @@ ex:claim1 gmeow:analysisResult   gmeow:harmonicFunctionDominant .
 ex:claim1 gmeow:vantage          ex:analyst1 .
 ex:claim1 gmeow:analysisFrame    gmeow:theoryFrameRomanNumeral .
 "
-    );
-    let nt = ttl_str_to_nt(&fixture);
-    let report = validate_with_ontology(&nt);
-    assert!(
-        ok(&report),
-        "fully-populated MusicAnalysisClaim must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_music_analysis_claim_missing_frame_fails` — a MusicAnalysisClaim missing
-/// the required `gmeow:analysisFrame` fails SHACL with an `analysisFrame` message.
-///
-/// Mode: `validate_with_ontology` (Python used `g = _graph()` as base).
-#[test]
-fn music_analysis_claim_missing_frame_fails() {
-    let fixture = format!(
+    ))
+    .with_ontology()
+)]
+#[case::music_analysis_claim_missing_frame_fails(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:claim1 a gmeow:MusicAnalysisClaim .
 ex:claim1 gmeow:analysisTarget   ex:segment1 .
@@ -82,41 +67,21 @@ ex:claim1 gmeow:analysisResult   gmeow:harmonicFunctionDominant .
 ex:claim1 gmeow:vantage          ex:analyst1 .
 # deliberately no gmeow:analysisFrame
 "
-    );
-    let nt = ttl_str_to_nt(&fixture);
-    let report = validate_with_ontology(&nt);
-    assert!(
-        !ok(&report),
-        "MusicAnalysisClaim missing analysisFrame must fail SHACL"
-    );
-    let msgs = violations(&report);
-    assert!(
-        msgs.iter().any(|m| m.contains("analysisFrame")),
-        "violation message must mention 'analysisFrame'; got: {:?}",
-        msgs
-    );
-}
-
-/// `test_genre_no_subclass_shape_fails_on_bad_subclass` — declaring a subclass of
-/// `gmeow:Genre` fails SHACL with a "Genre must not be subclassed" message.
-///
-/// Mode: `validate` (Python used `g = Graph()` — fixture-only, no merged ontology).
-#[test]
-fn genre_no_subclass_shape_fails_on_bad_subclass() {
-    let fixture = format!(
+    ))
+    .with_ontology()
+    .fails()
+    .violations(&["analysisFrame"])
+)]
+#[case::genre_no_subclass_shape_fails_on_bad_subclass(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:FakeSubGenre a owl:Class .
 ex:FakeSubGenre rdfs:subClassOf gmeow:Genre .
 "
-    );
-    let nt = ttl_str_to_nt(&fixture);
-    let report = validate(&nt);
-    assert!(!ok(&report), "subclassing gmeow:Genre must fail SHACL");
-    let msgs = violations(&report);
-    assert!(
-        msgs.iter()
-            .any(|m| m.contains("Genre must not be subclassed")),
-        "violation message must mention 'Genre must not be subclassed'; got: {:?}",
-        msgs
-    );
+    ))
+    .fails()
+    .violations(&["Genre must not be subclassed"])
+)]
+fn music_analysis(#[case] case: Case) {
+    case.run();
 }

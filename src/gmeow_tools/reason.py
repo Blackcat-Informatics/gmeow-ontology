@@ -6,8 +6,8 @@ the primary path: ``make check`` and the required ``quality`` gate reason
 natively (``make reason`` / ``gmeow-dev reason --mode native``, Java/Docker-free),
 and every pytest that drives these functions is ``docker``/``classic_cross_check``
 marked or mocks them out. The only live callers are the classic-cross-check lane
-(``classic_cross_check.py``), the maintainer ``gmeow-dev`` docker subcommands, and
-the divergence-ledger oracle — never normal repo use.
+(``gmeow_tools.oracles.classic_cross_check``), the maintainer ``gmeow-dev``
+docker subcommands, and the divergence-ledger oracle — never normal repo use.
 
 The pipeline always *merges the import closure into a single ontology first*,
 then reasons/validates that product. This is deliberate: ROBOT's
@@ -22,6 +22,7 @@ authority is cross-checked against, not as a gate dependency.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -414,13 +415,34 @@ def reason_native(
 
     derived = [a for a in result.get("inferred", []) if not a.get("is_edb")]
     gaps = result.get("gaps", [])
+    # Thin passthrough of the typed shared-result status fields (#768 ME2): the
+    # native lane emits the four-valued information state + computation status in
+    # the Rust dict; surface them in the summary (no Python logic — a dict read).
+    status = result.get("status", {})
     report = diagnostics.report(tool="reason")
+    # Store the full typed status block as report metadata so MCP and other
+    # consumers can read it from report.to_json()["metadata"]["reasoning_result"]
+    # without calling gmeow_logic again.  Pure dict reads; zero Python logic.
+    report.set_metadata_json(
+        "reasoning_result",
+        json.dumps(
+            {
+                "status": status,
+                "preservation": result.get("preservation", {}),
+                "provenance": result.get("provenance", {}),
+            },
+            sort_keys=True,
+        ),
+    )
     report.add(
         diagnostics.finding(
             severity="note",
             code="reason.native.summary",
             message=(
-                f"native EL/DL reasoning: consistent={result['consistent']}, "
+                f"native EL/DL reasoning: consistent={result['consistent']} "
+                f"(information={status.get('information', 'n/a')}, "
+                f"evaluation={status.get('evaluation', 'n/a')}, "
+                f"completeness={status.get('completeness', 'n/a')}), "
                 f"{len(derived)} entailments, {len(gaps)} DL coverage defects"
             ),
             tool="reason",

@@ -2,6 +2,56 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 [profile.default]
+# Always-on per-test budget (#1045): every test on this profile must complete under
+# 25 s real wall time, enforced AFTER the run by the JUnit duration gate
+# (`cargo run -p gmeow-test-budget`, wired into `make rust-test`/`rust-gate`). Tests
+# that are irreducibly heavier than the budget (full-fold reasoning, full-DAG parity,
+# snapshot codec round-trips, the native-pathological corpus parity query, …) are
+# carved out of this profile via `default-filter` below and run on the `maint-heavy`
+# profile instead — so the gate has NO legitimate >25 s test to allowlist. The
+# slow-timeout stays at the original 120 s terminate cliff purely as a runaway/hang
+# backstop; the 25 s POLICY is the JUnit gate, not this timeout.
+#
+# `default-filter` is the set of tests run when no filter is given on the CLI. Keep
+# this expression as the single source of truth for what the always-on gate excludes;
+# `maint-heavy` re-includes everything. Each excluded group MUST be justified here and
+# in AGENTS.md's test-budget section (the off-gate allowlist). The post-run JUnit
+# budget gate verifies nothing >25 s slipped THROUGH this filter onto the gate.
+#
+# Off-gate groups (all measured >22 s locally; #1045). They are NOT casually slow —
+# each is irreducibly heavy under the current architecture:
+#   - corpus_parity_heavy_offgate: native NOT-EXISTS pathology (~44 s; see crates/rdf).
+#   - w3c_rdfc10_heavy_offgate: the sole RDFC-1.0 negative/poison vector (test074),
+#     ~5.3 s on the call-budget guard while every other vector is ≤ ~0.02 s; carved out
+#     so the gated W3C shards stay cheap (see crates/rdf/tests/rdfc_w3c.rs).
+#   - gmeow-logic ontology_entailments: Nemo OWL-2-RL closures (engine-bound by design).
+#   - gmeow-logic sparql_path_parity binary + sparql_path_lower::tests (#914 S8 property
+#     paths): every case drives `run_scryer`, paying a ~9-10 s Scryer machine-construction
+#     floor that nextest's process-per-test model cannot share; several land at 19-34 s.
+#     Engine-construction-bound and irreducible like ontology_entailments — carved off the
+#     gate, still run on maint-heavy. (Already serialized under the `engine` group below.)
+#   - gmeow-conformance goal-rdf-list-functions: Nemo chase case.
+#   - gmeow-pipeline end_to_end / fold_parity / full-fold artifacts / snapshot codec
+#     round-trips / mapping byte-parity / scoreboards acceptance: full-DAG, minutes.
+#   - gmeow-slice alignment/sparql/edoal emit parity + gmeow-slicetest places structural:
+#     whole-ontology emit/closure checks just over budget.
+#   - gmeow-rdf-capi c_smoke binary: self-builds the libpurrdf cdylib (~33 s cold
+#     compile on CI) as part of the test — build-time-bound, not logic-bound.
+#     Already covered by the dedicated `capi` CI job (`make capi-check`).
+default-filter = '''
+  not (
+    test(/corpus_parity_heavy_offgate/)
+    | test(/w3c_rdfc10_heavy_offgate/)
+    | (package(gmeow-logic) & binary(ontology_entailments))
+    | (package(gmeow-logic) & (binary(sparql_path_parity) | test(/sparql_path_lower::tests/)))
+    | (package(gmeow-conformance) & test(/goal-rdf-list-functions/))
+    | (package(gmeow-pipeline) & binary(/end_to_end|fold_parity/))
+    | (package(gmeow-pipeline) & test(/stages::gts_sink|stages::snapshot::ustar_tests::build_docs_archive|stages::logic::tests::logic_artifacts_reproduce|scoreboards::tests::acceptance_runs_the_real_external_fixture|stages::mappings::tests|stages::docs_render::tests::docs_graph_is_nonempty/))
+    | (package(gmeow-slice) & (binary(alignment_parity) | test(/sparql_emit::tests/) | test(/edoal_emit::tests::every_edoal/)))
+    | (package(gmeow-slicetest) & test(/places.tests.structural/))
+    | (package(gmeow-rdf-capi) & binary(c_smoke))
+  )
+'''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
 retries = { backoff = "fixed", count = 2, delay = "1s" }
 # Output ergonomics (#871): surface the slowest tests in the final summary every
@@ -17,6 +67,17 @@ inherits = "default"
 junit = { path = "junit.xml" }
 fail-fast = false
 
+# Maintainer lane (#1045): runs EVERYTHING, including the heavy tests the default/ci
+# profiles carve out via `default-filter`. Used by `make maint-rust-heavy` so the
+# off-gate parity / full-fold / codec coverage still runs (locally + on a CI schedule),
+# just not on the per-commit gate. `default-filter = 'all()'` overrides the inherited
+# exclusion; the JUnit budget gate is NOT applied to this profile.
+[profile.maint-heavy]
+inherits = "default"
+default-filter = 'all()'
+junit = { path = "junit.xml" }
+fail-fast = false
+
 # Engine memory cap (#871, sub-ask 3). The Nemo/Scryer reasoning engines are
 # RAM-heavy: nextest runs EACH test in its own process, and the in-process
 # `CHASE_LOCK` (nemo_engine.rs) / `SCRYER_LOCK` (scryer_engine.rs)
@@ -28,16 +89,19 @@ fail-fast = false
 # the ~360 fast gmeow-logic unit tests stay fully parallel.
 [test-groups]
 engine = { max-threads = 2 }
+mapping-stage = { max-threads = 1 }
 
 [[profile.default.overrides]]
 # The whole gmeow-conformance datatest harness (its foundation/* cases materialize
 # via nemo's run_chase) plus EVERY gmeow-logic test that drives Nemo or Scryer:
 # - Nemo (run_chase / run_reasoning): nemo_engine, materialize, reason, verify, certify
 # - Scryer (run_scryer, directly or via dispatch_query): scryer_engine, dispatch,
-#   profile_gate, counterfactual — so the scryer nightly alloc-abort insurance above
-#   actually covers all scryer execution, not just the scryer_engine module.
+#   profile_gate, counterfactual, sparql_path_lower (S8 #914, the lowered property-path
+#   evaluator) — so the scryer nightly alloc-abort insurance above actually covers all
+#   scryer execution, not just the scryer_engine module. The sparql_path_parity binary
+#   (#914) drives run_scryer per fixture and is serialized for the same reason.
 # foundation/stablemodel unit tests use the NATIVE rust chase (no engine) and stay parallel.
-filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|profile_gate|counterfactual/))'
+filter = 'package(gmeow-conformance) | (package(gmeow-logic) & (binary(sparql_path_parity) | test(/nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|profile_gate|counterfactual|sparql_path_lower/)))'
 test-group = 'engine'
 
 [[profile.default.overrides]]
@@ -61,3 +125,24 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 filter = 'package(gmeow-logic) & binary(ontology_entailments)'
 test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# Full-snapshot round-trip tests decode the ~9.3 MB committed `gmeow.gts` and
+# re-emit / extract it back through the native gmeow-gts codecs (#909). Snapshot
+# archive tests also render and pack the embedded ontology-docs site. Under CI
+# load these can tip past the 120s default terminate cliff. They are codec /
+# I-O-bound — NOT engine-bound — so they stay OUTSIDE the `engine` memory group
+# (no OOM risk) but need a longer terminate cliff: `gts_sink` re-emits the whole
+# snapshot and the snapshot docs-archive test renders/packs the embedded site.
+filter = 'package(gmeow-pipeline) & test(/gts_sink|stages::snapshot::ustar_tests::build_docs_archive_packs_the_rendered_site/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# Mapping-stage integration tests run the full `compile_mappings` registry check.
+# Under CI shard contention, concurrent full mapping compiles can exceed the
+# default 120s terminate cliff even though the artifacts are deterministic. Keep
+# them serialized and give them the same long-running integration budget used by
+# the other full-stage parity checks.
+filter = 'package(gmeow-pipeline) & test(/stages::mappings::tests::(sssom_emits_and_overlaps_byte_identically_with_committed|edoal_and_sparql_emit_byte_identically_with_committed|standpoint_and_dsl_stats_emit_byte_identically_with_committed|fno_is_well_formed_ntriples|prefix_set_projections_are_emitted_and_parse|list_functions_are_emitted_and_parse)/)'
+test-group = 'mapping-stage'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }

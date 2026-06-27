@@ -9,7 +9,6 @@
 use std::collections::BTreeMap;
 
 use gmeow_gts::model::{Graph, Term, TermKind};
-use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
 use oxigraph::model::{Dataset, GraphName, NamedNode, NamedOrBlankNode, Quad, Term as OxTerm};
 use oxigraph::store::Store;
 use serde_json::Value;
@@ -935,6 +934,10 @@ fn parse_value_object(
     let direction = obj.get("@direction").and_then(Value::as_str);
     let datatype = obj.get("@type").and_then(Value::as_str);
 
+    // Use the UNCHECKED language-tag constructors so the project's long private-use
+    // subtags (`x-gmeow-norwegiannynorsk`, >8 chars) survive — strict oxigraph
+    // validation rejects them, and #909 preserves them end-to-end (matching the
+    // lenient gmeow-gts codecs that produced this JSON-LD-star input).
     let literal = match (lang, direction, datatype) {
         (Some(lang), Some(dir), _) => {
             let dir = match dir {
@@ -942,11 +945,13 @@ fn parse_value_object(
                 "rtl" => oxigraph::model::BaseDirection::Rtl,
                 _ => return Err(PipelineError::Decode(format!("invalid direction {dir}"))),
             };
-            oxigraph::model::Literal::new_directional_language_tagged_literal(&lex, lang, dir)
-                .map_err(|e| PipelineError::Decode(e.to_string()))?
+            oxigraph::model::Literal::new_directional_language_tagged_literal_unchecked(
+                &lex, lang, dir,
+            )
         }
-        (Some(lang), None, _) => oxigraph::model::Literal::new_language_tagged_literal(&lex, lang)
-            .map_err(|e| PipelineError::Decode(e.to_string()))?,
+        (Some(lang), None, _) => {
+            oxigraph::model::Literal::new_language_tagged_literal_unchecked(&lex, lang)
+        }
         (None, _, Some(dt)) => oxigraph::model::Literal::new_typed_literal(
             &lex,
             NamedNode::new(expand(dt)).map_err(|e| PipelineError::Decode(e.to_string()))?,
@@ -1069,9 +1074,16 @@ pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
         }
     }
 
-    let mut buf = Vec::new();
-    out.dump_to_writer(RdfSerializer::from_format(RdfFormat::NQuads), &mut buf)
-        .map_err(|e| PipelineError::Decode(format!("serialize N-Quads: {e}")))?;
+    // `out` holds only the downcast-flat statement-metadata cells (no
+    // object-position quoted triples), so the native N-Quads serializer applies.
+    let ir = gmeow_rdf::oxigraph::dataset_from_store(&out)
+        .map_err(|e| PipelineError::Decode(format!("store → IR: {e}")))?;
+    let buf = gmeow_rdf::serialize_dataset(
+        &ir,
+        "application/n-quads",
+        gmeow_rdf::SerializeGraph::Dataset,
+    )
+    .map_err(|e| PipelineError::Decode(format!("serialize N-Quads: {e}")))?;
     String::from_utf8(buf).map_err(|e| PipelineError::Decode(format!("N-Quads are not UTF-8: {e}")))
 }
 
@@ -1130,20 +1142,16 @@ pub(crate) fn canonical_lines(dataset: &Dataset) -> Vec<String> {
 /// Parse N-Quads-star text into an oxigraph [`Dataset`], preserving quoted
 /// triple terms (RDF 1.2-star). Used by [`roundtrip_isomorphic`].
 fn dataset_from_nquads(nquads: &[u8]) -> Result<Dataset, PipelineError> {
-    let store = Store::new().map_err(|e| PipelineError::Parse(e.to_string()))?;
-    for quad in RdfParser::from_format(RdfFormat::NQuads)
-        .lenient()
-        .for_reader(nquads)
-    {
-        let quad = quad.map_err(|e| PipelineError::Parse(format!("parse N-Quads: {e}")))?;
-        store
-            .insert(&quad)
-            .map_err(|e| PipelineError::Parse(e.to_string()))?;
-    }
-    store
-        .iter()
-        .collect::<Result<Dataset, _>>()
-        .map_err(|e| PipelineError::Parse(e.to_string()))
+    // The native codec folds the RDF 1.2 statement layer to the IR reifier table,
+    // and `flat_oxigraph_quads_from_dataset` un-folds it back to the equivalent
+    // `<reifier> rdf:reifies <<( s p o )>>` object-position quoted triples (the two
+    // are exact inverses), so the star structure the RDFC-1.0 canonical comparison
+    // depends on is preserved.
+    let ir = gmeow_rdf::parse_dataset(nquads, "application/n-quads", None)
+        .map_err(|e| PipelineError::Parse(format!("parse N-Quads: {e}")))?;
+    let quads = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(&ir)
+        .map_err(|e| PipelineError::Parse(format!("IR → quads: {e}")))?;
+    Ok(quads.iter().map(|q| q.as_ref()).collect::<Dataset>())
 }
 
 /// Return whether `star_bytes` (format `"jsonld"`|`"yamlld"`) re-parses to a
@@ -1239,17 +1247,9 @@ mod tests {
         }
     }
 
-    /// Parse N-Quads-star text into an oxigraph Dataset.
+    /// Parse N-Quads-star text into an oxigraph Dataset (native codec round-trip).
     fn parse_nquads(nq: &str) -> Dataset {
-        let store = Store::new().unwrap();
-        for quad in RdfParser::from_format(RdfFormat::NQuads)
-            .lenient()
-            .for_reader(nq.as_bytes())
-        {
-            let quad = quad.unwrap();
-            store.insert(&quad).unwrap();
-        }
-        store.iter().collect::<Result<Dataset, _>>().unwrap()
+        super::dataset_from_nquads(nq.as_bytes()).unwrap()
     }
 
     fn minimal_graph() -> Graph {
@@ -1974,11 +1974,10 @@ mod tests {
     fn load_turtle_dataset(path: &std::path::Path) -> Result<Dataset, PipelineError> {
         let bytes = std::fs::read(path)
             .map_err(|e| PipelineError::Parse(format!("read {}: {e}", path.display())))?;
-        let quads: Vec<Quad> = RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_slice(&bytes)
-            .map(|q| q.map_err(|e| PipelineError::Parse(format!("Turtle parse: {e}"))))
-            .collect::<Result<Vec<_>, _>>()?;
+        let ir = gmeow_rdf::parse_dataset(&bytes, "text/turtle", None)
+            .map_err(|e| PipelineError::Parse(format!("Turtle parse: {e}")))?;
+        let quads = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(&ir)
+            .map_err(|e| PipelineError::Parse(format!("IR → quads: {e}")))?;
         Ok(quads.into_iter().collect())
     }
 
@@ -2517,11 +2516,10 @@ ex:r a gmeow:StatementMetadata ;
      gmeow:accordingTo   ex:source1 .
 "#;
 
-        let turtle_quads: Vec<Quad> = RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_slice(TURTLE_DOC.as_bytes())
-            .map(|q| q.expect("Turtle parse must succeed"))
-            .collect();
+        let turtle_ir = gmeow_rdf::parse_dataset(TURTLE_DOC.as_bytes(), "text/turtle", None)
+            .expect("Turtle parse must succeed");
+        let turtle_quads = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(&turtle_ir)
+            .expect("IR → quads must succeed");
         let turtle_lift: Dataset = turtle_quads.into_iter().collect();
 
         // ── 5. RDFC-1.0 canonical equality: lift ≡ native Turtle ─────────────

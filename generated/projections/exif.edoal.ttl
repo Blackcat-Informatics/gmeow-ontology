@@ -13,30 +13,16 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Relation ;
-            edoal:uri gmeow:pixelWidth ;
+            edoal:uri gmeow:captureTime ;
         ] ;
         align:entity2 [
             a edoal:Property ;
-            edoal:uri exif:width ;
+            edoal:uri exif:dateTime ;
         ] ;
         align:relation "<=" ;
-        edoal:measure "0.95"^^xsd:double ;
-        rdfs:label "pixelWidth → exif:width"@en ;
+        edoal:measure "0.9"^^xsd:double ;
+        rdfs:label "captureTime → exif:dateTime"@en ;
     ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:pixelHeight ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri exif:height ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.95"^^xsd:double ;
-            rdfs:label "pixelHeight → exif:height"@en ;
-        ] ,
         [
             a align:Cell ;
             align:entity1 [
@@ -55,15 +41,29 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:captureTime ;
+                edoal:uri gmeow:pixelHeight ;
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri exif:dateTime ;
+                edoal:uri exif:height ;
             ] ;
             align:relation "<=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "captureTime → exif:dateTime"@en ;
+            edoal:measure "0.95"^^xsd:double ;
+            rdfs:label "pixelHeight → exif:height"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:pixelWidth ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri exif:width ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.95"^^xsd:double ;
+            rdfs:label "pixelWidth → exif:width"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

@@ -17,13 +17,15 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{NamedNode, Term};
 use oxigraph::store::Store;
 use sha1::{Digest as Sha1Digest, Sha1};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::stages::source_load::{
+    rdf_bytes_into_store, turtle_bytes_into_store, turtle_bytes_into_store_scoped,
+};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const OWL: &str = "http://www.w3.org/2002/07/owl#";
@@ -162,29 +164,11 @@ fn lossless_findings(
 }
 
 fn insert_turtle(store: &Store, ttl: &str) -> Result<(), PipelineError> {
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(ttl.as_bytes())
-    {
-        let quad = quad.map_err(|e| PipelineError::Parse(format!("Turtle parse error: {e}")))?;
-        store
-            .insert(&quad)
-            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(())
+    turtle_bytes_into_store(store, ttl.as_bytes(), "Turtle")
 }
 
 fn insert_ntriples(store: &Store, nt: &str) -> Result<(), PipelineError> {
-    for quad in RdfParser::from_format(RdfFormat::NTriples)
-        .lenient()
-        .for_reader(nt.as_bytes())
-    {
-        let quad = quad.map_err(|e| PipelineError::Parse(format!("N-Triples parse error: {e}")))?;
-        store
-            .insert(&quad)
-            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(())
+    rdf_bytes_into_store(store, nt.as_bytes(), "application/n-triples", "N-Triples")
 }
 
 /// The sorted `dsl/statements/*.ttl` source files (the leaf's raw inputs — folded
@@ -213,17 +197,9 @@ fn parse_statement_dsl(root: &Path) -> Result<Store, PipelineError> {
         Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
     for path in statement_dsl_files(root)? {
         let bytes = std::fs::read(&path)?;
-        for quad in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(bytes.as_slice())
-        {
-            let quad = quad.map_err(|e| {
-                PipelineError::Parse(format!("syntax error in {}: {e}", path.display()))
-            })?;
-            store
-                .insert(&quad)
-                .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-        }
+        // Scope per source file: annotation cells use anonymous blanks that restart at
+        // `_:gts_0` each parse, so distinct DSL files would otherwise merge them.
+        turtle_bytes_into_store_scoped(&store, &bytes, &path.display().to_string())?;
     }
     Ok(store)
 }
@@ -470,13 +446,8 @@ mod tests {
     /// only — the statement artifacts have no blanks, so set equality == graph
     /// isomorphism).
     fn triple_set(ttl: &str) -> std::collections::BTreeSet<String> {
-        let store = Store::new().unwrap();
-        for quad in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(ttl.as_bytes())
-        {
-            store.insert(&quad.unwrap()).unwrap();
-        }
+        let store = crate::stages::source_load::turtle_bytes_to_store(ttl.as_bytes(), "triple_set")
+            .unwrap();
         store
             .iter()
             .map(|q| {

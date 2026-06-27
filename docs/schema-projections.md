@@ -45,6 +45,14 @@ projection preserves them faithfully:
 These schemas **actually validate instance data**.  They drive `gmeow validate --schema`
 and IDE autocomplete for the YAML-LD-star surface.
 
+`gmeow validate` dispatches by file type: RDF serializations
+(`.nq`/`.trig`/`.ttl`/`.nt`/`.rdf`/`.jsonld`) run repo-free SHACL + OntoUML
+conformance against the bundled shapes, while `.json`/`.yaml` run JSON-Schema
+instance validation.  Passing `--schema` forces the JSON-Schema path for any
+input — so a JSON-LD instance is checked against this schema with
+`gmeow validate --schema … instance.jsonld`, whereas a bare `instance.jsonld`
+is validated as an RDF graph.
+
 ### The `@type`-discriminated envelope
 
 The schema validates a JSON-LD `@graph` of instance nodes against a single

@@ -49,13 +49,15 @@ fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), Pipel
 }
 
 /// Every raw source file `gmeow_docs::DocsModel::discover` reads: slice modules,
-/// per-slice `docs.md` guides, slice `examples/*.ttl`, `docs/four-boxes.md`, and
-/// per-slice `i18n/<lang>.po` gettext translation catalogs. These are NOT reflected
-/// in the composed `stage-gts-compose` product (guide bodies ride the bundle only
-/// as blake3 digests), so any stage that derives an artifact from the docs model
-/// must declare them as `input_files` for cache soundness. Shared by
-/// `DocsRenderStage` (the documentation graph) and `SnapshotStage` (the embedded
-/// rendered site, #897).
+/// per-slice `docs.md` guides, slice `examples/*.ttl`, `docs/four-boxes.md`,
+/// per-slice `i18n/<lang>.po` gettext translation catalogs, per-slice
+/// `shapes.ttl` SHACL constraint files, per-slice `tests/competency.ttl`
+/// competency-question overlays, and root `shapes/*.ttl` aggregate node shapes.
+/// These are NOT reflected in the composed `stage-gts-compose` product (guide
+/// bodies ride the bundle only as blake3 digests), so any stage that derives an
+/// artifact from the docs model must declare them as `input_files` for cache
+/// soundness. Shared by `DocsRenderStage` (the documentation graph) and
+/// `SnapshotStage` (the embedded rendered site, #897).
 pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
     let mut files: Vec<std::path::PathBuf> = Vec::new();
     for module in crate::stages::source_load::module_files(root)? {
@@ -64,6 +66,14 @@ pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, 
         let docs = dir.join("docs.md");
         if docs.is_file() {
             files.push(docs);
+        }
+        let shapes = dir.join("shapes.ttl");
+        if shapes.is_file() {
+            files.push(shapes);
+        }
+        let competency = dir.join("tests").join("competency.ttl");
+        if competency.is_file() {
+            files.push(competency);
         }
         if let Ok(entries) = std::fs::read_dir(dir.join("examples")) {
             for entry in entries.flatten() {
@@ -87,6 +97,7 @@ pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, 
         files.push(four_boxes);
     }
     walk_files(&root.join("i18n"), &mut files)?;
+    walk_files(&root.join("shapes"), &mut files)?;
     files.sort();
     files.dedup();
     Ok(files)
@@ -148,8 +159,7 @@ impl Stage for DocsRenderStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oxigraph::io::{RdfFormat, RdfParser};
-    use oxigraph::store::Store;
+    use crate::stages::source_load::rdf_bytes_to_store;
 
     fn repo_root() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -160,18 +170,46 @@ mod tests {
     }
 
     #[test]
+    fn docs_source_files_includes_new_inputs() {
+        let root = repo_root();
+        let files = docs_source_files(&root).expect("docs_source_files");
+        let has_shapes_ttl = files
+            .iter()
+            .any(|p| p.file_name().and_then(|n| n.to_str()) == Some("shapes.ttl"));
+        assert!(
+            has_shapes_ttl,
+            "docs_source_files must include at least one per-slice shapes.ttl"
+        );
+        let has_competency = files.iter().any(|p| {
+            p.file_name().and_then(|n| n.to_str()) == Some("competency.ttl")
+                && p.parent()
+                    .and_then(|parent| parent.file_name())
+                    .and_then(|n| n.to_str())
+                    == Some("tests")
+        });
+        assert!(
+            has_competency,
+            "docs_source_files must include at least one per-slice tests/competency.ttl"
+        );
+        let shapes_dir = root.join("shapes");
+        let has_root_shapes = files.iter().any(|p| {
+            p.extension().and_then(|s| s.to_str()) == Some("ttl")
+                && p.parent()
+                    .map(|parent| parent == shapes_dir)
+                    .unwrap_or(false)
+        });
+        assert!(
+            has_root_shapes,
+            "docs_source_files must include root shapes/*.ttl files"
+        );
+    }
+
+    #[test]
     fn docs_graph_is_nonempty_and_parses() {
         let root = repo_root();
         let nq = render_docs_graph(&root).expect("render docs graph");
-        let store = Store::new().unwrap();
-        let mut count = 0usize;
-        for quad in RdfParser::from_format(RdfFormat::NQuads)
-            .lenient()
-            .for_reader(nq.as_bytes())
-        {
-            store.insert(&quad.expect("valid docs n-quad")).unwrap();
-            count += 1;
-        }
+        let store = rdf_bytes_to_store(nq.as_bytes(), "application/n-quads", "docs-graph").unwrap();
+        let count = store.len().unwrap();
         // The documentation graph covers 50+ slices and their terms.
         assert!(
             count > 200,

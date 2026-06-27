@@ -19,6 +19,12 @@ members = [
     # zero-dep leaf that replaces the oxigraph-family `oxiri` (purrdf S2, EPIC #906).
     "crates/iri",
     "crates/logic",
+    # The pure, wasm-able logic compiler (#664/#732): the parse(RDF 1.2)→IR→project
+    # half of the logic stack, split out of crates/logic with zero reasoning-runtime
+    # deps (no Nemo/Scryer/tokio/PyO3/oxigraph). gmeow-logic depends on it.
+    "crates/logic-compile",
+    # Synchronous LSP server for .ttl and .logic files + sarif CLI (#671).
+    "crates/lsp",
     # The single PyO3 cdylib: all five engine crates fold into `gmeow_native` so
     # the diagnostics `Report`/`Finding` pyclasses are ONE shared type (#630).
     "crates/native",
@@ -26,13 +32,43 @@ members = [
     # in-memory RDF dataflow, dogfooding the build graph from gmeow: individuals.
     "crates/pipeline",
     "crates/rdf",
+    # The purrdf semantic C-ABI (purrdf P8 / #842): builds libpurrdf (cdylib +
+    # staticlib) via cargo-c — a SemVer-disciplined extern "C" surface over the
+    # gmeow-rdf semantic layer. Statically reuses gmeow-gts so a language shim
+    # links a single .so. The rich companion to the permissive libgts C-ABI.
+    "crates/rdf-capi",
     "crates/rdf-core",
     # The permissive (MIT OR Apache-2.0) RDF 1.2 ingestion protocol (purrdf P6):
     # the zero-dep event seam both the container and the engine depend ON.
     "crates/rdf-events",
+    # The wasm32, in-memory RDF/JS engine (purrdf P10, #846): compiles the
+    # oxigraph-free gmeow-rdf kernel to wasm + an idiomatic DataFactory/Dataset/
+    # Stream surface, packaged for npm/ESM as `purrdf`.
+    "crates/rdf-wasm",
     "crates/shacl",
     "crates/slice",
     "crates/slicetest",
+    # Native SPARQL 1.1/1.2 parser → RDF 1.2-native query algebra AST: the
+    # wasm-clean leaf that replaces the oxigraph-family `spargebra` (purrdf S5,
+    # EPIC #906). Builds only on `crates/iri` + `crates/xsd`.
+    "crates/sparql-algebra",
+    # Native, RDF-1.2-first multiset SPARQL evaluator over the rdf-core DatasetView
+    # in TermId space: consumes `crates/sparql-algebra` and replaces the
+    # oxigraph-family `spareval` on the query path (purrdf S6, EPIC #906).
+    "crates/sparql-eval",
+    # Native W3C SPARQL 1.1 conformance harness: runs mf: manifests
+    # against gmeow-sparql-eval and diffs SPARQL Results / canonical N-Quads;
+    # federated SERVICE resolves through an in-memory source (no network).
+    "crates/sparql-conformance",
+    # Post-run JUnit per-test duration budget gate (#1045): hard-fails the suite if
+    # any default/ci-profile test exceeds the 25 s always-on budget. Std-only leaf,
+    # no gmeow deps.
+    "crates/test-budget",
+    # Native, wasm-clean serializer for the SPARQL result model → SPARQL Results
+    # JSON/XML/CSV/TSV + a provenance-carrying gmeow extension: the canonical
+    # results-serialization authority replacing oxigraph-family `sparesults`
+    # (purrdf S9, EPIC #906). Depends only on `crates/rdf-core`.
+    "crates/sparql-results",
     "crates/validate",
     # Native XSD value space (parse / value-space equality+ordering / canonical
     # lexical / SPARQL numeric promotion): the zero-dep leaf that replaces the
@@ -108,6 +144,9 @@ codegen-units = 256
 [profile.release.package.gmeow-logic]
 codegen-units = 1
 
+[profile.release.package.gmeow-logic-compile]
+codegen-units = 1
+
 [profile.release.package.gmeow-shacl]
 codegen-units = 1
 
@@ -115,6 +154,9 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-rdf]
+codegen-units = 1
+
+[profile.release.package.gmeow-rdf-capi]
 codegen-units = 1
 
 [profile.release.package.gmeow-diagnostics]
@@ -144,6 +186,22 @@ codegen-units = 1
 [profile.release.package.gmeow-iri]
 codegen-units = 1
 
+[profile.release.package.gmeow-sparql-algebra]
+codegen-units = 1
+
+[profile.release.package.gmeow-sparql-eval]
+codegen-units = 1
+
+[profile.release.package.gmeow-sparql-results]
+codegen-units = 1
+
+# The wasm cdylib (purrdf P10, #846). codegen-units = 1 for a single optimization
+# unit; binary-size reduction (opt-level "z" + wasm-opt) is applied by the
+# wasm-pack build in the crate's own package metadata, not the workspace release
+# profile (which native wheels share).
+[profile.release.package.gmeow-rdf-wasm]
+codegen-units = 1
+
 # `cargo bench` (used by `make bench`) runs under the `bench` profile, which
 # inherits the BASE release settings but NOT the per-package overrides above —
 # Cargo profile overrides are per-profile and are not inherited. Mirror the two
@@ -156,6 +214,9 @@ codegen-units = 1
 # deltas are relative, so wheel fidelity is explicitly not required here, and a
 # cross-crate LTO link on every `make bench` would add build time for no
 # measurement benefit. Release/wheel artifacts still get thin-LTO via the base.
+
+[profile.release.package.gmeow-lsp]
+codegen-units = 1
 [profile.bench]
 lto = false
 

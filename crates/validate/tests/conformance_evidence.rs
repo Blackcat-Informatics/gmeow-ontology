@@ -26,6 +26,7 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 /// Turtle prefix block shared by all evidence tests.
 const PREFIXES: &str = "\
@@ -51,41 +52,20 @@ fn citation_act_ttl(uri: &str) -> String {
 
 // ── Tests migrated from tests/test_evidence.py ────────────────────────────────
 
-/// `test_self_private_evidence_triggers_warning` — a CitationAct with
-/// evidenceSELF + sourceIndependenceSelfOrIssuerOriginated fires a Warning
-/// (Principle 10), not a Violation; the graph is still ok.
-#[test]
-fn self_private_evidence_triggers_warning() {
-    let ttl = format!(
+#[rstest]
+#[case::self_private_evidence_triggers_warning(
+    Case::inline(format!(
         "{PREFIXES}\
 {citation_act}\
 ex:citation gmeow:hasEvidenceClass    gmeow:evidenceSELF .
 ex:citation gmeow:sourceIndependence  gmeow:sourceIndependenceSelfOrIssuerOriginated .
 ",
         citation_act = citation_act_ttl("ex:citation"),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "Warning-only graph must pass; violations: {:?}",
-        violations(&report)
-    );
-    assert!(
-        warnings(&report)
-            .iter()
-            .any(|w| w.contains("self-asserted or private evidence")),
-        "expected 'self-asserted or private evidence' warning; got: {:?}",
-        warnings(&report)
-    );
-}
-
-/// `test_mixed_evidence_does_not_trigger_self_private_warning` — a CitationAct
-/// with BOTH evidenceSELF and evidenceIndependentTradePress does NOT trigger
-/// the self/private-only warning shape.
-#[test]
-fn mixed_evidence_does_not_trigger_self_private_warning() {
-    let ttl = format!(
+    ))
+    .warnings(&["self-asserted or private evidence"])
+)]
+#[case::mixed_evidence_does_not_trigger_self_private_warning(
+    Case::inline(format!(
         "{PREFIXES}\
 {citation_act}\
 ex:citation gmeow:hasEvidenceClass    gmeow:evidenceSELF .
@@ -93,57 +73,23 @@ ex:citation gmeow:hasEvidenceClass    gmeow:evidenceIndependentTradePress .
 ex:citation gmeow:sourceIndependence  gmeow:sourceIndependenceSelfOrIssuerOriginated .
 ",
         citation_act = citation_act_ttl("ex:citation"),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "Mixed evidence graph must pass; violations: {:?}",
-        violations(&report)
-    );
-    assert!(
-        !warnings(&report)
-            .iter()
-            .any(|w| w.contains("self-asserted or private evidence")),
-        "Mixed evidence should not trigger the self/private-only warning; got: {:?}",
-        warnings(&report)
-    );
-}
-
-/// `test_notability_without_triad_triggers_violation` — a CitationAct with
-/// `supportsNotability true` but missing sourceTier and coverageDepth fires
-/// a Violation containing "WP:GNG triad".
-#[test]
-fn notability_without_triad_triggers_violation() {
-    let ttl = format!(
+    ))
+    .no_warning("self-asserted or private evidence")
+)]
+#[case::notability_without_triad_triggers_violation(
+    Case::inline(format!(
         "{PREFIXES}\
 {citation_act}\
 ex:citation gmeow:supportsNotability  \"true\"^^xsd:boolean .
 ex:citation gmeow:sourceIndependence  gmeow:sourceIndependenceIndependent .
 ",
         citation_act = citation_act_ttl("ex:citation"),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "Expected a notability-requirement violation; got no violations"
-    );
-    assert!(
-        violations(&report)
-            .iter()
-            .any(|e| e.contains("WP:GNG triad")),
-        "Expected a notability-requirement violation message containing 'WP:GNG triad'; got: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_notability_with_full_triad_passes` — a CitationAct with
-/// `supportsNotability true` plus the full WP:GNG triad (sourceIndependence +
-/// sourceTier + coverageDepth) passes SHACL.
-#[test]
-fn notability_with_full_triad_passes() {
-    let ttl = format!(
+    ))
+    .fails()
+    .violations(&["WP:GNG triad"])
+)]
+#[case::notability_with_full_triad_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 {citation_act}\
 ex:citation gmeow:supportsNotability  \"true\"^^xsd:boolean .
@@ -152,32 +98,17 @@ ex:citation gmeow:sourceTier          gmeow:sourceTierSecondary .
 ex:citation gmeow:coverageDepth       gmeow:coverageDepthSignificantCoverage .
 ",
         citation_act = citation_act_ttl("ex:citation"),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "Full triad should pass notability requirement; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_notability_false_does_not_require_triad` — a CitationAct with
-/// `supportsNotability false` and no tier/coverage/independence passes SHACL.
-#[test]
-fn notability_false_does_not_require_triad() {
-    let ttl = format!(
+    ))
+)]
+#[case::notability_false_does_not_require_triad(
+    Case::inline(format!(
         "{PREFIXES}\
 {citation_act}\
 ex:citation gmeow:supportsNotability  \"false\"^^xsd:boolean .
 ",
         citation_act = citation_act_ttl("ex:citation"),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "supportsNotability false should not require the triad; violations: {:?}",
-        violations(&report)
-    );
+    ))
+)]
+fn evidence(#[case] case: Case) {
+    case.run();
 }

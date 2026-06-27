@@ -22,9 +22,7 @@
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 
-use oxigraph::io::RdfFormat;
 use oxigraph::model::NamedNode;
-use oxigraph::store::Store;
 
 use crate::certify::certify as certify_rules;
 use crate::dispatch::dispatch_query;
@@ -419,7 +417,7 @@ fn query(
         }
         let result = PyDict::new(py);
         result.set_item("bindings", bindings)?;
-        result.set_item("status", answer.status.as_str())?;
+        result.set_item("status", answer.status_str())?;
         return Ok(result.into_any().unbind());
     }
 
@@ -444,11 +442,12 @@ fn query(
                 .as_ref()
                 .and_then(|c| c.depth_budget)
                 .unwrap_or(crate::counterfactual::DEFAULT_DEPTH_BUDGET);
-            let cf = crate::counterfactual::construct_and_resolve(
+            let mut cf = crate::counterfactual::construct_and_resolve(
                 &store, &program, profile, &budget, depth,
             )
             .map_err(value_err)?;
-            (cf.bindings, cf.status.as_str().to_owned())
+            let status = cf.status_str().to_owned();
+            (std::mem::take(&mut cf.bindings), status)
         } else {
             let answer = dispatch_query(&foreign, &store, &world_nn, &program, profile, &budget)
                 .map_err(value_err)?;
@@ -474,13 +473,14 @@ fn query(
 
 /// Evaluate the OntoUML *foundation* disciplines natively (issue #636).
 ///
-/// Native Rust port of the Python foundation oracle
-/// (`gmeow_tools.logic_foundation` + the `enable_naf` materializer path).  Parses
+/// Native canonical evaluator for the OntoUML *foundation* disciplines (issue #636).
+/// (The Python foundation oracle — `logic_foundation.py` plus the `enable_naf`
+/// materializer path of `logic_materialize.py` — was retired in #636/#497.)  Parses
 /// `input` N-Quads into a world-indexed [`WorldStore`] (named graphs = worlds),
 /// runs the stratified semi-naive chase plus the cross-world rigidity and
 /// anti-rigidity post-passes, and returns the asserted + derived quads as Python
-/// dicts.  Provenance (reifier + derivation IDs) is byte-identical to the oracle
-/// (see [`crate::foundation`]).
+/// dicts.  Provenance (reifier + derivation IDs) follows the canonical contract
+/// defined in [`crate::foundation`].
 ///
 /// # Arguments
 ///
@@ -554,10 +554,10 @@ fn foundation(
 ///
 /// Reconstructs the derivation tree for every quad in `quads` (one explanation per
 /// input quad, IN INPUT ORDER) and returns the cited-IRI skeleton — the conformance
-/// surface.  This is the byte-faithful Rust port of the retired Python explanation
-/// oracle (`gmeow_tools.logic_explain`); prose rendering is intentionally not
-/// reproduced (the runner compares only `cited_iris` and matches by
-/// `target_quad_reifier`).
+/// surface.  This is the canonical native explanation reconstruction; the Python
+/// explanation oracle (`logic_explain.py`) was retired in #497.  Prose rendering is
+/// intentionally not reproduced (the runner compares only `cited_iris` and matches
+/// by `target_quad_reifier`).
 ///
 /// # Arguments
 ///
@@ -843,19 +843,19 @@ fn stable_models(py: Python<'_>, rules: &str, input: &str) -> PyResult<Py<PyAny>
 /// - `query(world_nquads, query_program, profile, world_iri=None, max_answers=None, max_steps=None) -> dict`
 ///   (under `ProbabilisticProfile` each binding carries a `probability`; #506)
 /// Compile a `logic:` RDF 1.2 source document (Turtle text) into all eight
-/// committed artifacts, in Rust (issue #664).  The drop-in replacement for the
-/// Python `logic_frontend` + `logic_projections` pipeline behind the registered
-/// `LogicGenerator`.
+/// committed artifacts, in Rust (issue #664).  This is the sole compiler behind
+/// the registered `LogicGenerator`; the Python `logic_frontend` +
+/// `logic_projections` pipeline it replaced was retired in #727.
 ///
 /// Returns a dict keyed by artifact name (`owl_dl`, `owl_el`, `datalog`, `n3`,
 /// `gufo`, `canonical_rdf12`, `nemo`, `report`), each mapping to the serialized
-/// content string.  Text targets are byte-identical to the Python compiler; RDF
-/// targets are RDF-isomorphic.  Raises `ValueError` on a parse failure, a Nemo
-/// rule-safety violation, or an overclaim (Principle 7).
+/// content string.  Text targets are byte-stable (pinned by the conformance
+/// goldens); RDF targets are RDF-isomorphic.  Raises `ValueError` on a parse
+/// failure, a Nemo rule-safety violation, or an overclaim (Principle 7).
 #[pyfunction]
 fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, PyDict>> {
-    use crate::compile::frontend::parse_logic_str;
-    use crate::compile::projections::compile_program;
+    use gmeow_logic_compile::frontend::parse_logic_str;
+    use gmeow_logic_compile::projections::compile_program;
 
     let (program, diagnostics) = parse_logic_str(source_ttl, None)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.0))?;
@@ -866,7 +866,7 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     // dict→finding reshaper. Normalize before handing it over so the live report
     // (and any downstream content hash / render) is deterministic — mirroring
     // `verify_native`.
-    let diag_report = crate::compile::frontend::diagnostics_report(&diagnostics).normalized();
+    let diag_report = crate::logic_diagnostics::diagnostics_report(&diagnostics).normalized();
 
     let out = PyDict::new(py);
     out.set_item("owl_dl", arts.owl_dl)?;
@@ -893,6 +893,19 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
         ledger.set_item(entry.target.as_str(), row)?;
     }
     out.set_item("preservation_ledger", ledger)?;
+    // Per-shape property-path projections: each entry is a dict with
+    // `shape_iri`, `property_path` (extended SPARQL path string), and
+    // `datalog` (depth-bounded rule scheme for the native engine).
+    // Flows into gmeow.gts via the regenerate pipeline (#1010 / gap G1).
+    let path_projections_list = pyo3::types::PyList::empty(py);
+    for pp in &arts.path_projections {
+        let entry = PyDict::new(py);
+        entry.set_item("shape_iri", pp.shape_iri.as_str())?;
+        entry.set_item("property_path", pp.property_path.as_str())?;
+        entry.set_item("datalog", pp.datalog.as_str())?;
+        path_projections_list.append(entry)?;
+    }
+    out.set_item("path_projections", path_projections_list)?;
     // The parse diagnostics as a live, normalized `gmeow_diagnostics` Report (#856),
     // not a `list[dict]`. The Python surface forwards it directly.
     out.set_item(
@@ -1081,6 +1094,10 @@ fn build_divergence_ledger(
 /// - `inconsistencies` (`list[dict]`): each `{individual, world}`
 /// - `coverage` (`dict`): `{present, decided, unsupported}` construct lists
 /// - `gaps` (`list[dict]`): each `{code, message}` — native coverage defects
+/// - `status` (`dict`): the typed shared result's four orthogonal status fields
+///   `{input, evaluation, completeness, information}` (#768 ME2, canonical wire values)
+/// - `preservation` (`dict`): `{polarities, unsupported_constructs}`
+/// - `provenance` (`dict`): `{contract_hash, engine_name, engine_version, consumed_budget}`
 ///
 /// # Errors
 ///
@@ -1100,13 +1117,20 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
         Reason(String),
     }
     let bytes = gts_bytes.to_vec();
-    let read_result: Result<crate::reason::ReasonResult, ReasonNativeError> =
-        py.detach(move || {
-            let bundle = gmeow_rdf::import_gts_events(&bytes)
-                .map_err(|e| ReasonNativeError::GtsRead(format!("GTS read error: {e}")))?;
-            crate::reason::reason_all(bundle.dataset.as_ref()).map_err(ReasonNativeError::Reason)
-        });
-    let result = read_result.map_err(|e| match e {
+    // `reason_closure` is the shared single-chase pipeline that the typed
+    // `reason_all` result folds from; here we read the DL verdict + closure
+    // directly to project the historical native-reason dict (the typed-result
+    // keys are added additively in #768 Task 6).
+    type ClosureAndVerdict = (
+        Vec<crate::reason::el::InferredAxiom>,
+        crate::reason::DlVerdict,
+    );
+    let read_result: Result<ClosureAndVerdict, ReasonNativeError> = py.detach(move || {
+        let bundle = gmeow_rdf::import_gts_events(&bytes)
+            .map_err(|e| ReasonNativeError::GtsRead(format!("GTS read error: {e}")))?;
+        crate::reason::reason_closure(bundle.dataset.as_ref()).map_err(ReasonNativeError::Reason)
+    });
+    let (closure, verdict) = read_result.map_err(|e| match e {
         ReasonNativeError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
         ReasonNativeError::Reason(m) => {
             pyo3::exceptions::PyRuntimeError::new_err(format!("reason error: {m}"))
@@ -1114,10 +1138,10 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     })?;
 
     let out = PyDict::new(py);
-    out.set_item("consistent", result.verdict.consistent)?;
+    out.set_item("consistent", verdict.consistent)?;
 
     let inferred = PyList::empty(py);
-    for ax in &result.inferred {
+    for ax in &closure {
         let d = PyDict::new(py);
         d.set_item("subject", ax.subject.as_str())?;
         d.set_item("predicate", ax.predicate.as_str())?;
@@ -1130,7 +1154,7 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     out.set_item("inferred", inferred)?;
 
     let unsat = PyList::empty(py);
-    for u in &result.verdict.unsatisfiable_classes {
+    for u in &verdict.unsatisfiable_classes {
         let d = PyDict::new(py);
         d.set_item("class", u.class.as_str())?;
         d.set_item("world", u.world.as_str())?;
@@ -1139,7 +1163,7 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     out.set_item("unsatisfiable_classes", unsat)?;
 
     let inconsist = PyList::empty(py);
-    for w in &result.verdict.inconsistencies {
+    for w in &verdict.inconsistencies {
         let d = PyDict::new(py);
         d.set_item("individual", w.individual.as_str())?;
         d.set_item("world", w.world.as_str())?;
@@ -1148,13 +1172,13 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     out.set_item("inconsistencies", inconsist)?;
 
     let coverage = PyDict::new(py);
-    coverage.set_item("present", result.verdict.coverage.present.clone())?;
-    coverage.set_item("decided", result.verdict.coverage.decided.clone())?;
-    coverage.set_item("unsupported", result.verdict.coverage.unsupported.clone())?;
+    coverage.set_item("present", verdict.coverage.present.clone())?;
+    coverage.set_item("decided", verdict.coverage.decided.clone())?;
+    coverage.set_item("unsupported", verdict.coverage.unsupported.clone())?;
     out.set_item("coverage", coverage)?;
 
     let gaps = PyList::empty(py);
-    for g in &result.verdict.gaps {
+    for g in &verdict.gaps {
         let d = PyDict::new(py);
         d.set_item("code", g.code.as_str())?;
         d.set_item("message", g.message.as_str())?;
@@ -1166,6 +1190,37 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
         gaps.append(d)?;
     }
     out.set_item("gaps", gaps)?;
+
+    // ── Typed shared result (#768 ME2): the five status fields + provenance ──────
+    // Additive — the historical keys above are unchanged. Consumers (MCP,
+    // validate --deep, certs) read this single shared model.
+    let typed = crate::reason::typed_result(closure, &verdict);
+    let status = PyDict::new(py);
+    status.set_item("input", typed.input.wire())?;
+    status.set_item("evaluation", typed.evaluation.wire())?;
+    status.set_item("completeness", typed.completeness.wire())?;
+    status.set_item("information", typed.information.wire())?;
+    out.set_item("status", status)?;
+
+    let preservation = PyDict::new(py);
+    let polarities = PyList::empty(py);
+    for kind in &typed.preservation.polarities {
+        polarities.append(kind.as_str())?;
+    }
+    preservation.set_item("polarities", polarities)?;
+    let unsupported = PyList::empty(py);
+    for c in &typed.preservation.unsupported_constructs {
+        unsupported.append(c.as_str())?;
+    }
+    preservation.set_item("unsupported_constructs", unsupported)?;
+    out.set_item("preservation", preservation)?;
+
+    let provenance = PyDict::new(py);
+    provenance.set_item("contract_hash", typed.provenance.contract_hash.as_str())?;
+    provenance.set_item("engine_name", typed.provenance.engine.name.as_str())?;
+    provenance.set_item("engine_version", typed.provenance.engine.version.as_str())?;
+    provenance.set_item("consumed_budget", typed.provenance.consumed_budget.consumed)?;
+    out.set_item("provenance", provenance)?;
 
     Ok(out.into_any().unbind())
 }
@@ -1191,10 +1246,11 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
 ///
 /// # Returns
 ///
-/// A dict with three string keys:
+/// A dict with four string keys:
 /// - `closure` — the told-vs-inferred inferred-closure Turtle.
 /// - `explanations` — the per-axiom proof-skeleton Turtle.
 /// - `ledger` — the native gap-zero DL/EL crosscheck ledger Turtle.
+/// - `result` — the typed `logic:ReasoningResult` + proof-certificate Turtle (#768).
 ///
 /// # Errors
 ///
@@ -1207,18 +1263,19 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
 fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyResult<Py<PyAny>> {
     use crate::reason::artifacts::{
         build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
+        build_reasoning_result_ttl,
     };
 
     // Distinguish the two failure modes (GTS read = ValueError, reasoning /
     // emission = RuntimeError) the same way `reason_native` does. The
-    // The GTS import, reasoning, and three serializations all run inside one
+    // The GTS import, reasoning, and four serializations all run inside one
     // GIL-released closure.
     enum ArtifactsError {
         GtsRead(String),
         Reason(String),
     }
     let bytes = gts_bytes.to_vec();
-    let built: Result<(String, String, String), ArtifactsError> = py.detach(move || {
+    let built: Result<(String, String, String, String), ArtifactsError> = py.detach(move || {
         let bundle = gmeow_rdf::import_gts_events(&bytes)
             .map_err(|e| ArtifactsError::GtsRead(format!("GTS read error: {e}")))?;
         let dataset = bundle.dataset.as_ref();
@@ -1229,9 +1286,12 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
             build_inferred_closure_ttl(&result, merge_store).map_err(ArtifactsError::Reason)?;
         let explanations = build_explanations_ttl(&result).map_err(ArtifactsError::Reason)?;
         let ledger = build_dl_el_ledger_ttl(&result);
-        Ok((closure, explanations, ledger))
+        // The typed reasoning-result + proof-certificate artifact (#768), emitted
+        // unconditionally (single-path; the `merge` flag governs only the closure).
+        let result_ttl = build_reasoning_result_ttl(&result);
+        Ok((closure, explanations, ledger, result_ttl))
     });
-    let (closure, explanations, ledger) = built.map_err(|e| match e {
+    let (closure, explanations, ledger, result_ttl) = built.map_err(|e| match e {
         ArtifactsError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
         ArtifactsError::Reason(m) => {
             pyo3::exceptions::PyRuntimeError::new_err(format!("reason error: {m}"))
@@ -1242,6 +1302,7 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
     out.set_item("closure", closure)?;
     out.set_item("explanations", explanations)?;
     out.set_item("ledger", ledger)?;
+    out.set_item("result", result_ttl)?;
     Ok(out.into_any().unbind())
 }
 
@@ -1287,7 +1348,7 @@ fn compute_rl_closure(py: Python<'_>, input: &str) -> PyResult<crate::reason::rl
     // generic-triple RL chase with the GIL released.
     let bytes = input.as_bytes().to_vec();
     let closure: Result<crate::reason::rl::RlClosure, (bool, String)> = py.detach(move || {
-        let dataset = gmeow_rdf::dataset_from_bytes(&bytes, RdfFormat::NQuads)
+        let dataset = gmeow_rdf::dataset_from_bytes(&bytes, gmeow_rdf::NativeRdfFormat::NQuads)
             .map_err(|e| (true, format!("N-Quads parse error: {e}")))?;
         crate::reason::rl::rl_closure(dataset.as_ref()).map_err(|e| (false, e))
     });
@@ -1330,15 +1391,20 @@ fn rl_closure_quads(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
         return Ok(vec![]);
     }
     let nt = compute_rl_closure(py, input)?.to_ntriples();
-    // Re-parse the rendered closure with oxigraph so the tricky literal/datatype
-    // and blank-node grammar is decoded by the same engine that serialized it,
-    // then hand each quad to Python as a native `gmeow_rdf.Quad` (#630).
+    // Re-parse the rendered closure through the native codec (#909), then fold it into
+    // an in-memory oxigraph Store (text-free IR → Store hop) so each quad is handed to
+    // Python as a native `gmeow_rdf.Quad` (#630). The native codec is the same engine
+    // that the rest of the stack parses with — literal/datatype and blank-node grammar
+    // decode identically.
     let quads = py
         .detach(move || -> Result<Vec<oxigraph::model::Quad>, String> {
-            let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
-            store
-                .load_from_reader(RdfFormat::NTriples, nt.as_bytes())
+            let dataset = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
                 .map_err(|e| format!("RL closure re-parse failed: {e}"))?;
+            let store = gmeow_rdf::oxigraph::store_from_dataset(
+                dataset.as_ref(),
+                gmeow_rdf::oxigraph::GraphPolicy::PreserveNamedGraphs,
+            )
+            .map_err(|e| format!("RL closure store materialization failed: {e}"))?;
             store
                 .iter()
                 .collect::<Result<Vec<_>, _>>()

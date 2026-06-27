@@ -4,19 +4,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import gmeow_docs
 import gmeow_validate
 import pytest
 from gmeow_rdf.compat.rdflib import RDFS, Graph, Literal, URIRef
 from gmeow_rdf.compat.rdflib.namespace import OWL, RDF
 
-import gmeow_tools.i18n_lint as i18n_lint_mod
 import gmeow_tools.validate as validate_mod
 from gmeow_tools.config import (
     MAPPING_DSL_DIR,
     NAMESPACE,
     STATEMENT_DSL_DIR,
 )
-from gmeow_tools.i18n_lint import I18nLintReport
 from gmeow_tools.validate import (
     ValidationResult,
     _read_cached_result,
@@ -90,9 +89,14 @@ def test_validate_all_delegates_to_rust_native(
         fake_guide_anchor_lint,
     )
     monkeypatch.setattr(
-        i18n_lint_mod,
-        "lint_po_files",
-        lambda *args, **kwargs: I18nLintReport(),
+        gmeow_docs,
+        "i18n_lint_po_files",
+        lambda *args, **kwargs: {
+            "errors": [],
+            "warnings": [],
+            "total_counts": {},
+            "fuzzy_counts": {},
+        },
     )
 
     validation = validate_mod.validate_all(timings=True)

@@ -33,6 +33,7 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 // ── Shared Turtle prefix block ────────────────────────────────────────────────
 
@@ -62,11 +63,9 @@ fn add_narrative_frame_ttl(frame: &str, axis: &str) -> String {
 
 // ── Tests migrated from tests/test_narrative.py ───────────────────────────────
 
-/// `test_narrative_reference_frame_shacl_passes` — a fully-populated narrative
-/// frame passes SHACL.
-#[test]
-fn narrative_reference_frame_shacl_passes() {
-    let ttl = format!(
+#[rstest]
+#[case::narrative_reference_frame_shacl_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 {frame}\
 gmeow:frameRealmNarrative a gmeow:FrameRealm .
@@ -75,21 +74,10 @@ gmeow:frameKindNarrative a gmeow:FrameKind .
 gmeow:determinacyCrisp a gmeow:Determinacy .
 ",
         frame = add_narrative_frame_ttl("ex:hpCanon", "ex:axisPlot"),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "fully-populated narrative frame must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_narrative_frame_link_shacl_passes` — a reified frame link (MCU is
-/// adaptation of Earth-616) passes SHACL.
-#[test]
-fn narrative_frame_link_shacl_passes() {
-    let ttl = format!(
+    ))
+)]
+#[case::narrative_frame_link_shacl_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 {mcu}\
 {earth616}\
@@ -106,20 +94,10 @@ gmeow:relationAdaptationOf a gmeow:NarrativeFrameRelation .
 ",
         mcu = add_narrative_frame_ttl("ex:mcuCanon", "ex:axisPlotMcu"),
         earth616 = add_narrative_frame_ttl("ex:earth616Canon", "ex:axisPlot616"),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "reified narrative frame link (MCU adapts Earth-616) must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_character_arc_shacl_passes` — a well-formed CharacterArc passes SHACL.
-#[test]
-fn character_arc_shacl_passes() {
-    let ttl = format!(
+    ))
+)]
+#[case::character_arc_shacl_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 {frame}\
 ex:harryArc a gmeow:CharacterArc .
@@ -134,21 +112,10 @@ gmeow:frameKindNarrative a gmeow:FrameKind .
 gmeow:determinacyCrisp a gmeow:Determinacy .
 ",
         frame = add_narrative_frame_ttl("ex:hpCanon", "ex:axisPlot"),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "well-formed CharacterArc must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_character_arc_missing_subject_fails_shacl` — a CharacterArc missing
-/// `arcSubject` must violate SHACL with the expected message.
-#[test]
-fn character_arc_missing_subject_fails_shacl() {
-    let ttl = format!(
+    ))
+)]
+#[case::character_arc_missing_subject_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 {frame}\
 ex:harryArc a gmeow:CharacterArc .
@@ -161,18 +128,10 @@ gmeow:frameKindNarrative a gmeow:FrameKind .
 gmeow:determinacyCrisp a gmeow:Determinacy .
 ",
         frame = add_narrative_frame_ttl("ex:hpCanon", "ex:axisPlot"),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "CharacterArc missing arcSubject must fail SHACL"
-    );
-    let msgs = violations(&report);
-    assert!(
-        msgs.iter()
-            .any(|m| m.contains("CharacterArc must have exactly one gmeow:arcSubject")),
-        "expected 'CharacterArc must have exactly one gmeow:arcSubject' in violations; got: {:?}",
-        msgs
-    );
+    ))
+    .fails()
+    .violations(&["CharacterArc must have exactly one gmeow:arcSubject"])
+)]
+fn narrative(#[case] case: Case) {
+    case.run();
 }

@@ -11,10 +11,11 @@ oxigraph package (#667): the same engine every gmeow-* Rust crate links, so
 nothing external sits on the build/test path (CONSTITUTION Principle 18). This is
 a **non-authoritative acceleration path**: ``gmeow_shacl`` (Rust + oxigraph) is
 the canonical SHACL engine (#579) and the native ``logic:`` solver is the
-reasoning authority (Principle 17). The :mod:`gmeow_tools.engine_crosscheck` gate
-proves rdflib and ``gmeow_rdf`` return identical answers for every committed
-query, which is what licenses callers to trust this engine (CONSTITUTION
-Principle 7 — verified by construction).
+reasoning authority (Principle 17). The
+:mod:`gmeow_tools.oracles.engine_crosscheck` gate proves rdflib and
+``gmeow_rdf`` return identical answers for every committed query, which is what
+licenses callers to trust this engine (CONSTITUTION Principle 7 — verified by
+construction).
 
 ``CONSTRUCT`` results are returned as rdflib :class:`~rdflib.Graph` objects (via a
 single N-Triples hand-off) so existing rdflib-based assertions keep working

@@ -1,0 +1,75 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: "to_markdown(&model, &Page::Term(slug))"
+---
+# Tagging
+
+`gmeow:Tagging` · Class
+
+| Field | Value |
+| --- | --- |
+| CURIE | `gmeow:Tagging` |
+| IRI | `https://blackcatinformatics.ca/gmeow/Tagging` |
+| Category | Class |
+| Slice | [GMEOW Tags Module](../../slices/tags/index.md) |
+
+## Definition
+
+A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a tagger, and optionally a scheme and time interval\. Bears provenance \(gmeow:wasAttributedTo\), confidence \(gmeow:confidence\), and suppression \(gmeow:displayable false for retraction without deletion — Principle 10\)\. Structurally the NameUsage/IdentityFacet idiom wearing a different hat, inheriting time\-scoping, confidence\-weighting, and retract\-without\-delete for free\. The canonical form when the act of tagging must itself be a node; the flat shortcut is gmeow:hasTag\.
+
+## Neighborhood
+
+![Term neighborhood](../../diagrams/terms/tagging.svg)
+
+## Super\-classes
+
+- [https://blackcatinformatics\.ca/logic/Relator](https://blackcatinformatics\.ca/logic/Relator)
+
+## Usage Advice
+
+- **Example:** ex:t1 a gmeow:Tagging ; gmeow:taggingTagged ex:report ; gmeow:taggingTag ex:tagUrgent ; gmeow:taggingTagger ex:lillith \.
+- **Use when:** Use when the act of tagging must itself be a node — to record who tagged, when, under which scheme, with what confidence, or to retract a tag without deleting it \(gmeow:displayable false\)\.
+- **Avoid when:** Avoid for the ordinary 80% case where a bare label suffices \(use the flat gmeow:hasTag, optionally with RDF\-star annotations\); reify only when provenance, period, or suppression must be first\-class\.
+- **How to use:** Mint the relator and fill its roles — gmeow:taggingTagged, gmeow:taggingTag, gmeow:taggingTagger, optionally gmeow:taggingScheme and gmeow:taggingInterval — then carry provenance, confidence, and displayable on the relator node; gmeow:hasTag pairsWith Tagging as the promotion target\.
+
+## Alignments
+
+- `closeMatch` → [http://www\.holygoat\.co\.uk/owl/redwood/0\.1/tags/Tagging](http://www\.holygoat\.co\.uk/owl/redwood/0\.1/tags/Tagging)
+- `closeMatch` → [http://www\.w3\.org/ns/oa\#Annotation](http://www\.w3\.org/ns/oa\#Annotation)
+
+## Logic stereotypes
+
+`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
+
+## Box role
+
+[TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
+
+## Constraints
+
+- A Tagging must have exactly one tagger \(gmeow:taggingTagger\)\.
+- A Tagging must tag exactly one entity \(gmeow:taggingTagged\)\.
+- A Tagging must use exactly one tag \(gmeow:taggingTag\)\.
+- A retracted or superseded tagging \(one whose interval has ended\) should set gmeow:displayable false — suppressed from display, never deleted\.
+
+## Related terms
+
+- [`gmeow:hasTag`](../hastag/index.md)
+
+## Examples using this term
+
+- [Research topic keywords](../../slices/profiles/index.md) — `examples/named-profile-membership.ttl`
+- [Research topic keywords](../../slices/tags/index.md) — `examples/folksonomy.ttl`
+
+## Stability
+
+- **Status:** stable
+
+## Profiles
+
+- `claims` · `dreaming` · `full` · `memory` · `music` · `narrative`
+
+## Citation
+
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/Tagging>
+- **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)

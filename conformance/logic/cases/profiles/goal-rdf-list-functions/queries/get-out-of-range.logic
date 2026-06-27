@@ -1,0 +1,11 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: list indexed access, out-of-range edge case — gmeow:listGet backing (#1009 §5).
+% Index 5 exceeds the 3-element list (x y z): the rdf:rest walk runs off rdf:nil,
+% so the goal returns empty bindings (no answer), status ok.
+:- prefix(ex, 'https://example.org/profiles/goal-rdf-list-functions/').
+:- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+ex:get(L, 0, X) :- rdf:first(L, X).
+ex:get(L, N, X) :- N > 0, rdf:rest(L, R), M is N - 1, ex:get(R, M, X).
+?- ex:get(ex:l0, 5, X).

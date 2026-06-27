@@ -38,6 +38,11 @@ pub use gmeow_rdf_core::{
 
 #[cfg(feature = "gts")]
 pub mod gts;
+// The native RDF text codecs (#909 / EPIC #906 S3): the codec-only `GtsCodecBackend`
+// over the `gmeow-gts` Turtle/TriG/NT/NQ/RDF-XML codecs, oxigraph-free. Rides the
+// always-on `gts` feature so every Rust consumer parses/serializes RDF text natively.
+#[cfg(feature = "gts")]
+pub mod native_codecs;
 // The pyo3-free GTS snapshot compose core (#861 P6): SnapshotBuilder + emit_gts +
 // BlobRow, lifted out of the python-gated py_gts surface so gmeow-pipeline can
 // author a full multi-named-graph snapshot without pulling pyo3. It ingests a flat
@@ -109,8 +114,18 @@ pub use gmeow_rdf_core::{
 };
 #[cfg(feature = "gts")]
 pub use gmeow_rdf_core::{import_gts_events, import_gts_graph};
+#[cfg(feature = "gts")]
+pub use native_codecs::{
+    classify, parse_dataset, serialize_dataset, serialize_dataset_base_only,
+    serialize_dataset_to_format, GtsCodecBackend, NativeRdfFormat, SerializeOutcome,
+};
 #[cfg(feature = "oxigraph")]
 pub use oxigraph::backend::OxigraphBackend;
+
+// Shared USTAR (tar) codec: byte-deterministic writer + reader used by both the
+// snapshot stage (writer) and the validate path (reader). Unconditional — no
+// oxigraph or PyO3 dependency.
+pub mod ustar;
 
 /// The common gmeow-rdf surface, for `use gmeow_rdf::prelude::*;`.
 ///

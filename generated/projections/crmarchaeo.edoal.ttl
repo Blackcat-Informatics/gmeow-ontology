@@ -13,29 +13,29 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Class ;
-            edoal:uri gmeow:ObservationalActivity ;
+            edoal:uri gmeow:Observation ;
         ] ;
         align:entity2 [
             a edoal:Class ;
-            edoal:uri crmarc:A1_Excavation_Process_Unit ;
+            edoal:uri crmarc:S4_Observation ;
         ] ;
         align:relation "<=" ;
-        edoal:measure "0.75"^^xsd:double ;
-        rdfs:label "ObservationalActivity (excavation) → crmarc:A1_Excavation_Process_Unit"@en ;
+        edoal:measure "0.85"^^xsd:double ;
+        rdfs:label "Observation → crmarc:S4_Observation"@en ;
     ] ,
         [
             a align:Cell ;
             align:entity1 [
                 a edoal:Class ;
-                edoal:uri gmeow:Observation ;
+                edoal:uri gmeow:ObservationalActivity ;
             ] ;
             align:entity2 [
                 a edoal:Class ;
-                edoal:uri crmarc:S4_Observation ;
+                edoal:uri crmarc:A1_Excavation_Process_Unit ;
             ] ;
             align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "Observation → crmarc:S4_Observation"@en ;
+            edoal:measure "0.75"^^xsd:double ;
+            rdfs:label "ObservationalActivity (excavation) → crmarc:A1_Excavation_Process_Unit"@en ;
         ] ,
         [
             a align:Cell ;

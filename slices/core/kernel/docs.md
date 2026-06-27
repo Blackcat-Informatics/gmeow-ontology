@@ -118,7 +118,7 @@ Compliance by construction: annotations with no logical semantics that *declare
 which invariants the toolchain must generate*. `coequalFacet` puts a property under the
 Principle 9 orthogonality lint (own range, no bridges between axes, never functional,
 jointly disjoint ranges). `requiresFrame` generates the Principle 11 frame-relativity
-SHACL shape, tunable via `frameRequirementSeverity` and `frameCardinality`.
+SHACL shape, tunable via `ruleSeverity` (binding vs advisory) and `frameCardinality`.
 `coarsenGuarded` marks precision-bearing properties so the compiler injects coarsen
 guards into every generated projection (precision guard); `gmeow:namingNote` records the
 lint-visible justification for a legitimately primary-style value-vocabulary name.

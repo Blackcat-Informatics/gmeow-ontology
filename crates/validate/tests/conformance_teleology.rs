@@ -17,42 +17,20 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
-/// `test_wellformed_teleology_fixture_conforms` — a well-formed teleology
-/// fixture passes SHACL without violations.
-#[test]
-fn wellformed_teleology_fixture_conforms() {
-    let nt = fixture_as_nt("shapes", "teleology-wellformed");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "well-formed teleology fixture must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_malformed_teleology_fixture_is_flagged` — a malformed teleology
-/// fixture must produce violations for exactly the known constraint messages.
-#[test]
-fn malformed_teleology_fixture_is_flagged() {
-    let nt = fixture_as_nt("shapes", "teleology-malformed");
-    let report = validate(&nt);
-    assert!(!ok(&report), "malformed teleology fixture must fail SHACL");
-    let errs = violations(&report).join("\n");
-    assert!(
-        errs.contains("exactly one gmeow:intentBearer"),
-        "expected 'exactly one gmeow:intentBearer' in violations; got: {errs}"
-    );
-    assert!(
-        errs.contains("distinct from its committed agent"),
-        "expected 'distinct from its committed agent' in violations; got: {errs}"
-    );
-    assert!(
-        errs.contains("never its own counter-goal"),
-        "expected 'never its own counter-goal' in violations; got: {errs}"
-    );
-    assert!(
-        errs.contains("exactly one gmeow:tenureAgent"),
-        "expected 'exactly one gmeow:tenureAgent' in violations; got: {errs}"
-    );
+#[rstest]
+#[case::wellformed_teleology_fixture_conforms(Case::file("shapes", "teleology-wellformed"))]
+#[case::malformed_teleology_fixture_is_flagged(
+    Case::file("shapes", "teleology-malformed")
+        .fails()
+        .violations(&[
+            "exactly one gmeow:intentBearer",
+            "distinct from its committed agent",
+            "never its own counter-goal",
+            "exactly one gmeow:tenureAgent",
+        ])
+)]
+fn teleology(#[case] case: Case) {
+    case.run();
 }

@@ -290,15 +290,21 @@ fn lower_nemo_term(
 
 /// Parse a literal object's Nemo N3 surface (`"lex"`, `"lex"@lang`,
 /// `"lex"^^<dt>`) into an oxigraph [`Term`].
+///
+/// The one-triple N-Triples document is parsed through the native codec
+/// (`parse_dataset`) into the frozen IR, then materialized into an in-memory store via
+/// the text-free `store_from_dataset` hop so the object term comes back as the oxigraph
+/// [`Term`] the rest of `rule_ir` works over — same codec as the rest of the stack, no
+/// drift, no `oxigraph::io` text reader.
 fn parse_n3_object_literal(n3: &str) -> Result<Term, String> {
-    use oxigraph::io::RdfFormat;
+    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+    use gmeow_rdf::parse_dataset;
     use oxigraph::model::{NamedNode, Quad};
     let doc = format!("<urn:s> <urn:p> {n3} .\n");
-    let store =
-        oxigraph::store::Store::new().map_err(|e| format!("rule_ir: in-memory store: {e}"))?;
-    store
-        .load_from_reader(RdfFormat::NTriples, doc.as_bytes())
+    let dataset = parse_dataset(doc.as_bytes(), "application/n-triples", None)
         .map_err(|e| format!("rule_ir: cannot parse literal object {n3:?}: {e}"))?;
+    let store = store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
+        .map_err(|e| format!("rule_ir: cannot materialize literal object {n3:?}: {e}"))?;
     let want_p = NamedNode::new("urn:p").expect("constant IRI");
     let quads: Vec<Quad> = store
         .quads_for_pattern(None, Some(want_p.as_ref()), None, None)

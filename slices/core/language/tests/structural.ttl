@@ -1,0 +1,70 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the language slice (#867 Tier-B
+# closeout). The repo-level test_languages.py is projection/tag/catalog data
+# checks (KEEP), not TBox structure; these cells pin the slice's asserted-TBox
+# spine fresh (MAXIMAL coverage, dogfooding). Each runs as a SPARQL ASK over the
+# module graph (gmeow:scopeModule).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/language/tests/> .
+
+# --- 1. The Language Kind/SubKind spine (MUST hold) --------------------------
+ex:saLanguageKindSpine a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:Language            a owl:Class , logic:Kind ;    rdfs:subClassOf gmeow:InformationObject .
+    gmeow:WritingSystem       a owl:Class , logic:Kind ;    rdfs:subClassOf gmeow:InformationObject .
+    gmeow:FormalLanguage      a owl:Class , logic:SubKind ; rdfs:subClassOf gmeow:Language .
+    gmeow:ProgrammingLanguage a owl:Class , logic:SubKind ; rdfs:subClassOf gmeow:FormalLanguage .
+}""" ;
+    gmeow:saRationale "gmeow:Language and gmeow:WritingSystem MUST be logic:Kind InformationObjects; gmeow:FormalLanguage is a logic:SubKind of gmeow:Language and gmeow:ProgrammingLanguage a logic:SubKind of gmeow:FormalLanguage — the natural/formal/programming language refinement spine." .
+
+# --- 2. TransliterationScheme value vocab + key properties (MUST hold) --------
+ex:saLanguageVocabAndProps a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:TransliterationScheme a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:bcp47Tag a owl:DatatypeProperty ; rdfs:domain gmeow:Language ; rdfs:range xsd:language .
+    gmeow:writtenInLanguage a owl:ObjectProperty ; rdfs:domain gmeow:InformationObject ; rdfs:range gmeow:Language .
+    gmeow:transliterationScheme a owl:ObjectProperty ; rdfs:domain gmeow:Appellation ; rdfs:range gmeow:TransliterationScheme .
+}""" ;
+    gmeow:saRationale "gmeow:TransliterationScheme MUST be a QualityValue vocabulary; gmeow:bcp47Tag is a Language→xsd:language datatype property; gmeow:writtenInLanguage links any InformationObject to a Language; gmeow:transliterationScheme links an Appellation to its scheme." .
+
+# --- 3. The seeded language individuals are present (MUST hold) ---------------
+ex:saLanguageSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:langEnglish  a gmeow:Language .
+    gmeow:langFrench   a gmeow:Language .
+    gmeow:langMandarin a gmeow:Language .
+}""" ;
+    gmeow:saRationale "The seeded language individuals (English, French, Mandarin — the project's own translation targets) MUST be present and typed gmeow:Language, the dogfooded core of an open language vocabulary." .
+
+# --- 4. Language refinements use SubKind, not bare subclassing (MUST-NOT) -----
+ex:saLanguageSubKindsTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    ?c rdfs:subClassOf gmeow:Language .
+    FILTER NOT EXISTS { ?c a logic:SubKind }
+    FILTER (?c != gmeow:Language)
+}""" ;
+    gmeow:saRationale "Every named class refining gmeow:Language MUST carry the logic:SubKind stereotype (the gUFO Kind/SubKind discipline): the slice MUST NOT declare a subclass of gmeow:Language that is not stereotyped logic:SubKind, so language refinements stay specializations of the one identity-bearing Kind." .

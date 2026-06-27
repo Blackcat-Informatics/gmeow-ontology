@@ -31,6 +31,7 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 // ── Helpers for the inline Turtle snippets ────────────────────────────────────
 
@@ -61,10 +62,9 @@ fn narrative_frame_ttl(frame: &str, axis: &str) -> String {
 
 // ── Tests migrated from tests/test_myth.py ────────────────────────────────────
 
-/// `test_myth_shacl_passes` — a well-formed Myth passes SHACL.
-#[test]
-fn myth_shacl_passes() {
-    let ttl = format!(
+#[rstest]
+#[case::myth_shacl_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 {frame}\
 ex:urbanLegend a gmeow:Myth .
@@ -80,42 +80,21 @@ gmeow:determinacyCrisp a gmeow:Determinacy .
 gmeow:consumerPublicSite a gmeow:ProjectionContext .
 ",
         frame = narrative_frame_ttl("ex:urbanLegendFrame", "ex:axisPlot"),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "well-formed Myth must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_myth_missing_frame_fails_shacl` — a Myth missing mythFrame violates SHACL.
-#[test]
-fn myth_missing_frame_fails_shacl() {
-    let ttl = format!(
+    ))
+)]
+#[case::myth_missing_frame_fails_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:urbanLegend a gmeow:Myth .
 ex:urbanLegend gmeow:hasMythTelling ex:articleTelling .
 ex:articleTelling a gmeow:CreativeWork .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(!ok(&report), "Myth missing mythFrame must fail SHACL");
-    let v = violations(&report);
-    assert!(
-        v.iter()
-            .any(|e| e.contains("exactly one reference frame (gmeow:mythFrame)")),
-        "expected 'exactly one reference frame (gmeow:mythFrame)' in violations; got: {:?}",
-        v
-    );
-}
-
-/// `test_myth_propagation_shacl_passes` — a myth telling with propagatesFrom passes SHACL.
-#[test]
-fn myth_propagation_shacl_passes() {
-    let ttl = format!(
+    ))
+        .fails()
+        .violations(&["exactly one reference frame (gmeow:mythFrame)"])
+)]
+#[case::myth_propagation_shacl_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 {frame}\
 ex:urbanLegend a gmeow:Myth .
@@ -131,12 +110,8 @@ gmeow:frameKindNarrative a gmeow:FrameKind .
 gmeow:determinacyCrisp a gmeow:Determinacy .
 ",
         frame = narrative_frame_ttl("ex:urbanLegendFrame", "ex:axisPlot"),
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "myth telling with propagatesFrom must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
+    ))
+)]
+fn myth(#[case] case: Case) {
+    case.run();
 }

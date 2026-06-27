@@ -28,11 +28,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oxigraph::io::{RdfFormat, RdfSerializer};
 use oxigraph::model::{GraphName, NamedOrBlankNode, Quad, Term, Triple};
-use oxigraph::store::Store;
 
 use gmeow_diagnostics::{Finding, Severity};
+use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+use gmeow_rdf::{dataset_from_oxigraph_quads, parse_dataset, serialize_dataset, SerializeGraph};
 
 // ── Vocabulary IRIs ─────────────────────────────────────────────────────────────
 
@@ -142,11 +142,13 @@ pub fn extract_module(
         );
     }
 
-    // Parse the source into an in-memory store.
-    let store = Store::new().map_err(|e| format!("in-memory store init failed: {e}"))?;
-    store
-        .load_from_reader(RdfFormat::Turtle, ontology_ttl.as_bytes())
+    // Parse the source through the native codec into the frozen IR, then fold it into
+    // an in-memory oxigraph Store for the locality walk (text-free IR → Store hop, so
+    // the parse path can never drift from the rest of the stack's codec).
+    let dataset = parse_dataset(ontology_ttl.as_bytes(), "text/turtle", None)
         .map_err(|e| format!("Failed to parse Turtle source: {e}"))?;
+    let store = store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
+        .map_err(|e| format!("Failed to materialize Turtle source into store: {e}"))?;
 
     // Snapshot all source triples (default-graph; the SLME notion is graph-flat).
     let mut all_triples: Vec<Triple> = Vec::new();
@@ -689,23 +691,23 @@ fn term_sort_key(t: &Term) -> String {
     }
 }
 
-/// Serialize the module quads to deterministic Turtle (canonical-sorted).
-fn serialize_turtle(mut quads: Vec<Quad>) -> Result<String, String> {
-    quads.sort_by_cached_key(|q| {
-        (
-            subject_sort_key(&q.subject),
-            q.predicate.as_str().to_owned(),
-            term_sort_key(&q.object),
-        )
-    });
-    let mut ser = RdfSerializer::from_format(RdfFormat::Turtle).for_writer(Vec::<u8>::new());
-    for q in &quads {
-        ser.serialize_quad(q.as_ref())
-            .map_err(|e| format!("Turtle serialize error: {e}"))?;
-    }
-    let bytes = ser
-        .finish()
-        .map_err(|e| format!("Turtle serialize finish error: {e}"))?;
+/// Serialize the module quads to deterministic Turtle via the native codec.
+///
+/// The oxigraph `Quad`s are folded into the frozen `RdfDataset` IR
+/// (`dataset_from_oxigraph_quads`) and serialized through the native
+/// `serialize_dataset` path, which emits canonical, deterministic Turtle — so no
+/// manual pre-sort is needed (and the codec never drifts from the rest of the stack).
+/// All module quads live in the default graph, so `SerializeGraph::DefaultGraph` is
+/// the faithful selector.
+fn serialize_turtle(quads: Vec<Quad>) -> Result<String, String> {
+    let dataset =
+        dataset_from_oxigraph_quads(&quads).map_err(|e| format!("Turtle fold error: {e}"))?;
+    let bytes = serialize_dataset(
+        dataset.as_ref(),
+        "text/turtle",
+        SerializeGraph::DefaultGraph,
+    )
+    .map_err(|e| format!("Turtle serialize error: {e}"))?;
     let body = String::from_utf8(bytes).map_err(|e| format!("Turtle serialize utf8 error: {e}"))?;
     Ok(format!("{}\n", body.trim_end_matches('\n')))
 }

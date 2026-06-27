@@ -46,7 +46,6 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphNameRef, NamedNode, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 use regex::Regex;
@@ -534,17 +533,7 @@ fn parse_ttl(path: &Path) -> Result<Store, SliceError> {
 /// language tags parse — mirrors the emitters' `load_into_store`).
 fn load_ttl_into(store: &Store, path: &Path) -> Result<(), SliceError> {
     let bytes = std::fs::read(path).map_err(SliceError::Io)?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes.as_slice())
-    {
-        let quad = quad
-            .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(())
+    crate::rdf_text::turtle_bytes_into_store(store, &bytes, &path.display().to_string())
 }
 
 /// Every named-node subject of `?s a <type_iri>`.
@@ -882,14 +871,7 @@ mod tests {
     // ── helpers ────────────────────────────────────────────────────────────────
 
     fn store_from_turtle(ttl: &str) -> Store {
-        let store = new_store().unwrap();
-        for quad in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(ttl.as_bytes())
-        {
-            store.insert(&quad.unwrap()).unwrap();
-        }
-        store
+        crate::rdf_text::turtle_bytes_to_store(ttl.as_bytes(), "test fixture").unwrap()
     }
 
     fn write_ttl(path: &Path, ttl: &str) {

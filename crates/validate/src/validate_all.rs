@@ -24,6 +24,7 @@ use gmeow_slice::catalog::SliceCatalog;
 use gmeow_slice::ownership::OwnershipAnalyzer;
 use gmeow_slice::{product_unit_key, Phase, ToolchainContext};
 
+use crate::advisory::Advisory;
 use crate::cache::{CachedResult, ValidationCache};
 use crate::findings::finding_from_shacl;
 use crate::gufo::{self, GufoConfig};
@@ -93,6 +94,13 @@ pub struct ValidateOptions {
     /// pre-gate (#646). When `None`, signature verification is disabled and the
     /// orchestration behaves as before.
     pub signature_config: Option<SignatureConfig>,
+    /// When `true`, run the native semantic (`--deep`) pass after the structural
+    /// phases: reason over the bundle (`gmeow_logic::reason::reason_all`) and read
+    /// the shared `logic:ReasoningResult` (#768) to emit semantic findings —
+    /// inconsistency (`information=both`), unsatisfiable classes, and undecided DL
+    /// constructs. Requires `gts_bytes`. This runs the full reasoner, so it is
+    /// opt-in (the structural gate stays fast); the deep pass itself is single-path.
+    pub deep: bool,
 }
 
 /// The result of one validation phase.
@@ -120,6 +128,9 @@ pub struct ValidationRun {
     pub report: Report,
     /// Declared GMEOW-term IRIs, for Python's `guide_anchor_lint`.
     pub declared_terms: Vec<String>,
+    /// The dual-projection claim hooks for advisory findings (#760 D1);
+    /// D4/#763 materialises them as RDF.
+    pub advisory_claims: Vec<crate::advisory::AdvisoryClaim>,
 }
 
 impl ValidationRun {
@@ -224,6 +235,7 @@ impl ValidationRun {
                 timings,
                 report: build_report(Vec::new(), Vec::new(), signature_findings),
                 declared_terms: Vec::new(),
+                advisory_claims: Vec::new(),
             });
         }
 
@@ -257,6 +269,7 @@ impl ValidationRun {
                 timings,
                 report: build_report(errors, warnings, shacl_findings),
                 declared_terms: Vec::new(),
+                advisory_claims: Vec::new(),
             });
         }
 
@@ -443,12 +456,53 @@ impl ValidationRun {
             }
         }
 
+        // Advisory tier (#760 D1): emit one fixed demonstrator advisory on every
+        // normal-completion run, so gmeow validate surfaces a Note finding distinct
+        // from compliance errors. The dual-projection-always contract: ONE
+        // Advisory::project() call yields BOTH the flat finding AND the in-memory
+        // claim hook D4/#763 materialises. NOT emitted on the two early-return
+        // (hard-fail) paths above. D3/#762 replaces this demonstrator with harvested
+        // advisory rules (find via the "advisory-demonstrator" tag).
+        let advisory = Advisory::note(
+            "advice.tier.active",
+            "Advisory tier active — soft (deonticRecommendation) advice will surface here once advisory rules are harvested (#762).",
+        )
+        .with_suggestion("Run `gmeow describe <term>` to see modeling guidance (avoidWhen / useWhen / howToUse).")
+        .with_help_uri("https://blackcatinformatics.ca/gmeow/advice")
+        .with_tag("advisory-demonstrator");
+        let projection = advisory.project();
+        let advisory_claims = vec![projection.claim];
+        let mut report = build_report(errors, warnings, shacl_findings);
+        report.add_finding(projection.finding);
+        report.add_rule(advisory.rule());
+
+        // Semantic (`--deep`) pass (#768 ME2): reason over the bundle and read the
+        // shared logic:ReasoningResult, folding its semantic verdict into the same
+        // canonical report. Opt-in (runs the full reasoner) and gts-bundle-scoped.
+        if options.deep {
+            if let Some(bytes) = &options.gts_bytes {
+                timed(&mut timings, "deep-semantic", options, None, || {
+                    deep_semantic_findings(bytes, &mut report)
+                })?;
+            } else {
+                report.add_finding(
+                    Finding::new(
+                        Severity::Warning,
+                        "validate.deep.skipped",
+                        "validate --deep requires a GTS bundle (gts_bytes); the semantic pass was skipped",
+                    )
+                    .with_tool("validate"),
+                );
+            }
+        }
+
         Ok(Self {
             store,
             shapes,
             timings,
-            report: build_report(errors, warnings, shacl_findings),
+            report,
             declared_terms,
+            advisory_claims,
         })
     }
 
@@ -489,7 +543,7 @@ impl ValidationRun {
 /// string into a finding, so `report.legacy_errors()/legacy_warnings()`
 /// reproduce the original strings exactly; the SHACL findings add focus-node
 /// locations on top.
-fn build_report(
+pub(crate) fn build_report(
     errors: Vec<String>,
     warnings: Vec<String>,
     shacl_findings: Vec<Finding>,
@@ -501,11 +555,94 @@ fn build_report(
     report
 }
 
+/// The native semantic (`--deep`) pass (#768 ME2): reason over the GTS bundle and
+/// read the shared `logic:ReasoningResult`, folding its verdict into `report`.
+///
+/// Emits an error per contradiction witness when the bundle is inconsistent
+/// (`information=both`), a warning per unsatisfiable (provably-empty) class, and a
+/// warning per DL construct the native reasoner could not decide
+/// (`preservation.unsupported_constructs`). A consistent, fully-covered bundle
+/// adds one informational note. The single shared model is the authority — these
+/// findings are a consumer projection of it, not a re-derivation.
+///
+/// # Errors
+/// Returns `Err` if the GTS bundle cannot be read or the reasoning run fails.
+fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), String> {
+    let bundle = gmeow_rdf::import_gts_events(gts_bytes)
+        .map_err(|e| format!("validate --deep: GTS read error: {e}"))?;
+    let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref())
+        .map_err(|e| format!("validate --deep: native reasoning failed: {e}"))?;
+
+    if !result.is_consistent() {
+        for witness in &result.provenance.contradiction_witnesses {
+            report.add_finding(
+                Finding::new(
+                    Severity::Error,
+                    "validate.deep.inconsistent",
+                    format!(
+                        "individual {} forced into owl:Nothing in world {} \
+                         (logic:ReasoningResult information=both)",
+                        witness.individual, witness.world
+                    ),
+                )
+                .with_tool("validate"),
+            );
+        }
+    }
+
+    for unsat in gmeow_logic::reason::dl::unsatisfiable_from_inferred(result.inferred()) {
+        report.add_finding(
+            Finding::new(
+                Severity::Warning,
+                "validate.deep.unsatisfiable",
+                format!(
+                    "class {} is unsatisfiable (provably empty) in world {}",
+                    unsat.class, unsat.world
+                ),
+            )
+            .with_tool("validate"),
+        );
+    }
+
+    for construct in &result.preservation.unsupported_constructs {
+        report.add_finding(
+            Finding::new(
+                Severity::Warning,
+                "validate.deep.unsupported-construct",
+                format!(
+                    "DL construct {construct} is present but was not decided by the native \
+                     reasoner; the semantic verdict is incomplete for it"
+                ),
+            )
+            .with_tool("validate"),
+        );
+    }
+
+    if result.is_consistent() && result.preservation.unsupported_constructs.is_empty() {
+        report.add_finding(
+            Finding::new(
+                Severity::Note,
+                "validate.deep.consistent",
+                format!(
+                    "native deep semantic pass: consistent (information={}, evaluation={}, \
+                     completeness={})",
+                    result.information.wire(),
+                    result.evaluation.wire(),
+                    result.completeness.wire()
+                ),
+            )
+            .with_tool("validate"),
+        );
+    }
+
+    Ok(())
+}
+
 /// Convert a SHACL [`ValidationReport`] into structured findings via the
 /// [`finding_from_shacl`] bridge, optionally tagging each with the example/DSL
 /// source (`origin`) as the finding's primary path so SARIF and the `gmeow:`
 /// RDF projection can attribute it.
-fn shacl_findings_from_report(
+pub(crate) fn shacl_findings_from_report(
     report: &gmeow_shacl::report::ValidationReport,
     origin: Option<&str>,
 ) -> Vec<Finding> {
@@ -1024,20 +1161,16 @@ fn find_example_files(slices_dir: &str) -> Result<Vec<(String, PathBuf)>, String
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oxigraph::io::{RdfFormat, RdfParser};
     use std::collections::{BTreeSet, HashSet};
+
+    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+    use gmeow_rdf::parse_dataset;
 
     use crate::store::dump_store_to_ntriples;
 
     fn store_from(ttl: &str) -> Store {
-        let store = Store::new().unwrap();
-        for triple in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(ttl.as_bytes())
-        {
-            store.insert(&triple.unwrap()).unwrap();
-        }
-        store
+        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).unwrap()
     }
 
     fn write_tmp(name: &str, contents: &str) -> PathBuf {
@@ -1123,6 +1256,71 @@ mod tests {
         writer.to_bytes()
     }
 
+    #[test]
+    fn deep_semantic_pass_flags_inconsistency_and_consistency() {
+        // An inconsistent bundle: A⊑B, A⊑C, B disjointWith C, x:A forces x into
+        // owl:Nothing — the shared ReasoningResult reports information=both.
+        let inconsistent = "\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix ex: <http://gmeow.example/> .
+ex:A rdfs:subClassOf ex:B .
+ex:A rdfs:subClassOf ex:C .
+ex:B owl:disjointWith ex:C .
+ex:x rdf:type ex:A .
+";
+        let bytes = gts_bytes_from_turtle(inconsistent);
+        let mut report = Report::new("validate");
+        deep_semantic_findings(&bytes, &mut report).expect("deep pass must run");
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code == "validate.deep.inconsistent"),
+            "the deep pass must flag the inconsistency: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+
+        // A consistent bundle: A⊑B, x:A. No clash → a consistency note, no error.
+        let consistent = "\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex: <http://gmeow.example/> .
+ex:A rdfs:subClassOf ex:B .
+ex:x rdf:type ex:A .
+";
+        let bytes = gts_bytes_from_turtle(consistent);
+        let mut report = Report::new("validate");
+        deep_semantic_findings(&bytes, &mut report).expect("deep pass must run");
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code == "validate.deep.consistent"),
+            "a consistent bundle must record the consistency note"
+        );
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.code == "validate.deep.inconsistent"),
+            "a consistent bundle must NOT flag inconsistency"
+        );
+    }
+
+    /// Build canonical GTS bytes from a Turtle string for the deep-pass test.
+    fn gts_bytes_from_turtle(ttl: &str) -> Vec<u8> {
+        let dataset = gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+            .expect("parse test turtle");
+        gmeow_rdf::gts_write::to_gts(
+            &dataset,
+            &gmeow_rdf::RdfLookaside::default(),
+            "gmeow-validate-deep-test",
+        )
+        .expect("encode GTS bytes")
+    }
+
     fn minimal_lint_config() -> LintConfig {
         LintConfig {
             namespace: "https://blackcatinformatics.ca/gmeow/".to_owned(),
@@ -1162,5 +1360,112 @@ mod tests {
         assert!(nt.contains("<https://example.org/a>"));
         assert!(nt.contains("<https://example.org/p>"));
         assert!(nt.contains("<https://example.org/b>"));
+    }
+
+    /// The demonstrator advisory appears on every normal-completion run as a Note
+    /// (not an error or warning), proving it is distinct from the compliance surfaces.
+    /// Both the flat finding and the in-memory claim hook are emitted together
+    /// (dual-projection-always contract, #760 D1).
+    #[test]
+    fn clean_run_emits_one_demonstrator_advisory() {
+        let bytes = minimal_gts_bytes();
+        let options = ValidateOptions {
+            gts_bytes: Some(bytes),
+            ..ValidateOptions::default()
+        };
+
+        let run = ValidationRun::run(&[], "", "", "", &minimal_lint_config(), &options)
+            .expect("ValidationRun::run must succeed");
+
+        // The advisory is a Note — it must NOT contaminate the error/warning surfaces.
+        assert!(
+            run.errors().is_empty(),
+            "advisory Note must not appear in errors: {:?}",
+            run.errors()
+        );
+        assert!(
+            run.warnings().is_empty(),
+            "advisory Note must not appear in warnings: {:?}",
+            run.warnings()
+        );
+
+        // A Note never fails the gate.
+        assert!(
+            run.report.normalized().ok(),
+            "report with only a Note must still be ok"
+        );
+
+        // Exactly one finding with code "advice.tier.active" and severity Note.
+        let advisory_findings: Vec<_> = run
+            .report
+            .findings
+            .iter()
+            .filter(|f| f.code == "advice.tier.active")
+            .collect();
+        assert_eq!(
+            advisory_findings.len(),
+            1,
+            "expected exactly one advice.tier.active finding; got: {:?}",
+            advisory_findings
+        );
+        assert_eq!(
+            advisory_findings[0].severity,
+            gmeow_diagnostics::Severity::Note,
+            "demonstrator advisory must be a Note"
+        );
+
+        // The in-memory claim hook is present with correct code and modality.
+        assert_eq!(
+            run.advisory_claims.len(),
+            1,
+            "expected exactly one advisory claim on normal-completion run"
+        );
+        assert_eq!(run.advisory_claims[0].code, "advice.tier.active");
+        assert_eq!(
+            run.advisory_claims[0].modality_iri,
+            crate::advisory::DEONTIC_RECOMMENDATION_IRI
+        );
+    }
+
+    /// The syntax/sameAs short-circuit early return (a hard-failed run) must NOT
+    /// emit any advisory. Triggered with VALID Turtle carrying a banned
+    /// `owl:sameAs` to an external entity: the file parses (so build-store
+    /// succeeds), then Phase 2 records a sameAs-ban error, so `run` returns at the
+    /// `!errors.is_empty()` short-circuit (NOT via an Err) — exercising the real
+    /// Ok early-return path, not the vacuous build-store-failure path.
+    #[test]
+    fn early_return_path_emits_no_advisory() {
+        let banned_ttl_path = write_tmp(
+            "gmeow_validate_advisory_early_return_sameas.ttl",
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             gmeow:Foo owl:sameAs <https://external.example.org/bar> .\n",
+        );
+        let source = banned_ttl_path.to_string_lossy().to_string();
+
+        let options = ValidateOptions::default();
+        let run = ValidationRun::run(&[source], "", "", "", &minimal_lint_config(), &options)
+            .expect("valid-but-banned Turtle must reach the Ok short-circuit, not Err");
+
+        std::fs::remove_file(&banned_ttl_path).ok();
+
+        // The run hard-failed (the sameAs ban is an error), proving we hit the
+        // short-circuit early-return path.
+        assert!(
+            !run.errors().is_empty(),
+            "expected a sameAs-ban error to drive the short-circuit; got none"
+        );
+        // The hard-fail path emits NO advisory claim and NO advisory finding.
+        assert!(
+            run.advisory_claims.is_empty(),
+            "early-return path must emit no advisory claims"
+        );
+        assert!(
+            !run.report
+                .findings
+                .iter()
+                .any(|f| f.code == "advice.tier.active"),
+            "early-return path must emit no advice.tier.active finding"
+        );
     }
 }

@@ -7,7 +7,7 @@
 # Evidence / source-typing fixture — Cogneto-style biography cases (#224).
 #
 # Three concrete CitationAct instances that demonstrate the warrant ⟂ notability
-# orthogonality documented in docs/evidence-warrant-notability.md:
+# orthogonality documented in slices/core/evidence/docs.md (Orthogonality at a glance):
 #
 #   1. InfoWorld article   → independent secondary significant coverage
 #                            (supports notability)

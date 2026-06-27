@@ -4,7 +4,8 @@
 //!
 //! ## What this replaces
 //! The `python` CI lane (~45 min) was dominated by OWL/EL/DL reasoning tests that each rebuilt
-//! a reasoned graph via the OWL-2-RL chase (`gmeow_tools.native_rl_rdflib.native_rl_closure`).
+//! a reasoned graph via the OWL-2-RL chase
+//! (`gmeow_tools.oracles.native_rl_rdflib.native_rl_closure`).
 //! The per-slice entailment tests follow a single shape — parse the relevant slice `module.ttl`
 //! files, inject a tiny test A-Box, close under RL, assert a derived triple is present (and a
 //! contrasting one absent). This harness is the native twin of that
@@ -29,9 +30,7 @@
 use std::path::PathBuf;
 
 use gmeow_logic::reason::{rl_closure, RlClosure};
-use gmeow_rdf::oxigraph::rdf_quad_from_oxigraph;
-use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
-use oxigraph::io::{RdfFormat, RdfParser};
+use gmeow_rdf::{parse_dataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
 
 /// The gmeow ontology namespace (`config.NAMESPACE` = `ONTOLOGY_IRI + "/"`).
 pub const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -78,11 +77,11 @@ fn turtle_quads(rel_paths: &[String]) -> Vec<RdfQuad> {
         let path = root.join(rel);
         let bytes = std::fs::read(&path)
             .unwrap_or_else(|e| panic!("missing ontology source {}: {e}", path.display()));
-        for quad in RdfParser::from_format(RdfFormat::Turtle).for_reader(bytes.as_slice()) {
-            let quad =
-                quad.unwrap_or_else(|e| panic!("Turtle parse failed for {}: {e}", path.display()));
-            quads.push(rdf_quad_from_oxigraph(&quad));
-        }
+        // Parse through the canonical native codec (#909) directly into the frozen IR;
+        // its `RdfQuad`s feed the scoped closure builder below.
+        let dataset = parse_dataset(&bytes, "text/turtle", None)
+            .unwrap_or_else(|e| panic!("Turtle parse failed for {}: {e}", path.display()));
+        quads.extend(dataset.owned_quads());
     }
     quads
 }
@@ -211,8 +210,8 @@ fn smoke_property_chain_entailment_and_negative() {
 // ── Migrated from tests/test_reasoning_entailments.py ───────────────────────────────────────
 // The native twins of the `_materialize(module, *abox)` positive-entailment tests (#38). The
 // three `reasoning_cases` monkeypatch tests (two-axis / two-kind / run_all order) are NOT migrated
-// — they exercise the Python Docker-orchestration layer (`gmeow_tools.reasoning_cases`), an
-// independent live Python impl with no Rust twin (retain-with-reason, see MIGRATION-LEDGER.md).
+// — they exercise the Python Docker-orchestration layer (`gmeow_tools.oracles.reasoning_cases`),
+// an independent live Python impl with no Rust twin (retain-with-reason, see MIGRATION-LEDGER.md).
 
 #[test]
 fn ancestry_is_derived_not_asserted() {

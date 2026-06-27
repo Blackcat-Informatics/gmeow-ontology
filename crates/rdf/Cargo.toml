@@ -23,8 +23,17 @@ default = ["gts"]
 # `gts` is now DECOUPLED from oxigraph (#885 / purrdf P2b): it enables the GTS
 # adapter surface (re-exported from the ring-fenced `gmeow-rdf-core` kernel via
 # `gmeow-rdf-core/gts`) plus the Ed25519 signer, but no longer pulls oxigraph.
-gts = ["dep:ciborium", "dep:gmeow-gts", "dep:ed25519-dalek", "gmeow-rdf-core/gts"]
-oxigraph = ["dep:oxigraph", "dep:gmeow-rdf-events"]
+# The native RDF text codecs (#909, EPIC #906 S3) ride `gts` so they are always-on
+# for every Rust consumer (`.goals` no-optionality). `rdf-codecs` pulls only the
+# WASM-clean oxttl/oxrdfxml/oxrdf/oxsdatatypes subset — no oxigraph Store — so the
+# `--no-default-features --features gts` build parses/serializes RDF text with no
+# Store dependency.
+gts = ["dep:ciborium", "dep:gmeow-gts", "gmeow-gts/rdf-codecs", "dep:gmeow-rdf-events", "dep:ed25519-dalek", "gmeow-rdf-core/gts"]
+# The oxigraph Store adapter now folds parsed quads through the native `gts`-side
+# statement-layer helper (`native_codecs::fold_statement_layer`, #909), so it
+# requires `gts`. This is a one-directional dep (oxigraph→gts); `gts` itself stays
+# oxigraph-free per the #885 ring-fence.
+oxigraph = ["gts", "dep:oxigraph", "dep:gmeow-rdf-events"]
 # `python` builds the `gmeow_rdf` PyO3 extension (the native statement codec).
 # It is OFF by default so the kernel rlib stays PyO3-free for its Rust consumers
 # (gmeow-logic / gmeow-shacl / gmeow-validate); only maturin enables it. This is
@@ -36,7 +45,10 @@ oxigraph = ["dep:oxigraph", "dep:gmeow-rdf-events"]
 # The PyO3 surface adds the JSON-LD-star (`yaml-ld`) + RDF/XML (`rdf-codecs`)
 # gmeow-gts codecs the compat `Graph.serialize/parse` route through (#834); these
 # stay OFF for the non-python Rust consumers (logic/shacl/validate) to keep them lean.
-python = ["dep:pyo3", "dep:gmeow-xsd", "gts", "oxigraph", "gmeow-gts/yaml-ld", "gmeow-gts/rdf-codecs"]
+# `rdf-codecs` now rides the always-on `gts` feature (#909), so `python` no longer
+# names it here; it keeps only the JSON-LD-star (`yaml-ld`) codec the compat
+# `Graph.serialize/parse` route uses.
+python = ["dep:pyo3", "dep:gmeow-xsd", "gts", "oxigraph", "gmeow-gts/yaml-ld"]
 
 [dependencies]
 # The ring-fenced, oxigraph-free kernel (#885 / purrdf P2b): owns the IR, value
@@ -47,7 +59,7 @@ python = ["dep:pyo3", "dep:gmeow-xsd", "gts", "oxigraph", "gmeow-gts/yaml-ld", "
 gmeow-rdf-core = { path = "../rdf-core", default-features = false }
 gmeow-xsd = { path = "../xsd", optional = true }
 ciborium = { version = "0.2", optional = true }
-gmeow-gts = { version = "0.9.5", optional = true }
+gmeow-gts = { version = "0.9.9", optional = true }
 gmeow-rdf-events = { path = "../rdf-events", optional = true }
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"], optional = true }
 # pyo3 is pulled ONLY by the `python` feature (maturin). Same version/abi3 as the
@@ -62,10 +74,14 @@ ed25519-dalek = { version = "2", optional = true }
 # `use pretty_assertions::assert_eq;` per test file; identical on pass.
 pretty_assertions = "1"
 ciborium = "0.2"
-gmeow-gts = "0.9.5"
+gmeow-gts = "0.9.9"
 # Same oxigraph build the kernel links (rdf-12, no extra codecs) so proptest
 # round-trips drive the identical engine the production codecs use.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+# The native SPARQL evaluator (purrdf S6, #912), used ONLY by the differential
+# parity test (tests/sparql_eval_parity.rs) — kept a DEV-dependency so the native
+# engine's own crate stays oxigraph-free while we diff it against oxigraph here.
+gmeow-sparql-eval = { path = "../sparql-eval" }
 proptest = "1"
 # Acceleration-program baselines (#630/#819 C1 Task 7); light feature set matching
 # the sibling crates (logic/shacl/validate): criterion's plotters/rayon defaults are

@@ -3,22 +3,23 @@
 
 //! Native Rust evaluator for the OntoUML *foundation* disciplines (issue #636).
 //!
-//! This module is the byte-faithful Rust port of the Python *foundation oracle*
-//! (`gmeow_tools.logic_foundation` + the `enable_naf` path of
-//! `gmeow_tools.logic_materialize._chase_world`).  It lowers five OntoUML
+//! This module is the **canonical** native evaluator for the OntoUML *foundation*
+//! disciplines.  (The Python foundation oracle that preceded it —
+//! `logic_foundation.py` plus the `enable_naf` chase path of
+//! `logic_materialize.py` — was retired in #636/#497.)  It lowers five OntoUML
 //! structural disciplines into a small stratified Datalog program with
 //! negation-as-failure and inequality guards, runs that program *per world* as a
 //! semi-naive chase, and then applies two cross-world post-passes (positive
 //! cross-world rigidity and the anti-rigidity witness policy).
 //!
-//! # Parity is the whole point
+//! # Canonical evaluation contract
 //!
 //! The materialized quad *set* alone is not enough: the explanation goldens are
 //! content-addressed by **derivation IRIs**, and a derivation IRI is
 //! `mint_derivation_id(rule_iri, sorted(source_reifiers))`.  For a quad derivable
-//! by more than one rule firing, the Python oracle records the **first** firing
-//! under its evaluation order (first-wins dedup).  To reproduce the same
-//! derivation IRIs by construction this evaluator mirrors that order exactly:
+//! by more than one rule firing, this crate records the **first** firing under its
+//! evaluation order (first-wins dedup).  The following ordering constraints are
+//! this crate's normative contract:
 //!
 //! 1. **Stratum order** — the foundation rules are partitioned into the same five
 //!    strata the certifier's `stratify` produces (helpers/markers before the
@@ -59,15 +60,15 @@ use crate::store::WorldStore;
 /// Matches `gmeow_tools.config.LOGIC_NAMESPACE`.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 
-/// The `rdf:type` predicate IRI (string form), matching `logic_foundation._RDF_TYPE`.
+/// The `rdf:type` predicate IRI (string form).
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /// Sentinel rule IRI stamped on asserted (input) quads (`logic:assert`).
 pub const ASSERT_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/assert";
 
 /// Rule IRI stamped on every in-world foundation rule firing.  The foundation
-/// rules carry no `scope.provenance`, so the Python chase stamps them all with
-/// `logic:rule/anonymous` (see `_chase_world`).
+/// rules carry no `scope.provenance`, so this evaluator stamps them all with
+/// `logic:rule/anonymous`.
 const ANON_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/rule/anonymous";
 
 /// Rule IRI for the cross-world rigidity closure pass (`logic:rule/cross-world-rigidity`).
@@ -78,25 +79,22 @@ const ANTI_RIGIDITY_RULE_IRI: &str =
     "https://blackcatinformatics.ca/logic/rule/anti-rigidity-witness";
 
 /// The semantic-profile IRI stamped on every emitted quad — the only profile the
-/// v1 oracle applies.  Matches `py.rs::ASSERTED_PROFILE` and the Python
-/// `_LOGIC_NS + str(SemanticProfileId.POSITIVE_HORN)`.
+/// v1 oracle applies.  Matches `py.rs::ASSERTED_PROFILE`.
 const PROFILE_IRI: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
 
 /// Budget status stamped on every quad — this evaluator runs to full fixpoint with
-/// no budget ceiling, so every quad is `"ok"` (matching the unbounded oracle path).
+/// no budget ceiling, so every quad is `"ok"`.
 const BUDGET_OK: &str = "ok";
 
-/// Rigid sortals (supply / inherit a principle of identity).  Mirrors
-/// `logic_foundation._RIGID_SORTALS`; the **primary** rigid-type path.
+/// Rigid sortals (supply / inherit a principle of identity) — the **primary**
+/// rigid-type path.
 const RIGID_SORTALS: [&str; 2] = ["Kind", "SubKind"];
 
-/// Anti-rigid sortals (classify instances only contingently).  Mirrors
-/// `logic_foundation._ANTI_RIGID_SORTALS`.
+/// Anti-rigid sortals (classify instances only contingently).
 const ANTI_RIGID_SORTALS: [&str; 2] = ["Phase", "Role"];
 
 /// Marker the schema may carry to declare a type rigid explicitly (honoured in
-/// addition to the stereotype-derived path).  Mirrors
-/// `logic_foundation._P_RIGIDLY_APPLIES_TO`.
+/// addition to the stereotype-derived path).
 const RIGIDLY_APPLIES_TO: &str = "https://blackcatinformatics.ca/logic/rigidlyAppliesTo";
 
 // ── Anti-rigidity witness policy ────────────────────────────────────────────────
@@ -500,6 +498,192 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
+    // ── Holonic governance: override marker (issue #706, C3) ─────────────────────────
+    // The positive, derivation-grounded face of downward constraint, mirroring the C2
+    // aggregate marker.  A logic:DownwardConstraint is OVERRIDDEN when it names an
+    // override token (constraintOverride) and the constrained target actually bears
+    // that token (bearsProperty) — the join on the SAME ?Ov is what gates this, so only
+    // the DECLARED override can fire it, never an unrelated property assertion.  It
+    // settles in stratum 1 so the binding rule's NAF over it (stratum 3) is stratified.
+    //
+    // overriddenConstraint(?C, ?C) :- constraintWhole(?C, ?W), constraintTarget(?C, ?P),
+    //     constraintOverride(?C, ?Ov), bearsProperty(?P, ?Ov)
+    //
+    // The constraintWhole(?C, ?W) pattern binds ?W without reusing it on purpose: it is a
+    // well-formedness existence guard kept symmetric with the binding (stratum 3) and unknown
+    // (stratum 4) rules, which both require a declared whole.  Without it a whole-less constraint
+    // could be Overridden yet never Binding/Unknown, breaking the closed-trichotomy contract —
+    // so a malformed constraint correctly receives no verdict.
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("overriddenConstraint")),
+            var("?C"),
+        ),
+        body: &[
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintWhole")),
+                var("?W"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintTarget")),
+                var("?P"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintOverride")),
+                var("?Ov"),
+            ),
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?Ov"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic agency: the two co-equal tendency markers (issue #707, C4) ────────────
+    // Koestler's Janus-faced holon carries a self-assertive (autonomy-as-a-whole) and an
+    // integrative (subordination-as-a-part) tendency.  These are CO-EQUAL vantage facets
+    // (Principle 9): the two markers are built by IDENTICAL rules — a holon evidences a
+    // tendency when its declared logic:HolonicAgencyProfile carries a basis value (the
+    // selfAssertiveBasis / integrativeBasis twin) and the holon bears that value — so
+    // neither face is privileged in the vocabulary or the firing order.  Both settle in
+    // stratum 1 so the pathology NAF (stratum 3) and the unknown NAF (stratum 4) are
+    // stratified.  Inert on inputs with no logic:AgencyAssessment.  Agency is a DECLARED
+    // profile a holarchy adopts, not a universal rule (#775).  (LOGIC-FOUNDATION.md
+    // §mereology+holons.)
+    //
+    // selfAssertive(?A, ?A) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
+    //     selfAssertiveBasis(?Pr, ?V), bearsProperty(?H, ?V)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("selfAssertive")),
+            var("?A"),
+        ),
+        body: &[
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyHolon")),
+                var("?H"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyProfile")),
+                var("?Pr"),
+            ),
+            pos(
+                var("?Pr"),
+                TermPat::Const(logic_iri!("selfAssertiveBasis")),
+                var("?V"),
+            ),
+            pos(
+                var("?H"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?V"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // integrative(?A, ?A) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
+    //     integrativeBasis(?Pr, ?V), bearsProperty(?H, ?V)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("integrative")),
+            var("?A"),
+        ),
+        body: &[
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyHolon")),
+                var("?H"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyProfile")),
+                var("?Pr"),
+            ),
+            pos(
+                var("?Pr"),
+                TermPat::Const(logic_iri!("integrativeBasis")),
+                var("?V"),
+            ),
+            pos(
+                var("?H"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?V"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic level coherence: position presence marker (issue #708, C5) ───────────
+    // A holon's logic:holonicLevel (mereological compositional depth) is READ OFF its
+    // logic:HolonicPosition — the canonical relational construct of which logic:Holon
+    // and a level are lossy projections (see logic:Holon / logic:holonicLevel defs).
+    // The level itself is a literal (xsd:nonNegativeInteger), and the foundation chase
+    // is all-IRI (no literal facts), so coherence is keyed on the IRI-valued canonical
+    // construct: a holon "is levelled" exactly when it occupies a logic:HolonicPosition,
+    // i.e. some position reifier P has logic:positionEntity(P, ?X).  Without a position
+    // there is no path along which a depth could be measured, so the level is incoherent.
+    //
+    // NON-CONFLATION: this marker is fed ONLY by logic:positionEntity (the mereological
+    // position axis).  logic:instanceOf / logic:orderedType (the HiLog deep-instantiation
+    // order — the type tower) do NOT feed it; an entity high in the instantiation tower
+    // but occupying no holonic position still fails the stratum-4 NAF and is charged,
+    // because instantiation order is not a mereological level.  Settles in stratum 1 so
+    // the stratum-4 NAF is stratified.  (LOGIC-FOUNDATION.md §mereology+holons.)
+    //
+    // hasHolonicPosition(?X, ?X) :- positionEntity(?P, ?X)
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("hasHolonicPosition")),
+            var("?X"),
+        ),
+        body: &[pos(
+            var("?P"),
+            TermPat::Const(logic_iri!("positionEntity")),
+            var("?X"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // multiplyPositioned(?X, ?X) :- positionEntity(?P1, ?X), positionEntity(?P2, ?X)  [?P1 != ?P2]
+    //
+    // ME9 (#775), the positive companion to the stratum-4 logic:HolonicLevelIncoherence
+    // (which fires for a profiled holon occupying NO position).  This marker fires when an
+    // entity occupies TWO OR MORE distinct logic:HolonicPositions — the structural signature
+    // of a DAG node sitting on several paths through a holarchy, so its logic:holonicLevel is
+    // genuinely path-relative (two paths may place it at different depths, both correct) and a
+    // non-trivial logic:holonicLevelMin..Max band exists.  It grounds only the band's
+    // EXISTENCE: the all-IRI stratified chase has no numeric comparison, so it cannot derive
+    // or check the band's integer endpoints (those stay operator-asserted EDB).  Keyed on the
+    // position reifiers via positionEntity (position-subject, entity-object), distinct by the
+    // ?P1≠?P2 guard.  Depends only on the EDB position axis, so it settles in stratum 1.
+    // (LOGIC-FOUNDATION.md §mereology+holons.)
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("multiplyPositioned")),
+            var("?X"),
+        ),
+        body: &[
+            pos(
+                var("?P1"),
+                TermPat::Const(logic_iri!("positionEntity")),
+                var("?X"),
+            ),
+            pos(
+                var("?P2"),
+                TermPat::Const(logic_iri!("positionEntity")),
+                var("?X"),
+            ),
+        ],
+        distinct_pairs: &[("?P1", "?P2")],
+    },
 ];
 
 const STRATUM_2: &[Rule] = &[
@@ -606,6 +790,62 @@ const STRATUM_2: &[Rule] = &[
             TermPat::Const(logic_iri!("aggregateAssessed")),
             var("?A"),
         )],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic governance: overridden verdict projection (issue #706, C3) ───────────
+    // constraintVerdict(?C, logic:ConstraintOverridden) :- overriddenConstraint(?C, ?C)
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("constraintVerdict")),
+            TermPat::Const(logic_iri!("ConstraintOverridden")),
+        ),
+        body: &[pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("overriddenConstraint")),
+            var("?C"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic agency: integral verdict projection (issue #707, C4) ─────────────────
+    // The positive, derivation-grounded verdict, mirroring the C2 Aggregate and C3
+    // Overridden projections: a holon is INTEGRAL when BOTH co-equal tendency markers
+    // hold — it asserts itself as a whole AND subordinates itself as a part.  The
+    // agencyHolon/agencyProfile atoms re-bind the well-formedness existence guard kept
+    // symmetric across all four verdict rules, so a malformed assessment (no holon or no
+    // profile) provably receives no verdict.  Both markers settle in stratum 1, so this
+    // pure-positive rule sits correctly in stratum 2.
+    //
+    // agencyVerdict(?A, logic:HolonIntegral) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
+    //     selfAssertive(?A, ?A), integrative(?A, ?A)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("agencyVerdict")),
+            TermPat::Const(logic_iri!("HolonIntegral")),
+        ),
+        body: &[
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyHolon")),
+                var("?H"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyProfile")),
+                var("?Pr"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("selfAssertive")),
+                var("?A"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("integrative")),
+                var("?A"),
+            ),
+        ],
         distinct_pairs: NO_GUARD,
     },
 ];
@@ -779,6 +1019,154 @@ const STRATUM_3: &[Rule] = &[
             TermPat::Const(logic_iri!("emergentAssessed")),
             var("?A"),
         )],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic governance: binding marker (issue #706, C3) ──────────────────────────
+    // A downward constraint BINDS its named target by negation-as-failure over the
+    // override derivation, WHILE the constraint still binds a declared logic:GovernanceRegime
+    // (?R) whose activationBasis carries the constrained state (?S) — so the verdict is
+    // regime-relative, never a bare "unconstrained" default.  NON-TRANSITIVE by default
+    // (#775): the constraint is read only for the explicitly named ?P (a proper part of
+    // ?W); there is no rule cascading it to ?P's own sub-parts.  overriddenConstraint
+    // settles in stratum 1, so the NAF is stratified; ?C/?W/?P/?S/?R are all positively
+    // bound, so the rule is DL-safe.
+    //
+    // bindingConstraint(?C, ?C) :- constraintWhole(?C, ?W), constraintTarget(?C, ?P),
+    //     constraintState(?C, ?S), constraintRegime(?C, ?R), properPartOf(?P, ?W),
+    //     activationBasis(?R, ?S), NOT overriddenConstraint(?C, ?C)
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("bindingConstraint")),
+            var("?C"),
+        ),
+        body: &[
+            neg(
+                var("?C"),
+                TermPat::Const(logic_iri!("overriddenConstraint")),
+                var("?C"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintWhole")),
+                var("?W"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintTarget")),
+                var("?P"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintState")),
+                var("?S"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintRegime")),
+                var("?R"),
+            ),
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?W"),
+            ),
+            pos(
+                var("?R"),
+                TermPat::Const(logic_iri!("activationBasis")),
+                var("?S"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // constraintVerdict(?C, logic:ConstraintBinding) :- bindingConstraint(?C, ?C)
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("constraintVerdict")),
+            TermPat::Const(logic_iri!("ConstraintBinding")),
+        ),
+        body: &[pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("bindingConstraint")),
+            var("?C"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic agency: the two co-equal pathology verdicts (issue #707, C4) ──────────
+    // Koestler's two pathologies, each the collapse of ONE tendency, reached by
+    // negation-as-failure over the corresponding stratum-1 marker WHILE the opposite
+    // marker still holds — so each verdict is profile-relative, never a bare default.
+    // The two rules are MIRROR IMAGES settling in the same stratum, so the duality is
+    // genuinely co-equal rather than one tendency defaulting to the other.  selfAssertive
+    // and integrative settle in stratum 1, so the NAF is stratified; ?A/?H/?Pr are all
+    // positively bound, so each rule is DL-safe.  Every verdict rule re-binds the
+    // agencyHolon/agencyProfile well-formedness guard.
+    //
+    // agencyVerdict(?A, logic:AutonomyDeficient) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
+    //     integrative(?A, ?A), NOT selfAssertive(?A, ?A)
+    // The first pathology — a "part" with no autonomy: it integrates but does not assert itself.
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("agencyVerdict")),
+            TermPat::Const(logic_iri!("AutonomyDeficient")),
+        ),
+        body: &[
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("selfAssertive")),
+                var("?A"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyHolon")),
+                var("?H"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyProfile")),
+                var("?Pr"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("integrative")),
+                var("?A"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // agencyVerdict(?A, logic:IntegrationDeficient) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
+    //     selfAssertive(?A, ?A), NOT integrative(?A, ?A)
+    // The second pathology — a "whole" refusing to integrate: it asserts itself but does not subordinate.
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("agencyVerdict")),
+            TermPat::Const(logic_iri!("IntegrationDeficient")),
+        ),
+        body: &[
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("integrative")),
+                var("?A"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyHolon")),
+                var("?H"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyProfile")),
+                var("?Pr"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("selfAssertive")),
+                var("?A"),
+            ),
+        ],
         distinct_pairs: NO_GUARD,
     },
 ];
@@ -987,6 +1375,53 @@ const STRATUM_4: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
+    // ── Holonic level coherence: incoherence violation (issue #708, C5) ─────────────────
+    // PROFILE-SCOPED, exactly like weak supplementation (and per #775 profile-relativity):
+    // a holon (isHolon — both a proper part of some whole AND itself has a proper part) is
+    // charged with this coherence violation ONLY when it is declared under a mereology
+    // profile (underMereologyProfile) yet occupies NO logic:HolonicPosition.  A holon
+    // outside any logic:MereologyProfile is NEVER charged — parthood is profiled, not
+    // universal, and a holonic level is path-relative (a min/max band), optional outside a
+    // profile.  logic:holonicLevel is a literal read off the holon's logic:HolonicPosition;
+    // the foundation chase is all-IRI, so coherence is keyed on the IRI-valued canonical
+    // construct (hasHolonicPosition) rather than the literal level: a profiled holon with no
+    // position has no path along which a depth could be measured, so its level is incoherent.
+    // The NAF target hasHolonicPosition settles in stratum 1 (armed by logic:positionEntity),
+    // isHolon also settles in stratum 1, and underMereologyProfile is an asserted EDB
+    // relation, so the negation is stratified — this mirrors the weak-supplementation
+    // violation exactly.  ?X is positively bound by isHolon(?X, ?X) and
+    // underMereologyProfile(?X, ?M), so the rule is DL-safe.
+    //
+    // CRITICAL NON-CONFLATION: logic:instanceOf / logic:orderedType (HiLog deep-instantiation
+    // order — the type tower) do NOT feed hasHolonicPosition — the two axes are orthogonal.
+    // A profiled holon high in the instantiation tower but occupying no holonic position
+    // still fires this violation, because mereological compositional depth (read off a
+    // logic:HolonicPosition in a whole/part DAG) and instantiation-tower order must not be
+    // conflated.  (LOGIC-FOUNDATION.md §mereology+holons.)
+    //
+    // violation(?X, logic:HolonicLevelIncoherence) :- isHolon(?X, ?X),
+    //     underMereologyProfile(?X, ?M), NOT hasHolonicPosition(?X, ?X)
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("violation")),
+            TermPat::Const(logic_iri!("HolonicLevelIncoherence")),
+        ),
+        body: &[
+            pos(var("?X"), TermPat::Const(logic_iri!("isHolon")), var("?X")),
+            pos(
+                var("?X"),
+                TermPat::Const(logic_iri!("underMereologyProfile")),
+                var("?M"),
+            ),
+            neg(
+                var("?X"),
+                TermPat::Const(logic_iri!("hasHolonicPosition")),
+                var("?X"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
     // ── Holonic emergence: unknown verdict (issue #705, C2) ──────────────────────────
     // ME9's first-class third value: the whole bears the property under assessment, but
     // neither an aggregate reduction nor a theory-relative emergence verdict is derivable
@@ -1029,6 +1464,96 @@ const STRATUM_4: &[Rule] = &[
                 var("?W"),
                 TermPat::Const(logic_iri!("bearsProperty")),
                 var("?Pv"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic governance: unknown verdict (issue #706, C3) ─────────────────────────
+    // The first-class third value: the constraint names a target that is a proper part
+    // of the governing whole, but neither an override-defeat nor a regime-relative
+    // binding is derivable (no constraintRegime activates the state), so the binding
+    // question cannot be posed — an un-activated constraint is never silently read as
+    // binding.  Both NAF targets (overriddenConstraint S1, bindingConstraint S3) are
+    // settled below stratum 4, so the negation is stratified; ?C/?W/?P are positively
+    // bound, so the rule is DL-safe.
+    //
+    // constraintVerdict(?C, logic:ConstraintUnknown) :- constraintWhole(?C, ?W),
+    //     constraintTarget(?C, ?P), properPartOf(?P, ?W),
+    //     NOT overriddenConstraint(?C, ?C), NOT bindingConstraint(?C, ?C)
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("constraintVerdict")),
+            TermPat::Const(logic_iri!("ConstraintUnknown")),
+        ),
+        body: &[
+            neg(
+                var("?C"),
+                TermPat::Const(logic_iri!("overriddenConstraint")),
+                var("?C"),
+            ),
+            neg(
+                var("?C"),
+                TermPat::Const(logic_iri!("bindingConstraint")),
+                var("?C"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintWhole")),
+                var("?W"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintTarget")),
+                var("?P"),
+            ),
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?W"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic agency: unknown verdict (issue #707, C4) ─────────────────────────────
+    // The first-class fourth value: the assessment names a holon and a profile, but the
+    // holon evidences NEITHER tendency — neither the self-assertive nor the integrative
+    // marker can fire — so the integrity question has no positive footing.  This subsumes
+    // the "cannot pose the question" case: it fires both when the holon bears no basis
+    // value and when the profile declares no basis at all (no marker can derive), so a
+    // basis-free profile is unknown, not deficient.  Both NAF targets (selfAssertive,
+    // integrative) settle in stratum 1, below stratum 4, so the negation is stratified;
+    // ?A/?H/?Pr are positively bound, so the rule is DL-safe.  agencyHolon/agencyProfile
+    // are the well-formedness existence guard symmetric with the other three verdict rules.
+    //
+    // agencyVerdict(?A, logic:AgencyUnknown) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
+    //     NOT selfAssertive(?A, ?A), NOT integrative(?A, ?A)
+    Rule {
+        head: pos(
+            var("?A"),
+            TermPat::Const(logic_iri!("agencyVerdict")),
+            TermPat::Const(logic_iri!("AgencyUnknown")),
+        ),
+        body: &[
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("selfAssertive")),
+                var("?A"),
+            ),
+            neg(
+                var("?A"),
+                TermPat::Const(logic_iri!("integrative")),
+                var("?A"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyHolon")),
+                var("?H"),
+            ),
+            pos(
+                var("?A"),
+                TermPat::Const(logic_iri!("agencyProfile")),
+                var("?Pr"),
             ),
         ],
         distinct_pairs: NO_GUARD,
@@ -1541,7 +2066,7 @@ fn join_body(
 // ── Per-world chase ──────────────────────────────────────────────────────────────
 
 /// Run the stratified semi-naive chase in one world, producing asserted + derived
-/// quads with full provenance.  Mirrors `_chase_world` with `enable_naf=True`.
+/// quads with full provenance, with NAF (negation-as-failure) enabled.
 ///
 /// # Winner selection (quality-ordered total-order tiebreak)
 ///
@@ -1582,7 +2107,7 @@ fn chase_world(world_iri: &str, initial: &[Fact]) -> Result<Vec<FoundationQuad>,
 
     for stratum in STRATA {
         // Reset delta to ALL current facts so this stratum re-derives against
-        // everything settled below it (mirrors `_chase_world`'s per-stratum reset).
+        // everything settled below it (per-stratum reset).
         let mut delta: HashSet<(String, String, String)> = store.keys.clone();
 
         loop {

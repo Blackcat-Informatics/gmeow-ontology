@@ -1,0 +1,70 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+name: Publish purrdf to npm
+
+# DORMANT until configured. Publishes the `purrdf` wasm package (the RDF/JS engine,
+# parcel P10 / #846) to the npm registry. It runs ONLY on a `js/purrdf/v*` tag (or a
+# manual dispatch) AND only succeeds once the `npm-purrdf` environment + an `NPM_TOKEN`
+# secret are configured — so it is inert in normal CI and on PRs. Mirrors the
+# pypi-publish-gmeow workflow.
+
+permissions: {}
+
+on:
+  push:
+    tags:
+      - "js/purrdf/v*"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: npm-purrdf
+    permissions:
+      contents: read
+      # npm provenance (OIDC) — the publish is attested to this workflow run.
+      id-token: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install Rust (nightly + wasm32)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-bindgen-cli (pinned to the crate version)
+        uses: taiki-e/install-action@b8cecb83565409bcc297b2df6e77f030b2a468d5 # v2
+        with:
+          tool: wasm-bindgen-cli@0.2.125
+
+      - name: Build the purrdf package (release wasm + bindings)
+        run: make wasm-pkg
+
+      - name: Node real-execution round-trip lane
+        run: cd crates/rdf-wasm/js && node --test tests/*.test.mjs
+
+      - name: Verify the tag matches package.json
+        if: github.event_name == 'push'
+        run: |
+          pkg_version=$(node -p "require('./crates/rdf-wasm/js/package.json').version")
+          tag_version="${GITHUB_REF_NAME#js/purrdf/v}"
+          if [[ "$pkg_version" != "$tag_version" ]]; then
+            echo "::error::tag version ($tag_version) != package.json version ($pkg_version)"
+            exit 1
+          fi
+
+      - name: Publish to npm with provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [[ -z "${NODE_AUTH_TOKEN:-}" ]]; then
+            echo "::error::NPM_TOKEN secret is not configured — publishing stays dormant until it is set"
+            exit 1
+          fi
+          cd crates/rdf-wasm/js
+          npm config set //registry.npmjs.org/:_authToken "${NODE_AUTH_TOKEN}"
+          npm publish --provenance --access public

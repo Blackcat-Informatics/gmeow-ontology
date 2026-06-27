@@ -27,6 +27,20 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
+                edoal:uri gmeow:depicts ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri foaf:depiction ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "depicting MediaObject → foaf:depiction (entity → image)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
                 edoal:uri gmeow:fullName ;
             ] ;
             align:entity2 [
@@ -44,15 +58,29 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:hasLogo ;
+                edoal:uri gmeow:hasAuthor ;
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri foaf:logo ;
+                edoal:uri foaf:maker ;
             ] ;
             align:relation "<=" ;
-            edoal:measure "0.95"^^xsd:double ;
-            rdfs:label "hasLogo → foaf:logo"@en ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "hasAuthor → foaf:maker (+ foaf:made inverse)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasContactPoint ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri foaf:mbox ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "contact-point email address → foaf:mbox"@en ;
         ] ,
         [
             a align:Cell ;
@@ -75,6 +103,34 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
+                edoal:uri gmeow:hasLogo ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri foaf:logo ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.95"^^xsd:double ;
+            rdfs:label "hasLogo → foaf:logo"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasMet ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri foaf:knows ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.8"^^xsd:double ;
+            rdfs:label "kinship/hasMet between persons → foaf:knows"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
                 edoal:uri gmeow:hasName ;
             ] ;
             align:entity2 [
@@ -87,6 +143,34 @@
                 rdfs:seeAlso gmeow:fnNicknameName ;
             ] ;
             rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasNetworkAddress ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri foaf:page ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.8"^^xsd:double ;
+            rdfs:label "NetworkAddress (URL type) → foaf:page"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasRole ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri foaf:title ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "membership role label → foaf:title (job/honorific title)"@en ;
         ] ,
         [
             a align:Cell ;
@@ -123,15 +207,14 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:hasNetworkAddress ;
+                edoal:uri gmeow:partText ;
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri foaf:page ;
+                edoal:uri foaf:familyName ;
             ] ;
             align:relation "<=" ;
-            edoal:measure "0.8"^^xsd:double ;
-            rdfs:label "NetworkAddress (URL type) → foaf:page"@en ;
+            rdfs:label "family-name part → foaf:familyName"@en ;
         ] ,
         [
             a align:Cell ;
@@ -150,47 +233,6 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:partText ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri foaf:familyName ;
-            ] ;
-            align:relation "<=" ;
-            rdfs:label "family-name part → foaf:familyName"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:hasMet ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri foaf:knows ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.8"^^xsd:double ;
-            rdfs:label "kinship/hasMet between persons → foaf:knows"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:hasAuthor ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri foaf:maker ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "hasAuthor → foaf:maker (+ foaf:made inverse)"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
                 edoal:uri gmeow:telephone ;
             ] ;
             align:entity2 [
@@ -200,48 +242,6 @@
             align:relation "<=" ;
             edoal:measure "0.85"^^xsd:double ;
             rdfs:label "telephone → foaf:phone (tel: resource)"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:hasContactPoint ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri foaf:mbox ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "contact-point email address → foaf:mbox"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:hasRole ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri foaf:title ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "membership role label → foaf:title (job/honorific title)"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:depicts ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri foaf:depiction ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "depicting MediaObject → foaf:depiction (entity → image)"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

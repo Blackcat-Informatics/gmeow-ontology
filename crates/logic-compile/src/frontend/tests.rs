@@ -1,0 +1,802 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Tests for the front-end parser, driven by Turtle source strings.  These are
+//! the authoritative parser tests; the Python `tests/test_logic_frontend.py` they
+//! superseded was retired in #727.
+
+use super::*;
+use crate::ir::LogicModality;
+
+const PREFIXES: &str = "\
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/test/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+";
+
+fn parse(ttl: &str) -> (LogicProgram, Vec<Diagnostic>) {
+    let full = format!("{PREFIXES}{ttl}");
+    parse_logic_str(&full, Some("https://example.org/prog".to_owned())).expect("parse ok")
+}
+
+fn has_axiom(
+    prog: &LogicProgram,
+    subj_suffix: &str,
+    pred_local: &str,
+    modality: LogicModality,
+) -> bool {
+    prog.axioms.iter().any(|a| {
+        a.subject.ends_with(subj_suffix)
+            && a.predicate.ends_with(pred_local)
+            && a.scope.modality == modality
+    })
+}
+
+// ── Empty / error paths ──────────────────────────────────────────────────────
+
+#[test]
+fn parse_empty_graph_raises() {
+    let err = parse_logic_str(PREFIXES, None).unwrap_err();
+    assert!(err.0.contains("empty"), "got: {}", err.0);
+}
+
+#[test]
+fn parse_nonexistent_file_raises() {
+    let err = parse_logic_path(Path::new("/no/such/file-xyz.ttl"), None).unwrap_err();
+    assert!(err.0.contains("does not exist"));
+}
+
+#[test]
+fn parse_invalid_turtle_raises() {
+    let err = parse_logic_str("this is not turtle <<<", None).unwrap_err();
+    assert!(err.0.contains("Failed to parse"));
+}
+
+// ── Minimal graph + reasoning contracts (#767) ───────────────────────────────
+
+#[test]
+fn parse_minimal_graph_succeeds() {
+    let (prog, diags) = parse(
+        "ex:Person a logic:Kind .
+         logic:PositiveHornProfile a logic:ReasoningPreset .",
+    );
+    assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
+    assert!(has_axiom(&prog, "/Person", "#type", LogicModality::None));
+    assert_eq!(prog.contracts.len(), 1);
+    assert_eq!(
+        prog.contracts[0].preset,
+        Some(SemanticProfileId::PositiveHorn)
+    );
+    assert_eq!(prog.source_iri.as_deref(), Some("https://example.org/prog"));
+}
+
+#[test]
+fn parse_multiple_contracts_with_complexity() {
+    let (prog, _) = parse(
+        "logic:PositiveHornProfile a logic:ReasoningPreset ;
+            logic:complexityClass \"PTIME\" .
+         logic:StableModelProfile a logic:ReasoningPreset .",
+    );
+    assert_eq!(prog.contracts.len(), 2);
+    let horn = prog
+        .contracts
+        .iter()
+        .find(|c| c.preset == Some(SemanticProfileId::PositiveHorn))
+        .unwrap();
+    assert_eq!(horn.complexity.as_ref().unwrap().to_string(), "PTIME");
+}
+
+#[test]
+fn unknown_semantic_profile_emits_diagnostic() {
+    let (prog, diags) = parse("ex:Bogus a logic:ReasoningPreset .");
+    assert!(prog.contracts.is_empty());
+    assert!(diags.iter().any(|d| d.code == "UNKNOWN_PROFILE"));
+}
+
+#[test]
+fn unknown_semantic_profile_is_a_hard_error() {
+    // Greenfield (reviewer C3): an unrecognised preset reference is a hard error,
+    // not a fail-soft warning — otherwise it is a silent approximation.
+    let (_, diags) = parse("ex:Bogus a logic:ReasoningPreset .");
+    assert!(diags
+        .iter()
+        .any(|d| d.code == "UNKNOWN_PROFILE" && d.severity == Severity::Error));
+}
+
+// ── Compatibility firewall (#767, Task 3 / reviewer C3) ──────────────────────
+
+#[test]
+fn unsupported_contract_is_a_hard_compile_failure() {
+    // A contract pairing logic:ProbabilisticMeasure with logic:StableModelSemantics
+    // is a forbidden combination; it MUST surface as a Severity::Error so the
+    // compile Report is not ok and the program is never treated as soundly
+    // evaluable.  Parallel to the cut-confinement firewall discipline.
+    let (_, diags) = parse(
+        "ex:UnsupportedContract a logic:ReasoningContract ;
+            logic:modelSemantics logic:StableModelSemantics ;
+            logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+         logic:StableModelSemantics a logic:ModelSemantics .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .",
+    );
+    let unsupported: Vec<_> = diags
+        .iter()
+        .filter(|d| d.code == "UNSUPPORTED_CONTRACT")
+        .collect();
+    assert!(
+        unsupported.iter().any(|d| d.severity == Severity::Error),
+        "expected a Severity::Error UNSUPPORTED_CONTRACT finding; got: {diags:?}"
+    );
+}
+
+#[test]
+fn supported_contract_compiles_clean() {
+    // A clean stable-model contract (no probabilistic measure) is supported.
+    let (_, diags) = parse(
+        "ex:CleanContract a logic:ReasoningContract ;
+            logic:modelSemantics logic:StableModelSemantics ;
+            logic:negationOperator logic:DefaultNegation .
+         logic:StableModelSemantics a logic:ModelSemantics .
+         logic:DefaultNegation a logic:NegationOperator .",
+    );
+    assert!(
+        !diags.iter().any(|d| d.code == "UNSUPPORTED_CONTRACT"),
+        "clean contract should not be flagged unsupported; got: {diags:?}"
+    );
+}
+
+#[test]
+fn probabilistic_measure_without_model_is_unsupported() {
+    // Reviewer C4: a probabilistic measure with NO declared logic:ProbabilityModel
+    // is a hard error (never a silent independence assumption).
+    let (_, diags) = parse(
+        "ex:ProbContract a logic:ReasoningContract ;
+            logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNSUPPORTED_CONTRACT" && d.severity == Severity::Error),
+        "probabilistic measure without a model must be a hard error; got: {diags:?}"
+    );
+}
+
+#[test]
+fn paraconsistent_valuation_under_counterfactual_revision_is_a_hard_compile_failure() {
+    // Forbidden combo (RuleNoParaconsistentCounterfactualRevision), exercised end-to-end
+    // through the front-end: a gap/glut-admitting admissible valuation cannot coexist with
+    // counterfactual entrenchment revision. The closest-world generator that builds the
+    // counterfactual states is undefined over gappy/glutty valuations, so the compile Report
+    // must be not ok — never a silent approximation.
+    let (_, diags) = parse(
+        "ex:ParaCfContract a logic:ReasoningContract ;
+            logic:admissibleValuation logic:AdmitAllFour ;
+            logic:revision logic:EntrenchmentRevision .
+         logic:AdmitAllFour a logic:AdmissibleValuationPolicy .
+         logic:EntrenchmentRevision a logic:RevisionPolicy .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNSUPPORTED_CONTRACT" && d.severity == Severity::Error),
+        "paraconsistent valuation under counterfactual revision must be a hard error; got: {diags:?}"
+    );
+}
+
+#[test]
+fn closed_world_closure_under_counterfactual_revision_is_a_hard_compile_failure() {
+    // Forbidden combo (RuleNoClosedWorldInCounterfactual), exercised end-to-end: a
+    // closed-world (negation-by-absence) default closure cannot coexist with counterfactual
+    // entrenchment revision, whose generated states are open-ended. Reading absence as
+    // falsehood inside them is unsound, so the compile Report must be not ok.
+    let (_, diags) = parse(
+        "ex:CwaCfContract a logic:ReasoningContract ;
+            logic:defaultClosure logic:ClosedWorldClosure ;
+            logic:revision logic:EntrenchmentRevision .
+         logic:ClosedWorldClosure a logic:ClosureValue .
+         logic:EntrenchmentRevision a logic:RevisionPolicy .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNSUPPORTED_CONTRACT" && d.severity == Severity::Error),
+        "closed-world closure under counterfactual revision must be a hard error; got: {diags:?}"
+    );
+}
+
+#[test]
+fn probabilistic_measure_with_declared_model_is_supported() {
+    // With a declared logic:ProbabilityModel the probabilistic measure is fine.
+    let (_, diags) = parse(
+        "ex:ProbContract a logic:ReasoningContract ;
+            logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .
+         ex:myModel a logic:ProbabilityModel .",
+    );
+    assert!(
+        !diags.iter().any(|d| d.code == "UNSUPPORTED_CONTRACT"),
+        "probabilistic measure with a declared model is supported; got: {diags:?}"
+    );
+}
+
+// ── Meta-config does not leak into domain axioms (#767, Gap 1) ───────────────
+
+#[test]
+fn contract_facet_config_does_not_leak_into_domain_axioms() {
+    // A logic:ReasoningPreset's facet-config triples (expandsToFacet, defaultClosure,
+    // …) are contract configuration consumed by extract_contracts — they MUST NOT
+    // surface as domain LogicAxioms (which would pollute the Datalog / N3 / ledger
+    // projections). A genuine domain triple alongside them still survives.
+    let (prog, diags) = parse(
+        "logic:PositiveHornProfile a logic:ReasoningPreset ;
+            logic:expandsToFacet logic:ProceduralExecution ;
+            logic:defaultClosure logic:OpenWorldClosure .
+         logic:ProceduralExecution a logic:ResourcePolicy .
+         logic:OpenWorldClosure a logic:ClosureValue .
+         ex:Bird logic:subClassOf ex:Animal .",
+    );
+    assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
+
+    // The genuine domain triple survives.
+    assert!(
+        prog.axioms
+            .iter()
+            .any(|a| a.subject.ends_with("/Bird") && a.predicate.ends_with("subClassOf")),
+        "domain axiom must survive; got: {:?}",
+        prog.axioms
+    );
+
+    // ZERO facet-config axioms leaked.
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.predicate.ends_with("expandsToFacet")
+                || a.predicate.ends_with("defaultClosure")),
+        "no facet-config triple may leak into prog.axioms; got: {:?}",
+        prog.axioms
+    );
+}
+
+// ── Malformed ClosureEntry hard-fail (#767, Gap 4) ───────────────────────────
+
+#[test]
+fn closure_entry_missing_value_is_a_hard_error() {
+    // A closureEntry node missing logic:closureValue is malformed: emit a
+    // MALFORMED_CLOSURE_ENTRY Severity::Error so the compile report is not ok,
+    // never a silent skip.
+    let (_, diags) = parse(
+        "ex:BadClosure a logic:ReasoningContract ;
+            logic:closureEntry [
+                a logic:ClosureEntry ;
+                logic:closureKey \"ex:pred\"
+            ] .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_CLOSURE_ENTRY" && d.severity == Severity::Error),
+        "a closureEntry missing closureValue must be a hard error; got: {diags:?}"
+    );
+}
+
+// ── Axioms ───────────────────────────────────────────────────────────────────
+
+#[test]
+fn parse_logic_relation_axiom() {
+    let (prog, _) = parse("ex:Bird logic:subClassOf ex:Animal .");
+    let ax = prog
+        .axioms
+        .iter()
+        .find(|a| a.predicate.ends_with("subClassOf"))
+        .unwrap();
+    assert!(ax.subject.ends_with("/Bird"));
+    assert!(ax.obj.ends_with("/Animal"));
+    assert!(!ax.obj_is_literal);
+}
+
+#[test]
+fn parse_literal_object_sets_flag() {
+    let (prog, _) = parse("ex:s logic:confidence \"0.9\"^^xsd:decimal .");
+    let ax = prog
+        .axioms
+        .iter()
+        .find(|a| a.predicate.ends_with("confidence"))
+        .unwrap();
+    assert!(ax.obj_is_literal);
+    assert_eq!(ax.obj, "0.9");
+}
+
+// ── Classic reification with scope ───────────────────────────────────────────
+
+#[test]
+fn parse_classic_reification_with_scope() {
+    let (prog, _) = parse(
+        "ex:Bird a logic:SubKind .
+         ex:Bird logic:subClassOf ex:Animal .
+         ex:stmt1 a rdf:Statement ;
+            rdf:subject ex:Animal ;
+            rdf:predicate logic:subClassOf ;
+            rdf:object ex:Organism ;
+            logic:confidence \"0.9\"^^xsd:decimal ;
+            logic:modality logic:epistemic .",
+    );
+    // The reified (Animal subClassOf Organism) axiom carries epistemic scope.
+    let scoped = prog
+        .axioms
+        .iter()
+        .find(|a| {
+            a.subject.ends_with("/Animal")
+                && a.predicate.ends_with("subClassOf")
+                && a.obj.ends_with("/Organism")
+        })
+        .unwrap();
+    assert_eq!(scoped.scope.modality, LogicModality::Epistemic);
+    assert_eq!(scoped.scope.confidence, Some(0.9));
+}
+
+#[test]
+fn parse_modality_annotation_strips_namespace() {
+    let (prog, _) = parse(
+        "ex:stmt a rdf:Statement ;
+            rdf:subject ex:a ; rdf:predicate logic:subClassOf ; rdf:object ex:b ;
+            logic:modality logic:deontic .",
+    );
+    let scoped = prog
+        .axioms
+        .iter()
+        .find(|a| a.scope.modality == LogicModality::Deontic)
+        .unwrap();
+    assert_eq!(scoped.scope.modality, LogicModality::Deontic);
+}
+
+#[test]
+fn malformed_reification_missing_predicate_emits_diagnostic() {
+    let (_, diags) = parse(
+        "ex:stmt a rdf:Statement ;
+            rdf:subject ex:a ; rdf:object ex:b ;
+            logic:modality logic:epistemic .",
+    );
+    assert!(diags.iter().any(|d| d.code == "MISSING_PREDICATE"));
+}
+
+#[test]
+fn invalid_confidence_emits_diagnostic() {
+    let (_, diags) = parse(
+        "ex:stmt a rdf:Statement ;
+            rdf:subject ex:a ; rdf:predicate logic:subClassOf ; rdf:object ex:b ;
+            logic:confidence \"2.5\"^^xsd:decimal ;
+            logic:modality logic:epistemic .",
+    );
+    assert!(diags.iter().any(|d| d.code == "INVALID_CONFIDENCE"));
+}
+
+// ── Contract complexity guards ───────────────────────────────────────────────
+
+#[test]
+fn empty_complexity_class_emits_diagnostic() {
+    let (prog, diags) = parse(
+        "logic:PositiveHornProfile a logic:ReasoningPreset ;
+            logic:complexityClass \"\" .",
+    );
+    assert!(diags.iter().any(|d| d.code == "INVALID_COMPLEXITY_CLASS"));
+    // The contract is still recorded, just without a complexity class.
+    assert_eq!(prog.contracts.len(), 1);
+    assert!(prog.contracts[0].complexity.is_none());
+}
+
+// ── Rules ────────────────────────────────────────────────────────────────────
+
+#[test]
+fn no_rule_nodes_yields_empty_rules() {
+    let (prog, _) = parse("ex:Person a logic:Kind .");
+    assert!(prog.rules.is_empty());
+}
+
+#[test]
+fn rule_node_extracted() {
+    let (prog, diags) = parse(
+        "ex:r1 a logic:Rule ;
+            logic:head [ rdf:subject \"?x\" ; rdf:predicate logic:isA ; rdf:object ex:Animal ] ;
+            logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:isA ; rdf:object ex:Bird ] .",
+    );
+    assert!(diags.is_empty(), "unexpected diags: {diags:?}");
+    assert_eq!(prog.rules.len(), 1);
+    let rule = &prog.rules[0];
+    assert!(rule.head.predicate.ends_with("isA"));
+    assert_eq!(rule.body.len(), 1);
+    assert!(!rule.body[0].negated);
+}
+
+#[test]
+fn rule_missing_head_emits_diagnostic() {
+    let (prog, diags) = parse(
+        "ex:r1 a logic:Rule ;
+            logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:isA ; rdf:object ex:Bird ] .",
+    );
+    assert!(prog.rules.is_empty());
+    assert!(diags.iter().any(|d| d.code == "MISSING_RULE_HEAD"));
+}
+
+#[test]
+fn negated_body_atom_yields_negated_axiom() {
+    let (prog, _) = parse(
+        "ex:r1 a logic:Rule ;
+            logic:head [ rdf:subject \"?x\" ; rdf:predicate logic:isA ; rdf:object ex:Live ] ;
+            logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:isA ; rdf:object ex:Bird ] ;
+            logic:negatedBody [ rdf:subject \"?x\" ; rdf:predicate logic:isA ; rdf:object ex:Dead ] .",
+    );
+    assert_eq!(prog.rules.len(), 1);
+    let rule = &prog.rules[0];
+    let negated: Vec<_> = rule.body.iter().filter(|b| b.negated).collect();
+    let positive: Vec<_> = rule.body.iter().filter(|b| !b.negated).collect();
+    assert_eq!(negated.len(), 1);
+    assert_eq!(positive.len(), 1);
+    assert!(negated[0].obj.ends_with("/Dead"));
+}
+
+#[test]
+fn distinct_body_guard_requires_variables() {
+    let (prog, diags) = parse(
+        "ex:r1 a logic:Rule ;
+            logic:head [ rdf:subject \"?x\" ; rdf:predicate logic:rel ; rdf:object \"?y\" ] ;
+            logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:rel ; rdf:object \"?y\" ] ;
+            logic:distinctBody [ rdf:subject \"?x\" ; rdf:object \"?y\" ] .",
+    );
+    assert_eq!(prog.rules.len(), 1);
+    assert_eq!(
+        prog.rules[0].distinct_pairs,
+        vec![("?x".to_owned(), "?y".to_owned())]
+    );
+    assert!(diags.is_empty());
+}
+
+#[test]
+fn distinct_body_constant_term_rejected() {
+    let (prog, diags) = parse(
+        "ex:r1 a logic:Rule ;
+            logic:head [ rdf:subject \"?x\" ; rdf:predicate logic:rel ; rdf:object \"?y\" ] ;
+            logic:distinctBody [ rdf:subject \"?x\" ; rdf:object ex:constant ] .",
+    );
+    assert!(prog.rules[0].distinct_pairs.is_empty());
+    assert!(diags.iter().any(|d| d.code == "MALFORMED_RULE_BODY"));
+}
+
+// ── Order independence ───────────────────────────────────────────────────────
+
+#[test]
+fn parse_is_order_independent() {
+    let a = parse(
+        "ex:Person a logic:Kind .
+         ex:Animal a logic:Kind .",
+    )
+    .0;
+    let b = parse(
+        "ex:Animal a logic:Kind .
+         ex:Person a logic:Kind .",
+    )
+    .0;
+    assert_eq!(a.canonical_key(), b.canonical_key());
+}
+
+// ── Real conformance-case round-trip (the byte-parity anchor) ────────────────
+
+#[test]
+fn confidence_scoped_axiom_case_produces_expected_ir() {
+    // Mirrors conformance/logic/cases/projections/confidence-scoped-axiom.
+    let (prog, diags) = parse_logic_str(
+        "@prefix logic: <https://blackcatinformatics.ca/logic/> .
+         @prefix ex:    <https://example.org/confidence-scoped-axiom/> .
+         @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+         @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+         ex:Organism a logic:Kind .
+         ex:Animal   a logic:Kind .
+         ex:Bird     a logic:SubKind .
+         ex:Bird     logic:subClassOf ex:Animal .
+         ex:stmt1 a rdf:Statement ;
+            rdf:subject   ex:Animal ;
+            rdf:predicate logic:subClassOf ;
+            rdf:object    ex:Organism ;
+            logic:confidence \"0.9\"^^xsd:decimal ;
+            logic:modality   logic:epistemic .",
+        None,
+    )
+    .unwrap();
+    assert!(diags.is_empty(), "unexpected diags: {diags:?}");
+    // Exactly the 7 axioms the datalog golden emits.
+    assert_eq!(prog.axioms.len(), 7, "axioms: {:#?}", prog.axioms);
+    // The scoped reified axiom carries epistemic modality.
+    assert!(has_axiom(
+        &prog,
+        "/Animal",
+        "subClassOf",
+        LogicModality::Epistemic
+    ));
+    // The plain stmt1 confidence/modality triples are default-context axioms.
+    assert!(has_axiom(
+        &prog,
+        "/stmt1",
+        "confidence",
+        LogicModality::None
+    ));
+    assert!(has_axiom(&prog, "/stmt1", "modality", LogicModality::None));
+    // The three rdf:type and one plain subClassOf are default context.
+    assert!(has_axiom(&prog, "/Bird", "subClassOf", LogicModality::None));
+}
+
+// The diagnostics_report projection (#856) is tested in crate::logic_diagnostics
+// (it returns the PyO3-tainted gmeow_diagnostics::Report and lives runtime-side,
+// out of the wasm-able compiler — #732).
+
+// ── Path shapes (#1010) ──────────────────────────────────────────────────────
+
+fn path_shape<'a>(prog: &'a LogicProgram, iri_suffix: &str) -> &'a PathShapeIr {
+    prog.path_shapes
+        .iter()
+        .find(|s| s.iri.ends_with(iri_suffix))
+        .unwrap_or_else(|| {
+            panic!(
+                "no path shape ending in {iri_suffix:?}: {:?}",
+                prog.path_shapes
+            )
+        })
+}
+
+#[test]
+fn parse_wildcard_namespace_scoped_bounded_path_shape() {
+    let (prog, diags) = parse(
+        "ex:nearbyOrgs a logic:PathShape ;
+            logic:pathWildcard true ;
+            logic:pathNamespaceScope \"https://example.org/org/\"^^xsd:anyURI ;
+            logic:pathMinDepth 1 ;
+            logic:pathMaxDepth 2 ;
+            logic:pathDepthParam \"maxDepth\" .",
+    );
+    assert!(
+        diags.iter().all(|d| d.code != "MALFORMED_PATH_SHAPE"),
+        "unexpected path-shape diagnostics: {diags:?}"
+    );
+    let s = path_shape(&prog, "/nearbyOrgs");
+    assert_eq!(s.base, PathBase::Wildcard);
+    assert_eq!(s.min_depth, 1);
+    assert_eq!(s.max_depth, Some(2));
+    assert_eq!(
+        s.namespace_scope.as_deref(),
+        Some("https://example.org/org/")
+    );
+    assert_eq!(s.depth_param.as_deref(), Some("maxDepth"));
+}
+
+#[test]
+fn parse_named_predicate_bounded_path_shape_defaults_min_one() {
+    // No logic:pathMinDepth → defaults to 1; named-predicate step.
+    let (prog, _diags) = parse(
+        "ex:ancestorsTo3 a logic:PathShape ;
+            logic:pathStepPredicate ex:parentOf ;
+            logic:pathMaxDepth 3 ;
+            logic:pathDepthParam \"maxDepth\" .",
+    );
+    let s = path_shape(&prog, "/ancestorsTo3");
+    assert_eq!(
+        s.base,
+        PathBase::NamedPredicate("https://example.org/test/parentOf".to_owned())
+    );
+    assert_eq!(s.min_depth, 1);
+    assert_eq!(s.max_depth, Some(3));
+    assert_eq!(s.namespace_scope, None);
+}
+
+#[test]
+fn parse_unbounded_path_shape_has_no_max() {
+    // No logic:pathMaxDepth → unbounded (transitive-closure reading).
+    let (prog, _diags) = parse(
+        "ex:reaches a logic:PathShape ;
+            logic:pathStepPredicate ex:linksTo .",
+    );
+    let s = path_shape(&prog, "/reaches");
+    assert_eq!(s.max_depth, None);
+    assert_eq!(s.min_depth, 1);
+}
+
+#[test]
+fn malformed_path_shape_both_named_and_wildcard_is_skipped_with_diagnostic() {
+    let (prog, diags) = parse(
+        "ex:bad a logic:PathShape ;
+            logic:pathStepPredicate ex:p ;
+            logic:pathWildcard true .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "malformed shape must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("BOTH")),
+        "expected a BOTH-step diagnostic: {diags:?}"
+    );
+}
+
+#[test]
+fn malformed_path_shape_min_above_max_is_skipped_with_diagnostic() {
+    let (prog, diags) = parse(
+        "ex:inverted a logic:PathShape ;
+            logic:pathWildcard true ;
+            logic:pathMinDepth 3 ;
+            logic:pathMaxDepth 1 .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "inverted range must be skipped"
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("must not exceed")),
+        "expected a min>max diagnostic: {diags:?}"
+    );
+}
+
+#[test]
+fn malformed_path_shape_no_step_is_skipped_with_diagnostic() {
+    let (prog, diags) = parse("ex:nostep a logic:PathShape ; logic:pathMaxDepth 2 .");
+    assert!(prog.path_shapes.is_empty());
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("neither")),
+        "expected a neither-step diagnostic: {diags:?}"
+    );
+}
+
+#[test]
+fn path_shapes_are_canonically_ordered() {
+    let (prog, _diags) = parse(
+        "ex:zeta  a logic:PathShape ; logic:pathStepPredicate ex:p .
+         ex:alpha a logic:PathShape ; logic:pathStepPredicate ex:p .",
+    );
+    let iris: Vec<&str> = prog.path_shapes.iter().map(|s| s.iri.as_str()).collect();
+    let mut sorted = iris.clone();
+    sorted.sort_unstable();
+    assert_eq!(
+        iris, sorted,
+        "path shapes must be in canonical (sorted) order"
+    );
+}
+
+// ── G7: pathWildcard boolean fidelity ───────────────────────────────────────
+
+#[test]
+fn path_shape_wildcard_accepts_xsd_boolean_one() {
+    // G7: the xsd:boolean value "1" must be accepted as wildcard = true.
+    let (prog, diags) = parse(
+        "ex:wc a logic:PathShape ;
+            logic:pathWildcard \"1\"^^xsd:boolean .",
+    );
+    assert!(
+        diags.iter().all(|d| d.code != "MALFORMED_PATH_SHAPE"),
+        "\"1\" must not produce a path-shape diagnostic: {diags:?}"
+    );
+    let s = path_shape(&prog, "/wc");
+    assert_eq!(
+        s.base,
+        PathBase::Wildcard,
+        "\"1\" must parse as wildcard=true"
+    );
+}
+
+#[test]
+fn path_shape_wildcard_rejects_unrecognized_literal() {
+    // G7: an unrecognized boolean literal must produce a MALFORMED_PATH_SHAPE
+    // diagnostic and the shape must be skipped (hard-fail, no silent coercion).
+    let (prog, diags) = parse(
+        "ex:bad a logic:PathShape ;
+            logic:pathWildcard \"yes\" .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "shape with unrecognized wildcard literal must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("unrecognized")),
+        "expected a MALFORMED_PATH_SHAPE diagnostic mentioning unrecognized: {diags:?}"
+    );
+}
+
+#[test]
+fn path_shape_wildcard_false_literal_yields_no_wildcard() {
+    // G7: "false" is valid and must NOT mark the shape as wildcard.
+    // Here we pair it with a step predicate to verify "false" is accepted cleanly
+    // (i.e., does not trigger the unrecognized-literal hard-fail).
+    let (prog, diags) = parse(
+        "ex:notWild a logic:PathShape ;
+            logic:pathStepPredicate ex:p ;
+            logic:pathWildcard \"false\" .",
+    );
+    assert!(
+        diags.iter().all(|d| d.code != "MALFORMED_PATH_SHAPE"),
+        "\"false\" must not produce a path-shape diagnostic: {diags:?}"
+    );
+    let s = path_shape(&prog, "/notWild");
+    assert_eq!(
+        s.base,
+        PathBase::NamedPredicate("https://example.org/test/p".to_owned()),
+        "step predicate must win when wildcard is false"
+    );
+}
+
+// ── CR1: a non-IRI logic:pathStepPredicate is rejected ───────────────────────
+
+#[test]
+fn path_shape_literal_step_predicate_is_skipped_with_diagnostic() {
+    // CR1: a logic:pathStepPredicate that is a LITERAL (not an IRI named node)
+    // would build a malformed predicate IRI downstream — reject the shape with a
+    // MALFORMED_PATH_SHAPE diagnostic, never silently coerce it.
+    let (prog, diags) = parse(
+        "ex:litStep a logic:PathShape ;
+            logic:pathStepPredicate \"not-an-iri\" .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "a literal step predicate must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("IRI named node")),
+        "expected a MALFORMED_PATH_SHAPE diagnostic about an IRI named node: {diags:?}"
+    );
+}
+
+// ── CR2: PathShapeIr::new() Err branches surface as MALFORMED_PATH_SHAPE + skip ──
+
+#[test]
+fn path_shape_empty_namespace_scope_is_skipped_with_diagnostic() {
+    // CR2: an empty logic:pathNamespaceScope makes PathShapeIr::new() Err; the
+    // front-end must surface it as MALFORMED_PATH_SHAPE and skip the shape.
+    let (prog, diags) = parse(
+        "ex:emptyNs a logic:PathShape ;
+            logic:pathWildcard true ;
+            logic:pathNamespaceScope \"\"^^xsd:anyURI .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "an empty namespace scope must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags.iter().any(|d| d.code == "MALFORMED_PATH_SHAPE"),
+        "expected a MALFORMED_PATH_SHAPE diagnostic for an empty namespace scope: {diags:?}"
+    );
+}
+
+#[test]
+fn path_shape_max_depth_above_cap_is_skipped_with_diagnostic() {
+    // CR2: a logic:pathMaxDepth above MAX_PATH_DEPTH (1000) makes PathShapeIr::new()
+    // Err; the front-end must surface it as MALFORMED_PATH_SHAPE and skip the shape.
+    let (prog, diags) = parse(
+        "ex:tooDeep a logic:PathShape ;
+            logic:pathWildcard true ;
+            logic:pathMinDepth 1 ;
+            logic:pathMaxDepth 1001 .",
+    );
+    assert!(
+        prog.path_shapes.is_empty(),
+        "a max depth above the cap must be skipped: {:?}",
+        prog.path_shapes
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_PATH_SHAPE" && d.message.contains("hard cap")),
+        "expected a MALFORMED_PATH_SHAPE diagnostic mentioning the hard cap: {diags:?}"
+    );
+}

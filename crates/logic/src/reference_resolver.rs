@@ -163,7 +163,9 @@ impl<'a> ResolveState<'a> {
                     // final bound value for each goal variable.
                     match chase_var(v.as_str(), subst, 0) {
                         QTerm::Const(c) => Some((v, c)),
-                        QTerm::Var(_) => None, // unbound variable — omit
+                        // The oracle never binds a goal variable to a bare number
+                        // (it rejects builtin programs before resolution); omit.
+                        QTerm::Var(_) | QTerm::Num(_) => None,
                     }
                 })
                 .collect();
@@ -248,6 +250,17 @@ impl<'a> ResolveState<'a> {
                 );
             }
 
+            // Detect an arithmetic/comparison builtin — reject immediately, the same
+            // way cut is rejected: the declarative oracle has no arithmetic engine, so
+            // Scryer is the sole evaluator for builtin programs (#1009 G2a).
+            if rule.body.iter().any(|b| matches!(b, QBodyLit::Builtin(_))) {
+                return Err(
+                    "arithmetic/comparison builtins are not supported by the declarative \
+                     reference oracle (use the Scryer engine)"
+                        .to_owned(),
+                );
+            }
+
             // Try to unify the rule head with `atom`.
             // Rename rule variables to avoid collisions with the current substitution.
             let renamed_rule = rename_rule(rule);
@@ -259,7 +272,7 @@ impl<'a> ResolveState<'a> {
                     .iter()
                     .filter_map(|b| match b {
                         QBodyLit::Atom(a) => Some(a.clone()),
-                        QBodyLit::Cut => None, // already rejected above
+                        QBodyLit::Cut | QBodyLit::Builtin(_) => None, // already rejected above
                     })
                     .collect();
 
@@ -297,11 +310,12 @@ impl<'a> ResolveState<'a> {
         // Convert bound args to oxigraph Terms for the pattern filter.
         let subj_term: Option<Term> = match &atom.args[0] {
             QTerm::Const(c) => Some(canonical_to_term(c)?),
-            QTerm::Var(_) => None,
+            // A bare number is never an EDB subject in oracle-resolved programs.
+            QTerm::Var(_) | QTerm::Num(_) => None,
         };
         let obj_term: Option<Term> = match &atom.args[1] {
             QTerm::Const(c) => Some(canonical_to_term(c)?),
-            QTerm::Var(_) => None,
+            QTerm::Var(_) | QTerm::Num(_) => None,
         };
 
         // Collect matching DerivedQuads into a Vec to release the iterator borrow.
@@ -387,6 +401,17 @@ fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
                     return None;
                 }
             }
+            // Numeric operands are never unified by the oracle (it rejects builtin
+            // programs up front). A `Num` only unifies with an identical `Num`; any
+            // mismatch — including against a Const or Var — fails unification.
+            (QTerm::Num(hn), QTerm::Num(gn)) => {
+                if hn != gn {
+                    return None;
+                }
+            }
+            (QTerm::Num(_), _) | (_, QTerm::Num(_)) => {
+                return None;
+            }
             (QTerm::Var(hv), QTerm::Const(gc)) => {
                 new_subst.insert(hv, gc);
             }
@@ -416,7 +441,7 @@ fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
 /// unbound variable.
 fn resolve_term(t: &QTerm, subst: &Binding) -> QTerm {
     match t {
-        QTerm::Const(_) => t.clone(),
+        QTerm::Const(_) | QTerm::Num(_) => t.clone(),
         QTerm::Var(v) => chase_var(v, subst, 0),
     }
 }
@@ -458,7 +483,7 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
     fn rename_term(t: &QTerm, suffix: &str) -> QTerm {
         match t {
             QTerm::Var(v) => QTerm::Var(format!("{}{}", v, suffix)),
-            QTerm::Const(_) => t.clone(),
+            QTerm::Const(_) | QTerm::Num(_) => t.clone(),
         }
     }
 
@@ -466,6 +491,28 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
         QAtom {
             pred: a.pred.clone(),
             args: a.args.iter().map(|t| rename_term(t, suffix)).collect(),
+        }
+    }
+
+    fn rename_builtin(b: &crate::query_ir::QBuiltin, suffix: &str) -> crate::query_ir::QBuiltin {
+        use crate::query_ir::QBuiltin;
+        match b {
+            QBuiltin::Is {
+                target,
+                lhs,
+                op,
+                rhs,
+            } => QBuiltin::Is {
+                target: rename_term(target, suffix),
+                lhs: rename_term(lhs, suffix),
+                op: *op,
+                rhs: rename_term(rhs, suffix),
+            },
+            QBuiltin::Compare { lhs, op, rhs } => QBuiltin::Compare {
+                lhs: rename_term(lhs, suffix),
+                op: *op,
+                rhs: rename_term(rhs, suffix),
+            },
         }
     }
 
@@ -477,6 +524,9 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
             .map(|b| match b {
                 QBodyLit::Atom(a) => QBodyLit::Atom(rename_atom(a, &suffix)),
                 QBodyLit::Cut => QBodyLit::Cut,
+                // Builtins are rejected before resolution; carry intact for renaming
+                // completeness (Num operands are rename-invariant).
+                QBodyLit::Builtin(b) => QBodyLit::Builtin(rename_builtin(b, &suffix)),
             })
             .collect(),
     }
@@ -489,6 +539,8 @@ fn term_canonical_or_wildcard(t: &QTerm) -> String {
     match t {
         QTerm::Const(c) => c.clone(),
         QTerm::Var(_) => String::new(),
+        // A bare number canonicalizes to its decimal text for memo-keying purposes.
+        QTerm::Num(n) => n.to_string(),
     }
 }
 

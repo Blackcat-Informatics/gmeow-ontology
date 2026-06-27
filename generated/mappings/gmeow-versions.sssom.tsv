@@ -11,7 +11,9 @@
 #   schema: https://schema.org/
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
+#   vs: http://www.w3.org/2003/06/sw-vocab-status/ns#
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:VersionSet	skos:closeMatch	doap:Project	semapv:ManualMappingCuration	0.6	A DOAP Project is the lineage/container for releases; GMEOW's VersionSet is a more general information-object lineage that also covers books, datasets, emails, etc.
+gmeow:termStability	skos:closeMatch	vs:term_status	semapv:ManualMappingCuration	0.9	W3C SemWeb Vocab Status vs:term_status annotates a vocabulary term with its maturity (stable/unstable/testing/deprecated/archaic) — the canonical status vocabulary used by FOAF, Dublin Core, etc. GMEOW's termStability is the direct dogfooded counterpart (stable/experimental/deprecated); vs: uses literal status values while GMEOW reifies them as gmeow:TermStability individuals, hence closeMatch rather than exactMatch.
 gmeow:versionLabel	skos:closeMatch	doap:revision	semapv:ManualMappingCuration	0.85	DOAP revision is the flat version string on a software release; GMEOW's versionLabel generalises this to all entity kinds.
 gmeow:versionLabel	skos:closeMatch	schema:version	semapv:ManualMappingCuration	0.85	schema:version is a flat literal on the versioned entity; GMEOW keeps versionLabel as a general designation across all entity kinds.

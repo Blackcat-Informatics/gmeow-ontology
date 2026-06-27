@@ -46,6 +46,7 @@ class ValidateOptions:
         project_root: str | None = None,
         gts_bytes: bytes | None = None,
         signature_config: SignatureConfig | None = None,
+        deep: bool = False,
     ) -> None: ...
 
 class ValidationStore:
@@ -89,6 +90,13 @@ def validate_instance(
     format: str,
     schema_bytes: bytes,
 ) -> dict[str, list[str]]: ...
+def validate_data(
+    data_bytes: bytes,
+    data_format: str,
+    gts_bytes: bytes,
+    namespace: str,
+    origin: str,
+) -> Any: ...
 def check_sameas_ban(
     paths: list[str],
     namespace: str,

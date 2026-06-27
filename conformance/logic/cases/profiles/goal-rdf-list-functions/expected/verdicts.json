@@ -1,0 +1,6 @@
+{
+  "https://example.org/profiles/goal-rdf-list-functions/world": {
+    "quads": 6,
+    "status": "consistent"
+  }
+}

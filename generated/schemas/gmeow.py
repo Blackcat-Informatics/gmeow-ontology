@@ -140,6 +140,8 @@ class AttestationTypeEnum(str, Enum):
     attestationTypeAIOutput = "attestationTypeAIOutput"
     attestationTypeBlockchainClaim = "attestationTypeBlockchainClaim"
     attestationTypeC2PA = "attestationTypeC2PA"
+    attestationTypeConformanceVerdict = "attestationTypeConformanceVerdict"
+    attestationTypeCrossCheckAgreement = "attestationTypeCrossCheckAgreement"
     attestationTypeDSSE = "attestationTypeDSSE"
     attestationTypeEAT = "attestationTypeEAT"
     attestationTypeFactCheck = "attestationTypeFactCheck"
@@ -2277,6 +2279,7 @@ class ProfileEnum(str, Enum):
 
 
 class ProjectionContextEnum(str, Enum):
+    consumerAdviceCatalog = "consumerAdviceCatalog"
     consumerAgentMemory = "consumerAgentMemory"
     consumerFoafExport = "consumerFoafExport"
     consumerInternalArchive = "consumerInternalArchive"
@@ -2895,6 +2898,12 @@ class TemporalPrecisionEnum(str, Enum):
     precisionDecade = "precisionDecade"
     precisionMonth = "precisionMonth"
     precisionYear = "precisionYear"
+
+
+class TermStabilityEnum(str, Enum):
+    stabilityDeprecated = "stabilityDeprecated"
+    stabilityExperimental = "stabilityExperimental"
+    stabilityStable = "stabilityStable"
 
 
 class TextDirectionEnum(str, Enum):
@@ -3929,6 +3938,12 @@ class Certification(ConfiguredBaseModel):
     certifier: Agent | None = Field(default=None)
 
 
+class ChangelogEntry(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ChangelogEntry"
+    is_a: ClassVar[str] = "InformationObject"
+    pass
+
+
 class CharacterArc(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/CharacterArc"
     is_a: ClassVar[str] = "InformationObject"
@@ -4946,9 +4961,11 @@ class Finding(Observation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Finding"
     is_a: ClassVar[str] = "Observation"
     findingCode: list[str] | None = Field(default=None)
+    findingHelpUri: list[str] | None = Field(default=None)
     findingLocation: list[str] | None = Field(default=None)
     findingMessage: list[str] | None = Field(default=None)
     findingSeverity: list[DiagnosticSeverity] | None = Field(default=None)
+    findingSuggestion: list[str] | None = Field(default=None)
     findingTool: list[str] | None = Field(default=None)
 
 
@@ -7519,6 +7536,11 @@ class TemporalMeasurement(Measurement):
 
 class TemporalPrecision(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TemporalPrecision"
+    pass
+
+
+class TermStability(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TermStability"
     pass
 
 

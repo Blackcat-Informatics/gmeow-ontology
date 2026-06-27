@@ -7,7 +7,6 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphNameRef, Term};
 use oxigraph::store::Store;
 use sha2::{Digest, Sha256};
@@ -27,6 +26,8 @@ const DCTERMS_CREATOR: &str = "http://purl.org/dc/terms/creator";
 const DCTERMS_IDENTIFIER: &str = "http://purl.org/dc/terms/identifier";
 const GMEOW_SLICE_TIER: &str = "https://blackcatinformatics.ca/gmeow/sliceTier";
 const GMEOW_SLICE_CONSUMER: &str = "https://blackcatinformatics.ca/gmeow/sliceConsumer";
+const GMEOW_SLICE_PROFILE: &str = "https://blackcatinformatics.ca/gmeow/sliceProfile";
+const GMEOW_SLICE_DEPENDS_ON: &str = "https://blackcatinformatics.ca/gmeow/sliceDependsOn";
 const GMEOW_SLICE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Slice";
 
 /// The tier of a slice in the GMEOW taxonomy.
@@ -67,6 +68,15 @@ pub struct ManifestView {
     pub tier: Option<SliceTier>,
     /// `gmeow:sliceConsumer` values.
     pub consumers: Vec<String>,
+    /// `gmeow:sliceProfile` values — the named profiles this slice declares
+    /// membership in (e.g. `claims`, `memory`, `narrative`). Profile-document
+    /// generation lives in the pipeline; this view exposes the raw declarations
+    /// so docs consumers can compute per-term profile membership (#1026).
+    pub profiles: Vec<String>,
+    /// `gmeow:sliceDependsOn` values — the slice IRIs this slice depends on.
+    /// A named profile's membership is the closure of its declared members over
+    /// this relation (#330); docs reuse it for the same closure (#1026).
+    pub depends_on: Vec<String>,
 }
 
 /// A fully-loaded slice record: manifest view, manifest IR dataset, and artifact
@@ -159,19 +169,7 @@ impl SliceCatalog {
 // ── Turtle parsing ────────────────────────────────────────────────────────────
 
 fn parse_turtle_to_store(bytes: &[u8], path: &Path) -> Result<Store, SliceError> {
-    let store =
-        Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes)
-    {
-        let quad = quad
-            .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(store)
+    crate::rdf_text::turtle_bytes_to_store(bytes, &path.display().to_string())
 }
 
 // ── Manifest extraction ───────────────────────────────────────────────────────
@@ -186,6 +184,8 @@ fn extract_manifest_view(store: &Store) -> Result<ManifestView, SliceError> {
     let mut identifier: Option<String> = None;
     let mut tier: Option<SliceTier> = None;
     let mut consumers: Vec<String> = Vec::new();
+    let mut profiles: Vec<String> = Vec::new();
+    let mut depends_on: Vec<String> = Vec::new();
 
     let subject = oxigraph::model::NamedNode::new(&slice_iri)
         .map_err(|e| SliceError::InvalidManifest(format!("invalid slice IRI: {e}")))?;
@@ -227,9 +227,23 @@ fn extract_manifest_view(store: &Store) -> Result<ManifestView, SliceError> {
             p if p == GMEOW_SLICE_CONSUMER => {
                 consumers.push(literal_value(&quad.object));
             }
+            p if p == GMEOW_SLICE_PROFILE => {
+                profiles.push(literal_value(&quad.object));
+            }
+            p if p == GMEOW_SLICE_DEPENDS_ON => {
+                if let Term::NamedNode(nn) = &quad.object {
+                    depends_on.push(nn.as_str().to_string());
+                }
+            }
             _ => {}
         }
     }
+
+    // Deterministic order — `quads_for_pattern` iteration order is not stable.
+    profiles.sort_unstable();
+    profiles.dedup();
+    depends_on.sort_unstable();
+    depends_on.dedup();
 
     Ok(ManifestView {
         slice_iri,
@@ -239,6 +253,8 @@ fn extract_manifest_view(store: &Store) -> Result<ManifestView, SliceError> {
         identifier,
         tier,
         consumers,
+        profiles,
+        depends_on,
     })
 }
 
@@ -447,28 +463,9 @@ fn hex_sha256(bytes: &[u8]) -> String {
     format!("{digest:x}")
 }
 
-/// Select the oxigraph `RdfFormat` for a given file path based on its extension.
-fn rdf_format_for_path(path: &Path) -> RdfFormat {
-    match path.extension().and_then(|e| e.to_str()) {
-        Some("nt") => RdfFormat::NTriples,
-        Some("nq") => RdfFormat::NQuads,
-        Some("trig") => RdfFormat::TriG,
-        _ => RdfFormat::Turtle,
-    }
-}
-
 fn parse_rdf_to_store(bytes: &[u8], path: &Path) -> Result<Store, SliceError> {
-    let format = rdf_format_for_path(path);
-    let store =
-        Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(format).lenient().for_reader(bytes) {
-        let quad = quad
-            .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(store)
+    let media_type = crate::rdf_text::media_type_for_path(path);
+    crate::rdf_text::rdf_bytes_to_store(bytes, media_type, &path.display().to_string())
 }
 
 fn compute_semantic_digest(bytes: &[u8], path: &Path) -> Result<String, SliceError> {

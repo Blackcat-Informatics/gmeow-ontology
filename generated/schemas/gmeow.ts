@@ -116,6 +116,8 @@ export enum AttestationTypeEnum {
     attestationTypeAIOutput = "attestationTypeAIOutput",
     attestationTypeBlockchainClaim = "attestationTypeBlockchainClaim",
     attestationTypeC2PA = "attestationTypeC2PA",
+    attestationTypeConformanceVerdict = "attestationTypeConformanceVerdict",
+    attestationTypeCrossCheckAgreement = "attestationTypeCrossCheckAgreement",
     attestationTypeDSSE = "attestationTypeDSSE",
     attestationTypeEAT = "attestationTypeEAT",
     attestationTypeFactCheck = "attestationTypeFactCheck",
@@ -2253,6 +2255,7 @@ export enum ProfileEnum {
 }
 
 export enum ProjectionContextEnum {
+    consumerAdviceCatalog = "consumerAdviceCatalog",
     consumerAgentMemory = "consumerAgentMemory",
     consumerFoafExport = "consumerFoafExport",
     consumerInternalArchive = "consumerInternalArchive",
@@ -2873,6 +2876,12 @@ export enum TemporalPrecisionEnum {
     precisionYear = "precisionYear",
 }
 
+export enum TermStabilityEnum {
+    stabilityDeprecated = "stabilityDeprecated",
+    stabilityExperimental = "stabilityExperimental",
+    stabilityStable = "stabilityStable",
+}
+
 export enum TextDirectionEnum {
     directionBoustrophedon = "directionBoustrophedon",
     directionContextual = "directionContextual",
@@ -3464,6 +3473,9 @@ export interface Certification {
     certifiedIdentity?: Agent,
     certifiedKey?: CryptographicKey,
     certifier?: Agent,
+}
+
+export interface ChangelogEntry extends InformationObject {
 }
 
 export interface CharacterArc extends InformationObject {
@@ -4249,9 +4261,11 @@ export interface FinancialTransaction extends Event {
 
 export interface Finding extends Observation {
     findingCode?: string[],
+    findingHelpUri?: string[],
     findingLocation?: string[],
     findingMessage?: string[],
     findingSeverity?: DiagnosticSeverity[],
+    findingSuggestion?: string[],
     findingTool?: string[],
 }
 
@@ -6217,6 +6231,9 @@ export interface TemporalMeasurement extends Measurement {
 }
 
 export interface TemporalPrecision {
+}
+
+export interface TermStability {
 }
 
 export interface TextDirection {

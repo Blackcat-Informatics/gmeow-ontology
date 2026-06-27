@@ -275,7 +275,8 @@ gmeow:avoidWhen
     rdfs:label "avoid when"@x-gmeow-english ;
     rdfs:subPropertyOf skos:scopeNote ;
     skos:definition "Term-level advisory metadata naming conditions in which a class, property, individual, or slice-level construct should not be used, or should be promoted to a more precise construct. A narrower, machine-addressable form of skos:scopeNote for negative scope advice; it has no logical force."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useForConsumer gmeow:consumerAdviceCatalog .
 
 gmeow:boxABox
     a gmeow:GraphBoxRole ;
@@ -441,6 +442,13 @@ gmeow:connectsTo
     gmeow:howToUse "Assert the most specific connectivity subproperty for the domain; generic consumers read gmeow:connectsTo by inheritance, and reachability or shortest-path queries are computed in the solver layer (P12)."@x-gmeow-english ;
     gmeow:useWhen "Use when a generic consumer needs to ask whether two things are directly linked in a graph, network, or path, without committing to a specific kind of connection."@x-gmeow-english .
 
+gmeow:consumerAdviceCatalog
+    a gmeow:ProjectionContext ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "advice catalog"@x-gmeow-english ;
+    skos:definition "The consumer is the developer-facing advice catalog (issue #765) aggregated from each term's advisory annotations — use-when, avoid-when, how-to-use, and scope — and surfaced on the generated term pages, the search index, and the llms-docs export. It is the #765 consumer of the advice facet."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:consumerAgentMemory
     a gmeow:ProjectionContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
@@ -567,11 +575,11 @@ gmeow:frameCardinality
     skos:definition "Optional cardinality override for a gmeow:requiresFrame declaration: \"exactly-one\" or \"at-least-one\". Absent, the cardinality is derived from the frame property's character — owl:FunctionalProperty means exactly one, otherwise at least one. The override exists for carriers whose frame property is logically non-functional (the property serves several carrier classes with different multiplicities) but whose instances each live in a single frame, e.g. gmeow:Pose."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:frameRequirementSeverity
+gmeow:ruleSeverity
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
-    rdfs:label "frame requirement severity"@x-gmeow-english ;
-    skos:definition "Optional severity for a gmeow:requiresFrame declaration: \"warning\" downgrades the generated frame-relativity shape from sh:Violation to sh:Warning (used while a module's data corpus is still being brought up to frame completeness). Absent means violation."@x-gmeow-english ;
+    rdfs:label "rule severity"@x-gmeow-english ;
+    skos:definition "Declares whether a harvested rule or a generated shape is binding or advisory. \"binding\" (the default when absent) is compliance: a broken rule is a violation, projected as sh:Violation in the SHACL lane and an error finding in the diagnostic lane. \"advisory\" is advice: a recommendation the consumer may decline, projected as sh:Warning in the SHACL lane and a note finding in the diagnostic lane. Use \"advisory\" while a module's data corpus is still being brought up to a rule's expectations. Any other value is rejected."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:generalizesVia
@@ -697,7 +705,8 @@ gmeow:howToUse
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "how to use"@x-gmeow-english ;
     skos:definition "Term-level advisory metadata carrying a short modeling recipe for the HOW facet: the companion properties, relators, statement metadata, or projection checks that normally travel with the annotated term. Documentation-only; it does not change OWL entailments."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useForConsumer gmeow:consumerAdviceCatalog .
 
 gmeow:markdown
     a rdfs:Datatype ;
@@ -781,7 +790,7 @@ gmeow:requiresFrame
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "requires frame"@x-gmeow-english ;
-    skos:definition "Declares that every instance of the annotated class must carry the named reference-frame property (CONSTITUTION P11, frame-relativity gate): 'a value asserted without its frame is ill-formed'. The frame-relativity SHACL shape is GENERATED from this declaration — exactly one frame when the named property is owl:FunctionalProperty, at least one otherwise — so a new frame-relative value class is enforced the moment it is declared, never by remembering to hand-write its shape. Pair with gmeow:frameRequirementSeverity \"warning\" to downgrade from violation."@x-gmeow-english ;
+    skos:definition "Declares that every instance of the annotated class must carry the named reference-frame property (CONSTITUTION P11, frame-relativity gate): 'a value asserted without its frame is ill-formed'. The frame-relativity SHACL shape is GENERATED from this declaration — exactly one frame when the named property is owl:FunctionalProperty, at least one otherwise — so a new frame-relative value class is enforced the moment it is declared, never by remembering to hand-write its shape. Pair with gmeow:ruleSeverity \"advisory\" to downgrade the generated shape from the binding violation to an advisory warning."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:sensitivityConfidential
@@ -833,7 +842,8 @@ gmeow:useWhen
     rdfs:label "use when"@x-gmeow-english ;
     rdfs:subPropertyOf skos:scopeNote ;
     skos:definition "Term-level advisory metadata naming the modeling situation in which a class, property, individual, or slice-level construct should be used. A narrower, machine-addressable form of skos:scopeNote for the WHEN facet; it has no logical force and is consumed by describe, docs, validation, and projection guidance tooling."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useForConsumer gmeow:consumerAdviceCatalog .
 
 <https://blackcatinformatics.ca/gmeow/slices/kernel>
     a owl:Ontology ;

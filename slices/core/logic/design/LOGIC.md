@@ -18,6 +18,7 @@
 | [`LOGIC-IR.md`](LOGIC-IR.md) | intermediate representation | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
 | [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md) | formal semantics | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
 | [`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md) | state change | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
+| [`LOGIC-PATHS.md`](LOGIC-PATHS.md) | traversal | named & parametric predicate paths — `logic:PathShape`, the predicate wildcard and bounded `{1,n}` depth that SPARQL §9 lacks, by-name parametric invocation, and the property-path / Datalog projections with their declared exit loss |
 | [`LOGIC-TELEOLOGY.md`](LOGIC-TELEOLOGY.md) | goal/action layer | goals, intentional modes, structured goal expressions, reified goal evaluation, action schemas, goal decomposition and conflict; the intention → plan → action → transaction-path chain |
 | [`LOGIC-COGNITION.md`](LOGIC-COGNITION.md) | cognitive assessment | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
 | [`LOGIC-RUNTIME.md`](LOGIC-RUNTIME.md) | runtime | solver architecture, the materialization–resolution seam, graph versioning, generated artifacts, CLI |

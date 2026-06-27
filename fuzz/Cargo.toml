@@ -6,7 +6,7 @@
 # nightly/manual counterpart to the always-on proptest gate in
 # crates/{rdf,shacl,logic}/tests/never_panic.rs.
 #
-# Scoped to the CHEAP parsers (gmeow-rdf + gmeow-shacl, oxigraph-backed) so the
+# Scoped to the CHEAP parsers (gmeow-rdf's native text codec + gmeow-shacl) so the
 # libFuzzer + sanitizer build never drags the heavy nemo tree. The logic
 # frontends (parse_logic_str / parse_query_program) are covered by the proptest
 # gate; their fuzz targets are deferred (nemo build cost). CLIF/CGIF/XCL (#718)
@@ -33,8 +33,6 @@ libfuzzer-sys = "0.4"
 # gmeow-gts (no nemo); gmeow-shacl is oxigraph-only.
 gmeow-rdf = { path = "../crates/rdf", features = ["gts"] }
 gmeow-shacl = { path = "../crates/shacl" }
-# Direct oxigraph for the N-Quads target (the parse_quads path is python-gated).
-oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 
 [[bin]]
 name = "nquads"

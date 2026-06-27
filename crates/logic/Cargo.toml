@@ -33,6 +33,13 @@ gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts", "python"] }
 # First-class diagnostics model (Finding/Report) so the native verify lane builds
 # its findings in Rust and hands Python a report via JSON (#695).
 gmeow-diagnostics = { path = "../diagnostics" }
+# SPARQL property-path algebra: the projection target for logic:PathShape (#1010).
+# A leaf-ish crate (gmeow-iri/gmeow-xsd only) — no layering cycle.
+gmeow-sparql-algebra = { path = "../sparql-algebra" }
+# The pure, wasm-able logic compiler (#732): the runtime consumes its parse→IR→
+# project surface (frontend / ir / projections) and bridges its IR into the runtime
+# EvalRule via crate::lower; certify + the PyO3 compile_logic entrypoint call into it.
+gmeow-logic-compile = { path = "../logic-compile" }
 serde_json = "1"
 blake3 = "1"
 # rayon: data-parallel iterators for foundation multi-world chase (#822).
@@ -67,8 +74,18 @@ tokio = { version = "1", features = ["rt", "macros"] }
 scryer-prolog = { git = "https://github.com/mthom/scryer-prolog", branch = "master", default-features = false }
 
 [dev-dependencies]
+# Also a dev-dependency so the integration tests (tests/never_panic.rs,
+# proptest_invariants.rs) can `use gmeow_logic_compile::` directly (#732).
+gmeow-logic-compile = { path = "../logic-compile" }
 proptest = "1"
 serde_json = "1"
+# S8 #914 parity harness only (tests/sparql_path_parity.rs): the wasm-clean
+# in-engine SPARQL property-path evaluator + the IR dataset builder, used to
+# assert in-engine ≡ Scryer-lowered over the corpus path shapes. Dev-only: these
+# do NOT enter the lib graph (so `gmeow-logic` adds no edge to `gmeow-sparql-eval`
+# and the reverse oxigraph-free contract is untouched).
+gmeow-sparql-eval = { path = "../sparql-eval" }
+gmeow-rdf-core = { path = "../rdf-core", default-features = false }
 # insta: snapshot goldens for the projection back-ends + explanation prose (T8,
 # #789). The `.snap` files ARE the byte-exact unit goldens (the native
 # crates/conformance harness owns cross-engine corpus parity). Pinned to match

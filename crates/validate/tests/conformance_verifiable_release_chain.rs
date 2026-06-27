@@ -33,23 +33,12 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
-/// `test_fixture_loads_and_shacl_passes` — the complete MeowGraph v1.0.0
-/// verifiable release chain fixture passes SHACL against the whole shapes corpus.
-///
-/// Mode: fixture-only (`validate`), because the Python test uses `_fixture()` =
-/// `Graph().parse(FIXTURE, format="turtle")` with no merged ontology.
-#[test]
-fn fixture_loads_and_shacl_passes() {
-    let path = repo_root()
-        .join("tests")
-        .join("fixtures")
-        .join("verifiable-release-chain.ttl");
-    let nt = ttl_file_to_nt(&path);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "verifiable release chain fixture must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
+#[rstest]
+#[case::fixture_loads_and_shacl_passes(Case::repo_path(
+    "tests/fixtures/verifiable-release-chain.ttl"
+))]
+fn verifiable_release_chain(#[case] case: Case) {
+    case.run();
 }

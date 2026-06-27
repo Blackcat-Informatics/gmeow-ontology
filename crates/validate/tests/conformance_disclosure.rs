@@ -28,57 +28,19 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
-/// `test_leak_fixture_is_flagged` — a Place carrying `policyNeverPublic` AND
-/// `eligibleForConsumer consumerWikidata` (a public consumer) must trigger a
-/// `DisclosureLeakShape` Violation.
-#[test]
-fn leak_fixture_is_flagged() {
-    let nt = fixture_as_nt("shapes", "disclosure-leak");
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "disclosure-leak fixture must produce a Violation; got none"
-    );
-    let msgs = violations(&report);
-    let joined = msgs.join("\n");
-    assert!(
-        joined.contains("policyNeverPublic"),
-        "violation message must mention policyNeverPublic; got: {joined:?}"
-    );
-}
-
-/// `test_wellformed_disclosure_fixture_conforms` — a public-safe name eligible
-/// for a public consumer must pass SHACL with no violations.
-#[test]
-fn wellformed_disclosure_fixture_conforms() {
-    let nt = fixture_as_nt("shapes", "disclosure-wellformed");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "disclosure-wellformed fixture must conform; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_conditional_disclosure_warns_but_does_not_fail` — a fact carrying
-/// `policyPublicOnlyWithIndependentSource` with no supporting independent
-/// citation must produce a Warning (not a Violation).  `ok()` must be true
-/// and at least one warning must mention `sourceIndependenceIndependent`.
-#[test]
-fn conditional_disclosure_warns_but_does_not_fail() {
-    let nt = fixture_as_nt("shapes", "disclosure-conditional-warning");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "warning-only graph must pass (ok = no violations); errors: {:?}",
-        violations(&report)
-    );
-    let warns = warnings(&report);
-    assert!(
-        warns
-            .iter()
-            .any(|w| w.contains("sourceIndependenceIndependent")),
-        "at least one warning must mention sourceIndependenceIndependent; got: {warns:?}"
-    );
+#[rstest]
+#[case::leak_fixture_is_flagged(
+    Case::file("shapes", "disclosure-leak")
+        .fails()
+        .violations(&["policyNeverPublic"])
+)]
+#[case::wellformed_disclosure_fixture_conforms(Case::file("shapes", "disclosure-wellformed"))]
+#[case::conditional_disclosure_warns_but_does_not_fail(
+    Case::file("shapes", "disclosure-conditional-warning")
+        .warnings(&["sourceIndependenceIndependent"])
+)]
+fn disclosure(#[case] case: Case) {
+    case.run();
 }

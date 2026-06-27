@@ -22,52 +22,20 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
-/// `test_wellformed_registers_fixture_conforms` — the well-formed registers
-/// fixture must pass SHACL without any violations.
-///
-/// Covers: two co-equal personas with bearer, register IRIs, same-norm
-/// expression, activation conditions, and a byte-perfect style guide with
-/// `gmeow:contentDigest`.
-#[test]
-fn wellformed_registers_fixture_conforms() {
-    let nt = fixture_as_nt("shapes", "registers-wellformed");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "well-formed registers fixture must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_malformed_registers_fixture_is_flagged` — the malformed registers
-/// fixture must produce violations for each of the four documented defects:
-///
-/// 1. `ex:orphanPersona` — no `gmeow:personaBearer` (exactly-one violated).
-/// 2. `ex:mutePersona` — `gmeow:personaRegister` is a literal, not an IRI
-///    (at-least-one IRI-kind violated).
-/// 3. `ex:aimlessGuide` — `gmeow:StyleGuide` with no `gmeow:styleGuideFor`.
-/// 4. `ex:driftingGuide` — voice exemplar document missing `gmeow:contentDigest`.
-#[test]
-fn malformed_registers_fixture_is_flagged() {
-    let nt = fixture_as_nt("shapes", "registers-malformed");
-    let report = validate(&nt);
-    assert!(!ok(&report), "malformed registers fixture must fail SHACL");
-    let errors = violations(&report).join("\n");
-    assert!(
-        errors.contains("exactly one gmeow:personaBearer"),
-        "expected 'exactly one gmeow:personaBearer' in violations; got: {errors}"
-    );
-    assert!(
-        errors.contains("at least one gmeow:personaRegister"),
-        "expected 'at least one gmeow:personaRegister' in violations; got: {errors}"
-    );
-    assert!(
-        errors.contains("a style guide for nothing is just a document"),
-        "expected 'a style guide for nothing is just a document' in violations; got: {errors}"
-    );
-    assert!(
-        errors.contains("gmeow:contentDigest"),
-        "expected 'gmeow:contentDigest' in violations; got: {errors}"
-    );
+#[rstest]
+#[case::wellformed_registers_fixture_conforms(Case::file("shapes", "registers-wellformed"))]
+#[case::malformed_registers_fixture_is_flagged(
+    Case::file("shapes", "registers-malformed")
+        .fails()
+        .violations(&[
+            "exactly one gmeow:personaBearer",
+            "at least one gmeow:personaRegister",
+            "a style guide for nothing is just a document",
+            "gmeow:contentDigest",
+        ])
+)]
+fn registers(#[case] case: Case) {
+    case.run();
 }

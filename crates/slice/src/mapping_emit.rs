@@ -43,7 +43,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphNameRef, NamedNode, Term};
 use oxigraph::store::Store;
 
@@ -132,6 +131,7 @@ pub(crate) const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("rdfs", "http://www.w3.org/2000/01/rdf-schema#"),
     ("xsd", "http://www.w3.org/2001/XMLSchema#"),
     ("skos", "http://www.w3.org/2004/02/skos/core#"),
+    ("vs", "http://www.w3.org/2003/06/sw-vocab-status/ns#"),
     ("dcterms", "http://purl.org/dc/terms/"),
     ("dc", "http://purl.org/dc/elements/1.1/"),
     ("dcmitype", "http://purl.org/dc/dcmitype/"),
@@ -471,17 +471,7 @@ fn collect_ttl_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<()
 /// Parse one Turtle source into the shared store (lenient, mirroring
 /// `catalog::parse_turtle_to_store` so GMEOW's `@x-gmeow-*` language tags parse).
 fn load_into_store(store: &Store, bytes: &[u8], path: &Path) -> Result<(), SliceError> {
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes)
-    {
-        let quad = quad
-            .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(())
+    crate::rdf_text::turtle_bytes_into_store(store, bytes, &path.display().to_string())
 }
 
 /// Extract `gmeow:TermEquivalence` cells from a store (mirrors `_equivalences`).
@@ -575,18 +565,7 @@ fn extract_mapping_sets(
 fn read_self_metadata(root: &Path) -> Result<(String, String), SliceError> {
     let path = root.join("metadata").join("gmeow-self.ttl");
     let bytes = std::fs::read(&path).map_err(SliceError::Io)?;
-    let store =
-        Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(&bytes[..])
-    {
-        let quad = quad
-            .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
+    let store = crate::rdf_text::turtle_bytes_to_store(&bytes, &path.display().to_string())?;
 
     let fingerprint = NamedNode::new(GM_VERSION_FINGERPRINT)
         .map_err(|e| SliceError::Parse(format!("invalid versionFingerprint IRI: {e}")))?;

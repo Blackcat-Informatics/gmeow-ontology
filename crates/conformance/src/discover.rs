@@ -6,8 +6,8 @@
 //! The `datatest-stable` harness in `tests/conformance.rs` performs the actual
 //! filesystem glob (one nextest case per `profile.json` sentinel) and calls
 //! [`validate_case`] on each discovered directory. [`discover_cases`] is the
-//! standalone walk mirroring the retired Python `discover_cases` contract — used
-//! by the parity/unit tests and any non-harness caller:
+//! standalone walk used by the parity/unit tests and any non-harness caller
+//! (the retired Python `discover_cases` it supersedes was removed in #727):
 //!
 //! * `input.logic.ttl` is required.
 //! * `profile.json` is required and must be a JSON object (malformed ⇒ hard fail).
@@ -41,7 +41,7 @@ pub struct ConformanceCase {
 /// describing the first missing/malformed required artifact (hard-fail, no
 /// silent skip — verification-honesty). This is the harness entry point: the
 /// glob already proved `profile.json` exists, so a missing `input.logic.ttl` here
-/// is a malformed case and a hard failure (matching the Python runner's `run`).
+/// is a malformed case and a hard failure.
 pub fn validate_case(case_dir: &Path) -> Result<ConformanceCase, String> {
     let case_id = crate::paths::case_id(case_dir);
 
@@ -63,10 +63,16 @@ pub fn validate_case(case_dir: &Path) -> Result<ConformanceCase, String> {
 
 /// Discover every conformance case under `cases_root`.
 ///
-/// Walks up to two levels (`cases/<category>/<case>/`) in sorted order, mirroring
-/// the Python `discover_cases`: a directory is a case iff it holds BOTH
-/// `input.logic.ttl` and `profile.json` (a directory missing either is skipped,
-/// not failed). A present-but-malformed `profile.json` is a hard failure.
+/// Walks the tree at ANY depth in sorted order (#753): a directory is a case iff it
+/// holds BOTH `input.logic.ttl` and `profile.json`. This recovers the standard
+/// two-level `cases/<category>/<case>/` layout AND the three-level vendored
+/// `cases/external/<corpus>/<case>/` layout, matching the recursive glob the
+/// `datatest-stable` harness already uses — so external cases reach the
+/// `conformance-report` binary / release artifact too (maximal information flow),
+/// not just the test gate. A directory missing either sentinel is recursed into; a
+/// directory holding both IS a case and is NOT descended into (so a case's vendored
+/// `source/` subtree is never mistaken for nested cases). A present-but-malformed
+/// `profile.json` is a hard failure.
 ///
 /// # Errors
 /// Returns an error if `cases_root` is not a directory, or any discovered case's
@@ -81,23 +87,32 @@ pub fn discover_cases(cases_root: &Path) -> Result<Vec<ConformanceCase>, String>
     }
 
     let mut found = Vec::new();
-    for category_dir in sorted_subdirs(cases_root)? {
-        for case_dir in sorted_subdirs(&category_dir)? {
-            let input = case_dir.join("input.logic.ttl");
-            let profile_path = case_dir.join("profile.json");
-            if !input.exists() || !profile_path.exists() {
-                continue;
-            }
-            let case_id = crate::paths::case_id(&case_dir);
-            let profile = read_profile_object(&case_id, &case_dir)?;
-            found.push(ConformanceCase {
-                case_dir,
-                case_id,
-                profile,
-            });
-        }
-    }
+    collect_cases(cases_root, &mut found)?;
     Ok(found)
+}
+
+/// Recursively collect cases under `dir`. A directory holding both sentinels is a
+/// case (and is not descended into); otherwise its subdirectories are walked in
+/// sorted order.
+fn collect_cases(dir: &Path, found: &mut Vec<ConformanceCase>) -> Result<(), String> {
+    let input = dir.join("input.logic.ttl");
+    let profile_path = dir.join("profile.json");
+    // Sentinels must be FILES (not e.g. a directory named `profile.json`), matching
+    // `validate_case`'s `is_file()` check — `exists()` would false-match a directory.
+    if input.is_file() && profile_path.is_file() {
+        let case_id = crate::paths::case_id(dir);
+        let profile = read_profile_object(&case_id, dir)?;
+        found.push(ConformanceCase {
+            case_dir: dir.to_path_buf(),
+            case_id,
+            profile,
+        });
+        return Ok(());
+    }
+    for sub in sorted_subdirs(dir)? {
+        collect_cases(&sub, found)?;
+    }
+    Ok(())
 }
 
 /// Read `<case_dir>/profile.json`, requiring it to be a readable JSON object.
@@ -151,8 +166,9 @@ mod tests {
 
     #[test]
     fn discovers_the_full_corpus() {
-        // Ports tests/test_logic_runner.py::TestDiscoverCases::test_discovers_projection_cases:
-        // the projection cases (and the rest of the corpus) are discovered.
+        // Canonical discovery test: every case under projections/ (and the rest of the corpus)
+        // is discovered. (The retired tests/test_logic_runner.py::TestDiscoverCases covered the
+        // same case before being removed in #727.)
         let cases = discover_cases(&corpus_cases_root()).expect("discovery ok");
         let ids: Vec<&str> = cases.iter().map(|c| c.case_id.as_str()).collect();
         assert!(
@@ -167,6 +183,51 @@ mod tests {
         // The corpus is non-trivial (sanity floor; the exact count is asserted by
         // the harness against the Python baseline, not pinned here).
         assert!(cases.len() >= 20, "unexpectedly few cases: {}", cases.len());
+
+        // Recursion guard (#753): the discovered id SET must be unchanged except for
+        // `external/**` additions. A standard case id is exactly `<category>/<case>`
+        // (one slash); only a vendored corpus case may be deeper, and then it MUST be
+        // `external/<corpus>/<case>` (two slashes). This catches the recursion
+        // accidentally vacuuming up a stray nested directory under a non-external
+        // category as a bogus 3-component case.
+        for id in &ids {
+            let depth = id.matches('/').count();
+            if id.starts_with("external/") {
+                assert_eq!(
+                    depth, 2,
+                    "external case id must be external/<corpus>/<case>: {id}"
+                );
+            } else {
+                assert_eq!(
+                    depth, 1,
+                    "non-external case id must be <category>/<case>: {id}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn discovers_three_level_external_case_and_skips_source_subtree() {
+        // A vendored external corpus lives at cases/external/<corpus>/<case>/ — three
+        // levels deep. The recursive walk must find it (the binary path missed it
+        // before #753), assign the external/-prefixed id, and NOT mistake the case's
+        // own `source/` subtree for a nested case.
+        let tmp = std::env::temp_dir().join(format!("gmeow-disc-ext-{}", std::process::id()));
+        let cases = tmp.join("cases");
+        let case = cases.join("external").join("w3c-mini").join("clash");
+        std::fs::create_dir_all(case.join("source")).expect("mkdir case+source");
+        std::fs::write(case.join("input.logic.ttl"), "").expect("input");
+        std::fs::write(case.join("profile.json"), "{}").expect("profile");
+        // A decoy under source/ that would be a case if recursion didn't stop at the
+        // case dir.
+        std::fs::write(case.join("source").join("input.logic.ttl"), "").expect("decoy input");
+        std::fs::write(case.join("source").join("profile.json"), "{}").expect("decoy profile");
+
+        let found = discover_cases(&cases).expect("discovery ok");
+        let ids: Vec<&str> = found.iter().map(|c| c.case_id.as_str()).collect();
+        assert_eq!(ids, vec!["external/w3c-mini/clash"], "got {ids:?}");
+
+        let _ = std::fs::remove_dir_all(&tmp);
     }
 
     #[test]

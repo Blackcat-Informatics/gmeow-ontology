@@ -116,6 +116,8 @@ enum AttestationTypeEnum {
   attestationTypeAIOutput
   attestationTypeBlockchainClaim
   attestationTypeC2PA
+  attestationTypeConformanceVerdict
+  attestationTypeCrossCheckAgreement
   attestationTypeDSSE
   attestationTypeEAT
   attestationTypeFactCheck
@@ -2253,6 +2255,7 @@ enum ProfileEnum {
 }
 
 enum ProjectionContextEnum {
+  consumerAdviceCatalog
   consumerAgentMemory
   consumerFoafExport
   consumerInternalArchive
@@ -2871,6 +2874,12 @@ enum TemporalPrecisionEnum {
   precisionDecade
   precisionMonth
   precisionYear
+}
+
+enum TermStabilityEnum {
+  stabilityDeprecated
+  stabilityExperimental
+  stabilityStable
 }
 
 enum TextDirectionEnum {
@@ -3612,6 +3621,11 @@ type Certification {
   certifiedIdentity: Agent
   certifiedKey: CryptographicKey
   certifier: Agent
+}
+
+type ChangelogEntry {
+  id: String
+  iri: String
 }
 
 type CharacterArc {
@@ -4659,9 +4673,11 @@ type Finding {
   id: String
   iri: String
   findingCode: [String!]
+  findingHelpUri: [String!]
   findingLocation: [String!]
   findingMessage: [String!]
   findingSeverity: [DiagnosticSeverity!]
+  findingSuggestion: [String!]
   findingTool: [String!]
 }
 
@@ -7423,6 +7439,11 @@ type TemporalMeasurement {
 }
 
 type TemporalPrecision {
+  id: String
+  iri: String
+}
+
+type TermStability {
   id: String
   iri: String
 }

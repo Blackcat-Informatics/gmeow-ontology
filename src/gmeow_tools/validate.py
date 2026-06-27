@@ -501,6 +501,7 @@ def validate_all(
     timings: bool = False,
     gts_input: Path | None = None,
     signature_config: dict[str, object] | None = None,
+    deep: bool = False,
 ) -> ValidationResult:
     """Run syntax, structural lint, SHACL, and sameAs-ban checks.
 
@@ -535,6 +536,11 @@ def validate_all(
             strings), ``require_signatures`` (bool), ``require_trusted_signer``
             (bool), and ``trusted_key`` (optional armored public key content).
             When omitted, signature verification is disabled.
+        deep: When ``True``, run the native semantic pass (#768) after the
+            structural phases — reason over the bundle and fold the shared
+            ``logic:ReasoningResult`` verdict (inconsistency, unsatisfiable
+            classes, undecided constructs) into the report. Runs the full
+            reasoner, so it is opt-in.
     """
     # Ensure the content-addressed cache root exists before Rust needs it.
     _VALIDATION_CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -610,6 +616,7 @@ def validate_all(
         project_root=str(PROJECT_ROOT),
         gts_bytes=gts_bytes,
         signature_config=signature_options,
+        deep=deep,
     )
 
     native = gmeow_validate.validate_all_native(
@@ -662,16 +669,16 @@ def validate_all(
             py_warnings.extend(anchor.warnings)
 
         # PO i18n lint: structural validity, orphaned/stale entries, and fuzzy
-        # ratio gates (#572).  Kept Python-side because it reads authored PO
-        # files and the merged rdflib English graph.
+        # ratio gates (#572).  The Rust docs crate owns the policy; Python only
+        # folds the native findings into the shared validation report.
         try:
-            from gmeow_tools.i18n_lint import lint_po_files
+            import gmeow_docs
 
-            i18n_report = lint_po_files(PROJECT_ROOT)
-            result.warnings.extend(i18n_report.warnings)
-            result.errors.extend(i18n_report.errors)
-            py_errors.extend(i18n_report.errors)
-            py_warnings.extend(i18n_report.warnings)
+            i18n_report = gmeow_docs.i18n_lint_po_files(str(PROJECT_ROOT), 100.0)
+            result.warnings.extend(i18n_report["warnings"])
+            result.errors.extend(i18n_report["errors"])
+            py_errors.extend(i18n_report["errors"])
+            py_warnings.extend(i18n_report["warnings"])
         except Exception as exc:  # pragma: no cover - guard against unknown failures
             message = f"i18n PO lint failed: {exc}"
             result.errors.append(message)

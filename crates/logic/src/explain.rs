@@ -300,6 +300,14 @@ fn reconstruct_tree<'a>(
         .map(String::as_str)
         .collect();
     antecedent_reifiers.sort();
+    // A row's antecedents are a set: when one asserted fact satisfies two conjuncts of
+    // a rule (e.g. the shared part in reflexive `overlaps(X, X)`, where a single
+    // `properPartOf(P, X)` witness fills both `properPartOf(P, X)` and
+    // `properPartOf(P, Y)`), `source_quad_ids` lists that witness twice. Descending it
+    // twice would double-cite the same fact in the rendered proof. Dedup here, at the
+    // reconstruction layer only — the dual-witness multiplicity stays in the row's
+    // `source_quad_ids` provenance.
+    antecedent_reifiers.dedup();
 
     // Push current node before descending; pop after all children return (backtracking).
     visited.push(lookup_key);

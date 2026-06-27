@@ -13,23 +13,14 @@
 //! term (that produced a ~1.7 MB churn-magnet snapshot).
 
 use std::collections::BTreeMap;
-use std::path::PathBuf;
 
 use gmeow_docs::{
-    DocConcern, DocExample, DocExternalTerm, DocLearningPath, DocLinkage, DocMappingSet, DocRecipe,
-    DocSlice, DocTerm, DocTermCategory, DocsModel,
+    DocCompetency, DocConcern, DocExample, DocExternalTerm, DocLearningPath, DocLinkage,
+    DocMappingSet, DocRecipe, DocShape, DocSlice, DocTerm, DocTermCategory, DocsModel,
 };
 use serde::Serialize;
 
-/// The repo root is two levels above this crate's manifest dir
-/// (`<repo>/crates/docs`).
-fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("crate is at <repo>/crates/docs")
-        .to_path_buf()
-}
+mod common;
 
 /// A compact, structure-locking summary of a [`DocsModel`]. Captures the
 /// model's shape (counts, slice spine, category histogram) plus a handful of
@@ -91,6 +82,16 @@ struct ModelSummary {
     sample_recipe: Option<DocRecipe>,
     /// ONE fully serialized learning path (first by slug).
     sample_learning_path: Option<DocLearningPath>,
+
+    // ── New (#1020) collections: counts + one sample each ────────────────────
+    /// Number of SHACL node shapes reverse-mapped to constrained terms.
+    shape_count: usize,
+    /// Number of competency questions reverse-mapped to exercised terms.
+    competency_count: usize,
+    /// ONE fully serialized SHACL shape (first by sort).
+    sample_shape: Option<DocShape>,
+    /// ONE fully serialized competency question (first by IRI).
+    sample_competency: Option<DocCompetency>,
 }
 
 impl ModelSummary {
@@ -160,6 +161,10 @@ impl ModelSummary {
             has_four_boxes: model.four_boxes.is_some(),
             sample_recipe: model.recipes.first().cloned(),
             sample_learning_path: model.learning_paths.first().cloned(),
+            shape_count: model.shapes.len(),
+            competency_count: model.competencies.len(),
+            sample_shape: model.shapes.first().cloned(),
+            sample_competency: model.competencies.first().cloned(),
         }
     }
 }
@@ -177,7 +182,7 @@ fn category_name(category: DocTermCategory) -> &'static str {
 
 #[test]
 fn docs_model_golden() {
-    let model = DocsModel::discover(&repo_root()).expect("build docs model from live slices");
+    let model = common::cached_model();
     let summary = ModelSummary::from_model(&model);
     insta::assert_json_snapshot!(summary);
 }

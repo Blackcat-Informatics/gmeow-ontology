@@ -1,0 +1,14 @@
+<https://example.org/holonic/holonic-level/MP> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/MereologyProfile> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/Bolt1> <https://blackcatinformatics.ca/logic/properPartOf> <https://example.org/holonic/holonic-level/Bracket> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/Bolt2> <https://blackcatinformatics.ca/logic/properPartOf> <https://example.org/holonic/holonic-level/Bracket> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/Bracket> <https://blackcatinformatics.ca/logic/properPartOf> <https://example.org/holonic/holonic-level/Assembly> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/Bracket> <https://blackcatinformatics.ca/logic/underMereologyProfile> <https://example.org/holonic/holonic-level/MP> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/posBracket> <https://blackcatinformatics.ca/logic/positionEntity> <https://example.org/holonic/holonic-level/Bracket> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/Gear1> <https://blackcatinformatics.ca/logic/properPartOf> <https://example.org/holonic/holonic-level/Gearbox> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/Gear2> <https://blackcatinformatics.ca/logic/properPartOf> <https://example.org/holonic/holonic-level/Gearbox> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/Gearbox> <https://blackcatinformatics.ca/logic/properPartOf> <https://example.org/holonic/holonic-level/Drivetrain> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/Gearbox> <https://blackcatinformatics.ca/logic/underMereologyProfile> <https://example.org/holonic/holonic-level/MP> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/Gearbox> <https://blackcatinformatics.ca/logic/instanceOf> <https://example.org/holonic/holonic-level/GearboxKind> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/Pixel1> <https://blackcatinformatics.ca/logic/properPartOf> <https://example.org/holonic/holonic-level/Sprite> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/Pixel2> <https://blackcatinformatics.ca/logic/properPartOf> <https://example.org/holonic/holonic-level/Sprite> <https://example.org/holonic/holonic-level/schema> .
+<https://example.org/holonic/holonic-level/Sprite> <https://blackcatinformatics.ca/logic/properPartOf> <https://example.org/holonic/holonic-level/Scene> <https://example.org/holonic/holonic-level/schema> .

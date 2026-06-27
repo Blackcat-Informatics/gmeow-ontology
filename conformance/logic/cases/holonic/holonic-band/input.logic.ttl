@@ -1,0 +1,94 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: holonic/holonic-band
+# AC: ME9 (#775) — holonic levels are PATH-RELATIVE on a genuine multi-parent DAG,
+#     and the per-entity min/max depth band is materialized.
+#
+# This is the positive counterpart to holonic/holonic-level (which proves the
+# incoherence violation for a profiled holon occupying NO position). Here a holon
+# occupies SEVERAL positions along several paths, so its logic:holonicLevel is
+# genuinely path-relative and a non-trivial min/max band exists.
+#
+# The DAG (a diamond — ex:Sensor has TWO parents):
+#
+#     Aircraft
+#        |  (properPartOf)
+#       Wing  ◄─────────────┐
+#        |                  |
+#     Avionics              |  (Sensor is ALSO a direct proper part of Wing)
+#        |                  |
+#      Sensor  ─────────────┘
+#       / \
+#   ChipA  ChipB
+#
+# So ex:Sensor sits at TWO depths relative to ex:Wing, and both are correct:
+#   * direct path  Sensor ⊏ Wing                      → depth 1
+#   * via path     Sensor ⊏ Avionics ⊏ Wing           → depth 2
+#
+# Each reading is reified as its own logic:HolonicPosition (the canonical five-place
+# construct: entity, holarchy, context, interval, path) and the two positions differ by
+# their logic:positionPath (ex:pathDirect vs ex:pathVia):
+#   * ex:posSensorDirect  positionPath ex:pathDirect   (the direct path,  depth 1)
+#   * ex:posSensorVia     positionPath ex:pathVia      (the via-Avionics path, depth 2)
+#
+# Expected derivations for ex:Sensor (ALL all-IRI):
+#   * logic:isHolon              — a proper part of Wing/Avionics AND a whole over ChipA/ChipB.
+#   * logic:hasHolonicPosition   — occupies positions → NOT charged with
+#                                  logic:HolonicLevelIncoherence even though profiled.
+#   * logic:multiplyPositioned   — occupies TWO distinct positions (the DAG signature),
+#                                  the engine-derived ground that a non-trivial band exists.
+#   * NO logic:WeakSupplementation — ChipA and ChipB are disjoint co-parts.
+#
+# ARCHITECTURE — why no literals here (#775): the foundation chase is ALL-IRI; the native
+# foundation evaluator hard-rejects any non-IRI (literal) object. The logic:holonicLevel
+# values (1, 2) and the per-entity min/max band are therefore NOT part of this foundation
+# world — they are a literal/projection concern that lives OUTSIDE the chase. This case
+# proves the engine-verified core of ME9 #2 (path-relativity grounded by
+# logic:multiplyPositioned over two distinct logic:positionPaths); the materialized band
+# itself is dogfooded as validated ABox data in
+# slices/core/logic/examples/holonic-band.ttl. The band endpoints are operator-asserted,
+# never engine-derived (the all-IRI chase cannot compare/aggregate integers).
+#
+# Only ex:Sensor is declared under the logic:MereologyProfile, so the level/coherence
+# calculus runs there and there only; ex:Wing and ex:Avionics are holons too but are
+# unprofiled, so they are never charged (profile-relativity). ex:Sensor is given TWO
+# disjoint proper parts so weak supplementation is satisfied and the case isolates the
+# path-relative level band.
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so every edge below is
+# duplicated there in the named world ex:schema; these are the program axioms.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/holonic/holonic-band/> .
+
+ex:MP a logic:MereologyProfile .
+ex:H  a logic:Holarchy .
+
+# The diamond DAG: ex:Sensor has two parents (ex:Wing directly, and ex:Avionics).
+ex:ChipA    logic:properPartOf          ex:Sensor .
+ex:ChipB    logic:properPartOf          ex:Sensor .
+ex:Sensor   logic:properPartOf          ex:Wing .
+ex:Sensor   logic:properPartOf          ex:Avionics .
+ex:Avionics logic:properPartOf          ex:Wing .
+ex:Wing     logic:properPartOf          ex:Aircraft .
+
+# Only ex:Sensor is profiled (two disjoint parts → no weak-supplementation noise).
+ex:Sensor   logic:underMereologyProfile ex:MP .
+
+# Two HolonicPositions for ex:Sensor — one per path, each a full five-place position
+# (entity, holarchy, context, interval, path). The two differ by logic:positionPath, so
+# logic:multiplyPositioned fires (the engine-verified path-relativity signal). The
+# logic:holonicLevel literals and the min/max band are materialized OUTSIDE this all-IRI
+# chase — see slices/core/logic/examples/holonic-band.ttl.
+ex:posSensorDirect logic:positionEntity   ex:Sensor .
+ex:posSensorDirect logic:positionHolarchy ex:H .
+ex:posSensorDirect logic:positionContext  ex:OperationalContext .
+ex:posSensorDirect logic:positionInterval ex:MissionInterval .
+ex:posSensorDirect logic:positionPath     ex:pathDirect .
+
+ex:posSensorVia    logic:positionEntity   ex:Sensor .
+ex:posSensorVia    logic:positionHolarchy ex:H .
+ex:posSensorVia    logic:positionContext  ex:OperationalContext .
+ex:posSensorVia    logic:positionInterval ex:MissionInterval .
+ex:posSensorVia    logic:positionPath     ex:pathVia .

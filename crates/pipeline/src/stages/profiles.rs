@@ -12,13 +12,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::Term;
-use oxigraph::store::Store;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::source_load::module_files;
+use crate::stages::source_load::{module_files, turtle_bytes_to_store};
 
 /// Logical-path prefix of the generated profile documents.
 pub const PROFILES_DIR: &str = "generated/profiles";
@@ -175,19 +173,7 @@ fn profile_document(iri: &str, label: &str, comment: &str, imports: &[String]) -
 
 fn parse_manifest(path: &Path) -> Result<SliceMeta, PipelineError> {
     let bytes = std::fs::read(path)?;
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes.as_slice())
-    {
-        let quad = quad.map_err(|e| {
-            PipelineError::Parse(format!("syntax error in {}: {e}", path.display()))
-        })?;
-        store
-            .insert(&quad)
-            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-    }
+    let store = turtle_bytes_to_store(&bytes, &path.display().to_string())?;
     let nn = |iri: &str| oxigraph::model::NamedNode::new(iri).unwrap();
     let mut iri: Option<String> = None;
     for quad in store.quads_for_pattern(

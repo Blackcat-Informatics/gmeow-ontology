@@ -162,13 +162,8 @@ mod tests {
 
     /// Build a tiny in-memory store from a slice of N-Triples lines.
     fn store_from_ntriples(lines: &[&str]) -> Store {
-        use oxigraph::io::RdfFormat;
-        let store = Store::new().expect("in-memory store");
         let ntriples = lines.join("\n");
-        store
-            .load_from_reader(RdfFormat::NTriples, ntriples.as_bytes())
-            .expect("valid N-Triples");
-        store
+        crate::text_ingest::parse_ntriples_to_store(&ntriples).expect("valid N-Triples")
     }
 
     fn named(iri: &str) -> NamedNode {
@@ -253,7 +248,8 @@ mod tests {
     fn sparql_parse_error_before_eval_target() {
         let result = SparqlEvaluator::new().parse_query("SELECT ?this WHERE {");
         assert!(result.is_err(), "malformed query must fail to parse");
-        // Verify the error is non-empty; the exact format is owned by spargebra.
+        // Verify the error is non-empty; the exact format is owned by the
+        // oxigraph SPARQL evaluator used for SHACL-SPARQL execution.
         let msg = result.err().unwrap().to_string();
         assert!(!msg.is_empty(), "error message must be non-empty");
     }

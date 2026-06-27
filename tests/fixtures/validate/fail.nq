@@ -1,0 +1,12 @@
+# Repo-free Tier-1 conformance fixture (gmeow validate <data>): exactly two
+# errors and one warning against the bundled SHACL shapes + OntoUML disciplines.
+#  (a) ERROR  — an individual fills two disjoint identity axes (P9 orthogonality)
+#  (b) ERROR  — an under-mediated Commitment (agent + goal, no beneficiary)
+#  (c) WARNING — a frame-less Event (eventType set, so only the P11 frame warning fires)
+<https://example.org/p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/PronounSet> <https://example.org/g> .
+<https://example.org/p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Honorific> <https://example.org/g> .
+<https://example.org/c> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Commitment> <https://example.org/g> .
+<https://example.org/c> <https://blackcatinformatics.ca/gmeow/committedAgent> <https://example.org/agent> <https://example.org/g> .
+<https://example.org/c> <https://blackcatinformatics.ca/gmeow/intentionGoal> <https://example.org/goal> <https://example.org/g> .
+<https://example.org/e1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Event> <https://example.org/g> .
+<https://example.org/e1> <https://blackcatinformatics.ca/gmeow/eventType> <https://example.org/meeting> <https://example.org/g> .

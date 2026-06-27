@@ -1,0 +1,9 @@
+---
+source: crates/diagnostics/src/render.rs
+assertion_line: 1231
+expression: to_text_advisories(&advisory_report())
+---
+note advice.sample: consider a more specific sortal
+  ↳ suggestion: see the modeling guide
+  ↳ suggestion: use gmeow:Kind for rigid sortals
+  ↳ help: https://blackcatinformatics.ca/gmeow/advice#sample

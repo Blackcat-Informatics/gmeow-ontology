@@ -638,14 +638,42 @@ const RELCOMP_GOLDEN: &str =
 // materialized golden are read straight from the conformance case, so this Rust
 // golden and the conformance harness assert the SAME bytes.
 const HOLONIC_EMERGENCE_INPUT: &str =
-    include_str!("../../../../conformance/logic/cases/foundation/holonic-emergence/input.nq");
-const HOLONIC_EMERGENCE_GOLDEN: &str = include_str!(
-    "../../../../conformance/logic/cases/foundation/holonic-emergence/expected/materialized.nq"
+    include_str!("../../../../conformance/logic/cases/holonic/emergence/input.nq");
+const HOLONIC_EMERGENCE_GOLDEN: &str =
+    include_str!("../../../../conformance/logic/cases/holonic/emergence/expected/materialized.nq");
+// Holonic autonomy/integration duality (issue #707, C4): the input.nq seed facts and the
+// full materialized golden are read straight from the conformance case, so this Rust golden
+// and the conformance harness assert the SAME bytes.
+const HOLONIC_AGENCY_INPUT: &str =
+    include_str!("../../../../conformance/logic/cases/holonic/holon-integrity/input.nq");
+const HOLONIC_AGENCY_GOLDEN: &str = include_str!(
+    "../../../../conformance/logic/cases/holonic/holon-integrity/expected/materialized.nq"
 );
+// Holonic downward-constraint governance (#708, C3 corpus closure): the governance case and
+// rules already existed; these constants wire the Rust golden to the same conformance case
+// so the golden-parity test covers it.
+const HOLONIC_GOVERNANCE_INPUT: &str =
+    include_str!("../../../../conformance/logic/cases/holonic/downward-constraint/input.nq");
+const HOLONIC_GOVERNANCE_GOLDEN: &str = include_str!(
+    "../../../../conformance/logic/cases/holonic/downward-constraint/expected/materialized.nq"
+);
+// Holonic-level coherence (#708, C5): position-based level coherence rule + HolonicLevelIncoherence.
+const HOLONIC_LEVEL_INPUT: &str =
+    include_str!("../../../../conformance/logic/cases/holonic/holonic-level/input.nq");
+const HOLONIC_LEVEL_GOLDEN: &str = include_str!(
+    "../../../../conformance/logic/cases/holonic/holonic-level/expected/materialized.nq"
+);
+// Holonic agent-goal-holarchy (#709, C6): the named Principle-15 CONSUMER of the Holons epic —
+// an AI agent's goal/action trajectory as a holarchy that applies the C1–C4 kernel at once.
+// Read straight from the conformance case's input.nq world facts and run through the foundation
+// lowering directly — the same world-fact bytes the harness materializes over for this
+// foundation-profile case (the harness additionally loads input.logic.ttl, which this unit test omits).
+const HOLONIC_AGENT_GOAL_INPUT: &str =
+    include_str!("../../../../conformance/logic/cases/holonic/agent-goal-holarchy/input.nq");
 
 #[test]
 fn golden_quad_sets_match_for_single_world_cases() {
-    let cases: [(&str, &str, &str); 5] = [
+    let cases: [(&str, &str, &str); 8] = [
         (
             "exactly-one-stereotype",
             EXACTLY_ONE_GOLDEN,
@@ -679,6 +707,21 @@ fn golden_quad_sets_match_for_single_world_cases() {
             "holonic-emergence",
             HOLONIC_EMERGENCE_GOLDEN,
             HOLONIC_EMERGENCE_INPUT,
+        ),
+        (
+            "holonic-autonomy-integration",
+            HOLONIC_AGENCY_GOLDEN,
+            HOLONIC_AGENCY_INPUT,
+        ),
+        (
+            "holonic-governance",
+            HOLONIC_GOVERNANCE_GOLDEN,
+            HOLONIC_GOVERNANCE_INPUT,
+        ),
+        (
+            "holonic-level",
+            HOLONIC_LEVEL_GOLDEN,
+            HOLONIC_LEVEL_INPUT,
         ),
     ];
 
@@ -956,6 +999,53 @@ fn holon_two_node_chain_has_no_holon() {
 }
 
 #[test]
+fn holonic_level_coherence_is_position_based_and_profile_scoped() {
+    let base = "https://example.org/holonic/holonic-level";
+    let quads = run(HOLONIC_LEVEL_INPUT, AntiRigidityPolicy::WitnessObligation);
+    // Profiled holon WITH a HolonicPosition → coherent, not charged.
+    assert!(!has_violation(&quads, &format!("{base}/Bracket"), "HolonicLevelIncoherence"),
+        "Bracket (profiled holon occupying a HolonicPosition) must NOT fire HolonicLevelIncoherence");
+    // Profiled holon in the instantiation tower but with NO position → fires (non-conflation:
+    // logic:instanceOf / orderedType do not supply a holonic position).
+    assert!(
+        has_violation(
+            &quads,
+            &format!("{base}/Gearbox"),
+            "HolonicLevelIncoherence"
+        ),
+        "Gearbox (profiled holon, no position, only instanceOf) MUST fire HolonicLevelIncoherence"
+    );
+    // Unprofiled holon → never charged (profile-relativity, #775).
+    assert!(
+        !has_violation(&quads, &format!("{base}/Sprite"), "HolonicLevelIncoherence"),
+        "Sprite (unprofiled holon) must NOT fire HolonicLevelIncoherence"
+    );
+}
+
+#[test]
+fn multiply_positioned_marks_entity_with_two_distinct_positions() {
+    // ME9 (#775): an entity occupying TWO distinct logic:HolonicPositions is the structural
+    // signature of a DAG node on multiple paths → logic:multiplyPositioned fires, grounding
+    // that a path-relative depth band exists.  An entity with a single position does NOT fire.
+    let base = "https://example.org/foundation/multiply-positioned";
+    let nq = format!(
+        "<{base}/posA> <{LOGIC}positionEntity> <{base}/Sensor> <{base}/schema> .\n\
+         <{base}/posB> <{LOGIC}positionEntity> <{base}/Sensor> <{base}/schema> .\n\
+         <{base}/posC> <{LOGIC}positionEntity> <{base}/Bolt> <{base}/schema> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+
+    assert!(
+        has_marker(&quads, &format!("{base}/Sensor"), "multiplyPositioned"),
+        "Sensor (two distinct HolonicPositions) must be multiplyPositioned"
+    );
+    assert!(
+        !has_marker(&quads, &format!("{base}/Bolt"), "multiplyPositioned"),
+        "Bolt (a single HolonicPosition) must NOT be multiplyPositioned"
+    );
+}
+
+#[test]
 fn weak_supplementation_singleton_part_under_profile_fires() {
     // W1 is declared under a MereologyProfile and has exactly ONE proper part P1
     // with no disjoint co-part → weak supplementation is violated.
@@ -1121,4 +1211,283 @@ fn holonic_emergence_tri_valued_verdicts_and_non_propagation() {
         ),
         "the Numinous (Unknown) property must NOT propagate to Engine"
     );
+}
+
+#[test]
+fn holonic_downward_constraint_tri_valued_verdicts_and_non_transitivity() {
+    // The C3 (issue #706, revised by ME9 / #775) downward-constraint governance, driven from the
+    // SAME bytes the conformance harness asserts (the downward-constraint case input.nq).  One
+    // holarchy (ex:Department ▷ ex:Team ▷ ex:Member) and one governance regime (ex:HouseRegime,
+    // whose logic:activationBasis carries ex:OnCallState but NOT ex:IdleState) drive all three
+    // logic:ConstraintVerdict values; the would-be binding on ex:GovWaived is DEFEATED because
+    // ex:Team bears the declared override token (ex:CharterWaiver).  Crucially, the verdict must
+    // NOT cascade down logic:properPartOf to the grandchild ex:Member — non-transitivity is the
+    // C3 guarantee, and golden parity alone cannot pin that NEGATIVE fact.
+    let base = "https://example.org/foundation/holonic-governance";
+    let quads = run(
+        HOLONIC_GOVERNANCE_INPUT,
+        AntiRigidityPolicy::WitnessObligation,
+    );
+
+    // The three verdicts, each on its own logic:DownwardConstraint reifier.
+    let expect: [(&str, &str); 3] = [
+        ("GovActive", "ConstraintBinding"), // regime activates OnCallState, no override
+        ("GovWaived", "ConstraintOverridden"), // binding defeated by the CharterWaiver token
+        ("GovIdle", "ConstraintUnknown"),   // IdleState not in the regime's activationBasis
+    ];
+    let all_verdicts = [
+        "ConstraintBinding",
+        "ConstraintOverridden",
+        "ConstraintUnknown",
+    ];
+    for (constraint, verdict) in expect {
+        assert!(
+            has_binary(
+                &quads,
+                &format!("{base}/{constraint}"),
+                "constraintVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "{constraint} must receive {verdict}"
+        );
+        // Mutual exclusivity: the constraint carries NO other verdict of the trio.
+        for other in all_verdicts.iter().filter(|v| **v != verdict) {
+            assert!(
+                !has_binary(
+                    &quads,
+                    &format!("{base}/{constraint}"),
+                    "constraintVerdict",
+                    &format!("{LOGIC}{other}")
+                ),
+                "{constraint} must NOT also receive {other}"
+            );
+        }
+    }
+
+    // NON-TRANSITIVITY (the C3 #775 guarantee): governance does NOT cascade down
+    // logic:properPartOf.  ex:Member is a proper part of ex:Team (hence TRANSITIVELY a proper
+    // part of ex:Department), but no logic:DownwardConstraint names it as its constraintTarget,
+    // so it receives NO logic:constraintVerdict of any value — every verdict rule is gated on an
+    // explicit constraintWhole / constraintTarget reification, never on the properPartOf closure.
+    for verdict in all_verdicts {
+        assert!(
+            !has_binary(
+                &quads,
+                &format!("{base}/Member"),
+                "constraintVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "downward constraint must NOT cascade to the grandchild ex:Member (got {verdict})"
+        );
+    }
+}
+
+#[test]
+fn holonic_agency_four_valued_verdicts() {
+    // The C4 (issue #707) holon autonomy/integration duality, driven from the SAME bytes
+    // the conformance harness asserts (the case input.nq).  One declared
+    // logic:HolonicAgencyProfile (KoestlerProfile: command ⇒ self-assertion, subordination
+    // ⇒ integration) drives all four logic:AgencyVerdict values, and the two Janus markers
+    // are co-equal (Principle 9).  A second, basis-free profile (VoidProfile) pins AgencyUnknown's
+    // SECOND trigger — a declared profile that names no basis — distinct from the holon-bears-
+    // nothing trigger (AssessInert).
+    let base = "https://example.org/foundation/holonic-autonomy-integration";
+    let quads = run(HOLONIC_AGENCY_INPUT, AntiRigidityPolicy::WitnessObligation);
+
+    // The four verdicts (each on its own assessment) plus the basis-free AgencyUnknown: the SAME
+    // both-capacity holon (Captain) is HolonIntegral under KoestlerProfile yet AgencyUnknown under
+    // the basis-free VoidProfile (AssessSilentCaptain) — agency is profile-relative.
+    let expect: [(&str, &str); 5] = [
+        ("AssessCaptain", "HolonIntegral"),
+        ("AssessPrivate", "AutonomyDeficient"),
+        ("AssessWarlord", "IntegrationDeficient"),
+        ("AssessInert", "AgencyUnknown"),
+        ("AssessSilentCaptain", "AgencyUnknown"),
+    ];
+    let all_verdicts = [
+        "HolonIntegral",
+        "AutonomyDeficient",
+        "IntegrationDeficient",
+        "AgencyUnknown",
+    ];
+    for (assess, verdict) in expect {
+        assert!(
+            has_binary(
+                &quads,
+                &format!("{base}/{assess}"),
+                "agencyVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "{assess} must receive {verdict}"
+        );
+        // Mutual exclusivity: the assessment carries NO other verdict (the 2×2 partitions).
+        for other in all_verdicts.iter().filter(|v| **v != verdict) {
+            assert!(
+                !has_binary(
+                    &quads,
+                    &format!("{base}/{assess}"),
+                    "agencyVerdict",
+                    &format!("{LOGIC}{other}")
+                ),
+                "{assess} must NOT also receive {other}"
+            );
+        }
+    }
+
+    // Principle 9 co-equality: the BALANCED holon carries BOTH markers, derived by identical
+    // rules — neither face is privileged.  AssessPrivate carries only integrative (a part
+    // with no autonomy); AssessWarlord only self-assertive (a whole refusing to integrate).
+    assert!(
+        has_marker(&quads, &format!("{base}/AssessCaptain"), "selfAssertive")
+            && has_marker(&quads, &format!("{base}/AssessCaptain"), "integrative"),
+        "the integral assessment must carry BOTH co-equal Janus markers"
+    );
+    assert!(
+        has_marker(&quads, &format!("{base}/AssessPrivate"), "integrative")
+            && !has_marker(&quads, &format!("{base}/AssessPrivate"), "selfAssertive"),
+        "the autonomy-deficient assessment integrates but does not self-assert"
+    );
+    assert!(
+        has_marker(&quads, &format!("{base}/AssessWarlord"), "selfAssertive")
+            && !has_marker(&quads, &format!("{base}/AssessWarlord"), "integrative"),
+        "the integration-deficient assessment self-asserts but does not integrate"
+    );
+
+    // Dogfooding C1 (#704): the mid-chain holon ex:Captain co-fires logic:isHolon.
+    assert!(
+        has_marker(&quads, &format!("{base}/Captain"), "isHolon"),
+        "the mid-chain ex:Captain must co-fire the C1 holon projection"
+    );
+
+    // Basis-free trigger: ex:AssessSilentCaptain assesses the SAME both-capacity holon (Captain)
+    // under the basis-free ex:VoidProfile.  No basis means NEITHER marker can derive, so the
+    // verdict is Unknown — not deficient (deficiency needs the mirror marker to hold) and not
+    // integral.  This proves the verdict is PROFILE-RELATIVE: the identical holon that is
+    // HolonIntegral under KoestlerProfile is AgencyUnknown here, purely because the profile
+    // declares no basis to reason over.
+    assert!(
+        !has_marker(
+            &quads,
+            &format!("{base}/AssessSilentCaptain"),
+            "selfAssertive"
+        ) && !has_marker(
+            &quads,
+            &format!("{base}/AssessSilentCaptain"),
+            "integrative"
+        ),
+        "a basis-free profile must evidence NEITHER Janus marker, even for a both-capacity holon"
+    );
+
+    // B1 well-formedness guard: a malformed assessment (no logic:agencyProfile) receives NO
+    // verdict, because every verdict rule re-binds agencyHolon AND agencyProfile.  Here the
+    // holon bears BOTH capacities, so a guard-free rule would wrongly emit HolonIntegral.
+    let malformed = format!(
+        "{HOLONIC_AGENCY_INPUT}\
+         <{base}/AssessMalformed> <{LOGIC}agencyHolon> <{base}/Captain> <{base}/schema> .\n"
+    );
+    let mq = run(&malformed, AntiRigidityPolicy::WitnessObligation);
+    for verdict in all_verdicts {
+        assert!(
+            !has_binary(
+                &mq,
+                &format!("{base}/AssessMalformed"),
+                "agencyVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "a profile-less assessment must receive NO verdict (got {verdict})"
+        );
+    }
+}
+
+#[test]
+fn holonic_agent_goal_holarchy_non_propagation_and_non_transitivity() {
+    // C6 (issue #709): the named Principle-15 CONSUMER — an AI agent's goal/action trajectory as
+    // a holarchy, applying the C1–C4 kernel at once.  The flagship composite previously had only
+    // golden-parity coverage; this test PINS the two structural guarantees golden parity cannot
+    // express as positive facts: NON-PROPAGATION (C2 — an emergent plan property never inherits
+    // down to sub-goals) and NON-TRANSITIVITY (C3 — a downward constraint never cascades down
+    // logic:properPartOf to a grandchild sub-goal).  Positive anchors across all four composed
+    // families come first, so the test cannot pass vacuously on an inert case.
+    let base = "https://example.org/holonic/agent-goal-holarchy";
+    let quads = run(
+        HOLONIC_AGENT_GOAL_INPUT,
+        AntiRigidityPolicy::WitnessObligation,
+    );
+
+    // ── Liveness: at least one positive derivation from each composed family fires ──
+    // C1 holon projection: mid-chain goals/actions are holons; the root goal and leaf are not.
+    for holon in ["RetrieveContext", "AnswerQuery", "ToolPhase"] {
+        assert!(
+            has_marker(&quads, &format!("{base}/{holon}"), "isHolon"),
+            "mid-chain {holon} must co-fire the C1 holon projection"
+        );
+    }
+    for non_holon in ["ShipAssistant", "SearchQuery"] {
+        assert!(
+            !has_marker(&quads, &format!("{base}/{non_holon}"), "isHolon"),
+            "the root/leaf {non_holon} must NOT be a holon"
+        );
+    }
+    // C2 emergence, C3 constraint, C4 agency: one verdict each proves the family is engaged.
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/AssessCoherence"),
+            "assessmentVerdict",
+            &format!("{LOGIC}Emergent")
+        ),
+        "plan coherence (borne by the whole, not theory-reduced) must be Emergent"
+    );
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/GovGrounded"),
+            "constraintVerdict",
+            &format!("{LOGIC}ConstraintBinding")
+        ),
+        "the grounded-only governance must bind the retrieval sub-goal"
+    );
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/IntegralRetrieve"),
+            "agencyVerdict",
+            &format!("{LOGIC}HolonIntegral")
+        ),
+        "the both-capacity retrieval sub-agent must be HolonIntegral"
+    );
+
+    // ── NON-PROPAGATION (C2): the emergent ex:PlanCoherence stays on the root goal and never
+    // inherits down logic:properPartOf to any sub-goal — non-inheritance is structural. ──
+    for sub_goal in ["AnswerQuery", "RetrieveContext", "SearchQuery"] {
+        assert!(
+            !has_binary(
+                &quads,
+                &format!("{base}/{sub_goal}"),
+                "bearsProperty",
+                &format!("{base}/PlanCoherence")
+            ),
+            "emergent PlanCoherence must NOT propagate down to the sub-goal {sub_goal}"
+        );
+    }
+
+    // ── NON-TRANSITIVITY (C3): ex:SearchQuery is a proper part of ex:RetrieveContext (the
+    // constraint target), hence transitively of ex:AnswerQuery (the constraint whole), but no
+    // logic:DownwardConstraint names it, so it receives NO constraintVerdict of any value —
+    // governance does not cascade down the properPartOf closure. ──
+    for verdict in [
+        "ConstraintBinding",
+        "ConstraintOverridden",
+        "ConstraintUnknown",
+    ] {
+        assert!(
+            !has_binary(
+                &quads,
+                &format!("{base}/SearchQuery"),
+                "constraintVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "downward constraint must NOT cascade to the grandchild sub-goal ex:SearchQuery (got {verdict})"
+        );
+    }
 }

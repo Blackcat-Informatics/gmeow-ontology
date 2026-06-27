@@ -228,11 +228,14 @@ mod tests {
             mapping_sets: Vec::new(),
             linkages: Vec::new(),
             examples: Vec::new(),
+            shapes: Vec::new(),
+            competencies: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
             recipes: Vec::new(),
             learning_paths: Vec::new(),
             four_boxes: None,
+            concept_doi: None,
 
             available_languages: vec!["english".to_string()],
 
@@ -258,6 +261,14 @@ mod tests {
             parents: Vec::new(),
             domain: Vec::new(),
             range: Vec::new(),
+            scope_notes: Vec::new(),
+            examples: Vec::new(),
+            use_when: Vec::new(),
+            avoid_when: Vec::new(),
+            how_to_use: Vec::new(),
+            use_for_consumer: Vec::new(),
+            avoid_for_consumer: Vec::new(),
+            ..Default::default()
         }
     }
 

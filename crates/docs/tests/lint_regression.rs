@@ -14,31 +14,20 @@
 // for this file. Identical behaviour on pass; insta snapshots are unaffected.
 use pretty_assertions::assert_eq;
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::PathBuf;
 
 use gmeow_docs::lint::lint;
 use gmeow_docs::model::{DocTerm, DocTermCategory};
-use gmeow_docs::render::{render_site, Site};
+use gmeow_docs::render::Site;
 use gmeow_docs::DocsModel;
 
-fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("crate is at <repo>/crates/docs")
-        .to_path_buf()
-}
-
-fn live_model() -> DocsModel {
-    DocsModel::discover(&repo_root()).expect("build docs model from live slices")
-}
+mod common;
 
 #[test]
 fn live_docs_lint_is_clean() {
     // The doctrine guarantee: the real rendered docs carry NO lint errors
     // (dangling links / broken anchors). This is the gate `make check` depends on.
-    let model = live_model();
-    let site = render_site(&model);
+    let model = common::cached_model();
+    let site = common::cached_site();
     let report = lint(&model, &site);
     assert_eq!(
         report.error_count(),
@@ -50,10 +39,10 @@ fn live_docs_lint_is_clean() {
 
 #[test]
 fn live_docs_lint_is_deterministic() {
-    // Two lint passes over the same live model must yield byte-identical finding
+    // Two lint passes over the same site must yield byte-identical finding
     // sequences (code + severity + message), proving the documented sort order.
-    let model = live_model();
-    let site = render_site(&model);
+    let model = common::cached_model();
+    let site = common::cached_site();
     let a = lint(&model, &site);
     let b = lint(&model, &site);
     let key = |r: &gmeow_diagnostics::Report| {
@@ -77,6 +66,14 @@ fn term(local: &str, definition: Option<&str>, label: Option<&str>) -> DocTerm {
         parents: Vec::new(),
         domain: Vec::new(),
         range: Vec::new(),
+        scope_notes: Vec::new(),
+        examples: Vec::new(),
+        use_when: Vec::new(),
+        avoid_when: Vec::new(),
+        how_to_use: Vec::new(),
+        use_for_consumer: Vec::new(),
+        avoid_for_consumer: Vec::new(),
+        ..Default::default()
     }
 }
 
@@ -91,11 +88,14 @@ fn model_with_terms(terms: Vec<DocTerm>) -> DocsModel {
         mapping_sets: Vec::new(),
         linkages: Vec::new(),
         examples: Vec::new(),
+        shapes: Vec::new(),
+        competencies: Vec::new(),
         concerns: Vec::new(),
         external_terms: Vec::new(),
         recipes: Vec::new(),
         learning_paths: Vec::new(),
         four_boxes: None,
+        concept_doi: None,
         available_languages: vec!["english".to_string()],
         translations: Default::default(),
         ui_catalog: Default::default(),

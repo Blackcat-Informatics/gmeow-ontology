@@ -338,8 +338,9 @@ impl RdfDataset {
 
     /// Resolve a term id to the owned [`RdfTerm`] model, recursively for triple
     /// terms. This allocates owned strings at the explicit owned-model boundary
-    /// used by serializers, oxigraph materialization, and tests.
-    fn to_owned_term(&self, id: TermId) -> RdfTerm {
+    /// used by serializers, oxigraph materialization, the C-ABI (`gmeow-rdf-capi`
+    /// renders a cursor term to N-Triples through this), and tests.
+    pub fn to_owned_term(&self, id: TermId) -> RdfTerm {
         match self.resolve(id) {
             TermRef::Iri(iri) => RdfTerm::iri(iri),
             TermRef::Blank { label, scope } => RdfTerm::blank_node(scope.qualify_label(label)),

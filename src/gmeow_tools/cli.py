@@ -21,7 +21,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from gmeow_tools import __version__
+from gmeow_tools import __version__, validate_data
 from gmeow_tools.config import (
     GTS_GRAPH_METADATA,
     GTS_SNAPSHOT_FILE,
@@ -299,6 +299,73 @@ def verify(
     console.print("[green]verification passed[/green]")
 
 
+@app.command(name="verify-release-bundle")
+def verify_release_bundle(
+    bundle: Path = typer.Option(  # noqa: B008
+        ...,
+        "--bundle",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Signed release bundle to verify.",
+    ),
+    public_key: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--public-key",
+        help=(
+            "Optional out-of-band trusted Ed25519 OpenPGP PUBLIC certificate. "
+            "When given, the signature is checked against it, not just the "
+            "bundle's embedded transport key."
+        ),
+    ),
+) -> None:
+    """Consumer verification of a signed release bundle (#673, §18).
+
+    Verifies the COSE signature + trust policy AND walks the
+    ``graph/attestations`` frames, hard-failing if any attested artifact's bytes
+    are absent — so a consumer confirms exactly which checks ran over exactly
+    which bytes, not merely that *something* was signed. This Python layer does
+    NO verification logic; it only marshals paths + bytes into the native
+    ``gmeow_native.pipeline.verify_release_bundle_native``.
+    """
+    try:
+        import gmeow_native.pipeline as _pipeline
+    except ImportError as exc:
+        raise _fail(
+            "✗ the native pipeline is unavailable: "
+            f"`import gmeow_native.pipeline` failed ({exc}). Install or upgrade "
+            "the gmeow package with native extensions, then retry."
+        ) from exc
+
+    try:
+        bundle_bytes = bundle.read_bytes()
+    except OSError as exc:
+        raise _fail(f"✗ release bundle {bundle} is unreadable: {exc}") from exc
+
+    expected_armor: str | None = None
+    if public_key is not None:
+        try:
+            expected_armor = public_key.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise _fail(f"✗ public key {public_key} is unreadable: {exc}") from exc
+
+    try:
+        signed, valid, kid, fingerprint, artifacts = (
+            _pipeline.verify_release_bundle_native(bundle_bytes, expected_armor)
+        )
+    except ValueError as exc:
+        raise _fail(f"✗ release verification failed: {exc}") from exc
+
+    key_line = f", key {kid}" if kid else ""
+    fp_line = f", fingerprint {fingerprint}" if fingerprint else ""
+    console.print(
+        f"[green]✓ release verified: {bundle} "
+        f"({valid}/{signed} valid signature(s){key_line}{fp_line}, "
+        f"{artifacts} attested artifact(s) present)[/green]"
+    )
+
+
 @app.command()
 def describe(
     term: str = typer.Argument(
@@ -324,34 +391,92 @@ def describe(
 def validate(
     instance: Path = typer.Argument(  # noqa: B008
         ...,
-        help="Instance file to validate (.json or .yaml/.yml).",
+        help=(
+            "RDF data (.nq/.nquads/.trig/.ttl/.turtle/.nt/.ntriples"
+            "/.rdf/.owl/.jsonld) or a JSON/YAML instance."
+        ),
     ),
     schema: Path | None = typer.Option(  # noqa: B008
         None,
         "--schema",
         "-s",
-        help="JSON Schema to validate against (default: bundled gmeow.schema.json).",
+        help="JSON Schema to validate against (forces JSON-Schema instance mode).",
+    ),
+    output: str = typer.Option(
+        "human",
+        "--format",
+        "-f",
+        help="Output for RDF conformance: human, sarif, or json.",
     ),
 ) -> None:
+    """Validate RDF data against the bundle, or a JSON/YAML instance against a schema.
+
+    The mode is chosen by file type. RDF serializations (``.nq``, ``.nquads``,
+    ``.trig``, ``.ttl``, ``.turtle``, ``.nt``, ``.ntriples``, ``.rdf``,
+    ``.owl``, ``.jsonld``) run repo-free Tier-1 conformance —
+    SHACL plus the OntoUML disciplines — against the SHACL shape surface folded
+    into the bundled ``gmeow.gts``, with no reasoner, repo, or Docker required.
+    ``.json``/``.yaml`` run JSON-Schema instance validation, and ``--schema``
+    forces the JSON-Schema path for any input. Either mode exits non-zero on a
+    validation error.
+    """
+    suffix = instance.suffix.lower()
+    rdf_format = validate_data.format_for_suffix(suffix)
+    if schema is None and rdf_format is not None:
+        _validate_rdf(instance, rdf_format, output)
+        return
+    _validate_instance(instance, schema)
+
+
+def _validate_rdf(instance: Path, fmt: str, output: str) -> None:
+    """Run repo-free RDF Tier-1 conformance and emit in the requested format."""
+    output = output.lower()
+    if output not in ("human", "sarif", "json"):
+        raise _fail(f"unknown --format {output!r}: expected human, sarif, or json")
+
+    data_bytes = _read_bytes_or_fail(instance)
+    gts_bytes = _read_bytes_or_fail(_default_gts_file())
+    try:
+        report = validate_data.validate_rdf(
+            data_bytes, fmt, gts_bytes, NAMESPACE, str(instance)
+        )
+    except ValueError as exc:
+        raise _fail(f"validation error: {exc}") from exc
+
+    if output == "sarif":
+        typer.echo(report.to_sarif())
+    elif output == "json":
+        typer.echo(report.to_json())
+    else:
+        text = report.render_text()
+        if text.strip():
+            err_console.print(text, markup=False, highlight=False)
+        if report.error_count == 0 and report.warning_count == 0:
+            console.print("[green]validation passed[/green]")
+    if report.error_count > 0:
+        raise typer.Exit(code=1)
+
+
+def _validate_instance(instance: Path, schema: Path | None) -> None:
     """Validate a JSON/YAML instance against a JSON Schema (the SHACL-derived one).
 
     The instance format is detected from its extension. Validation runs in the
-    Rust ``gmeow_validate.validate_instance`` engine (#700): an empty violation
-    set passes, any violation hard-fails with a non-zero exit.
+    Rust ``gmeow_validate.validate_instance`` engine: an empty violation set
+    passes, any violation hard-fails with a non-zero exit.
     """
     import gmeow_validate
 
     suffix = instance.suffix.lower()
-    # JSON-LD is JSON to the validator (the projector emits JSON-LD instances, and
-    # docs/schema-projections.md documents a `.jsonld` example), so accept it here.
+    # With --schema (or a .jsonld passed explicitly down this path), JSON-LD is a
+    # JSON instance to the validator.
     if suffix in (".json", ".jsonld"):
         fmt = "json"
     elif suffix in (".yaml", ".yml"):
         fmt = "yaml"
     else:
         raise _fail(
-            f"cannot infer format from {instance.name}: "
-            "expected a .json, .jsonld, .yaml, or .yml extension"
+            f"cannot infer format from {instance.name}: expected a .json, "
+            ".jsonld, .yaml, or .yml instance for JSON-Schema validation"
         )
 
     instance_bytes = _read_bytes_or_fail(instance)
@@ -683,6 +808,68 @@ def export(
         console.print(f"[green]wrote[/green] {path}")
 
 
+@app.command()
+def convert(
+    source: Path = typer.Argument(  # noqa: B008
+        ..., help="Input RDF document, or '-' to read from stdin."
+    ),
+    from_: str = typer.Option(
+        ...,
+        "--from",
+        help=(
+            "Source codec: turtle|ntriples|nquads|trig|jsonld|rdfxml|gts|owl-rdf12. "
+            "(jsonld-star/yaml-ld-star and projection targets are output-only.)"
+        ),
+    ),
+    to: str = typer.Option(
+        ...,
+        "--to",
+        help=(
+            "Target codec: any source codec plus jsonld-star|yaml-ld-star and the "
+            "projections owl-dl|owl-el|datalog|n3|nemo|gufo|canonical-rdf12."
+        ),
+    ),
+    out: Path | None = typer.Option(  # noqa: B008
+        None, "--out", "-o", help="Output path (default: stdout)."
+    ),
+    loss_report: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--loss-report",
+        help="Write the realized loss ledger (JSON) here (default: stderr summary).",
+    ),
+    base_iri: str | None = typer.Option(
+        None, "--base", help="Base IRI for relative-IRI resolution."
+    ),
+) -> None:
+    """Transcode any RDF-1.2 syntax/projection to any other, recording loss.
+
+    Every lossy conversion records what it dropped (the projection doctrine):
+    the realized loss ledger lists each declared loss class and the number of
+    items actually dropped from this document.
+    """
+    import gmeow_native.pipeline as _pipeline
+
+    data = sys.stdin.buffer.read() if str(source) == "-" else source.read_bytes()
+    try:
+        out_bytes, loss_json = _pipeline.transcode(
+            data, from_=from_, to=to, base_iri=base_iri
+        )
+    except ValueError as exc:
+        raise _fail(str(exc)) from exc
+
+    if out is not None:
+        out.write_bytes(out_bytes)
+        console.print(f"[green]wrote[/green] {out}")
+    else:
+        sys.stdout.buffer.write(out_bytes)
+
+    if loss_report is not None:
+        loss_report.write_text(loss_json)
+        err_console.print(f"[green]loss[/green] {loss_report}")
+    elif loss_json.strip() not in ("", "[]"):
+        err_console.print(f"[yellow]loss[/yellow] {loss_json}")
+
+
 @app.command(name="extract-docs")
 def extract_docs(
     directory: Path = typer.Option(  # noqa: B008
@@ -701,19 +888,18 @@ def extract_docs(
 ) -> None:
     """Extract the browsable docs tree from a GTS snapshot.
 
-    The tree combines a deterministic Markdown projection (per-term pages, slice
-    guides, alignment + statement summaries) with the full ontology-docs site,
-    which is unpacked verbatim from the ``ontology-docs`` blob baked into the
-    bundle (rendered at ``regenerate`` time, not re-rendered here).
+    The tree is the full ontology-docs site (per-term reference pages, slice
+    guides, alignment + linkage indexes), unpacked verbatim from the
+    ``ontology-docs`` blob baked into the bundle. The site is rendered natively
+    at ``regenerate`` time (``gmeow_docs::render_site_lang``) and embedded, not
+    re-projected here — run ``regenerate`` to refresh the stored tree.
     """
-    from gmeow_tools.create_docs import create_docs
+    from gmeow_tools.gts_views import extract_docs_site
 
     view = _bundle_view(file)
     selector = _resolve_lang(lang, view)
     try:
-        create_docs(
-            file or _default_gts_file(), directory, force=force, selector=selector
-        )
+        extract_docs_site(view, directory, selector=selector, force=force)
     except FileExistsError as exc:
         raise _fail(str(exc)) from exc
     except (OSError, ValueError) as exc:

@@ -164,6 +164,39 @@ fn serialize_yaml_ld(py: Python<'_>, nquads_bytes: &[u8], format: &str) -> PyRes
     Ok(PyBytes::new(py, text.as_bytes()).into_any().unbind())
 }
 
+/// Universal RDF-1.2 transcode: convert `data` from one codec to another,
+/// recording loss (#671).
+///
+/// * `data` — the source document bytes.
+/// * `from_` / `to` — codec names (see `crate::transcode::Codec::from_cli_str`):
+///   `turtle`, `ntriples`, `nquads`, `trig`, `jsonld`, `jsonld-star`,
+///   `yaml-ld-star`, `rdfxml`, `gts`, `owl-rdf12`, and the projection targets
+///   `owl-dl`, `owl-el`, `datalog`, `n3`, `nemo`, `gufo`, `canonical-rdf12`.
+/// * `base_iri` — optional base IRI for relative-IRI resolution.
+///
+/// Returns `(output_bytes, realized_loss_json)`. Hard-fails (`ValueError`) on an
+/// unknown codec, a non-invertible projection source, or an undecodable input
+/// codec (JSON-LD-star / YAML-LD-star are output-only).
+#[pyfunction]
+#[pyo3(signature = (data, from_, to, base_iri = None))]
+fn transcode(
+    py: Python<'_>,
+    data: &[u8],
+    from_: &str,
+    to: &str,
+    base_iri: Option<String>,
+) -> PyResult<(Py<PyBytes>, String)> {
+    use crate::transcode::{realized_loss_json, transcode as run_transcode, Codec};
+    let from = Codec::from_cli_str(from_)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    let to = Codec::from_cli_str(to)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    let output = run_transcode(data, from, to, base_iri.as_deref())
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    let loss = realized_loss_json(&output.realized);
+    Ok((PyBytes::new(py, &output.bytes).unbind(), loss))
+}
+
 /// Parse JSON-LD-star bytes and downcast RDF 1.2 quoted triples to GMEOW
 /// statement-metadata N-Quads.
 ///
@@ -228,6 +261,128 @@ fn parse_yaml_ld_star_to_gmeow_statement_metadata_nquads(
 fn roundtrip_isomorphic(nquads_bytes: &[u8], star_bytes: &[u8], format: &str) -> PyResult<bool> {
     crate::stages::yaml_ld::roundtrip_isomorphic(nquads_bytes, star_bytes, format)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+}
+
+/// Fold release evidence into a SIGNED `gmeow.gts` bundle (#673, §18).
+///
+/// This is the thin marshalling surface for the standalone release-as-evidence
+/// fold ([`crate::stages::release::fold_release_bundle`]). ALL fold / sign /
+/// attestation logic is Rust; Python only reads files, the signing key, and the
+/// armor, then calls here.
+///
+/// * `snapshot_bytes` — the committed *unsigned* `gmeow.gts` (NEVER mutated).
+/// * `evidence` — a list of `(data, media_type, attestation_type_iri, rep,
+///   subject_label)` rows; the caller read each artifact file (a missing file is
+///   a hard failure at the CLI before this is called).
+/// * `attester_iri` — the release-lane agent IRI.
+/// * `issued_at` — the INJECTED ISO-8601 release timestamp (determinism, §18).
+/// * `release_subject_iri` — the IRI naming the signed release bundle.
+/// * `signer_secret_armor` — the ASCII-armored unencrypted Ed25519 OpenPGP
+///   SECRET key (the SIGN_KEY material); parsed to a `SigningKey` + kid HERE.
+/// * `public_key_armor` — the ASCII-armored Ed25519 OpenPGP PUBLIC certificate
+///   carried in the bundle's transport-key meta frame.
+///
+/// Returns the signed bundle bytes; the caller writes them to `--out`.
+#[pyfunction]
+#[pyo3(signature = (
+    snapshot_bytes,
+    evidence,
+    attester_iri,
+    issued_at,
+    release_subject_iri,
+    signer_secret_armor,
+    public_key_armor,
+))]
+#[allow(clippy::too_many_arguments)]
+fn fold_release_bundle_native(
+    py: Python<'_>,
+    snapshot_bytes: &[u8],
+    evidence: Vec<(Vec<u8>, String, String, String, String)>,
+    attester_iri: String,
+    issued_at: String,
+    release_subject_iri: String,
+    signer_secret_armor: String,
+    public_key_armor: String,
+) -> PyResult<Py<PyAny>> {
+    use crate::stages::release::{fold_release_bundle, EvidenceInput};
+
+    // Load the Ed25519 signing material from the armored secret key in Rust
+    // (no key handling in Python beyond reading the file bytes).
+    let signer =
+        gmeow_gts::openpgp::parse_secret_signing_key(&signer_secret_armor, None).map_err(|e| {
+            pyo3::exceptions::PyValueError::new_err(format!("parsing signing secret key: {e}"))
+        })?;
+    let (signing_key, kid) = signer.into_parts();
+    let secret = signing_key.to_bytes();
+
+    let inputs: Vec<EvidenceInput> = evidence
+        .into_iter()
+        .map(
+            |(data, media_type, attestation_type_iri, rep, subject_label)| EvidenceInput {
+                data,
+                media_type,
+                attestation_type_iri,
+                rep,
+                subject_label,
+            },
+        )
+        .collect();
+
+    // Own the snapshot bytes so the heavy fold runs off the GIL.
+    let snapshot = snapshot_bytes.to_vec();
+    let bytes = py
+        .detach(move || {
+            fold_release_bundle(
+                &snapshot,
+                inputs,
+                &attester_iri,
+                &issued_at,
+                &release_subject_iri,
+                secret,
+                &kid,
+                &public_key_armor,
+            )
+        })
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(PyBytes::new(py, &bytes).into_any().unbind())
+}
+
+/// Marshalled shape of a [`crate::stages::release::ReleaseVerifyReport`] for
+/// Python: a `(signed, valid, kid, fingerprint, artifacts_verified)` tuple.
+type ReleaseVerifyTuple = (usize, usize, Option<String>, Option<String>, usize);
+
+/// Verify a signed release-evidence bundle (#673, §18) — the consumer half of
+/// the fold and the body of `make verify-release`.
+///
+/// Thin marshalling surface for [`crate::stages::release::verify_release_bundle`]:
+/// it does the COSE signature + trust-policy check AND walks the
+/// `graph/attestations` frames, hard-failing if any attested artifact's bytes
+/// are absent. Returns `(signed, valid, kid, fingerprint, artifacts_verified)`;
+/// a verification failure raises `ValueError` (no silent pass).
+///
+/// * `bundle_bytes` — the signed bundle to verify.
+/// * `expected_public_armor` — optional out-of-band trusted public key; when
+///   present the signature is checked against it, not just the embedded key.
+#[pyfunction]
+#[pyo3(signature = (bundle_bytes, expected_public_armor=None))]
+fn verify_release_bundle_native(
+    py: Python<'_>,
+    bundle_bytes: &[u8],
+    expected_public_armor: Option<String>,
+) -> PyResult<ReleaseVerifyTuple> {
+    use crate::stages::release::verify_release_bundle;
+
+    let bundle = bundle_bytes.to_vec();
+    let report = py
+        .detach(move || verify_release_bundle(&bundle, expected_public_armor.as_deref()))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok((
+        report.signed,
+        report.valid,
+        report.kid,
+        report.fingerprint,
+        report.artifacts_verified,
+    ))
 }
 
 /// Classify one SSSOM row for the native up-projection audit.
@@ -697,6 +852,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compile_statements_report, m)?)?;
     m.add_function(wrap_pyfunction!(compile_mappings_report, m)?)?;
     m.add_function(wrap_pyfunction!(serialize_yaml_ld, m)?)?;
+    m.add_function(wrap_pyfunction!(transcode, m)?)?;
     m.add_function(wrap_pyfunction!(
         parse_jsonld_star_to_gmeow_statement_metadata_nquads,
         m
@@ -706,6 +862,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     m.add_function(wrap_pyfunction!(roundtrip_isomorphic, m)?)?;
+    m.add_function(wrap_pyfunction!(fold_release_bundle_native, m)?)?;
+    m.add_function(wrap_pyfunction!(verify_release_bundle_native, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_classify_sssom, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_combined_class, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_build_lift_map, m)?)?;
@@ -720,5 +878,6 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(claim_audit_diagnostics_report, m)?)?;
     m.add_function(wrap_pyfunction!(acceptance, m)?)?;
     m.add_function(wrap_pyfunction!(acceptance_diagnostics_report, m)?)?;
+    m.add_class::<crate::mcp::McpView>()?;
     Ok(())
 }

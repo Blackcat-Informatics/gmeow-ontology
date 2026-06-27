@@ -1,0 +1,6 @@
+{
+  "https://example.org/holonic/holonic-band/schema": {
+    "quads": 45,
+    "status": "consistent"
+  }
+}

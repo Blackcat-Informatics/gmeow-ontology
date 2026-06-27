@@ -12,8 +12,10 @@
 //!   and draws the cross-slice edges.
 //! - [`concern_overview_svg`] draws a horizontal bar chart of concerns by the
 //!   number of terms that declare each.
+//! - [`term_neighbourhood_svg`] draws a single term's 1-hop neighbourhood — the
+//!   per-term analogue of [`slice_local_svg`].
 
-use crate::model::DocsModel;
+use crate::model::{DocTerm, DocsModel};
 
 /// The local name of an IRI: the tail after the last `/` or `#`.
 fn local_name(iri: &str) -> &str {
@@ -173,6 +175,105 @@ pub fn slice_local_svg(model: &DocsModel, slice_iri: &str) -> String {
     out
 }
 
+/// A term's 1-hop neighbourhood, split into two flanks and each sorted+deduped
+/// with the term's own IRI removed.
+///
+/// - `up` — the broader / formalizing side: `parents` (super-classes /
+///   super-properties) and `formalized_by` (logic terms that formalize this one).
+/// - `out` — the associated / typed side: `related_terms`, `domain`, and `range`.
+///
+/// A pure function of the term's own stored fields (already pre-sorted IRI
+/// vectors), so no model lookup or edge walk is needed — this is structurally
+/// simpler than [`slice_local_svg`], which must reverse-filter the edge set.
+pub fn term_neighbours(term: &DocTerm) -> (Vec<&str>, Vec<&str>) {
+    let mut up: Vec<&str> = term
+        .parents
+        .iter()
+        .chain(term.formalized_by.iter())
+        .map(String::as_str)
+        .filter(|n| *n != term.iri)
+        .collect();
+    up.sort_unstable();
+    up.dedup();
+
+    let mut out: Vec<&str> = term
+        .related_terms
+        .iter()
+        .chain(term.domain.iter())
+        .chain(term.range.iter())
+        .map(String::as_str)
+        .filter(|n| *n != term.iri)
+        .collect();
+    out.sort_unstable();
+    out.dedup();
+
+    (up, out)
+}
+
+/// Whether the term has at least one neighbour worth drawing.
+///
+/// Gating both the per-term SVG emission and the term-page embed on this single
+/// predicate keeps the two in lockstep: a page never embeds a diagram path that
+/// was not emitted (which would trip the no-dangling-link invariant).
+pub fn term_has_neighbourhood(term: &DocTerm) -> bool {
+    term.parents
+        .iter()
+        .chain(term.formalized_by.iter())
+        .chain(term.related_terms.iter())
+        .chain(term.domain.iter())
+        .chain(term.range.iter())
+        .any(|n| n != &term.iri)
+}
+
+/// Render a per-term neighbourhood SVG: the term (centre column) flanked by its
+/// 1-hop relations — `up` on the left, `out` on the right.
+///
+/// Deterministic and structural in exactly the same way as [`slice_local_svg`]:
+/// neighbours are sorted, every coordinate is derived from the sorted index, and
+/// every label is XML-escaped. A pure function of the term.
+pub fn term_neighbourhood_svg(term: &DocTerm) -> String {
+    let (up, out) = term_neighbours(term);
+
+    const BOX_W: i64 = 220;
+    const BOX_H: i64 = 40;
+    const GAP_Y: i64 = 18;
+    const MARGIN: i64 = 24;
+    const COL_X: [i64; 3] = [MARGIN, MARGIN + 300, MARGIN + 600];
+    let cell = BOX_H + GAP_Y;
+
+    let rows = up.len().max(out.len()).max(1) as i64;
+    let height = MARGIN * 2 + rows * cell;
+    let width = COL_X[2] + BOX_W + MARGIN;
+
+    let mut svg = String::new();
+    svg_open(&mut svg, width, height, "Term neighbourhood");
+
+    let node = |out: &mut String, x: i64, y: i64, iri: &str, fill: &str| {
+        let label = xml_escape(local_name(iri));
+        out.push_str(&format!(
+            "  <g>\n    <rect x=\"{x}\" y=\"{y}\" width=\"{BOX_W}\" height=\"{BOX_H}\" rx=\"6\" \
+             fill=\"{fill}\" stroke=\"#33425b\" stroke-width=\"1\" />\n    \
+             <text x=\"{tx}\" y=\"{ty}\" text-anchor=\"middle\" font-family=\"sans-serif\" \
+             font-size=\"13\" fill=\"#1b2436\">{label}</text>\n  </g>\n",
+            tx = x + BOX_W / 2,
+            ty = y + BOX_H / 2 + 4,
+        ));
+    };
+
+    // Centre node, vertically centred across the available rows.
+    let centre_y = MARGIN + (rows - 1) * cell / 2;
+    node(&mut svg, COL_X[1], centre_y, &term.iri, "#dfe9ff");
+    for (i, n) in up.iter().enumerate() {
+        node(&mut svg, COL_X[0], MARGIN + i as i64 * cell, n, "#eef2f8");
+    }
+    for (i, n) in out.iter().enumerate() {
+        node(&mut svg, COL_X[2], MARGIN + i as i64 * cell, n, "#eef2f8");
+    }
+
+    svg.push_str("</svg>\n");
+    svg
+}
+
 /// Render an overview bar chart of concerns by their term count.
 ///
 /// Concerns are sorted by descending term count, then IRI (deterministic). Each
@@ -263,5 +364,38 @@ mod tests {
     fn local_name_takes_tail() {
         assert_eq!(local_name("https://x/y/Foo"), "Foo");
         assert_eq!(local_name("https://x#Bar"), "Bar");
+    }
+
+    fn term_with_neighbours() -> DocTerm {
+        DocTerm {
+            iri: "https://x/y/Centre".to_string(),
+            parents: vec!["https://x/y/Parent".to_string()],
+            related_terms: vec!["https://x/y/Related".to_string()],
+            // self-references must be filtered out of every flank
+            domain: vec!["https://x/y/Centre".to_string()],
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn term_neighbours_split_sort_and_drop_self() {
+        let term = term_with_neighbours();
+        let (up, out) = term_neighbours(&term);
+        assert_eq!(up, vec!["https://x/y/Parent"]);
+        assert_eq!(out, vec!["https://x/y/Related"]); // self (domain) dropped
+        assert!(term_has_neighbourhood(&term));
+        assert!(!term_has_neighbourhood(&DocTerm::default()));
+    }
+
+    #[test]
+    fn term_neighbourhood_svg_is_pure_and_labels_nodes() {
+        let term = term_with_neighbours();
+        let svg = term_neighbourhood_svg(&term);
+        // Centre and both flank neighbours are present, by local name.
+        assert!(svg.contains(">Centre</text>"));
+        assert!(svg.contains(">Parent</text>"));
+        assert!(svg.contains(">Related</text>"));
+        // Pure: identical bytes across two calls.
+        assert_eq!(svg, term_neighbourhood_svg(&term));
     }
 }

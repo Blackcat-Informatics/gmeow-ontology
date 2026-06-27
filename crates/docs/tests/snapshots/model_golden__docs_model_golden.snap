@@ -4,15 +4,15 @@ expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "3",
+  "version": "5",
   "slice_count": 75,
-  "term_count": 2163,
-  "dependency_edge_count": 780,
+  "term_count": 2172,
+  "dependency_edge_count": 784,
   "term_count_by_category": {
-    "Class": 651,
+    "Class": 653,
     "Datatype": 1,
     "Individual": 3,
-    "Property": 1508
+    "Property": 1515
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -103,6 +103,11 @@ expression: summary
     "consumers": [
       "Accessibility facets over places and routes; the schema.org accessibility projection."
     ],
+    "profiles": [],
+    "depends_on": [
+      "https://blackcatinformatics.ca/gmeow/slices/kernel",
+      "https://blackcatinformatics.ca/gmeow/slices/places"
+    ],
     "artifacts": [
       {
         "role": "Documentation",
@@ -160,7 +165,42 @@ expression: summary
         "https://blackcatinformatics.ca/logic/QualityValue"
       ],
       "domain": [],
-      "range": []
+      "range": [],
+      "scope_notes": [],
+      "examples": [
+        "ex:aboutnessDescribes a gmeow:AboutnessMode ."
+      ],
+      "use_when": [
+        "Use as the value vocabulary for the mention/use axis — whether a carrier describes its subject (reports, quotes, depicts) or enacts it (performs, demands, embodies), the distinction rubrics and evidence assessments depend on."
+      ],
+      "avoid_when": [
+        "Avoid collapsing it into the other epistemic axes (granularity, determinacy, sensitivity, confidence) and avoid per-mode subclasses; aboutness is a value vocabulary of individuals applied through gmeow:hasAboutness."
+      ],
+      "how_to_use": [
+        "Reference gmeow:aboutnessDescribes or gmeow:aboutnessEnacts from a carrier via gmeow:hasAboutness; carry the subject toward which the mode holds on the surrounding construct (citation, exemplar, statement cell), never inferred."
+      ],
+      "use_for_consumer": [],
+      "avoid_for_consumer": [],
+      "logic_stereotypes": [
+        "logic:AbstractIndividualType"
+      ],
+      "related_terms": [],
+      "box_role": "gmeow:boxTBox",
+      "box_roles": [
+        "gmeow:boxTBox"
+      ],
+      "formalized_by": [],
+      "stability": "stable",
+      "added_in_version": null,
+      "changelog": [],
+      "profiles": [
+        "claims",
+        "dreaming",
+        "full",
+        "memory",
+        "music",
+        "narrative"
+      ]
     },
     {
       "iri": "https://blackcatinformatics.ca/gmeow/abstract",
@@ -175,6 +215,39 @@ expression: summary
       ],
       "range": [
         "http://www.w3.org/2000/01/rdf-schema#Literal"
+      ],
+      "scope_notes": [],
+      "examples": [
+        "ex:paper gmeow:abstract \"We present a method for...\"@en ."
+      ],
+      "use_when": [
+        "Use for a prose summary of a creative work's content — a paper abstract or executive summary; non-functional, so localized abstracts coexist with language tags."
+      ],
+      "avoid_when": [
+        "Avoid it for a structured list of subunits (use gmeow:tableOfContents) and for a short display caption (use gmeow:caption)."
+      ],
+      "how_to_use": [
+        "Carry the summary literal on gmeow:abstract with a language tag per rendition; projects to schema:abstract / dcterms:abstract."
+      ],
+      "use_for_consumer": [],
+      "avoid_for_consumer": [],
+      "logic_stereotypes": [],
+      "related_terms": [],
+      "box_role": "gmeow:boxRBox",
+      "box_roles": [
+        "gmeow:boxRBox"
+      ],
+      "formalized_by": [],
+      "stability": "stable",
+      "added_in_version": null,
+      "changelog": [],
+      "profiles": [
+        "claims",
+        "dreaming",
+        "full",
+        "memory",
+        "music",
+        "narrative"
       ]
     },
     {
@@ -186,14 +259,39 @@ expression: summary
       "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/language",
       "parents": [],
       "domain": [],
-      "range": []
+      "range": [],
+      "scope_notes": [],
+      "examples": [],
+      "use_when": [],
+      "avoid_when": [],
+      "how_to_use": [],
+      "use_for_consumer": [],
+      "avoid_for_consumer": [],
+      "logic_stereotypes": [],
+      "related_terms": [],
+      "box_role": "gmeow:boxABox",
+      "box_roles": [
+        "gmeow:boxABox"
+      ],
+      "formalized_by": [],
+      "stability": "stable",
+      "added_in_version": null,
+      "changelog": [],
+      "profiles": [
+        "claims",
+        "dreaming",
+        "full",
+        "memory",
+        "music",
+        "narrative"
+      ]
     }
   ],
   "mapping_set_count": 54,
-  "linkage_count": 1381,
-  "example_count": 96,
+  "linkage_count": 1382,
+  "example_count": 100,
   "concern_count": 7,
-  "external_term_count": 1206,
+  "external_term_count": 1207,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -310,5 +408,33 @@ expression: summary
       "prov",
       "schema"
     ]
+  },
+  "shape_count": 274,
+  "competency_count": 50,
+  "sample_shape": {
+    "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
+    "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
+    "messages": [
+      "A retracted or superseded accessibility assertion (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted."
+    ],
+    "owner_slice": "root"
+  },
+  "sample_competency": {
+    "iri": "https://blackcatinformatics.ca/gmeow/examples/citations/tests/cqCitationIntents",
+    "rationale": "GMEOW must model citation intents (CiTO-aligned): cites-as-data-source, uses-method-in, extends, is-inspired-by, conforms-to, derived-from, documents, supports, disagrees-with, bridged-by-reference.",
+    "query_file": "queries/competency/citation-intents.rq",
+    "exercises": [
+      "https://blackcatinformatics.ca/gmeow/intentBridgedByReference",
+      "https://blackcatinformatics.ca/gmeow/intentCitesAsDataSource",
+      "https://blackcatinformatics.ca/gmeow/intentConformsTo",
+      "https://blackcatinformatics.ca/gmeow/intentDerivedFrom",
+      "https://blackcatinformatics.ca/gmeow/intentDisagreesWith",
+      "https://blackcatinformatics.ca/gmeow/intentDocuments",
+      "https://blackcatinformatics.ca/gmeow/intentExtends",
+      "https://blackcatinformatics.ca/gmeow/intentIsInspiredBy",
+      "https://blackcatinformatics.ca/gmeow/intentSupports",
+      "https://blackcatinformatics.ca/gmeow/intentUsesMethodIn"
+    ],
+    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/citations"
   }
 }

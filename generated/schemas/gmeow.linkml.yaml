@@ -465,6 +465,10 @@ classes:
     - certifiedIdentity
     - certifiedKey
     - certifier
+  ChangelogEntry:
+    class_uri: https://blackcatinformatics.ca/gmeow/ChangelogEntry
+    title: Changelog Entry
+    is_a: InformationObject
   CharacterArc:
     class_uri: https://blackcatinformatics.ca/gmeow/CharacterArc
     title: Character Arc
@@ -1400,9 +1404,11 @@ classes:
     is_a: Observation
     slots:
     - findingCode
+    - findingHelpUri
     - findingLocation
     - findingMessage
     - findingSeverity
+    - findingSuggestion
     - findingTool
   ForgePlatform:
     class_uri: https://blackcatinformatics.ca/gmeow/ForgePlatform
@@ -3806,6 +3812,9 @@ classes:
   TemporalPrecision:
     class_uri: https://blackcatinformatics.ca/gmeow/TemporalPrecision
     title: Temporal Precision
+  TermStability:
+    class_uri: https://blackcatinformatics.ca/gmeow/TermStability
+    title: Term Stability
   TextDirection:
     class_uri: https://blackcatinformatics.ca/gmeow/TextDirection
     title: Text Direction
@@ -4222,6 +4231,10 @@ slots:
     range: uri
     domain: OnlineAccount
     multivalued: true
+  addedInVersion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/addedInVersion
+    title: added in version
+    range: string
   addressHolder:
     slot_uri: https://blackcatinformatics.ca/gmeow/addressHolder
     title: address holder
@@ -6380,6 +6393,14 @@ slots:
     range: Agent
     domain: Agent
     multivalued: true
+  entryNote:
+    slot_uri: https://blackcatinformatics.ca/gmeow/entryNote
+    title: entry note
+    range: string
+  entryVersion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/entryVersion
+    title: entry version
+    range: string
   environmentAtInstant:
     slot_uri: https://blackcatinformatics.ca/gmeow/environmentAtInstant
     title: environment at instant
@@ -6780,6 +6801,12 @@ slots:
     range: string
     domain: Finding
     multivalued: true
+  findingHelpUri:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingHelpUri
+    title: finding help URI
+    range: uri
+    domain: Finding
+    multivalued: true
   findingLocation:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingLocation
     title: finding location
@@ -6796,6 +6823,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingSeverity
     title: finding severity
     range: DiagnosticSeverity
+    domain: Finding
+    multivalued: true
+  findingSuggestion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingSuggestion
+    title: finding suggestion
+    range: string
     domain: Finding
     multivalued: true
   findingTool:
@@ -6933,10 +6966,6 @@ slots:
     range: ReferencePosition
     domain: TemporalFrame
     multivalued: false
-  frameRequirementSeverity:
-    slot_uri: https://blackcatinformatics.ca/gmeow/frameRequirementSeverity
-    title: frame requirement severity
-    range: string
   frameSolver:
     slot_uri: https://blackcatinformatics.ca/gmeow/frameSolver
     title: frame solver
@@ -7292,6 +7321,10 @@ slots:
     range: Geometry
     domain: Place
     multivalued: true
+  hasChangelogEntry:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasChangelogEntry
+    title: has changelog entry
+    range: string
   hasChild:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasChild
     title: has child
@@ -11272,6 +11305,10 @@ slots:
     range: Constraint
     domain: Rule
     multivalued: true
+  ruleSeverity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ruleSeverity
+    title: rule severity
+    range: string
   ruleTarget:
     slot_uri: https://blackcatinformatics.ca/gmeow/ruleTarget
     title: rule target
@@ -12320,6 +12357,10 @@ slots:
     range: ContactPoint
     domain: AddressTenure
     multivalued: false
+  termStability:
+    slot_uri: https://blackcatinformatics.ca/gmeow/termStability
+    title: term stability
+    range: string
   textDirection:
     slot_uri: https://blackcatinformatics.ca/gmeow/textDirection
     title: text direction
@@ -13329,6 +13370,12 @@ enums:
       attestationTypeC2PA:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeC2PA
         title: C2PA manifest
+      attestationTypeConformanceVerdict:
+        meaning: https://blackcatinformatics.ca/gmeow/attestationTypeConformanceVerdict
+        title: conformance verdict
+      attestationTypeCrossCheckAgreement:
+        meaning: https://blackcatinformatics.ca/gmeow/attestationTypeCrossCheckAgreement
+        title: cross-check agreement matrix
       attestationTypeDSSE:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeDSSE
         title: DSSE envelope
@@ -18618,6 +18665,9 @@ enums:
   ProjectionContextEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ProjectionContext
     permissible_values:
+      consumerAdviceCatalog:
+        meaning: https://blackcatinformatics.ca/gmeow/consumerAdviceCatalog
+        title: advice catalog
       consumerAgentMemory:
         meaning: https://blackcatinformatics.ca/gmeow/consumerAgentMemory
         title: agent memory
@@ -20142,6 +20192,18 @@ enums:
       precisionYear:
         meaning: https://blackcatinformatics.ca/gmeow/precisionYear
         title: year
+  TermStabilityEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/TermStability
+    permissible_values:
+      stabilityDeprecated:
+        meaning: https://blackcatinformatics.ca/gmeow/stabilityDeprecated
+        title: deprecated
+      stabilityExperimental:
+        meaning: https://blackcatinformatics.ca/gmeow/stabilityExperimental
+        title: experimental
+      stabilityStable:
+        meaning: https://blackcatinformatics.ca/gmeow/stabilityStable
+        title: stable
   TextDirectionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/TextDirection
     permissible_values:

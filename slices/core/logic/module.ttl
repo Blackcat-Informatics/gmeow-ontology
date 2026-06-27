@@ -47,6 +47,27 @@ logic:AdmitAllFour
     rdfs:label "Admit All Four"@x-gmeow-english ;
     skos:definition "The admissible-valuation policy that permits all four Belnap values — true, false, both (glut), and neither (gap). It carves out First-Degree Entailment (FDE): a valuation may leave an atom under-determined (gap) or over-determined (glut). Reducing the FDE↔LP difference to the designated-value set is a formal error — FDE differs from LP by admitting the gap, not by its designated values."@x-gmeow-english .
 
+logic:AgencyAssessment
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Agency Assessment"@x-gmeow-english ;
+    skos:definition "The canonical relational construct of holonic agency: a four-valued assessment of whether a holon exhibits Koestler's two co-equal Janus tendencies — self-assertive (autonomy, as a whole) and integrative (subordination, as a part) — always made relative to a declared logic:HolonicAgencyProfile. Holon integrity is assessed, never asserted — the assessment is reified with the role properties logic:agencyHolon and logic:agencyProfile, and the engine derives its logic:agencyVerdict (logic:HolonIntegral, logic:AutonomyDeficient, logic:IntegrationDeficient, or logic:AgencyUnknown). The two pathologies are the collapse of one tendency: a 'part' with no autonomy (logic:AutonomyDeficient) and a 'whole' that refuses to integrate (logic:IntegrationDeficient); integrity is both present, and neither face is privileged over the other (Principle 9). The convenient unary reading 'this holon is integral' is the lossy projection of this assessment, exactly as logic:Holon projects logic:HolonicPosition and logic:EmergenceAssessment carries emergence (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:AgencyUnknown
+    a owl:NamedIndividual ,
+        logic:AgencyVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Agency Unknown"@x-gmeow-english ;
+    skos:definition "The agency-verdict value when neither Janus tendency is evidenced: under the declared logic:HolonicAgencyProfile, the assessed holon bears neither an logic:selfAssertiveBasis value nor an logic:integrativeBasis value, so neither the self-assertive nor the integrative marker can fire and the integrity question has no positive footing. This subsumes the 'cannot pose the question' case: it fires both when the holon bears no basis value and when the profile declares no basis at all (no marker can derive). The first-class fourth value, kept distinct from the two pathologies so that a holon evidencing neither tendency is never silently read as a deficiency of one — failure-to-evidence is not integrity, and a basis-free profile is unknown, not deficient. Mirrors logic:EmergenceUnknown and logic:ConstraintUnknown (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
+logic:AgencyVerdict
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Agency Verdict"@x-gmeow-english ;
+    skos:definition "The closed class of holonic-agency outcomes: the four-valued result an logic:AgencyAssessment receives via logic:agencyVerdict. Its four named individuals are logic:HolonIntegral (both Janus tendencies present), logic:AutonomyDeficient (a 'part' with no autonomy), logic:IntegrationDeficient (a 'whole' refusing to integrate), and logic:AgencyUnknown (neither tendency evidenced, so the integrity question has no positive footing). The set is closed, so a misspelt verdict names no declared value and is rejected rather than silently accepted, mirroring logic:EmergenceVerdict and logic:ConstraintVerdict (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:Aggregate
     a owl:NamedIndividual ,
         logic:EmergenceVerdict ;
@@ -74,6 +95,13 @@ logic:Aspect
     rdfs:label "Aspect"@x-gmeow-english ;
     skos:definition "A moment (trope): an endurant that exists only by inhering in a bearer on which it existentially depends — a colour, a belief, a marriage's commitment. The counterpart of gufo:Aspect, covering its intrinsic/extrinsic split (gufo:IntrinsicAspect inheres in a single bearer, gufo:ExtrinsicAspect depends on several): logic: carries that distinction on the inherence/dependence relation rather than as separate classes. The dependent counterpart of logic:Substantial. Qualities and modes are aspects (stated in prose, not as a subclass edge)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:AutonomyDeficient
+    a owl:NamedIndividual ,
+        logic:AgencyVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Autonomy Deficient"@x-gmeow-english ;
+    skos:definition "The agency-verdict value for the first Koestlerian pathology — a 'part' with no autonomy: under the declared logic:HolonicAgencyProfile, the holon bears an logic:integrativeBasis value (it subordinates as a part) but bears no logic:selfAssertiveBasis value, so its self-assertive (autonomy-as-a-whole) face has collapsed. Reached by negation-as-failure over the self-assertive marker while the integrative marker holds, so the verdict is profile-relative, never a bare default. The co-equal counterpart of logic:IntegrationDeficient (the opposite collapse); contrast logic:HolonIntegral (both faces) and logic:AgencyUnknown (neither evidenced) (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
 
 logic:BelnapBilattice
     a owl:NamedIndividual ,
@@ -201,6 +229,34 @@ logic:ConcreteIndividualType
     skos:definition "A logic:Type whose instances are logic:ConcreteIndividuals — the type whose extension (via logic:instanceOf) is drawn from individuals located in spacetime (endurants and perdurants). The counterpart of gufo:ConcreteIndividualType; the umbrella over logic:EndurantType together with the type-of-perdurants. Stated in prose, not as a subclass edge. Contrast logic:AbstractIndividualType."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:ConstraintBinding
+    a owl:NamedIndividual ,
+        logic:ConstraintVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Constraint Binding"@x-gmeow-english ;
+    skos:definition "The constraint-verdict value for a downward constraint that holds upon its target: under the declared logic:GovernanceRegime of a logic:DownwardConstraint, the named target is a proper part of the governing whole and the regime activates the constrained state (logic:activationBasis), and no declared override is borne by the target — so the whole's constraint binds the part. The verdict is strictly regime-relative: it is reached by negation-as-failure over the override derivation while the assessment still binds a declared regime, never as a bare 'unconstrained' default, and a different or stronger logic:GovernanceRegime may activate or quiet the same state under another constraint without contradiction. This is downward constraint, not material causation — the whole limits the part's permissible role/state, it does not produce the part. Contrast logic:ConstraintOverridden and logic:ConstraintUnknown (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
+logic:ConstraintOverridden
+    a owl:NamedIndividual ,
+        logic:ConstraintVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Constraint Overridden"@x-gmeow-english ;
+    skos:definition "The constraint-verdict value for a downward constraint defeated by a declared exception: the logic:DownwardConstraint names an override (logic:constraintOverride) and the constrained target bears that override token (logic:bearsProperty), so the whole's constraint does not bind the part. The positive, derivation-grounded verdict, reached by an actual override-match rather than by negation; it settles before logic:ConstraintBinding so that an overridden constraint is never read as binding. Constraint, not causation: the override quiets a governing limit, it does not unmake a part. Contrast logic:ConstraintBinding (active and not overridden) and logic:ConstraintUnknown (no regime activates the state) (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
+logic:ConstraintUnknown
+    a owl:NamedIndividual ,
+        logic:ConstraintVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Constraint Unknown"@x-gmeow-english ;
+    skos:definition "The constraint-verdict value when the binding question cannot be posed: the logic:DownwardConstraint names a target that is a proper part of the governing whole, but no declared logic:GovernanceRegime activates the constrained state (no logic:constraintRegime, or the regime's logic:activationBasis does not carry the state), and no override is borne — so neither a binding (logic:ConstraintBinding) nor an override-defeat (logic:ConstraintOverridden) can be derived. The first-class third value, kept distinct from the other two so that an un-activated constraint is never silently read as binding — failure-to-activate is not constraint, and a regime-free constraint is unknown, not binding (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
+logic:ConstraintVerdict
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Constraint Verdict"@x-gmeow-english ;
+    skos:definition "The closed class of downward-constraint outcomes: the tri-valued result a logic:DownwardConstraint receives via logic:constraintVerdict. Its three named individuals are logic:ConstraintBinding (the whole's constraint holds upon the part under the declared regime), logic:ConstraintOverridden (a declared exception defeats it), and logic:ConstraintUnknown (no regime activates the constrained state). The set is closed, so a misspelt verdict names no declared value and is rejected rather than silently accepted, mirroring logic:EmergenceVerdict and logic:MereologyConstraint (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:ContextAxis
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -268,6 +324,13 @@ logic:Disposition
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Disposition"@x-gmeow-english ;
     skos:definition "A bearer-held tendency, power, or liability to manifest events of a characteristic type when triggered — a fragility, a solubility, a hazard's potential to harm — which remains fully real even while it never manifests. gUFO has no Disposition class and models such tendencies as a gufo:IntrinsicMode; logic: subsumes that by carrying the disposition as first-class, so an unmanifested tendency needs no counterfactual reification. A logic:Mode whose manifestations are logic:Events of the characteristic type (stated in prose, not as a subclass edge); the bearer relation is asserted with a domain property (Principle 5), never gufo:inheresIn."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DownwardConstraint
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Downward Constraint"@x-gmeow-english ;
+    skos:definition "The canonical relational construct of holonic governance: the downward (governing) face of a holon, a typed directed constraint a whole imposes on a named proper part — the whole limits which roles or states the part may take. This is downward CONSTRAINT, never material causation: the governing whole bounds the part's permissible state, it does not produce or compose the part. Reified with the role properties logic:constraintWhole, logic:constraintTarget, logic:constraintState, logic:constraintRegime, and logic:constraintOverride, and the engine derives its logic:constraintVerdict (logic:ConstraintBinding, logic:ConstraintOverridden, or logic:ConstraintUnknown). The constraint is structured and NON-TRANSITIVE by default (ME9, issue #775): it applies to the explicitly named target and says nothing automatic about the target's own proper parts — there is no rule cascading the constraint down logic:properPartOf, exactly as no rule propagates logic:bearsProperty down it (mirroring logic:EmergenceAssessment / logic:HolonicPosition; design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:EmergenceAssessment
@@ -445,6 +508,13 @@ logic:FuzzyMeasure
     rdfs:label "Fuzzy Measure"@x-gmeow-english ;
     skos:definition "The uncertainty measure carrying fuzzy (degree-of-truth) membership values. One member of the uncertainty-measure set facet, which may carry several measures at once; distinct from logic:ProbabilisticMeasure (a calibrated probability) and logic:WeightedRankingMeasure (a solver preference order)."@x-gmeow-english .
 
+logic:GovernanceRegime
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Governance Regime"@x-gmeow-english ;
+    skos:definition "A declared scope within which a logic:DownwardConstraint is active, relative to which its logic:constraintVerdict is read. It carries, via logic:activationBasis, the constrained states it activates as binding — a constraint binds only when its constrained state is in the regime's basis. Governance is always regime-relative: the same whole may bind a part's state under one GovernanceRegime and leave it logic:ConstraintUnknown under another, and a binding can be quieted by a different regime without contradiction precisely because the constraint records which regime it is relative to. The holonic-governance analogue of a logic:ReductionTheory (which scopes the emergence calculus) and a logic:MereologyProfile (which scopes weak supplementation) — it scopes the downward-constraint calculus rather than asserting governance foundation-wide (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:GroundedArgumentation
     a owl:NamedIndividual ,
         logic:ArgumentationSemantics ;
@@ -465,6 +535,27 @@ logic:Holon
     rdfs:label "Holon"@x-gmeow-english ;
     skos:definition "The lossy unary projection of logic:HolonicPosition: an entity that, within some holarchy, is simultaneously a whole and a part — both a proper part of some larger whole and itself having a proper part. Holon-ness is never a bare property of the entity; it is a position occupied in a particular holarchy, context, interval, and path, so logic:Holon is the convenient, lossy projection of that relational logic:HolonicPosition, exactly as the standpoint-modality view projects finer axes (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section). Root wholes and atomic leaves are not holons."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:HolonIntegral
+    a owl:NamedIndividual ,
+        logic:AgencyVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Holon Integral"@x-gmeow-english ;
+    skos:definition "The agency-verdict value for a holon that exhibits both Janus tendencies: under the declared logic:HolonicAgencyProfile of an logic:AgencyAssessment, the holon bears (logic:bearsProperty) both a logic:selfAssertiveBasis value (it asserts itself as a whole) and a logic:integrativeBasis value (it subordinates itself as a part) — Koestler's balanced holon. The positive, derivation-grounded verdict, reached by an actual two-face conjunction rather than by negation; the two faces are co-equal, neither privileged (Principle 9). Contrast logic:AutonomyDeficient and logic:IntegrationDeficient (one face collapsed) and logic:AgencyUnknown (neither evidenced) (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
+logic:HolonicAgencyProfile
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Holonic Agency Profile"@x-gmeow-english ;
+    skos:definition "A declared profile of holonic agency that a holarchy may adopt, relative to which an logic:AgencyAssessment is made. It carries, via logic:selfAssertiveBasis and logic:integrativeBasis, the property-values that respectively evidence a holon's self-assertive (autonomy-as-a-whole) and integrative (subordination-as-a-part) tendencies — Koestler's two co-equal Janus faces, neither primary (Principle 9). Holonic agency is always relative to such a profile: it is a named profile a holarchy adopts, NOT a universal well-formedness rule every holon must satisfy — a bolt, a file-segment, or a process-phase needs no autonomy and is simply outside the profile (issue #775). The Koestlerian-agency analogue of a logic:ReductionTheory (which scopes the emergence calculus) and a logic:GovernanceRegime (which scopes downward constraint) — it scopes the autonomy/integration calculus rather than asserting agency foundation-wide (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:HolonicLevelIncoherence
+    a owl:NamedIndividual ,
+        logic:MereologyConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Holonic Level Incoherence"@x-gmeow-english ;
+    skos:definition "The coherence violation raised for a holon — an entity that occupies a holonic position (both a proper part of some whole and itself having a proper part) — that is DECLARED UNDER a logic:MereologyProfile (via logic:underMereologyProfile) yet occupies no logic:HolonicPosition. A holon's logic:holonicLevel is read off its logic:HolonicPosition, the canonical relational construct of which logic:Holon and a level are lossy projections; a profiled holon with no declared position has no path along which its compositional depth can be coherently measured, so its level is incoherent. It is enforced only within the profile a holon is declared under, never across all holons: a holon outside any logic:MereologyProfile is never charged, mirroring logic:WeakSupplementation. Parthood is profiled, not universal, and a holonic level is path-relative (recorded per path, e.g. as a min/max band), so a position is required only when a profile demands it. Note explicitly the non-conflation with the instantiation tower: logic:holonicLevel records mereological compositional depth in a whole/part DAG, whereas logic:orderedType is the HiLog deep-instantiation order numbering logic:instanceOf chains (an order-n type instantiates an order-(n+1) type); the two axes are orthogonal and must not be conflated. An entity high in the instantiation tower (via logic:instanceOf / logic:orderedType) but occupying no holonic position still fires this violation. Enforced by the stratified NAF rule in crates/logic/src/foundation.rs (issue #708, C5; design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
 
 logic:HolonicPosition
     a owl:Class ;
@@ -500,6 +591,13 @@ logic:Individual
     rdfs:label "Individual"@x-gmeow-english ;
     skos:definition "A particular: an entity that is NOT a logic:Type — it is instantiated by types (via logic:instanceOf) but has no instances of its own, sitting at the bottom of every instantiation chain (logic:orderedType 0). The counterpart of gufo:Individual; the root complementing logic:Type. Specialized by logic:ConcreteIndividual (in spacetime) and logic:AbstractIndividual (outside it). Stated in prose, not as a subclass edge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:IntegrationDeficient
+    a owl:NamedIndividual ,
+        logic:AgencyVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Integration Deficient"@x-gmeow-english ;
+    skos:definition "The agency-verdict value for the second Koestlerian pathology — a 'whole' that refuses to integrate: under the declared logic:HolonicAgencyProfile, the holon bears an logic:selfAssertiveBasis value (it asserts itself as a whole) but bears no logic:integrativeBasis value, so its integrative (subordination-as-a-part) face has collapsed. Reached by negation-as-failure over the integrative marker while the self-assertive marker holds, so the verdict is profile-relative, never a bare default. The co-equal counterpart of logic:AutonomyDeficient (the opposite collapse); contrast logic:HolonIntegral (both faces) and logic:AgencyUnknown (neither evidenced) (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
 
 logic:JointOutcome
     a owl:Class ;
@@ -646,6 +744,20 @@ logic:PathContextAxis
     rdfs:label "Path Context Axis"@x-gmeow-english ;
     skos:definition "The path index axis of the multi-dimensional context facet: a truth is relative to a transaction or execution path. One of several context axes that coexist on a single result — world, standpoint, time, and path index the same result simultaneously rather than being alternative values of one slot."@x-gmeow-english .
 
+logic:PathInvocation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Path Invocation"@x-gmeow-english ;
+    skos:definition "A by-name application of a logic:PathShape with concrete depth arguments — the canonical, reified form of a parametric call such as :nearbyOrgs(?maxDepth := 2). It carries logic:invokesPathShape (the shape applied) and logic:pathDepthArg (the value bound to the shape's logic:pathDepthParam), so a named, reusable traversal is instantiated at a specific bound without rewriting the shape. The surface syntax :name(?param := value) is a rendering of this individual, not a separate construct (Principle 17)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:PathShape
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Path Shape"@x-gmeow-english ;
+    skos:definition "A named, parametric predicate-path traversal specification: a reusable description of how to walk the graph, invocable by name with a depth parameter. A PathShape carries a base step — either a named predicate (logic:pathStepPredicate) or a predicate wildcard (logic:pathWildcard true, optionally scoped by logic:pathNamespaceScope) — together with a bounded depth range (logic:pathMinDepth … logic:pathMaxDepth; an absent maximum means unbounded) and a declared depth parameter name (logic:pathDepthParam) bound at each logic:PathInvocation. It SUBSUMES and EXTENDS SPARQL 1.1 property paths (§9), which are fixed strings with no predicate wildcard, no bounded depth {1,n}, and no named or parameterized reuse: 'all nodes within n hops, by any predicate' becomes a first-class, reusable term. The PathShape is the canonical logic: form; an extended SPARQL property path and a depth-bounded Datalog program are its projections (Principle 17), and the native Datalog least-model fixpoint is its runtime."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:Perdurant
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -751,6 +863,13 @@ logic:ProjectionTarget
     rdfs:label "Projection Target"@x-gmeow-english ;
     skos:definition "The facet value class of a projection target: a surface the answer is rendered to. The projection facet is an output request that may name one or more targets (canonical, OWL, Datalog, Common Logic, validation-only) at once; it is a standing request, not a semantic selection, and never alters which entailments hold."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:PropertyPathProjection
+    a owl:NamedIndividual ,
+        logic:ProjectionTarget ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Property Path Projection"@x-gmeow-english ;
+    skos:definition "The projection-target value requesting that a logic:PathShape (or a rule's path-structured body) be rendered to a SPARQL property-path surface — extended by GMEOW past SPARQL 1.1 §9 with bounded depth {n,m} and a predicate wildcard. One of several output targets a single contract may name at once; like every projection target it is a rendering request and never alters which entailments hold. A consumer restricted to standard SPARQL §9 receives the unrolled or approximated form, and that loss is declared in the loss ledger rather than hidden."@x-gmeow-english .
 
 logic:Quality
     a owl:Class ;
@@ -1138,11 +1257,45 @@ logic:accessibleFrom
     rdfs:label "accessible from"@x-gmeow-english ;
     skos:definition "The Kripke accessibility relation between worlds: relates a world to a world from which it is reachable, generalizing the standpoint sharpening poset. The modal operators are the standard translation over this relation — necessity is truth in every accessible world, possibility truth in some. Evaluation is bounded universal quantification because the world set is the finite, materialized contextual index, not the unbounded space of all logically possible worlds."@x-gmeow-english .
 
+logic:activationBasis
+    a owl:ObjectProperty ;
+    rdfs:domain logic:GovernanceRegime ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "activation basis"@x-gmeow-english ;
+    skos:definition "Relates a logic:GovernanceRegime to a constrained state it activates as binding: the regime holds that a logic:DownwardConstraint whose logic:constraintState is this value binds its target (logic:ConstraintBinding) rather than lapsing to logic:ConstraintUnknown. The carrier that makes governance regime-relative — a state in one regime's activation basis and absent from another's receives opposite verdicts with no contradiction. Without a matching basis entry, a constraint over that state is logic:ConstraintUnknown under the regime. The governance analogue of logic:reductionBasis (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:admissibleValuation
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "admissible valuation"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:AdmissibleValuationPolicy it selects — the gap/glut policy fixing which Belnap values a valuation may assign. Single-valued on the contract. Domain logic:ReasoningContract, range logic:AdmissibleValuationPolicy (stated here in prose, matching the module's domain/range convention). It is one of the three independent truth-facet components and must not be conflated with logic:designatedValues."@x-gmeow-english .
+
+logic:agencyHolon
+    a owl:ObjectProperty ;
+    rdfs:domain logic:AgencyAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "agency holon"@x-gmeow-english ;
+    skos:definition "The holon role of an logic:AgencyAssessment: the entity whose Janus-faced holonic agency is being assessed — the holon that bears (logic:bearsProperty) the self-assertive and integrative values the profile reasons over. One of the two role properties (with logic:agencyProfile) that reify the agency-assessment relation onto the arity-bounded reasoning surface, mirroring logic:assessmentWhole and the logic:HolonicPosition role properties. It is also a well-formedness existence guard: every verdict rule re-binds it, so a malformed assessment naming no holon receives no verdict (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:agencyProfile
+    a owl:ObjectProperty ;
+    rdfs:domain logic:AgencyAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "agency profile"@x-gmeow-english ;
+    rdfs:range logic:HolonicAgencyProfile ;
+    skos:definition "The profile role of an logic:AgencyAssessment: the logic:HolonicAgencyProfile the assessment is relative to. Holonic agency is never absolute — the verdict (logic:HolonIntegral / logic:AutonomyDeficient / logic:IntegrationDeficient / logic:AgencyUnknown) is read only against this declared profile's logic:selfAssertiveBasis and logic:integrativeBasis. An assessment that omits this role, or whose profile declares no basis at all, cannot evidence either tendency and receives logic:AgencyUnknown. One of the two role properties (with logic:agencyHolon) that reify the agency-assessment relation, mirroring logic:assessmentReductionTheory and logic:constraintRegime (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:agencyVerdict
+    a owl:ObjectProperty ;
+    rdfs:domain logic:AgencyAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "agency verdict"@x-gmeow-english ;
+    rdfs:range logic:AgencyVerdict ;
+    skos:definition "The engine-derived outcome of an logic:AgencyAssessment: the four-valued logic:AgencyVerdict (logic:HolonIntegral, logic:AutonomyDeficient, logic:IntegrationDeficient, or logic:AgencyUnknown) the foundation lowering entails for it. Never asserted by hand — it is computed by the stratified agency rules from the assessment's holon and declared logic:HolonicAgencyProfile, the convenient OWL-projectable surface of the assessment exactly as logic:assessmentVerdict is for emergence and logic:constraintVerdict for governance. The two pathology values are reached by negation-as-failure over the two co-equal tendency markers, so each verdict is genuinely profile-relative rather than a bare default (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:argumentation
     a owl:ObjectProperty ;
@@ -1260,6 +1413,57 @@ logic:confidence
     rdfs:label "confidence"@x-gmeow-english ;
     skos:definition "Epistemic confidence assigned to a statement by a source or process — how sure the asserter is. Normatively distinct from logic:probability: a confidence score is NOT a probability and MUST NOT be interpreted as one unless an explicit mapping to logic:probability is declared. Also distinct from logic:weight (a solver ranking) and logic:evidenceStrength (evidential warrant)."@x-gmeow-english .
 
+logic:constraintOverride
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DownwardConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "constraint override"@x-gmeow-english ;
+    skos:definition "The override role of a logic:DownwardConstraint: the declared exception token whose presence on the constrained target defeats the constraint. When the target bears this token (logic:bearsProperty), the constraint receives logic:ConstraintOverridden rather than logic:ConstraintBinding — a structured, declared escape hatch, not an ad-hoc one. An override quiets a governing limit; it never unmakes the part (constraint, not causation). One of the role properties that reify the downward-constraint relation onto the arity-bounded reasoning surface (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:constraintRegime
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DownwardConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "constraint regime"@x-gmeow-english ;
+    rdfs:range logic:GovernanceRegime ;
+    skos:definition "The regime role of a logic:DownwardConstraint: the logic:GovernanceRegime the constraint is relative to. Governance is never absolute — the verdict (logic:ConstraintBinding / logic:ConstraintOverridden / logic:ConstraintUnknown) is read only against this declared regime's logic:activationBasis, and recording it is what lets a different regime quiet a binding without contradiction. A constraint that omits this role, or whose constrained state is not in the regime's basis, cannot be shown to bind and receives logic:ConstraintUnknown. One of the role properties (with logic:constraintWhole, logic:constraintTarget, logic:constraintState, and logic:constraintOverride) that reify the downward-constraint relation, mirroring logic:assessmentReductionTheory (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:constraintState
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DownwardConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "constraint state"@x-gmeow-english ;
+    rdfs:seeAlso gmeow:Goal ;
+    skos:definition "The constrained-state role of a logic:DownwardConstraint: the permissible role or state the governing whole limits on the target part — what the part may be or do within the whole. This is typically the part's functional role or gmeow:Goal set in the context of its super-whole: a part's teleological role is fixed relative to the holon it serves, which is exactly the downward face of holonic governance (cf. gmeow:Goal in the teleology slice, linked via rdfs:seeAlso). A constraint binds this state only when the declared logic:GovernanceRegime activates it (logic:activationBasis). One of the role properties that reify the downward-constraint relation onto the arity-bounded reasoning surface (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:constraintTarget
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DownwardConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "constraint target"@x-gmeow-english ;
+    skos:definition "The target role of a logic:DownwardConstraint: the proper part the governing whole constrains — the part whose permissible state is limited. The verdict is derived only for this explicitly named target; because the constraint names its target rather than cascading down logic:properPartOf, governance is NON-TRANSITIVE by default (ME9, issue #775) — a constraint onto a part says nothing automatic about the part's own sub-parts. One of the role properties (with logic:constraintWhole) that reify the downward-constraint relation, mirroring logic:assessmentWhole (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:constraintVerdict
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DownwardConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "constraint verdict"@x-gmeow-english ;
+    rdfs:range logic:ConstraintVerdict ;
+    skos:definition "The engine-derived outcome of a logic:DownwardConstraint: the tri-valued logic:ConstraintVerdict (logic:ConstraintBinding, logic:ConstraintOverridden, or logic:ConstraintUnknown) the reasoner computes for the constraint from its role properties, the holarchy, and the declared logic:GovernanceRegime. Never asserted by hand — it is what the stratified downward-constraint rules conclude — mirroring logic:assessmentVerdict for emergence (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:constraintWhole
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DownwardConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "constraint whole"@x-gmeow-english ;
+    skos:definition "The governing-whole role of a logic:DownwardConstraint: the enclosing holon that imposes the constraint — the whole over the proper part named by logic:constraintTarget. The whole bounds the part's permissible state but does not produce it (constraint, not causation). One of the role properties (with logic:constraintTarget, logic:constraintState, logic:constraintRegime, and logic:constraintOverride) that reify the downward-constraint relation, mirroring logic:assessmentWhole and the logic:HolonicPosition role properties (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:contextAxis
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1341,12 +1545,36 @@ logic:formulaFragment
     rdfs:label "formula fragment"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:FormulaFragment it selects — the syntactic class of admitted formulae. Single-valued on the contract. Domain logic:ReasoningContract, range logic:FormulaFragment (stated in prose, matching the module's convention)."@x-gmeow-english .
 
+logic:hasHolonicPosition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has holonic position"@x-gmeow-english ;
+    skos:definition "The derived marker that an entity occupies at least one logic:HolonicPosition within a holarchy. Never asserted by hand; it is entailed by the foundation lowering, settling in stratum 1 the moment any logic:positionEntity reifier names the entity. It is the negation-as-failure target that arms the logic:HolonicLevelIncoherence rule (a profiled holon occupying NO position is incoherent), and the positive companion to logic:multiplyPositioned (which fires when an entity occupies SEVERAL distinct positions). It tracks compositional positioning only and is orthogonal to the HiLog logic:orderedType instantiation tower — the two axes never feed one another."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:holonicLevel
     a owl:DatatypeProperty ;
+    rdfs:domain logic:HolonicPosition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "holonic level"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
-    skos:definition "The compositional depth of an entity within a holarchy, measured along a path: how many proper-part steps lie between the entity and a root whole. It is path-relative, not intrinsic — holarchies are DAGs, so an entity has no single global level; two paths may place it at different depths and both are correct, so the level is recorded per path (e.g. as a min/max band) rather than as one value. Distinct from logic:orderedType: logic:orderedType is the HiLog deep-instantiation order (an order-n type instantiates an order-(n+1) type), a property of the instantiation tower, whereas logic:holonicLevel is mereological compositional depth in a whole/part DAG; the two must not be conflated (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    skos:definition "The compositional depth at which an entity sits within a holarchy, measured along one path: how many proper-part steps lie between the entity and a root whole. It is a literal read off a logic:HolonicPosition (hence rdfs:domain logic:HolonicPosition), never an intrinsic attribute of the entity — holarchies are DAGs, so an entity has no single global level; two paths may place the same entity at different depths and both are correct, and the level is therefore recorded per position (per path). The per-entity min/max band across an entity's positions is materialized separately as logic:holonicLevelMin and logic:holonicLevelMax. Distinct from logic:orderedType: logic:orderedType is the HiLog deep-instantiation order (an order-n type instantiates an order-(n+1) type), a property of the instantiation tower, whereas logic:holonicLevel is mereological compositional depth in a whole/part DAG; the two must not be conflated (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:holonicLevelMax
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "holonic level max"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The deepest of the logic:holonicLevel values an entity carries across all the logic:HolonicPositions it occupies within a holarchy — the upper endpoint of the path-relative depth band. Because holarchies are DAGs, a single intrinsic level is ill-defined, so the band (min..max) is stored instead of one value. NOTE — honest scope: this endpoint is operator-asserted, NOT engine-verified. The all-IRI logic:StratifiedNAFProfile foundation chase cannot compare or aggregate the integer literals, so it cannot derive or check that this value is the true maximum of the borne per-position levels; the engine grounds only that a non-trivial band exists, via the derived marker logic:multiplyPositioned (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:holonicLevelMin
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "holonic level min"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The shallowest of the logic:holonicLevel values an entity carries across all the logic:HolonicPositions it occupies within a holarchy — the lower endpoint of the path-relative depth band. Because holarchies are DAGs, a single intrinsic level is ill-defined, so the band (min..max) is stored instead of one value. NOTE — honest scope: this endpoint is operator-asserted, NOT engine-verified. The all-IRI logic:StratifiedNAFProfile foundation chase cannot compare or aggregate the integer literals, so it cannot derive or check that this value is the true minimum of the borne per-position levels; the engine grounds only that a non-trivial band exists, via the derived marker logic:multiplyPositioned (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:instanceOf
@@ -1356,11 +1584,28 @@ logic:instanceOf
     skos:definition "HiLog deep instantiation: relates an individual or a type to a (possibly higher-order) type it instantiates, across any number of meta-levels. The first-class multi-level primitive that replaces OWL punning (criticism 5): types are reified as first-order individuals so 'an instance of a type that is itself an instance of a metatype' is ordinary first-order quantification rather than a punning trick. The general relation of which logic:suppliesIdentity is the identity-supplying specialization."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:integrativeBasis
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicAgencyProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "integrative basis"@x-gmeow-english ;
+    skos:definition "Relates a logic:HolonicAgencyProfile to a property-value that evidences the integrative tendency: the profile holds that a holon bearing this value (logic:bearsProperty) subordinates itself as a part to a larger whole — Koestler's integrative face. The carrier that makes integration profile-relative, the co-equal twin of logic:selfAssertiveBasis (neither privileged, Principle 9). Without a borne integrative value a holon's integration face is not evidenced, contributing — together with the self-assertive face — to the logic:AgencyVerdict (logic:IntegrationDeficient or logic:HolonIntegral). The integration analogue of logic:reductionBasis and logic:activationBasis (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:invokesBuiltin
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "invokes builtin"@x-gmeow-english ;
     skos:definition "Relates a logic:Rule to a logic:Builtin it calls in its body: the dependency edge recording that a rule uses a native computational primitive, and therefore requires logic:ProceduralPrologProfile (where builtins are gated). Lets the compiler check that a rule invoking a builtin declares the procedural profile and records the loss when such a rule is projected to a declarative semantics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:invokesPathShape
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PathInvocation ;
+    rdfs:range logic:PathShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "invokes path shape"@x-gmeow-english ;
+    skos:definition "Relates a logic:PathInvocation to the logic:PathShape it applies by name: the dependency edge recording which reusable traversal a parametric call instantiates. Paired with logic:pathDepthArg, which supplies the concrete bound for the shape's logic:pathDepthParam."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:irreflexiveProperty
@@ -1411,6 +1656,13 @@ logic:modelSemantics
     rdfs:label "model semantics"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:ModelSemantics it selects — which models are authoritative. Single-valued on the contract. Domain logic:ReasoningContract, range logic:ModelSemantics (stated in prose, matching the module's convention). Probabilistic reasoning is never a value here — graded belief is carried on logic:uncertaintyMeasure alongside whatever model semantics is in force."@x-gmeow-english .
 
+logic:multiplyPositioned
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "multiply positioned"@x-gmeow-english ;
+    skos:definition "The derived marker that an entity occupies two or more distinct logic:HolonicPositions — the structural signature of a DAG node sitting on multiple paths through a holarchy, the ground on which a non-trivial path-relative depth band (logic:holonicLevelMin .. logic:holonicLevelMax) exists. It is the positive companion to logic:HolonicLevelIncoherence: where the incoherence violation fires for a profiled holon that occupies NO position, this marker certifies that a holon occupies SEVERAL, so its level is genuinely path-relative rather than single-valued. Never asserted by hand; it is entailed by the foundation lowering by negation-of-equality over the position set (two distinct positionEntity reifiers for the same entity), all-IRI and without any numeric comparison. It grounds only the band's existence, not its endpoint values, which the logic:StratifiedNAFProfile chase cannot compute (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:negatedBody
     a owl:ObjectProperty ;
     rdfs:comment "Negation-as-failure body atom of a logic:Rule. Default-absent: a positive Horn rule has only logic:body atoms and no logic:negatedBody, so the existing positive corpus is unaffected."@x-gmeow-english ;
@@ -1451,6 +1703,69 @@ logic:partOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "part of"@x-gmeow-english ;
     skos:definition "The general (reflexive) parthood relation: relates an entity to a whole it is part of, where every entity is trivially part of itself. The mereological base relation over which logic:properPartOf is the strict (irreflexive) restriction. Distinct from logic:memberOf, which relates a member to a collection without the part being a part of the whole in the mereological sense."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathDepthArg
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PathInvocation ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path depth argument"@x-gmeow-english ;
+    skos:definition "The concrete depth bound supplied at a logic:PathInvocation for the named depth parameter of the invoked logic:PathShape (its logic:pathDepthParam): the value of ?maxDepth in :name(?maxDepth := 2). Bounds the traversal to at most this many hops for this invocation without altering the shape itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathDepthParam
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PathShape ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path depth parameter"@x-gmeow-english ;
+    skos:definition "The name of the depth parameter a logic:PathShape exposes for parametric invocation — 'maxDepth' in :nearbyOrgs(?maxDepth := 2). A logic:PathInvocation binds this parameter with logic:pathDepthArg. Default-absent: a shape with a fixed depth and no exposed parameter carries no logic:pathDepthParam and is invoked without an argument."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathMaxDepth
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PathShape ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path maximum depth"@x-gmeow-english ;
+    skos:definition "The inclusive upper bound on the traversal length of a logic:PathShape — the n in a bounded {min,n} path. Default-absent: a shape with no logic:pathMaxDepth is unbounded (the SPARQL-+ / transitive-closure reading), traversing arbitrarily many hops. When present it makes the path a bounded {1,n} traversal, which SPARQL 1.1 §9 cannot express directly."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathMinDepth
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PathShape ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path minimum depth"@x-gmeow-english ;
+    skos:definition "The inclusive lower bound on the traversal length of a logic:PathShape — the min in a bounded {min,max} path. Default-absent: a shape with no logic:pathMinDepth starts at one hop (min = 1). Must not exceed logic:pathMaxDepth when both are present; a minimum above the maximum is a malformed shape and is rejected by the frontend, not silently repaired."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathNamespaceScope
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PathShape ;
+    rdfs:range xsd:anyURI ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path namespace scope"@x-gmeow-english ;
+    skos:definition "A predicate-namespace IRI prefix that scopes a wildcard step of a logic:PathShape: when logic:pathWildcard is true, only predicates whose IRI begins with this namespace are traversed. Bounds the fan-out of an otherwise any-predicate walk to a single vocabulary. Default-absent on a wildcard shape: the wildcard matches predicates in any namespace."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathStepPredicate
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PathShape ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path step predicate"@x-gmeow-english ;
+    skos:definition "The named predicate that each hop of a logic:PathShape traverses. Present on a named-predicate path; absent on a wildcard path (where logic:pathWildcard is true instead). A shape that carries BOTH a logic:pathStepPredicate and logic:pathWildcard true is malformed — the base step is a named predicate XOR a wildcard — and is rejected by the frontend rather than silently resolved."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pathWildcard
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PathShape ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "path wildcard"@x-gmeow-english ;
+    skos:definition "Marks a logic:PathShape whose step matches ANY predicate rather than one named predicate — the 'any predicate within n hops' traversal that SPARQL 1.1 §9 property paths cannot express. When true the step is unconstrained except by an optional logic:pathNamespaceScope; mutually exclusive with logic:pathStepPredicate. Default-absent (false): the path follows the named logic:pathStepPredicate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:positionContext
@@ -1562,6 +1877,14 @@ logic:rigidlyAppliesTo
     rdfs:label "rigidly applies to"@x-gmeow-english ;
     skos:definition "Relates a rigid type to the individuals it necessarily classifies: for every individual and every pair of worlds in which the individual exists, if it instantiates the type in one world it instantiates it in the other. The modal rigidity constraint; a Kind rigidly applies to its instances, an anti-rigid Role or Phase does not (the same constraint negated). Lowered to a universally quantified, world-indexed rule evaluated by closure over the finite materialized world set, needing no native modal operator."@x-gmeow-english .
 
+logic:selfAssertiveBasis
+    a owl:ObjectProperty ;
+    rdfs:domain logic:HolonicAgencyProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "self-assertive basis"@x-gmeow-english ;
+    skos:definition "Relates a logic:HolonicAgencyProfile to a property-value that evidences the self-assertive (autonomy) tendency: the profile holds that a holon bearing this value (logic:bearsProperty) asserts itself as a whole — Koestler's self-assertive face. The carrier that makes autonomy profile-relative, the co-equal twin of logic:integrativeBasis (neither privileged, Principle 9). Without a borne self-assertive value a holon's autonomy face is not evidenced, contributing — together with the integrative face — to the logic:AgencyVerdict (logic:AutonomyDeficient or logic:HolonIntegral). The autonomy analogue of logic:reductionBasis and logic:activationBasis (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:suppliesIdentity
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1661,6 +1984,256 @@ logic:del
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "del"@x-gmeow-english ;
     skos:definition "Relates a logic:DeleteUpdate to the support/fact it retires. The `del(F)` primitive removes F from the active support set of the successor state, records supersession provenance, and leaves the predecessor state and historical support intact."@x-gmeow-english .
+
+# ── ME2 (#768): the typed logic:ReasoningResult surface ─────────────────────────
+# The single shared result model. Authored canonically in crates/logic (Rust,
+# crates/logic/src/result.rs); these terms are the lossy documentation projection
+# (Principle 17). The five orthogonal status fields and the conclusiveness
+# invariant are normative in design/LOGIC-SEMANTICS.md §The reasoning result;
+# logic:ResultAssurance is in design/LOGIC-COGNITION.md. Each value class is a
+# CLOSED set: a misspelt value names no declared individual and is rejected.
+
+logic:ReasoningResult
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reasoning Result"@x-gmeow-english ;
+    skos:definition "The single shared result a reasoning run produces and every consumer reads (#768, ME2): a compositional status carrying FIVE orthogonal fields, each ranging over its own value class — logic:resultInput (well-formedness), logic:resultEvaluation (what the engine could do), logic:resultCompleteness (relative to what the answer is complete), logic:resultPreservation (the set of answer-preservation polarities the lowering claims, plus the constructs it could not carry), and logic:resultInformation (the four-valued Belnap verdict plus two explicit non-results). Several fields hold at once. It additionally carries the provenance bundle: logic:contractHash, logic:query/logic:conclusion, logic:resultProof/logic:resultCounterproof, the world/standpoint/time/path context, logic:engine, logic:consumedBudget, logic:certifiedFragment, logic:contradictionWitness, and logic:resultAssumption. Authored canonically in crates/logic (Rust); this is a lossy documentation projection (Principle 17). Normative in design/LOGIC-SEMANTICS.md, §The reasoning result."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:InputStatus
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Input Status"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:resultInput field: was the request well-formed? Its individuals are logic:InputValid and logic:InputInvalid. The set is closed, so a misspelt value names no declared value and is rejected (design/LOGIC-SEMANTICS.md, §The reasoning result)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:InputValid
+    a owl:NamedIndividual ,
+        logic:InputStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Input Valid"@x-gmeow-english ;
+    skos:definition "The logic:InputStatus value for a request whose sources parsed and type-checked: reasoning was attempted. Wire value `valid`."@x-gmeow-english .
+
+logic:InputInvalid
+    a owl:NamedIndividual ,
+        logic:InputStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Input Invalid"@x-gmeow-english ;
+    skos:definition "The logic:InputStatus value for an ill-formed request: no reasoning was attempted and the other four fields are vacuous. Wire value `invalid`."@x-gmeow-english .
+
+logic:EvaluationStatus
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Evaluation Status"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:resultEvaluation field (the computation axis): what the engine was ABLE to do. Its individuals are logic:EvaluationCompleted, logic:BudgetExhausted, and logic:EvaluationUnsupported. The set is closed; a misspelt value is rejected (design/LOGIC-SEMANTICS.md, §The reasoning result)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EvaluationCompleted
+    a owl:NamedIndividual ,
+        logic:EvaluationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Evaluation Completed"@x-gmeow-english ;
+    skos:definition "The logic:EvaluationStatus value for a run that reached its natural end on the request — a conclusive evaluation. Wire value `completed`."@x-gmeow-english .
+
+logic:BudgetExhausted
+    a owl:NamedIndividual ,
+        logic:EvaluationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Budget Exhausted"@x-gmeow-english ;
+    skos:definition "The logic:EvaluationStatus value for a run that hit a declared resource budget or bound before finishing. Wire value `budget-exhausted`. The specific budget that tripped (answers/inference/depth) is carried alongside as consumed-budget detail so the historical answer-status strings remain a lossless projection."@x-gmeow-english .
+
+logic:EvaluationUnsupported
+    a owl:NamedIndividual ,
+        logic:EvaluationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Evaluation Unsupported"@x-gmeow-english ;
+    skos:definition "The logic:EvaluationStatus value for a request the engine has no defined procedure for (an unsupported contract, or a missing required model such as a probabilistic dependency model). Wire value `unsupported`; the information field is then logic:InfoNotEvaluated, never logic:InfoNeither."@x-gmeow-english .
+
+logic:CompletenessStatus
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Completeness Status"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:resultCompleteness field: relative to what is the answer complete? Its individuals are logic:CompleteForFragment, logic:Incomplete, and logic:CompletenessUnknown. The set is closed; a misspelt value is rejected (design/LOGIC-SEMANTICS.md, §The reasoning result)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:CompleteForFragment
+    a owl:NamedIndividual ,
+        logic:CompletenessStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Complete For Fragment"@x-gmeow-english ;
+    skos:definition "The logic:CompletenessStatus value for an answer complete for the certified fragment the contract pins — a conclusive evaluation even when the whole run did not otherwise complete. Wire value `complete-for-fragment`."@x-gmeow-english .
+
+logic:Incomplete
+    a owl:NamedIndividual ,
+        logic:CompletenessStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Incomplete"@x-gmeow-english ;
+    skos:definition "The logic:CompletenessStatus value for an answer whose search did not exhaust the space (a budget, answer cap, or depth bound was hit, or a DL construct was undecided). Wire value `incomplete`."@x-gmeow-english .
+
+logic:CompletenessUnknown
+    a owl:NamedIndividual ,
+        logic:CompletenessStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Completeness Unknown"@x-gmeow-english ;
+    skos:definition "The logic:CompletenessStatus value when completeness is not a defined question for the request — e.g. a genuine incomparable-entrenchment revision tie. Wire value `unknown`."@x-gmeow-english .
+
+logic:InformationState
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information State"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:resultInformation field (the information axis): the four-valued Belnap verdict about the queried proposition plus two explicit non-results. Its individuals are logic:InfoSupported, logic:InfoOpposed, logic:InfoBoth, logic:InfoNeither (the Belnap four), logic:InfoUndetermined, and logic:InfoNotEvaluated. The three non-positive states are NEVER interchangeable: logic:InfoNeither requires a conclusive evaluation; logic:InfoUndetermined means no verdict was reached; logic:InfoNotEvaluated means the engine could not look. The set is closed; a misspelt value is rejected (design/LOGIC-SEMANTICS.md, §The reasoning result)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:InfoSupported
+    a owl:NamedIndividual ,
+        logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information Supported"@x-gmeow-english ;
+    skos:definition "The logic:InformationState value when there is a proof and no counterproof. Wire value `supported`. Provisional when the evaluation is not conclusive (logic:Incomplete); conclusive within the fragment otherwise."@x-gmeow-english .
+
+logic:InfoOpposed
+    a owl:NamedIndividual ,
+        logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information Opposed"@x-gmeow-english ;
+    skos:definition "The logic:InformationState value when there is a counterproof and no proof — the FDE/paraconsistent evidence for the explicit negation. Wire value `opposed`."@x-gmeow-english .
+
+logic:InfoBoth
+    a owl:NamedIndividual ,
+        logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information Both"@x-gmeow-english ;
+    skos:definition "The logic:InformationState value when a proof AND a counterproof exist — a witnessed contradiction (glut) within one context, carried with its logic:contradictionWitness graph. Wire value `both`. A correct `both` is HIGH-assurance about a contradictory input, not a defect, and is local to its world — never globalized to owl:Nothing."@x-gmeow-english .
+
+logic:InfoNeither
+    a owl:NamedIndividual ,
+        logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information Neither"@x-gmeow-english ;
+    skos:definition "The logic:InformationState value when neither proof nor counterproof exists, established by a CONCLUSIVE evaluation (a completed run or a complete-for-the-fragment answer) — a real four-valued verdict. Wire value `neither`. NEVER interchangeable with logic:InfoUndetermined (no verdict reached) or logic:InfoNotEvaluated (the engine could not look)."@x-gmeow-english .
+
+logic:InfoUndetermined
+    a owl:NamedIndividual ,
+        logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information Undetermined"@x-gmeow-english ;
+    skos:definition "The logic:InformationState value when the evaluation did not reach a conclusive verdict — the search did not finish (budget exhausted), a partial-order tie, or a graded semantics with no discretization policy. Wire value `undetermined`. NOT the conclusive logic:InfoNeither."@x-gmeow-english .
+
+logic:InfoNotEvaluated
+    a owl:NamedIndividual ,
+        logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Information Not Evaluated"@x-gmeow-english ;
+    skos:definition "The logic:InformationState value when no information semantics were available — the engine COULD NOT look (an unsupported contract, or a missing required model such as a probabilistic dependency model). Wire value `not-evaluated`. NOT the conclusive logic:InfoNeither."@x-gmeow-english .
+
+logic:ResultAssurance
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Result Assurance"@x-gmeow-english ;
+    skos:definition "A reified assessment that targets one logic:ReasoningResult (via logic:assuresResult) and reads its fields JOINTLY: logic:InfoSupported with logic:Incomplete is provisional, whereas logic:InfoSupported with logic:CompleteForFragment is conclusive within that fragment; a correctly returned logic:InfoBoth is high-assurance about a contradictory input, not a defect. A result assurance is DISTINCT from a reliability assessment of the reasoner: the former judges one result, the latter judges a series of runs (a logic:CognitiveAssessment). Authored canonically in crates/logic (Rust); lossy documentation projection (Principle 17). Normative in design/LOGIC-COGNITION.md."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:assuresResult
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assures result"@x-gmeow-english ;
+    skos:definition "Relates a logic:ResultAssurance to the single logic:ReasoningResult it assesses. Domain logic:ResultAssurance, range logic:ReasoningResult (stated in prose, matching the module's convention)."@x-gmeow-english .
+
+logic:resultInput
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result input"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the logic:InputStatus it received. Single-valued. Domain logic:ReasoningResult, range logic:InputStatus (stated in prose)."@x-gmeow-english .
+
+logic:resultEvaluation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result evaluation"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the logic:EvaluationStatus the engine reached (the computation axis). Single-valued. Domain logic:ReasoningResult, range logic:EvaluationStatus (stated in prose)."@x-gmeow-english .
+
+logic:resultCompleteness
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result completeness"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the logic:CompletenessStatus of its answer. Single-valued. Domain logic:ReasoningResult, range logic:CompletenessStatus (stated in prose)."@x-gmeow-english .
+
+logic:resultInformation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result information"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the logic:InformationState verdict about the queried proposition (the information axis). Single-valued. Domain logic:ReasoningResult, range logic:InformationState (stated in prose)."@x-gmeow-english .
+
+logic:resultPreservation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result preservation"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to each logic:PreservationKind polarity that co-holds for it — MULTI-valued, because the preservation field is a SET of polarities, not a single choice (logic:ValidationOnly is excluded; it names a lowering's purpose, not an answer-preservation polarity). Domain logic:ReasoningResult, range logic:PreservationKind (stated in prose)."@x-gmeow-english .
+
+logic:unsupportedConstruct
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "unsupported construct"@x-gmeow-english ;
+    skos:definition "Names a construct the lowering could not carry at all, carried on a logic:ReasoningResult's preservation field — MULTI-valued. A query whose constructs intersect this set is loss-affected (a derived diagnostic, never a stored field). Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:contractHash
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "contract hash"@x-gmeow-english ;
+    skos:definition "The content-addressed identity of the reasoning contract a logic:ReasoningResult was produced under. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:engine
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "engine"@x-gmeow-english ;
+    skos:definition "The engine identity + version that produced a logic:ReasoningResult. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:query
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "query"@x-gmeow-english ;
+    skos:definition "The canonical query text a logic:ReasoningResult answers — part of the proof certificate. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:conclusion
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conclusion"@x-gmeow-english ;
+    skos:definition "The canonical conclusion text a logic:ReasoningResult's verdict is about — part of the proof certificate. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:resultProof
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result proof"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the derivation that proves its conclusion (a content-addressed handle into the explanation/proof tree), present iff the conclusion is derivable. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:resultCounterproof
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result counterproof"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to the derivation that proves the explicit negation of its conclusion (the same machinery as logic:resultProof), present iff the negation is derivable. A result carrying BOTH a proof and a counterproof is logic:InfoBoth. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:contradictionWitness
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "contradiction witness"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningResult to a within-world contradiction witness justifying a logic:InfoBoth verdict — MULTI-valued. The witness is local to its world; the base store is never globalized to owl:Nothing. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:consumedBudget
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "consumed budget"@x-gmeow-english ;
+    skos:definition "The resource budget a logic:ReasoningResult consumed, against the contract's declared allowance. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:certifiedFragment
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "certified fragment"@x-gmeow-english ;
+    skos:definition "The certified-complete fragment reference backing a logic:CompleteForFragment claim on a logic:ReasoningResult. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:resultAssumption
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result assumption"@x-gmeow-english ;
+    skos:definition "A declared closure/identity/revision/witness-policy assumption a logic:ReasoningResult rests on (e.g. closed-world, unique-name, entrenchment-revision, skolem-witness) — MULTI-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
 
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .

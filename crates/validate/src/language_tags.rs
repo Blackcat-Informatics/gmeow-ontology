@@ -11,10 +11,7 @@
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 
-use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::model::{NamedOrBlankNode, Term as OxTerm};
-
-use gmeow_rdf::{BlankScope, RdfDatasetBuilder, RdfLiteral, TermRef};
+use gmeow_rdf::{parse_dataset, TermRef};
 
 /// The GMEOW namespace prefix for term IRIs.
 const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -60,21 +57,12 @@ pub fn rank_language(lang: &str) -> (u8, String) {
 ///
 /// Returns ``{internal_tag: bcp47_tag}``.
 pub fn load_tag_map(rdf_bytes: &[u8], format: &str) -> Result<HashMap<String, String>, String> {
-    let ox_format = parse_format(format)?;
+    let media_type = media_type_for(format)?;
 
-    // Ingest via the gmeow-rdf IR builder (same pattern as turtle_normalize.rs).
-    let mut builder = RdfDatasetBuilder::new();
-    let parser = RdfParser::from_format(ox_format)
-        .lenient()
-        .for_reader(rdf_bytes);
-    for quad_result in parser {
-        let quad = quad_result.map_err(|e| format!("RDF parse error: {e}"))?;
-        let s = intern_named_or_blank_node(&mut builder, &quad.subject);
-        let p = builder.intern_iri(quad.predicate.as_str().to_owned());
-        let o = intern_ox_term(&mut builder, &quad.object)?;
-        builder.push_quad(s, p, o, None);
-    }
-    let dataset = builder.freeze().map_err(|e| e.to_string())?;
+    // Parse straight into the gmeow-rdf IR via the native codecs (#909): no
+    // oxigraph `io` parser, and lenient private-use language tags by construction.
+    let dataset =
+        parse_dataset(rdf_bytes, media_type, None).map_err(|e| format!("RDF parse error: {e}"))?;
 
     build_tag_map(&dataset)
 }
@@ -176,56 +164,15 @@ fn build_tag_map(dataset: &gmeow_rdf::RdfDataset) -> Result<HashMap<String, Stri
 
 // ── helpers ─────────────────────────────────────────────────────────────────────
 
-/// Parse a format string into an oxigraph `RdfFormat`.
-fn parse_format(format: &str) -> Result<RdfFormat, String> {
+/// Map a format string (legacy short ids or media types) to a native-codec media
+/// type understood by [`parse_dataset`].
+fn media_type_for(format: &str) -> Result<&'static str, String> {
     match format.to_ascii_lowercase().as_str() {
-        "turtle" | "text/turtle" | "ttl" => Ok(RdfFormat::Turtle),
-        "n-triples" | "ntriples" | "nt" | "application/n-triples" => Ok(RdfFormat::NTriples),
-        "n-quads" | "nquads" | "nq" | "application/n-quads" => Ok(RdfFormat::NQuads),
-        "trig" | "application/trig" => Ok(RdfFormat::TriG),
+        "turtle" | "text/turtle" | "ttl" => Ok("text/turtle"),
+        "n-triples" | "ntriples" | "nt" | "application/n-triples" => Ok("application/n-triples"),
+        "n-quads" | "nquads" | "nq" | "application/n-quads" => Ok("application/n-quads"),
+        "trig" | "application/trig" => Ok("application/trig"),
         _ => Err(format!("unsupported RDF format: {format:?}")),
-    }
-}
-
-/// Intern an `oxigraph::model::Term` into the IR builder.
-fn intern_ox_term(
-    builder: &mut RdfDatasetBuilder,
-    term: &OxTerm,
-) -> Result<gmeow_rdf::TermId, String> {
-    Ok(match term {
-        OxTerm::NamedNode(n) => builder.intern_iri(n.as_str().to_owned()),
-        OxTerm::BlankNode(b) => builder.intern_blank(b.as_str().to_owned(), BlankScope::DEFAULT),
-        OxTerm::Literal(l) => {
-            let direction = l.direction().map(|d| match d {
-                oxigraph::model::BaseDirection::Ltr => gmeow_rdf::RdfTextDirection::Ltr,
-                oxigraph::model::BaseDirection::Rtl => gmeow_rdf::RdfTextDirection::Rtl,
-            });
-            builder.intern_literal(RdfLiteral {
-                lexical_form: l.value().to_owned(),
-                datatype: Some(l.datatype().as_str().to_owned()),
-                language: l.language().map(str::to_owned),
-                direction,
-            })
-        }
-        OxTerm::Triple(t) => {
-            let s = intern_named_or_blank_node(builder, &t.subject);
-            let p = builder.intern_iri(t.predicate.as_str().to_owned());
-            let o = intern_ox_term(builder, &t.object)?;
-            builder.intern_triple(s, p, o)
-        }
-    })
-}
-
-/// Intern a `NamedOrBlankNode` subject into the IR builder.
-fn intern_named_or_blank_node(
-    builder: &mut RdfDatasetBuilder,
-    subject: &NamedOrBlankNode,
-) -> gmeow_rdf::TermId {
-    match subject {
-        NamedOrBlankNode::NamedNode(n) => builder.intern_iri(n.as_str().to_owned()),
-        NamedOrBlankNode::BlankNode(b) => {
-            builder.intern_blank(b.as_str().to_owned(), BlankScope::DEFAULT)
-        }
     }
 }
 

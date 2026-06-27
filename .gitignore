@@ -29,6 +29,11 @@ htmlcov/
 # on demand, never committed (supersedes .stamps/ at the #861 cutover).
 generated/.pipeline-cache/
 
+# Release-as-evidence conformance verdicts (#673, §18): an ephemeral roll-up
+# produced fresh by `make conformance-report` and folded into the signed release
+# bundle. Engine-dependent and regenerated per release — never committed.
+generated/conformance/
+
 # Editor/OS noise
 .DS_Store
 *.swp

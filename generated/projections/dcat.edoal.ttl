@@ -15,57 +15,43 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Class ;
-            edoal:uri gmeow:Dataset ;
+            edoal:uri gmeow:Corpus ;
         ] ;
         align:entity2 [
             a edoal:Class ;
             edoal:uri dcat:Dataset ;
         ] ;
-        align:relation "=" ;
-        edoal:measure "0.95"^^xsd:double ;
-        rdfs:label "gmeow:Dataset → dcat:Dataset"@en ;
+        align:relation "<=" ;
+        edoal:measure "0.85"^^xsd:double ;
+        rdfs:label "gmeow:Corpus → dcat:Dataset"@en ;
     ] ,
         [
             a align:Cell ;
             align:entity1 [
                 a edoal:Class ;
-                edoal:uri gmeow:Corpus ;
+                edoal:uri gmeow:Dataset ;
             ] ;
             align:entity2 [
                 a edoal:Class ;
                 edoal:uri dcat:Dataset ;
             ] ;
-            align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "gmeow:Corpus → dcat:Dataset"@en ;
+            align:relation "=" ;
+            edoal:measure "0.95"^^xsd:double ;
+            rdfs:label "gmeow:Dataset → dcat:Dataset"@en ;
         ] ,
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:corpusMember ;
+                a edoal:Class ;
+                edoal:uri gmeow:ImportActivity ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
-                edoal:uri dcat:distribution ;
+                a edoal:Class ;
+                edoal:uri prov:Activity ;
             ] ;
             align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "corpusMember → dcat:distribution (member as Distribution)"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:hasPart ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri dcat:distribution ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.8"^^xsd:double ;
-            rdfs:label "Dataset hasPart → dcat:distribution (part as Distribution)"@en ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "ImportActivity + ingestedAt → prov:Activity + endedAtTime"@en ;
         ] ,
         [
             a align:Cell ;
@@ -85,15 +71,29 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:title ;
+                edoal:uri gmeow:corpusMember ;
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri dcterms:title ;
+                edoal:uri dcat:distribution ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "corpusMember → dcat:distribution (member as Distribution)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:datePublished ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri dcterms:issued ;
             ] ;
             align:relation "=" ;
             edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "Dataset title → dcterms:title"@en ;
+            rdfs:label "Dataset datePublished → dcterms:issued"@en ;
         ] ,
         [
             a align:Cell ;
@@ -127,43 +127,29 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:datePublished ;
+                edoal:uri gmeow:hasPart ;
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri dcterms:issued ;
-            ] ;
-            align:relation "=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "Dataset datePublished → dcterms:issued"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
-                edoal:uri gmeow:ImportActivity ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri prov:Activity ;
+                edoal:uri dcat:distribution ;
             ] ;
             align:relation "<=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            rdfs:label "ImportActivity + ingestedAt → prov:Activity + endedAtTime"@en ;
+            edoal:measure "0.8"^^xsd:double ;
+            rdfs:label "Dataset hasPart → dcat:distribution (part as Distribution)"@en ;
         ] ,
         [
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:wasGeneratedBy ;
+                edoal:uri gmeow:title ;
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri prov:wasGeneratedBy ;
+                edoal:uri dcterms:title ;
             ] ;
             align:relation "=" ;
-            edoal:measure "0.95"^^xsd:double ;
-            rdfs:label "wasGeneratedBy → prov:wasGeneratedBy"@en ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "Dataset title → dcterms:title"@en ;
         ] ,
         [
             a align:Cell ;
@@ -178,6 +164,20 @@
             align:relation "=" ;
             edoal:measure "0.95"^^xsd:double ;
             rdfs:label "wasAttributedTo → prov:wasAttributedTo"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:wasGeneratedBy ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri prov:wasGeneratedBy ;
+            ] ;
+            align:relation "=" ;
+            edoal:measure "0.95"^^xsd:double ;
+            rdfs:label "wasGeneratedBy → prov:wasGeneratedBy"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

@@ -21,6 +21,8 @@ path = "src/lib.rs"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
+regex = "1"
+sha1 = "0.10"
 gmeow-rdf = { path = "../rdf", features = ["oxigraph"] }
 # Pure-Rust catalog only: the `python` feature is NOT enabled here (we consume the
 # Rust SliceCatalog/ownership surface, not gmeow-slice's own PyO3 register fn).

@@ -3,14 +3,19 @@
 
 //! The three comparison modes of the runner contract.
 //!
-//! Ported 1:1 from the retired Python `logic_runner.py` comparators, over the
-//! native oxigraph kernel (the SAME engine the Python `gmeow_rdf` binding wraps):
+//! These are the canonical runner comparators; the Python `logic_runner.py` they
+//! replaced was retired in #727. The implementation drives the native oxigraph
+//! kernel (the SAME engine the Python `gmeow_rdf` binding formerly wrapped):
 //!
 //! * [`compare_rdf`] — blank-node-aware **graph isomorphism** via RDFC-1.0
 //!   canonicalization. Two serialized RDF documents are equal iff their canonical
 //!   quad lists match (`rdflib.compare.isomorphic` had the same verdict; oxigraph
 //!   additionally reads the RDF 1.2 `<< … >>` triple terms the `canonical-rdf12`
-//!   projection emits).
+//!   projection emits). The four RDF projection goldens (`owl-dl`, `owl-el`,
+//!   `gufo`, `canonical-rdf12`) additionally receive a **byte-exact banner-header
+//!   check** via [`leading_comment_block`] — graph isomorphism alone is blind to
+//!   Turtle `#`-comment banners, which caused stale `(logic_projections.py)`
+//!   banners to survive undetected in 92 goldens (fixed in #730).
 //! * [`compare_canonical_json`] — sorted-key **canonical JSON** equality for
 //!   `verdicts.json`, `preservation-ledger.json`, `certification.json`,
 //!   `budget.json`, and `answers/*.json`.
@@ -19,15 +24,34 @@
 //!
 //! [`diff_case`] drives all three modes over a case's full committed `expected/`
 //! tree (projections, materialized N-Quads, verdicts, certification, budget,
-//! explanation skeletons, answers), ported 1:1 from `logic_runner.diff_case`.
+//! explanation skeletons, answers).
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use oxigraph::io::{RdfFormat, RdfParser};
+use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
 use oxigraph::model::{GraphName, Quad, Triple};
 
 use crate::run::CaseOutputs;
+
+/// IANA media type for Turtle (the projection comparison surface).
+const TURTLE: &str = "text/turtle";
+/// IANA media type for N-Triples (the per-world materialized comparison).
+const NTRIPLES: &str = "application/n-triples";
+/// IANA media type for N-Quads (the materialized-corpus bucketing).
+const NQUADS: &str = "application/n-quads";
+
+/// Parse serialized RDF `text` of `media_type` into oxigraph quads via the native
+/// codecs (`gmeow_rdf::parse_dataset` → IR → oxigraph quads). The oxigraph
+/// `Dataset` is then built from these for RDFC-1.0 canonicalization (scope-OUT).
+fn parse_oxigraph_quads(
+    text: &str,
+    media_type: &str,
+) -> Result<Vec<oxigraph::model::Quad>, String> {
+    let dataset = gmeow_rdf::parse_dataset(text.as_bytes(), media_type, None)
+        .map_err(|e| format!("RDF parse error: {e}"))?;
+    flat_oxigraph_quads_from_dataset(&dataset).map_err(|e| format!("IR → quads error: {e}"))
+}
 
 /// Canonicalize a serialized RDF document to a sorted list of canonical N-Quads
 /// strings.
@@ -35,13 +59,10 @@ use crate::run::CaseOutputs;
 /// Parses `text` in `format`, applies RDFC-1.0 canonical blank-node labelling,
 /// and returns the canonicalized quads as a sorted `Vec` of their N-Quads
 /// strings. Two RDF documents are graph-isomorphic iff their canonical quad
-/// lists are equal — the rdflib-free replacement for `rdflib.compare.isomorphic`
-/// (mirrors `logic_runner._canonical_quads`).
-fn canonical_quads(text: &str, format: RdfFormat) -> Result<Vec<String>, String> {
-    let mut quads: Vec<Quad> = Vec::new();
-    for quad in RdfParser::from_format(format).for_reader(text.as_bytes()) {
-        quads.push(quad.map_err(|e| format!("RDF parse error: {e}"))?);
-    }
+/// lists are equal — the rdflib-free replacement for `rdflib.compare.isomorphic`.
+fn canonical_quads(text: &str, media_type: &str) -> Result<Vec<String>, String> {
+    // Native text ingress (#909): parse via the gmeow-gts codecs, not oxigraph::io.
+    let quads: Vec<Quad> = parse_oxigraph_quads(text, media_type)?;
     // Native full RDFC-1.0 (#910), replacing oxrdf `Dataset::canonicalize`: relabels
     // blank nodes; the term serialization is unchanged, so the comparison is identical.
     let canonical = gmeow_rdf::canonicalize_quads(quads)
@@ -84,12 +105,12 @@ pub fn compare_text(actual: &str, expected: &str) -> Vec<String> {
 /// describing the canonical quads unique to each side (capped at 5 each, as the
 /// Python runner did). A parse error on either side surfaces as a single diff
 /// line (it still fails the case loudly).
-pub fn compare_rdf(actual_text: &str, expected_text: &str, format: RdfFormat) -> Vec<String> {
-    let actual = match canonical_quads(actual_text, format) {
+pub fn compare_rdf(actual_text: &str, expected_text: &str, media_type: &str) -> Vec<String> {
+    let actual = match canonical_quads(actual_text, media_type) {
         Ok(q) => q,
         Err(e) => return vec![format!("actual {e}")],
     };
-    let expected = match canonical_quads(expected_text, format) {
+    let expected = match canonical_quads(expected_text, media_type) {
         Ok(q) => q,
         Err(e) => return vec![format!("expected {e}")],
     };
@@ -168,7 +189,6 @@ pub fn compare_explanation_skeleton(
 ///
 /// Reads every non-empty line between the `<!-- cited-iri-skeleton` opening
 /// comment and its closing `-->` marker; lines are trimmed before collection.
-/// Mirrors `logic_runner._parse_cited_iri_skeleton`.
 pub fn parse_cited_iri_skeleton(text: &str) -> BTreeSet<String> {
     let mut in_block = false;
     let mut iris = BTreeSet::new();
@@ -193,8 +213,7 @@ pub fn parse_cited_iri_skeleton(text: &str) -> BTreeSet<String> {
 /// Parse the `target_quad_reifier` from the prose header of an explanation file.
 ///
 /// Looks for the line `` # Explanation for `<REIFIER>` ``. Returns the reifier
-/// IRI, or an empty string if the header is absent. Mirrors
-/// `logic_runner._parse_explanation_reifier`.
+/// IRI, or an empty string if the header is absent.
 pub fn parse_explanation_reifier(text: &str) -> String {
     let prefix = "# Explanation for `<";
     let suffix = ">`";
@@ -214,14 +233,13 @@ pub fn parse_explanation_reifier(text: &str) -> String {
 /// Buckets every quad by its named-graph IRI and re-serializes each world's
 /// triples as an N-Triples string. Default-graph (and blank-node-graph) triples
 /// are dropped — the materialized-corpus comparison asserts only over named
-/// worlds (issue #501 AC(a)/(b)). Mirrors `logic_runner._nquads_by_named_graph`.
+/// worlds (issue #501 AC(a)/(b)).
 pub fn nquads_by_named_graph(nquads_text: &str) -> Result<BTreeMap<String, String>, String> {
     let mut by_graph: BTreeMap<String, Vec<String>> = BTreeMap::new();
     if nquads_text.trim().is_empty() {
         return Ok(BTreeMap::new());
     }
-    for quad in RdfParser::from_format(RdfFormat::NQuads).for_reader(nquads_text.as_bytes()) {
-        let quad = quad.map_err(|e| format!("N-Quads parse error: {e}"))?;
+    for quad in parse_oxigraph_quads(nquads_text, NQUADS)? {
         let graph_iri = match &quad.graph_name {
             GraphName::NamedNode(nn) => nn.as_str().to_string(),
             // Default graph / blank-node graph triples are not part of the
@@ -249,6 +267,43 @@ pub fn nquads_by_named_graph(nquads_text: &str) -> Result<BTreeMap<String, Strin
         .collect())
 }
 
+/// Extract the contiguous leading block of `#`-comment lines from a serialized
+/// RDF document (i.e. the generated banner header).
+///
+/// Returns the lines that form the unbroken prefix of `#`-starting lines joined
+/// by `\n`. Scanning stops at the first line that neither starts with `#` nor is
+/// blank — blank lines interleaved within the leading `#` block are included, but
+/// a non-`#`, non-blank line terminates the block. This precisely captures the
+/// two-line banner that `gmeow logic compile` prepends to every RDF projection:
+///
+/// ```text
+/// # GENERATED by `gmeow logic compile` — DO NOT EDIT.
+/// # OWL 2 DL projection of the canonical logic: program.
+/// ```
+///
+/// Used by [`diff_case`] to byte-compare the banner headers of the four RDF
+/// projection goldens against the canonical produced banner, guarding the blind
+/// spot left by graph-isomorphism comparison (which is comment-transparent).
+pub(crate) fn leading_comment_block(s: &str) -> String {
+    let mut lines: Vec<&str> = Vec::new();
+    for line in s.lines() {
+        if line.starts_with('#') || (line.trim().is_empty() && !lines.is_empty()) {
+            lines.push(line);
+        } else {
+            break;
+        }
+    }
+    // Trim any trailing blank lines that were included in the block.
+    while lines
+        .last()
+        .map(|l: &&str| l.trim().is_empty())
+        .unwrap_or(false)
+    {
+        lines.pop();
+    }
+    lines.join("\n")
+}
+
 /// Truncate a string to at most `n` characters (UTF-8 safe), mirroring Python's
 /// `s[:n]` slice used in the canonical-JSON mismatch message.
 fn truncate_chars(s: &str, n: usize) -> String {
@@ -259,22 +314,23 @@ fn truncate_chars(s: &str, n: usize) -> String {
 
 /// Diff a [`CaseOutputs`] against the committed `expected/` files for `case_dir`.
 ///
-/// Ported 1:1 from `logic_runner.diff_case`: every committed expected artifact is
-/// checked with the appropriate comparison mode. Missing goldens are treated as
-/// mismatches only when the corresponding output is non-trivial (verification
-/// honesty); the certification / budget opt-in rules mirror the Python runner.
-/// Returns an empty `Vec` when the case matches all of its goldens.
+/// Every committed expected artifact is checked with the appropriate comparison
+/// mode. Missing goldens are treated as mismatches only when the corresponding
+/// output is non-trivial (verification honesty); the certification / budget
+/// opt-in rules follow the runner contract. Returns an empty `Vec` when the case
+/// matches all of its goldens.
 ///
-/// `witnesses.json` is intentionally NOT compared — the Python `diff_case` never
-/// compared it either (it is a bless-only side file).
+/// `witnesses.json` is intentionally NOT compared (it is a bless-only side file).
+/// The retired Python `logic_runner.diff_case` that this replaced was removed in
+/// #727.
 pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
     let case_id = &out.case_id;
     let mut diffs: Vec<String> = Vec::new();
     let expected = case_dir.join("expected");
     let proj = expected.join("projections");
 
-    // Re-read the raw profile for the opt-in flags (mirrors _read_case_profile:
-    // lenient — an unreadable/non-object profile is treated as "no opt-in").
+    // Re-read the raw profile for the opt-in flags (lenient: an unreadable/non-object
+    // profile is treated as "no opt-in").
     let profile_val = read_profile_value(case_dir);
     let cert_opt_in = profile_val
         .get("certify")
@@ -305,7 +361,21 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
             }
             match (produced, read_text(&expected_path)) {
                 (Some(content), Ok(expected_text)) => {
-                    for d in compare_rdf(content, &expected_text, RdfFormat::Turtle) {
+                    // Banner byte-check: graph isomorphism is comment-transparent, so a
+                    // stale or wrong banner in the golden would pass undetected. Compare
+                    // the leading `#`-comment block byte-exactly before the isomorphism
+                    // check. Both checks always run (fail-fast is the isomorphism side).
+                    let produced_hdr = leading_comment_block(content);
+                    let golden_hdr = leading_comment_block(&expected_text);
+                    if produced_hdr != golden_hdr {
+                        diffs.push(format!(
+                            "[{case_id}] {target}: banner drift — golden header does not \
+                             byte-match the canonical generated banner \
+                             (produced: {produced_hdr:?}, golden: {golden_hdr:?}); \
+                             re-bless this golden"
+                        ));
+                    }
+                    for d in compare_rdf(content, &expected_text, TURTLE) {
                         diffs.push(format!("[{case_id}] {target}: {d}"));
                     }
                 }
@@ -321,11 +391,7 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
         if report_path.exists() {
             match read_text(&report_path) {
                 Ok(expected_text) => {
-                    for d in compare_rdf(
-                        &out.projections.report_turtle,
-                        &expected_text,
-                        RdfFormat::Turtle,
-                    ) {
+                    for d in compare_rdf(&out.projections.report_turtle, &expected_text, TURTLE) {
                         diffs.push(format!("[{case_id}] projection-report: {d}"));
                     }
                 }
@@ -454,11 +520,9 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
                         }
                         for g in actual_iris.intersection(&expected_iris) {
                             let g = *g;
-                            for d in compare_rdf(
-                                &actual_by_graph[g],
-                                &expected_by_graph[g],
-                                RdfFormat::NTriples,
-                            ) {
+                            for d in
+                                compare_rdf(&actual_by_graph[g], &expected_by_graph[g], NTRIPLES)
+                            {
                                 diffs.push(format!("[{case_id}] materialized.nq [<{g}>]: {d}"));
                             }
                         }
@@ -573,7 +637,8 @@ fn diff_json_golden(
 }
 
 /// Read a case's `profile.json` as a JSON value, returning `{}` on any error
-/// (mirrors `logic_runner._read_case_profile`'s lenient diff-phase read).
+/// (lenient diff-phase read: an unreadable or non-object profile is treated as
+/// "no opt-in").
 pub(crate) fn read_profile_value(case_dir: &Path) -> serde_json::Value {
     std::fs::read_to_string(case_dir.join("profile.json"))
         .ok()
@@ -611,55 +676,43 @@ fn sorted_files_with_ext(dir: &Path, ext: &str) -> Vec<PathBuf> {
 mod tests {
     use super::*;
 
-    // ---- compare_rdf (ports tests/test_logic_runner.py::TestCompareRdf) ----
+    // ---- compare_rdf tests ----
 
     #[test]
     fn rdf_identical_graphs_match() {
         let nt = "<https://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/B> .\n";
-        assert_eq!(
-            compare_rdf(nt, nt, RdfFormat::NTriples),
-            Vec::<String>::new()
-        );
+        assert_eq!(compare_rdf(nt, nt, NTRIPLES), Vec::<String>::new());
     }
 
     #[test]
     fn rdf_isomorphic_blank_node_graphs_match() {
         let g1 = "<https://example.org/A> <https://example.org/rel> _:x .\n_:x <https://example.org/label> <https://example.org/val> .\n";
         let g2 = "<https://example.org/A> <https://example.org/rel> _:y .\n_:y <https://example.org/label> <https://example.org/val> .\n";
-        assert_eq!(
-            compare_rdf(g1, g2, RdfFormat::NTriples),
-            Vec::<String>::new()
-        );
+        assert_eq!(compare_rdf(g1, g2, NTRIPLES), Vec::<String>::new());
     }
 
     #[test]
     fn rdf_differing_graphs_fail() {
         let g1 = "<https://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/B> .\n";
         let g2 = "<https://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/C> .\n";
-        assert!(!compare_rdf(g1, g2, RdfFormat::NTriples).is_empty());
+        assert!(!compare_rdf(g1, g2, NTRIPLES).is_empty());
     }
 
     #[test]
     fn rdf_empty_vs_nonempty_fails() {
         let g2 = "<https://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/B> .\n";
-        assert!(!compare_rdf("", g2, RdfFormat::NTriples).is_empty());
+        assert!(!compare_rdf("", g2, NTRIPLES).is_empty());
     }
 
     #[test]
     fn rdf_empty_vs_empty_passes() {
-        assert_eq!(
-            compare_rdf("", "", RdfFormat::NTriples),
-            Vec::<String>::new()
-        );
+        assert_eq!(compare_rdf("", "", NTRIPLES), Vec::<String>::new());
     }
 
     #[test]
     fn rdf12_triple_terms_compare() {
         let ttl = "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n<https://example.org/r> rdf:reifies <<( <https://example.org/s> <https://example.org/p> <https://example.org/o> )>> .\n";
-        assert_eq!(
-            compare_rdf(ttl, ttl, RdfFormat::Turtle),
-            Vec::<String>::new()
-        );
+        assert_eq!(compare_rdf(ttl, ttl, TURTLE), Vec::<String>::new());
     }
 
     // ---- compare_canonical_json (ports TestCompareCanonicalJson) ----
@@ -796,6 +849,61 @@ mod tests {
         assert_eq!(parse_explanation_reifier("no header here\n"), "");
     }
 
+    // ---- leading_comment_block (banner helper) ----
+
+    #[test]
+    fn banner_identical_headers_produce_no_drift() {
+        // Two documents with the SAME two-line banner but different (isomorphic) graphs:
+        // the banner check must pass.
+        let banner = "# GENERATED by `gmeow logic compile` — DO NOT EDIT.\n\
+                      # OWL 2 DL projection of the canonical logic: program.";
+        let body_a = "<https://example.org/A> <https://example.org/p> <https://example.org/B> .\n";
+        let body_b = "<https://example.org/A> <https://example.org/p> <https://example.org/B> .\n";
+        let doc_a = format!("{banner}\n{body_a}");
+        let doc_b = format!("{banner}\n{body_b}");
+        let produced_hdr = leading_comment_block(&doc_a);
+        let golden_hdr = leading_comment_block(&doc_b);
+        assert_eq!(produced_hdr, golden_hdr, "same banner must not flag drift");
+    }
+
+    #[test]
+    fn banner_stale_python_module_suffix_detected() {
+        // The headline defect: old golden had `(logic_projections.py)` in the GENERATED
+        // line; produced banner no longer has it. The helper must detect the mismatch.
+        let produced_banner = "# GENERATED by `gmeow logic compile` — DO NOT EDIT.\n\
+                               # OWL 2 DL projection of the canonical logic: program.";
+        let stale_golden_banner =
+            "# GENERATED by `gmeow logic compile` (logic_projections.py) — DO NOT EDIT.\n\
+             # OWL 2 DL projection of the canonical logic: program.";
+        let body = "<https://example.org/A> <https://example.org/p> <https://example.org/B> .\n";
+        let produced_doc = format!("{produced_banner}\n{body}");
+        let stale_doc = format!("{stale_golden_banner}\n{body}");
+        let produced_hdr = leading_comment_block(&produced_doc);
+        let golden_hdr = leading_comment_block(&stale_doc);
+        assert_ne!(
+            produced_hdr, golden_hdr,
+            "stale (logic_projections.py) banner must be detected as drift"
+        );
+    }
+
+    #[test]
+    fn banner_helper_stops_at_first_non_comment_non_blank_line() {
+        let doc = "# line one\n# line two\n<https://example.org/s> <https://example.org/p> <https://example.org/o> .\n# not in banner\n";
+        assert_eq!(leading_comment_block(doc), "# line one\n# line two");
+    }
+
+    #[test]
+    fn banner_helper_no_comments_returns_empty() {
+        let doc = "<https://example.org/s> <https://example.org/p> <https://example.org/o> .\n";
+        assert_eq!(leading_comment_block(doc), "");
+    }
+
+    #[test]
+    fn banner_helper_only_comments_returns_all() {
+        let doc = "# line one\n# line two\n";
+        assert_eq!(leading_comment_block(doc), "# line one\n# line two");
+    }
+
     // ---- nquads_by_named_graph ----
 
     #[test]
@@ -809,10 +917,7 @@ mod tests {
         assert!(by_graph.contains_key("https://example.org/w2"));
         // Each bucket re-parses as valid N-Triples and round-trips through compare_rdf.
         let w1 = &by_graph["https://example.org/w1"];
-        assert_eq!(
-            compare_rdf(w1, w1, RdfFormat::NTriples),
-            Vec::<String>::new()
-        );
+        assert_eq!(compare_rdf(w1, w1, NTRIPLES), Vec::<String>::new());
     }
 
     #[test]

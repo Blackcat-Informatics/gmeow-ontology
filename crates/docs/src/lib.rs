@@ -16,8 +16,12 @@
 //! and [`svg`] hand-emits deterministic SVG diagrams folded into that tree.
 //! Python bindings are kept in [`py`]; lint/i18n arrive in later tasks of #853.
 
+pub mod card;
+pub mod fixture;
 pub mod i18n;
+pub mod i18n_compile;
 pub mod lint;
+pub mod llms;
 pub mod model;
 pub mod rdf;
 pub mod render;
@@ -28,9 +32,11 @@ pub mod py;
 
 pub use i18n::{available_languages, ui_string, Translations, UiCatalog};
 pub use lint::lint;
+pub use llms::{GMEOW_SUMMARY, LLMS_NOTE_CAP};
 pub use model::{
-    DocArtifact, DocConcern, DocDependencyEdge, DocExample, DocExternalTerm, DocLearningPath,
-    DocLinkage, DocMappingSet, DocRecipe, DocSlice, DocTerm, DocTermCategory, DocsError, DocsModel,
+    DocArtifact, DocCompetency, DocConcern, DocDependencyEdge, DocExample, DocExternalTerm,
+    DocLearningPath, DocLinkage, DocMappingSet, DocRecipe, DocShape, DocSlice, DocTerm,
+    DocTermCategory, DocsError, DocsModel,
 };
 pub use rdf::to_gmeow_rdf;
 pub use render::{render_site, render_site_lang, to_html, to_markdown, Page, Site};

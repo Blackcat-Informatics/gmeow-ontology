@@ -13,53 +13,38 @@
     align:map [
         a align:Cell ;
         align:entity1 [
-            a edoal:Class ;
-            edoal:uri gmeow:PostalAddress ;
+            a edoal:Relation ;
+            edoal:compose ( [
+                a edoal:Relation ;
+                edoal:inverse [
+                    a edoal:Relation ;
+                    edoal:uri gmeow:membershipMember ;
+                ] ;
+            ] [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasRole ;
+            ] [
+                a edoal:Relation ;
+                edoal:or ( [
+                    a edoal:Relation ;
+                    edoal:uri rdfs:label ;
+                ] [
+                    a edoal:Relation ;
+                    edoal:uri gmeow:name ;
+                ] ) ;
+            ] ) ;
         ] ;
         align:entity2 [
-            a edoal:Class ;
-            edoal:uri vcard:Address ;
+            a edoal:Property ;
+            edoal:uri vcard:title ;
         ] ;
-        align:relation "=" ;
+        align:relation "<=" ;
+        edoal:measure "0.9"^^xsd:double ;
         edoal:transformation [
-            rdfs:seeAlso gmeow:fnComposeAddress ;
+            rdfs:seeAlso gmeow:fnMembershipToJobTitle ;
         ] ;
-        rdfs:label "PostalAddress → vcard:Address (component rename + composed vcard:label)"@en ;
+        rdfs:label "Membership Role → vcard:title"@en ;
     ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:fullName ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri vcard:fn ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            edoal:transformation [
-                rdfs:seeAlso gmeow:fnSelectDisplayName ;
-            ] ;
-            rdfs:label "displayable fullName → vcard:fn"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:hasName ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri vcard:nickname ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.9"^^xsd:double ;
-            edoal:transformation [
-                rdfs:seeAlso gmeow:fnNicknameName ;
-            ] ;
-            rdfs:label "nickname-purpose PersonName → vcard:nickname"@en ;
-        ] ,
         [
             a align:Cell ;
             align:entity1 [
@@ -92,37 +77,18 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
-                edoal:compose ( [
-                    a edoal:Relation ;
-                    edoal:inverse [
-                        a edoal:Relation ;
-                        edoal:uri gmeow:membershipMember ;
-                    ] ;
-                ] [
-                    a edoal:Relation ;
-                    edoal:uri gmeow:hasRole ;
-                ] [
-                    a edoal:Relation ;
-                    edoal:or ( [
-                        a edoal:Relation ;
-                        edoal:uri rdfs:label ;
-                    ] [
-                        a edoal:Relation ;
-                        edoal:uri gmeow:name ;
-                    ] ) ;
-                ] ) ;
+                a edoal:Class ;
+                edoal:uri gmeow:PostalAddress ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
-                edoal:uri vcard:title ;
+                a edoal:Class ;
+                edoal:uri vcard:Address ;
             ] ;
-            align:relation "<=" ;
-            edoal:measure "0.9"^^xsd:double ;
+            align:relation "=" ;
             edoal:transformation [
-                rdfs:seeAlso gmeow:fnMembershipToJobTitle ;
+                rdfs:seeAlso gmeow:fnComposeAddress ;
             ] ;
-            rdfs:label "Membership Role → vcard:title"@en ;
+            rdfs:label "PostalAddress → vcard:Address (component rename + composed vcard:label)"@en ;
         ] ,
         [
             a align:Cell ;
@@ -142,35 +108,18 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:hasPronounSet ;
+                edoal:uri gmeow:fullName ;
             ] ;
             align:entity2 [
                 a edoal:Property ;
-                edoal:uri vcardx:pronouns ;
+                edoal:uri vcard:fn ;
             ] ;
             align:relation "<=" ;
             edoal:measure "0.9"^^xsd:double ;
             edoal:transformation [
-                rdfs:seeAlso gmeow:fnPronounSetToText ;
+                rdfs:seeAlso gmeow:fnSelectDisplayName ;
             ] ;
-            rdfs:label "PronounSet five forms → vCard PRONOUNS display text (RFC 9554 extension)"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
-                edoal:uri gmeow:hasWebPage ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri vcard:hasURL ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.8"^^xsd:double ;
-            edoal:transformation [
-                rdfs:seeAlso gmeow:fnWebPageToUrl ;
-            ] ;
-            rdfs:label "hasWebPage → vcard:hasURL (the WebPage IRI)"@en ;
+            rdfs:label "displayable fullName → vcard:fn"@en ;
         ] ,
         [
             a align:Cell ;
@@ -213,6 +162,57 @@
             align:relation "<=" ;
             edoal:measure "0.9"^^xsd:double ;
             rdfs:label "contact-point telephone number → vcard:hasTelephone"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasName ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri vcard:nickname ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.9"^^xsd:double ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnNicknameName ;
+            ] ;
+            rdfs:label "nickname-purpose PersonName → vcard:nickname"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasPronounSet ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri vcardx:pronouns ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.9"^^xsd:double ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnPronounSetToText ;
+            ] ;
+            rdfs:label "PronounSet five forms → vCard PRONOUNS display text (RFC 9554 extension)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasWebPage ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri vcard:hasURL ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.8"^^xsd:double ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnWebPageToUrl ;
+            ] ;
+            rdfs:label "hasWebPage → vcard:hasURL (the WebPage IRI)"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

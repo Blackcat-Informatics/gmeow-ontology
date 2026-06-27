@@ -27,20 +27,6 @@
             a align:Cell ;
             align:entity1 [
                 a edoal:Relation ;
-                edoal:uri gmeow:eventTime ;
-            ] ;
-            align:entity2 [
-                a edoal:Property ;
-                edoal:uri prov:endedAtTime ;
-            ] ;
-            align:relation "<=" ;
-            edoal:measure "0.85"^^xsd:double ;
-            rdfs:label "BuildActivity eventTime → prov:endedAtTime"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Relation ;
                 edoal:uri gmeow:buildOutput ;
             ] ;
             align:entity2 [
@@ -50,6 +36,20 @@
             align:relation "<=" ;
             edoal:measure "0.85"^^xsd:double ;
             rdfs:label "buildOutput × build eventTime → prov:generatedAtTime on the output"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:eventTime ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri prov:endedAtTime ;
+            ] ;
+            align:relation "<=" ;
+            edoal:measure "0.85"^^xsd:double ;
+            rdfs:label "BuildActivity eventTime → prov:endedAtTime"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

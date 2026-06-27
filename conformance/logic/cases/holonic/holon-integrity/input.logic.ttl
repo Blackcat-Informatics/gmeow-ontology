@@ -1,0 +1,118 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: foundation/holonic-autonomy-integration
+# AC: holonic autonomy/integration duality — Koestler's Janus-faced holon integrity,
+# scoped to a declared logic:HolonicAgencyProfile (issue #707, C4; per ME9 / #775).
+#
+# A holon is Janus-faced: it carries a SELF-ASSERTIVE tendency (autonomy, as a whole) and
+# an INTEGRATIVE tendency (subordination, as a part). These are CO-EQUAL vantage facets
+# (Principle 9) — neither is the primary face. Autonomy/integration is NOT a universal
+# well-formedness rule every holon must satisfy; it is a DECLARED logic:HolonicAgencyProfile
+# a holarchy adopts (#775). A logic:AgencyAssessment over an (holon, profile) signature
+# receives a four-valued logic:agencyVerdict the engine DERIVES. Two profiles are declared.
+# The FIRST (ex:KoestlerProfile, whose logic:selfAssertiveBasis carries ex:CommandCapacity and
+# whose logic:integrativeBasis carries ex:SubordinationCapacity) exercises all four verdicts by
+# varying the capacities each assessed holon bears, with the structural position of each
+# assessed entity mirroring its agency verdict:
+#   * ex:AssessCaptain (holon ex:Captain bears BOTH capacities)
+#       → logic:HolonIntegral — the balanced holon: it asserts itself as a whole AND
+#       subordinates itself as a part. The positive, derivation-grounded verdict (both
+#       co-equal markers hold). Captain is also a structural holon (mid-chain), so C1's
+#       logic:isHolon co-fires — a balanced holon is, fittingly, a genuine holon.
+#   * ex:AssessPrivate (entity ex:Private bears only ex:SubordinationCapacity)
+#       → logic:AutonomyDeficient — the first pathology, a "part" with no autonomy: it
+#       integrates but does not assert itself. Reached by negation-as-failure over the
+#       self-assertive marker WHILE the integrative marker holds. Private is a structural
+#       leaf-part (no proper part of its own), fittingly a part with no autonomy.
+#   * ex:AssessWarlord (entity ex:Warlord bears only ex:CommandCapacity)
+#       → logic:IntegrationDeficient — the second pathology, a "whole" refusing to
+#       integrate: it asserts itself but does not subordinate. The co-equal mirror of the
+#       above (NAF over the integrative marker while the self-assertive marker holds).
+#       Warlord is a structural root-whole (it has a part but is part of nothing), fittingly
+#       a whole refusing to integrate.
+#   * ex:AssessInert (entity ex:Inert bears NEITHER capacity)
+#       → logic:AgencyUnknown — neither tendency is evidenced, so the integrity question has
+#       no positive footing. The first-class fourth value; failure-to-evidence is not
+#       integrity. Inert is unattached to the holarchy, fittingly neither asserting nor
+#       integrating. This is the FIRST of AgencyUnknown's two triggers: the holon bears no
+#       basis value the profile names.
+#
+# The SECOND profile (ex:VoidProfile) is a DECLARED but BASIS-FREE agency profile — it carries
+# neither logic:selfAssertiveBasis nor logic:integrativeBasis. It exercises AgencyUnknown's
+# SECOND trigger, holding the holon fixed and varying only the profile:
+#   * ex:AssessSilentCaptain (holon ex:Captain — which bears BOTH capacities — assessed under
+#       ex:VoidProfile)
+#       → logic:AgencyUnknown — even a fully-capable holon receives no verdict footing when the
+#       profile declares no basis to reason over: no selfAssertive/integrative marker can derive,
+#       so the question is unknown, NOT deficient (deficiency requires the MIRROR marker to hold,
+#       and here neither does). The sharp contrast with ex:AssessCaptain — the SAME holon, the
+#       SAME structural position (mid-chain holon), yet HolonIntegral under ex:KoestlerProfile vs
+#       AgencyUnknown under ex:VoidProfile — pins that the verdict is PROFILE-RELATIVE, not a
+#       property of the holon or its structure. Agency is what a declared profile evidences.
+#
+# CO-EQUALITY (Principle 9): logic:selfAssertive and logic:integrative are built by IDENTICAL
+# stratum-1 rules, and the two pathology rules are mirror images settling in the same
+# stratum, so neither Janus face is privileged. The golden materialized.nq carries both
+# markers on ex:AssessCaptain (selfAssertive AND integrative), demonstrating the conjunction.
+#
+# WELL-FORMEDNESS (the B1 guard): every verdict rule re-binds logic:agencyHolon and
+# logic:agencyProfile, so a malformed assessment naming no holon or no profile receives no
+# verdict. All five assessments here are well-formed; the malformed-gets-no-verdict guarantee
+# is pinned by the Rust unit test holonic_agency_four_valued_verdicts.
+#
+# DOGFOODING C1 (#704): the assessed entities are wired into a holarchy
+# (ex:Private ▷ ex:Captain ▷ ex:Company; ex:Henchman ▷ ex:Warlord), so the C1 holon-kernel
+# co-firings (logic:overlaps, logic:isHolon on the mid-chain ex:Captain) are expected on this
+# parthood input and are included — suppressing them would misreport the engine. Agency is
+# profile-scoped, NOT gated on structural holon-ness, so ex:Inert (unattached) and ex:Private
+# (a leaf) still receive verdicts.
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so all facts below are duplicated
+# there in the named world ex:schema; these are the program axioms.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/holonic-autonomy-integration/> .
+
+# Holarchy: a private nested in a captain nested in a company; a henchman under a warlord.
+# Captain is mid-chain (a genuine holon); Warlord is a root-whole; Private/Henchman are leaves.
+ex:Private  logic:properPartOf ex:Captain .
+ex:Captain  logic:properPartOf ex:Company .
+ex:Henchman logic:properPartOf ex:Warlord .
+
+# The declared Koestlerian agency profile: command evidences self-assertion (autonomy),
+# subordination evidences integration. The two bases are co-equal (Principle 9).
+ex:KoestlerProfile logic:selfAssertiveBasis ex:CommandCapacity ;
+    logic:integrativeBasis ex:SubordinationCapacity .
+
+# A SECOND, deliberately BASIS-FREE declared profile: ex:VoidProfile carries neither
+# logic:selfAssertiveBasis nor logic:integrativeBasis, so no agency marker can derive under it.
+# It is declared purely by being named as a logic:agencyProfile below (it intentionally asserts
+# no basis triples of its own). Any assessment under it — however capable the holon — is
+# AgencyUnknown, never deficient.
+
+# The capacities each holon bears (the evidence the profile reasons over).
+ex:Captain logic:bearsProperty ex:CommandCapacity ;
+    logic:bearsProperty ex:SubordinationCapacity .
+ex:Private logic:bearsProperty ex:SubordinationCapacity .
+ex:Warlord logic:bearsProperty ex:CommandCapacity .
+# ex:Inert bears no capacity — neither tendency is evidenced.
+
+# Five agency assessments. The first four are relative to ex:KoestlerProfile (varying the holon);
+# the fifth holds the holon fixed (ex:Captain) and varies the profile (ex:VoidProfile).
+ex:AssessCaptain logic:agencyHolon ex:Captain ;
+    logic:agencyProfile ex:KoestlerProfile .
+
+ex:AssessPrivate logic:agencyHolon ex:Private ;
+    logic:agencyProfile ex:KoestlerProfile .
+
+ex:AssessWarlord logic:agencyHolon ex:Warlord ;
+    logic:agencyProfile ex:KoestlerProfile .
+
+ex:AssessInert logic:agencyHolon ex:Inert ;
+    logic:agencyProfile ex:KoestlerProfile .
+
+# Basis-free trigger: ex:Captain bears BOTH capacities, yet under the basis-free ex:VoidProfile
+# no marker derives → logic:AgencyUnknown (cf. ex:AssessCaptain → logic:HolonIntegral).
+ex:AssessSilentCaptain logic:agencyHolon ex:Captain ;
+    logic:agencyProfile ex:VoidProfile .

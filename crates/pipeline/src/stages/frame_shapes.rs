@@ -11,13 +11,13 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{NamedNode, Term};
 use oxigraph::store::Store;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::source_load::module_files;
+use crate::stages::rule_severity::RuleSeverity;
+use crate::stages::source_load::{module_files, turtle_bytes_into_store_scoped};
 
 /// Committed logical path of the generated frame-relativity shapes.
 pub const FRAME_SHAPES_PATH: &str = "generated/shapes/frame-shapes.ttl";
@@ -40,17 +40,8 @@ fn load_authored_no_imports(root: &Path) -> Result<Store, PipelineError> {
             continue;
         }
         let bytes = std::fs::read(&path)?;
-        for quad in RdfParser::from_format(RdfFormat::Turtle)
-            .lenient()
-            .for_reader(bytes.as_slice())
-        {
-            let quad = quad.map_err(|e| {
-                PipelineError::Parse(format!("syntax error in {}: {e}", path.display()))
-            })?;
-            store
-                .insert(&quad)
-                .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-        }
+        // Scope per source file so distinct modules' anonymous blanks stay disjoint.
+        turtle_bytes_into_store_scoped(&store, &bytes, &path.display().to_string())?;
     }
     Ok(store)
 }
@@ -77,7 +68,9 @@ fn single_value(store: &Store, subject: &NamedNode, predicate: &str) -> Option<S
 }
 
 /// `(carrier-local, frame-prop-local, exactly_one, severity)` per declaration, sorted.
-fn frame_requirements(store: &Store) -> Result<Vec<(String, String, bool, String)>, PipelineError> {
+fn frame_requirements(
+    store: &Store,
+) -> Result<Vec<(String, String, bool, RuleSeverity)>, PipelineError> {
     let requires = nn(&format!("{NS}requiresFrame"));
     let functional = nn(OWL_FUNCTIONAL);
     let rdf_type = nn(RDF_TYPE);
@@ -110,8 +103,10 @@ fn frame_requirements(store: &Store) -> Result<Vec<(String, String, bool, String
                 .next()
                 .is_some(),
         };
-        let severity = single_value(store, &carrier_nn, &format!("{NS}frameRequirementSeverity"))
-            .unwrap_or_else(|| "violation".to_string());
+        let severity = RuleSeverity::parse(
+            single_value(store, &carrier_nn, &format!("{NS}ruleSeverity")).as_deref(),
+        )
+        .map_err(PipelineError::InvalidDeclaration)?;
         rows.push((
             carrier.strip_prefix(NS).unwrap_or(&carrier).to_string(),
             frame_prop
@@ -130,11 +125,7 @@ pub fn render_frame_shapes(root: &Path) -> Result<String, PipelineError> {
     let store = load_authored_no_imports(root)?;
     let mut blocks: Vec<String> = vec![HEADER.to_string()];
     for (carrier, prop, exactly_one, severity) in frame_requirements(&store)? {
-        let sh_severity = if severity == "warning" {
-            "sh:Warning"
-        } else {
-            "sh:Violation"
-        };
+        let sh_severity = severity.shacl_token();
         let count = if exactly_one {
             "exactly one"
         } else {
@@ -223,5 +214,30 @@ mod tests {
         let committed =
             std::fs::read_to_string(root.join(FRAME_SHAPES_PATH)).expect("committed frame-shapes");
         assert_eq!(fresh, committed, "frame-shapes.ttl drifted from committed");
+    }
+
+    #[test]
+    fn rule_severity_declaration_drives_shape_severity() {
+        // An advisory carrier downgrades to sh:Warning; an undeclared carrier
+        // stays binding (sh:Violation) — proves the read predicate is ruleSeverity.
+        let store = Store::new().unwrap();
+        let ttl = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            gmeow:Soft gmeow:requiresFrame gmeow:softFrame ; gmeow:ruleSeverity \"advisory\" .\n\
+            gmeow:Hard gmeow:requiresFrame gmeow:hardFrame .\n";
+        turtle_bytes_into_store_scoped(&store, ttl.as_bytes(), "test").unwrap();
+        let rows = frame_requirements(&store).unwrap();
+        let soft = rows.iter().find(|r| r.0 == "Soft").expect("Soft row");
+        let hard = rows.iter().find(|r| r.0 == "Hard").expect("Hard row");
+        assert_eq!(soft.3.shacl_token(), "sh:Warning");
+        assert_eq!(hard.3.shacl_token(), "sh:Violation");
+    }
+
+    #[test]
+    fn unknown_rule_severity_hard_fails() {
+        let store = Store::new().unwrap();
+        let ttl = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            gmeow:Bad gmeow:requiresFrame gmeow:badFrame ; gmeow:ruleSeverity \"bogus\" .\n";
+        turtle_bytes_into_store_scoped(&store, ttl.as_bytes(), "test").unwrap();
+        assert!(frame_requirements(&store).is_err());
     }
 }

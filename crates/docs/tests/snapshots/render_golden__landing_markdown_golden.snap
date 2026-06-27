@@ -4,16 +4,16 @@ expression: "to_markdown(&model, &Page::Landing)"
 ---
 # GMEOW Ontology Documentation
 
-Version **3**.
+Version **5**.
 
-This site documents **2163** vocabulary terms across **75** slices.
+This site documents **2172** vocabulary terms across **75** slices.
 
 ## Vocabulary by category
 
 | Category | Terms |
 | --- | --- |
-| [Classes](classes/index.md) | 651 |
-| [Properties](properties/index.md) | 1508 |
+| [Classes](classes/index.md) | 653 |
+| [Properties](properties/index.md) | 1515 |
 | [Individuals](individuals/index.md) | 3 |
 | [Datatypes](datatypes/index.md) | 1 |
 
@@ -21,9 +21,9 @@ This site documents **2163** vocabulary terms across **75** slices.
 
 - [All slices](slices/index.md) — the 75 compilation units.
 - [Concerns](concerns/index.md) — 7 cross-cutting design concerns.
-- [Linkages](linkages/index.md) — 1381 term equivalences to external vocabularies.
-- [Examples](examples/index.md) — 96 worked examples.
-- [External ontologies](external-ontologies/index.md) — 1206 external terms referenced.
+- [Linkages](linkages/index.md) — 1382 term equivalences to external vocabularies.
+- [Examples](examples/index.md) — 100 worked examples.
+- [External ontologies](external-ontologies/index.md) — 1207 external terms referenced.
 - [Integrity constraints](integrity-constraints/index.md)
 - [Recipes](recipes/index.md) — 6 task-oriented adoption recipes.
 - [Learning paths](learning-paths/index.md) — 5 curated adoption journeys.

@@ -14,11 +14,8 @@
 #![allow(dead_code)] // constants used by Tasks 3–4
 
 use std::collections::{BTreeMap, BTreeSet, HashSet, VecDeque};
-use std::fs::File;
-use std::io::BufReader;
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphNameRef, NamedNode, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 
@@ -157,7 +154,8 @@ const SCHEMA_RANGE_INCLUDES: &str = "https://schema.org/rangeIncludes";
 struct TargetSource {
     prefix: &'static str,
     url: &'static str,
-    format: RdfFormat,
+    /// IANA media type naming the native codec for this source document.
+    media_type: &'static str,
 }
 
 /// Canonical source documents per target prefix. Mirrors the retired Python
@@ -167,72 +165,72 @@ const TARGET_SOURCES: &[TargetSource] = &[
     TargetSource {
         prefix: "org",
         url: "https://www.w3.org/ns/org.ttl",
-        format: RdfFormat::Turtle,
+        media_type: "text/turtle",
     },
     TargetSource {
         prefix: "foaf",
         url: "http://xmlns.com/foaf/spec/index.rdf",
-        format: RdfFormat::RdfXml,
+        media_type: "application/rdf+xml",
     },
     TargetSource {
         prefix: "vcard",
         url: "https://www.w3.org/2006/vcard/ns.ttl",
-        format: RdfFormat::Turtle,
+        media_type: "text/turtle",
     },
     TargetSource {
         prefix: "prov",
         url: "https://www.w3.org/ns/prov-o.ttl",
-        format: RdfFormat::Turtle,
+        media_type: "text/turtle",
     },
     TargetSource {
         prefix: "time",
         url: "https://www.w3.org/2006/time.ttl",
-        format: RdfFormat::Turtle,
+        media_type: "text/turtle",
     },
     TargetSource {
         prefix: "geo",
         url: "https://opengeospatial.github.io/ogc-geosparql/geosparql11/geo.ttl",
-        format: RdfFormat::Turtle,
+        media_type: "text/turtle",
     },
     TargetSource {
         prefix: "schema",
         url: "https://schema.org/version/latest/schemaorg-current-https.ttl",
-        format: RdfFormat::Turtle,
+        media_type: "text/turtle",
     },
     TargetSource {
         prefix: "bfo",
         url: "http://purl.obolibrary.org/obo/bfo.owl",
-        format: RdfFormat::RdfXml,
+        media_type: "application/rdf+xml",
     },
     TargetSource {
         prefix: "ontolex",
         url: "https://www.w3.org/ns/lemon/ontolex.owl",
-        format: RdfFormat::RdfXml,
+        media_type: "application/rdf+xml",
     },
     TargetSource {
         prefix: "lime",
         url: "https://www.w3.org/ns/lemon/lime.owl",
-        format: RdfFormat::RdfXml,
+        media_type: "application/rdf+xml",
     },
     TargetSource {
         prefix: "jams",
         url: "http://w3id.org/polifonia/ontology/jams/",
-        format: RdfFormat::RdfXml,
+        media_type: "application/rdf+xml",
     },
     TargetSource {
         prefix: "pon",
         url: "https://w3id.org/polifonia/ontology/ontology-network/",
-        format: RdfFormat::RdfXml,
+        media_type: "application/rdf+xml",
     },
     TargetSource {
         prefix: "chord",
         url: "http://purl.org/ontology/chord/",
-        format: RdfFormat::RdfXml,
+        media_type: "application/rdf+xml",
     },
     TargetSource {
         prefix: "bot",
         url: "https://w3id.org/bot/bot.ttl",
-        format: RdfFormat::Turtle,
+        media_type: "text/turtle",
     },
 ];
 
@@ -1157,11 +1155,20 @@ fn fetch_target_axioms(prefix: &str) -> Result<Store, SliceError> {
             )))
         })?;
 
+    let bytes = response
+        .into_body()
+        .into_with_config()
+        .read_to_vec()
+        .map_err(|e| SliceError::Io(std::io::Error::other(format!("read body {prefix}: {e}"))))?;
+    // Parse via the native codecs into a temporary store, then keep only the
+    // axiom/property-type quads in the target namespace (the historical filter).
+    let parsed = crate::rdf_text::rdf_bytes_to_store(
+        &bytes,
+        source.media_type,
+        &format!("fetching {prefix}"),
+    )?;
     let store = new_store()?;
-    for quad in RdfParser::from_format(source.format)
-        .lenient()
-        .for_reader(response.into_body().into_reader())
-    {
+    for quad in parsed.iter() {
         let quad =
             quad.map_err(|e| SliceError::Parse(format!("parse error fetching {prefix}: {e}")))?;
         if let NamedOrBlankNode::NamedNode(subj) = &quad.subject {
@@ -1613,36 +1620,14 @@ fn new_store() -> Result<Store, SliceError> {
 /// Parse a Turtle file into a fresh oxigraph store (lenient, so GMEOW's
 /// `@x-gmeow-*` language tags parse).
 fn parse_ttl(path: &Path) -> Result<Store, SliceError> {
-    let store = new_store()?;
-    let file = File::open(path).map_err(SliceError::Io)?;
-    let reader = BufReader::new(file);
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(reader)
-    {
-        let quad = quad
-            .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(store)
+    let bytes = std::fs::read(path).map_err(SliceError::Io)?;
+    crate::rdf_text::turtle_bytes_to_store(&bytes, &path.display().to_string())
 }
 
 /// Parse Turtle text into a fresh store (test helper).
 #[cfg(test)]
 fn parse_ttl_text(text: &str) -> Result<Store, SliceError> {
-    let store = new_store()?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(text.as_bytes())
-    {
-        let quad = quad.map_err(|e| SliceError::Parse(format!("syntax error: {e}")))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(store)
+    crate::rdf_text::turtle_bytes_to_store(text.as_bytes(), "test fixture")
 }
 
 /// Merge every quad from `source` into `target`.

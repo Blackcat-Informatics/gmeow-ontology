@@ -20,7 +20,8 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_rdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder};
-use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
+use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
+use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
 use oxigraph::model::Quad;
 use oxigraph::store::Store;
 
@@ -108,7 +109,7 @@ pub fn build_snapshot(
     // RDF 1.2 statement layer: base quads → graph/statements; reifies/annot global.
     builder
         .add_rdf12(
-            &parse_rdf(&rdf12, RdfFormat::Turtle)?,
+            &parse_rdf(&rdf12, "text/turtle")?,
             Some(GRAPH_STATEMENTS),
             Some("stmt"),
         )
@@ -202,12 +203,40 @@ const REP_OKF: &str = "okf-export";
 /// string the runtime consumer (`create_docs._unpack_doc_archive`) looks up —
 /// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow extract-docs` finds it.
 const REP_ONTOLOGY_DOCS: &str = "ontology-docs";
+/// tar of the FULL SHACL shape surface (#746), member = repo-relative path:
+/// every `shapes/*.ttl` (incl. the 4 DSL/manifest lints the consumer's DSL phases
+/// need) + every `generated/shapes/*.ttl` (P11 frame shapes) + every per-slice
+/// `slices/<g>/<n>/shapes.ttl`. The full surface — NOT the validator's filtered
+/// union — so a repo-free `gmeow validate` (#747) can re-derive both the data-graph
+/// union and the DSL phases. The Python reader (`bundle.bundled_shapes`) MUST use
+/// this exact rep string.
+const REP_SHAPES: &str = "shapes-archive";
+/// tar of the compiled logic/DL projection surface (#746), member = repo-relative
+/// path: the small committed projections in [`AXIOM_FILES`]. NOT the big reasoning
+/// OUTPUTS (inferred-closure / reasoning-explanations / dl-el-crosscheck-report),
+/// which ride other channels. The Python reader (`bundle.bundled_axioms`) MUST use
+/// this exact rep string.
+const REP_AXIOMS: &str = "axioms-archive";
+/// The compiled logic/DL projection files folded as [`REP_AXIOMS`] (#746): the
+/// small, committed, drift-gated projections a repo-free consumer (#747) needs. The
+/// big reasoning outputs are deliberately excluded. Order is canonical for the
+/// fail-closed scan; the archive re-sorts members by key for determinism.
+const AXIOM_FILES: [&str; 5] = [
+    "generated/owl/gmeow-dl.ttl",
+    "generated/owl/gmeow-el.ttl",
+    "generated/logic/gmeow.logic.rdf12.ttl",
+    "generated/logic/gmeow.rls",
+    "generated/datalog/gmeow.dl",
+];
+/// tar of the native reasoner's REPORT artifacts (#667, wired #746): the entailment
+/// explanations + the DL/EL cross-check ledger over THIS run's reasoned closure. The
+/// closure itself already rides the bundle GRAPH (gts-compose folds `stage-reason`'s
+/// closure); the reports are deliberately kept OUT of the ontology graph, so this
+/// blob channel is how a repo-free consumer reads WHY each entailment holds and the
+/// DL/EL agreement ledger WITHOUT re-running the engine (maximal information flow).
+/// The Python reader (`bundle.bundled_reasoning`) MUST use this exact rep string.
+const REP_REASONING: &str = "reasoning-archive";
 const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
-/// The GNU long-name sentinel: a `'L'`-typeflag record carrying a member path
-/// that overflows the 100-byte USTAR `name` field. The doc-site archive (#897)
-/// has paths well past 100 bytes; mappings/cells/queries/tests never do, so they
-/// never emit this record and stay byte-identical.
-const LONGLINK_NAME: &str = "././@LongLink";
 
 /// The per-slice guide content blobs (each slice's `docs.md`), backing the
 /// `gmeow:guideBlob "blake3:<hex>"` reference triples [`add_guide_blobs`] writes
@@ -235,10 +264,12 @@ fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
     Ok(blobs)
 }
 
-/// Build the five bundle archive blobs from the repo tree. The SHACL-derived JSON
-/// Schema + OpenAPI bytes are passed in from THIS run's `stage-export-json-schema`
-/// product (not re-read from disk) so a single regenerate folds the fresh schema —
-/// the committed `generated/schemas/*.json` are not flushed until phase 1 returns.
+/// Build the bundle archive blobs from the repo tree: mappings, cells, queries,
+/// tests, schemas, the SHACL shape surface (#746), and the compiled logic/DL axiom
+/// surface (#746). The SHACL-derived JSON Schema + OpenAPI bytes are passed in from
+/// THIS run's `stage-export-json-schema` product (not re-read from disk) so a single
+/// regenerate folds the fresh schema — the committed `generated/schemas/*.json` are
+/// not flushed until phase 1 returns.
 fn build_archive_blobs(
     root: &Path,
     schema_json: &[u8],
@@ -270,13 +301,84 @@ fn build_archive_blobs(
     // tests: slices/*/*/tests/*.ttl (non-recursive), member = repo-relative path.
     let mut tests = members_relpath(root, &slice_files(root, "tests")?)?;
     tests.sort_by(|a, b| a.0.cmp(&b.0));
+    // shapes (#746): the FULL SHACL surface, member = repo-relative path —
+    // shapes/*.ttl + generated/shapes/*.ttl (P11, fail-closed if none) +
+    // slices/<g>/<n>/shapes.ttl. Carried whole so a repo-free `gmeow validate`
+    // (#747) can reassemble both the data-graph union and the DSL phases.
+    let mut shapes: Vec<(String, Vec<u8>)> =
+        members_relpath(root, &list_files(&root.join("shapes"), "ttl")?)?;
+    let generated_shapes = list_files(&root.join("generated/shapes"), "ttl")?;
+    if generated_shapes.is_empty() {
+        // P11 frame-relativity must never silently drop — mirror shape_union's
+        // fail-closed (the validator union requires generated frame shapes).
+        return Err(stage_err(
+            "no generated/shapes/*.ttl to fold into REP_SHAPES — run `gmeow regenerate frame-shapes` (P11 enforcement)",
+        ));
+    }
+    shapes.extend(members_relpath(root, &generated_shapes)?);
+    shapes.extend(members_relpath(
+        root,
+        &slice_named_files(root, "shapes.ttl")?,
+    )?);
+    shapes.sort_by(|a, b| a.0.cmp(&b.0));
+    // axioms (#746): the compiled logic/DL projection surface, member =
+    // repo-relative path. Each file MUST exist (no-optionality, fail-closed): a
+    // partial archive would silently break the consumer.
+    let mut axiom_paths: Vec<PathBuf> = Vec::with_capacity(AXIOM_FILES.len());
+    for rel in AXIOM_FILES {
+        let p = root.join(rel);
+        if !p.is_file() {
+            return Err(stage_err(&format!(
+                "missing axiom artifact {rel} for REP_AXIOMS — run the logic-compile regen (fail-closed)"
+            )));
+        }
+        axiom_paths.push(p);
+    }
+    let mut axioms = members_relpath(root, &axiom_paths)?;
+    axioms.sort_by(|a, b| a.0.cmp(&b.0));
     Ok(vec![
         archive_blob(REP_MAPPINGS, &mappings)?,
         archive_blob(REP_CELLS, &cells)?,
         archive_blob(REP_QUERIES, &queries)?,
         archive_blob(REP_TESTS, &tests)?,
         archive_blob(REP_SCHEMAS, &schemas)?,
+        archive_blob(REP_SHAPES, &shapes)?,
+        archive_blob(REP_AXIOMS, &axioms)?,
     ])
+}
+
+/// Fold the native reasoner's explanation + DL/EL cross-check ledger REPORTS into a
+/// deterministic [`REP_REASONING`] archive blob (#667, wired #746). Sourced from
+/// `stage-reason`'s in-memory product (a `stage-snapshot` consumes-edge), so the fold
+/// is ONE-PASS: no disk read, no dependency on the post-snapshot `stage-export-logic`
+/// leaf, no convergence lag. The reasoned closure is NOT re-bundled here — it already
+/// rides the bundle graph via `gts-compose`. Each artifact MUST exist (no-optionality,
+/// fail-closed): a partial archive would silently strip the reasoning reports.
+fn build_reasoning_blob(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<BlobRow, PipelineError> {
+    let get = |path: &str| -> Result<Vec<u8>, PipelineError> {
+        upstream
+            .get("stage-reason")
+            .and_then(|p| p.artifact(path))
+            .map(<[u8]>::to_vec)
+            .ok_or_else(|| stage_err(&format!("missing stage-reason artifact {path}")))
+    };
+    // Bundle-relative keys under `reason/` — deliberately NOT `generated/logic/…`, so
+    // a consumer never mistakes these bundle-consistent reports (over the early-composed
+    // closure that rides the graph) for the full-fold committed `generated/logic/` files
+    // owned by `stage-export-logic`.
+    let members = vec![
+        (
+            "reason/reasoning-explanations.rdf12.ttl".to_string(),
+            get(crate::stages::reason::EXPLANATIONS_PATH)?,
+        ),
+        (
+            "reason/dl-el-crosscheck-report.ttl".to_string(),
+            get(crate::stages::reason::LEDGER_PATH)?,
+        ),
+    ];
+    archive_blob(REP_REASONING, &members)
 }
 
 /// Pack the JSON-LD-star + YAML-LD-star serializations into a deterministic tar
@@ -356,7 +458,7 @@ fn build_okf_blob_from_builder(builder: &SnapshotBuilder) -> Result<BlobRow, Pip
 ///
 /// The rust doc generator (`gmeow_docs::render_site_lang`) emits a complete site
 /// (`index.md`/`index.html` per page, `assets/gmeow.css`, SVG diagrams,
-/// `search-index.json`, `llms-docs.txt`, alias redirects) as a deterministic
+/// `search-index.json`, `llms.txt`/`llms-full.txt`, alias redirects) as a deterministic
 /// `BTreeMap<path, bytes>`. We render it once per available language and prefix
 /// every member with that language's INTERNAL tag (`x-gmeow-english`,
 /// `x-gmeow-<lang>`, …) — the exact `{tag}/` prefix `_unpack_doc_archive` filters
@@ -434,6 +536,45 @@ fn slice_files(root: &Path, sub: &str) -> Result<Vec<PathBuf>, PipelineError> {
     Ok(out)
 }
 
+/// Every `slices/<group>/<name>/<file>` (a single well-known FILE directly under
+/// each slice dir, e.g. `shapes.ttl`), sorted. Unlike [`slice_files`] — which globs
+/// a `<sub>/*.ttl` *directory* — this targets one named file per slice. Mirrors the
+/// shacl crate's private `shape_union::slice_shape_files` walk (re-implemented here
+/// because it is not `pub`, the same way [`slice_files`] duplicates a walk). A read
+/// error HARD-FAILS so a slice subtree is never silently dropped (#746).
+fn slice_named_files(root: &Path, file: &str) -> Result<Vec<PathBuf>, PipelineError> {
+    let slices = root.join("slices");
+    let mut out: Vec<PathBuf> = Vec::new();
+    let groups = match std::fs::read_dir(&slices) {
+        Ok(e) => e,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(out),
+        Err(e) => return Err(stage_err(&format!("read_dir {}: {e}", slices.display()))),
+    };
+    for group in groups {
+        let gpath = group
+            .map_err(|e| stage_err(&format!("slices group: {e}")))?
+            .path();
+        if !gpath.is_dir() {
+            continue;
+        }
+        let names = std::fs::read_dir(&gpath)
+            .map_err(|e| stage_err(&format!("read_dir {}: {e}", gpath.display())))?;
+        for name in names {
+            let npath = name
+                .map_err(|e| stage_err(&format!("slices name: {e}")))?
+                .path();
+            if npath.is_dir() {
+                let candidate = npath.join(file);
+                if candidate.is_file() {
+                    out.push(candidate);
+                }
+            }
+        }
+    }
+    out.sort();
+    Ok(out)
+}
+
 /// `(filename, bytes)` members — the file's bare name (mappings / queries).
 ///
 /// A read error HARD-FAILS rather than silently dropping the file: an incomplete
@@ -476,75 +617,10 @@ fn members_relpath(
 /// One archive blob: a deterministic USTAR tar over `members`, tagged with `rep`.
 fn archive_blob(rep: &str, members: &[(String, Vec<u8>)]) -> Result<BlobRow, PipelineError> {
     Ok(BlobRow {
-        data: ustar_archive(members)?,
+        data: gmeow_rdf::ustar::write_archive(members).map_err(|e| stage_err(&e))?,
         media_type: ARCHIVE_MEDIA_TYPE.to_string(),
         rep: rep.to_string(),
     })
-}
-
-/// A byte-deterministic USTAR archive: per-member 512-byte header + 512-padded
-/// data, terminated by two zero blocks. mtime/uid/gid = 0, mode = 0644.
-///
-/// A member whose name overflows the 100-byte `name` field is preceded by a GNU
-/// `'L'` (`LongLink`) record carrying the full path (NUL-terminated, 512-padded);
-/// the real header then truncates the name to 100 bytes (GNU convention — readers
-/// take the path from the LongLink). Names ≤ 100 bytes emit no LongLink and are
-/// byte-identical to the pre-#897 writer, so the existing archive blobs are
-/// fold-stable.
-fn ustar_archive(members: &[(String, Vec<u8>)]) -> Result<Vec<u8>, PipelineError> {
-    let mut out: Vec<u8> = Vec::new();
-    for (name, data) in members {
-        if name.len() > 100 {
-            let mut payload = name.as_bytes().to_vec();
-            payload.push(0); // GNU LongLink bodies are NUL-terminated.
-            out.extend_from_slice(&ustar_header(LONGLINK_NAME, payload.len(), b'L')?);
-            out.extend_from_slice(&payload);
-            let pad = (512 - payload.len() % 512) % 512;
-            out.extend(std::iter::repeat_n(0u8, pad));
-        }
-        out.extend_from_slice(&ustar_header(name, data.len(), b'0')?);
-        out.extend_from_slice(data);
-        let pad = (512 - data.len() % 512) % 512;
-        out.extend(std::iter::repeat_n(0u8, pad));
-    }
-    out.extend(std::iter::repeat_n(0u8, 1024)); // two trailing zero blocks
-    Ok(out)
-}
-
-/// A single USTAR 512-byte header with the given `typeflag` (`b'0'` regular file,
-/// `b'L'` GNU LongLink). A name longer than 100 bytes is truncated into the field
-/// — the caller MUST have emitted a preceding `LongLink` record carrying the full
-/// path (see [`ustar_archive`]). For a name ≤ 100 bytes the bytes are identical to
-/// the pre-#897 single-typeflag header.
-fn ustar_header(name: &str, size: usize, typeflag: u8) -> Result<[u8; 512], PipelineError> {
-    let nb = name.as_bytes();
-    let n = nb.len().min(100);
-    let mut h = [0u8; 512];
-    h[..n].copy_from_slice(&nb[..n]);
-    write_octal(&mut h[100..108], 0o644); // mode
-    write_octal(&mut h[108..116], 0); // uid
-    write_octal(&mut h[116..124], 0); // gid
-    write_octal(&mut h[124..136], size as u64); // size
-    write_octal(&mut h[136..148], 0); // mtime
-    for b in &mut h[148..156] {
-        *b = b' '; // checksum field is spaces while the sum is computed
-    }
-    h[156] = typeflag;
-    h[257..263].copy_from_slice(b"ustar\0");
-    h[263..265].copy_from_slice(b"00");
-    let sum: u32 = h.iter().map(|&b| u32::from(b)).sum();
-    // 6 octal digits, then NUL + space (the canonical checksum encoding).
-    let chk = format!("{sum:06o}\0 ");
-    h[148..156].copy_from_slice(chk.as_bytes());
-    Ok(h)
-}
-
-/// Write `value` as right-justified, zero-padded octal into `field`, NUL-terminated.
-fn write_octal(field: &mut [u8], value: u64) {
-    let width = field.len() - 1;
-    let s = format!("{value:0width$o}");
-    field[..width].copy_from_slice(&s.as_bytes()[..width]);
-    field[width] = 0;
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────────
@@ -610,8 +686,13 @@ impl Stage for SnapshotStage {
         // mappings/cells/queries/tests archive blobs + per-slice docs guide blobs.
         // v7 folds both the JSON-LD-star/YAML-LD-star archive (#699) and the
         // DAG-native SHACL diagnostics graph/report blobs (#936/#937). v8 folds
-        // the Rust-rendered OKF archive into gmeow.gts (#940).
-        "snapshot.v8-okf-archive"
+        // the Rust-rendered OKF archive into gmeow.gts (#940). v9 folds the full
+        // SHACL shape surface (REP_SHAPES) and the compiled logic/DL axiom surface
+        // (REP_AXIOMS) so a repo-free `gmeow validate` is self-sufficient (#746).
+        // v10 wires the orphaned REP_REASONING reader to a writer: folds the native
+        // reasoner's explanation + DL/EL cross-check ledger reports from stage-reason's
+        // in-memory product (#667, wired #746).
+        "snapshot.v10-shapes-axioms-reasoning"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -620,7 +701,23 @@ impl Stage for SnapshotStage {
         // which the consumed upstream products do not fully reflect. Declare them so
         // a doc-source edit busts this stage and re-renders the embedded site (cache
         // soundness, #897) — shared with `DocsRenderStage` via `docs_source_files`.
-        crate::stages::docs_render::docs_source_files(root)
+        let mut files = crate::stages::docs_render::docs_source_files(root)?;
+        // The folded shape surface (REP_SHAPES) and compiled axiom surface
+        // (REP_AXIOMS) are read from disk in `build_archive_blobs`; declare them so a
+        // shape/axiom edit busts this stage and re-folds the bundle — otherwise a
+        // changed shape could ship a stale gmeow.gts (cache soundness, #746).
+        files.extend(list_files(&root.join("shapes"), "ttl")?);
+        files.extend(list_files(&root.join("generated/shapes"), "ttl")?);
+        files.extend(slice_named_files(root, "shapes.ttl")?);
+        for rel in AXIOM_FILES {
+            let p = root.join(rel);
+            if p.is_file() {
+                files.push(p);
+            }
+        }
+        files.sort();
+        files.dedup();
+        Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         // THIS run's freshly-emitted JSON Schema + OpenAPI bytes, taken from the
@@ -646,6 +743,10 @@ impl Stage for SnapshotStage {
         let mut blobs = build_archive_blobs(input.root, &schema_json, &openapi_json)?;
         blobs.extend(build_guide_blobs(input.root)?);
         blobs.push(build_docs_archive(input.root)?);
+        // The native reasoner's explanation + DL/EL cross-check ledger reports, folded
+        // from `stage-reason`'s in-memory product (one-pass, no disk lag) so a repo-free
+        // consumer can read them WITHOUT re-running the engine (#667, wired #746).
+        blobs.push(build_reasoning_blob(input.upstream)?);
         let shacl_json = input
             .upstream
             .get("stage-validate")
@@ -681,7 +782,7 @@ impl Stage for SnapshotStage {
 
 // ── default graph (authored ontology, NO imports) ───────────────────────────────
 
-/// The localizable predicates (`i18n_catalog.LOCALIZABLE_PREDICATES`): the
+/// The localizable predicates shared with `gmeow-docs` i18n compilation: the
 /// vocabulary surface a slice `.po` catalog may translate. Full IRIs.
 const LOCALIZABLE_PREDICATES: &[&str] = &[
     "http://www.w3.org/2000/01/rdf-schema#label",
@@ -1269,23 +1370,21 @@ fn canonicalize_nq(nq_bytes: &[u8], _scope: &str) -> Result<String, PipelineErro
 }
 
 fn parse_nq(bytes: &[u8]) -> Result<Vec<Quad>, PipelineError> {
-    parse_rdf(bytes, RdfFormat::NQuads)
+    parse_rdf(bytes, "application/n-quads")
 }
 
-fn parse_rdf(bytes: &[u8], format: RdfFormat) -> Result<Vec<Quad>, PipelineError> {
-    let mut quads = Vec::new();
-    for quad in RdfParser::from_format(format).lenient().for_slice(bytes) {
-        quads.push(quad.map_err(|e| stage_err(&format!("parse: {e}")))?);
-    }
-    Ok(quads)
+/// Parse RDF text of `media_type` into a flat oxigraph quad list via the native
+/// codecs. The IR fold + [`flat_oxigraph_quads_from_dataset`] un-fold are exact
+/// inverses (set-equal to the original parse), so the RDF 1.2 statement layer's
+/// `rdf:reifies`/annotation rows are re-materialized for `add_rdf12`'s own fold.
+fn parse_rdf(bytes: &[u8], media_type: &str) -> Result<Vec<Quad>, PipelineError> {
+    let dataset =
+        parse_dataset(bytes, media_type, None).map_err(|e| stage_err(&format!("parse: {e}")))?;
+    flat_oxigraph_quads_from_dataset(&dataset).map_err(|e| stage_err(&format!("IR → quads: {e}")))
 }
 
 fn ingest_turtle(store: &Store, bytes: &[u8]) -> Result<(), PipelineError> {
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_slice(bytes)
-    {
-        let quad = quad.map_err(|e| stage_err(&format!("turtle parse: {e}")))?;
+    for quad in parse_rdf(bytes, "text/turtle")? {
         store
             .insert(&quad)
             .map_err(|e| stage_err(&format!("insert: {e}")))?;
@@ -1317,11 +1416,7 @@ fn ingest_turtle_scoped(store: &Store, bytes: &[u8], scope: usize) -> Result<(),
             other => other.clone(),
         })
     };
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_slice(bytes)
-    {
-        let quad = quad.map_err(|e| stage_err(&format!("turtle parse: {e}")))?;
+    for quad in parse_rdf(bytes, "text/turtle")? {
         let renamed = Quad::new(
             rename_subject(&quad.subject)?,
             quad.predicate.clone(),
@@ -1336,11 +1431,7 @@ fn ingest_turtle_scoped(store: &Store, bytes: &[u8], scope: usize) -> Result<(),
 }
 
 fn ingest_nq(store: &Store, bytes: &[u8]) -> Result<(), PipelineError> {
-    for quad in RdfParser::from_format(RdfFormat::NQuads)
-        .lenient()
-        .for_slice(bytes)
-    {
-        let quad = quad.map_err(|e| stage_err(&format!("n-quads parse: {e}")))?;
+    for quad in parse_nq(bytes)? {
         store
             .insert(&quad)
             .map_err(|e| stage_err(&format!("insert: {e}")))?;
@@ -1349,18 +1440,10 @@ fn ingest_nq(store: &Store, bytes: &[u8]) -> Result<(), PipelineError> {
 }
 
 fn store_to_nquads(store: &Store) -> Result<Vec<u8>, PipelineError> {
-    let mut buf: Vec<u8> = Vec::new();
-    let mut serializer = RdfSerializer::from_format(RdfFormat::NQuads).for_writer(&mut buf);
-    for quad in store.iter() {
-        let quad = quad.map_err(|e| stage_err(&e.to_string()))?;
-        serializer
-            .serialize_quad(&quad)
-            .map_err(|e| stage_err(&format!("serialize: {e}")))?;
-    }
-    serializer
-        .finish()
-        .map_err(|e| stage_err(&format!("finish: {e}")))?;
-    Ok(buf)
+    let dataset = gmeow_rdf::oxigraph::dataset_from_store(store)
+        .map_err(|e| stage_err(&format!("store → IR: {e}")))?;
+    serialize_dataset(&dataset, "application/n-quads", SerializeGraph::Dataset)
+        .map_err(|e| stage_err(&format!("serialize: {e}")))
 }
 
 fn sorted_dirs(dir: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
@@ -1393,45 +1476,12 @@ fn stage_err(message: &str) -> PipelineError {
 mod ustar_tests {
     use super::*;
 
-    /// A minimal GNU/USTAR reader for the test: decodes `(name, data)` members,
-    /// resolving `'L'` LongLink records into the following member's name. Mirrors
-    /// how Python `tarfile` (the real `_unpack_doc_archive` consumer) reads them.
+    /// The GNU long-name sentinel used in wire-format assertions.
+    const LONGLINK_NAME: &str = "././@LongLink";
+
+    /// Decode `(name, bytes)` members from a USTAR archive via the shared codec.
     fn parse(raw: &[u8]) -> Vec<(String, Vec<u8>)> {
-        fn octal(field: &[u8]) -> usize {
-            let s: String = field
-                .iter()
-                .take_while(|&&b| b != 0 && b != b' ')
-                .map(|&b| b as char)
-                .collect();
-            usize::from_str_radix(s.trim(), 8).unwrap_or(0)
-        }
-        fn cstr(field: &[u8]) -> String {
-            let end = field.iter().position(|&b| b == 0).unwrap_or(field.len());
-            String::from_utf8_lossy(&field[..end]).into_owned()
-        }
-        let mut out = Vec::new();
-        let mut pending: Option<String> = None;
-        let mut off = 0usize;
-        while off + 512 <= raw.len() {
-            let header = &raw[off..off + 512];
-            if header.iter().all(|&b| b == 0) {
-                break; // trailing zero blocks
-            }
-            let size = octal(&header[124..136]);
-            let typeflag = header[156];
-            off += 512;
-            let blocks = size.div_ceil(512);
-            let body = &raw[off..off + blocks * 512];
-            off += blocks * 512;
-            if typeflag == b'L' {
-                // LongLink body is the NUL-terminated path for the NEXT header.
-                pending = Some(cstr(&body[..size]));
-            } else {
-                let name = pending.take().unwrap_or_else(|| cstr(&header[..100]));
-                out.push((name, body[..size].to_vec()));
-            }
-        }
-        out
+        gmeow_rdf::ustar::read_archive(raw).unwrap()
     }
 
     #[test]
@@ -1445,7 +1495,7 @@ mod ustar_tests {
             (long.clone(), b"<html>long</html>".to_vec()),
             ("x-gmeow-english/index.html".to_string(), b"idx".to_vec()),
         ];
-        let raw = ustar_archive(&members).expect("archive");
+        let raw = gmeow_rdf::ustar::write_archive(&members).expect("archive");
         let got = parse(&raw);
         assert_eq!(got, members, "GNU LongLink path must round-trip exactly");
 
@@ -1461,7 +1511,7 @@ mod ustar_tests {
             ("mappings/a.sssom.tsv".to_string(), b"x".to_vec()),
             ("slices/core/x/tests/t.ttl".to_string(), vec![0u8; 600]),
         ];
-        let raw = ustar_archive(&members).expect("archive");
+        let raw = gmeow_rdf::ustar::write_archive(&members).expect("archive");
         // No member name overflows 100 bytes, so NO 'L' record may appear: the
         // four existing consumer archives must stay byte-identical (fold-stable).
         assert!(
@@ -1507,13 +1557,27 @@ mod ustar_tests {
             "the English landing page must be present"
         );
         // The site carries its structural assets (deterministic, language-keyed).
-        for asset in ["assets/gmeow.css", "search-index.json", "llms-docs.txt"] {
+        for asset in [
+            "assets/gmeow.css",
+            "search-index.json",
+            "llms.txt",
+            "llms-full.txt",
+        ] {
             let want = format!("x-gmeow-english/{asset}");
             assert!(
                 members.iter().any(|(n, _)| n == &want),
                 "expected site asset {want}"
             );
         }
+        // The #1027 per-term card surface: at least one `card.md` file must
+        // be present in the archive under the English carrier tag.
+        let card_md_present = members
+            .iter()
+            .any(|(n, _)| n.starts_with("x-gmeow-english/terms/") && n.ends_with("/card.md"));
+        assert!(
+            card_md_present,
+            "expected at least one x-gmeow-english/terms/<slug>/card.md in the docs archive"
+        );
         // Member names CAN exceed the 100-byte USTAR field (LongLink-covered).
         // Today's longest stays under it, so LongLink is a defensive net rather
         // than currently-triggered — `long_member_name_round_trips_via_longlink`
@@ -1522,6 +1586,157 @@ mod ustar_tests {
         eprintln!(
             "ontology-docs: {} members, longest name {max_len}B",
             members.len()
+        );
+    }
+
+    #[test]
+    fn build_archive_blobs_folds_the_shapes_surface() {
+        let root = repo_root();
+        // schema/openapi bytes are irrelevant to the shapes blob; pass empty.
+        let blobs = build_archive_blobs(&root, b"", b"").expect("archive blobs");
+        let blob = blobs
+            .iter()
+            .find(|b| b.rep == REP_SHAPES)
+            .expect("REP_SHAPES blob present");
+        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
+        let members = parse(&blob.data);
+        assert!(!members.is_empty(), "the shape surface must carry members");
+        let names: Vec<&str> = members.iter().map(|(n, _)| n.as_str()).collect();
+
+        // Base hand-authored shape + the generated frame shape (P11) + ≥1 per-slice.
+        assert!(names.contains(&"shapes/gmeow-shapes.ttl"));
+        assert!(names.contains(&"generated/shapes/frame-shapes.ttl"));
+        assert!(
+            names
+                .iter()
+                .any(|n| n.starts_with("slices/") && n.ends_with("/shapes.ttl")),
+            "at least one per-slice shapes.ttl must be folded"
+        );
+        // The FULL surface carries the 4 DSL/manifest lints (the validator filters
+        // them OUT of its data-graph union, but the consumer's DSL phases need them).
+        for dsl in [
+            "shapes/mapping-dsl-shapes.ttl",
+            "shapes/statement-dsl-shapes.ttl",
+            "shapes/test-dsl-shapes.ttl",
+            "shapes/slice-manifest-shapes.ttl",
+        ] {
+            assert!(
+                names.contains(&dsl),
+                "DSL lint {dsl} must be in the FULL shape surface"
+            );
+        }
+        // Member count == on-disk count (no silent drops).
+        let on_disk = list_files(&root.join("shapes"), "ttl").unwrap().len()
+            + list_files(&root.join("generated/shapes"), "ttl")
+                .unwrap()
+                .len()
+            + slice_named_files(&root, "shapes.ttl").unwrap().len();
+        assert_eq!(
+            members.len(),
+            on_disk,
+            "every shape file must be folded exactly once"
+        );
+        // The slice-shape subset matches an independent on-disk enumeration — pins
+        // `slice_named_files` against drift from the shacl crate's private walk.
+        let folded_slices: std::collections::BTreeSet<&str> = names
+            .iter()
+            .copied()
+            .filter(|n| n.starts_with("slices/") && n.ends_with("/shapes.ttl"))
+            .collect();
+        let disk_slices: std::collections::BTreeSet<String> =
+            slice_named_files(&root, "shapes.ttl")
+                .unwrap()
+                .iter()
+                .map(|p| {
+                    p.strip_prefix(&root)
+                        .unwrap()
+                        .to_string_lossy()
+                        .replace('\\', "/")
+                })
+                .collect();
+        let disk_slices_ref: std::collections::BTreeSet<&str> =
+            disk_slices.iter().map(String::as_str).collect();
+        assert_eq!(folded_slices, disk_slices_ref);
+        // Keys sorted (deterministic fold).
+        let mut sorted = names.clone();
+        sorted.sort_unstable();
+        assert_eq!(names, sorted, "shape members must be sorted by key");
+    }
+
+    #[test]
+    fn build_archive_blobs_folds_the_axiom_surface() {
+        let root = repo_root();
+        let blobs = build_archive_blobs(&root, b"", b"").expect("archive blobs");
+        let blob = blobs
+            .iter()
+            .find(|b| b.rep == REP_AXIOMS)
+            .expect("REP_AXIOMS blob present");
+        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
+        let members = parse(&blob.data);
+        let names: std::collections::BTreeSet<&str> =
+            members.iter().map(|(n, _)| n.as_str()).collect();
+        // Exactly the 5 compiled projections — no more, no less.
+        let want: std::collections::BTreeSet<&str> = AXIOM_FILES.iter().copied().collect();
+        assert_eq!(
+            names, want,
+            "REP_AXIOMS must carry exactly the 5 projection files"
+        );
+        // The big reasoning OUTPUTS ride other channels — never in REP_AXIOMS.
+        for big in [
+            "generated/logic/inferred-closure.rdf12.ttl",
+            "generated/logic/reasoning-explanations.rdf12.ttl",
+            "generated/logic/dl-el-crosscheck-report.ttl",
+        ] {
+            assert!(!names.contains(big), "{big} must NOT be in REP_AXIOMS");
+        }
+        // Determinism: rebuild and assert byte-equality.
+        let again = build_archive_blobs(&root, b"", b"").expect("archive blobs");
+        let blob2 = again.iter().find(|b| b.rep == REP_AXIOMS).unwrap();
+        assert_eq!(
+            blob.data, blob2.data,
+            "REP_AXIOMS must be byte-deterministic"
+        );
+    }
+
+    #[test]
+    fn build_reasoning_blob_folds_the_report_artifacts() {
+        // Construct a fake stage-reason product with the two report artifacts (avoids
+        // running the reasoner); proves the wiring (rep, keys, fail-closed).
+        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(
+            crate::stages::reason::EXPLANATIONS_PATH.to_string(),
+            b"# explanations".to_vec(),
+        );
+        artifacts.insert(
+            crate::stages::reason::LEDGER_PATH.to_string(),
+            b"# ledger".to_vec(),
+        );
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-reason".to_string(),
+            StageProduct::from_artifacts("stage-reason", artifacts),
+        );
+        let blob = build_reasoning_blob(&upstream).expect("reasoning blob");
+        assert_eq!(blob.rep, REP_REASONING);
+        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
+        let members = parse(&blob.data);
+        let names: std::collections::BTreeSet<&str> =
+            members.iter().map(|(n, _)| n.as_str()).collect();
+        assert_eq!(
+            names,
+            [
+                "reason/dl-el-crosscheck-report.ttl",
+                "reason/reasoning-explanations.rdf12.ttl"
+            ]
+            .into_iter()
+            .collect::<std::collections::BTreeSet<&str>>(),
+            "REP_REASONING carries the two report artifacts under bundle-relative keys"
+        );
+        // Missing artifact HARD-fails (no-optionality, fail-closed).
+        let empty: BTreeMap<String, StageProduct> = BTreeMap::new();
+        assert!(
+            build_reasoning_blob(&empty).is_err(),
+            "a missing stage-reason product must fail closed"
         );
     }
 
@@ -1570,7 +1785,10 @@ mod ustar_tests {
 
     #[test]
     fn header_checksum_is_valid() {
-        let h = ustar_header("x-gmeow-english/index.html", 42, b'0').expect("header");
+        // Build a minimal archive and inspect the first 512-byte header.
+        let members = vec![("x-gmeow-english/index.html".to_string(), vec![0u8; 42])];
+        let raw = gmeow_rdf::ustar::write_archive(&members).expect("archive");
+        let h: &[u8] = &raw[..512];
         // The stored checksum equals the sum of all bytes with the checksum field
         // taken as spaces — the canonical USTAR self-check.
         let stored = usize::from_str_radix(
@@ -1581,7 +1799,8 @@ mod ustar_tests {
             8,
         )
         .unwrap();
-        let mut probe = h;
+        let mut probe = [0u8; 512];
+        probe.copy_from_slice(h);
         for b in &mut probe[148..156] {
             *b = b' ';
         }

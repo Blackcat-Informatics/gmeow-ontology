@@ -45,6 +45,8 @@ REP_OKF = "okf-export"  # tar of the OKF (Open Knowledge Format) bundle (#780)
 REP_ONTOLOGY_DOCS = "ontology-docs"  # tar of the rust-rendered docs site (#897)
 REP_SCHEMAS = "schemas-archive"  # tar of gmeow.schema.json + gmeow.openapi.json (#700)
 REP_YAMLLD = "yaml-ld-archive"  # tar of gmeow.jsonld + gmeow.yamlld (#699)
+REP_SHAPES = "shapes-archive"  # tar of the full SHACL shape surface (repo-rel, #746)
+REP_AXIOMS = "axioms-archive"  # tar of the compiled logic/DL projections (#746)
 REP_DENIED = "transform:denied"  # JSON of the saturation refusal set (alignment lint)
 _GUIDE_BLOB = NAMESPACE + "guideBlob"
 
@@ -95,12 +97,12 @@ def _archive(rep: str) -> dict[str, bytes]:
 
 def bundled_sssom() -> dict[str, bytes]:
     """Every folded SSSOM file as ``{filename: tsv-bytes}`` (empty if unbundled)."""
-    return _archive(REP_MAPPINGS)
+    return dict(_archive(REP_MAPPINGS))
 
 
 def bundled_queries() -> dict[str, bytes]:
     """Every folded projection query as ``{"<profile>.rq": query-bytes}``."""
-    return _archive(REP_QUERIES)
+    return dict(_archive(REP_QUERIES))
 
 
 def bundled_cells() -> dict[str, bytes]:
@@ -110,7 +112,7 @@ def bundled_cells() -> dict[str, bytes]:
     ``dsl/mappings/projections/y.ttl``, ``slices/<g>/<n>/mappings/z.ttl``) so a
     loader can route to exactly the directories it reads in repo mode.
     """
-    return _archive(REP_CELLS)
+    return dict(_archive(REP_CELLS))
 
 
 def bundled_tests() -> dict[str, bytes]:
@@ -122,20 +124,24 @@ def bundled_tests() -> dict[str, bytes]:
     ``tests/counter-examples/`` data, no ``tests/*.py`` harness code), matching
     :func:`gmeow_tools.slices.iter_slice_test_files`.
     """
-    return _archive(REP_TESTS)
+    return dict(_archive(REP_TESTS))
 
 
 def bundled_reasoning() -> dict[str, bytes]:
-    """Every folded native-reasoning product as ``{repo-path: nq-bytes}`` (#667).
+    """The native reasoner's report artifacts as ``{member: ttl-bytes}`` (#667, #746).
 
-    The closure / explanations / divergence-ledger the native EL/DL engine derived,
-    embedded RDFC-1.0 canonical so a repo-free ``gmeow.gts`` consumer can read the
-    reasoning results (maximal information flow, north-star (d)) WITHOUT re-running
-    the engine. Keys preserve the repo-relative path
-    (``generated/logic/<file>.ttl``); the bytes are canonical N-Quads (stable
-    regardless of the reasoner's emission order), not the human-readable Turtle.
+    The entailment explanations and the DL/EL cross-check ledger the native EL/DL
+    engine derived over the bundle's reasoned closure, so a repo-free ``gmeow.gts``
+    consumer can read WHY each entailment holds and the DL/EL agreement ledger
+    (maximal information flow, north-star (d)) WITHOUT re-running the engine. Keys are
+    bundle-relative (``reason/reasoning-explanations.rdf12.ttl``,
+    ``reason/dl-el-crosscheck-report.ttl``). These are the bundle-consistent reports
+    over the early-composed closure that rides the bundle GRAPH — NOT the full-fold
+    committed ``generated/logic/`` files (owned by ``stage-export-logic``), which are
+    derived after the snapshot and so cannot be folded one-pass. The reasoned closure
+    itself is not here: it already rides the bundle graph. Empty when unbundled.
     """
-    return _archive(REP_REASONING)
+    return dict(_archive(REP_REASONING))
 
 
 def bundled_okf() -> dict[str, bytes]:
@@ -147,7 +153,7 @@ def bundled_okf() -> dict[str, bytes]:
     wheel. The bundle is a LOSSY projection (the flat term surface); the GTS/OWL
     source stays canonical. Empty when unbundled.
     """
-    return _archive(REP_OKF)
+    return dict(_archive(REP_OKF))
 
 
 def bundled_ontology_docs() -> dict[str, bytes]:
@@ -159,7 +165,39 @@ def bundled_ontology_docs() -> dict[str, bytes]:
     ``x-gmeow-french/index.html``, …); ``gmeow extract-docs`` selects one language
     and unpacks it repo-free. Empty when unbundled.
     """
-    return _archive(REP_ONTOLOGY_DOCS)
+    return dict(_archive(REP_ONTOLOGY_DOCS))
+
+
+def bundled_shapes() -> dict[str, bytes]:
+    """Every folded SHACL shape as ``{repo-relative-path: ttl-bytes}`` (#746).
+
+    Carries the FULL shape surface so a repo-free ``gmeow validate`` (#747) can
+    reassemble both the data-graph validator union AND the separate DSL phases:
+    every ``shapes/*.ttl`` (including the ``*-dsl-shapes.ttl`` / ``slice-manifest``
+    lints the validator union filters out), every ``generated/shapes/*.ttl`` (the
+    P11 frame shapes), and every per-slice ``slices/<g>/<n>/shapes.ttl``. Keys
+    preserve the repo-relative path so a loader routes each file to exactly the
+    directory it reads in repo mode. Empty when unbundled.
+
+    Note: the empty-dict-when-unbundled contract mirrors :func:`bundled_cells`, but
+    it is a soft seam — a *validator* consumer (#747) MUST hard-fail on an empty
+    shape set (validating nothing is a degraded success, not a pass).
+    """
+    return dict(_archive(REP_SHAPES))
+
+
+def bundled_axioms() -> dict[str, bytes]:
+    """Every folded compiled logic/DL projection as ``{repo-path: bytes}`` (#746).
+
+    The small, committed projection surface a repo-free consumer (#747) needs:
+    ``generated/owl/gmeow-dl.ttl``, ``generated/owl/gmeow-el.ttl``,
+    ``generated/logic/gmeow.logic.rdf12.ttl``, ``generated/logic/gmeow.rls``, and
+    ``generated/datalog/gmeow.dl``. The big reasoning OUTPUTS (inferred closure,
+    explanations, divergence ledger) ride other channels and are NOT here. Keys
+    preserve the repo-relative path. Empty when unbundled (see the hard-fail note on
+    :func:`bundled_shapes`).
+    """
+    return dict(_archive(REP_AXIOMS))
 
 
 def bundled_schemas() -> dict[str, bytes]:

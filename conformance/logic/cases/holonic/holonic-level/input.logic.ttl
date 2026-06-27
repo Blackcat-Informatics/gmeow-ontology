@@ -1,0 +1,62 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: holonic/holonic-level
+# AC: logic:holonicLevel coherence + its NON-CONFLATION with the instantiation
+#     tower (logic:orderedType / logic:instanceOf) (issue #708, C5).
+#
+# A holon's logic:holonicLevel (mereological compositional depth) is READ OFF its
+# logic:HolonicPosition — the canonical relational construct of which logic:Holon
+# and a level are lossy projections. The level itself is a literal and the
+# foundation chase is all-IRI, so coherence is keyed on the IRI-valued canonical
+# construct: a profiled holon must occupy a logic:HolonicPosition (some position
+# reifier with logic:positionEntity back to the holon). Without one there is no
+# path along which a depth can be measured, so the level is incoherent.
+#
+# logic:HolonicLevelIncoherence is PROFILE-SCOPED, exactly like
+# logic:WeakSupplementation: only a holon declared under a logic:MereologyProfile
+# (via logic:underMereologyProfile) is charged; a holon outside any profile is
+# never charged (#775 profile-relativity).
+#
+# Three strict-parthood chains exercise the trichotomy. Every profiled holon is
+# given TWO disjoint proper parts so weak supplementation is satisfied and the case
+# isolates level coherence (no logic:WeakSupplementation noise):
+#
+#   * ex:Bracket — profiled holon (Bolt1, Bolt2 ⊏ Bracket ⊏ Assembly) that occupies
+#     a logic:HolonicPosition (ex:posBracket positionEntity ex:Bracket) → COHERENT,
+#     no violation.
+#   * ex:Gearbox — profiled holon (Gear1, Gear2 ⊏ Gearbox ⊏ Drivetrain) that is high
+#     in the INSTANTIATION tower (logic:instanceOf ex:GearboxKind) but occupies NO
+#     logic:HolonicPosition → fires logic:HolonicLevelIncoherence. Instantiation
+#     order does NOT supply a holonic position — the non-conflation guarantee.
+#   * ex:Sprite — UNPROFILED holon (Pixel1, Pixel2 ⊏ Sprite ⊏ Scene) with no position
+#     → never charged (profile-relativity).
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so the parthood edges,
+# the profile membership, the position reifier, and the instantiation edge are
+# duplicated there in the named world ex:schema; these are the program axioms.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/holonic/holonic-level/> .
+
+ex:MP a logic:MereologyProfile .
+
+# Chain 1 — coherent profiled holon (occupies a logic:HolonicPosition).
+ex:Bolt1   logic:properPartOf         ex:Bracket .
+ex:Bolt2   logic:properPartOf         ex:Bracket .
+ex:Bracket logic:properPartOf         ex:Assembly .
+ex:Bracket logic:underMereologyProfile ex:MP .
+ex:posBracket logic:positionEntity    ex:Bracket .
+
+# Chain 2 — profiled holon in the instantiation tower but with NO position
+# (non-conflation: instantiation order does not supply a holonic position → fires).
+ex:Gear1   logic:properPartOf         ex:Gearbox .
+ex:Gear2   logic:properPartOf         ex:Gearbox .
+ex:Gearbox logic:properPartOf         ex:Drivetrain .
+ex:Gearbox logic:underMereologyProfile ex:MP .
+ex:Gearbox logic:instanceOf           ex:GearboxKind .
+
+# Chain 3 — unprofiled holon, no position (profile-relativity: never charged).
+ex:Pixel1  logic:properPartOf         ex:Sprite .
+ex:Pixel2  logic:properPartOf         ex:Sprite .
+ex:Sprite  logic:properPartOf         ex:Scene .

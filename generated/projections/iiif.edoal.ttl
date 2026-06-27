@@ -13,29 +13,29 @@
         a align:Cell ;
         align:entity1 [
             a edoal:Class ;
-            edoal:uri gmeow:MediaObject ;
+            edoal:uri gmeow:ImageRegion ;
         ] ;
         align:entity2 [
             a edoal:Class ;
-            edoal:uri iiif:Canvas ;
+            edoal:uri iiif:Annotation ;
         ] ;
         align:relation "<=" ;
-        edoal:measure "0.9"^^xsd:double ;
-        rdfs:label "MediaObject → iiif:Canvas (with width/height)"@en ;
+        edoal:measure "0.8"^^xsd:double ;
+        rdfs:label "ImageRegion → iiif:Annotation (with selector)"@en ;
     ] ,
         [
             a align:Cell ;
             align:entity1 [
                 a edoal:Class ;
-                edoal:uri gmeow:ImageRegion ;
+                edoal:uri gmeow:MediaObject ;
             ] ;
             align:entity2 [
                 a edoal:Class ;
-                edoal:uri iiif:Annotation ;
+                edoal:uri iiif:Canvas ;
             ] ;
             align:relation "<=" ;
-            edoal:measure "0.8"^^xsd:double ;
-            rdfs:label "ImageRegion → iiif:Annotation (with selector)"@en ;
+            edoal:measure "0.9"^^xsd:double ;
+            rdfs:label "MediaObject → iiif:Canvas (with width/height)"@en ;
         ] ;
     align:onto1 [
         a align:Ontology ;

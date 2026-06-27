@@ -1517,12 +1517,12 @@ pub(crate) fn augment_inferred_with_dl(
 pub fn dl_consistency(edb: &RdfDataset) -> Result<DlVerdict, String> {
     // This is the verdict-only entry point. The single-chase pipeline
     // (run_reasoning → augment_inferred_with_dl → sort → verdict_from_inferred)
-    // lives in [`crate::reason::reason_all`]; we run it and keep only the verdict,
-    // dropping the closure callers of this function do not need. Sharing the one
-    // pipeline guarantees the verdict here is bit-for-bit the verdict
-    // `reason_all` reports (the sort is closure-ordering only and does not change
-    // which clash facts are derived).
-    Ok(crate::reason::reason_all(edb)?.verdict)
+    // lives in [`crate::reason::reason_closure`]; we run it and keep only the
+    // verdict, dropping the closure callers of this function do not need. Sharing
+    // the one pipeline guarantees the verdict here is bit-for-bit the verdict the
+    // typed `reason_all` result is folded from (the sort is closure-ordering only
+    // and does not change which clash facts are derived).
+    Ok(crate::reason::reason_closure(edb)?.1)
 }
 
 /// Read off the [`DlVerdict`] from an already-computed native closure.
@@ -1547,8 +1547,6 @@ pub(crate) fn verdict_from_inferred(
     edb: &RdfDataset,
 ) -> Result<DlVerdict, String> {
     let mut inconsistencies: Vec<InconsistencyWitness> = Vec::new();
-    let mut unsatisfiable_classes: Vec<UnsatClass> = Vec::new();
-
     for ax in inferred {
         let object_iri = unwrap_iri(&ax.object);
         // An individual forced into owl:Nothing — an inconsistency witness.
@@ -1559,9 +1557,40 @@ pub(crate) fn verdict_from_inferred(
                 premises: ax.premises.clone(),
             });
         }
-        // A class subsumed by owl:Nothing — an unsatisfiable (empty) class.
-        // Exclude owl:Nothing ⊑ owl:Nothing (vacuously true, not informative).
-        else if ax.predicate == RDFS_SUBCLASSOF
+    }
+    // The unsatisfiable (empty, unpopulated) classes are a separate scan, shared
+    // with the typed-result fold (#768) via [`unsatisfiable_from_inferred`].
+    let unsatisfiable_classes = unsatisfiable_from_inferred(inferred);
+
+    // Only a populated clash (an individual in owl:Nothing) makes the ontology
+    // inconsistent; an unsatisfiable-but-unpopulated class does not.
+    let consistent = inconsistencies.is_empty();
+
+    let coverage = scan_coverage(edb)?;
+    let gaps = gaps_from_unsupported(&coverage.unsupported);
+
+    Ok(DlVerdict {
+        consistent,
+        unsatisfiable_classes,
+        inconsistencies,
+        coverage,
+        gaps,
+    })
+}
+
+/// Scan a native closure for the unsatisfiable (provably-empty, unpopulated)
+/// classes: every `subClassOf(?c, owl:Nothing, ?w)` with `?c` not `owl:Nothing`
+/// itself. An unsatisfiable class does **not** by itself make the ontology
+/// inconsistent (the module distinction).
+///
+/// Factored out so the typed `logic:ReasoningResult` fold (#768) can recover the
+/// same DL diagnostic from the shared closure payload without re-running the
+/// chase, byte-identically with [`verdict_from_inferred`].
+pub fn unsatisfiable_from_inferred(inferred: &[InferredAxiom]) -> Vec<UnsatClass> {
+    let mut unsatisfiable_classes: Vec<UnsatClass> = Vec::new();
+    for ax in inferred {
+        let object_iri = unwrap_iri(&ax.object);
+        if ax.predicate == RDFS_SUBCLASSOF
             && object_iri == OWL_NOTHING
             && unwrap_iri(&ax.subject) != OWL_NOTHING
             && ax.subject != OWL_NOTHING
@@ -1573,16 +1602,25 @@ pub(crate) fn verdict_from_inferred(
             });
         }
     }
+    unsatisfiable_classes
+}
 
-    // Only a populated clash (an individual in owl:Nothing) makes the ontology
-    // inconsistent; an unsatisfiable-but-unpopulated class does not.
-    let consistent = inconsistencies.is_empty();
-
-    let coverage = scan_coverage(edb)?;
-    let gaps = coverage
-        .unsupported
-        .iter()
+/// Build the DL coverage-gap losses from the unsupported-construct names.
+///
+/// The single recipe `verdict_from_inferred`, the artifact ledger, and `verify`
+/// all share, so the gap `code` (`reason.dl-gap.{name}`) and `message` stay
+/// byte-identical whether a consumer reads `DlVerdict::gaps` directly or
+/// reconstructs them from a typed result's
+/// `preservation.unsupported_constructs` (#768).
+pub fn gaps_from_unsupported<I, S>(unsupported: I) -> Vec<RdfLoss>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    unsupported
+        .into_iter()
         .map(|name| {
+            let name = name.as_ref();
             RdfLoss::new(
                 format!("reason.dl-gap.{name}"),
                 format!(
@@ -1590,15 +1628,7 @@ pub(crate) fn verdict_from_inferred(
                 ),
             )
         })
-        .collect();
-
-    Ok(DlVerdict {
-        consistent,
-        unsatisfiable_classes,
-        inconsistencies,
-        coverage,
-        gaps,
-    })
+        .collect()
 }
 
 /// Scan the input `edb` for the #697 construct families and report **honest**
@@ -1614,7 +1644,7 @@ pub(crate) fn verdict_from_inferred(
 /// # Errors
 ///
 /// Returns `Err(String)` if a quad cannot be read from the source store.
-fn scan_coverage(edb: &RdfDataset) -> Result<DlCoverage, String> {
+pub fn scan_coverage(edb: &RdfDataset) -> Result<DlCoverage, String> {
     // Materialize the predicate IRIs and object IRIs once; a quad-read error is
     // a hard failure (no-optionality doctrine — silently dropping a quad could
     // miss a construct that must be counted).

@@ -32,6 +32,8 @@ fn small_model() -> DocsModel {
             creators: Vec::new(),
             consumers: Vec::new(),
             artifacts: Vec::new(),
+            profiles: Vec::new(),
+            depends_on: Vec::new(),
         }],
         terms: vec![
             DocTerm {
@@ -44,6 +46,14 @@ fn small_model() -> DocsModel {
                 parents: Vec::new(),
                 domain: Vec::new(),
                 range: Vec::new(),
+                scope_notes: Vec::new(),
+                examples: Vec::new(),
+                use_when: Vec::new(),
+                avoid_when: Vec::new(),
+                how_to_use: Vec::new(),
+                use_for_consumer: Vec::new(),
+                avoid_for_consumer: Vec::new(),
+                ..Default::default()
             },
             DocTerm {
                 iri: format!("{GMEOW}hasOwner"),
@@ -55,6 +65,14 @@ fn small_model() -> DocsModel {
                 parents: Vec::new(),
                 domain: Vec::new(),
                 range: Vec::new(),
+                scope_notes: Vec::new(),
+                examples: Vec::new(),
+                use_when: Vec::new(),
+                avoid_when: Vec::new(),
+                how_to_use: Vec::new(),
+                use_for_consumer: Vec::new(),
+                avoid_for_consumer: Vec::new(),
+                ..Default::default()
             },
         ],
         dependency_edges: Vec::new(),
@@ -70,6 +88,8 @@ fn small_model() -> DocsModel {
         }],
         linkages: Vec::new(),
         examples: Vec::new(),
+        shapes: Vec::new(),
+        competencies: Vec::new(),
         concerns: vec![DocConcern {
             iri: format!("{GMEOW}concern/animals"),
             curie: "gmeow:concern/animals".to_string(),
@@ -82,6 +102,7 @@ fn small_model() -> DocsModel {
         recipes: Vec::new(),
         learning_paths: Vec::new(),
         four_boxes: None,
+        concept_doi: None,
         available_languages: vec!["english".to_string()],
         translations: Translations::default(),
         ui_catalog: UiCatalog::default(),
@@ -147,6 +168,15 @@ fn gmeow_rdf_types_the_definition_flag_as_xsd_boolean() {
     );
 }
 
+/// INTENTIONAL oxigraph cross-check ORACLE (#909) — NOT a production codec path.
+///
+/// This test deliberately re-parses the `to_gmeow_rdf` projection through the
+/// *independent* oxigraph N-Quads reader to prove the projection emits valid,
+/// round-trippable N-Quads. Cross-checking the native projection against a second,
+/// independent implementation is the whole point — so the `oxigraph::io` use here is
+/// an explicit, documented carve-out from the #909 grep gate, never a production
+/// parse/serialize. Do NOT migrate it to the native codec (that would test the codec
+/// against itself).
 #[test]
 fn gmeow_rdf_reparses_through_oxigraph() {
     use oxigraph::io::RdfFormat;

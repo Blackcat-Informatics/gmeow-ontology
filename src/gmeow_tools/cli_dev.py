@@ -25,12 +25,12 @@ from rich.markup import escape
 from gmeow_tools import __version__
 from gmeow_tools.config import MAPPINGS_DIR, PROJECT_ROOT
 from gmeow_tools.projections import PROFILES as _PROFILES
-from gmeow_tools.slices import Slice
 
 if TYPE_CHECKING:
     from gmeow_rdf.compat.rdflib import Graph
     from gmeow_slice import ProjectionDiagnostic
 
+    from gmeow_tools.diagnostics import DiagnosticsReport
     from gmeow_tools.language_tags import LangSelector
 
 
@@ -310,6 +310,126 @@ def regenerate(
     _regenerate_native(jobs=jobs, check=check)
 
 
+def _parse_evidence_spec(spec: str) -> tuple[bytes, str, str, str, str]:
+    """Parse one ``path:media_type:attestation_type:rep:label`` evidence spec.
+
+    Reads the artifact file (HARD-fails if missing/unreadable — no silent skip,
+    per §18 no-optionality). The label may itself contain ``:`` (only the first
+    four separators are split). Returns the row the native fold consumes:
+    ``(data, media_type, attestation_type_iri, rep, subject_label)``.
+    """
+    parts = spec.split(":", 4)
+    if len(parts) != 5:
+        raise _fail(
+            f"✗ malformed --evidence spec {spec!r}; expected "
+            "path:media_type:attestation_type:rep:label"
+        )
+    path_str, media_type, attestation_type, rep, label = parts
+    path = Path(path_str)
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        raise _fail(f"✗ evidence artifact {path_str!r} is unreadable: {exc}") from exc
+    return (data, media_type, attestation_type, rep, label)
+
+
+@app.command(name="release-bundle")
+def release_bundle(
+    out: Path = typer.Option(  # noqa: B008
+        Path("dist/gmeow.gts"),
+        "--out",
+        help=(
+            "Output path for the SIGNED release bundle (NEVER the committed snapshot)."
+        ),
+    ),
+    sign_key: Path = typer.Option(  # noqa: B008
+        ...,
+        "--sign-key",
+        help="ASCII-armored unencrypted Ed25519 OpenPGP SECRET key (SIGN_KEY).",
+    ),
+    public_key: Path = typer.Option(  # noqa: B008
+        ...,
+        "--public-key",
+        help="ASCII-armored Ed25519 OpenPGP PUBLIC certificate for the transport key.",
+    ),
+    source: Path = typer.Option(  # noqa: B008
+        Path("generated/dist/gmeow.gts"),
+        "--source",
+        help="The committed unsigned gmeow.gts to fold evidence into (read-only).",
+    ),
+    issued_at: str = typer.Option(
+        ...,
+        "--issued-at",
+        help="INJECTED ISO-8601 release timestamp (REQUIRED for determinism, §18).",
+    ),
+    attester: str = typer.Option(
+        "https://blackcatinformatics.ca/gmeow/agent/release-lane",
+        "--attester",
+        help="IRI of the release-lane software agent that vouches for the bundle.",
+    ),
+    release_subject: str = typer.Option(
+        "https://blackcatinformatics.ca/gmeow/release/gmeow.gts",
+        "--release-subject",
+        help="IRI naming the signed release bundle (the attested subject).",
+    ),
+    evidence: list[str] = typer.Option(  # noqa: B008
+        [],
+        "--evidence",
+        help=("Repeatable evidence spec path:media_type:attestation_type:rep:label."),
+    ),
+) -> None:
+    """Fold check/conformance/SARIF/perf evidence into a SIGNED gmeow.gts (#673).
+
+    Reads the committed unsigned snapshot and each evidence artifact (HARD-fails
+    on any missing file), then calls the native Rust
+    ``gmeow_native.pipeline.fold_release_bundle_native`` which augments the
+    snapshot with a ``graph/attestations`` named graph and the evidence blobs,
+    signs it Ed25519, and returns the bytes — written to ``--out``. This Python
+    layer does NO fold/sign/attestation logic; it only marshals paths + bytes.
+    """
+    try:
+        import gmeow_native.pipeline as _pipeline
+    except ImportError as exc:
+        raise _fail(
+            "✗ the native pipeline is unavailable: "
+            f"`import gmeow_native.pipeline` failed ({exc}). Rebuild the unified "
+            "extension (e.g. `maturin develop --manifest-path "
+            "crates/native/Cargo.toml`) to pick up the pipeline submodule."
+        ) from exc
+
+    try:
+        snapshot_bytes = source.read_bytes()
+    except OSError as exc:
+        raise _fail(f"✗ source snapshot {source} is unreadable: {exc}") from exc
+    try:
+        secret_armor = sign_key.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise _fail(f"✗ signing key {sign_key} is unreadable: {exc}") from exc
+    try:
+        public_armor = public_key.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise _fail(f"✗ public key {public_key} is unreadable: {exc}") from exc
+
+    rows = [_parse_evidence_spec(spec) for spec in evidence]
+
+    signed = _pipeline.fold_release_bundle_native(
+        snapshot_bytes,
+        rows,
+        attester,
+        issued_at,
+        release_subject,
+        secret_armor,
+        public_armor,
+    )
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_bytes(signed)
+    console.print(
+        f"[green]✓ signed release bundle: {out} "
+        f"({len(rows)} evidence artifact(s), {len(signed)} bytes)[/green]"
+    )
+
+
 @app.command()
 def check_generated(
     jobs: int | None = typer.Option(
@@ -364,6 +484,16 @@ def validate(
         None,
         "--trusted-key",
         help="Out-of-band armored OpenPGP public key (optional).",
+    ),
+    deep: bool = typer.Option(
+        False,
+        "--deep",
+        help=(
+            "Run the native semantic pass after structural validation: reason over "
+            "the bundle and fold the shared logic:ReasoningResult verdict "
+            "(inconsistency, unsatisfiable classes, undecided constructs) into the "
+            "report. Runs the full reasoner, so it is opt-in (#768)."
+        ),
     ),
 ) -> None:
     """Validate Turtle syntax, term annotations, and SHACL conformance.
@@ -439,7 +569,7 @@ def validate(
                 raise _fail(f"cannot read --trusted-key {trusted_key}: {exc}") from exc
 
     result = validate_all(
-        timings=timings, gts_input=gts, signature_config=signature_config
+        timings=timings, gts_input=gts, signature_config=signature_config, deep=deep
     )
     report = report_from_validation_result(result, tool="validate")
     emit_legacy_cli(report, err_console)
@@ -459,7 +589,7 @@ def validate(
         raise _fail(f"✗ {len(result.errors)} error(s)")
 
 
-def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
+def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
     """The ``(label, thunk)`` table of dev-gate surfaces folded into feedback.
 
     Each thunk re-runs one ``make check`` surface and returns its
@@ -472,7 +602,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
     :func:`feedback`; ROBOT and external-tool lanes are a documented follow-up.)
     """
 
-    def _alignment() -> Any:
+    def _alignment() -> DiagnosticsReport:
         from gmeow_tools import diagnostics
 
         items = [
@@ -487,37 +617,37 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         ]
         return diagnostics.report_from_findings(tool="alignment", findings=items)
 
-    def _coverage() -> Any:
+    def _coverage() -> DiagnosticsReport:
         from gmeow_tools import coverage
 
         return coverage.to_diagnostics_report(coverage.run_coverage())
 
-    def _acceptance() -> Any:
+    def _acceptance() -> DiagnosticsReport:
         import gmeow_native.pipeline as _pipeline
 
         return _pipeline.acceptance_diagnostics_report(str(PROJECT_ROOT))
 
-    def _wikidata() -> Any:
+    def _wikidata() -> DiagnosticsReport:
         return gmeow_validate.wikidata_diagnostics_report(str(MAPPINGS_DIR))
 
-    def _constitution() -> Any:
+    def _constitution() -> DiagnosticsReport:
         return gmeow_validate.constitution_full_report(
             str(PROJECT_ROOT / "governance" / "constitution.ttl"),
             str(PROJECT_ROOT / "CONSTITUTION.md"),
             str(PROJECT_ROOT),
         )
 
-    def _crate_layering() -> Any:
+    def _crate_layering() -> DiagnosticsReport:
         return gmeow_validate.crate_layering_diagnostics_report(
             str(PROJECT_ROOT / "crates")
         )
 
-    def _box_roles() -> Any:
+    def _box_roles() -> DiagnosticsReport:
         from gmeow_tools import box_roles
 
         return box_roles.to_diagnostics_report(box_roles.audit_box_roles())
 
-    def _audit() -> Any:
+    def _audit() -> DiagnosticsReport:
         import gmeow_native.pipeline as _pipeline
 
         from gmeow_tools.config import FIXTURES_DIR
@@ -527,7 +657,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
             str(PROJECT_ROOT), [str(corpus)]
         )
 
-    def _generated() -> Any:
+    def _generated() -> DiagnosticsReport:
         # Drift surface for the build: run the Rust pipeline in CHECK mode (the
         # build authority since #861 P7) and project its drift findings into the
         # canonical diagnostics report folded into the bundle.
@@ -556,34 +686,34 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         ]
         return diagnostics.report_from_findings(tool="generated", findings=items)
 
-    def _classic_cross_check() -> Any:
+    def _classic_cross_check() -> DiagnosticsReport:
         # The native↔oracle (ELK/HermiT/ROBOT) divergence ledger is already a
         # Rust-backed DiagnosticsReport (gmeow_logic.build_divergence_ledger →
         # classic_cross_check.build_report). Folding it carries the classic-oracle
         # cross-check findings into the bundle. Guarded: it needs the Docker/Java
         # lane, so on a Docker-less host the fold loop records a visible skip.
-        from gmeow_tools import classic_cross_check as crosscheck
+        from gmeow_tools.oracles import classic_cross_check as crosscheck
 
         _passed, _ledger, report = crosscheck.run()
         return report
 
-    def _engine_cross_check() -> Any:
-        from gmeow_tools import engine_crosscheck
+    def _engine_cross_check() -> DiagnosticsReport:
+        from gmeow_tools.oracles import engine_crosscheck
 
         return engine_crosscheck.build_report(engine_crosscheck.crosscheck_all())
 
-    def _logic_compile() -> Any:
+    def _logic_compile() -> DiagnosticsReport:
         from gmeow_tools import logic_compile
 
         return logic_compile.compile_diagnostics_report()
 
-    def _statement_compile() -> Any:
+    def _statement_compile() -> DiagnosticsReport:
         return _statement_compile_report()
 
-    def _mapping_compile() -> Any:
+    def _mapping_compile() -> DiagnosticsReport:
         return _mapping_compile_report()
 
-    def _slice_ownership() -> Any:
+    def _slice_ownership() -> DiagnosticsReport:
         # The FULL native slice-ownership report (#809): ownership-defect errors
         # PLUS the dependency-observation warnings that `make validate` keeps out
         # of its focused gate. Folding it here carries those previously-dropped
@@ -962,7 +1092,7 @@ def crosscheck_queries() -> None:
     The agreement matrix is also written as JSON/SARIF/HTML via the diagnostics
     rail (#667 — the surface no longer terminates at stdout only).
     """
-    from gmeow_tools.engine_crosscheck import run
+    from gmeow_tools.oracles.engine_crosscheck import run
 
     _passed, results, _report = run()
     diverged = [r for r in results if not r.agree and not r.skipped]
@@ -995,7 +1125,7 @@ def classic_cross_check() -> None:
     native coverage defect (``DlGap``). NEVER part of ``make check`` or the
     required ``quality`` gate.
     """
-    from gmeow_tools import classic_cross_check as crosscheck
+    from gmeow_tools.oracles import classic_cross_check as crosscheck
     from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
 
     try:
@@ -1036,7 +1166,7 @@ def classic_cross_check_rl() -> None:
     agreement matrix + per-engine timing as SARIF/JSON, and fails NON-ZERO on any
     real RL divergence. NEVER part of ``make check`` or the required gate.
     """
-    from gmeow_tools import rl_agreement
+    from gmeow_tools.oracles import rl_agreement
 
     passed, result, _report = rl_agreement.run()
 
@@ -1717,11 +1847,16 @@ def normalize() -> None:
 
 @app.command()
 def build() -> None:
-    """Build serializations, OWL-native syntaxes, and JSON-LD context into dist/."""
+    """Build serializations and OWL-native syntaxes into dist/.
+
+    The JSON-LD ``@context`` is no longer built here: it is emitted from the Rust
+    ``PREFIX_REGISTRY`` authority by the ``mappings`` stage into
+    ``generated/context.jsonld`` (and folded into ``gmeow.gts``), retiring the
+    orphaned Python ``jsonld_context`` builder (#1009 §2 / #933).
+    """
     from gmeow_rdf.compat.rdflib import Graph
 
     from gmeow_tools import reason as reasoning
-    from gmeow_tools.jsonld_context import write_context
     from gmeow_tools.runner import ToolUnavailableError
     from gmeow_tools.serialize import serialize_graph
 
@@ -1733,8 +1868,7 @@ def build() -> None:
 
     graph = Graph().parse(merged, format="turtle")
     written = serialize_graph(graph, stem="gmeow")
-    context = write_context()
-    for path in (*written.values(), *owl_native, context):
+    for path in (*written.values(), *owl_native):
         console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
 
 
@@ -2299,19 +2433,20 @@ def extract_docs(
 ) -> None:
     """Extract the browsable docs tree from a GTS snapshot (#439).
 
-    Combines a deterministic Markdown projection (per-term reference pages, slice
-    guides, an alignment summary, and a statement-layer summary) with the full
-    ontology-docs site, unpacked verbatim from the ``ontology-docs`` blob baked
-    into the bundle. The site is rendered at ``regenerate gts`` time and embedded,
-    not re-rendered here; run ``regenerate gts`` to refresh the stored tree.
+    The tree is the full ontology-docs site (per-term reference pages, slice
+    guides, alignment + linkage indexes), unpacked verbatim from the
+    ``ontology-docs`` blob baked into the bundle. The site is rendered natively
+    at ``regenerate gts`` time (``gmeow_docs::render_site_lang``) and embedded,
+    not re-projected here; run ``regenerate gts`` to refresh the stored tree.
     """
     from gmeow_tools.config import GTS_SNAPSHOT_FILE
-    from gmeow_tools.create_docs import create_docs
+    from gmeow_tools.gts_views import extract_docs_site, load_fold
 
     path = gts_file or GTS_SNAPSHOT_FILE
-    selector = _resolve_lang(lang, _gts_tag_map(path))
+    view = load_fold(path)
+    selector = _resolve_lang(lang, view.tag_map())
     try:
-        create_docs(path, directory, force=force, selector=selector)
+        extract_docs_site(view, directory, selector=selector, force=force)
     except FileExistsError as exc:
         raise _fail(str(exc)) from exc
     except (OSError, ValueError) as exc:
@@ -2706,34 +2841,6 @@ i18n_app = typer.Typer(help="Internationalization commands.", no_args_is_help=Tr
 app.add_typer(i18n_app, name="i18n")
 
 
-def _i18n_output_path(
-    slice_iri: str,
-    slices_by_iri: dict[str, Slice],
-    output_dir: Path,
-    lang: str | None,
-) -> Path:
-    """Return the output path for a slice or namespace grouping."""
-    slice_info = slices_by_iri.get(slice_iri)
-    if slice_info is not None:
-        if lang is None:
-            return output_dir / "slices" / slice_info.group / f"{slice_info.name}.pot"
-        return (
-            output_dir
-            / "slices"
-            / slice_info.group
-            / slice_info.name
-            / "i18n"
-            / f"{lang}.po"
-        )
-    local = slice_iri.rstrip("/#").split("/")[-1] if "/" in slice_iri else slice_iri
-    if not local:
-        local = "_"
-    safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in local)[:64]
-    if lang is None:
-        return output_dir / "slices" / "_core" / f"{safe}.pot"
-    return output_dir / "slices" / "_core" / safe / "i18n" / f"{lang}.po"
-
-
 @i18n_app.command(name="extract")
 def extract_catalog(
     root: Path = typer.Option(  # noqa: B008
@@ -2773,128 +2880,13 @@ def extract_catalog(
         terms_only: Only extract ontology term strings, skip Markdown docs and
             templates.
     """
-    from gmeow_rdf.compat.rdflib import Graph, Literal, URIRef
+    import gmeow_docs
 
-    from gmeow_tools.graph import load_merged_graph
-    from gmeow_tools.i18n_catalog import (
-        LOCALIZABLE_PREDICATES,
-        build_pot,
-        extract_markdown,
-        extract_ontology_docs_templates,
-        extract_terms,
-        write_po,
-        write_pot,
-    )
-    from gmeow_tools.i18n_sync import PoEntry
-    from gmeow_tools.slices import discover_slices
-
-    graph = load_merged_graph(include_imports=False)
-    slices_by_iri: dict[str, Slice] = discover_slices(root / "slices")
-
-    # Map each localizable (term, predicate, value) triple to the slice
-    # module(s) that declare it. This lets terms reused across slices with
-    # different definitions be routed to the slice that actually owns the
-    # literal, while terms not declared in any slice module fall back to
-    # namespace-based grouping.
-    value_sources: dict[tuple[str, str, str], set[str]] = {}
-    for slice_info in slices_by_iri.values():
-        if not slice_info.module_path.is_file():
-            continue
-        module_graph = Graph()
-        try:
-            module_graph.parse(slice_info.module_path, format="turtle")
-        except Exception:
-            continue
-        for subject, predicate, obj in module_graph:
-            if (
-                isinstance(subject, URIRef)
-                and predicate in LOCALIZABLE_PREDICATES
-                and isinstance(obj, Literal)
-            ):
-                value_sources.setdefault(
-                    (str(subject), str(predicate), str(obj)), set()
-                ).add(slice_info.iri)
-
-    def _resolve_slice(term_iri: str, predicate_iri: str, lexical: str) -> str | None:
-        source_slices = value_sources.get((term_iri, predicate_iri, lexical))
-        if source_slices:
-            return min(source_slices)
-        return None
-
-    groups: dict[str, list[Any]] = {}
-    total_keys = 0
-    for key in extract_terms(graph, slice_resolver=_resolve_slice):
-        groups.setdefault(key.slice_iri, []).append(key)
-        total_keys += 1
-
-    for slice_iri, keys in groups.items():
-        path = _i18n_output_path(slice_iri, slices_by_iri, output_dir, lang)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if lang:
-            entries = [
-                PoEntry(
-                    msgctxt=f"{key.term_iri}|{key.predicate}",
-                    msgid=key.english_value,
-                    msgstr=key.english_value,
-                )
-                for key in keys
-            ]
-            write_po(path, entries, lang)
-        else:
-            path.write_text(build_pot(keys), encoding="utf-8")
-
-    if not terms_only:
-        docs_output = output_dir / "docs"
-        docs_output.mkdir(parents=True, exist_ok=True)
-
-        md_sources: list[Path] = []
-        md_sources.extend(sorted(root.glob("slices/*/*/docs.md")))
-        md_sources.extend(sorted((root / "docs").glob("*.md")))
-        if (root / "README.md").is_file():
-            md_sources.append(root / "README.md")
-
-        for source in md_sources:
-            rel = source.relative_to(root)
-            entries = extract_markdown(source, rel_path=rel.as_posix())
-            path = (
-                docs_output / f"{rel}.{lang}.po" if lang else docs_output / f"{rel}.pot"
-            )
-            path.parent.mkdir(parents=True, exist_ok=True)
-            if lang:
-                po_entries = [
-                    PoEntry(
-                        msgctxt=entry.msgctxt,
-                        msgid=entry.msgid,
-                        msgstr=entry.msgid,
-                    )
-                    for entry in entries
-                ]
-                write_po(path, po_entries, lang)
-            else:
-                write_pot(path, entries)
-
-        template_entries = extract_ontology_docs_templates()
-        template_path = (
-            output_dir / f"ontology-docs-templates.{lang}.po"
-            if lang
-            else output_dir / "ontology-docs-templates.pot"
-        )
-        if lang:
-            po_entries = [
-                PoEntry(
-                    msgctxt=entry.msgctxt,
-                    msgid=entry.msgid,
-                    msgstr=entry.msgid,
-                )
-                for entry in template_entries
-            ]
-            write_po(template_path, po_entries, lang)
-        else:
-            write_pot(template_path, template_entries)
+    report = gmeow_docs.i18n_extract(str(root), str(output_dir), lang, terms_only)
 
     console.print(
-        f"[green]✓[/green] wrote {len(groups)} term catalog(s) "
-        f"({total_keys} keys) to {output_dir}"
+        f"[green]✓[/green] wrote {report['groups']} term catalog(s) "
+        f"({report['total_keys']} keys) to {output_dir}"
     )
 
 
@@ -2922,7 +2914,7 @@ def sync_english(
         root: Repository root to search for slices.
         dry_run: Report only; do not write changes.
     """
-    from gmeow_tools.i18n_sync import sync_english_file
+    import gmeow_docs
 
     po_files = sorted(root.glob("slices/**/i18n/*.po"))
     changed_files: list[Path] = []
@@ -2949,12 +2941,14 @@ def sync_english(
         for source_path in source_paths:
             if not source_path.is_file():
                 continue
-            report = sync_english_file(po_path, source_path, dry_run=dry_run)
+            report = gmeow_docs.i18n_sync_english_file(
+                str(po_path), str(source_path), dry_run
+            )
             processed += 1
-            changed_files.extend(report.changed_files)
-            conflicts.extend(report.conflicts)
-            skipped.extend(report.skipped)
-            unchanged += len(report.unchanged)
+            changed_files.extend(Path(path) for path in report["changed_files"])
+            conflicts.extend(report["conflicts"])
+            skipped.extend(report["skipped"])
+            unchanged += len(report["unchanged"])
 
     def _rel(path: Path) -> Path:
         return (
@@ -3016,34 +3010,18 @@ def merge(
         output: Output Turtle file. Defaults to stdout.
         lang: BCP-47 language tag to merge (e.g. 'fr'). Defaults to all languages.
     """
-    from gmeow_tools.graph import load_merged_graph
-    from gmeow_tools.i18n_catalog import _language_from_po, merge_terms
+    import gmeow_docs
 
-    po_paths = sorted(root.glob("slices/*/*/i18n/*.po"))
-    if lang is not None:
-        lang_lower = lang.lower()
-        po_paths = [
-            p
-            for p in po_paths
-            if _language_from_po(p.read_text(encoding="utf-8")).lower() == lang_lower
-        ]
-
-    base_graph = load_merged_graph(include_imports=False)
-    merged_graph = merge_terms(base_graph, po_paths)
-    added = len(merged_graph) - len(base_graph)
-
-    ttl = merged_graph.serialize(format="turtle")
+    report = gmeow_docs.i18n_merge(
+        str(root), str(output) if output is not None else None, lang
+    )
     if output is None:
-        console.print(ttl, end="")
-        output_note = "stdout"
-    else:
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(ttl, encoding="utf-8")
-        output_note = str(output)
+        console.print(report["turtle"], end="")
 
     err_console.print(
-        f"[green]✓ merged {len(po_paths)} PO file(s), "
-        f"{added} translated triple(s) added → {output_note}[/green]"
+        f"[green]✓ merged {report['po_files']} PO file(s), "
+        f"{report['added']} translated triple(s) added "
+        f"→ {report['output_note']}[/green]"
     )
 
 
@@ -3071,9 +3049,11 @@ def export_csv(
         root: Repository root to search for slices.
         output: Output CSV file (default: stdout).
     """
-    from gmeow_tools.i18n_catalog import iter_po_catalogs, write_csv_export
+    import gmeow_docs
 
-    write_csv_export(iter_po_catalogs(root), output)
+    text = gmeow_docs.i18n_export_csv(str(root), str(output) if output else None)
+    if output is None:
+        console.print(text, end="")
 
 
 @i18n_app.command(name="export-xliff")
@@ -3100,9 +3080,11 @@ def export_xliff(
         root: Repository root to search for slices.
         output: Output XLIFF 1.2 file (default: stdout).
     """
-    from gmeow_tools.i18n_catalog import iter_po_catalogs, write_xliff_export
+    import gmeow_docs
 
-    write_xliff_export(iter_po_catalogs(root), output)
+    text = gmeow_docs.i18n_export_xliff(str(root), str(output) if output else None)
+    if output is None:
+        console.print(text, end="")
 
 
 @app.command(name="slice-fix-deps")

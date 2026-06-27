@@ -12,15 +12,36 @@ repository.workspace = true
 [lib]
 path = "src/lib.rs"
 
+# Release-as-evidence roll-up (#673, §18): run the corpus and materialize the
+# per-case verdicts as one canonical-JSON artifact for folding into the signed
+# release bundle. Driven by `make conformance-report`.
+[[bin]]
+name = "conformance-report"
+path = "src/bin/conformance_report.rs"
+
+# External-corpus ingestion CLI (#753): ingest a TPTP SZS problem / W3C manifest.ttl
+# and print the runner verdict (AC1), and the reproducible refresh entry point the
+# vendoring procedure (X2–X5) follows.
+[[bin]]
+name = "ingest-external"
+path = "src/bin/ingest_external.rs"
+
 [dependencies]
 # The native logic engine: compile / certify / materialize / explain / foundation
 # / scryer / stable-model / probabilistic cores. The harness calls these directly
 # (the SAME functions py.rs wraps), so case outputs are identical by construction.
 gmeow-logic = { path = "../logic" }
-# oxigraph in-memory store with RDF 1.2 for multi-format parsing (Turtle /
-# N-Triples / N-Quads) in the RDF comparator. Same pin + features as the rest of
-# the workspace (no [workspace.dependencies] table exists to inherit from; this
-# matches crates/slicetest exactly).
+# The pure compiler surface (parse_logic_str / compile_program / projections /
+# LedgerEntry) the harness drives, split out of gmeow-logic in #732.
+gmeow-logic-compile = { path = "../logic-compile" }
+# Native RDF text codecs (#909): the comparator parses serialized RDF via
+# `gmeow_rdf::parse_dataset` (oxigraph-free text ingress through the gmeow-gts codecs)
+# instead of `oxigraph::io::RdfParser`; the `gmeow-rdf` dep + `oxigraph` feature below
+# re-export the native codec fns and the IR→oxigraph bridge.
+# oxigraph in-memory Dataset with RDF 1.2 for RDFC-1.0 canonicalization in the RDF
+# comparator (scope-OUT of #909 — canonicalization stays on the oxigraph kernel).
+# Same pin + features as the rest of the workspace (no [workspace.dependencies]
+# table exists to inherit from; this matches crates/slicetest exactly).
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 # The RDF-1.2 adapter: the RDF comparator canonicalizes via the native full RDFC-1.0
 # surface `gmeow_rdf::canonicalize_quads` (#910), replacing oxrdf `Dataset::canonicalize`.

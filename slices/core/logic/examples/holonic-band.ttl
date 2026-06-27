@@ -1,0 +1,81 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — path-relative holonic levels and the materialized min/max depth
+# band (ME9, issue #775).
+#
+# Holarchies are DAGs, not ladders: an entity can be a proper part of several wholes
+# along several paths, so it has NO single intrinsic "level." A level is meaningful
+# only relative to a path. This file materializes that band for one DAG node.
+#
+# The DAG (a diamond — ex:Sensor has TWO parents, ex:Wing directly and via ex:Avionics):
+#
+#     ex:Aircraft
+#        | properPartOf
+#       ex:Wing  ◄───────────────┐
+#        |                        |
+#     ex:Avionics                 |  (ex:Sensor is ALSO a direct proper part of ex:Wing)
+#        |                        |
+#      ex:Sensor  ────────────────┘
+#       /   \
+#  ex:ChipA  ex:ChipB
+#
+# ex:Sensor occupies TWO logic:HolonicPositions, one per path, each the canonical
+# five-place construct (entity, holarchy, context, interval, path) and each carrying
+# its own logic:holonicLevel — a literal READ OFF the position (rdfs:domain
+# logic:HolonicPosition), never an intrinsic attribute of the entity:
+#
+#   * ex:posSensorDirect  path ex:pathDirect            → logic:holonicLevel 1
+#   * ex:posSensorVia     path ex:pathVia (via Avionics) → logic:holonicLevel 2
+#
+# Both readings are correct. The per-entity min/max band over those positions is
+# materialized on the entity:
+#
+#   * ex:Sensor logic:holonicLevelMin 1 ; logic:holonicLevelMax 2 .
+#
+# HONEST SCOPE (#775): the band endpoints are operator-asserted, NOT engine-derived.
+# The foundation chase is all-IRI (logic:StratifiedNAFProfile) and cannot compare or
+# aggregate the integer levels, so it grounds only that the band EXISTS — via the
+# derived marker logic:multiplyPositioned (ex:Sensor occupies two distinct positions).
+# That engine-verified structure is the companion conformance case
+# conformance/logic/cases/holonic/holonic-band, which is IRI-only (the evaluator
+# rejects literal objects); this file carries the literal band the chase cannot hold.
+# See design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
+
+# The holarchy and its strict-parthood diamond.
+ex:bandHolarchy a logic:Holarchy .
+
+ex:ChipA    logic:properPartOf ex:Sensor .
+ex:ChipB    logic:properPartOf ex:Sensor .
+ex:Sensor   logic:properPartOf ex:Wing .
+ex:Sensor   logic:properPartOf ex:Avionics .
+ex:Avionics logic:properPartOf ex:Wing .
+ex:Wing     logic:properPartOf ex:Aircraft .
+
+# ex:Sensor is a holon along two paths through the holarchy.
+ex:posSensorDirect
+    a logic:HolonicPosition ;
+    logic:positionEntity   ex:Sensor ;
+    logic:positionHolarchy ex:bandHolarchy ;
+    logic:positionContext  ex:OperationalContext ;
+    logic:positionInterval ex:MissionInterval ;
+    logic:positionPath     ex:pathDirect ;
+    logic:holonicLevel     "1"^^xsd:nonNegativeInteger .
+
+ex:posSensorVia
+    a logic:HolonicPosition ;
+    logic:positionEntity   ex:Sensor ;
+    logic:positionHolarchy ex:bandHolarchy ;
+    logic:positionContext  ex:OperationalContext ;
+    logic:positionInterval ex:MissionInterval ;
+    logic:positionPath     ex:pathVia ;
+    logic:holonicLevel     "2"^^xsd:nonNegativeInteger .
+
+# The materialized per-entity depth band over ex:Sensor's positions.
+ex:Sensor
+    logic:holonicLevelMin "1"^^xsd:nonNegativeInteger ;
+    logic:holonicLevelMax "2"^^xsd:nonNegativeInteger .

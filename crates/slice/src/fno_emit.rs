@@ -45,7 +45,6 @@ use gmeow_rdf::fno::{
     FnoCatalog,
 };
 use gmeow_rdf::{turtle, RdfQuad, RdfTerm};
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphNameRef, NamedNode, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 
@@ -229,7 +228,7 @@ fn build_tag_map(store: &Store) -> Result<BTreeMap<String, String>, SliceError> 
 /// Retag a quad's language-tagged literal object through `tag_map` (a public tag —
 /// no `x-gmeow-` mapping — passes through unchanged). Only the object can carry a
 /// localizable literal in the FnO catalog.
-fn retag_quad(mut quad: RdfQuad, tag_map: &BTreeMap<String, String>) -> RdfQuad {
+pub(crate) fn retag_quad(mut quad: RdfQuad, tag_map: &BTreeMap<String, String>) -> RdfQuad {
     if let RdfTerm::Literal(lit) = &mut quad.object {
         if let Some(lang) = &lit.language {
             if let Some(ext) = tag_map.get(lang) {
@@ -338,17 +337,7 @@ fn collect_ttl_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<()
 /// Parse one Turtle source into the shared store (lenient, so GMEOW's `@x-gmeow-*`
 /// language tags parse — mirrors `mapping_emit::load_into_store`).
 fn load_into_store(store: &Store, bytes: &[u8], path: &Path) -> Result<(), SliceError> {
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes)
-    {
-        let quad = quad
-            .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(())
+    crate::rdf_text::turtle_bytes_into_store(store, bytes, &path.display().to_string())
 }
 
 // ── Function / cell extraction ───────────────────────────────────────────────────
@@ -754,9 +743,11 @@ fn build_catalog(
                 params_emitted.insert(param.clone(), predicate.clone());
                 catalog_params.push(FnParam {
                     iri: param,
-                    predicate: predicate.clone(),
+                    predicate: Some(predicate.clone()),
                     r#type: rng,
                     required,
+                    label: None,
+                    description: None,
                 });
             }
         }
@@ -769,12 +760,15 @@ fn build_catalog(
             } else {
                 Some(func.description.clone())
             },
+            kind_types: vec![GM_PROJECTION_FUNCTION.to_owned()],
             see_also,
             expects,
             output: FnOutput {
                 iri: output_iri(&func.iri),
-                predicate: func.output.clone(),
+                predicate: Some(func.output.clone()),
                 r#type: func.output_type.clone(),
+                label: None,
+                description: None,
             },
         });
     }

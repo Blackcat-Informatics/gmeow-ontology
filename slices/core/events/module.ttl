@@ -29,7 +29,7 @@ gmeow:Event
     skos:definition "A temporal occurrence in which entities participate in roles, over possibly fuzzy time, at possibly several locations, asserted by possibly conflicting sources. The universal event of the model: gmeow:Activity (provenance) and gmeow:LifeEvent re-parent onto it. The kind of occurrence is a gmeow:eventType value, never a subclass."@x-gmeow-english ;
     skos:example "ex:wedding a gmeow:Event ; gmeow:eventType gmeow:eventTypeMarriage ; gmeow:eventTime \"1947-06-14T11:00:00Z\"^^xsd:dateTime ; gmeow:eventLocation ex:church ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing an endurant as an Event (a person/document/place is a gmeow:Entity, not an occurrence), avoid minting an event-kind SUBCLASS (the kind is a gmeow:eventType value, Principle 9), and reach for gmeow:Activity when the occurrence is an agent-driven provenance act with inputs and outputs."@x-gmeow-english ;
-    gmeow:frameRequirementSeverity "warning" ;
+    gmeow:ruleSeverity "advisory" ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the occurrence gmeow:Event, give it one or more gmeow:eventType values, anchor it in time (gmeow:eventTime / gmeow:eventInterval, or fuzzy gmeow:earliestStart + gmeow:latestEnd + gmeow:temporalPrecision), place it with gmeow:eventLocation, and add participants flat via gmeow:hasParticipant or reified as gmeow:Participation; carry a non-default frame on gmeow:eventTemporalFrame (Principle 11)."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:eventTemporalFrame ;

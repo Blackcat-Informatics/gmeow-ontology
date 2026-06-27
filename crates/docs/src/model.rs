@@ -9,13 +9,12 @@
 //! collection is sorted by a stable key so the serialized model is
 //! byte-reproducible.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use gmeow_slice::{
     ArtifactRecord, ArtifactRole, ManifestView, OwnershipAnalyzer, OwnershipReport, SliceCatalog,
@@ -65,6 +64,15 @@ const GMEOW_ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObje
 const GMEOW_JUSTIFICATION: &str = "https://blackcatinformatics.ca/gmeow/justification";
 const GMEOW_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
 
+// ── Per-term usage-advice predicates (rendered as the "Usage Advice" section) ────
+const SKOS_SCOPE_NOTE: &str = "http://www.w3.org/2004/02/skos/core#scopeNote";
+const SKOS_EXAMPLE: &str = "http://www.w3.org/2004/02/skos/core#example";
+const GMEOW_USE_WHEN: &str = "https://blackcatinformatics.ca/gmeow/useWhen";
+const GMEOW_AVOID_WHEN: &str = "https://blackcatinformatics.ca/gmeow/avoidWhen";
+const GMEOW_HOW_TO_USE: &str = "https://blackcatinformatics.ca/gmeow/howToUse";
+const GMEOW_USE_FOR_CONSUMER: &str = "https://blackcatinformatics.ca/gmeow/useForConsumer";
+const GMEOW_AVOID_FOR_CONSUMER: &str = "https://blackcatinformatics.ca/gmeow/avoidForConsumer";
+
 const GMEOW_DOCS_CONCERN: &str = "https://blackcatinformatics.ca/gmeow/docsConcern";
 
 // ── Guides-slice predicates / classes (recipes + learning paths, #853 T3b) ─────
@@ -80,6 +88,50 @@ const GMEOW_USES_TERM: &str = "https://blackcatinformatics.ca/gmeow/usesTerm";
 const GMEOW_INCLUDES_RECIPE: &str = "https://blackcatinformatics.ca/gmeow/includesRecipe";
 const GMEOW_ADOPTION_TARGET: &str = "https://blackcatinformatics.ca/gmeow/adoptionTarget";
 const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/followsGuidePath";
+
+// ── Logic stereotypes + relational surfaces (#1020) ─────────────────────────────
+
+/// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
+/// values under it are surfaced as the term's logic stereotypes.
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+
+const SKOS_RELATED: &str = "http://www.w3.org/2004/02/skos/core#related";
+const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
+const GMEOW_PAIRS_WITH: &str = "https://blackcatinformatics.ca/gmeow/pairsWith";
+const GMEOW_GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
+
+// ── Per-term lifecycle surface (#1026) ──────────────────────────────────────────
+const OWL_DEPRECATED: &str = "http://www.w3.org/2002/07/owl#deprecated";
+const GMEOW_TERM_STABILITY: &str = "https://blackcatinformatics.ca/gmeow/termStability";
+const GMEOW_ADDED_IN_VERSION: &str = "https://blackcatinformatics.ca/gmeow/addedInVersion";
+const GMEOW_HAS_CHANGELOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/hasChangelogEntry";
+const GMEOW_ENTRY_VERSION: &str = "https://blackcatinformatics.ca/gmeow/entryVersion";
+const GMEOW_ENTRY_NOTE: &str = "https://blackcatinformatics.ca/gmeow/entryNote";
+const STABILITY_STABLE_CURIE: &str = "gmeow:stabilityStable";
+const STABILITY_EXPERIMENTAL_CURIE: &str = "gmeow:stabilityExperimental";
+const STABILITY_DEPRECATED_CURIE: &str = "gmeow:stabilityDeprecated";
+/// The name of the everything-aggregation profile (root + every extension);
+/// every documented term belongs to it (#330 `full.ttl`).
+const FULL_PROFILE_NAME: &str = "full";
+const GMEOW_WORK: &str = "https://blackcatinformatics.ca/gmeow/Work";
+const DCTERMS_IDENTIFIER: &str = "http://purl.org/dc/terms/identifier";
+
+// ── SHACL constraint surface (#1020) ────────────────────────────────────────────
+
+const SH_TARGET_CLASS: &str = "http://www.w3.org/ns/shacl#targetClass";
+const SH_TARGET_SUBJECTS_OF: &str = "http://www.w3.org/ns/shacl#targetSubjectsOf";
+const SH_TARGET_OBJECTS_OF: &str = "http://www.w3.org/ns/shacl#targetObjectsOf";
+const SH_MESSAGE: &str = "http://www.w3.org/ns/shacl#message";
+
+// ── Competency-question surface (#1020) ─────────────────────────────────────────
+
+const GMEOW_COMPETENCY_QUESTION: &str = "https://blackcatinformatics.ca/gmeow/CompetencyQuestion";
+const GMEOW_CQ_RATIONALE: &str = "https://blackcatinformatics.ca/gmeow/cqRationale";
+const GMEOW_CQ_QUERY_FILE: &str = "https://blackcatinformatics.ca/gmeow/cqQueryFile";
+const GMEOW_CQ_EXPECT_ROW: &str = "https://blackcatinformatics.ca/gmeow/cqExpectRow";
+const GMEOW_ROW_CELL: &str = "https://blackcatinformatics.ca/gmeow/rowCell";
+const GMEOW_CELL_VALUE_IRI: &str = "https://blackcatinformatics.ca/gmeow/cellValueIri";
 
 /// An error building the documentation model.
 #[derive(Debug)]
@@ -107,7 +159,7 @@ impl From<SliceError> for DocsError {
 // ── Model types ───────────────────────────────────────────────────────────────
 
 /// The vocabulary kind of a documented term, derived from its `rdf:type`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
 pub enum DocTermCategory {
     /// `owl:Class` / `rdfs:Class`.
     Class,
@@ -120,11 +172,12 @@ pub enum DocTermCategory {
     Datatype,
     /// A GMEOW subject that carries definitional metadata but no recognized
     /// vocabulary `rdf:type`.
+    #[default]
     Other,
 }
 
 /// A single artifact within a slice, referenced by digest/path (no bytes).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocArtifact {
     /// The artifact role (module, shapes, query, …).
     pub role: ArtifactRole,
@@ -151,7 +204,7 @@ impl DocArtifact {
 }
 
 /// A documented slice: manifest identity + its artifact inventory.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocSlice {
     /// The slice IRI (`a gmeow:Slice`).
     pub iri: String,
@@ -167,6 +220,13 @@ pub struct DocSlice {
     pub creators: Vec<String>,
     /// `gmeow:sliceConsumer` values.
     pub consumers: Vec<String>,
+    /// `gmeow:sliceProfile` values — named profiles this slice declares
+    /// membership in (sorted). Drives per-term profile chips (#1026).
+    pub profiles: Vec<String>,
+    /// `gmeow:sliceDependsOn` slice IRIs (sorted). The relation whose closure
+    /// over a profile's declared members yields the profile's full membership
+    /// (#330); reused to compute per-term profile membership (#1026).
+    pub depends_on: Vec<String>,
     /// All artifacts in the slice (sorted by logical path).
     pub artifacts: Vec<DocArtifact>,
 }
@@ -181,6 +241,8 @@ impl DocSlice {
             identifier,
             tier,
             consumers,
+            profiles,
+            depends_on,
         } = &record.manifest;
 
         let mut artifacts: Vec<DocArtifact> = record
@@ -194,6 +256,11 @@ impl DocSlice {
         creators.sort();
         let mut consumers = consumers.clone();
         consumers.sort();
+        // `extract_manifest_view` already sorts + dedups both vectors before
+        // populating `ManifestView` (crates/slice/src/catalog.rs), so they
+        // arrive deterministically ordered — no re-sort needed here.
+        let profiles = profiles.clone();
+        let depends_on = depends_on.clone();
 
         Self {
             iri: slice_iri.clone(),
@@ -203,13 +270,52 @@ impl DocSlice {
             identifier: identifier.clone(),
             creators,
             consumers,
+            profiles,
+            depends_on,
             artifacts,
         }
     }
 }
 
+/// The maturity status of a vocabulary term (#1026). Serializes as a lowercase
+/// string (`stable` / `experimental` / `deprecated`). Resolved from an explicit
+/// `gmeow:termStability` annotation, else `owl:deprecated`, else the owner
+/// slice's tier (core → stable, extension → experimental).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum DocTermStability {
+    /// Mature, committed; safe to rely on. The core-tier default.
+    #[default]
+    Stable,
+    /// Provisional; may change or be withdrawn. The extension-tier default.
+    Experimental,
+    /// Retained for continuity but should no longer be used.
+    Deprecated,
+}
+
+impl DocTermStability {
+    /// The lowercase badge label shown on a term page.
+    pub fn label(&self) -> &'static str {
+        match self {
+            DocTermStability::Stable => "stable",
+            DocTermStability::Experimental => "experimental",
+            DocTermStability::Deprecated => "deprecated",
+        }
+    }
+}
+
+/// One reified per-release changelog entry for a term (#1026). Ordered by
+/// `(version, note)` for deterministic rendering.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
+pub struct DocChangelogEntry {
+    /// `gmeow:entryVersion` — the release this entry pertains to.
+    pub version: String,
+    /// `gmeow:entryNote` — optional prose describing the change (English carrier).
+    pub note: Option<String>,
+}
+
 /// A documented vocabulary term parsed from a slice's `module.ttl`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct DocTerm {
     /// The full term IRI.
     pub iri: String,
@@ -229,10 +335,58 @@ pub struct DocTerm {
     pub domain: Vec<String>,
     /// `rdfs:range` values (IRIs, sorted).
     pub range: Vec<String>,
+    /// `skos:scopeNote` — usage-advice prose (English carrier, sorted).
+    pub scope_notes: Vec<String>,
+    /// `skos:example` — worked-usage prose (English carrier, sorted).
+    pub examples: Vec<String>,
+    /// `gmeow:useWhen` — when to reach for this term (English carrier, sorted).
+    pub use_when: Vec<String>,
+    /// `gmeow:avoidWhen` — when NOT to use this term (English carrier, sorted).
+    pub avoid_when: Vec<String>,
+    /// `gmeow:howToUse` — idiomatic-use guidance (English carrier, sorted).
+    pub how_to_use: Vec<String>,
+    /// `gmeow:useForConsumer` — consumer profiles this term serves (CURIEs, sorted).
+    pub use_for_consumer: Vec<String>,
+    /// `gmeow:avoidForConsumer` — consumer profiles to steer away (CURIEs, sorted).
+    pub avoid_for_consumer: Vec<String>,
+    /// Logic stereotypes co-asserted as `rdf:type` values in the `logic:`
+    /// namespace (`logic:Kind`, `logic:SubKind`, `logic:Relator`, …), rendered
+    /// as `logic:`-prefixed CURIEs, sorted/deduped. The lowered OntoUML/UFO
+    /// discipline of the term (see `slices/core/logic`).
+    pub logic_stereotypes: Vec<String>,
+    /// Related-term IRIs: the union of `skos:related`, `gmeow:pairsWith`, and
+    /// `rdfs:seeAlso` objects, resolved BIDIRECTIONALLY in `from_catalog`
+    /// (sorted/deduped).
+    pub related_terms: Vec<String>,
+    /// `gmeow:graphBoxRole` — the four-boxes role CURIE (`gmeow:boxTBox`,
+    /// `gmeow:boxABox`, …); the lowest-sorted when multiply asserted.
+    pub box_role: Option<String>,
+    /// `gmeow:graphBoxRole` — ALL asserted four-boxes role CURIEs (sorted/deduped).
+    /// The full set, mirroring the folded snapshot's `Term::box_roles`, so the
+    /// shared term card (#1027) carries every box role, not just the first.
+    pub box_roles: Vec<String>,
+    /// Reverse `logic:formalizes` back-references: the IRIs of logic axioms /
+    /// subjects that declare `logic:formalizes <this term>` (sorted/deduped).
+    /// Empty until the central logic slice carries such back-refs.
+    pub formalized_by: Vec<String>,
+    /// The term's maturity badge (#1026), always resolved: explicit
+    /// `gmeow:termStability` > `owl:deprecated` > owner-slice tier default.
+    pub stability: DocTermStability,
+    /// `gmeow:addedInVersion` — the release a term first appeared in (the
+    /// lowest-sorted literal when multiply asserted); `None` until seeded (#1026).
+    pub added_in_version: Option<String>,
+    /// `gmeow:hasChangelogEntry` — reified per-release change records, sorted by
+    /// `(version, note)` (#1026). Empty when the term carries no changelog.
+    pub changelog: Vec<DocChangelogEntry>,
+    /// The named profiles whose membership closure includes this term's owner
+    /// slice, plus the always-present `full` aggregate (sorted/deduped, #1026).
+    /// Computed in `from_catalog` from the slices' `sliceProfile` /
+    /// `sliceDependsOn` declarations.
+    pub profiles: Vec<String>,
 }
 
 /// A cross-slice dependency edge projected from the ownership report.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocDependencyEdge {
     /// The depending (from) slice IRI.
     pub from: String,
@@ -245,7 +399,7 @@ pub struct DocDependencyEdge {
 }
 
 /// A mapping set (`gmeow:MappingSet`) owned by a slice's `mappings/` artifact.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocMappingSet {
     /// The mapping-set IRI (`a gmeow:MappingSet`).
     pub iri: String,
@@ -269,7 +423,7 @@ pub struct DocMappingSet {
 /// GMEOW term to an external IRI via a SKOS-style alignment predicate.
 ///
 /// `confidence` is an `f64`, so this type is `PartialEq` but not `Eq`.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DocLinkage {
     /// The mapping-set IRI this equivalence belongs to (by `gmeow:sssomFile`).
     pub mapping_set: Option<String>,
@@ -291,7 +445,7 @@ pub struct DocLinkage {
 
 /// A worked example carried IN FULL (examples are small Turtle text, not blobs;
 /// their source must be shown).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocExample {
     /// The slice IRI that owns the example.
     pub slice: String,
@@ -306,9 +460,45 @@ pub struct DocExample {
     pub terms_referenced: Vec<String>,
 }
 
+/// A SHACL node shape, reverse-mapped to the term it constrains. Parsed from a
+/// slice's `shapes.ttl` (`ArtifactRole::Shapes`) and the root `shapes/*.ttl`
+/// files. DISTINCT from the integrity-constraint index (SPARQL verify queries):
+/// this surface is SHACL structural validation per target term.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct DocShape {
+    /// The `sh:NodeShape` IRI (or a `_:`-prefixed blank-node id for anonymous shapes).
+    pub shape_iri: String,
+    /// The constrained term IRI, resolved from `sh:targetClass` /
+    /// `sh:targetSubjectsOf` / `sh:targetObjectsOf`.
+    pub target_term: String,
+    /// The `sh:message` strings reachable within the shape (including nested
+    /// property shapes and `sh:or` lists), sorted/deduped.
+    pub messages: Vec<String>,
+    /// The slice IRI that owns the shapes artifact, or `"root"` for `shapes/*.ttl`.
+    pub owner_slice: String,
+}
+
+/// A competency question (`gmeow:CompetencyQuestion`) reverse-mapped to the terms
+/// it exercises, so each term page can surface a "Tested by" block. Parsed from
+/// each slice's `tests/competency.ttl`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct DocCompetency {
+    /// The competency-question IRI.
+    pub iri: String,
+    /// `gmeow:cqRationale` — why the ontology must answer this.
+    pub rationale: Option<String>,
+    /// `gmeow:cqQueryFile` — the slice-relative SPARQL query path.
+    pub query_file: Option<String>,
+    /// The term IRIs this CQ exercises, reached via
+    /// `gmeow:cqExpectRow → gmeow:rowCell → gmeow:cellValueIri` (sorted/deduped).
+    pub exercises: Vec<String>,
+    /// The slice IRI that owns the competency artifact.
+    pub owner_slice: String,
+}
+
 /// A documentation concern (`gmeow:DocumentationConcern`) and the terms that
 /// declare it via `gmeow:docsConcern`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocConcern {
     /// The concern IRI.
     pub iri: String,
@@ -326,7 +516,7 @@ pub struct DocConcern {
 
 /// An external (non-GMEOW) term referenced by the ontology — via a linkage
 /// object or a term domain/range/parent edge — grouped for an overview.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocExternalTerm {
     /// The external IRI.
     pub iri: String,
@@ -342,7 +532,7 @@ pub struct DocExternalTerm {
 /// A task-oriented adoption recipe (`gmeow:Recipe`), parsed from the guides
 /// slice. A curated guide that sequences canonical examples + terms for one
 /// recurring modelling task (no domain axiom — pure pedagogy).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocRecipe {
     /// `gmeow:guideSlug` — the stable, filesystem-safe identifier.
     pub slug: String,
@@ -360,7 +550,7 @@ pub struct DocRecipe {
 
 /// A curated adoption journey (`gmeow:LearningPath`), parsed from the guides
 /// slice. Sequences recipes, examples, and terms for a named audience.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DocLearningPath {
     /// `gmeow:guideSlug` — the stable, filesystem-safe identifier.
     pub slug: String,
@@ -386,7 +576,7 @@ pub struct DocLearningPath {
 ///
 /// Holds [`DocLinkage`] (with an `f64` confidence), so this type is `PartialEq`
 /// but not `Eq`.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct DocsModel {
     /// A fixed human title for the documentation surface.
     pub title: String,
@@ -404,6 +594,12 @@ pub struct DocsModel {
     pub linkages: Vec<DocLinkage>,
     /// All worked examples (sorted by slice/logical-path).
     pub examples: Vec<DocExample>,
+    /// All SHACL node shapes reverse-mapped to the terms they constrain
+    /// (sorted by target term then shape IRI).
+    pub shapes: Vec<DocShape>,
+    /// All competency questions reverse-mapped to the terms they exercise
+    /// (sorted by IRI).
+    pub competencies: Vec<DocCompetency>,
     /// All documentation concerns (sorted by IRI).
     pub concerns: Vec<DocConcern>,
     /// All external (non-GMEOW) terms referenced (sorted by IRI).
@@ -415,6 +611,11 @@ pub struct DocsModel {
     /// The curated "four boxes" doctrine prose, read at build time from
     /// `<root>/docs/four-boxes.md` if present (`None` when absent).
     pub four_boxes: Option<String>,
+    /// The ontology's concept DOI (`dcterms:identifier` on the `gmeow:Work`
+    /// subject of `<root>/metadata/gmeow-self.ttl`), read in `discover()`. Drives
+    /// the per-term citation block's "cite the ontology" line (#1026). `None`
+    /// when the metadata file is absent.
+    pub concept_doi: Option<String>,
     /// Available documentation languages: the English carrier (`"english"`)
     /// first, then the BCP-47 codes (`fr`, `zh`) of every slice translation
     /// catalog, sorted. Deterministic.
@@ -437,7 +638,7 @@ pub struct DocsModel {
 
 impl DocsModel {
     /// The model schema version. Bump when the serialized shape changes.
-    pub const VERSION: &'static str = "3";
+    pub const VERSION: &'static str = "5";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report.
@@ -452,6 +653,8 @@ impl DocsModel {
 
         // ── Terms (parsed from each slice's module.ttl) ─────────────────────
         let mut terms: Vec<DocTerm> = Vec::new();
+        // `logic:formalizes` back-references, collected while modules are parsed.
+        let mut formalizes_edges: Vec<(String, String)> = Vec::new();
         for record in catalog.records() {
             let owner = &record.manifest.slice_iri;
             for artifact in &record.artifacts {
@@ -464,10 +667,99 @@ impl DocsModel {
                 let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
                     panic!("module.ttl for slice {owner} failed to parse: {e}")
                 });
-                terms.extend(extract_terms(&store, owner));
+                terms.extend(extract_terms(&store, owner, record.manifest.tier.as_ref()));
+                formalizes_edges.extend(extract_formalizes(&store));
             }
         }
         terms.sort_by(|a, b| a.iri.cmp(&b.iri));
+
+        // Bidirectional related terms: if A lists B, ensure B lists A. The
+        // forward edges were collected per-term in `extract_terms`; here we mirror
+        // each one onto the (already-documented) target term.
+        {
+            let index: BTreeMap<String, usize> = terms
+                .iter()
+                .enumerate()
+                .map(|(i, t)| (t.iri.clone(), i))
+                .collect();
+            let reverse_edges: Vec<(usize, String)> = terms
+                .iter()
+                .flat_map(|t| {
+                    let from = t.iri.clone();
+                    t.related_terms
+                        .iter()
+                        .filter_map(|to| index.get(to).map(|&i| (i, from.clone())))
+                        .collect::<Vec<_>>()
+                })
+                .collect();
+            for (target_idx, from_iri) in reverse_edges {
+                terms[target_idx].related_terms.push(from_iri);
+            }
+            // `logic:formalizes` reverse pass: subject formalizes target term.
+            for (subject, target) in &formalizes_edges {
+                if let Some(&i) = index.get(target) {
+                    terms[i].formalized_by.push(subject.clone());
+                }
+            }
+            for t in &mut terms {
+                t.related_terms.sort();
+                t.related_terms.dedup();
+                t.formalized_by.sort();
+                t.formalized_by.dedup();
+            }
+        }
+
+        // ── Per-term profile membership (#1026) ─────────────────────────────
+        // A term belongs to a named profile P iff P's declared-member-plus-
+        // sliceDependsOn closure contains the term's owner slice; every term
+        // also belongs to `full` (root + every extension). This MIRRORS the
+        // pipeline `profiles` stage's closure (#330) from the same manifest
+        // data, without touching that byte-identical stage.
+        {
+            // slice IRI → its sliceDependsOn list (for the closure walk).
+            let depends: BTreeMap<&str, &[String]> = slices
+                .iter()
+                .map(|s| (s.iri.as_str(), s.depends_on.as_slice()))
+                .collect();
+            // profile name → declared member slice IRIs (from gmeow:sliceProfile).
+            let mut declared: BTreeMap<String, Vec<String>> = BTreeMap::new();
+            for s in &slices {
+                for name in &s.profiles {
+                    declared
+                        .entry(name.clone())
+                        .or_default()
+                        .push(s.iri.clone());
+                }
+            }
+            // profile name → full membership closure over sliceDependsOn.
+            let closures: BTreeMap<String, BTreeSet<String>> = declared
+                .iter()
+                .map(|(name, members)| {
+                    let mut closed: BTreeSet<String> = BTreeSet::new();
+                    let mut frontier: Vec<String> = members.clone();
+                    while let Some(iri) = frontier.pop() {
+                        if !closed.insert(iri.clone()) {
+                            continue;
+                        }
+                        if let Some(deps) = depends.get(iri.as_str()) {
+                            frontier.extend(deps.iter().cloned());
+                        }
+                    }
+                    (name.clone(), closed)
+                })
+                .collect();
+            for t in &mut terms {
+                let mut profiles: Vec<String> = closures
+                    .iter()
+                    .filter(|(_, closed)| closed.contains(&t.owner_slice))
+                    .map(|(name, _)| name.clone())
+                    .collect();
+                profiles.push(FULL_PROFILE_NAME.to_string());
+                profiles.sort();
+                profiles.dedup();
+                t.profiles = profiles;
+            }
+        }
 
         // ── Dependency edges ────────────────────────────────────────────────
         let mut dependency_edges: Vec<DocDependencyEdge> = ownership
@@ -547,6 +839,43 @@ impl DocsModel {
                 .then_with(|| a.logical_path.cmp(&b.logical_path))
         });
 
+        // ── SHACL shapes (reverse-mapped from each slice's shapes.ttl) ──────────
+        let mut shapes: Vec<DocShape> = Vec::new();
+        for record in catalog.records() {
+            let owner = &record.manifest.slice_iri;
+            for artifact in &record.artifacts {
+                if artifact.role != ArtifactRole::Shapes {
+                    continue;
+                }
+                let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
+                    panic!("shapes.ttl for slice {owner} failed to parse: {e}")
+                });
+                shapes.extend(extract_shapes(&store, owner));
+            }
+        }
+        sort_dedup_shapes(&mut shapes);
+
+        // ── Competency questions (reverse-mapped from each slice's competency.ttl) ─
+        let mut competencies: Vec<DocCompetency> = Vec::new();
+        for record in catalog.records() {
+            let owner = &record.manifest.slice_iri;
+            for artifact in &record.artifacts {
+                // The CQ data overlay lives under tests/competency.ttl, carried as
+                // a TestDsl artifact (there is no dedicated role for the .ttl).
+                if artifact.role != ArtifactRole::TestDsl
+                    || !artifact.logical_path.ends_with("competency.ttl")
+                {
+                    continue;
+                }
+                let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
+                    panic!("competency.ttl for slice {owner} failed to parse: {e}")
+                });
+                competencies.extend(extract_competency(&store, owner));
+            }
+        }
+        competencies.sort_by(|a, b| a.iri.cmp(&b.iri));
+        competencies.dedup_by(|a, b| a.iri == b.iri);
+
         // ── Concerns (collected from module graphs via gmeow:docsConcern) ──────
         let concerns = extract_concerns(catalog);
 
@@ -569,11 +898,14 @@ impl DocsModel {
             mapping_sets,
             linkages,
             examples,
+            shapes,
+            competencies,
             concerns,
             external_terms,
             recipes,
             learning_paths,
             four_boxes: None,
+            concept_doi: None,
             available_languages,
             translations,
             ui_catalog: UiCatalog::default(),
@@ -588,33 +920,59 @@ impl DocsModel {
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         let mut model = Self::from_catalog(&catalog, &ownership);
         model.four_boxes = std::fs::read_to_string(root.join("docs/four-boxes.md")).ok();
+        // Concept DOI for the per-term citation block (#1026): the
+        // `dcterms:identifier` on the `gmeow:Work` subject of the self-description.
+        model.concept_doi = read_concept_doi(root);
+        // Root-level SHACL shapes (`<root>/shapes/*.ttl`) — aggregate node shapes
+        // not owned by any single slice — merged into the slice-level shapes and
+        // deduped by (target term, messages).
+        merge_root_shapes(&mut model, &root.join("shapes"));
         // Optional UI-chrome overrides: `<root>/i18n/ontology-docs-templates.<lang>.po`.
         model.ui_catalog = UiCatalog::from_dir(&root.join("i18n"));
         Ok(model)
     }
 }
 
+/// Read the ontology's concept DOI from `<root>/metadata/gmeow-self.ttl`: the
+/// `dcterms:identifier` literal on the `gmeow:Work` subject (#1026). Returns
+/// `None` if the file is absent, unparsable, or carries no Work DOI — the
+/// citation block degrades to the term-IRI permalink alone.
+fn read_concept_doi(root: &Path) -> Option<String> {
+    let bytes = std::fs::read(root.join("metadata/gmeow-self.ttl")).ok()?;
+    let store = parse_turtle_lenient(&bytes).ok()?;
+    let work = store
+        .quads_for_pattern(
+            None,
+            Some(named(RDF_TYPE).as_ref()),
+            Some(named(GMEOW_WORK).as_ref().into()),
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+        .find_map(|q| match q.subject {
+            NamedOrBlankNode::NamedNode(n) => Some(n),
+            _ => None,
+        })?;
+    first_literal(&store, work.as_str(), DCTERMS_IDENTIFIER)
+}
+
 // ── Turtle parsing + term extraction ──────────────────────────────────────────
 
-/// Parse Turtle bytes into an oxigraph store using the SAME lenient parser the
-/// slice catalog uses (accepts `@x-gmeow-*` language tags).
+/// Parse Turtle bytes into an oxigraph store via the native codecs (the
+/// gmeow-gts codecs are lenient on GMEOW's `@x-gmeow-*` language tags). The store
+/// is kept for the term-extraction queries (SPARQL/pattern matching, scope-OUT of
+/// #909); only the TEXT parse is routed natively.
 pub(crate) fn parse_turtle_lenient(bytes: &[u8]) -> Result<Store, SliceError> {
-    let store =
-        Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(bytes)
-    {
-        let quad = quad.map_err(|e| SliceError::Parse(format!("syntax error: {e}")))?;
-        store
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(store)
+    let dataset = gmeow_rdf::parse_dataset(bytes, "text/turtle", None)
+        .map_err(|e| SliceError::Parse(format!("syntax error: {e}")))?;
+    gmeow_rdf::oxigraph::store_from_dataset(
+        &dataset,
+        gmeow_rdf::oxigraph::GraphPolicy::PreserveNamedGraphs,
+    )
+    .map_err(|e| SliceError::Parse(format!("store build failed: {e}")))
 }
 
 /// Extract documented terms (GMEOW-namespaced typed subjects) from a module store.
-fn extract_terms(store: &Store, owner_slice: &str) -> Vec<DocTerm> {
+fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> Vec<DocTerm> {
     // First pass: collect every GMEOW subject with a recognized vocabulary type,
     // keyed by IRI, recording the strongest category seen.
     let mut categories: BTreeMap<String, DocTermCategory> = BTreeMap::new();
@@ -670,6 +1028,39 @@ fn extract_terms(store: &Store, owner_slice: &str) -> Vec<DocTerm> {
         range.sort();
         range.dedup();
 
+        // Per-term usage advice (English carrier from this slice's module.ttl).
+        let scope_notes = literals(store, &iri, SKOS_SCOPE_NOTE);
+        let examples = literals(store, &iri, SKOS_EXAMPLE);
+        let use_when = literals(store, &iri, GMEOW_USE_WHEN);
+        let avoid_when = literals(store, &iri, GMEOW_AVOID_WHEN);
+        let how_to_use = literals(store, &iri, GMEOW_HOW_TO_USE);
+        let use_for_consumer = curie_objects(store, &iri, GMEOW_USE_FOR_CONSUMER);
+        let avoid_for_consumer = curie_objects(store, &iri, GMEOW_AVOID_FOR_CONSUMER);
+
+        // Logic stereotypes: co-asserted `rdf:type` values under the logic NS.
+        let logic_stereotypes = logic_stereotypes(store, &iri);
+
+        // Related terms: union of skos:related + gmeow:pairsWith + rdfs:seeAlso
+        // (IRIs; resolved bidirectionally in `from_catalog`).
+        let mut related_terms = named_objects(store, &iri, SKOS_RELATED);
+        related_terms.extend(named_objects(store, &iri, GMEOW_PAIRS_WITH));
+        related_terms.extend(named_objects(store, &iri, RDFS_SEE_ALSO));
+        related_terms.sort();
+        related_terms.dedup();
+
+        // Four-boxes roles: every gmeow:graphBoxRole CURIE (sorted/deduped by
+        // `curie_objects`), plus the lowest-sorted one for the legacy singular.
+        let mut box_roles = curie_objects(store, &iri, GMEOW_GRAPH_BOX_ROLE);
+        box_roles.sort();
+        box_roles.dedup();
+        let box_role = box_roles.first().cloned();
+
+        // Per-term lifecycle (#1026): maturity badge (fully resolved with the
+        // owner-slice tier in hand), added-in version, and reified changelog.
+        let stability = resolve_stability(store, &iri, tier);
+        let added_in_version = first_literal(store, &iri, GMEOW_ADDED_IN_VERSION);
+        let changelog = extract_changelog(store, &iri);
+
         let curie = to_curie(&iri);
         terms.push(DocTerm {
             iri,
@@ -681,9 +1072,297 @@ fn extract_terms(store: &Store, owner_slice: &str) -> Vec<DocTerm> {
             parents,
             domain,
             range,
+            scope_notes,
+            examples,
+            use_when,
+            avoid_when,
+            how_to_use,
+            use_for_consumer,
+            avoid_for_consumer,
+            logic_stereotypes,
+            related_terms,
+            box_role,
+            box_roles,
+            formalized_by: Vec::new(),
+            stability,
+            added_in_version,
+            changelog,
+            // Profile membership needs the full slice set; computed in
+            // `from_catalog`'s second pass.
+            profiles: Vec::new(),
         });
     }
     terms
+}
+
+/// Resolve a term's stability badge (#1026): an explicit `gmeow:termStability`
+/// annotation wins (the lowest-sorted CURIE when multiply asserted, a
+/// deterministic and conservative tiebreak); else `owl:deprecated true` →
+/// Deprecated; else the owner-slice tier default (extension → Experimental,
+/// everything else → Stable).
+fn resolve_stability(store: &Store, iri: &str, tier: Option<&SliceTier>) -> DocTermStability {
+    if let Some(curie) = curie_objects(store, iri, GMEOW_TERM_STABILITY)
+        .into_iter()
+        .next()
+    {
+        match curie.as_str() {
+            STABILITY_STABLE_CURIE => return DocTermStability::Stable,
+            STABILITY_EXPERIMENTAL_CURIE => return DocTermStability::Experimental,
+            STABILITY_DEPRECATED_CURIE => return DocTermStability::Deprecated,
+            // An unrecognized value falls through to the derived default rather
+            // than guessing — keeps the badge total without inventing a status.
+            _ => {}
+        }
+    }
+    if literals(store, iri, OWL_DEPRECATED)
+        .iter()
+        .any(|v| v == "true")
+    {
+        return DocTermStability::Deprecated;
+    }
+    match tier {
+        Some(SliceTier::Extension) => DocTermStability::Experimental,
+        _ => DocTermStability::Stable,
+    }
+}
+
+/// Extract a term's reified changelog entries (#1026): each
+/// `?term gmeow:hasChangelogEntry ?entry` whose `?entry` carries a
+/// `gmeow:entryVersion` (required) and optional `gmeow:entryNote`. Sorted by
+/// `(version, note)`; oxigraph blank-node iteration order is not stable.
+fn extract_changelog(store: &Store, iri: &str) -> Vec<DocChangelogEntry> {
+    let Ok(subject) = oxigraph::model::NamedNode::new(iri) else {
+        return Vec::new();
+    };
+    let mut entries: Vec<DocChangelogEntry> = Vec::new();
+    for quad in store
+        .quads_for_pattern(
+            Some(subject.as_ref().into()),
+            Some(named(GMEOW_HAS_CHANGELOG_ENTRY).as_ref()),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+    {
+        let entry_node = match quad.object {
+            Term::NamedNode(n) => NamedOrBlankNode::NamedNode(n),
+            Term::BlankNode(b) => NamedOrBlankNode::BlankNode(b),
+            _ => continue,
+        };
+        let version = first_literal_of(store, entry_node.as_ref(), GMEOW_ENTRY_VERSION);
+        let note = first_literal_of(store, entry_node.as_ref(), GMEOW_ENTRY_NOTE);
+        if let Some(version) = version {
+            entries.push(DocChangelogEntry { version, note });
+        }
+    }
+    entries.sort();
+    entries.dedup();
+    entries
+}
+
+/// The logic stereotypes of a subject: its `rdf:type` values under the `logic:`
+/// namespace, rendered as `logic:`-prefixed CURIEs (sorted/deduped).
+fn logic_stereotypes(store: &Store, subject: &str) -> Vec<String> {
+    let mut out: Vec<String> = named_objects(store, subject, RDF_TYPE)
+        .into_iter()
+        .filter(|t| t.starts_with(LOGIC_NS))
+        .map(|t| format!("logic:{}", local_name(&t)))
+        .collect();
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// All `(subject, target)` pairs of `?s logic:formalizes ?target` in the store
+/// (named subjects + named targets only).
+fn extract_formalizes(store: &Store) -> Vec<(String, String)> {
+    store
+        .quads_for_pattern(
+            None,
+            Some(named(LOGIC_FORMALIZES).as_ref()),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+        .filter_map(|q| {
+            let NamedOrBlankNode::NamedNode(subject) = &q.subject else {
+                return None;
+            };
+            match q.object {
+                Term::NamedNode(target) => {
+                    Some((subject.as_str().to_string(), target.as_str().to_string()))
+                }
+                _ => None,
+            }
+        })
+        .collect()
+}
+
+/// Extract SHACL node shapes reverse-mapped to the GMEOW terms they target.
+/// Each `sh:targetClass` / `sh:targetSubjectsOf` / `sh:targetObjectsOf` edge to a
+/// GMEOW IRI yields a [`DocShape`] carrying every `sh:message` reachable within
+/// the shape (its nested property shapes and `sh:or` lists).
+fn extract_shapes(store: &Store, owner_slice: &str) -> Vec<DocShape> {
+    let mut out = Vec::new();
+    for target_pred in [SH_TARGET_CLASS, SH_TARGET_SUBJECTS_OF, SH_TARGET_OBJECTS_OF] {
+        for quad in store
+            .quads_for_pattern(
+                None,
+                Some(named(target_pred).as_ref()),
+                None,
+                Some(GraphNameRef::DefaultGraph),
+            )
+            .flatten()
+        {
+            let Term::NamedNode(target) = &quad.object else {
+                continue;
+            };
+            let target_term = target.as_str().to_string();
+            // Term pages exist only for GMEOW terms — only those are documentable.
+            if !target_term.starts_with(GMEOW_NS) {
+                continue;
+            }
+            let messages = shape_messages(store, &quad.subject);
+            let shape_iri = match &quad.subject {
+                NamedOrBlankNode::NamedNode(n) => n.as_str().to_string(),
+                NamedOrBlankNode::BlankNode(b) => format!("_:{}", b.as_str()),
+            };
+            out.push(DocShape {
+                shape_iri,
+                target_term,
+                messages,
+                owner_slice: owner_slice.to_string(),
+            });
+        }
+    }
+    out
+}
+
+/// Sort SHACL shapes by `(target term, messages, shape IRI)` and dedup
+/// shapes that target the same term with the same messages (root + slice copies).
+fn sort_dedup_shapes(shapes: &mut Vec<DocShape>) {
+    shapes.sort_by(|a, b| {
+        a.target_term
+            .cmp(&b.target_term)
+            .then_with(|| a.messages.cmp(&b.messages))
+            .then_with(|| a.shape_iri.cmp(&b.shape_iri))
+    });
+    shapes.dedup_by(|a, b| a.target_term == b.target_term && a.messages == b.messages);
+}
+
+/// Read the root `<root>/shapes/*.ttl` files, extract their node shapes, and merge
+/// them (deduped) into the model's shapes. A missing `shapes/` directory is a
+/// no-op; a present-but-unparsable file is a hard fault.
+fn merge_root_shapes(model: &mut DocsModel, shapes_dir: &Path) {
+    let Ok(entries) = std::fs::read_dir(shapes_dir) else {
+        return;
+    };
+    let mut paths: Vec<std::path::PathBuf> = entries
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| p.extension().and_then(|s| s.to_str()) == Some("ttl"))
+        .collect();
+    paths.sort();
+    for path in paths {
+        let bytes = std::fs::read(&path)
+            .unwrap_or_else(|e| panic!("root shapes file {} unreadable: {e}", path.display()));
+        let store = parse_turtle_lenient(&bytes)
+            .unwrap_or_else(|e| panic!("root shapes file {} failed to parse: {e}", path.display()));
+        model.shapes.extend(extract_shapes(&store, "root"));
+    }
+    sort_dedup_shapes(&mut model.shapes);
+}
+
+/// Every `sh:message` literal reachable from a shape subject by walking blank-node
+/// objects (property shapes, `sh:or` / `sh:and` lists), sorted/deduped. Named-node
+/// objects are NOT followed (they point out into the wider graph).
+fn shape_messages(store: &Store, start: &NamedOrBlankNode) -> Vec<String> {
+    use std::collections::{HashSet, VecDeque};
+    let mut seen: HashSet<NamedOrBlankNode> = HashSet::new();
+    let mut queue: VecDeque<NamedOrBlankNode> = VecDeque::from([start.clone()]);
+    let mut msgs: Vec<String> = Vec::new();
+    while let Some(node) = queue.pop_front() {
+        if !seen.insert(node.clone()) {
+            continue;
+        }
+        for quad in store
+            .quads_for_pattern(
+                Some(node.as_ref()),
+                None,
+                None,
+                Some(GraphNameRef::DefaultGraph),
+            )
+            .flatten()
+        {
+            let is_message = quad.predicate.as_str() == SH_MESSAGE;
+            match quad.object {
+                Term::Literal(lit) if is_message => msgs.push(lit.value().to_string()),
+                Term::BlankNode(b) => queue.push_back(NamedOrBlankNode::BlankNode(b)),
+                _ => {}
+            }
+        }
+    }
+    msgs.sort();
+    msgs.dedup();
+    msgs
+}
+
+/// Extract competency questions reverse-mapped to the terms they exercise. The
+/// terms are reached via `gmeow:cqExpectRow → gmeow:rowCell → gmeow:cellValueIri`.
+fn extract_competency(store: &Store, owner_slice: &str) -> Vec<DocCompetency> {
+    let mut out = Vec::new();
+    for cq in subjects_of_type(store, GMEOW_COMPETENCY_QUESTION) {
+        let rationale = first_literal(store, &cq, GMEOW_CQ_RATIONALE);
+        let query_file = first_literal(store, &cq, GMEOW_CQ_QUERY_FILE);
+        let mut exercises: Vec<String> = Vec::new();
+        for row in named_objects(store, &cq, GMEOW_CQ_EXPECT_ROW) {
+            for cell in blank_objects(store, &row, GMEOW_ROW_CELL) {
+                for quad in store
+                    .quads_for_pattern(
+                        Some(cell.as_ref().into()),
+                        Some(named(GMEOW_CELL_VALUE_IRI).as_ref()),
+                        None,
+                        Some(GraphNameRef::DefaultGraph),
+                    )
+                    .flatten()
+                {
+                    if let Term::NamedNode(v) = quad.object {
+                        exercises.push(v.as_str().to_string());
+                    }
+                }
+            }
+        }
+        exercises.sort();
+        exercises.dedup();
+        out.push(DocCompetency {
+            iri: cq,
+            rationale,
+            query_file,
+            exercises,
+            owner_slice: owner_slice.to_string(),
+        });
+    }
+    out
+}
+
+/// All BlankNode objects of `subject predicate ?o` in the default graph.
+fn blank_objects(store: &Store, subject: &str, predicate: &str) -> Vec<oxigraph::model::BlankNode> {
+    let Ok(subject) = oxigraph::model::NamedNode::new(subject) else {
+        return Vec::new();
+    };
+    store
+        .quads_for_pattern(
+            Some(subject.as_ref().into()),
+            Some(named(predicate).as_ref()),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+        .filter_map(|q| match q.object {
+            Term::BlankNode(b) => Some(b),
+            _ => None,
+        })
+        .collect()
 }
 
 /// Extract mapping sets + term equivalences from a `mappings/*.ttl` store.
@@ -1193,6 +1872,50 @@ fn named(iri: &str) -> oxigraph::model::NamedNode {
 /// lexical form), or `None`.
 fn first_literal(store: &Store, subject: &str, predicate: &str) -> Option<String> {
     let subject = oxigraph::model::NamedNode::new(subject).ok()?;
+    store
+        .quads_for_pattern(
+            Some(subject.as_ref().into()),
+            Some(named(predicate).as_ref()),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+        .filter_map(|q| match q.object {
+            Term::Literal(lit) => Some(lit.value().to_string()),
+            _ => None,
+        })
+        .min()
+}
+
+/// The first literal value for `subject predicate ?o` where `subject` is a
+/// named-or-blank node (deterministic: lowest lexical form), or `None`. Used to
+/// read reified changelog-entry blank nodes (#1026).
+fn first_literal_of(
+    store: &Store,
+    subject: oxigraph::model::NamedOrBlankNodeRef,
+    predicate: &str,
+) -> Option<String> {
+    store
+        .quads_for_pattern(
+            Some(subject),
+            Some(named(predicate).as_ref()),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+        .filter_map(|q| match q.object {
+            Term::Literal(lit) => Some(lit.value().to_string()),
+            _ => None,
+        })
+        .min()
+}
+
+/// All literal values for `subject predicate ?o`, sorted and deduped
+/// (deterministic; carries the English-carrier text from `module.ttl`).
+fn literals(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
+    let Ok(subject) = oxigraph::model::NamedNode::new(subject) else {
+        return Vec::new();
+    };
     let mut values: Vec<String> = store
         .quads_for_pattern(
             Some(subject.as_ref().into()),
@@ -1207,7 +1930,19 @@ fn first_literal(store: &Store, subject: &str, predicate: &str) -> Option<String
         })
         .collect();
     values.sort();
-    values.into_iter().next()
+    values.dedup();
+    values
+}
+
+/// Named object IRIs for `subject predicate ?o` as CURIEs, sorted and deduped.
+fn curie_objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
+    let mut values: Vec<String> = named_objects(store, subject, predicate)
+        .iter()
+        .map(|iri| to_curie(iri))
+        .collect();
+    values.sort();
+    values.dedup();
+    values
 }
 
 /// All NamedNode object IRIs for `subject predicate ?o`.
@@ -1270,7 +2005,7 @@ gmeow:hasOwner a owl:ObjectProperty ;
     rdfs:comment "Ownership relation." .
 "#;
         let store = store_from(ttl);
-        let terms = extract_terms(&store, "https://example.org/slice/zoo");
+        let terms = extract_terms(&store, "https://example.org/slice/zoo", None);
 
         let cat = terms.iter().find(|t| t.iri.ends_with("Cat")).unwrap();
         assert_eq!(cat.category, DocTermCategory::Class);
@@ -1297,6 +2032,78 @@ gmeow:hasOwner a owl:ObjectProperty ;
 <https://example.org/Foo> a owl:Class .
 "#;
         let store = store_from(ttl);
-        assert!(extract_terms(&store, "s").is_empty());
+        assert!(extract_terms(&store, "s", None).is_empty());
+    }
+
+    /// Stability derivation precedence (#1026): explicit `gmeow:termStability`
+    /// wins; else `owl:deprecated`; else the owner-slice tier default.
+    #[test]
+    fn stability_resolves_by_precedence() {
+        let ttl = r#"
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+gmeow:CoreDefault a owl:Class .
+gmeow:ExtDefault  a owl:Class .
+gmeow:Deprecated  a owl:Class ; owl:deprecated true .
+gmeow:Explicit    a owl:Class ;
+    owl:deprecated true ;
+    gmeow:termStability gmeow:stabilityExperimental .
+"#;
+        let store = store_from(ttl);
+        let core = extract_terms(&store, "s", Some(&SliceTier::Core));
+        let by = |ts: &[DocTerm], suffix: &str| {
+            ts.iter()
+                .find(|t| t.iri.ends_with(suffix))
+                .unwrap()
+                .stability
+        };
+        // Core tier → Stable default.
+        assert_eq!(by(&core, "CoreDefault"), DocTermStability::Stable);
+        // owl:deprecated overrides the tier default.
+        assert_eq!(by(&core, "Deprecated"), DocTermStability::Deprecated);
+        // Explicit annotation beats owl:deprecated.
+        assert_eq!(by(&core, "Explicit"), DocTermStability::Experimental);
+
+        // Same terms under an extension tier → ExtDefault becomes Experimental.
+        let ext = extract_terms(&store, "s", Some(&SliceTier::Extension));
+        assert_eq!(by(&ext, "ExtDefault"), DocTermStability::Experimental);
+    }
+
+    /// Reified changelog entries are parsed from blank nodes and sorted by
+    /// `(version, note)` (#1026); `addedInVersion` is the lowest literal.
+    #[test]
+    fn changelog_entries_parse_and_sort() {
+        let ttl = r#"
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+gmeow:Thing a owl:Class ;
+    gmeow:addedInVersion "1.0.2" ;
+    gmeow:hasChangelogEntry [
+        a gmeow:ChangelogEntry ;
+        gmeow:entryVersion "1.1.0" ;
+        gmeow:entryNote "Widened range." ] ;
+    gmeow:hasChangelogEntry [
+        a gmeow:ChangelogEntry ;
+        gmeow:entryVersion "1.0.2" ] .
+"#;
+        let store = store_from(ttl);
+        let terms = extract_terms(&store, "s", Some(&SliceTier::Core));
+        let thing = terms.iter().find(|t| t.iri.ends_with("Thing")).unwrap();
+        assert_eq!(thing.added_in_version.as_deref(), Some("1.0.2"));
+        assert_eq!(
+            thing.changelog,
+            vec![
+                DocChangelogEntry {
+                    version: "1.0.2".to_string(),
+                    note: None,
+                },
+                DocChangelogEntry {
+                    version: "1.1.0".to_string(),
+                    note: Some("Widened range.".to_string()),
+                },
+            ]
+        );
     }
 }

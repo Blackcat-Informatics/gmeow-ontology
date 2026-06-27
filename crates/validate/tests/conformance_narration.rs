@@ -17,40 +17,19 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
-/// `test_wellformed_narration_fixture_conforms` — the chapter-scale well-formed
-/// narration fixture (flat links + one promoted NarrationUsage) must pass SHACL.
-#[test]
-fn wellformed_narration_fixture_conforms() {
-    let nt = fixture_as_nt("shapes", "narration-wellformed");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "well-formed narration fixture must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_malformed_narration_fixture_is_flagged` — the malformed fixture carries
-/// three deliberate violations (no mode, no subject, no segment) and must fail
-/// SHACL with messages naming all three missing properties.
-#[test]
-fn malformed_narration_fixture_is_flagged() {
-    let nt = fixture_as_nt("shapes", "narration-malformed");
-    let report = validate(&nt);
-    assert!(!ok(&report), "malformed narration fixture must fail SHACL");
-    let v = violations(&report);
-    let joined = v.join("\n");
-    assert!(
-        joined.contains("at least one gmeow:narrationMode"),
-        "expected 'at least one gmeow:narrationMode' in violations; got: {joined:?}"
-    );
-    assert!(
-        joined.contains("exactly one gmeow:narrationSubject"),
-        "expected 'exactly one gmeow:narrationSubject' in violations; got: {joined:?}"
-    );
-    assert!(
-        joined.contains("exactly one gmeow:narrationSegment"),
-        "expected 'exactly one gmeow:narrationSegment' in violations; got: {joined:?}"
-    );
+#[rstest]
+#[case::wellformed_narration_fixture_conforms(Case::file("shapes", "narration-wellformed"))]
+#[case::malformed_narration_fixture_is_flagged(
+    Case::file("shapes", "narration-malformed")
+        .fails()
+        .violations(&[
+            "at least one gmeow:narrationMode",
+            "exactly one gmeow:narrationSubject",
+            "exactly one gmeow:narrationSegment",
+        ])
+)]
+fn narration(#[case] case: Case) {
+    case.run();
 }

@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# verdict_mode=consistency external case (#753). The OWL EDB is the world-scoped
+# N-Quads in input.nq, decided by the native DL consistency path. This file exists
+# only to satisfy the per-case anatomy; it is NOT compiled in consistency mode.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .

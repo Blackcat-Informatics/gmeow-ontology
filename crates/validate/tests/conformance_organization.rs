@@ -23,46 +23,20 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 // ── Tests migrated from tests/test_organization.py ───────────────────────────
 
-/// `test_membership_fills_post_org_mismatch_warns` — a Membership filling a
-/// Post in a different org triggers a SHACL Warning; validation still passes
-/// (result.ok stays true) but the warning message contains the expected text.
-#[test]
-fn membership_fills_post_org_mismatch_warns() {
-    let nt = fixture_as_nt("coverage", "organization-posts");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "org-mismatch fixture must pass SHACL (warnings only, not violations); violations: {:?}",
-        violations(&report)
-    );
-    let all_messages: Vec<String> = warnings(&report)
-        .into_iter()
-        .chain(violations(&report))
-        .collect();
-    let combined = all_messages.join("\n");
-    assert!(
-        combined.contains("fills a Post whose organization differs"),
-        "expected 'fills a Post whose organization differs' in SHACL messages; got: {combined:?}"
-    );
-}
-
-/// `test_legal_identifier_requires_scheme` — an Identifier node without
-/// identifierScheme triggers a SHACL Violation; validation must fail.
-#[test]
-fn legal_identifier_requires_scheme() {
-    let nt = fixture_as_nt("coverage", "organization-legal-identity");
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "malformed legal-identity fixture must fail SHACL validation"
-    );
-    let msgs = violations(&report);
-    let combined = msgs.join("\n");
-    assert!(
-        combined.contains("must declare a gmeow:identifierScheme"),
-        "expected 'must declare a gmeow:identifierScheme' in violation messages; got: {combined:?}"
-    );
+#[rstest]
+#[case::membership_fills_post_org_mismatch_warns(
+    Case::file("coverage", "organization-posts")
+        .warnings(&["fills a Post whose organization differs"])
+)]
+#[case::legal_identifier_requires_scheme(
+    Case::file("coverage", "organization-legal-identity")
+        .fails()
+        .violations(&["must declare a gmeow:identifierScheme"])
+)]
+fn organization(#[case] case: Case) {
+    case.run();
 }

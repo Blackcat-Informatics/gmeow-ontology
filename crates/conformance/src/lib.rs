@@ -15,7 +15,8 @@
 //! [`datatest-stable`], one case per discovered `profile.json`. It drives the
 //! [`gmeow_logic`] native engine cores **directly** — the same functions the
 //! PyO3 surface (`gmeow_logic::py`) wraps — so the produced artifacts are
-//! identical by construction to the retired Python `logic_runner.py`. Comparison
+//! identical by construction (the Python `logic_runner.py` this replaced was
+//! retired in #727). Comparison
 //! against the goldens uses the three runner-contract modes:
 //!
 //! * **graph-isomorphism** (RDFC-1.0) for RDF artifacts ([`compare::compare_rdf`]),
@@ -35,6 +36,8 @@
 pub mod bless;
 pub mod compare;
 pub mod discover;
+pub mod external;
+pub mod license;
 pub mod paths;
 pub mod profile;
 pub mod run;

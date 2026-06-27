@@ -20,20 +20,25 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use gmeow_logic::foundation::{evaluate, AntiRigidityPolicy};
 use gmeow_logic::store::WorldStore;
 
-/// The foundation conformance cases under `conformance/logic/cases/foundation/`.
-const CASES: [&str; 7] = [
-    "cross-world-rigidity",
-    "exactly-one-stereotype",
-    "free-role",
-    "holonic-emergence",
-    "identity-overlap-mixiden",
-    "mixrig-kind-under-role",
-    "relcomp-under-mediated",
+/// The conformance cases benchmarked here, as `(group, name)` pairs under
+/// `conformance/logic/cases/<group>/`. The holonic discipline corpus lives under
+/// the dedicated `holonic/` group (issue #708, C5); the remaining foundation
+/// lowering cases stay under `foundation/`. The bench id is the case `name`.
+const CASES: [(&str, &str); 9] = [
+    ("foundation", "cross-world-rigidity"),
+    ("foundation", "exactly-one-stereotype"),
+    ("foundation", "free-role"),
+    ("holonic", "holon-integrity"),
+    ("holonic", "emergence"),
+    ("holonic", "downward-constraint"),
+    ("foundation", "identity-overlap-mixiden"),
+    ("foundation", "mixrig-kind-under-role"),
+    ("foundation", "relcomp-under-mediated"),
 ];
 
-fn load_case(name: &str) -> String {
+fn load_case(group: &str, name: &str) -> String {
     let path = format!(
-        "{}/../../conformance/logic/cases/foundation/{name}/input.nq",
+        "{}/../../conformance/logic/cases/{group}/{name}/input.nq",
         env!("CARGO_MANIFEST_DIR")
     );
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {path}: {e}"))
@@ -118,7 +123,10 @@ fn generate_large_synthetic(
 }
 
 fn bench_foundation(c: &mut Criterion) {
-    let inputs: Vec<(&str, String)> = CASES.iter().map(|n| (*n, load_case(n))).collect();
+    let inputs: Vec<(&str, String)> = CASES
+        .iter()
+        .map(|(group, name)| (*name, load_case(group, name)))
+        .collect();
 
     let mut group = c.benchmark_group("foundation_evaluate");
     for (name, nq) in &inputs {

@@ -13,6 +13,7 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
 /// Turtle prefix block shared by all reference-frame tests.
 const PREFIXES: &str = "\
@@ -22,11 +23,9 @@ const PREFIXES: &str = "\
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 ";
 
-/// `test_measurement_reference_frame_passes` — A measurement reference frame (SI)
-/// passes SHACL.
-#[test]
-fn measurement_reference_frame_passes() {
-    let ttl = format!(
+#[rstest]
+#[case::measurement_reference_frame_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:siFrame a gmeow:ReferenceFrame .
 ex:siFrame gmeow:frameRealm gmeow:frameRealmMeasurement .
@@ -41,21 +40,10 @@ ex:axisScalar a gmeow:Axis .
 gmeow:frameKindScalar a gmeow:FrameKind .
 gmeow:determinacyCrisp a gmeow:Determinacy .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "SI measurement reference frame must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_currency_reference_frame_passes` — A currency reference frame (USD)
-/// passes SHACL.
-#[test]
-fn currency_reference_frame_passes() {
-    let ttl = format!(
+    ))
+)]
+#[case::currency_reference_frame_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:usdFrame a gmeow:ReferenceFrame .
 ex:usdFrame gmeow:frameRealm gmeow:frameRealmCurrency .
@@ -70,21 +58,10 @@ ex:axisScalar a gmeow:Axis .
 gmeow:frameKindScalar a gmeow:FrameKind .
 gmeow:determinacyCrisp a gmeow:Determinacy .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "USD currency reference frame must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_temporal_reference_frame_passes` — A temporal reference frame (Gregorian)
-/// passes SHACL.
-#[test]
-fn temporal_reference_frame_passes() {
-    let ttl = format!(
+    ))
+)]
+#[case::temporal_reference_frame_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:gregorianFrame a gmeow:ReferenceFrame .
 ex:gregorianFrame gmeow:frameRealm gmeow:frameRealmTemporal .
@@ -103,21 +80,10 @@ ex:axisDay a gmeow:Axis .
 gmeow:frameKindTemporal a gmeow:FrameKind .
 gmeow:determinacyCrisp a gmeow:Determinacy .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "Gregorian temporal reference frame must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_colourspace_reference_frame_passes` — A colourspace reference frame (sRGB)
-/// passes SHACL.
-#[test]
-fn colourspace_reference_frame_passes() {
-    let ttl = format!(
+    ))
+)]
+#[case::colourspace_reference_frame_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:srgbFrame a gmeow:ReferenceFrame .
 ex:srgbFrame gmeow:frameRealm gmeow:frameRealmColourspace .
@@ -136,21 +102,10 @@ ex:axisBlue a gmeow:Axis .
 gmeow:frameKindCartesian a gmeow:FrameKind .
 gmeow:determinacyCrisp a gmeow:Determinacy .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "sRGB colourspace reference frame must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_linguistic_reference_frame_passes` — A linguistic reference frame (English)
-/// passes SHACL.
-#[test]
-fn linguistic_reference_frame_passes() {
-    let ttl = format!(
+    ))
+)]
+#[case::linguistic_reference_frame_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:englishFrame a gmeow:ReferenceFrame .
 ex:englishFrame gmeow:frameRealm gmeow:frameRealmLinguistic .
@@ -165,21 +120,10 @@ ex:axisScalar a gmeow:Axis .
 gmeow:frameKindScalar a gmeow:FrameKind .
 gmeow:determinacyCrisp a gmeow:Determinacy .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "English linguistic reference frame must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_mathematical_reference_frames_pass_shacl` — Mathematical reference frames
-/// (phase space, Hilbert, latent, C-space) pass SHACL.
-#[test]
-fn mathematical_reference_frames_pass_shacl() {
-    let ttl = format!(
+    ))
+)]
+#[case::mathematical_reference_frames_pass_shacl(
+    Case::inline(format!(
         "{PREFIXES}\
 gmeow:frameRealmMathematical a gmeow:FrameRealm .
 gmeow:determinacyCrisp a gmeow:Determinacy .
@@ -253,21 +197,10 @@ gmeow:metricSymplectic a gmeow:MetricKind .
 gmeow:metricEuclidean a gmeow:MetricKind .
 gmeow:metricCosine a gmeow:MetricKind .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "mathematical reference frames (phase space, Hilbert, latent, C-space) must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_narrative_reference_frame_passes` — A narrative reference frame
-/// (Harry Potter canon) passes SHACL.
-#[test]
-fn narrative_reference_frame_passes() {
-    let ttl = format!(
+    ))
+)]
+#[case::narrative_reference_frame_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 ex:hpCanon a gmeow:NarrativeReferenceFrame .
 ex:hpCanon gmeow:frameRealm gmeow:frameRealmNarrative .
@@ -282,21 +215,10 @@ ex:axisPlot a gmeow:Axis .
 gmeow:frameKindNarrative a gmeow:FrameKind .
 gmeow:determinacyCrisp a gmeow:Determinacy .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "Harry Potter canon narrative reference frame must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_biological_reference_frame_passes` — A biological reference frame (GRCh38)
-/// and a SequenceFeature with SequenceCoordinates pass SHACL.
-#[test]
-fn biological_reference_frame_passes() {
-    let ttl = format!(
+    ))
+)]
+#[case::biological_reference_frame_passes(
+    Case::inline(format!(
         "{PREFIXES}\
 gmeow:frameRealmBiological a gmeow:FrameRealm .
 gmeow:frameKindLinearSequence a gmeow:FrameKind .
@@ -329,12 +251,8 @@ ex:coords1 gmeow:inReferenceAssembly ex:grch38 .
 
 ex:gene1 gmeow:hasSequenceCoordinates ex:coords1 .
 "
-    );
-    let nt = ttl_str_to_nt(&ttl);
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "GRCh38 biological reference frame with SequenceFeature/SequenceCoordinates must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
+    ))
+)]
+fn reference_frames(#[case] case: Case) {
+    case.run();
 }

@@ -28,6 +28,7 @@ use crate::constitution;
 use crate::coverage;
 use crate::crate_layering;
 use crate::crossref;
+use crate::data_validate;
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
 use crate::instance::{self, InstanceFormat};
@@ -207,6 +208,10 @@ struct PyValidateOptions {
     /// Optional signature/trust policy configuration for the GTS verification
     /// pre-gate (#646). When `None`, signature verification is disabled.
     signature_config: Option<PySignatureConfig>,
+    /// When `true`, run the native semantic (`--deep`) pass (#768): reason over
+    /// the bundle and fold the shared `logic:ReasoningResult` verdict into the
+    /// report. Requires `gts_bytes`.
+    deep: bool,
 }
 
 #[pymethods]
@@ -224,6 +229,7 @@ impl PyValidateOptions {
         project_root = None,
         gts_bytes = None,
         signature_config = None,
+        deep = false,
     ))]
     fn new(
         timings: bool,
@@ -236,6 +242,7 @@ impl PyValidateOptions {
         project_root: Option<String>,
         gts_bytes: Option<Vec<u8>>,
         signature_config: Option<PySignatureConfig>,
+        deep: bool,
     ) -> Self {
         Self {
             timings,
@@ -248,6 +255,7 @@ impl PyValidateOptions {
             project_root,
             gts_bytes,
             signature_config,
+            deep,
         }
     }
 }
@@ -265,6 +273,7 @@ impl PyValidateOptions {
             project_root: self.project_root.as_ref().map(PathBuf::from),
             gts_bytes: self.gts_bytes.clone(),
             signature_config: self.signature_config.as_ref().map(|c| c.to_engine()),
+            deep: self.deep,
         }
     }
 }
@@ -507,8 +516,8 @@ fn errors_dict(py: Python<'_>, errors: Vec<String>) -> PyResult<Py<PyAny>> {
     report_dict(py, errors, Vec::new())
 }
 
-/// A gUFO anti-pattern check: `(store, cfg) -> errors`.
-type GufoCheck = fn(&oxigraph::store::Store, &GufoConfig) -> Vec<String>;
+/// A gUFO anti-pattern check: `(store, cfg) -> structured findings`.
+type GufoCheck = fn(&oxigraph::store::Store, &GufoConfig) -> Vec<gmeow_diagnostics::model::Finding>;
 
 /// Run one gUFO check over the merged sources (the production `validate_all`
 /// path passes file paths directly — no rdflib graph, #579).
@@ -520,7 +529,10 @@ fn run_reasoning_paths(
 ) -> PyResult<Py<PyAny>> {
     let store = build_store_or_err(&source_paths)?;
     let cfg = GufoConfig { namespace };
-    errors_dict(py, check(&store, &cfg))
+    errors_dict(
+        py,
+        check(&store, &cfg).into_iter().map(|f| f.message).collect(),
+    )
 }
 
 /// Run one gUFO check over an N-Triples graph string (the test-shim seam: a
@@ -534,7 +546,10 @@ fn run_reasoning_nt(
 ) -> PyResult<Py<PyAny>> {
     let store = build_store_from_nt_or_err(data_nt)?;
     let cfg = GufoConfig { namespace };
-    errors_dict(py, check(&store, &cfg))
+    errors_dict(
+        py,
+        check(&store, &cfg).into_iter().map(|f| f.message).collect(),
+    )
 }
 
 /// The aggregate gUFO/UFO reasoning invariants over the merged sources (mirrors
@@ -551,7 +566,7 @@ fn reasoning_invariants(
             "reasoning_invariants: paths to check must not be empty",
         ));
     }
-    run_reasoning_paths(py, gufo::reasoning_invariants, source_paths, namespace)
+    run_reasoning_paths(py, gufo::reasoning_findings, source_paths, namespace)
 }
 
 /// The aggregate reasoning invariants over an N-Triples graph (test-shim seam).
@@ -561,7 +576,7 @@ fn reasoning_invariants_nt(
     data_nt: &str,
     namespace: String,
 ) -> PyResult<Py<PyAny>> {
-    run_reasoning_nt(py, gufo::reasoning_invariants, data_nt, namespace)
+    run_reasoning_nt(py, gufo::reasoning_findings, data_nt, namespace)
 }
 
 /// `exactly_one_stereotype` over an N-Triples graph (test-shim seam).
@@ -914,14 +929,13 @@ fn validate_all_native(
 /// Load a Turtle string into `store` (lenient parsing, matching the rest of the
 /// validation path), mapping a parse failure to a Python `ValueError`.
 fn insert_turtle(store: &oxigraph::store::Store, ttl: &str) -> PyResult<()> {
-    use oxigraph::io::{RdfFormat, RdfParser};
-    for triple in RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_reader(ttl.as_bytes())
-    {
-        let triple = triple.map_err(|e| {
-            pyo3::exceptions::PyValueError::new_err(format!("Turtle parse error: {e}"))
-        })?;
+    use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
+    use gmeow_rdf::parse_dataset;
+    let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("Turtle parse error: {e}")))?;
+    let quads = flat_oxigraph_quads_from_dataset(&dataset)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    for triple in quads {
         store
             .insert(&triple)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
@@ -932,14 +946,15 @@ fn insert_turtle(store: &oxigraph::store::Store, ttl: &str) -> PyResult<()> {
 /// Load an N-Triples string into `store` (lenient parsing), mapping a parse
 /// failure to a Python `ValueError`.
 fn insert_ntriples(store: &oxigraph::store::Store, data_nt: &str) -> PyResult<()> {
-    use oxigraph::io::{RdfFormat, RdfParser};
-    for triple in RdfParser::from_format(RdfFormat::NTriples)
-        .lenient()
-        .for_reader(data_nt.as_bytes())
-    {
-        let triple = triple.map_err(|e| {
+    use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
+    use gmeow_rdf::parse_dataset;
+    let dataset =
+        parse_dataset(data_nt.as_bytes(), "application/n-triples", None).map_err(|e| {
             pyo3::exceptions::PyValueError::new_err(format!("N-Triples parse error: {e}"))
         })?;
+    let quads = flat_oxigraph_quads_from_dataset(&dataset)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    for triple in quads {
         store
             .insert(&triple)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
@@ -1150,6 +1165,32 @@ fn validate_instance(
     report_dict(py, errors, Vec::new())
 }
 
+/// Tier-1 conformance of an external RDF data graph against the shapes and
+/// disciplines carried in a `gmeow.gts` bundle — the repo-free consumer
+/// `gmeow validate <data>` path.
+///
+/// `data_bytes` is the user's RDF graph in `data_format` (a media type or short
+/// id: `turtle`/`ttl`, `trig`, `n-triples`/`nt`, `n-quads`/`nq`, `rdf+xml`, or
+/// `json-ld`/`jsonld`); `gts_bytes` is the bundled snapshot whose `shapes-archive`
+/// blob supplies the data-graph SHACL union; `namespace` is the GMEOW IRI prefix;
+/// `origin` is the data file's display path (recorded as each finding's physical
+/// location for SARIF). Returns the single canonical diagnostics report as a live
+/// `Report` pyclass — the CLI renders human/SARIF/JSON from it and derives the
+/// exit code from its error count. No reasoner runs (Tier-1 only).
+#[pyfunction]
+fn validate_data(
+    py: Python<'_>,
+    data_bytes: &[u8],
+    data_format: &str,
+    gts_bytes: &[u8],
+    namespace: &str,
+    origin: &str,
+) -> PyResult<Py<PyAny>> {
+    let report = data_validate::run(data_bytes, data_format, gts_bytes, namespace, origin)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
 /// Return DOI consistency problems from a JSON-serialised ``LintInput``.
 ///
 /// The JSON string is produced by the Python helper
@@ -1218,6 +1259,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(build_deposit_xml_native, m)?)?;
     m.add_function(wrap_pyfunction!(lint_deposit_native, m)?)?;
     m.add_function(wrap_pyfunction!(validate_instance, m)?)?;
+    m.add_function(wrap_pyfunction!(validate_data, m)?)?;
     Ok(())
 }
 

@@ -39,9 +39,12 @@ pub mod run;
 pub mod scheduler;
 pub mod scoreboards;
 pub mod stages;
+pub mod transcode;
 pub mod transform;
 pub mod up_projection;
 
+#[cfg(feature = "python")]
+pub mod mcp;
 #[cfg(feature = "python")]
 pub mod py;
 

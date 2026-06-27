@@ -193,7 +193,22 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
 
 - **Levels are path-relative.** Holarchies are DAGs, not strict ladders, so an entity has no single
   global "level." A level is meaningful only relative to a path through the holarchy; two paths may
-  place the same entity at different depths, and both are correct.
+  place the same entity at different depths, and both are correct. The construct is concrete:
+  `logic:holonicLevel` is a literal **read off a `logic:HolonicPosition`** (`rdfs:domain
+  logic:HolonicPosition`), never an intrinsic attribute of the entity — because a position fixes one
+  path, the level it carries is automatically per-path. The per-entity **min/max band** across an
+  entity's positions is materialized as `logic:holonicLevelMin` / `logic:holonicLevelMax`, and the
+  derived marker `logic:multiplyPositioned` (an entity occupying two or more distinct positions, by
+  negation-of-equality over the position set) certifies that a non-trivial band exists — the positive
+  companion to `logic:HolonicLevelIncoherence`. **Honest scope (ME9, #775):** the foundation chase is
+  all-IRI under `logic:StratifiedNAFProfile`, with no numeric comparison or aggregation, so it grounds
+  only the band's *existence* (`logic:multiplyPositioned`); it can neither derive nor check that the
+  band endpoints are the true extrema of the borne per-position levels — those endpoints are
+  operator-asserted, not engine-verified. The single source remains the per-position `logic:holonicLevel`
+  literals; the band is a materialized convenience. Because the native foundation evaluator hard-rejects
+  non-IRI (literal) objects, the level literals and the band live OUTSIDE the foundation conformance
+  world: the `holonic-band` case (below) proves the engine-verified path-relativity structure IRI-only,
+  while the literal band is dogfooded as ABox data in `examples/holonic-band.ttl`.
 - **Emergence is assessed, not asserted.** Emergence is an **EmergenceAssessment** relative to a
   declared *reduction theory* — the claim that a whole's property is not derivable from its parts
   *under that theory*. Failure to derive is **not** proof of irreducibility; the assessment records
@@ -220,10 +235,106 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
   projection of the verdict accrete in C5 (#708).
 - **Downward constraint is structured and non-transitive.** A whole may constrain its parts, but the
   constraint is a typed, directed relation that does **not** chain transitively by default; a
-  constraint from level *n* onto level *n−1* says nothing automatic about level *n−2*.
+  constraint from level *n* onto level *n−1* says nothing automatic about level *n−2*. The construct is
+  concrete and mirrors the emergence calculus above, but for governance flowing *down* rather than
+  reducibility flowing *up*: `logic:DownwardConstraint` is reified with the role properties
+  `logic:constraintWhole`, `logic:constraintTarget`, `logic:constraintState`, `logic:constraintRegime`,
+  and `logic:constraintOverride`, and the engine *derives* its `logic:constraintVerdict` — one of the
+  three closed `logic:ConstraintVerdict` values `logic:ConstraintBinding`, `logic:ConstraintOverridden`,
+  `logic:ConstraintUnknown`. This is downward **constraint, never material causation**: the governing
+  whole *bounds the permissible role/state* of a named proper part, it does not produce or compose the
+  part. The constrained `logic:constraintState` is typically the part's functional role or
+  `gmeow:Goal` set in the context of its super-whole (the teleology slice, linked via `rdfs:seeAlso`) —
+  the downward face of holonic governance is precisely that a part's teleology is fixed relative to the
+  holon it serves. Governance is **regime-relative**: a `logic:GovernanceRegime` carries, via
+  `logic:activationBasis`, the constrained states it activates as binding, exactly as a
+  `logic:ReductionTheory` carries its `logic:reductionBasis` — the same whole may bind a part's state
+  under one regime and leave it unknown under another, and a binding can be quieted by a different
+  regime without contradiction. The verdict is computed by five stratified rules in the same
+  marker→projection shape as emergence: a constraint is **ConstraintOverridden** (the positive,
+  derivation-grounded verdict) when it names an override and the target *bears* that declared token
+  (`logic:bearsProperty`); it is **ConstraintBinding** by negation-as-failure over that override
+  derivation *while the constraint still binds a declared regime whose basis activates the state* — so
+  the verdict is regime-relative, never a bare "unconstrained" default; and it is
+  **ConstraintUnknown** when the named target is a proper part of the whole but no regime activates the
+  constrained state, so the binding question cannot even be posed (the first-class third value;
+  failure-to-activate is not constraint). The override settles below the binding NAF (stratum 1 vs
+  stratum 3), so an overridden constraint is never read as binding. Crucially — and this is the C3
+  analogue of emergence's non-inheritance — **no rule cascades the constraint down
+  `logic:properPartOf`**: every verdict rule is gated on an explicit `logic:constraintTarget`
+  reification, so a constraint onto a part says nothing automatic about that part's own sub-parts.
+  Non-transitivity is therefore a **structural guarantee robust by construction**, not incidental to
+  the EDB-only treatment of `properPartOf`: even were the transitive closure of `properPartOf`
+  materialized, no verdict could attach to an entity that no `logic:DownwardConstraint` names. It is
+  demonstrated positively in the holonic-governance conformance case (a grandchild that is a transitive
+  proper part of the governing whole, targeted by no constraint, carries *no* `logic:constraintVerdict`
+  in the golden `materialized.nq`). The minimal case lands here; the full governance corpus and the
+  lossy OWL projection of the verdict accrete in C5 (#708).
 - **Autonomy/integration is a named profile.** The Koestlerian balance of part-autonomy against
   whole-integration is a **declared profile** a holarchy may adopt, not a universal well-formedness
-  rule every holon must satisfy.
+  rule every holon must satisfy — a bolt, a file-segment, or a process-phase needs no autonomy, so
+  the integrity calculus runs only where it is declared. The construct mirrors the emergence (C2) and
+  governance (C3) calculi exactly. Koestler's holon is **Janus-faced**: it carries a *self-assertive*
+  tendency (autonomy, as a whole) and an *integrative* tendency (subordination, as a part). These are
+  **co-equal vantage facets** under Principle 9 — neither is the primary face — and the foundation
+  refuses to privilege one over the other in either the vocabulary or the rule firing order. The
+  construct is concrete: `logic:AgencyAssessment` is reified with the role properties
+  `logic:agencyHolon` and `logic:agencyProfile`, and the engine *derives* its `logic:agencyVerdict` —
+  one of the four closed `logic:AgencyVerdict` values `logic:HolonIntegral`, `logic:AutonomyDeficient`,
+  `logic:IntegrationDeficient`, `logic:AgencyUnknown`. Agency is **profile-relative**: a
+  `logic:HolonicAgencyProfile` carries, via `logic:selfAssertiveBasis` and `logic:integrativeBasis`,
+  the property-values that respectively evidence each tendency, exactly as a `logic:ReductionTheory`
+  carries its `logic:reductionBasis` and a `logic:GovernanceRegime` its `logic:activationBasis`; an
+  entity carries those values through `logic:bearsProperty`, dogfooding the same bearer relation the
+  emergence calculus uses. The verdict is computed by six stratified rules in the same
+  marker→projection shape: **two co-equal positive markers** settle first — `logic:selfAssertive`
+  (the holon bears a self-assertive basis value) and `logic:integrative` (it bears an integrative
+  basis value), built by identical rules so neither facet is privileged; a holon is **HolonIntegral**
+  when *both* markers hold (the positive, derivation-grounded verdict); it is **AutonomyDeficient** —
+  the first Koestlerian pathology, a "part" with no autonomy — by negation-as-failure over the
+  self-assertive marker *while the integrative marker holds*, and symmetrically **IntegrationDeficient**
+  — the second pathology, a "whole" refusing to integrate — by NAF over the integrative marker while
+  the self-assertive marker holds; and it is **AgencyUnknown** when *neither* marker fires, so the
+  integrity question has no positive footing. The two pathology rules are mirror images, settling in
+  the same stratum, so the duality is genuinely co-equal rather than one tendency defaulting to the
+  other. `AgencyUnknown` is the first-class fourth value (the C4 analogue of `EmergenceUnknown` /
+  `ConstraintUnknown`): it subsumes the "cannot pose the question" case, firing both when the holon
+  bears no basis value and when the profile declares no basis at all — failure-to-evidence is not
+  integrity, and a basis-free profile is *unknown*, not deficient. Crucially, **every verdict rule
+  re-binds `logic:agencyHolon` and `logic:agencyProfile`** as a well-formedness existence guard, so a
+  malformed assessment (naming no holon, or no profile) provably receives *no* verdict — robustness by
+  construction, the C4 analogue of C3's per-target gating. The minimal case lands here (dogfooding C1's
+  holon kernel — the assessed holons are wired into a holarchy so `logic:isHolon` co-fires); the full
+  agency corpus and the lossy OWL projection of the verdict accrete in C5 (#708).
+- **C5 addendum — holonic conformance corpus, level-coherence rule, and OWL projection (#708).**
+  The seven holonic conformance cases now live under `conformance/logic/cases/holonic/`:
+  `holarchy-closure`, `weak-supplementation`, `emergence`, `downward-constraint`,
+  `holon-integrity`, `holonic-level`, and `holonic-band`. Every case is validated against a
+  derivation-graph golden under the native solver, and the Rust test suite asserts golden
+  quad-set parity for each single-world case. `holonic-band` (ME9, #775) is the positive
+  path-relativity proof: a holon occupying two `logic:HolonicPosition`s along two distinct
+  `logic:positionPath`s on a genuine multi-parent DAG fires the engine-derived
+  `logic:multiplyPositioned` (with `logic:isHolon` / `logic:hasHolonicPosition` and, because it
+  occupies positions, NO `logic:HolonicLevelIncoherence`). It is IRI-only — the literal
+  `logic:holonicLevel` values and the min/max band the all-IRI evaluator cannot hold are
+  materialized as ABox data in `examples/holonic-band.ttl`.
+
+  The **holonicLevel coherence rule is position-based**: because the foundation chase is
+  all-IRI and `logic:holonicLevel` is a literal read off a `logic:HolonicPosition`, coherence
+  is keyed on the IRI-valued canonical construct. A holon declared under a
+  `logic:MereologyProfile` that occupies no `logic:HolonicPosition` is charged with
+  `logic:HolonicLevelIncoherence` (profile-scoped, #775); a holon outside any profile is
+  never charged. **Non-conflation**: `logic:instanceOf` and `logic:orderedType` (the HiLog
+  instantiation tower) do not supply a holonic position, so a profiled holon high in the
+  instantiation tower but lacking a `logic:HolonicPosition` still fires the incoherence
+  verdict — the tower and the position are orthogonal constructs.
+
+  The **lossy OWL projection** (Principle 17 / Principle 4): `logic:Holon`,
+  `logic:HolonicPosition`, and `logic:Holarchy` project to `owl:Class`;
+  `logic:properPartOf` projects to `owl:ObjectProperty` with `owl:TransitiveProperty`. The
+  strict-order characteristics (asymmetric + irreflexive), the five-place
+  `logic:HolonicPosition` relation, and the WeakSupplementation axiom are **not** lowered —
+  these losses are recorded in `projection-report.ttl`.
 
 This is the Ithkuil discipline applied to systems theory: the loose word "holon" is decomposed into
 the position, the path, the reduction theory, and the profile that the word silently conflates.
@@ -461,7 +572,8 @@ realizes it* is deliberate rather than implied.
   vocabulary, and the `FormalizationCandidate` / `NonEntailmentObligation` governance constructs) —
   declarations that add no axioms to the reasoned core until they pass the formalization lifecycle;
 - the **gUFO ⊇ coverage discipline** — the standing requirement that every gUFO term have a `logic:`
-  counterpart.
+  counterpart, enforced natively by the `meta:gate-logic-gufo-superset` gate
+  (`crates/logic/tests/gufo_superset.rs`, #731).
 
 **Realized in the engine and the rest of the set:**
 

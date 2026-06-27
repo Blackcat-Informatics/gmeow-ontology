@@ -832,6 +832,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossbeam-channel"
+version = "0.5.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82b8f8f868b36967f9606790d1903570de9ceaf870a7bf9fbbd3016d636a2cb2"
+dependencies = [
+ "crossbeam-utils",
+]
+
+[[package]]
 name = "crossbeam-deque"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1408,6 +1417,15 @@ dependencies = [
 
 [[package]]
 name = "fluent-uri"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17c704e9dbe1ddd863da1e6ff3567795087b1eb201ce80d8fa81162e1516500d"
+dependencies = [
+ "bitflags 1.3.2",
+]
+
+[[package]]
+name = "fluent-uri"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc74ac4d8359ae70623506d512209619e5cf8f347124910440dbc221714b328e"
@@ -1557,6 +1575,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "037711b3d59c33004d3856fbdc83b99d4ff37a24768fa1be9ce3538a1cde4393"
 
 [[package]]
+name = "futures-timer"
+version = "3.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af43fadb8a98512d547e37b4e92e0ced13e205c061b87b4623eff01d918d6968"
+
+[[package]]
 name = "futures-util"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1661,11 +1685,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "glob"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
+
+[[package]]
 name = "gmeow-conformance"
 version = "0.1.0"
 dependencies = [
  "datatest-stable",
  "gmeow-logic",
+ "gmeow-logic-compile",
  "gmeow-rdf",
  "oxigraph",
  "serde_json",
@@ -1694,8 +1725,10 @@ dependencies = [
  "pretty_assertions",
  "pulldown-cmark",
  "pyo3",
+ "regex",
  "serde",
  "serde_json",
+ "sha1 0.10.6",
 ]
 
 [[package]]
@@ -1714,9 +1747,9 @@ dependencies = [
 
 [[package]]
 name = "gmeow-gts"
-version = "0.9.5"
+version = "0.9.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25834808a9d4b44e78c73c4e4c4f0efde8b5ca6b37fca3ba282918cc861c62b5"
+checksum = "832a9d2a9f73409b0532440b3d1be3b04edbe5fdfb76041d997018a2cd612501"
 dependencies = [
  "aes-gcm",
  "blake3",
@@ -1726,10 +1759,8 @@ dependencies = [
  "flate2",
  "getrandom 0.2.17",
  "libc",
- "oxrdf 0.3.3",
- "oxrdfxml 0.2.3",
  "oxsdatatypes",
- "oxttl 0.2.3",
+ "quick-xml",
  "ruzstd",
  "serde",
  "serde_json",
@@ -1754,7 +1785,11 @@ dependencies = [
  "blake3",
  "criterion",
  "gmeow-diagnostics",
+ "gmeow-logic-compile",
  "gmeow-rdf",
+ "gmeow-rdf-core",
+ "gmeow-sparql-algebra",
+ "gmeow-sparql-eval",
  "insta",
  "nemo",
  "oxigraph",
@@ -1766,6 +1801,32 @@ dependencies = [
  "sha1 0.10.6",
  "sha2",
  "tokio",
+]
+
+[[package]]
+name = "gmeow-logic-compile"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf",
+ "gmeow-sparql-algebra",
+ "insta",
+ "sha2",
+]
+
+[[package]]
+name = "gmeow-lsp"
+version = "0.1.0"
+dependencies = [
+ "gmeow-diagnostics",
+ "gmeow-logic",
+ "gmeow-logic-compile",
+ "insta",
+ "lsp-server",
+ "lsp-types 0.97.0",
+ "oxigraph",
+ "serde",
+ "serde_json",
+ "url",
 ]
 
 [[package]]
@@ -1793,10 +1854,13 @@ dependencies = [
  "arrow-schema",
  "blake3",
  "bytes",
+ "ciborium",
+ "ed25519-dalek",
  "gmeow-diagnostics",
  "gmeow-docs",
  "gmeow-gts",
  "gmeow-logic",
+ "gmeow-logic-compile",
  "gmeow-rdf",
  "gmeow-shacl",
  "gmeow-slice",
@@ -1825,11 +1889,21 @@ dependencies = [
  "gmeow-gts",
  "gmeow-rdf-core",
  "gmeow-rdf-events",
+ "gmeow-sparql-eval",
  "gmeow-xsd",
  "oxigraph",
  "pretty_assertions",
  "proptest",
  "pyo3",
+]
+
+[[package]]
+name = "gmeow-rdf-capi"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf",
+ "gmeow-rdf-core",
+ "gmeow-sparql-results",
 ]
 
 [[package]]
@@ -1853,18 +1927,29 @@ name = "gmeow-rdf-events"
 version = "0.1.0"
 
 [[package]]
+name = "gmeow-rdf-wasm"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf",
+ "gmeow-rdf-events",
+ "pretty_assertions",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gmeow-shacl"
 version = "0.1.0"
 dependencies = [
  "criterion",
  "gmeow-gts",
  "gmeow-rdf",
+ "gmeow-slice",
+ "gmeow-sparql-algebra",
  "oxigraph",
  "proptest",
  "pyo3",
  "regex",
  "serde_json",
- "spargebra 0.4.6",
 ]
 
 [[package]]
@@ -1872,6 +1957,7 @@ name = "gmeow-slice"
 version = "0.1.0"
 dependencies = [
  "gmeow-rdf",
+ "gmeow-sparql-algebra",
  "hex",
  "insta",
  "oxigraph",
@@ -1880,7 +1966,6 @@ dependencies = [
  "regex",
  "serde",
  "sha2",
- "spargebra 0.4.6",
  "tempfile",
  "ureq",
 ]
@@ -1890,19 +1975,76 @@ name = "gmeow-slicetest"
 version = "0.1.0"
 dependencies = [
  "datatest-stable",
+ "gmeow-rdf",
  "gmeow-shacl",
  "gmeow-validate",
  "oxigraph",
 ]
 
 [[package]]
+name = "gmeow-sparql-algebra"
+version = "0.1.0"
+dependencies = [
+ "gmeow-iri",
+ "gmeow-xsd",
+ "insta",
+ "pretty_assertions",
+ "proptest",
+]
+
+[[package]]
+name = "gmeow-sparql-conformance"
+version = "0.1.0"
+dependencies = [
+ "camino",
+ "datatest-stable",
+ "gmeow-rdf",
+ "gmeow-rdf-core",
+ "gmeow-sparql-algebra",
+ "gmeow-sparql-eval",
+ "gmeow-sparql-results",
+]
+
+[[package]]
+name = "gmeow-sparql-eval"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "gmeow-rdf-core",
+ "gmeow-sparql-algebra",
+ "gmeow-sparql-results",
+ "gmeow-xsd",
+ "md-5",
+ "pretty_assertions",
+ "regex",
+ "sha1 0.10.6",
+ "sha2",
+ "ureq",
+]
+
+[[package]]
+name = "gmeow-sparql-results"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf-core",
+ "insta",
+ "pretty_assertions",
+]
+
+[[package]]
+name = "gmeow-test-budget"
+version = "0.1.0"
+
+[[package]]
 name = "gmeow-validate"
 version = "0.1.0"
 dependencies = [
+ "ciborium",
  "criterion",
  "ed25519-dalek",
  "gmeow-diagnostics",
  "gmeow-gts",
+ "gmeow-logic",
  "gmeow-rdf",
  "gmeow-shacl",
  "gmeow-slice",
@@ -1911,6 +2053,7 @@ dependencies = [
  "oxigraph",
  "pyo3",
  "regex",
+ "rstest",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -2617,6 +2760,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "lsp-server"
+version = "0.7.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d6ada348dbc2703cbe7637b2dda05cff84d3da2819c24abcb305dd613e0ba2e"
+dependencies = [
+ "crossbeam-channel",
+ "log",
+ "serde",
+ "serde_derive",
+ "serde_json",
+]
+
+[[package]]
 name = "lsp-types"
 version = "0.94.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2627,6 +2783,19 @@ dependencies = [
  "serde_json",
  "serde_repr",
  "url",
+]
+
+[[package]]
+name = "lsp-types"
+version = "0.97.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53353550a17c04ac46c585feb189c2db82154fc84b79c7a66c96c2c644f66071"
+dependencies = [
+ "bitflags 1.3.2",
+ "fluent-uri 0.1.4",
+ "serde",
+ "serde_json",
+ "serde_repr",
 ]
 
 [[package]]
@@ -3651,6 +3820,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "proc-macro-crate"
+version = "3.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e67ba7e9b2b56446f1d419b1d807906278ffa1a658a8a5d8a39dcb1f5a78614f"
+dependencies = [
+ "toml_edit 0.25.12+spec-1.1.0",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3953,7 +4131,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "65a910f9d63351f9c9d7dc3053d02b214ea3a005917140c70087d7b59cbc5bb1"
 dependencies = [
  "ahash",
- "fluent-uri",
+ "fluent-uri 0.4.1",
  "getrandom 0.3.4",
  "hashbrown 0.16.1",
  "itoa",
@@ -3991,6 +4169,12 @@ name = "regex-syntax"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
+
+[[package]]
+name = "relative-path"
+version = "1.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba39f3699c378cd8970968dcbff9c43159ea4cfbd88d43c00b22f2ef10a435d2"
 
 [[package]]
 name = "reqwest"
@@ -4060,6 +4244,35 @@ name = "roxmltree"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c20b6793b5c2fa6553b250154b78d6d0db37e72700ae35fad9387a46f487c97"
+
+[[package]]
+name = "rstest"
+version = "0.26.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5a3193c063baaa2a95a33f03035c8a72b83d97a54916055ba22d35ed3839d49"
+dependencies = [
+ "futures-timer",
+ "futures-util",
+ "rstest_macros",
+]
+
+[[package]]
+name = "rstest_macros"
+version = "0.26.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c845311f0ff7951c5506121a9ad75aec44d083c31583b2ea5a30bcb0b0abba0"
+dependencies = [
+ "cfg-if",
+ "glob",
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "relative-path",
+ "rustc_version",
+ "syn",
+ "unicode-ident",
+]
 
 [[package]]
 name = "rustc-hash"
@@ -5030,8 +5243,8 @@ checksum = "dc1beb996b9d83529a9e75c17a1686767d148d70663143c7854d8b4a09ced362"
 dependencies = [
  "serde",
  "serde_spanned",
- "toml_datetime",
- "toml_edit",
+ "toml_datetime 0.6.11",
+ "toml_edit 0.22.27",
 ]
 
 [[package]]
@@ -5044,6 +5257,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml_datetime"
+version = "1.1.1+spec-1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3165f65f62e28e0115a00b2ebdd37eb6f3b641855f9d636d3cd4103767159ad7"
+dependencies = [
+ "serde_core",
+]
+
+[[package]]
 name = "toml_edit"
 version = "0.22.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5052,9 +5274,30 @@ dependencies = [
  "indexmap",
  "serde",
  "serde_spanned",
- "toml_datetime",
+ "toml_datetime 0.6.11",
  "toml_write",
- "winnow",
+ "winnow 0.7.15",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.25.12+spec-1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2153edc6955a6c354fad8f5efd38b6a8769bdccf9fe50f8e1329f81b0baa5d7"
+dependencies = [
+ "indexmap",
+ "toml_datetime 1.1.1+spec-1.1.0",
+ "toml_parser",
+ "winnow 1.0.3",
+]
+
+[[package]]
+name = "toml_parser"
+version = "1.1.2+spec-1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2abe9b86193656635d2411dc43050282ca48aa31c2451210f4202550afb7526"
+dependencies = [
+ "winnow 1.0.3",
 ]
 
 [[package]]
@@ -5133,7 +5376,7 @@ dependencies = [
  "dashmap 5.5.3",
  "futures",
  "httparse",
- "lsp-types",
+ "lsp-types 0.94.1",
  "memchr",
  "serde",
  "serde_json",
@@ -5373,9 +5616,9 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "visual-hashing"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8e9eb59bd68e7b0c5bc6415de31778046f819d98bea6ea8b2926960743b6314"
+checksum = "89cff0f3901531f1ae5441b09b201b1e61698fba5a5625d44b6243c5b381a3e3"
 dependencies = [
  "blake3",
 ]
@@ -5771,6 +6014,15 @@ name = "winnow"
 version = "0.7.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df79d97927682d2fd8adb29682d1140b343be4ac0f08fd68b7765d9c059d3945"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "winnow"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0592e1c9d151f854e6fd382574c3a0855250e1d9b2f99d9281c6e6391af352f1"
 dependencies = [
  "memchr",
 ]

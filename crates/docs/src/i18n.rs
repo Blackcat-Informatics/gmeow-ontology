@@ -32,6 +32,8 @@
 
 use std::collections::BTreeMap;
 
+use serde::{Deserialize, Serialize};
+
 use gmeow_slice::{ArtifactRole, SliceCatalog};
 
 /// The English authoring carrier key (the model's own values).
@@ -257,7 +259,8 @@ fn language_from_header(header: &str) -> Option<String> {
 /// artifact. Also carries the BCP-47 → internal-tag map (e.g. `fr` →
 /// `x-gmeow-french`) so consumers can compute the archive prefix `create_docs`
 /// expects.
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(into = "TranslationsDto", from = "TranslationsDto")]
 pub struct Translations {
     /// `(term_iri, predicate_full_iri, lang) -> translated_value`.
     by_key: BTreeMap<(String, String, String), String>,
@@ -265,6 +268,61 @@ pub struct Translations {
     languages: Vec<String>,
     /// `bcp47 -> internal x-gmeow-* tag` (from the language slice).
     internal_tag: BTreeMap<String, String>,
+}
+
+/// JSON-friendly wire shape for [`Translations`]. The in-memory `by_key` index is
+/// keyed by a `(iri, predicate, lang)` tuple, which `serde_json` cannot encode as
+/// a map key — so it is flattened to a `Vec` of flat records. `languages` and
+/// `internal_tag` are carried **verbatim** (not re-derived from `by_key`): a
+/// language can appear in `internal_tag` with no translated entries, so
+/// re-deriving would break round-trip identity.
+#[derive(Serialize, Deserialize)]
+struct TranslationsDto {
+    by_key: Vec<TranslationEntryDto>,
+    languages: Vec<String>,
+    internal_tag: BTreeMap<String, String>,
+}
+
+/// One `(iri, predicate, lang) -> value` translation, flattened for serde.
+#[derive(Serialize, Deserialize)]
+struct TranslationEntryDto {
+    iri: String,
+    predicate: String,
+    lang: String,
+    value: String,
+}
+
+impl From<Translations> for TranslationsDto {
+    fn from(t: Translations) -> Self {
+        Self {
+            by_key: t
+                .by_key
+                .into_iter()
+                .map(|((iri, predicate, lang), value)| TranslationEntryDto {
+                    iri,
+                    predicate,
+                    lang,
+                    value,
+                })
+                .collect(),
+            languages: t.languages,
+            internal_tag: t.internal_tag,
+        }
+    }
+}
+
+impl From<TranslationsDto> for Translations {
+    fn from(d: TranslationsDto) -> Self {
+        Self {
+            by_key: d
+                .by_key
+                .into_iter()
+                .map(|e| ((e.iri, e.predicate, e.lang), e.value))
+                .collect(),
+            languages: d.languages,
+            internal_tag: d.internal_tag,
+        }
+    }
 }
 
 impl Translations {
@@ -530,9 +588,50 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
 /// Per-language UI-chrome overrides. Keyed by `(lang, key) -> translated`.
 /// Built from optional `ontology-docs-templates.<lang>.po` catalogs; empty when
 /// none are present (the English fallback is used everywhere).
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(into = "UiCatalogDto", from = "UiCatalogDto")]
 pub struct UiCatalog {
     overrides: BTreeMap<(String, String), String>,
+}
+
+/// JSON-friendly wire shape for [`UiCatalog`]: the `(lang, key)` tuple-keyed
+/// overrides flattened to a `Vec` of flat records (`serde_json` cannot encode a
+/// tuple map key).
+#[derive(Serialize, Deserialize)]
+struct UiCatalogDto {
+    overrides: Vec<UiOverrideDto>,
+}
+
+/// One `(lang, key) -> value` UI-chrome override, flattened for serde.
+#[derive(Serialize, Deserialize)]
+struct UiOverrideDto {
+    lang: String,
+    key: String,
+    value: String,
+}
+
+impl From<UiCatalog> for UiCatalogDto {
+    fn from(c: UiCatalog) -> Self {
+        Self {
+            overrides: c
+                .overrides
+                .into_iter()
+                .map(|((lang, key), value)| UiOverrideDto { lang, key, value })
+                .collect(),
+        }
+    }
+}
+
+impl From<UiCatalogDto> for UiCatalog {
+    fn from(d: UiCatalogDto) -> Self {
+        Self {
+            overrides: d
+                .overrides
+                .into_iter()
+                .map(|o| ((o.lang, o.key), o.value))
+                .collect(),
+        }
+    }
 }
 
 impl UiCatalog {
@@ -739,5 +838,51 @@ msgstr ""
         // Default internal-tag derivation.
         assert_eq!(t.internal_tag("fr"), "x-gmeow-fr");
         assert_eq!(t.internal_tag(ENGLISH), "x-gmeow-english");
+    }
+
+    #[test]
+    fn translations_serde_round_trip_is_identity() {
+        let mut by_key = BTreeMap::new();
+        by_key.insert(
+            (
+                "https://blackcatinformatics.ca/gmeow/Foo".to_string(),
+                "http://www.w3.org/2000/01/rdf-schema#label".to_string(),
+                "fr".to_string(),
+            ),
+            "Fou".to_string(),
+        );
+        let mut internal_tag = BTreeMap::new();
+        internal_tag.insert("fr".to_string(), "x-gmeow-french".to_string());
+        // `zh` appears in internal_tag / languages but has ZERO by_key rows — a
+        // re-derived `languages`/`internal_tag` would drop it and break identity.
+        internal_tag.insert("zh".to_string(), "x-gmeow-chinese".to_string());
+        let original = Translations {
+            by_key,
+            languages: vec!["fr".to_string(), "zh".to_string()],
+            internal_tag,
+        };
+        let json = serde_json::to_string(&original).expect("serialize Translations");
+        let restored: Translations = serde_json::from_str(&json).expect("deserialize Translations");
+        assert_eq!(original, restored);
+        // The `zh` internal tag survived despite having no translated entries.
+        assert_eq!(restored.internal_tag("zh"), "x-gmeow-chinese");
+    }
+
+    #[test]
+    fn ui_catalog_serde_round_trip_is_identity() {
+        let mut overrides = BTreeMap::new();
+        overrides.insert(
+            ("fr".to_string(), "nav_home".to_string()),
+            "Accueil".to_string(),
+        );
+        overrides.insert(
+            ("zh".to_string(), "nav_home".to_string()),
+            "首页".to_string(),
+        );
+        let original = UiCatalog { overrides };
+        let json = serde_json::to_string(&original).expect("serialize UiCatalog");
+        let restored: UiCatalog = serde_json::from_str(&json).expect("deserialize UiCatalog");
+        assert_eq!(original, restored);
+        assert_eq!(ui_string("nav_home", "fr", &restored), "Accueil");
     }
 }

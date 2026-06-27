@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the bounded-depth path-traversal competency question
+# (gmeow:cqDataFile overlay, issue #1010).
+#
+# A four-node chain A → B → C → D via ex:linkedTo.  The path shape
+# ex:withinTwoHops (logic:pathStepPredicate ex:linkedTo, logic:pathMaxDepth 2)
+# starting from ex:orgA reaches {ex:orgB, ex:orgC} within ≤ 2 hops;
+# ex:orgD is exactly 3 hops away and must NOT be returned.
+
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:orgA ex:linkedTo ex:orgB .
+ex:orgB ex:linkedTo ex:orgC .
+ex:orgC ex:linkedTo ex:orgD .

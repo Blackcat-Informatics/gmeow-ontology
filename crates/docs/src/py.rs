@@ -19,7 +19,7 @@ use pyo3::types::{PyBytes, PyDict, PyList};
 
 use crate::model::DocsModel;
 use crate::render::{self, Site};
-use crate::{lint, rdf};
+use crate::{i18n_compile, lint, rdf};
 use gmeow_diagnostics::py::PyReport;
 
 /// Build the documentation model from the repo `root` and return it as a
@@ -46,6 +46,111 @@ fn ui_templates(py: Python<'_>) -> PyResult<Py<PyAny>> {
         out.set_item(key, value)?;
     }
     Ok(out.into_any().unbind())
+}
+
+/// Localizable predicate IRIs used by native i18n term extraction.
+#[pyfunction]
+fn i18n_localizable_predicates(py: Python<'_>) -> PyResult<Py<PyAny>> {
+    let out = PyList::empty(py);
+    for predicate in i18n_compile::LOCALIZABLE_PREDICATES {
+        out.append(predicate)?;
+    }
+    Ok(out.into_any().unbind())
+}
+
+/// Native `gmeow-dev i18n extract` implementation.
+#[pyfunction]
+fn i18n_extract(
+    py: Python<'_>,
+    root: String,
+    output_dir: String,
+    lang: Option<String>,
+    terms_only: bool,
+) -> PyResult<Py<PyAny>> {
+    let report = i18n_compile::extract_catalog(
+        Path::new(&root),
+        Path::new(&output_dir),
+        lang.as_deref(),
+        terms_only,
+    )
+    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let out = PyDict::new(py);
+    out.set_item("groups", report.groups)?;
+    out.set_item("total_keys", report.total_keys)?;
+    Ok(out.into_any().unbind())
+}
+
+/// Native `gmeow-dev i18n sync-english` single-file engine.
+#[pyfunction]
+fn i18n_sync_english_file(
+    py: Python<'_>,
+    po_path: String,
+    source_path: String,
+    dry_run: bool,
+) -> PyResult<Py<PyAny>> {
+    let report =
+        i18n_compile::sync_english_file(Path::new(&po_path), Path::new(&source_path), dry_run)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let out = PyDict::new(py);
+    out.set_item(
+        "changed_files",
+        report
+            .changed_files
+            .iter()
+            .map(|p| p.to_string_lossy().to_string())
+            .collect::<Vec<_>>(),
+    )?;
+    out.set_item("conflicts", report.conflicts)?;
+    out.set_item("skipped", report.skipped)?;
+    out.set_item("unchanged", report.unchanged)?;
+    Ok(out.into_any().unbind())
+}
+
+/// Native PO lint used by `make validate`.
+#[pyfunction]
+fn i18n_lint_po_files(py: Python<'_>, root: String, max_fuzzy_ratio: f64) -> PyResult<Py<PyAny>> {
+    let report = i18n_compile::lint_po_files(Path::new(&root), max_fuzzy_ratio);
+    let out = PyDict::new(py);
+    out.set_item("errors", report.errors)?;
+    out.set_item("warnings", report.warnings)?;
+    out.set_item("total_counts", report.total_counts)?;
+    out.set_item("fuzzy_counts", report.fuzzy_counts)?;
+    Ok(out.into_any().unbind())
+}
+
+/// Native `gmeow-dev i18n merge` implementation.
+#[pyfunction]
+fn i18n_merge(
+    py: Python<'_>,
+    root: String,
+    output: Option<String>,
+    lang: Option<String>,
+) -> PyResult<Py<PyAny>> {
+    let output_path = output.as_deref().map(Path::new);
+    let report = i18n_compile::merge_terms(Path::new(&root), output_path, lang.as_deref())
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let out = PyDict::new(py);
+    out.set_item("po_files", report.po_files)?;
+    out.set_item("added", report.added)?;
+    out.set_item("output_note", report.output_note)?;
+    out.set_item("turtle", report.turtle)?;
+    Ok(out.into_any().unbind())
+}
+
+/// Native PO catalog CSV export. Returns the emitted CSV text.
+#[pyfunction]
+fn i18n_export_csv(root: String, output: Option<String>) -> PyResult<String> {
+    let output_path = output.as_deref().map(Path::new);
+    i18n_compile::export_csv(Path::new(&root), output_path)
+        .map_err(pyo3::exceptions::PyValueError::new_err)
+}
+
+/// Native PO catalog XLIFF export. Returns the emitted XLIFF text.
+#[pyfunction]
+fn i18n_export_xliff(root: String, output: Option<String>) -> PyResult<String> {
+    let output_path = output.as_deref().map(Path::new);
+    i18n_compile::export_xliff(Path::new(&root), output_path)
+        .map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
 /// A fully rendered ontology-docs static site.
@@ -179,6 +284,13 @@ fn for_lang_dict(py: Python<'_>, site: &Site) -> PyResult<Py<PyAny>> {
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(model_json, m)?)?;
     m.add_function(wrap_pyfunction!(ui_templates, m)?)?;
+    m.add_function(wrap_pyfunction!(i18n_localizable_predicates, m)?)?;
+    m.add_function(wrap_pyfunction!(i18n_extract, m)?)?;
+    m.add_function(wrap_pyfunction!(i18n_sync_english_file, m)?)?;
+    m.add_function(wrap_pyfunction!(i18n_lint_po_files, m)?)?;
+    m.add_function(wrap_pyfunction!(i18n_merge, m)?)?;
+    m.add_function(wrap_pyfunction!(i18n_export_csv, m)?)?;
+    m.add_function(wrap_pyfunction!(i18n_export_xliff, m)?)?;
     m.add_class::<DocSet>()?;
     Ok(())
 }

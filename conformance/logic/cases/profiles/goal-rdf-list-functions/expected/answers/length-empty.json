@@ -1,0 +1,8 @@
+{
+  "bindings": [
+    {
+      "N": "\"0\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+    }
+  ],
+  "status": "ok"
+}

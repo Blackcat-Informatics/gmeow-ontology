@@ -23,8 +23,8 @@
 //! [`SemanticProfileId::permits_cut`]).  An unrecognized reference resolves to no preset
 //! and does not license cut — the AC-2 seal is preserved.
 
-use crate::compile::ir::SemanticProfileId;
 use crate::query_ir::{QBodyLit, QProgram};
+use gmeow_logic_compile::ir::SemanticProfileId;
 
 /// The canonical full IRI for the procedural Prolog profile (used in diagnostics).
 pub const PROCEDURAL_PROLOG_PROFILE: &str =
@@ -70,6 +70,47 @@ pub fn check_cut_profile(program: &QProgram, profile: &str) -> Result<(), String
     Err(format!(
         "program contains cut (`!`) but profile {profile:?} does not denote \
          ProceduralPrologProfile; cut is only permitted under \
+         {PROCEDURAL_PROLOG_PROFILE:?}"
+    ))
+}
+
+// ── Arithmetic-builtin gate (#1009 G2a) ──────────────────────────────────────
+
+/// Return `true` if any rule body in `program` contains an arithmetic/comparison
+/// builtin ([`QBodyLit::Builtin`]).
+pub fn has_builtin(program: &QProgram) -> bool {
+    program.rules.iter().any(|rule| {
+        rule.body
+            .iter()
+            .any(|lit| matches!(lit, QBodyLit::Builtin(_)))
+    })
+}
+
+/// Assert that if `program` contains an arithmetic/comparison builtin, `profile`
+/// resolves to a preset whose facet bundle licenses procedural execution.
+///
+/// Arithmetic builtins (`logic:builtinArithmetic`) are gated to
+/// `ProceduralPrologProfile` (per `slices/core/logic/module.ttl`), exactly as cut is.
+/// The decision is **facet-derived** (the same [`is_procedural_profile`] predicate
+/// used for cut): an unrecognized profile resolves to no preset and does not license
+/// builtins. There is no fallback or silent stripping.
+///
+/// If the program contains no builtin this function always returns `Ok(())`.
+///
+/// # Errors
+///
+/// Returns `Err(String)` naming the offending profile when the program contains a
+/// builtin and the profile resolves to no procedural-licensing preset.
+pub fn check_builtin_profile(program: &QProgram, profile: &str) -> Result<(), String> {
+    if !has_builtin(program) {
+        return Ok(());
+    }
+    if is_procedural_profile(profile) {
+        return Ok(());
+    }
+    Err(format!(
+        "program contains an arithmetic/comparison builtin but profile {profile:?} \
+         does not denote ProceduralPrologProfile; builtins are only permitted under \
          {PROCEDURAL_PROLOG_PROFILE:?}"
     ))
 }
