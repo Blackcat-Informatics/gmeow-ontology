@@ -25,6 +25,7 @@
 //! reader untars `shapes-archive` and applies the exclusion set) rather than in
 //! the Python CLI surface, which passes only raw bytes.
 
+use gmeow_diagnostics::model::Location;
 use gmeow_diagnostics::Report;
 use gmeow_shacl::shape_union::EXCLUDED;
 use oxigraph::store::Store;
@@ -76,9 +77,21 @@ pub fn run(
     let cfg = GufoConfig {
         namespace: namespace.to_owned(),
     };
-    let discipline_errors = gufo::reasoning_invariants(&store, &cfg);
+    let discipline_findings = gufo::reasoning_findings(&store, &cfg);
 
-    Ok(build_report(discipline_errors, Vec::new(), shacl_findings))
+    let mut report = build_report(Vec::new(), Vec::new(), shacl_findings);
+    for mut f in discipline_findings {
+        if let Some(loc) = f.locations.first_mut() {
+            loc.path = Some(origin.to_owned());
+        } else {
+            f.add_location(Location {
+                path: Some(origin.to_owned()),
+                ..Location::default()
+            });
+        }
+        report.add_finding(f);
+    }
+    Ok(report)
 }
 
 /// Build an in-memory oxigraph store from external RDF data bytes, flattening any

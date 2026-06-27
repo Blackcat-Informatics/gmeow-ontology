@@ -516,8 +516,8 @@ fn errors_dict(py: Python<'_>, errors: Vec<String>) -> PyResult<Py<PyAny>> {
     report_dict(py, errors, Vec::new())
 }
 
-/// A gUFO anti-pattern check: `(store, cfg) -> errors`.
-type GufoCheck = fn(&oxigraph::store::Store, &GufoConfig) -> Vec<String>;
+/// A gUFO anti-pattern check: `(store, cfg) -> structured findings`.
+type GufoCheck = fn(&oxigraph::store::Store, &GufoConfig) -> Vec<gmeow_diagnostics::model::Finding>;
 
 /// Run one gUFO check over the merged sources (the production `validate_all`
 /// path passes file paths directly — no rdflib graph, #579).
@@ -529,7 +529,10 @@ fn run_reasoning_paths(
 ) -> PyResult<Py<PyAny>> {
     let store = build_store_or_err(&source_paths)?;
     let cfg = GufoConfig { namespace };
-    errors_dict(py, check(&store, &cfg))
+    errors_dict(
+        py,
+        check(&store, &cfg).into_iter().map(|f| f.message).collect(),
+    )
 }
 
 /// Run one gUFO check over an N-Triples graph string (the test-shim seam: a
@@ -543,7 +546,10 @@ fn run_reasoning_nt(
 ) -> PyResult<Py<PyAny>> {
     let store = build_store_from_nt_or_err(data_nt)?;
     let cfg = GufoConfig { namespace };
-    errors_dict(py, check(&store, &cfg))
+    errors_dict(
+        py,
+        check(&store, &cfg).into_iter().map(|f| f.message).collect(),
+    )
 }
 
 /// The aggregate gUFO/UFO reasoning invariants over the merged sources (mirrors
@@ -560,7 +566,7 @@ fn reasoning_invariants(
             "reasoning_invariants: paths to check must not be empty",
         ));
     }
-    run_reasoning_paths(py, gufo::reasoning_invariants, source_paths, namespace)
+    run_reasoning_paths(py, gufo::reasoning_findings, source_paths, namespace)
 }
 
 /// The aggregate reasoning invariants over an N-Triples graph (test-shim seam).
@@ -570,7 +576,7 @@ fn reasoning_invariants_nt(
     data_nt: &str,
     namespace: String,
 ) -> PyResult<Py<PyAny>> {
-    run_reasoning_nt(py, gufo::reasoning_invariants, data_nt, namespace)
+    run_reasoning_nt(py, gufo::reasoning_findings, data_nt, namespace)
 }
 
 /// `exactly_one_stereotype` over an N-Triples graph (test-shim seam).
