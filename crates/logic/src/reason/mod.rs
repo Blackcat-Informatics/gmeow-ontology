@@ -36,10 +36,30 @@ use crate::store::WorldStore;
 use gmeow_rdf::RdfDataset;
 
 /// The content-addressed identity of the native EL/DL/RL reasoning contract —
-/// the `contract_hash` every native-reason result is produced under. Content of
-/// the fixed rule set, so a change to the calculus changes the hash.
+/// the `contract_hash` every native-reason result is produced under.
+///
+/// The hash covers ALL source that defines the reasoning contract:
+/// * the three fixed rule texts (`dl_rules()`, `EL_RULES`, `RL_RULES`) whose
+///   change alters which axioms the Nemo chase derives;
+/// * the full source of `dl.rs`, which owns the post-pass functions
+///   `augment_inferred_with_dl`, `verdict_from_inferred`, `scan_coverage`, and
+///   `classify_coverage` — any edit to those changes the contract semantics even
+///   when the rule text is unchanged;
+/// * the source of this file (`mod.rs`), which owns the `run_reasoning` and
+///   `reason_closure` orchestration glue.
+///
+/// A change to any of these files will produce a different hash, invalidating
+/// cached results produced under the old contract.
 fn native_contract_hash() -> String {
-    crate::provenance::sha1_hex(&dl::dl_rules())
+    let contract = format!(
+        "{dl_rules}\n{el_rules}\n{rl_rules}\n{dl_src}\n{mod_src}",
+        dl_rules = dl::dl_rules(),
+        el_rules = el::EL_RULES,
+        rl_rules = rl::RL_RULES,
+        dl_src = include_str!("dl.rs"),
+        mod_src = include_str!("mod.rs"),
+    );
+    crate::provenance::sha1_hex(&contract)
 }
 
 /// Run the native single-chase pipeline and return the shared
