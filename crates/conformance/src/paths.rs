@@ -50,10 +50,29 @@ pub fn case_dir(profile_json: &Path) -> PathBuf {
     dir.unwrap_or(profile_json).to_path_buf()
 }
 
-/// The stable `<category>/<case>` identifier for a case directory.
+/// The stable case identifier: the case directory path RELATIVE to the `cases/`
+/// root.
 ///
-/// Mirrors the Python runner's `case_id = f"{case_dir.parent.name}/{case_dir.name}"`.
+/// For the standard two-level layout this is `<category>/<case>` (byte-identical to
+/// the historical `parent.name/name` form). For a vendored external corpus at the
+/// documented three-level depth it is `external/<corpus>/<case>` (#753) — so the
+/// `external/` prefix is preserved and two corpora cannot collide with a non-external
+/// category. The id is computed by joining every path component AFTER the last
+/// `cases` component, which works for both absolute paths (the `conformance-report`
+/// binary) and the relative paths the datatest harness passes.
 pub fn case_id(case_dir: &Path) -> String {
+    let comps: Vec<&str> = case_dir
+        .components()
+        .filter_map(|c| c.as_os_str().to_str())
+        .collect();
+    if let Some(pos) = comps.iter().rposition(|c| *c == "cases") {
+        let rel = &comps[pos + 1..];
+        if !rel.is_empty() {
+            return rel.join("/");
+        }
+    }
+    // Fallback for paths with no `cases` component (e.g. synthetic temp dirs in
+    // unit tests): the historical `parent.name/name` form.
     let name = case_dir
         .file_name()
         .and_then(|s| s.to_str())
@@ -82,6 +101,20 @@ mod tests {
     #[test]
     fn case_id_is_category_slash_case() {
         let dir = Path::new("/repo/conformance/logic/cases/foundation/free-role");
+        assert_eq!(case_id(dir), "foundation/free-role");
+    }
+
+    #[test]
+    fn case_id_preserves_external_prefix_for_three_level_cases() {
+        // A vendored external corpus case keeps its `external/` prefix (#753).
+        let dir = Path::new("/repo/conformance/logic/cases/external/w3c-mini/clash");
+        assert_eq!(case_id(dir), "external/w3c-mini/clash");
+    }
+
+    #[test]
+    fn case_id_works_on_relative_harness_paths() {
+        // The datatest harness passes paths relative to the crate dir.
+        let dir = Path::new("../../conformance/logic/cases/foundation/free-role");
         assert_eq!(case_id(dir), "foundation/free-role");
     }
 }
