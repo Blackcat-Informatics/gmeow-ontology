@@ -208,9 +208,15 @@ pub fn emit_analysis_graph(
     .unwrap();
     writeln!(body).unwrap();
 
-    // Graph-level provenance node.
+    // Graph-level provenance node. This is generated A-Box instance data folded
+    // into the bundle, not vocabulary surface: it carries a human label, its own
+    // named-graph provenance anchor, and the assertional `gmeow:boxABox` role so
+    // it satisfies the assertional-tier validation contract (no `skos:definition`).
     writeln!(body, "<{ANALYSIS_GRAPH_IRI}>").unwrap();
     writeln!(body, "    a <{GMEOW_NS}SliceAnalysisGraph> ;").unwrap();
+    writeln!(body, "    rdfs:label \"Slice analysis graph\" ;").unwrap();
+    writeln!(body, "    rdfs:isDefinedBy <{ANALYSIS_GRAPH_IRI}> ;").unwrap();
+    writeln!(body, "    <{GMEOW_NS}graphBoxRole> <{GMEOW_NS}boxABox> ;").unwrap();
     writeln!(
         body,
         "    <{GMEOW_NS}bundleContentId> {content_id:?}^^xsd:string ;"

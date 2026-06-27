@@ -264,18 +264,89 @@ pub fn structural_lint(store: &Store, cfg: &LintConfig) -> LintReport {
         }
     }
 
+    // The obligation contract has two tiers, decided by the subject's own
+    // provenance and self-declared graph-box role — never by excluding a
+    // namespace. Vocabulary surface (classes, properties, datatypes, and the
+    // value-vocabulary individuals authored in a slice) carries the full
+    // annotation quartet. Generated A-Box payload — documentation projections,
+    // diagnostics findings, verify/release attestations folded into the GTS
+    // bundle — is assertional instance data, not vocabulary surface: it must be
+    // typed, labelled, provenance-anchored to its named graph, and box-role
+    // tagged, but `skos:definition` is not vocabulary-surface for it.
+    //
+    // An `"individual"`-bucketed subject takes the assertional tier only when it
+    // EARNS the relaxation: it self-declares `gmeow:graphBoxRole gmeow:boxABox`
+    // AND anchors `rdfs:isDefinedBy` to a recognized `<namespace>graph/…` named
+    // graph. "Defined by a slice" wins first (so a slice individual that also
+    // carries `boxABox` stays on the full quartet), and "merely not a slice"
+    // never qualifies — a missing/bogus provenance target keeps the full quartet
+    // and still hard-fails. Precompute both provenance sets in one scan each,
+    // mirroring the `self_defined` precompute above (no per-term `new_unchecked`
+    // on arbitrary strings, no O(terms × scans) regression on the ~1300-subject
+    // bundle).
+    let slice_prefix = format!("{}slices/", cfg.namespace);
+    let graph_prefix = format!("{}graph/", cfg.namespace);
+    let mut slice_defined: std::collections::HashSet<oxigraph::model::NamedNode> =
+        std::collections::HashSet::new();
+    let mut graph_defined: std::collections::HashSet<oxigraph::model::NamedNode> =
+        std::collections::HashSet::new();
+    for quad in store
+        .quads_for_pattern(None, Some(rdfs::IS_DEFINED_BY), None, None)
+        .flatten()
+    {
+        let Term::NamedNode(object) = &quad.object else {
+            continue;
+        };
+        let NamedOrBlankNode::NamedNode(subject) = quad.subject else {
+            continue;
+        };
+        if object.as_str().starts_with(slice_prefix.as_str()) {
+            slice_defined.insert(subject);
+        } else if object.as_str().starts_with(graph_prefix.as_str()) {
+            graph_defined.insert(subject);
+        }
+    }
+    // Subjects that self-declare the assertional role `gmeow:graphBoxRole
+    // gmeow:boxABox`. Declaration (not validity) gates the tier; the role-typing
+    // check below still fires if `boxABox` is somehow not a `gmeow:GraphBoxRole`.
+    let abox_role = ns_node(cfg, "boxABox");
+    let mut abox_declared: std::collections::HashSet<oxigraph::model::NamedNode> =
+        std::collections::HashSet::new();
+    for quad in store
+        .quads_for_pattern(
+            None,
+            Some(graph_box_role.as_ref()),
+            Some((&abox_role).into()),
+            None,
+        )
+        .flatten()
+    {
+        if let NamedOrBlankNode::NamedNode(subject) = quad.subject {
+            abox_declared.insert(subject);
+        }
+    }
+
     // 1. Per-term required annotations (sorted by IRI — BTreeMap iterates sorted).
     for (term, kind) in &typed {
         let subject = oxigraph::model::NamedNode::new_unchecked(term);
         if subject == self_node || self_defined.contains(&subject) {
             continue;
         }
+        // Assertional tier: an `"individual"` not slice-defined (slice wins
+        // first), anchored to a `<namespace>graph/…` provenance graph, that
+        // self-declares `gmeow:boxABox`. Such generated instance data is exempt
+        // from the `skos:definition` requirement only — it must still carry the
+        // type, label, provenance link, and a valid box role.
+        let assertional = kind == "individual"
+            && !slice_defined.contains(&subject)
+            && graph_defined.contains(&subject)
+            && abox_declared.contains(&subject);
         if !has_predicate(store, term, rdfs::LABEL) {
             report
                 .errors
                 .push(format!("{kind} {term} is missing rdfs:label"));
         }
-        if !has_predicate(store, term, skos::DEFINITION) {
+        if !assertional && !has_predicate(store, term, skos::DEFINITION) {
             report
                 .errors
                 .push(format!("{kind} {term} is missing skos:definition"));
@@ -830,6 +901,126 @@ mod tests {
                 .iter()
                 .any(|e| e.contains("roleAuthor") && e.contains("graphBoxRole")),
             "ordinary vocabulary individual must still be linted: {:?}",
+            report.errors
+        );
+    }
+
+    // A fully-annotated, slice-defined `gmeow:boxABox` role, mirroring its real
+    // kernel definition. Generated A-Box subjects reference it; it stays on the
+    // vocabulary tier (slice-defined) so it never pollutes assertional fixtures.
+    const ABOX_ROLE: &str = "gmeow:boxABox a gmeow:GraphBoxRole ;\n\
+           rdfs:label \"ABox role\" ;\n\
+           skos:definition \"Assertional graph role.\" ;\n\
+           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;\n\
+           gmeow:graphBoxRole ex:boxTBox .\n";
+
+    #[test]
+    fn structural_accepts_assertional_instance_without_definition() {
+        // Generated A-Box payload (here a diagnostics Finding) anchored to its
+        // named graph and self-declaring gmeow:boxABox is exempt from the
+        // skos:definition requirement only — type, label, provenance, and a
+        // valid box role are still present, so the subject is clean.
+        let store = store_from(&format!(
+            "{PREFIXES}{ROLE}{ABOX_ROLE}\
+             gmeow:diagnostics/finding/abc-0 a gmeow:Finding ;\n\
+               rdfs:label \"SH001: example finding\" ;\n\
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ;\n\
+               gmeow:graphBoxRole gmeow:boxABox .\n"
+        ));
+        let report = structural_lint(&store, &cfg());
+        assert!(
+            !report.errors.iter().any(|e| e.contains("finding/abc-0")),
+            "well-formed assertional instance must be clean: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn structural_flags_assertional_instance_missing_label() {
+        // The assertional tier relaxes skos:definition, NOT the label — a
+        // generated subject without rdfs:label is still under-specified.
+        let store = store_from(&format!(
+            "{PREFIXES}{ROLE}{ABOX_ROLE}\
+             gmeow:diagnostics/finding/abc-1 a gmeow:Finding ;\n\
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ;\n\
+               gmeow:graphBoxRole gmeow:boxABox .\n"
+        ));
+        let report = structural_lint(&store, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("finding/abc-1") && e.contains("rdfs:label")),
+            "assertional instance missing label must still error: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn structural_flags_assertional_instance_missing_box_role() {
+        // Anchored to a graph but NOT self-declaring gmeow:boxABox: the
+        // relaxation is not earned, so the full quartet applies and the missing
+        // role (and definition) still fire.
+        let store = store_from(&format!(
+            "{PREFIXES}{ROLE}{ABOX_ROLE}\
+             gmeow:diagnostics/finding/abc-2 a gmeow:Finding ;\n\
+               rdfs:label \"SH002: example finding\" ;\n\
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .\n"
+        ));
+        let report = structural_lint(&store, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("finding/abc-2") && e.contains("missing gmeow:graphBoxRole")),
+            "assertional instance without boxABox must still error: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn structural_denies_relaxation_without_graph_provenance() {
+        // Self-declares gmeow:boxABox and carries a label, but isDefinedBy points
+        // at an arbitrary non-graph, non-slice IRI. "Not a slice" alone must NOT
+        // earn the assertional relaxation — the skos:definition requirement still
+        // applies, proving the relaxation is a positive, earned obligation.
+        let store = store_from(&format!(
+            "{PREFIXES}{ROLE}{ABOX_ROLE}\
+             gmeow:diagnostics/finding/abc-3 a gmeow:Finding ;\n\
+               rdfs:label \"SH003: example finding\" ;\n\
+               rdfs:isDefinedBy <https://example.org/somewhere> ;\n\
+               gmeow:graphBoxRole gmeow:boxABox .\n"
+        ));
+        let report = structural_lint(&store, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("finding/abc-3") && e.contains("skos:definition")),
+            "bogus provenance must not earn the relaxation: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn structural_keeps_slice_individual_on_vocabulary_tier() {
+        // Branch-order invariant: a slice-defined individual that ALSO carries
+        // gmeow:boxABox must stay on the vocabulary tier (slice check wins
+        // first), so a missing skos:definition still fires.
+        let store = store_from(&format!(
+            "{PREFIXES}{ROLE}{ABOX_ROLE}\
+             gmeow:sensitivityPublic a gmeow:SensitivityLevel ;\n\
+               rdfs:label \"public\" ;\n\
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;\n\
+               gmeow:graphBoxRole gmeow:boxABox .\n"
+        ));
+        let report = structural_lint(&store, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("sensitivityPublic") && e.contains("skos:definition")),
+            "slice individual must stay on the vocabulary tier: {:?}",
             report.errors
         );
     }

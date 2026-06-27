@@ -289,7 +289,7 @@ CREATE (n:Resource {uri: "gmeow:examples/verificationresult-fabrication-001"});
 
 CREATE (n:Resource {uri: "gmeow:fixtureMathRockWork"});
 
-CREATE (n:Resource {uri: "gmeow:fixtureRomanNumeralClaim"});
+CREATE (n:Resource {uri: "gmeow:fixtureRomanNumeralGermanSixthClaim"});
 
 CREATE (n:Resource {uri: "gmeow:genderWoman"});
 
@@ -338,7 +338,6 @@ MATCH (a), (b) WHERE a.uri = "gmeow:examples/rights/photo-copyright" AND b.uri =
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-self-deception-001" AND b.uri = "gmeow:examples/standpointclaim-self-deception-held-001" CREATE (a)-[:heldStandpoint {assertedAt: "2026-06-06T00:00:00Z", confidence: 0.6}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-forgery-001" AND b.uri = "gmeow:examples/standpointclaim-forgery-held-001" CREATE (a)-[:heldStandpoint {assertedAt: "2026-06-09T00:00:00Z", confidence: 0.8}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/participation-disinformation-origin-deceiver-001" AND b.uri = "gmeow:roleDeceiver" CREATE (a)-[:participationRole {assertedAt: "2026-06-11T00:00:00Z", confidence: 0.9}]->(b);
-MATCH (a), (b) WHERE a.uri = "gmeow:fixtureRomanNumeralClaim" AND b.uri = "gmeow:harmonicFunctionGermanSixth" CREATE (a)-[:analysisResult {accordingTo: "gmeow:examples/music/ai-chord-model-v3", assertedAt: "2026-06-14T00:00:00Z", confidence: 0.72, mappedFrom: "gmeow:examples/music/ai-chord-model-v3", standpointModality: "gmeow:unequivocal"}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-disinformation-001" AND b.uri = "gmeow:examples/standpointclaim-disinformation-origin-intent-001" CREATE (a)-[:deceptiveIntentClaim {accordingTo: "gmeow:examples/standpoint-investigator", assertedAt: "2026-06-11T00:00:00Z", confidence: 0.8}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/telling-social-post-001" AND b.uri = "gmeow:examples/telling-article-001" CREATE (a)-[:propagatesFrom {accordingTo: "gmeow:examples/standpoint-factchecker", assertedAt: "2026-05-10T00:00:00Z", confidence: 0.78}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/attestation-factcheck-001" AND b.uri = "gmeow:attestationTypeFactCheck" CREATE (a)-[:attestationType {accordingTo: "gmeow:examples/standpoint-factchecker", assertedAt: "2026-02-01T00:00:00Z", confidence: 0.92}]->(b);
@@ -401,6 +400,7 @@ MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-paltering-held-001"
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-deception-001" AND b.uri = "gmeow:examples/standpointclaim-held-001" CREATE (a)-[:heldStandpoint {assertedAt: "2026-01-15T00:00:00Z", confidence: 0.75}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-downstream-reshare-001" AND b.uri = "gmeow:examples/standpointclaim-downstream-belief-001" CREATE (a)-[:projectedStandpoint {assertedAt: "2026-06-11T00:00:00Z", confidence: 0.6}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-disinformation-origin-held-001" AND b.uri = "gmeow:refuted" CREATE (a)-[:claimModality {accordingTo: "gmeow:examples/standpoint-investigator", assertedAt: "2026-06-11T00:00:00Z", confidence: 0.85}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:fixtureRomanNumeralGermanSixthClaim" AND b.uri = "gmeow:harmonicFunctionGermanSixth" CREATE (a)-[:analysisResult {accordingTo: "gmeow:examples/music/ai-chord-model-v3", assertedAt: "2026-06-14T00:00:00Z", confidence: 0.72, mappedFrom: "gmeow:examples/music/ai-chord-model-v3", standpointModality: "gmeow:unequivocal"}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-downstream-belief-001" AND b.uri = "gmeow:veridicalityUntrue" CREATE (a)-[:claimVeridicality {accordingTo: "gmeow:examples/standpoint-investigator", assertedAt: "2026-06-11T00:00:00Z", confidence: 0.75}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/telling-dupe-post-001" AND b.uri = "gmeow:examples/telling-origin-article-001" CREATE (a)-[:propagatesFrom {accordingTo: "gmeow:examples/standpoint-investigator", assertedAt: "2026-06-11T00:00:00Z", confidence: 0.75}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-deception-001" AND b.uri = "gmeow:examples/standpointclaim-projected-001" CREATE (a)-[:projectedStandpoint {assertedAt: "2026-01-15T00:00:00Z", confidence: 0.9}]->(b);

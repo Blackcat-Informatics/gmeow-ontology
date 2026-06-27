@@ -47,6 +47,8 @@ pub const GRAPH_ATTESTATIONS: &str = "https://blackcatinformatics.ca/gmeow/graph
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 
 /// The `rep` tag every release-evidence report blob carries, so a repo-free
 /// consumer can recover each artifact by digest from this single channel.
@@ -431,6 +433,15 @@ fn build_attestations_nquads(
         lines.push(format!("{s} {p} {o} {g} ."));
     };
 
+    // Every minted attestation subject is generated A-Box instance data folded
+    // into `graph/attestations`, not vocabulary surface: tag each typed subject
+    // with a human label, its named-graph provenance anchor, and the assertional
+    // `gmeow:boxABox` role so the bundle satisfies the assertional-tier
+    // validation contract (no `skos:definition`).
+    let isdefinedby = iri(GRAPH_ATTESTATIONS);
+    let abox_role = gmeow("boxABox");
+    let box_role_pred = gmeow("graphBoxRole");
+
     // The attester is a software agent (the full-release lane).
     let attester = iri(attester_iri);
     quad(
@@ -438,6 +449,9 @@ fn build_attestations_nquads(
         &iri(RDF_TYPE),
         &iri(&format!("{GMEOW_NS}SoftwareAgent")),
     );
+    quad(&attester, &iri(RDFS_LABEL), &literal("Release attester"));
+    quad(&attester, &iri(RDFS_IS_DEFINED_BY), &isdefinedby);
+    quad(&attester, &box_role_pred, &abox_role);
 
     // --- Top-level release-manifest attestation over the whole bundle. --------
     let manifest = iri(&format!(
@@ -448,6 +462,13 @@ fn build_attestations_nquads(
         &iri(RDF_TYPE),
         &iri(&format!("{GMEOW_NS}Attestation")),
     );
+    quad(
+        &manifest,
+        &iri(RDFS_LABEL),
+        &literal("Release manifest attestation"),
+    );
+    quad(&manifest, &iri(RDFS_IS_DEFINED_BY), &isdefinedby);
+    quad(&manifest, &box_role_pred, &abox_role);
     quad(&manifest, &gmeow("attester"), &attester);
     quad(
         &manifest,
@@ -484,19 +505,30 @@ fn build_attestations_nquads(
             &literal(&ev.media_type),
         );
         quad(&artifact, &gmeow("contentDigest"), &literal(digest));
-        if !ev.subject_label.is_empty() {
-            quad(
-                &artifact,
-                &iri("http://www.w3.org/2000/01/rdf-schema#label"),
-                &literal(&ev.subject_label),
-            );
-        }
+        // Always carry a label: the evidence's own subject label when present,
+        // else a content-derived fallback, so the artifact is never an
+        // under-specified A-Box subject.
+        let artifact_label = if ev.subject_label.is_empty() {
+            format!("Attestation artifact {key}")
+        } else {
+            ev.subject_label.clone()
+        };
+        quad(&artifact, &iri(RDFS_LABEL), &literal(&artifact_label));
+        quad(&artifact, &iri(RDFS_IS_DEFINED_BY), &isdefinedby);
+        quad(&artifact, &box_role_pred, &abox_role);
 
         quad(
             &attestation,
             &iri(RDF_TYPE),
             &iri(&format!("{GMEOW_NS}Attestation")),
         );
+        quad(
+            &attestation,
+            &iri(RDFS_LABEL),
+            &literal(&format!("Release evidence attestation {key}")),
+        );
+        quad(&attestation, &iri(RDFS_IS_DEFINED_BY), &isdefinedby);
+        quad(&attestation, &box_role_pred, &abox_role);
         quad(&attestation, &gmeow("attester"), &attester);
         quad(
             &attestation,
@@ -698,6 +730,59 @@ mod tests {
             &armor,
         )
         .expect("fold release bundle")
+    }
+
+    /// Release attestations are not folded into the dev `gmeow.gts` bundle that
+    /// `make validate-gts` checks, so guard the minted attestation graph against
+    /// the SAME structural-lint contract here: every typed attestation subject
+    /// must satisfy the assertional tier (type + label + named-graph provenance +
+    /// valid `gmeow:boxABox` role). Without this the release-path annotations
+    /// would be correctness no gate validates.
+    #[test]
+    fn minted_attestations_satisfy_the_assertional_contract() {
+        use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+        use gmeow_rdf::parse_dataset;
+        use gmeow_validate::lint::{default_annotation_predicates, structural_lint, LintConfig};
+
+        let mut sorted: Vec<(String, EvidenceInput)> = evidence_inputs()
+            .into_iter()
+            .map(|ev| (digest_string(&ev.data), ev))
+            .collect();
+        sorted.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.rep.cmp(&b.1.rep)));
+        let nq = build_attestations_nquads(
+            &sorted,
+            "https://blackcatinformatics.ca/gmeow/agent/release-lane",
+            "2026-06-25T00:00:00Z",
+            "https://blackcatinformatics.ca/gmeow/release/gmeow.gts",
+        );
+
+        // The bundle supplies `gmeow:boxABox a gmeow:GraphBoxRole` from the kernel
+        // slice; add it here so the role-typing check has its declaration.
+        let doc = format!(
+            "{nq}<{GMEOW_NS}boxABox> <{RDF_TYPE}> <{GMEOW_NS}GraphBoxRole> <{GRAPH_ATTESTATIONS}> .\n"
+        );
+        let dataset = parse_dataset(doc.as_bytes(), "application/n-quads", None).unwrap();
+        let store = store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).unwrap();
+
+        let cfg = LintConfig {
+            namespace: GMEOW_NS.to_string(),
+            ontology_iri: GMEOW_NS.trim_end_matches('/').to_string(),
+            selector_tokens: Default::default(),
+            core_slice_iris: Default::default(),
+            annotation_predicates: default_annotation_predicates().into_iter().collect(),
+        };
+        let report = structural_lint(&store, &cfg);
+        let attestation_errors: Vec<&String> = report
+            .errors
+            .iter()
+            .filter(|e| {
+                e.contains("/attestation/") || e.contains("/artifact/") || e.contains("agent/")
+            })
+            .collect();
+        assert!(
+            attestation_errors.is_empty(),
+            "minted attestation subjects must satisfy the assertional contract: {attestation_errors:?}"
+        );
     }
 
     #[test]

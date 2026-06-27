@@ -14,6 +14,7 @@
 <https://blackcatinformatics.ca/gmeow/self>
     a owl:Ontology ;
     rdfs:label "GMEOW Self-Description"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
     owl:imports <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -277,11 +278,29 @@
     gmeow:isAbout :social-preview-png ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
 
+# The brand media below are concrete gmeow:MediaObjects — a gmeow:Manifestation
+# subclass — so under WEMI each must embody an Expression that realizes a Work
+# (the same Work←realizes←Expression←embodies←Manifestation chain backing the
+# 0.1.0 publication). The GMEOW visual identity is that Work.
+:visual-identity
+    a gmeow:Work ;
+    rdfs:label "GMEOW visual identity"@x-gmeow-english ;
+    skos:definition "The abstract visual brand identity of GMEOW — the black-cat-holding-a-knowledge-graph emblem and the project's social-preview card design — realized as logo and preview-card expressions."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> .
+
+:visual-identity-design
+    a gmeow:Expression ;
+    rdfs:label "GMEOW visual identity design"@x-gmeow-english ;
+    skos:definition "The realized design expression of the GMEOW visual identity, embodied by the logo and social-preview media objects."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
+    gmeow:realizes :visual-identity .
+
 :logo-svg
     a gmeow:MediaObject ;
     rdfs:label "GMEOW logo SVG"@x-gmeow-english ;
     skos:definition "The canonical GMEOW logo: a black cat holding a linked knowledge graph. It is the emblematic logo for the ontology and project, not a depiction of them."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
+    gmeow:embodies :visual-identity-design ;
     gmeow:mediaType "image/svg+xml" ;
     gmeow:sourceLocation "docs/gmeow-logo.svg" ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
@@ -291,6 +310,7 @@
     rdfs:label "GMEOW social preview SVG"@x-gmeow-english ;
     skos:definition "The editable SVG source for the GMEOW repository social preview card."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
+    gmeow:embodies :visual-identity-design ;
     gmeow:mediaType "image/svg+xml" ;
     gmeow:pixelWidth "1280"^^xsd:nonNegativeInteger ;
     gmeow:pixelHeight "640"^^xsd:nonNegativeInteger ;
@@ -303,6 +323,7 @@
     rdfs:label "GMEOW social preview PNG"@x-gmeow-english ;
     skos:definition "The rendered PNG social preview card uploaded through GitHub repository settings."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
+    gmeow:embodies :visual-identity-design ;
     gmeow:mediaType "image/png" ;
     gmeow:pixelWidth "1280"^^xsd:nonNegativeInteger ;
     gmeow:pixelHeight "640"^^xsd:nonNegativeInteger ;

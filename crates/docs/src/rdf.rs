@@ -21,6 +21,9 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 /// The named graph the documentation projection lives in.
 const DOCUMENTATION_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/documentation";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 
 /// Project the documentation model into the `gmeow:` RDF vocabulary as N-Quads,
@@ -50,6 +53,26 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
         lines.push(format!("{s} <{p}> {o} {graph} ."));
     };
     let literal = |value: &str| format!("\"{}\"", nq_escape(value));
+
+    // Every projected subject is generated A-Box instance data, not vocabulary
+    // surface: tag it with a human label, a derived definition-equivalent, its
+    // named-graph provenance anchor, and the assertional `gmeow:boxABox` role so
+    // the folded bundle satisfies the assertional-tier validation contract while
+    // staying genuinely self-describing (the validator requires the box role and
+    // a provenance link on every materialized individual).
+    let role_object = format!("<{GMEOW}boxABox>");
+    let isdefinedby_object = format!("<{DOCUMENTATION_GRAPH}>");
+    let annotate = |subject: &str, label: &str, definition: &str, lines: &mut Vec<String>| {
+        triple(subject, RDFS_LABEL, &literal(label), lines);
+        triple(subject, SKOS_DEFINITION, &literal(definition), lines);
+        triple(subject, RDFS_IS_DEFINED_BY, &isdefinedby_object, lines);
+        triple(
+            subject,
+            &format!("{GMEOW}graphBoxRole"),
+            &role_object,
+            lines,
+        );
+    };
 
     // Terms (model.terms is IRI-sorted).
     for term in &model.terms {
@@ -91,6 +114,16 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             &format!("<{}>", term.owner_slice),
             &mut lines,
         );
+        annotate(
+            &subject,
+            &format!("Documentation entry: {}", term.curie),
+            &format!(
+                "Documentation projection for {} ({}).",
+                term.iri,
+                category_name(term.category)
+            ),
+            &mut lines,
+        );
     }
 
     // Slices (model.slices is IRI-sorted).
@@ -113,6 +146,12 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             &subject,
             &format!("{GMEOW}docUrl"),
             &literal(&format!("slices/{slug}/index.html")),
+            &mut lines,
+        );
+        annotate(
+            &subject,
+            &format!("Documentation entry: slice {slug}"),
+            &format!("Documentation projection for slice {}.", slice.iri),
             &mut lines,
         );
     }
@@ -139,12 +178,19 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             &literal(&format!("concerns/{slug}/index.html")),
             &mut lines,
         );
+        annotate(
+            &subject,
+            &format!("Documentation entry: concern {slug}"),
+            &format!("Documentation projection for concern {}.", concern.iri),
+            &mut lines,
+        );
     }
 
     // Mapping sets (model.mapping_sets is IRI-sorted). All link to the single
     // linkages index page.
     for set in &model.mapping_sets {
-        let subject = format!("<{GMEOW}documentation/mapping-set/{}>", set_slug(&set.iri));
+        let slug = set_slug(&set.iri);
+        let subject = format!("<{GMEOW}documentation/mapping-set/{slug}>");
         triple(
             &subject,
             RDF_TYPE,
@@ -161,6 +207,12 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             &subject,
             &format!("{GMEOW}docUrl"),
             &literal("linkages/index.html"),
+            &mut lines,
+        );
+        annotate(
+            &subject,
+            &format!("Documentation entry: mapping set {slug}"),
+            &format!("Documentation projection for mapping set {}.", set.iri),
             &mut lines,
         );
     }

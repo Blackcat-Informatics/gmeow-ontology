@@ -1312,11 +1312,19 @@ fn emit_verify_attestation(
     writeln!(body).unwrap();
 
     let ontology_iri = GMEOW_NS.trim_end_matches('/');
+    // The verify activity and per-query assessments are generated A-Box
+    // instance data folded into the bundle's `graph/verify`, not vocabulary
+    // surface: each typed subject carries a human label, its named-graph
+    // provenance anchor, and the assertional `gmeow:boxABox` role so the bundle
+    // satisfies the assertional-tier validation contract (no `skos:definition`).
     writeln!(
         body,
         "<{GMEOW_NS}activity/native-verify> a <{GMEOW_NS}Activity> ;"
     )
     .unwrap();
+    writeln!(body, "    rdfs:label \"Native verify activity\" ;").unwrap();
+    writeln!(body, "    rdfs:isDefinedBy <{GMEOW_NS}graph/verify> ;").unwrap();
+    writeln!(body, "    gmeow:graphBoxRole gmeow:boxABox ;").unwrap();
     writeln!(
         body,
         "    <{GMEOW_NS}wasAssociatedWith> <{GMEOW_NS}agent/native-verify> ."
@@ -1329,6 +1337,9 @@ fn emit_verify_attestation(
         let passed = !failed.contains(stem);
         writeln!(body, "<{GMEOW_NS}verify-attestation/{stem}>").unwrap();
         writeln!(body, "    a <{GMEOW_NS}QualityAssessment> ;").unwrap();
+        writeln!(body, "    rdfs:label \"Verify attestation: {stem}\" ;").unwrap();
+        writeln!(body, "    rdfs:isDefinedBy <{GMEOW_NS}graph/verify> ;").unwrap();
+        writeln!(body, "    gmeow:graphBoxRole gmeow:boxABox ;").unwrap();
         writeln!(body, "    <{GMEOW_NS}assessedEntity> <{ontology_iri}> ;").unwrap();
         writeln!(
             body,

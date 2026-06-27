@@ -59,6 +59,7 @@ class AestheticQualityEnum(str, Enum):
 
 class AgentEnum(str, Enum):
     fixtureAnalystA = "fixtureAnalystA"
+    fixtureAnalystAI = "fixtureAnalystAI"
     fixtureHumanListener = "fixtureHumanListener"
     fixtureKiranaGharanaStandpoint = "fixtureKiranaGharanaStandpoint"
     fixtureMIRAgent = "fixtureMIRAgent"
@@ -1626,6 +1627,7 @@ class MultipartTypeEnum(str, Enum):
 
 class MusicAnalysisClaimEnum(str, Enum):
     fixtureRomanNumeralClaim = "fixtureRomanNumeralClaim"
+    fixtureRomanNumeralGermanSixthClaim = "fixtureRomanNumeralGermanSixthClaim"
 
 
 class MusicalParameterEnum(str, Enum):
