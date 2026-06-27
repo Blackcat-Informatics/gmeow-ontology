@@ -39,7 +39,8 @@
 use std::collections::BTreeSet;
 use std::fmt;
 
-use crate::compile::ir::{PreservationKind, LOGIC_NAMESPACE};
+use gmeow_logic_compile::ir::{PreservationKind, LOGIC_NAMESPACE};
+
 use crate::probabilistic::ProbBinding;
 use crate::query_ir::Binding;
 use crate::reason::el::InferredAxiom;

@@ -4,7 +4,7 @@
 //! Unit tests for the typed `logic:ReasoningResult` model (#768, ME2).
 
 use super::*;
-use crate::compile::ir::PreservationKind;
+use gmeow_logic_compile::ir::PreservationKind;
 
 // ── Enum string round-trips (wire ↔ local-name ↔ variant) ──────────────────────
 
