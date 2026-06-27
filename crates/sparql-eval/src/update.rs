@@ -66,12 +66,7 @@ pub trait GraphResolver {
 /// conditions (`USING` unsupported, `LOAD` with no resolver, an internal eval
 /// error). `resolver` supplies the `LOAD` host seam (see [`GraphResolver`]); pass
 /// `None` to make any non-`SILENT` `LOAD` a hard error.
-// The in-crate caller is the engine UPDATE seam, wired in S10 Task 4 (the engine
-// stub is intentionally untouched here). Until then nothing in the non-test build
-// reaches this tree, so the dead-code lint would fire on the whole module; the
-// `#[allow]` roots the analysis at `eval_update` (its callees are then "used"). It
-// is removed when Task 4 wires `engine::update` to call this.
-#[allow(dead_code)]
+// The in-crate caller is the engine UPDATE seam (`engine::update`).
 pub(crate) fn eval_update(
     update: &Update,
     m: &mut MutableDataset,
