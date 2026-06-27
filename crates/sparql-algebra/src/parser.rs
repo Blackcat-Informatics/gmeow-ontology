@@ -1062,6 +1062,9 @@ impl Parser {
     /// SPARQL §19.6). Mints a fresh blank node, emits the embedded triples into
     /// the current block's `triples`/`paths`, and returns the blank node as a term
     /// for use in subject or object position.
+    ///
+    /// An empty `[]` (SPARQL ANON) is legal and simply mints a fresh blank node
+    /// without any associated predicate-object pairs.
     fn parse_blank_node_property_list(
         &mut self,
         triples: &mut Vec<TriplePattern>,
@@ -1069,7 +1072,9 @@ impl Parser {
     ) -> Result<TermPattern> {
         self.expect(&Token::LBracket)?;
         let node = TermPattern::BlankNode(self.fresh_anon());
-        self.parse_predicate_object_list(&node, triples, paths)?;
+        if !self.at(&Token::RBracket) {
+            self.parse_predicate_object_list(&node, triples, paths)?;
+        }
         self.expect(&Token::RBracket)?;
         Ok(node)
     }
@@ -3428,5 +3433,35 @@ mod tests {
         let body = unproject(select_pattern(&q));
         // (?s :has _:b), (_:b :a 1), (_:b :b 2) = three triples.
         assert_eq!(bgp_triple_count(&body), 3, "got {body:?}");
+    }
+
+    // ── empty anonymous blank node [] ─────────────────────────────────────────
+
+    #[test]
+    fn empty_blank_node_in_subject_position_parses() {
+        // `[] <p> <o>` — SPARQL ANON with no property list in subject position.
+        let q = format!("{GM}ASK {{ [] gmeow:p <http://ex/o> }}");
+        SparqlParser::new()
+            .parse_query(&q)
+            .expect("[] in subject position should parse without error");
+    }
+
+    #[test]
+    fn empty_blank_node_in_object_position_parses() {
+        // `<s> <p> []` — SPARQL ANON with no property list in object position.
+        let q = format!("{GM}ASK {{ <http://ex/s> gmeow:p [] }}");
+        SparqlParser::new()
+            .parse_query(&q)
+            .expect("[] in object position should parse without error");
+    }
+
+    #[test]
+    fn non_empty_blank_node_property_list_still_parses() {
+        // Regression guard: a non-empty `[ :p :o ]` must continue to work after
+        // the empty-[] fix.
+        let q = format!("{GM}ASK {{ <http://ex/s> gmeow:p [ gmeow:q <http://ex/o> ] }}");
+        SparqlParser::new()
+            .parse_query(&q)
+            .expect("non-empty blank-node property list should still parse");
     }
 }
