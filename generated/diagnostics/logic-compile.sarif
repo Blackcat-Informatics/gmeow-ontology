@@ -1,0 +1,506 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "artifacts": [
+        {
+          "location": {
+            "uri": "slices/core/logic/module.ttl"
+          }
+        }
+      ],
+      "results": [
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection datalog drops: OWL class expressions not representable as Datalog atoms are dropped"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7e71fc69c9d84ec1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection datalog drops: modal/world context flattened to predicate reification"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "55cd39e1bbeac3b4"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection datalog drops: no existential rule heads (skolemisation not emitted)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b8c6427d9820482b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: fluents / 4D temporal-part structure (logic:Fluent, logic:temporalPartOf, logic:Process, logic:Perdurant beyond gufo:Event) have no gUFO class and are dropped"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "93755e6ad9c1874f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: logic: world-modal/contextual structure has no gUFO equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "575015c32c19abd3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: logic:Mode (and Intrinsic/Extrinsic mode/aspect refinements) has no single gUFO base class as a projection target and is dropped (gufo:Aspect is emitted; gufo:Mode does not exist)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b6c85219921b4aed"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: multi-level / HiLog instantiation (logic:instanceOf, logic:orderedType — arbitrary type-of-type levels) has no gUFO punning equivalent and is dropped"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9c4123d5717b9d4b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: native builtins (logic:Builtin and the builtin individuals) have no gUFO class and are dropped"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1755087aadac1265"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: native edge-property metadata (RDF-1.2 statement-level scope on logic edges) has no gUFO equivalent and is dropped"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3f4964ae49dcc756"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: only gUFO-mapped sorts and structural predicates emitted"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3bdfdf72dd3d442c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: preservation kind is ValidationOnly: gUFO is an anti-pattern check, not an entailment surface"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "71a531871def08ca"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: rules not representable in gUFO; only type/subtype declarations kept"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "836ca7991f036789"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: scoped open/closed worlds (logic:WorldBoundary, logic:closedUnder, scoped-CWA) have no gUFO equivalent and are dropped"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "61216037ea69a0d8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: strict-partial-order parthood characteristics (asymmetric + irreflexive on logic:properPartOf) cannot be declared in OWL 2 DL gUFO (it only states transitivity) and are dropped"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9064dbe928ab014c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: the five gUFO temporary-situation reifiers (QualityValueAttributionSituation, TemporaryConstitution/Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by logic:Fluent + RDF-1.2 edge properties — not re-emitted by the down-projection"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "eb1efa981dc44a0d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection n3 drops: N3 builtins used for arithmetic/string predicates where available"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5e3f5fd7d615efb7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection n3 drops: modal context encoded as quoted graph arguments (may overgenerate)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "8e5529328a7176dd"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: contextual scope (standpoint, time, confidence) is dropped"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ffb5124f91b67869"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: modal/world context is erased"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1c15c383c12c73e7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: probabilistic profile not representable in OWL DL"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "da5b05e633780f44"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: rule bodies mapped to OWL axioms where OWL is expressive enough; existential rules beyond OWL DL expressivity are dropped"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "439ffa2c28c8a616"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: contextual scope (standpoint, time, confidence) is dropped"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2970d151c709ab28"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: modal/world context is erased"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0506e29d0dc2e834"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: only EL-safe axioms emitted (no disjointness, no inverseOf, no cardinality restrictions, no nominals)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "75ee8f26dacc80ee"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: rules beyond EL expressivity are dropped"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0fbd7de38a2fbbaf"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/Blackcat-Informatics/gmeow-ontology",
+          "name": "logic-compile",
+          "rules": [
+            {
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "id": "logic-compile.lossy-drop"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

@@ -49,6 +49,12 @@ fn spine() -> PipelineSpec {
                 &[],
             ),
             spec("stage-statements", StageKind::Transform, "statements", &[]),
+            spec(
+                "stage-compile-logic",
+                StageKind::Transform,
+                "compile_logic",
+                &[],
+            ),
             spec("stage-mappings", StageKind::Transform, "mappings", &[]),
             spec(
                 "stage-reason",
@@ -92,6 +98,7 @@ fn spine() -> PipelineSpec {
                 StageKind::Transform,
                 "snapshot",
                 &[
+                    "stage-compile-logic",
                     "stage-docs-render",
                     "stage-export-json-schema",
                     "stage-gts-compose",
@@ -119,7 +126,7 @@ fn executor_runs_the_spine_end_to_end() {
     // engine-lock derived) + Rust/RDF consumes+kind agreement against the registry.
     let graph = spec.validate().expect("spine DAG validates");
     let bound = bind(&spec, &graph, &default_registry()).expect("every spine stage binds");
-    assert_eq!(bound.len(), 10, "all 10 spine stages bound");
+    assert_eq!(bound.len(), 11, "all 11 spine stages bound");
 
     // Run over a temp cache so the test never writes into the repo tree.
     let cache_dir = tempfile::tempdir().unwrap();
@@ -127,7 +134,7 @@ fn executor_runs_the_spine_end_to_end() {
     ctx.cache = PipelineCache::open(cache_dir.path()).unwrap();
 
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs end-to-end");
-    assert_eq!(result.products.len(), 10);
+    assert_eq!(result.products.len(), 11);
 
     // The single Sink produced gmeow.gts.
     let sink = result.products.get("stage-gts-sink").expect("sink product");

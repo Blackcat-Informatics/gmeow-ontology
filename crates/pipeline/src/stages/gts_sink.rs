@@ -119,6 +119,15 @@ mod tests {
             "stage-validate".to_string(),
             StageProduct::from_artifacts("stage-validate", vd),
         );
+        // The snapshot now folds the compiler's loss ledger + diagnostics; provide the
+        // real stage-compile-logic product the SnapshotStage would consume.
+        let compile = crate::stages::compile_logic::CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &BTreeMap::new(),
+            })
+            .expect("compile-logic stage");
+        snap_upstream.insert("stage-compile-logic".to_string(), compile.product);
 
         let gts =
             crate::stages::snapshot::build_snapshot(&root, &snap_upstream, Vec::new(), Vec::new())

@@ -1,0 +1,280 @@
+{
+  "tool": "logic-compile",
+  "findings": [
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection datalog drops: OWL class expressions not representable as Datalog atoms are dropped",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection datalog drops: modal/world context flattened to predicate reification",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection datalog drops: no existential rule heads (skolemisation not emitted)",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: fluents / 4D temporal-part structure (logic:Fluent, logic:temporalPartOf, logic:Process, logic:Perdurant beyond gufo:Event) have no gUFO class and are dropped",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: logic: world-modal/contextual structure has no gUFO equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: logic:Mode (and Intrinsic/Extrinsic mode/aspect refinements) has no single gUFO base class as a projection target and is dropped (gufo:Aspect is emitted; gufo:Mode does not exist)",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: multi-level / HiLog instantiation (logic:instanceOf, logic:orderedType — arbitrary type-of-type levels) has no gUFO punning equivalent and is dropped",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: native builtins (logic:Builtin and the builtin individuals) have no gUFO class and are dropped",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: native edge-property metadata (RDF-1.2 statement-level scope on logic edges) has no gUFO equivalent and is dropped",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: only gUFO-mapped sorts and structural predicates emitted",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: preservation kind is ValidationOnly: gUFO is an anti-pattern check, not an entailment surface",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: rules not representable in gUFO; only type/subtype declarations kept",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: scoped open/closed worlds (logic:WorldBoundary, logic:closedUnder, scoped-CWA) have no gUFO equivalent and are dropped",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: strict-partial-order parthood characteristics (asymmetric + irreflexive on logic:properPartOf) cannot be declared in OWL 2 DL gUFO (it only states transitivity) and are dropped",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: the five gUFO temporary-situation reifiers (QualityValueAttributionSituation, TemporaryConstitution/Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by logic:Fluent + RDF-1.2 edge properties — not re-emitted by the down-projection",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection n3 drops: N3 builtins used for arithmetic/string predicates where available",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection n3 drops: modal context encoded as quoted graph arguments (may overgenerate)",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: contextual scope (standpoint, time, confidence) is dropped",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: modal/world context is erased",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: probabilistic profile not representable in OWL DL",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: rule bodies mapped to OWL axioms where OWL is expressive enough; existential rules beyond OWL DL expressivity are dropped",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: contextual scope (standpoint, time, confidence) is dropped",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: modal/world context is erased",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: only EL-safe axioms emitted (no disjointness, no inverseOf, no cardinality restrictions, no nominals)",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: rules beyond EL expressivity are dropped",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    }
+  ]
+}

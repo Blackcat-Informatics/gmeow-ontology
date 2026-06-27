@@ -17975,6 +17975,9 @@ enums:
   PipelineStageEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PipelineStage
     permissible_values:
+      stage-compile-logic:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-compile-logic
+        title: compile logic
       stage-docs-render:
         meaning: https://blackcatinformatics.ca/gmeow/stage-docs-render
         title: docs render
