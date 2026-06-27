@@ -33,6 +33,13 @@ logic:AbstractIndividualType
     skos:definition "A logic:Type whose instances are logic:AbstractIndividuals — the type whose extension (via logic:instanceOf) is drawn from individuals outside spacetime (numbers, sets, logic:QualityValues). The counterpart of gufo:AbstractIndividualType. Stated in prose, not as a subclass edge. Contrast logic:ConcreteIndividualType, whose instances are located in spacetime."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:ActionSchema
+    a owl:NamedIndividual ,
+        logic:NodeKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Action Schema"@x-gmeow-english ;
+    skos:definition "A named precondition / effect / invariant template that a transaction program may invoke: the reusable unit of state change. Distinct from the concrete transaction program that instantiates it, so a reusable schema is never conflated with a single state-changing run."@x-gmeow-english .
+
 logic:AdmissibleValuationPolicy
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -229,6 +236,13 @@ logic:ConcreteIndividualType
     skos:definition "A logic:Type whose instances are logic:ConcreteIndividuals — the type whose extension (via logic:instanceOf) is drawn from individuals located in spacetime (endurants and perdurants). The counterpart of gufo:ConcreteIndividualType; the umbrella over logic:EndurantType together with the type-of-perdurants. Stated in prose, not as a subclass edge. Contrast logic:AbstractIndividualType."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:Constraint
+    a owl:NamedIndividual ,
+        logic:NodeKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Constraint"@x-gmeow-english ;
+    skos:definition "An integrity condition whose violation is a finding, not a derivation: the node kind for a condition that detects bad data rather than producing new facts. Kept distinct from logic:DerivationRule so a check is never mistaken for a productive rule."@x-gmeow-english .
+
 logic:ConstraintBinding
     a owl:NamedIndividual ,
         logic:ConstraintVerdict ;
@@ -264,6 +278,13 @@ logic:ContextAxis
     skos:definition "The facet value class of one index axis of the multi-dimensional context facet. Context is multi-dimensional: a single result may be indexed simultaneously by world, standpoint, time, and path. Each logic:ContextAxis individual names one such axis; they coexist on one result rather than being alternative values of one slot."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:Correspondence
+    a owl:NamedIndividual ,
+        logic:NodeKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Correspondence"@x-gmeow-english ;
+    skos:definition "A law-bearing, possibly-lossy, possibly-bidirectional alignment between a source pattern and a target pattern: the ninth node kind. It carries its morphism class on an ordered law-spine, its claimed laws with discharge status, the separated quantitative axes, FOL/SOL caveats, and standpoint indexing; its get and put legs are transaction programs while its caveat-and-relation envelope is meta-level and stays meta. It is the single kind cross-ontology alignment compiles into, and from which the SSSOM, EDOAL, FnO, SPARQL, and up-lift surfaces are generated lowerings. Fully specified in design/LOGIC-CORRESPONDENCE.md."@x-gmeow-english .
+
 logic:DatalogFragment
     a owl:NamedIndividual ,
         logic:FormulaFragment ;
@@ -291,6 +312,13 @@ logic:DependencyModel
     rdfs:label "Dependency Model"@x-gmeow-english ;
     rdfs:subClassOf logic:ProbabilityModel ;
     skos:definition "A probability model carrying an EXPLICIT joint distribution over a correlated set of logic:probability facts: where logic:FullIndependence factorizes as a product, a dependency model substitutes a declared joint table (logic:correlates names the correlated facts; logic:jointOutcome enumerates the joint outcomes with their logic:jointProbability). Facts outside the correlated set remain independent and factorize as usual. The declared joint outcomes must be exhaustive and sum to one."@x-gmeow-english .
+
+logic:DerivationRule
+    a owl:NamedIndividual ,
+        logic:NodeKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Derivation Rule"@x-gmeow-english ;
+    skos:definition "A head entailed from a body: the productive subset of the IR, where satisfying the antecedents derives the consequent. Distinct from logic:Constraint, whose violation is reported as a finding rather than producing new assertions."@x-gmeow-english .
 
 logic:DesignateTrueAndBoth
     a owl:NamedIndividual ,
@@ -639,6 +667,13 @@ logic:MereologyProfile
     skos:definition "A declared scope within which the strong mereological axioms — weak supplementation above all — are taken to hold. Parthood is profiled, not universal: weak supplementation is true of functional complexes and quantities but false of many legitimate wholes (singleton-membered collectives, abstract aggregates, in-progress assemblies), so logic: scopes it to the MereologyProfile a whole is declared under (via logic:underMereologyProfile) rather than asserting it across all logic:properPartOf. A whole outside any profile is never charged with a logic:WeakSupplementation violation (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:MetaLevelFormula
+    a owl:NamedIndividual ,
+        logic:NodeKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Meta-Level Formula"@x-gmeow-english ;
+    skos:definition "A formula about formulas: a statement that quotes or ranges over other propositions, distinct from the propositions it mentions. Kept apart from the object level so a meta-level quotation cannot collapse into the object-level assertion it quotes; any holds or truth predicate over it is stratified so the IR cannot encode a self-referential paradox by accident."@x-gmeow-english .
+
 logic:MixIden
     a owl:NamedIndividual ,
         logic:Discipline ;
@@ -695,6 +730,12 @@ logic:NoUncertainty
     rdfs:label "No Uncertainty"@x-gmeow-english ;
     skos:definition "The uncertainty-measure value carrying no graded belief: reasoning is categorical. The default of the uncertainty set facet (the empty selection), contrasted with logic:ProbabilisticMeasure, logic:WeightedRankingMeasure, and logic:FuzzyMeasure, any combination of which may be in force at once."@x-gmeow-english .
 
+logic:NodeKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Node Kind"@x-gmeow-english ;
+    skos:definition "The typed-sum tag every node of the canonical logic: IR declares. The IR is a typed sum, not an untyped triple bag: each node names its kind, and the kind governs what may be done with it — keeping a constraint distinct from a derivation rule, a query operator from a program operator, and a meta-level quotation from the object-level assertion it quotes. Its individuals are the object-level formula, the meta-level formula, the constraint, the derivation rule, the query, the transaction program, the action schema, the validation shape, and the law-bearing correspondence."@x-gmeow-english .
+
 logic:NonRigidType
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -715,6 +756,13 @@ logic:Object
     rdfs:label "Object"@x-gmeow-english ;
     skos:definition "A substantial endurant that bears its own principle of identity and does not inhere in another individual — a person, an organization, a physical artefact. The counterpart of gufo:Object: an independent endurant, contrasted with the aspects that existentially depend on it. Every Object is a logic:Substantial and a logic:Endurant (stated in prose, not as a subclass edge)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ObjectLevelFormula
+    a owl:NamedIndividual ,
+        logic:NodeKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Object-Level Formula"@x-gmeow-english ;
+    skos:definition "An ordinary first-order formula over the domain of discourse: the object-level node kind. Its quantifiers range over individuals in the domain, some of which may be reified predicates or types, so the object level stays first-order even where it expresses what reads as quantification over predicates or types."@x-gmeow-english .
 
 logic:OpenWorldClosure
     a owl:NamedIndividual ,
@@ -810,7 +858,7 @@ logic:PreservationKind
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Preservation Kind"@x-gmeow-english ;
-    skos:definition "The polarity of guarantee a reasoning projection makes about its answers relative to the canonical logic: model: the answer-preservation classification recorded in the loss ledger for each projection, distinct from and complementary to the complexity/decidability class. Its individuals range from exact preservation through sound under-approximation and complete over-approximation to validation-only and the two inconsistency-direction kinds."@x-gmeow-english .
+    skos:definition "The polarity of guarantee a reasoning projection makes about its answers relative to the canonical logic: model: the answer-preservation classification recorded in the loss ledger for each projection, distinct from and complementary to the complexity/decidability class. Its individuals range from exact preservation through sound under-approximation and complete over-approximation to validation-only, the unsupported floor (the construct cannot be expressed in the target at all), and the two inconsistency-direction kinds."@x-gmeow-english .
 
 logic:ProbabilisticMeasure
     a owl:NamedIndividual ,
@@ -898,6 +946,13 @@ logic:Quantity
     rdfs:label "Quantity"@x-gmeow-english ;
     skos:definition "An amount of stuff individuated by its constitution rather than by a count of members — a portion of water, a lump of clay, a quantity of gold. The counterpart of gufo:Quantity; its identity tracks the matter that constitutes it (maximally self-connected portions of a substance), not a number of discrete units. Contrast logic:Collection, individuated by its members."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Query
+    a owl:NamedIndividual ,
+        logic:NodeKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Query"@x-gmeow-english ;
+    skos:definition "A goal to be resolved, carried together with its answer shape: the node kind that asks a question of the IR rather than asserting or deriving. Distinct from logic:DerivationRule and logic:TransactionProgram so a query operator is never read as a program operator."@x-gmeow-english .
 
 logic:RdfEqualityPolicy
     a owl:NamedIndividual ,
@@ -1145,6 +1200,13 @@ logic:InsertUpdate
     skos:definition "An elementary Transaction-Logic update of the `ins(F)` kind: it asserts one support into the successor state of a path. Insertion advances the path by materializing the support in the successor snapshot; it does not mutate the predecessor state."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:TransactionProgram
+    a owl:NamedIndividual ,
+        logic:NodeKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Transaction Program"@x-gmeow-english ;
+    skos:definition "A state-changing composite over the path semantics of the transaction layer — insertion, deletion, hypothetical execution, and supersession rather than erasure. Its combinators are typed apart from formula connectives: serial composition is not conjunction, so a program operator is never confused with a logical one."@x-gmeow-english .
+
 logic:TruthAlgebra
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1180,6 +1242,13 @@ logic:UniqueNameEqualityPolicy
     rdfs:label "Unique-Name Equality Policy"@x-gmeow-english ;
     skos:definition "The equality-policy value imposing the unique-name assumption: distinct names denote distinct entities unless equality is explicitly asserted. The optional strengthening of logic:RdfEqualityPolicy; contrast logic:ExplicitEqualityPolicy, which neither assumes distinctness nor unifies beyond what is declared."@x-gmeow-english .
 
+logic:Unsupported
+    a owl:NamedIndividual ,
+        logic:PreservationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unsupported"@x-gmeow-english ;
+    skos:definition "The weakest preservation polarity: the construct cannot be expressed in the target at all. A formula that lowers to unsupported is carried and flagged in the loss ledger, never silently dropped, and every result downstream of the lowering discloses which formulas the target did not evaluate. The legalization floor — a lowering is a total function into legal output plus flagged residue, and an unsupported construct is residue, never loss in silence."@x-gmeow-english .
+
 logic:ValidationOnly
     a owl:NamedIndividual ,
         logic:PreservationKind ;
@@ -1193,6 +1262,13 @@ logic:ValidationOnlyProjection
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Validation-Only Projection"@x-gmeow-english ;
     skos:definition "The projection-target value requesting a validation-only surface: it detects ill-formedness without computing canonical consequences (the honest output for bridge views that constrain but do not reason). One of several output targets a single contract may name at once; it never alters which entailments hold."@x-gmeow-english .
+
+logic:ValidationShape
+    a owl:NamedIndividual ,
+        logic:NodeKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Validation Shape"@x-gmeow-english ;
+    skos:definition "A closed-world data-shape condition: the SHACL-shaped subset of the IR, evaluated against a dataset rather than as an open-world entailment. The node kind for conditions checked under the closed-world reading where absence may be read as falsity."@x-gmeow-english .
 
 logic:VariableCollection
     a owl:Class ;
@@ -1636,6 +1712,13 @@ logic:jointProbability
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "joint probability"@x-gmeow-english ;
     skos:definition "The probability mass a logic:DependencyModel assigns to one logic:JointOutcome — the joint probability of that exact assignment of truth values to the model's correlated facts. Distinct from logic:probability (a per-fact marginal): the joint outcomes of a model partition its correlated sample space and their logic:jointProbability values sum to one. The range is intentionally left open (no rdfs:range), matching the other quantitative axes (logic:probability, logic:confidence, logic:weight, logic:evidenceStrength), which this standalone module declares without an xsd range: the value is a unit-interval decimal."@x-gmeow-english .
+
+logic:loadBearing
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "load bearing"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "Types an annotation as load-bearing (true) or droppable (false, the default). A droppable annotation — a display hint or scope note — must never carry correctness: dropping it only pessimizes a result, so a lowering may drop it silently. A load-bearing annotation — an in-band complement or a quantitative axis — is needed by the inverse leg for put after get to equal the identity, so a lowering must either preserve it or record its loss in the ledger. Without this bit a section / retraction (perfect-subsumption) claim cannot be verified, which is why it is part of the node from the start."@x-gmeow-english .
 
 logic:mediates
     a owl:ObjectProperty ;
