@@ -21,6 +21,7 @@
 # projection drift fails a test rather than silently passing this CQ.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
 
 ex:cqNamedParametricPaths a gmeow:CompetencyQuestion ;
@@ -29,7 +30,13 @@ ex:cqNamedParametricPaths a gmeow:CompetencyQuestion ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqRationale "A named, parametric, depth-bounded path (logic:PathShape) with pathMaxDepth 2 applied to a four-node chain A→B→C→D must return exactly {B, C}; D is 3 hops away and must be excluded (bounded traversal, not unbounded closure)." ;
     gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqNamedParametricPathsShape ;
     gmeow:cqExpectRow ex:rowOrgB, ex:rowOrgC .
+
+ex:cqNamedParametricPathsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "neighbor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
 
 ex:rowOrgB a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "neighbor" ; gmeow:cellValueIri ex:orgB ] .

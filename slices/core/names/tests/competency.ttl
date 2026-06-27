@@ -9,13 +9,20 @@
 # No Gap-1 universal — fixed term sets.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/names/tests/> .
 
 # ── Appellation kinds ─────────────────────────────────────────────────────────
 ex:cqAppellationKinds a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/appellation-kinds.rq" ;
     gmeow:cqRationale "GMEOW must model the kinds of appellation it supports: the Appellation root plus PersonName, Filename, PlaceName, and OrganizationName." ;
+    gmeow:cqResultShape ex:cqAppellationKindsShape ;
     gmeow:cqExpectRow ex:akAppellation, ex:akPersonName, ex:akFilename, ex:akPlaceName, ex:akOrganizationName .
+
+ex:cqAppellationKindsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:akAppellation a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:Appellation ] .
@@ -32,8 +39,14 @@ ex:akOrganizationName a gmeow:ExpectedRow ;
 ex:cqNamePartTypes a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/name-part-types.rq" ;
     gmeow:cqRationale "GMEOW must model name-part types across cultures: Western given/surname, Spanish paternal surname, Arabic nisba, mononym, generation/clan/birth-order names, and the Roman nomen." ;
+    gmeow:cqResultShape ex:cqNamePartTypesShape ;
     gmeow:cqExpectRow ex:nptGiven, ex:nptSurname, ex:nptPaternalSurname, ex:nptNisba,
         ex:nptMononym, ex:nptGenerationName, ex:nptClanName, ex:nptBirthOrderName, ex:nptNomen .
+
+ex:cqNamePartTypesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "namePartType" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:nptGiven a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "namePartType" ; gmeow:cellValueIri gmeow:namePartGiven ] .
@@ -58,7 +71,13 @@ ex:nptNomen a gmeow:ExpectedRow ;
 ex:cqPronounSets a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/pronoun-sets.rq" ;
     gmeow:cqRationale "GMEOW must model pronoun sets including neopronouns: she/her, he/him, they/them, xe/xem." ;
+    gmeow:cqResultShape ex:cqPronounSetsShape ;
     gmeow:cqExpectRow ex:psSheHer, ex:psHeHim, ex:psTheyThem, ex:psXeXem .
+
+ex:cqPronounSetsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "pronounSet" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:psSheHer a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "pronounSet" ; gmeow:cellValueIri gmeow:pronounSheHer ] .
@@ -73,7 +92,13 @@ ex:psXeXem a gmeow:ExpectedRow ;
 ex:cqPlaceNamings a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/place-namings.rq" ;
     gmeow:cqRationale "GMEOW must expose PlaceNaming, the place-scoped subclass of NameUsage, in the asserted graph." ;
+    gmeow:cqResultShape ex:cqPlaceNamingsShape ;
     gmeow:cqExpectRow ex:pnPlaceNaming .
+
+ex:cqPlaceNamingsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "placeNamingKind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:pnPlaceNaming a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "placeNamingKind" ; gmeow:cellValueIri gmeow:PlaceNaming ] .

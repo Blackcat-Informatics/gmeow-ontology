@@ -11,14 +11,21 @@
 # (wasDerivedFrom) the propagation property reuses.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/narrative/tests/> .
 
 ex:cqMyths a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/myths.rq" ;
     gmeow:cqRationale "GMEOW must answer 'what myths exist and how do their tellings propagate?': the Myth class, its telling/frame properties, the propagatesFrom propagation property, and the PROV-O wasDerivedFrom lineage spine it is a subproperty of." ;
+    gmeow:cqResultShape ex:cqMythsShape ;
     gmeow:cqExpectRow
         ex:myMyth, ex:myHasMythTelling, ex:myMythFrame, ex:myPropagatesFrom,
         ex:myWasDerivedFrom .
+
+ex:cqMythsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
 
 ex:myMyth a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:Myth ] .
