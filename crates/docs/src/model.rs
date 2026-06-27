@@ -940,7 +940,11 @@ impl DocsModel {
 fn read_concept_doi(root: &Path) -> Option<String> {
     let bytes = std::fs::read(root.join("metadata/gmeow-self.ttl")).ok()?;
     let store = parse_turtle_lenient(&bytes).ok()?;
-    let work = store
+    // The self-description may carry more than one gmeow:Work (e.g. the root
+    // ontology Work and a visual-identity Work), and store iteration order is
+    // not stable, so scan every Work and return the first `dcterms:identifier`
+    // found — only the concept-bearing Work carries the DOI.
+    store
         .quads_for_pattern(
             None,
             Some(named(RDF_TYPE).as_ref()),
@@ -948,11 +952,11 @@ fn read_concept_doi(root: &Path) -> Option<String> {
             Some(GraphNameRef::DefaultGraph),
         )
         .flatten()
-        .find_map(|q| match q.subject {
+        .filter_map(|q| match q.subject {
             NamedOrBlankNode::NamedNode(n) => Some(n),
             _ => None,
-        })?;
-    first_literal(&store, work.as_str(), DCTERMS_IDENTIFIER)
+        })
+        .find_map(|work| first_literal(&store, work.as_str(), DCTERMS_IDENTIFIER))
 }
 
 // ── Turtle parsing + term extraction ──────────────────────────────────────────
