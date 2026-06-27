@@ -176,6 +176,54 @@ fn both_without_witness_fails_validate() {
     );
 }
 
+#[test]
+fn both_proof_only_no_counterproof_fails_validate() {
+    // proof=Some, counterproof=None, witnesses=[] — a lone proof is not a glut.
+    let mut prov_with_proof = prov();
+    prov_with_proof.proof = Some(dref("lone-proof"));
+    let result = ReasoningResult {
+        input: InputStatus::Valid,
+        evaluation: EvaluationStatus::Completed,
+        completeness: CompletenessStatus::CompleteForFragment,
+        preservation: PreservationClaim::exact(),
+        information: InformationState::Both,
+        provenance: prov_with_proof,
+        payload: ResultPayload::Empty,
+    };
+    assert!(
+        result.validate().is_err(),
+        "Both with only a proof (no counterproof, no witnesses) must be rejected"
+    );
+}
+
+#[test]
+fn both_witness_only_no_proof_counterproof_validates() {
+    // proof=None, counterproof=None, witnesses=[one] — the DL path; must pass.
+    let mut prov_with_witness = prov();
+    prov_with_witness.contradiction_witnesses = vec![ContradictionWitness {
+        individual: "http://gmeow.example/x".to_owned(),
+        world: "http://gmeow.example/w".to_owned(),
+        premises: vec![(
+            "http://gmeow.example/x".to_owned(),
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_owned(),
+            "http://gmeow.example/A".to_owned(),
+        )],
+    }];
+    let result = ReasoningResult {
+        input: InputStatus::Valid,
+        evaluation: EvaluationStatus::Completed,
+        completeness: CompletenessStatus::CompleteForFragment,
+        preservation: PreservationClaim::exact(),
+        information: InformationState::Both,
+        provenance: prov_with_witness,
+        payload: ResultPayload::Empty,
+    };
+    assert!(
+        result.validate().is_ok(),
+        "Both with a contradiction witness (DL path) must be valid"
+    );
+}
+
 // ── PreservationClaim ──────────────────────────────────────────────────────────
 
 #[test]

@@ -727,13 +727,13 @@ impl ReasoningResult {
         }
         self.preservation.validate()?;
         if self.information == InformationState::Both
-            && self.provenance.proof.is_none()
-            && self.provenance.counterproof.is_none()
+            && (self.provenance.proof.is_none() || self.provenance.counterproof.is_none())
             && self.provenance.contradiction_witnesses.is_empty()
         {
             return Err(
-                "ReasoningResult: information=both must carry a proof+counterproof or at least \
-                 one contradiction witness justifying the glut"
+                "ReasoningResult: information=both requires either a proof+counterproof pair \
+                 or at least one contradiction witness; a lone proof or counterproof without \
+                 the other does not justify a glut"
                     .to_owned(),
             );
         }
