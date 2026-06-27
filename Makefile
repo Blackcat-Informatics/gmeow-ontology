@@ -574,6 +574,13 @@ maint-external-corpora: ## Grade the native reasoner against the full Lane-B ext
 	mkdir -p .tmp/w3c-owl2 generated/conformance
 	curl -sSL https://www.w3.org/2009/11/owl-test/all.rdf -o .tmp/w3c-owl2/all.rdf
 	cargo run -p gmeow-conformance --bin ingest-external -- --grade-suite .tmp/w3c-owl2/all.rdf w3c-owl2-full generated/conformance/divergence-w3c-owl2-full.nq
+	# ── W3C OWL 2 EL profile suite (reproducible EL grade) ───────────────────
+	# Grades only the EL-profile subset so the EL divergence numbers (DlGap /
+	# CorpusOnly counts) have a committed, deterministic reproduction command.
+	# The soundness gate hard-fails on any CorpusOnly row (wrong decided answer)
+	# and on any DlGap outside the committed quarantine baseline.
+	curl -sSL https://www.w3.org/2009/11/owl-test/profile-EL.rdf -o .tmp/w3c-owl2/profile-EL.rdf
+	cargo run -p gmeow-conformance --bin ingest-external -- --grade-suite .tmp/w3c-owl2/profile-EL.rdf w3c-owl2-el-full generated/conformance/divergence-w3c-owl2-el-full.nq
 	# ── ORE 2015 Reasoner Competition Corpus (Zenodo DOI 10.5281/zenodo.18578) ──
 	# LICENSE: the corpus is licensed for reasoner-BENCHMARKING use ONLY — NOT
 	# redistribution ("the open access extends only to this purpose; all individual

@@ -349,9 +349,6 @@ fn lower_entry(
     })
 }
 
-/// Cap for Lane-A cases emitted per vendor run.
-const LANE_A_CAP: usize = 12;
-
 /// The W3C SPDX header prepended to every vendored source/stub file.
 const W3C_SPDX_HEADER: &str =
     "# SPDX-FileCopyrightText: 2009 W3C (Massachusetts Institute of Technology, ERCIM, Keio, Beihang)\n# SPDX-License-Identifier: W3C\n";
@@ -367,24 +364,6 @@ struct CaseVerdicts<'a> {
     /// The native token (`consistent` / `inconsistent` / `incomplete`), recorded
     /// in `profile.json` as the frozen native decision for divergence cases.
     native_token: &'a str,
-}
-
-/// The soundness-crux W3C EL cases — the consistency checks that exercise the
-/// constructs the native reasoner was made sound on (the empty bottom property,
-/// `owl:hasKey`, the negative property assertions, `owl:FunctionalProperty`, and
-/// the `owl:Thing` edge). These are always vendored, never capped, so the
-/// committed corpus and the soundness gate pin every one of them.
-fn is_soundness_crux_case(slug: &str) -> bool {
-    const CRUX: &[&str] = &[
-        "new-feature-bottomdataproperty-001",
-        "new-feature-bottomobjectproperty-001",
-        "new-feature-keys-002",
-        "new-feature-keys-006",
-        "new-feature-negativedatapropertyassertion-001",
-        "new-feature-negativeobjectpropertyassertion-001",
-        "webont-thing-003",
-    ];
-    CRUX.contains(&slug)
 }
 
 /// The honest-DlGap divergence bucket sibling of the Lane-A `out_dir`:
@@ -644,10 +623,8 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
     // ── Run native reasoner on each, emit Lane-A cases ────────────────────────
     let mut vendored: usize = 0;
     let mut divergence_vendored: usize = 0;
-    let mut skipped_gap_capped: usize = 0;
     let mut skipped_disagree: usize = 0;
     let mut skipped_unparsable: usize = 0;
-    let mut capped = false;
 
     // Ensure output directories exist.
     std::fs::create_dir_all(out_dir)
@@ -771,19 +748,10 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
         }
 
         // ── EMIT agreeing Lane-A case ─────────────────────────────────────────
-        // The agreeing deciders are capped to keep the bulk Lane-A corpus tight;
-        // the cap never applies to the divergence bucket (the named divergence
-        // set must be vendored in full) NOR to the soundness-crux cases — the
-        // `new-feature-*` / `webont-*` consistency checks that exercise the
-        // bottom-property, key, negative-assertion, functional-property, and
-        // owl:Thing constructs the native reasoner was just made sound on. Those
-        // are always vendored so the soundness gate pins them regardless of how
-        // many bulk `fs2rdf-*` cases precede them alphabetically.
-        if vendored >= LANE_A_CAP && !is_soundness_crux_case(&slug) {
-            capped = true;
-            skipped_gap_capped += 1;
-            continue;
-        }
+        // All agreeing deciders are vendored; the soundness-budget and CI gates
+        // bound the corpus size in practice (the W3C EL suite is small and the
+        // per-case cost is sub-second). Divergence cases are always vendored in
+        // full regardless of count.
         write_case(
             out_dir,
             "w3c-owl2-el",
@@ -830,7 +798,7 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
 
     // ── Print final summary ───────────────────────────────────────────────────
     println!(
-        "vendored={vendored} divergence_vendored={divergence_vendored} skipped_gap_capped={skipped_gap_capped} skipped_disagree={skipped_disagree} skipped_unparsable={skipped_unparsable} entailment_skipped={entailment_skipped} capped={capped}"
+        "vendored={vendored} divergence_vendored={divergence_vendored} skipped_disagree={skipped_disagree} skipped_unparsable={skipped_unparsable} entailment_skipped={entailment_skipped}"
     );
 
     Ok(())
