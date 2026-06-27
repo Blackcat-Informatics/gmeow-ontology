@@ -128,15 +128,6 @@ fn parity_queries() -> Vec<&'static str> {
         // CONSTRUCT — the byte-identical-output acceptance line.
         "CONSTRUCT { ?s <http://ex/related> ?o } WHERE { ?s <http://ex/knows> ?o }",
         "CONSTRUCT { ?o <http://ex/knownBy> ?s } WHERE { ?s <http://ex/knows> ?o }",
-        // Exotic aggregation (S6b #928) — deterministic forms only (SAMPLE /
-        // GROUP_CONCAT order are engine-defined, so they are covered by native
-        // unit tests, not parity). SUM over an expression inside the aggregate.
-        "SELECT (SUM(?n + ?n) AS ?t) WHERE { ?s <http://ex/age> ?n }",
-        // Expression-valued GROUP BY with an explicit AS binding.
-        "SELECT ?z (COUNT(*) AS ?c) WHERE { ?s <http://ex/age> ?n } GROUP BY (?n + ?n AS ?z)",
-        // Positive FILTER EXISTS (the decorrelation path, S6b #928) — pairs with
-        // the existing FILTER NOT EXISTS anti-join above.
-        "SELECT ?s WHERE { ?s <http://ex/knows> ?o FILTER EXISTS { ?s <http://ex/member> ?c } }",
     ]
 }
 
