@@ -2900,6 +2900,12 @@ class TemporalPrecisionEnum(str, Enum):
     precisionYear = "precisionYear"
 
 
+class TermStabilityEnum(str, Enum):
+    stabilityDeprecated = "stabilityDeprecated"
+    stabilityExperimental = "stabilityExperimental"
+    stabilityStable = "stabilityStable"
+
+
 class TextDirectionEnum(str, Enum):
     directionBoustrophedon = "directionBoustrophedon"
     directionContextual = "directionContextual"
@@ -3930,6 +3936,12 @@ class Certification(ConfiguredBaseModel):
     certifiedIdentity: Agent | None = Field(default=None)
     certifiedKey: CryptographicKey | None = Field(default=None)
     certifier: Agent | None = Field(default=None)
+
+
+class ChangelogEntry(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ChangelogEntry"
+    is_a: ClassVar[str] = "InformationObject"
+    pass
 
 
 class CharacterArc(InformationObject):
@@ -7524,6 +7536,11 @@ class TemporalMeasurement(Measurement):
 
 class TemporalPrecision(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TemporalPrecision"
+    pass
+
+
+class TermStability(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TermStability"
     pass
 
 

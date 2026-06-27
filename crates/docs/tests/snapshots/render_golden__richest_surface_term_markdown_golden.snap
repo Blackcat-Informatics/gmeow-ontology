@@ -60,3 +60,16 @@ A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a t
 
 - [Research topic keywords](../../slices/profiles/index.md) — `examples/named-profile-membership.ttl`
 - [Research topic keywords](../../slices/tags/index.md) — `examples/folksonomy.ttl`
+
+## Stability
+
+- **Status:** stable
+
+## Profiles
+
+- `claims` · `dreaming` · `full` · `memory` · `music` · `narrative`
+
+## Citation
+
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/Tagging>
+- **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)

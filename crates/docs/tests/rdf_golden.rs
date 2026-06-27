@@ -32,6 +32,8 @@ fn small_model() -> DocsModel {
             creators: Vec::new(),
             consumers: Vec::new(),
             artifacts: Vec::new(),
+            profiles: Vec::new(),
+            depends_on: Vec::new(),
         }],
         terms: vec![
             DocTerm {
@@ -100,6 +102,7 @@ fn small_model() -> DocsModel {
         recipes: Vec::new(),
         learning_paths: Vec::new(),
         four_boxes: None,
+        concept_doi: None,
         available_languages: vec!["english".to_string()],
         translations: Translations::default(),
         ui_catalog: UiCatalog::default(),

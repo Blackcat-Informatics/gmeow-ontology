@@ -193,3 +193,25 @@ fence. `VersionRole` ranges over `roleLatest`, `roleStable`, `roleLTS`,
 are standpoint-scoped claims, never intrinsic types); `VersionScale` over
 `scaleTrivial` / `scaleMinor` / `scaleMajor`. Domain-specific values are minted as
 fresh individuals carrying `rdfs:label`.
+
+### gmeow:TermStability · gmeow:termStability · gmeow:addedInVersion · gmeow:ChangelogEntry · gmeow:hasChangelogEntry · gmeow:entryVersion · gmeow:entryNote
+
+Per-term lifecycle metadata (#1026) — maturity and changelog signals about a
+**vocabulary term** (a class or property in the TBox), as distinct from the
+standpoint-scoped *instance-level* version roles above. The lineage layer answers
+"what role does this concrete release hold?"; this layer answers "how mature is
+this term, and how has it changed across releases?".
+
+These predicates are `owl:AnnotationProperty` — the `gmeow:accordingTo` pattern
+(Principle 3) — because they are asserted *about* a class or property, so the
+generated OWL stays in OWL 2 DL. `gmeow:TermStability` is the open value
+vocabulary (`stabilityStable` / `stabilityExperimental` / `stabilityDeprecated`,
+a seed list, not a fence) referenced by `gmeow:termStability`; the ontology-docs
+generator derives a **default** badge from the owner slice's tier (core → stable,
+extension → experimental) and from `owl:deprecated`, and an explicit
+`gmeow:termStability` overrides it. `gmeow:addedInVersion` seeds the per-term
+changelog with the release a term debuted in; `gmeow:hasChangelogEntry` attaches
+reified `gmeow:ChangelogEntry` records (`gmeow:entryVersion` + optional
+`gmeow:entryNote` prose), ordered by version on the term's docs page. Full
+population is eventually automated from release-as-evidence content-address diffs
+(CONSTITUTION §18); today it is seeded editorially.
