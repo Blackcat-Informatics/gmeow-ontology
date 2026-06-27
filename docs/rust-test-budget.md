@@ -20,9 +20,9 @@ the measurement that set it, the mechanism, and the open follow-ups. The doctrin
   excludes the irreducibly-heavy tests from the gate; `profile.maint-heavy`
   (`make maint-rust-heavy`) re-includes everything. The filter expression is the
   single source of truth for the off-gate allowlist.
-- The budget is **per-test, post-fixture**. A once-per-run setup cost (e.g. a future
-  shared docs-model build) is amortized across tests and intentionally not charged to
-  any single `<testcase>`.
+- The budget is **per-test, post-fixture**. A once-per-run setup cost (e.g. the
+  shared docs-model build, primed before the run) is amortized across tests and
+  intentionally not charged to any single `<testcase>`.
 
 ## Measurement snapshot (2026-06-26, 32-core local, debug)
 
@@ -31,7 +31,7 @@ Full `cargo nextest run --profile ci`: 2409 tests, ~554 s wall / ~3703 s summed.
 
 | Cluster | Count >25 s | Cause | Disposition |
 |---|---|---|---|
-| `gmeow-docs` render/competency/extract/lint/i18n/model | ~39 | each test rebuilds the full `DocsModel` via `discover` (~13 s) + render (~5 s), uncached across nextest's process-per-test model | off-gate; **follow-up:** shared model fixture brings them back |
+| `gmeow-docs` render/competency/extract/lint/i18n/model | ~39 | each test rebuilt the full `DocsModel` via `discover` (~13 s) + render (~5 s), uncached across nextest's process-per-test model | **now on-gate** via a shared once-per-run model fixture (slowest ~12 s) |
 | `gmeow-pipeline` full-fold / full-DAG / codec / mapping-parity | ~13 | minutes of Nemo fold + byte-parity over the whole bundle | off-gate (engine-bound by design) |
 | `gmeow-logic::ontology_entailments`, `gmeow-conformance` | ~3 (+ ~16 in 10–25 s) | Nemo OWL-2-RL closures / chase | off-gate whole binaries |
 | `gmeow-slice` / `gmeow-slicetest` stragglers | ~3 | whole-ontology emit/closure just over budget | off-gate the specific tests |
@@ -60,8 +60,15 @@ fixing it removes the query from `OFF_GATE_HEAVY` and it rejoins the gated shard
   nextest parallelises the shards; the shared load is paid per shard but cheap.
 - **Share an expensive fixture once per run.** nextest runs each test in its own
   process, so in-process `OnceLock`/`lazy_static` does NOT share across tests — a
-  cross-process cache (nextest setup-script, or a serialized artifact built once)
-  is required. This is the tracked fix for the docs-model cluster.
+  cross-process cache (a serialized artifact built once) is required. The docs-model
+  cluster uses this: `gmeow_docs::fixture` caches the built `DocsModel` to a
+  content-addressed file, and the cache is **primed once before the run** (the
+  `prime-docs-fixture` example, run by the Makefile lanes and the CI test job) so no
+  test pays the build *or* the concurrent-rebuild contention that inflates a cold
+  parallel build well past the budget. A genuine miss still falls through to a build,
+  so a plain `cargo test` works. (nextest setup-scripts would be the natural home for
+  the prime step, but they remain experimental — an explicit pre-nextest step avoids
+  the opt-in flag.)
 - **Carve out, don't time-out.** An irreducibly heavy test goes to `maint-heavy`,
   never onto the gate with a long per-test override.
 
@@ -77,14 +84,9 @@ switching carries baseline/scoreboard churn without serving the 25 s goal.
 
 ## Open follow-ups
 
-1. **Shared `DocsModel` fixture** ([#1050]) — build the model (and rendered site)
-   once per run and load it cheaply, returning the ~39 off-gate docs tests to the
-   gate fast. The highest-leverage item; `DocsModel` already derives `Serialize`
-   (needs `Deserialize` + a once-per-run cache).
-2. **Native `FILTER NOT EXISTS` performance** ([#1049]) — index the anti-join in
+1. **Native `FILTER NOT EXISTS` performance** ([#1049]) — index the anti-join in
    `gmeow-sparql-eval` so `class-without-stereotype.rq` leaves `OFF_GATE_HEAVY`.
-3. **`rstest` cleanup** ([#1051]) of the `conformance_*.rs` SHACL twins.
+2. **`rstest` cleanup** ([#1051]) of the `conformance_*.rs` SHACL twins.
 
 [#1049]: https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1049
-[#1050]: https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1050
 [#1051]: https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1051
