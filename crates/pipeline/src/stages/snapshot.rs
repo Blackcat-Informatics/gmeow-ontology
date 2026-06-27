@@ -228,6 +228,14 @@ const AXIOM_FILES: [&str; 5] = [
     "generated/logic/gmeow.rls",
     "generated/datalog/gmeow.dl",
 ];
+/// tar of the native reasoner's REPORT artifacts (#667, wired #746): the entailment
+/// explanations + the DL/EL cross-check ledger over THIS run's reasoned closure. The
+/// closure itself already rides the bundle GRAPH (gts-compose folds `stage-reason`'s
+/// closure); the reports are deliberately kept OUT of the ontology graph, so this
+/// blob channel is how a repo-free consumer reads WHY each entailment holds and the
+/// DL/EL agreement ledger WITHOUT re-running the engine (maximal information flow).
+/// The Python reader (`bundle.bundled_reasoning`) MUST use this exact rep string.
+const REP_REASONING: &str = "reasoning-archive";
 const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
 /// The GNU long-name sentinel: a `'L'`-typeflag record carrying a member path
 /// that overflows the 100-byte USTAR `name` field. The doc-site archive (#897)
@@ -342,6 +350,40 @@ fn build_archive_blobs(
         archive_blob(REP_SHAPES, &shapes)?,
         archive_blob(REP_AXIOMS, &axioms)?,
     ])
+}
+
+/// Fold the native reasoner's explanation + DL/EL cross-check ledger REPORTS into a
+/// deterministic [`REP_REASONING`] archive blob (#667, wired #746). Sourced from
+/// `stage-reason`'s in-memory product (a `stage-snapshot` consumes-edge), so the fold
+/// is ONE-PASS: no disk read, no dependency on the post-snapshot `stage-export-logic`
+/// leaf, no convergence lag. The reasoned closure is NOT re-bundled here — it already
+/// rides the bundle graph via `gts-compose`. Each artifact MUST exist (no-optionality,
+/// fail-closed): a partial archive would silently strip the reasoning reports.
+fn build_reasoning_blob(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<BlobRow, PipelineError> {
+    let get = |path: &str| -> Result<Vec<u8>, PipelineError> {
+        upstream
+            .get("stage-reason")
+            .and_then(|p| p.artifact(path))
+            .map(<[u8]>::to_vec)
+            .ok_or_else(|| stage_err(&format!("missing stage-reason artifact {path}")))
+    };
+    // Bundle-relative keys under `reason/` — deliberately NOT `generated/logic/…`, so
+    // a consumer never mistakes these bundle-consistent reports (over the early-composed
+    // closure that rides the graph) for the full-fold committed `generated/logic/` files
+    // owned by `stage-export-logic`.
+    let members = vec![
+        (
+            "reason/reasoning-explanations.rdf12.ttl".to_string(),
+            get(crate::stages::reason::EXPLANATIONS_PATH)?,
+        ),
+        (
+            "reason/dl-el-crosscheck-report.ttl".to_string(),
+            get(crate::stages::reason::LEDGER_PATH)?,
+        ),
+    ];
+    archive_blob(REP_REASONING, &members)
 }
 
 /// Pack the JSON-LD-star + YAML-LD-star serializations into a deterministic tar
@@ -717,7 +759,10 @@ impl Stage for SnapshotStage {
         // the Rust-rendered OKF archive into gmeow.gts (#940). v9 folds the full
         // SHACL shape surface (REP_SHAPES) and the compiled logic/DL axiom surface
         // (REP_AXIOMS) so a repo-free `gmeow validate` is self-sufficient (#746).
-        "snapshot.v9-shapes-axioms"
+        // v10 wires the orphaned REP_REASONING reader to a writer: folds the native
+        // reasoner's explanation + DL/EL cross-check ledger reports from stage-reason's
+        // in-memory product (#667, wired #746).
+        "snapshot.v10-shapes-axioms-reasoning"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -766,6 +811,10 @@ impl Stage for SnapshotStage {
         let mut blobs = build_archive_blobs(input.root, &schema_json, &openapi_json)?;
         blobs.extend(build_guide_blobs(input.root)?);
         blobs.push(build_docs_archive(input.root)?);
+        // The native reasoner's explanation + DL/EL cross-check ledger reports, folded
+        // from `stage-reason`'s in-memory product (one-pass, no disk lag) so a repo-free
+        // consumer can read them WITHOUT re-running the engine (#667, wired #746).
+        blobs.push(build_reasoning_blob(input.upstream)?);
         let shacl_json = input
             .upstream
             .get("stage-validate")
@@ -1747,6 +1796,48 @@ mod ustar_tests {
         assert_eq!(
             blob.data, blob2.data,
             "REP_AXIOMS must be byte-deterministic"
+        );
+    }
+
+    #[test]
+    fn build_reasoning_blob_folds_the_report_artifacts() {
+        // Construct a fake stage-reason product with the two report artifacts (avoids
+        // running the reasoner); proves the wiring (rep, keys, fail-closed).
+        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(
+            crate::stages::reason::EXPLANATIONS_PATH.to_string(),
+            b"# explanations".to_vec(),
+        );
+        artifacts.insert(
+            crate::stages::reason::LEDGER_PATH.to_string(),
+            b"# ledger".to_vec(),
+        );
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-reason".to_string(),
+            StageProduct::from_artifacts("stage-reason", artifacts),
+        );
+        let blob = build_reasoning_blob(&upstream).expect("reasoning blob");
+        assert_eq!(blob.rep, REP_REASONING);
+        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
+        let members = parse(&blob.data);
+        let names: std::collections::BTreeSet<&str> =
+            members.iter().map(|(n, _)| n.as_str()).collect();
+        assert_eq!(
+            names,
+            [
+                "reason/dl-el-crosscheck-report.ttl",
+                "reason/reasoning-explanations.rdf12.ttl"
+            ]
+            .into_iter()
+            .collect::<std::collections::BTreeSet<&str>>(),
+            "REP_REASONING carries the two report artifacts under bundle-relative keys"
+        );
+        // Missing artifact HARD-fails (no-optionality, fail-closed).
+        let empty: BTreeMap<String, StageProduct> = BTreeMap::new();
+        assert!(
+            build_reasoning_blob(&empty).is_err(),
+            "a missing stage-reason product must fail closed"
         );
     }
 

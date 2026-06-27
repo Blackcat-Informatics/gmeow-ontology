@@ -128,14 +128,18 @@ def bundled_tests() -> dict[str, bytes]:
 
 
 def bundled_reasoning() -> dict[str, bytes]:
-    """Every folded native-reasoning product as ``{repo-path: nq-bytes}`` (#667).
+    """The native reasoner's report artifacts as ``{member: ttl-bytes}`` (#667, #746).
 
-    The closure / explanations / divergence-ledger the native EL/DL engine derived,
-    embedded RDFC-1.0 canonical so a repo-free ``gmeow.gts`` consumer can read the
-    reasoning results (maximal information flow, north-star (d)) WITHOUT re-running
-    the engine. Keys preserve the repo-relative path
-    (``generated/logic/<file>.ttl``); the bytes are canonical N-Quads (stable
-    regardless of the reasoner's emission order), not the human-readable Turtle.
+    The entailment explanations and the DL/EL cross-check ledger the native EL/DL
+    engine derived over the bundle's reasoned closure, so a repo-free ``gmeow.gts``
+    consumer can read WHY each entailment holds and the DL/EL agreement ledger
+    (maximal information flow, north-star (d)) WITHOUT re-running the engine. Keys are
+    bundle-relative (``reason/reasoning-explanations.rdf12.ttl``,
+    ``reason/dl-el-crosscheck-report.ttl``). These are the bundle-consistent reports
+    over the early-composed closure that rides the bundle GRAPH — NOT the full-fold
+    committed ``generated/logic/`` files (owned by ``stage-export-logic``), which are
+    derived after the snapshot and so cannot be folded one-pass. The reasoned closure
+    itself is not here: it already rides the bundle graph. Empty when unbundled.
     """
     return _archive(REP_REASONING)
 
