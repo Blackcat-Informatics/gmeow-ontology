@@ -287,16 +287,35 @@ fn fmt_subselect(s: &mut String, p: &GraphPattern) {
         }
         Some(vars) if vars.is_empty() && select_exprs.is_empty() => s.push('*'),
         Some(vars) => {
-            for (i, v) in vars.iter().enumerate() {
-                if i > 0 {
+            // Skip any var whose binding will be emitted via `(expr AS ?v)`;
+            // emitting it here too would produce an invalid duplicate projection.
+            let as_targets: std::collections::HashSet<&Variable> =
+                select_exprs.iter().map(|(v, _)| *v).collect();
+            let mut plain_emitted = false;
+            for v in vars.iter() {
+                if as_targets.contains(v) {
+                    continue;
+                }
+                if plain_emitted {
                     s.push(' ');
                 }
                 let _ = write!(s, "{}", VarRef(v));
+                plain_emitted = true;
             }
         }
     }
+    // Determine whether any plain var was emitted (for spacing before AS-exprs).
+    let plain_emitted = match project {
+        None => false,
+        Some(vars) if vars.is_empty() && select_exprs.is_empty() => false,
+        Some(vars) => {
+            let as_targets: std::collections::HashSet<&Variable> =
+                select_exprs.iter().map(|(v, _)| *v).collect();
+            vars.iter().any(|v| !as_targets.contains(v))
+        }
+    };
     for (i, (var, expr)) in select_exprs.iter().enumerate() {
-        if project.is_some() || i > 0 {
+        if plain_emitted || i > 0 {
             s.push(' ');
         }
         s.push('(');
@@ -863,6 +882,40 @@ mod tests {
         let text = pattern_to_select_query(&p);
         assert!(text.starts_with("SELECT * WHERE {"), "got: {text}");
         assert!(text.contains("<http://ex/p>"), "got: {text}");
+    }
+
+    /// A subselect that mixes a plain projected variable and a SELECT expression
+    /// (`(expr AS ?v)`) must not duplicate the AS-target var in the projection
+    /// list. Before the fix, parsing `SELECT ?s (?o + 1 AS ?x) WHERE { … }`
+    /// pushed `?x` into both `projected` and `select_exprs`, so the serializer
+    /// emitted `SELECT ?s ?x (?o + 1 AS ?x)` — invalid SPARQL 1.1 (double projection).
+    #[test]
+    fn subselect_select_expr_no_duplicate_projection() {
+        // Build a subselect that has a plain var (?s) and an AS-expression (?x).
+        // The subselect is embedded so `fmt_subselect` is exercised.
+        let query = "SELECT * WHERE { { SELECT ?s (?o + 1 AS ?x) WHERE { ?s <http://ex/p> ?o } } }";
+        let body = where_body(&pattern_of(query));
+        let text = pattern_to_select_query(&body);
+
+        // The AS-target ?x must appear exactly once, only inside `(… AS ?x)`.
+        let count_bare_x = text.split_whitespace().filter(|tok| *tok == "?x").count();
+        assert_eq!(
+            count_bare_x, 0,
+            "?x must not appear as a bare projected var; got: {text}"
+        );
+        assert!(
+            text.contains("AS ?x)"),
+            "?x must still appear in AS-expression form; got: {text}"
+        );
+        // The plain projected var ?s must still appear.
+        assert!(
+            text.split_whitespace().any(|t| t == "?s"),
+            "?s must appear as a plain projected var; got: {text}"
+        );
+        // Round-trip: the serialized text must parse without error.
+        SparqlParser::new()
+            .parse_query(&text)
+            .unwrap_or_else(|e| panic!("re-parse of `{text}` failed: {e:?}"));
     }
 
     #[test]
