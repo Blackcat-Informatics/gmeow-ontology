@@ -5,9 +5,9 @@
 //!
 //! The orchestration builds the ontology oxigraph [`Store`] once and parses the
 //! SHACL shapes once, then runs every lint/SHACL phase against the shared store.
-//! Example files are validated against a non-mutating `base ∪ overlay` view
-//! ([`gmeow_shacl::data::MergedGraph`]), so the base store is never contaminated and
-//! all examples can validate in parallel against one shared read-only store.
+//! Example files are validated in parallel: each rayon worker holds its own private
+//! copy of the base store and overlays one example at a time (inserted, validated,
+//! then removed), so the shared base is never contaminated.
 //!
 //! Timing records are collected when [`ValidateOptions::timings`] is true and
 //! can be serialized to JSON alongside the error/warning output.
@@ -148,7 +148,7 @@ impl ValidationRun {
     /// 7. Reasoning/gUFO invariants
     /// 8. Merged SHACL validation
     /// 9. Example coverage check
-    /// 10. Per-example SHACL via a non-mutating base ∪ overlay view (parallel)
+    /// 10. Per-example SHACL via per-worker scoped overlay (parallel)
     /// 11. Mapping DSL SHACL
     /// 12. Statement DSL SHACL
     /// 13. Test DSL SHACL
@@ -914,6 +914,27 @@ fn check_example_coverage(slices_dir: &str) -> Result<PhaseResult, String> {
 /// the return shape of [`run_cached`].
 type CachedPhaseResult = Result<(Vec<Finding>, Option<String>), String>;
 
+/// Upper bound on rayon workers used for per-example SHACL validation. Each worker
+/// holds one full copy of the base ontology store, so this caps the resident-store
+/// RAM (and the per-worker build cost) on many-core machines while still saturating
+/// the few-core CI runners that gate this lane.
+const EXAMPLE_VALIDATION_MAX_WORKERS: usize = 8;
+
+/// Build one independent in-memory store from the base ontology quad snapshot.
+///
+/// Used as the per-worker `map_init` state for parallel example validation. A fresh
+/// store (not a `Store::clone`, which shares `Arc<Content>`) is required so each
+/// worker can overlay and restore examples without affecting any other worker.
+fn build_overlay_store(base_quads: &[Quad]) -> Store {
+    let store = Store::new().expect("in-memory store creation is infallible");
+    for quad in base_quads {
+        store
+            .insert(quad)
+            .expect("inserting a base quad into an in-memory store is infallible");
+    }
+    store
+}
+
 /// Phase 10: validate every slice example against the ontology, in parallel, via a
 /// non-mutating `base ∪ overlay` view per example.
 fn check_examples(
@@ -923,30 +944,58 @@ fn check_examples(
     cache: Option<&ValidationCache>,
     base_key: &str,
 ) -> Result<(Vec<Finding>, Option<String>), String> {
-    // `find_example_files` returns a name-sorted list (see its `sort_by`). Validate
-    // every example in parallel against the shared read-only base store: each example
-    // is an independent whole-ontology SHACL pass (the dominant cost of `validate`),
-    // and `MergedGraph` makes the base non-mutating so `&Store` is shared `Sync`
-    // across rayon threads. `par_iter().collect()` preserves the input (sorted) order,
-    // so the sequential fold below is byte-for-byte deterministic.
+    // `find_example_files` returns a name-sorted list (see its `sort_by`). Each
+    // example is an independent whole-ontology SHACL pass — the dominant cost of
+    // `validate` — so validate them in parallel.
+    //
+    // The SHACL shapes include SHACL-SPARQL targets, which need a queryable
+    // `base ∪ example` store; cloning an oxigraph `Store` shares its `Arc<Content>`
+    // (a clone is NOT isolated), so a real per-validation store must be built. To
+    // avoid rebuilding the whole base PER EXAMPLE (which dominates on few-core CI),
+    // snapshot the base quads ONCE and give each rayon WORKER its own independent
+    // store via `map_init` (≈ worker-count builds, not one per example). Each worker
+    // overlays an example onto its store, validates with the fast native `Store`
+    // backend, and restores — exactly the original per-example semantics, now sharded
+    // across workers. Worker count is capped so the number of full-store copies (and
+    // their RAM) stays bounded on many-core machines while still scaling on CI.
     let examples = find_example_files(slices_dir)?;
-    let results: Vec<CachedPhaseResult> = examples
-        .par_iter()
-        .map(|(name, path)| -> CachedPhaseResult {
-            let example_key = if let Some(cache) = cache {
-                let file_key = cache.files_cache_key(std::slice::from_ref(path))?;
-                ValidationCache::cache_key(&[base_key.as_bytes(), file_key.as_bytes()])
-            } else {
-                ValidationCache::cache_key(&[
-                    base_key.as_bytes(),
-                    path.to_string_lossy().as_bytes(),
-                ])
-            };
-            run_cached(cache, "example-shacl", &example_key, || {
-                run_example_shacl(store, shapes, path, name)
-            })
-        })
-        .collect();
+
+    let base_quads: Vec<Quad> = store
+        .iter()
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| format!("snapshot base store for parallel example validation: {e}"))?;
+
+    let worker_cap = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(4)
+        .clamp(1, EXAMPLE_VALIDATION_MAX_WORKERS);
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(worker_cap)
+        .build()
+        .map_err(|e| format!("build example-validation thread pool: {e}"))?;
+
+    let results: Vec<CachedPhaseResult> = pool.install(|| {
+        examples
+            .par_iter()
+            .map_init(
+                || build_overlay_store(&base_quads),
+                |worker_store, (name, path)| -> CachedPhaseResult {
+                    let example_key = if let Some(cache) = cache {
+                        let file_key = cache.files_cache_key(std::slice::from_ref(path))?;
+                        ValidationCache::cache_key(&[base_key.as_bytes(), file_key.as_bytes()])
+                    } else {
+                        ValidationCache::cache_key(&[
+                            base_key.as_bytes(),
+                            path.to_string_lossy().as_bytes(),
+                        ])
+                    };
+                    run_cached(cache, "example-shacl", &example_key, || {
+                        run_example_shacl(worker_store, shapes, path, name)
+                    })
+                },
+            )
+            .collect()
+    });
 
     // Sequential, in-order fold: accumulate findings and hit/miss counts, and
     // propagate the FIRST error by index (deterministic regardless of which thread
@@ -972,12 +1021,14 @@ fn check_examples(
     Ok((findings, metadata))
 }
 
-/// Validate one example file against the ontology + shapes via a non-mutating
-/// `base ∪ overlay` view.
+/// Validate one example file against the ontology + shapes via a scoped overlay on
+/// this worker's private store.
 ///
-/// The example quads overlay the shared base store WITHOUT mutating it
-/// ([`gmeow_shacl::data::MergedGraph`]), so `store` is read-only `&Store` and many
-/// examples can validate concurrently against the same base (see [`check_examples`]).
+/// `store` is the calling rayon worker's OWN independent store (built by
+/// [`build_overlay_store`]); the example quads are overlaid and removed via
+/// [`OverlayGuard`] so the worker's base is restored for its next example. Because
+/// the store is per-worker, the mutation is thread-safe and uses the fast native
+/// `Store` SHACL/SPARQL backend.
 fn run_example_shacl(
     store: &Store,
     shapes: &gmeow_shacl::shapes::Shapes,
@@ -995,9 +1046,9 @@ fn run_example_shacl(
             .with_tool("validate")]);
         }
     };
-    let merged = gmeow_shacl::data::MergedGraph::new(store, &example_quads);
-    let report = gmeow_shacl::engine::validate_with(&merged, shapes);
-    Ok(shacl_findings_from_report(&report, Some(name)))
+    let _overlay = OverlayGuard::insert(store, example_quads.iter());
+    let report = gmeow_shacl::engine::validate(store, shapes);
+    Ok(shacl_findings_from_report(&report, Some(name))) // _overlay drops here, removing the overlay
 }
 
 /// Insert only quads that are not already present in `store` and return the
