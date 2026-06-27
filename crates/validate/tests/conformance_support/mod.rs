@@ -372,8 +372,7 @@ pub enum Source {
 ///   listed substring must be present, extra messages are allowed. An empty list
 ///   (the default) asserts *nothing* on that channel — [`Case::run`] never
 ///   implicitly requires "no warnings"/"no violations".
-/// - [`Case::no_violation`] / [`Case::no_warning`] assert a substring is absent.
-/// - [`Case::violation_count`] asserts the exact number of violation messages.
+/// - [`Case::no_warning`] asserts a warning substring is absent.
 /// - [`Case::messages`] is a subset check over the UNION of violations and
 ///   warnings (mirror originals that joined `violations().chain(warnings())`).
 /// - [`Case::violations_ci`] / [`Case::warnings_ci`] are case-insensitive subset
@@ -396,9 +395,7 @@ pub struct Case {
     expected_warnings_ci: Vec<&'static str>,
     any_violations: Vec<Vec<&'static str>>,
     any_violations_ci: Vec<Vec<&'static str>>,
-    forbidden_violations: Vec<&'static str>,
     forbidden_warnings: Vec<&'static str>,
-    exact_violation_count: Option<usize>,
 }
 
 impl Case {
@@ -414,9 +411,7 @@ impl Case {
             expected_warnings_ci: Vec::new(),
             any_violations: Vec::new(),
             any_violations_ci: Vec::new(),
-            forbidden_violations: Vec::new(),
             forbidden_warnings: Vec::new(),
-            exact_violation_count: None,
         }
     }
 
@@ -500,21 +495,9 @@ impl Case {
         self
     }
 
-    /// Assert no violation message contains `sub`.
-    pub fn no_violation(mut self, sub: &'static str) -> Self {
-        self.forbidden_violations.push(sub);
-        self
-    }
-
     /// Assert no warning message contains `sub`.
     pub fn no_warning(mut self, sub: &'static str) -> Self {
         self.forbidden_warnings.push(sub);
-        self
-    }
-
-    /// Assert the exact number of violation messages.
-    pub fn violation_count(mut self, n: usize) -> Self {
-        self.exact_violation_count = Some(n);
         self
     }
 
@@ -605,24 +588,10 @@ impl Case {
                 "expected a violation containing one of {group:?} (case-insensitive); got: {got_violations:?}"
             );
         }
-        for sub in &self.forbidden_violations {
-            assert!(
-                !got_violations.iter().any(|v| v.contains(sub)),
-                "expected NO violation containing {sub:?}; got: {got_violations:?}"
-            );
-        }
         for sub in &self.forbidden_warnings {
             assert!(
                 !got_warnings.iter().any(|w| w.contains(sub)),
                 "expected NO warning containing {sub:?}; got: {got_warnings:?}"
-            );
-        }
-        if let Some(n) = self.exact_violation_count {
-            assert_eq!(
-                got_violations.len(),
-                n,
-                "expected exactly {n} violations; got {}: {got_violations:?}",
-                got_violations.len()
             );
         }
     }
