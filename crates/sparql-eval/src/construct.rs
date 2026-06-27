@@ -155,8 +155,10 @@ pub(crate) fn eval_construct(
 /// triple can be materialized per solution row, plus the dropped annotation facts
 /// keyed off the same reifier variable.
 struct DroppedReifier {
-    /// The inner triple-term pattern instantiated per row to the lost triple term.
-    inner: TriplePattern,
+    /// The already-boxed triple-term pattern (`TermPattern::Triple(...)`) instantiated
+    /// per row to the lost triple term. Stored as `TermPattern` so it can be passed
+    /// directly to `instantiate_term` without a per-row `Box::new` / clone.
+    inner: TermPattern,
     /// `true` if the `WHERE` also matched annotation triples on this reifier var
     /// (a triple whose subject is the reifier var, other than the reifies edge).
     has_annotation: bool,
@@ -181,14 +183,15 @@ fn collect_dropped_reifiers(
     collect_where_triples(pattern, &mut where_triples);
 
     // The reifies-patterns: predicate == rdf:reifies, subject a variable, object a
-    // quoted triple term. Keyed by the reifier variable name.
-    let mut reifiers: Vec<(String, &TriplePattern)> = Vec::new();
+    // quoted triple term. Keyed by the reifier variable name; the object is stored
+    // as a cloned `TermPattern::Triple(...)` so no per-row Box::new is needed later.
+    let mut reifiers: Vec<(String, TermPattern)> = Vec::new();
     for tp in &where_triples {
         if is_reifies(tp) {
-            if let (TermPattern::Variable(v), TermPattern::Triple(inner)) =
+            if let (TermPattern::Variable(v), obj @ TermPattern::Triple(_)) =
                 (&tp.subject, &tp.object)
             {
-                reifiers.push((v.as_str().to_owned(), inner.as_ref()));
+                reifiers.push((v.as_str().to_owned(), obj.clone()));
             }
         }
     }
@@ -233,7 +236,7 @@ fn collect_dropped_reifiers(
             }
         }
         dropped.push(DroppedReifier {
-            inner: inner.clone(),
+            inner,
             has_annotation,
             has_standpoint,
         });
@@ -327,13 +330,7 @@ fn emit_dropped_losses(
         // inner variable yields `None` — there is no concrete triple to declare
         // lost, so the declaration is (correctly) skipped for this row.
         let mut blanks: DetHashMap<String, String> = DetHashMap::default();
-        let inner_term = match instantiate_term(
-            &TermPattern::Triple(Box::new(d.inner.clone())),
-            row,
-            schema,
-            &mut blanks,
-            ctx,
-        ) {
+        let inner_term = match instantiate_term(&d.inner, row, schema, &mut blanks, ctx) {
             Some(v) => v,
             None => continue,
         };

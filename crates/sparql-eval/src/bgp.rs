@@ -556,8 +556,8 @@ fn bind_pos(out: &mut Solution, pos: &Pos, id: TermId, dataset: &RdfDataset) -> 
 }
 
 /// The virtual triple candidates from the RDF 1.2 reification layer that match a
-/// pattern's bound `(s, p, o)` probe, deterministically ordered (reifier rows first,
-/// then annotation rows — each in the side-tables' frozen sorted order). The layer is
+/// pattern's bound `(s, p, o)` probe, streamed lazily (reifier rows first, then
+/// annotation rows — each in the side-tables' frozen sorted order). The layer is
 /// NOT in `quads`, so these are strictly additive (no double counting).
 ///
 /// Two layers contribute:
@@ -572,28 +572,24 @@ fn bind_pos(out: &mut Solution, pos: &Pos, id: TermId, dataset: &RdfDataset) -> 
 ///
 /// Every candidate is residually filtered by the same id-equality the default scan
 /// applies (`quads_for_pattern`), because — unlike `quads_for_pattern` — the virtual
-/// iterators are not pre-narrowed by the probe.
-fn virtual_candidates(
-    dataset: &RdfDataset,
+/// iterators are not pre-narrowed by the probe. The probe ids (`s`, `p`, `o`) are
+/// `Copy` and captured by value into the closures, so no per-row heap allocation is
+/// needed.
+fn virtual_candidates<'ds>(
+    dataset: &'ds RdfDataset,
     cp: &CompiledPattern,
     s: Option<TermId>,
     p: Option<TermId>,
     o: Option<TermId>,
     reifies_id: Option<TermId>,
-) -> Vec<QuadIds> {
-    let matches_probe = |q: &QuadIds| {
-        s.is_none_or(|id| q.s == id) && p.is_none_or(|id| q.p == id) && o.is_none_or(|id| q.o == id)
-    };
-
-    let mut out = Vec::new();
-
+) -> Box<dyn Iterator<Item = QuadIds> + 'ds> {
     // Reifier layer: only when the predicate can be `rdf:reifies`. The object must also
     // be triple-term-shaped to be worth scanning — a quoted-triple pattern position
     // (`Pos::Triple`), a quoted-triple constant (`Pos::Bound` of a triple id), or a
     // free variable (`Pos::Slot`). A literal/IRI object constant can never be a triple
     // term, so the reifier scan is skipped. The residual `bind_row` enforces the exact
     // object match.
-    if let Some(reifies) = reifies_id {
+    let reifier_iter: Box<dyn Iterator<Item = QuadIds> + 'ds> = if let Some(reifies) = reifies_id {
         let predicate_can_reify = match &cp.p {
             Pos::Slot(_) => true,
             Pos::Bound(id) => *id == reifies,
@@ -601,39 +597,43 @@ fn virtual_candidates(
             Pos::Triple(_) => false,
         };
         if predicate_can_reify && object_can_be_triple_term(&cp.o, dataset) {
-            for q in dataset.reifier_quads() {
-                if matches_probe(&q) {
-                    out.push(q);
-                }
-            }
+            Box::new(dataset.reifier_quads().filter(move |q| {
+                s.is_none_or(|id| q.s == id)
+                    && p.is_none_or(|id| q.p == id)
+                    && o.is_none_or(|id| q.o == id)
+            }))
+        } else {
+            Box::new(std::iter::empty())
         }
-    }
+    } else {
+        Box::new(std::iter::empty())
+    };
 
     // Annotation layer: index by the bound reifier subject when possible, else scan.
-    match s {
-        Some(reifier) => {
-            for (pred, obj) in dataset.annotations_of(reifier) {
-                let q = QuadIds {
+    let annotation_iter: Box<dyn Iterator<Item = QuadIds> + 'ds> = match s {
+        Some(reifier) => Box::new(
+            dataset
+                .annotations_of(reifier)
+                .map(move |(pred, obj)| QuadIds {
                     s: reifier,
                     p: pred,
                     o: obj,
                     g: None,
-                };
-                if matches_probe(&q) {
-                    out.push(q);
-                }
-            }
-        }
-        None => {
-            for q in dataset.annotation_quads() {
-                if matches_probe(&q) {
-                    out.push(q);
-                }
-            }
-        }
-    }
+                })
+                .filter(move |q| {
+                    s.is_none_or(|id| q.s == id)
+                        && p.is_none_or(|id| q.p == id)
+                        && o.is_none_or(|id| q.o == id)
+                }),
+        ),
+        None => Box::new(dataset.annotation_quads().filter(move |q| {
+            s.is_none_or(|id| q.s == id)
+                && p.is_none_or(|id| q.p == id)
+                && o.is_none_or(|id| q.o == id)
+        })),
+    };
 
-    out
+    Box::new(reifier_iter.chain(annotation_iter))
 }
 
 /// Whether an object position could resolve to a quoted-triple term (so the reifier
