@@ -333,6 +333,22 @@ jobs:
       - name: Build + install the unified gmeow_native extension (#630)
         run: make native-py
 
+      # Persist the content-addressed `.cache/validate` (#654) across runs. Every
+      # validate phase (merged-SHACL, the per-example SHACL passes, the DSL passes)
+      # is wrapped in a content-keyed cache with no TTL; a stale restore self-heals
+      # because a mismatched in-process key is simply a miss. Without this, CI pays
+      # the full cold cost every run (the per-example passes dominate). `.cache/` is
+      # gitignored, so this workflow cache is the only persistence. The key is a
+      # coarse content hint over the validated sources + the Rust validator; the
+      # authoritative invalidation stays the in-process content key.
+      - name: Cache validate (content-addressed SHACL findings)
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .cache/validate
+          key: validate-${{ runner.os }}-${{ hashFiles('slices/**/*.ttl', 'shapes/**/*.ttl', 'dsl/**/*.ttl', 'crates/shacl/**/*.rs', 'crates/validate/**/*.rs') }}
+          restore-keys: |
+            validate-${{ runner.os }}-
+
       - name: Validate (syntax, lint, SHACL, DSL SHACL)
         run: make validate
 
