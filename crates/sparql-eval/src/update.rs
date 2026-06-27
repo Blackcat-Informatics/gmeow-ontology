@@ -328,6 +328,10 @@ fn clear_target(target: &GraphTarget, m: &mut MutableDataset) {
 /// `ADD <source> TO <dest>`: insert source quads re-keyed to dest; dest is NOT
 /// cleared and source is NOT removed.
 fn graph_op_add(source: &GraphTarget, destination: &GraphTarget, m: &mut MutableDataset) {
+    // SPARQL §3.2.5: ADD where source ≡ destination is a no-op.
+    if source == destination {
+        return;
+    }
     let src = quads_of_target(source, m);
     let dest = graph_target_value(destination);
     for q in src {
@@ -337,6 +341,10 @@ fn graph_op_add(source: &GraphTarget, destination: &GraphTarget, m: &mut Mutable
 
 /// `COPY <source> TO <dest>`: clear dest, then insert source quads re-keyed to dest.
 fn graph_op_copy(source: &GraphTarget, destination: &GraphTarget, m: &mut MutableDataset) {
+    // SPARQL §3.2.4: COPY where source ≡ destination is a no-op.
+    if source == destination {
+        return;
+    }
     let src = quads_of_target(source, m);
     clear_target(destination, m);
     let dest = graph_target_value(destination);
@@ -348,6 +356,13 @@ fn graph_op_copy(source: &GraphTarget, destination: &GraphTarget, m: &mut Mutabl
 /// `MOVE <source> TO <dest>`: clear dest, insert source quads re-keyed to dest, then
 /// remove the source quads.
 fn graph_op_move(source: &GraphTarget, destination: &GraphTarget, m: &mut MutableDataset) {
+    // SPARQL §3.2.6: MOVE where source ≡ destination is a no-op. This guard is also
+    // a correctness requirement, not just an optimization: with source == dest the
+    // trailing source-removal below would re-suppress the just-inserted quads and
+    // empty the graph.
+    if source == destination {
+        return;
+    }
     let src = quads_of_target(source, m);
     clear_target(destination, m);
     let dest = graph_target_value(destination);
@@ -640,6 +655,30 @@ mod tests {
             .collect();
         assert_eq!(in_g.len(), 1, "dest cleared then filled from source");
         assert_eq!(in_g[0].s, iri("a"), "stale quad gone, source quad present");
+    }
+
+    #[test]
+    fn move_self_to_self_preserves_the_graph() {
+        // MOVE GRAPH ex:g TO GRAPH ex:g is a no-op (SPARQL §3.2.6). Without the
+        // same-graph guard the suppression-delta double-remove would empty ex:g.
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri(format!("{EX}a"));
+        let p = b.intern_iri(format!("{EX}p"));
+        let o = b.intern_iri(format!("{EX}b"));
+        let g = b.intern_iri(format!("{EX}g"));
+        b.push_quad(s, p, o, Some(g));
+        let mut m = MutableDataset::new(b.freeze().expect("freeze"));
+
+        run("MOVE GRAPH ex:g TO GRAPH ex:g", &mut m);
+        let in_g = m.quads_for_pattern(None, None, None, GraphMatchValue::Named(&iri("g")));
+        assert_eq!(in_g.len(), 1, "self-MOVE preserves the graph's quad");
+        assert_eq!(in_g[0].s, iri("a"));
+
+        // The same guard makes self-COPY and self-ADD no-ops too.
+        run("COPY GRAPH ex:g TO GRAPH ex:g", &mut m);
+        run("ADD GRAPH ex:g TO GRAPH ex:g", &mut m);
+        let still = m.quads_for_pattern(None, None, None, GraphMatchValue::Named(&iri("g")));
+        assert_eq!(still.len(), 1, "self COPY/ADD leave the graph unchanged");
     }
 
     // ── LOAD ─────────────────────────────────────────────────────────────────
