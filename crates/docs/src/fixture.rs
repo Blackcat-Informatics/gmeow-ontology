@@ -10,14 +10,16 @@
 //! `discover()` per test is paid dozens of times, and when many start at once the
 //! concurrent builds contend and each takes far longer than a single build would.
 //!
-//! This module builds the model and the rendered English site ONCE and stores
-//! each in a content-addressed disk cache; later callers load them cheaply.
-//! [`prime`] is run once before the test processes spawn — by the
-//! `prime-docs-fixture` example, which the Makefile test lanes and the CI test
-//! job invoke immediately before `cargo nextest` — so no test pays the build or
-//! render. [`load`] / [`load_site`] are the per-process loaders, which also
-//! build-and-cache on a genuine miss so a plain `cargo test` (no prime step)
-//! still works.
+//! This module builds the model and the rendered site for EVERY available
+//! language ONCE and stores each in a content-addressed disk cache; later callers
+//! load them cheaply. The English carrier and each translation (`fr`, `zh`, …) are
+//! cached symmetrically, so a per-language render is paid once in [`prime`] rather
+//! than live in each test process. [`prime`] is run once before the test processes
+//! spawn — by the `prime-docs-fixture` example, which the Makefile test lanes and
+//! the CI test job invoke immediately before `cargo nextest` — so no test pays the
+//! build or any render. [`load`] / [`load_site`] / [`load_site_lang`] are the
+//! per-process loaders, which also build-and-cache on a genuine miss so a plain
+//! `cargo test` (no prime step) still works.
 //!
 //! The cache key is salted with the crate version and the model schema version
 //! and folds the bytes of every input `discover()` reads, so a slice edit (or a
@@ -34,9 +36,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
 
-use crate::i18n::{Translations, UiCatalog};
+use crate::i18n::{Translations, UiCatalog, ENGLISH};
 use crate::model::DocsModel;
-use crate::render::{render_site, Site};
+use crate::render::{render_site_lang, Site};
 
 /// Load the live documentation model rooted at `root`, from the once-per-run
 /// cache when present, otherwise built via [`DocsModel::discover`] and cached for
@@ -69,21 +71,29 @@ pub fn load(root: &Path) -> DocsModel {
     }
 }
 
-/// Load the rendered English static site rooted at `root`, from the once-per-run
-/// cache when present, otherwise rendered via [`render_site`] and cached for the
-/// rest of the run. Byte-identical to a fresh `render_site(&load(root))`.
+/// Load the rendered English static site rooted at `root` — a thin wrapper over
+/// [`load_site_lang`] for the English carrier (`render_site` ≡
+/// `render_site_lang(_, "english")`). Byte-identical to a fresh `render_site(&load(root))`.
+pub fn load_site(root: &Path) -> Site {
+    load_site_lang(root, ENGLISH)
+}
+
+/// Load the rendered static site for `lang` rooted at `root`, from the once-per-run
+/// cache when present, otherwise rendered via [`render_site_lang`] and cached for
+/// the rest of the run. Byte-identical to a fresh `render_site_lang(&load(root), lang)`.
 ///
-/// The English render is the canonical carrier (`render_site` ≡
-/// `render_site_lang(_, "english")`), and every gated test that needs the live
-/// site — determinism checks, the carrier-vs-`render_site` identity, English
-/// path-graph comparisons, lint passes — loads it from here instead of paying a
-/// fresh render. That removes the dominant per-test cost (a full site render) and
-/// the cross-process render contention that pushed those tests over the gate.
+/// Every gated test that needs a rendered site — determinism checks, the
+/// carrier-vs-`render_site` identity, per-language path-graph comparisons, lint
+/// passes — loads it from here instead of paying a fresh render. That removes the
+/// dominant per-test cost (a full site render) and the cross-process render
+/// contention that pushed those tests over the gate. The English carrier and each
+/// translation are cached symmetrically, so the `fr` / `zh` round-trip tests pay no
+/// live render either.
 ///
 /// Corrupt-but-present is an integrity violation and panics; only a genuine
 /// absence falls through to a fresh render (so a plain `cargo test` still works).
-pub fn load_site(root: &Path) -> Site {
-    let cache_path = site_cache_path(root);
+pub fn load_site_lang(root: &Path, lang: &str) -> Site {
+    let cache_path = site_cache_path(root, lang);
     match fs::read(&cache_path) {
         Ok(bytes) => {
             let cached: CachedSite = serde_json::from_slice(&bytes).unwrap_or_else(|e| {
@@ -96,7 +106,7 @@ pub fn load_site(root: &Path) -> Site {
             cached.into_site()
         }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            build_site_and_cache(root, &cache_path)
+            build_site_and_cache(root, lang, &cache_path)
         }
         Err(e) => panic!(
             "cannot read docs-fixture site cache at {}: {e}",
@@ -105,18 +115,43 @@ pub fn load_site(root: &Path) -> Site {
     }
 }
 
-/// Build the model and the rendered site and write each cache if it is not
-/// already present. Run once before a batch of tests so none of them pays the
-/// (contended) model build or site render. A no-op when both caches are warm.
+/// Build the model and the rendered site for every available language and write
+/// each cache if it is not already present. Run once before a batch of tests so
+/// none of them pays the (contended) model build or any site render.
+///
+/// The fully-warm path is a pure stat-check (two `exists()` calls, no model
+/// deserialize and no render): the English site is written LAST, so its presence
+/// is the sentinel that the whole per-language set for this cache key is on disk.
+/// Only a cold or interrupted-partial cache loads the model — once — to enumerate
+/// `available_languages` and render the missing languages.
 pub fn prime(root: &Path) {
     let cache_path = cache_path(root);
-    if !cache_path.exists() {
-        build_and_cache(root, &cache_path);
+    let model = if cache_path.exists() {
+        // English is rendered last below, so an existing English site means every
+        // translation for this key is already warm — return without loading the model.
+        if site_cache_path(root, ENGLISH).exists() {
+            return;
+        }
+        load(root)
+    } else {
+        build_and_cache(root, &cache_path)
+    };
+
+    // Render every translation first, then the English carrier last so the
+    // sentinel above only becomes true once the complete set is on disk.
+    for lang in &model.available_languages {
+        if lang == ENGLISH {
+            continue;
+        }
+        let path = site_cache_path(root, lang);
+        if !path.exists() {
+            let site = render_site_lang(&model, lang);
+            write_cache(&path, &CachedSite::from_site(&site));
+        }
     }
-    let site_path = site_cache_path(root);
-    if !site_path.exists() {
-        build_site_and_cache(root, &site_path);
-    }
+    let english_path = site_cache_path(root, ENGLISH);
+    let english = render_site_lang(&model, ENGLISH);
+    write_cache(&english_path, &CachedSite::from_site(&english));
 }
 
 fn build_and_cache(root: &Path, cache_path: &Path) -> DocsModel {
@@ -125,11 +160,11 @@ fn build_and_cache(root: &Path, cache_path: &Path) -> DocsModel {
     model
 }
 
-fn build_site_and_cache(root: &Path, site_path: &Path) -> Site {
+fn build_site_and_cache(root: &Path, lang: &str, site_path: &Path) -> Site {
     // Reuse the warm model cache (built first by `prime`, or built-and-cached
     // here on a plain `cargo test` miss) rather than re-walking the slices.
     let model = load(root);
-    let site = render_site(&model);
+    let site = render_site_lang(&model, lang);
     write_cache(site_path, &CachedSite::from_site(&site));
     site
 }
@@ -142,14 +177,19 @@ fn cache_path(root: &Path) -> PathBuf {
         .join(format!("{key}.json"))
 }
 
-/// The on-disk cache path for the rendered site. Shares the model cache key (the
-/// site is a pure function of the model, and a render-logic change is covered by
-/// the crate-version salt), with a distinct suffix.
-fn site_cache_path(root: &Path) -> PathBuf {
+/// The on-disk cache path for a language's rendered site. Shares the model cache
+/// key (the site is a pure function of the model, and a render-logic change is
+/// covered by the crate-version salt), with a per-language suffix. The English
+/// carrier keeps the bare `.site.json` suffix; every translation is tagged
+/// (`.site.fr.json`, `.site.zh.json`, …) so the languages never collide.
+fn site_cache_path(root: &Path, lang: &str) -> PathBuf {
     let key = cache_key(root);
-    root.join(".cache")
-        .join("docs-fixture")
-        .join(format!("{key}.site.json"))
+    let name = if lang == ENGLISH {
+        format!("{key}.site.json")
+    } else {
+        format!("{key}.site.{lang}.json")
+    };
+    root.join(".cache").join("docs-fixture").join(name)
 }
 
 /// The serialized cache envelope. The model serializes with its i18n fields
@@ -399,11 +439,37 @@ mod tests {
             format!("{key}.json")
         );
         assert_eq!(
-            site_cache_path(&root)
+            site_cache_path(&root, ENGLISH)
                 .file_name()
                 .unwrap()
                 .to_string_lossy(),
             format!("{key}.site.json")
+        );
+    }
+
+    #[test]
+    fn per_language_site_paths_are_tagged_and_distinct() {
+        let root = temp_root("lang-paths");
+        let key = cache_key(&root);
+        // English keeps the bare suffix; translations are tagged by language.
+        assert_eq!(
+            site_cache_path(&root, ENGLISH)
+                .file_name()
+                .unwrap()
+                .to_string_lossy(),
+            format!("{key}.site.json")
+        );
+        assert_eq!(
+            site_cache_path(&root, "fr")
+                .file_name()
+                .unwrap()
+                .to_string_lossy(),
+            format!("{key}.site.fr.json")
+        );
+        assert_ne!(
+            site_cache_path(&root, "fr"),
+            site_cache_path(&root, "zh"),
+            "distinct languages must not share a site cache path"
         );
     }
 
@@ -421,7 +487,7 @@ mod tests {
     #[should_panic(expected = "corrupt docs-fixture site cache")]
     fn present_but_corrupt_site_cache_panics() {
         let root = temp_root("corrupt-site");
-        let sp = site_cache_path(&root);
+        let sp = site_cache_path(&root, ENGLISH);
         fs::create_dir_all(sp.parent().unwrap()).unwrap();
         fs::write(&sp, b"{ not valid json").unwrap();
         let _ = load_site(&root);
