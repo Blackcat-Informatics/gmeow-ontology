@@ -50,6 +50,7 @@ pub mod ast;
 pub mod error;
 pub mod lexer;
 pub mod parser;
+pub mod serialize;
 
 pub use algebra::{
     AggregateExpression, AggregateFunction, Expression, Function, GraphPattern, GraphTarget,
@@ -62,3 +63,4 @@ pub use ast::{
 };
 pub use error::{ParseError, Result};
 pub use parser::SparqlParser;
+pub use serialize::pattern_to_select_query;
