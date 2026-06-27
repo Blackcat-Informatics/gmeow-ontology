@@ -357,7 +357,7 @@ fn build_okf_blob_from_builder(builder: &SnapshotBuilder) -> Result<BlobRow, Pip
 ///
 /// The rust doc generator (`gmeow_docs::render_site_lang`) emits a complete site
 /// (`index.md`/`index.html` per page, `assets/gmeow.css`, SVG diagrams,
-/// `search-index.json`, `llms-docs.txt`, alias redirects) as a deterministic
+/// `search-index.json`, `llms.txt`/`llms-full.txt`, alias redirects) as a deterministic
 /// `BTreeMap<path, bytes>`. We render it once per available language and prefix
 /// every member with that language's INTERNAL tag (`x-gmeow-english`,
 /// `x-gmeow-<lang>`, …) — the exact `{tag}/` prefix `_unpack_doc_archive` filters
@@ -1490,13 +1490,27 @@ mod ustar_tests {
             "the English landing page must be present"
         );
         // The site carries its structural assets (deterministic, language-keyed).
-        for asset in ["assets/gmeow.css", "search-index.json", "llms-docs.txt"] {
+        for asset in [
+            "assets/gmeow.css",
+            "search-index.json",
+            "llms.txt",
+            "llms-full.txt",
+        ] {
             let want = format!("x-gmeow-english/{asset}");
             assert!(
                 members.iter().any(|(n, _)| n == &want),
                 "expected site asset {want}"
             );
         }
+        // The #1027 per-term card surface: at least one `card.md` file must
+        // be present in the archive under the English carrier tag.
+        let card_md_present = members
+            .iter()
+            .any(|(n, _)| n.starts_with("x-gmeow-english/terms/") && n.ends_with("/card.md"));
+        assert!(
+            card_md_present,
+            "expected at least one x-gmeow-english/terms/<slug>/card.md in the docs archive"
+        );
         // Member names CAN exceed the 100-byte USTAR field (LongLink-covered).
         // Today's longest stays under it, so LongLink is a defensive net rather
         // than currently-triggered — `long_member_name_round_trips_via_longlink`
