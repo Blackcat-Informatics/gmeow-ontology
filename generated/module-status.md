@@ -33,7 +33,7 @@ Tier-2 uplift backlog.
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 8/8 | full |
-| epistemics | core | core | 7 | 7 | 13 | 0 | 4 | 20/20 | full |
+| epistemics | core | core | 9 | 9 | 20 | 0 | 5 | 29/29 | full |
 | events | core | core | 6 | 12 | 43 | 0 | 1 | 55/55 | full |
 | evidence | core | core | 2 | 5 | 5 | 0 | 1 | 10/10 | full |
 | expertise | core | core | 5 | 3 | 11 | 0 | 1 | 14/14 | full |
@@ -84,4 +84,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 12 | 0 | 1 | 18/18 | full |
 
-**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1187/1498 core class/property terms (#471).
+**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1196/1507 core class/property terms (#471).
