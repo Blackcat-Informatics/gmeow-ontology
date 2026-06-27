@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Tests for the canonical IR.  These are the authoritative IR tests; the Python
-//! `tests/test_logic_ir.py` they superseded was retired in #727.
+//! `tests/test_logic_ir.py` they superseded has been retired.
 
 use super::*;
 
@@ -14,6 +14,47 @@ fn kind_pred() -> String {
 
 fn axiom(subj: &str, pred: &str, obj: &str) -> LogicAxiom {
     LogicAxiom::ground(subj, pred, obj, false).unwrap()
+}
+
+/// Read the canonical `module.ttl` (relative to the crate manifest).
+fn module_ttl_text() -> String {
+    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/core/logic/module.ttl");
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+}
+
+/// Collect the local names of every individual in `module.ttl` whose block names
+/// `logic:<type_local>` in an rdf:type position — either the inline `a … logic:T`
+/// clause or a bare `logic:T ;`/`logic:T ,` type-list continuation.  Deliberately
+/// ignores `rdfs:range logic:T` and other object positions (so the `logic:<prop>`
+/// property whose range is the taxonomy class is not mistaken for one of its
+/// members) and the class declaration itself.
+fn individuals_of_type(text: &str, type_local: &str) -> std::collections::BTreeSet<String> {
+    let type_ref = format!("logic:{type_local}");
+    let mut out: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut current: Option<String> = None;
+    let mut is_member = false;
+    for line in text.lines() {
+        if let Some(rest) = line.strip_prefix("logic:") {
+            if let (Some(subj), true) = (current.take(), is_member) {
+                out.insert(subj);
+            }
+            current = Some(rest.chars().take_while(|c| !c.is_whitespace()).collect());
+            is_member = false;
+        }
+        let trimmed = line.trim_start();
+        let bare_type_entry = trimmed
+            .strip_prefix(&type_ref)
+            .is_some_and(|r| r.is_empty() || r.starts_with([' ', '\t', ';', ',']));
+        let inline_type = trimmed.starts_with("a ") && line.contains(&type_ref);
+        if (bare_type_entry || inline_type) && current.as_deref() != Some(type_local) {
+            is_member = true;
+        }
+    }
+    if let (Some(subj), true) = (current, is_member) {
+        out.insert(subj);
+    }
+    out
 }
 
 // ── Enum surface (local names match module.ttl verbatim) ─────────────────────
@@ -215,6 +256,7 @@ fn preservation_kind_values_match_module_ttl() {
         PreservationKind::ValidationOnly,
         PreservationKind::InconsistencyPreserving,
         PreservationKind::InconsistencyReflecting,
+        PreservationKind::Unsupported,
     ]
     .iter()
     .map(|k| k.as_str())
@@ -226,10 +268,111 @@ fn preservation_kind_values_match_module_ttl() {
         "ValidationOnly",
         "InconsistencyPreserving",
         "InconsistencyReflecting",
+        "Unsupported",
     ]
     .into_iter()
     .collect();
     assert_eq!(got, expected);
+
+    // The seven enum values must be EXACTLY the logic:PreservationKind individuals
+    // declared in module.ttl — so the new Unsupported floor is pinned to the ontology.
+    let from_ttl = individuals_of_type(&module_ttl_text(), "PreservationKind");
+    let from_ttl_refs: std::collections::BTreeSet<&str> =
+        from_ttl.iter().map(String::as_str).collect();
+    assert_eq!(
+        got, from_ttl_refs,
+        "PreservationKind enum must match the logic:PreservationKind individuals in module.ttl"
+    );
+    assert!(
+        from_ttl.contains("Unsupported"),
+        "the Unsupported floor is declared"
+    );
+}
+
+#[test]
+fn node_kind_values_match_module_ttl() {
+    let from_rust: std::collections::BTreeSet<&str> = [
+        NodeKind::ObjectLevelFormula,
+        NodeKind::MetaLevelFormula,
+        NodeKind::Constraint,
+        NodeKind::DerivationRule,
+        NodeKind::Query,
+        NodeKind::TransactionProgram,
+        NodeKind::ActionSchema,
+        NodeKind::ValidationShape,
+        NodeKind::Correspondence,
+    ]
+    .iter()
+    .map(|k| k.as_str())
+    .collect();
+
+    let from_ttl = individuals_of_type(&module_ttl_text(), "NodeKind");
+    let from_ttl_refs: std::collections::BTreeSet<&str> =
+        from_ttl.iter().map(String::as_str).collect();
+    assert_eq!(
+        from_rust, from_ttl_refs,
+        "NodeKind enum must match the logic:NodeKind individuals in module.ttl"
+    );
+
+    // Round-trip through from_local, including the reserved ninth Correspondence slot.
+    for k in &from_rust {
+        assert_eq!(NodeKind::from_local(k).unwrap().as_str(), *k);
+    }
+    assert!(
+        from_rust.contains("Correspondence"),
+        "the reserved ninth kind is present"
+    );
+    assert_eq!(NodeKind::default(), NodeKind::ObjectLevelFormula);
+}
+
+#[test]
+fn node_kind_folds_into_keys_only_when_non_default() {
+    // Axiom: the default ObjectLevelFormula keeps the byte-identical historical key.
+    let base = axiom("ex:s", "p", "ex:o");
+    assert_eq!(base.sort_key(), "ex:s\u{0}p\u{0}ex:o\u{0}False");
+    assert_eq!(base.node_kind, NodeKind::ObjectLevelFormula);
+    assert!(!base.load_bearing);
+
+    // A non-default kind diverges, appending the kind segment after the obj-literal flag.
+    let meta = axiom("ex:s", "p", "ex:o").with_node_kind(NodeKind::MetaLevelFormula);
+    assert_eq!(
+        meta.sort_key(),
+        "ex:s\u{0}p\u{0}ex:o\u{0}False\u{0}MetaLevelFormula"
+    );
+    assert_ne!(base, meta);
+
+    // FIXED segment order: load_bearing (when true) BEFORE node_kind, both after negated.
+    let lb = axiom("ex:s", "p", "ex:o").with_load_bearing(true);
+    assert_eq!(lb.sort_key(), "ex:s\u{0}p\u{0}ex:o\u{0}False\u{0}True");
+    let both = axiom("ex:s", "p", "ex:o")
+        .with_load_bearing(true)
+        .with_node_kind(NodeKind::Constraint);
+    assert_eq!(
+        both.sort_key(),
+        "ex:s\u{0}p\u{0}ex:o\u{0}False\u{0}True\u{0}Constraint"
+    );
+
+    // Two axioms differing ONLY in kind are != and have distinct canonical content.
+    let p_base = LogicProgram::new(vec![base.clone()], vec![], vec![], None);
+    let p_meta = LogicProgram::new(vec![meta.clone()], vec![], vec![], None);
+    assert_ne!(p_base.canonical_key(), p_meta.canonical_key());
+
+    // Rule: the two-default-sentinel dual fold-point.  A default-DerivationRule rule
+    // with a default head keeps its historical key; flipping the rule kind diverges;
+    // flipping ONLY the head-axiom kind diverges independently; the two are distinct.
+    let head = axiom("ex:h", "p", "ex:o");
+    let r_default = LogicRule::new(head.clone(), vec![], vec![], Default::default());
+    assert_eq!(r_default.node_kind, NodeKind::DerivationRule);
+    let r_rule_kind = LogicRule::new(head.clone(), vec![], vec![], Default::default())
+        .with_node_kind(NodeKind::Constraint);
+    let head_meta = axiom("ex:h", "p", "ex:o").with_node_kind(NodeKind::MetaLevelFormula);
+    let r_head_kind = LogicRule::new(head_meta, vec![], vec![], Default::default());
+
+    assert_ne!(r_default.sort_key(), r_rule_kind.sort_key());
+    assert_ne!(r_default.sort_key(), r_head_kind.sort_key());
+    assert_ne!(r_rule_kind.sort_key(), r_head_kind.sort_key());
+    // The rule's own kind segment is appended at the end of the rule key.
+    assert!(r_rule_kind.sort_key().ends_with("\u{0}Constraint"));
 }
 
 #[test]
