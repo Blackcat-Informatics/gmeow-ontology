@@ -488,5 +488,9 @@ ex:saUnspecifiedNotSameAsUniversal a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:unspecifiedStandpoint owl:sameAs gmeow:universalStandpoint . }""" ;
+ASK {
+    { gmeow:unspecifiedStandpoint owl:sameAs gmeow:universalStandpoint . }
+    UNION
+    { gmeow:universalStandpoint owl:sameAs gmeow:unspecifiedStandpoint . }
+}""" ;
     gmeow:saRationale "gmeow:unspecifiedStandpoint MUST NOT be owl:sameAs gmeow:universalStandpoint -- the central 'unspecified, not universal' distinction: the default-of-silence and the explicit-universal top are distinct frames; conflating them re-introduces the silent-universality collapse." .
