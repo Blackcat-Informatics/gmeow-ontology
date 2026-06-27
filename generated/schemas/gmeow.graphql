@@ -2020,6 +2020,7 @@ enum PipelineStageEnum {
   stage_export_profiles
   stage_export_references
   stage_export_research_objects
+  stage_export_result_shapes
   stage_export_schemas
   stage_export_yaml_ld
   stage_gts_compose

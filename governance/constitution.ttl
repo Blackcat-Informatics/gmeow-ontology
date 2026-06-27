@@ -78,7 +78,7 @@ meta:gate-generator-registry a meta:Gate ;
     meta:generator "source_load", "statements", "compile_logic", "mappings",
         "reason", "gts_compose", "snapshot", "docs_render", "gts_sink", "logic",
         "metadata", "schemas", "lpg", "matrix", "apache",
-        "catalog", "profiles", "frame_shapes", "evals", "parquet",
+        "catalog", "profiles", "frame_shapes", "result_shapes", "evals", "parquet",
         "research-objects", "references", "export", "okf", "bench" .
 
 meta:tests-narrow-waist a meta:TestSuite ;
@@ -219,6 +219,11 @@ meta:shapes-frame-generated a meta:Shape ;
     rdfs:label "frame-relativity SHACL generated from gmeow:requiresFrame"@x-gmeow-english ;
     meta:artifact "crates/pipeline/src/stages/frame_shapes.rs", "generated/shapes/frame-shapes.ttl" ;
     meta:symbol "render_frame_shapes" .
+
+meta:shapes-result-generated a meta:Shape ;
+    rdfs:label "result-set SHACL generated from logic:ResultShape (P4/P17 projection)"@x-gmeow-english ;
+    meta:artifact "crates/pipeline/src/stages/result_shapes.rs", "generated/shapes/result-shapes.ttl" ;
+    meta:symbol "render_result_shapes" .
 
 meta:lint-frame-completeness a meta:Lint ;
     rdfs:label "frame-pointing properties demand a requiresFrame declaration"@x-gmeow-english ;

@@ -18229,6 +18229,9 @@ enums:
       stage-export-research-objects:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-research-objects
         title: 'export: research objects'
+      stage-export-result-shapes:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-result-shapes
+        title: 'export: result shapes'
       stage-export-schemas:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-schemas
         title: 'export: schemas'

@@ -220,6 +220,7 @@ gmeow:pipeline-build
         gmeow:stage-export-okf ,
         gmeow:stage-export-apache ,
         gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-result-shapes ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-matrix ,
         gmeow:stage-export-metadata ,
@@ -447,6 +448,17 @@ gmeow:stage-export-frame-shapes
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "frame_shapes" ;
+    gmeow:producesFormat "shacl" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-result-shapes
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: result shapes"@x-gmeow-english ;
+    skos:definition "Project each canonical logic:ResultShape (declared on a competency question via gmeow:cqResultShape) to SHACL — the P4/P17 projection of the typed query-result contract."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "result_shapes" ;
     gmeow:producesFormat "shacl" ;
     gmeow:carriesEngineLock false .
 
