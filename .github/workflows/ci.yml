@@ -204,6 +204,13 @@ jobs:
         if: ${{ matrix.shard == 1 }}
         run: cargo clippy --all-targets -- -D warnings
 
+      # Build the gmeow-docs model fixture once so every docs test loads it warm.
+      # Without this each docs test rebuilds the ~12 s DocsModel in its own process
+      # and concurrent rebuilds contend past the 25 s budget. Primed single-threaded
+      # here (uncharged), the docs tests then load the content-addressed cache fast.
+      - name: Prime docs-model fixture cache
+        run: cargo run -q --package gmeow-docs --example prime-docs-fixture
+
       - name: Workspace tests (cargo-nextest) (shard ${{ matrix.shard }}/3)
         run: cargo nextest run --profile ci --partition count:${{ matrix.shard }}/3
 
