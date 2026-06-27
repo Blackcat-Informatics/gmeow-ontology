@@ -30,7 +30,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_diagnostics::{Finding, Location, Severity};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::projections::compile_program;
 
@@ -115,7 +115,7 @@ impl Stage for CompileLogicStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let source = std::fs::read_to_string(input.root.join(SOURCE_PATH))
             .map_err(|e| stage_err(format!("read {SOURCE_PATH}: {e}")))?;
-        let (program, diagnostics) = parse_logic_str(&source, None)
+        let (program, diagnostics) = parse_logic_str(&source, Some(SOURCE_PATH.to_string()))
             .map_err(|e| stage_err(format!("parse {SOURCE_PATH}: {}", e.0)))?;
         // The overclaim / rule-safety gate runs inside `compile_program`; a violation
         // is a hard error (fail-closed), never a silently dropped product.
@@ -150,6 +150,21 @@ impl Stage for CompileLogicStage {
                         format!("projection {} drops: {drop}", entry.target),
                     )
                     .with_tool(TOOL),
+                );
+            }
+        }
+        // Anchor every compiler finding to the real repo-relative source file so
+        // SARIF physical locations point to `slices/core/logic/module.ttl` rather
+        // than falling back to the synthetic `ontology/gmeow.ttl` placeholder.
+        // Findings that already carry a physical path (path.is_some()) are left
+        // unchanged; logical-only findings (IRI subject) get a prepended physical
+        // location so GitHub code-scanning can navigate to the right file.
+        for finding in &mut report.findings {
+            let has_physical = finding.locations.iter().any(|l| l.path.is_some());
+            if !has_physical {
+                finding.locations.insert(
+                    0,
+                    Location::new(Some(SOURCE_PATH.to_string()), None, None, None),
                 );
             }
         }
