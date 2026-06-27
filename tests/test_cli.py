@@ -464,11 +464,16 @@ def test_export_lang_flag_wins_over_env(runner: CliRunner, tmp_path: Path) -> No
 def test_public_cli_excludes_checkout_commands(runner: CliRunner) -> None:
     result = runner.invoke(public_app, ["--help"])
     assert result.exit_code == 0
-    assert "verify" in result.output
-    assert "regenerate" not in result.output
-    assert "quality" not in result.output
-    assert "check-generated" not in result.output
-    assert "Validate RDF data" in result.output
+    # CI forces Rich colour; normalise SGR escapes so command-name and summary
+    # substring checks are colour-stable. Stripping also protects the negative
+    # assertions from silently masking a real match behind an escape sequence.
+    output = _strip_ansi(result.output)
+    assert "verify" in output
+    assert "validate" in output
+    assert "Validate RDF data" in output
+    assert "regenerate" not in output
+    assert "quality" not in output
+    assert "check-generated" not in output
 
 
 def test_public_gts_cli_excludes_compile_commands(runner: CliRunner) -> None:
