@@ -281,20 +281,22 @@ and `w3c_rdfc10_heavy_offgate` (the sole RDFC-1.0 negative/poison vector `test07
 shard under 1 s).
 
 Nearly the whole `gmeow-docs` test cluster is **on-gate**: each test loads a shared
-`DocsModel` from the content-addressed `gmeow_docs::fixture` cache instead of
-rebuilding it. The cache is primed once before the run — the `prime-docs-fixture`
-example, run by the Makefile test lanes and the CI test job ahead of `nextest` — so
-no test pays the ~12 s build or the cold concurrent-rebuild contention. A plain
-`cargo test` still works (a miss falls through to a build). The exception is the
-**full-site-render family** — `render_site_is_byte_stable`,
-`english_carrier_tree_matches_render_site`, `french_tree_shares_the_english_path_graph`,
-`chinese_tree_shares_the_english_path_graph`, and
-`translated_tree_preserves_the_no_dangling_link_invariant`: the shared fixture
-amortizes the model *build*, but each of these renders or walks the WHOLE site
-(every page, English or translated), an O(terms) cost the fixture cannot amortize.
-All five sit at ~23-26 s and cross the zero-headroom 25 s budget as the ontology
-grows, so they are off-gate (still run on maint-heavy); every single-page /
-single-term docs test stays on-gate.
+`DocsModel` *and* the rendered site for every available language from the
+content-addressed `gmeow_docs::fixture` cache instead of rebuilding or re-rendering.
+The cache is primed once before the run — the `prime-docs-fixture` example, run by
+the Makefile test lanes and the CI test job ahead of `nextest` — so no test pays the
+~12 s build, the cold concurrent-rebuild contention, or a per-language site render. A
+plain `cargo test` still works (a miss falls through to a build/render). The exception
+is the **live-full-render guards** — `render_site_is_byte_stable` and
+`english_carrier_tree_matches_render_site`: each performs a LIVE whole-site render of
+the full model and compares it to the cached render. The live render IS the thing
+under test (render determinism and the carrier-vs-`render_site` identity), so it
+cannot be served from cache; that O(terms) render sits at ~23-26 s and crosses the
+zero-headroom 25 s budget as the ontology grows, so the two stay off-gate (still run
+on maint-heavy). The language-comparison round-trips (`french_tree`, `chinese_tree`,
+and the translated no-dangling-link check) only need a render's *output*, so they read
+the per-language cache and are on-gate; every single-page / single-term docs test
+stays on-gate.
 
 The bias is **fix, don't off-gate**: prefer making a test fast (shard it like the
 corpus parity sweep in `crates/rdf/tests/sparql_eval_parity.rs`, or share an

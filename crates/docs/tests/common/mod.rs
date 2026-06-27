@@ -40,3 +40,11 @@ pub fn cached_model() -> DocsModel {
 pub fn cached_site() -> Site {
     gmeow_docs::fixture::load_site(&repo_root())
 }
+
+/// The rendered static site for `lang`, loaded from the shared once-per-run cache.
+/// The English carrier and every translation (`fr`, `zh`, …) are cached
+/// symmetrically by `prime`, so a per-language round-trip test reads its tree from
+/// here instead of paying a live `render_site_lang` walk.
+pub fn cached_site_lang(lang: &str) -> Site {
+    gmeow_docs::fixture::load_site_lang(&repo_root(), lang)
+}
