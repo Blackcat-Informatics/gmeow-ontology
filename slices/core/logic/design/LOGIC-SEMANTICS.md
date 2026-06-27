@@ -375,6 +375,45 @@ This is the shared currency between every reasoning surface and every downstream
 typed object that says *what* was found, *how completely*, *under which contract*, *in which context*,
 and *with what proof* — with no field standing in for another.
 
+### The result row schema (ResultShape)
+
+A `SELECT` returns a bag of variable bindings. Untyped, that bag carries no contract: nothing pins
+which variables a query guarantees, what kind of term each binds, or how many rows the answer holds —
+so two queries cannot be composed with any static guarantee that the producer's output fits the
+consumer's input. The **`ResultShape`** is the schema-level type that closes this gap. It is the
+**row-schema facet** of the reasoning result (`resultRowSchema`), and it is the Rust authority in
+`crates/logic/src/result_shape.rs` (this section is its lossy projection, Principle 17).
+
+A `ResultShape` is a set of typed **columns** plus a **row-set cardinality**:
+
+- each **column** (`ResultColumn`) names one `SELECT` variable (`columnVariable`), declares its
+  **term-kind** (`columnTermKind` — one of `iri`, `literal`, `blank-node`; **mandatory**, because a
+  column with no declared kind is exactly the untyped bag this contract exists to remove), an optional
+  **datatype** for a literal column (`columnDatatype`; absent means "any literal" — a *declared*
+  loosening, never a half-typed column), and whether the variable is **bound in every row**
+  (`columnBinding` — `required` or `optional`, the latter for a projected `OPTIONAL`);
+- the **cardinality** (`shapeCardinality`) is one of `exact` (the declared example rows are the
+  complete set), `contains` (they must all appear; extras are permitted), or `count` (only the row
+  count is pinned, via `shapeRowCount`). These three modes subsume the test-DSL's
+  `cqExactRows`/`cqExpectRowCount` tiers exactly — the schema is the single source, and the example
+  rows become *example-instances* of it rather than a parallel mechanism.
+
+Two operations make the contract enforceable, both **hard-fail and surfaced** (no silent
+approximation):
+
+1. **type conformance** — a result set's bindings are checked against the declared columns: a binding
+   of the wrong term-kind or datatype, a missing `required` column, an undeclared extra column, or (in
+   `count` mode) a wrong row count is a violation that stops the run with a named error.
+2. **structural input→output compatibility**, data-free — a query may declare the shape it
+   `expectsInputShape`, and the shape its producer `producesResultShape`. A producer *satisfies* a
+   consumer's input shape iff it covers every `required` column with a compatible term-kind and (where
+   the consumer pins one) datatype. This check runs **before execution**, so a composition that cannot
+   type-check never runs — the query pipeline is checkable, not merely observable after the fact.
+
+The declared shape is always the *contract*: it is authored, then bindings are validated against it. A
+shape is **never** synthesised from the very bindings it would then check (that tautology always
+passes and certifies nothing).
+
 ## Turing-Completeness, Decidability, and Termination
 
 **Turing-completeness is a design goal, not a side effect.** `logic:` is meant to compute, not

@@ -33,7 +33,7 @@ Tier-2 uplift backlog.
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 8/8 | full |
-| epistemics | core | core | 9 | 9 | 20 | 0 | 5 | 29/29 | full |
+| epistemics | core | core | 7 | 7 | 13 | 0 | 4 | 20/20 | full |
 | events | core | core | 6 | 12 | 43 | 0 | 1 | 55/55 | full |
 | evidence | core | core | 2 | 5 | 5 | 0 | 1 | 10/10 | full |
 | expertise | core | core | 5 | 3 | 11 | 0 | 1 | 14/14 | full |
@@ -53,7 +53,7 @@ Tier-2 uplift backlog.
 | learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
-| logic | core | core | 0 | 99 | 113 | 101 | 4 | 0/212 | full |
+| logic | core | core | 0 | 104 | 123 | 109 | 4 | 0/227 | full |
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | music | extension | extensions | 12 | 59 | 126 | 0 | 1 | - | full |
@@ -77,11 +77,11 @@ Tier-2 uplift backlog.
 | sexuality | core | core | 2 | 4 | 4 | 0 | 1 | 8/8 | full |
 | software | extension | extensions | 10 | 33 | 53 | 0 | 1 | - | full |
 | sources | core | core | 1 | 0 | 3 | 0 | 1 | 3/3 | full |
-| standpoint | core | core | 3 | 9 | 22 | 0 | 1 | 21/31 | full |
+| standpoint | core | core | 3 | 3 | 7 | 0 | 1 | 8/10 | full |
 | tags | core | core | 2 | 3 | 11 | 0 | 1 | 14/14 | full |
 | teleology | core | core | 3 | 7 | 10 | 0 | 1 | 17/17 | full |
 | temporal | core | core | 2 | 11 | 41 | 0 | 1 | 48/52 | full |
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 12 | 0 | 1 | 18/18 | full |
 
-**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1196/1492 core class/property terms (#471).
+**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1174/1477 core class/property terms (#471).
