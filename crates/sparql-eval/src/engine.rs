@@ -105,6 +105,31 @@ impl NativeSparqlEngine {
         self.resolver = Some(resolver);
         self
     }
+
+    /// Like [`SparqlEngine::query`], but with a [`RemoteQuerySource`] injected so
+    /// `SERVICE` clauses resolve through it (S6b #928). Without this, the default
+    /// [`SparqlEngine::query`] path has no source and a non-silent `SERVICE`
+    /// hard-fails. This is the public entry the conformance harness and federated
+    /// callers use.
+    ///
+    /// # Errors
+    ///
+    /// Propagates parse and evaluation errors as an [`RdfDiagnostic`].
+    pub fn query_with_source(
+        &self,
+        dataset: &Arc<RdfDataset>,
+        request: SparqlRequest<'_>,
+        source: &dyn crate::remote::RemoteQuerySource,
+    ) -> Result<SparqlResult, RdfDiagnostic> {
+        let prepared = self
+            .cache
+            .borrow_mut()
+            .prepare(request.query, request.base_iri)?;
+        let mut ctx = EvalCtx::new(dataset).with_remote(source);
+        let outcome = evaluate_query(&prepared.query, &mut ctx)
+            .map_err(|e| RdfDiagnostic::error("native-sparql-query-eval", e.to_string()))?;
+        Ok(materialize(outcome, &ctx))
+    }
 }
 
 impl SparqlEngine for NativeSparqlEngine {

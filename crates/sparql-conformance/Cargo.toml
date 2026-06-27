@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-sparql-conformance"
+description = "Native W3C SPARQL 1.1 conformance harness (S6b #928): discovers mf: test manifests, runs the native gmeow-sparql-eval engine, and diffs against expected SPARQL Results (SRX/SRJ) / canonical N-Quads. Federated SERVICE tests resolve through an in-memory RemoteQuerySource (no network). Zero oxigraph Store."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The engine under test + its algebra front-end.
+gmeow-sparql-eval = { path = "../sparql-eval" }
+gmeow-sparql-algebra = { path = "../sparql-algebra" }
+# Native Turtle/TriG/N-Quads loader (parse_dataset) + RDFC-1.0 canonicalization,
+# both oxigraph-Store-free.
+gmeow-rdf = { path = "../rdf" }
+gmeow-rdf-core = { path = "../rdf-core" }
+# Hand-rolled SPARQL Results readers for the expected SRX/SRJ files (#928 Task 2).
+gmeow-sparql-results = { path = "../sparql-results" }
+# UTF-8 path type used by the datatest-stable harness signature.
+camino = "1"
+
+[dev-dependencies]
+datatest-stable = "0.3"
+
+[[test]]
+name = "sparql_conformance"
+harness = false

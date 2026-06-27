@@ -1993,6 +1993,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-sparql-conformance"
+version = "0.1.0"
+dependencies = [
+ "camino",
+ "datatest-stable",
+ "gmeow-rdf",
+ "gmeow-rdf-core",
+ "gmeow-sparql-algebra",
+ "gmeow-sparql-eval",
+ "gmeow-sparql-results",
+]
+
+[[package]]
 name = "gmeow-sparql-eval"
 version = "0.1.0"
 dependencies = [
