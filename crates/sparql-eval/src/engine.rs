@@ -605,4 +605,191 @@ mod tests {
         assert!(NativeSparqlEngine::new().resolver.is_none());
         assert!(NativeSparqlEngine::default().resolver.is_none());
     }
+
+    // ── exotic aggregation (S6b #928) ────────────────────────────────────────
+
+    const XSD_INT: &str = "http://www.w3.org/2001/XMLSchema#integer";
+
+    /// A dataset for grouping/aggregation:
+    /// `:r1 :a 1 ; :b 2`, `:r2 :a 1 ; :b 2`, `:r3 :a 2 ; :b 3`.
+    fn numbers() -> Arc<RdfDataset> {
+        let mut b = RdfDatasetBuilder::new();
+        let pa = b.intern_iri("http://ex/a".to_owned());
+        let pb = b.intern_iri("http://ex/b".to_owned());
+        let int = |b: &mut RdfDatasetBuilder, n: &str| {
+            b.intern_literal(RdfLiteral::typed(n.to_owned(), XSD_INT.to_owned()))
+        };
+        for (subj, a, bv) in [("r1", "1", "2"), ("r2", "1", "2"), ("r3", "2", "3")] {
+            let s = b.intern_iri(format!("http://ex/{subj}"));
+            let av = int(&mut b, a);
+            b.push_quad(s, pa, av, None);
+            let bvv = int(&mut b, bv);
+            b.push_quad(s, pb, bvv, None);
+        }
+        b.freeze().expect("freeze")
+    }
+
+    fn run_on(ds: &Arc<RdfDataset>, query: &str) -> SparqlResult {
+        NativeSparqlEngine::new()
+            .query(
+                ds,
+                SparqlRequest {
+                    query,
+                    base_iri: None,
+                },
+            )
+            .expect("query")
+    }
+
+    /// Render a result's rows as a sorted `Vec<Vec<String>>` for stable multiset
+    /// comparison (IRIs as `<iri>`, literals as their lexical form).
+    fn sorted_rows(result: SparqlResult) -> Vec<Vec<String>> {
+        match result {
+            SparqlResult::Solutions { rows, .. } => {
+                let mut out: Vec<Vec<String>> = rows
+                    .iter()
+                    .map(|r| r.iter().map(render_cell).collect())
+                    .collect();
+                out.sort();
+                out
+            }
+            other => panic!("expected solutions, got {other:?}"),
+        }
+    }
+
+    fn render_cell(cell: &Option<TermValue>) -> String {
+        match cell {
+            None => "UNBOUND".to_owned(),
+            Some(TermValue::Iri(i)) => format!("<{i}>"),
+            Some(TermValue::Literal { lexical_form, .. }) => lexical_form.clone(),
+            Some(TermValue::Blank { label, .. }) => format!("_:{label}"),
+            Some(TermValue::Triple { .. }) => "<<triple>>".to_owned(),
+        }
+    }
+
+    #[test]
+    fn group_by_expression_with_as_binding() {
+        // ?a+?b ∈ {3 (×2), 5 (×1)} → two groups counted.
+        let r = run_on(
+            &numbers(),
+            "SELECT ?z (COUNT(*) AS ?c) WHERE { ?r <http://ex/a> ?a . ?r <http://ex/b> ?b } \
+             GROUP BY (?a + ?b AS ?z)",
+        );
+        assert_eq!(sorted_rows(r), vec![vec!["3", "2"], vec!["5", "1"]]);
+    }
+
+    #[test]
+    fn group_by_expression_without_projecting_the_synthetic_var() {
+        // Selecting ONLY the aggregate must not leak the grouping column.
+        let r = run_on(
+            &numbers(),
+            "SELECT (COUNT(*) AS ?c) WHERE { ?r <http://ex/a> ?a . ?r <http://ex/b> ?b } \
+             GROUP BY (?a + ?b AS ?z)",
+        );
+        // Two groups → two count rows, single column each.
+        assert_eq!(sorted_rows(r), vec![vec!["1"], vec!["2"]]);
+    }
+
+    #[test]
+    fn group_by_bare_builtin_expression() {
+        // `GROUP BY STR(?a)` (no AS → anonymous key) groups by the string form of
+        // ?a ∈ {"1","1","2"} → two groups of sizes 2 and 1. The key is not
+        // user-visible, so only the aggregate is projected.
+        let r = run_on(
+            &numbers(),
+            "SELECT (COUNT(*) AS ?c) WHERE { ?r <http://ex/a> ?a } GROUP BY STR(?a)",
+        );
+        assert_eq!(sorted_rows(r), vec![vec!["1"], vec!["2"]]);
+    }
+
+    #[test]
+    fn group_concat_with_separator() {
+        let r = run_on(
+            &numbers(),
+            "SELECT (GROUP_CONCAT(?a; SEPARATOR=\"|\") AS ?g) \
+             WHERE { ?r <http://ex/a> ?a }",
+        );
+        // Implicit single group; lexical values of ?a joined by '|', some order.
+        match r {
+            SparqlResult::Solutions { rows, .. } => {
+                assert_eq!(rows.len(), 1);
+                let Some(TermValue::Literal { lexical_form, .. }) = &rows[0][0] else {
+                    panic!("expected a literal");
+                };
+                let mut parts: Vec<&str> = lexical_form.split('|').collect();
+                parts.sort_unstable();
+                assert_eq!(parts, vec!["1", "1", "2"]);
+            }
+            other => panic!("expected solutions, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn sample_returns_a_group_member() {
+        let r = run_on(
+            &numbers(),
+            "SELECT (SAMPLE(?a) AS ?s) WHERE { ?r <http://ex/a> ?a }",
+        );
+        let rows = sorted_rows(r);
+        assert_eq!(rows.len(), 1);
+        assert!(
+            rows[0][0] == "1" || rows[0][0] == "2",
+            "got {:?}",
+            rows[0][0]
+        );
+    }
+
+    #[test]
+    fn sum_of_expression_inside_aggregate() {
+        // SUM(?a + ?b) over the three rows = (1+2)+(1+2)+(2+3) = 11.
+        let r = run_on(
+            &numbers(),
+            "SELECT (SUM(?a + ?b) AS ?t) WHERE { ?r <http://ex/a> ?a . ?r <http://ex/b> ?b }",
+        );
+        assert_eq!(sorted_rows(r), vec![vec!["11"]]);
+    }
+
+    #[test]
+    fn arithmetic_across_aggregate_results() {
+        // (SUM(?a) / COUNT(?a)) = (1+1+2)/3 — exercises an Extend over two
+        // aggregate-result variables. Assert it produces a single bound row.
+        let r = run_on(
+            &numbers(),
+            "SELECT (SUM(?a) AS ?s) (COUNT(?a) AS ?n) ((SUM(?a)/COUNT(?a)) AS ?avg) \
+             WHERE { ?r <http://ex/a> ?a }",
+        );
+        match r {
+            SparqlResult::Solutions { rows, .. } => {
+                assert_eq!(rows.len(), 1);
+                assert_eq!(render_cell(&rows[0][0]), "4"); // SUM = 1+1+2
+                assert_eq!(render_cell(&rows[0][1]), "3"); // COUNT = 3
+                assert!(rows[0][2].is_some(), "the ratio must be bound");
+            }
+            other => panic!("expected solutions, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn having_over_an_aggregate_not_in_select() {
+        // Group ?a; keep only groups whose SUM(?b) exceeds 3. Group ?a=1 has
+        // rows r1,r2 (?b=2 each) → SUM=4 > 3 (kept); group ?a=2 has r3 (?b=3) →
+        // SUM=3, not > 3 (dropped).
+        let r = run_on(
+            &numbers(),
+            "SELECT ?a WHERE { ?r <http://ex/a> ?a . ?r <http://ex/b> ?b } \
+             GROUP BY ?a HAVING (SUM(?b) > 3)",
+        );
+        assert_eq!(sorted_rows(r), vec![vec!["1"]]);
+    }
+
+    #[test]
+    fn complex_having_conjunction() {
+        // COUNT(*) > 1 && AVG(?b) < 5 — only the ?a=1 group (count 2, avg 2).
+        let r = run_on(
+            &numbers(),
+            "SELECT ?a WHERE { ?r <http://ex/a> ?a . ?r <http://ex/b> ?b } \
+             GROUP BY ?a HAVING (COUNT(*) > 1 && AVG(?b) < 5)",
+        );
+        assert_eq!(sorted_rows(r), vec![vec!["1"]]);
+    }
 }

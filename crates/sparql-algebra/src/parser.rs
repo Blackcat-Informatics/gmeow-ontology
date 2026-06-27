@@ -64,6 +64,7 @@ impl SparqlParser {
             base: self.base_iri.clone(),
             agg_counter: 0,
             anon_counter: 0,
+            group_counter: 0,
         };
         let q = p.parse_query()?;
         p.expect_eof()?;
@@ -94,6 +95,7 @@ struct Parser {
     base: Option<String>,
     agg_counter: usize,
     anon_counter: usize,
+    group_counter: usize,
 }
 
 impl Parser {
@@ -326,6 +328,15 @@ impl Parser {
 
         // Build the algebra (§18.2.4 ordering).
         let mut p = where_pat;
+        // Expression-valued GROUP BY conditions bind their synthetic/explicit
+        // grouping variable BELOW the Group, so `eval_group` sees a ready column.
+        for (var, expr) in modifiers.group_extends {
+            p = GraphPattern::Extend {
+                inner: Box::new(p),
+                variable: var,
+                expression: expr,
+            };
+        }
         let has_group = !modifiers.group_by.is_empty() || !aggregates.is_empty();
         if has_group {
             p = GraphPattern::Group {
@@ -1506,6 +1517,23 @@ impl Parser {
 
     // ── solution modifiers ───────────────────────────────────────────────────
 
+    /// True when the cursor is at a bare (non-parenthesized) `GROUP BY`
+    /// GroupCondition — a `BuiltInCall` or `FunctionCall`. The grammar's bare
+    /// conditions all begin with a callee token (a builtin keyword, an IRI, or a
+    /// prefixed name); the modifier-list terminators (`HAVING`/`ORDER`/`LIMIT`/
+    /// `OFFSET`/`VALUES`) and boolean literals are excluded so the `GROUP BY`
+    /// loop stops cleanly at the next clause.
+    fn at_bare_group_condition(&self) -> bool {
+        match self.peek() {
+            Some(Token::Iri(_) | Token::PrefixedName(_, _)) => true,
+            Some(Token::Word(w)) => !matches!(
+                w.to_ascii_uppercase().as_str(),
+                "HAVING" | "ORDER" | "LIMIT" | "OFFSET" | "VALUES" | "BINDINGS" | "TRUE" | "FALSE"
+            ),
+            _ => false,
+        }
+    }
+
     fn parse_solution_modifiers(
         &mut self,
         aggregates: &mut Vec<(Variable, AggregateExpression)>,
@@ -1517,8 +1545,27 @@ impl Parser {
                 if let Some(Token::Variable(_)) = self.peek() {
                     m.group_by.push(self.expect_var()?);
                 } else if self.at(&Token::LParen) {
-                    // (Expr AS ?v) grouping — bind then group by ?v (rare; reject)
-                    return Err(ParseError::unsupported("expression in GROUP BY"));
+                    // `( Expr [AS ?v] )` — SPARQL 1.1 §18.2.4 GroupCondition. Lower
+                    // to an Extend(?v := Expr) under the Group, then group by ?v.
+                    self.expect(&Token::LParen)?;
+                    // Non-lifting parse: an aggregate in a GROUP BY key is illegal
+                    // and surfaces here as `Unsupported`.
+                    let expr = self.parse_expression()?;
+                    let var = if self.eat_kw("AS") {
+                        self.expect_var()?
+                    } else {
+                        self.fresh_group_var()
+                    };
+                    self.expect(&Token::RParen)?;
+                    m.group_extends.push((var.clone(), expr));
+                    m.group_by.push(var);
+                } else if self.at_bare_group_condition() {
+                    // A bare `BuiltInCall` / `FunctionCall` GroupCondition, e.g.
+                    // `GROUP BY STR(?x)` — lower to a synthetic-var Extend.
+                    let expr = self.parse_expression()?;
+                    let var = self.fresh_group_var();
+                    m.group_extends.push((var.clone(), expr));
+                    m.group_by.push(var);
                 } else {
                     break;
                 }
@@ -1937,6 +1984,15 @@ impl Parser {
         v
     }
 
+    /// Mint a fresh, unique grouping variable for an expression-valued
+    /// `GROUP BY (Expr)` condition with no explicit `AS`. Distinct namespace from
+    /// `fresh_agg_var` so the two never collide.
+    fn fresh_group_var(&mut self) -> Variable {
+        let v = Variable::new(format!("__gmeow_group_{}", self.group_counter));
+        self.group_counter += 1;
+        v
+    }
+
     /// Mint a fresh, unique label for an anonymous blank node (`[]`). Each
     /// occurrence is a distinct existential; reusing one label (e.g. `""`) would
     /// wrongly fuse separate blank nodes into a single AST node.
@@ -2001,6 +2057,11 @@ enum Verb {
 #[derive(Default)]
 struct Modifiers {
     group_by: Vec<Variable>,
+    /// `(Expr AS ?v)` / bare-expression `GROUP BY` conditions, lowered to
+    /// `Extend(?v := Expr)` nodes inserted *under* the `Group` (SPARQL 1.1
+    /// §18.2.4). Each synthetic/explicit `?v` minted here is also pushed to
+    /// `group_by` as a grouping key.
+    group_extends: Vec<(Variable, Expression)>,
     having: Vec<Expression>,
     order_by: Vec<OrderExpression>,
     limit: Option<usize>,
@@ -2011,6 +2072,7 @@ impl Modifiers {
     /// True when no solution modifier was parsed at all.
     fn is_empty(&self) -> bool {
         self.group_by.is_empty()
+            && self.group_extends.is_empty()
             && self.having.is_empty()
             && self.order_by.is_empty()
             && self.limit.is_none()
@@ -3214,5 +3276,79 @@ mod tests {
         assert_eq!(path.to_string(), "^<https://x/p>*");
         let q2 = format!("{GM}SELECT ?x WHERE {{ ?x {path} ?y . }}");
         assert_eq!(path_of(&q2), path);
+    }
+
+    // ── expression-valued GROUP BY (S6b #928) ────────────────────────────────
+
+    #[test]
+    fn group_by_expr_as_lowers_to_extend_under_group() {
+        // `GROUP BY (?a + ?a AS ?z)` → Extend(?z := ?a+?a) sits UNDER the Group,
+        // whose grouping key is the explicit ?z (no algebra change).
+        let q = format!(
+            "{GM}SELECT ?z (COUNT(*) AS ?c) WHERE {{ ?r gmeow:a ?a }} GROUP BY (?a + ?a AS ?z)"
+        );
+        // Strip Project, then the select-expr Extend for ?c, to reach the Group.
+        let group = match unproject(select_pattern(&q)) {
+            GraphPattern::Extend { inner, .. } => *inner,
+            other => other,
+        };
+        match group {
+            GraphPattern::Group {
+                inner, variables, ..
+            } => {
+                assert_eq!(variables, vec![Variable::new("z")]);
+                match *inner {
+                    GraphPattern::Extend { variable, .. } => {
+                        assert_eq!(variable, Variable::new("z"));
+                    }
+                    other => panic!("expected Extend under Group, got {other:?}"),
+                }
+            }
+            other => panic!("expected Group, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn group_by_bare_builtin_synthesizes_a_group_var() {
+        // `GROUP BY STR(?a)` (no AS) mints a synthetic grouping variable.
+        let q = format!("{GM}SELECT (COUNT(*) AS ?c) WHERE {{ ?r gmeow:a ?a }} GROUP BY STR(?a)");
+        let group = match unproject(select_pattern(&q)) {
+            GraphPattern::Extend { inner, .. } => *inner,
+            other => other,
+        };
+        match group {
+            GraphPattern::Group {
+                inner, variables, ..
+            } => {
+                assert_eq!(variables.len(), 1);
+                assert!(variables[0].as_str().starts_with("__gmeow_group_"));
+                assert!(matches!(*inner, GraphPattern::Extend { .. }));
+            }
+            other => panic!("expected Group, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn aggregate_in_group_by_key_is_rejected() {
+        // `GROUP BY (SUM(?x) AS ?z)` is illegal — an aggregate cannot be a
+        // grouping key. The non-lifting expression parse surfaces it.
+        let q = format!("{GM}SELECT ?z WHERE {{ ?r gmeow:a ?x }} GROUP BY (SUM(?x) AS ?z)");
+        let err = SparqlParser::new().parse_query(&q).unwrap_err();
+        assert!(
+            matches!(err, ParseError::Unsupported(_)),
+            "expected Unsupported for aggregate in GROUP BY key, got {err:?}"
+        );
+    }
+
+    #[test]
+    fn nested_aggregate_stays_rejected() {
+        // `SUM(COUNT(?x))` is illegal SPARQL 1.1 (no direct aggregate nesting) and
+        // must remain a hard error — a regression guard for #928.
+        let q = format!("{GM}SELECT (SUM(COUNT(?x)) AS ?y) WHERE {{ ?r gmeow:a ?x }}");
+        let err = SparqlParser::new().parse_query(&q).unwrap_err();
+        assert!(
+            matches!(err, ParseError::Unsupported(_)),
+            "expected Unsupported for nested aggregate, got {err:?}"
+        );
     }
 }
