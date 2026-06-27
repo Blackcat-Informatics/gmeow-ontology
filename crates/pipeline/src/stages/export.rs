@@ -1881,8 +1881,7 @@ mod consumer {
         }
     }
 
-    /// The OKF document stem: the CURIE local part (`gmeow:Foo` → `Foo`). Mirrors
-    /// `okf_export._slug` (`curie.split(":", 1)[-1]`).
+    /// The OKF document stem: the CURIE local part (`gmeow:Foo` → `Foo`).
     fn okf_slug(curie_str: &str) -> &str {
         curie_str
             .split_once(':')
@@ -1892,7 +1891,7 @@ mod consumer {
 
     /// `gmeow_okf_index`: the OKF manifest envelope
     /// `{ok, format, lossy, count, documents:[{path, type, title, resource}]}`.
-    /// Mirrors `okf_export.okf_index_records` + the resource's envelope wrapping.
+    /// The per-document `path`s mirror the bundle layout the `okf` export leaf renders.
     pub(crate) fn okf_index_envelope(terms: &[Term]) -> String {
         let documents: Vec<J> = terms
             .iter()
@@ -2959,10 +2958,10 @@ mod tests {
         assert!(!gmeow_docs::card::render_card_body(&term_to_card(&no_slice)).contains("- slice:"));
     }
 
-    /// `gmeow_okf_index`: the manifest envelope + per-document `{path,type,title,
-    /// resource}`, mirroring `okf_export.okf_index_records`.
+    /// `gmeow_okf_index`: the manifest envelope wraps `ok`/`format`/`lossy`/`count`
+    /// around per-document `{path, type, title, resource}` records.
     #[test]
-    fn okf_index_envelope_matches_records() {
+    fn okf_index_envelope_shape() {
         let (terms, _t, _v) = english_terms();
         let env: serde_json::Value = serde_json::from_str(&okf_index_envelope(&terms)).unwrap();
         assert_eq!(env["ok"], serde_json::json!(true));
