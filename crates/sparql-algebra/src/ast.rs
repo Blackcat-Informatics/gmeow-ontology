@@ -287,14 +287,3 @@ pub struct QuadPattern {
     /// The graph name (IRI or variable), or `None` for the default graph.
     pub graph: Option<NamedNodePattern>,
 }
-
-/// A ground quad (no variables): a [`GroundTriple`] optionally scoped to a named
-/// graph IRI. `None` denotes the default graph. The cell type of `INSERT DATA` /
-/// `DELETE DATA` blocks.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct GroundQuad {
-    /// The ground triple.
-    pub triple: GroundTriple,
-    /// The graph IRI, or `None` for the default graph.
-    pub graph: Option<NamedNode>,
-}

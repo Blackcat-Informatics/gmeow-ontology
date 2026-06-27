@@ -19,8 +19,8 @@ use crate::algebra::{
     GraphUpdateOperation, OrderExpression, PropertyPathExpression, Query, Update,
 };
 use crate::ast::{
-    BaseDirection, BlankNode, GroundQuad, GroundTerm, GroundTriple, Literal, NamedNode,
-    NamedNodePattern, QuadPattern, TermPattern, TriplePattern, Variable,
+    BaseDirection, BlankNode, GroundTerm, GroundTriple, Literal, NamedNode, NamedNodePattern,
+    QuadPattern, TermPattern, TriplePattern, Variable,
 };
 use crate::error::{ParseError, Result};
 use crate::lexer::{tokenize, Spanned, Token};
@@ -553,8 +553,9 @@ impl Parser {
     fn parse_insert(&mut self) -> Result<GraphUpdateOperation> {
         self.expect_kw("INSERT")?;
         if self.eat_kw("DATA") {
-            let quads = self.parse_quad_data()?;
-            let data = self.quads_to_ground(quads, false)?;
+            let data = self.parse_quad_data()?;
+            // INSERT DATA: no variables anywhere; blank nodes ARE allowed (§3.1.1).
+            self.enforce_data_invariants(&data, false)?;
             return Ok(GraphUpdateOperation::InsertData { data });
         }
         // INSERT { template } [USING ...] WHERE { ... } — an insert-only modify.
@@ -576,8 +577,9 @@ impl Parser {
     fn parse_delete(&mut self) -> Result<GraphUpdateOperation> {
         self.expect_kw("DELETE")?;
         if self.eat_kw("DATA") {
-            let quads = self.parse_quad_data()?;
-            let data = self.quads_to_ground(quads, true)?;
+            let data = self.parse_quad_data()?;
+            // DELETE DATA: no variables AND no blank nodes (§3.1.2).
+            self.enforce_data_invariants(&data, true)?;
             return Ok(GraphUpdateOperation::DeleteData { data });
         }
         if self.eat_kw("WHERE") {
@@ -827,62 +829,51 @@ impl Parser {
     }
 
     /// Parse a `{ QuadData }` block as quad *patterns* (the same surface as
-    /// `parse_quad_pattern_block`, no blank-node rejection — that is enforced
-    /// per-form during ground conversion).
+    /// `parse_quad_pattern_block`). The DATA invariants (no variables; and, for
+    /// DELETE DATA, no blank nodes) are enforced separately by
+    /// [`enforce_data_invariants`](Self::enforce_data_invariants) so INSERT DATA
+    /// can keep its (allowed) blank nodes.
     fn parse_quad_data(&mut self) -> Result<Vec<QuadPattern>> {
         self.parse_quad_pattern_block(false)
     }
 
-    /// Convert quad *patterns* (from an `INSERT DATA` / `DELETE DATA` block) into
-    /// ground quads, hard-failing on any variable. When `is_delete` is set, blank
-    /// nodes are also rejected (DELETE DATA disallows them per §3.1.1).
-    fn quads_to_ground(&self, quads: Vec<QuadPattern>, is_delete: bool) -> Result<Vec<GroundQuad>> {
-        let mut out = Vec::with_capacity(quads.len());
+    /// Enforce the `INSERT DATA` / `DELETE DATA` invariants by walking the parsed
+    /// [`QuadPattern`]s: NO variables anywhere (subject/predicate/object/graph). For
+    /// DELETE DATA (`reject_blank`), NO blank nodes either (§3.1.2). INSERT DATA
+    /// permits blank nodes (§3.1.1: minted fresh per request). Any violation is a
+    /// hard [`ParseError::syntax`].
+    fn enforce_data_invariants(&self, quads: &[QuadPattern], reject_blank: bool) -> Result<()> {
         for q in quads {
-            let graph = match q.graph {
-                None => None,
-                Some(NamedNodePattern::NamedNode(n)) => Some(n),
-                Some(NamedNodePattern::Variable(_)) => {
-                    return Err(ParseError::syntax(
-                        "variable graph in INSERT/DELETE DATA is not allowed",
-                        self.span(),
-                    ))
-                }
-            };
-            let triple = self.ground_triple_pattern(&q.triple, is_delete)?;
-            out.push(GroundQuad { triple, graph });
-        }
-        Ok(out)
-    }
-
-    /// Convert a [`TriplePattern`] to a [`GroundTriple`], hard-failing on any
-    /// variable (and, when `reject_blank`, any blank node).
-    fn ground_triple_pattern(&self, t: &TriplePattern, reject_blank: bool) -> Result<GroundTriple> {
-        let predicate = match &t.predicate {
-            NamedNodePattern::NamedNode(n) => n.clone(),
-            NamedNodePattern::Variable(_) => {
+            if let Some(NamedNodePattern::Variable(_)) = &q.graph {
                 return Err(ParseError::syntax(
-                    "variable predicate in INSERT/DELETE DATA is not allowed",
+                    "variable graph in INSERT/DELETE DATA is not allowed",
                     self.span(),
-                ))
+                ));
             }
-        };
-        Ok(GroundTriple {
-            subject: self.ground_term_pattern(&t.subject, reject_blank)?,
-            predicate,
-            object: self.ground_term_pattern(&t.object, reject_blank)?,
-        })
+            self.check_data_triple(&q.triple, reject_blank)?;
+        }
+        Ok(())
     }
 
-    /// Convert a [`TermPattern`] to a [`GroundTerm`], hard-failing on a variable
-    /// (and, when `reject_blank`, a blank node). RDF 1.2 quoted triples descend.
-    fn ground_term_pattern(&self, t: &TermPattern, reject_blank: bool) -> Result<GroundTerm> {
+    /// Walk one DATA triple pattern, rejecting variables (always) and blank nodes
+    /// (when `reject_blank`). Descends into RDF 1.2 quoted triples.
+    fn check_data_triple(&self, t: &TriplePattern, reject_blank: bool) -> Result<()> {
+        if let NamedNodePattern::Variable(_) = &t.predicate {
+            return Err(ParseError::syntax(
+                "variable predicate in INSERT/DELETE DATA is not allowed",
+                self.span(),
+            ));
+        }
+        self.check_data_term(&t.subject, reject_blank)?;
+        self.check_data_term(&t.object, reject_blank)
+    }
+
+    /// Walk one DATA term pattern, rejecting variables (always) and blank nodes
+    /// (when `reject_blank`). Descends into RDF 1.2 quoted triples.
+    fn check_data_term(&self, t: &TermPattern, reject_blank: bool) -> Result<()> {
         match t {
-            TermPattern::NamedNode(n) => Ok(GroundTerm::NamedNode(n.clone())),
-            TermPattern::Literal(l) => Ok(GroundTerm::Literal(l.clone())),
-            TermPattern::Triple(tp) => Ok(GroundTerm::Triple(Box::new(
-                self.ground_triple_pattern(tp, reject_blank)?,
-            ))),
+            TermPattern::NamedNode(_) | TermPattern::Literal(_) => Ok(()),
+            TermPattern::Triple(tp) => self.check_data_triple(tp, reject_blank),
             TermPattern::Variable(_) => Err(ParseError::syntax(
                 "variable in INSERT/DELETE DATA is not allowed",
                 self.span(),
@@ -894,13 +885,8 @@ impl Parser {
                         self.span(),
                     ))
                 } else {
-                    // INSERT DATA blanks would need fresh-blank allocation, which
-                    // the ground-quad shape does not model; reject rather than
-                    // silently dropping them.
-                    Err(ParseError::syntax(
-                        "blank node in INSERT DATA is not supported",
-                        self.span(),
-                    ))
+                    // INSERT DATA blanks are allowed (minted fresh per request).
+                    Ok(())
                 }
             }
         }
@@ -2898,18 +2884,53 @@ mod tests {
             panic!("expected InsertData");
         };
         assert_eq!(data.len(), 1);
-        assert_eq!(data[0].graph, Some(NamedNode::new_unchecked("https://x/g")));
+        assert_eq!(
+            data[0].graph,
+            Some(NamedNodePattern::NamedNode(NamedNode::new_unchecked(
+                "https://x/g"
+            )))
+        );
     }
 
     #[test]
     fn update_insert_data_quoted_triple() {
-        // RDF 1.2 INSERT DATA with a quoted-triple object must survive into ground form.
+        // RDF 1.2 INSERT DATA with a quoted-triple object survives as a TermPattern.
         let u = parse_update("INSERT DATA { gmeow:s rdf:reifies <<( gmeow:a gmeow:b gmeow:c )>> }");
         let GraphUpdateOperation::InsertData { data } = &u.operations[0] else {
             panic!("expected InsertData");
         };
         assert_eq!(data.len(), 1);
-        assert!(matches!(data[0].triple.object, GroundTerm::Triple(_)));
+        assert!(matches!(data[0].triple.object, TermPattern::Triple(_)));
+    }
+
+    #[test]
+    fn update_insert_data_blank_node_is_allowed() {
+        // Blank nodes ARE standard in INSERT DATA (§3.1.1, minted fresh per request).
+        let u = parse_update("INSERT DATA { [] gmeow:p gmeow:o }");
+        let GraphUpdateOperation::InsertData { data } = &u.operations[0] else {
+            panic!("expected InsertData");
+        };
+        assert_eq!(data.len(), 1);
+        assert!(matches!(data[0].triple.subject, TermPattern::BlankNode(_)));
+    }
+
+    #[test]
+    fn update_insert_data_labeled_blank_node_is_allowed() {
+        let u = parse_update("INSERT DATA { _:b gmeow:p gmeow:o }");
+        let GraphUpdateOperation::InsertData { data } = &u.operations[0] else {
+            panic!("expected InsertData");
+        };
+        assert!(matches!(data[0].triple.subject, TermPattern::BlankNode(_)));
+    }
+
+    #[test]
+    fn update_blank_in_insert_data_quoted_triple_is_allowed() {
+        // A blank node nested inside a quoted triple in INSERT DATA is still allowed.
+        let u = parse_update("INSERT DATA { gmeow:s rdf:reifies <<( _:b gmeow:p gmeow:o )>> }");
+        let GraphUpdateOperation::InsertData { data } = &u.operations[0] else {
+            panic!("expected InsertData");
+        };
+        assert_eq!(data.len(), 1);
     }
 
     #[test]
@@ -3120,7 +3141,7 @@ mod tests {
         };
         assert_eq!(
             data[0].triple.subject,
-            GroundTerm::NamedNode(NamedNode::new_unchecked("http://base/s"))
+            TermPattern::NamedNode(NamedNode::new_unchecked("http://base/s"))
         );
     }
 

@@ -22,8 +22,8 @@
 //! later) rather than cloning a fixed external type.
 
 use crate::ast::{
-    GroundQuad, GroundTerm, GroundTriple, Literal, NamedNode, NamedNodePattern, QuadPattern,
-    TermPattern, TriplePattern, Variable,
+    GroundTerm, Literal, NamedNode, NamedNodePattern, QuadPattern, TermPattern, TriplePattern,
+    Variable,
 };
 
 /// A parsed SPARQL query. The four query forms differ only in their head; the
@@ -92,15 +92,20 @@ pub enum GraphTarget {
 /// One SPARQL 1.1 Update operation (§3.1–§3.2).
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum GraphUpdateOperation {
-    /// `INSERT DATA { ... }` — add ground quads.
+    /// `INSERT DATA { ... }` — add concrete quads. The data is variable-free (a
+    /// hard parser invariant) but MAY contain blank nodes (standard SPARQL §3.1.1:
+    /// blanks are minted fresh per request); hence [`QuadPattern`], not a ground
+    /// quad type that cannot hold blanks.
     InsertData {
-        /// The ground quads to add.
-        data: Vec<GroundQuad>,
+        /// The quads to add (variable-free; blank nodes allowed).
+        data: Vec<QuadPattern>,
     },
-    /// `DELETE DATA { ... }` — remove ground quads (blank nodes disallowed; enforced downstream).
+    /// `DELETE DATA { ... }` — remove concrete quads. The data is variable-free AND
+    /// blank-node-free (both hard parser invariants per §3.1.2), but is modeled as
+    /// [`QuadPattern`] for a single uniform DATA representation.
     DeleteData {
-        /// The ground quads to remove.
-        data: Vec<GroundQuad>,
+        /// The quads to remove (variable-free and blank-node-free).
+        data: Vec<QuadPattern>,
     },
     /// `DELETE { ... } INSERT { ... } WHERE { ... }` and its `DELETE WHERE` /
     /// insert-only / `WITH`/`USING` shorthands. Either template may be empty.
@@ -240,30 +245,6 @@ fn fmt_triple_pattern(t: &TriplePattern) -> String {
     )
 }
 
-/// Render a [`GroundTerm`] in SPARQL surface syntax.
-fn fmt_ground_term(t: &GroundTerm) -> String {
-    match t {
-        GroundTerm::NamedNode(n) => format!("<{}>", n.as_str()),
-        GroundTerm::Literal(l) => fmt_literal(l),
-        GroundTerm::Triple(t) => format!(
-            "<<( {} <{}> {} )>>",
-            fmt_ground_term(&t.subject),
-            t.predicate.as_str(),
-            fmt_ground_term(&t.object),
-        ),
-    }
-}
-
-/// Render a [`GroundTriple`] as `s p o`.
-fn fmt_ground_triple(t: &GroundTriple) -> String {
-    format!(
-        "{} <{}> {}",
-        fmt_ground_term(&t.subject),
-        t.predicate.as_str(),
-        fmt_ground_term(&t.object),
-    )
-}
-
 /// Render a [`Literal`] in SPARQL surface syntax.
 fn fmt_literal(l: &Literal) -> String {
     match (l.language(), l.direction()) {
@@ -296,31 +277,15 @@ fn fmt_quad_pattern_body(quads: &[QuadPattern]) -> String {
     out.trim_end().to_owned()
 }
 
-/// Render an `INSERT DATA`/`DELETE DATA` body (a list of [`GroundQuad`]s).
-fn fmt_ground_quad_body(quads: &[GroundQuad]) -> String {
-    let mut out = String::new();
-    for q in quads {
-        match &q.graph {
-            None => out.push_str(&format!("{} . ", fmt_ground_triple(&q.triple))),
-            Some(g) => out.push_str(&format!(
-                "GRAPH <{}> {{ {} . }} ",
-                g.as_str(),
-                fmt_ground_triple(&q.triple),
-            )),
-        }
-    }
-    out.trim_end().to_owned()
-}
-
 impl core::fmt::Display for GraphUpdateOperation {
     /// Serialize one update operation to SPARQL Update surface syntax.
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::InsertData { data } => {
-                write!(f, "INSERT DATA {{ {} }}", fmt_ground_quad_body(data))
+                write!(f, "INSERT DATA {{ {} }}", fmt_quad_pattern_body(data))
             }
             Self::DeleteData { data } => {
-                write!(f, "DELETE DATA {{ {} }}", fmt_ground_quad_body(data))
+                write!(f, "DELETE DATA {{ {} }}", fmt_quad_pattern_body(data))
             }
             Self::DeleteInsert {
                 delete,
@@ -844,18 +809,18 @@ pub enum AggregateFunction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::{GroundTerm, GroundTriple};
 
     fn nn(iri: &str) -> NamedNode {
         NamedNode::new_unchecked(iri)
     }
 
-    fn ground_quad(graph: Option<NamedNode>) -> GroundQuad {
-        GroundQuad {
-            triple: GroundTriple {
-                subject: GroundTerm::NamedNode(nn("http://ex/s")),
-                predicate: nn("http://ex/p"),
-                object: GroundTerm::NamedNode(nn("http://ex/o")),
+    /// A concrete (variable-free) data quad, for the DATA Display tests.
+    fn data_quad(graph: Option<NamedNodePattern>) -> QuadPattern {
+        QuadPattern {
+            triple: TriplePattern {
+                subject: TermPattern::NamedNode(nn("http://ex/s")),
+                predicate: NamedNodePattern::NamedNode(nn("http://ex/p")),
+                object: TermPattern::NamedNode(nn("http://ex/o")),
             },
             graph,
         }
@@ -886,7 +851,7 @@ mod tests {
     #[test]
     fn insert_data_display() {
         let op = GraphUpdateOperation::InsertData {
-            data: vec![ground_quad(None)],
+            data: vec![data_quad(None)],
         };
         assert_eq!(
             op.to_string(),
@@ -897,7 +862,9 @@ mod tests {
     #[test]
     fn delete_data_display_with_graph() {
         let op = GraphUpdateOperation::DeleteData {
-            data: vec![ground_quad(Some(nn("http://ex/g")))],
+            data: vec![data_quad(Some(NamedNodePattern::NamedNode(nn(
+                "http://ex/g",
+            ))))],
         };
         assert_eq!(
             op.to_string(),

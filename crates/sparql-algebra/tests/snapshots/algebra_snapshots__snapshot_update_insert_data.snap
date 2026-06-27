@@ -6,30 +6,36 @@ Update {
     operations: [
         InsertData {
             data: [
-                GroundQuad {
-                    triple: GroundTriple {
+                QuadPattern {
+                    triple: TriplePattern {
                         subject: NamedNode(
                             <https://x/s>,
                         ),
-                        predicate: <https://x/p>,
+                        predicate: NamedNode(
+                            <https://x/p>,
+                        ),
                         object: NamedNode(
                             <https://x/o>,
                         ),
                     },
                     graph: None,
                 },
-                GroundQuad {
-                    triple: GroundTriple {
+                QuadPattern {
+                    triple: TriplePattern {
                         subject: NamedNode(
                             <https://x/s>,
                         ),
-                        predicate: <https://x/p>,
+                        predicate: NamedNode(
+                            <https://x/p>,
+                        ),
                         object: NamedNode(
                             <https://x/o2>,
                         ),
                     },
                     graph: Some(
-                        <https://x/g>,
+                        NamedNode(
+                            <https://x/g>,
+                        ),
                     ),
                 },
             ],

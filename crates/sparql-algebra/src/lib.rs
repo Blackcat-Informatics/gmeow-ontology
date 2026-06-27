@@ -56,8 +56,8 @@ pub use algebra::{
     GraphUpdateOperation, OrderExpression, PropertyPathExpression, Query, Update,
 };
 pub use ast::{
-    BaseDirection, BlankNode, GroundQuad, GroundTerm, GroundTriple, Literal, NamedNode,
-    NamedNodePattern, QuadPattern, TermPattern, TriplePattern, Variable,
+    BaseDirection, BlankNode, GroundTerm, GroundTriple, Literal, NamedNode, NamedNodePattern,
+    QuadPattern, TermPattern, TriplePattern, Variable,
 };
 pub use error::{ParseError, Result};
 pub use parser::SparqlParser;
