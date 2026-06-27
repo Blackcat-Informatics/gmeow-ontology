@@ -28,6 +28,7 @@ use crate::constitution;
 use crate::coverage;
 use crate::crate_layering;
 use crate::crossref;
+use crate::data_validate;
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
 use crate::instance::{self, InstanceFormat};
@@ -1158,6 +1159,32 @@ fn validate_instance(
     report_dict(py, errors, Vec::new())
 }
 
+/// Tier-1 conformance of an external RDF data graph against the shapes and
+/// disciplines carried in a `gmeow.gts` bundle — the repo-free consumer
+/// `gmeow validate <data>` path.
+///
+/// `data_bytes` is the user's RDF graph in `data_format` (a media type or short
+/// id: `turtle`/`ttl`, `trig`, `n-triples`/`nt`, `n-quads`/`nq`, `rdf+xml`, or
+/// `json-ld`/`jsonld`); `gts_bytes` is the bundled snapshot whose `shapes-archive`
+/// blob supplies the data-graph SHACL union; `namespace` is the GMEOW IRI prefix;
+/// `origin` is the data file's display path (recorded as each finding's physical
+/// location for SARIF). Returns the single canonical diagnostics report as a live
+/// `Report` pyclass — the CLI renders human/SARIF/JSON from it and derives the
+/// exit code from its error count. No reasoner runs (Tier-1 only).
+#[pyfunction]
+fn validate_data(
+    py: Python<'_>,
+    data_bytes: &[u8],
+    data_format: &str,
+    gts_bytes: &[u8],
+    namespace: &str,
+    origin: &str,
+) -> PyResult<Py<PyAny>> {
+    let report = data_validate::run(data_bytes, data_format, gts_bytes, namespace, origin)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
 /// Return DOI consistency problems from a JSON-serialised ``LintInput``.
 ///
 /// The JSON string is produced by the Python helper
@@ -1226,6 +1253,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(build_deposit_xml_native, m)?)?;
     m.add_function(wrap_pyfunction!(lint_deposit_native, m)?)?;
     m.add_function(wrap_pyfunction!(validate_instance, m)?)?;
+    m.add_function(wrap_pyfunction!(validate_data, m)?)?;
     Ok(())
 }
 

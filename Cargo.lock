@@ -2039,6 +2039,7 @@ version = "0.1.0"
 name = "gmeow-validate"
 version = "0.1.0"
 dependencies = [
+ "ciborium",
  "criterion",
  "ed25519-dalek",
  "gmeow-diagnostics",
