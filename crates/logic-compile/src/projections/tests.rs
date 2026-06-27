@@ -31,15 +31,11 @@ fn python_repr_matches_cpython() {
 fn overclaim_gate_fires_on_exact_with_drops() {
     use crate::ir::PreservationKind;
     assert!(assert_no_overclaim("nemo", PreservationKind::Exact, &[]).is_ok());
-    let err = assert_no_overclaim(
-        "nemo",
-        PreservationKind::Exact,
-        &["dropped something".to_owned()],
-    )
-    .unwrap_err();
+    let err =
+        assert_no_overclaim("nemo", PreservationKind::Exact, &["dropped something"]).unwrap_err();
     assert!(err.0.contains("Overclaim"));
     // SoundUnder with drops is fine.
-    assert!(assert_no_overclaim("owl-dl", PreservationKind::SoundUnder, &["x".to_owned()]).is_ok());
+    assert!(assert_no_overclaim("owl-dl", PreservationKind::SoundUnder, &["x"]).is_ok());
 }
 
 #[test]
@@ -50,7 +46,7 @@ fn legalization_gate_enforces_unsupported_carries_residue() {
     assert!(assert_no_overclaim(
         "demo",
         PreservationKind::Unsupported,
-        &["the construct is inexpressible in demo".to_owned()],
+        &["the construct is inexpressible in demo"],
     )
     .is_ok());
     // Unsupported with an EMPTY residue is a silent under-disclosure — a build failure.

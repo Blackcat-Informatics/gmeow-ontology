@@ -380,10 +380,10 @@ impl std::error::Error for OverclaimError {}
 pub fn assert_no_overclaim(
     target: &str,
     declared: PreservationKind,
-    residue: &[String],
+    residue: &[&str],
 ) -> Result<(), OverclaimError> {
     if declared == PreservationKind::Exact && !residue.is_empty() {
-        let shown: Vec<&str> = residue.iter().take(10).map(String::as_str).collect();
+        let shown: Vec<&str> = residue.iter().take(10).copied().collect();
         return Err(OverclaimError(format!(
             "Overclaim in projection '{target}': declared logic:{} (ExactPreservation) \
              but {} item(s) were dropped:\n  {}",

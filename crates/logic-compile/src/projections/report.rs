@@ -69,11 +69,11 @@ pub fn build_projection_report(
         // residue⟩.  The residue is the full flagged set (structural lossy_drops +
         // concrete actual_drops) — exactly what is serialized below as gmeow:lossyDrop.
         // The gate fires on an Exact overclaim OR an Unsupported silent under-disclosure.
-        let residue: Vec<String> = proj
+        let residue: Vec<&str> = proj
             .lossy_drops
             .iter()
             .chain(proj.actual_drops.iter())
-            .cloned()
+            .map(String::as_str)
             .collect();
         assert_no_overclaim(&proj.target, proj.preservation, &residue)?;
 
