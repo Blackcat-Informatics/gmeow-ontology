@@ -30,6 +30,11 @@
 #     back on-gate — tracked as a follow-up. `rdf_golden` stays gated as the docs
 #     representative subset.
 #   - gmeow-logic ontology_entailments: Nemo OWL-2-RL closures (engine-bound by design).
+#   - gmeow-logic sparql_path_parity binary + sparql_path_lower::tests (#914 S8 property
+#     paths): every case drives `run_scryer`, paying a ~9-10 s Scryer machine-construction
+#     floor that nextest's process-per-test model cannot share; several land at 19-34 s.
+#     Engine-construction-bound and irreducible like ontology_entailments — carved off the
+#     gate, still run on maint-heavy. (Already serialized under the `engine` group below.)
 #   - gmeow-conformance goal-rdf-list-functions: Nemo chase case.
 #   - gmeow-pipeline end_to_end / fold_parity / full-fold artifacts / snapshot codec
 #     round-trips / mapping byte-parity / scoreboards acceptance: full-DAG, minutes.
@@ -44,6 +49,7 @@ default-filter = '''
     | test(/w3c_rdfc10_heavy_offgate/)
     | (package(gmeow-docs) & binary(/competency|extract_roundtrip|i18n_render|lint_regression|model_golden|render_golden/))
     | (package(gmeow-logic) & binary(ontology_entailments))
+    | (package(gmeow-logic) & (binary(sparql_path_parity) | test(/sparql_path_lower::tests/)))
     | (package(gmeow-conformance) & test(/goal-rdf-list-functions/))
     | (package(gmeow-pipeline) & binary(/end_to_end|fold_parity/))
     | (package(gmeow-pipeline) & test(/stages::gts_sink|stages::snapshot::ustar_tests::build_docs_archive|stages::logic::tests::logic_artifacts_reproduce|scoreboards::tests::acceptance_runs_the_real_external_fixture|stages::mappings::tests|stages::docs_render::tests::docs_graph_is_nonempty/))

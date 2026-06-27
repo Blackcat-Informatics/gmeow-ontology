@@ -7,34 +7,15 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
-/// `test_wellformed_aboutness_fixture_conforms` — a carrier can describe one
-/// thing while enacting another — both cells valid.
-#[test]
-fn wellformed_aboutness_fixture_conforms() {
-    let nt = fixture_as_nt("shapes", "aboutness-wellformed");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "wellformed aboutness fixture must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_malformed_aboutness_fixture_is_flagged` — hasAboutness must target a
-/// vocabulary IRI, never a free literal.
-#[test]
-fn malformed_aboutness_fixture_is_flagged() {
-    let nt = fixture_as_nt("shapes", "aboutness-malformed");
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "malformed aboutness fixture must fail SHACL; violations were empty"
-    );
-    let msgs = violations(&report);
-    let combined = msgs.join("\n");
-    assert!(
-        combined.contains("not a free literal"),
-        "expected 'not a free literal' in violation messages; got: {combined:?}"
-    );
+#[rstest]
+#[case::wellformed_aboutness_fixture_conforms(Case::file("shapes", "aboutness-wellformed"))]
+#[case::malformed_aboutness_fixture_is_flagged(
+    Case::file("shapes", "aboutness-malformed")
+        .fails()
+        .violations(&["not a free literal"])
+)]
+fn aboutness(#[case] case: Case) {
+    case.run();
 }

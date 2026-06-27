@@ -16,41 +16,12 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
-/// `test_biological_coverage_passes_shacl` — a biological-sequence coverage
-/// fixture with GRCh38 features loads and passes SHACL validation.
-#[test]
-fn biological_coverage_passes_shacl() {
-    let nt = fixture_as_nt("coverage", "places-biological");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "biological coverage fixture must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_geocode_shape_valid` — valid geocode instances pass SHACL.
-#[test]
-fn geocode_shape_valid() {
-    let nt = fixture_as_nt("coverage", "places-geocode");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "valid geocode fixture must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_cadastral_coverage_passes_shacl` — a cadastral coverage fixture with
-/// parcels, tenures, and references loads and passes SHACL validation.
-#[test]
-fn cadastral_coverage_passes_shacl() {
-    let nt = fixture_as_nt("coverage", "places-cadastral");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "cadastral coverage fixture must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
+#[rstest]
+#[case::biological_coverage_passes_shacl(Case::file("coverage", "places-biological"))]
+#[case::geocode_shape_valid(Case::file("coverage", "places-geocode"))]
+#[case::cadastral_coverage_passes_shacl(Case::file("coverage", "places-cadastral"))]
+fn places(#[case] case: Case) {
+    case.run();
 }

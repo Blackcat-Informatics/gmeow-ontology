@@ -17,43 +17,22 @@
 
 mod conformance_support;
 use conformance_support::*;
+use rstest::rstest;
 
-/// `test_wellformed_narrative_time_fixture_conforms` — the well-formed
-/// narrative-time fixture (one creative work, two frames, flashback with
-/// coexisting positions) must pass SHACL.
-#[test]
-fn wellformed_narrative_time_fixture_conforms() {
-    let nt = fixture_as_nt("shapes", "narrative-time-wellformed");
-    let report = validate(&nt);
-    assert!(
-        ok(&report),
-        "well-formed narrative-time fixture must pass SHACL; violations: {:?}",
-        violations(&report)
-    );
-}
-
-/// `test_malformed_narrative_time_fixture_is_flagged` — the malformed fixture
-/// carries three deliberate violations (no axis, cross-anchor mismatch,
-/// frameless bare position) and must produce exactly those SHACL errors.
-#[test]
-fn malformed_narrative_time_fixture_is_flagged() {
-    let nt = fixture_as_nt("shapes", "narrative-time-malformed");
-    let report = validate(&nt);
-    assert!(
-        !ok(&report),
-        "malformed narrative-time fixture must fail SHACL"
-    );
-    let errors = violations(&report).join("\n");
-    assert!(
-        errors.contains("exactly one gmeow:narrativeTimeAxis"),
-        "expected 'exactly one gmeow:narrativeTimeAxis' in errors; got:\n{errors}"
-    );
-    assert!(
-        errors.contains("never the other anchor"),
-        "expected 'never the other anchor' in errors; got:\n{errors}"
-    );
-    assert!(
-        errors.contains("exactly one reference frame (gmeow:positionFrame)"),
-        "expected 'exactly one reference frame (gmeow:positionFrame)' in errors; got:\n{errors}"
-    );
+#[rstest]
+#[case::wellformed_narrative_time_fixture_conforms(Case::file(
+    "shapes",
+    "narrative-time-wellformed"
+))]
+#[case::malformed_narrative_time_fixture_is_flagged(
+    Case::file("shapes", "narrative-time-malformed")
+        .fails()
+        .violations(&[
+            "exactly one gmeow:narrativeTimeAxis",
+            "never the other anchor",
+            "exactly one reference frame (gmeow:positionFrame)",
+        ])
+)]
+fn narrative_time(#[case] case: Case) {
+    case.run();
 }

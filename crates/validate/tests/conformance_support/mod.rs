@@ -336,3 +336,263 @@ pub fn ok(report: &ValidationReport) -> bool {
 pub fn validate(data_nt: &str) -> ValidationReport {
     validate_graphs(data_nt, whole_shapes_ttl()).expect("validate_graphs must not error")
 }
+
+// ── Parameterized case harness (#1051) ──────────────────────────────────────────
+
+/// Where a [`Case`]'s data graph comes from.
+pub enum Source {
+    /// Inline Turtle text, owned so `format!`/helper-assembled cases work in a
+    /// `#[case(...)]` expression (`rstest` evaluates the expr at runtime).
+    /// Parsed + re-serialized through [`ttl_str_to_nt`].
+    Inline(String),
+    /// Raw N-Triples fed DIRECTLY to the validator, bypassing the Turtle
+    /// parse/re-serialize round-trip. Mirrors originals that called
+    /// `validate(nt)` on a hand-written N-Triples literal (e.g. the
+    /// case-insensitive language-tag check, whose tag casing must not be
+    /// normalised by a round-trip).
+    RawNt(String),
+    /// `tests/fixtures/{subdir}/{name}.ttl` — see [`fixture_as_nt`].
+    File {
+        subdir: &'static str,
+        name: &'static str,
+    },
+    /// Repo-root-relative path, e.g. `"tests/fixtures/software.ttl"`.
+    RepoPath(&'static str),
+}
+
+/// A single parameterized SHACL conformance case (#1051).
+///
+/// Collapses the load→validate→assert tail shared by the ~37 `conformance_*.rs`
+/// twin files into one reusable spec, driven by `rstest` `#[case]` rows.
+/// Construct with [`Case::inline`], [`Case::file`], or [`Case::repo_path`],
+/// refine with the builder methods, then call [`Case::run`].
+///
+/// Assertion semantics (the contract Task-3 parity rests on):
+/// - [`Case::violations`] / [`Case::warnings`] are **subset** checks: every
+///   listed substring must be present, extra messages are allowed. An empty list
+///   (the default) asserts *nothing* on that channel — [`Case::run`] never
+///   implicitly requires "no warnings"/"no violations".
+/// - [`Case::no_warning`] asserts a warning substring is absent.
+/// - [`Case::messages`] is a subset check over the UNION of violations and
+///   warnings (mirror originals that joined `violations().chain(warnings())`).
+/// - [`Case::violations_ci`] / [`Case::warnings_ci`] are case-insensitive subset
+///   checks (mirror originals that folded `.to_lowercase()` before `.contains`).
+/// - [`Case::any_violation`] / [`Case::any_violation_ci`] assert at least one of a
+///   group of substrings is present (mirror originals using `||` disjunctions).
+/// - [`Case::with_ontology`] routes through [`validate_with_ontology`] (merged
+///   ontology) instead of [`validate`].
+/// - conforms is checked through [`ok`] (warnings alone still pass), never
+///   SHACL's own `conforms` field. Default expectation is "conforms";
+///   [`Case::fails`] flips it.
+pub struct Case {
+    source: Source,
+    with_ontology: bool,
+    expect_conforms: bool,
+    expected_violations: Vec<&'static str>,
+    expected_warnings: Vec<&'static str>,
+    expected_messages: Vec<&'static str>,
+    expected_violations_ci: Vec<&'static str>,
+    expected_warnings_ci: Vec<&'static str>,
+    any_violations: Vec<Vec<&'static str>>,
+    any_violations_ci: Vec<Vec<&'static str>>,
+    forbidden_warnings: Vec<&'static str>,
+}
+
+impl Case {
+    fn new(source: Source) -> Self {
+        Self {
+            source,
+            with_ontology: false,
+            expect_conforms: true,
+            expected_violations: Vec::new(),
+            expected_warnings: Vec::new(),
+            expected_messages: Vec::new(),
+            expected_violations_ci: Vec::new(),
+            expected_warnings_ci: Vec::new(),
+            any_violations: Vec::new(),
+            any_violations_ci: Vec::new(),
+            forbidden_warnings: Vec::new(),
+        }
+    }
+
+    /// Case fed by inline Turtle (owned `String`; accepts `&str`/`String`/`format!`).
+    pub fn inline(ttl: impl Into<String>) -> Self {
+        Self::new(Source::Inline(ttl.into()))
+    }
+
+    /// Case fed by raw N-Triples passed DIRECTLY to the validator (no Turtle
+    /// round-trip). Use when the original called `validate(nt)` on an N-Triples
+    /// literal and the round-trip could alter the data (e.g. language-tag casing).
+    pub fn raw_nt(nt: impl Into<String>) -> Self {
+        Self::new(Source::RawNt(nt.into()))
+    }
+
+    /// Case fed by `tests/fixtures/{subdir}/{name}.ttl`.
+    pub fn file(subdir: &'static str, name: &'static str) -> Self {
+        Self::new(Source::File { subdir, name })
+    }
+
+    /// Case fed by a repo-root-relative path (e.g. `"tests/fixtures/software.ttl"`).
+    pub fn repo_path(rel: &'static str) -> Self {
+        Self::new(Source::RepoPath(rel))
+    }
+
+    /// Validate against the merged ontology + fixture (`validate_with_ontology`).
+    pub fn with_ontology(mut self) -> Self {
+        self.with_ontology = true;
+        self
+    }
+
+    /// Expect the graph to FAIL SHACL (at least one violation).
+    pub fn fails(mut self) -> Self {
+        self.expect_conforms = false;
+        self
+    }
+
+    /// Require each substring to be present in some violation message (subset).
+    pub fn violations(mut self, subs: &[&'static str]) -> Self {
+        self.expected_violations.extend_from_slice(subs);
+        self
+    }
+
+    /// Require each substring to be present in some warning message (subset).
+    pub fn warnings(mut self, subs: &[&'static str]) -> Self {
+        self.expected_warnings.extend_from_slice(subs);
+        self
+    }
+
+    /// Case-insensitive subset: each substring must be present in some violation
+    /// message, comparing both sides lowercased (mirrors `.to_lowercase().contains`).
+    pub fn violations_ci(mut self, subs: &[&'static str]) -> Self {
+        self.expected_violations_ci.extend_from_slice(subs);
+        self
+    }
+
+    /// Case-insensitive subset over warning messages.
+    pub fn warnings_ci(mut self, subs: &[&'static str]) -> Self {
+        self.expected_warnings_ci.extend_from_slice(subs);
+        self
+    }
+
+    /// Require each substring to be present in the UNION of violation and warning
+    /// messages (mirrors originals that checked `violations().chain(warnings())`,
+    /// where a message may land in either channel).
+    pub fn messages(mut self, subs: &[&'static str]) -> Self {
+        self.expected_messages.extend_from_slice(subs);
+        self
+    }
+
+    /// Require at least ONE of `subs` to be present in some violation message
+    /// (case-sensitive; mirrors an `a || b || c` disjunction in the original).
+    pub fn any_violation(mut self, subs: &[&'static str]) -> Self {
+        self.any_violations.push(subs.to_vec());
+        self
+    }
+
+    /// Case-insensitive variant of [`Case::any_violation`].
+    pub fn any_violation_ci(mut self, subs: &[&'static str]) -> Self {
+        self.any_violations_ci.push(subs.to_vec());
+        self
+    }
+
+    /// Assert no warning message contains `sub`.
+    pub fn no_warning(mut self, sub: &'static str) -> Self {
+        self.forbidden_warnings.push(sub);
+        self
+    }
+
+    /// Load the source, validate, and assert the configured expectations.
+    pub fn run(&self) {
+        let nt = match &self.source {
+            Source::Inline(ttl) => ttl_str_to_nt(ttl),
+            Source::RawNt(nt) => nt.clone(),
+            Source::File { subdir, name } => fixture_as_nt(subdir, name),
+            Source::RepoPath(rel) => ttl_file_to_nt(&repo_root().join(rel)),
+        };
+        let report = if self.with_ontology {
+            validate_with_ontology(&nt)
+        } else {
+            validate(&nt)
+        };
+        let got_violations = violations(&report);
+        let got_warnings = warnings(&report);
+
+        if self.expect_conforms {
+            assert!(
+                ok(&report),
+                "expected graph to conform (no violations); violations: {got_violations:?}"
+            );
+        } else {
+            assert!(
+                !ok(&report),
+                "expected graph to FAIL SHACL (violations expected); got none"
+            );
+        }
+
+        for sub in &self.expected_violations {
+            assert!(
+                got_violations.iter().any(|v| v.contains(sub)),
+                "expected a violation containing {sub:?}; got: {got_violations:?}"
+            );
+        }
+        for sub in &self.expected_warnings {
+            assert!(
+                got_warnings.iter().any(|w| w.contains(sub)),
+                "expected a warning containing {sub:?}; got: {got_warnings:?}"
+            );
+        }
+        for sub in &self.expected_messages {
+            assert!(
+                got_violations
+                    .iter()
+                    .chain(&got_warnings)
+                    .any(|m| m.contains(sub)),
+                "expected a violation OR warning containing {sub:?}; \
+                 violations: {got_violations:?}; warnings: {got_warnings:?}"
+            );
+        }
+        for sub in &self.expected_violations_ci {
+            let needle = sub.to_lowercase();
+            assert!(
+                got_violations
+                    .iter()
+                    .any(|v| v.to_lowercase().contains(&needle)),
+                "expected a violation containing {sub:?} (case-insensitive); got: {got_violations:?}"
+            );
+        }
+        for sub in &self.expected_warnings_ci {
+            let needle = sub.to_lowercase();
+            assert!(
+                got_warnings
+                    .iter()
+                    .any(|w| w.to_lowercase().contains(&needle)),
+                "expected a warning containing {sub:?} (case-insensitive); got: {got_warnings:?}"
+            );
+        }
+        for group in &self.any_violations {
+            assert!(
+                group
+                    .iter()
+                    .any(|sub| got_violations.iter().any(|v| v.contains(sub))),
+                "expected a violation containing one of {group:?}; got: {got_violations:?}"
+            );
+        }
+        for group in &self.any_violations_ci {
+            assert!(
+                group.iter().any(|sub| {
+                    let needle = sub.to_lowercase();
+                    got_violations
+                        .iter()
+                        .any(|v| v.to_lowercase().contains(&needle))
+                }),
+                "expected a violation containing one of {group:?} (case-insensitive); got: {got_violations:?}"
+            );
+        }
+        for sub in &self.forbidden_warnings {
+            assert!(
+                !got_warnings.iter().any(|w| w.contains(sub)),
+                "expected NO warning containing {sub:?}; got: {got_warnings:?}"
+            );
+        }
+    }
+}
