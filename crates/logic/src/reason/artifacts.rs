@@ -503,12 +503,15 @@ pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
         ));
     }
     if let Some(proof) = &result.provenance.proof {
-        props.push((logic("resultProof"), format!("<{}>", proof.derivation_id)));
+        props.push((
+            logic("resultProof"),
+            format!("<{}>", bare_iri(&proof.derivation_id)),
+        ));
     }
     if let Some(counterproof) = &result.provenance.counterproof {
         props.push((
             logic("resultCounterproof"),
-            format!("<{}>", counterproof.derivation_id),
+            format!("<{}>", bare_iri(&counterproof.derivation_id)),
         ));
     }
 
@@ -802,6 +805,47 @@ mod tests {
         assert!(
             ttl.contains("logic/contradictionWitness> <http://example.org/x>"),
             "the glut must carry its witness: {ttl}"
+        );
+    }
+
+    #[test]
+    fn proof_and_counterproof_derivation_ids_are_sanitized_by_bare_iri() {
+        // bare_iri strips a surrounding `<>` pair from a derivation_id.
+        // A derivation_id stored as "<urn:x>" must emit as `<urn:x>`, NOT `<<urn:x>>`.
+        use crate::result::{DerivationRef, InformationState};
+        use std::collections::BTreeSet;
+
+        let mut result = result_with(vec![], true);
+        // Inject a proof and counterproof whose derivation_id is pre-wrapped in `<>`.
+        // This simulates a derivation_id that accidentally carries angle-bracket delimiters.
+        result.provenance.proof = Some(DerivationRef {
+            derivation_id: "<urn:proof-x>".to_owned(),
+            cited_iris: BTreeSet::new(),
+        });
+        result.provenance.counterproof = Some(DerivationRef {
+            derivation_id: "<urn:counterproof-x>".to_owned(),
+            cited_iris: BTreeSet::new(),
+        });
+        // Force information=both so validate() does not fire the glut-needs-witness
+        // invariant. We override the information state directly; the unit test is
+        // checking IRI sanitization, not state-machine rules.
+        result.information = InformationState::Both;
+
+        let ttl = build_reasoning_result_ttl(&result);
+
+        // The emitted lines must use exactly one pair of angle brackets, not doubled.
+        assert!(
+            ttl.contains("logic/resultProof> <urn:proof-x>"),
+            "bare_iri must strip the surrounding <> from the proof derivation_id; got:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("logic/resultCounterproof> <urn:counterproof-x>"),
+            "bare_iri must strip the surrounding <> from the counterproof derivation_id; got:\n{ttl}"
+        );
+        // Regression guard: <<urn:…>> must NOT appear (double angle brackets = invalid Turtle).
+        assert!(
+            !ttl.contains("<<urn:"),
+            "double angle-bracket leaked into Turtle output; got:\n{ttl}"
         );
     }
 }
