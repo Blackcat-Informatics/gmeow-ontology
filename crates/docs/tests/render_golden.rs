@@ -125,6 +125,34 @@ fn richest_surface_term_markdown_golden() {
     insta::assert_snapshot!(to_markdown(&model, &Page::Term(slug)));
 }
 
+/// A deterministic term that carries a per-term changelog (#1026): the first by
+/// (curie, iri) sort with a non-empty `changelog`. Keyed off the EXPLICIT
+/// `gmeow:hasChangelogEntry` data — not the richest-surface heuristic, which can
+/// shift — so the suppressed-when-empty Changelog + Profiles blocks are always
+/// exercised by a golden.
+fn term_with_changelog_slug(model: &DocsModel) -> String {
+    let mut candidates: Vec<&gmeow_docs::DocTerm> = model
+        .terms
+        .iter()
+        .filter(|t| !t.changelog.is_empty())
+        .collect();
+    candidates.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
+    let term = candidates
+        .first()
+        .expect("at least one term carries a changelog entry (#1026 seed data)");
+    term_slug(term)
+}
+
+#[test]
+fn term_with_changelog_markdown_golden() {
+    // Exercises the #1026 lifecycle/citation blocks: an explicit stability badge,
+    // an added-in version, a reified changelog entry, profile chips, and the
+    // citation block (permalink + concept DOI).
+    let model = model();
+    let slug = term_with_changelog_slug(&model);
+    insta::assert_snapshot!(to_markdown(&model, &Page::Term(slug)));
+}
+
 #[test]
 fn logic_index_markdown_golden() {
     // The logic index groups every stereotyped term; lock the header + the first

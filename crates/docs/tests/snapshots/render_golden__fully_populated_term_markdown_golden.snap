@@ -47,3 +47,16 @@ The entity whose data quality is being assessed — the feature of interest of t
 ## Box role
 
 [RBox (`gmeow:boxRBox`)](../../four-boxes/index.md)
+
+## Stability
+
+- **Status:** stable
+
+## Profiles
+
+- `full`
+
+## Citation
+
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/assessedEntity>
+- **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)

@@ -6,7 +6,7 @@ expression: head
 
 Terms grouped by their lowered OntoUML/UFO stereotype (the `logic:` discipline each term carries). See the slice doctrine under `slices/core/logic` for the stereotype semantics.
 
-## logic:AbstractIndividualType \(219 term\(s\)\)
+## logic:AbstractIndividualType \(220 term\(s\)\)
 
 - [`gmeow:AboutnessMode`](../terms/aboutnessmode/index.md)
 - [`gmeow:AccessibilityFacet`](../terms/accessibilityfacet/index.md)

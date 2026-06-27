@@ -954,6 +954,74 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
+    // ── Stability (#1026 — always present; tier-derived default or explicit) ─────
+    heading(&mut out, 2, "Stability");
+    push_line(
+        &mut out,
+        &format!("- **Status:** {}", term.stability.label()),
+    );
+    blank(&mut out);
+
+    // ── Profiles (#1026 — named profiles whose membership includes this term) ────
+    if !term.profiles.is_empty() {
+        heading(&mut out, 2, "Profiles");
+        let chips = term
+            .profiles
+            .iter()
+            .map(|p| format!("`{}`", code_escape(p)))
+            .collect::<Vec<_>>()
+            .join(" · ");
+        push_line(&mut out, &format!("- {chips}"));
+        blank(&mut out);
+    }
+
+    // ── Changelog (#1026 — added-in version + reified per-release entries) ───────
+    if term.added_in_version.is_some() || !term.changelog.is_empty() {
+        heading(&mut out, 2, "Changelog");
+        if let Some(version) = &term.added_in_version {
+            push_line(&mut out, &format!("- **Added in:** {}", md_escape(version)));
+        }
+        for entry in &term.changelog {
+            match &entry.note {
+                Some(note) => push_line(
+                    &mut out,
+                    &format!("- **{}** — {}", md_escape(&entry.version), md_escape(note)),
+                ),
+                None => push_line(&mut out, &format!("- **{}**", md_escape(&entry.version))),
+            }
+        }
+        blank(&mut out);
+    }
+
+    // ── Citation (#1026 — content-addressed permalink + cite-this affordance) ────
+    // The term IRI is the dereferenceable, content-addressed permalink; the
+    // concept DOI (read from metadata/gmeow-self.ttl) cites the whole ontology;
+    // the owner slice's identifier cites the slice when one is registered.
+    heading(&mut out, 2, "Citation");
+    push_line(&mut out, &format!("- **Permalink:** <{}>", term.iri));
+    if let Some(doi) = &model.concept_doi {
+        push_line(
+            &mut out,
+            &format!(
+                "- **Cite the ontology:** [{}](https://doi.org/{})",
+                md_escape(doi),
+                doi
+            ),
+        );
+    }
+    if let Some(identifier) = model
+        .slices
+        .iter()
+        .find(|s| s.iri == term.owner_slice)
+        .and_then(|s| s.identifier.as_ref())
+    {
+        push_line(
+            &mut out,
+            &format!("- **Cite the slice:** {}", md_escape(identifier)),
+        );
+    }
+    blank(&mut out);
+
     out
 }
 
@@ -2728,6 +2796,7 @@ fn alias_redirect_html(alias_dir: &str, target_dir: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::DocTermStability;
 
     #[test]
     fn rel_computes_relative_dir_paths() {
@@ -2858,6 +2927,7 @@ mod tests {
             recipes: Vec::new(),
             learning_paths: Vec::new(),
             four_boxes: None,
+            concept_doi: None,
             available_languages: vec!["english".to_string(), "fr".to_string()],
             translations,
             ui_catalog: crate::i18n::UiCatalog::default(),
@@ -2962,5 +3032,39 @@ mod tests {
             !bar_md.contains("## Alignments"),
             "empty alignments suppressed"
         );
+    }
+
+    /// The always-present Stability badge must render every `DocTermStability`
+    /// variant. The `deprecated` arm is otherwise never exercised by the term
+    /// goldens (no production term is `owl:deprecated` — this project deletes
+    /// rather than deprecates), so this is the only coverage of that render
+    /// path (#1026). The derivation logic itself is unit-tested separately in
+    /// `model::tests::stability_resolves_by_precedence`.
+    #[test]
+    fn stability_badge_renders_every_state() {
+        let mut model = tiny_model();
+        model.terms.iter_mut().for_each(|t| {
+            t.stability = match t.curie.as_str() {
+                "gmeow:Foo" => DocTermStability::Deprecated,
+                _ => DocTermStability::Experimental,
+            };
+        });
+
+        let foo_md = to_markdown(&model, &Page::Term("foo".to_string()));
+        assert!(foo_md.contains("## Stability"), "stability heading present");
+        assert!(
+            foo_md.contains("- **Status:** deprecated"),
+            "deprecated badge renders: {foo_md}"
+        );
+
+        let bar_md = to_markdown(&model, &Page::Term("bar".to_string()));
+        assert!(
+            bar_md.contains("- **Status:** experimental"),
+            "experimental badge renders: {bar_md}"
+        );
+
+        // The default (no override, core-tier) resolves to `stable` and still
+        // renders unconditionally — assert via the variant label directly.
+        assert_eq!(DocTermStability::Stable.label(), "stable");
     }
 }
