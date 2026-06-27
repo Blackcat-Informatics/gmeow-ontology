@@ -3,10 +3,12 @@
 
 //! TPTP SZS status ingestion (#753).
 //!
-//! Reads the standard TPTP result line — `% SZS status <Status> [for <name>]` —
-//! and maps the status token onto a normalized [`ExternalOutcome`] via the shared
-//! [`crate::external::status`] table. Hard-fail (no-optionality): a source with no
-//! `% SZS status` line, or with an unrecognised status token, is an error.
+//! Reads the TPTP result line — `% SZS status <Status> [for <name>]` — and maps the
+//! status token onto a normalized [`ExternalOutcome`] via the shared
+//! [`crate::external::status`] table. To subsume real-world prover output we accept
+//! both the spaced `% SZS status` and the no-space `%SZS status` comment forms (some
+//! tooling emits the latter). Hard-fail (no-optionality): a source with no
+//! `SZS status` line, or with an unrecognised status token, is an error.
 
 use crate::external::status::{outcome_for_szs, ExternalOutcome};
 
@@ -21,10 +23,16 @@ use crate::external::status::{outcome_for_szs, ExternalOutcome};
 pub fn parse_szs_status(source: &str) -> Result<String, String> {
     for line in source.lines() {
         // The SZS result line is a TPTP comment: `% SZS status <Token> [for <name>]`.
-        // Token-split so whitespace runs and a trailing-trimmed token are handled and
-        // `% SZS statusX` cannot false-match.
-        let mut it = line.split_whitespace();
-        if it.next() == Some("%") && it.next() == Some("SZS") && it.next() == Some("status") {
+        // Strip the leading `%` comment marker, then token-split the remainder so BOTH
+        // `% SZS status X` and `%SZS status X` reduce to `[SZS, status, X]`. Token-split
+        // also folds whitespace runs and a trailing-trimmed token, and keeps
+        // `% SZS statusX` from false-matching (its second token is `statusX`, not
+        // `status`).
+        let Some(rest) = line.trim_start().strip_prefix('%') else {
+            continue;
+        };
+        let mut it = rest.split_whitespace();
+        if it.next() == Some("SZS") && it.next() == Some("status") {
             return match it.next() {
                 Some(token) => Ok(token.to_string()),
                 None => Err("malformed `% SZS status` line: no status token".to_string()),
@@ -63,6 +71,32 @@ mod tests {
         let src = "% SZS status Satisfiable\n";
         assert_eq!(parse_szs_status(src).unwrap(), "Satisfiable");
         assert_eq!(outcome_from_szs(src).unwrap(), ExternalOutcome::Consistent);
+    }
+
+    #[test]
+    fn parses_status_without_space_after_percent() {
+        // `%SZS status X` (no space after the comment marker) is emitted by some
+        // tooling — subsume it rather than hard-fail on a genuinely-decided problem.
+        let src = "%SZS status Theorem for tiny\n";
+        assert_eq!(parse_szs_status(src).unwrap(), "Theorem");
+        assert_eq!(
+            outcome_from_szs(src).unwrap(),
+            ExternalOutcome::Inconsistent
+        );
+    }
+
+    #[test]
+    fn parses_status_with_extra_internal_and_leading_whitespace() {
+        let src = "   %   SZS   status   Satisfiable\n";
+        assert_eq!(parse_szs_status(src).unwrap(), "Satisfiable");
+    }
+
+    #[test]
+    fn statusx_does_not_false_match() {
+        // `% SZS statusX` is not a status line (second token is `statusX`, not
+        // `status`) — it must still hard-fail rather than parse `X` / `for` as a token.
+        let err = parse_szs_status("% SZS statusX Theorem\n").unwrap_err();
+        assert!(err.contains("no `% SZS status` line"), "{err}");
     }
 
     #[test]
