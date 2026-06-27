@@ -21,6 +21,7 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/expertise/tests/> .
 @prefix exd:   <https://example.org/test/> .
 
@@ -57,7 +58,7 @@ ex:cqEndorsedVsSelfAssertedShape a logic:ResultShape ;
         [ logic:columnVariable "proficiency" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
         [ logic:columnVariable "agent" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
         [ logic:columnVariable "skill" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "assertionKind" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ;
+        [ logic:columnVariable "assertionKind" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
     logic:shapeCardinality logic:RowsContains .
 
 ex:rowProfSelf a gmeow:ExpectedRow ;

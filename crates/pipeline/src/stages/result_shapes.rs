@@ -49,12 +49,16 @@ enum Kind {
     BlankNode,
 }
 
-/// One projected column of a shape: variable, kind, and whether it is required.
+/// One projected column of a shape: variable, kind, whether it is required, and
+/// an optional pinned datatype IRI (only meaningful for `Kind::Literal` columns).
 #[derive(Debug, Clone)]
 struct Column {
     var: String,
     kind: Kind,
     required: bool,
+    /// `logic:columnDatatype` IRI, if declared on this column.  Only emitted as
+    /// a SHACL constraint when the column is a literal kind.
+    datatype: Option<String>,
 }
 
 /// Recursively collect every `slices/**/tests/competency.ttl` (sorted).
@@ -126,12 +130,13 @@ fn shapes(store: &Store) -> Result<BTreeMap<String, Vec<Column>>, PipelineError>
     let query = "\
         PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n\
         PREFIX logic: <https://blackcatinformatics.ca/logic/>\n\
-        SELECT ?shape ?var ?kind ?binding WHERE {\n\
+        SELECT ?shape ?var ?kind ?binding ?datatype WHERE {\n\
           ?cq gmeow:cqResultShape ?shape .\n\
           ?shape logic:declaresColumn ?col .\n\
           ?col logic:columnVariable ?var ;\n\
                logic:columnTermKind ?kind ;\n\
                logic:columnBinding ?binding .\n\
+          OPTIONAL { ?col logic:columnDatatype ?datatype }\n\
         }";
     let results = SparqlEvaluator::new()
         .parse_query(query)
@@ -160,12 +165,14 @@ fn shapes(store: &Store) -> Result<BTreeMap<String, Vec<Column>>, PipelineError>
         let required = iri(&sol, "binding")
             .map(|b| b.rsplit('/').next().unwrap_or(&b) == "BindingRequired")
             .unwrap_or(false);
+        let datatype = iri(&sol, "datatype");
         by_shape.entry(shape).or_default().insert(
             var.clone(),
             Column {
                 var,
                 kind,
                 required,
+                datatype,
             },
         );
     }
@@ -257,6 +264,20 @@ pub fn render_result_shapes(root: &Path) -> Result<String, PipelineError> {
                     "        sh:select \"\"\"PREFIX gmeow: <{GMEOW_NS}> SELECT $this WHERE {{ $this gmeow:rowCell ?c . ?c gmeow:cellVar '{v}' ; gmeow:{wrong} ?val }}\"\"\" ;"
                 ));
                 lines.push("    ] ;".to_string());
+            }
+            // Pinned datatype: for literal columns with a logic:columnDatatype IRI.
+            if col.kind == Kind::Literal {
+                if let Some(dt) = &col.datatype {
+                    lines.push("    sh:sparql [".to_string());
+                    lines.push("        sh:severity sh:Violation ;".to_string());
+                    lines.push(format!(
+                        "        sh:message \"result column ?{v} must bind a literal of datatype <{dt}>\" ;"
+                    ));
+                    lines.push(format!(
+                        "        sh:select \"\"\"PREFIX gmeow: <{GMEOW_NS}> SELECT $this WHERE {{ $this gmeow:rowCell ?c . ?c gmeow:cellVar '{v}' ; gmeow:cellValueLiteral ?val . FILTER ( datatype(?val) != <{dt}> ) }}\"\"\" ;"
+                    ));
+                    lines.push("    ] ;".to_string());
+                }
             }
         }
 
@@ -393,6 +414,52 @@ mod tests {
         assert!(
             !flagged.iter().any(|f| f.contains("/good")),
             "the conforming row must NOT be flagged; flagged: {flagged:?}"
+        );
+    }
+
+    #[test]
+    fn datatype_constraint_fires_and_passes() {
+        // A literal column with logic:columnDatatype xsd:string must:
+        //   - FAIL a row whose cell binds a literal with a different datatype (xsd:integer)
+        //   - PASS a row whose cell binds a literal of exactly the pinned datatype
+        use gmeow_shacl::engine::{parse_shapes, validate};
+
+        // Hand-built projection for a single literal column "tag" pinned to xsd:string.
+        let xsd_string = "http://www.w3.org/2001/XMLSchema#string";
+        let shapes_ttl = format!("\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+            gmeow:DT a sh:NodeShape ;\n\
+                sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE {{ ?cq gmeow:cqResultShape <https://example.org/dt> . ?cq gmeow:cqExpectRow ?this }}\"\"\" ] ;\n\
+                sh:sparql [ sh:severity sh:Violation ; sh:message \"result column ?tag must bind a literal of datatype <{xsd_string}>\" ;\n\
+                    sh:select \"\"\"PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE {{ $this gmeow:rowCell ?c . ?c gmeow:cellVar 'tag' ; gmeow:cellValueLiteral ?val . FILTER ( datatype(?val) != <{xsd_string}> ) }}\"\"\" ] .\n\
+        ");
+        let shapes = parse_shapes(&shapes_ttl).expect("parse datatype-constraint shapes");
+
+        // ex:good has "hello"^^xsd:string (correct); ex:bad has "5"^^xsd:integer (wrong)
+        let data = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\
+            ex:cq gmeow:cqResultShape <https://example.org/dt> ; gmeow:cqExpectRow ex:good, ex:bad .\n\
+            ex:good gmeow:rowCell [ gmeow:cellVar \"tag\" ; gmeow:cellValueLiteral \"hello\"^^xsd:string ] .\n\
+            ex:bad  gmeow:rowCell [ gmeow:cellVar \"tag\" ; gmeow:cellValueLiteral \"5\"^^xsd:integer ] .\n";
+        let store = Store::new().unwrap();
+        turtle_bytes_into_store_scoped(&store, data.as_bytes(), "test").unwrap();
+        let report = validate(&store, &shapes);
+
+        let flagged: Vec<String> = report
+            .results
+            .iter()
+            .map(|r| r.focus_node.to_string())
+            .collect();
+        assert!(
+            flagged.iter().any(|f| f.contains("/bad")),
+            "the wrong-datatype row must be flagged; flagged: {flagged:?}"
+        );
+        assert!(
+            !flagged.iter().any(|f| f.contains("/good")),
+            "the correctly-typed row must NOT be flagged; flagged: {flagged:?}"
         );
     }
 }
