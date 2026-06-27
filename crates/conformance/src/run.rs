@@ -528,7 +528,7 @@ fn resolve_query(
                 .as_ref()
                 .and_then(|c| c.depth_budget)
                 .unwrap_or(gmeow_logic::counterfactual::DEFAULT_DEPTH_BUDGET);
-            let cf = gmeow_logic::counterfactual::construct_and_resolve(
+            let mut cf = gmeow_logic::counterfactual::construct_and_resolve(
                 &store,
                 &program,
                 profile_str,
@@ -536,7 +536,8 @@ fn resolve_query(
                 depth,
             )
             .map_err(err)?;
-            (cf.bindings.clone(), cf.status_str().to_string())
+            let status = cf.status_str().to_string();
+            (std::mem::take(&mut cf.bindings), status)
         } else {
             let foreign =
                 WorldStoreForeign::from_world(&store, &world, profile_str).map_err(err)?;

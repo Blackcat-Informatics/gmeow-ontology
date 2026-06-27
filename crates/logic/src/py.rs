@@ -442,11 +442,12 @@ fn query(
                 .as_ref()
                 .and_then(|c| c.depth_budget)
                 .unwrap_or(crate::counterfactual::DEFAULT_DEPTH_BUDGET);
-            let cf = crate::counterfactual::construct_and_resolve(
+            let mut cf = crate::counterfactual::construct_and_resolve(
                 &store, &program, profile, &budget, depth,
             )
             .map_err(value_err)?;
-            (cf.bindings.clone(), cf.status_str().to_owned())
+            let status = cf.status_str().to_owned();
+            (std::mem::take(&mut cf.bindings), status)
         } else {
             let answer = dispatch_query(&foreign, &store, &world_nn, &program, profile, &budget)
                 .map_err(value_err)?;
