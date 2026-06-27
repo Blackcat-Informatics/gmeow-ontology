@@ -183,7 +183,24 @@ revision, resource policy, …). The six historical profile names — `PositiveH
 expands into a full contract facet bundle, documented term-by-term in [`module.ttl`](./module.ttl).
 
 **World/modal terms.** `World`/`accessibleFrom`/`counterfactualOf` and the typed context
-algebra described above.
+algebra described above. The two kernel typed-context classes are:
+
+| Term | Kind | Description |
+|---|---|---|
+| `logic:PossibleWorld` | `owl:Class` | A typed alethic context — a world of alethic possibility; the contexts its typed accessibility relation `logic:epistemicallyPossible` ranges over. |
+| `logic:Path` | `owl:Class` | An ordered run of states (a history) over which `logic:temporallySucceeds` is read; the Transaction-Logic state sequence whose positions are `gmeow:State` configurations. |
+
+The five typed accessibility relations are:
+
+| Term | Kind | Description |
+|---|---|---|
+| `logic:epistemicallyPossible` | `owl:ObjectProperty` | The typed alethic accessibility relation between `logic:PossibleWorld`s — a world is epistemically (alethically) accessible from another. |
+| `logic:doxasticallyAccessible` | `owl:ObjectProperty` | The typed doxastic accessibility relation between `gmeow:EpistemicContext`s — what an agent's beliefs hold accessible. |
+| `logic:deonticallyIdeal` | `owl:ObjectProperty` | The typed deontic accessibility relation: a context is deontically ideal — an ought-world — relative to an issuer. |
+| `logic:temporallySucceeds` | `owl:ObjectProperty` | The typed temporal accessibility relation along a `logic:Path`: one `gmeow:State` succeeds another in the ordered run of states. |
+| `logic:counterfactuallyCloser` | `owl:ObjectProperty` | The typed counterfactual accessibility relation under a declared closeness ordering (Lewis comparative similarity). |
+
+None of these are asserted `rdfs:subPropertyOf logic:accessibleFrom`; the generic superproperty relationship is in prose only.
 
 **Quantitative axes.** `probability`/`confidence`/`weight`/`evidenceStrength` are four
 normatively distinct predicates. A confidence score, a calibrated probability, a solver ranking

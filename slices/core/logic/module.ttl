@@ -1307,6 +1307,20 @@ logic:WellFoundedSemantics
     rdfs:label "Well-Founded Semantics"@x-gmeow-english ;
     skos:definition "The model-semantics facet value selecting the well-founded semantics: a unique, three-valued (true/false/undefined), total, polynomial-time model for normal programs, leaving genuinely circular literals undefined rather than branching. Single-valued on a ReasoningContract; the deterministic counterpart of the non-deterministic logic:StableModelSemantics for unstratified negation."@x-gmeow-english .
 
+logic:Path
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Path"@x-gmeow-english ;
+    skos:definition "An ordered run of states — a history — over which the typed accessibility relation logic:temporallySucceeds is read; the typed context of the context algebra that carries the Transaction-Logic state sequence, whose edges logic:transitionFromState and logic:transitionToState walk and whose positions are gmeow:State configurations, each realizing a logic:Situation. 'History' is the documented synonym. One of the distinct typed contexts (alongside logic:PossibleWorld, gmeow:EpistemicContext, gmeow:Standpoint, gmeow:Scenario, gmeow:State, gmeow:ReferenceFrame, gmeow:NarrativeReferenceFrame); no inference may cross into it by walking the bare logic:accessibleFrom superproperty, and its relation to states and situations is stated in prose, not as a subclass edge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:PossibleWorld
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Possible World"@x-gmeow-english ;
+    skos:definition "A typed alethic context — a logic:World of alethic possibility, one of the distinct typed contexts of the context algebra (alongside the doxastic gmeow:EpistemicContext, the perspectival gmeow:Standpoint, the hypothesized gmeow:Scenario, the gmeow:State along a logic:Path, the gmeow:ReferenceFrame, and the gmeow:NarrativeReferenceFrame). The contexts its typed accessibility relation logic:epistemicallyPossible ranges over; the modal operators (necessity, possibility) are the standard translation over that typed relation, never over a blurred union. It is a logic:World of the alethic world-type (stated in prose, not as a subclass edge), so no inference may cross into it by walking the bare logic:accessibleFrom superproperty."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:World
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1331,7 +1345,42 @@ logic:accessibleFrom
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "accessible from"@x-gmeow-english ;
-    skos:definition "The Kripke accessibility relation between worlds: relates a world to a world from which it is reachable, generalizing the standpoint sharpening poset. The modal operators are the standard translation over this relation — necessity is truth in every accessible world, possibility truth in some. Evaluation is bounded universal quantification because the world set is the finite, materialized contextual index, not the unbounded space of all logically possible worlds."@x-gmeow-english .
+    skos:definition "The Kripke accessibility relation between worlds: relates a world to a world from which it is reachable, generalizing the standpoint sharpening poset. The modal operators are the standard translation over this relation — necessity is truth in every accessible world, possibility truth in some. Evaluation is bounded universal quantification because the world set is the finite, materialized contextual index, not the unbounded space of all logically possible worlds. It is the generic superproperty of the six typed accessibility relations — logic:epistemicallyPossible, logic:doxasticallyAccessible, logic:deonticallyIdeal, logic:temporallySucceeds, logic:counterfactuallyCloser, and gmeow:sharpens — but only in prose: these are NOT asserted rdfs:subPropertyOf it, because the generic superproperty licenses no cross-type entailment by itself. An inference may follow a named, typed accessibility relation; it may not conclude anything by walking the bare superproperty across contexts of different types. The one pre-existing typed sub-relation, gmeow:sharpens, carries owl:TransitiveProperty in the standpoint slice, while the five logic: kernel relations assert no OWL characteristics and document their logical character in prose — an intentional asymmetry, not an oversight."@x-gmeow-english .
+
+logic:epistemicallyPossible
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "epistemically possible"@x-gmeow-english ;
+    skos:definition "The typed alethic accessibility relation between logic:PossibleWorlds — a world is epistemically (alethically) accessible from another. logic:accessibleFrom is its generic superproperty in prose only: it is NOT asserted rdfs:subPropertyOf logic:accessibleFrom, because the generic superproperty licenses no cross-type entailment and a subproperty edge would manufacture exactly that inference. The modal operators are the standard translation over THIS relation, never over a blurred union of accessibility relations. It asserts no OWL characteristic; its logical character is documented in prose, matching the kernel convention."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:doxasticallyAccessible
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "doxastically accessible"@x-gmeow-english ;
+    skos:definition "The typed doxastic accessibility relation between gmeow:EpistemicContexts — what an agent's beliefs hold accessible. It need not be reflexive (an agent may believe a falsehood); this character is documented in prose, not asserted as an OWL characteristic, matching the kernel convention. logic:accessibleFrom is its generic superproperty in prose only — NOT asserted rdfs:subPropertyOf — so the bare superproperty licenses no cross-type entailment and what is believed never leaks into what is true."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:deonticallyIdeal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deontically ideal"@x-gmeow-english ;
+    skos:definition "The typed deontic accessibility relation: a context is deontically ideal — an ought-world — relative to an issuer. Deontic reasoning is a USE of typed contexts, not a separate context type: a deontic claim is truth in the deontically-ideal accessible contexts of an issuer. Deontic accessibility is serial — every context from which an obligation is read has at least one accessible ideal context — so the 'satisfied in every ideal context' condition is never vacuously true; an empty ideal set yields undetermined rather than vacuous truth. logic:accessibleFrom is its generic superproperty in prose only — NOT asserted rdfs:subPropertyOf — so what is ideal never leaks into what is."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:temporallySucceeds
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "temporally succeeds"@x-gmeow-english ;
+    skos:definition "The typed temporal accessibility relation along a logic:Path: one gmeow:State succeeds another in the ordered run of states. A strict order (irreflexive and transitive) — its character is documented in prose, not asserted as OWL characteristics, matching the kernel convention. logic:accessibleFrom is its generic superproperty in prose only — NOT asserted rdfs:subPropertyOf — so the bare superproperty licenses no cross-type entailment across context types."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:counterfactuallyCloser
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "counterfactually closer"@x-gmeow-english ;
+    skos:definition "The typed counterfactual accessibility relation under a declared closeness ordering (Lewis comparative similarity, a generalized closeness poset over contexts). Counterfactual reasoning is a USE of typed contexts: a counterfactual claim is truth in the counterfactually-closer accessible contexts under the ordering. Closeness is declared data, not a fixed semantics. logic:accessibleFrom is its generic superproperty in prose only — NOT asserted rdfs:subPropertyOf — so what would have been never leaks into what is by walking the bare superproperty."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:activationBasis
     a owl:ObjectProperty ;

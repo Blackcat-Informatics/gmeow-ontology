@@ -591,6 +591,17 @@ accessibility relation**.
 | `logic:ReferenceFrame` | a frame of measurement or canon | frame-relative-to |
 | `logic:NarrativeFrame` | an in-universe representational canon | depicts / in-frame |
 
+> **Realization mapping.** The conceptual `logic:`-prefixed context names in the table above are
+> realized as declared terms distributed across slices per the Hybrid placement doctrine:
+> `logic:PossibleWorld` and `logic:Path` are declared in the logic slice; `logic:Standpoint` is
+> realized as the existing `gmeow:Standpoint`, `logic:Scenario` as `gmeow:Scenario`, and
+> `logic:State` as `gmeow:State` in the standpoint slice; `logic:EpistemicContext` is realized as
+> `gmeow:EpistemicContext` in the epistemics slice; `logic:ReferenceFrame` is realized as the
+> existing `gmeow:ReferenceFrame` in the places slice; and `logic:NarrativeFrame` is realized as
+> the existing `gmeow:NarrativeReferenceFrame` in the narrative extension. The `logic:` accessibility
+> machinery (the five typed relations) remains central in this slice, referenced from domain slices
+> in prose only.
+
 Deontic and counterfactual reasoning are *uses* of these contexts rather than separate context types:
 a deontic claim is truth in the **deontically-ideal** accessible contexts of an issuer; a
 counterfactual claim is truth in the **counterfactually-closer** accessible contexts under a declared
