@@ -159,9 +159,11 @@ fn translated_tree_preserves_the_no_dangling_link_invariant() {
     // Slugs/IRIs are language-independent, so the fr tree of the LIVE model (which
     // has every category page the static nav links to) must lint as cleanly as the
     // English one — zero dangling-link / broken-anchor errors. (A synthetic
-    // minimal model would dangle on the static nav's category links.)
+    // minimal model would dangle on the static nav's category links.) The fr tree
+    // is read from the shared per-language cache (rendered once by `prime`); the
+    // lint pass walks it against the live model's IRIs.
     let model = common::cached_model();
-    let fr = render_site_lang(&model, "fr");
+    let fr = common::cached_site_lang("fr");
     let report = lint(&model, &fr);
     assert_eq!(
         report.error_count(),

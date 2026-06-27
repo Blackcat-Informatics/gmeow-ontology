@@ -38,15 +38,18 @@
 #   - gmeow-rdf-capi c_smoke binary: self-builds the libpurrdf cdylib (~33 s cold
 #     compile on CI) as part of the test — build-time-bound, not logic-bound.
 #     Already covered by the dedicated `capi` CI job (`make capi-check`).
-#   - gmeow-docs full-site-render family (render_site_is_byte_stable,
-#     english_carrier_tree_matches_render_site, french_tree_shares_the_english_path_graph,
-#     chinese_tree_shares_the_english_path_graph,
-#     translated_tree_preserves_the_no_dangling_link_invariant): each renders or walks
-#     the ENTIRE site (every page, in English or a translated language), an O(terms)
-#     cost the shared DocsModel fixture cannot amortize (it caches the model BUILD, not
-#     the SITE RENDER). All five sit at ~23-26 s and cross the zero-headroom 25 s budget
-#     as the ontology grows. The single-page / single-term docs tests (the vast majority,
-#     each <1 s) stay on-gate; only the whole-site renders move here.
+#   - gmeow-docs live-full-render guards (render_site_is_byte_stable,
+#     english_carrier_tree_matches_render_site): each performs a LIVE whole-site
+#     render of the full model and compares it to the cached render — the live render
+#     IS the thing under test (render determinism + the carrier-vs-render_site
+#     identity), so it cannot be served from cache. That live O(terms) render sits at
+#     ~23-26 s and crosses the zero-headroom 25 s budget as the ontology grows, so it
+#     stays here (still run on maint-heavy). The language-comparison round-trips
+#     (french_tree / chinese_tree / translated_tree no-dangling) USED to live here, but
+#     the docs fixture now caches the rendered site for every available language in its
+#     prime step — those tests read the per-language cache instead of rendering live, so
+#     they are back on-gate. The single-page / single-term docs tests (the vast majority,
+#     each <1 s) stay on-gate; only the two live full-renders remain off-gate.
 default-filter = '''
   not (
     test(/corpus_parity_heavy_offgate/)
@@ -59,7 +62,7 @@ default-filter = '''
     | (package(gmeow-slice) & (binary(alignment_parity) | test(/sparql_emit::tests/) | test(/edoal_emit::tests::every_edoal/)))
     | (package(gmeow-slicetest) & test(/places.tests.structural/))
     | (package(gmeow-rdf-capi) & binary(c_smoke))
-    | (package(gmeow-docs) & test(/render_site_is_byte_stable|english_carrier_tree_matches_render_site|french_tree_shares_the_english_path_graph|chinese_tree_shares_the_english_path_graph|translated_tree_preserves_the_no_dangling_link_invariant/))
+    | (package(gmeow-docs) & test(/render_site_is_byte_stable|english_carrier_tree_matches_render_site/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
