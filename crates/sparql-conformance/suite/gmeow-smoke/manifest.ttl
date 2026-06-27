@@ -10,7 +10,7 @@
 @prefix :    <http://gmeow.test/smoke#> .
 
 :manifest a mf:Manifest ;
-    mf:entries ( :groupCount :askTrue :exprGroup :goodSyntax :badSyntax ) .
+    mf:entries ( :groupCount :askTrue :exprGroup :serviceJoin :goodSyntax :badSyntax ) .
 
 :groupCount a mf:QueryEvaluationTest ;
     mf:name "GROUP BY ?v with COUNT(*)" ;
@@ -26,6 +26,12 @@
     mf:name "expression-valued GROUP BY (?v + ?v AS ?z)" ;
     mf:action [ qt:query <expr-group.rq> ; qt:data <data.ttl> ] ;
     mf:result <expr-group.srx> .
+
+:serviceJoin a mf:QueryEvaluationTest ;
+    mf:name "SERVICE joins remote bindings (in-memory endpoint)" ;
+    mf:action [ qt:query <service.rq> ; qt:data <data.ttl> ;
+                qt:serviceData [ qt:endpoint <http://gmeow.test/ep> ; qt:data <endpoint.ttl> ] ] ;
+    mf:result <service.srx> .
 
 :goodSyntax a mf:PositiveSyntaxTest11 ;
     mf:name "well-formed aggregate query parses" ;

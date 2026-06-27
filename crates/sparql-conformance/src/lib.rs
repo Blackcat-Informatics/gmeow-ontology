@@ -19,6 +19,7 @@ pub mod compare;
 pub mod manifest;
 pub mod paths;
 pub mod run;
+pub mod service;
 pub mod xfail;
 
 use std::path::Path;
@@ -120,24 +121,22 @@ fn verdict_of(case: &SparqlTestCase) -> Verdict {
     if matches!(case.kind, manifest::TestKind::Unknown) {
         return Verdict::Unmodeled;
     }
-    // SERVICE source wiring lands in Task 6b; until then a case with service data
-    // resolves with no source (so a non-silent SERVICE fails and is recorded).
-    let remote = service_source(case);
-    match run::run(case, remote.as_deref()) {
+    // Federated cases (`qt:serviceData`) resolve `SERVICE` through an in-memory
+    // source mapping each endpoint IRI to its data file (offline, deterministic).
+    let remote = match service::build(case) {
+        Ok(source) => source,
+        Err(msg) => return Verdict::Fail(msg),
+    };
+    let remote = remote
+        .as_ref()
+        .map(|s| s as &dyn gmeow_sparql_eval::RemoteQuerySource);
+    match run::run(case, remote) {
         Ok(outcome) => match compare::compare(case, &outcome) {
             Ok(()) => Verdict::Pass,
             Err(msg) => Verdict::Fail(msg),
         },
         Err(msg) => Verdict::Fail(msg),
     }
-}
-
-/// Build an in-memory `SERVICE` source for `case`, if it declares service data.
-///
-/// Task 6a has no service fixtures, so this is `None`; Task 6b overrides it to map
-/// `qt:serviceData` endpoints to in-memory datasets.
-fn service_source(_case: &SparqlTestCase) -> Option<Box<dyn gmeow_sparql_eval::RemoteQuerySource>> {
-    None
 }
 
 /// Log an expected failure (with its reason) so xfails are visible, not silent.
