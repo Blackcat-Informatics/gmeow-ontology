@@ -560,12 +560,20 @@ fn expand_xml_entities(src: &str) -> String {
 }
 
 /// Parse and expand an RDF/XML manifest file, returning consistency/inconsistency
-/// entries and the count of entailment entries skipped.
+/// entries and the entailment entries (Lane-B, out of consistency-lane scope).
 ///
 /// Both `vendor_el_corpus` and `grade_suite_corpus` share this parsing step.
+/// The entailment entries are returned separately so `grade_suite_corpus` can
+/// emit DlGap Findings for them rather than silently counting and discarding.
 fn parse_consistency_entries(
     input_rdf: &Path,
-) -> Result<(Vec<gmeow_conformance::external::ManifestEntry>, usize), String> {
+) -> Result<
+    (
+        Vec<gmeow_conformance::external::ManifestEntry>,
+        Vec<gmeow_conformance::external::ManifestEntry>,
+    ),
+    String,
+> {
     let raw_src = std::fs::read_to_string(input_rdf)
         .map_err(|e| format!("cannot read {}: {e}", input_rdf.display()))?;
     // Expand XML entities (the W3C EL suite uses a DOCTYPE internal subset with
@@ -576,7 +584,7 @@ fn parse_consistency_entries(
     let base = format!("file://{}", abs.display());
     let entries = parse_test_manifest_rdfxml(&src, Some(&base))?;
 
-    let mut entailment_skipped: usize = 0;
+    let mut entailment_entries = Vec::new();
     let mut consistency_entries = Vec::new();
     for entry in entries {
         match entry.kind {
@@ -584,14 +592,15 @@ fn parse_consistency_entries(
                 consistency_entries.push(entry);
             }
             ManifestTestKind::PositiveEntailment | ManifestTestKind::NegativeEntailment => {
-                entailment_skipped += 1;
+                entailment_entries.push(entry);
             }
         }
     }
+    let entailment_skipped = entailment_entries.len();
     println!(
         "INFO: {entailment_skipped} entailment tests skipped (Lane-B scope, need conclusion-negation)"
     );
-    Ok((consistency_entries, entailment_skipped))
+    Ok((consistency_entries, entailment_entries))
 }
 
 /// Vendor a curated Lane-A subset of the W3C OWL 2 EL conformance suite.
@@ -600,7 +609,8 @@ fn parse_consistency_entries(
 /// entries, runs the native DL consistency path on each, and emits the ones the
 /// native path decides AND agrees with the W3C declared outcome.
 fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
-    let (consistency_entries, entailment_skipped) = parse_consistency_entries(input_rdf)?;
+    let (consistency_entries, entailment_entries_lane_b) = parse_consistency_entries(input_rdf)?;
+    let entailment_skipped = entailment_entries_lane_b.len();
 
     // The honest-DlGap divergence bucket is a SIBLING of the Lane-A out_dir: every
     // case the native path cannot soundly decide (`gaps` non-empty → `incomplete`)
@@ -812,17 +822,45 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
 /// case outcome — including `DlGap` (native incomplete) and `CorpusOnly` (native
 /// disagrees with published) — as the divergence grading signal.
 fn grade_suite_corpus(input_rdf: &Path, corpus_name: &str, out_nq: &Path) -> Result<(), String> {
-    let (consistency_entries, entailment_skipped) = parse_consistency_entries(input_rdf)?;
+    let (consistency_entries, entailment_entries) = parse_consistency_entries(input_rdf)?;
+    let entailment_skipped = entailment_entries.len();
 
     let mut comparisons: Vec<gmeow_logic::reason::ExternalComparison> = Vec::new();
     let mut unlowerable: usize = 0;
 
     let world_iri_prefix = format!("https://gmeow.example/{corpus_name}/");
 
+    // Emit a DlGap Finding for every entailment test: they are out of the
+    // consistency-lane scope (need conclusion-negation), so we record them
+    // as coverage gaps rather than silently dropping them.
+    for entry in &entailment_entries {
+        let slug = to_slug(&entry.name);
+        let world_iri = format!("{world_iri_prefix}{slug}/w");
+        let published = entry.outcome().verdict_status().as_str().to_string();
+        comparisons.push(gmeow_logic::reason::ExternalComparison {
+            case: slug,
+            world: world_iri,
+            native: "incomplete".to_string(),
+            published,
+        });
+    }
+
     for entry in &consistency_entries {
+        let slug = to_slug(&entry.name);
+        let world_iri = format!("{world_iri_prefix}{slug}/w");
+
         let lowered = match lower_entry(entry, &world_iri_prefix) {
             Some(l) => l,
             None => {
+                // Record as DlGap rather than silently dropping: the native path
+                // could not ingest the premise (IRI reference, vacuous, or unparsable).
+                let published = entry.outcome().verdict_status().as_str().to_string();
+                comparisons.push(gmeow_logic::reason::ExternalComparison {
+                    case: slug.clone(),
+                    world: world_iri,
+                    native: "incomplete".to_string(),
+                    published,
+                });
                 unlowerable += 1;
                 continue;
             }
@@ -842,6 +880,13 @@ fn grade_suite_corpus(input_rdf: &Path, corpus_name: &str, out_nq: &Path) -> Res
             Ok(ds) => ds,
             Err(e) => {
                 println!("SKIP {slug}: world N-Quads round-trip failed: {e}");
+                let published = entry.outcome().verdict_status().as_str().to_string();
+                comparisons.push(gmeow_logic::reason::ExternalComparison {
+                    case: slug.clone(),
+                    world: world_iri,
+                    native: "incomplete".to_string(),
+                    published,
+                });
                 unlowerable += 1;
                 continue;
             }
@@ -852,6 +897,13 @@ fn grade_suite_corpus(input_rdf: &Path, corpus_name: &str, out_nq: &Path) -> Res
             Ok(v) => v,
             Err(e) => {
                 println!("SKIP {slug}: native DL consistency run failed: {e}");
+                let published = entry.outcome().verdict_status().as_str().to_string();
+                comparisons.push(gmeow_logic::reason::ExternalComparison {
+                    case: slug.clone(),
+                    world: world_iri,
+                    native: "incomplete".to_string(),
+                    published,
+                });
                 unlowerable += 1;
                 continue;
             }
@@ -996,5 +1048,74 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             msg.contains("malformed N-Triples line"),
             "error message should describe the problem: {msg:?}"
         );
+    }
+
+    /// `grade_suite_corpus` must emit a DlGap Finding for un-lowerable cases
+    /// (IRI reference premise or entailment test) rather than silently dropping them.
+    ///
+    /// This test uses a synthetic two-entry manifest: one consistency test whose
+    /// premise is an IRI reference (un-lowerable, no reasoner invoked) and one
+    /// entailment test (out of consistency-lane scope). Both must appear as
+    /// `dl-gap` Findings in the emitted N-Quads graph.
+    #[test]
+    fn grade_suite_emits_dlgap_for_unlowerable_and_entailment() {
+        // RDF/XML manifest with:
+        //   - one ConsistencyTest whose mf:action is an IRI reference (Lane-B skip)
+        //   - one PositiveEntailmentTest (always out-of-scope for the consistency lane)
+        let manifest_xml = r#"<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:mf="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#"
+         xmlns:otest="http://www.w3.org/2007/OWL/testOntology#">
+  <otest:ConsistencyTest rdf:about="http://example.org/test/ref-premise">
+    <mf:name>ref-premise</mf:name>
+    <rdf:type rdf:resource="http://www.w3.org/2007/OWL/testOntology#ConsistencyTest"/>
+    <mf:action rdf:resource="http://example.org/ontologies/premise.owl"/>
+    <otest:status rdf:resource="http://www.w3.org/2007/OWL/testOntology#Approved"/>
+    <mf:result rdf:resource="http://www.w3.org/2007/OWL/testOntology#Consistent"/>
+  </otest:ConsistencyTest>
+  <otest:PositiveEntailmentTest rdf:about="http://example.org/test/entailment-case">
+    <mf:name>entailment-case</mf:name>
+    <rdf:type rdf:resource="http://www.w3.org/2007/OWL/testOntology#PositiveEntailmentTest"/>
+    <mf:action rdf:resource="http://example.org/ontologies/premise2.owl"/>
+    <otest:status rdf:resource="http://www.w3.org/2007/OWL/testOntology#Approved"/>
+    <mf:result rdf:resource="http://www.w3.org/2007/OWL/testOntology#Consistent"/>
+  </otest:PositiveEntailmentTest>
+</rdf:RDF>"#;
+
+        // Write manifest to a temp file.
+        let dir = std::env::temp_dir();
+        let manifest_path = dir.join(format!(
+            "gmeow-test-grade-suite-dlgap-{}.rdf",
+            std::process::id()
+        ));
+        let out_nq = dir.join(format!(
+            "gmeow-test-grade-suite-dlgap-{}.nq",
+            std::process::id()
+        ));
+        std::fs::write(&manifest_path, manifest_xml).expect("write manifest");
+
+        // Run grade_suite_corpus.
+        super::grade_suite_corpus(&manifest_path, "test-corpus", &out_nq)
+            .expect("grade_suite_corpus must succeed");
+
+        // Read the output N-Quads.
+        let nq = std::fs::read_to_string(&out_nq).expect("read output nq");
+
+        // Both un-lowerable and entailment cases must appear as dl-gap Findings.
+        assert!(
+            nq.contains("reason.divergence.dl-gap"),
+            "output must contain dl-gap Findings for un-lowerable/entailment cases: {nq:?}"
+        );
+
+        // There must be at least 2 Finding nodes (one per unlowerable/entailment case).
+        let finding_type_count = nq.lines().filter(|l| l.contains("/Finding>")).count();
+        assert!(
+            finding_type_count >= 2,
+            "expected at least 2 dl-gap Findings (ref-premise + entailment-case), got {finding_type_count}: {nq:?}"
+        );
+
+        // Clean up.
+        let _ = std::fs::remove_file(&manifest_path);
+        let _ = std::fs::remove_file(&out_nq);
     }
 }
