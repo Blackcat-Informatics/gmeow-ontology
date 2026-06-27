@@ -644,6 +644,10 @@ impl SnapshotStage {
     pub fn new() -> Self {
         Self {
             consumes: vec![
+                // The logic compiler's in-memory product: the projection-report loss
+                // ledger folds into the bundle as its own named graph and the compile
+                // findings union into the diagnostics graph (no disk re-read).
+                "stage-compile-logic".to_string(),
                 "stage-docs-render".to_string(),
                 // The SHACL→JSON-Schema export leaf (#700): its in-memory product
                 // carries THIS run's freshly-emitted gmeow.schema.json / .openapi.json

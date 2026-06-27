@@ -21,6 +21,8 @@ use crate::registry::StageRegistry;
 pub mod apache;
 pub mod bench;
 pub mod catalog;
+pub mod compile_logic;
+pub mod diag_render;
 pub mod docs_render;
 pub mod evals;
 pub mod export;
@@ -54,6 +56,10 @@ pub mod yaml_ld;
 pub fn register_default(registry: &mut StageRegistry) {
     registry.register("source_load", Arc::new(source_load::SourceLoadStage));
     registry.register("statements", Arc::new(statements::StatementsStage));
+    registry.register(
+        "compile_logic",
+        Arc::new(compile_logic::CompileLogicStage::new()),
+    );
     registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
     registry.register("mappings", Arc::new(mappings::MappingsStage));

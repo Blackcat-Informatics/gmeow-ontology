@@ -75,8 +75,8 @@ meta:gate-generator-registry a meta:Gate ;
     meta:symbol "run_pipeline" ;
     meta:cliCommand "regenerate", "check-generated", "compile-gts" ;
     meta:makeTarget "check-generated", "regenerate" ;
-    meta:generator "source_load", "statements", "mappings", "reason",
-        "gts_compose", "snapshot", "docs_render", "gts_sink", "logic",
+    meta:generator "source_load", "statements", "compile_logic", "mappings",
+        "reason", "gts_compose", "snapshot", "docs_render", "gts_sink", "logic",
         "metadata", "schemas", "lpg", "matrix", "apache",
         "catalog", "profiles", "frame_shapes", "evals", "parquet",
         "research-objects", "references", "export", "okf", "bench" .

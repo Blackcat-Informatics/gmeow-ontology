@@ -90,6 +90,12 @@ pub fn full_spec() -> PipelineSpec {
             &[],
         ),
         st("stage-statements", StageKind::Transform, "statements", &[]),
+        st(
+            "stage-compile-logic",
+            StageKind::Transform,
+            "compile_logic",
+            &[],
+        ),
         st("stage-mappings", StageKind::Transform, "mappings", &[]),
         st(
             "stage-reason",
@@ -125,6 +131,7 @@ pub fn full_spec() -> PipelineSpec {
             StageKind::Transform,
             "snapshot",
             &[
+                "stage-compile-logic",
                 "stage-docs-render",
                 // #700: fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
                 "stage-export-json-schema",
