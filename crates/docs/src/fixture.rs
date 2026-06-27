@@ -10,11 +10,14 @@
 //! `discover()` per test is paid dozens of times, and when many start at once the
 //! concurrent builds contend and each takes far longer than a single build would.
 //!
-//! This module builds the model ONCE and stores it in a content-addressed disk
-//! cache; later callers load it cheaply. [`prime`] is run once before the test
-//! processes spawn (a runner setup step) so no test pays the build; [`load`] is
-//! the per-process loader, which also builds-and-caches on a genuine miss so a
-//! plain `cargo test` (no setup step) still works.
+//! This module builds the model and the rendered English site ONCE and stores
+//! each in a content-addressed disk cache; later callers load them cheaply.
+//! [`prime`] is run once before the test processes spawn — by the
+//! `prime-docs-fixture` example, which the Makefile test lanes and the CI test
+//! job invoke immediately before `cargo nextest` — so no test pays the build or
+//! render. [`load`] / [`load_site`] are the per-process loaders, which also
+//! build-and-cache on a genuine miss so a plain `cargo test` (no prime step)
+//! still works.
 //!
 //! The cache key is salted with the crate version and the model schema version
 //! and folds the bytes of every input `discover()` reads, so a slice edit (or a

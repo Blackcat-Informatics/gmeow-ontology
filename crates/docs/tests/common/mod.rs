@@ -4,11 +4,13 @@
 //! Shared, once-per-run fixture for the gmeow-docs integration tests.
 //!
 //! The cache machinery lives in [`gmeow_docs::fixture`]; this module only pins
-//! the repo root (via the crate manifest dir) and exposes the loader under the
-//! `common::cached_model()` name every binary calls. The test runner primes the
-//! cache once before the test processes spawn (see the nextest setup script), so
-//! no test pays the ~12 s model build; on a plain `cargo test` (no setup step)
-//! the first caller builds and caches it.
+//! the repo root (via the crate manifest dir) and exposes the loaders under the
+//! `common::cached_model()` / `common::cached_site()` names the binaries call.
+//! The cache is primed once before the test processes spawn by the
+//! `prime-docs-fixture` example, which the Makefile test lanes and the CI test
+//! job run immediately before `cargo nextest`, so no test pays the ~12 s model
+//! build or the site render; on a plain `cargo test` (no prime step) the first
+//! caller builds and caches it.
 
 #![allow(dead_code)] // not every binary uses every helper
 
