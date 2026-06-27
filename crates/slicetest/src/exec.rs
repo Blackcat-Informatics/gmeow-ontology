@@ -333,6 +333,12 @@ fn set_diff(a: &BTreeSet<CanonRow>, b: &BTreeSet<CanonRow>) -> String {
         .join(" ")
 }
 
+/// `rdf:langString` — the stable identity datatype of a language-tagged literal.
+const LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
+/// `rdf:dirLangString` — the RDF-1.2 effective datatype of a *directional*
+/// language-tagged literal; normalised to [`LANG_STRING`] for contract checking.
+const DIR_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString";
+
 /// Project one oxigraph result binding into the pure-data [`ObservedTerm`] the
 /// result-shape contract checks. An RDF-star triple term cannot be typed by a
 /// column kind, so it hard-fails rather than being silently misclassified.
@@ -340,9 +346,20 @@ fn observed_term(cq_iri: &str, var: &str, term: &Term) -> Result<ObservedTerm, S
     Ok(match term {
         Term::NamedNode(_) => ObservedTerm::Iri,
         Term::BlankNode(_) => ObservedTerm::BlankNode,
-        Term::Literal(l) => ObservedTerm::Literal {
-            datatype: l.datatype().as_str().to_owned(),
-        },
+        Term::Literal(l) => {
+            // An RDF-1.2 directional language-tagged literal reports the effective
+            // datatype rdf:dirLangString, but a column declares the stable identity
+            // datatype rdf:langString (the same convention crates/rdf-wasm uses):
+            // normalise so a directional literal conforms to a langString column
+            // rather than false-positiving a DatatypeMismatch.
+            let dt = l.datatype();
+            let datatype = if dt.as_str() == DIR_LANG_STRING {
+                LANG_STRING.to_owned()
+            } else {
+                dt.as_str().to_owned()
+            };
+            ObservedTerm::Literal { datatype }
+        }
         Term::Triple(_) => {
             return Err(format!(
                 "{cq_iri}: result binding ?{var} is an RDF-star triple term, which a logic:ResultShape does not type"
