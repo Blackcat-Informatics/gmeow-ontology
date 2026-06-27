@@ -108,6 +108,8 @@ struct StageRun {
     key: String,
     product: StageProduct,
     cached: bool,
+    /// Wall-clock spent in [`exec_stage`] for this stage (compute + cache probe).
+    elapsed_ms: u128,
 }
 
 /// Run a validated, bound pipeline. `bound` is the stages in topological order
@@ -129,6 +131,11 @@ pub fn run(
         })?;
 
     let mut products: BTreeMap<String, StageProduct> = BTreeMap::new();
+    // Opt-in per-stage profiling (GMEOW_PIPELINE_TIMING=1): accumulate
+    // (stage_id, elapsed_ms, cached) and dump the slowest stages at the end so the
+    // critical path is visible without changing default behaviour.
+    let profile = std::env::var_os("GMEOW_PIPELINE_TIMING").is_some();
+    let mut stage_timings: Vec<(String, u128, bool)> = Vec::new();
 
     for level in &graph.levels {
         // Parallel phase: every stage in the level runs concurrently; Reason
@@ -158,7 +165,25 @@ pub fn run(
             }
             let stage = by_id[r.id.as_str()];
             register_stage_unit(&mut ctx.provenance, &r.id, stage.kind());
+            if profile {
+                stage_timings.push((r.id.clone(), r.elapsed_ms, r.cached));
+            }
             products.insert(r.id, r.product);
+        }
+    }
+
+    if profile {
+        stage_timings.sort_by_key(|t| std::cmp::Reverse(t.1));
+        let total: u128 = stage_timings.iter().map(|t| t.1).sum();
+        eprintln!(
+            "[pipeline-timing] {} stages, summed {total} ms:",
+            stage_timings.len()
+        );
+        for (id, ms, cached) in stage_timings.iter().take(25) {
+            eprintln!(
+                "[pipeline-timing]   {ms:>7} ms  {id}{}",
+                if *cached { " (cached)" } else { "" }
+            );
         }
     }
 
@@ -202,12 +227,15 @@ fn exec_stage(
         source_digest.as_deref(),
     );
 
+    let started = std::time::Instant::now();
+
     if let Some(product) = cache.get(&key)? {
         return Ok(StageRun {
             id: stage.id().to_string(),
             key,
             product,
             cached: true,
+            elapsed_ms: started.elapsed().as_millis(),
         });
     }
 
@@ -230,6 +258,7 @@ fn exec_stage(
         key,
         product: out.product,
         cached: false,
+        elapsed_ms: started.elapsed().as_millis(),
     })
 }
 
