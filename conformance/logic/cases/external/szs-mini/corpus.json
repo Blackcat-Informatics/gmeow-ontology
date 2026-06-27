@@ -1,8 +1,8 @@
 {
   "name": "szs-mini",
   "spdx_license": "CC-BY-4.0",
-  "source_url": "https://gmeow.example/753/szs-mini (self-authored seed, #753)",
+  "source_url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/753",
   "version_or_commit": "gmeow-self-authored-1",
-  "refresh_command": "cargo run -p gmeow-conformance --bin ingest-external -- --szs conformance/logic/cases/external/szs-mini/unsat-clash/source/problem.p",
+  "refresh_command": "GMEOW_CONFORMANCE_BLESS=1 cargo nextest run -p gmeow-conformance -E 'test(external/szs-mini/)'",
   "lane": "a"
 }

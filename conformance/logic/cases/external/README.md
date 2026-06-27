@@ -95,11 +95,15 @@ Following the `imports/targets/` snapshot pattern:
 
 3. Author the lowered `input.nq` (consistency) or `input.logic.ttl` (materialization)
    and `profile.json`, then bless the goldens — filtered to the external tree so no
-   existing golden is touched. (Mechanical `input.nq` regeneration from a source —
-   the general `A ∪ ¬C` FOL-negation reduction — is X2/X3 scope (#754–#755); in X1
-   the negated conclusion is pre-baked by hand, so `input.nq` is authored, and the
-   `refresh_command` in `corpus.json` re-derives and verifies the declared *verdict*
-   from `source/` rather than regenerating the EDB.)
+   existing golden is touched. Each corpus records its own corpus-scoped re-bless as
+   `corpus.json`'s `refresh_command` (e.g. `GMEOW_CONFORMANCE_BLESS=1 cargo nextest
+   run -p gmeow-conformance -E 'test(external/<corpus>/)'`), so refreshing a corpus
+   regenerates all of its goldens from the engine. (Mechanical `input.nq` regeneration
+   from a source — the general `A ∪ ¬C` FOL-negation reduction — is X2/X3 scope
+   (#754–#755); in X1 the negated conclusion is pre-baked by hand, so `input.nq` is
+   authored. The step-2 `ingest-external` command inspects the verdict a `source/`
+   declares, and `tests/external_soundness.rs` cross-checks it against the committed
+   golden.)
 
    ```sh
    GMEOW_CONFORMANCE_BLESS=1 cargo nextest run -p gmeow-conformance -E 'test(/external\//)'
