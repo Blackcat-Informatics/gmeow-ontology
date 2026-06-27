@@ -1,0 +1,8 @@
+{
+  "name": "w3c-mini",
+  "spdx_license": "CC-BY-4.0",
+  "source_url": "https://gmeow.example/753/w3c-mini (self-authored seed, #753)",
+  "version_or_commit": "gmeow-self-authored-1",
+  "refresh_command": "cargo run -p gmeow-conformance --bin ingest-external -- --help",
+  "lane": "a"
+}

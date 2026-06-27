@@ -1,0 +1,2 @@
+<https://gmeow.example/753/szs-mini/satisfiable-open/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://gmeow.example/753/szs-mini/satisfiable-open/A> <https://gmeow.example/753/szs-mini/satisfiable-open/w> .
+<https://gmeow.example/753/szs-mini/satisfiable-open/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://gmeow.example/753/szs-mini/satisfiable-open/B> <https://gmeow.example/753/szs-mini/satisfiable-open/w> .

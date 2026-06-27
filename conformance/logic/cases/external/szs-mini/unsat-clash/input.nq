@@ -1,0 +1,4 @@
+<https://gmeow.example/753/szs-mini/unsat-clash/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://gmeow.example/753/szs-mini/unsat-clash/A> <https://gmeow.example/753/szs-mini/unsat-clash/w> .
+<https://gmeow.example/753/szs-mini/unsat-clash/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://gmeow.example/753/szs-mini/unsat-clash/B> <https://gmeow.example/753/szs-mini/unsat-clash/w> .
+<https://gmeow.example/753/szs-mini/unsat-clash/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://gmeow.example/753/szs-mini/unsat-clash/C> <https://gmeow.example/753/szs-mini/unsat-clash/w> .
+<https://gmeow.example/753/szs-mini/unsat-clash/B> <http://www.w3.org/2002/07/owl#disjointWith> <https://gmeow.example/753/szs-mini/unsat-clash/C> <https://gmeow.example/753/szs-mini/unsat-clash/w> .
