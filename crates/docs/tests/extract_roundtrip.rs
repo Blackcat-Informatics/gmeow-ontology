@@ -23,42 +23,37 @@ use gmeow_docs::Translations;
 
 mod common;
 
-/// The set of site-relative paths a language's render emits.
-fn path_graph(model: &gmeow_docs::DocsModel, lang: &str) -> BTreeSet<String> {
-    render_site_lang(model, lang).files.into_keys().collect()
-}
-
-/// The English (carrier) path graph, taken from the shared once-per-run cached
-/// render rather than re-rendering — so each language case below pays exactly one
-/// live render (its own translation) instead of two.
-fn english_path_graph() -> BTreeSet<String> {
-    common::cached_site().files.into_keys().collect()
+/// The set of site-relative paths a language's render emits, read from the shared
+/// once-per-run cached render (every available language is cached by `prime`, the
+/// English carrier and each translation symmetrically) rather than re-rendering.
+fn cached_path_graph(lang: &str) -> BTreeSet<String> {
+    common::cached_site_lang(lang).files.into_keys().collect()
 }
 
 // The file/path set is language-independent (only prose changes), so a
 // per-language extract writes the SAME tree shape — the invariant that lets
 // `write_artifacts` / `create_docs` select a language without re-planning the
 // tree, and that keeps every language's links resolving. The English carrier is
-// the canonical graph (`render_site` == `render_site_lang(_, "english")`) and is
-// served from the shared cache; each translation is checked against it in its own
-// test so a single case pays one live render and the cases parallelise.
+// the canonical graph (`render_site` == `render_site_lang(_, "english")`). Each
+// translation's path graph is compared against it below, both read from the shared
+// per-language cache. This is NOT a tautology: the fr/zh and English caches are
+// produced by INDEPENDENT `render_site_lang(model, lang)` calls in `prime`, so a
+// language-dependent path divergence still surfaces as a different key set.
 
 #[test]
 fn french_tree_shares_the_english_path_graph() {
-    let model = common::cached_model();
     assert_eq!(
-        path_graph(&model, "fr"),
-        english_path_graph(),
+        cached_path_graph("fr"),
+        cached_path_graph("english"),
         "fr tree has a different path graph than english"
     );
 }
 
 #[test]
 fn chinese_tree_shares_the_english_path_graph() {
-    let model = common::cached_model();
     assert_eq!(
-        path_graph(&model, "zh"),
-        english_path_graph(),
+        cached_path_graph("zh"),
+        cached_path_graph("english"),
         "zh tree has a different path graph than english"
     );
 }
