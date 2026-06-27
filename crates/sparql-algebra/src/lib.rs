@@ -14,13 +14,20 @@
 //!
 //! # Scope (purrdf S5)
 //!
-//! Parse + algebra **only** — no evaluation. The in-scope SPARQL subset is
+//! Parse + algebra **only** — no evaluation. The in-scope SPARQL surface is
 //! corpus-driven (the project's `queries/**/*.rq` plus the DSL-generated
-//! projections): the four query forms, basic graph patterns, `OPTIONAL`,
-//! `UNION`, `MINUS`, `GRAPH`, `FILTER`/`BIND`/`VALUES`, property paths,
-//! `GROUP BY`/aggregates, `EXISTS`/`NOT EXISTS`, solution modifiers, and the
-//! RDF 1.2 quoted triple terms (`<<( s p o )>>`) used by the codec round-trips.
-//! Anything outside the subset is a hard [`ParseError::Unsupported`], never a
+//! projections) and covers both halves of SPARQL 1.1/1.2:
+//!
+//! - **Query**: the four query forms, basic graph patterns, `OPTIONAL`,
+//!   `UNION`, `MINUS`, `GRAPH`, `FILTER`/`BIND`/`VALUES`, property paths,
+//!   `GROUP BY`/aggregates, `EXISTS`/`NOT EXISTS`, solution modifiers, and the
+//!   RDF 1.2 quoted triple terms (`<<( s p o )>>`) used by the codec round-trips.
+//! - **Update** ([`Update`]/[`GraphUpdateOperation`]): `INSERT DATA` /
+//!   `DELETE DATA`, the `DELETE`/`INSERT … WHERE` family (`WITH`/`USING`,
+//!   `DELETE WHERE`), `LOAD`, and the graph-management operations
+//!   `CLEAR`/`DROP`/`CREATE`/`ADD`/`MOVE`/`COPY`.
+//!
+//! Anything outside this surface is a hard [`ParseError::Unsupported`], never a
 //! silently-degraded parse.
 //!
 //! # Hard-fail
@@ -45,12 +52,12 @@ pub mod lexer;
 pub mod parser;
 
 pub use algebra::{
-    AggregateExpression, AggregateFunction, Expression, Function, GraphPattern, OrderExpression,
-    PropertyPathExpression, Query,
+    AggregateExpression, AggregateFunction, Expression, Function, GraphPattern, GraphTarget,
+    GraphUpdateOperation, OrderExpression, PropertyPathExpression, Query, Update,
 };
 pub use ast::{
-    BaseDirection, BlankNode, GroundTerm, GroundTriple, Literal, NamedNode, NamedNodePattern,
-    TermPattern, TriplePattern, Variable,
+    BaseDirection, BlankNode, GroundQuad, GroundTerm, GroundTriple, Literal, NamedNode,
+    NamedNodePattern, QuadPattern, TermPattern, TriplePattern, Variable,
 };
 pub use error::{ParseError, Result};
 pub use parser::SparqlParser;
