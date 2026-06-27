@@ -26,7 +26,8 @@ use gmeow_logic::store::WorldStore;
 use gmeow_logic_compile::frontend::{parse_logic_str, Diagnostic, Severity};
 use gmeow_logic_compile::projections::compile_program;
 
-use crate::profile::{BudgetParams, Profile};
+use crate::profile::{BudgetParams, Profile, VerdictMode};
+use crate::serialize::VerdictStatus;
 use crate::{profile, serialize};
 
 /// A single materialized quad in the runner's flat string form (mirrors the
@@ -123,6 +124,14 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         .map_err(|e| prefix(format!("cannot parse profile.json: {e}")))?;
     let profile = profile::parse_profile(&case_id, &profile_value)?;
 
+    // ── Consistency mode (#753) ───────────────────────────────────────────────
+    // External entailment/SZS cases reason over their RDF EDB through the native
+    // DL consistency path, NOT the logic-compile/materialize chase. Branch BEFORE
+    // reading/compiling `input.logic.ttl` (which a consistency case does not use).
+    if profile.verdict_mode == VerdictMode::Consistency {
+        return run_consistency_case(&case_id, case_dir);
+    }
+
     // ── Compile (frontend → IR → projections + nemo rules + ledger) ──────────
     let source = std::fs::read_to_string(case_dir.join("input.logic.ttl"))
         .map_err(|e| prefix(format!("cannot read input.logic.ttl: {e}")))?;
@@ -182,7 +191,17 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
 
     // ── N-Quads serialization + downstream artifacts ─────────────────────────
     let materialized_nquads = serialize::materialized_to_nquads(&quads);
-    let verdicts = serialize::build_verdicts(&quads);
+    // Materialization-mode status: every materializing world is `consistent`,
+    // EXCEPT when the budget governor exhausted the chase — then the run is
+    // `incomplete` (the external `Unknown`/budget-tripped branch, #753). A clean
+    // (non-exhausted) run reproduces the pre-#753 `consistent` golden byte-for-byte.
+    let mat_status = if incomplete {
+        VerdictStatus::Incomplete
+    } else {
+        VerdictStatus::Consistent
+    };
+    let world_counts = serialize::count_worlds(&quads);
+    let verdicts = serialize::build_verdicts(&world_counts, |_| mat_status);
 
     // ── Backward goals (#504) ────────────────────────────────────────────────
     let answers = resolve_answers(
@@ -281,6 +300,96 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
         incomplete: false,
         answers: BTreeMap::new(),
     }
+}
+
+/// Run one `verdict_mode = consistency` case (#753).
+///
+/// External entailment/SZS corpora are lowered into a world-scoped RDF EDB
+/// (`input.nq`) and decided by the native DL consistency path
+/// ([`gmeow_logic::reason::dl_consistency`]) — the verdict-only entry point that folds
+/// from the SAME shared closure as [`gmeow_logic::reason::reason_all`] (#768), so the
+/// two can never disagree. The per-world verdict is `inconsistent` for any world bearing a
+/// populated `owl:Nothing` clash (an [`InconsistencyWitness`]), else `consistent`.
+/// No compile / certify / materialize / projection / answer artifacts are produced
+/// (a consistency case carries only its `expected/verdicts.json` golden).
+fn run_consistency_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, String> {
+    let prefix = |msg: String| format!("case {case_id}: {msg}");
+
+    // The EDB is the world-scoped N-Quads `input.nq` (hard-fail if absent — a
+    // consistency case has no other input the DL path can read).
+    let input_nq_path = case_dir.join("input.nq");
+    if !input_nq_path.exists() {
+        return Err(prefix(
+            "verdict_mode=consistency requires input.nq (the world-scoped RDF EDB)".to_string(),
+        ));
+    }
+    let bytes =
+        std::fs::read(&input_nq_path).map_err(|e| prefix(format!("cannot read input.nq: {e}")))?;
+    let dataset = gmeow_rdf::dataset_from_bytes(&bytes, gmeow_rdf::NativeRdfFormat::NQuads)
+        .map_err(|e| prefix(format!("input.nq parse failed: {e}")))?;
+
+    let verdict = gmeow_logic::reason::dl_consistency(dataset.as_ref())
+        .map_err(|e| prefix(format!("native DL consistency run failed: {e}")))?;
+
+    // Zero-defer (#753): a consistency case MUST be genuinely decided by the native
+    // path. A non-empty `gaps` means a construct is present that the native DL path
+    // cannot honestly decide — refuse rather than emit a dishonest verdict.
+    if !verdict.gaps.is_empty() {
+        let gaps: Vec<&str> = verdict.gaps.iter().map(|g| g.code.as_str()).collect();
+        return Err(prefix(format!(
+            "verdict_mode=consistency case has undecided native DL construct gap(s) {gaps:?} — \
+             the engine cannot honestly decide it (zero-defer violation; route heavy corpora to \
+             the Lane-B classic-cross-check instead)"
+        )));
+    }
+
+    // Per-world quad counts come from the EDB; per-world status from the witnesses.
+    let store = WorldStore::new();
+    store
+        .load_dataset(dataset.as_ref())
+        .map_err(|e| prefix(format!("EDB world load failed: {e}")))?;
+    let mut world_counts: BTreeMap<String, u64> = BTreeMap::new();
+    for world in store.worlds() {
+        let n = store
+            .quads_for_pattern_in_world(&world, None, None, None)
+            .len() as u64;
+        world_counts.insert(world, n);
+    }
+    let inconsistent_worlds: BTreeSet<String> = verdict
+        .inconsistencies
+        .iter()
+        .map(|w| w.world.clone())
+        .collect();
+
+    // Hard-fail (no-optionality, #753): the emitted verdict iterates `world_counts`
+    // (worlds present in the EDB), so every inconsistent world MUST appear there — else
+    // `build_verdicts` would silently omit its `inconsistent` status. The seed fixtures'
+    // clash worlds all carry EDB quads, so this is a latent-invariant guard: an
+    // inference-only inconsistent world fails loudly here rather than vanishing.
+    let missing: Vec<&String> = inconsistent_worlds
+        .iter()
+        .filter(|w| !world_counts.contains_key(*w))
+        .collect();
+    if !missing.is_empty() {
+        return Err(prefix(format!(
+            "native DL reported inconsistency for world(s) {missing:?} absent from the EDB world \
+             set {:?} — the per-world verdict would silently drop them (an inconsistency must \
+             attach to a world present in input.nq)",
+            world_counts.keys().collect::<Vec<_>>()
+        )));
+    }
+
+    let verdicts = serialize::build_verdicts(&world_counts, |world| {
+        if inconsistent_worlds.contains(world) {
+            VerdictStatus::Inconsistent
+        } else {
+            VerdictStatus::Consistent
+        }
+    });
+
+    let mut out = empty_outputs(case_id.to_string());
+    out.verdicts = verdicts;
+    Ok(out)
 }
 
 /// Read an optional sibling file, returning the empty string when absent.
@@ -667,5 +776,73 @@ mod gating_tests {
         let err = run_case(&case.0).unwrap_err();
         assert!(err.contains("Severity::Error"), "{err}");
         assert!(err.contains("UNSUPPORTED_CONTRACT"), "{err}");
+    }
+
+    // ── verdict_mode = consistency (#753) ─────────────────────────────────────
+
+    const CONSISTENCY_PROFILE: &str = r#"{"verdict_mode":"consistency","mode":"native"}"#;
+    const W: &str = "https://gmeow.example/dl/world";
+
+    /// A world-scoped N-Quad EDB line in the gmeow ternary RDF shape.
+    fn q(s: &str, p: &str, o: &str) -> String {
+        format!("<{s}> <{p}> <{o}> <{W}> .\n")
+    }
+
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const DISJOINT: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+    const A: &str = "https://gmeow.example/dl/A";
+    const B: &str = "https://gmeow.example/dl/B";
+    const C: &str = "https://gmeow.example/dl/C";
+    const X: &str = "https://gmeow.example/dl/x";
+
+    #[test]
+    fn consistency_mode_populated_clash_is_inconsistent() {
+        // x:A, A⊑B, A⊑C, B disjointWith C — x is forced into owl:Nothing, so the
+        // world is INCONSISTENT (the external Theorem/Unsatisfiable branch). This
+        // exercises the genuine native DL chase (no fake golden).
+        let case = TmpCase::new("incon");
+        case.write("profile.json", CONSISTENCY_PROFILE);
+        let mut nq = String::new();
+        nq.push_str(&q(X, RDF_TYPE, A));
+        nq.push_str(&q(A, SUBCLASS, B));
+        nq.push_str(&q(A, SUBCLASS, C));
+        nq.push_str(&q(B, DISJOINT, C));
+        case.write("input.nq", &nq);
+
+        let out = run_case(&case.0).expect("consistency case runs");
+        assert_eq!(
+            out.verdicts[W]["status"], "inconsistent",
+            "populated clash must be inconsistent: {}",
+            out.verdicts
+        );
+    }
+
+    #[test]
+    fn consistency_mode_clash_free_is_consistent() {
+        // x:A, A⊑B with no disjointness — no clash, so the world is CONSISTENT
+        // (the external Satisfiable/CounterSatisfiable branch).
+        let case = TmpCase::new("con");
+        case.write("profile.json", CONSISTENCY_PROFILE);
+        let mut nq = String::new();
+        nq.push_str(&q(X, RDF_TYPE, A));
+        nq.push_str(&q(A, SUBCLASS, B));
+        case.write("input.nq", &nq);
+
+        let out = run_case(&case.0).expect("consistency case runs");
+        assert_eq!(
+            out.verdicts[W]["status"], "consistent",
+            "clash-free world must be consistent: {}",
+            out.verdicts
+        );
+    }
+
+    #[test]
+    fn consistency_mode_requires_input_nq() {
+        // No input.nq ⇒ hard fail (no silent skip / empty verdict).
+        let case = TmpCase::new("noedb");
+        case.write("profile.json", CONSISTENCY_PROFILE);
+        let err = run_case(&case.0).unwrap_err();
+        assert!(err.contains("requires input.nq"), "{err}");
     }
 }

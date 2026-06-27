@@ -56,6 +56,16 @@ fn main() -> Result<(), String> {
     // BTreeMap keys → sorted, deterministic ordering independent of discovery.
     let mut by_case: BTreeMap<String, serde_json::Value> = BTreeMap::new();
     for case in &cases {
+        // Lane routing (#753): the release-as-evidence report is the Lane-A native
+        // artifact. A Lane-B external corpus is oracle-backed and runs only in
+        // `make maint-classic-cross-check`, so it is excluded here (it may also lie
+        // outside the native fragment and would not be honestly decided).
+        if matches!(
+            gmeow_conformance::external::lane_for_case(&case.case_dir)?,
+            Some(gmeow_conformance::external::Lane::B)
+        ) {
+            continue;
+        }
         let outputs = run::run_case(&case.case_dir)?;
         by_case.insert(
             outputs.case_id.clone(),
@@ -83,7 +93,7 @@ fn main() -> Result<(), String> {
 
     eprintln!(
         "conformance-report: {} case(s) → {}",
-        cases.len(),
+        by_case.len(),
         out.display()
     );
     Ok(())
