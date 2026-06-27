@@ -49,6 +49,12 @@ fn spine() -> PipelineSpec {
                 &[],
             ),
             spec("stage-statements", StageKind::Transform, "statements", &[]),
+            spec(
+                "stage-compile-logic",
+                StageKind::Transform,
+                "compile_logic",
+                &[],
+            ),
             spec("stage-mappings", StageKind::Transform, "mappings", &[]),
             spec(
                 "stage-reason",
@@ -91,6 +97,7 @@ fn spine() -> PipelineSpec {
                 StageKind::Transform,
                 "snapshot",
                 &[
+                    "stage-compile-logic",
                     "stage-docs-render",
                     "stage-export-json-schema",
                     "stage-gts-compose",
