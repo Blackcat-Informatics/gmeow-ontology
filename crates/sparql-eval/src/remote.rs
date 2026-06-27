@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! SPARQL `SERVICE` federation: the [`RemoteQuerySource`] seam and the
-//! [`eval_service`] handler (S6b #928).
+//! [`eval_service`] handler.
 //!
 //! `SERVICE [SILENT] <endpoint> { pattern }` evaluates `pattern` at a remote
 //! endpoint and joins the result into the surrounding query. The evaluator stays

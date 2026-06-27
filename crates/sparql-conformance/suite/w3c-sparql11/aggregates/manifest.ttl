@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 #
 # A curated subset of the W3C SPARQL 1.1 aggregates test group, selecting the
-# cases that exercise S6b #928's exotic-aggregation surface (expression-valued
+# cases that exercise the exotic-aggregation surface (expression-valued
 # GROUP BY, multi-condition HAVING, SUM). Queries and data are vendored verbatim
 # from w3c/rdf-tests; expected results are reconstructed to an equivalent SRX
 # (see PROVENANCE.md). This selector manifest is GMEOW-authored.

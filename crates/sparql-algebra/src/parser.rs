@@ -3324,7 +3324,7 @@ mod tests {
         assert_eq!(path_of(&q2), path);
     }
 
-    // ── expression-valued GROUP BY (S6b #928) ────────────────────────────────
+    // ── expression-valued GROUP BY ───────────────────────────────────────────
 
     #[test]
     fn group_by_expr_as_lowers_to_extend_under_group() {
@@ -3389,7 +3389,7 @@ mod tests {
     #[test]
     fn nested_aggregate_stays_rejected() {
         // `SUM(COUNT(?x))` is illegal SPARQL 1.1 (no direct aggregate nesting) and
-        // must remain a hard error — a regression guard for #928.
+        // must remain a hard error — a regression guard.
         let q = format!("{GM}SELECT (SUM(COUNT(?x)) AS ?y) WHERE {{ ?r gmeow:a ?x }}");
         let err = SparqlParser::new().parse_query(&q).unwrap_err();
         assert!(
@@ -3398,7 +3398,7 @@ mod tests {
         );
     }
 
-    // ── blank-node property lists (S6b #928, unblocks W3C subquery tests) ─────
+    // ── blank-node property lists ─────────────────────────────────────────────
 
     /// Count the triples in a (possibly Join-wrapped) BGP-only WHERE body.
     fn bgp_triple_count(p: &GraphPattern) -> usize {

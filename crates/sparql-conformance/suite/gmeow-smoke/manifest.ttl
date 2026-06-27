@@ -3,7 +3,7 @@
 #
 # A GMEOW-owned smoke manifest in the W3C mf: shape, proving the conformance
 # harness end-to-end (SELECT multiset, ASK boolean, expression-valued GROUP BY)
-# before the vendored W3C suite (Task 7) is enabled.
+# alongside the vendored W3C suite.
 
 @prefix mf:  <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
 @prefix qt:  <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .

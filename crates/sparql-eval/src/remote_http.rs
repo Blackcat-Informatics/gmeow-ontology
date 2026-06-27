@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native HTTP transport for SPARQL `SERVICE` federation (S6b #928).
+//! Native HTTP transport for SPARQL `SERVICE` federation.
 //!
 //! [`HttpRemoteQuerySource`] is the production [`RemoteQuerySource`]: it POSTs the
 //! forwarded query to a remote SPARQL endpoint over HTTP (via `ureq`, rustls) and

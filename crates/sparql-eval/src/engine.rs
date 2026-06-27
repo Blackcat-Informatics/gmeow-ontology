@@ -107,7 +107,7 @@ impl NativeSparqlEngine {
     }
 
     /// Like [`SparqlEngine::query`], but with a [`RemoteQuerySource`] injected so
-    /// `SERVICE` clauses resolve through it (S6b #928). Without this, the default
+    /// `SERVICE` clauses resolve through it. Without this, the default
     /// [`SparqlEngine::query`] path has no source and a non-silent `SERVICE`
     /// hard-fails. This is the public entry the conformance harness and federated
     /// callers use.
@@ -617,7 +617,7 @@ mod tests {
         assert!(NativeSparqlEngine::default().resolver.is_none());
     }
 
-    // ── exotic aggregation (S6b #928) ────────────────────────────────────────
+    // ── exotic aggregation ────────────────────────────────────────────────────
 
     const XSD_INT: &str = "http://www.w3.org/2001/XMLSchema#integer";
 

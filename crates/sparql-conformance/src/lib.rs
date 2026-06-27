@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #![forbid(unsafe_code)]
 
-//! Native W3C SPARQL 1.1 conformance harness (S6b #928).
+//! Native W3C SPARQL 1.1 conformance harness.
 //!
 //! Discovers `mf:` test manifests, runs each case against the native
 //! [`gmeow_sparql_eval`] engine (zero oxigraph Store), and diffs the result

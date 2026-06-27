@@ -5,9 +5,9 @@
 //!
 //! The inverse of [`crate::parser`]: it renders a [`GraphPattern`] back to a
 //! complete `SELECT * WHERE { ... }` query string. The driving use case is
-//! SPARQL `SERVICE` federation (S6b #928): the evaluator forwards a federated
-//! sub-pattern to a remote endpoint as a complete query, and that requires
-//! re-materializing the algebra as text.
+//! SPARQL `SERVICE` federation: the evaluator forwards a federated sub-pattern
+//! to a remote endpoint as a complete query, and that requires re-materializing
+//! the algebra as text.
 //!
 //! # Design
 //!

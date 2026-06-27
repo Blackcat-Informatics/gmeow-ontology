@@ -56,7 +56,7 @@ members = [
     # in TermId space: consumes `crates/sparql-algebra` and replaces the
     # oxigraph-family `spareval` on the query path (purrdf S6, EPIC #906).
     "crates/sparql-eval",
-    # Native W3C SPARQL 1.1 conformance harness (S6b #928): runs mf: manifests
+    # Native W3C SPARQL 1.1 conformance harness: runs mf: manifests
     # against gmeow-sparql-eval and diffs SPARQL Results / canonical N-Quads;
     # federated SERVICE resolves through an in-memory source (no network).
     "crates/sparql-conformance",

@@ -36,7 +36,7 @@ pub enum EvalError {
     /// response, or no remote source configured) and the `SERVICE` was **not**
     /// `SILENT`. Per the hard-fail doctrine a non-silent federation failure aborts
     /// the query rather than silently contributing no bindings; `SERVICE SILENT`
-    /// instead swallows the failure to the join identity (S6b #928).
+    /// instead swallows the failure to the join identity.
     Remote(String),
 }
 

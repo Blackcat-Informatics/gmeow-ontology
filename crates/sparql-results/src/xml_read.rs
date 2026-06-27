@@ -6,7 +6,7 @@
 //! Parses a W3C SPARQL Query Results XML document
 //! (<https://www.w3.org/TR/rdf-sparql-XMLres/>) into a
 //! [`crate::json_read::ParsedSolutions`] (`SELECT`) or a boolean (`ASK`). The W3C
-//! conformance harness (S6b #928) reads expected `.srx` results with it.
+//! conformance harness reads expected `.srx` results with it.
 //!
 //! # Wasm discipline
 //!

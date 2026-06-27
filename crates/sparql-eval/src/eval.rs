@@ -84,7 +84,7 @@ pub struct EvalCtx<'d> {
     /// `expr::exists`'s per-row re-evaluation into a single evaluation per site.
     /// Naturally per-query: a fresh [`EvalCtx`] is built for each `query()` call.
     pub(crate) exists_inner_cache: DetHashMap<ExistsCacheKey, Rc<SolutionSeq>>,
-    /// The `SERVICE` federation source, if one is injected (S6b #928). `None` in
+    /// The `SERVICE` federation source, if one is injected. `None` in
     /// the default engine path: a non-silent `SERVICE` then hard-fails. Tests and
     /// the conformance harness inject an in-memory source via [`EvalCtx::with_remote`].
     pub(crate) remote: Option<&'d dyn crate::remote::RemoteQuerySource>,
@@ -251,7 +251,7 @@ pub fn evaluate_query(query: &Query, ctx: &mut EvalCtx<'_>) -> Result<Outcome, E
 /// an unbound binding). The interned-`TermId` space ends here.
 ///
 /// Shared by the engine's `SparqlResult` materializer and the SERVICE result
-/// path (S6b #928), both of which turn an interned solution sequence into owned
+/// path, both of which turn an interned solution sequence into owned
 /// term values via the per-query [`ScratchInterner`](crate::scratch::ScratchInterner).
 pub(crate) fn materialize_solutions(
     seq: &SolutionSeq,
@@ -319,7 +319,7 @@ mod tests {
         let ds = RdfDatasetBuilder::new().freeze().expect("freeze empty");
         let mut ctx = EvalCtx::new(&ds);
         // LATERAL remains permanently out of scope (SERVICE is now evaluated via
-        // the remote seam, S6b #928); a still-unsupported node names itself.
+        // the remote seam); a still-unsupported node names itself.
         let pattern = GraphPattern::Lateral {
             left: Box::new(GraphPattern::Bgp { patterns: vec![] }),
             right: Box::new(GraphPattern::Bgp { patterns: vec![] }),

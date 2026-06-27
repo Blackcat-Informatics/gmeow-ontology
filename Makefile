@@ -528,7 +528,7 @@ maint-test-heavy: native-py ## Run kept-Python-module maintainer tests.
 maint-test-network: ## Run live network tests.
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
-maint-test-network-rust: ## Run the live SERVICE federation test (S6b #928) against a public endpoint.
+maint-test-network-rust: ## Run the live SERVICE federation test against a public endpoint.
 	GMEOW_RUN_NETWORK=1 cargo test -p gmeow-sparql-eval --test service_live -- --ignored
 
 maint-pull-images: ## Pull or build pinned Docker oracle images.

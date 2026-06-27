@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `EXISTS` decorrelation benchmark (S6b #928): naive per-row inner re-evaluation
+//! `EXISTS` decorrelation benchmark: naive per-row inner re-evaluation
 //! vs the cached inner evaluation.
 //!
 //! The `FILTER NOT EXISTS` shape re-evaluates its inner pattern once per outer

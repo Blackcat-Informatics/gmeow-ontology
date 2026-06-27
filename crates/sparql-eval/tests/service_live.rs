@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Live-network `SERVICE` federation test (S6b #928) — **maintainer lane only**.
+//! Live-network `SERVICE` federation test — **maintainer lane only**.
 //!
 //! Drives the real [`HttpRemoteQuerySource`] against a public SPARQL endpoint
 //! (the Wikidata Query Service) to exercise the actual HTTP transport + SPARQL

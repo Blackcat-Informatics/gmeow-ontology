@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! In-memory `SERVICE` endpoint wiring for the conformance harness (S6b #928).
+//! In-memory `SERVICE` endpoint wiring for the conformance harness.
 //!
 //! A manifest's `qt:serviceData` declarations map endpoint IRIs to local data
 //! files. This builds a [`LocalRemoteQuerySource`] from them — each endpoint

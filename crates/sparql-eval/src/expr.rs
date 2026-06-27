@@ -2402,7 +2402,7 @@ mod tests {
         }
     }
 
-    // ── EXISTS decorrelation (S6b #928) ──────────────────────────────────────
+    // ── EXISTS decorrelation ──────────────────────────────────────────────────
 
     /// `:a :knows :b`, `:a :knows :c`, `:b :member :club` — duplicate outer
     /// subjects (`:a`) so a per-row EXISTS would re-evaluate the inner repeatedly.

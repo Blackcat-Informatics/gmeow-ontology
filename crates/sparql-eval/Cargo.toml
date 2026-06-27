@@ -45,7 +45,7 @@ sha2 = { version = "0.10", default-features = false }
 # native-gated. No oxigraph-family edge.
 gmeow-sparql-results = { path = "../sparql-results" }
 
-# Native-only HTTP transport for SERVICE federation (S6b #928). `ureq` (rustls) is
+# Native-only HTTP transport for SERVICE federation. `ureq` (rustls) is
 # NOT wasm-portable, so it is gated off wasm32 — keeping the wasm-first build clean
 # (the `remote_http` module is `#[cfg(not(target_arch = "wasm32"))]` to match).
 # rustls/ring/webpki carry no oxigraph-family crate, so `make rdf-core-hygiene`
@@ -56,7 +56,7 @@ ureq = "3"
 [dev-dependencies]
 # Colored line-diffs on assert_eq! failure (repo convention).
 pretty_assertions = "1"
-# Criterion for the EXISTS-decorrelation perf bench (S6b #928). Defaults off
+# Criterion for the EXISTS-decorrelation perf bench. Defaults off
 # (no plotters/rayon) like the sibling crates, so `make bench` stays lean and no
 # oxigraph-family edge enters the dev tree (gated by `make rdf-core-hygiene`).
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
