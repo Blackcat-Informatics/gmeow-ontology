@@ -128,6 +128,15 @@ mod tests {
             })
             .expect("compile-logic stage");
         snap_upstream.insert("stage-compile-logic".to_string(), compile.product);
+        // The snapshot folds the external-corpus divergence Findings; provide the
+        // real stage-conformance product the SnapshotStage would consume.
+        let conformance = crate::stages::conformance::ConformanceStage
+            .run(StageInput {
+                root: &root,
+                upstream: &BTreeMap::new(),
+            })
+            .expect("conformance stage");
+        snap_upstream.insert("stage-conformance".to_string(), conformance.product);
 
         let gts =
             crate::stages::snapshot::build_snapshot(&root, &snap_upstream, Vec::new(), Vec::new())

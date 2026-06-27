@@ -22,6 +22,7 @@ pub mod apache;
 pub mod bench;
 pub mod catalog;
 pub mod compile_logic;
+pub mod conformance;
 pub mod diag_render;
 pub mod docs_render;
 pub mod evals;
@@ -67,6 +68,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("mappings", Arc::new(mappings::MappingsStage));
     registry.register("validate", Arc::new(validate::ValidateStage::new()));
     registry.register("docs_render", Arc::new(docs_render::DocsRenderStage::new()));
+    registry.register("conformance", Arc::new(conformance::ConformanceStage));
     registry.register("snapshot", Arc::new(snapshot::SnapshotStage::new()));
     registry.register("gts_sink", Arc::new(gts_sink::GtsSinkStage::new()));
     registry.register("catalog", Arc::new(catalog::CatalogStage));

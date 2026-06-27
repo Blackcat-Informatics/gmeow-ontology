@@ -18184,6 +18184,9 @@ enums:
       stage-compile-logic:
         meaning: https://blackcatinformatics.ca/gmeow/stage-compile-logic
         title: compile logic
+      stage-conformance:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-conformance
+        title: conformance
       stage-docs-render:
         meaning: https://blackcatinformatics.ca/gmeow/stage-docs-render
         title: docs render

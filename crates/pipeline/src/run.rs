@@ -121,6 +121,12 @@ pub fn full_spec() -> PipelineSpec {
             &["stage-source-load"],
         ),
         st(
+            "stage-conformance",
+            StageKind::Transform,
+            "conformance",
+            &[],
+        ),
+        st(
             "stage-docs-render",
             StageKind::DocsRender,
             "docs_render",
@@ -132,6 +138,8 @@ pub fn full_spec() -> PipelineSpec {
             "snapshot",
             &[
                 "stage-compile-logic",
+                // Fold the external-corpus divergence Findings into graph/conformance.
+                "stage-conformance",
                 "stage-docs-render",
                 // #700: fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
                 "stage-export-json-schema",

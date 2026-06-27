@@ -45,6 +45,12 @@ gmeow-diagnostics = { path = "../diagnostics" }
 # The statement feedback surface folds the native statement-stage output through
 # the Rust invariant and lossless checks so Python remains only an interface.
 gmeow-validate = { path = "../validate" }
+# The `conformance` stage grades the committed external corpus (native frozen
+# verdict vs published external verdict) and emits the divergences as a
+# `gmeow:Finding` graph via gmeow_conformance::divergence — the same emitter the
+# `ingest-external --grade-suite` lane drives, reused rather than re-implemented.
+# Acyclic: gmeow-conformance does not depend on gmeow-pipeline.
+gmeow-conformance = { path = "../conformance" }
 # The `mappings` stage wires the slice-resident SSSOM + FnO emitters directly
 # (gmeow_slice::emit_sssom_sets / emit_fno) — the SSSOM/FnO halves are Rust.
 gmeow-slice = { path = "../slice" }

@@ -92,12 +92,21 @@ fn spine() -> PipelineSpec {
                 "json_schema",
                 &[],
             ),
+            // The external-corpus divergence grader the snapshot folds into
+            // graph/conformance; a source-reading Transform that consumes nothing.
+            spec(
+                "stage-conformance",
+                StageKind::Transform,
+                "conformance",
+                &[],
+            ),
             spec(
                 "stage-snapshot",
                 StageKind::Transform,
                 "snapshot",
                 &[
                     "stage-compile-logic",
+                    "stage-conformance",
                     "stage-docs-render",
                     "stage-export-json-schema",
                     "stage-gts-compose",

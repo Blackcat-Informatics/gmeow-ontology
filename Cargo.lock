@@ -1858,6 +1858,7 @@ dependencies = [
  "bytes",
  "ciborium",
  "ed25519-dalek",
+ "gmeow-conformance",
  "gmeow-diagnostics",
  "gmeow-docs",
  "gmeow-gts",
