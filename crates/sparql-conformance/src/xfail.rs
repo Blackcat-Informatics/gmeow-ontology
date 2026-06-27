@@ -51,10 +51,26 @@ pub struct Xfail {
 }
 
 /// The registry. Each entry is justified inline. Vendored W3C cases that the
-/// native engine cannot yet pass are added here (Task 7) rather than skipped.
+/// native engine cannot yet pass are recorded here rather than skipped.
 pub const XFAIL: &[Xfail] = &[
-    // (Populated as vendored W3C groups are enabled — see Task 7. The GMEOW-owned
-    //  smoke suite passes outright and registers nothing.)
+    // A `SERVICE` clause nested inside another `SERVICE`'s pattern is not yet
+    // evaluated: the inner endpoint is never resolved against its source.
+    Xfail {
+        iri_suffix: "service3",
+        reason: XfailReason::UnsupportedConstruct,
+    },
+    // A trailing top-level `VALUES` clause after the `WHERE` block is not yet
+    // accepted by the parser (only inline `VALUES` inside a group is).
+    Xfail {
+        iri_suffix: "service4a",
+        reason: XfailReason::UnsupportedConstruct,
+    },
+    // Variable-endpoint `SERVICE ?var` needs the lateral binding seam to bind
+    // the endpoint from the surrounding solution before federating.
+    Xfail {
+        iri_suffix: "service5",
+        reason: XfailReason::PendingService,
+    },
 ];
 
 /// The registered [`XfailReason`] for `case_iri`, if any.

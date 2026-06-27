@@ -52,10 +52,12 @@ pub fn from_xml(bytes: &[u8]) -> Result<ParsedSolutions, Error> {
                 .iter()
                 .position(|v| v == name)
                 .ok_or_else(|| fmt("<binding> names an undeclared variable"))?;
-            let term_elem = binding
-                .child_elements()
-                .next()
-                .ok_or_else(|| fmt("empty <binding>"))?;
+            // A `<binding>` with no child term element means the variable is
+            // unbound in this solution — an older convention (conformant
+            // SPARQL-XML simply omits the `<binding>`).  Treat it as absent.
+            let Some(term_elem) = binding.child_elements().next() else {
+                continue;
+            };
             row[idx] = Some(decode_term(term_elem)?);
         }
         rows.push(row);
@@ -570,5 +572,57 @@ mod tests {
         let srx = r#"<sparql xmlns="http://www.w3.org/2005/sparql-results#">
           <head></head><boolean>true</boolean></sparql>"#;
         assert!(matches!(from_xml(srx.as_bytes()), Err(Error::Format(_))));
+    }
+
+    /// An empty `<binding name="x"></binding>` element means the variable is
+    /// unbound in that solution — the older producer convention where unbound
+    /// variables are emitted as an empty element rather than being omitted.
+    /// The reader must treat it identically to an absent binding: no value for
+    /// that variable in the row.
+    #[test]
+    fn empty_binding_treated_as_unbound() {
+        let srx = r#"<?xml version="1.0"?>
+        <sparql xmlns="http://www.w3.org/2005/sparql-results#">
+          <head>
+            <variable name="s"/>
+            <variable name="o1"/>
+            <variable name="o2"/>
+          </head>
+          <results>
+            <result>
+              <binding name="s"><uri>http://example.org/s1</uri></binding>
+              <binding name="o1"><literal>present</literal></binding>
+              <binding name="o2"></binding>
+            </result>
+            <result>
+              <binding name="s"><uri>http://example.org/s2</uri></binding>
+              <binding name="o1"><literal>also-present</literal></binding>
+            </result>
+          </results>
+        </sparql>"#;
+        let parsed = from_xml(srx.as_bytes()).expect("parse");
+        assert_eq!(parsed.variables, vec!["s", "o1", "o2"]);
+        assert_eq!(parsed.rows.len(), 2);
+        // Row 0: s and o1 bound, o2 explicitly empty → must be unbound (None).
+        assert_eq!(
+            parsed.rows[0][0],
+            Some(TermValue::Iri("http://example.org/s1".to_owned()))
+        );
+        assert_eq!(
+            parsed.rows[0][1],
+            Some(TermValue::Literal {
+                lexical_form: "present".to_owned(),
+                datatype: XSD_STRING.to_owned(),
+                language: None,
+                direction: None,
+            })
+        );
+        assert_eq!(parsed.rows[0][2], None, "empty <binding> must be unbound");
+        // Row 1: o2 absent entirely → also unbound (regression check).
+        assert_eq!(
+            parsed.rows[1][0],
+            Some(TermValue::Iri("http://example.org/s2".to_owned()))
+        );
+        assert_eq!(parsed.rows[1][2], None, "absent binding must be unbound");
     }
 }
