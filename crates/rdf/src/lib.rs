@@ -122,6 +122,11 @@ pub use native_codecs::{
 #[cfg(feature = "oxigraph")]
 pub use oxigraph::backend::OxigraphBackend;
 
+// Shared USTAR (tar) codec: byte-deterministic writer + reader used by both the
+// snapshot stage (writer) and the validate path (reader). Unconditional — no
+// oxigraph or PyO3 dependency.
+pub mod ustar;
+
 /// The common gmeow-rdf surface, for `use gmeow_rdf::prelude::*;`.
 ///
 /// Pulls in the owned value model, the immutable IR + builder, term identity,

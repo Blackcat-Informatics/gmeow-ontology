@@ -30,6 +30,7 @@
 
 use std::collections::{BTreeSet, HashSet, VecDeque};
 
+use gmeow_diagnostics::model::{Finding, Location, Severity};
 use oxigraph::model::{NamedNode, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 
@@ -269,28 +270,40 @@ fn join_local(iris: &[String], cfg: &GufoConfig) -> String {
 
 /// **exactly_one_stereotype** — every GMEOW class must be punned with exactly
 /// one gUFO meta-class.
-pub fn exactly_one_stereotype(store: &Store, cfg: &GufoConfig) -> Vec<String> {
+pub fn exactly_one_stereotype(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
     let meta = meta_classes();
-    let mut problems: Vec<String> = Vec::new();
+    let mut problems: Vec<Finding> = Vec::new();
     for cls in gmeow_classes(store, cfg) {
         let st = stereotypes(store, &cls, &meta);
         if st.is_empty() {
-            problems.push(format!(
+            let message = format!(
                 "{} carries no stereotype — pun it with exactly one of \
                  Kind/SubKind/Role/Phase/Category/Mixin/RoleMixin/PhaseMixin \
                  (Event/Situation for perdurants, or \
                  AbstractIndividualType for abstract individuals)",
                 local(&cls, cfg)
-            ));
+            );
+            let mut f = Finding::new(Severity::Error, "discipline/stereotype", message);
+            f.add_location(Location {
+                logical: Some(cls.clone()),
+                ..Location::default()
+            });
+            problems.push(f);
         } else if st.len() > 1 {
             let mut names: Vec<String> = st.iter().map(|s| local(s, cfg)).collect();
             names.sort();
-            problems.push(format!(
+            let message = format!(
                 "{} carries conflicting stereotypes ({}) — a class has \
                  exactly one stereotype",
                 local(&cls, cfg),
                 names.join(", ")
-            ));
+            );
+            let mut f = Finding::new(Severity::Error, "discipline/stereotype", message);
+            f.add_location(Location {
+                logical: Some(cls.clone()),
+                ..Location::default()
+            });
+            problems.push(f);
         }
     }
     problems
@@ -298,14 +311,14 @@ pub fn exactly_one_stereotype(store: &Store, cfg: &GufoConfig) -> Vec<String> {
 
 /// **identity_overlap (MixIden)** — a sortal inherits identity from exactly one
 /// Kind; no Kind ⊑ Kind.
-pub fn identity_overlap(store: &Store, cfg: &GufoConfig) -> Vec<String> {
+pub fn identity_overlap(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
     let meta = meta_classes();
     // A Kind in either namespace (gufo:Kind or the canonical logic:Kind, #694).
     let kinds: [String; 2] = dual("Kind");
     let is_kind = |s: &String| kinds.contains(s);
     let rigid = rigid_sortals();
     let anti_rigid = anti_rigid_sortals();
-    let mut problems: Vec<String> = Vec::new();
+    let mut problems: Vec<Finding> = Vec::new();
     for cls in gmeow_classes(store, cfg) {
         let st = stereotypes(store, &cls, &meta);
         let ancestors = proper_ancestors(store, &cls);
@@ -318,14 +331,20 @@ pub fn identity_overlap(store: &Store, cfg: &GufoConfig) -> Vec<String> {
         kind_ancestors.sort();
 
         if st.iter().any(is_kind) && !kind_ancestors.is_empty() {
-            problems.push(format!(
+            let message = format!(
                 "{} is a Kind but specializes Kind(s) {} — identity \
                  conflict (OntoUML MixIden: every endurant instantiates exactly \
                  one Kind). See {}",
                 local(&cls, cfg),
                 join_local(&kind_ancestors, cfg),
                 CATALOGUE
-            ));
+            );
+            let mut f = Finding::new(Severity::Error, "discipline/identity-overlap", message);
+            f.add_location(Location {
+                logical: Some(cls.clone()),
+                ..Location::default()
+            });
+            problems.push(f);
         }
         // A non-Kind sortal must trace to exactly one Kind (OntoUML MixIden).
         let is_sortal = st
@@ -337,14 +356,20 @@ pub fn identity_overlap(store: &Store, cfg: &GufoConfig) -> Vec<String> {
             } else {
                 join_local(&kind_ancestors, cfg)
             };
-            problems.push(format!(
+            let message = format!(
                 "{} is a sortal but specializes {} Kind(s) ({}) — a sortal \
                  inherits identity from exactly one Kind (OntoUML MixIden). See {}",
                 local(&cls, cfg),
                 kind_ancestors.len(),
                 names,
                 CATALOGUE
-            ));
+            );
+            let mut f = Finding::new(Severity::Error, "discipline/identity-overlap", message);
+            f.add_location(Location {
+                logical: Some(cls.clone()),
+                ..Location::default()
+            });
+            problems.push(f);
         }
     }
     problems
@@ -352,12 +377,12 @@ pub fn identity_overlap(store: &Store, cfg: &GufoConfig) -> Vec<String> {
 
 /// **anti_rigidity_discipline (MixRig / FreeRole)** — anti-rigid sortals need a
 /// rigid super; rigid types avoid anti-rigid ancestors.
-pub fn anti_rigidity_discipline(store: &Store, cfg: &GufoConfig) -> Vec<String> {
+pub fn anti_rigidity_discipline(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
     let meta = meta_classes();
     let rigid = rigid_sortals();
     let anti_rigid = anti_rigid_sortals();
     let anti_rigid_t = anti_rigid_types();
-    let mut problems: Vec<String> = Vec::new();
+    let mut problems: Vec<Finding> = Vec::new();
     for cls in gmeow_classes(store, cfg) {
         let st = stereotypes(store, &cls, &meta);
         let ancestors = proper_ancestors(store, &cls);
@@ -373,13 +398,19 @@ pub fn anti_rigidity_discipline(store: &Store, cfg: &GufoConfig) -> Vec<String> 
         let is_anti_rigid = st.iter().any(|s| anti_rigid.contains(s));
         let ancestor_has_rigid = ancestor_stereotypes.iter().any(|s| rigid.contains(s));
         if is_anti_rigid && !ancestor_has_rigid {
-            problems.push(format!(
+            let message = format!(
                 "{} is an anti-rigid sortal (Role/Phase) but specializes no rigid \
                  sortal — nowhere to inherit a principle of identity (OntoUML \
                  FreeRole). See {}",
                 local(&cls, cfg),
                 CATALOGUE
-            ));
+            );
+            let mut f = Finding::new(Severity::Error, "discipline/anti-rigidity", message);
+            f.add_location(Location {
+                logical: Some(cls.clone()),
+                ..Location::default()
+            });
+            problems.push(f);
         }
 
         let is_rigid = st.iter().any(|s| rigid.contains(s));
@@ -399,14 +430,20 @@ pub fn anti_rigidity_discipline(store: &Store, cfg: &GufoConfig) -> Vec<String> 
             }
             if !bad_ancestors.is_empty() {
                 bad_ancestors.sort();
-                problems.push(format!(
+                let message = format!(
                     "{} is a rigid sortal (Kind/SubKind) but specializes anti-rigid \
                      ancestor(s) {} — a rigid type cannot inherit contingent \
                      instantiation (OntoUML MixRig). See {}",
                     local(&cls, cfg),
                     bad_ancestors.join(", "),
                     CATALOGUE
-                ));
+                );
+                let mut f = Finding::new(Severity::Error, "discipline/anti-rigidity", message);
+                f.add_location(Location {
+                    logical: Some(cls.clone()),
+                    ..Location::default()
+                });
+                problems.push(f);
             }
         }
     }
@@ -415,7 +452,7 @@ pub fn anti_rigidity_discipline(store: &Store, cfg: &GufoConfig) -> Vec<String> 
 
 /// **relator_mediation (RelComp)** — every concrete `gufo:Relator` mediates at
 /// least two relata.
-pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<String> {
+pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
     // A Relator base in either namespace (gufo:Relator or canonical logic:Relator).
     let relators: [String; 2] = dual("Relator");
     let time_interval = cfg.time_interval();
@@ -456,7 +493,7 @@ pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<String> {
         })
         .collect();
 
-    let mut problems: Vec<String> = Vec::new();
+    let mut problems: Vec<Finding> = Vec::new();
     for cls in gmeow_classes(store, cfg) {
         let ancestors = proper_ancestors(store, &cls);
         if !relators.iter().any(|r| ancestors.contains(r)) {
@@ -499,13 +536,19 @@ pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<String> {
             ends += if info.functional { 1 } else { 2 };
         }
         if ends < 2 {
-            problems.push(format!(
+            let message = format!(
                 "{} is a concrete Relator mediating only {} end(s) — a relator \
                  must mediate at least two (OntoUML RelComp). See {}",
                 local(&cls, cfg),
                 ends,
                 CATALOGUE
-            ));
+            );
+            let mut f = Finding::new(Severity::Error, "discipline/relator-mediation", message);
+            f.add_location(Location {
+                logical: Some(cls.clone()),
+                ..Location::default()
+            });
+            problems.push(f);
         }
     }
     problems
@@ -631,7 +674,7 @@ fn owl_nil() -> NamedOrBlankNode {
 
 /// **coequal_facet_orthogonality (P9 #281)** — co-equal facet axes stay
 /// orthogonal.
-pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<String> {
+pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
     let coequal = format!("{}coequalFacet", cfg.namespace);
     let coequal_node = NamedNode::new_unchecked(&coequal);
 
@@ -654,7 +697,7 @@ pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<Strin
         return Vec::new();
     }
 
-    let mut problems: Vec<String> = Vec::new();
+    let mut problems: Vec<Finding> = Vec::new();
     // ranges: axis -> its single range (only populated when exactly one range).
     let mut ranges: Vec<(String, String)> = Vec::new();
     for axis in &axes {
@@ -662,21 +705,33 @@ pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<Strin
             object_iris(store, axis, rdfs::RANGE).into_iter().collect();
         axis_ranges.sort();
         if axis_ranges.len() != 1 {
-            problems.push(format!(
+            let message = format!(
                 "co-equal facet {} must have exactly one rdfs:range (found {}) — \
                  each axis owns its own value space",
                 local(axis, cfg),
                 axis_ranges.len()
-            ));
+            );
+            let mut f = Finding::new(Severity::Error, "discipline/coequal-orthogonality", message);
+            f.add_location(Location {
+                logical: Some(axis.clone()),
+                ..Location::default()
+            });
+            problems.push(f);
             continue;
         }
         ranges.push((axis.clone(), axis_ranges[0].clone()));
         if is_functional(store, axis) {
-            problems.push(format!(
+            let message = format!(
                 "co-equal facet {} is owl:FunctionalProperty — a locked single \
                  value contradicts co-equality (P9) and invites sameAs collapse (P5)",
                 local(axis, cfg)
-            ));
+            );
+            let mut f = Finding::new(Severity::Error, "discipline/coequal-orthogonality", message);
+            f.add_location(Location {
+                logical: Some(axis.clone()),
+                ..Location::default()
+            });
+            problems.push(f);
         }
     }
 
@@ -693,11 +748,17 @@ pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<Strin
     for (rng, owners) in &range_owners {
         if owners.len() > 1 {
             let names = join_local(owners, cfg);
-            problems.push(format!(
+            let message = format!(
                 "co-equal facets {} share the range {} — axes collapsed into one \
                  value space",
                 names,
                 local(rng, cfg)
+            );
+            // No single focus node — multiple axes involved; emit without location.
+            problems.push(Finding::new(
+                Severity::Error,
+                "discipline/coequal-orthogonality",
+                message,
             ));
         }
     }
@@ -706,13 +767,20 @@ pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<Strin
     // equivalentProperty is symmetric.
     let bridged = bridged_pairs(store, &axes);
     for (a, b) in bridged {
-        problems.push(format!(
+        let message = format!(
             "co-equal facets {} and {} are bridged by a \
              subPropertyOf/equivalentProperty chain — one axis must never be \
              inferred from another",
             local(&a, cfg),
             local(&b, cfg)
-        ));
+        );
+        // Two nodes involved — attach the first (a) as the focus node.
+        let mut f = Finding::new(Severity::Error, "discipline/coequal-orthogonality", message);
+        f.add_location(Location {
+            logical: Some(a.clone()),
+            ..Location::default()
+        });
+        problems.push(f);
     }
 
     // Jointly: every axis range must sit inside one owl:AllDisjointClasses axiom.
@@ -721,11 +789,17 @@ pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<Strin
     if range_set.len() > 1 && !member_sets.iter().any(|s| range_set.is_subset(s)) {
         let mut names: Vec<String> = range_set.iter().map(|r| local(r, cfg)).collect();
         names.sort();
-        problems.push(format!(
+        let message = format!(
             "the co-equal facet ranges ({}) are not jointly declared in one \
              owl:AllDisjointClasses axiom — the orthogonality matrix is not \
              ELK-visible",
             names.join(", ")
+        );
+        // No single focus node — the axiom is missing; emit without location.
+        problems.push(Finding::new(
+            Severity::Error,
+            "discipline/coequal-orthogonality",
+            message,
         ));
     }
     problems
@@ -794,7 +868,7 @@ fn bridged_pairs(store: &Store, axes: &[String]) -> Vec<(String, String)> {
 
 /// **frame_declaration_completeness (P11 #283)** — frame-pointing property
 /// carrier classes declare `gmeow:requiresFrame`.
-pub fn frame_declaration_completeness(store: &Store, cfg: &GufoConfig) -> Vec<String> {
+pub fn frame_declaration_completeness(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
     let has_frame = format!("{}hasReferenceFrame", cfg.namespace);
     let requires = format!("{}requiresFrame", cfg.namespace);
     let requires_node = NamedNode::new_unchecked(&requires);
@@ -806,7 +880,7 @@ pub fn frame_declaration_completeness(store: &Store, cfg: &GufoConfig) -> Vec<St
         .collect();
     props.sort();
 
-    let mut problems: Vec<String> = Vec::new();
+    let mut problems: Vec<Finding> = Vec::new();
     for prop in &props {
         let mut domains: Vec<String> = object_iris(store, prop, rdfs::DOMAIN).into_iter().collect();
         domains.sort();
@@ -824,13 +898,19 @@ pub fn frame_declaration_completeness(store: &Store, cfg: &GufoConfig) -> Vec<St
                 .next()
                 .is_some();
             if !present {
-                problems.push(format!(
+                let message = format!(
                     "{} carries the frame-pointing property {} but declares no \
                      gmeow:requiresFrame for it — the frame-relativity shape would \
                      be missing (P11)",
                     local(domain, cfg),
                     local(prop, cfg)
-                ));
+                );
+                let mut f = Finding::new(Severity::Error, "discipline/frame-completeness", message);
+                f.add_location(Location {
+                    logical: Some(domain.clone()),
+                    ..Location::default()
+                });
+                problems.push(f);
             }
         }
     }
@@ -865,11 +945,10 @@ fn transitive_subjects(
     seen
 }
 
-/// Run every UFO anti-pattern check; an empty list means the graph is clean
-/// (mirrors `reasoning_invariants`). The six checks run in the same order, their
-/// errors flattened.
-pub fn reasoning_invariants(store: &Store, cfg: &GufoConfig) -> Vec<String> {
-    let mut out: Vec<String> = Vec::new();
+/// Run every UFO anti-pattern check; an empty list means the graph is clean.
+/// The six checks run in the same order, their findings flattened.
+pub fn reasoning_findings(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
+    let mut out: Vec<Finding> = Vec::new();
     out.extend(exactly_one_stereotype(store, cfg));
     out.extend(identity_overlap(store, cfg));
     out.extend(anti_rigidity_discipline(store, cfg));
@@ -877,6 +956,19 @@ pub fn reasoning_invariants(store: &Store, cfg: &GufoConfig) -> Vec<String> {
     out.extend(coequal_facet_orthogonality(store, cfg));
     out.extend(frame_declaration_completeness(store, cfg));
     out
+}
+
+/// Run every UFO anti-pattern check; an empty list means the graph is clean
+/// (mirrors `reasoning_invariants`). The six checks run in the same order, their
+/// errors flattened.
+///
+/// This is a pure projection of [`reasoning_findings`] to preserve the string
+/// interface for all existing callers (Python bindings, reasoning-parity tests).
+pub fn reasoning_invariants(store: &Store, cfg: &GufoConfig) -> Vec<String> {
+    reasoning_findings(store, cfg)
+        .into_iter()
+        .map(|f| f.message)
+        .collect()
 }
 
 #[cfg(test)]
@@ -909,7 +1001,9 @@ mod tests {
     fn missing_stereotype_is_flagged() {
         let store = store_from(&format!("{PREFIXES}gmeow:Bare a owl:Class .\n"));
         let problems = exactly_one_stereotype(&store, &cfg());
-        assert!(problems.iter().any(|p| p.contains("carries no stereotype")));
+        assert!(problems
+            .iter()
+            .any(|p| p.message.contains("carries no stereotype")));
     }
 
     #[test]
@@ -920,7 +1014,7 @@ mod tests {
         let problems = exactly_one_stereotype(&store, &cfg());
         assert!(problems
             .iter()
-            .any(|p| p.contains("conflicting stereotypes")));
+            .any(|p| p.message.contains("conflicting stereotypes")));
     }
 
     #[test]
@@ -933,7 +1027,7 @@ mod tests {
         let problems = identity_overlap(&store, &cfg());
         assert!(problems
             .iter()
-            .any(|p| p.contains("MixIden") && p.contains("gmeow:Dog")));
+            .any(|p| p.message.contains("MixIden") && p.message.contains("gmeow:Dog")));
     }
 
     #[test]
@@ -942,7 +1036,7 @@ mod tests {
             "{PREFIXES}gmeow:Wanderer a owl:Class , gufo:Role .\n"
         ));
         let problems = anti_rigidity_discipline(&store, &cfg());
-        assert!(problems.iter().any(|p| p.contains("FreeRole")));
+        assert!(problems.iter().any(|p| p.message.contains("FreeRole")));
     }
 
     #[test]
@@ -954,7 +1048,9 @@ mod tests {
         ));
         let problems = anti_rigidity_discipline(&store, &cfg());
         assert!(problems.iter().any(|p| {
-            p.contains("MixRig") && p.contains("gmeow:HonorsStudent") && p.contains("gmeow:Student")
+            p.message.contains("MixRig")
+                && p.message.contains("gmeow:HonorsStudent")
+                && p.message.contains("gmeow:Student")
         }));
     }
 
@@ -969,7 +1065,30 @@ mod tests {
         let problems = relator_mediation(&store, &cfg());
         assert!(problems
             .iter()
-            .any(|p| p.contains("RelComp") && p.contains("gmeow:LonelyBond")));
+            .any(|p| p.message.contains("RelComp") && p.message.contains("gmeow:LonelyBond")));
+    }
+
+    #[test]
+    fn relator_finding_has_discipline_code_and_location() {
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:LonelyBond a owl:Class , gufo:Kind ; rdfs:subClassOf gufo:Relator .\n\
+             gmeow:bondParty a owl:ObjectProperty , owl:FunctionalProperty ;\n\
+               rdfs:domain gmeow:LonelyBond ; rdfs:range gmeow:Person .\n"
+        ));
+        let problems = relator_mediation(&store, &cfg());
+        let finding = problems
+            .iter()
+            .find(|p| p.message.contains("gmeow:LonelyBond"))
+            .expect("under-mediated relator finding must be present");
+        assert_eq!(finding.code, "discipline/relator-mediation");
+        assert!(
+            finding.locations.iter().any(|loc| loc
+                .logical
+                .as_deref()
+                .is_some_and(|l| l.contains("LonelyBond"))),
+            "finding must carry a logical location for LonelyBond"
+        );
     }
 
     #[test]
@@ -994,7 +1113,7 @@ mod tests {
         ));
         assert!(!relator_mediation(&store, &cfg())
             .iter()
-            .any(|p| p.contains("gmeow:AbstractBond")));
+            .any(|p| p.message.contains("gmeow:AbstractBond")));
     }
 
     #[test]
@@ -1019,7 +1138,7 @@ mod tests {
                rdfs:subPropertyOf gmeow:axisA .\n"
         ));
         let problems = coequal_facet_orthogonality(&store, &cfg());
-        assert!(problems.iter().any(|p| p.contains("bridged")));
+        assert!(problems.iter().any(|p| p.message.contains("bridged")));
     }
 
     #[test]
@@ -1032,7 +1151,7 @@ mod tests {
         let problems = frame_declaration_completeness(&store, &cfg());
         assert!(problems
             .iter()
-            .any(|p| p.contains("gmeow:Carrier") && p.contains("P11")));
+            .any(|p| p.message.contains("gmeow:Carrier") && p.message.contains("P11")));
     }
 
     #[test]
@@ -1089,7 +1208,7 @@ mod tests {
         ));
         assert!(relator_mediation(&store, &cfg())
             .iter()
-            .any(|p| p.contains("RelComp") && p.contains("gmeow:LonelyBond")));
+            .any(|p| p.message.contains("RelComp") && p.message.contains("gmeow:LonelyBond")));
     }
 
     #[test]
@@ -1101,6 +1220,6 @@ mod tests {
         ));
         assert!(exactly_one_stereotype(&store, &cfg())
             .iter()
-            .any(|p| p.contains("conflicting stereotypes")));
+            .any(|p| p.message.contains("conflicting stereotypes")));
     }
 }

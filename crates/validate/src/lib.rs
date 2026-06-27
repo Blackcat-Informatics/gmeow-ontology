@@ -42,6 +42,7 @@ pub mod store;
 pub mod validate_all;
 
 pub mod crossref;
+pub mod data_validate;
 pub mod dsl_shacl;
 
 // PyO3 bindings — the only modules that import pyo3.

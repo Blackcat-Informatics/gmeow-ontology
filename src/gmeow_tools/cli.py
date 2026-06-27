@@ -21,7 +21,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from gmeow_tools import __version__
+from gmeow_tools import __version__, validate_data
 from gmeow_tools.config import (
     GTS_GRAPH_METADATA,
     GTS_SNAPSHOT_FILE,
@@ -391,34 +391,92 @@ def describe(
 def validate(
     instance: Path = typer.Argument(  # noqa: B008
         ...,
-        help="Instance file to validate (.json or .yaml/.yml).",
+        help=(
+            "RDF data (.nq/.nquads/.trig/.ttl/.turtle/.nt/.ntriples"
+            "/.rdf/.owl/.jsonld) or a JSON/YAML instance."
+        ),
     ),
     schema: Path | None = typer.Option(  # noqa: B008
         None,
         "--schema",
         "-s",
-        help="JSON Schema to validate against (default: bundled gmeow.schema.json).",
+        help="JSON Schema to validate against (forces JSON-Schema instance mode).",
+    ),
+    output: str = typer.Option(
+        "human",
+        "--format",
+        "-f",
+        help="Output for RDF conformance: human, sarif, or json.",
     ),
 ) -> None:
+    """Validate RDF data against the bundle, or a JSON/YAML instance against a schema.
+
+    The mode is chosen by file type. RDF serializations (``.nq``, ``.nquads``,
+    ``.trig``, ``.ttl``, ``.turtle``, ``.nt``, ``.ntriples``, ``.rdf``,
+    ``.owl``, ``.jsonld``) run repo-free Tier-1 conformance —
+    SHACL plus the OntoUML disciplines — against the SHACL shape surface folded
+    into the bundled ``gmeow.gts``, with no reasoner, repo, or Docker required.
+    ``.json``/``.yaml`` run JSON-Schema instance validation, and ``--schema``
+    forces the JSON-Schema path for any input. Either mode exits non-zero on a
+    validation error.
+    """
+    suffix = instance.suffix.lower()
+    rdf_format = validate_data.format_for_suffix(suffix)
+    if schema is None and rdf_format is not None:
+        _validate_rdf(instance, rdf_format, output)
+        return
+    _validate_instance(instance, schema)
+
+
+def _validate_rdf(instance: Path, fmt: str, output: str) -> None:
+    """Run repo-free RDF Tier-1 conformance and emit in the requested format."""
+    output = output.lower()
+    if output not in ("human", "sarif", "json"):
+        raise _fail(f"unknown --format {output!r}: expected human, sarif, or json")
+
+    data_bytes = _read_bytes_or_fail(instance)
+    gts_bytes = _read_bytes_or_fail(_default_gts_file())
+    try:
+        report = validate_data.validate_rdf(
+            data_bytes, fmt, gts_bytes, NAMESPACE, str(instance)
+        )
+    except ValueError as exc:
+        raise _fail(f"validation error: {exc}") from exc
+
+    if output == "sarif":
+        typer.echo(report.to_sarif())
+    elif output == "json":
+        typer.echo(report.to_json())
+    else:
+        text = report.render_text()
+        if text.strip():
+            err_console.print(text, markup=False, highlight=False)
+        if report.error_count == 0 and report.warning_count == 0:
+            console.print("[green]validation passed[/green]")
+    if report.error_count > 0:
+        raise typer.Exit(code=1)
+
+
+def _validate_instance(instance: Path, schema: Path | None) -> None:
     """Validate a JSON/YAML instance against a JSON Schema (the SHACL-derived one).
 
     The instance format is detected from its extension. Validation runs in the
-    Rust ``gmeow_validate.validate_instance`` engine (#700): an empty violation
-    set passes, any violation hard-fails with a non-zero exit.
+    Rust ``gmeow_validate.validate_instance`` engine: an empty violation set
+    passes, any violation hard-fails with a non-zero exit.
     """
     import gmeow_validate
 
     suffix = instance.suffix.lower()
-    # JSON-LD is JSON to the validator (the projector emits JSON-LD instances, and
-    # docs/schema-projections.md documents a `.jsonld` example), so accept it here.
+    # With --schema (or a .jsonld passed explicitly down this path), JSON-LD is a
+    # JSON instance to the validator.
     if suffix in (".json", ".jsonld"):
         fmt = "json"
     elif suffix in (".yaml", ".yml"):
         fmt = "yaml"
     else:
         raise _fail(
-            f"cannot infer format from {instance.name}: "
-            "expected a .json, .jsonld, .yaml, or .yml extension"
+            f"cannot infer format from {instance.name}: expected a .json, "
+            ".jsonld, .yaml, or .yml instance for JSON-Schema validation"
         )
 
     instance_bytes = _read_bytes_or_fail(instance)
