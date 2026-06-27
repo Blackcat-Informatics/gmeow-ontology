@@ -75,7 +75,8 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
 	maint-test-network maint-test-network-rust maint-pull-images maint-quality maint-evals-score \
-	maint-compliance-report-full maint-bench-baseline maint-rust-heavy
+	maint-compliance-report-full maint-bench-baseline maint-rust-heavy \
+	maint-external-corpora
 
 ##@ Core Workflows
 
@@ -561,6 +562,13 @@ maint-bench-baseline: ## (maintainer) Refresh bench/baseline.json from a fresh c
 	$(MAKE) bench
 	cargo run -q -p gmeow-pipeline --bin bench-compare -- --emit-baseline > bench/baseline.json
 	@echo "wrote bench/baseline.json ($$(wc -c < bench/baseline.json) bytes) — regenerate + commit"
+
+maint-external-corpora: ## Grade the native reasoner against the full Lane-B external corpora (W3C OWL 2 suite + ORE) over the network; record divergences as a gmeow:Finding graph.
+	mkdir -p .tmp/w3c-owl2 generated/conformance
+	curl -sSL https://www.w3.org/2009/11/owl-test/all.rdf -o .tmp/w3c-owl2/all.rdf
+	cargo run -p gmeow-conformance --bin ingest-external -- --grade-suite .tmp/w3c-owl2/all.rdf w3c-owl2-full generated/conformance/divergence-w3c-owl2-full.nq
+	@echo "ORE corpora are REFERENCE_ONLY (heterogeneous upstream licensing) — fetched live, never vendored."
+	@echo "external-corpora grading complete; divergences in generated/conformance/divergence-w3c-owl2-full.nq"
 
 native-py: $(NATIVE_PY_STAMP)
 

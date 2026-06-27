@@ -23,6 +23,12 @@
 //!     Vendor a curated Lane-A subset of the W3C OWL 2 EL conformance suite
 //!     (ConsistencyTest / InconsistencyTest only) into <out-dir>. Each emitted case
 //!     is decided by the native reasoner and agrees with the W3C declared outcome.
+//!
+//! ingest-external --grade-suite <input.rdf> <corpus-name> <out.nq>
+//!     Grade EVERY ConsistencyTest / InconsistencyTest in <input.rdf> gap-tolerantly
+//!     against the native reasoner, record divergences (DlGap / CorpusOnly) as a
+//!     gmeow:Finding N-Quads graph written to <out.nq>, and print a summary line.
+//!     Entailment tests are counted but not graded (they need conclusion-negation).
 //! ```
 
 use std::collections::BTreeMap;
@@ -37,12 +43,14 @@ const USAGE: &str = "\
 usage:
   ingest-external --szs <problem.p> [--world <iri> --quads <n>]
   ingest-external --manifest <manifest.ttl>
-  ingest-external --vendor-el <input.rdf> <out-dir>";
+  ingest-external --vendor-el <input.rdf> <out-dir>
+  ingest-external --grade-suite <input.rdf> <corpus-name> <out.nq>";
 
 fn main() -> Result<(), String> {
     let mut szs: Option<PathBuf> = None;
     let mut manifest: Option<PathBuf> = None;
     let mut vendor_el: Option<(PathBuf, PathBuf)> = None;
+    let mut grade_suite: Option<(PathBuf, String, PathBuf)> = None;
     let mut world: Option<String> = None;
     let mut quads: Option<u64> = None;
 
@@ -55,6 +63,12 @@ fn main() -> Result<(), String> {
                 let input = PathBuf::from(next(&mut args, "--vendor-el")?);
                 let out = PathBuf::from(next(&mut args, "--vendor-el <out-dir>")?);
                 vendor_el = Some((input, out));
+            }
+            "--grade-suite" => {
+                let input = PathBuf::from(next(&mut args, "--grade-suite")?);
+                let corpus_name = next(&mut args, "--grade-suite <corpus-name>")?;
+                let out_nq = PathBuf::from(next(&mut args, "--grade-suite <out.nq>")?);
+                grade_suite = Some((input, corpus_name, out_nq));
             }
             "--world" => world = Some(next(&mut args, "--world")?),
             "--quads" => {
@@ -72,16 +86,19 @@ fn main() -> Result<(), String> {
         }
     }
 
-    let mode_count = szs.is_some() as u8 + manifest.is_some() as u8 + vendor_el.is_some() as u8;
+    let mode_count = szs.is_some() as u8
+        + manifest.is_some() as u8
+        + vendor_el.is_some() as u8
+        + grade_suite.is_some() as u8;
     if mode_count > 1 {
         return Err(format!(
-            "--szs, --manifest, and --vendor-el are mutually exclusive\n{USAGE}"
+            "--szs, --manifest, --vendor-el, and --grade-suite are mutually exclusive\n{USAGE}"
         ));
     }
 
-    match (szs, manifest, vendor_el) {
-        (Some(path), None, None) => ingest_szs(&path, world.as_deref(), quads),
-        (None, Some(path), None) => {
+    match (szs, manifest, vendor_el, grade_suite) {
+        (Some(path), None, None, None) => ingest_szs(&path, world.as_deref(), quads),
+        (None, Some(path), None, None) => {
             // `--world`/`--quads` shape an SZS single-world verdict; they have no
             // meaning for a manifest (one line per entry). Reject loudly rather than
             // parse-and-drop them (no-optionality / no silent misuse).
@@ -92,9 +109,12 @@ fn main() -> Result<(), String> {
             }
             ingest_manifest(&path)
         }
-        (None, None, Some((input, out))) => vendor_el_corpus(&input, &out),
+        (None, None, Some((input, out)), None) => vendor_el_corpus(&input, &out),
+        (None, None, None, Some((input, corpus_name, out_nq))) => {
+            grade_suite_corpus(&input, &corpus_name, &out_nq)
+        }
         _ => Err(format!(
-            "one of --szs / --manifest / --vendor-el is required\n{USAGE}"
+            "one of --szs / --manifest / --vendor-el / --grade-suite is required\n{USAGE}"
         )),
     }
 }
@@ -212,6 +232,85 @@ fn premise_ds_to_world_nquads(
     Ok((text, count))
 }
 
+/// The result of lowering one manifest entry into a world-scoped dataset.
+struct LoweredEntry {
+    slug: String,
+    world_iri: String,
+    /// The world-scoped N-Quads text (sorted, deduped, trailing newline).
+    input_nq: String,
+    /// The quad count (after dedup).
+    quad_count: usize,
+}
+
+/// Lower one manifest entry's inline premise into a world-scoped N-Quads dataset.
+///
+/// Returns `Ok(Some(lowered))` on success, `Ok(None)` when the entry must be skipped
+/// (with the reason already printed to stdout), or `Err` on a hard failure that should
+/// stop the caller.
+///
+/// The `world_iri_prefix` is prepended to the slug to form the world IRI:
+/// `{world_iri_prefix}{slug}/w`.
+fn lower_entry(
+    entry: &gmeow_conformance::external::ManifestEntry,
+    world_iri_prefix: &str,
+) -> Option<LoweredEntry> {
+    let slug = to_slug(&entry.name);
+    let world_iri = format!("{world_iri_prefix}{slug}/w");
+
+    // ── Extract the inline premise RDF/XML ────────────────────────────────
+    let premise_xml = match &entry.action {
+        Some(OntologyDoc::InlineRdfXml(xml)) => xml.clone(),
+        Some(OntologyDoc::Reference(_)) => {
+            println!("SKIP {slug}: premise is an IRI reference, not inline RDF/XML (Lane-B)");
+            return None;
+        }
+        None => {
+            println!(
+                "SKIP {slug}: no recognized premise document (e.g. fsPremiseOntology only) — Lane-B"
+            );
+            return None;
+        }
+    };
+
+    // ── Parse the premise RDF/XML ─────────────────────────────────────────
+    let premise_ds = match gmeow_rdf::parse_dataset(
+        premise_xml.as_bytes(),
+        "application/rdf+xml",
+        Some("http://example.org/"),
+    ) {
+        Ok(ds) => ds,
+        Err(e) => {
+            println!("SKIP {slug}: premise unparsable: {e}");
+            return None;
+        }
+    };
+    if premise_ds.quad_refs().count() == 0 {
+        println!("SKIP {slug}: premise parsed to zero quads (vacuous pass not permitted)");
+        return None;
+    }
+
+    // ── Build world-scoped N-Quads ────────────────────────────────────────
+    let (input_nq, quad_count) = match premise_ds_to_world_nquads(premise_ds.as_ref(), &world_iri) {
+        Ok(r) => r,
+        Err(e) => {
+            println!("SKIP {slug}: premise N-Quads build failed: {e}");
+            return None;
+        }
+    };
+
+    if input_nq.trim().is_empty() {
+        println!("SKIP {slug}: premise yields zero valid N-Quads (vacuous pass not permitted)");
+        return None;
+    }
+
+    Some(LoweredEntry {
+        slug,
+        world_iri,
+        input_nq,
+        quad_count,
+    })
+}
+
 /// Cap for Lane-A cases emitted per vendor run.
 const LANE_A_CAP: usize = 12;
 
@@ -309,13 +408,13 @@ fn expand_xml_entities(src: &str) -> String {
     result
 }
 
-/// Vendor a curated Lane-A subset of the W3C OWL 2 EL conformance suite.
+/// Parse and expand an RDF/XML manifest file, returning consistency/inconsistency
+/// entries and the count of entailment entries skipped.
 ///
-/// Reads `<input_rdf>` (RDF/XML), keeps only ConsistencyTest / InconsistencyTest
-/// entries, runs the native DL consistency path on each, and emits the ones the
-/// native path decides AND agrees with the W3C declared outcome.
-fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
-    // ── Parse the EL manifest ─────────────────────────────────────────────────
+/// Both `vendor_el_corpus` and `grade_suite_corpus` share this parsing step.
+fn parse_consistency_entries(
+    input_rdf: &Path,
+) -> Result<(Vec<gmeow_conformance::external::ManifestEntry>, usize), String> {
     let raw_src = std::fs::read_to_string(input_rdf)
         .map_err(|e| format!("cannot read {}: {e}", input_rdf.display()))?;
     // Expand XML entities (the W3C EL suite uses a DOCTYPE internal subset with
@@ -326,7 +425,6 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
     let base = format!("file://{}", abs.display());
     let entries = parse_test_manifest_rdfxml(&src, Some(&base))?;
 
-    // ── Filter: keep only Consistency / Inconsistency tests ───────────────────
     let mut entailment_skipped: usize = 0;
     let mut consistency_entries = Vec::new();
     for entry in entries {
@@ -342,6 +440,16 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
     println!(
         "INFO: {entailment_skipped} entailment tests skipped (Lane-B scope, need conclusion-negation)"
     );
+    Ok((consistency_entries, entailment_skipped))
+}
+
+/// Vendor a curated Lane-A subset of the W3C OWL 2 EL conformance suite.
+///
+/// Reads `<input_rdf>` (RDF/XML), keeps only ConsistencyTest / InconsistencyTest
+/// entries, runs the native DL consistency path on each, and emits the ones the
+/// native path decides AND agrees with the W3C declared outcome.
+fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
+    let (consistency_entries, entailment_skipped) = parse_consistency_entries(input_rdf)?;
 
     // ── Run native reasoner on each, emit Lane-A cases ────────────────────────
     let mut vendored: usize = 0;
@@ -363,61 +471,19 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
             break;
         }
 
-        let slug = to_slug(&entry.name);
-        let world_iri = format!("https://gmeow.example/w3c-owl2-el/{slug}/w");
-
-        // ── Extract the inline premise RDF/XML ────────────────────────────────
-        let premise_xml = match &entry.action {
-            Some(OntologyDoc::InlineRdfXml(xml)) => xml.clone(),
-            Some(OntologyDoc::Reference(_)) => {
-                println!("SKIP {slug}: premise is an IRI reference, not inline RDF/XML (Lane-B)");
-                skipped_unparsable += 1;
-                continue;
-            }
+        let lowered = match lower_entry(entry, "https://gmeow.example/w3c-owl2-el/") {
+            Some(l) => l,
             None => {
-                println!(
-                    "SKIP {slug}: no recognized premise document (e.g. fsPremiseOntology only) — Lane-B"
-                );
                 skipped_unparsable += 1;
                 continue;
             }
         };
-
-        // ── Parse the premise RDF/XML ─────────────────────────────────────────
-        let premise_ds = match gmeow_rdf::parse_dataset(
-            premise_xml.as_bytes(),
-            "application/rdf+xml",
-            Some("http://example.org/"),
-        ) {
-            Ok(ds) => ds,
-            Err(e) => {
-                println!("SKIP {slug}: premise unparsable: {e}");
-                skipped_unparsable += 1;
-                continue;
-            }
-        };
-        if premise_ds.quad_refs().count() == 0 {
-            println!("SKIP {slug}: premise parsed to zero quads (vacuous pass not permitted)");
-            skipped_unparsable += 1;
-            continue;
-        }
-
-        // ── Build world-scoped N-Quads: serialize premise as N-Triples, append world IRI ──
-        let (input_nq, quad_count) =
-            match premise_ds_to_world_nquads(premise_ds.as_ref(), &world_iri) {
-                Ok(r) => r,
-                Err(e) => {
-                    println!("SKIP {slug}: premise N-Quads build failed: {e}");
-                    skipped_unparsable += 1;
-                    continue;
-                }
-            };
-
-        if input_nq.trim().is_empty() {
-            println!("SKIP {slug}: premise yields zero valid N-Quads (vacuous pass not permitted)");
-            skipped_unparsable += 1;
-            continue;
-        }
+        let LoweredEntry {
+            slug,
+            world_iri,
+            input_nq,
+            quad_count,
+        } = lowered;
 
         // ── Run the native DL consistency path ────────────────────────────────
         let world_ds = match gmeow_rdf::dataset_from_bytes(
@@ -524,8 +590,11 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
             .map_err(|e| format!("cannot write source/manifest.ttl for {slug}: {e}"))?;
 
         // source/premise.rdf — verbatim inline RDF/XML for provenance.
-        std::fs::write(source_dir.join("premise.rdf"), &premise_xml)
-            .map_err(|e| format!("cannot write source/premise.rdf for {slug}: {e}"))?;
+        // Retrieve the original XML from the entry action for the source record.
+        if let Some(OntologyDoc::InlineRdfXml(premise_xml)) = &entry.action {
+            std::fs::write(source_dir.join("premise.rdf"), premise_xml)
+                .map_err(|e| format!("cannot write source/premise.rdf for {slug}: {e}"))?;
+        }
 
         vendored += 1;
         println!("EMIT {slug}: {declared_status}");
@@ -548,6 +617,104 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
     // ── Print final summary ───────────────────────────────────────────────────
     println!(
         "vendored={vendored} skipped_gap={skipped_gap} skipped_disagree={skipped_disagree} skipped_unparsable={skipped_unparsable} entailment_skipped={entailment_skipped} capped={capped}"
+    );
+
+    Ok(())
+}
+
+/// Grade every ConsistencyTest / InconsistencyTest in `input_rdf` gap-tolerantly
+/// against the native reasoner and write divergences as a `gmeow:Finding` N-Quads
+/// graph to `out_nq`.
+///
+/// Unlike `vendor_el_corpus` (Lane-A, strict agree-only), this mode records EVERY
+/// case outcome — including `DlGap` (native incomplete) and `CorpusOnly` (native
+/// disagrees with published) — as the divergence grading signal.
+fn grade_suite_corpus(input_rdf: &Path, corpus_name: &str, out_nq: &Path) -> Result<(), String> {
+    let (consistency_entries, entailment_skipped) = parse_consistency_entries(input_rdf)?;
+
+    let mut comparisons: Vec<gmeow_logic::reason::ExternalComparison> = Vec::new();
+    let mut unlowerable: usize = 0;
+
+    let world_iri_prefix = format!("https://gmeow.example/{corpus_name}/");
+
+    for entry in &consistency_entries {
+        let lowered = match lower_entry(entry, &world_iri_prefix) {
+            Some(l) => l,
+            None => {
+                unlowerable += 1;
+                continue;
+            }
+        };
+        let LoweredEntry {
+            slug,
+            world_iri,
+            input_nq,
+            ..
+        } = lowered;
+
+        // Round-trip into a parsed dataset for dl_consistency.
+        let world_ds = match gmeow_rdf::dataset_from_bytes(
+            input_nq.as_bytes(),
+            gmeow_rdf::NativeRdfFormat::NQuads,
+        ) {
+            Ok(ds) => ds,
+            Err(e) => {
+                println!("SKIP {slug}: world N-Quads round-trip failed: {e}");
+                unlowerable += 1;
+                continue;
+            }
+        };
+
+        // Run the native DL consistency path.
+        let verdict = match gmeow_logic::reason::dl_consistency(world_ds.as_ref()) {
+            Ok(v) => v,
+            Err(e) => {
+                println!("SKIP {slug}: native DL consistency run failed: {e}");
+                unlowerable += 1;
+                continue;
+            }
+        };
+
+        // Compute the native token gap-tolerantly: gaps → "incomplete".
+        let native_token = if !verdict.gaps.is_empty() {
+            "incomplete".to_string()
+        } else if verdict.consistent {
+            "consistent".to_string()
+        } else {
+            "inconsistent".to_string()
+        };
+
+        let published = entry.outcome().verdict_status().as_str().to_string();
+
+        comparisons.push(gmeow_logic::reason::ExternalComparison {
+            case: slug,
+            world: world_iri,
+            native: native_token,
+            published,
+        });
+    }
+
+    // Build the divergence graph.
+    let nq = gmeow_conformance::divergence::emit_divergence_nq(corpus_name, &comparisons);
+
+    // Write the output file (create parent dirs).
+    if let Some(parent) = out_nq.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("cannot create output dir {}: {e}", parent.display()))?;
+    }
+    std::fs::write(out_nq, &nq).map_err(|e| format!("cannot write {}: {e}", out_nq.display()))?;
+
+    // Derive counts from the ledger so they match the emitted graph exactly.
+    let rows = gmeow_logic::reason::compare_external_corpus(corpus_name, &comparisons);
+    let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+
+    let graded = comparisons.len();
+    let agree = ledger.agree;
+    let corpus_only = ledger.corpus_only;
+    let dl_gap = ledger.dl_gap;
+
+    println!(
+        "graded={graded} agree={agree} corpus_only={corpus_only} dl_gap={dl_gap} entailment_skipped={entailment_skipped} unlowerable={unlowerable}"
     );
 
     Ok(())
