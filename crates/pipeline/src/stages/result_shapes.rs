@@ -115,7 +115,7 @@ fn iri(sol: &QuerySolution, var: &str) -> Option<String> {
 }
 
 fn local_kind(kind_iri: &str) -> Result<Kind, PipelineError> {
-    match kind_iri.rsplit('/').next().unwrap_or(kind_iri) {
+    match kind_iri.rsplit(['/', '#']).next().unwrap_or(kind_iri) {
         "TermKindIri" => Ok(Kind::Iri),
         "TermKindLiteral" => Ok(Kind::Literal),
         "TermKindBlankNode" => Ok(Kind::BlankNode),
@@ -163,7 +163,7 @@ fn shapes(store: &Store) -> Result<BTreeMap<String, Vec<Column>>, PipelineError>
             PipelineError::Parse("result-shapes: ?kind did not bind an IRI".to_owned())
         })?)?;
         let required = iri(&sol, "binding")
-            .map(|b| b.rsplit('/').next().unwrap_or(&b) == "BindingRequired")
+            .map(|b| b.rsplit(['/', '#']).next().unwrap_or(&b) == "BindingRequired")
             .unwrap_or(false);
         let datatype = iri(&sol, "datatype");
         by_shape.entry(shape).or_default().insert(

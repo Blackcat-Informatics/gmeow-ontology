@@ -382,7 +382,8 @@ which variables a query guarantees, what kind of term each binds, or how many ro
 so two queries cannot be composed with any static guarantee that the producer's output fits the
 consumer's input. The **`ResultShape`** is the schema-level type that closes this gap. It is the
 **row-schema facet** of the reasoning result (`resultRowSchema`), and it is the Rust authority in
-`crates/logic/src/result_shape.rs` (this section is its lossy projection, Principle 17).
+`crates/logic-compile/src/result_shape.rs` (re-exported as `gmeow_logic::result_shape`; this
+section is its lossy projection, Principle 17).
 
 A `ResultShape` is a set of typed **columns** plus a **row-set cardinality**:
 

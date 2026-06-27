@@ -473,9 +473,13 @@ impl ResultShape {
         }
     }
 
-    /// Look up a declared column by variable name.
+    /// Look up a declared column by variable name. Columns are kept sorted by
+    /// `var` (see [`Self::new`]), so this is a binary search.
     pub fn column(&self, var: &str) -> Option<&ResultColumn> {
-        self.columns.iter().find(|c| c.var == var)
+        self.columns
+            .binary_search_by(|c| c.var.as_str().cmp(var))
+            .ok()
+            .map(|i| &self.columns[i])
     }
 
     /// **Type conformance.** Check that every binding in every row matches its
