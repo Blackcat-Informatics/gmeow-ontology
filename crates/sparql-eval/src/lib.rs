@@ -51,6 +51,11 @@ pub mod eval;
 mod expr;
 mod modifier;
 mod path;
+pub mod remote;
+// Native HTTP transport for SERVICE — native targets only (`ureq` is not
+// wasm-portable; the dep is itself gated to non-wasm in Cargo.toml).
+#[cfg(not(target_arch = "wasm32"))]
+pub mod remote_http;
 pub mod scratch;
 pub mod solution;
 mod template;
@@ -58,7 +63,10 @@ pub mod update;
 
 pub use engine::{NativeSparqlEngine, PlanCache, PreparedQuery};
 pub use error::EvalError;
-pub use eval::{eval, evaluate_query, EvalCtx, Outcome};
+pub use eval::{eval, evaluate_query, EvalCtx, EvalOptions, Outcome};
+pub use remote::{LocalRemoteQuerySource, RemoteError, RemoteQuerySource, ResolvedBindings};
+#[cfg(not(target_arch = "wasm32"))]
+pub use remote_http::HttpRemoteQuerySource;
 pub use scratch::{ScratchId, ScratchInterner, SolutionTerm};
 pub use solution::{compatible, Solution, SolutionSeq, VarSchema};
 pub use update::GraphResolver;

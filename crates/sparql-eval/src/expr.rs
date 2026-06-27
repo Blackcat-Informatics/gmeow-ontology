@@ -375,21 +375,566 @@ fn is_literal(v: &TermValue) -> bool {
     matches!(v, TermValue::Literal { .. })
 }
 
-/// Evaluate `EXISTS { pattern }` for the current solution: bind the pattern's free
-/// variables from `row`, evaluate, and report whether any solution results.
+/// Collect all [`Variable`]s referenced inside expression positions within `expr`.
+/// This is a pure syntactic walk of the [`Expression`] tree; it returns every
+/// variable that appears in a position where it is *evaluated* (not just matched
+/// as a triple-pattern term).
+fn expr_vars(
+    expr: &Expression,
+    out: &mut std::collections::HashSet<gmeow_sparql_algebra::Variable>,
+) {
+    match expr {
+        Expression::Variable(v) | Expression::Bound(v) => {
+            out.insert(v.clone());
+        }
+        Expression::NamedNode(_) | Expression::Literal(_) => {}
+        Expression::Or(a, b)
+        | Expression::And(a, b)
+        | Expression::Equal(a, b)
+        | Expression::SameTerm(a, b)
+        | Expression::Greater(a, b)
+        | Expression::GreaterOrEqual(a, b)
+        | Expression::Less(a, b)
+        | Expression::LessOrEqual(a, b)
+        | Expression::Add(a, b)
+        | Expression::Subtract(a, b)
+        | Expression::Multiply(a, b)
+        | Expression::Divide(a, b) => {
+            expr_vars(a, out);
+            expr_vars(b, out);
+        }
+        Expression::UnaryPlus(a) | Expression::UnaryMinus(a) | Expression::Not(a) => {
+            expr_vars(a, out);
+        }
+        Expression::If(c, t, e) => {
+            expr_vars(c, out);
+            expr_vars(t, out);
+            expr_vars(e, out);
+        }
+        Expression::In(needle, haystack) => {
+            expr_vars(needle, out);
+            for h in haystack {
+                expr_vars(h, out);
+            }
+        }
+        Expression::Coalesce(items) => {
+            for item in items {
+                expr_vars(item, out);
+            }
+        }
+        Expression::FunctionCall(_, args) => {
+            for a in args {
+                expr_vars(a, out);
+            }
+        }
+        // Nested EXISTS: walk the expression positions inside its inner pattern too.
+        Expression::Exists(inner_pat) => {
+            pattern_expr_vars(inner_pat, out);
+        }
+    }
+}
+
+/// Collect all variables referenced in *expression* positions within `pattern`.
+///
+/// Expression positions are: `Filter` conditions, `Extend`/BIND expressions,
+/// `LeftJoin` inline filter conditions, `OrderBy` sort-key expressions, `Group`
+/// grouping-key expressions and aggregate sub-expressions. Variables that appear
+/// only as triple-pattern terms (subject/predicate/object) are NOT included here
+/// because they are constrained by the standard join, not by expression evaluation.
+fn pattern_expr_vars(
+    pattern: &GraphPattern,
+    out: &mut std::collections::HashSet<gmeow_sparql_algebra::Variable>,
+) {
+    match pattern {
+        // Leaf nodes with no expression positions.
+        GraphPattern::Bgp { .. } | GraphPattern::Path { .. } | GraphPattern::Values { .. } => {}
+
+        // Single-child wrappers with no expressions of their own.
+        GraphPattern::Distinct { inner }
+        | GraphPattern::Reduced { inner }
+        | GraphPattern::Slice { inner, .. }
+        | GraphPattern::Project { inner, .. }
+        | GraphPattern::Graph { inner, .. }
+        | GraphPattern::Service { inner, .. } => {
+            pattern_expr_vars(inner, out);
+        }
+
+        // Two-child operators with no expressions of their own.
+        GraphPattern::Join { left, right }
+        | GraphPattern::Union { left, right }
+        | GraphPattern::Minus { left, right }
+        | GraphPattern::Lateral { left, right } => {
+            pattern_expr_vars(left, out);
+            pattern_expr_vars(right, out);
+        }
+
+        // Filter: the condition is an expression — walk it, then recurse into inner.
+        GraphPattern::Filter { expr, inner } => {
+            expr_vars(expr, out);
+            pattern_expr_vars(inner, out);
+        }
+
+        // Extend / BIND: the bound expression is evaluated.
+        GraphPattern::Extend {
+            inner, expression, ..
+        } => {
+            expr_vars(expression, out);
+            pattern_expr_vars(inner, out);
+        }
+
+        // LeftJoin: the optional inline filter condition is evaluated.
+        GraphPattern::LeftJoin {
+            left,
+            right,
+            expression,
+        } => {
+            if let Some(e) = expression {
+                expr_vars(e, out);
+            }
+            pattern_expr_vars(left, out);
+            pattern_expr_vars(right, out);
+        }
+
+        // OrderBy: sort keys are expressions.
+        GraphPattern::OrderBy { inner, expression } => {
+            for ord_expr in expression {
+                match ord_expr {
+                    gmeow_sparql_algebra::OrderExpression::Asc(e)
+                    | gmeow_sparql_algebra::OrderExpression::Desc(e) => expr_vars(e, out),
+                }
+            }
+            pattern_expr_vars(inner, out);
+        }
+
+        // Group: grouping-key expressions and aggregate sub-expressions are evaluated.
+        GraphPattern::Group {
+            inner,
+            variables: _,
+            aggregates,
+        } => {
+            for (_, agg) in aggregates {
+                match agg {
+                    gmeow_sparql_algebra::AggregateExpression::CountStar { .. } => {}
+                    gmeow_sparql_algebra::AggregateExpression::FunctionCall {
+                        expression, ..
+                    } => expr_vars(expression, out),
+                }
+            }
+            pattern_expr_vars(inner, out);
+        }
+    }
+}
+
+/// Evaluate `EXISTS { pattern }` for the current solution.
+///
+/// Two evaluation paths are used depending on whether any outer-bound variable
+/// appears in an expression position (FILTER condition, BIND expression, etc.)
+/// inside the inner pattern:
+///
+/// **Uncorrelated path** (fast): the inner pattern result is independent of which
+/// outer row is being tested, so it can be evaluated once and cached. The outer
+/// row's bindings are substituted via a seed-join with the memoized inner result.
+/// This is the common case and preserves the performance win of evaluating the
+/// inner pattern once per EXISTS site rather than once per outer row.
+///
+/// **Expression-correlated path** (correct per-row): when an outer-bound variable
+/// is referenced inside an expression context in the inner pattern (e.g. a FILTER
+/// that references an outer variable), evaluating the inner pattern unconstrained
+/// would leave that variable unbound, causing the expression to error and drop
+/// rows incorrectly. In this case the inner pattern is evaluated with the outer
+/// row's bound variables pre-seeded as a VALUES-like leading input, so they are
+/// visible as bound during expression evaluation. This result is NOT memoized
+/// because it depends on the specific outer row.
 fn exists(
     pattern: &GraphPattern,
     row: &[Option<SolutionTerm>],
     schema: &VarSchema,
     ctx: &mut EvalCtx<'_>,
 ) -> Result<bool, EvalError> {
-    // Substitute the outer row's bindings, then AND the substitution into the
-    // pattern by joining with a one-row VALUES-like seed. We realize the seed as a
-    // BGP-independent solution and Join it via the standard hash join.
-    let seed = seed_from_row(row, schema);
-    let inner = eval(pattern, ctx)?;
-    let joined = crate::binop::join_seqs(&seed, &inner);
-    Ok(!joined.is_empty())
+    // Build the set of outer-bound variables (those with a concrete binding in
+    // the current row), then check if any of them are referenced in expression
+    // positions inside the inner pattern.
+    let outer_bound: std::collections::HashSet<gmeow_sparql_algebra::Variable> = schema
+        .vars()
+        .iter()
+        .enumerate()
+        .filter_map(|(i, v)| {
+            if row[i].is_some() {
+                Some(v.clone())
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    let mut inner_expr_vars = std::collections::HashSet::new();
+    pattern_expr_vars(pattern, &mut inner_expr_vars);
+
+    let is_expression_correlated = inner_expr_vars.iter().any(|v| outer_bound.contains(v));
+
+    if is_expression_correlated {
+        // Correct per-row path: substitute the outer row's bound variable values
+        // into the inner pattern's expression positions before evaluating.
+        //
+        // This implements the W3C SPARQL §18.6 EXISTS substitution semantics:
+        // every reference to an outer-bound variable inside an expression (FILTER
+        // condition, BIND, aggregate, etc.) is replaced with the corresponding
+        // constant, so the inner evaluation sees the outer bindings as ground
+        // constants rather than unbound variables that would error in expressions.
+        //
+        // After substitution, the resulting pattern is a valid (all-ground-expression)
+        // pattern whose result is specific to this outer row; it is NOT memoized.
+        let bindings = outer_bindings_for_substitution(row, schema, ctx);
+        let substituted = substitute_pattern(pattern, &bindings);
+        let inner = eval(&substituted, ctx)?;
+        Ok(!inner.is_empty())
+    } else {
+        // Fast memoized path: the inner pattern result is independent of the outer
+        // row's values in expression contexts, so evaluate it once and cache it.
+        let cached = if ctx.options.exists_memo {
+            let key = (pattern as *const GraphPattern as usize, ctx.graph_key());
+            ctx.exists_inner_cache.get(&key).cloned()
+        } else {
+            None
+        };
+        let inner = match cached {
+            Some(inner) => inner,
+            None => {
+                let computed = std::rc::Rc::new(eval(pattern, ctx)?);
+                if ctx.options.exists_memo {
+                    let key = (pattern as *const GraphPattern as usize, ctx.graph_key());
+                    ctx.exists_inner_cache.insert(key, computed.clone());
+                }
+                computed
+            }
+        };
+
+        // Substitute the outer row's bindings by joining a one-row seed (its
+        // bound variables) with the inner result via the standard hash join.
+        let seed = seed_from_row(row, schema);
+        let joined = crate::binop::join_seqs(&seed, &inner);
+        Ok(!joined.is_empty())
+    }
+}
+
+/// Substitute outer-bound variables into expression positions within a graph pattern.
+///
+/// This implements the W3C SPARQL EXISTS substitution semantics (§18.6): for each
+/// variable `v` in `bindings`, every `Expression::Variable(v)` occurrence inside
+/// the pattern's expression positions (FILTER conditions, BIND expressions, etc.)
+/// is replaced with the corresponding constant expression. Triple-pattern term
+/// positions are also substituted when the bound value is representable as a
+/// `NamedNode` (blank nodes and triple terms cannot appear as triple-pattern
+/// constants in a `Bgp`, so those positions are left as variables — the later
+/// seed-join in the uncorrelated path handles them instead).
+fn substitute_pattern(
+    pattern: &GraphPattern,
+    bindings: &[(gmeow_sparql_algebra::Variable, Expression)],
+) -> GraphPattern {
+    match pattern {
+        GraphPattern::Bgp { patterns } => GraphPattern::Bgp {
+            patterns: patterns
+                .iter()
+                .map(|tp| substitute_triple_pattern(tp, bindings))
+                .collect(),
+        },
+        GraphPattern::Filter { expr, inner } => GraphPattern::Filter {
+            expr: substitute_expr(expr, bindings),
+            inner: Box::new(substitute_pattern(inner, bindings)),
+        },
+        GraphPattern::Extend {
+            inner,
+            variable,
+            expression,
+        } => GraphPattern::Extend {
+            inner: Box::new(substitute_pattern(inner, bindings)),
+            variable: variable.clone(),
+            expression: substitute_expr(expression, bindings),
+        },
+        GraphPattern::Join { left, right } => GraphPattern::Join {
+            left: Box::new(substitute_pattern(left, bindings)),
+            right: Box::new(substitute_pattern(right, bindings)),
+        },
+        GraphPattern::Union { left, right } => GraphPattern::Union {
+            left: Box::new(substitute_pattern(left, bindings)),
+            right: Box::new(substitute_pattern(right, bindings)),
+        },
+        GraphPattern::LeftJoin {
+            left,
+            right,
+            expression,
+        } => GraphPattern::LeftJoin {
+            left: Box::new(substitute_pattern(left, bindings)),
+            right: Box::new(substitute_pattern(right, bindings)),
+            expression: expression.as_ref().map(|e| substitute_expr(e, bindings)),
+        },
+        GraphPattern::Minus { left, right } => GraphPattern::Minus {
+            left: Box::new(substitute_pattern(left, bindings)),
+            right: Box::new(substitute_pattern(right, bindings)),
+        },
+        GraphPattern::Lateral { left, right } => GraphPattern::Lateral {
+            left: Box::new(substitute_pattern(left, bindings)),
+            right: Box::new(substitute_pattern(right, bindings)),
+        },
+        GraphPattern::Graph { name, inner } => GraphPattern::Graph {
+            name: name.clone(),
+            inner: Box::new(substitute_pattern(inner, bindings)),
+        },
+        GraphPattern::Service {
+            name,
+            inner,
+            silent,
+        } => GraphPattern::Service {
+            name: name.clone(),
+            inner: Box::new(substitute_pattern(inner, bindings)),
+            silent: *silent,
+        },
+        GraphPattern::OrderBy { inner, expression } => GraphPattern::OrderBy {
+            inner: Box::new(substitute_pattern(inner, bindings)),
+            expression: expression
+                .iter()
+                .map(|oe| match oe {
+                    gmeow_sparql_algebra::OrderExpression::Asc(e) => {
+                        gmeow_sparql_algebra::OrderExpression::Asc(substitute_expr(e, bindings))
+                    }
+                    gmeow_sparql_algebra::OrderExpression::Desc(e) => {
+                        gmeow_sparql_algebra::OrderExpression::Desc(substitute_expr(e, bindings))
+                    }
+                })
+                .collect(),
+        },
+        GraphPattern::Group {
+            inner,
+            variables,
+            aggregates,
+        } => GraphPattern::Group {
+            inner: Box::new(substitute_pattern(inner, bindings)),
+            variables: variables.clone(),
+            aggregates: aggregates
+                .iter()
+                .map(|(v, agg)| {
+                    let new_agg = match agg {
+                        gmeow_sparql_algebra::AggregateExpression::CountStar { distinct } => {
+                            gmeow_sparql_algebra::AggregateExpression::CountStar {
+                                distinct: *distinct,
+                            }
+                        }
+                        gmeow_sparql_algebra::AggregateExpression::FunctionCall {
+                            function,
+                            expression,
+                            distinct,
+                        } => gmeow_sparql_algebra::AggregateExpression::FunctionCall {
+                            function: function.clone(),
+                            expression: Box::new(substitute_expr(expression, bindings)),
+                            distinct: *distinct,
+                        },
+                    };
+                    (v.clone(), new_agg)
+                })
+                .collect(),
+        },
+        // Leaf patterns that need no substitution.
+        GraphPattern::Distinct { inner } => GraphPattern::Distinct {
+            inner: Box::new(substitute_pattern(inner, bindings)),
+        },
+        GraphPattern::Reduced { inner } => GraphPattern::Reduced {
+            inner: Box::new(substitute_pattern(inner, bindings)),
+        },
+        GraphPattern::Slice {
+            inner,
+            start,
+            length,
+        } => GraphPattern::Slice {
+            inner: Box::new(substitute_pattern(inner, bindings)),
+            start: *start,
+            length: *length,
+        },
+        GraphPattern::Project { inner, variables } => GraphPattern::Project {
+            inner: Box::new(substitute_pattern(inner, bindings)),
+            variables: variables.clone(),
+        },
+        GraphPattern::Path { .. } | GraphPattern::Values { .. } => pattern.clone(),
+    }
+}
+
+/// Substitute outer-bound variables into a triple pattern's term positions.
+/// Only IRI-valued bindings can replace a variable in triple-pattern subject/object
+/// position (blank nodes and literals are not valid there in the algebra). Predicate
+/// positions are `NamedNodePattern` which cannot be a free variable — left unchanged.
+fn substitute_triple_pattern(
+    tp: &gmeow_sparql_algebra::TriplePattern,
+    bindings: &[(gmeow_sparql_algebra::Variable, Expression)],
+) -> gmeow_sparql_algebra::TriplePattern {
+    use gmeow_sparql_algebra::{TermPattern, TriplePattern};
+
+    let subst_term = |term: &TermPattern| -> TermPattern {
+        if let TermPattern::Variable(v) = term {
+            for (bv, expr) in bindings {
+                if bv == v {
+                    if let Expression::NamedNode(n) = expr {
+                        return TermPattern::NamedNode(n.clone());
+                    }
+                    // Literal or other: leave as variable (the expr substitution
+                    // in FILTER will handle value comparison).
+                }
+            }
+        }
+        term.clone()
+    };
+
+    // Predicate is NamedNodePattern — it can be a variable but rarely is in practice;
+    // leave as-is (IRI substitution there is uncommon and the Filter handles equality).
+    TriplePattern {
+        subject: subst_term(&tp.subject),
+        predicate: tp.predicate.clone(),
+        object: subst_term(&tp.object),
+    }
+}
+
+/// Substitute outer-bound variables in expression positions by replacing
+/// `Expression::Variable(v)` with the corresponding constant expression.
+fn substitute_expr(
+    expr: &Expression,
+    bindings: &[(gmeow_sparql_algebra::Variable, Expression)],
+) -> Expression {
+    match expr {
+        Expression::Variable(v) => {
+            for (bv, replacement) in bindings {
+                if bv == v {
+                    return replacement.clone();
+                }
+            }
+            expr.clone()
+        }
+        Expression::Bound(v) => {
+            // BOUND(?v) where ?v is outer-bound → always true (the variable IS bound).
+            for (bv, _) in bindings {
+                if bv == v {
+                    return Expression::Literal(gmeow_sparql_algebra::Literal::new_typed(
+                        "true",
+                        gmeow_sparql_algebra::NamedNode::new_unchecked(XSD_BOOLEAN),
+                    ));
+                }
+            }
+            expr.clone()
+        }
+        Expression::NamedNode(_) | Expression::Literal(_) => expr.clone(),
+        Expression::Or(a, b) => Expression::Or(
+            Box::new(substitute_expr(a, bindings)),
+            Box::new(substitute_expr(b, bindings)),
+        ),
+        Expression::And(a, b) => Expression::And(
+            Box::new(substitute_expr(a, bindings)),
+            Box::new(substitute_expr(b, bindings)),
+        ),
+        Expression::Equal(a, b) => Expression::Equal(
+            Box::new(substitute_expr(a, bindings)),
+            Box::new(substitute_expr(b, bindings)),
+        ),
+        Expression::SameTerm(a, b) => Expression::SameTerm(
+            Box::new(substitute_expr(a, bindings)),
+            Box::new(substitute_expr(b, bindings)),
+        ),
+        Expression::Greater(a, b) => Expression::Greater(
+            Box::new(substitute_expr(a, bindings)),
+            Box::new(substitute_expr(b, bindings)),
+        ),
+        Expression::GreaterOrEqual(a, b) => Expression::GreaterOrEqual(
+            Box::new(substitute_expr(a, bindings)),
+            Box::new(substitute_expr(b, bindings)),
+        ),
+        Expression::Less(a, b) => Expression::Less(
+            Box::new(substitute_expr(a, bindings)),
+            Box::new(substitute_expr(b, bindings)),
+        ),
+        Expression::LessOrEqual(a, b) => Expression::LessOrEqual(
+            Box::new(substitute_expr(a, bindings)),
+            Box::new(substitute_expr(b, bindings)),
+        ),
+        Expression::Add(a, b) => Expression::Add(
+            Box::new(substitute_expr(a, bindings)),
+            Box::new(substitute_expr(b, bindings)),
+        ),
+        Expression::Subtract(a, b) => Expression::Subtract(
+            Box::new(substitute_expr(a, bindings)),
+            Box::new(substitute_expr(b, bindings)),
+        ),
+        Expression::Multiply(a, b) => Expression::Multiply(
+            Box::new(substitute_expr(a, bindings)),
+            Box::new(substitute_expr(b, bindings)),
+        ),
+        Expression::Divide(a, b) => Expression::Divide(
+            Box::new(substitute_expr(a, bindings)),
+            Box::new(substitute_expr(b, bindings)),
+        ),
+        Expression::UnaryPlus(a) => Expression::UnaryPlus(Box::new(substitute_expr(a, bindings))),
+        Expression::UnaryMinus(a) => Expression::UnaryMinus(Box::new(substitute_expr(a, bindings))),
+        Expression::Not(a) => Expression::Not(Box::new(substitute_expr(a, bindings))),
+        Expression::If(c, t, e) => Expression::If(
+            Box::new(substitute_expr(c, bindings)),
+            Box::new(substitute_expr(t, bindings)),
+            Box::new(substitute_expr(e, bindings)),
+        ),
+        Expression::In(needle, haystack) => Expression::In(
+            Box::new(substitute_expr(needle, bindings)),
+            haystack
+                .iter()
+                .map(|h| substitute_expr(h, bindings))
+                .collect(),
+        ),
+        Expression::Coalesce(items) => {
+            Expression::Coalesce(items.iter().map(|i| substitute_expr(i, bindings)).collect())
+        }
+        Expression::FunctionCall(f, args) => Expression::FunctionCall(
+            f.clone(),
+            args.iter().map(|a| substitute_expr(a, bindings)).collect(),
+        ),
+        Expression::Exists(inner_pat) => {
+            Expression::Exists(Box::new(substitute_pattern(inner_pat, bindings)))
+        }
+    }
+}
+
+/// Build the binding list for substitution from the outer row's bound variables,
+/// materializing each `SolutionTerm` to a constant `Expression`.
+fn outer_bindings_for_substitution(
+    row: &[Option<SolutionTerm>],
+    schema: &VarSchema,
+    ctx: &EvalCtx<'_>,
+) -> Vec<(gmeow_sparql_algebra::Variable, Expression)> {
+    use gmeow_rdf_core::TermValue;
+    use gmeow_sparql_algebra::{Literal, NamedNode};
+
+    let mut bindings = Vec::new();
+    for (i, var) in schema.vars().iter().enumerate() {
+        if let Some(term) = row[i] {
+            let value = ctx.scratch.value_of(ctx.dataset, term);
+            let expr: Option<Expression> = match value {
+                TermValue::Iri(iri) => Some(Expression::NamedNode(NamedNode::new_unchecked(iri))),
+                TermValue::Literal {
+                    lexical_form,
+                    datatype,
+                    language,
+                    ..
+                } => {
+                    let lit = if let Some(lang) = language {
+                        Literal::new_lang(lexical_form, lang, None)
+                    } else {
+                        Literal::new_typed(lexical_form, NamedNode::new_unchecked(datatype))
+                    };
+                    Some(Expression::Literal(lit))
+                }
+                // Blank nodes and triple terms: leave the variable unbound in
+                // expression positions (uncommon in practice; the seed-join
+                // handles them in triple-pattern positions).
+                TermValue::Blank { .. } | TermValue::Triple { .. } => None,
+            };
+            if let Some(e) = expr {
+                bindings.push((var.clone(), e));
+            }
+        }
+    }
+    bindings
 }
 
 /// A one-solution sequence carrying the current row's *bound* variables — the seed
@@ -1855,5 +2400,224 @@ mod tests {
         } else {
             panic!("STRUUID() must produce a literal");
         }
+    }
+
+    // ── EXISTS decorrelation ──────────────────────────────────────────────────
+
+    /// `:a :knows :b`, `:a :knows :c`, `:b :member :club` — duplicate outer
+    /// subjects (`:a`) so a per-row EXISTS would re-evaluate the inner repeatedly.
+    fn knows_ds() -> Arc<RdfDataset> {
+        let mut b = RdfDatasetBuilder::new();
+        let knows = b.intern_iri("http://ex/knows".to_owned());
+        let member = b.intern_iri("http://ex/member".to_owned());
+        let a = b.intern_iri("http://ex/a".to_owned());
+        let bb = b.intern_iri("http://ex/b".to_owned());
+        let c = b.intern_iri("http://ex/c".to_owned());
+        let club = b.intern_iri("http://ex/club".to_owned());
+        b.push_quad(a, knows, bb, None);
+        b.push_quad(a, knows, c, None);
+        b.push_quad(bb, member, club, None);
+        b.freeze().expect("freeze")
+    }
+
+    /// Run `query` against `ds` with the EXISTS memo on/off, returning sorted
+    /// stringified rows for a multiset comparison.
+    fn run_rows(ds: &RdfDataset, query: &str, memo: bool) -> Vec<Vec<String>> {
+        use crate::eval::evaluate_query;
+        use crate::eval::Outcome;
+        use gmeow_sparql_algebra::SparqlParser;
+
+        let parsed = SparqlParser::new().parse_query(query).expect("parse");
+        let mut ctx = EvalCtx::new(ds);
+        ctx.options.exists_memo = memo;
+        match evaluate_query(&parsed, &mut ctx).expect("eval") {
+            Outcome::Solutions(seq) => {
+                let mut out: Vec<Vec<String>> = seq
+                    .rows
+                    .iter()
+                    .map(|row| {
+                        row.iter()
+                            .map(|c| match c {
+                                None => "UNBOUND".to_owned(),
+                                Some(t) => match value_of(&ctx, *t) {
+                                    TermValue::Iri(i) => format!("<{i}>"),
+                                    TermValue::Literal { lexical_form, .. } => lexical_form,
+                                    TermValue::Blank { label, .. } => format!("_:{label}"),
+                                    TermValue::Triple { .. } => "<<triple>>".to_owned(),
+                                },
+                            })
+                            .collect()
+                    })
+                    .collect();
+                out.sort();
+                out
+            }
+            other => panic!("expected solutions, got {other:?}"),
+        }
+    }
+
+    /// The memo MUST be transparent: identical results with it on and off.
+    fn assert_memo_transparent(query: &str) {
+        let ds = knows_ds();
+        assert_eq!(
+            run_rows(&ds, query, true),
+            run_rows(&ds, query, false),
+            "memo changed results for `{query}`"
+        );
+    }
+
+    #[test]
+    fn exists_memo_matches_naive_positive() {
+        // ?o ∈ {:b, :c}; only :b has a member → keep the :a→:b row.
+        let q = "SELECT ?s ?o WHERE { ?s <http://ex/knows> ?o \
+                 FILTER EXISTS { ?o <http://ex/member> ?m } }";
+        assert_memo_transparent(q);
+        assert_eq!(
+            run_rows(&knows_ds(), q, true),
+            vec![vec!["<http://ex/a>".to_owned(), "<http://ex/b>".to_owned()]]
+        );
+    }
+
+    #[test]
+    fn exists_memo_matches_naive_not_exists() {
+        // NOT EXISTS anti-join: keep the :a→:c row (:c has no member).
+        let q = "SELECT ?s ?o WHERE { ?s <http://ex/knows> ?o \
+                 FILTER NOT EXISTS { ?o <http://ex/member> ?m } }";
+        assert_memo_transparent(q);
+        assert_eq!(
+            run_rows(&knows_ds(), q, true),
+            vec![vec!["<http://ex/a>".to_owned(), "<http://ex/c>".to_owned()]]
+        );
+    }
+
+    #[test]
+    fn exists_memo_uncorrelated_inner() {
+        // The inner shares no variable with the outer row (constant existence):
+        // EXISTS holds for every outer row → both rows kept.
+        let q = "SELECT ?s ?o WHERE { ?s <http://ex/knows> ?o \
+                 FILTER EXISTS { ?x <http://ex/member> ?m } }";
+        assert_memo_transparent(q);
+        assert_eq!(run_rows(&knows_ds(), q, true).len(), 2);
+    }
+
+    #[test]
+    fn exists_memo_populates_cache_once() {
+        // Two outer rows share the same EXISTS site; with the memo on the inner
+        // pattern is evaluated and cached exactly once.
+        let ds = knows_ds();
+        let parsed = gmeow_sparql_algebra::SparqlParser::new()
+            .parse_query(
+                "SELECT ?s ?o WHERE { ?s <http://ex/knows> ?o \
+                 FILTER EXISTS { ?z <http://ex/member> ?m } }",
+            )
+            .expect("parse");
+        let mut ctx = EvalCtx::new(&ds);
+        crate::eval::evaluate_query(&parsed, &mut ctx).expect("eval");
+        assert_eq!(
+            ctx.exists_inner_cache.len(),
+            1,
+            "the single EXISTS site must cache exactly one inner result"
+        );
+    }
+
+    // ── Correlated EXISTS: outer variable referenced in FILTER expression ──────
+    //
+    // Data: :a :knows :b ; :b :knows :c .
+    //       :a :p :x .              (only :a has a :p property, :b does not)
+    //
+    // Query: SELECT ?s WHERE { ?s :knows ?o FILTER EXISTS { ?x :p ?y FILTER(?s = ?x) } }
+    //
+    // The EXISTS inner pattern references the outer-bound ?s inside a FILTER expression.
+    // Correct result: only :a (because :a :p :x exists and :a = :a passes;
+    //                          :b has no :p so the FILTER-constrained scan finds nothing).
+    //
+    // Buggy (old) behaviour: the inner is evaluated unconstrained, so ?s is unbound
+    // inside FILTER(?s = ?x), which errors → all inner rows dropped → EXISTS always
+    // false → zero rows returned — which is provably wrong.
+
+    fn correlated_ds() -> Arc<RdfDataset> {
+        // :a :knows :b
+        // :b :knows :c
+        // :a :p :x    ← only :a has :p
+        let mut b = RdfDatasetBuilder::new();
+        let knows = b.intern_iri("http://ex/knows".to_owned());
+        let p = b.intern_iri("http://ex/p".to_owned());
+        let a = b.intern_iri("http://ex/a".to_owned());
+        let bb = b.intern_iri("http://ex/b".to_owned());
+        let c = b.intern_iri("http://ex/c".to_owned());
+        let x = b.intern_iri("http://ex/x".to_owned());
+        b.push_quad(a, knows, bb, None);
+        b.push_quad(bb, knows, c, None);
+        b.push_quad(a, p, x, None);
+        b.freeze().expect("freeze")
+    }
+
+    #[test]
+    fn correlated_filter_exists_returns_correct_result() {
+        // The EXISTS inner FILTER references outer ?s — the expression-correlated path
+        // must be taken. Only :a should be returned (it has :p; :b does not).
+        let ds = correlated_ds();
+        let q = "SELECT ?s WHERE { \
+                   ?s <http://ex/knows> ?o \
+                   FILTER EXISTS { ?x <http://ex/p> ?y FILTER(?s = ?x) } \
+                 }";
+        let rows = run_rows(&ds, q, true);
+        assert_eq!(
+            rows,
+            vec![vec!["<http://ex/a>".to_owned()]],
+            "correlated EXISTS must return exactly :a (the subject with :p)"
+        );
+    }
+
+    #[test]
+    fn correlated_filter_exists_memo_off_matches_memo_on() {
+        // memo=off is the reference (per-row naive); memo=on must agree.
+        let ds = correlated_ds();
+        let q = "SELECT ?s WHERE { \
+                   ?s <http://ex/knows> ?o \
+                   FILTER EXISTS { ?x <http://ex/p> ?y FILTER(?s = ?x) } \
+                 }";
+        assert_eq!(
+            run_rows(&ds, q, true),
+            run_rows(&ds, q, false),
+            "memo must not change results for correlated EXISTS"
+        );
+    }
+
+    #[test]
+    fn correlated_not_exists_inverts_correctly() {
+        // NOT EXISTS with correlated inner: :b (no :p) should survive; :a (has :p) drops.
+        let ds = correlated_ds();
+        let q = "SELECT ?s WHERE { \
+                   ?s <http://ex/knows> ?o \
+                   FILTER NOT EXISTS { ?x <http://ex/p> ?y FILTER(?s = ?x) } \
+                 }";
+        let rows = run_rows(&ds, q, true);
+        assert_eq!(
+            rows,
+            vec![vec!["<http://ex/b>".to_owned()]],
+            "correlated NOT EXISTS must return exactly :b (the subject without :p)"
+        );
+    }
+
+    #[test]
+    fn uncorrelated_exists_fast_path_still_uses_cache() {
+        // Verify the fast/memoized path is still taken when there is no expression
+        // correlation: the cache must be populated after the query.
+        let ds = knows_ds();
+        let q = "SELECT ?s ?o WHERE { \
+                   ?s <http://ex/knows> ?o \
+                   FILTER EXISTS { ?z <http://ex/member> ?m } \
+                 }";
+        let parsed = gmeow_sparql_algebra::SparqlParser::new()
+            .parse_query(q)
+            .expect("parse");
+        let mut ctx = EvalCtx::new(&ds);
+        crate::eval::evaluate_query(&parsed, &mut ctx).expect("eval");
+        assert_eq!(
+            ctx.exists_inner_cache.len(),
+            1,
+            "uncorrelated EXISTS must still populate the memo cache"
+        );
     }
 }

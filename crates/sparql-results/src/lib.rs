@@ -24,17 +24,21 @@ mod csv;
 mod error;
 mod graph;
 mod json;
+mod json_read;
 mod model;
 mod term;
 mod tsv;
 mod xml;
+mod xml_read;
 
 pub use csv::to_csv;
 pub use error::Error;
 pub use json::to_json;
+pub use json_read::{from_json, from_json_boolean, ParsedSolutions};
 pub use model::{ResultProvenance, SolutionProvenance};
 pub use tsv::to_tsv;
 pub use xml::to_xml;
+pub use xml_read::{from_xml, from_xml_boolean};
 
 /// Re-export of the egress result model this crate serializes, so consumers name
 /// a single path (`gmeow_sparql_results::SparqlResult`).
