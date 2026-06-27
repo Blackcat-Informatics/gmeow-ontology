@@ -468,11 +468,13 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         for (path, bytes) in &artifacts {
             let name = path.rsplit('/').next().unwrap_or(path);
             let is_edoal = path.starts_with(EDOAL_DIR) && path.ends_with(".edoal.ttl");
-            // The per-profile SPARQL projections only; the seven `standpoint-*.rq`
-            // queries are covered by their own dedicated parity test below.
+            // The per-profile SPARQL projections only; the `standpoint-*.rq`
+            // queries and `observation-claim-view.rq` are covered by their own
+            // dedicated parity tests below.
             let is_sparql = path.starts_with(QUERIES_DIR)
                 && name.ends_with(".rq")
-                && !name.starts_with("standpoint-");
+                && !name.starts_with("standpoint-")
+                && name != CLAIM_VIEW_FILE;
             if !is_edoal && !is_sparql {
                 continue;
             }
