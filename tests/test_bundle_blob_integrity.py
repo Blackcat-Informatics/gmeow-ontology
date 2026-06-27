@@ -25,21 +25,36 @@ from __future__ import annotations
 from gmeow_tools.bundle import (
     _GUIDE_BLOB,
     _bundle_graph,
+    bundled_axioms,
     bundled_cells,
     bundled_ontology_docs,
     bundled_queries,
+    bundled_reasoning,
+    bundled_shapes,
     bundled_sssom,
     bundled_tests,
 )
 
 
-def test_bundle_carries_the_four_consumer_archives() -> None:
-    """The wheel-mode lift maps / cells / queries / test specs are folded into
-    gmeow.gts as their archive blobs (the #861-dropped writer, restored)."""
+def test_bundle_carries_the_consumer_archives() -> None:
+    """The wheel-mode consumer archives are folded into gmeow.gts as blobs.
+
+    Covers: lift maps / cells / queries / test specs (the #861-dropped writer,
+    restored) plus the shapes surface, compiled logic/DL axioms, and reasoning
+    reports added in #746.
+
+    Each assert pins Rust↔Python rep-string agreement against the committed
+    bundle: if the Rust producer's rep-string const and the Python ``REP_X``
+    const ever drift, ``_archive()`` silently returns ``{}`` and the bundle
+    ships without that surface — this is the guard that catches it.
+    """
     assert bundled_sssom(), "mappings-archive blob missing from gmeow.gts"
     assert bundled_cells(), "cells-archive blob missing from gmeow.gts"
     assert bundled_queries(), "queries-archive blob missing from gmeow.gts"
     assert bundled_tests(), "tests-archive blob missing from gmeow.gts"
+    assert bundled_shapes(), "shapes-archive blob missing from gmeow.gts"
+    assert bundled_axioms(), "axioms-archive blob missing from gmeow.gts"
+    assert bundled_reasoning(), "reasoning-archive blob missing from gmeow.gts"
 
 
 def test_bundle_carries_the_ontology_docs_site() -> None:
