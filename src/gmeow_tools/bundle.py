@@ -97,12 +97,12 @@ def _archive(rep: str) -> dict[str, bytes]:
 
 def bundled_sssom() -> dict[str, bytes]:
     """Every folded SSSOM file as ``{filename: tsv-bytes}`` (empty if unbundled)."""
-    return _archive(REP_MAPPINGS)
+    return dict(_archive(REP_MAPPINGS))
 
 
 def bundled_queries() -> dict[str, bytes]:
     """Every folded projection query as ``{"<profile>.rq": query-bytes}``."""
-    return _archive(REP_QUERIES)
+    return dict(_archive(REP_QUERIES))
 
 
 def bundled_cells() -> dict[str, bytes]:
@@ -112,7 +112,7 @@ def bundled_cells() -> dict[str, bytes]:
     ``dsl/mappings/projections/y.ttl``, ``slices/<g>/<n>/mappings/z.ttl``) so a
     loader can route to exactly the directories it reads in repo mode.
     """
-    return _archive(REP_CELLS)
+    return dict(_archive(REP_CELLS))
 
 
 def bundled_tests() -> dict[str, bytes]:
@@ -124,7 +124,7 @@ def bundled_tests() -> dict[str, bytes]:
     ``tests/counter-examples/`` data, no ``tests/*.py`` harness code), matching
     :func:`gmeow_tools.slices.iter_slice_test_files`.
     """
-    return _archive(REP_TESTS)
+    return dict(_archive(REP_TESTS))
 
 
 def bundled_reasoning() -> dict[str, bytes]:
@@ -141,7 +141,7 @@ def bundled_reasoning() -> dict[str, bytes]:
     derived after the snapshot and so cannot be folded one-pass. The reasoned closure
     itself is not here: it already rides the bundle graph. Empty when unbundled.
     """
-    return _archive(REP_REASONING)
+    return dict(_archive(REP_REASONING))
 
 
 def bundled_okf() -> dict[str, bytes]:
@@ -153,7 +153,7 @@ def bundled_okf() -> dict[str, bytes]:
     wheel. The bundle is a LOSSY projection (the flat term surface); the GTS/OWL
     source stays canonical. Empty when unbundled.
     """
-    return _archive(REP_OKF)
+    return dict(_archive(REP_OKF))
 
 
 def bundled_ontology_docs() -> dict[str, bytes]:
@@ -165,7 +165,7 @@ def bundled_ontology_docs() -> dict[str, bytes]:
     ``x-gmeow-french/index.html``, …); ``gmeow extract-docs`` selects one language
     and unpacks it repo-free. Empty when unbundled.
     """
-    return _archive(REP_ONTOLOGY_DOCS)
+    return dict(_archive(REP_ONTOLOGY_DOCS))
 
 
 def bundled_shapes() -> dict[str, bytes]:
@@ -183,7 +183,7 @@ def bundled_shapes() -> dict[str, bytes]:
     it is a soft seam — a *validator* consumer (#747) MUST hard-fail on an empty
     shape set (validating nothing is a degraded success, not a pass).
     """
-    return _archive(REP_SHAPES)
+    return dict(_archive(REP_SHAPES))
 
 
 def bundled_axioms() -> dict[str, bytes]:
@@ -197,7 +197,7 @@ def bundled_axioms() -> dict[str, bytes]:
     preserve the repo-relative path. Empty when unbundled (see the hard-fail note on
     :func:`bundled_shapes`).
     """
-    return _archive(REP_AXIOMS)
+    return dict(_archive(REP_AXIOMS))
 
 
 def bundled_schemas() -> dict[str, bytes]:
