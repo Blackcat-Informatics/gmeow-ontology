@@ -112,26 +112,17 @@ fn apply_operation(
             source,
             destination,
             ..
-        } => {
-            graph_op_add(source, destination, m);
-            Ok(())
-        }
+        } => graph_op_add(source, destination, m),
         GraphUpdateOperation::Move {
             source,
             destination,
             ..
-        } => {
-            graph_op_move(source, destination, m);
-            Ok(())
-        }
+        } => graph_op_move(source, destination, m),
         GraphUpdateOperation::Copy {
             source,
             destination,
             ..
-        } => {
-            graph_op_copy(source, destination, m);
-            Ok(())
-        }
+        } => graph_op_copy(source, destination, m),
     }
 }
 
@@ -291,7 +282,7 @@ fn load(
 
     // Re-key each loaded quad's graph to the destination (Default → None,
     // Named(g) → Some(g)). Enumerate the loaded dataset in value space.
-    let dest = graph_target_value(destination);
+    let dest = graph_target_value(destination)?;
     let view = MutableDataset::new(loaded);
     let quads = view.quads_for_pattern(None, None, None, GraphMatchValue::Any);
     for q in quads {
@@ -314,51 +305,66 @@ fn clear_target(target: &GraphTarget, m: &mut MutableDataset) {
 
 /// `ADD <source> TO <dest>`: insert source quads re-keyed to dest; dest is NOT
 /// cleared and source is NOT removed.
-fn graph_op_add(source: &GraphTarget, destination: &GraphTarget, m: &mut MutableDataset) {
+fn graph_op_add(
+    source: &GraphTarget,
+    destination: &GraphTarget,
+    m: &mut MutableDataset,
+) -> Result<(), RdfDiagnostic> {
     // SPARQL §3.2.5: ADD where source ≡ destination is a no-op.
     if source == destination {
-        return;
+        return Ok(());
     }
     let src = quads_of_target(source, m);
-    let dest = graph_target_value(destination);
+    let dest = graph_target_value(destination)?;
     for q in src {
         m.insert(rekey_graph(q, &dest));
     }
+    Ok(())
 }
 
 /// `COPY <source> TO <dest>`: clear dest, then insert source quads re-keyed to dest.
-fn graph_op_copy(source: &GraphTarget, destination: &GraphTarget, m: &mut MutableDataset) {
+fn graph_op_copy(
+    source: &GraphTarget,
+    destination: &GraphTarget,
+    m: &mut MutableDataset,
+) -> Result<(), RdfDiagnostic> {
     // SPARQL §3.2.4: COPY where source ≡ destination is a no-op.
     if source == destination {
-        return;
+        return Ok(());
     }
+    let dest = graph_target_value(destination)?;
     let src = quads_of_target(source, m);
     clear_target(destination, m);
-    let dest = graph_target_value(destination);
     for q in src {
         m.insert(rekey_graph(q, &dest));
     }
+    Ok(())
 }
 
 /// `MOVE <source> TO <dest>`: clear dest, insert source quads re-keyed to dest, then
 /// remove the source quads.
-fn graph_op_move(source: &GraphTarget, destination: &GraphTarget, m: &mut MutableDataset) {
+fn graph_op_move(
+    source: &GraphTarget,
+    destination: &GraphTarget,
+    m: &mut MutableDataset,
+) -> Result<(), RdfDiagnostic> {
     // SPARQL §3.2.6: MOVE where source ≡ destination is a no-op. This guard is also
     // a correctness requirement, not just an optimization: with source == dest the
     // trailing source-removal below would re-suppress the just-inserted quads and
     // empty the graph.
     if source == destination {
-        return;
+        return Ok(());
     }
+    let dest = graph_target_value(destination)?;
     let src = quads_of_target(source, m);
     clear_target(destination, m);
-    let dest = graph_target_value(destination);
     for q in &src {
         m.insert(rekey_graph(q.clone(), &dest));
     }
     for q in &src {
         m.remove(q);
     }
+    Ok(())
 }
 
 // ── shared helpers ───────────────────────────────────────────────────────────
@@ -442,15 +448,20 @@ fn rekey_graph(q: QuadValues, dest: &Option<TermValue>) -> QuadValues {
     }
 }
 
-/// The destination graph VALUE of a graph target (`Default` → None, `Named` → the
-/// IRI value). Only `Default`/`Named` are valid for re-key destinations (LOAD's
-/// destination and ADD/MOVE/COPY operands are `GraphOrDefault`); a `NamedGraphs`/
-/// `All` target is meaningless as a single destination and is treated as the default
-/// graph (the parser never produces it in these positions).
-fn graph_target_value(target: &GraphTarget) -> Option<TermValue> {
+/// The destination graph VALUE of a graph target (`Default` → `None`, `Named` → the
+/// IRI value). Only `Default`/`Named` are valid as a re-key destination (LOAD's
+/// destination and ADD/MOVE/COPY operands are `GraphOrDefault`); a `NamedGraphs`/`All`
+/// target is meaningless as a single destination — the parser never produces it in
+/// these positions, so reaching it is a hard error (no silent coercion to default).
+fn graph_target_value(target: &GraphTarget) -> Result<Option<TermValue>, RdfDiagnostic> {
     match target {
-        GraphTarget::Named(n) => Some(named_node_to_value(n)),
-        _ => None,
+        GraphTarget::Default => Ok(None),
+        GraphTarget::Named(n) => Ok(Some(named_node_to_value(n))),
+        GraphTarget::NamedGraphs | GraphTarget::All => Err(RdfDiagnostic::error(
+            "native-sparql-update-bad-destination",
+            "an ADD/MOVE/COPY/LOAD destination must be DEFAULT or a single named GRAPH, \
+             not NAMED or ALL",
+        )),
     }
 }
 
@@ -681,6 +692,27 @@ mod tests {
         run("ADD GRAPH ex:g TO GRAPH ex:g", &mut m);
         let still = m.quads_for_pattern(None, None, None, GraphMatchValue::Named(&iri("g")));
         assert_eq!(still.len(), 1, "self COPY/ADD leave the graph unchanged");
+    }
+
+    #[test]
+    fn graph_op_to_named_or_all_destination_is_a_hard_error() {
+        // The parser only ever produces DEFAULT/GRAPH destinations, but if a NAMED/ALL
+        // destination ever reaches a single-graph re-key it is a hard error, not a
+        // silent coercion to the default graph.
+        let mut m = mut_with(&[("a", "p", "b")]);
+        let upd = Update {
+            operations: vec![GraphUpdateOperation::Move {
+                silent: false,
+                source: GraphTarget::Default,
+                destination: GraphTarget::All,
+            }],
+            base_iri: None,
+        };
+        let err = eval_update(&upd, &mut m, None).unwrap_err();
+        assert_eq!(err.code, "native-sparql-update-bad-destination");
+        // The base is untouched (the error aborts before any mutation lands here, and
+        // the engine seam's branch/freeze guarantees atomicity at the request level).
+        assert_eq!(quad_set(&m).len(), 1);
     }
 
     // ── LOAD ─────────────────────────────────────────────────────────────────
