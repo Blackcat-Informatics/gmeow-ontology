@@ -126,6 +126,29 @@ pub fn audit_vendorable(meta: &CorpusMeta) -> Result<(), String> {
     }
 }
 
+/// Resolve the run [`Lane`] for a case directory, if it belongs to a vendored
+/// external corpus.
+///
+/// A case under `cases/external/<corpus>/<case>/` carries its corpus metadata at the
+/// parent `corpus.json`; this returns that corpus's declared lane. An endogenous case
+/// (`cases/<category>/<case>/`, no parent `corpus.json`) returns `None` — it is always
+/// run by the native gate. This keeps `crate::discover` category-agnostic: lane is
+/// resolved by the runner, not baked into discovery.
+///
+/// # Errors
+/// Hard-fails (no-optionality) when a parent `corpus.json` exists but is unreadable or
+/// invalid — a malformed corpus metadata file is an error, never a silent skip.
+pub fn lane_for_case(case_dir: &std::path::Path) -> Result<Option<Lane>, String> {
+    let Some(parent) = case_dir.parent() else {
+        return Ok(None);
+    };
+    let corpus_json = parent.join("corpus.json");
+    if !corpus_json.is_file() {
+        return Ok(None);
+    }
+    Ok(Some(load_corpus_meta(&corpus_json)?.lane))
+}
+
 fn required_string(obj: &Map<String, Value>, key: &str) -> Result<String, String> {
     obj.get(key)
         .and_then(Value::as_str)
@@ -194,5 +217,54 @@ mod tests {
         v.as_object_mut().unwrap().insert("nope".into(), json!(1));
         let err = parse_corpus_meta(&v).unwrap_err();
         assert!(err.contains("unknown key"), "{err}");
+    }
+
+    /// `lane_for_case` is the consumer that makes the `lane` field load-bearing: the
+    /// Lane-A native runners skip a case iff this returns `Some(Lane::B)`. Exercise all
+    /// three branches over a synthetic corpus tree (no new dev-dependency: plain
+    /// `std::fs` under a pid-unique temp dir).
+    #[test]
+    fn lane_for_case_routes_external_corpora_and_ignores_endogenous() {
+        use std::fs;
+
+        fn corpus_json(name: &str, lane: &str) -> String {
+            format!(
+                "{{ \"name\": \"{name}\", \"spdx_license\": \"CC-BY-4.0\", \
+                 \"source_url\": \"https://example.org/{name}\", \
+                 \"version_or_commit\": \"v1\", \"refresh_command\": \"noop\", \
+                 \"lane\": \"{lane}\" }}\n"
+            )
+        }
+
+        let base = std::env::temp_dir().join(format!("gmeow-conf-lane-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&base);
+
+        // External Lane-B corpus: a case here must be skipped by the native gate.
+        let case_b = base.join("external/heavy-corpus/some-case");
+        fs::create_dir_all(&case_b).unwrap();
+        fs::write(
+            base.join("external/heavy-corpus/corpus.json"),
+            corpus_json("heavy-corpus", "b"),
+        )
+        .unwrap();
+
+        // External Lane-A corpus: a case here runs in the native gate.
+        let case_a = base.join("external/light-corpus/case-a");
+        fs::create_dir_all(&case_a).unwrap();
+        fs::write(
+            base.join("external/light-corpus/corpus.json"),
+            corpus_json("light-corpus", "a"),
+        )
+        .unwrap();
+
+        // Endogenous case: no parent corpus.json → always native, never skipped.
+        let endo = base.join("profiles/plain-case");
+        fs::create_dir_all(&endo).unwrap();
+
+        assert_eq!(lane_for_case(&case_b).unwrap(), Some(Lane::B));
+        assert_eq!(lane_for_case(&case_a).unwrap(), Some(Lane::A));
+        assert_eq!(lane_for_case(&endo).unwrap(), None);
+
+        let _ = fs::remove_dir_all(&base);
     }
 }

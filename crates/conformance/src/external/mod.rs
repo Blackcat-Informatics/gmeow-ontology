@@ -31,7 +31,9 @@ pub mod manifest;
 pub mod status;
 pub mod szs;
 
-pub use corpus::{audit_vendorable, load_corpus_meta, parse_corpus_meta, CorpusMeta, Lane};
+pub use corpus::{
+    audit_vendorable, lane_for_case, load_corpus_meta, parse_corpus_meta, CorpusMeta, Lane,
+};
 pub use lower::runner_verdict_json;
 pub use manifest::{parse_entailment_manifest, EntailmentKind, ManifestEntry};
 pub use status::{outcome_for_szs, ExternalOutcome};
