@@ -343,7 +343,14 @@ pub fn validate(data_nt: &str) -> ValidationReport {
 pub enum Source {
     /// Inline Turtle text, owned so `format!`/helper-assembled cases work in a
     /// `#[case(...)]` expression (`rstest` evaluates the expr at runtime).
+    /// Parsed + re-serialized through [`ttl_str_to_nt`].
     Inline(String),
+    /// Raw N-Triples fed DIRECTLY to the validator, bypassing the Turtle
+    /// parse/re-serialize round-trip. Mirrors originals that called
+    /// `validate(nt)` on a hand-written N-Triples literal (e.g. the
+    /// case-insensitive language-tag check, whose tag casing must not be
+    /// normalised by a round-trip).
+    RawNt(String),
     /// `tests/fixtures/{subdir}/{name}.ttl` — see [`fixture_as_nt`].
     File {
         subdir: &'static str,
@@ -367,6 +374,8 @@ pub enum Source {
 ///   implicitly requires "no warnings"/"no violations".
 /// - [`Case::no_violation`] / [`Case::no_warning`] assert a substring is absent.
 /// - [`Case::violation_count`] asserts the exact number of violation messages.
+/// - [`Case::messages`] is a subset check over the UNION of violations and
+///   warnings (mirror originals that joined `violations().chain(warnings())`).
 /// - [`Case::violations_ci`] / [`Case::warnings_ci`] are case-insensitive subset
 ///   checks (mirror originals that folded `.to_lowercase()` before `.contains`).
 /// - [`Case::any_violation`] / [`Case::any_violation_ci`] assert at least one of a
@@ -382,6 +391,7 @@ pub struct Case {
     expect_conforms: bool,
     expected_violations: Vec<&'static str>,
     expected_warnings: Vec<&'static str>,
+    expected_messages: Vec<&'static str>,
     expected_violations_ci: Vec<&'static str>,
     expected_warnings_ci: Vec<&'static str>,
     any_violations: Vec<Vec<&'static str>>,
@@ -399,6 +409,7 @@ impl Case {
             expect_conforms: true,
             expected_violations: Vec::new(),
             expected_warnings: Vec::new(),
+            expected_messages: Vec::new(),
             expected_violations_ci: Vec::new(),
             expected_warnings_ci: Vec::new(),
             any_violations: Vec::new(),
@@ -412,6 +423,13 @@ impl Case {
     /// Case fed by inline Turtle (owned `String`; accepts `&str`/`String`/`format!`).
     pub fn inline(ttl: impl Into<String>) -> Self {
         Self::new(Source::Inline(ttl.into()))
+    }
+
+    /// Case fed by raw N-Triples passed DIRECTLY to the validator (no Turtle
+    /// round-trip). Use when the original called `validate(nt)` on an N-Triples
+    /// literal and the round-trip could alter the data (e.g. language-tag casing).
+    pub fn raw_nt(nt: impl Into<String>) -> Self {
+        Self::new(Source::RawNt(nt.into()))
     }
 
     /// Case fed by `tests/fixtures/{subdir}/{name}.ttl`.
@@ -461,6 +479,14 @@ impl Case {
         self
     }
 
+    /// Require each substring to be present in the UNION of violation and warning
+    /// messages (mirrors originals that checked `violations().chain(warnings())`,
+    /// where a message may land in either channel).
+    pub fn messages(mut self, subs: &[&'static str]) -> Self {
+        self.expected_messages.extend_from_slice(subs);
+        self
+    }
+
     /// Require at least ONE of `subs` to be present in some violation message
     /// (case-sensitive; mirrors an `a || b || c` disjunction in the original).
     pub fn any_violation(mut self, subs: &[&'static str]) -> Self {
@@ -496,6 +522,7 @@ impl Case {
     pub fn run(&self) {
         let nt = match &self.source {
             Source::Inline(ttl) => ttl_str_to_nt(ttl),
+            Source::RawNt(nt) => nt.clone(),
             Source::File { subdir, name } => fixture_as_nt(subdir, name),
             Source::RepoPath(rel) => ttl_file_to_nt(&repo_root().join(rel)),
         };
@@ -529,6 +556,16 @@ impl Case {
             assert!(
                 got_warnings.iter().any(|w| w.contains(sub)),
                 "expected a warning containing {sub:?}; got: {got_warnings:?}"
+            );
+        }
+        for sub in &self.expected_messages {
+            assert!(
+                got_violations
+                    .iter()
+                    .chain(&got_warnings)
+                    .any(|m| m.contains(sub)),
+                "expected a violation OR warning containing {sub:?}; \
+                 violations: {got_violations:?}; warnings: {got_warnings:?}"
             );
         }
         for sub in &self.expected_violations_ci {
