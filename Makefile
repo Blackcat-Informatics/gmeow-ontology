@@ -68,7 +68,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	maint-reasoning-cases maint-statements-docker-check maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
-	maint-test-network maint-pull-images maint-quality maint-evals-score \
+	maint-test-network maint-test-network-rust maint-pull-images maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-rust-heavy
 
 ##@ Core Workflows
@@ -527,6 +527,9 @@ maint-test-heavy: native-py ## Run kept-Python-module maintainer tests.
 
 maint-test-network: ## Run live network tests.
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
+
+maint-test-network-rust: ## Run the live SERVICE federation test (S6b #928) against a public endpoint.
+	GMEOW_RUN_NETWORK=1 cargo test -p gmeow-sparql-eval --test service_live -- --ignored
 
 maint-pull-images: ## Pull or build pinned Docker oracle images.
 	bash scripts/pull-images.sh
