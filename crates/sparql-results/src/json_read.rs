@@ -6,7 +6,7 @@
 //! Parses a W3C SPARQL 1.1 Query Results JSON document
 //! (<https://www.w3.org/TR/sparql11-results-json/>) into a [`ParsedSolutions`]
 //! (for `SELECT`) or a boolean (for `ASK`). This is what SPARQL `SERVICE`
-//! federation (S6b #928) uses to ingest a remote endpoint's response, and what
+//! federation uses to ingest a remote endpoint's response, and what
 //! the W3C conformance harness uses to read expected `.srj` results.
 //!
 //! # Wasm discipline
@@ -451,15 +451,38 @@ impl<'a> JsonParser<'a> {
         Ok(value)
     }
 
-    /// Consume one UTF-8 code point starting at `pos`.
+    /// Consume one UTF-8 code point starting at `pos` in O(1).
+    ///
+    /// Determines the code-point width from the lead byte's bit pattern, slices
+    /// exactly those 1–4 bytes, and validates only that small slice — avoiding
+    /// the O(N²) cost of validating the entire remaining buffer on every call.
     fn next_utf8_char(&mut self) -> Result<char, Error> {
-        let rest = core::str::from_utf8(&self.bytes[self.pos..])
-            .map_err(|_| fmt("invalid UTF-8 in string"))?;
-        let ch = rest
-            .chars()
-            .next()
+        let lead = self
+            .bytes
+            .get(self.pos)
+            .copied()
             .ok_or_else(|| fmt("unterminated string"))?;
-        self.pos += ch.len_utf8();
+        // Determine the encoded width from the lead byte.
+        let width = if lead < 0x80 {
+            1usize
+        } else if lead & 0xE0 == 0xC0 {
+            2
+        } else if lead & 0xF0 == 0xE0 {
+            3
+        } else if lead & 0xF8 == 0xF0 {
+            4
+        } else {
+            return Err(fmt("invalid UTF-8 lead byte in string"));
+        };
+        let end = self.pos + width;
+        if end > self.bytes.len() {
+            return Err(fmt("truncated UTF-8 sequence in string"));
+        }
+        // Validate and decode only the exact code-point slice.
+        let slice = &self.bytes[self.pos..end];
+        let s = core::str::from_utf8(slice).map_err(|_| fmt("invalid UTF-8 sequence in string"))?;
+        let ch = s.chars().next().ok_or_else(|| fmt("empty UTF-8 slice"))?;
+        self.pos = end;
         Ok(ch)
     }
 }
@@ -591,5 +614,64 @@ mod tests {
     #[test]
     fn rejects_trailing_garbage() {
         assert!(from_json(br#"{"head":{"vars":[]},"results":{"bindings":[]}} oops"#).is_err());
+    }
+
+    /// Guard against the O(N²) regression: a long multibyte string must parse
+    /// correctly and the decoded value must round-trip.
+    #[test]
+    fn long_multibyte_string_parses_correctly() {
+        // Build a large string of multibyte chars: mix of 2-byte (é, U+00E9)
+        // and 3-byte (你, U+4F60) code points so all width branches are hit.
+        let repeated_2byte = "é".repeat(1_500); // 3 000 bytes
+        let repeated_3byte = "你".repeat(1_000); // 3 000 bytes
+        let long_value = format!("{repeated_2byte}{repeated_3byte}");
+
+        let srj = format!(
+            r#"{{"head":{{"vars":["x"]}},"results":{{"bindings":[{{"x":{{"type":"literal","value":"{long_value}"}}}}]}}}}"#
+        );
+        let parsed = from_json(srj.as_bytes()).expect("parse long multibyte string");
+        let TermValue::Literal { lexical_form, .. } = parsed.rows[0][0].clone().unwrap() else {
+            panic!("expected literal");
+        };
+        assert_eq!(lexical_form, long_value, "decoded value must round-trip");
+    }
+
+    /// A 4-byte UTF-8 sequence (emoji, U+1F600) must decode correctly through
+    /// the lead-byte-width path.
+    #[test]
+    fn four_byte_utf8_sequence_parses() {
+        // U+1F600 GRINNING FACE encodes as 4 UTF-8 bytes.
+        let val = "😀".repeat(500);
+        let srj = format!(
+            r#"{{"head":{{"vars":["x"]}},"results":{{"bindings":[{{"x":{{"type":"literal","value":"{val}"}}}}]}}}}"#
+        );
+        let parsed = from_json(srj.as_bytes()).expect("parse 4-byte sequences");
+        let TermValue::Literal { lexical_form, .. } = parsed.rows[0][0].clone().unwrap() else {
+            panic!("expected literal");
+        };
+        assert_eq!(lexical_form, val);
+    }
+
+    /// Malformed UTF-8 bytes inside a JSON string must yield a parse Error, not
+    /// a panic.  We inject a raw invalid continuation byte (0x80) that is not
+    /// preceded by a valid lead byte.
+    #[test]
+    fn malformed_utf8_yields_error_not_panic() {
+        // Construct bytes: valid JSON prefix, then a bare 0x80 continuation byte
+        // (invalid as a lead byte), then closing JSON.
+        let prefix =
+            br#"{"head":{"vars":["x"]},"results":{"bindings":[{"x":{"type":"literal","value":""#;
+        let suffix = br#""}}]}}"#;
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(prefix);
+        // Insert the invalid lead byte just before the closing quote.
+        bytes.push(0x80); // bare continuation — not a valid UTF-8 lead
+        bytes.extend_from_slice(suffix);
+        let result = from_json(&bytes);
+        assert!(result.is_err(), "expected Err for invalid UTF-8, got Ok");
+        assert!(
+            matches!(result.unwrap_err(), Error::Format(_)),
+            "error must be Error::Format"
+        );
     }
 }
