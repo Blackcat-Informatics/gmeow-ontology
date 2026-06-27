@@ -448,7 +448,8 @@ meta:Principle17 a meta:Principle ;
     meta:number 17 ;
     meta:title "The logic itself is canonical — OWL is a projection of it, not its ceiling" ;
     meta:enforcedBy meta:gate-logic-conformance, meta:gate-logic-round-trip,
-        meta:gate-foundation-conformance, meta:gate-logic-gufo-superset .
+        meta:gate-foundation-conformance, meta:gate-logic-gufo-superset,
+        meta:shapes-result-generated .
 
 # The executable lane-purity seal (#667): the two-lane split (primary lane
 # Java/Docker-free; classic-cross-check the SOLE oracle lane) is enforced by an
