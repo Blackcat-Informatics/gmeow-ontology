@@ -40,6 +40,18 @@ regex = "1"
 md-5 = { version = "0.10", default-features = false }
 sha1 = { version = "0.10", default-features = false }
 sha2 = { version = "0.10", default-features = false }
+# SPARQL Results reader for decoding remote SERVICE responses. Wasm-clean
+# (hand-rolled, no serde), so it is a NORMAL dep — only the HTTP client below is
+# native-gated. No oxigraph-family edge.
+gmeow-sparql-results = { path = "../sparql-results" }
+
+# Native-only HTTP transport for SERVICE federation (S6b #928). `ureq` (rustls) is
+# NOT wasm-portable, so it is gated off wasm32 — keeping the wasm-first build clean
+# (the `remote_http` module is `#[cfg(not(target_arch = "wasm32"))]` to match).
+# rustls/ring/webpki carry no oxigraph-family crate, so `make rdf-core-hygiene`
+# stays green.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+ureq = "3"
 
 [dev-dependencies]
 # Colored line-diffs on assert_eq! failure (repo convention).

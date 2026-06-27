@@ -1999,12 +1999,14 @@ dependencies = [
  "criterion",
  "gmeow-rdf-core",
  "gmeow-sparql-algebra",
+ "gmeow-sparql-results",
  "gmeow-xsd",
  "md-5",
  "pretty_assertions",
  "regex",
  "sha1 0.10.6",
  "sha2",
+ "ureq",
 ]
 
 [[package]]
