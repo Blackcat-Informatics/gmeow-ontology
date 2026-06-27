@@ -1,0 +1,15 @@
+# Reviewer gate: only reviewed candidates become canonical. A
+# logic:FormalizationCandidate in the canonical, axiom-bearing state
+# (logic:CandidateAccepted) is legitimate ONLY with a recorded reviewer decision
+# (logic:reviewedBy). An accepted candidate with no reviewer decision — exactly the
+# shape of an LLM extraction promoted straight to canonical — is a governance
+# violation. Any returned row is a violation (LOGIC-FOUNDATION.md, §Typed
+# formalization governance).
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?candidate WHERE {
+    ?candidate a logic:FormalizationCandidate ;
+               logic:candidateLifecycle logic:CandidateAccepted .
+    FILTER NOT EXISTS { ?candidate logic:reviewedBy ?reviewer }
+}
+ORDER BY ?candidate

@@ -1564,6 +1564,32 @@ const STRATUM_4: &[Rule] = &[
 /// negated atom is only checked once the predicate it negates has settled.
 const STRATA: [&[Rule]; 5] = [STRATUM_0, STRATUM_1, STRATUM_2, STRATUM_3, STRATUM_4];
 
+/// The set of constant predicate IRIs that appear as a rule HEAD anywhere in the
+/// foundation program.
+///
+/// This is the syntactic-reachability oracle for a [`crate::obligations`]
+/// non-entailment check: a predicate the chase can ever derive must be the head of
+/// some rule, so a predicate absent from this set is *unreachable* — no rule head
+/// unifies with it, directly or through any chain of rule applications (every
+/// derived fact is some rule's head). A `logic:NonEntailmentObligation` whose
+/// forbidden predicate is not in this set is discharged by syntactic reachability;
+/// one whose forbidden predicate IS in it is violated. The foundation heads are all
+/// `logic:`-namespaced, so an assertion-only `gmeow:` predicate (e.g.
+/// `gmeow:counterpartOf`, `gmeow:deceptiveIntentClaim`) is discharged today and trips
+/// only if a future rule introduces it as a head.
+#[must_use]
+pub fn head_predicate_iris() -> std::collections::BTreeSet<String> {
+    let mut set = std::collections::BTreeSet::new();
+    for stratum in STRATA {
+        for rule in stratum {
+            if let TermPat::Const(iri) = rule.head.predicate {
+                set.insert(iri.to_owned());
+            }
+        }
+    }
+    set
+}
+
 // ── Output quad type ────────────────────────────────────────────────────────────
 
 /// A materialized quad with the full seam provenance contract.

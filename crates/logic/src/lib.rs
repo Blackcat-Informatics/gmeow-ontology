@@ -27,6 +27,7 @@ pub mod logic_diagnostics;
 // so it stays in the runtime crate, not the wasm-able gmeow-logic-compile crate.
 pub mod lower;
 pub mod materialize;
+pub mod obligations;
 // Path-projection runtime tests (#732): they run the projected Datalog through
 // crate::rule_ir (Nemo), so they live runtime-side as an in-crate test module.
 #[cfg(test)]
