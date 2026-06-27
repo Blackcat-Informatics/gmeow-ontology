@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>logic-compile diagnostics</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; color: #17202a; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .summary { color: #4b5563; margin-bottom: 1rem; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border-bottom: 1px solid #d8dee9; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #f3f4f6; }
+    .sev { border-radius: 4px; color: white; display: inline-block; font-size: 0.8rem; min-width: 4.5rem; padding: 0.2rem 0.4rem; text-align: center; }
+    .sev-error { background: #b42318; }
+    .sev-warning { background: #b54708; }
+    .sev-note, .sev-info { background: #175cd3; }
+  </style>
+</head>
+<body>
+  <h1>logic-compile diagnostics</h1>
+  <p class="summary">0 error(s), 0 warning(s), 25 total finding(s)</p>
+  <table>
+    <thead><tr><th>Severity</th><th>Code</th><th>Message</th><th>Location</th></tr></thead>
+    <tbody>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection datalog drops: OWL class expressions not representable as Datalog atoms are dropped</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection datalog drops: modal/world context flattened to predicate reification</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection datalog drops: no existential rule heads (skolemisation not emitted)</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: fluents / 4D temporal-part structure (logic:Fluent, logic:temporalPartOf, logic:Process, logic:Perdurant beyond gufo:Event) have no gUFO class and are dropped</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: logic: world-modal/contextual structure has no gUFO equivalent</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: logic:Mode (and Intrinsic/Extrinsic mode/aspect refinements) has no single gUFO base class as a projection target and is dropped (gufo:Aspect is emitted; gufo:Mode does not exist)</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: multi-level / HiLog instantiation (logic:instanceOf, logic:orderedType — arbitrary type-of-type levels) has no gUFO punning equivalent and is dropped</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: native builtins (logic:Builtin and the builtin individuals) have no gUFO class and are dropped</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: native edge-property metadata (RDF-1.2 statement-level scope on logic edges) has no gUFO equivalent and is dropped</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: only gUFO-mapped sorts and structural predicates emitted</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: preservation kind is ValidationOnly: gUFO is an anti-pattern check, not an entailment surface</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: rules not representable in gUFO; only type/subtype declarations kept</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: scoped open/closed worlds (logic:WorldBoundary, logic:closedUnder, scoped-CWA) have no gUFO equivalent and are dropped</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: strict-partial-order parthood characteristics (asymmetric + irreflexive on logic:properPartOf) cannot be declared in OWL 2 DL gUFO (it only states transitivity) and are dropped</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: the five gUFO temporary-situation reifiers (QualityValueAttributionSituation, TemporaryConstitution/Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by logic:Fluent + RDF-1.2 edge properties — not re-emitted by the down-projection</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection n3 drops: N3 builtins used for arithmetic/string predicates where available</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection n3 drops: modal context encoded as quoted graph arguments (may overgenerate)</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection owl-dl drops: contextual scope (standpoint, time, confidence) is dropped</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection owl-dl drops: modal/world context is erased</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection owl-dl drops: probabilistic profile not representable in OWL DL</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection owl-dl drops: rule bodies mapped to OWL axioms where OWL is expressive enough; existential rules beyond OWL DL expressivity are dropped</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection owl-el drops: contextual scope (standpoint, time, confidence) is dropped</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection owl-el drops: modal/world context is erased</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection owl-el drops: only EL-safe axioms emitted (no disjointness, no inverseOf, no cardinality restrictions, no nominals)</td><td></td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection owl-el drops: rules beyond EL expressivity are dropped</td><td></td></tr>
+    </tbody>
+  </table>
+</body>
+</html>
