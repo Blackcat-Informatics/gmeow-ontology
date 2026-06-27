@@ -294,6 +294,18 @@ def gmeow_reason(
             warnings = report.warning_count
         else:
             warnings = len(list(report.warnings))
+        # Surface the typed ReasoningResult status fields (#768 GAP 3): reason.py
+        # stores the Rust-emitted status/preservation/provenance dicts in report
+        # metadata under "reasoning_result"; read them here as a pure dict read
+        # (no computation — the values were built entirely in Rust).
+        reasoning_result: dict[str, object] = {}
+        try:
+            report_data = json.loads(report.to_json())
+            raw = report_data.get("metadata", {}).get("reasoning_result")
+            if isinstance(raw, dict):
+                reasoning_result = raw
+        except Exception:  # metadata read must never crash MCP
+            pass
         return json.dumps(
             {
                 "ok": report.ok,
@@ -304,6 +316,7 @@ def gmeow_reason(
                 ),
                 "errors": report.error_count,
                 "warnings": warnings,
+                "reasoning_result": reasoning_result,
             }
         )
 

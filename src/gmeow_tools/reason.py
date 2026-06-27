@@ -22,6 +22,7 @@ authority is cross-checked against, not as a gate dependency.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -419,6 +420,20 @@ def reason_native(
     # the Rust dict; surface them in the summary (no Python logic — a dict read).
     status = result.get("status", {})
     report = diagnostics.report(tool="reason")
+    # Store the full typed status block as report metadata so MCP and other
+    # consumers can read it from report.to_json()["metadata"]["reasoning_result"]
+    # without calling gmeow_logic again.  Pure dict reads; zero Python logic.
+    report.set_metadata_json(
+        "reasoning_result",
+        json.dumps(
+            {
+                "status": status,
+                "preservation": result.get("preservation", {}),
+                "provenance": result.get("provenance", {}),
+            },
+            sort_keys=True,
+        ),
+    )
     report.add(
         diagnostics.finding(
             severity="note",
