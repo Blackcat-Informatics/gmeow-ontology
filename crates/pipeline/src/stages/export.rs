@@ -46,6 +46,11 @@ const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 
+/// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
+/// values under it become the term's logic stereotypes. Mirrors
+/// `gmeow_docs::model::LOGIC_NS`.
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+
 const LANGUAGE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Language";
 const LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/gmeow/languageTag";
 const BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
@@ -497,6 +502,14 @@ pub(crate) struct Term {
     pub(crate) how_to_use: Vec<String>,
     pub(crate) use_for_consumer: Vec<String>,
     pub(crate) avoid_for_consumer: Vec<String>,
+    /// `logic:*` stereotype CURIEs co-asserted as `rdf:type` (sorted/deduped).
+    /// Mirrors `gmeow_docs::model::logic_stereotypes` so the shared term card
+    /// (#1027) carries the lowered OntoUML/UFO discipline.
+    pub(crate) logic_stereotypes: Vec<String>,
+    /// Related-term CURIEs: the union of `skos:related`, `gmeow:pairsWith`, and
+    /// `rdfs:seeAlso` objects (sorted/deduped). Read per-term directly from the
+    /// folded default graph; not bidirectionally reconciled (see G1 note).
+    pub(crate) related_terms: Vec<String>,
 }
 
 // ── JSON helpers (json.dumps ensure_ascii=False, insertion-ordered objects) ────
@@ -771,6 +784,39 @@ fn term_label_def(view: &FoldView, t: usize, term: &mut Term) {
     }
 }
 
+/// The `logic:*` stereotype CURIEs of a subject: its `rdf:type` values under the
+/// `logic:` namespace, CURIE-rendered (sorted/deduped). Mirrors
+/// `gmeow_docs::model::logic_stereotypes`.
+fn fold_logic_stereotypes(view: &FoldView, t: usize) -> Vec<String> {
+    let mut out: BTreeSet<String> = BTreeSet::new();
+    for o in view.objects(t, RDF_TYPE, DEFAULT_SCOPE) {
+        if view.is_iri(o) && view.lex(o).starts_with(LOGIC_NS) {
+            out.insert(curie(view.lex(o)));
+        }
+    }
+    out.into_iter().collect()
+}
+
+/// The related-term CURIEs of a subject: the union of `skos:related`,
+/// `gmeow:pairsWith`, and `rdfs:seeAlso` objects (sorted/deduped). Read per-term
+/// directly (NOT bidirectionally reconciled — see G1 note). Mirrors the forward
+/// read in `gmeow_docs::model::extract_terms`.
+fn fold_related_terms(view: &FoldView, t: usize) -> Vec<String> {
+    let mut out: BTreeSet<String> = BTreeSet::new();
+    for pred in [
+        format!("{SKOS}related"),
+        format!("{NAMESPACE}pairsWith"),
+        format!("{RDFS}seeAlso"),
+    ] {
+        for o in view.objects(t, &pred, DEFAULT_SCOPE) {
+            if view.is_iri(o) {
+                out.insert(curie(view.lex(o)));
+            }
+        }
+    }
+    out.into_iter().collect()
+}
+
 fn fold_advisory(view: &FoldView, t: usize, term: &mut Term) {
     term.box_roles = fold_curies(view, t, &format!("{NAMESPACE}graphBoxRole"));
     term.scope_notes = fold_public_texts(view, t, &format!("{SKOS}scopeNote"));
@@ -780,6 +826,8 @@ fn fold_advisory(view: &FoldView, t: usize, term: &mut Term) {
     term.how_to_use = fold_public_texts(view, t, &format!("{NAMESPACE}howToUse"));
     term.use_for_consumer = fold_curies(view, t, &format!("{NAMESPACE}useForConsumer"));
     term.avoid_for_consumer = fold_curies(view, t, &format!("{NAMESPACE}avoidForConsumer"));
+    term.logic_stereotypes = fold_logic_stereotypes(view, t);
+    term.related_terms = fold_related_terms(view, t);
 }
 
 const PROPERTY_KINDS: &[(&str, &str)] = &[
@@ -892,6 +940,88 @@ pub(crate) fn collect_terms(view: &FoldView) -> Vec<Term> {
     terms
 }
 
+/// Build the neutral, shared [`gmeow_docs::card::Card`] from a folded [`Term`].
+///
+/// This is the ONE card builder for the folded/MCP side; together with
+/// `gmeow_docs::render::doc_term_card` (the docs-site side) it feeds the SINGLE
+/// `gmeow_docs::card::render_card_body` renderer, so the MCP card and the site
+/// card never diverge again (#1027, §19 one-path).
+///
+/// Values are resolved to display strings (CURIEs / pre-described domain/range).
+/// The category is human-cased to match the docs side (`Class`/`Property`/…).
+///
+/// MAXIMAL-INFO GAP (#1027 follow-up): the folded snapshot ingests every slice
+/// module into ONE default graph with no per-term `definedInSlice` provenance
+/// (the numeric ingest "scope" is a dedup key, not a slice id; the
+/// `gmeow:graph/slice-analysis` graph carries per-slice term COUNTS, not the
+/// term→slice map). So the folded card cannot carry the owning slice. Rather
+/// than emit a blank `slice:` line, `Card::slice` is left `None` here and the
+/// header line is omitted. The docs-site card DOES carry it. Wiring term→slice
+/// provenance into the fold is a tracked follow-up.
+#[cfg(any(feature = "python", test))]
+pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
+    let category = match t.category {
+        "class" => "Class",
+        "property" => "Property",
+        "individual" => "Individual",
+        other => other,
+    }
+    .to_string();
+    let label = if t.label.is_empty() || t.label == t.curie {
+        None
+    } else {
+        Some(marked(&t.label, t.label_fallback))
+    };
+    let definition = if t.definition.is_empty() {
+        None
+    } else {
+        Some(marked(&t.definition, t.definition_fallback))
+    };
+    // Parents: subClassOf for a class, subPropertyOf for a property.
+    let parents = if t.category == "property" {
+        t.sub_property_of.clone()
+    } else {
+        t.parents.clone()
+    };
+    // Domain / range are single pre-described display strings on the folded Term.
+    let domain = if t.domain.is_empty() {
+        Vec::new()
+    } else {
+        vec![t.domain.clone()]
+    };
+    let range = if t.range.is_empty() {
+        Vec::new()
+    } else {
+        vec![t.range.clone()]
+    };
+    // Individuals carry `types` rather than parents; surface them as Related-style
+    // "a Type" is not a card field, so fold types into related_terms is wrong;
+    // instead they ride the `(a …)` signature suffix on the heading. Keep the
+    // card body parent-free for individuals.
+    gmeow_docs::card::Card {
+        category,
+        iri: t.iri.clone(),
+        label,
+        // See the MAXIMAL-INFO GAP note above: the fold has no term→slice map.
+        slice: None,
+        box_roles: t.box_roles.clone(),
+        definition,
+        parents,
+        domain,
+        range,
+        use_when: t.use_when.clone(),
+        avoid_when: t.avoid_when.clone(),
+        how_to_use: t.how_to_use.clone(),
+        scope_notes: t.scope_notes.clone(),
+        examples: t.examples.clone(),
+        logic_stereotypes: t.logic_stereotypes.clone(),
+        related_terms: t.related_terms.clone(),
+        use_for_consumer: t.use_for_consumer.clone(),
+        avoid_for_consumer: t.avoid_for_consumer.clone(),
+        aligns: t.alignments.clone(),
+    }
+}
+
 pub(crate) fn fold_meta(view: &FoldView) -> Result<(String, String), PipelineError> {
     let onto = view.tid_of_iri(ONTOLOGY_IRI).ok_or_else(|| {
         PipelineError::Parse(format!(
@@ -971,6 +1101,8 @@ fn term_record(t: &Term) -> J {
         ("howToUse", &t.how_to_use),
         ("useForConsumer", &t.use_for_consumer),
         ("avoidForConsumer", &t.avoid_for_consumer),
+        ("logicStereotypes", &t.logic_stereotypes),
+        ("relatedTerms", &t.related_terms),
     ];
     for (key, vals) in extra {
         if !vals.is_empty() {
@@ -1618,61 +1750,25 @@ mod consumer {
         gmeow_docs::llms::render_index(title, &prose, &sections)
     }
 
-    /// The card body lines for one term (NO heading): the metadata, the
-    /// definition, every advisory field (via [`append_md_advisory`]), and the
-    /// subclass / alignment blocks. Shared by [`doc_card_md`] (per-term card) and
-    /// [`consumer_llms_full`] (the complete inlined index).
-    fn term_card_lines(t: &Term) -> Vec<String> {
-        let mut lines: Vec<String> =
-            vec![format!("\n- category: {}\n- iri: {}", t.category, t.iri)];
-        if !t.definition.is_empty() {
-            lines.push(format!(
-                "\n{}",
-                marked(&t.definition, t.definition_fallback)
-            ));
-        }
-        append_md_advisory(&mut lines, t);
-        if !t.parents.is_empty() {
-            lines.push(format!(
-                "\n*Subclass of:* {}",
-                t.parents
-                    .iter()
-                    .map(|p| format!("`{p}`"))
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            ));
-        }
-        if !t.alignments.is_empty() {
-            lines.push(format!(
-                "\n*Aligns:* {}",
-                t.alignments
-                    .iter()
-                    .map(|a| format!("`{a}`"))
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            ));
-        }
-        lines
-    }
-
     /// `gmeow_doc_card`: a prompt-ready Markdown card for one term (#1027) — the
     /// live MCP twin of the docs-site `terms/{slug}/card.md`. Resolves the query,
     /// then renders a `# {curie}{signature}` card with the definition and every
-    /// advisory field. Returns a plain not-found line when the query does not
-    /// resolve to exactly one term.
+    /// advisory field, through the ONE shared `gmeow_docs::card` renderer the
+    /// docs-site card uses (§19 one-path). Returns a plain not-found line when the
+    /// query does not resolve to exactly one term.
     pub(crate) fn doc_card_md(terms: &[Term], query: &str) -> String {
         let Some(t) = resolve_term(terms, query) else {
             return format!("Term not found: {query}\n");
         };
-        let mut lines = vec![format!("# {}{}", t.curie, llms_signature(t))];
-        lines.extend(term_card_lines(t));
-        lines.join("\n") + "\n"
+        let title = format!("{}{}", t.curie, llms_signature(t));
+        gmeow_docs::card::render_card(&title, &super::term_to_card(t))
     }
 
     /// The `llms-full.txt` MCP resource (#1027): the complete, link-free inlined
     /// index — the standard header (with the canonical summary blockquote) then
-    /// every term as a `### {curie}{signature}` block with its full card body. The
-    /// folded-`Term` twin of the docs-site `gmeow_docs::render::llms_full_txt`.
+    /// every term as a `### {curie}{signature}` block with its full card body,
+    /// rendered through the shared `gmeow_docs::card` renderer. The folded-`Term`
+    /// twin of the docs-site `gmeow_docs::render::llms_full_txt`.
     pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> String {
         let prose = llms_prose(
             version,
@@ -1681,10 +1777,9 @@ mod consumer {
         let mut out = gmeow_docs::llms::llms_header(title, &prose);
         out.push_str("## Terms\n\n");
         for t in terms {
-            let mut lines = vec![format!("### {}{}", t.curie, llms_signature(t))];
-            lines.extend(term_card_lines(t));
-            out.push_str(&lines.join("\n"));
-            out.push_str("\n\n");
+            out.push_str(&format!("### {}{}\n\n", t.curie, llms_signature(t)));
+            out.push_str(&gmeow_docs::card::render_card_body(&super::term_to_card(t)));
+            out.push('\n');
         }
         out
     }
@@ -2641,8 +2736,14 @@ mod tests {
         let (terms, _t, _v) = english_terms();
         let card = doc_card_md(&terms, "gmeow:langFrench");
         assert!(card.starts_with("# gmeow:langFrench"), "card head:\n{card}");
-        assert!(card.contains("- category: individual"));
+        // Canonical card convention (the shared `gmeow_docs::card` renderer):
+        // human-cased category, NO blank `slice:` line on the folded side.
+        assert!(card.contains("- category: Individual"));
         assert!(card.contains("- iri: https://blackcatinformatics.ca/gmeow/langFrench"));
+        assert!(
+            !card.contains("- slice:"),
+            "fold has no term→slice provenance (MAXIMAL-INFO GAP)"
+        );
         assert!(card.ends_with('\n'));
 
         let miss = doc_card_md(&terms, "gmeow:NoSuchTerm");
@@ -2671,6 +2772,95 @@ mod tests {
             headings >= terms.len() / 2,
             "expected roughly one block per term, got {headings} for {} terms",
             terms.len()
+        );
+    }
+
+    /// The twin-contract lock (#1027, §19 one-path): the MCP card and the
+    /// docs-site card share ONE renderer (`gmeow_docs::card::render_card_body`)
+    /// AND one convention. This test pins the shared renderer's output for a card
+    /// whose SHARED fields are set, then proves the folded-`Term` builder
+    /// (`term_to_card`) maps those same fields into the SAME canonical `Card`,
+    /// so the two sources can never re-diverge field-for-field.
+    ///
+    /// (The docs-site builder `gmeow_docs::render::doc_term_card` is private; both
+    /// builders are thin field-copies into `gmeow_docs::card::Card`, so locking
+    /// `term_to_card` against an explicit `Card` of the same shared values — fed
+    /// through the SOLE body renderer — is the determinism guard. The docs side's
+    /// own routing through `render_card_body` is pinned by gmeow-docs' tests.)
+    #[test]
+    fn term_card_shares_one_renderer_and_convention() {
+        // A folded Term with every SHARED card field populated.
+        let folded = Term {
+            category: "property",
+            iri: "https://blackcatinformatics.ca/gmeow/hasFoo".to_string(),
+            curie: "gmeow:hasFoo".to_string(),
+            label: "has foo".to_string(),
+            definition: "Relates a thing to its foo.".to_string(),
+            prop_kind: "object",
+            domain: "Thing".to_string(),
+            range: "Foo".to_string(),
+            sub_property_of: vec!["gmeow:relates".to_string()],
+            alignments: vec!["exactMatch=ex:hasFoo".to_string()],
+            box_roles: vec!["gmeow:boxTBox".to_string()],
+            scope_notes: vec!["A scope note.".to_string()],
+            examples: vec!["An example.".to_string()],
+            use_when: vec!["When there is a foo.".to_string()],
+            avoid_when: vec!["When there is no foo.".to_string()],
+            how_to_use: vec!["Use idiomatically.".to_string()],
+            use_for_consumer: vec!["gmeow:profileMemory".to_string()],
+            avoid_for_consumer: vec!["gmeow:profileNarrative".to_string()],
+            logic_stereotypes: vec!["logic:Relator".to_string()],
+            related_terms: vec!["gmeow:Bar".to_string()],
+            ..Term::default()
+        };
+
+        // The canonical Card the docs side would build for the SAME shared values
+        // (a property → parents come from sub_property_of; slice is the only field
+        // the docs side adds — left None here to compare the shared fields only).
+        let expected = gmeow_docs::card::Card {
+            category: "Property".to_string(),
+            iri: "https://blackcatinformatics.ca/gmeow/hasFoo".to_string(),
+            label: Some("has foo".to_string()),
+            slice: None,
+            box_roles: vec!["gmeow:boxTBox".to_string()],
+            definition: Some("Relates a thing to its foo.".to_string()),
+            parents: vec!["gmeow:relates".to_string()],
+            domain: vec!["Thing".to_string()],
+            range: vec!["Foo".to_string()],
+            use_when: vec!["When there is a foo.".to_string()],
+            avoid_when: vec!["When there is no foo.".to_string()],
+            how_to_use: vec!["Use idiomatically.".to_string()],
+            scope_notes: vec!["A scope note.".to_string()],
+            examples: vec!["An example.".to_string()],
+            logic_stereotypes: vec!["logic:Relator".to_string()],
+            related_terms: vec!["gmeow:Bar".to_string()],
+            use_for_consumer: vec!["gmeow:profileMemory".to_string()],
+            avoid_for_consumer: vec!["gmeow:profileNarrative".to_string()],
+            aligns: vec!["exactMatch=ex:hasFoo".to_string()],
+        };
+
+        // The folded builder must produce exactly that Card (field-for-field).
+        assert_eq!(
+            term_to_card(&folded),
+            expected,
+            "term_to_card must map the folded Term into the canonical shared Card"
+        );
+
+        // …and both render IDENTICALLY through the SOLE body renderer.
+        let from_folded = gmeow_docs::card::render_card_body(&term_to_card(&folded));
+        let from_expected = gmeow_docs::card::render_card_body(&expected);
+        assert_eq!(
+            from_folded, from_expected,
+            "shared renderer must agree byte-for-byte"
+        );
+
+        // Canonical convention: bold labels, `; ` delimiters, no per-item backticks.
+        assert!(from_folded.contains("**Use when:** When there is a foo.\n\n"));
+        assert!(from_folded.contains("**Aligns:** exactMatch=ex:hasFoo\n\n"));
+        assert!(!from_folded.contains('`'), "card body carries no backticks");
+        assert!(
+            !from_folded.contains("\n*Use when:* "),
+            "labels are bold, not italic"
         );
     }
 

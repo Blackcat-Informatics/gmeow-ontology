@@ -186,6 +186,9 @@ expression: summary
       ],
       "related_terms": [],
       "box_role": "gmeow:boxTBox",
+      "box_roles": [
+        "gmeow:boxTBox"
+      ],
       "formalized_by": [],
       "stability": "stable",
       "added_in_version": null,
@@ -231,6 +234,9 @@ expression: summary
       "logic_stereotypes": [],
       "related_terms": [],
       "box_role": "gmeow:boxRBox",
+      "box_roles": [
+        "gmeow:boxRBox"
+      ],
       "formalized_by": [],
       "stability": "stable",
       "added_in_version": null,
@@ -264,6 +270,9 @@ expression: summary
       "logic_stereotypes": [],
       "related_terms": [],
       "box_role": "gmeow:boxABox",
+      "box_roles": [
+        "gmeow:boxABox"
+      ],
       "formalized_by": [],
       "stability": "stable",
       "added_in_version": null,

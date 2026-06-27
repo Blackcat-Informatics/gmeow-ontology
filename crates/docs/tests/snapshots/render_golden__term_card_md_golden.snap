@@ -14,6 +14,8 @@ A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a t
 
 **Parents:** Relator
 
+**Box roles:** gmeow:boxTBox
+
 **Use when:** Use when the act of tagging must itself be a node — to record who tagged, when, under which scheme, with what confidence, or to retract a tag without deleting it (gmeow:displayable false).
 
 **Avoid when:** Avoid for the ordinary 80% case where a bare label suffices (use the flat gmeow:hasTag, optionally with RDF-star annotations); reify only when provenance, period, or suppression must be first-class.

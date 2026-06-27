@@ -361,6 +361,10 @@ pub struct DocTerm {
     /// `gmeow:graphBoxRole` — the four-boxes role CURIE (`gmeow:boxTBox`,
     /// `gmeow:boxABox`, …); the lowest-sorted when multiply asserted.
     pub box_role: Option<String>,
+    /// `gmeow:graphBoxRole` — ALL asserted four-boxes role CURIEs (sorted/deduped).
+    /// The full set, mirroring the folded snapshot's `Term::box_roles`, so the
+    /// shared term card (#1027) carries every box role, not just the first.
+    pub box_roles: Vec<String>,
     /// Reverse `logic:formalizes` back-references: the IRIs of logic axioms /
     /// subjects that declare `logic:formalizes <this term>` (sorted/deduped).
     /// Empty until the central logic slice carries such back-refs.
@@ -1044,10 +1048,12 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
         related_terms.sort();
         related_terms.dedup();
 
-        // Four-boxes role: the lowest-sorted gmeow:graphBoxRole CURIE.
-        let box_role = curie_objects(store, &iri, GMEOW_GRAPH_BOX_ROLE)
-            .into_iter()
-            .next();
+        // Four-boxes roles: every gmeow:graphBoxRole CURIE (sorted/deduped by
+        // `curie_objects`), plus the lowest-sorted one for the legacy singular.
+        let mut box_roles = curie_objects(store, &iri, GMEOW_GRAPH_BOX_ROLE);
+        box_roles.sort();
+        box_roles.dedup();
+        let box_role = box_roles.first().cloned();
 
         // Per-term lifecycle (#1026): maturity badge (fully resolved with the
         // owner-slice tier in hand), added-in version, and reified changelog.
@@ -1076,6 +1082,7 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
             logic_stereotypes,
             related_terms,
             box_role,
+            box_roles,
             formalized_by: Vec::new(),
             stability,
             added_in_version,

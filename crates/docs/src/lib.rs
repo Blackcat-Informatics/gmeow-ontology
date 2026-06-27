@@ -16,6 +16,7 @@
 //! and [`svg`] hand-emits deterministic SVG diagrams folded into that tree.
 //! Python bindings are kept in [`py`]; lint/i18n arrive in later tasks of #853.
 
+pub mod card;
 pub mod i18n;
 pub mod i18n_compile;
 pub mod lint;

@@ -2961,51 +2961,44 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
 /// precomputed alignment facets so a caller emitting every term pays the linkage
 /// scan ONCE (not O(N²)).
 fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
-    let mut out = String::new();
-    out.push_str(&format!(
-        "- category: {}\n- iri: {}\n- slice: {}\n",
-        category_singular(term.category),
-        term.iri,
-        local_name(&term.owner_slice),
-    ));
-    if let Some(label) = &term.label {
-        if label != &term.curie {
-            out.push_str(&format!("- label: {label}\n"));
-        }
-    }
-    if let Some(box_role) = &term.box_role {
-        out.push_str(&format!("- box: {box_role}\n"));
-    }
-    out.push('\n');
+    crate::card::render_card_body(&doc_term_card(term, alignment_facets))
+}
 
-    if let Some(def) = &term.definition {
-        out.push_str(&one_line(def));
-        out.push_str("\n\n");
-    }
-
-    let mut field = |label: &str, values: &[String]| {
-        if !values.is_empty() {
-            out.push_str(&format!("**{label}:** {}\n\n", values.join("; ")));
-        }
+/// Build the neutral [`crate::card::Card`] from a docs-site [`DocTerm`], resolving
+/// every IRI-bearing field to its display (local-name) form. The shared
+/// [`crate::card::render_card_body`] then renders it — the SAME renderer the
+/// folded-snapshot MCP card uses, so the two never diverge (#1027, §19 one-path).
+fn doc_term_card(term: &DocTerm, alignment_facets: &AlignmentFacets) -> crate::card::Card {
+    let label = match &term.label {
+        Some(l) if l != &term.curie => Some(l.clone()),
+        _ => None,
     };
-    field("Parents", &local_name_vec(&term.parents));
-    field("Domain", &local_name_vec(&term.domain));
-    field("Range", &local_name_vec(&term.range));
-    field("Use when", &term.use_when);
-    field("Avoid when", &term.avoid_when);
-    field("How to use", &term.how_to_use);
-    field("Scope notes", &term.scope_notes);
-    field("Examples", &term.examples);
-    field("Logic", &term.logic_stereotypes);
-    field("Related", &local_name_vec(&term.related_terms));
-    field(
-        "Aligns",
-        &alignment_facets
+    crate::card::Card {
+        category: category_singular(term.category).to_string(),
+        iri: term.iri.clone(),
+        label,
+        // The docs side ALWAYS carries slice provenance (the owning module).
+        slice: Some(local_name(&term.owner_slice).to_string()),
+        // Box roles stay CURIEs (matching the folded side's `gmeow:boxTBox`).
+        box_roles: term.box_roles.clone(),
+        definition: term.definition.as_deref().map(one_line),
+        parents: local_name_vec(&term.parents),
+        domain: local_name_vec(&term.domain),
+        range: local_name_vec(&term.range),
+        use_when: term.use_when.clone(),
+        avoid_when: term.avoid_when.clone(),
+        how_to_use: term.how_to_use.clone(),
+        scope_notes: term.scope_notes.clone(),
+        examples: term.examples.clone(),
+        logic_stereotypes: term.logic_stereotypes.clone(),
+        related_terms: local_name_vec(&term.related_terms),
+        use_for_consumer: term.use_for_consumer.clone(),
+        avoid_for_consumer: term.avoid_for_consumer.clone(),
+        aligns: alignment_facets
             .get(term.iri.as_str())
             .cloned()
             .unwrap_or_default(),
-    );
-    out
+    }
 }
 
 /// The full inlined block for one term in `llms-full.txt`: a `### {curie}{signature}`
