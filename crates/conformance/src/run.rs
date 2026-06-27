@@ -366,6 +366,24 @@ fn run_consistency_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, S
         .map(|w| w.world.clone())
         .collect();
 
+    // Hard-fail (no-optionality, #753): the emitted verdict iterates `world_counts`
+    // (worlds present in the EDB), so every inconsistent world MUST appear there — else
+    // `build_verdicts` would silently omit its `inconsistent` status. The seed fixtures'
+    // clash worlds all carry EDB quads, so this is a latent-invariant guard: an
+    // inference-only inconsistent world fails loudly here rather than vanishing.
+    let missing: Vec<&String> = inconsistent_worlds
+        .iter()
+        .filter(|w| !world_counts.contains_key(*w))
+        .collect();
+    if !missing.is_empty() {
+        return Err(prefix(format!(
+            "native DL reported inconsistency for world(s) {missing:?} absent from the EDB world \
+             set {:?} — the per-world verdict would silently drop them (an inconsistency must \
+             attach to a world present in input.nq)",
+            world_counts.keys().collect::<Vec<_>>()
+        )));
+    }
+
     let verdicts = serialize::build_verdicts(&world_counts, |world| {
         if inconsistent_worlds.contains(world) {
             VerdictStatus::Inconsistent
