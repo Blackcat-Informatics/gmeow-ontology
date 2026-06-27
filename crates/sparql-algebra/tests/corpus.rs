@@ -131,13 +131,14 @@ fn all_generated_projections_parse() {
          required part of the corpus gate (no soft-skip)"
     );
     let (files, queries) = assert_all_parse(&dir, "generated/queries/");
-    // Exact gate: 52 tracked single-CONSTRUCT projections.
+    // Exact gate: tracked single-CONSTRUCT projections (incl. the internal
+    // observation-claim-view union view materialised from the ClaimToken layer).
     assert_eq!(
-        files, 52,
-        "expected 52 generated projections, found {files}"
+        files, 53,
+        "expected 53 generated projections, found {files}"
     );
     assert_eq!(
-        queries, 52,
-        "expected 52 generated queries, parsed {queries}"
+        queries, 53,
+        "expected 53 generated queries, parsed {queries}"
     );
 }

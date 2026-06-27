@@ -1,0 +1,86 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — the four-way claim separation (proposition / claim-token /
+# attitude / evaluation). ONE proposition is put forward by TWO claim tokens from
+# different sources (one reporting a held attitude, one asserted without a
+# reported attitude); a THIRD agent merely entertains the same proposition with
+# NO token (the flat gmeow:accepts spine); and ONE token is evaluated DIFFERENTLY
+# under two standpoints, both evaluations coexisting (Principle 9). The legacy
+# Observation / StandpointClaim surface is NOT authored here — it is the generated
+# union view (generated/queries/observation-claim-view.rq) materialised from these
+# tokens. Illustrative: the reified attitudes carry only the canonical claim links
+# the separation introduces, so this is documentation, not standalone-valid SHACL
+# instance data.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# ── 1. The propositional content (asserts nothing by itself) ──────────────────
+ex:earthIsRound a gmeow:Proposition ;
+    rdfs:label "the Earth is round"@x-gmeow-english .
+
+# Agents and the standpoints (contexts) they speak / judge from.
+ex:alice a gmeow:Agent .
+ex:bob   a gmeow:Agent .
+ex:carol a gmeow:Agent .
+ex:aliceStandpoint a gmeow:Standpoint ; rdfs:label "Alice's standpoint"@x-gmeow-english .
+ex:bobStandpoint   a gmeow:Standpoint ; rdfs:label "Bob's standpoint"@x-gmeow-english .
+ex:courtFrame      a gmeow:Standpoint ; rdfs:label "the court's evidentiary frame"@x-gmeow-english .
+ex:skepticFrame    a gmeow:Standpoint ; rdfs:label "a skeptical frame"@x-gmeow-english .
+
+# ── 2. TWO claim tokens express the SAME proposition (one proposition, many ────
+#       sources). tokAlice reports a held attitude; tokBob is asserted with none.
+ex:tokAlice a gmeow:ClaimToken ;
+    gmeow:wasAssociatedWith ex:alice ;
+    gmeow:accordingTo       ex:aliceStandpoint ;
+    gmeow:expresses         ex:earthIsRound ;
+    gmeow:heldByAttitude    ex:aliceBelief .
+
+ex:tokBob a gmeow:ClaimToken ;
+    gmeow:wasAssociatedWith ex:bob ;
+    gmeow:accordingTo       ex:bobStandpoint ;
+    gmeow:expresses         ex:earthIsRound .          # asserted without a reported attitude
+
+# ── 3. The held attitude (a mental moment), distinct from the act. It grounds ──
+#       the canonical token (gmeow:groundsClaim) AND keeps its standpoint-view
+#       link (gmeow:doxasticClaim) to the projected StandpointClaim.
+ex:aliceBelief a gmeow:DoxasticState ;
+    gmeow:epistemicAgent  ex:alice ;
+    gmeow:doxasticContent ex:earthIsRound ;
+    gmeow:groundsClaim    ex:tokAlice ;               # attitude → canonical claim token
+    gmeow:doxasticClaim   ex:aliceRoundClaim .        # attitude → standpoint-view claim
+
+ex:aliceRoundClaim a gmeow:StandpointClaim ;
+    gmeow:vantage           ex:alice ;
+    gmeow:observedFeature   ex:earthIsRound ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality     gmeow:unequivocal .
+
+# ── 4. A THIRD agent merely ENTERTAINS the proposition — no token, no assertion ─
+#       (the flat gmeow:accepts spine; an attitude need not be expressed).
+ex:carol gmeow:accepts ex:earthIsRound .
+
+# ── 5. One observing event PRODUCES several claim tokens. ─────────────────────
+ex:panel2026 a gmeow:Event ;
+    gmeow:producesClaim ex:tokAlice , ex:tokBob .
+
+# ── 6. The SAME token is EVALUATED differently under two standpoints — an ──────
+#       evaluation is a claim about a claim; the verdicts coexist (Principle 9).
+ex:tokAliceWarranted   a gmeow:Proposition ; rdfs:label "tokAlice is warranted"@x-gmeow-english .
+ex:tokAliceUnwarranted a gmeow:Proposition ; rdfs:label "tokAlice is not warranted"@x-gmeow-english .
+
+ex:evalCourt a gmeow:ClaimEvaluation ;
+    gmeow:evaluates   ex:tokAlice ;
+    gmeow:accordingTo ex:courtFrame ;
+    gmeow:expresses   ex:tokAliceWarranted .
+
+ex:evalSkeptic a gmeow:ClaimEvaluation ;
+    gmeow:evaluates   ex:tokAlice ;
+    gmeow:accordingTo ex:skepticFrame ;
+    gmeow:expresses   ex:tokAliceUnwarranted .
+
+# ── 7. Bipolar argumentation edges land on the claim TOKEN (ClaimToken-end). ──
+ex:supportingEvidence gmeow:supportsClaim ex:tokAlice .
+ex:counterArgument    gmeow:attacksClaim  ex:tokBob .

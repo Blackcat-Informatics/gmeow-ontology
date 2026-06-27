@@ -63,10 +63,9 @@ gmeow:StatementMetadataShape
     ] ;
     sh:property [
         sh:path gmeow:reifier ;
-        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
-        sh:message "StatementMetadata may have at most one gmeow:reifier (IRI)"
+        sh:message "Each gmeow:reifier of a StatementMetadata must be an IRI (RDF 1.2 permits several reifiers per statement — one proposition, many claim tokens)"
     ] ;
     sh:property [
         sh:path rdfs:label ;
