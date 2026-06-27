@@ -8,7 +8,7 @@ format: a directory of Markdown documents, one per concept, each with YAML
 frontmatter and `[text](path)` links. AI agents consume it directly — no RDF/OWL
 parser required. GMEOW projects its vocabulary *to* OKF (export) and lifts an
 OKF bundle back *into* GMEOW (import), so the format is a fully **bidirectional**
-surface (#780).
+surface.
 
 ```text
 gmeow.gts ──export──▶  dist/gmeow-okf/**.md  ──gts from-okf──▶ GMEOW (transpile)

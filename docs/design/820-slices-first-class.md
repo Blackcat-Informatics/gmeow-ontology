@@ -3,13 +3,10 @@
 
 # RFC: Slices as first-class, persistent, flowing compilation units
 
-Tracking epic: [#820](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/820).
-Parent: [#672](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/672)
-(META-EPIC — the reference RDF-1.2 stack). **Coordinates with
-[#819](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/819)** (the immutable
-value-interned `RdfDataset`): #820 adds a *generic provenance sidecar* on that dataset —
-it does **not** put slice semantics into the RDF kernel. Assumes the fully-Rust end-state
-([#630](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/630)).
+This RFC covers slices as first-class compilation units.
+Parent: the reference RDF-1.2 stack (META-EPIC). **Coordinates with
+the immutable value-interned `RdfDataset` RFC**: this RFC adds a *generic provenance sidecar* on that dataset —
+it does **not** put slice semantics into the RDF kernel. Assumes the fully-Rust end-state.
 
 This is a design RFC. No engine code lands with this document; the architecture is
 realized through the staged children S0–S8 below. **S0 (a semantic RFC + crate-layering
@@ -31,7 +28,7 @@ and discards its per-slice store; and no `slice` channel exists in `RdfLocation`
 
 > A `SliceId` column is not, by itself, a provenance model.
 
-The strongest form of #820 is **not** "a `SliceId` attached to every RDF row." It is a
+The strongest form of this RFC is **not** "a `SliceId` attached to every RDF row." It is a
 **content-addressed compilation-unit catalog** whose source artifacts, semantic
 assertions, derivations, diagnostics, and bundle resources stay connected through the
 Rust pipeline. Five concerns that a scalar column conflates must be kept distinct:
@@ -79,7 +76,7 @@ has ≥1 SliceId"):
 
 ### 2. Separate quad identity, assertion occurrence, definition ownership, derivation
 
-The canonical `RdfDataset` (#819) is **set-valued**: the same quad authored by two slices
+The canonical `RdfDataset` is **set-valued**: the same quad authored by two slices
 collapses to one `QuadId` (the GTS producer already sorts and dedups equal quads). So
 identity cannot hold origin — *occurrences* must:
 
@@ -166,7 +163,7 @@ current RDF→GTS writer states blobs cannot be preserved. The shared model beco
 
 ```text
 RdfBundle
-├── dataset:    RdfDataset          // #819 — the hot graph
+├── dataset:    RdfDataset          // the hot graph
 ├── provenance: DatasetProvenance   // units, occurrences, definitions, derivations
 ├── units:      UnitCatalog
 ├── artifacts:  ArtifactIndex
@@ -174,7 +171,7 @@ RdfBundle
 ```
 
 An interned RDF graph alone cannot carry mappings, queries, Markdown, PO catalogs,
-examples, or exact source manifests — so this is coordinated with #819's `RdfBundle`
+examples, or exact source manifests — so this is coordinated with the `RdfBundle`
 (dataset + envelope) split. Replace the current project-wide **tar aggregates** (mappings,
 queries, DSL cells, tests folded into shared tar blobs) with **individually indexed,
 content-addressed artifacts** where possible — global archives make one changed test or
@@ -289,7 +286,7 @@ source-complete bundle).
 ## S0 — Frozen Semantic Contract
 
 **Status: FROZEN (this child, S0).** This section is the authoritative,
-implementation-binding contract for #820. Children S1–S8 realize it; they may
+implementation-binding contract for this RFC. Children S1–S8 realize it; they may
 add, but must not contradict, anything fixed here. Where the surrounding RFC
 sketches the architecture, this section *decides* it.
 
@@ -344,7 +341,7 @@ enum   AttributionRole {
 }
 ```
 
-The canonical dataset (#819) is **set-valued**: identical quads authored by two
+The canonical dataset is **set-valued**: identical quads authored by two
 slices collapse to one `QuadId`, so identity cannot hold origin — *occurrences*
 do, and the **same quad keeps multiple `AssertionOccurrence`s** (one per
 asserting unit). A fact's support is an **OR of `RuleApplication`s plus
@@ -464,17 +461,17 @@ surfaced as `gmeow-dev crate-check` and `make crate-check`, wired into
 | Child | Scope |
 | ----- | ----- |
 | **S0** | Semantic RFC + crate-layering gate (mandatory first): unit/origin/ownership/derivation semantics, authored-vs-generated data, persistent-vs-runtime IDs, required anatomy, authoritative manifest datatype contract. |
-| **S1** | Native slice catalog + artifact inventory: manifest-based discovery, raw manifest preservation, typed view, normalized logical paths, content digests, unknown-artifact preservation. *(Can precede #819 C1.)* |
-| **S2** | Generic provenance sidecar on #819: `UnitId`/`ArtifactId`/`OriginSetId`, assertion occurrences, origin-set interning, definition-owner table — no GMEOW slice semantics in the base dataset. *(Waits on #819 C1.)* |
+| **S1** | Native slice catalog + artifact inventory: manifest-based discovery, raw manifest preservation, typed view, normalized logical paths, content digests, unknown-artifact preservation. |
+| **S2** | Generic provenance sidecar — `UnitId`/`ArtifactId`/`OriginSetId`, assertion occurrences, origin-set interning, definition-owner table — no GMEOW slice semantics in the base dataset. |
 | **S3** | Self-describing bundle resource layer: content store, artifact index, manifest graph, GTS mapping. Slice-affine segments are an optimization, not the attribution source. |
 | **S4** | Native ownership + dependency analyzer: evidence-bearing dependency graph, exact declared-vs-computed reconciliation, profile closure, path-independent ownership. *(Lands before cache composition — its closure defines invalidation.)* |
 | **S5** | Structured attribution through SHACL, diagnostics, logic, SARIF, and RDF (`Attribution`/`AttributionRole`). |
 | **S6a** | Phase-specific Merkle cache + SCC/profile composition. |
 | **S6b** | Exact incremental reasoning: alternative derivations / truth maintenance; add/change/delete parity. |
 | **S7** | Generated slice-analysis graph + explicit `gmeow slice fix-deps` manifest-fix command (two-pass attestation). |
-| **S8** | Retire Python discovery, rollup, and `module_specs` plumbing. **✅ ownership plumbing done (#830):** the native `gmeow_slice.OwnershipAnalyzer` is the sole authoritative `make validate` ownership source; the path-derived `slice_ownership_lint` (Rust engine + PyO3 binding + Python wrapper) and the `module_specs` `ValidateOptions` field/phase are deleted. Restored the per-term single-owner invariant for the 4 colliding terms first (merge `gtsSegmentIndex`; rename `etymonSource`/`voiceExemplifiedBy`/`roleNarratingVoice`). |
+| **S8** | Retire Python discovery, rollup, and `module_specs` plumbing. **✅ ownership plumbing done:** the native `gmeow_slice.OwnershipAnalyzer` is the sole authoritative `make validate` ownership source; the path-derived `slice_ownership_lint` (Rust engine + PyO3 binding + Python wrapper) and the `module_specs` `ValidateOptions` field/phase are deleted. Restored the per-term single-owner invariant for the 4 colliding terms first (merge `gtsSegmentIndex`; rename `etymonSource`/`voiceExemplifiedBy`/`roleNarratingVoice`). |
 
-Ordering: S1 may proceed before #819 C1; S2 waits on the ID-addressed dataset; S3 and S5
+Ordering: S1 may proceed independently; S2 waits on the ID-addressed dataset; S3 and S5
 proceed in parallel once S2's IDs + bundle boundary are fixed; S4 lands before cache
 composition.
 
@@ -483,7 +480,7 @@ composition.
 - Slice meta-ontology & gates: `slices/vocabulary.ttl`,
   `shapes/slice-manifest-shapes.ttl`.
 - Python plumbing to replace: `src/gmeow_tools/slices.py`, `gts_gen.py`, `gts_producer.py`.
-  Ownership plumbing **retired (#830)**: `crates/validate/src/validate_all.rs` (`module_specs`)
+  Ownership plumbing **retired**: `crates/validate/src/validate_all.rs` (`module_specs`)
   and `crates/validate/src/lint.rs` (`slice_ownership_lint`) are deleted; ownership is sourced
   from the native `gmeow_slice.OwnershipAnalyzer` and folded in `src/gmeow_tools/validate.py`
   via `native_ownership_errors()`.
@@ -531,5 +528,5 @@ Tests:
 Maximal information flow; bundle-is-the-useful-surface (self-describing, repo-free,
 per-artifact content-addressed); greenfield / no-backcompat (manifest-driven ownership
 replaces path-derivation); no-optionality / hard-fail (unknown origin, digest mismatch, and
-malformed structure all fail). The strongest form of #820 is a **content-addressed
+malformed structure all fail). The strongest form of this RFC is a **content-addressed
 compilation-unit catalog**, not a `SliceId` on every RDF row.

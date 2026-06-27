@@ -5,10 +5,10 @@
 
 > **Status.**
 > **JSON Schema** (`gmeow.schema.json`) + **OpenAPI** (`gmeow.openapi.json`) are compiled
-> **natively in Rust from the SHACL shapes** (`crates/shacl`) — issue #700.  They are
+> **natively in Rust from the SHACL shapes** (`crates/shacl`).  They are
 > *closed-world* validators.
 > The **LinkML targets** (`gmeow.linkml.yaml`, `gmeow.py`, `gmeow.ts`, `gmeow.graphql`) are
-> projected **OWL → LinkML** — issue #57.  They are *open-world* structural views.
+> projected **OWL → LinkML**.  They are *open-world* structural views.
 > Regenerate: `uv run --package gmeow-dev gmeow-dev regenerate schemas`.
 > CI gate: `uv run --package gmeow-dev gmeow-dev check-generated schemas` (in the `ontology` job).
 
@@ -25,7 +25,7 @@ This document inventories both, and exactly what each one loses and why.
 
 ---
 
-## 1. JSON Schema + OpenAPI — closed-world, native from SHACL (#700)
+## 1. JSON Schema + OpenAPI — closed-world, native from SHACL
 
 `gmeow.schema.json` and `gmeow.openapi.json` are compiled **directly from the SHACL shapes**
 by the native Rust emitter (`gmeow_shacl::json_schema::compile`, `crates/shacl/src/json_schema.rs`),
@@ -81,7 +81,7 @@ entry `ex:shaclJsonSchemaReport`.
 
 ---
 
-## 2. LinkML targets — open-world, OWL → LinkML (#57)
+## 2. LinkML targets — open-world, OWL → LinkML
 
 The remaining developer artifacts are projected from the **OWL** source through **LinkML**:
 
@@ -131,7 +131,7 @@ completeness.
 
 #### 2.2 RDF 1.2 reification, standpoint indexing, and the four-clocks temporal model
 
-GMEOW's canonical statement-level metadata (issue #51) uses RDF 1.2 / RDF* triple terms:
+GMEOW's canonical statement-level metadata uses RDF 1.2 / RDF* triple terms:
 
 ```turtle
 << :E1 :occursAt "2024-01-01"^^xsd:date >> :assertedBy :SourceA ;
@@ -186,11 +186,11 @@ requiredness, use the **SHACL-derived JSON Schema** (§1), which carries `requir
 
 | Generator | Provenance | Known limitation |
 |-----------|-----------|------------------|
-| **JSON Schema** | SHACL (#700) | `sh:sparql` constraints are dropped (no equivalent); external / NodeShape-less classes degrade to a node reference. |
-| **OpenAPI** | SHACL (#700) | Minimal path set (`GET /entities/{id}`) added for spec validity; not a functional API definition.  Inherits the JSON Schema losses. |
-| **Pydantic** | LinkML (#57) | Embeds the source LinkML path (normalized to `gmeow.linkml.yaml` for determinism).  Custom types (`duration`) inherit from `string`. |
-| **TypeScript** | LinkML (#57) | Unknown `type.base` warnings for `datetime`, `decimal`, `duration`, `uri` — these fall back to `string`. |
-| **GraphQL** | LinkML (#57) | Names with illegal characters (e.g. `signatureSchemeBLS12-381`) are not valid GraphQL identifiers. Normalize before consumption (e.g. `-` → `_` → `signatureSchemeBLS12_381`, or remove → `signatureSchemeBLS12381`). The generator preserves the original name so the mapping is explicit. |
+| **JSON Schema** | SHACL | `sh:sparql` constraints are dropped (no equivalent); external / NodeShape-less classes degrade to a node reference. |
+| **OpenAPI** | SHACL | Minimal path set (`GET /entities/{id}`) added for spec validity; not a functional API definition.  Inherits the JSON Schema losses. |
+| **Pydantic** | LinkML | Embeds the source LinkML path (normalized to `gmeow.linkml.yaml` for determinism).  Custom types (`duration`) inherit from `string`. |
+| **TypeScript** | LinkML | Unknown `type.base` warnings for `datetime`, `decimal`, `duration`, `uri` — these fall back to `string`. |
+| **GraphQL** | LinkML | Names with illegal characters (e.g. `signatureSchemeBLS12-381`) are not valid GraphQL identifiers. Normalize before consumption (e.g. `-` → `_` → `signatureSchemeBLS12_381`, or remove → `signatureSchemeBLS12381`). The generator preserves the original name so the mapping is explicit. |
 
 ---
 

@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Declarative competency questions for the deception slice, executed by the native
-# Rust slice-test harness (crates/slicetest, #784). Migrated from the deception
-# competency tests in tests/test_competency.py under #867.
+# Rust slice-test harness (crates/slicetest). Migrated from the deception
+# competency tests in tests/test_competency.py.
 #
 # Two shapes:
 #   * TBox vocabulary questions (deception-types, deception-roles) run over the
@@ -16,7 +16,7 @@
 #     ABox via gmeow:cqDataFile (the merged ontology is TBox-only, so there is
 #     nothing to classify without it); each pins the classified event row.
 # None of these is an open dynamic universal — every cell enumerates a fixed term
-# set or a fixed instance classification, so there is no #869 Gap-1 blacklist trap.
+# set or a fixed instance classification, so there is no Gap-1 blacklist trap.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/deception/tests/> .
@@ -25,7 +25,7 @@
 # ── A. TBox: deception-related event types + veridicality values ──────────────
 ex:cqDeceptionTypes a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-types.rq" ;
-    gmeow:cqRationale "GMEOW must enumerate the deception-related event types and veridicality values it models (issues #215–#217). The asserted graph returns at least the deception event-type spine plus the ClaimVeridicality axis; these are the terms test_competency.py pinned." ;
+    gmeow:cqRationale "GMEOW must enumerate the deception-related event types and veridicality values it models. The asserted graph returns at least the deception event-type spine plus the ClaimVeridicality axis; these are the terms test_competency.py pinned." ;
     gmeow:cqExpectRow
         ex:dtDeception, ex:dtLie, ex:dtPaltering, ex:dtOmission, ex:dtDistortion,
         ex:dtBullshit, ex:dtSelfDeception, ex:dtClaimVeridicality,
@@ -55,7 +55,7 @@ ex:dtVeridicalityLicensedFalsehood a gmeow:ExpectedRow ;
 # ── B. TBox: deception participant roles ──────────────────────────────────────
 ex:cqDeceptionRoles a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-roles.rq" ;
-    gmeow:cqRationale "GMEOW must model the participant roles a deception event ranges over (issue #215): deceiver, deceived, beneficiary, dupe, spin-doctor." ;
+    gmeow:cqRationale "GMEOW must model the participant roles a deception event ranges over: deceiver, deceived, beneficiary, dupe, spin-doctor." ;
     gmeow:cqExpectRow
         ex:drDeceiver, ex:drDeceived, ex:drBeneficiary, ex:drDupe, ex:drSpinDoctor .
 

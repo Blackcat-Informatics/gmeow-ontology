@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinform
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# Rust test-suite duration budget (#1045)
+# Rust test-suite duration budget
 
 The always-on gate enforces a **25 s per-test wall-time budget**. This note records
 the measurement that set it, the mechanism, and the open follow-ups. The doctrine
@@ -36,7 +36,7 @@ Full `cargo nextest run --profile ci`: 2409 tests, ~554 s wall / ~3703 s summed.
 | `gmeow-logic::ontology_entailments`, `gmeow-conformance` | ~3 (+ ~16 in 10–25 s) | Nemo OWL-2-RL closures / chase | off-gate whole binaries |
 | `gmeow-slice` / `gmeow-slicetest` stragglers | ~3 | whole-ontology emit/closure just over budget | off-gate the specific tests |
 
-### The corpus-parity case (the #1045 trigger)
+### The corpus-parity case
 
 `crates/rdf/tests/sparql_eval_parity.rs::corpus_parity_against_real_ontology` ran
 ~50 s. Profiling the phases:
@@ -84,9 +84,6 @@ switching carries baseline/scoreboard churn without serving the 25 s goal.
 
 ## Open follow-ups
 
-1. **Native `FILTER NOT EXISTS` performance** ([#1049]) — index the anti-join in
+1. **Native `FILTER NOT EXISTS` performance** — index the anti-join in
    `gmeow-sparql-eval` so `class-without-stereotype.rq` leaves `OFF_GATE_HEAVY`.
-2. **`rstest` cleanup** ([#1051]) of the `conformance_*.rs` SHACL twins.
-
-[#1049]: https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1049
-[#1051]: https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1051
+2. **`rstest` cleanup** of the `conformance_*.rs` SHACL twins.

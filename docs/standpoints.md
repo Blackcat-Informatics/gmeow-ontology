@@ -61,7 +61,7 @@ The lightweight case rides `validFrom`/`validUntil` on the statement. When the
 and withdrawn in 2030 is an opened-then-closed tenure with `gmeow:displayable
 false` — retained, never deleted (suppression, not erasure).
 
-## StandpointClaim as Observation (#127)
+## StandpointClaim as Observation
 
 A standpoint-indexed claim is not only an annotated statement — it is also a
 first-class **observation**. `gmeow:StandpointClaim` is a `gufo:SubKind` of

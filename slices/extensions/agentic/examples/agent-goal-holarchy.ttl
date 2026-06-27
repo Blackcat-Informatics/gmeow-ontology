@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example — an AI agent's goal/action trajectory as a HOLARCHY (issue #709, C6).
+# Worked example — an AI agent's goal/action trajectory as a HOLARCHY (C6).
 #
-# This is the named Principle-15 CONSUMER of the Holons epic (#703): the gmeow:-domain twin
+# This is the named Principle-15 CONSUMER of the Holons epic: the gmeow:-domain twin
 # of the engine-verified conformance case at
 # conformance/logic/cases/holonic/agent-goal-holarchy/. It applies the holon kernel (C1-C5)
 # to agent self-decomposition — an agent's goals and actions modelled as nested whole/part
@@ -18,7 +18,7 @@
 # logic:properPartOf to expand a goal (or action) into its sub-trajectory; `recompose` folds a
 # sub-trajectory back to the holon that governs it and re-reads that holon's agency verdict.
 #
-# THE DECOMPOSITION-vs-MEREOLOGY SEAM (#804 LOGIC-TELEOLOGY.md / #775 ME9). The holarchy rides
+# THE DECOMPOSITION-vs-MEREOLOGY SEAM (LOGIC-TELEOLOGY.md). The holarchy rides
 # logic:properPartOf — STRUCTURAL part-hood, the spine holon-ness is read off. The OTHER
 # decomposition family — the satisfaction-dependency relations (refines / necessary-for /
 # sufficient-for, where means-end search runs) — is a solver-layer concern and is deliberately

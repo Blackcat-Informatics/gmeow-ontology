@@ -57,7 +57,7 @@ gender and sexuality together is what makes the matrix *complete*: the claim
 "orientation is independent of gender identity" is only a real test when both
 exist to be held apart.
 
-Since #38 the matrix is also a **reasoner theorem**, not only a Python guard. The
+The matrix is also a **reasoner theorem**, not only a Python guard. The
 seven axis range classes are declared jointly disjoint
 (`owl:AllDisjointClasses`, OWL 2 EL) in `gender.ttl`, so ELK and HermiT *reject*
 any individual placed in two axes at once — and a negative test

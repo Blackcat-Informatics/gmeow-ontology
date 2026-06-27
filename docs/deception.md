@@ -62,7 +62,7 @@ The safety property is structural, not a matter of inference: the creator or pub
 
 `gmeow:deceptionCue` links a deception event to an `Observation` — a behavioural, linguistic, or evidential signal. Cue-scoring and weighting live in the solver layer (Principle 12), not the ontology. The ontology records only that a cue observation exists and is linked to the event.
 
-## Carrier deceptions — artifact and identity binding (issue #216)
+## Carrier deceptions — artifact and identity binding
 
 Not all deceptions are speech acts. Three additional `gmeow:eventType` values cover deceptions where the held↔projected divergence is borne by a **fabricated artifact** or a **false identity binding**:
 
@@ -106,7 +106,7 @@ Impersonation reuses the `gmeow:IdentityFacet` machinery from the gender/orienta
 | **schema.org ClaimReview** | Fact-check verdicts | Single-verdict model re-creates the winner slot | **Refuses single verdict** — fact-check is an `Attestation` with `VerificationResult`, not a truth axiom |
 | **AIF** (Argument Interchange Format) | I/RA/CA/PA nodes for argumentation | No ontology integration | **Referenced in solver layer** — `fnArgumentAcceptability` projects to AIF by reference |
 
-## Disinformation and the per-node boundary (issue #217)
+## Disinformation and the per-node boundary
 
 A **disinformation campaign** (`gmeow:eventTypeDisinformation`) is a coordinated, propagated deception that aggregates many constituent deception events along a `prov:wasDerivedFrom` / `gmeow:propagatesFrom` propagation chain. The headline result of this model is that **the misinformation↔disinformation boundary is per-node, not a global label.**
 

@@ -7,7 +7,7 @@
 # over the accessibility module graph (gmeow:scopeModule) under the native Rust
 # harness (crates/slicetest).
 #
-# Accessibility is #694-migrated, so class stereotypes are logic:
+# Accessibility is migrated, so class stereotypes are logic:
 # (logic:Kind, logic:AbstractIndividualType, logic:QualityValue, logic:Relator),
 # not gufo:.
 #

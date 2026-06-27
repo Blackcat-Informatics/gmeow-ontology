@@ -3,11 +3,9 @@
 
 # RFC: `gmeow-rdf` as the optimal IR & dataflow stream
 
-Tracking epic: [#819](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/819).
-Parent: [#672](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/672)
-(META-EPIC — the reference RDF-1.2 stack). Builds on
-[#630](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/630) (Rust
-reasoning authority).
+This is the design RFC for `gmeow-rdf` as the optimal IR and dataflow stream.
+Parent: the reference RDF-1.2 stack (META-EPIC). Builds on the Rust
+reasoning authority work.
 
 This is a design RFC. No engine code lands with this document; the architecture is
 realized through the staged children C0–C8 below. **C0 (a semantic RFC + loss matrix)
@@ -16,7 +14,7 @@ and [Ordering](#epic-decomposition).
 
 ## Context
 
-The `630` work finishes moving the logic compiler, reasoning, SHACL, and validation
+The Rust acceleration work finishes moving the logic compiler, reasoning, SHACL, and validation
 paths off Python/rdflib into Rust. The declared end-state — per the north-star goals
 (rust-first, maximal information flow, overcome-not-inherit constraints, SOTA/greenfield)
 and the logic-stack-retirement doctrine ("Rust is the authority") — is that **all**
@@ -29,10 +27,10 @@ round-trips.
 1. **Legacy owned-quad reader (kernel model, `crates/rdf/src/model.rs`, `store.rs`)** —
    owned-`String` terms, no value-interning. Its boxed iterator **cloned every quad per
    iteration** and cloned the whole lookaside each call. It was a lowest-common-denominator
-   *conversion shim*, not a working IR, and #922 removed it.
+   *conversion shim*, not a working IR, and it has since been removed.
 2. **oxigraph `Store` (the de-facto working IR)** — `logic`, `shacl`, `validate`, and
    `slicetest` all materialized into oxigraph and SPARQL-query it. The transitional
-   owned-quad path used to feed oxigraph materialization; #922 replaced that with
+   owned-quad path used to feed oxigraph materialization; a subsequent cleanup replaced that with
    `RdfDataset`-native ingress.
 3. **GTS folded `Graph` (an efficient transport)** — an ID-addressed physical
    representation (`terms: Vec<Term>` + id-tuple `quads`/`reifiers`,
@@ -438,8 +436,8 @@ RFC required as C5's first deliverable.
 - **C0/C1/C2** — semantic contract + loss ledger; immutable value-interned
   `Arc<RdfDataset>` with zero-alloc iteration; GTS event-sink + consuming-graph
   importers.
-- **Loss ledger flips** — gmeow-gts 0.9.4 (`Term.direction` #212, reifier-id-keyed
-  `Graph.reifiers` #213, `decoded_blobs` #214) let *literal base direction* and
+- **Loss ledger flips** — gmeow-gts 0.9.4 added `Term.direction`, reifier-id-keyed
+  `Graph.reifiers`, and `decoded_blobs`, letting *literal base direction* and
   *multiple reifiers per (s,p,o)* round-trip losslessly. Blobs are an intentional
   **by-reference** entry: the IR holds the content-addressed `blob_id` digest +
   origin (never the payload — blobs may be multi-terabyte); payload streaming
@@ -515,11 +513,11 @@ against the materialized dataset rides with the typed-bridge implementation.
   is C4-class work (port the lints to the IR), tracked as a follow-up. This is a
   gated consumer, not a data-flow gap.
 - **C8 (delete the owned store shim)** — the production goal is **met**: the
-  IR is the sole production working store. #922 completed the final cleanup by removing
+  IR is the sole production working store. A final cleanup removed
   the legacy trait, backend adapters, compat bridge, and owned fixture store from both
   production and tests.
 
-### CodeRabbit review (PR #825) — fixes applied + remaining deferrals
+### CodeRabbit review — fixes applied + remaining deferrals
 
 Correctness fixes landed in this review pass (all gated):
 
@@ -568,8 +566,8 @@ Remaining deferrals (genuine heavy lifts, with reason):
   deliberately never holds — blobs may be multi-terabyte). The reference therefore
   round-trips out of band (the `blob-bytes-absent` intentional-loss entry); carrying
   it inline is unblocked only by a new gmeow-gts reference-only blob-entry API.
-- **Reifier/annotation tables in SHACL validation** — #922 closed the direct-dataset
-  gap: `validate_dataset` now projects reifiers as `rdf:reifies` quads and annotations
+- **Reifier/annotation tables in SHACL validation** — the direct-dataset
+  gap was closed: `validate_dataset` now projects reifiers as `rdf:reifies` quads and annotations
   as plain triples before the Core/SPARQL engines read the data graph.
 - **`datasets_isomorphic` completeness (`ir/compare.rs`)** — the hash-refinement
   oracle is sound on the POSITIVE side and conservative on collision: when two blanks

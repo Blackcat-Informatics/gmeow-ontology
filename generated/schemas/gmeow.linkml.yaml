@@ -194,6 +194,9 @@ classes:
   ArticulationKind:
     class_uri: https://blackcatinformatics.ca/gmeow/ArticulationKind
     title: Articulation Kind
+  AssertoricForce:
+    class_uri: https://blackcatinformatics.ca/gmeow/AssertoricForce
+    title: Assertoric Force
   Assessment:
     class_uri: https://blackcatinformatics.ca/gmeow/Assessment
     title: Assessment
@@ -836,6 +839,9 @@ classes:
   CreativeWorkType:
     class_uri: https://blackcatinformatics.ca/gmeow/CreativeWorkType
     title: Creative Work Type
+  CredenceLevel:
+    class_uri: https://blackcatinformatics.ca/gmeow/CredenceLevel
+    title: Credence Level
   Credential:
     class_uri: https://blackcatinformatics.ca/gmeow/Credential
     title: Credential
@@ -2276,6 +2282,9 @@ classes:
   MitigationStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/MitigationStatus
     title: Mitigation Status
+  ModalForce:
+    class_uri: https://blackcatinformatics.ca/gmeow/ModalForce
+    title: Modal Force
   ModelCard:
     class_uri: https://blackcatinformatics.ca/gmeow/ModelCard
     title: Model Card
@@ -2932,6 +2941,9 @@ classes:
   PlayingTechnique:
     class_uri: https://blackcatinformatics.ca/gmeow/PlayingTechnique
     title: Playing Technique
+  Polarity:
+    class_uri: https://blackcatinformatics.ca/gmeow/Polarity
+    title: Polarity
   Pose:
     class_uri: https://blackcatinformatics.ca/gmeow/Pose
     title: Pose
@@ -3656,7 +3668,14 @@ classes:
     is_a: JustificationSubject
     slots:
     - argumentAcceptability
+    - claimAssertoricForce
+    - claimCredence
+    - claimCredenceLevel
+    - claimModalForce
     - claimModality
+    - claimPolarity
+    - claimSupportStatus
+    - claimTruthDirectedness
     - claimVeridicality
     - competesWith
     - defeaterKind
@@ -3721,6 +3740,9 @@ classes:
   SupportPolarity:
     class_uri: https://blackcatinformatics.ca/gmeow/SupportPolarity
     title: Support Polarity
+  SupportStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/SupportStatus
+    title: Support Status
   SymbolicSystem:
     class_uri: https://blackcatinformatics.ca/gmeow/SymbolicSystem
     title: Symbolic System
@@ -3973,6 +3995,9 @@ classes:
     - trustLevel
     - trustee
     - trustor
+  TruthDirectedness:
+    class_uri: https://blackcatinformatics.ca/gmeow/TruthDirectedness
+    title: Truth Directedness
   TuningSystem:
     class_uri: https://blackcatinformatics.ca/gmeow/TuningSystem
     title: Tuning System
@@ -5186,6 +5211,30 @@ slots:
     range: Entity
     domain: CitationAct
     multivalued: false
+  claimAssertoricForce:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimAssertoricForce
+    title: claim assertoric force
+    range: AssertoricForce
+    domain: StandpointClaim
+    multivalued: false
+  claimCredence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimCredence
+    title: claim credence
+    range: decimal
+    domain: StandpointClaim
+    multivalued: false
+  claimCredenceLevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimCredenceLevel
+    title: claim credence level
+    range: CredenceLevel
+    domain: StandpointClaim
+    multivalued: false
+  claimModalForce:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimModalForce
+    title: claim modal force
+    range: ModalForce
+    domain: StandpointClaim
+    multivalued: false
   claimModality:
     slot_uri: https://blackcatinformatics.ca/gmeow/claimModality
     title: claim modality
@@ -5197,6 +5246,24 @@ slots:
     title: claim of belief
     range: DoxasticState
     domain: DoxasticStandpointClaim
+    multivalued: false
+  claimPolarity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimPolarity
+    title: claim polarity
+    range: Polarity
+    domain: StandpointClaim
+    multivalued: false
+  claimSupportStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimSupportStatus
+    title: claim support status
+    range: SupportStatus
+    domain: StandpointClaim
+    multivalued: false
+  claimTruthDirectedness:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimTruthDirectedness
+    title: claim truth directedness
+    range: TruthDirectedness
+    domain: StandpointClaim
     multivalued: false
   claimVeridicality:
     slot_uri: https://blackcatinformatics.ca/gmeow/claimVeridicality
@@ -5921,6 +5988,10 @@ slots:
     range: decimal
     domain: CelestialCoordinates
     multivalued: true
+  decomposesToAxis:
+    slot_uri: https://blackcatinformatics.ca/gmeow/decomposesToAxis
+    title: decomposes to axis
+    range: string
   deeperThan:
     slot_uri: https://blackcatinformatics.ca/gmeow/deeperThan
     title: deeper than
@@ -11861,16 +11932,44 @@ slots:
     range: StageKind
     domain: PipelineStage
     multivalued: true
+  standpointAssertoricForce:
+    slot_uri: https://blackcatinformatics.ca/gmeow/standpointAssertoricForce
+    title: standpoint assertoric force
+    range: AssertoricForce
   standpointClaim:
     slot_uri: https://blackcatinformatics.ca/gmeow/standpointClaim
     title: standpoint claim
     range: StandpointClaim
     domain: StandpointTenure
     multivalued: false
+  standpointCredence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/standpointCredence
+    title: standpoint credence
+    range: decimal
+  standpointCredenceLevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/standpointCredenceLevel
+    title: standpoint credence level
+    range: CredenceLevel
+  standpointModalForce:
+    slot_uri: https://blackcatinformatics.ca/gmeow/standpointModalForce
+    title: standpoint modal force
+    range: ModalForce
   standpointModality:
     slot_uri: https://blackcatinformatics.ca/gmeow/standpointModality
     title: standpoint modality
     range: StandpointModality
+  standpointPolarity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/standpointPolarity
+    title: standpoint polarity
+    range: Polarity
+  standpointSupportStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/standpointSupportStatus
+    title: standpoint support status
+    range: SupportStatus
+  standpointTruthDirectedness:
+    slot_uri: https://blackcatinformatics.ca/gmeow/standpointTruthDirectedness
+    title: standpoint truth directedness
+    range: TruthDirectedness
   startedAtTime:
     slot_uri: https://blackcatinformatics.ca/gmeow/startedAtTime
     title: started at time
@@ -13340,6 +13439,21 @@ enums:
       articulationTenuto:
         meaning: https://blackcatinformatics.ca/gmeow/articulationTenuto
         title: tenuto
+  AssertoricForceEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AssertoricForce
+    permissible_values:
+      assertoricAssert:
+        meaning: https://blackcatinformatics.ca/gmeow/assertoricAssert
+        title: assert
+      assertoricAssume:
+        meaning: https://blackcatinformatics.ca/gmeow/assertoricAssume
+        title: assume
+      assertoricConjecture:
+        meaning: https://blackcatinformatics.ca/gmeow/assertoricConjecture
+        title: conjecture
+      assertoricRetract:
+        meaning: https://blackcatinformatics.ca/gmeow/assertoricRetract
+        title: retract
   AssetTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AssetType
     permissible_values:
@@ -14516,6 +14630,21 @@ enums:
       workTypeWritten:
         meaning: https://blackcatinformatics.ca/gmeow/workTypeWritten
         title: written
+  CredenceLevelEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/CredenceLevel
+    permissible_values:
+      credenceCertain:
+        meaning: https://blackcatinformatics.ca/gmeow/credenceCertain
+        title: certain
+      credenceLikely:
+        meaning: https://blackcatinformatics.ca/gmeow/credenceLikely
+        title: likely
+      credencePossible:
+        meaning: https://blackcatinformatics.ca/gmeow/credencePossible
+        title: possible
+      credenceUnspecified:
+        meaning: https://blackcatinformatics.ca/gmeow/credenceUnspecified
+        title: unspecified
   CriterionDomainEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CriterionDomain
     permissible_values:
@@ -16949,6 +17078,21 @@ enums:
       mitigationRetired:
         meaning: https://blackcatinformatics.ca/gmeow/mitigationRetired
         title: retired
+  ModalForceEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ModalForce
+    permissible_values:
+      modalForceActual:
+        meaning: https://blackcatinformatics.ca/gmeow/modalForceActual
+        title: actual
+      modalForceCounterfactual:
+        meaning: https://blackcatinformatics.ca/gmeow/modalForceCounterfactual
+        title: counterfactual
+      modalForceNecessary:
+        meaning: https://blackcatinformatics.ca/gmeow/modalForceNecessary
+        title: necessary (□)
+      modalForcePossible:
+        meaning: https://blackcatinformatics.ca/gmeow/modalForcePossible
+        title: possible (◊)
   MotifKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/MotifKind
     permissible_values:
@@ -18470,6 +18614,18 @@ enums:
       playingTechniqueTapping:
         meaning: https://blackcatinformatics.ca/gmeow/playingTechniqueTapping
         title: tapping
+  PolarityEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Polarity
+    permissible_values:
+      polarityAffirm:
+        meaning: https://blackcatinformatics.ca/gmeow/polarityAffirm
+        title: affirm
+      polarityDeny:
+        meaning: https://blackcatinformatics.ca/gmeow/polarityDeny
+        title: deny
+      polaritySuspend:
+        meaning: https://blackcatinformatics.ca/gmeow/polaritySuspend
+        title: suspend
   PostingDirectionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PostingDirection
     permissible_values:
@@ -20030,6 +20186,21 @@ enums:
       polaritySupports:
         meaning: https://blackcatinformatics.ca/gmeow/polaritySupports
         title: supports
+  SupportStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/SupportStatus
+    permissible_values:
+      supportBoth:
+        meaning: https://blackcatinformatics.ca/gmeow/supportBoth
+        title: both
+      supportNeither:
+        meaning: https://blackcatinformatics.ca/gmeow/supportNeither
+        title: neither
+      supportOpposed:
+        meaning: https://blackcatinformatics.ca/gmeow/supportOpposed
+        title: opposed
+      supportSupported:
+        meaning: https://blackcatinformatics.ca/gmeow/supportSupported
+        title: supported
   SymbolicSystemKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/SymbolicSystemKind
     permissible_values:
@@ -20474,6 +20645,18 @@ enums:
       fixtureKlavierstuckConstraint:
         meaning: https://blackcatinformatics.ca/gmeow/fixtureKlavierstuckConstraint
         title: Klavierstück XI traversal constraint
+  TruthDirectednessEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/TruthDirectedness
+    permissible_values:
+      truthAimed:
+        meaning: https://blackcatinformatics.ca/gmeow/truthAimed
+        title: truth-aimed
+      truthIndifferent:
+        meaning: https://blackcatinformatics.ca/gmeow/truthIndifferent
+        title: indifferent (bullshit)
+      truthStrategic:
+        meaning: https://blackcatinformatics.ca/gmeow/truthStrategic
+        title: strategic
   TuningSystemEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/TuningSystem
     permissible_values:

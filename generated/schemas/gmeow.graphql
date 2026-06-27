@@ -104,6 +104,13 @@ enum ArticulationKindEnum {
   articulationTenuto
 }
 
+enum AssertoricForceEnum {
+  assertoricAssert
+  assertoricAssume
+  assertoricConjecture
+  assertoricRetract
+}
+
 enum AssetTypeEnum {
   assetTypeBond
   assetTypeCommodity
@@ -564,6 +571,13 @@ enum CreativeWorkTypeEnum {
   workTypeSoftware
   workTypeVisual
   workTypeWritten
+}
+
+enum CredenceLevelEnum {
+  credenceCertain
+  credenceLikely
+  credencePossible
+  credenceUnspecified
 }
 
 enum CriterionDomainEnum {
@@ -1559,6 +1573,13 @@ enum MitigationStatusEnum {
   mitigationRetired
 }
 
+enum ModalForceEnum {
+  modalForceActual
+  modalForceCounterfactual
+  modalForceNecessary
+  modalForcePossible
+}
+
 enum MotifKindEnum {
   motifKindLeitmotif
   motifKindRunningGag
@@ -2172,6 +2193,12 @@ enum PlayingTechniqueEnum {
   playingTechniquePreparedPiano
   playingTechniqueSlap
   playingTechniqueTapping
+}
+
+enum PolarityEnum {
+  polarityAffirm
+  polarityDeny
+  polaritySuspend
 }
 
 enum PostingDirectionEnum {
@@ -2804,6 +2831,13 @@ enum SupportPolarityEnum {
   polaritySupports
 }
 
+enum SupportStatusEnum {
+  supportBoth
+  supportNeither
+  supportOpposed
+  supportSupported
+}
+
 enum SymbolicSystemKindEnum {
   symbolicKindCommunicationConvention
   symbolicKindCryptographic
@@ -2996,6 +3030,12 @@ enum TransliterationSchemeEnum {
 
 enum TraversalConstraintEnum {
   fixtureKlavierstuckConstraint
+}
+
+enum TruthDirectednessEnum {
+  truthAimed
+  truthIndifferent
+  truthStrategic
 }
 
 enum TuningSystemEnum {
@@ -3310,6 +3350,11 @@ type Article {
 }
 
 type ArticulationKind {
+  id: String
+  iri: String
+}
+
+type AssertoricForce {
   id: String
   iri: String
 }
@@ -4042,6 +4087,11 @@ type CreativeWorkTitle {
 }
 
 type CreativeWorkType {
+  id: String
+  iri: String
+}
+
+type CredenceLevel {
   id: String
   iri: String
 }
@@ -5683,6 +5733,11 @@ type MitigationStatus {
   iri: String
 }
 
+type ModalForce {
+  id: String
+  iri: String
+}
+
 type ModelCard {
   id: String
   iri: String
@@ -6410,6 +6465,11 @@ type PlaceType {
 }
 
 type PlayingTechnique {
+  id: String
+  iri: String
+}
+
+type Polarity {
   id: String
   iri: String
 }
@@ -7261,7 +7321,14 @@ type StandpointClaim {
   id: String
   iri: String
   argumentAcceptability: [Float!]
+  claimAssertoricForce: AssertoricForce
+  claimCredence: Float
+  claimCredenceLevel: CredenceLevel
+  claimModalForce: ModalForce
   claimModality: StandpointModality
+  claimPolarity: Polarity
+  claimSupportStatus: SupportStatus
+  claimTruthDirectedness: TruthDirectedness
   claimVeridicality: [ClaimVeridicality!]
   competesWith: [StandpointClaim!]
   defeaterKind: [DefeaterKind!]
@@ -7336,6 +7403,11 @@ type Summary {
 }
 
 type SupportPolarity {
+  id: String
+  iri: String
+}
+
+type SupportStatus {
   id: String
   iri: String
 }
@@ -7628,6 +7700,11 @@ type TrustAssertion {
   trustLevel: String
   trustee: Agent
   trustor: Agent
+}
+
+type TruthDirectedness {
+  id: String
+  iri: String
 }
 
 type TuningSystem {

@@ -1,6 +1,6 @@
 # Competency question: "What nodes are reachable from a start node within a
 # bounded depth of 2 via a named step predicate?"  This exercises the headline
-# capability of logic:PathShape (issue #1010): named, parametric, depth-bounded
+# capability of logic:PathShape: named, parametric, depth-bounded
 # traversal that SPARQL §9 cannot express as a named/reusable construct.
 #
 # The fixture (path-traversal.ttl) supplies the chain:
@@ -16,7 +16,7 @@
 # `(ex:linkedTo|ex:linkedTo/ex:linkedTo)` — which is semantically identical for
 # maxDepth 2 and actually executes on oxigraph.
 #
-# Anti-drift (issue #1010, CR7): the lossless extended-SPARQL projection
+# Anti-drift (CR7): the lossless extended-SPARQL projection
 # `<...linkedTo>{1,2}` is pinned by the Rust golden
 # `nearby_orgs_projection_emits_pinned_bounded_path`
 # (crates/logic, projections/paths/tests.rs); if the projection drifts, that test

@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: "Sensory extension alignments to external audio feature ontologies (issue #317)."
+# comment: "Sensory extension alignments to external audio feature ontologies."
 # curie_map:
 #   afo: https://w3id.org/afo/onto/1.1#
 #   afv: https://w3id.org/afo/vocab/1.1#

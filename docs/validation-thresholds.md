@@ -1,10 +1,10 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# Validation thresholds — the #579 gate floors
+# Validation thresholds — gate floors
 
-This is the single source of truth for the four blocking validation gates added
-in #579. Consult it **before changing any floor**. Each gate is wired into both
+This is the single source of truth for the four blocking validation gates.
+Consult it **before changing any floor**. Each gate is wired into both
 `make check` (the local ELK lane) and CI such that a regression below its floor
 fails the build.
 
@@ -50,7 +50,7 @@ be treated as a regression of the contract, not routine maintenance.
 - **Where the floors live:**
   - Makefile `coverage` target (`coverage --gaps --min-class 0.92 --min-predicate 0.85`).
   - `.github/workflows/ci.yml` — `ontology` job, "Vendored-entity coverage — hard
-    class/predicate floors (#579)" step.
+    class/predicate floors" step.
   - Enforcement: `src/gmeow_tools/cli_dev.py` `coverage()` command
     (the `min_class` / `min_predicate` comparison that raises `_fail`).
 - **Ratchet:** as GMEOW grows to cover more vendored classes/predicates, raise
@@ -66,7 +66,7 @@ be treated as a regression of the contract, not routine maintenance.
 - **Where it lives:** `src/gmeow_tools/validate.py` — `check_example_coverage()`,
   called from `validate_all()`; a missing example appends a hard error
   ("`slice <name>: no examples/*.ttl — every slice must ship at least one
-  validating example (#579)`").
+  validating example`").
 - **Ratchet:** not numeric — the contract is "100% of slices have a validating
   example" and only ever stays at 100%.
 
@@ -82,7 +82,7 @@ be treated as a regression of the contract, not routine maintenance.
 - **Where the floor lives:**
   - Makefile `ACCEPTANCE_MIN_RECALL ?= 60` (consumed by the `acceptance` target).
   - `.github/workflows/ci.yml` — `ontology` job, "Transpile acceptance — hard
-    aggregate recall floor (#579)" step.
+    aggregate recall floor" step.
   - Enforcement: `src/gmeow_tools/cli_dev.py` `acceptance()` command
     (`min_recall` aggregate comparison that exits 1).
 - **Ratchet:** as transpile fidelity improves, raise `60` toward the new measured
@@ -93,22 +93,22 @@ be treated as a regression of the contract, not routine maintenance.
 | Gate | Make target (in `make check`) | CI job + step |
 |---|---|---|
 | SHACL | `validate` | `ontology` → "Validate (syntax, lint, SHACL, DSL SHACL)" (also exercised by `python`, `python-heavy`) |
-| Vendored-entity coverage | `coverage` (`--min-class 0.92 --min-predicate 0.85`) | `ontology` → "Vendored-entity coverage — hard class/predicate floors (#579)" |
+| Vendored-entity coverage | `coverage` (`--min-class 0.92 --min-predicate 0.85`) | `ontology` → "Vendored-entity coverage — hard class/predicate floors" |
 | Slice-example | `validate` (`check_example_coverage`) | `ontology` → "Validate (…)" (same `validate` invocation) |
-| Transpile recall | `acceptance` (`--min-recall 60`) | `ontology` → "Transpile acceptance — hard aggregate recall floor (#579)" |
+| Transpile recall | `acceptance` (`--min-recall 60`) | `ontology` → "Transpile acceptance — hard aggregate recall floor" |
 
 All four also run in the parallel `make check` batch
 (`lint validate … coverage acceptance …`), so the local ELK lane blocks on every
 floor too.
 
-## Validation cache decision (#579)
+## Validation cache decision
 
 **Decision: KEEP the `.cache/validate` layer.** The Rust validation cache is keyed
 on validation sources, SHACL shapes, and toolchain versions, avoiding repeated
 SHACL work over unchanged inputs. The pipeline-stage report is separately
 content-addressed by the DAG and compared through `check-generated`.
 
-## CI build cost (#579)
+## CI build cost
 
 `gmeow_validate` was added as a **3rd nightly-built Rust extension** alongside
 `gmeow_shacl` and `gmeow_logic` across the validation jobs that exercise the

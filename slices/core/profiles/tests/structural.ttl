@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the profiles slice (#75) — the
+# Declarative structural assertions for the profiles slice — the
 # slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
 # formerly hand-written in tests/test_profiles.py. Each assertion runs as a
 # SPARQL ASK over the profiles module graph (gmeow:scopeModule) under the native
 # Rust harness (crates/slicetest).
 #
-# Profiles is #694-migrated, so class stereotypes are logic:
+# Profiles is migrated, so class stereotypes are logic:
 # (logic:Kind), not gufo:. The migrated tests check owl:Class and subClassOf
 # membership; logic:Kind typing is NOT checked here as the original pytest did
 # not assert it.
@@ -35,7 +35,7 @@ ASK {
     gmeow:Profile a owl:Class ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:Profile MUST be an owl:Class and a subclass of gmeow:InformationObject — a Profile is an information object that carries a closed descriptor schema (#75). Mirrors test_profile_class_exists." .
+    gmeow:saRationale "gmeow:Profile MUST be an owl:Class and a subclass of gmeow:InformationObject — a Profile is an information object that carries a closed descriptor schema. Mirrors test_profile_class_exists." .
 
 # --- 2. hasProfile is an owl:ObjectProperty (MUST) ---------------------------
 ex:saHasProfileIsObjectProperty a gmeow:StructuralAssertion ;
@@ -44,7 +44,7 @@ ex:saHasProfileIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:hasProfile a owl:ObjectProperty . }""" ;
-    gmeow:saRationale "gmeow:hasProfile MUST be an owl:ObjectProperty — it links an entity, value, or frame to its governing Profile (#75). Mirrors test_profile_meta_properties_exist (hasProfile arm)." .
+    gmeow:saRationale "gmeow:hasProfile MUST be an owl:ObjectProperty — it links an entity, value, or frame to its governing Profile. Mirrors test_profile_meta_properties_exist (hasProfile arm)." .
 
 # --- 3. profileAppliesTo is an owl:ObjectProperty (MUST) ---------------------
 ex:saProfileAppliesToIsObjectProperty a gmeow:StructuralAssertion ;
@@ -53,7 +53,7 @@ ex:saProfileAppliesToIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:profileAppliesTo a owl:ObjectProperty . }""" ;
-    gmeow:saRationale "gmeow:profileAppliesTo MUST be an owl:ObjectProperty — it names the class a Profile targets (#75). Mirrors test_profile_meta_properties_exist (profileAppliesTo arm)." .
+    gmeow:saRationale "gmeow:profileAppliesTo MUST be an owl:ObjectProperty — it names the class a Profile targets. Mirrors test_profile_meta_properties_exist (profileAppliesTo arm)." .
 
 # --- 4. profileOpenValue is an owl:ObjectProperty (MUST) ---------------------
 ex:saProfileOpenValueIsObjectProperty a gmeow:StructuralAssertion ;
@@ -62,7 +62,7 @@ ex:saProfileOpenValueIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:profileOpenValue a owl:ObjectProperty . }""" ;
-    gmeow:saRationale "gmeow:profileOpenValue MUST be an owl:ObjectProperty — it points a Profile at an open value-vocabulary class whose members supply values for descriptor properties (#75). Mirrors test_profile_meta_properties_exist (profileOpenValue arm)." .
+    gmeow:saRationale "gmeow:profileOpenValue MUST be an owl:ObjectProperty — it points a Profile at an open value-vocabulary class whose members supply values for descriptor properties. Mirrors test_profile_meta_properties_exist (profileOpenValue arm)." .
 
 # --- 5. profileDescriptor is an owl:AnnotationProperty (MUST) ----------------
 ex:saProfileDescriptorIsAnnotationProperty a gmeow:StructuralAssertion ;
@@ -71,7 +71,7 @@ ex:saProfileDescriptorIsAnnotationProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:profileDescriptor a owl:AnnotationProperty . }""" ;
-    gmeow:saRationale "gmeow:profileDescriptor MUST be an owl:AnnotationProperty — descriptor membership is a schema-level annotation, not a reasoning-participating object property (#75). Mirrors test_profile_meta_properties_exist (profileDescriptor arm)." .
+    gmeow:saRationale "gmeow:profileDescriptor MUST be an owl:AnnotationProperty — descriptor membership is a schema-level annotation, not a reasoning-participating object property. Mirrors test_profile_meta_properties_exist (profileDescriptor arm)." .
 
 # --- 6. profileReferenceFrame is a Profile applying to ReferenceFrame (MUST) -
 ex:saReferenceFrameProfileExists a gmeow:StructuralAssertion ;
@@ -82,7 +82,7 @@ ASK {
     gmeow:profileReferenceFrame a gmeow:Profile ;
         gmeow:profileAppliesTo gmeow:ReferenceFrame .
 }""" ;
-    gmeow:saRationale "gmeow:profileReferenceFrame MUST exist as a gmeow:Profile and MUST target gmeow:ReferenceFrame via gmeow:profileAppliesTo — the reference-frame profile is a seeded worked example (#75). Mirrors test_reference_frame_profile_exists_with_descriptors (type+appliesTo half)." .
+    gmeow:saRationale "gmeow:profileReferenceFrame MUST exist as a gmeow:Profile and MUST target gmeow:ReferenceFrame via gmeow:profileAppliesTo — the reference-frame profile is a seeded worked example. Mirrors test_reference_frame_profile_exists_with_descriptors (type+appliesTo half)." .
 
 # --- 7. profileReferenceFrame has key descriptor properties (MUST) -----------
 ex:saReferenceFrameProfileDescriptors a gmeow:StructuralAssertion ;
@@ -94,7 +94,7 @@ ASK {
         gmeow:profileDescriptor gmeow:hasAxis ;
         gmeow:profileDescriptor gmeow:dimensionCount .
 }""" ;
-    gmeow:saRationale "gmeow:profileReferenceFrame MUST carry at least gmeow:frameRealm, gmeow:hasAxis, and gmeow:dimensionCount as profileDescriptor entries — these are the core geometry descriptors for the reference-frame schema (#75). Mirrors test_reference_frame_profile_exists_with_descriptors (descriptor half)." .
+    gmeow:saRationale "gmeow:profileReferenceFrame MUST carry at least gmeow:frameRealm, gmeow:hasAxis, and gmeow:dimensionCount as profileDescriptor entries — these are the core geometry descriptors for the reference-frame schema. Mirrors test_reference_frame_profile_exists_with_descriptors (descriptor half)." .
 
 # --- 8. profileReferenceFrame has key open-value classes (MUST) --------------
 ex:saReferenceFrameProfileOpenValues a gmeow:StructuralAssertion ;
@@ -105,7 +105,7 @@ ASK {
     gmeow:profileReferenceFrame gmeow:profileOpenValue gmeow:FrameRealm ;
         gmeow:profileOpenValue gmeow:Axis .
 }""" ;
-    gmeow:saRationale "gmeow:profileReferenceFrame MUST declare gmeow:FrameRealm and gmeow:Axis as profileOpenValue entries — the open vocabularies for realm and axis values are part of the reference-frame closed schema (#75). Mirrors test_reference_frame_profile_exists_with_descriptors (open-value half)." .
+    gmeow:saRationale "gmeow:profileReferenceFrame MUST declare gmeow:FrameRealm and gmeow:Axis as profileOpenValue entries — the open vocabularies for realm and axis values are part of the reference-frame closed schema. Mirrors test_reference_frame_profile_exists_with_descriptors (open-value half)." .
 
 # --- 9. profileTemporalFrame is a Profile applying to TemporalFrame (MUST) --
 ex:saTemporalFrameProfileExists a gmeow:StructuralAssertion ;
@@ -116,7 +116,7 @@ ASK {
     gmeow:profileTemporalFrame a gmeow:Profile ;
         gmeow:profileAppliesTo gmeow:TemporalFrame .
 }""" ;
-    gmeow:saRationale "gmeow:profileTemporalFrame MUST exist as a gmeow:Profile targeting gmeow:TemporalFrame — the temporal-frame profile extends the reference-frame schema with time-specific descriptors (#75). Mirrors test_temporal_frame_profile_exists (type+appliesTo half)." .
+    gmeow:saRationale "gmeow:profileTemporalFrame MUST exist as a gmeow:Profile targeting gmeow:TemporalFrame — the temporal-frame profile extends the reference-frame schema with time-specific descriptors. Mirrors test_temporal_frame_profile_exists (type+appliesTo half)." .
 
 # --- 10. profileTemporalFrame has time-specific descriptor properties (MUST) -
 ex:saTemporalFrameProfileDescriptors a gmeow:StructuralAssertion ;
@@ -127,7 +127,7 @@ ASK {
     gmeow:profileTemporalFrame gmeow:profileDescriptor gmeow:frameTimeScale ;
         gmeow:profileDescriptor gmeow:frameCalendarSystem .
 }""" ;
-    gmeow:saRationale "gmeow:profileTemporalFrame MUST carry gmeow:frameTimeScale and gmeow:frameCalendarSystem as profileDescriptor entries — these are the time-specific extensions of the reference-frame schema (#75). Mirrors test_temporal_frame_profile_exists (descriptor half)." .
+    gmeow:saRationale "gmeow:profileTemporalFrame MUST carry gmeow:frameTimeScale and gmeow:frameCalendarSystem as profileDescriptor entries — these are the time-specific extensions of the reference-frame schema. Mirrors test_temporal_frame_profile_exists (descriptor half)." .
 
 # --- 11. profileTemporalProvenance is a Profile with four-clock descriptors (MUST) ---
 ex:saTemporalProvenanceProfileExists a gmeow:StructuralAssertion ;
@@ -141,4 +141,4 @@ ASK {
         gmeow:profileDescriptor gmeow:assertedAt ;
         gmeow:profileDescriptor gmeow:recordedNoLaterThan .
 }""" ;
-    gmeow:saRationale "gmeow:profileTemporalProvenance MUST exist as a gmeow:Profile and MUST carry all four clock descriptors (validFrom, validUntil, assertedAt, recordedNoLaterThan) — the four-clocks provenance profile covers statement-level temporal metadata (#75). Mirrors test_temporal_provenance_profile_exists." .
+    gmeow:saRationale "gmeow:profileTemporalProvenance MUST exist as a gmeow:Profile and MUST carry all four clock descriptors (validFrom, validUntil, assertedAt, recordedNoLaterThan) — the four-clocks provenance profile covers statement-level temporal metadata. Mirrors test_temporal_provenance_profile_exists." .

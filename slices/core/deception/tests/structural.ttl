@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the deception slice (#213, EPIC #212) --
+# Declarative structural assertions for the deception slice --
 # the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
 # invariants formerly hand-written in tests/test_deception.py. Each assertion
 # runs as a SPARQL ASK over the deception module graph (gmeow:scopeModule)
 # under the native Rust harness (crates/slicetest).
 #
-# Deception is #694-migrated: class stereotypes are logic:
+# Deception is migrated: class stereotypes are logic:
 # (logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
@@ -247,7 +247,7 @@ ex:saEventTypeLieExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypeLie a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypeLie MUST exist as a gmeow:EventType individual -- lie/falsification is the core speech-act deception type (issue #215). Mirrors test_event_type_lie_exists." .
+    gmeow:saRationale "gmeow:eventTypeLie MUST exist as a gmeow:EventType individual -- lie/falsification is the core speech-act deception type. Mirrors test_event_type_lie_exists." .
 
 # --- 20. eventTypePaltering exists as an EventType individual (MUST) ----------
 ex:saEventTypePalteringExists a gmeow:StructuralAssertion ;
@@ -255,7 +255,7 @@ ex:saEventTypePalteringExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypePaltering a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypePaltering MUST exist as a gmeow:EventType individual -- paltering is the technically-true-but-misleading speech-act deception type (issue #215). Mirrors test_event_type_paltering_exists." .
+    gmeow:saRationale "gmeow:eventTypePaltering MUST exist as a gmeow:EventType individual -- paltering is the technically-true-but-misleading speech-act deception type. Mirrors test_event_type_paltering_exists." .
 
 # --- 21. eventTypeOmission exists as an EventType individual (MUST) -----------
 ex:saEventTypeOmissionExists a gmeow:StructuralAssertion ;
@@ -263,7 +263,7 @@ ex:saEventTypeOmissionExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypeOmission a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypeOmission MUST exist as a gmeow:EventType individual -- omission/concealment is the suppression-of-held-truth deception type (issue #215). Mirrors test_event_type_omission_exists." .
+    gmeow:saRationale "gmeow:eventTypeOmission MUST exist as a gmeow:EventType individual -- omission/concealment is the suppression-of-held-truth deception type. Mirrors test_event_type_omission_exists." .
 
 # --- 22. eventTypeDistortion exists as an EventType individual (MUST) ---------
 ex:saEventTypeDistortionExists a gmeow:StructuralAssertion ;
@@ -271,7 +271,7 @@ ex:saEventTypeDistortionExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypeDistortion a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypeDistortion MUST exist as a gmeow:EventType individual -- distortion/spin is the reframing deception type carrying gmeow:roleSpinDoctor (issue #215). Mirrors test_event_type_distortion_exists." .
+    gmeow:saRationale "gmeow:eventTypeDistortion MUST exist as a gmeow:EventType individual -- distortion/spin is the reframing deception type carrying gmeow:roleSpinDoctor. Mirrors test_event_type_distortion_exists." .
 
 # --- 23. eventTypeBullshit exists as an EventType individual (MUST) -----------
 ex:saEventTypeBullshitExists a gmeow:StructuralAssertion ;
@@ -279,7 +279,7 @@ ex:saEventTypeBullshitExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypeBullshit a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypeBullshit MUST exist as a gmeow:EventType individual -- bullshit event type (Frankfurt indifference-to-truth; distinct from lie and error, issue #215). Mirrors test_event_type_bullshit_exists." .
+    gmeow:saRationale "gmeow:eventTypeBullshit MUST exist as a gmeow:EventType individual -- bullshit event type (Frankfurt indifference-to-truth; distinct from lie and error). Mirrors test_event_type_bullshit_exists." .
 
 # --- 24. eventTypeSelfDeception exists as an EventType individual (MUST) ------
 ex:saEventTypeSelfDeceptionExists a gmeow:StructuralAssertion ;
@@ -287,7 +287,7 @@ ex:saEventTypeSelfDeceptionExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypeSelfDeception a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypeSelfDeception MUST exist as a gmeow:EventType individual -- self-deception is the structural configuration where roleDeceiver = roleDeceived (issue #215). Mirrors test_event_type_self_deception_exists." .
+    gmeow:saRationale "gmeow:eventTypeSelfDeception MUST exist as a gmeow:EventType individual -- self-deception is the structural configuration where roleDeceiver = roleDeceived. Mirrors test_event_type_self_deception_exists." .
 
 # --- 25. roleSpinDoctor exists as a ParticipantRole individual (MUST) ---------
 ex:saRoleSpinDoctorExists a gmeow:StructuralAssertion ;
@@ -295,7 +295,7 @@ ex:saRoleSpinDoctorExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:roleSpinDoctor a gmeow:ParticipantRole . }""" ;
-    gmeow:saRationale "gmeow:roleSpinDoctor MUST exist as a gmeow:ParticipantRole individual -- the distortion-specific role for the participant who reframes information (issue #215). Mirrors test_role_spin_doctor_exists." .
+    gmeow:saRationale "gmeow:roleSpinDoctor MUST exist as a gmeow:ParticipantRole individual -- the distortion-specific role for the participant who reframes information. Mirrors test_role_spin_doctor_exists." .
 
 # --- 26. MaximViolationType is a logic:AbstractIndividualType value vocabulary
 #        subclassing logic:QualityValue (MUST) -----------------------------------
@@ -331,7 +331,7 @@ ex:saEventTypeFabricationExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypeFabrication a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypeFabrication MUST exist as a gmeow:EventType individual -- fabrication is the carrier deception type that invents a false artifact (issue #216). Mirrors test_event_type_fabrication_exists." .
+    gmeow:saRationale "gmeow:eventTypeFabrication MUST exist as a gmeow:EventType individual -- fabrication is the carrier deception type that invents a false artifact. Mirrors test_event_type_fabrication_exists." .
 
 # --- 29. eventTypeForgery exists as an EventType individual (MUST) ------------
 ex:saEventTypeForgeryExists a gmeow:StructuralAssertion ;
@@ -339,7 +339,7 @@ ex:saEventTypeForgeryExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypeForgery a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypeForgery MUST exist as a gmeow:EventType individual -- forgery is the fabrication subtype that mimics a specific genuine artifact via gmeow:counterpartOf (issue #216). Mirrors test_event_type_forgery_exists." .
+    gmeow:saRationale "gmeow:eventTypeForgery MUST exist as a gmeow:EventType individual -- forgery is the fabrication subtype that mimics a specific genuine artifact via gmeow:counterpartOf. Mirrors test_event_type_forgery_exists." .
 
 # --- 30. eventTypeImpersonation exists as an EventType individual (MUST) ------
 ex:saEventTypeImpersonationExists a gmeow:StructuralAssertion ;
@@ -347,7 +347,7 @@ ex:saEventTypeImpersonationExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypeImpersonation a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypeImpersonation MUST exist as a gmeow:EventType individual -- impersonation is the projected-identity-mismatch carrier deception type (issue #216). Mirrors test_event_type_impersonation_exists." .
+    gmeow:saRationale "gmeow:eventTypeImpersonation MUST exist as a gmeow:EventType individual -- impersonation is the projected-identity-mismatch carrier deception type. Mirrors test_event_type_impersonation_exists." .
 
 # --- 31. eventTypeDisinformation exists as an EventType individual (MUST) -----
 ex:saEventTypeDisinformationExists a gmeow:StructuralAssertion ;
@@ -355,4 +355,4 @@ ex:saEventTypeDisinformationExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypeDisinformation a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypeDisinformation MUST exist as a gmeow:EventType individual -- disinformation is the coordinated propagation type; the misinfo/disinfo boundary is per-node (issue #217). Mirrors test_event_type_disinformation_exists." .
+    gmeow:saRationale "gmeow:eventTypeDisinformation MUST exist as a gmeow:EventType individual -- disinformation is the coordinated propagation type; the misinfo/disinfo boundary is per-node. Mirrors test_event_type_disinformation_exists." .

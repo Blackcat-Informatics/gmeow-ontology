@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative competency questions for the procedures slice (crates/slicetest,
-# #784), migrated from test_competency_procedures_query and
-# test_competency_ingestion_executions_query under #867. The procedures vocabulary
+# Declarative competency questions for the procedures slice (crates/slicetest),
+# migrated from test_competency_procedures_query and
+# test_competency_ingestion_executions_query. The procedures vocabulary
 # question is a TBox subset (contains-check); the ingestion-executions question is
 # deliberately EMPTY over the TBox-only graph (there are no Execution individuals),
 # so it pins cqExpectRowCount 0 — faithful to the source's `terms == set()`.
-# No #869 Gap-1 universal.
+# No Gap-1 universal.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/procedures/tests/> .

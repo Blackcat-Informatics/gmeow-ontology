@@ -16,10 +16,10 @@ gmeow:mapsetSensory a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-sensory.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/sensory" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Sensory extension alignments to external audio feature ontologies (issue #317)." .
+    gmeow:setComment "Sensory extension alignments to external audio feature ontologies." .
 
 # --------------------------------------------------------------------------- #
-# AFO 1.1 — timbre & sensory features (issue #317)
+# AFO 1.1 — timbre & sensory features
 # --------------------------------------------------------------------------- #
 
 gmeow:eqSens001 a gmeow:TermEquivalence ;

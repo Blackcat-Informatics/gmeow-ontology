@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Declarative competency questions for the narrative slice, executed by the native
-# Rust slice-test harness (crates/slicetest, #784). Migrated from
-# test_competency_myths_query in tests/test_competency.py under #867.
+# Rust slice-test harness (crates/slicetest). Migrated from
+# test_competency_myths_query in tests/test_competency.py.
 #
 # TBox vocabulary question over the asserted merged ontology; rows are the SUBSET
-# the pytest asserted present (cqExactRows omitted → contains-check). No #869
+# the pytest asserted present (cqExactRows omitted → contains-check). No
 # Gap-1 universal: a fixed five-term set, including the PROV-O lineage spine
 # (wasDerivedFrom) the propagation property reuses.
 

@@ -3,9 +3,9 @@
 #
 # Declarative structural assertions for the kernel slice — the slice-resident
 # test-DSL twin of the kernel-local MUST / MUST-NOT invariants formerly
-# hand-written in tests/test_aboutness.py (the universal aboutness axis, #349,
-# EPIC #348). Authored as gmeow: ontology data so the native Rust harness
-# (crates/slicetest, #784) drives the test, not ad-hoc Python. Each assertion
+# hand-written in tests/test_aboutness.py (the universal aboutness axis).
+# Authored as gmeow: ontology data so the native Rust harness
+# (crates/slicetest) drives the test, not ad-hoc Python. Each assertion
 # runs as a SPARQL ASK over the kernel module graph (gmeow:scopeModule).
 #
 # Scope note: only the invariants whose subjects are DECLARED in the kernel
@@ -31,7 +31,7 @@ ASK {
     gmeow:AboutnessMode a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:AboutnessMode MUST be a universal logic:AbstractIndividualType owl:Class that is a subclass of logic:QualityValue — a value vocabulary of individuals, never per-mode subclasses (Principle 9, the fourth domain-free epistemic axis #349). Mirrors test_aboutness_class_structure in test_aboutness.py." .
+    gmeow:saRationale "gmeow:AboutnessMode MUST be a universal logic:AbstractIndividualType owl:Class that is a subclass of logic:QualityValue — a value vocabulary of individuals, never per-mode subclasses (Principle 9, the fourth domain-free epistemic axis). Mirrors test_aboutness_class_structure in test_aboutness.py." .
 
 # --- 2. hasAboutness is an AnnotationProperty ranging on AboutnessMode (MUST) -
 ex:saHasAboutnessAnnotationProperty a gmeow:StructuralAssertion ;

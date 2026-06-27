@@ -38,6 +38,15 @@
 #   - gmeow-rdf-capi c_smoke binary: self-builds the libpurrdf cdylib (~33 s cold
 #     compile on CI) as part of the test — build-time-bound, not logic-bound.
 #     Already covered by the dedicated `capi` CI job (`make capi-check`).
+#   - gmeow-docs full-site-render family (render_site_is_byte_stable,
+#     english_carrier_tree_matches_render_site, french_tree_shares_the_english_path_graph,
+#     chinese_tree_shares_the_english_path_graph,
+#     translated_tree_preserves_the_no_dangling_link_invariant): each renders or walks
+#     the ENTIRE site (every page, in English or a translated language), an O(terms)
+#     cost the shared DocsModel fixture cannot amortize (it caches the model BUILD, not
+#     the SITE RENDER). All five sit at ~23-26 s and cross the zero-headroom 25 s budget
+#     as the ontology grows. The single-page / single-term docs tests (the vast majority,
+#     each <1 s) stay on-gate; only the whole-site renders move here.
 default-filter = '''
   not (
     test(/corpus_parity_heavy_offgate/)
@@ -50,6 +59,7 @@ default-filter = '''
     | (package(gmeow-slice) & (binary(alignment_parity) | test(/sparql_emit::tests/) | test(/edoal_emit::tests::every_edoal/)))
     | (package(gmeow-slicetest) & test(/places.tests.structural/))
     | (package(gmeow-rdf-capi) & binary(c_smoke))
+    | (package(gmeow-docs) & test(/render_site_is_byte_stable|english_carrier_tree_matches_render_site|french_tree_shares_the_english_path_graph|chinese_tree_shares_the_english_path_graph|translated_tree_preserves_the_no_dangling_link_invariant/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }

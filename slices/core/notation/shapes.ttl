@@ -8,7 +8,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 # =========================================================================== #
-# NOTATION PROJECTION SHAPES — issue #318
+# NOTATION PROJECTION SHAPES
 # =========================================================================== #
 
 gmeow:NotationProjectionProfileShape

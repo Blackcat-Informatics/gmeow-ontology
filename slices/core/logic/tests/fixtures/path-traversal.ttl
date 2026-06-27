@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # ABox fixture for the bounded-depth path-traversal competency question
-# (gmeow:cqDataFile overlay, issue #1010).
+# (gmeow:cqDataFile overlay).
 #
 # A four-node chain A → B → C → D via ex:linkedTo.  The path shape
 # ex:withinTwoHops (logic:pathStepPredicate ex:linkedTo, logic:pathMaxDepth 2)

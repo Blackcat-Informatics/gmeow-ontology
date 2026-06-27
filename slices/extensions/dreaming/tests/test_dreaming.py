@@ -1,4 +1,4 @@
-"""Competency query guard for the #589 dreaming extension examples.
+"""Competency query guard for the dreaming extension examples.
 
 Loads the merged ontology plus every example under
 ``slices/extensions/dreaming/examples/`` and asserts that the dreaming slice

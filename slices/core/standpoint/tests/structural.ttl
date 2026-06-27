@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the standpoint slice (#43) -- the
+# Declarative structural assertions for the standpoint slice -- the
 # slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
 # formerly hand-written in tests/test_standpoint.py. Each assertion runs as a
 # SPARQL ASK over the standpoint module graph (gmeow:scopeModule) under the
 # native Rust slicetest harness (crates/slicetest).
 #
-# Standpoint IS #694-migrated: class stereotypes are logic: (logic:Kind,
+# Standpoint IS migrated: class stereotypes are logic: (logic:Kind,
 # logic:AbstractIndividualType, logic:Situation), NOT gufo:.
 #
 # RETAINED in pytest (not migratable here):
@@ -233,3 +233,203 @@ ex:saClaimModalityNotSubpropertyObservationResult a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:claimModality rdfs:subPropertyOf gmeow:observationResult . }""" ;
     gmeow:saRationale "gmeow:claimModality MUST NOT be rdfs:subPropertyOf gmeow:observationResult -- StandpointModality (a logic:QualityValue / abstract individual) is disjoint from gmeow:Entity (a logic:Endurant) in the DL profile; the semantic equivalence is documented, not axiomatised (the claimModality precedent). Mirrors test_claim_modality_property_exists (not-subPropertyOf part)." .
+
+# === Factored claim modality: six orthogonal axes + lossless projection ===
+
+# --- 15. Six axis value-classes are logic:AbstractIndividualType QualityValue (MUST) ---
+ex:saSixAxisValueClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Polarity          a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:ModalForce        a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:CredenceLevel     a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:AssertoricForce   a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:TruthDirectedness a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:SupportStatus     a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "All six factored claim-modality axis value-classes MUST be owl:Class typed logic:AbstractIndividualType and subclasses of logic:QualityValue -- closed value vocabularies of abstract individuals, DL-clean and disjoint from gmeow:Entity, mirroring gmeow:StandpointModality." .
+
+# --- 16. Polarity value individuals exist (MUST) ------------------------------
+ex:saPolarityValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:polarityAffirm  a gmeow:Polarity .
+    gmeow:polarityDeny    a gmeow:Polarity .
+    gmeow:polaritySuspend a gmeow:Polarity .
+}""" ;
+    gmeow:saRationale "The three gmeow:Polarity values (affirm/deny/suspend) MUST exist -- the polarity axis; gmeow:polarityDeny is the canonical carrier of the legacy refuted (frame-relative denial, Principle 9)." .
+
+# --- 17. ModalForce value individuals exist (MUST) ---------------------------
+ex:saModalForceValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:modalForceNecessary      a gmeow:ModalForce .
+    gmeow:modalForceActual         a gmeow:ModalForce .
+    gmeow:modalForcePossible       a gmeow:ModalForce .
+    gmeow:modalForceCounterfactual a gmeow:ModalForce .
+}""" ;
+    gmeow:saRationale "The four gmeow:ModalForce values (necessary/actual/possible/counterfactual) MUST exist -- the alethic Standpoint-Logic box/diamond register, kept distinct from credence and confidence." .
+
+# --- 18. CredenceLevel value individuals exist (MUST) ------------------------
+ex:saCredenceLevelValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:credenceCertain     a gmeow:CredenceLevel .
+    gmeow:credenceLikely      a gmeow:CredenceLevel .
+    gmeow:credencePossible    a gmeow:CredenceLevel .
+    gmeow:credenceUnspecified a gmeow:CredenceLevel .
+}""" ;
+    gmeow:saRationale "The four gmeow:CredenceLevel bands (certain/likely/possible/unspecified) MUST exist -- the qualitative band the lossless projection keys on, paired with the numeric gmeow:claimCredence." .
+
+# --- 19. AssertoricForce value individuals exist (MUST) ----------------------
+ex:saAssertoricForceValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:assertoricAssert     a gmeow:AssertoricForce .
+    gmeow:assertoricConjecture a gmeow:AssertoricForce .
+    gmeow:assertoricAssume     a gmeow:AssertoricForce .
+    gmeow:assertoricRetract    a gmeow:AssertoricForce .
+}""" ;
+    gmeow:saRationale "The four gmeow:AssertoricForce values (assert/conjecture/assume/retract) MUST exist -- the speech-act force axis; gmeow:assertoricRetract closes a withdrawn assertion without erasure (Principle 10)." .
+
+# --- 20. TruthDirectedness value individuals exist (MUST) --------------------
+ex:saTruthDirectednessValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:truthAimed       a gmeow:TruthDirectedness .
+    gmeow:truthIndifferent a gmeow:TruthDirectedness .
+    gmeow:truthStrategic   a gmeow:TruthDirectedness .
+}""" ;
+    gmeow:saRationale "The three gmeow:TruthDirectedness values (truth-aimed/indifferent/strategic) MUST exist -- gmeow:truthIndifferent is the canonical carrier of the legacy bullshit (Frankfurt indifference, NOT a truth value)." .
+
+# --- 21. SupportStatus value individuals exist (MUST) -----------------------
+ex:saSupportStatusValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:supportSupported a gmeow:SupportStatus .
+    gmeow:supportOpposed   a gmeow:SupportStatus .
+    gmeow:supportBoth      a gmeow:SupportStatus .
+    gmeow:supportNeither   a gmeow:SupportStatus .
+}""" ;
+    gmeow:saRationale "The four gmeow:SupportStatus values (supported/opposed/both/neither) MUST exist -- the Belnap evidential axis; gmeow:supportBoth (glut) is admissible. Self-contained gmeow vocabulary aligned by prose to logic:InformationState." .
+
+# --- 22. Seven annotation twins are owl:AnnotationProperty with correct range (MUST) ---
+ex:saAxisAnnotationTwins a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:standpointPolarity          a owl:AnnotationProperty ; rdfs:range gmeow:Polarity .
+    gmeow:standpointModalForce        a owl:AnnotationProperty ; rdfs:range gmeow:ModalForce .
+    gmeow:standpointCredence          a owl:AnnotationProperty ; rdfs:range xsd:decimal .
+    gmeow:standpointCredenceLevel     a owl:AnnotationProperty ; rdfs:range gmeow:CredenceLevel .
+    gmeow:standpointAssertoricForce   a owl:AnnotationProperty ; rdfs:range gmeow:AssertoricForce .
+    gmeow:standpointTruthDirectedness a owl:AnnotationProperty ; rdfs:range gmeow:TruthDirectedness .
+    gmeow:standpointSupportStatus     a owl:AnnotationProperty ; rdfs:range gmeow:SupportStatus .
+}""" ;
+    gmeow:saRationale "The seven flattened-statement annotation twins MUST be owl:AnnotationProperty with the matching axis range -- DL-clean annotation form mirroring gmeow:standpointModality; standpointCredence ranges xsd:decimal." .
+
+# --- 23. Six reified object twins are functional ObjectProperty domain StandpointClaim (MUST) ---
+ex:saAxisReifiedObjectTwins a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:claimPolarity          a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:Polarity .
+    gmeow:claimModalForce        a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:ModalForce .
+    gmeow:claimCredenceLevel     a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:CredenceLevel .
+    gmeow:claimAssertoricForce   a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:AssertoricForce .
+    gmeow:claimTruthDirectedness a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:TruthDirectedness .
+    gmeow:claimSupportStatus     a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:SupportStatus .
+}""" ;
+    gmeow:saRationale "The six reified object twins MUST be functional owl:ObjectProperty with domain gmeow:StandpointClaim and the matching axis range -- the StandpointClaim authoring form mirroring gmeow:claimModality." .
+
+# --- 24. claimCredence is a functional DatatypeProperty range xsd:decimal (MUST) ---
+ex:saClaimCredenceDatatypeShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:claimCredence a owl:DatatypeProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:StandpointClaim ;
+        rdfs:range xsd:decimal .
+}""" ;
+    gmeow:saRationale "gmeow:claimCredence MUST be a functional owl:DatatypeProperty with domain gmeow:StandpointClaim and range xsd:decimal -- the precise numeric credence surface (0..1), paired with the qualitative gmeow:claimCredenceLevel the projection keys on." .
+
+# --- 25. Reified axis twins are NOT subPropertyOf observationResult (MUST-NOT) ---
+ex:saAxisTwinsNotSubpropertyObservationResult a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    ?p rdfs:subPropertyOf gmeow:observationResult .
+    FILTER (?p IN (
+        gmeow:claimPolarity, gmeow:claimModalForce, gmeow:claimCredence,
+        gmeow:claimCredenceLevel, gmeow:claimAssertoricForce,
+        gmeow:claimTruthDirectedness, gmeow:claimSupportStatus
+    ))
+}""" ;
+    gmeow:saRationale "No reified axis twin MUST be rdfs:subPropertyOf gmeow:observationResult -- the axis value-classes (logic:QualityValue) are disjoint from gmeow:Entity in the DL profile; the equivalence is documented, not axiomatised (the claimModality precedent)." .
+
+# --- 26a. CredenceLevel vocabulary is exactly four individuals — no fifth band (MUST-NOT) ---
+# The closed four-band vocabulary (certain/likely/possible/unspecified) is the
+# authoritative projection surface for the decimal-to-band bucketing thresholds.
+# A fifth CredenceLevel individual would mean an undeclared threshold interval and must
+# not exist — any extension requires an ontology revision, not a data assertion.
+ex:saNoExtraCredenceLevel a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?x a gmeow:CredenceLevel .
+    FILTER (?x NOT IN (
+        gmeow:credenceCertain, gmeow:credenceLikely,
+        gmeow:credencePossible, gmeow:credenceUnspecified
+    ))
+}""" ;
+    gmeow:saRationale "No fifth gmeow:CredenceLevel individual MUST NOT exist — the four-band vocabulary (certain/likely/possible/unspecified) is closed by design; each band maps to a canonical decimal threshold range (certain [0.9,1.0], likely [0.5,0.9), possible [0.0,0.5), unspecified = no decimal). An additional band would require an ontology revision to assign it a threshold interval, not a data assertion. Mirrors the pattern of the StandpointModality closed-set cell." .
+
+# --- 26. Each legacy modality value keeps its typing AND carries its full six-axis bundle (MUST, augment-not-replace) ---
+ex:saLegacyModalityDecomposesToAxis a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:unequivocal a gmeow:StandpointModality ;
+        gmeow:decomposesToAxis gmeow:polarityAffirm , gmeow:modalForceNecessary , gmeow:credenceCertain , gmeow:assertoricAssert , gmeow:truthAimed , gmeow:supportSupported .
+    gmeow:probable a gmeow:StandpointModality ;
+        gmeow:decomposesToAxis gmeow:polarityAffirm , gmeow:modalForceActual , gmeow:credenceLikely , gmeow:assertoricConjecture , gmeow:truthAimed , gmeow:supportSupported .
+    gmeow:conceivable a gmeow:StandpointModality ;
+        gmeow:decomposesToAxis gmeow:polaritySuspend , gmeow:modalForcePossible , gmeow:credencePossible , gmeow:assertoricAssume , gmeow:truthAimed , gmeow:supportNeither .
+    gmeow:refuted a gmeow:StandpointModality ;
+        gmeow:decomposesToAxis gmeow:polarityDeny , gmeow:modalForceNecessary , gmeow:credenceCertain , gmeow:assertoricAssert , gmeow:truthAimed , gmeow:supportOpposed .
+    gmeow:bullshit a gmeow:StandpointModality ;
+        gmeow:decomposesToAxis gmeow:polarityAffirm , gmeow:modalForceActual , gmeow:credenceUnspecified , gmeow:assertoricAssert , gmeow:truthIndifferent , gmeow:supportNeither .
+}""" ;
+    gmeow:saRationale "Each of the five legacy gmeow:StandpointModality values MUST retain its gmeow:StandpointModality typing AND carry its canonical six-axis gmeow:decomposesToAxis bundle -- augment-not-replace: the legacy surface stays the lossless projection target, and these bundles are the declarative source the Rust round-trip (crates/slice/src/standpoint_modality.rs) cross-checks. bullshit=truthIndifferent (not a truth value); refuted=polarityDeny+supportOpposed (frame-relative, Principle 9)." .

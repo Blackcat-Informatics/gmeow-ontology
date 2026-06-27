@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: a word, its forms, and its etymology (#443). A gmeow:LexicalItem
+# Worked example: a word, its forms, and its etymology. A gmeow:LexicalItem
 # is a lexeme in a language; its written/spoken/signed surface strings are
 # separate gmeow:LexicalForms (gmeow:hasLexicalForm), so the same lexeme can carry
 # many forms across scripts and registers. A gmeow:EtymologicalDerivation reifies

@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Hand-authored YAML-LD-star statement-layer fixture (issue #699 / PR #978).
+# Hand-authored YAML-LD-star statement-layer fixture.
 #
 # A standpoint claim annotated with explicit reifier ids, statement metadata
 # (accordingTo, confidence, assertedAt), and a directional language-tagged name.

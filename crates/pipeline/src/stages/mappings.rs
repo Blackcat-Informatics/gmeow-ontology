@@ -13,9 +13,10 @@
 //!   * **SPARQL CONSTRUCT** → `gmeow_slice::emit_sparql_sets(root)` (the
 //!     closed-algebra text renderer) → `generated/queries/*.rq`.
 //!   * **Standpoint projections** → `gmeow_slice::emit_standpoint_sets(root)` — the
-//!     six hand-authored `standpoint-*.rq` (Standpoint-OWL 2, CRMinf, PROV-O, Web
-//!     Annotation, schema.org Claim, BBC News), fixed template-coded SPARQL with no
-//!     DSL input → `generated/queries/standpoint-*.rq`.
+//!     seven hand-authored `standpoint-*.rq` (six peer-model re-expressions:
+//!     Standpoint-OWL 2, CRMinf, PROV-O, Web Annotation, schema.org Claim, BBC
+//!     News; plus the legacy-modality projection), fixed template-coded SPARQL
+//!     with no DSL input → `generated/queries/standpoint-*.rq`.
 //!   * **DSL stats** → `gmeow_slice::emit_dsl_stats(root)` — the committed,
 //!     drift-gated counts summary (equivalences / functions / mapping_sets /
 //!     projections / cells_by_set) → `generated/mappings/dsl-stats.json`.
@@ -45,7 +46,7 @@ pub const FNO_PATH: &str = "generated/projections/functions.fno.ttl";
 /// Directory (logical-path prefix) of the EDOAL alignment Turtle files.
 pub const EDOAL_DIR: &str = "generated/projections";
 /// Directory (logical-path prefix) of the SPARQL CONSTRUCT projection queries
-/// (also home to the six standpoint `standpoint-*.rq` projections).
+/// (also home to the seven standpoint `standpoint-*.rq` projections).
 pub const QUERIES_DIR: &str = "generated/queries";
 /// Committed logical path of the DSL surface-count summary.
 pub const DSL_STATS_PATH: &str = "generated/mappings/dsl-stats.json";
@@ -117,7 +118,7 @@ pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
     }
 
-    // Standpoint projections — the six fixed `standpoint-*.rq` queries (byte-identical
+    // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical
     // to the Python template-coded emitters; no DSL input).
     let standpoint = emit_standpoint_sets(root).map_err(|e| PipelineError::Stage {
         stage: "stage-mappings".to_string(),
@@ -459,7 +460,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         for (path, bytes) in &artifacts {
             let name = path.rsplit('/').next().unwrap_or(path);
             let is_edoal = path.starts_with(EDOAL_DIR) && path.ends_with(".edoal.ttl");
-            // The per-profile SPARQL projections only; the six `standpoint-*.rq`
+            // The per-profile SPARQL projections only; the seven `standpoint-*.rq`
             // queries are covered by their own dedicated parity test below.
             let is_sparql = path.starts_with(QUERIES_DIR)
                 && name.ends_with(".rq")
@@ -504,7 +505,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
     #[test]
     fn standpoint_and_dsl_stats_emit_byte_identically_with_committed() {
         // The stage wires `emit_standpoint_sets` / `emit_dsl_stats` — the same Rust
-        // the slice-crate byte-parity unit tests exercise. The six standpoint `.rq`
+        // the slice-crate byte-parity unit tests exercise. The seven standpoint `.rq`
         // and `dsl-stats.json` the stage emits MUST equal their committed counterparts
         // byte-for-byte (the emitters' parity contract).
         let root = repo_root();
@@ -534,8 +535,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             failures.join("\n")
         );
         assert_eq!(
-            standpoint, 6,
-            "expected 6 standpoint files byte-matching, got {standpoint}"
+            standpoint, 7,
+            "expected 7 standpoint files byte-matching, got {standpoint}"
         );
 
         let stats = artifacts

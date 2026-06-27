@@ -58,7 +58,7 @@ subject of reasoning. A `DigitalSubject` asserting "I am the same who I was yest
 the subject, *about the subject*, held in the subject's own `EpistemicContext`, over its own
 `SubjectLineage`. This composes the metalevel (a triple term about a triple term), HiLog
 self-typing (`suppliesIdentity`), and the epistemic context axis — and bridges to `metacognition` /
-`mentation` (#580): self-continuity is a metacognitive state. It is the slice's hardest and most
+`mentation`: self-continuity is a metacognitive state. It is the slice's hardest and most
 characteristic ceiling demand, and it is exactly what "a subject of its own digital existence"
 (Principle 9) means once made computational.
 

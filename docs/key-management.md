@@ -45,7 +45,7 @@ gmeow verify dist/gmeow.gts --trusted-key keys/gmeow-release-key.asc
 gmeow gts info --no-verify dist/gmeow.gts
 
 # Extract the embedded public key for manual WoT checks
-# (delegates to the external `gts` binary; `extract-key` requires upstream gmeow-gts#12)
+# (delegates to the external `gts` binary; `extract-key` requires upstream gmeow-gts support)
 gmeow gts extract-key dist/gmeow.gts -o /tmp/embedded.asc
 ```
 

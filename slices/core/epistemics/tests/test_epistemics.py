@@ -5,7 +5,7 @@
 Most of this slice's structural invariants — the keystone entailment
 ``knowsThat ⊑ believes``, the no-truth-bit rule, the open-range doxastic spine,
 the justification term shapes — were migrated to slice-resident test-DSL data
-and now run in the native Rust slice-test harness (crates/slicetest, #784):
+and now run in the native Rust slice-test harness (crates/slicetest):
 
 * ``tests/structural.ttl`` — the MUST / MUST-NOT structural assertions,
 * ``tests/competency.ttl`` — the agent-kind and contribution-role competency
@@ -83,7 +83,7 @@ def test_justified_by_union_membership() -> None:
 
 
 def test_justification_terms_are_annotated() -> None:
-    """Annotation-completeness for the #561 terms (Principle 8).
+    """Annotation-completeness for the justification terms (Principle 8).
 
     Retained in pytest: the sweep over *dynamically discovered* JustificationStatus
     individuals (g.subjects(...)) is a universal over an open set the declarative

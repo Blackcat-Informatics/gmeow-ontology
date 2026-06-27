@@ -56,7 +56,7 @@ components = ["rustfmt", "clippy"]
 Nightly is mandatory, not preferred. The `nemo` engine — a hard dependency of
 `gmeow-logic` — uses unstable language features (`macro_metavar_expr`,
 `iter_intersperse`, `slice_swap_unchecked`) and does not compile on stable.
-There is no stable fallback for the logic stack (tracking: #499, PR #531).
+There is no stable fallback for the logic stack.
 
 `gmeow-gts`, by contrast, targets **stable** Rust. This is not a conflict:
 stable Rust is a subset of nightly, so a stable-targeting crate compiles
@@ -114,7 +114,7 @@ gmeow validate --gts generated/dist/gmeow.gts
 ```
 
 Under the hood, `validate_all(gts_input=...)` is a thin Python wrapper over the
-Rust-native orchestration `gmeow_validate.validate_all_native` (#634). The Rust
+Rust-native orchestration `gmeow_validate.validate_all_native`. The Rust
 engine builds the ontology store once, parses the SHACL shapes once, and runs
 every phase against that shared store. `gmeow-gts` decodes and verifies the
 bundle; `gmeow-rdf` then materializes its N-Quads projection into the same

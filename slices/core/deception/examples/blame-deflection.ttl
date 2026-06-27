@@ -10,7 +10,7 @@
 # gmeow:veridicalityUntrue. Nothing here needs a "deception class": ordinary
 # claims, an event type, and the held/projected gap do all the work.
 #
-# Re-grounded for issue #561: both standpoints are reified as gmeow:DoxasticState
+# Re-grounded: both standpoints are reified as gmeow:DoxasticState
 # instances and reported by gmeow:DoxasticStandpointClaim instances via
 # gmeow:claimOfBelief. The held belief has high credence; the projected belief has
 # low credence — the spokesperson publicly avows the vendor-caused proposition

@@ -4,8 +4,8 @@
 # Worked example — four gmeow:logic advantages over gUFO / OWL 2, each
 # demonstrating one of the named OWL-2 criticisms (LOGIC-FOUNDATION.md §OWL 2
 # criticisms). The logic: terms used here are the foundation surface authored in
-# #663; the native engine that EXECUTES them (rules, chase, builtins) is seamed
-# to #664/#665, so this file demonstrates the SHAPE of each fix, not its
+# the native engine that EXECUTES them (rules, chase, builtins) is seamed
+# separately, so this file demonstrates the SHAPE of each fix, not its
 # evaluation.
 #
 #   §1  Native edge property (triple-bloat fix, criticism 3)
@@ -81,7 +81,7 @@ ex:employment-alice-acme
 # the bicycle. Under transitivity the spoke is therefore a proper part of the
 # bicycle; under irreflexivity nothing is a proper part of itself; under
 # asymmetry the relation never runs both ways. (Materialization of the
-# transitive consequence is the engine's job, #664/#665.)
+# transitive consequence is the engine's job.)
 ex:spoke   logic:properPartOf ex:wheel .
 ex:wheel   logic:properPartOf ex:bicycle .
 

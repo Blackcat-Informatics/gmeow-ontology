@@ -7,7 +7,7 @@
 # employment module graph (gmeow:scopeModule) under the native Rust slicetest
 # harness (crates/slicetest).
 #
-# Employment is #694-migrated, so class stereotypes are logic:
+# Employment is migrated, so class stereotypes are logic:
 # (logic:AbstractIndividualType, logic:SubKind, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):

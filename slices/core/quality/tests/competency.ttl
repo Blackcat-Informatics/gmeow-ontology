@@ -1,15 +1,15 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative competency question for the quality slice (crates/slicetest, #784),
-# migrated from test_qc_missing_definitions_is_empty under #867. The QC check
+# Declarative competency question for the quality slice (crates/slicetest),
+# migrated from test_qc_missing_definitions_is_empty. The QC check
 # (queries/qc/missing-definitions.rq) asserts that every gmeow: owl:Class carries a
 # skos:definition; a non-empty result is a failure, so the cell pins
 # cqExpectRowCount 0. It runs in the default asserted lane (gmeow:reasoningNone) on
 # purpose: reasoning must not be able to invent a definition, so the completeness
 # guard is meaningful only over what is actually authored.
 #
-# This is the #869 Gap-1 GOOD pattern preserved verbatim: the query is an OPEN
+# This is the Gap-1 GOOD pattern preserved verbatim: the query is an OPEN
 # universal over the namespace (a dynamic FILTER(STRSTARTS(...)) ASK over every
 # present-or-future gmeow: class), NOT a finite VALUES blacklist — referencing the
 # .rq keeps that dynamic universal intact.

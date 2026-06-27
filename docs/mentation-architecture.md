@@ -1,11 +1,11 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# Mentation architecture — the #580 coherence map
+# Mentation architecture — coherence map
 
-> **Status.** This document is the north-star architecture for GMEOW issue #580. It is a
-> coherence map, not an implementation. The concrete ontology slices are implemented by child
-> issues #581–#589, and this file is the reference those slices are judged against.
+> **Status.** This document is the north-star architecture for GMEOW's mentation model. It is a
+> coherence map, not an implementation. The concrete ontology slices are implemented as child
+> slices, and this file is the reference those slices are judged against.
 
 ---
 
@@ -173,44 +173,44 @@ The mentation epic is delivered through nine slices. `mentation` is the keystone
 shared top-level classes and relations that the other slices specialize. `dreaming` is an
 extension and a composition stress-test.
 
-| # | Slice | Directory | Role |
-|---|---|---|---|
-| #585 | `concepts` | `slices/core/concepts/` | Concept possession, category activation, concept learning. |
-| #582 | `inquiry` | `slices/core/inquiry/` | Questions, problems, investigation states, answer conditions. |
-| #586 | `mentation` | `slices/core/mentation/` | Keystone: `MentalMoment`, `MentalProcess`, `gmeow:realizesMentalMoment`, `gmeow:producesMentalMoment`, `gmeow:updatesMentalTenure`. |
-| #581 | `inference` | `slices/core/inference/` | Reasoning processes and the claims they produce or update. |
-| #584 | `learning` | `slices/core/learning/` | Learning processes and the memories/competencies they update. |
-| #587 | `imagination` | `slices/core/imagination/` | Suppositional, counterfactual, and generative content. |
-| #583 | `metacognition` | `slices/core/metacognition/` | Second-order mental states: confidence, calibration, uncertainty. |
-| #588 | `awareness` | `slices/core/awareness/` | Global experiencer-states and awareness modes. |
-| #589 | `dreaming` | `slices/extensions/dreaming/` | Extension; offline replay / rehearsal as a composition stress-test. |
+| Slice | Directory | Role |
+|---|---|---|
+| `concepts` | `slices/core/concepts/` | Concept possession, category activation, concept learning. |
+| `inquiry` | `slices/core/inquiry/` | Questions, problems, investigation states, answer conditions. |
+| `mentation` | `slices/core/mentation/` | Keystone: `MentalMoment`, `MentalProcess`, `gmeow:realizesMentalMoment`, `gmeow:producesMentalMoment`, `gmeow:updatesMentalTenure`. |
+| `inference` | `slices/core/inference/` | Reasoning processes and the claims they produce or update. |
+| `learning` | `slices/core/learning/` | Learning processes and the memories/competencies they update. |
+| `imagination` | `slices/core/imagination/` | Suppositional, counterfactual, and generative content. |
+| `metacognition` | `slices/core/metacognition/` | Second-order mental states: confidence, calibration, uncertainty. |
+| `awareness` | `slices/core/awareness/` | Global experiencer-states and awareness modes. |
+| `dreaming` | `slices/extensions/dreaming/` | Extension; offline replay / rehearsal as a composition stress-test. |
 
 ### Build order
 
 ```text
-concepts (#585)
+concepts
    │
    ▼
-inquiry (#582)
+inquiry
    │
    ▼
-mentation (#586)        ← keystone
+mentation        ← keystone
    │
-   ├──► inference (#581)
+   ├──► inference
    │
-   └──► learning (#584)
+   └──► learning
            │
            ▼
-      imagination (#587)
+      imagination
            │
            ▼
-      metacognition (#583)
+      metacognition
            │
            ▼
-      awareness (#588)
+      awareness
            │
            ▼
-      dreaming (#589)   ← extension / stress-test
+      dreaming   ← extension / stress-test
 ```
 
 Extension-dependency rules apply: `dreaming` depends on core slices only and is built as a

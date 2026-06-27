@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the creative-works slice (#208) --
+# Declarative structural assertions for the creative-works slice --
 # the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
 # invariants formerly hand-written in tests/test_creative_works.py. Each
 # assertion runs as a SPARQL ASK over the creative-works module graph
 # (gmeow:scopeModule) under the native Rust slicetest harness
 # (crates/slicetest).
 #
-# creative-works is #694-migrated: class stereotypes are logic:
+# creative-works is migrated: class stereotypes are logic:
 # (logic:Kind, logic:SubKind, logic:Category, logic:AbstractIndividualType,
 # logic:QualityValue, logic:Relator), not gufo:.
 #
@@ -136,7 +136,7 @@ ASK {
     gmeow:exemplifiedBy      a owl:ObjectProperty .
     gmeow:hasCarrier         a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "All seven WEMI spine relations MUST be declared owl:ObjectProperty -- they are the R-relations of the WEMI model (#208). Mirrors test_spine_relations_exist." .
+    gmeow:saRationale "All seven WEMI spine relations MUST be declared owl:ObjectProperty -- they are the R-relations of the WEMI model. Mirrors test_spine_relations_exist." .
 
 # --- 7. realizedThrough is owl:inverseOf realizes (MUST) --------------------
 ex:saRealizedThroughInverseOfRealizes a gmeow:StructuralAssertion ;
@@ -186,7 +186,7 @@ ASK {
     gmeow:Contribution a logic:Kind , owl:Class ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:Contribution MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- the universal credit/authorship relator binding contributor, target, and role (#208). Mirrors test_contribution_is_relator_kind." .
+    gmeow:saRationale "gmeow:Contribution MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- the universal credit/authorship relator binding contributor, target, and role. Mirrors test_contribution_is_relator_kind." .
 
 # --- 11. Contribution core properties are functional ObjectProperties (MUST) -
 ex:saContributionCorePropertiesFunctional a gmeow:StructuralAssertion ;
@@ -301,7 +301,7 @@ ASK {
     { gmeow:workTypeComposedMusical ?p ?o } UNION
     { ?s ?p gmeow:workTypeComposedMusical }
 }""" ;
-    gmeow:saRationale "gmeow:workTypeComposedMusical MUST NOT appear in any triple -- it was removed in issue #307 in favour of MusicalWork + realizationMode. Regression guard from test_creative_work_type_value_vocab." .
+    gmeow:saRationale "gmeow:workTypeComposedMusical MUST NOT appear in any triple -- it was removed in favour of MusicalWork + realizationMode. Regression guard from test_creative_work_type_value_vocab." .
 
 # --- 20. ContributionRole is a logic:AbstractIndividualType subclass of
 #         logic:QualityValue (MUST) -------------------------------------------
@@ -436,4 +436,4 @@ ASK {
     gmeow:formatWebSerial  a gmeow:ManifestationFormat .
     gmeow:formatComicIssue a gmeow:ManifestationFormat .
 }""" ;
-    gmeow:saRationale "gmeow:formatWebSerial and gmeow:formatComicIssue MUST exist as gmeow:ManifestationFormat instances -- the issue-#156 book/narrative model additions. Mirrors test_manifestation_format_new_seeds." .
+    gmeow:saRationale "gmeow:formatWebSerial and gmeow:formatComicIssue MUST exist as gmeow:ManifestationFormat instances -- the book/narrative model additions. Mirrors test_manifestation_format_new_seeds." .

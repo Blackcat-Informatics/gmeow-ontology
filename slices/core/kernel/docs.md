@@ -138,7 +138,7 @@ directly.
 ### gmeow:ProficiencyScale · gmeow:ProficiencyLevel · gmeow:ProficiencyModality
 
 The domain-neutral value vocabulary for rating proficiency — relocated here from the
-`expertise` slice (#556) to break a latent `expertise ↔ cognition` dependency cycle
+`expertise` slice to break a latent `expertise ↔ cognition` dependency cycle
 (Principle 6/16): `expertise`, `languages`, and `cognition` all reuse these classes, so
 they belong in the kernel every consumer already depends on. The framework individuals
 (CEFR, Dreyfus, NIH, Bloom's, SOLO, …) stay in their domain slices and reference these

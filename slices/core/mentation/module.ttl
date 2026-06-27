@@ -100,7 +100,7 @@ gmeow:processDreaming
     a gmeow:MentalProcessType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "dreaming"@x-gmeow-english ;
-    skos:definition "A dreaming episode — an offline, typically sleep-bound gmeow:Experience of imagined content; composed into the dreaming extension (#589) with awareness mode and content-origin."@x-gmeow-english ;
+    skos:definition "A dreaming episode — an offline, typically sleep-bound gmeow:Experience of imagined content; composed into the dreaming extension with awareness mode and content-origin."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:processImagining
@@ -114,7 +114,7 @@ gmeow:processLearning
     a gmeow:MentalProcessType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "learning"@x-gmeow-english ;
-    skos:definition "A learning episode — the occurrent that transitions an agent's knowledge or skill state (acquisition, being-taught, consolidation, transfer, unlearning). The occurrent face of a gmeow:LearningEvent (learning slice, #584); learning events carry it as their gmeow:mentalProcessType so they take a uniform place on the mental timeline alongside reasoning, perception, and dreaming."@x-gmeow-english ;
+    skos:definition "A learning episode — the occurrent that transitions an agent's knowledge or skill state (acquisition, being-taught, consolidation, transfer, unlearning). The occurrent face of a gmeow:LearningEvent (learning slice); learning events carry it as their gmeow:mentalProcessType so they take a uniform place on the mental timeline alongside reasoning, perception, and dreaming."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:processMindWandering
@@ -190,10 +190,10 @@ gmeow:updatesMentalTenure
     rdfs:comment """The occurrent (perdurant) half of mind — the companion to the endurant mental-moment stack (belief, knowledge, desire, emotion). gUFO splits endurant *modes* from occurrent *processes/experiences that unfold in time*; GMEOW has richly modelled the modes and barely the processes. This slice mints the occurrent umbrella.
 
 DOCTRINE.
-  * Occurrent umbrella: gmeow:MentalProcess rdfs:subClassOf gmeow:Event is the single home for every mental occurrence (perceiving, reasoning, imagining, remembering, dreaming), the perdurant sibling of the endurant gmeow:MentalMoment (kernel/cognition #556). One query returns an agent's whole mental timeline.
+  * Occurrent umbrella: gmeow:MentalProcess rdfs:subClassOf gmeow:Event is the single home for every mental occurrence (perceiving, reasoning, imagining, remembering, dreaming), the perdurant sibling of the endurant gmeow:MentalMoment (kernel/cognition). One query returns an agent's whole mental timeline.
   * Value-vocab, not taxonomy (Principle 9): the kind of a process is a gmeow:mentalProcessType value (a gmeow:MentalProcessType individual), never a subclass of gmeow:MentalProcess. The one genuine subclass is gmeow:Experience — the phenomenally-conscious / qualia-bearing subset.
   * Three precise occurrent-to-endurant bridges replace the former open-range gmeow:realizesMoment: gmeow:realizesMentalMoment (ontological participation — the process MANIFESTS a capacity/state/mode), gmeow:producesMentalMoment (creation — the process brings a NEW moment into being), gmeow:updatesMentalTenure (diachronic transition — the process CHANGES a held, time-scoped state/tenure). All three are non-functional ObjectProperties with domain gmeow:MentalProcess. The first two range over gmeow:MentalMoment; the third over gmeow:TimeScopedRelation. Renamed from the design's 'realizes' to avoid the WEMI gmeow:realizes (creative-works) collision (Principle 4).
-  * Reparenting hooks stay open: gmeow:InferenceProcess (inference slice #581) and gmeow:LearningEvent (learning slice #584) declare rdfs:subClassOf gmeow:MentalProcess from their OWN slices, never pre-declared here."""@x-gmeow-english ;
+  * Reparenting hooks stay open: gmeow:InferenceProcess (inference slice) and gmeow:LearningEvent (learning slice) declare rdfs:subClassOf gmeow:MentalProcess from their OWN slices, never pre-declared here."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "GMEOW Mentation Module"@x-gmeow-english ;
     skos:definition "The GMEOW Mentation Module — the occurrent (perdurant) half of mind: mental processes and experiences that unfold in time (perceiving, reasoning, imagining, remembering, dreaming), the companion to the endurant mental-moment stack."@x-gmeow-english ;

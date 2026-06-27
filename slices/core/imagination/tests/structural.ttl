@@ -4,21 +4,21 @@
 # Declarative structural assertions for the imagination slice — the slice-resident
 # test-DSL twin of the MUST / MUST-NOT invariants formerly hand-written in
 # tests/test_imagination.py. Authored as gmeow: ontology data so the same
-# annotation discipline and the native Rust harness (crates/slicetest, #784) drive
+# annotation discipline and the native Rust harness (crates/slicetest) drive
 # the test, not ad-hoc Python. Each assertion runs as a SPARQL ASK over the module
 # graph (gmeow:scopeModule); every `must` ASK anchors on a concrete term IRI (no
 # vacuous, fully-variable pattern); negative universals (no reality bit, no
 # subPropertyOf, no out-of-band logic: triple) are MUST-NOT ASKs that FIND the
 # forbidden pattern across the relevant triple positions.
 #
-# NAMESPACE: the imagination module IS migrated under #694 — its value class is
+# NAMESPACE: the imagination module IS migrated — its value class is
 # typed with the logic: stereotype vocabulary (logic:AbstractIndividualType,
 # logic:QualityValue), NOT gufo:. These cells mirror the module's CURRENT logic:
 # shape.
 #
 # BY-REFERENCE (cell saByReferenceNoLogicTriples): this is a DYNAMIC, open
 # universal, not a hand-listed blacklist. The forbidden thing is ANY logic:
-# IRI in any triple position EXCEPT the fixed set of #694 stereotype IRIs
+# IRI in any triple position EXCEPT the fixed set of stereotype IRIs
 # (logic:Kind … logic:Disposition); a FILTER(STRSTARTS(... logic:) && ?t NOT IN
 # (<the 15 stereotypes>)) quantifies over the WHOLE module graph, so a future
 # logic:World / modal-logic leak is caught even though no such term exists today.
@@ -95,7 +95,7 @@ ASK {
     gmeow:ContentOrigin a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:ContentOrigin MUST be an owl:Class, a logic:AbstractIndividualType, and a subClassOf logic:QualityValue — the value-vocabulary genus shared with gmeow:MentalProcessType / gmeow:QuestionType (Principle 9, no overtyping); the stereotype namespace is logic: after the #694 migration. Mirrors test_content_origin_is_an_abstract_individual_type." .
+    gmeow:saRationale "gmeow:ContentOrigin MUST be an owl:Class, a logic:AbstractIndividualType, and a subClassOf logic:QualityValue — the value-vocabulary genus shared with gmeow:MentalProcessType / gmeow:QuestionType (Principle 9, no overtyping); the stereotype namespace is logic: after the gufo→logic migration. Mirrors test_content_origin_is_an_abstract_individual_type." .
 
 # --- 4. The six content-origin individuals are seeded (MUST) -----------------
 ex:saContentOriginIndividualsSeeded a gmeow:StructuralAssertion ;
@@ -223,4 +223,4 @@ ASK {
         logic:QualityValue, logic:Mode, logic:Disposition
     ) )
 }""" ;
-    gmeow:saRationale "By-reference discipline (Principle 5): the module MUST assert NO triple whose subject, predicate, or object is a logic: IRI EXCEPT the fixed #694 stereotype vocabulary (logic:Kind … logic:Disposition) — those are identity/rigidity typing, not modal-world dependencies. This is a DYNAMIC universal (a FILTER over every logic: node in any position), NOT a hand-listed blacklist, so a future logic:World / modal-logic leak is caught even though no such term exists today. Mirrors test_by_reference_no_logic_triples." .
+    gmeow:saRationale "By-reference discipline (Principle 5): the module MUST assert NO triple whose subject, predicate, or object is a logic: IRI EXCEPT the fixed stereotype vocabulary (logic:Kind … logic:Disposition) — those are identity/rigidity typing, not modal-world dependencies. This is a DYNAMIC universal (a FILTER over every logic: node in any position), NOT a hand-listed blacklist, so a future logic:World / modal-logic leak is caught even though no such term exists today. Mirrors test_by_reference_no_logic_triples." .

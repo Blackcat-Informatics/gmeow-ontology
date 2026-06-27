@@ -121,7 +121,7 @@ logic:Builtin
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Builtin"@x-gmeow-english ;
-    skos:definition "A native computational primitive usable in rule bodies under logic:ProceduralPrologProfile: the registry entry for a derivational builtin such as string concatenation, date arithmetic, or basic math (criticism 8, LOGIC-FOUNDATION.md §OWL 2 criticisms). Builtins are the lightweight derivations a foundation genuinely needs (Principle 12, in-logic); heavy domain computation — geo/datum transforms, relation-algebra composition, vector operations — stays external by reference. The registry is declared here; builtin execution is seamed to the compiler/engine (#664/#665)."@x-gmeow-english ;
+    skos:definition "A native computational primitive usable in rule bodies under logic:ProceduralPrologProfile: the registry entry for a derivational builtin such as string concatenation, date arithmetic, or basic math (criticism 8, LOGIC-FOUNDATION.md §OWL 2 criticisms). Builtins are the lightweight derivations a foundation genuinely needs (Principle 12, in-logic); heavy domain computation — geo/datum transforms, relation-algebra composition, vector operations — stays external by reference. The registry is declared here; builtin execution is seamed to the compiler/engine."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:CanonicalProjection
@@ -330,7 +330,7 @@ logic:DownwardConstraint
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Downward Constraint"@x-gmeow-english ;
-    skos:definition "The canonical relational construct of holonic governance: the downward (governing) face of a holon, a typed directed constraint a whole imposes on a named proper part — the whole limits which roles or states the part may take. This is downward CONSTRAINT, never material causation: the governing whole bounds the part's permissible state, it does not produce or compose the part. Reified with the role properties logic:constraintWhole, logic:constraintTarget, logic:constraintState, logic:constraintRegime, and logic:constraintOverride, and the engine derives its logic:constraintVerdict (logic:ConstraintBinding, logic:ConstraintOverridden, or logic:ConstraintUnknown). The constraint is structured and NON-TRANSITIVE by default (ME9, issue #775): it applies to the explicitly named target and says nothing automatic about the target's own proper parts — there is no rule cascading the constraint down logic:properPartOf, exactly as no rule propagates logic:bearsProperty down it (mirroring logic:EmergenceAssessment / logic:HolonicPosition; design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    skos:definition "The canonical relational construct of holonic governance: the downward (governing) face of a holon, a typed directed constraint a whole imposes on a named proper part — the whole limits which roles or states the part may take. This is downward CONSTRAINT, never material causation: the governing whole bounds the part's permissible state, it does not produce or compose the part. Reified with the role properties logic:constraintWhole, logic:constraintTarget, logic:constraintState, logic:constraintRegime, and logic:constraintOverride, and the engine derives its logic:constraintVerdict (logic:ConstraintBinding, logic:ConstraintOverridden, or logic:ConstraintUnknown). The constraint is structured and NON-TRANSITIVE by default (ME9): it applies to the explicitly named target and says nothing automatic about the target's own proper parts — there is no rule cascading the constraint down logic:properPartOf, exactly as no rule propagates logic:bearsProperty down it (mirroring logic:EmergenceAssessment / logic:HolonicPosition; design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:EmergenceAssessment
@@ -547,7 +547,7 @@ logic:HolonicAgencyProfile
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Holonic Agency Profile"@x-gmeow-english ;
-    skos:definition "A declared profile of holonic agency that a holarchy may adopt, relative to which an logic:AgencyAssessment is made. It carries, via logic:selfAssertiveBasis and logic:integrativeBasis, the property-values that respectively evidence a holon's self-assertive (autonomy-as-a-whole) and integrative (subordination-as-a-part) tendencies — Koestler's two co-equal Janus faces, neither primary (Principle 9). Holonic agency is always relative to such a profile: it is a named profile a holarchy adopts, NOT a universal well-formedness rule every holon must satisfy — a bolt, a file-segment, or a process-phase needs no autonomy and is simply outside the profile (issue #775). The Koestlerian-agency analogue of a logic:ReductionTheory (which scopes the emergence calculus) and a logic:GovernanceRegime (which scopes downward constraint) — it scopes the autonomy/integration calculus rather than asserting agency foundation-wide (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    skos:definition "A declared profile of holonic agency that a holarchy may adopt, relative to which an logic:AgencyAssessment is made. It carries, via logic:selfAssertiveBasis and logic:integrativeBasis, the property-values that respectively evidence a holon's self-assertive (autonomy-as-a-whole) and integrative (subordination-as-a-part) tendencies — Koestler's two co-equal Janus faces, neither primary (Principle 9). Holonic agency is always relative to such a profile: it is a named profile a holarchy adopts, NOT a universal well-formedness rule every holon must satisfy — a bolt, a file-segment, or a process-phase needs no autonomy and is simply outside the profile. The Koestlerian-agency analogue of a logic:ReductionTheory (which scopes the emergence calculus) and a logic:GovernanceRegime (which scopes downward constraint) — it scopes the autonomy/integration calculus rather than asserting agency foundation-wide (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:HolonicLevelIncoherence
@@ -555,7 +555,7 @@ logic:HolonicLevelIncoherence
         logic:MereologyConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Holonic Level Incoherence"@x-gmeow-english ;
-    skos:definition "The coherence violation raised for a holon — an entity that occupies a holonic position (both a proper part of some whole and itself having a proper part) — that is DECLARED UNDER a logic:MereologyProfile (via logic:underMereologyProfile) yet occupies no logic:HolonicPosition. A holon's logic:holonicLevel is read off its logic:HolonicPosition, the canonical relational construct of which logic:Holon and a level are lossy projections; a profiled holon with no declared position has no path along which its compositional depth can be coherently measured, so its level is incoherent. It is enforced only within the profile a holon is declared under, never across all holons: a holon outside any logic:MereologyProfile is never charged, mirroring logic:WeakSupplementation. Parthood is profiled, not universal, and a holonic level is path-relative (recorded per path, e.g. as a min/max band), so a position is required only when a profile demands it. Note explicitly the non-conflation with the instantiation tower: logic:holonicLevel records mereological compositional depth in a whole/part DAG, whereas logic:orderedType is the HiLog deep-instantiation order numbering logic:instanceOf chains (an order-n type instantiates an order-(n+1) type); the two axes are orthogonal and must not be conflated. An entity high in the instantiation tower (via logic:instanceOf / logic:orderedType) but occupying no holonic position still fires this violation. Enforced by the stratified NAF rule in crates/logic/src/foundation.rs (issue #708, C5; design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+    skos:definition "The coherence violation raised for a holon — an entity that occupies a holonic position (both a proper part of some whole and itself having a proper part) — that is DECLARED UNDER a logic:MereologyProfile (via logic:underMereologyProfile) yet occupies no logic:HolonicPosition. A holon's logic:holonicLevel is read off its logic:HolonicPosition, the canonical relational construct of which logic:Holon and a level are lossy projections; a profiled holon with no declared position has no path along which its compositional depth can be coherently measured, so its level is incoherent. It is enforced only within the profile a holon is declared under, never across all holons: a holon outside any logic:MereologyProfile is never charged, mirroring logic:WeakSupplementation. Parthood is profiled, not universal, and a holonic level is path-relative (recorded per path, e.g. as a min/max band), so a position is required only when a profile demands it. Note explicitly the non-conflation with the instantiation tower: logic:holonicLevel records mereological compositional depth in a whole/part DAG, whereas logic:orderedType is the HiLog deep-instantiation order numbering logic:instanceOf chains (an order-n type instantiates an order-(n+1) type); the two axes are orthogonal and must not be conflated. An entity high in the instantiation tower (via logic:instanceOf / logic:orderedType) but occupying no holonic position still fires this violation. Enforced by the stratified NAF rule in crates/logic/src/foundation.rs (C5; design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
 
 logic:HolonicPosition
     a owl:Class ;
@@ -1120,7 +1120,7 @@ logic:TransactionPathEvolution
         logic:EvolutionMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Transaction-Path Evolution"@x-gmeow-english ;
-    skos:definition "The evolution-facet value selecting the Transaction-Logic state-change semantics of LOGIC-TRANSACTION.md — serial conjunction (⊗), executional entailment over a path of states, and elementary updates as supersession. It is a facet value, never a seventh profile, and is independent of the model-semantics facet; its full semantics land in issue #711."@x-gmeow-english .
+    skos:definition "The evolution-facet value selecting the Transaction-Logic state-change semantics of LOGIC-TRANSACTION.md — serial conjunction (⊗), executional entailment over a path of states, and elementary updates as supersession. It is a facet value, never a seventh profile, and is independent of the model-semantics facet; its full semantics are specified in LOGIC-TRANSACTION.md."@x-gmeow-english .
 
 logic:ElementaryUpdate
     a owl:Class ;
@@ -1241,7 +1241,7 @@ logic:WorldBoundary
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "World Boundary"@x-gmeow-english ;
-    skos:definition "A scoped region within which the closed-world assumption applies: it demarcates where what is not derivable may be read as false, leaving the rest of the model under the open-world assumption. The scoping construct of the hybrid open/closed feature (LOGIC-FOUNDATION.md §Greenfield feature map): the closed-world (CWA) lane realized by the built-in SHACL is confined to what a WorldBoundary encloses, while logic: outside it stays open-world. Enforcement is seamed to the engine (#665)."@x-gmeow-english ;
+    skos:definition "A scoped region within which the closed-world assumption applies: it demarcates where what is not derivable may be read as false, leaving the rest of the model under the open-world assumption. The scoping construct of the hybrid open/closed feature (LOGIC-FOUNDATION.md §Greenfield feature map): the closed-world (CWA) lane realized by the built-in SHACL is confined to what a WorldBoundary encloses, while logic: outside it stays open-world. Enforcement is seamed to the engine."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:WorldContextAxis
@@ -1356,7 +1356,7 @@ logic:builtinArithmetic
         logic:Builtin ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "arithmetic builtin"@x-gmeow-english ;
-    skos:definition "The native basic-math builtin: derives a value by the arithmetic operations (add, subtract, multiply, divide, compare) over numeric arguments. A derivational builtin (Principle 12, in-logic): the lightweight math a foundation needs, NOT heavy numerical domain computation (n-dimensional vector operations, SLAM, trajectory updates), which stays external by reference. Gated to logic:ProceduralPrologProfile; execution is seamed to #664/#665."@x-gmeow-english ;
+    skos:definition "The native basic-math builtin: derives a value by the arithmetic operations (add, subtract, multiply, divide, compare) over numeric arguments. A derivational builtin (Principle 12, in-logic): the lightweight math a foundation needs, NOT heavy numerical domain computation (n-dimensional vector operations, SLAM, trajectory updates), which stays external by reference. Gated to logic:ProceduralPrologProfile; execution is seamed to the engine."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 logic:builtinDateDifference
@@ -1364,7 +1364,7 @@ logic:builtinDateDifference
         logic:Builtin ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "date-difference builtin"@x-gmeow-english ;
-    skos:definition "The native date-arithmetic builtin: derives the difference between two dates, e.g. legalAge = year(now) − year(birth). A derivational builtin (Principle 12, in-logic): the lightweight date arithmetic a foundation needs, NOT heavy temporal-domain computation (calendar/datum transforms), which stays external by reference. Gated to logic:ProceduralPrologProfile; execution is seamed to #664/#665."@x-gmeow-english ;
+    skos:definition "The native date-arithmetic builtin: derives the difference between two dates, e.g. legalAge = year(now) − year(birth). A derivational builtin (Principle 12, in-logic): the lightweight date arithmetic a foundation needs, NOT heavy temporal-domain computation (calendar/datum transforms), which stays external by reference. Gated to logic:ProceduralPrologProfile; execution is seamed to the engine."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 logic:builtinStringConcat
@@ -1372,14 +1372,14 @@ logic:builtinStringConcat
         logic:Builtin ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "string-concat builtin"@x-gmeow-english ;
-    skos:definition "The native string-concatenation builtin: derives a string by joining its arguments, e.g. fullName = firstName + \" \" + lastName. A derivational builtin (Principle 12, in-logic): the lightweight string derivation a foundation needs, NOT heavy domain text processing, which stays external by reference. Gated to logic:ProceduralPrologProfile; execution is seamed to #664/#665."@x-gmeow-english ;
+    skos:definition "The native string-concatenation builtin: derives a string by joining its arguments, e.g. fullName = firstName + \" \" + lastName. A derivational builtin (Principle 12, in-logic): the lightweight string derivation a foundation needs, NOT heavy domain text processing, which stays external by reference. Gated to logic:ProceduralPrologProfile; execution is seamed to the engine."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 logic:closedUnder
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "closed under"@x-gmeow-english ;
-    skos:definition "Declares a predicate or shape closed within a logic:WorldBoundary: the closed-world-assumption toggle that says, for the named predicate inside the boundary, that the materialized extension is complete and absence may be read as falsity. The per-predicate CWA switch of the hybrid open/closed construct, enforced by the built-in SHACL (the CWA lane); outside any boundary, or for predicates not closed under one, the open-world reading holds. Enforcement is seamed to the engine (#665)."@x-gmeow-english ;
+    skos:definition "Declares a predicate or shape closed within a logic:WorldBoundary: the closed-world-assumption toggle that says, for the named predicate inside the boundary, that the materialized extension is complete and absence may be read as falsity. The per-predicate CWA switch of the hybrid open/closed construct, enforced by the built-in SHACL (the CWA lane); outside any boundary, or for predicates not closed under one, the open-world reading holds. Enforcement is seamed to the engine."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:closureEntry
@@ -1444,7 +1444,7 @@ logic:constraintTarget
     rdfs:domain logic:DownwardConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "constraint target"@x-gmeow-english ;
-    skos:definition "The target role of a logic:DownwardConstraint: the proper part the governing whole constrains — the part whose permissible state is limited. The verdict is derived only for this explicitly named target; because the constraint names its target rather than cascading down logic:properPartOf, governance is NON-TRANSITIVE by default (ME9, issue #775) — a constraint onto a part says nothing automatic about the part's own sub-parts. One of the role properties (with logic:constraintWhole) that reify the downward-constraint relation, mirroring logic:assessmentWhole (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    skos:definition "The target role of a logic:DownwardConstraint: the proper part the governing whole constrains — the part whose permissible state is limited. The verdict is derived only for this explicitly named target; because the constraint names its target rather than cascading down logic:properPartOf, governance is NON-TRANSITIVE by default (ME9) — a constraint onto a part says nothing automatic about the part's own sub-parts. One of the role properties (with logic:constraintWhole) that reify the downward-constraint relation, mirroring logic:assessmentWhole (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:constraintVerdict
@@ -1510,10 +1510,10 @@ logic:disjoint
 
 logic:distinctBody
     a owl:ObjectProperty ;
-    rdfs:comment "Inequality body guard of a logic:Rule. Default-absent: a rule that needs no inequality carries no logic:distinctBody, so the existing corpus is byte-identical (issue #503)."@x-gmeow-english ;
+    rdfs:comment "Inequality body guard of a logic:Rule. Default-absent: a rule that needs no inequality carries no logic:distinctBody, so the existing corpus is byte-identical."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "distinct body"@x-gmeow-english ;
-    skos:definition "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog/Nemo inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged (issue #503)."@x-gmeow-english .
+    skos:definition "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog/Nemo inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged."@x-gmeow-english .
 
 logic:equalityPolicy
     a owl:ObjectProperty ;
@@ -1985,7 +1985,7 @@ logic:del
     rdfs:label "del"@x-gmeow-english ;
     skos:definition "Relates a logic:DeleteUpdate to the support/fact it retires. The `del(F)` primitive removes F from the active support set of the successor state, records supersession provenance, and leaves the predecessor state and historical support intact."@x-gmeow-english .
 
-# ── ME2 (#768): the typed logic:ReasoningResult surface ─────────────────────────
+# ── ME2: the typed logic:ReasoningResult surface ─────────────────────────────────
 # The single shared result model. Authored canonically in crates/logic (Rust,
 # crates/logic/src/result.rs); these terms are the lossy documentation projection
 # (Principle 17). The five orthogonal status fields and the conclusiveness
@@ -1997,7 +1997,7 @@ logic:ReasoningResult
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Reasoning Result"@x-gmeow-english ;
-    skos:definition "The single shared result a reasoning run produces and every consumer reads (#768, ME2): a compositional status carrying FIVE orthogonal fields, each ranging over its own value class — logic:resultInput (well-formedness), logic:resultEvaluation (what the engine could do), logic:resultCompleteness (relative to what the answer is complete), logic:resultPreservation (the set of answer-preservation polarities the lowering claims, plus the constructs it could not carry), and logic:resultInformation (the four-valued Belnap verdict plus two explicit non-results). Several fields hold at once. It additionally carries the provenance bundle: logic:contractHash, logic:query/logic:conclusion, logic:resultProof/logic:resultCounterproof, the world/standpoint/time/path context, logic:engine, logic:consumedBudget, logic:certifiedFragment, logic:contradictionWitness, and logic:resultAssumption. Authored canonically in crates/logic (Rust); this is a lossy documentation projection (Principle 17). Normative in design/LOGIC-SEMANTICS.md, §The reasoning result."@x-gmeow-english ;
+    skos:definition "The single shared result a reasoning run produces and every consumer reads (ME2): a compositional status carrying FIVE orthogonal fields, each ranging over its own value class — logic:resultInput (well-formedness), logic:resultEvaluation (what the engine could do), logic:resultCompleteness (relative to what the answer is complete), logic:resultPreservation (the set of answer-preservation polarities the lowering claims, plus the constructs it could not carry), and logic:resultInformation (the four-valued Belnap verdict plus two explicit non-results). Several fields hold at once. It additionally carries the provenance bundle: logic:contractHash, logic:query/logic:conclusion, logic:resultProof/logic:resultCounterproof, the world/standpoint/time/path context, logic:engine, logic:consumedBudget, logic:certifiedFragment, logic:contradictionWitness, and logic:resultAssumption. Authored canonically in crates/logic (Rust); this is a lossy documentation projection (Principle 17). Normative in design/LOGIC-SEMANTICS.md, §The reasoning result."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:InputStatus

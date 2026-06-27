@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the images slice (#22) -- the
+# Declarative structural assertions for the images slice -- the
 # slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
 # formerly hand-written in tests/test_images.py. Each assertion runs as a
 # SPARQL ASK over the images module graph (gmeow:scopeModule) under the native
 # Rust slicetest harness (crates/slicetest).
 #
-# Images is #694-migrated: class stereotypes are logic:
+# Images is migrated: class stereotypes are logic:
 # (logic:SubKind, logic:Kind, logic:AbstractIndividualType, logic:QualityValue),
 # not gufo:.
 #
@@ -69,7 +69,7 @@ ASK {
         rdfs:subClassOf gmeow:Observation ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:DepictionUsage MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf gmeow:Observation and logic:Relator -- a reified depiction is a relator (binding subject, image, context) and an observation in the universal claim spine (#22). Mirrors test_depiction_usage_is_relator_kind." .
+    gmeow:saRationale "gmeow:DepictionUsage MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf gmeow:Observation and logic:Relator -- a reified depiction is a relator (binding subject, image, context) and an observation in the universal claim spine. Mirrors test_depiction_usage_is_relator_kind." .
 
 # --- 2. ImageRegion is a logic:Kind subclass of InformationObject (MUST) ---
 ex:saImageRegionIsKindInformationObject a gmeow:StructuralAssertion ;
@@ -83,7 +83,7 @@ ASK {
     gmeow:ImageRegion a logic:Kind , owl:Class ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:ImageRegion MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject -- image regions are functional complexes that carry their own identity (face, bounding box, polygon) within a single image (#22). Mirrors test_image_region_is_kind." .
+    gmeow:saRationale "gmeow:ImageRegion MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject -- image regions are functional complexes that carry their own identity (face, bounding box, polygon) within a single image. Mirrors test_image_region_is_kind." .
 
 # --- 3. RegionSelector is a logic:Kind subclass of InformationObject (MUST) -
 ex:saRegionSelectorIsKindInformationObject a gmeow:StructuralAssertion ;
@@ -97,7 +97,7 @@ ASK {
     gmeow:RegionSelector a logic:Kind , owl:Class ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:RegionSelector MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject -- the encoding descriptor carries its own identity separate from the region it describes (#22). Mirrors test_region_selector_is_kind." .
+    gmeow:saRationale "gmeow:RegionSelector MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject -- the encoding descriptor carries its own identity separate from the region it describes. Mirrors test_region_selector_is_kind." .
 
 # --- 4. SceneGraphEdge is a logic:Kind subclass of Relator (MUST) ----------
 ex:saSceneGraphEdgeIsKindRelator a gmeow:StructuralAssertion ;
@@ -111,7 +111,7 @@ ASK {
     gmeow:SceneGraphEdge a logic:Kind , owl:Class ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:SceneGraphEdge MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- a scene-graph edge reifies a spatial or semantic relation between two image regions; its identity is the triple (subject, object, relation type) (#22). Mirrors test_scene_graph_edge_is_relator_kind." .
+    gmeow:saRationale "gmeow:SceneGraphEdge MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- a scene-graph edge reifies a spatial or semantic relation between two image regions; its identity is the triple (subject, object, relation type). Mirrors test_scene_graph_edge_is_relator_kind." .
 
 # --- 5. DepictionUsage role properties are ObjectProperties with correct
 #        domains, ranges, and functionality (MUST) -------------------------

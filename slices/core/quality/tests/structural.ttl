@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the quality slice (#99) — the slice-resident
+# Declarative structural assertions for the quality slice — the slice-resident
 # test-DSL twin of the MUST / MUST-NOT TBox invariants formerly hand-written in
 # tests/test_quality.py. Each assertion runs as a SPARQL ASK over the quality
 # module graph (gmeow:scopeModule) under the native Rust harness (crates/slicetest).
-# Quality is #694-migrated, so the class stereotypes are logic: (logic:SubKind,
+# Quality is migrated, so the class stereotypes are logic: (logic:SubKind,
 # logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
 # The whole-ontology Principle-9 "no primary/preferred selector anywhere" sweep
@@ -30,7 +30,7 @@ ASK {
     gmeow:QualityAssessment a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:Observation .
 }""" ;
-    gmeow:saRationale "gmeow:QualityAssessment MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Observation — quality reuses the universal Observation stack (#99). Mirrors test_quality_assessment_class_structure in test_quality.py." .
+    gmeow:saRationale "gmeow:QualityAssessment MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Observation — quality reuses the universal Observation stack. Mirrors test_quality_assessment_class_structure in test_quality.py." .
 
 # --- 2. QualityDimension is a logic:AbstractIndividualType value vocab (MUST) -
 ex:saQualityDimensionIsValueVocab a gmeow:StructuralAssertion ;

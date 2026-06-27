@@ -17,7 +17,7 @@ reasoning. Strength rides the existing `logic:` axes; modality reuses the existi
 
 The issue body first proposed a single `gmeow:Inference` that was *both* a `gufo:Relator` (an
 endurant) and a `gmeow:MentalProcess` (an occurrent). That double-types a class across gUFO's master
-endurant/occurrent split — the very distinction the mentation program (#580) exists to keep clean — so
+endurant/occurrent split — the very distinction the mentation program exists to keep clean — so
 the design was corrected into two classes joined by a bridge:
 
 - **`gmeow:InferenceProcess`** `⊑ gmeow:MentalProcess` — the **occurrent** reasoning episode (a

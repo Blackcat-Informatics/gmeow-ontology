@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the narrative slice (#89/#156/#358 EPIC)
+# Declarative structural assertions for the narrative slice
 # -- the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
 # invariants formerly hand-written in tests/test_narrative.py. Each assertion
 # runs as a SPARQL ASK over the narrative module graph (gmeow:scopeModule) under
 # the native Rust slicetest harness (crates/slicetest).
 #
-# Narrative is #694-migrated: class stereotypes are logic:
+# Narrative is migrated: class stereotypes are logic:
 # (logic:SubKind, logic:Kind, logic:Relator, logic:AbstractIndividualType,
 # logic:QualityValue, logic:Category), not gufo:.
 #

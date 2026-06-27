@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the expertise slice (#263) — the slice-resident
+# Declarative structural assertions for the expertise slice — the slice-resident
 # test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly hand-written
 # in tests/test_expertise.py. Each assertion runs as a SPARQL ASK over the expertise
 # module graph (gmeow:scopeModule) under the native Rust slicetest harness
-# (crates/slicetest). This slice is #694-migrated, so the class stereotype
+# (crates/slicetest). This slice is migrated, so the class stereotype
 # is logic: (logic:Relator), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
@@ -34,7 +34,7 @@ ex:saSkillProficiencyIsRelator a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:SkillProficiency rdfs:subClassOf logic:Relator . }""" ;
-    gmeow:saRationale "gmeow:SkillProficiency MUST be a subclass of logic:Relator — the leveled skill-proficiency is a reified relator binding agent × skill × level × scale (#263). Mirrors test_skill_proficiency_is_relator_with_functional_roles (subClassOf logic:Relator arm)." .
+    gmeow:saRationale "gmeow:SkillProficiency MUST be a subclass of logic:Relator — the leveled skill-proficiency is a reified relator binding agent × skill × level × scale. Mirrors test_skill_proficiency_is_relator_with_functional_roles (subClassOf logic:Relator arm)." .
 
 # --- 1b. Core roles of SkillProficiency are functional ObjectProperties (MUST) -
 ex:saSkillProficiencyFunctionalRoles a gmeow:StructuralAssertion ;
@@ -48,7 +48,7 @@ ASK {
     gmeow:skillProficiencyLevel  a owl:ObjectProperty , owl:FunctionalProperty .
     gmeow:skillProficiencyScale  a owl:ObjectProperty , owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "The four core roles gmeow:skillProficiencyAgent / gmeow:skillProficiencyOf / gmeow:skillProficiencyLevel / gmeow:skillProficiencyScale MUST each be both owl:ObjectProperty and owl:FunctionalProperty — each is constitutive of the relator's identity (#263). Mirrors test_skill_proficiency_is_relator_with_functional_roles (functional-roles arm)." .
+    gmeow:saRationale "The four core roles gmeow:skillProficiencyAgent / gmeow:skillProficiencyOf / gmeow:skillProficiencyLevel / gmeow:skillProficiencyScale MUST each be both owl:ObjectProperty and owl:FunctionalProperty — each is constitutive of the relator's identity. Mirrors test_skill_proficiency_is_relator_with_functional_roles (functional-roles arm)." .
 
 # --- 2a. skillProficiencyInterval is an ObjectProperty (MUST) -----------------
 ex:saSkillProficiencyIntervalIsObjectProperty a gmeow:StructuralAssertion ;
@@ -57,7 +57,7 @@ ex:saSkillProficiencyIntervalIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:skillProficiencyInterval a owl:ObjectProperty . }""" ;
-    gmeow:saRationale "gmeow:skillProficiencyInterval MUST be an owl:ObjectProperty — the optional temporal scope of a proficiency is reified as a gmeow:TimeInterval (#263). Mirrors test_skill_proficiency_interval_is_optional (ObjectProperty arm)." .
+    gmeow:saRationale "gmeow:skillProficiencyInterval MUST be an owl:ObjectProperty — the optional temporal scope of a proficiency is reified as a gmeow:TimeInterval. Mirrors test_skill_proficiency_interval_is_optional (ObjectProperty arm)." .
 
 # --- 2b. skillProficiencyInterval is NOT functional (MUST-NOT) ----------------
 ex:saSkillProficiencyIntervalNotFunctional a gmeow:StructuralAssertion ;
@@ -66,7 +66,7 @@ ex:saSkillProficiencyIntervalNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:skillProficiencyInterval a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:skillProficiencyInterval MUST NOT be functional — proficiency may be temporally unbounded, and successive intervals coexist on a proficiency history (#263). Mirrors test_skill_proficiency_interval_is_optional (NOT FunctionalProperty arm)." .
+    gmeow:saRationale "gmeow:skillProficiencyInterval MUST NOT be functional — proficiency may be temporally unbounded, and successive intervals coexist on a proficiency history. Mirrors test_skill_proficiency_interval_is_optional (NOT FunctionalProperty arm)." .
 
 # --- 3. Dreyfus scale and levels are defined in the expertise slice (MUST) ----
 ex:saDreyfusTermsExpertiseOwned a gmeow:StructuralAssertion ;
@@ -89,7 +89,7 @@ ASK {
     gmeow:dreyfusExpert        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
                                rdfs:label ?l5 ; skos:definition ?d5 .
 }""" ;
-    gmeow:saRationale "gmeow:scaleDreyfus and all five Dreyfus level individuals MUST be defined by the expertise slice (rdfs:isDefinedBy) and MUST carry rdfs:label and skos:definition — the Dreyfus skill-acquisition scale belongs in its domain slice (expertise) so the learning slice's gmeow:fromLevel/gmeow:toLevel remain in closure (#584). Mirrors test_dreyfus_scale_and_levels_are_expertise_owned (isDefinedBy + annotation arms)." .
+    gmeow:saRationale "gmeow:scaleDreyfus and all five Dreyfus level individuals MUST be defined by the expertise slice (rdfs:isDefinedBy) and MUST carry rdfs:label and skos:definition — the Dreyfus skill-acquisition scale belongs in its domain slice (expertise) so the learning slice's gmeow:fromLevel/gmeow:toLevel remain in closure. Mirrors test_dreyfus_scale_and_levels_are_expertise_owned (isDefinedBy + annotation arms)." .
 
 # --- 4. Each Dreyfus level individual carries levelScale gmeow:scaleDreyfus (MUST) -
 ex:saDreyfusLevelScaleLinks a gmeow:StructuralAssertion ;
@@ -116,7 +116,7 @@ ASK {
     gmeow:credentialIssuer a owl:ObjectProperty .
     gmeow:credentialFor    a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:holdsCredential, gmeow:credentialIssuer, and gmeow:credentialFor MUST each be owl:ObjectProperty — credential depth is modelled structurally with full OWL typing (#263). Mirrors test_credential_properties_exist (ObjectProperty arm)." .
+    gmeow:saRationale "gmeow:holdsCredential, gmeow:credentialIssuer, and gmeow:credentialFor MUST each be owl:ObjectProperty — credential depth is modelled structurally with full OWL typing. Mirrors test_credential_properties_exist (ObjectProperty arm)." .
 
 # --- 5b. occupationClassification is a DatatypeProperty with domain Occupation (MUST) ---
 ex:saOccupationClassificationDatatype a gmeow:StructuralAssertion ;
@@ -142,7 +142,7 @@ ASK {
     gmeow:credentialIssuer rdfs:range gmeow:Organization ;
         a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:credentialIssuer MUST have range gmeow:Organization and be an owl:FunctionalProperty — a different issuer is a constitutively different credential (#263). Mirrors test_credential_issuer_is_organization." .
+    gmeow:saRationale "gmeow:credentialIssuer MUST have range gmeow:Organization and be an owl:FunctionalProperty — a different issuer is a constitutively different credential. Mirrors test_credential_issuer_is_organization." .
 
 # --- 7. Banned value-vocabulary subclasses do not exist (MUST-NOT) ------------
 ex:saNoValueVocabSubclasses a gmeow:StructuralAssertion ;
@@ -176,4 +176,4 @@ ASK {
     ?r3 owl:onProperty gmeow:skillProficiencyLevel ; owl:someValuesFrom gmeow:ProficiencyLevel .
     ?r4 owl:onProperty gmeow:skillProficiencyScale ; owl:someValuesFrom gmeow:ProficiencyScale .
 }""" ;
-    gmeow:saRationale "gmeow:SkillProficiency MUST carry OWL someValuesFrom restrictions on each of its four core roles (Agent, Skill, ProficiencyLevel, ProficiencyScale) — the open-world EL axiomatisation mirrors gmeow:LanguageProficiency (#263). Mirrors test_skill_proficiency_some_values_from_axioms." .
+    gmeow:saRationale "gmeow:SkillProficiency MUST carry OWL someValuesFrom restrictions on each of its four core roles (Agent, Skill, ProficiencyLevel, ProficiencyScale) — the open-world EL axiomatisation mirrors gmeow:LanguageProficiency. Mirrors test_skill_proficiency_some_values_from_axioms." .

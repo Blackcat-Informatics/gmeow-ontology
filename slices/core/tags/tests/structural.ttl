@@ -7,7 +7,7 @@
 # the tags module graph (gmeow:scopeModule) under the native Rust slicetest
 # harness (crates/slicetest).
 #
-# This slice is #694-migrated, so class stereotypes are logic:
+# This slice is migrated, so class stereotypes are logic:
 # (logic:Kind, logic:Relator), not gufo:.
 #
 # RETAINED in pytest (dynamic combinatorial sweep):

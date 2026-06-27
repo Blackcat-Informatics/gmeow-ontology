@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-"""Structural + closed-world guards for the inference module (issue #581).
+"""Structural + closed-world guards for the inference module.
 
 Exercises Peirce's tetrad as the epistemic face of logic:: the endurant/occurrent
 split (InferenceProcess ⊑ MentalProcess vs InferenceCommitment ⊑ logic:Relator), the
@@ -27,7 +27,7 @@ _SHAPES = _SLICE / "shapes.ttl"
 _SLICE_IRI = URIRef(GMEOW + "slices/inference")
 
 # The full set of allowed logic: master metaclasses (one per class — the invariant).
-# After the #694 migration, stereotype authoring is in the logic: namespace.
+# After the gufo→logic migration, stereotype authoring is in the logic: namespace.
 _LOGIC_MASTERS = {
     URIRef(LOGIC + m)
     for m in (
@@ -70,7 +70,7 @@ def _g(local: str) -> URIRef:
 
 
 def _logic(local: str) -> URIRef:
-    """Return a logic:-namespaced term URI (stereotype namespace after #694)."""
+    """Return a logic:-namespaced term URI (stereotype namespace)."""
     return URIRef(LOGIC + local)
 
 
@@ -102,7 +102,7 @@ def test_all_terms_defined_by_inference_slice() -> None:
 
 def test_inference_process_is_eventtype_under_mental_process() -> None:
     """The OCCURRENT face: InferenceProcess ⊑ MentalProcess (a perdurant).
-    After #694 migration: stereotype is logic:Event (renamed from gufo:EventType)."""
+    Stereotype is logic:Event (renamed from gufo:EventType)."""
     graph = _graph()
     ip = _g("InferenceProcess")
     assert (ip, RDF.type, _logic("Event")) in graph
@@ -113,7 +113,7 @@ def test_inference_process_is_eventtype_under_mental_process() -> None:
 
 def test_inference_commitment_is_relator_kind() -> None:
     """The ENDURANT face: InferenceCommitment ⊑ logic:Relator, master logic:Kind.
-    After #694 migration: stereotype namespace is logic: not gufo:."""
+    Stereotype namespace is logic: not gufo:."""
     graph = _graph()
     ic = _g("InferenceCommitment")
     assert (ic, RDF.type, _logic("Kind")) in graph
@@ -124,7 +124,7 @@ def test_inference_commitment_is_relator_kind() -> None:
 
 def test_relator_classes_carry_relator_only_via_subclassof() -> None:
     """Analogy/Correspondence are Relators by subClassOf, master logic:Kind.
-    After #694 migration: stereotype namespace is logic: not gufo:."""
+    Stereotype namespace is logic: not gufo:."""
     graph = _graph()
     for cls in ("Analogy", "Correspondence"):
         assert (_g(cls), RDF.type, _logic("Kind")) in graph
@@ -133,7 +133,7 @@ def test_relator_classes_carry_relator_only_via_subclassof() -> None:
 
 
 def test_inference_tenure_is_situation_under_timescoped() -> None:
-    """After #694 migration: gufo:SituationType → logic:Situation."""
+    """gufo:SituationType → logic:Situation."""
     graph = _graph()
     it = _g("InferenceTenure")
     assert (it, RDF.type, _logic("Situation")) in graph
@@ -141,7 +141,7 @@ def test_inference_tenure_is_situation_under_timescoped() -> None:
 
 
 def test_value_vocabs_are_abstract_individual_types() -> None:
-    """After #694 migration: stereotype namespace is logic: not gufo:."""
+    """Stereotype namespace is logic: not gufo:."""
     graph = _graph()
     for cls in ("InferenceMode", "DefeaterKind"):
         assert (_g(cls), RDF.type, _logic("AbstractIndividualType")) in graph

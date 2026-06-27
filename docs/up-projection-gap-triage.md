@@ -1,4 +1,4 @@
-# Up-projection gap triage (#449 → #451 plan)
+# Up-projection gap triage
 
 Curated triage of the 100 distinct coverage-gap terms from
 `docs/up-projection-audit.md` (run `gmeow up-projection-audit --gaps` for the raw
@@ -7,10 +7,10 @@ list). Categorization is judgment + verification against the merged vocabulary �
 
 | Bucket | response |
 |---|---|
-| **A — has-concept, needs a cell** | GMEOW already models it; author the up+down cell (improves both directions). The bulk of #451. |
+| **A — has-concept, needs a cell** | GMEOW already models it; author the up+down cell (improves both directions). The bulk of the cell-authoring work. |
 | **B — pass-through** | authority / concept-scheme links; carry as-is, not "coverage" |
 | **C — genuine GMEOW gap** | flesh out the slice (real modeling) |
-| **D — declared out-of-scope** | the #34 site-structure tail; stays deferred |
+| **D — declared out-of-scope** | the site-structure tail; stays deferred |
 
 ## C — genuine gaps (verified absent) → slice work
 
@@ -32,7 +32,7 @@ down-projection for every business that publishes these.
 - **Software project:** `doap:bug-database`, `doap:download-page`.
 - **Niche / likely out-of-scope:** `schema:callsign` (broadcast).
 
-## A — has-concept, needs a cell (the #451 cell-authoring segments)
+## A — has-concept, needs a cell (the cell-authoring segments)
 
 Clean 1:1 quick wins (GMEOW has the identical term, no cell ever wired it):
 `geosparql:Geometry`/`asWKT`/`hasGeometry`, `schema:conformsTo`→`conformsTo`,
@@ -42,7 +42,7 @@ Clean 1:1 quick wins (GMEOW has the identical term, no cell ever wired it):
 `vcard:role`→`Role`.
 
 Richer-cell cases (concept exists): `org:Site`/`siteOf`/`siteAddress`→
-`hasSite`/`SiteType` (**overturns the #408 refusal** — the slice grew a site model
+`hasSite`/`SiteType` (**overturns the original refusal** — the slice grew a site model
 since), `schema:employee`→Employment, `schema:reviewedBy`→Assessment,
 `schema:hoursAvailable`→`hasOpeningHours`, `schema:paymentAccepted`→PaymentMethod,
 `schema:occupationalCategory`→`occupationClassification`, the location cluster
@@ -60,7 +60,7 @@ title — map to the honorific machinery, never `gmeow:title`.
 `skos:closeMatch`, `skos:exactMatch`, `skos:hasTopConcept`,
 `mads:authoritativeLabel`, `odrl:inheritFrom`.
 
-## D — declared out-of-scope (the #34 site-structure tail)
+## D — declared out-of-scope (the site-structure tail)
 
 `schema:BreadcrumbList`/`ListItem`/`itemListElement`/`EntryPoint`/`WebPageElement`/
 `breadcrumb`, `schema:Periodical`/`PodcastEpisode`/`PodcastSeries`,

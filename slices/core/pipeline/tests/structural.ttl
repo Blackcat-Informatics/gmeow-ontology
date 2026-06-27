@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the pipeline slice (#867 Tier-B
+# Declarative structural assertions for the pipeline slice (Tier-B
 # closeout). The repo-level narrow-waist/transpile tests check pipeline BEHAVIOR
 # (KEEP); these cells pin the slice's asserted-TBox spine and the integrity of
 # its dogfooded build-pipeline ABox fresh (MAXIMAL coverage, dogfooding). Each

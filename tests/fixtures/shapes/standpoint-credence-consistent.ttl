@@ -1,0 +1,23 @@
+# Credence band/decimal CONSISTENCY fixture. Three claims whose numeric
+# gmeow:claimCredence / gmeow:standpointCredence each fall inside the canonical
+# threshold range of their asserted qualitative band:
+#   credenceLikely   [0.5, 0.9)  ← 0.7
+#   credenceCertain  [0.9, 1.0]  ← 0.95
+#   credencePossible [0.0, 0.5)  ← 0.2
+# run_shacl MUST report NO violation — the decimal and band agree, and the
+# decimal is a valid in-range advisory refinement of the band.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:likely-claim
+    gmeow:claimCredenceLevel gmeow:credenceLikely ;
+    gmeow:claimCredence 0.7 .
+
+ex:certain-claim
+    gmeow:claimCredenceLevel gmeow:credenceCertain ;
+    gmeow:claimCredence 0.95 .
+
+ex:possible-standpoint
+    gmeow:standpointCredenceLevel gmeow:credencePossible ;
+    gmeow:standpointCredence 0.2 .
