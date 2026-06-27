@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# The gmeow EXTEND conformance suite: five RDF-1.2 / gmeow
+# The gmeow EXTEND conformance suite: six RDF-1.2 / gmeow
 # capabilities that incumbent SPARQL engines (rdflib, oxigraph) cannot express,
 # all PASSING on the native NativeSparqlEngine.
 #
@@ -11,12 +11,16 @@
 #   4. standpoint poset      — gmeow:heldIn is poset-aware (held / not-held controls)
 #   5. loss-aware CONSTRUCT   — dropping the reifier layer emits an in-band
 #                               logic:ProjectionLoss declaration (+ no-loss control)
+#   6. world × standpoint     — a named-graph world triple joins a standpoint-held
+#                               reifier, proving both scoping axes in one query
 #
-# Note on world/standpoint scoping (case 4a): a GRAPH-as-world sub-case would use
-# named-graph data (qt:graphData), but this harness's default-graph loader rejects
-# qt:graphData ("named-graph (qt:graphData) data is not supported by this
-# harness", crates/sparql-conformance/src/run.rs). The poset sub-case (4b) below
-# is the primary EXTEND capability and stands alone.
+# On world/standpoint scoping: the reification layer (reifiers/annotations) has NO
+# graph dimension — reifier_quads always yields g: None (default graph). Reifiers
+# are scoped by the standpoint POSET, not by named graphs. The genuine end-to-end
+# proof of world + standpoint is therefore a JOIN: a named-graph world triple
+# (GRAPH ?world { … }) joined with a default-graph standpoint-held reifier via
+# gmeow:heldIn. The harness loads qt:graphData into named graphs to support this
+# case. See :standpointWorld below.
 
 @prefix mf:  <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
 @prefix qt:  <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
@@ -31,6 +35,7 @@
         :standpointNotHeld
         :lossAwareConstruct
         :lossControlConstruct
+        :standpointWorld
     ) .
 
 :tripleTermBinding a mf:QueryEvaluationTest ;
@@ -67,3 +72,8 @@
     mf:name "no-loss control: carrying the reifier emits no logic:ProjectionLoss" ;
     mf:action [ qt:query <loss-control.rq> ; qt:data <reified.ttl> ] ;
     mf:result <loss-control.ttl> .
+
+:standpointWorld a mf:QueryEvaluationTest ;
+    mf:name "world × standpoint: a named-graph world triple joins a standpoint-held reifier" ;
+    mf:action [ qt:query <standpoint-world.rq> ; qt:data <standpoint.ttl> ; qt:graphData <world.ttl> ] ;
+    mf:result <standpoint-world.srx> .

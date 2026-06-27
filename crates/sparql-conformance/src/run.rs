@@ -5,6 +5,7 @@
 
 use std::sync::Arc;
 
+use gmeow_rdf::{serialize_dataset, SerializeGraph};
 use gmeow_rdf_core::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult};
 use gmeow_sparql_eval::{NativeSparqlEngine, RemoteQuerySource};
 
@@ -20,28 +21,70 @@ pub enum RunOutcome {
     Syntax { parsed_ok: bool },
 }
 
-/// Load the case's `qt:data` files into a single default-graph dataset.
+/// Load the case's `qt:data` and `qt:graphData` files into a combined dataset.
 ///
-/// Named-graph (`qt:graphData`) cases are not modeled by this default-graph
-/// loader and surface as an error (recorded by the harness, never silent).
+/// Default-graph data (`qt:data` Turtle files) is merged into the default graph.
+/// Named-graph data (`qt:graphData`) is placed in the named graph identified by
+/// its file IRI: each triple from the file is tagged with the graph IRI so it
+/// appears in the named graph when queried with `GRAPH <iri> { … }`.
+///
+/// Both scoping axes are supported: named-graph worlds (queried via `GRAPH ?world
+/// { … }`) and the standpoint poset (queried via `gmeow:heldIn` over the default-
+/// graph reification layer). The combined-world case proves both axes with a JOIN:
+/// a named-graph world triple joined against a default-graph standpoint-held
+/// reifier.
 ///
 /// # Errors
 ///
-/// Returns a message on a read/parse failure or an unsupported multi-graph case.
+/// Returns a message on any read, parse, or serialize failure (never silent).
 pub fn load_dataset(case: &SparqlTestCase) -> Result<Arc<RdfDataset>, String> {
-    if !case.graph_data.is_empty() {
-        return Err("named-graph (qt:graphData) data is not supported by this harness".to_owned());
-    }
-    // Concatenate the Turtle data files (Turtle permits prefix/base re-declaration)
-    // and parse once into the default graph.
-    let mut bytes = Vec::new();
+    // Serialize each qt:data Turtle file to N-Quads (default graph — no graph tag).
+    let mut combined_nq: Vec<u8> = Vec::new();
     for data in &case.data {
         let chunk = std::fs::read(data).map_err(|e| format!("read {}: {e}", data.display()))?;
-        bytes.extend_from_slice(&chunk);
-        bytes.push(b'\n');
+        let ds = gmeow_rdf::parse_dataset(&chunk, "text/turtle", Some(BASE))
+            .map_err(|e| format!("parse data {}: {e}", data.display()))?;
+        let nq = serialize_dataset(&ds, "application/n-quads", SerializeGraph::Dataset)
+            .map_err(|e| format!("serialize {}: {e}", data.display()))?;
+        combined_nq.extend_from_slice(&nq);
+        if combined_nq.last() != Some(&b'\n') {
+            combined_nq.push(b'\n');
+        }
     }
-    gmeow_rdf::parse_dataset(&bytes, "text/turtle", Some(BASE))
-        .map_err(|e| format!("parse data for {}: {e}", case.iri))
+
+    // Serialize each qt:graphData Turtle file to N-Quads, then tag every triple line
+    // with the named-graph IRI so it is placed in that named graph.
+    for (graph_iri, path) in &case.graph_data {
+        let chunk = std::fs::read(path).map_err(|e| format!("read {}: {e}", path.display()))?;
+        let ds = gmeow_rdf::parse_dataset(&chunk, "text/turtle", Some(BASE))
+            .map_err(|e| format!("parse graph data {}: {e}", path.display()))?;
+        let nq = serialize_dataset(&ds, "application/n-quads", SerializeGraph::Dataset)
+            .map_err(|e| format!("serialize graph data {}: {e}", path.display()))?;
+        let nq_text = std::str::from_utf8(&nq)
+            .map_err(|e| format!("utf-8 in serialized nquads for {}: {e}", path.display()))?;
+
+        // Tag each triple line (lines ending with ` .`) with the named-graph IRI.
+        // Comment lines and blank lines are passed through unchanged.
+        // Lines that already carry a graph term (four-element quads) are also passed through.
+        for line in nq_text.lines() {
+            let trimmed = line.trim_end();
+            if trimmed.is_empty() || trimmed.starts_with('#') {
+                combined_nq.extend_from_slice(trimmed.as_bytes());
+            } else if let Some(body) = trimmed.strip_suffix(" .") {
+                // Strip the trailing ` .`, insert the graph IRI, re-append ` .`
+                combined_nq.extend_from_slice(body.as_bytes());
+                combined_nq.extend_from_slice(b" <");
+                combined_nq.extend_from_slice(graph_iri.as_bytes());
+                combined_nq.extend_from_slice(b"> .");
+            } else {
+                combined_nq.extend_from_slice(trimmed.as_bytes());
+            }
+            combined_nq.push(b'\n');
+        }
+    }
+
+    gmeow_rdf::parse_dataset(&combined_nq, "application/n-quads", Some(BASE))
+        .map_err(|e| format!("parse combined n-quads for {}: {e}", case.iri))
 }
 
 /// Run `case`, optionally resolving `SERVICE` clauses through `remote`.
