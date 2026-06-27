@@ -23,6 +23,7 @@
 | 8 | Who was controlling at T (co-tenancy)? | **specified** | needs `ControlAssessment`; deception divergence (held≠projected) does not record control |
 | 9 | Continuity denial — does a no-self verdict coexist? | **specified** | needs an *asserted* refuting `IdentityContinuityAssessment`; absence of `counterpartOf` is not denial |
 | 12 | Under which frame is an inhabitation held; does a denial coexist? | **specified** | needs the `InhabitationClaim` form; an asserted base relation would not be frame-neutral |
+| 13 | What continuity determination is *in force*, by which authority, on what grounds — and has it been superseded? | **specified** | needs `ContinuityDetermination` (vantage = authority, grounds, force, validity) + `supersedes`; the descriptive plurality stays addressable underneath, so appeal/reversal is coherent |
 
 The honest headline: **zero questions are "answered"** on a design-only branch — the constructs
 *specify* the answers, and the shipped corpus is what makes them *answered*. Two (CQ5 tool-usage,
@@ -51,6 +52,7 @@ empty — the relationship lives only inside an `InhabitationClaim`
 |---|---|---|
 | `subject-status.ttl` | CQ1, CQ7 | the breaking ABox — `SoftwareAgent` + `DigitalSubject` `RoleMixin` borne over a tenure reasons green against disjointness + rigidity |
 | `subject-continuity.ttl` | CQ1, CQ9 | `IdentityContinuityAssessment` carries same *and* different verdicts; **no** single shared node, **no** `owl:sameAs` |
+| `continuity-determination.ttl` | CQ13 | a `ContinuityDetermination` is in force by an authority on stated grounds; an appeal `supersedes` it (the original retained, P10); the descriptive plurality is unchanged underneath |
 | `active-at-time.ttl` | CQ2 | the `InhabitationConfiguration` whose interval contains T resolves each facet; a mid-tenure facet change opens a new configuration |
 | `two-sessions.ttl` | CQ3 | subject-stage vs model-artifact discriminates shared-subject from shared-model |
 | `migration-transfer.ttl` | CQ4 | a claim "crossed" iff the `TransferManifest`/derivation records it; a coincidental recurrence does **not** match |
