@@ -15,6 +15,23 @@
 //! by code; the rendered matrix is committed at `generated/rdf-loss-matrix.json`
 //! and a drift gate ([`tests`]) re-derives and compares it.
 
+/// In-band machine code: a `CONSTRUCT` whose `WHERE` bound an RDF-1.2 reifier (via
+/// an `rdf:reifies` triple pattern) but whose template drops that reifier — the
+/// reification layer is lost at the projection. Declared in-band on the output
+/// graph (a `gmeow:ProjectionLoss` node), NOT in this compile-time ledger (#917).
+pub const LOSS_REIFIER_LAYER_DROPPED: &str = "reifier-layer-dropped";
+
+/// In-band machine code: a dropped reifier (see [`LOSS_REIFIER_LAYER_DROPPED`])
+/// that ALSO carried annotation triples in the `WHERE` — those annotations are lost
+/// too. Emitted in addition to the reifier-layer code, never alone.
+pub const LOSS_ANNOTATION_LAYER_DROPPED: &str = "annotation-layer-dropped";
+
+/// In-band machine code: a dropped, annotated reifier (see
+/// [`LOSS_ANNOTATION_LAYER_DROPPED`]) where one of the dropped annotation
+/// predicates was `gmeow:accordingTo` — the standpoint scope is lost. Emitted in
+/// addition to the annotation-layer code, never alone.
+pub const LOSS_STANDPOINT_SCOPE_DROPPED: &str = "standpoint-scope-dropped";
+
 /// One enumerated, intentional conversion loss between two representations.
 ///
 /// Entries are `&'static` because the ledger is a compiled-in contract, not
