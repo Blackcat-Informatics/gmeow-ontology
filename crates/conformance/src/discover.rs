@@ -97,7 +97,9 @@ pub fn discover_cases(cases_root: &Path) -> Result<Vec<ConformanceCase>, String>
 fn collect_cases(dir: &Path, found: &mut Vec<ConformanceCase>) -> Result<(), String> {
     let input = dir.join("input.logic.ttl");
     let profile_path = dir.join("profile.json");
-    if input.exists() && profile_path.exists() {
+    // Sentinels must be FILES (not e.g. a directory named `profile.json`), matching
+    // `validate_case`'s `is_file()` check — `exists()` would false-match a directory.
+    if input.is_file() && profile_path.is_file() {
         let case_id = crate::paths::case_id(dir);
         let profile = read_profile_object(&case_id, dir)?;
         found.push(ConformanceCase {
