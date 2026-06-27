@@ -2499,6 +2499,35 @@ logic:NonEntailmentObligation
     skos:definition "A first-class, executable record of a conclusion the foundation must NEVER draw: a deliberate non-assertion the engine is held to, not a comment the axioms happen to respect. It names the forbidden predicate (logic:obligationForbiddenPredicate), the logic:DischargeCondition under which absence-of-proof is conclusively checkable, and the logic:DischargeVerdict the check returns. Because the canonical logic is semi-decidable, an obligation is conclusively discharged only within a stated fragment or bound; outside it the verdict is logic:ObligationUnknown, carried forward, never 'proved absent'. The two standing obligations are 'intent must not be derived from structural deception' and 'counterpart must not become transitive' (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox .
 
+# The two STANDING obligations the charter names verbatim — foundation commitments
+# resident in the reasoned graph, so the verify gate checks them over the real
+# shipped foundation (not merely over a fixture). Each forbids an assertion-only
+# predicate from EVER becoming a foundation rule head (Arm A) or appearing as a
+# derived edge (Arm B): gmeow:deceptiveIntentClaim and gmeow:counterpartOf are
+# attributed / asserted, never entailed.
+
+logic:IntentNotFromDeceptionObligation
+    a owl:NamedIndividual ,
+        logic:NonEntailmentObligation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "intent must not be derived from structural deception"@x-gmeow-english ;
+    skos:definition "The standing non-entailment obligation that the presence of a held≠projected gap is EVIDENCE, never ENTAILMENT, of deceptive intent: the foundation must never derive gmeow:deceptiveIntentClaim (an attributed, defeasible standpoint claim) from a structural deception gap. Enforced by syntactic reachability over the rule strata (no rule head produces the predicate) and finite closure over the materialized derivation graph (the predicate appears in no DERIVED edge). Guards the deception slice held/projected model (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim"^^xsd:anyURI ;
+    logic:obligationDischargeCondition
+        logic:DischargeSyntacticReachability ,
+        logic:DischargeFiniteClosure ;
+    logic:obligationDischargeVerdict logic:ObligationDischarged .
+
+logic:CounterpartNonTransitivityObligation
+    a owl:NamedIndividual ,
+        logic:NonEntailmentObligation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "counterpart must not become transitive"@x-gmeow-english ;
+    skos:definition "The standing non-entailment obligation that cross-realm counterpart identity (gmeow:counterpartOf) stays non-transitive: it is symmetric but deliberately not transitive, so the foundation must never derive it (any derivation, transitive or otherwise, is forbidden — it is assertion-only). Discharged by syntactic reachability over the counterpart rule heads (no rule head produces the predicate). Guards the coreference slice (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/counterpartOf"^^xsd:anyURI ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability ;
+    logic:obligationDischargeVerdict logic:ObligationDischarged .
+
 # ── Closed value class: the eleven formalization categories ──────────────────────
 
 logic:FormalizationCategory

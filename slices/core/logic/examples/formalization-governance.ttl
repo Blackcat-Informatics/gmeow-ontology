@@ -2,17 +2,16 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Worked example — typed formalization governance (design/LOGIC-FOUNDATION.md,
-# §Typed formalization governance). It dogfoods the governance surface: the two
-# STANDING logic:NonEntailmentObligations the charter names verbatim, a set of
+# §Typed formalization governance). It dogfoods the governance surface: a set of
 # logic:FormalizationCandidates spanning several categories and lifecycle states,
-# and the two adversarial structures the obligations guard (a held≠projected
-# deception gap, and a counterpart chain). The obligations forbid an
-# assertion-only predicate from EVER becoming a foundation rule head — that is the
-# precise meaning of "intent must not be derived from structural deception" and
-# "counterpart must not become transitive": gmeow:deceptiveIntentClaim and
-# gmeow:counterpartOf are attributed/asserted, never entailed. The reasoned
-# closure over the structures below must contain no derived edge for either
-# predicate; the per-slice verify queries check exactly that.
+# and the two adversarial structures the standing obligations guard (a held≠projected
+# deception gap, and a counterpart chain). The two STANDING obligations themselves
+# (logic:IntentNotFromDeceptionObligation, logic:CounterpartNonTransitivityObligation)
+# are foundation commitments resident in module.ttl — in the reasoned graph, so the
+# verify gate checks them over the real shipped foundation, not merely over these
+# fixtures. gmeow:deceptiveIntentClaim and gmeow:counterpartOf are attributed /
+# asserted, never entailed; the reasoned closure must contain no derived edge for
+# either predicate.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -27,25 +26,10 @@ ex:contractEL
     rdfs:label "EL profile (example)"@x-gmeow-english .
 
 # ── §2 The two standing non-entailment obligations ──────────────────────────────
-# Each forbids an assertion-only predicate from appearing as a foundation rule
-# head. Discharged by syntactic reachability over the rule strata (no head
-# produces the predicate) AND, for deception, finite closure over the gap below.
-
-ex:obligationIntentNotFromDeception
-    a logic:NonEntailmentObligation ;
-    rdfs:label "intent must not be derived from structural deception"@x-gmeow-english ;
-    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim"^^xsd:anyURI ;
-    logic:obligationDischargeCondition
-        logic:DischargeSyntacticReachability ,
-        logic:DischargeFiniteClosure ;
-    logic:obligationDischargeVerdict logic:ObligationDischarged .
-
-ex:obligationCounterpartNotTransitive
-    a logic:NonEntailmentObligation ;
-    rdfs:label "counterpart must not become transitive"@x-gmeow-english ;
-    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/counterpartOf"^^xsd:anyURI ;
-    logic:obligationDischargeCondition logic:DischargeSyntacticReachability ;
-    logic:obligationDischargeVerdict logic:ObligationDischarged .
+# The standing obligations themselves are foundation commitments resident in the
+# reasoned graph (logic:IntentNotFromDeceptionObligation and
+# logic:CounterpartNonTransitivityObligation, in module.ttl), so the verify gate
+# checks them over the real shipped foundation. The candidates below reference them.
 
 # ── §3 Formalization candidates (dogfood across categories + lifecycle states) ──
 # An accepted candidate carries a recorded reviewer decision (logic:reviewedBy);
@@ -81,7 +65,7 @@ ex:candidateCounterpartNonTransitive
     logic:candidateCategory logic:CategoryNonEntailmentObligation ;
     logic:candidateLifecycle logic:CandidateAccepted ;
     logic:reviewedBy ex:reviewerLogicMaintainer ;
-    logic:candidateNonEntailment ex:obligationCounterpartNotTransitive ;
+    logic:candidateNonEntailment logic:CounterpartNonTransitivityObligation ;
     logic:candidateProjectionBehavior logic:ValidationOnly ;
     logic:candidateSemanticRisk logic:RiskCoreContaminating .
 
@@ -96,7 +80,7 @@ ex:candidateIntentNotEntailed
     logic:candidateCategory logic:CategoryNonEntailmentObligation ;
     logic:candidateLifecycle logic:CandidateAccepted ;
     logic:reviewedBy ex:reviewerLogicMaintainer ;
-    logic:candidateNonEntailment ex:obligationIntentNotFromDeception ;
+    logic:candidateNonEntailment logic:IntentNotFromDeceptionObligation ;
     logic:candidateProjectionBehavior logic:ValidationOnly ;
     logic:candidateSemanticRisk logic:RiskCoreContaminating .
 
