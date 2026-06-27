@@ -61,11 +61,11 @@ fixing it removes the query from `OFF_GATE_HEAVY` and it rejoins the gated shard
 - **Share an expensive fixture once per run.** nextest runs each test in its own
   process, so in-process `OnceLock`/`lazy_static` does NOT share across tests — a
   cross-process cache (a serialized artifact built once) is required. The docs-model
-  cluster uses this: `gmeow_docs::fixture` caches the built `DocsModel` to a
-  content-addressed file, and the cache is **primed once before the run** (the
-  `prime-docs-fixture` example, run by the Makefile lanes and the CI test job) so no
-  test pays the build *or* the concurrent-rebuild contention that inflates a cold
-  parallel build well past the budget. A genuine miss still falls through to a build,
+  cluster uses this: `gmeow_docs::fixture` caches the built `DocsModel` *and* the
+  rendered English site to content-addressed files, and the cache is **primed once
+  before the run** (the `prime-docs-fixture` example, run by the Makefile lanes and
+  the CI test job) so no test pays the build, the render, *or* the concurrent-rebuild
+  contention that inflates a cold parallel build well past the budget. A genuine miss still falls through to a build,
   so a plain `cargo test` works. (nextest setup-scripts would be the natural home for
   the prime step, but they remain experimental — an explicit pre-nextest step avoids
   the opt-in flag.)
