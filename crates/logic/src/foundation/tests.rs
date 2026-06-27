@@ -663,6 +663,13 @@ const HOLONIC_LEVEL_INPUT: &str =
 const HOLONIC_LEVEL_GOLDEN: &str = include_str!(
     "../../../../conformance/logic/cases/holonic/holonic-level/expected/materialized.nq"
 );
+// Holonic agent-goal-holarchy (#709, C6): the named Principle-15 CONSUMER of the Holons epic —
+// an AI agent's goal/action trajectory as a holarchy that applies the C1–C4 kernel at once.
+// Read straight from the conformance case's input.nq world facts and run through the foundation
+// lowering directly — the same world-fact bytes the harness materializes over for this
+// foundation-profile case (the harness additionally loads input.logic.ttl, which this unit test omits).
+const HOLONIC_AGENT_GOAL_INPUT: &str =
+    include_str!("../../../../conformance/logic/cases/holonic/agent-goal-holarchy/input.nq");
 
 #[test]
 fn golden_quad_sets_match_for_single_world_cases() {
@@ -1207,6 +1214,75 @@ fn holonic_emergence_tri_valued_verdicts_and_non_propagation() {
 }
 
 #[test]
+fn holonic_downward_constraint_tri_valued_verdicts_and_non_transitivity() {
+    // The C3 (issue #706, revised by ME9 / #775) downward-constraint governance, driven from the
+    // SAME bytes the conformance harness asserts (the downward-constraint case input.nq).  One
+    // holarchy (ex:Department ▷ ex:Team ▷ ex:Member) and one governance regime (ex:HouseRegime,
+    // whose logic:activationBasis carries ex:OnCallState but NOT ex:IdleState) drive all three
+    // logic:ConstraintVerdict values; the would-be binding on ex:GovWaived is DEFEATED because
+    // ex:Team bears the declared override token (ex:CharterWaiver).  Crucially, the verdict must
+    // NOT cascade down logic:properPartOf to the grandchild ex:Member — non-transitivity is the
+    // C3 guarantee, and golden parity alone cannot pin that NEGATIVE fact.
+    let base = "https://example.org/foundation/holonic-governance";
+    let quads = run(
+        HOLONIC_GOVERNANCE_INPUT,
+        AntiRigidityPolicy::WitnessObligation,
+    );
+
+    // The three verdicts, each on its own logic:DownwardConstraint reifier.
+    let expect: [(&str, &str); 3] = [
+        ("GovActive", "ConstraintBinding"), // regime activates OnCallState, no override
+        ("GovWaived", "ConstraintOverridden"), // binding defeated by the CharterWaiver token
+        ("GovIdle", "ConstraintUnknown"),   // IdleState not in the regime's activationBasis
+    ];
+    let all_verdicts = [
+        "ConstraintBinding",
+        "ConstraintOverridden",
+        "ConstraintUnknown",
+    ];
+    for (constraint, verdict) in expect {
+        assert!(
+            has_binary(
+                &quads,
+                &format!("{base}/{constraint}"),
+                "constraintVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "{constraint} must receive {verdict}"
+        );
+        // Mutual exclusivity: the constraint carries NO other verdict of the trio.
+        for other in all_verdicts.iter().filter(|v| **v != verdict) {
+            assert!(
+                !has_binary(
+                    &quads,
+                    &format!("{base}/{constraint}"),
+                    "constraintVerdict",
+                    &format!("{LOGIC}{other}")
+                ),
+                "{constraint} must NOT also receive {other}"
+            );
+        }
+    }
+
+    // NON-TRANSITIVITY (the C3 #775 guarantee): governance does NOT cascade down
+    // logic:properPartOf.  ex:Member is a proper part of ex:Team (hence TRANSITIVELY a proper
+    // part of ex:Department), but no logic:DownwardConstraint names it as its constraintTarget,
+    // so it receives NO logic:constraintVerdict of any value — every verdict rule is gated on an
+    // explicit constraintWhole / constraintTarget reification, never on the properPartOf closure.
+    for verdict in all_verdicts {
+        assert!(
+            !has_binary(
+                &quads,
+                &format!("{base}/Member"),
+                "constraintVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "downward constraint must NOT cascade to the grandchild ex:Member (got {verdict})"
+        );
+    }
+}
+
+#[test]
 fn holonic_agency_four_valued_verdicts() {
     // The C4 (issue #707) holon autonomy/integration duality, driven from the SAME bytes
     // the conformance harness asserts (the case input.nq).  One declared
@@ -1319,6 +1395,99 @@ fn holonic_agency_four_valued_verdicts() {
                 &format!("{LOGIC}{verdict}")
             ),
             "a profile-less assessment must receive NO verdict (got {verdict})"
+        );
+    }
+}
+
+#[test]
+fn holonic_agent_goal_holarchy_non_propagation_and_non_transitivity() {
+    // C6 (issue #709): the named Principle-15 CONSUMER — an AI agent's goal/action trajectory as
+    // a holarchy, applying the C1–C4 kernel at once.  The flagship composite previously had only
+    // golden-parity coverage; this test PINS the two structural guarantees golden parity cannot
+    // express as positive facts: NON-PROPAGATION (C2 — an emergent plan property never inherits
+    // down to sub-goals) and NON-TRANSITIVITY (C3 — a downward constraint never cascades down
+    // logic:properPartOf to a grandchild sub-goal).  Positive anchors across all four composed
+    // families come first, so the test cannot pass vacuously on an inert case.
+    let base = "https://example.org/holonic/agent-goal-holarchy";
+    let quads = run(
+        HOLONIC_AGENT_GOAL_INPUT,
+        AntiRigidityPolicy::WitnessObligation,
+    );
+
+    // ── Liveness: at least one positive derivation from each composed family fires ──
+    // C1 holon projection: mid-chain goals/actions are holons; the root goal and leaf are not.
+    for holon in ["RetrieveContext", "AnswerQuery", "ToolPhase"] {
+        assert!(
+            has_marker(&quads, &format!("{base}/{holon}"), "isHolon"),
+            "mid-chain {holon} must co-fire the C1 holon projection"
+        );
+    }
+    for non_holon in ["ShipAssistant", "SearchQuery"] {
+        assert!(
+            !has_marker(&quads, &format!("{base}/{non_holon}"), "isHolon"),
+            "the root/leaf {non_holon} must NOT be a holon"
+        );
+    }
+    // C2 emergence, C3 constraint, C4 agency: one verdict each proves the family is engaged.
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/AssessCoherence"),
+            "assessmentVerdict",
+            &format!("{LOGIC}Emergent")
+        ),
+        "plan coherence (borne by the whole, not theory-reduced) must be Emergent"
+    );
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/GovGrounded"),
+            "constraintVerdict",
+            &format!("{LOGIC}ConstraintBinding")
+        ),
+        "the grounded-only governance must bind the retrieval sub-goal"
+    );
+    assert!(
+        has_binary(
+            &quads,
+            &format!("{base}/IntegralRetrieve"),
+            "agencyVerdict",
+            &format!("{LOGIC}HolonIntegral")
+        ),
+        "the both-capacity retrieval sub-agent must be HolonIntegral"
+    );
+
+    // ── NON-PROPAGATION (C2): the emergent ex:PlanCoherence stays on the root goal and never
+    // inherits down logic:properPartOf to any sub-goal — non-inheritance is structural. ──
+    for sub_goal in ["AnswerQuery", "RetrieveContext", "SearchQuery"] {
+        assert!(
+            !has_binary(
+                &quads,
+                &format!("{base}/{sub_goal}"),
+                "bearsProperty",
+                &format!("{base}/PlanCoherence")
+            ),
+            "emergent PlanCoherence must NOT propagate down to the sub-goal {sub_goal}"
+        );
+    }
+
+    // ── NON-TRANSITIVITY (C3): ex:SearchQuery is a proper part of ex:RetrieveContext (the
+    // constraint target), hence transitively of ex:AnswerQuery (the constraint whole), but no
+    // logic:DownwardConstraint names it, so it receives NO constraintVerdict of any value —
+    // governance does not cascade down the properPartOf closure. ──
+    for verdict in [
+        "ConstraintBinding",
+        "ConstraintOverridden",
+        "ConstraintUnknown",
+    ] {
+        assert!(
+            !has_binary(
+                &quads,
+                &format!("{base}/SearchQuery"),
+                "constraintVerdict",
+                &format!("{LOGIC}{verdict}")
+            ),
+            "downward constraint must NOT cascade to the grandchild sub-goal ex:SearchQuery (got {verdict})"
         );
     }
 }

@@ -1545,6 +1545,13 @@ logic:formulaFragment
     rdfs:label "formula fragment"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:FormulaFragment it selects — the syntactic class of admitted formulae. Single-valued on the contract. Domain logic:ReasoningContract, range logic:FormulaFragment (stated in prose, matching the module's convention)."@x-gmeow-english .
 
+logic:hasHolonicPosition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has holonic position"@x-gmeow-english ;
+    skos:definition "The derived marker that an entity occupies at least one logic:HolonicPosition within a holarchy. Never asserted by hand; it is entailed by the foundation lowering, settling in stratum 1 the moment any logic:positionEntity reifier names the entity. It is the negation-as-failure target that arms the logic:HolonicLevelIncoherence rule (a profiled holon occupying NO position is incoherent), and the positive companion to logic:multiplyPositioned (which fires when an entity occupies SEVERAL distinct positions). It tracks compositional positioning only and is orthogonal to the HiLog logic:orderedType instantiation tower — the two axes never feed one another."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:holonicLevel
     a owl:DatatypeProperty ;
     rdfs:domain logic:HolonicPosition ;
