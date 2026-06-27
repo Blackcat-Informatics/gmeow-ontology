@@ -88,8 +88,11 @@ pub struct ManifestEntry {
     pub name: String,
     /// The test kind.
     pub kind: ManifestTestKind,
-    /// The premise document (REQUIRED — hard-fail if absent).
-    pub action: OntologyDoc,
+    /// The premise document. `None` when neither `mf:action` IRI nor
+    /// `otest:rdfXmlPremiseOntology` literal is present (e.g. a functional-syntax-only
+    /// entry in a real-world W3C corpus). [`parse_test_manifest`] hard-fails on such
+    /// entries; [`parse_test_manifest_rdfxml`] silently drops them.
+    pub action: Option<OntologyDoc>,
     /// The conclusion document, when present.
     pub result: Option<OntologyDoc>,
 }
@@ -111,7 +114,56 @@ impl ManifestEntry {
 pub fn parse_test_manifest(source: &str, base: Option<&str>) -> Result<Vec<ManifestEntry>, String> {
     let ds = parse_dataset(source.as_bytes(), "text/turtle", base)
         .map_err(|e| format!("manifest Turtle parse failed: {e}"))?;
+    let entries = manifest_entries(&ds)?;
+    // Strict post-pass: every recognized entry MUST have a premise. The self-authored
+    // seed corpora always satisfy this; a missing premise is a manifest authoring error.
+    for e in &entries {
+        if e.action.is_none() {
+            return Err(format!(
+                "manifest test entry {} has no premise document \
+                 (no mf:action IRI or otest:rdfXmlPremiseOntology literal)",
+                e.iri
+            ));
+        }
+    }
+    Ok(entries)
+}
 
+/// Parse a W3C manifest from RDF/XML source and return every test entry, sorted by
+/// subject IRI (deterministic order).
+///
+/// Similar to [`parse_test_manifest`] but accepts `application/rdf+xml` input.
+/// Entries without a recognized premise document are SILENTLY DROPPED (not a hard
+/// error): real-world W3C corpora contain entries with only a functional-syntax premise
+/// (`otest:fsPremiseOntology`) that this crate cannot parse; skipping them is correct
+/// behaviour for the vendor step, which logs the skip itself.
+pub fn parse_test_manifest_rdfxml(
+    source: &str,
+    base: Option<&str>,
+) -> Result<Vec<ManifestEntry>, String> {
+    let ds = parse_dataset(source.as_bytes(), "application/rdf+xml", base)
+        .map_err(|e| format!("manifest RDF/XML parse failed: {e}"))?;
+    // Lenient: keep only entries with a recognized premise; drop the rest (the
+    // caller — the vendor step — logs skipped cases itself).
+    Ok(manifest_entries(&ds)?
+        .into_iter()
+        .filter(|e| e.action.is_some())
+        .collect())
+}
+
+/// Extract manifest entries from an already-parsed [`gmeow_rdf::RdfDataset`].
+///
+/// This is the shared quad-walk logic used by both [`parse_test_manifest`] (Turtle
+/// input) and [`parse_test_manifest_rdfxml`] (RDF/XML input). Returns entries sorted
+/// by subject IRI for deterministic order.
+///
+/// Entries whose premise is an empty or whitespace-only inline RDF/XML literal are a
+/// hard error (vacuous pass not permitted). Entries with no recognized premise document
+/// at all (no `mf:action` IRI and no `otest:rdfXmlPremiseOntology` literal) are
+/// returned with `action = None`; the caller decides whether to hard-fail or skip
+/// them. [`parse_test_manifest`] hard-fails on such entries; [`parse_test_manifest_rdfxml`]
+/// silently drops them.
+pub fn manifest_entries(ds: &gmeow_rdf::RdfDataset) -> Result<Vec<ManifestEntry>, String> {
     #[derive(Default)]
     struct Row {
         kind: Option<ManifestTestKind>,
@@ -207,22 +259,18 @@ pub fn parse_test_manifest(source: &str, base: Option<&str>) -> Result<Vec<Manif
             .unwrap_or_else(|| iri.clone());
 
         // Premise (action): prefer otest:rdfXmlPremiseOntology inline literal, then
-        // mf:action IRI reference. Hard-fail if neither is present.
-        let action: OntologyDoc = if let Some(inline) = row.otest_premise {
+        // mf:action IRI reference. If neither is present, return `None`; the caller
+        // decides whether to hard-fail or skip the entry.
+        let action: Option<OntologyDoc> = if let Some(inline) = row.otest_premise {
             if inline.trim().is_empty() {
                 return Err(format!(
                     "manifest entry {iri} has an empty otest:rdfXmlPremiseOntology literal \
                      (vacuous pass not permitted)"
                 ));
             }
-            OntologyDoc::InlineRdfXml(inline)
-        } else if let Some(iri_ref) = row.mf_action {
-            OntologyDoc::Reference(iri_ref)
+            Some(OntologyDoc::InlineRdfXml(inline))
         } else {
-            return Err(format!(
-                "manifest test entry {iri} has no premise document \
-                 (no mf:action IRI or otest:rdfXmlPremiseOntology literal)"
-            ));
+            row.mf_action.map(OntologyDoc::Reference)
         };
 
         // Conclusion (result): prefer otest:rdfXmlConclusionOntology inline literal,
@@ -271,7 +319,9 @@ ex:neg a mf:NegativeEntailment ;\n\
         let pos = entries.iter().find(|e| e.name == "clash-entails").unwrap();
         assert_eq!(pos.kind, ManifestTestKind::PositiveEntailment);
         assert_eq!(pos.outcome(), ExternalOutcome::Inconsistent);
-        assert!(matches!(&pos.action, OntologyDoc::Reference(iri) if iri.ends_with("premise.nq")));
+        assert!(
+            matches!(&pos.action, Some(OntologyDoc::Reference(iri)) if iri.ends_with("premise.nq"))
+        );
         assert!(matches!(
             &pos.result,
             Some(OntologyDoc::Reference(iri)) if iri.ends_with("conclusion.nq")
@@ -371,8 +421,8 @@ ex:t a otest:ConsistencyTest ;\n\
         let entries = parse_test_manifest(src, None).unwrap();
         assert_eq!(entries.len(), 1);
         assert!(
-            matches!(&entries[0].action, OntologyDoc::InlineRdfXml(content) if content.contains("<rdf:RDF")),
-            "expected InlineRdfXml with RDF/XML content, got {:?}",
+            matches!(&entries[0].action, Some(OntologyDoc::InlineRdfXml(content)) if content.contains("<rdf:RDF")),
+            "expected Some(InlineRdfXml) with RDF/XML content, got {:?}",
             entries[0].action
         );
     }
@@ -482,5 +532,46 @@ ex:t a otest:ConsistencyTest ;\n\
     otest:identifier \"no-premise\" .\n";
         let err = parse_test_manifest(src, None).unwrap_err();
         assert!(err.contains("no premise document"), "{err}");
+    }
+
+    // -------------------------------------------------------------------------
+    // parse_test_manifest_rdfxml — RDF/XML input path
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn rdfxml_manifest_extracts_consistency_test_with_inline_premise() {
+        // A minimal RDF/XML manifest carrying one otest:ConsistencyTest with an inline
+        // otest:rdfXmlPremiseOntology literal. Verifies that parse_test_manifest_rdfxml
+        // extracts the entry and returns it with the correct kind and action.
+        let src = r#"<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:otest="http://www.w3.org/2007/OWL/testOntology#"
+    xmlns:ex="https://gmeow.example/rdfxml-test/">
+  <otest:ConsistencyTest rdf:about="https://gmeow.example/rdfxml-test/con1">
+    <otest:identifier>con1</otest:identifier>
+    <otest:rdfXmlPremiseOntology rdf:datatype="http://www.w3.org/2001/XMLSchema#string">&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/&gt;</otest:rdfXmlPremiseOntology>
+  </otest:ConsistencyTest>
+</rdf:RDF>"#;
+        let entries = parse_test_manifest_rdfxml(src, None)
+            .expect("RDF/XML manifest must parse without error");
+        assert_eq!(entries.len(), 1, "expected exactly one entry");
+        let e = &entries[0];
+        assert_eq!(e.name, "con1", "otest:identifier should be used as name");
+        assert_eq!(
+            e.kind,
+            ManifestTestKind::Consistency,
+            "otest:ConsistencyTest must map to Consistency kind"
+        );
+        assert!(
+            matches!(&e.action, Some(OntologyDoc::InlineRdfXml(c)) if c.contains("rdf:RDF")),
+            "action must be Some(InlineRdfXml) containing the premise, got {:?}",
+            e.action
+        );
+        assert_eq!(
+            e.outcome(),
+            ExternalOutcome::Consistent,
+            "ConsistencyTest outcome must be Consistent"
+        );
     }
 }

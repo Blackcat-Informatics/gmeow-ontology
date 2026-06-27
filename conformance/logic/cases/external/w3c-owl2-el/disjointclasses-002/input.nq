@@ -1,0 +1,6 @@
+<http://example.org/Boy> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-el/disjointclasses-002/w> .
+<http://example.org/Boy> <http://www.w3.org/2002/07/owl#disjointWith> <http://example.org/Girl> <https://gmeow.example/w3c-owl2-el/disjointclasses-002/w> .
+<http://example.org/Girl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-el/disjointclasses-002/w> .
+<http://example.org/Stewie> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Boy> <https://gmeow.example/w3c-owl2-el/disjointclasses-002/w> .
+<http://example.org/Stewie> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Girl> <https://gmeow.example/w3c-owl2-el/disjointclasses-002/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-el/disjointclasses-002/w> .

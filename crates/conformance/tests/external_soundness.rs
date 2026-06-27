@@ -155,8 +155,8 @@ fn external_corpus_verdicts_match_their_third_party_source() {
     }
 
     assert!(
-        checked >= 5,
-        "expected ≥5 external cases (szs-mini ×3, w3c-mini ×2), found {checked}"
+        checked >= 17,
+        "expected ≥17 external cases (szs-mini ×3, w3c-mini ×2, w3c-owl2-el ×12), found {checked}"
     );
     assert!(
         failures.is_empty(),
