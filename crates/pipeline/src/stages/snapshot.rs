@@ -44,6 +44,11 @@ const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
 const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-analysis";
 const GRAPH_DOCUMENTATION: &str = "https://blackcatinformatics.ca/gmeow/graph/documentation";
 const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+/// The compiler's projection-report loss ledger, folded as its own queryable named
+/// graph so a repo-free consumer reads every projection's preservation kind and
+/// structural lossy drops without re-running the compiler.
+const GRAPH_PROJECTION_LEDGER: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/projection-ledger";
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
 
@@ -78,11 +83,34 @@ pub fn build_snapshot(
         .and_then(|p| p.artifact(crate::stages::docs_render::DOCS_GRAPH_PATH))
         .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing docs-render documentation graph"))?;
-    let diagnostics = upstream
+    // graph/diagnostics ← the union of the SHACL diagnostics and the logic-compile
+    // diagnostics (both target the same DIAGNOSTICS_GRAPH IRI with content-addressed
+    // finding IRIs, so concatenating their N-Quads is a deterministic quad-set union).
+    let mut diagnostics = upstream
         .get("stage-validate")
         .and_then(|p| p.artifact(crate::stages::validate::SHACL_RDF_PATH))
         .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics RDF graph"))?;
+    let compile_diagnostics = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::DIAG_RDF_PATH))
+        .ok_or_else(|| stage_err("missing compile-logic diagnostics RDF graph"))?;
+    if !diagnostics.ends_with(b"\n") {
+        diagnostics.push(b'\n');
+    }
+    diagnostics.extend_from_slice(compile_diagnostics);
+
+    // graph/projection-ledger ← the compiler's projection-report loss ledger (Turtle),
+    // converted to N-Quads for the named-graph fold.
+    let projection_ledger = {
+        let report_ttl = upstream
+            .get("stage-compile-logic")
+            .and_then(|p| p.artifact(crate::stages::compile_logic::PROJECTION_REPORT_PATH))
+            .ok_or_else(|| stage_err("missing compile-logic projection-report loss ledger"))?;
+        let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
+        ingest_turtle(&store, report_ttl)?;
+        store_to_nquads(&store)?
+    };
 
     // Pass 1: build WITHOUT the verify graph, then run native verify over the
     // default graph ∪ imports (the closed-world integrity constraints query that
@@ -131,8 +159,15 @@ pub fn build_snapshot(
     add_named(&mut builder, &verify_attestation, GRAPH_VERIFY, "verify")?;
     // graph/documentation ← the docs projection (N-Quads, already in its graph).
     add_named(&mut builder, &documentation, GRAPH_DOCUMENTATION, "doc")?;
-    // graph/diagnostics ← the DAG-native SHACL diagnostics projection.
+    // graph/diagnostics ← the DAG-native SHACL + logic-compile diagnostics union.
     add_named(&mut builder, &diagnostics, GRAPH_DIAGNOSTICS, "diagnostics")?;
+    // graph/projection-ledger ← the compiler's projection-report loss ledger.
+    add_named(
+        &mut builder,
+        &projection_ledger,
+        GRAPH_PROJECTION_LEDGER,
+        "projledger",
+    )?;
 
     // Fold a deterministic tar archive of the JSON-LD-star + YAML-LD-star
     // serializations into the bundle (#699). The serializer reads THIS builder's
@@ -274,6 +309,7 @@ fn build_archive_blobs(
     root: &Path,
     schema_json: &[u8],
     openapi_json: &[u8],
+    axiom_artifacts: &BTreeMap<String, Vec<u8>>,
 ) -> Result<Vec<BlobRow>, PipelineError> {
     // mappings + queries: member = bare filename.
     let mappings = members_basename(&list_files(&root.join("generated/mappings"), "sssom.tsv")?)?;
@@ -321,20 +357,20 @@ fn build_archive_blobs(
         &slice_named_files(root, "shapes.ttl")?,
     )?);
     shapes.sort_by(|a, b| a.0.cmp(&b.0));
-    // axioms (#746): the compiled logic/DL projection surface, member =
-    // repo-relative path. Each file MUST exist (no-optionality, fail-closed): a
+    // axioms: the compiled logic/DL projection surface, member = repo-relative path.
+    // Sourced from THIS run's `stage-compile-logic` product (not re-read from disk) so
+    // a single regenerate folds the fresh projections — the committed files are not
+    // flushed until phase 1 returns. Each MUST exist (no-optionality, fail-closed): a
     // partial archive would silently break the consumer.
-    let mut axiom_paths: Vec<PathBuf> = Vec::with_capacity(AXIOM_FILES.len());
+    let mut axioms: Vec<(String, Vec<u8>)> = Vec::with_capacity(AXIOM_FILES.len());
     for rel in AXIOM_FILES {
-        let p = root.join(rel);
-        if !p.is_file() {
-            return Err(stage_err(&format!(
-                "missing axiom artifact {rel} for REP_AXIOMS — run the logic-compile regen (fail-closed)"
-            )));
-        }
-        axiom_paths.push(p);
+        let bytes = axiom_artifacts.get(rel).ok_or_else(|| {
+            stage_err(&format!(
+                "missing axiom artifact {rel} in the stage-compile-logic product (fail-closed)"
+            ))
+        })?;
+        axioms.push((rel.to_string(), bytes.clone()));
     }
-    let mut axioms = members_relpath(root, &axiom_paths)?;
     axioms.sort_by(|a, b| a.0.cmp(&b.0));
     Ok(vec![
         archive_blob(REP_MAPPINGS, &mappings)?,
@@ -695,8 +731,11 @@ impl Stage for SnapshotStage {
         // (REP_AXIOMS) so a repo-free `gmeow validate` is self-sufficient (#746).
         // v10 wires the orphaned REP_REASONING reader to a writer: folds the native
         // reasoner's explanation + DL/EL cross-check ledger reports from stage-reason's
-        // in-memory product (#667, wired #746).
-        "snapshot.v10-shapes-axioms-reasoning"
+        // in-memory product (#667, wired #746). v11 folds the compiler's projection-report
+        // loss ledger as the projection-ledger named graph, unions the logic-compile
+        // diagnostics into the diagnostics graph, and sources REP_AXIOMS from the
+        // in-memory stage-compile-logic product (single-pass freshness).
+        "snapshot.v11-compile-logic-ledger"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -706,19 +745,15 @@ impl Stage for SnapshotStage {
         // a doc-source edit busts this stage and re-renders the embedded site (cache
         // soundness, #897) — shared with `DocsRenderStage` via `docs_source_files`.
         let mut files = crate::stages::docs_render::docs_source_files(root)?;
-        // The folded shape surface (REP_SHAPES) and compiled axiom surface
-        // (REP_AXIOMS) are read from disk in `build_archive_blobs`; declare them so a
-        // shape/axiom edit busts this stage and re-folds the bundle — otherwise a
-        // changed shape could ship a stale gmeow.gts (cache soundness, #746).
+        // The folded shape surface (REP_SHAPES) is read from disk in
+        // `build_archive_blobs`; declare it so a shape edit busts this stage and re-folds
+        // the bundle — otherwise a changed shape could ship a stale gmeow.gts (cache
+        // soundness, #746). The compiled axiom surface (REP_AXIOMS) is now sourced from
+        // the consumed `stage-compile-logic` product, whose digest already covers a logic
+        // source change, so the AXIOM_FILES are no longer declared here.
         files.extend(list_files(&root.join("shapes"), "ttl")?);
         files.extend(list_files(&root.join("generated/shapes"), "ttl")?);
         files.extend(slice_named_files(root, "shapes.ttl")?);
-        for rel in AXIOM_FILES {
-            let p = root.join(rel);
-            if p.is_file() {
-                files.push(p);
-            }
-        }
         files.sort();
         files.dedup();
         Ok(files)
@@ -744,7 +779,15 @@ impl Stage for SnapshotStage {
                 stage_err("missing stage-export-json-schema gmeow.openapi.json artifact")
             })?
             .to_vec();
-        let mut blobs = build_archive_blobs(input.root, &schema_json, &openapi_json)?;
+        // THIS run's compiled axiom surface, taken from the stage-compile-logic product
+        // (consumes edge guarantees it exists) so REP_AXIOMS never lags a regenerate.
+        let compile_artifacts = &input
+            .upstream
+            .get("stage-compile-logic")
+            .ok_or_else(|| stage_err("missing stage-compile-logic product"))?
+            .artifacts;
+        let mut blobs =
+            build_archive_blobs(input.root, &schema_json, &openapi_json, compile_artifacts)?;
         blobs.extend(build_guide_blobs(input.root)?);
         blobs.push(build_docs_archive(input.root)?);
         // The native reasoner's explanation + DL/EL cross-check ledger reports, folded
@@ -1596,8 +1639,17 @@ mod ustar_tests {
     #[test]
     fn build_archive_blobs_folds_the_shapes_surface() {
         let root = repo_root();
-        // schema/openapi bytes are irrelevant to the shapes blob; pass empty.
-        let blobs = build_archive_blobs(&root, b"", b"").expect("archive blobs");
+        // schema/openapi bytes are irrelevant to the shapes blob; pass empty. The axiom
+        // surface is irrelevant here too, but it must be present (fail-closed), so mirror
+        // the committed projections into the artifact map.
+        let mut axiom_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        for rel in AXIOM_FILES {
+            axiom_artifacts.insert(
+                rel.to_string(),
+                std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}")),
+            );
+        }
+        let blobs = build_archive_blobs(&root, b"", b"", &axiom_artifacts).expect("archive blobs");
         let blob = blobs
             .iter()
             .find(|b| b.rep == REP_SHAPES)
@@ -1670,7 +1722,16 @@ mod ustar_tests {
     #[test]
     fn build_archive_blobs_folds_the_axiom_surface() {
         let root = repo_root();
-        let blobs = build_archive_blobs(&root, b"", b"").expect("archive blobs");
+        // The axiom surface is now sourced from the stage-compile-logic product; mirror
+        // that here by reading the committed projections into the artifact map.
+        let mut axiom_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        for rel in AXIOM_FILES {
+            axiom_artifacts.insert(
+                rel.to_string(),
+                std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}")),
+            );
+        }
+        let blobs = build_archive_blobs(&root, b"", b"", &axiom_artifacts).expect("archive blobs");
         let blob = blobs
             .iter()
             .find(|b| b.rep == REP_AXIOMS)
@@ -1694,7 +1755,7 @@ mod ustar_tests {
             assert!(!names.contains(big), "{big} must NOT be in REP_AXIOMS");
         }
         // Determinism: rebuild and assert byte-equality.
-        let again = build_archive_blobs(&root, b"", b"").expect("archive blobs");
+        let again = build_archive_blobs(&root, b"", b"", &axiom_artifacts).expect("archive blobs");
         let blob2 = again.iter().find(|b| b.rep == REP_AXIOMS).unwrap();
         assert_eq!(
             blob.data, blob2.data,
