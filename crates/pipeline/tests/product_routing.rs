@@ -88,50 +88,14 @@ fn compiler_products_are_first_class_dag_artifacts() {
 }
 
 #[test]
-fn loss_ledger_and_diagnostics_reach_the_assembled_bundle() {
+fn loss_ledger_and_diagnostics_reach_the_shipped_bundle() {
     let root = repo_root();
 
-    // Assemble a snapshot the way SnapshotStage would, with the real stage products
-    // build_snapshot consumes (statements RDF 1.2, docs graph, SHACL diagnostics, and
-    // the compile-logic product).
-    let (_, rdf12) = gmeow_pipeline::stages::statements::compile_statements(&root).unwrap();
-    let docs = gmeow_pipeline::stages::docs_render::render_docs_graph(&root).unwrap();
-
-    let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-    let mut st: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    st.insert(
-        gmeow_pipeline::stages::statements::RDF12_PATH.to_string(),
-        rdf12.into_bytes(),
-    );
-    upstream.insert(
-        "stage-statements".to_string(),
-        StageProduct::from_artifacts("stage-statements", st),
-    );
-    let mut dc: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    dc.insert(
-        gmeow_pipeline::stages::docs_render::DOCS_GRAPH_PATH.to_string(),
-        docs.into_bytes(),
-    );
-    upstream.insert(
-        "stage-docs-render".to_string(),
-        StageProduct::from_artifacts("stage-docs-render", dc),
-    );
-    let mut vd: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    vd.insert(
-        gmeow_pipeline::stages::validate::SHACL_RDF_PATH.to_string(),
-        Vec::new(),
-    );
-    upstream.insert(
-        "stage-validate".to_string(),
-        StageProduct::from_artifacts("stage-validate", vd),
-    );
-    upstream.insert("stage-compile-logic".to_string(), compile_product(&root));
-
-    let gts =
-        gmeow_pipeline::stages::snapshot::build_snapshot(&root, &upstream, Vec::new(), Vec::new())
-            .expect("build_snapshot");
-
-    // Import the assembled bundle and inspect its named graphs.
+    // Inspect the SHIPPED bundle directly — the committed gmeow.gts a repo-free
+    // consumer reads. `tests/full_parity.rs` guarantees it matches a fresh build, so
+    // reading it (rather than rebuilding the whole snapshot here) is both faithful and
+    // fast. This is the literal "the product reaches the bundle" assertion.
+    let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("read gmeow.gts");
     let bundle = gmeow_rdf::import_gts_events(&gts).expect("import_gts_events");
     let quads = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(bundle.dataset.as_ref())
         .expect("flat quads");
