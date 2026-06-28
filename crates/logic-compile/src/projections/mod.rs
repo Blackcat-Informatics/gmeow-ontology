@@ -17,6 +17,8 @@
 //! claims `ExactPreservation` but dropped content.  [`report::build_projection_report`]
 //! aggregates the loss ledger.
 
+// The correspondence overclaim gate (relation/morphism vs emitted predicate; P5).
+pub mod correspondence_gate;
 // The EDOAL correspondence lowering (get leg + relation lattice → EDOAL alignment).
 pub mod edoal;
 // The FnO correspondence lowering (get-leg transform functions → FnO catalog).
@@ -301,6 +303,42 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                 "modal/world context and contextual scope are not carried by a path surface",
             ],
         ),
+        // ── Correspondence-calculus alignment lowerings (#1089) ──────────────────
+        "sssom" => (
+            PreservationKind::SoundUnder,
+            "N/A (1:1 lattice band)",
+            vec![
+                "the caveat/law/leg structure of the correspondence is dropped; only \
+                 subject/predicate/object, confidence, and justification survive",
+                "world/standpoint scope and the put leg are not carried",
+            ],
+        ),
+        "fno" => (
+            PreservationKind::ValidationOnly,
+            "N/A (transform signatures)",
+            vec![
+                "FnO is not an entailment surface: parameter/output signatures are exact, \
+                 but the transform's semantics are validation-only",
+                "the correspondence relation, caveats, and standpoint scope are dropped",
+            ],
+        ),
+        "edoal" => (
+            PreservationKind::SoundUnder,
+            "N/A (alignment)",
+            vec![
+                "the SOL caveats, the put leg, and world/standpoint scope are dropped",
+                "EDOAL carries the get leg + relation + measure only",
+            ],
+        ),
+        "sparql-construct" => (
+            PreservationKind::SoundUnder,
+            "terminating/PTIME-data",
+            vec![
+                "the faithful executable down-projection; per-profile losses are made \
+                 explicit in the query header (`# Lossy and directional by design; drops:`)",
+                "world/standpoint scope and the put leg are not carried",
+            ],
+        ),
         other => panic!("unknown projection target: {other}"),
     }
 }
@@ -310,7 +348,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 8] = [
+const LEDGER_TARGETS: [&str; 12] = [
     "owl-dl",
     "owl-el",
     "datalog",
@@ -319,6 +357,12 @@ const LEDGER_TARGETS: [&str; 8] = [
     "canonical-rdf12",
     "nemo",
     "property-path",
+    // The correspondence-calculus alignment lowerings (#1089): each carries its own
+    // preservation judgment in the same loss ledger as OWL/Datalog/gUFO.
+    "sssom",
+    "fno",
+    "edoal",
+    "sparql-construct",
 ];
 
 /// One row of the preservation loss ledger as a public, owned value: a projection
