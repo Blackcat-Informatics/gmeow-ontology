@@ -4,7 +4,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/logic/projection-report> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionReport> .
-<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/axiomCount> "48"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/axiomCount> "53"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/ruleCount> "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/profileCount> "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/canonical-rdf12> .

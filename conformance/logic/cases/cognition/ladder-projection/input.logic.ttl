@@ -15,6 +15,14 @@
 # These are the shipped projection rules (slices/core/logic/module.ttl); the
 # profile rows, the levelAtOrAbove ordinal order, and the assessment instances are
 # the EDB (input.nq). Positive Horn: the threshold is read from the profile.
+#
+# Each rule binds its threshold row to a profile via logic:hasThresholdRow, and
+# the hasMastered rule binds BOTH the procedural and transfer rows to the SAME
+# profile. The EDB carries a second profile (crossMixProfile) holding only a
+# low-threshold transfer row: under a profile-blind rule it would let narrowTask's
+# strong procedural row pair with that emerging transfer row and spuriously emit
+# gmeow:hasMastered. The same-profile join is exactly what prevents that, so
+# narrowTask still gets no hasMastered.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -23,7 +31,8 @@
 logic:ruleProjectIsAwareOf a logic:Rule ;
     logic:provenance logic:ruleProjectIsAwareOf ;
     logic:head [ rdf:subject "?agent" ; rdf:predicate gmeow:isAwareOf ; rdf:object "?subject" ] ;
-    logic:body [ rdf:subject "?row" ; rdf:predicate logic:projectsLadderEdge ; rdf:object gmeow:isAwareOf ] ,
+    logic:body [ rdf:subject "?profile" ; rdf:predicate logic:hasThresholdRow ; rdf:object "?row" ] ,
+        [ rdf:subject "?row" ; rdf:predicate logic:projectsLadderEdge ; rdf:object gmeow:isAwareOf ] ,
         [ rdf:subject "?row" ; rdf:predicate logic:sourceDimension ; rdf:object "?dim" ] ,
         [ rdf:subject "?row" ; rdf:predicate logic:thresholdLevel ; rdf:object "?threshold" ] ,
         [ rdf:subject "?assessment" ; rdf:predicate logic:assessmentDimension ; rdf:object "?dim" ] ,
@@ -35,7 +44,8 @@ logic:ruleProjectIsAwareOf a logic:Rule ;
 logic:ruleProjectKnowsAbout a logic:Rule ;
     logic:provenance logic:ruleProjectKnowsAbout ;
     logic:head [ rdf:subject "?agent" ; rdf:predicate gmeow:knowsAbout ; rdf:object "?subject" ] ;
-    logic:body [ rdf:subject "?row" ; rdf:predicate logic:projectsLadderEdge ; rdf:object gmeow:knowsAbout ] ,
+    logic:body [ rdf:subject "?profile" ; rdf:predicate logic:hasThresholdRow ; rdf:object "?row" ] ,
+        [ rdf:subject "?row" ; rdf:predicate logic:projectsLadderEdge ; rdf:object gmeow:knowsAbout ] ,
         [ rdf:subject "?row" ; rdf:predicate logic:sourceDimension ; rdf:object "?dim" ] ,
         [ rdf:subject "?row" ; rdf:predicate logic:thresholdLevel ; rdf:object "?threshold" ] ,
         [ rdf:subject "?assessment" ; rdf:predicate logic:assessmentDimension ; rdf:object "?dim" ] ,
@@ -47,7 +57,8 @@ logic:ruleProjectKnowsAbout a logic:Rule ;
 logic:ruleProjectUnderstands a logic:Rule ;
     logic:provenance logic:ruleProjectUnderstands ;
     logic:head [ rdf:subject "?agent" ; rdf:predicate gmeow:understands ; rdf:object "?subject" ] ;
-    logic:body [ rdf:subject "?row" ; rdf:predicate logic:projectsLadderEdge ; rdf:object gmeow:understands ] ,
+    logic:body [ rdf:subject "?profile" ; rdf:predicate logic:hasThresholdRow ; rdf:object "?row" ] ,
+        [ rdf:subject "?row" ; rdf:predicate logic:projectsLadderEdge ; rdf:object gmeow:understands ] ,
         [ rdf:subject "?row" ; rdf:predicate logic:sourceDimension ; rdf:object "?dim" ] ,
         [ rdf:subject "?row" ; rdf:predicate logic:thresholdLevel ; rdf:object "?threshold" ] ,
         [ rdf:subject "?assessment" ; rdf:predicate logic:assessmentDimension ; rdf:object "?dim" ] ,
@@ -59,7 +70,9 @@ logic:ruleProjectUnderstands a logic:Rule ;
 logic:ruleProjectHasMastered a logic:Rule ;
     logic:provenance logic:ruleProjectHasMastered ;
     logic:head [ rdf:subject "?agent" ; rdf:predicate gmeow:hasMastered ; rdf:object "?subject" ] ;
-    logic:body [ rdf:subject "?rowProc" ; rdf:predicate logic:projectsLadderEdge ; rdf:object gmeow:hasMastered ] ,
+    logic:body [ rdf:subject "?profile" ; rdf:predicate logic:hasThresholdRow ; rdf:object "?rowProc" ] ,
+        [ rdf:subject "?profile" ; rdf:predicate logic:hasThresholdRow ; rdf:object "?rowTransfer" ] ,
+        [ rdf:subject "?rowProc" ; rdf:predicate logic:projectsLadderEdge ; rdf:object gmeow:hasMastered ] ,
         [ rdf:subject "?rowProc" ; rdf:predicate logic:sourceDimension ; rdf:object logic:dimensionProceduralCompetence ] ,
         [ rdf:subject "?rowProc" ; rdf:predicate logic:thresholdLevel ; rdf:object "?thresholdProc" ] ,
         [ rdf:subject "?assessProc" ; rdf:predicate logic:assessmentDimension ; rdf:object logic:dimensionProceduralCompetence ] ,
