@@ -2,16 +2,16 @@
 source: crates/pipeline/src/stages/snapshot.rs
 expression: folded
 ---
-<https://blackcatinformatics.ca/logic/relational-core/body/96cd40727402> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/RelationalCoreAtom> .
-<https://blackcatinformatics.ca/logic/relational-core/body/96cd40727402> <https://blackcatinformatics.ca/logic/rcIndex> 0 .
-<https://blackcatinformatics.ca/logic/relational-core/body/96cd40727402> <https://blackcatinformatics.ca/logic/rcObject> y .
-<https://blackcatinformatics.ca/logic/relational-core/body/96cd40727402> <https://blackcatinformatics.ca/logic/rcPredicate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> .
-<https://blackcatinformatics.ca/logic/relational-core/body/96cd40727402> <https://blackcatinformatics.ca/logic/rcSubject> x .
-<https://blackcatinformatics.ca/logic/relational-core/body/c7746d931ecf> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/RelationalCoreAtom> .
-<https://blackcatinformatics.ca/logic/relational-core/body/c7746d931ecf> <https://blackcatinformatics.ca/logic/rcIndex> 1 .
-<https://blackcatinformatics.ca/logic/relational-core/body/c7746d931ecf> <https://blackcatinformatics.ca/logic/rcObject> z .
-<https://blackcatinformatics.ca/logic/relational-core/body/c7746d931ecf> <https://blackcatinformatics.ca/logic/rcPredicate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> .
-<https://blackcatinformatics.ca/logic/relational-core/body/c7746d931ecf> <https://blackcatinformatics.ca/logic/rcSubject> y .
+<https://blackcatinformatics.ca/logic/relational-core/body/16c04b04e107> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/RelationalCoreAtom> .
+<https://blackcatinformatics.ca/logic/relational-core/body/16c04b04e107> <https://blackcatinformatics.ca/logic/rcIndex> 0 .
+<https://blackcatinformatics.ca/logic/relational-core/body/16c04b04e107> <https://blackcatinformatics.ca/logic/rcObject> y .
+<https://blackcatinformatics.ca/logic/relational-core/body/16c04b04e107> <https://blackcatinformatics.ca/logic/rcPredicate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> .
+<https://blackcatinformatics.ca/logic/relational-core/body/16c04b04e107> <https://blackcatinformatics.ca/logic/rcSubject> x .
+<https://blackcatinformatics.ca/logic/relational-core/body/a12e2fc542e4> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/RelationalCoreAtom> .
+<https://blackcatinformatics.ca/logic/relational-core/body/a12e2fc542e4> <https://blackcatinformatics.ca/logic/rcIndex> 1 .
+<https://blackcatinformatics.ca/logic/relational-core/body/a12e2fc542e4> <https://blackcatinformatics.ca/logic/rcObject> z .
+<https://blackcatinformatics.ca/logic/relational-core/body/a12e2fc542e4> <https://blackcatinformatics.ca/logic/rcPredicate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> .
+<https://blackcatinformatics.ca/logic/relational-core/body/a12e2fc542e4> <https://blackcatinformatics.ca/logic/rcSubject> y .
 <https://blackcatinformatics.ca/logic/relational-core/fact/f49c80c19a11> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/RelationalCoreFact> .
 <https://blackcatinformatics.ca/logic/relational-core/fact/f49c80c19a11> <https://blackcatinformatics.ca/logic/rcObject> <https://blackcatinformatics.ca/gmeow/Animal> .
 <https://blackcatinformatics.ca/logic/relational-core/fact/f49c80c19a11> <https://blackcatinformatics.ca/logic/rcPredicate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> .
@@ -25,6 +25,6 @@ expression: folded
 <https://blackcatinformatics.ca/logic/relational-core/program> <https://blackcatinformatics.ca/logic/hasPreservation> <https://blackcatinformatics.ca/logic/ExactPreservation> .
 <https://blackcatinformatics.ca/logic/relational-core/program> <https://blackcatinformatics.ca/logic/hasRule> <https://blackcatinformatics.ca/logic/relational-core/rule/f9a63791db3b> .
 <https://blackcatinformatics.ca/logic/relational-core/rule/f9a63791db3b> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/RelationalCoreRule> .
-<https://blackcatinformatics.ca/logic/relational-core/rule/f9a63791db3b> <https://blackcatinformatics.ca/logic/rcBody> <https://blackcatinformatics.ca/logic/relational-core/body/96cd40727402> .
-<https://blackcatinformatics.ca/logic/relational-core/rule/f9a63791db3b> <https://blackcatinformatics.ca/logic/rcBody> <https://blackcatinformatics.ca/logic/relational-core/body/c7746d931ecf> .
+<https://blackcatinformatics.ca/logic/relational-core/rule/f9a63791db3b> <https://blackcatinformatics.ca/logic/rcBody> <https://blackcatinformatics.ca/logic/relational-core/body/16c04b04e107> .
+<https://blackcatinformatics.ca/logic/relational-core/rule/f9a63791db3b> <https://blackcatinformatics.ca/logic/rcBody> <https://blackcatinformatics.ca/logic/relational-core/body/a12e2fc542e4> .
 <https://blackcatinformatics.ca/logic/relational-core/rule/f9a63791db3b> <https://blackcatinformatics.ca/logic/rcHead> <https://blackcatinformatics.ca/logic/relational-core/head/03d768316723> .
