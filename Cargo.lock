@@ -1812,6 +1812,7 @@ dependencies = [
  "gmeow-rdf",
  "gmeow-sparql-algebra",
  "insta",
+ "serde",
  "sha2",
 ]
 
@@ -1832,6 +1833,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-music"
+version = "0.1.0"
+dependencies = [
+ "gmeow-gts",
+ "gmeow-rdf",
+ "pyo3",
+ "roxmltree",
+]
+
+[[package]]
 name = "gmeow-native"
 version = "0.1.0"
 dependencies = [
@@ -1839,6 +1850,7 @@ dependencies = [
  "gmeow-docs",
  "gmeow-foundation-corpus",
  "gmeow-logic",
+ "gmeow-music",
  "gmeow-pipeline",
  "gmeow-rdf",
  "gmeow-shacl",

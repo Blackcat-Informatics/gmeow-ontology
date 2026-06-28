@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/choice-combinator.
+#
+# A logic:Choice program combinator (guarded branching) is declared over two
+# sub-programs: the left operand (serveRequest) is selected when a guard
+# situation (requestPresent) holds; the right operand (idleLoop) is selected
+# when it does not. This pins the structural vocabulary — a logic:Choice is a
+# PROGRAM combinator typed APART from a conditional formula connective, using
+# logic:leftOperand / logic:rightOperand (shared with logic:SerialConjunction)
+# and logic:guardSituation (shared with logic:ConditionalGoal on the goal side).
+#
+# The engine echoes back the asserted structural facts. The case verifies that
+# the combinator's structural axioms (type, operands, guard) are well-formed as
+# authored input the engine can round-trip.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
+# the projections need (no asserted teleology triples here — the world facts live
+# in input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/choice-combinator/> .
+
+ex:GoalExpression a logic:GoalExpression .

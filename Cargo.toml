@@ -25,7 +25,10 @@ members = [
     "crates/logic-compile",
     # Synchronous LSP server for .ttl and .logic files + sarif CLI (#671).
     "crates/lsp",
-    # The single PyO3 cdylib: all five engine crates fold into `gmeow_native` so
+    # Music-package toolchain: piece model, GTS package I/O, notation renderers,
+    # MusicXML import, and loss manifests.
+    "crates/music",
+    # The single PyO3 cdylib: engine crates fold into `gmeow_native` so
     # the diagnostics `Report`/`Finding` pyclasses are ONE shared type (#630).
     "crates/native",
     # DAG-driven single-pass build executor (#861): typed stages over an

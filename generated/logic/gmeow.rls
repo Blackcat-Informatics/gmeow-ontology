@@ -2,13 +2,24 @@
 % Nemo (.rls) projection of the canonical logic: program.
 
 % === Ground facts (axioms) ===
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ArgumentationSemantics>, <https://blackcatinformatics.ca/gmeow/Argument>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ArgumentationSemantics>, <https://blackcatinformatics.ca/gmeow/Attack>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ArgumentationSemantics>, <https://blackcatinformatics.ca/gmeow/Support>, "default").
 <https://blackcatinformatics.ca/logic/obligationDischargeCondition>(<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation>, <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability>, "default").
 <https://blackcatinformatics.ca/logic/obligationDischargeVerdict>(<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation>, <https://blackcatinformatics.ca/logic/ObligationDischarged>, "default").
 <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate>(<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation>, "https://blackcatinformatics.ca/gmeow/counterpartOf", "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/GroundedArgumentation>, <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/InfoBoth>, <https://blackcatinformatics.ca/gmeow/supportBoth>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/InfoNeither>, <https://blackcatinformatics.ca/gmeow/supportNeither>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/InfoOpposed>, <https://blackcatinformatics.ca/gmeow/supportOpposed>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/InfoSupported>, <https://blackcatinformatics.ca/gmeow/supportSupported>, "default").
 <https://blackcatinformatics.ca/logic/obligationDischargeCondition>(<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation>, <https://blackcatinformatics.ca/logic/DischargeFiniteClosure>, "default").
 <https://blackcatinformatics.ca/logic/obligationDischargeCondition>(<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation>, <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability>, "default").
 <https://blackcatinformatics.ca/logic/obligationDischargeVerdict>(<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation>, <https://blackcatinformatics.ca/logic/ObligationDischarged>, "default").
 <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate>(<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation>, "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim", "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/NoArgumentation>, <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/PolicySpecificArgumentation>, <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/PreferredArgumentation>, <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation>, "default").
 <https://blackcatinformatics.ca/logic/hasThresholdRow>(<https://blackcatinformatics.ca/logic/defaultLadderProfile>, <https://blackcatinformatics.ca/logic/ladderRowAwareness>, "default").
 <https://blackcatinformatics.ca/logic/hasThresholdRow>(<https://blackcatinformatics.ca/logic/defaultLadderProfile>, <https://blackcatinformatics.ca/logic/ladderRowConceptual>, "default").
 <https://blackcatinformatics.ca/logic/hasThresholdRow>(<https://blackcatinformatics.ca/logic/defaultLadderProfile>, <https://blackcatinformatics.ca/logic/ladderRowDeclarative>, "default").

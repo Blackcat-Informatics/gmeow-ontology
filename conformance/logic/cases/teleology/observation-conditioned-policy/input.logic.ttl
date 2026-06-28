@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/observation-conditioned-policy.
+#
+# An action schema (senseSchema) declares a logic:observation (sensorReading) that
+# logic:reveals obstacleDetected. A plan with two observation-conditioned branches —
+# avoidBranch guarded on obstacleDetected, proceedBranch guarded on pathClear — is a
+# POLICY: its next action is chosen from what the observation reveals, not fixed in
+# advance. The engine surfaces the observation's reveal, then selects the matching
+# branch (avoidBranch) and its logic:nextActionSchema (rerouteSchema); the non-matching
+# proceedBranch is NOT selected.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/observation-conditioned-policy/> .
+
+ex:GoalExpression a logic:GoalExpression .

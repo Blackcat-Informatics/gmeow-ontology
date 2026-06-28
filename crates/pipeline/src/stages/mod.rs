@@ -23,6 +23,8 @@ pub mod bench;
 pub mod catalog;
 pub mod compile_logic;
 pub mod conformance;
+// The oxigraph-free correspondence lowerings caller (SSSOM/FnO/EDOAL/SPARQL).
+pub mod correspondence_lower;
 pub mod diag_render;
 pub mod docs_render;
 pub mod evals;
@@ -66,7 +68,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     );
     registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
-    registry.register("mappings", Arc::new(mappings::MappingsStage));
+    registry.register("mappings", Arc::new(mappings::MappingsStage::new()));
     registry.register("validate", Arc::new(validate::ValidateStage::new()));
     registry.register("docs_render", Arc::new(docs_render::DocsRenderStage::new()));
     registry.register("conformance", Arc::new(conformance::ConformanceStage));

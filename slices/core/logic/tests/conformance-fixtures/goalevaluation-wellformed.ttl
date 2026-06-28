@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming fixture for logic:GoalEvaluationShape — a well-formed
+# logic:GoalEvaluation carrying exactly one value of each of the four factored
+# closed-set axes (satisfactionStatus, feasibilityStatus, lifecycleStatus,
+# goalEvaluationStatus), the goal it judges (logic:evaluatesGoal), and a single
+# optional logic:satisfactionDegree quantity. Bound by
+# tests/example-conformance.ttl (ex:ecGoalEvaluationWellformed, gmeow:conforms).
+# Self-contained: the harness loads logic/module.ttl + ONLY this file against
+# logic/shapes.ttl.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lgc/> .
+
+ex:goalReachOrbit a gmeow:Goal ;
+    rdfs:label "reach a stable orbit (fixture)"@en .
+
+ex:evalReachOrbit a logic:GoalEvaluation ;
+    logic:evaluatesGoal ex:goalReachOrbit ;
+    logic:satisfactionStatus logic:Satisfied ;
+    logic:feasibilityStatus logic:Feasible ;
+    logic:lifecycleStatus logic:LifecycleActive ;
+    logic:goalEvaluationStatus logic:GoalEvaluationCompleted ;
+    logic:satisfactionDegree "1.0"^^xsd:decimal .

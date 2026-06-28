@@ -4,7 +4,7 @@
 //! Prefix-consistency lint (#1009 §2).
 //!
 //! The article's §2 win — "a prefix-consistency lint falls out for free" once the
-//! prefix authority ([`crate::mapping_emit::PREFIX_REGISTRY`]) is the single named
+//! prefix authority ([`crate::mapping_support::PREFIX_REGISTRY`]) is the single named
 //! set. This lint enforces that authored sources never *shadow* a registry prefix
 //! with a different namespace: a `@prefix mf:` (or SPARQL `PREFIX mf:`) declaration
 //! bound to anything other than the registry's `mf` namespace is a latent
@@ -33,7 +33,7 @@ use std::path::{Path, PathBuf};
 use regex::Regex;
 
 use crate::error::SliceError;
-use crate::mapping_emit::PREFIX_REGISTRY;
+use crate::mapping_support::PREFIX_REGISTRY;
 use crate::projection_lint::ProjectionDiagnostic;
 
 /// Authored source roots scanned for prefix declarations. The `generated/` tree is

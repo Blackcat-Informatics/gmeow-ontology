@@ -33,6 +33,31 @@ logic.
 "Datalog plus negation-as-failure" is one evaluable subset of the IR, reached by lowering, not the
 ceiling of what the IR can hold.
 
+### The realized formula surface
+
+The full-FOL core is a reified `logic:Formula` tree. A formula node is one of:
+
+- a **quantifier** — `logic:forall` / `logic:exists` over a body formula, with its bound variables
+  carried by ordered `logic:quantifiedVariable` term-carriers (multi-variable block order is
+  significant);
+- a **connective** — `logic:and` / `logic:or` (variadic, commutative), `logic:not` (strong negation,
+  kept distinct from negation-as-failure), the ordered `logic:antecedent` / `logic:consequent` pair of
+  a material implication, or the commutative `logic:iff`;
+- an **atomic predication** — `logic:relation` (a reified relation `logic:Type`, the HiLog reflection —
+  no predicate-variable term) over ordered `logic:argument` term-carriers.
+
+A **sequence marker** (`logic:SequenceMarker`, carried by `logic:termSequenceMarker`) is a variadic
+argument that binds a *sequence* of terms, generalizing the fixed arity-three atom to predications of
+any arity. Each term-carrier fixes its position with `logic:termIndex` and holds exactly one of
+`logic:termIri` / `logic:termVariable` / `logic:termLiteral` (+ `logic:termLiteralDatatype`) /
+`logic:termSequenceMarker`, so the variadic, order-significant lists round-trip independent of RDF
+statement order.
+
+Horn+NAF derivation rules remain a recognized **sub-fragment** carried by `logic:Rule`: a program's
+trivially-Horn facts and rules stay in the rule/axiom collections, and only what genuinely exceeds
+that fragment is carried as a `logic:Formula`. A trivially-Horn binary predication is therefore never
+admitted as a top-level formula, so a single fact never receives two distinct canonical identities.
+
 ## Node kinds
 
 The IR is a typed sum, not an untyped triple bag. Every node declares its kind, and the kind
@@ -141,7 +166,15 @@ the substrate does not.
   Every execution strategy, the incremental layer, and the semiring annotation target it. The other
   prerequisites already hold: the canonical IR is content-addressed (below) and the quantitative axes
   are semiring-annotatable first-class structure ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)
-  § axes).
+  § axes). The realized evaluable path is `Formula → NNF → Skolemize → Horn-clause extraction →
+  logic:RelationalCore → Nemo rule text → chase`: the Horn-expressible fragment lowers exactly and runs
+  alongside the program's own rules, while everything outside it (a disjunctive head, an existential
+  needing a Skolem *function*, a sequence-marker or non-binary predication) is partial-converted —
+  carried as flagged residue, never silently evaluated as one disjunct. The residue is disclosed by a
+  **closed shape-tag set** (`logic:FormulaShape`: `Disjunctive`, `Nested`, `Quantified`,
+  `StrongNegation`, `Variadic`), so the loss ledger names *which* construct exceeded the fragment rather
+  than emitting one opaque note, and the resulting answer carries a `sound-under` preservation polarity
+  rather than a false `exact`.
 
 **Validation, not trust.** Transforms are validated, not trusted: a round-trip/witness-preservation
 check (the analogue of compiler `debugify`) and a refinement check against the declared preservation
@@ -157,7 +190,16 @@ explicitly declared rewrite system share one canonical IR identity. This is **st
 not a claim to decide general semantic equivalence: two programs that happen to mean the same thing
 but normalize to different structures have different canonical IRs, because deciding semantic
 equivalence for the full IR is not reducible to content addressing. Round-tripping a program through
-any faithful projection and back yields the same canonical IR. This canonical identity is the anchor
+any faithful projection and back yields the same canonical IR.
+
+For a formula, the canonical key is **alpha-normalized**: a single binding-environment walk renames
+bound variables to de-Bruijn-style canonical tokens so alpha-equivalent formulas (`∀x.p(x)` and
+`∀y.p(y)`) share a key, while **free** variables are preserved (they carry meaning). It is also
+**order-normalized**: `logic:and` / `logic:or` are flattened and their operands sorted by
+already-normalized child key, `logic:iff` is pair-sorted, and the ordered `logic:antecedent` /
+`logic:consequent` of an implication keep their order. This alpha-normalized order is also the order
+the Skolem-witness IRIs are minted in, so two equal-but-differently-constructed formulas produce
+identical witnesses. This canonical identity is the anchor
 the conformance contract checks against and the basis for the content-addressed provenance that
 proofs and explanations cite.
 

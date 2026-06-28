@@ -96,7 +96,12 @@ pub fn full_spec() -> PipelineSpec {
             "compile_logic",
             &[],
         ),
-        st("stage-mappings", StageKind::Transform, "mappings", &[]),
+        st(
+            "stage-mappings",
+            StageKind::Transform,
+            "mappings",
+            &["stage-compile-logic"],
+        ),
         st(
             "stage-reason",
             StageKind::Reason,
@@ -144,6 +149,8 @@ pub fn full_spec() -> PipelineSpec {
                 // #700: fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
                 "stage-export-json-schema",
                 "stage-gts-compose",
+                // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
+                "stage-mappings",
                 "stage-reason",
                 "stage-statements",
                 "stage-validate",

@@ -39,8 +39,6 @@ use crate::artifact::{ArtifactRecord, ArtifactRole};
 use crate::cache::ToolchainContext;
 use crate::catalog::{ManifestView, SliceCatalog, SliceRecord, SliceTier};
 use crate::fix_deps::{compute_fix_deps, ManifestPatch};
-use crate::fno_emit::emit_fno as emit_fno_text;
-use crate::mapping_emit::emit_sssom_sets;
 use crate::ownership::{
     DependencyEdge, OwnershipAnalyzer, OwnershipDiagnostic, OwnershipReport, OwnershipStatus,
     ReconciliationStatus, SliceIri,
@@ -597,58 +595,11 @@ impl PyOwnershipAnalyzer {
 
 // ── SSSOM emission ───────────────────────────────────────────────────────────
 
-/// Emit every SSSOM TSV from the repo at `root`, returning `{sssom_file → tsv}`.
-///
-/// This is the native, byte-parity SSSOM emitter (#848): Python passes only the
-/// repo root, and the emitter sources every input — slice mapping artifacts, the shared
-/// `dsl/mappings/` tree, the prefix map, and the self-description version/date —
-/// natively. Keys are bare file names (e.g. `gmeow-accessibility.sssom.tsv`).
-///
-/// # Errors
-///
-/// Raises `ValueError` on any missing/unparsable required source (no degraded
-/// fallback): a malformed Turtle source, a self-description lacking the
-/// Manifestation version/date, or an I/O failure.
-#[pyfunction]
-fn emit_sssom<'py>(py: Python<'py>, root: &str) -> PyResult<Bound<'py, PyDict>> {
-    let sets = emit_sssom_sets(Path::new(root))
-        .map_err(|e| PyValueError::new_err(format!("SSSOM emission failed: {e}")))?;
-    let dict = PyDict::new(py);
-    for (file, text) in sets {
-        dict.set_item(file, text)?;
-    }
-    Ok(dict)
-}
-
-/// Emit the FnO function catalog (`generated/projections/functions.fno.ttl`) from
-/// the repo at `root`, returning its N-Triples text.
-///
-/// The whole FnO emitter is now native (#848): Python passes only the repo root,
-/// and the emitter sources every input — the projection functions + cells from the
-/// `dsl/mappings/` tree + slice mapping artifacts, and each input predicate's
-/// `rdfs:range` from `ontology/gmeow.ttl` + slice module artifacts — natively. The
-/// returned text is full-IRI N-Triples; the Python caller re-parses it into a fresh
-/// rdflib `Graph` (so the downstream `projection_lint` + the Turtle writer are
-/// unchanged), and the result is graph-isomorphic to the historical Python emitter.
-///
-/// # Errors
-///
-/// Raises `ValueError` on any missing/unparsable required source, a malformed
-/// function declaration, or — the fail-closed `fno:type` guard — an input predicate
-/// with no ontology `rdfs:range` (no degraded fallback).
-#[pyfunction]
-fn emit_fno(root: &str) -> PyResult<String> {
-    emit_fno_text(Path::new(root))
-        .map_err(|e| PyValueError::new_err(format!("FnO emission failed: {e}")))
-}
-
 /// Run the native cross-layer projection lint plus alignment-direction checks over
-/// the committed `generated/` tree at `root`, returning one dict per problem (#854,
-/// #936).
+/// the committed `generated/` tree at `root`, returning one dict per problem.
 ///
-/// This is the native replacement for the Python `projection_lint` trio (the FnO
-/// type-mismatch / EDOAL→FnO reference-integrity / CONSTRUCT↔EDOAL↔SSSOM spec-drift
-/// invariants) folded together with the alignment-direction lint
+/// This is the native projection lint (the FnO type-mismatch + EDOAL→FnO
+/// reference-integrity invariants) folded together with the alignment-direction lint
 /// (`inverse-direction`, `domain-range`, `property-character`, `equivalence-collapse`,
 /// `dc-refinement`, `dc-hand-authored`). Each dict carries the common
 /// `{severity, code, message, check, instance}` fields plus optional
@@ -718,8 +669,6 @@ fn alignment_policy<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
 
 /// Register the `gmeow_slice` engine surface into the given module.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(emit_sssom, m)?)?;
-    m.add_function(wrap_pyfunction!(emit_fno, m)?)?;
     m.add_function(wrap_pyfunction!(lint_projection, m)?)?;
     m.add_function(wrap_pyfunction!(alignment_policy, m)?)?;
     m.add_class::<PyArtifactRecord>()?;

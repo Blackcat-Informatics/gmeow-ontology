@@ -1,0 +1,6 @@
+{
+  "https://example.org/teleology/conditional-false-guard/world": {
+    "quads": 12,
+    "status": "consistent"
+  }
+}

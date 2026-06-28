@@ -5,39 +5,26 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX schema: <https://schema.org/>
 
 CONSTRUCT {
-    ?task a schema:Event .
-    ?task schema:startDate ?due .
-    ?task schema:eventStatus ?ts .
     ?series a schema:EventSeries .
     ?series schema:repeatFrequency ?freq .
-    ?occ a schema:Event .
-    ?occ schema:startDate ?occStart .
-    ?occ schema:endDate ?occEnd .
-    ?occ schema:superEvent ?sched .
     ?sched a schema:Schedule .
     ?sched schema:repeatFrequency ?freq .
     ?sched schema:startDate ?start .
     ?sched schema:endDate ?end .
+    ?occ a schema:Event .
+    ?occ schema:startDate ?occStart .
+    ?occ schema:endDate ?occEnd .
+    ?occ schema:superEvent ?sched .
+    ?task a schema:Event .
+    ?task schema:startDate ?due .
+    ?task schema:eventStatus ?ts .
 }
 WHERE {
     {
-        ?task rdf:type ?type .
-        OPTIONAL { ?task gmeow:taskDueDate ?due . }
-        OPTIONAL { ?task gmeow:taskStatus ?ts . }
-        FILTER NOT EXISTS { ?task gmeow:displayable false . }
-    }
-    UNION {
         ?series rdf:type ?type .
         OPTIONAL { ?series gmeow:hasRecurrenceRule ?rule . }
         OPTIONAL { ?rule gmeow:recurrenceRuleText ?freq . }
         FILTER NOT EXISTS { ?series gmeow:displayable false . }
-    }
-    UNION {
-        ?sched gmeow:scheduleOccurrence ?occ .
-        OPTIONAL { ?occ gmeow:eventInterval ?iv . }
-        OPTIONAL { ?iv gmeow:startedAtTime ?occStart . }
-        OPTIONAL { ?iv gmeow:endedAtTime ?occEnd . }
-        FILTER NOT EXISTS { ?sched gmeow:displayable false . }
     }
     UNION {
         ?sched rdf:type ?type .
@@ -48,5 +35,18 @@ WHERE {
         OPTIONAL { ?iv gmeow:startedAtTime ?start . }
         OPTIONAL { ?iv gmeow:endedAtTime ?end . }
         FILTER NOT EXISTS { ?sched gmeow:displayable false . }
+    }
+    UNION {
+        ?sched gmeow:scheduleOccurrence ?occ .
+        OPTIONAL { ?occ gmeow:eventInterval ?iv . }
+        OPTIONAL { ?iv gmeow:startedAtTime ?occStart . }
+        OPTIONAL { ?iv gmeow:endedAtTime ?occEnd . }
+        FILTER NOT EXISTS { ?sched gmeow:displayable false . }
+    }
+    UNION {
+        ?task rdf:type ?type .
+        OPTIONAL { ?task gmeow:taskDueDate ?due . }
+        OPTIONAL { ?task gmeow:taskStatus ?ts . }
+        FILTER NOT EXISTS { ?task gmeow:displayable false . }
     }
 }

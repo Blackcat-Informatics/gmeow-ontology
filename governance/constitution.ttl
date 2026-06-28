@@ -81,9 +81,12 @@ meta:gate-generator-registry a meta:Gate ;
         "catalog", "profiles", "frame_shapes", "result_shapes", "evals", "parquet",
         "research-objects", "references", "export", "okf", "bench", "conformance" .
 
-meta:tests-narrow-waist a meta:TestSuite ;
+meta:tests-narrow-waist a meta:Gate ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)"@x-gmeow-english ;
-    meta:artifact "tests/test_narrow_waist.py", "docs/gts-narrow-waist.md" .
+    meta:artifact "crates/validate/src/repo_static.rs", "docs/gts-narrow-waist.md" ;
+    meta:symbol "check_repo_static", "check_narrow_waist" ;
+    meta:cliCommand "crate-check" ;
+    meta:makeTarget "crate-check" .
 
 meta:lint-sameas-ban a meta:Lint ;
     rdfs:label "owl:sameAs-to-external ban (validate ERROR + allowlist)"@x-gmeow-english ;
@@ -157,15 +160,15 @@ meta:tests-reasoning a meta:TestSuite ;
 
 meta:gate-products a meta:Gate ;
     rdfs:label "the product surfaces: pip client, MCP memory triad, GTS engine"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/gts_producer.py", "crates/pipeline/src/mcp.rs",
-        "docs/mcp-server.md" ;
+    meta:artifact "crates/rdf/src/gts_compose.rs", "crates/rdf/src/gts_view.rs",
+        "crates/pipeline/src/mcp.rs", "docs/mcp-server.md" ;
     meta:symbol "store_claim" ;
     meta:cliCommand "mcp" .
 
 meta:tests-products a meta:TestSuite ;
     rdfs:label "client / MCP memory / GTS engine tests"@x-gmeow-english ;
-    meta:artifact "crates/pipeline/src/mcp.rs",
-        "tests/test_gts_producer.py", "tests/test_gts_views.py" .
+    meta:artifact "crates/rdf/src/gts_compose.rs", "crates/rdf/src/gts_view.rs",
+        "crates/pipeline/src/mcp.rs" .
 
 meta:tests-claim-spine a meta:TestSuite ;
     rdfs:label "claim provenance, attestation, and trust tests"@x-gmeow-english ;
@@ -208,7 +211,7 @@ meta:lint-term-naming a meta:Lint ;
 
 meta:gate-suppression-injection a meta:Gate ;
     rdfs:label "suppression guards injected into every projection CONSTRUCT"@x-gmeow-english ;
-    meta:artifact "crates/slice/src/sparql_emit.rs" ;
+    meta:artifact "crates/logic-compile/src/projections/sparql.rs" ;
     meta:symbol "injected_guards" .
 
 meta:tests-leak-conformance a meta:TestSuite ;
@@ -451,15 +454,17 @@ meta:Principle17 a meta:Principle ;
         meta:gate-foundation-conformance, meta:gate-logic-gufo-superset,
         meta:shapes-result-generated .
 
-# The executable lane-purity seal (#667): the two-lane split (primary lane
+# The executable lane-purity seal: the two-lane split (primary lane
 # Java/Docker-free; classic-cross-check the SOLE oracle lane) is enforced by an
-# actual test, not convention. FAILS if a Docker/Java token reaches the primary
+# actual gate, not convention. FAILS if a Docker/Java token reaches the primary
 # path, or if the classic-cross-check workflow ever becomes a required check.
-meta:tests-lane-purity a meta:TestSuite ;
-    rdfs:label "lane-purity seal — required CI jobs + make check carry no Java/Docker (#667)"@x-gmeow-english ;
-    meta:artifact "tests/test_lane_purity.py" ;
-    meta:symbol "test_required_ci_jobs_carry_no_java_or_docker",
-        "test_makefile_required_targets_carry_no_java_or_docker" .
+meta:tests-lane-purity a meta:Gate ;
+    rdfs:label "lane-purity seal — required CI jobs + make check carry no Java/Docker"@x-gmeow-english ;
+    meta:artifact "crates/validate/src/repo_static.rs" ;
+    meta:symbol "check_lane_purity", "check_required_ci_jobs",
+        "check_makefile_lane_purity" ;
+    meta:cliCommand "crate-check" ;
+    meta:makeTarget "crate-check" .
 
 meta:Principle18 a meta:Principle ;
     meta:number 18 ;

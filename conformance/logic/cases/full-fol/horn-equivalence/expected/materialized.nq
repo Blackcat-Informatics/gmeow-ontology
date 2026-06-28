@@ -1,0 +1,2 @@
+<https://example.org/full-fol/alice> <https://example.org/full-fol/ancestorOf> <https://example.org/full-fol/bob> <https://example.org/full-fol/world-family> .
+<https://example.org/full-fol/alice> <https://example.org/full-fol/parentOf> <https://example.org/full-fol/bob> <https://example.org/full-fol/world-family> .

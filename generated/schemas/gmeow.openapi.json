@@ -33,6 +33,58 @@
         ],
         "type": "object"
       },
+      "AdequacyAssessment": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:adequacyUnderStandard": {
+            "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:meetsThreshold": {
+            "$comment": "gmeow:AdequacyVerdict has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "gmeow:adequacyUnderStandard",
+          "gmeow:meetsThreshold"
+        ],
+        "type": "object"
+      },
       "Analogy": {
         "properties": {
           "@annotation": {
@@ -402,6 +454,181 @@
         ],
         "type": "object"
       },
+      "Argument": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:argumentConclusion": {},
+          "gmeow:argumentInferenceStep": {},
+          "gmeow:hasInferenceApplication": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/InferenceApplication"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/InferenceApplication"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:hasPremiseUse": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PremiseUse"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/PremiseUse"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "gmeow:argumentConclusion"
+        ],
+        "type": "object"
+      },
+      "ArgumentEvaluation": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:acceptanceStatus": {
+            "$comment": "gmeow:AcceptanceStatus has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:evaluatesArgument": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Argument"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "gmeow:underSemantics": {}
+        },
+        "required": [
+          "gmeow:acceptanceStatus",
+          "gmeow:evaluatesArgument",
+          "gmeow:underSemantics"
+        ],
+        "type": "object"
+      },
       "Assessment": {
         "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
@@ -577,6 +804,67 @@
         "required": [
           "gmeow:constraintOperator",
           "gmeow:leftOperand"
+        ],
+        "type": "object"
+      },
+      "Attack": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:attackKind": {
+            "$comment": "gmeow:AttackKind has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:attackSource": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Argument"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "gmeow:attackTarget": {}
+        },
+        "required": [
+          "gmeow:attackKind",
+          "gmeow:attackSource",
+          "gmeow:attackTarget"
         ],
         "type": "object"
       },
@@ -2545,6 +2833,80 @@
               }
             ]
           },
+          "gmeow:adequateUnder": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/AdequacyAssessment"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/AdequacyAssessment"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:basesBeliefOn": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
           "gmeow:claimOfBelief": {
             "anyOf": [
               {
@@ -2564,6 +2926,68 @@
             ]
           },
           "gmeow:defeatedBy": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:Defeater has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:Defeater has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:hasAvailableEvidence": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:hasDefeatStatus": {
             "anyOf": [
               {
                 "anyOf": [
@@ -2624,32 +3048,44 @@
               }
             ]
           },
-          "gmeow:justifiedBy": {
+          "gmeow:supportsUnder": {
             "anyOf": [
               {
-                "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SupportAssessment"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SupportAssessment"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -2679,7 +3115,16 @@
               }
             ]
           },
-          "gmeow:justifiedBy": {
+          "gmeow:basesBeliefOn": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:hasAvailableEvidence": {
             "anyOf": [
               {},
               {
@@ -4380,6 +4825,79 @@
         ],
         "type": "object"
       },
+      "InferenceApplication": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:appliedRule": {},
+          "gmeow:appliedSubstitution": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "gmeow:appliedRule"
+        ],
+        "type": "object"
+      },
       "InferenceCommitment": {
         "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
@@ -4952,6 +5470,149 @@
         "required": [
           "gmeow:relationshipChild",
           "gmeow:relationshipParent"
+        ],
+        "type": "object"
+      },
+      "KnowledgeAttribution": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:attributedKnower": {
+            "$comment": "gmeow:Agent has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:attributedProposition": {
+            "$comment": "gmeow:Proposition has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:attributingAgent": {
+            "$comment": "gmeow:Agent has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "gmeow:attributedKnower",
+          "gmeow:attributedProposition",
+          "gmeow:attributingAgent"
+        ],
+        "type": "object"
+      },
+      "KnowledgeClaim": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:knowerAgent": {
+            "$comment": "gmeow:Agent has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:knownInWorld": {
+            "$comment": "gmeow:EpistemicContext has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:knownProposition": {
+            "$comment": "gmeow:Proposition has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:underStandard": {
+            "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "gmeow:knowerAgent",
+          "gmeow:knownInWorld",
+          "gmeow:knownProposition",
+          "gmeow:underStandard"
         ],
         "type": "object"
       },
@@ -7018,6 +7679,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:AdequacyAssessment"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:AdequacyAssessment"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/AdequacyAssessment"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:Analogy"
                     },
                     {
@@ -7118,6 +7804,56 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:Argument"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Argument"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/Argument"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:ArgumentEvaluation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ArgumentEvaluation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/ArgumentEvaluation"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:Assessment"
                     },
                     {
@@ -7160,6 +7896,31 @@
             },
             "then": {
               "$ref": "#/$defs/AtomicConstraint"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Attack"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Attack"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/Attack"
             }
           },
           {
@@ -8893,6 +9654,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:InferenceApplication"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:InferenceApplication"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/InferenceApplication"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:InferenceCommitment"
                     },
                     {
@@ -9135,6 +9921,56 @@
             },
             "then": {
               "$ref": "#/$defs/KinRelationship"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:KnowledgeAttribution"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:KnowledgeAttribution"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/KnowledgeAttribution"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:KnowledgeClaim"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:KnowledgeClaim"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/KnowledgeClaim"
             }
           },
           {
@@ -10843,6 +11679,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:PremiseUse"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:PremiseUse"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/PremiseUse"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:PrivacyNotice"
                     },
                     {
@@ -11618,6 +12479,56 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:Support"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Support"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/Support"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SupportAssessment"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SupportAssessment"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/SupportAssessment"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:Tagging"
                     },
                     {
@@ -12118,6 +13029,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "logic:ActionSchema"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:ActionSchema"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:ActionSchema"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "logic:FormalizationCandidate"
                     },
                     {
@@ -12143,6 +13079,56 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "logic:GoalEvaluation"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:GoalEvaluation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:GoalEvaluation"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "logic:McpActionSchema"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:McpActionSchema"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:McpActionSchema"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "logic:NonEntailmentObligation"
                     },
                     {
@@ -12160,6 +13146,31 @@
             },
             "then": {
               "$ref": "#/$defs/logic:NonEntailmentObligation"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "logic:Plan"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:Plan"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:Plan"
             }
           }
         ],
@@ -15049,6 +16060,34 @@
         ],
         "type": "object"
       },
+      "PremiseUse": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:premiseUsed": {}
+        },
+        "required": [
+          "gmeow:premiseUsed"
+        ],
+        "type": "object"
+      },
       "PrivacyNotice": {
         "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
@@ -16677,6 +17716,151 @@
         },
         "required": [
           "gmeow:styleGuideFor"
+        ],
+        "type": "object"
+      },
+      "Support": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:supportSource": {},
+          "gmeow:supportTarget": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Argument"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "gmeow:supportSource",
+          "gmeow:supportTarget"
+        ],
+        "type": "object"
+      },
+      "SupportAssessment": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:supportGround": {
+            "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:supportStrength": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:supportUnderStandard": {
+            "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "gmeow:supportGround",
+          "gmeow:supportUnderStandard"
         ],
         "type": "object"
       },
@@ -18338,6 +19522,58 @@
         },
         "type": "object"
       },
+      "logic:ActionSchema": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:actionResource": {},
+          "logic:capability": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "logic:effect": {},
+          "logic:invariant": {},
+          "logic:observation": {},
+          "logic:precondition": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "logic:capability",
+          "logic:precondition"
+        ],
+        "type": "object"
+      },
       "logic:FormalizationCandidate": {
         "properties": {
           "@annotation": {
@@ -18524,6 +19760,219 @@
         ],
         "type": "object"
       },
+      "logic:GoalEvaluation": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:evaluatesGoal": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Goal"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Goal"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "logic:feasibilityStatus": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/FeasibilityStatus",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:goalEvaluationStatus": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/GoalEvaluationStatus",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:lifecycleStatus": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/LifecycleStatus",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:objectiveValue": {},
+          "logic:satisfactionDegree": {},
+          "logic:satisfactionStatus": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/SatisfactionStatus",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:utility": {}
+        },
+        "required": [
+          "logic:evaluatesGoal",
+          "logic:feasibilityStatus",
+          "logic:goalEvaluationStatus",
+          "logic:lifecycleStatus",
+          "logic:satisfactionStatus"
+        ],
+        "type": "object"
+      },
+      "logic:McpActionSchema": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:capability": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "logic:compensation": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "logic:precondition": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "logic:capability",
+          "logic:compensation",
+          "logic:precondition"
+        ],
+        "type": "object"
+      },
       "logic:NonEntailmentObligation": {
         "properties": {
           "@annotation": {
@@ -18615,6 +20064,71 @@
         "required": [
           "logic:obligationDischargeCondition",
           "logic:obligationForbiddenPredicate"
+        ],
+        "type": "object"
+      },
+      "logic:Plan": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:planGoal": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Goal"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:planSuccessMode": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/PlanSuccessMode",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "logic:planGoal",
+          "logic:planSuccessMode"
         ],
         "type": "object"
       }

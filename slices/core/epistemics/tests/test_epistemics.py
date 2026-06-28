@@ -63,16 +63,15 @@ def _union_members(g: Graph, expr: Node) -> set[URIRef]:
     return {member for member in Collection(g, list_node) if isinstance(member, URIRef)}
 
 
-def test_justified_by_union_membership() -> None:
-    """The EXACT owl:unionOf membership of justifiedBy's named domain and range.
+def test_named_union_membership() -> None:
+    """The EXACT owl:unionOf membership of the named justification/defeat categories.
 
-    The ObjectProperty / domain / range / non-functional clauses of the former
-    test_justified_by_has_named_domain_and_range migrated to the declarative
-    ex:saJustifiedByDomainRange and ex:saJustifiedByNotFunctional structural
-    assertions. The exact-set membership of the owl:unionOf class expressions —
+    The ObjectProperty / domain / range / non-functional clauses of the five-way
+    justification split migrated to the declarative saJustificationSplit* and
+    saDefeatSplitRanges structural assertions. The exact-set membership of the
+    owl:unionOf class expressions —
     which the test-DSL's ASK patterns cannot express as "these members and no
-    others" — stays here (Principle 9 keeps justifiedBy non-functional so several
-    grounds may coexist).
+    others" — stays here.
     """
     g = _graph()
     subject_union = _union_members(g, _t("JustificationSubject"))
@@ -80,6 +79,10 @@ def test_justified_by_union_membership() -> None:
 
     ground_union = _union_members(g, _t("JustificationGround"))
     assert ground_union == {_t("EvidenceSpan"), _t("Attestation"), _t("DoxasticState")}
+
+    # The reborn structural defeater ranges over the Defeater union.
+    defeater_union = _union_members(g, _t("Defeater"))
+    assert defeater_union == {_t("Argument"), _t("StandpointClaim"), _t("EvidenceSpan")}
 
 
 def test_justification_terms_are_annotated() -> None:
@@ -94,11 +97,14 @@ def test_justification_terms_are_annotated() -> None:
     for name in (
         "DoxasticStandpointClaim",
         "claimOfBelief",
-        "justifiedBy",
+        "hasAvailableEvidence",
+        "basesBeliefOn",
         "defeatedBy",
+        "hasDefeatStatus",
         "JustificationStatus",
         "JustificationSubject",
         "JustificationGround",
+        "Defeater",
     ):
         term = _t(name)
         assert (term, RDFS.label, None) in g
@@ -206,7 +212,7 @@ def test_epistemics_mapping_set_exists_and_has_expected_rows() -> None:
         "gmeow:Proposition",
         "gmeow:believes",
         "gmeow:knowsThat",
-        "gmeow:justifiedBy",
+        "gmeow:basesBeliefOn",
     }
     assert expected.issubset(subjects), (
         f"Missing subjects in mapping: {expected - subjects}"

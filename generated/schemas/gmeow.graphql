@@ -5,6 +5,12 @@ enum AboutnessModeEnum {
   aboutnessEnacts
 }
 
+enum AcceptanceStatusEnum {
+  acceptanceIn
+  acceptanceOut
+  acceptanceUndecided
+}
+
 enum AccessibilityFacetEnum {
   facetAuditory
   facetClearance
@@ -25,6 +31,12 @@ enum AccountStatusEnum {
   accountStatusActive
   accountStatusDormant
   accountStatusHistorical
+}
+
+enum AdequacyVerdictEnum {
+  adequacyMet
+  adequacyUndetermined
+  adequacyUnmet
 }
 
 enum AestheticQualityEnum {
@@ -118,6 +130,12 @@ enum AssetTypeEnum {
   assetTypeCryptocurrency
   assetTypeRealEstate
   assetTypeStock
+}
+
+enum AttackKindEnum {
+  attackRebut
+  attackUndercut
+  attackUndermine
 }
 
 enum AttestationTypeEnum {
@@ -612,11 +630,6 @@ enum DayOfWeekEnum {
   dayWednesday
 }
 
-enum DefeaterKindEnum {
-  defeaterRebutting
-  defeaterUndercutting
-}
-
 enum DegreeOfFreedomEnum {
   dofFourThirtyThreeDuration
   dofFourThirtyThreeInstrumentation
@@ -765,6 +778,14 @@ enum EmploymentTypeEnum {
 enum EntityEnum {
   polymeterPattern
   procedureIngestionRawRoot
+}
+
+enum EpistemicStandardEnum {
+  standardLegalBeyondReasonableDoubt
+  standardLegalClearAndConvincing
+  standardLegalPreponderance
+  standardOrdinary
+  standardScientific
 }
 
 enum EvaluationVerdictEnum {
@@ -1239,6 +1260,7 @@ enum JustificationStatusEnum {
   justificationStatusGettier
   justificationStatusRebutted
   justificationStatusUndercut
+  justificationStatusUndermined
 }
 
 enum KeySchemeEnum {
@@ -3155,6 +3177,11 @@ type AboutnessMode {
   iri: String
 }
 
+type AcceptanceStatus {
+  id: String
+  iri: String
+}
+
 type AccessibilityAssertion {
   id: String
   iri: String
@@ -3196,6 +3223,18 @@ type AddressTenure {
   tenuredContactPoint: ContactPoint
 }
 
+type AdequacyAssessment {
+  id: String
+  iri: String
+  adequacyUnderStandard: EpistemicStandard
+  meetsThreshold: AdequacyVerdict
+}
+
+type AdequacyVerdict {
+  id: String
+  iri: String
+}
+
 type AdoptiveParentChild {
   id: String
   iri: String
@@ -3214,6 +3253,7 @@ type Agent {
   attendsTo: [Entity!]
   awareOfNotKnowing: [String!]
   believes: [String!]
+  claimsToKnowThat: [String!]
   curiousAbout: [Entity!]
   doubts: [String!]
   email: [String!]
@@ -3238,6 +3278,7 @@ type Agent {
   knowsAbout: [Entity!]
   knowsLanguage: [Language!]
   knowsThat: [String!]
+  knowsThatIn: [String!]
   mailmapEntry: [String!]
   makesOffer: [Offering!]
   memberOf: [Organization!]
@@ -3248,6 +3289,7 @@ type Agent {
   slogan: [String!]
   supposes: [String!]
   suspendsJudgementOn: [String!]
+  takesAsKnown: [String!]
   telephone: [String!]
   understands: [Entity!]
   wondersWhether: [String!]
@@ -3350,6 +3392,26 @@ type ArchaeologicalFindContext {
   findContextTarget: PhysicalObject
 }
 
+type Argument {
+  id: String
+  iri: String
+  argumentConclusion: String
+  argumentInferenceStep: InferenceCommitment
+  attacksClaim: [ClaimToken!]
+  hasInferenceApplication: [InferenceApplication!]
+  hasPremiseUse: [PremiseUse!]
+  supportsClaim: [ClaimToken!]
+}
+
+type ArgumentEvaluation {
+  id: String
+  iri: String
+  acceptanceStatus: AcceptanceStatus
+  evaluatesArgument: Argument
+  extensionMember: [Argument!]
+  underSemantics: String
+}
+
 type Article {
   id: String
   iri: String
@@ -3399,6 +3461,24 @@ type Attachment {
   id: String
   iri: String
   filename: String
+}
+
+type Attack {
+  id: String
+  iri: String
+  attackKind: AttackKind
+  attackSource: [String!]
+  attackTarget: AttackTarget
+}
+
+type AttackKind {
+  id: String
+  iri: String
+}
+
+type AttackTarget {
+  id: String
+  iri: String
 }
 
 type Attestation {
@@ -4206,7 +4286,7 @@ type DayOfWeek {
   iri: String
 }
 
-type DefeaterKind {
+type Defeater {
   id: String
   iri: String
 }
@@ -4509,6 +4589,11 @@ type EntityExistence {
 }
 
 type EpistemicContext {
+  id: String
+  iri: String
+}
+
+type EpistemicStandard {
   id: String
   iri: String
 }
@@ -5027,13 +5112,19 @@ type IndexAlgorithm {
   iri: String
 }
 
+type InferenceApplication {
+  id: String
+  iri: String
+  appliedRule: String
+  appliedSubstitution: [String!]
+}
+
 type InferenceCommitment {
   id: String
   iri: String
   candidateHypothesis: [StandpointClaim!]
   conclusion: StandpointClaim
   explanandum: [String!]
-  hasDefeater: [StandpointClaim!]
   inferenceModeOf: InferenceMode
   premise: [String!]
   warrant: [String!]
@@ -5227,8 +5318,12 @@ type JustificationStatus {
 type JustificationSubject {
   id: String
   iri: String
-  defeatedBy: [JustificationStatus!]
-  justifiedBy: [JustificationGround!]
+  adequateUnder: [AdequacyAssessment!]
+  basesBeliefOn: [JustificationGround!]
+  defeatedBy: [Defeater!]
+  hasAvailableEvidence: [JustificationGround!]
+  hasDefeatStatus: [JustificationStatus!]
+  supportsUnder: [SupportAssessment!]
 }
 
 type KeyScheme {
@@ -5240,6 +5335,23 @@ type KinRelationship {
   id: String
   iri: String
   withinFamily: [Family!]
+}
+
+type KnowledgeAttribution {
+  id: String
+  iri: String
+  attributedKnower: Agent
+  attributedProposition: Proposition
+  attributingAgent: Agent
+}
+
+type KnowledgeClaim {
+  id: String
+  iri: String
+  knowerAgent: Agent
+  knownInWorld: EpistemicContext
+  knownProposition: Proposition
+  underStandard: EpistemicStandard
 }
 
 type KnowledgeLevel {
@@ -6552,6 +6664,12 @@ type PrecedenceTenure {
   precedenceScope: NormativeSystem
 }
 
+type PremiseUse {
+  id: String
+  iri: String
+  premiseUsed: String
+}
+
 type PrivacyNotice {
   id: String
   iri: String
@@ -7364,7 +7482,6 @@ type StandpointClaim {
   claimTruthDirectedness: TruthDirectedness
   claimVeridicality: [ClaimVeridicality!]
   competesWith: [StandpointClaim!]
-  defeaterKind: [DefeaterKind!]
   explains: [String!]
   explanatoryScore: [Float!]
   inferenceMode: [InferenceMode!]
@@ -7440,7 +7557,27 @@ type Summary {
   iri: String
 }
 
+type Support {
+  id: String
+  iri: String
+  supportSource: [SupportSource!]
+  supportTarget: Argument
+}
+
+type SupportAssessment {
+  id: String
+  iri: String
+  supportGround: JustificationGround
+  supportStrength: [Float!]
+  supportUnderStandard: EpistemicStandard
+}
+
 type SupportPolarity {
+  id: String
+  iri: String
+}
+
+type SupportSource {
   id: String
   iri: String
 }

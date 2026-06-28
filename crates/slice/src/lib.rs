@@ -11,18 +11,15 @@ pub mod cache;
 pub mod catalog;
 pub mod claim_view;
 pub mod dsl_stats_emit;
-pub mod edoal_emit;
 pub mod error;
 pub mod fix_deps;
-pub mod fno_emit;
 pub mod list_functions;
-pub mod mapping_emit;
+pub mod mapping_support;
 pub mod ownership;
 pub mod prefix_emit;
 pub mod prefix_lint;
 pub mod projection_lint;
 pub(crate) mod rdf_text;
-pub mod sparql_emit;
 pub mod standpoint_emit;
 pub mod standpoint_modality;
 
@@ -45,11 +42,9 @@ pub use cache::{
 pub use catalog::{ManifestView, SliceCatalog, SliceRecord, SliceTier};
 pub use claim_view::{emit_claim_view, CLAIM_VIEW_FILE};
 pub use dsl_stats_emit::emit_dsl_stats;
-pub use edoal_emit::emit_edoal_sets;
 pub use error::SliceError;
 pub use fix_deps::{compute_fix_deps, ManifestPatch};
 pub use list_functions::emit_list_functions;
-pub use mapping_emit::{alignment_terms, emit_sssom_sets};
 pub use ownership::{
     ArtifactEvidence, DependencyEdge, EdgeEvidence, EdgeKind, OwnershipAnalyzer,
     OwnershipDiagnostic, OwnershipReport, OwnershipStatus, ReconciliationStatus, SliceIri,
@@ -58,5 +53,4 @@ pub use ownership::{
 pub use prefix_emit::{emit_core_prefixes, emit_jsonld_context, CORE_PREFIXES_IRI};
 pub use prefix_lint::lint_prefix_consistency;
 pub use projection_lint::{lint_projection, ProjectionDiagnostic};
-pub use sparql_emit::emit_sparql_sets;
 pub use standpoint_emit::emit_standpoint_sets;

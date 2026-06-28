@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/conjunctive-vs-disjunctive.
+#
+# A conjunctive goal and a disjunctive goal over the SAME two atomic sub-targets,
+# where exactly one sub-target's situation obtains. The native teleology evaluator
+# (teleology_lowering) evaluates both goals over the world's logic:Path and emits a
+# factored logic:GoalEvaluation each:
+#   * the conjunctive goal needs ALL operands  → Unsatisfied + Completed (no edge);
+#   * the disjunctive goal needs ANY operand   → Satisfied  + Completed (→ bridged
+#     flat gmeow:satisfiedBy edge under the default vantage).
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the program axioms the projections need (a minimal,
+# clean-compiling, certifiable positive declaration — no asserted teleology triples
+# here, exactly as the foundation cases keep their world facts in input.nq).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/conjunctive-vs-disjunctive/> .
+
+ex:GoalExpression a logic:GoalExpression .

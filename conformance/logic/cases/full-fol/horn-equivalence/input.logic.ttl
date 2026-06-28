@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: full-fol/horn-equivalence
+# AC: a Horn-expressible full-FOL logic:Formula lowers through the relational-core
+# waist and EVALUATES in the chain — given parentOf(alice, bob), the universally
+# quantified implication ∀x. parentOf(x, bob) → ancestorOf(x, bob) must DERIVE
+# ancestorOf(alice, bob), byte-identical to the equivalent logic:Rule lowering.
+#
+# This is the hand-checkable case that pins the WHOLE chain (parse → lower →
+# Skolem-free Horn extraction → Nemo .rls → chase → materialize), not just the
+# unit lowering. The formula is authored in the reified RDF-1.2 logic:Formula
+# surface (logic:forall over logic:antecedent/logic:consequent atomic
+# predications with ordered term-carrier arguments).
+
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <https://blackcatinformatics.ca/logic/hasFormula> <https://blackcatinformatics.ca/logic/formula/_000001> .
+<https://blackcatinformatics.ca/logic/formula/_000001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001> <https://blackcatinformatics.ca/logic/forall> <https://blackcatinformatics.ca/logic/formula/_000001/body> .
+<https://blackcatinformatics.ca/logic/formula/_000001> <https://blackcatinformatics.ca/logic/quantifiedVariable> <https://blackcatinformatics.ca/logic/formula/_000001/var/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body> <https://blackcatinformatics.ca/logic/antecedent> <https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body> <https://blackcatinformatics.ca/logic/consequent> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <https://blackcatinformatics.ca/logic/relation> <https://example.org/full-fol/parentOf> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0001> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0000> <https://blackcatinformatics.ca/logic/termVariable> "x" .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0001> <https://blackcatinformatics.ca/logic/termIndex> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0001> <https://blackcatinformatics.ca/logic/termIri> <https://example.org/full-fol/bob> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <https://blackcatinformatics.ca/logic/relation> <https://example.org/full-fol/ancestorOf> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/arg/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/arg/0001> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/arg/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/arg/0000> <https://blackcatinformatics.ca/logic/termVariable> "x" .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/arg/0001> <https://blackcatinformatics.ca/logic/termIndex> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/arg/0001> <https://blackcatinformatics.ca/logic/termIri> <https://example.org/full-fol/bob> .
+<https://blackcatinformatics.ca/logic/formula/_000001/var/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/var/0000> <https://blackcatinformatics.ca/logic/termVariable> "x" .

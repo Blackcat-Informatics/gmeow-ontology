@@ -39,10 +39,6 @@ gmeow = "gmeow_tools.cli:app"
 gmeow-music = "gmeow_tools.ext.music.cli:app"
 
 [project.optional-dependencies]
-music = [
-    "mido>=1.3.3",
-    "music21>=10.3.0",
-]
 # The classic_cross_check oracle lane (#666) — the ONLY place gmeow uses upstream
 # rdflib/owlrl, as the independent reasoner/engine oracle. Installed via
 # `pip install '.[crosscheck]'` for `make maint-classic-cross-check`; never needed for
@@ -68,8 +64,6 @@ dev = [
     "rdflib>=7.6",  # upstream rdflib — the classic_cross_check ORACLE only (#834); no
     # first-party module imports it. Pinned here so `make maint-classic-cross-check` has it.
     "xmlschema>=4.3",  # Crossref 5.4.0 XSD validation (#693)
-    "music21>=10.3.0",
-    "mido>=1.3.3",
     "cryptography>=44.0",  # Ed25519 keys for GTS signature/trust tests (#646)
     "mlcroissant>=1.0",  # Croissant JSON-LD validation — un-skippable (no importorskip)
 ]
@@ -198,5 +192,6 @@ skip = "uv.lock,Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/cov
 # properties, opp. of extension), Hendler / Pease (author surnames in the logic
 # references), vor (Crossref AccessIndicators applies_to value = "version of record"),
 # notin (the VS Code `notIn` language-configuration key in editors/vscode),
-# fof (the TPTP `fof(...)` first-order-formula keyword in the #753 SZS fixtures).
-ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore"
+# fof (the TPTP `fof(...)` first-order-formula keyword in the #753 SZS fixtures),
+# lits (the `lits` parameter name = "literals" in the #1117 language-tag bindings).
+ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits"

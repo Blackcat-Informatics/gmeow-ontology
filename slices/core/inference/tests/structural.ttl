@@ -27,6 +27,26 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:Analogy, gmeow:Correspondence, and gmeow:InferenceCommitment MUST each be a logic:Kind owl:Class subClassOf logic:Relator — the reified, endurant argument/mapping relations (the gmeow:Commitment idiom)." .
 
+# --- 1b. The argumentation-layer relators + named unions (MUST hold) ----------
+ex:saArgumentationRelators a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:Argument           a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:ArgumentEvaluation a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:Attack             a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:Support            a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:PremiseUse         a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:InferenceApplication a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:AttackTarget       a owl:Class , logic:Category ; rdfs:subClassOf owl:Thing .
+    gmeow:SupportSource      a owl:Class , logic:Category ; rdfs:subClassOf owl:Thing .
+}""" ;
+    gmeow:saRationale "The Dung/ASPIC+ argumentation layer MUST mint gmeow:Argument, gmeow:ArgumentEvaluation, gmeow:Attack, gmeow:Support, gmeow:PremiseUse, and gmeow:InferenceApplication as logic:Kind reified relators (subClassOf logic:Relator), and gmeow:AttackTarget / gmeow:SupportSource as logic:Category named-union superclasses — the attackable framework node, its solver-set verdict, the typed conflict, the accruing support, the basing premise-use, the rule-application, and the attack-target / support-source unions." .
+
 # --- 2. Endurant/occurrent split: Process and Tenure spine (MUST hold) --------
 ex:saInferenceProcessTenureSpine a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -41,7 +61,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The gUFO master split MUST hold: gmeow:InferenceProcess is the OCCURRENT reasoning episode (logic:Event subClassOf gmeow:MentalProcess) and gmeow:InferenceTenure is the time-scoped situation (logic:Situation subClassOf gmeow:TimeScopedRelation) — distinct from the endurant gmeow:InferenceCommitment relator." .
 
-# --- 3. Mode/Defeater value vocabularies and their seeds (MUST hold) ----------
+# --- 3. Mode/Attack/Acceptance value vocabularies and their seeds (MUST hold) --
 ex:saInferenceValueVocabs a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -51,12 +71,14 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:InferenceMode a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
-    gmeow:DefeaterKind  a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:AttackKind a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:AcceptanceStatus a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
     gmeow:modeDeduction a gmeow:InferenceMode . gmeow:modeInduction a gmeow:InferenceMode .
     gmeow:modeAbduction a gmeow:InferenceMode . gmeow:modeAnalogical a gmeow:InferenceMode .
-    gmeow:defeaterRebutting a gmeow:DefeaterKind . gmeow:defeaterUndercutting a gmeow:DefeaterKind .
+    gmeow:attackUndermine a gmeow:AttackKind . gmeow:attackUndercut a gmeow:AttackKind . gmeow:attackRebut a gmeow:AttackKind .
+    gmeow:acceptanceIn a gmeow:AcceptanceStatus . gmeow:acceptanceOut a gmeow:AcceptanceStatus . gmeow:acceptanceUndecided a gmeow:AcceptanceStatus .
 }""" ;
-    gmeow:saRationale "gmeow:InferenceMode and gmeow:DefeaterKind MUST be QualityValue vocabularies; the Peircean tetrad seeds (modeDeduction/modeInduction/modeAbduction/modeAnalogical) and the Pollock defeater seeds (rebutting/undercutting) MUST be present. These are open value vocabularies (no closure asserted)." .
+    gmeow:saRationale "gmeow:InferenceMode, gmeow:AttackKind, and gmeow:AcceptanceStatus MUST be QualityValue vocabularies; the Peircean tetrad seeds (modeDeduction/modeInduction/modeAbduction/modeAnalogical), the three typed-attack kinds (undermine/undercut/rebut — subsuming the older Pollock two-way rebutting/undercutting distinction), and the Dung labelling seeds (in/out/undecided) MUST be present. These are open value vocabularies (no closure asserted)." .
 
 # --- 4. Functional argument properties (MUST hold) ---------------------------
 ex:saInferenceFunctionalProperties a gmeow:StructuralAssertion ;
@@ -99,6 +121,15 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { ?c rdfs:subClassOf gmeow:InferenceCommitment . FILTER (?c != gmeow:InferenceCommitment) }""" ;
     gmeow:saRationale "Principle 9 (no overtyping): the four Peircean modes differ by a VALUE + a WARRANT, never by subsumption, so the module MUST NOT declare any subclass of gmeow:InferenceCommitment. A deductive vs abductive step is an gmeow:inferenceModeOf value, not a class." .
 
+# --- 6b. The argumentation node rides one class, never a taxonomy (MUST-NOT) ---
+ex:saArgumentNoSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { ?c rdfs:subClassOf gmeow:Argument . FILTER (?c != gmeow:Argument) }""" ;
+    gmeow:saRationale "Principle 9 (no overtyping): a gmeow:Argument's variety is a matter of the typed gmeow:Attack / gmeow:Support relations it bears and its gmeow:ArgumentEvaluation, never subsumption, so the module MUST NOT declare any subclass of gmeow:Argument." .
+
 # --- 7. Open-range argument properties: NO rdfs:range (MUST-NOT hold) ---------
 ex:saInferenceOpenRanges a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
@@ -109,7 +140,8 @@ ASK {
     VALUES ?p {
         gmeow:premise gmeow:inferredFrom gmeow:warrant gmeow:explains gmeow:explanandum
         gmeow:analogicalSource gmeow:analogicalTarget gmeow:correspondingSource gmeow:correspondingTarget
+        gmeow:argumentConclusion gmeow:premiseUsed gmeow:appliedRule gmeow:attackSource
     }
     ?p rdfs:range ?r .
 }""" ;
-    gmeow:saRationale "Principle 13: the argument/mapping inputs are open-range — a premise, warrant, explanandum, or mapped element may be any entity, claim, or proposition. None of these properties MUST declare an rdfs:range. VALUES ranges over the fixed, closed set of open-range properties the inference slice declares (not a stand-in for an open universal)." .
+    gmeow:saRationale "Principle 13: the argument/mapping inputs are open-range — a premise, warrant, explanandum, mapped element, argument conclusion, used premise, applied rule, or attack source may be any entity, claim, or proposition. None of these properties MUST declare an rdfs:range. VALUES ranges over the fixed, closed set of open-range properties the inference slice declares (not a stand-in for an open universal)." .

@@ -29,6 +29,12 @@ class AboutnessModeEnum(str, Enum):
     aboutnessEnacts = "aboutnessEnacts"
 
 
+class AcceptanceStatusEnum(str, Enum):
+    acceptanceIn = "acceptanceIn"
+    acceptanceOut = "acceptanceOut"
+    acceptanceUndecided = "acceptanceUndecided"
+
+
 class AccessibilityFacetEnum(str, Enum):
     facetAuditory = "facetAuditory"
     facetClearance = "facetClearance"
@@ -49,6 +55,12 @@ class AccountStatusEnum(str, Enum):
     accountStatusActive = "accountStatusActive"
     accountStatusDormant = "accountStatusDormant"
     accountStatusHistorical = "accountStatusHistorical"
+
+
+class AdequacyVerdictEnum(str, Enum):
+    adequacyMet = "adequacyMet"
+    adequacyUndetermined = "adequacyUndetermined"
+    adequacyUnmet = "adequacyUnmet"
 
 
 class AestheticQualityEnum(str, Enum):
@@ -142,6 +154,12 @@ class AssetTypeEnum(str, Enum):
     assetTypeCryptocurrency = "assetTypeCryptocurrency"
     assetTypeRealEstate = "assetTypeRealEstate"
     assetTypeStock = "assetTypeStock"
+
+
+class AttackKindEnum(str, Enum):
+    attackRebut = "attackRebut"
+    attackUndercut = "attackUndercut"
+    attackUndermine = "attackUndermine"
 
 
 class AttestationTypeEnum(str, Enum):
@@ -636,11 +654,6 @@ class DayOfWeekEnum(str, Enum):
     dayWednesday = "dayWednesday"
 
 
-class DefeaterKindEnum(str, Enum):
-    defeaterRebutting = "defeaterRebutting"
-    defeaterUndercutting = "defeaterUndercutting"
-
-
 class DegreeOfFreedomEnum(str, Enum):
     dofFourThirtyThreeDuration = "dofFourThirtyThreeDuration"
     dofFourThirtyThreeInstrumentation = "dofFourThirtyThreeInstrumentation"
@@ -789,6 +802,14 @@ class EmploymentTypeEnum(str, Enum):
 class EntityEnum(str, Enum):
     polymeterPattern = "polymeterPattern"
     procedureIngestionRawRoot = "procedureIngestionRawRoot"
+
+
+class EpistemicStandardEnum(str, Enum):
+    standardLegalBeyondReasonableDoubt = "standardLegalBeyondReasonableDoubt"
+    standardLegalClearAndConvincing = "standardLegalClearAndConvincing"
+    standardLegalPreponderance = "standardLegalPreponderance"
+    standardOrdinary = "standardOrdinary"
+    standardScientific = "standardScientific"
 
 
 class EvaluationVerdictEnum(str, Enum):
@@ -1263,6 +1284,7 @@ class JustificationStatusEnum(str, Enum):
     justificationStatusGettier = "justificationStatusGettier"
     justificationStatusRebutted = "justificationStatusRebutted"
     justificationStatusUndercut = "justificationStatusUndercut"
+    justificationStatusUndermined = "justificationStatusUndermined"
 
 
 class KeySchemeEnum(str, Enum):
@@ -3179,6 +3201,11 @@ class AboutnessMode(ConfiguredBaseModel):
     pass
 
 
+class AcceptanceStatus(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AcceptanceStatus"
+    pass
+
+
 class AccessibilityAssertion(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion"
     assertionFacet: AccessibilityFacet | None = Field(default=None)
@@ -3283,6 +3310,17 @@ class AddressTenure(TimeScopedRelation):
     is_a: ClassVar[str] = "TimeScopedRelation"
     addressHolder: Agent | None = Field(default=None)
     tenuredContactPoint: ContactPoint | None = Field(default=None)
+
+
+class AdequacyAssessment(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AdequacyAssessment"
+    adequacyUnderStandard: EpistemicStandard | None = Field(default=None)
+    meetsThreshold: AdequacyVerdict | None = Field(default=None)
+
+
+class AdequacyVerdict(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AdequacyVerdict"
+    pass
 
 
 class Observation(ConfiguredBaseModel):
@@ -3390,6 +3428,7 @@ class Agent(Entity):
     attendsTo: list[Entity] | None = Field(default=None)
     awareOfNotKnowing: list[str] | None = Field(default=None)
     believes: list[str] | None = Field(default=None)
+    claimsToKnowThat: list[str] | None = Field(default=None)
     curiousAbout: list[Entity] | None = Field(default=None)
     doubts: list[str] | None = Field(default=None)
     email: list[str] | None = Field(default=None)
@@ -3414,6 +3453,7 @@ class Agent(Entity):
     knowsAbout: list[Entity] | None = Field(default=None)
     knowsLanguage: list[Language] | None = Field(default=None)
     knowsThat: list[str] | None = Field(default=None)
+    knowsThatIn: list[str] | None = Field(default=None)
     mailmapEntry: list[str] | None = Field(default=None)
     makesOffer: list[Offering] | None = Field(default=None)
     memberOf: list[Organization] | None = Field(default=None)
@@ -3424,6 +3464,7 @@ class Agent(Entity):
     slogan: list[str] | None = Field(default=None)
     supposes: list[str] | None = Field(default=None)
     suspendsJudgementOn: list[str] | None = Field(default=None)
+    takesAsKnown: list[str] | None = Field(default=None)
     telephone: list[str] | None = Field(default=None)
     understands: list[Entity] | None = Field(default=None)
     wondersWhether: list[str] | None = Field(default=None)
@@ -3521,6 +3562,24 @@ class ArchaeologicalFindContext(Observation):
     findContextPlace: list[Place] | None = Field(default=None)
     findContextStratigraphy: list[Entity] | None = Field(default=None)
     findContextTarget: PhysicalObject | None = Field(default=None)
+
+
+class Argument(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Argument"
+    argumentConclusion: str | None = Field(default=None)
+    argumentInferenceStep: InferenceCommitment | None = Field(default=None)
+    attacksClaim: list[ClaimToken] | None = Field(default=None)
+    hasInferenceApplication: list[InferenceApplication] | None = Field(default=None)
+    hasPremiseUse: list[PremiseUse] | None = Field(default=None)
+    supportsClaim: list[ClaimToken] | None = Field(default=None)
+
+
+class ArgumentEvaluation(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ArgumentEvaluation"
+    acceptanceStatus: AcceptanceStatus | None = Field(default=None)
+    evaluatesArgument: Argument | None = Field(default=None)
+    extensionMember: list[Argument] | None = Field(default=None)
+    underSemantics: str | None = Field(default=None)
 
 
 class InformationObject(Entity):
@@ -3654,6 +3713,23 @@ class Attachment(BodyPart):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Attachment"
     is_a: ClassVar[str] = "BodyPart"
     filename: str | None = Field(default=None)
+
+
+class Attack(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Attack"
+    attackKind: AttackKind | None = Field(default=None)
+    attackSource: list[str] | None = Field(default=None)
+    attackTarget: AttackTarget | None = Field(default=None)
+
+
+class AttackKind(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AttackKind"
+    pass
+
+
+class AttackTarget(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AttackTarget"
+    pass
 
 
 class JustificationGround(ConfiguredBaseModel):
@@ -4169,8 +4245,12 @@ class Concept(SocialObject):
 
 class JustificationSubject(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/JustificationSubject"
-    defeatedBy: list[JustificationStatus] | None = Field(default=None)
-    justifiedBy: list[JustificationGround] | None = Field(default=None)
+    adequateUnder: list[AdequacyAssessment] | None = Field(default=None)
+    basesBeliefOn: list[JustificationGround] | None = Field(default=None)
+    defeatedBy: list[Defeater] | None = Field(default=None)
+    hasAvailableEvidence: list[JustificationGround] | None = Field(default=None)
+    hasDefeatStatus: list[JustificationStatus] | None = Field(default=None)
+    supportsUnder: list[SupportAssessment] | None = Field(default=None)
 
 
 class StandpointClaim(JustificationSubject):
@@ -4187,7 +4267,6 @@ class StandpointClaim(JustificationSubject):
     claimTruthDirectedness: TruthDirectedness | None = Field(default=None)
     claimVeridicality: list[ClaimVeridicality] | None = Field(default=None)
     competesWith: list[StandpointClaim] | None = Field(default=None)
-    defeaterKind: list[DefeaterKind] | None = Field(default=None)
     explains: list[str] | None = Field(default=None)
     explanatoryScore: list[float] | None = Field(default=None)
     inferenceMode: list[InferenceMode] | None = Field(default=None)
@@ -4550,8 +4629,8 @@ class DayOfWeek(ConfiguredBaseModel):
     pass
 
 
-class DefeaterKind(ConfiguredBaseModel):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DefeaterKind"
+class Defeater(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Defeater"
     pass
 
 
@@ -4874,6 +4953,11 @@ class EntityExistence(TimeScopedRelation):
 class EpistemicContext(Entity):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/EpistemicContext"
     is_a: ClassVar[str] = "Entity"
+    pass
+
+
+class EpistemicStandard(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/EpistemicStandard"
     pass
 
 
@@ -5334,12 +5418,17 @@ class IndexAlgorithm(ConfiguredBaseModel):
     pass
 
 
+class InferenceApplication(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InferenceApplication"
+    appliedRule: str | None = Field(default=None)
+    appliedSubstitution: list[str] | None = Field(default=None)
+
+
 class InferenceCommitment(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InferenceCommitment"
     candidateHypothesis: list[StandpointClaim] | None = Field(default=None)
     conclusion: StandpointClaim | None = Field(default=None)
     explanandum: list[str] | None = Field(default=None)
-    hasDefeater: list[StandpointClaim] | None = Field(default=None)
     inferenceModeOf: InferenceMode | None = Field(default=None)
     premise: list[str] | None = Field(default=None)
     warrant: list[str] | None = Field(default=None)
@@ -5501,6 +5590,21 @@ class JustificationStatus(ConfiguredBaseModel):
 class KeyScheme(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/KeyScheme"
     pass
+
+
+class KnowledgeAttribution(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/KnowledgeAttribution"
+    attributedKnower: Agent | None = Field(default=None)
+    attributedProposition: Proposition | None = Field(default=None)
+    attributingAgent: Agent | None = Field(default=None)
+
+
+class KnowledgeClaim(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/KnowledgeClaim"
+    knowerAgent: Agent | None = Field(default=None)
+    knownInWorld: EpistemicContext | None = Field(default=None)
+    knownProposition: Proposition | None = Field(default=None)
+    underStandard: EpistemicStandard | None = Field(default=None)
 
 
 class KnowledgeLevel(ConfiguredBaseModel):
@@ -6706,6 +6810,11 @@ class PrecedenceTenure(TimeScopedRelation):
     precedenceScope: NormativeSystem | None = Field(default=None)
 
 
+class PremiseUse(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/PremiseUse"
+    premiseUsed: str | None = Field(default=None)
+
+
 class PrivacyNotice(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/PrivacyNotice"
     is_a: ClassVar[str] = "InformationObject"
@@ -7529,8 +7638,26 @@ class StyleGuide(InformationObject):
     voiceExemplifiedBy: list[Document] | None = Field(default=None)
 
 
+class Support(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Support"
+    supportSource: list[SupportSource] | None = Field(default=None)
+    supportTarget: Argument | None = Field(default=None)
+
+
+class SupportAssessment(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/SupportAssessment"
+    supportGround: JustificationGround | None = Field(default=None)
+    supportStrength: list[float] | None = Field(default=None)
+    supportUnderStandard: EpistemicStandard | None = Field(default=None)
+
+
 class SupportPolarity(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/SupportPolarity"
+    pass
+
+
+class SupportSource(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/SupportSource"
     pass
 
 

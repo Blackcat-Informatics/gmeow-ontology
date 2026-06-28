@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/maintenance-fail-vs-open-window.
+#
+# A maintenance goal that FAILS midway through a path (the safe situation drops out before the path ends) → Violated + Completed; AND a second maintenance goal whose situation still holds at every observed state and whose window is NOT yet closed → Satisfied + GoalEvaluationUndetermined (the open-window distinction — holding-so-far is not conclusive).
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
+# the projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/maintenance-fail-vs-open-window/> .
+
+ex:GoalExpression a logic:GoalExpression .

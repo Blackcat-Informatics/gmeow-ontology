@@ -1,0 +1,6 @@
+{
+  "https://example.org/teleology/observation-conditioned-policy/world": {
+    "quads": 15,
+    "status": "consistent"
+  }
+}

@@ -271,7 +271,7 @@ confidence-weighted claim must take under five minutes, with no Docker, no reaso
 knowledge. This is a release gate, measured, not an aspiration. Every step of the toolchain that
 is load-bearing for *us* (Principles 7–8) is friction for *them* — it stays behind the wall.
 
-*Embodied in:* the `gmeow` PyPI client (v0.2.0 spec); `src/gmeow_tools/mcp_server.py`;
+*Embodied in:* the `gmeow` PyPI client (v0.2.0 spec); `crates/pipeline/src/mcp.rs`;
 `dist/schemas/` (generated Pydantic / JSON Schema / TypeScript / GraphQL); `dist/llms.txt`;
 the flat-JSON projections. *Tested by:* the quickstart time-to-first-claim gate; the
 schema round-trip tests.
@@ -465,9 +465,10 @@ native-reasoning authority gate (`meta:gate-reason-native`), the native gap-zero
 gate (`meta:gate-dl-el-crosscheck`), the native ⊇ oracle anti-regression superset gate
 (`meta:gate-native-oracle-superset`), the enforcing classic-cross-check lane gate
 (`meta:gate-classic-cross-check`), and the executable lane-purity seal
-([`tests/test_lane_purity.py`](./tests/test_lane_purity.py), `meta:tests-lane-purity`) that statically
-proves the required CI `quality` jobs and `make check` carry no Java and no Docker — whose
-machine-readable enforcement lives in [`governance/constitution.ttl`](./governance/constitution.ttl).
+([`crates/validate/src/repo_static.rs`](./crates/validate/src/repo_static.rs),
+`meta:tests-lane-purity`) that statically proves the required CI `quality` jobs and
+`make check` carry no Java and no Docker — whose machine-readable enforcement lives in
+[`governance/constitution.ttl`](./governance/constitution.ttl).
 
 **Amendment — release-as-evidence.** A GMEOW release is its own evidence. The `make full-release`
 lane runs, in order, the native authority gate (`make check`), the enforcing Java/Docker

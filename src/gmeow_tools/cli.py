@@ -1013,13 +1013,13 @@ def music_command(ctx: typer.Context) -> None:
     """Dispatch to the gmeow-music extension CLI.
 
     ``gmeow music`` does not import extension code at module load time; it
-    delegates to the ``gmeow-music`` console script installed with the package
-    (or via ``pip install gmeow[music]``).
+    delegates to the ``gmeow-music`` console script installed with the package.
     """
     exe = shutil.which("gmeow-music")
     if exe is None:
         raise _fail(
-            "gmeow-music not found. Install the music extra: pip install gmeow[music]"
+            "gmeow-music not found. Reinstall the gmeow package so its "
+            "console scripts are available."
         )
     forwarded = list(ctx.args)
     try:

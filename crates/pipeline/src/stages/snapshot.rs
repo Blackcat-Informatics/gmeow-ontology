@@ -117,7 +117,7 @@ pub fn build_snapshot(
         .ok_or_else(|| stage_err("missing conformance-stage divergence Finding graph"))?;
 
     // graph/logic ← the compiler's canonical RDF-1.2 projection of the LogicProgram
-    // (#1132 C6), folded as its own queryable named graph so a repo-free consumer reads
+    // (C6), folded as its own queryable named graph so a repo-free consumer reads
     // the full logic IR (and re-derives the typed handle) without re-running the
     // compiler. Sourced from the in-memory `stage-compile-logic` product (Turtle),
     // converted to N-Quads for the named-graph fold.
@@ -129,13 +129,15 @@ pub fn build_snapshot(
         turtle_to_nquads(canonical_ttl)?
     };
 
-    // graph/projection-ledger ← the compiler's projection-report loss ledger (Turtle),
+    // graph/projection-ledger ← the FINAL projection-report loss ledger (Turtle),
     // converted to N-Quads for the named-graph fold via the native codec (no `Store`).
+    // Assembled by stage-mappings over the UNION of the logic projection rows and the
+    // correspondence-calculus ledger (compile-logic no longer emits the committed file).
     let projection_ledger = {
         let report_ttl = upstream
-            .get("stage-compile-logic")
+            .get("stage-mappings")
             .and_then(|p| p.artifact(crate::stages::compile_logic::PROJECTION_REPORT_PATH))
-            .ok_or_else(|| stage_err("missing compile-logic projection-report loss ledger"))?;
+            .ok_or_else(|| stage_err("missing mappings projection-report loss ledger"))?;
         turtle_to_nquads(report_ttl)?
     };
 
@@ -863,6 +865,9 @@ impl SnapshotStage {
                 // divergences as a gmeow:Finding N-Quads product folded here.
                 "stage-conformance".to_string(),
                 "stage-docs-render".to_string(),
+                // The mappings product carries the FINAL projection-report loss ledger
+                // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
+                "stage-mappings".to_string(),
                 // The SHACL→JSON-Schema export leaf (#700): its in-memory product
                 // carries THIS run's freshly-emitted gmeow.schema.json / .openapi.json
                 // bytes, which `build_archive_blobs` folds into the `schemas-archive`

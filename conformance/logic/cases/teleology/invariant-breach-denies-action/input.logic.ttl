@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/invariant-breach-denies-action.
+#
+# An action schema declares a logic:invariant (balanced) the action must preserve.
+# At the probed state the precondition (ready) holds but the invariant does NOT obtain:
+# the gate verdict is logic:GateDenied with a denial reason naming the breached
+# invariant and the schema's compensation (rollback). A breached invariant is a hard,
+# surfaced denial — never a silent pass.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/invariant-breach-denies-action/> .
+
+ex:GoalExpression a logic:GoalExpression .

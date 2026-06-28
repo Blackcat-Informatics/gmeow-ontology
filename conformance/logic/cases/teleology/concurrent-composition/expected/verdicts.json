@@ -1,0 +1,6 @@
+{
+  "https://example.org/teleology/concurrent-composition/world": {
+    "quads": 3,
+    "status": "consistent"
+  }
+}

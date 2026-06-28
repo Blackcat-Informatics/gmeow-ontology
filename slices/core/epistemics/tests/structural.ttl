@@ -111,41 +111,48 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:claimOfBelief is a functional object property from DoxasticStandpointClaim to DoxasticState. Mirrors test_claim_of_belief_is_functional_object_property." .
 
-# --- 9. justifiedBy: named domain/range, non-functional (MUST/-NOT) ----------
-# (The exact owl:unionOf membership of JustificationSubject/JustificationGround
-#  remains a bespoke pytest check — see the ledger.)
-ex:saJustifiedByDomainRange a gmeow:StructuralAssertion ;
+# --- 9. Five-way justification split: named domains/ranges (MUST/-NOT) --------
+# (The single former justification hook is replaced by five independent edges
+#  separating available-evidence from basing. The exact owl:unionOf membership of
+#  the named categories remains a bespoke pytest check — see the ledger.)
+ex:saJustificationSplitDomainsRanges a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:justifiedBy a owl:ObjectProperty ;
-        rdfs:domain gmeow:JustificationSubject ;
-        rdfs:range gmeow:JustificationGround .
+    gmeow:hasAvailableEvidence a owl:ObjectProperty ; rdfs:domain gmeow:JustificationSubject ; rdfs:range gmeow:JustificationGround .
+    gmeow:basesBeliefOn a owl:ObjectProperty ; rdfs:domain gmeow:JustificationSubject ; rdfs:range gmeow:JustificationGround .
+    gmeow:supportsUnder a owl:ObjectProperty ; rdfs:domain gmeow:JustificationSubject ; rdfs:range gmeow:SupportAssessment .
+    gmeow:adequateUnder a owl:ObjectProperty ; rdfs:domain gmeow:JustificationSubject ; rdfs:range gmeow:AdequacyAssessment .
+    gmeow:defeatedBy a owl:ObjectProperty ; rdfs:domain gmeow:JustificationSubject ; rdfs:range gmeow:Defeater .
 }""" ;
-    gmeow:saRationale "gmeow:justifiedBy is an object property with the schema-friendly named domain JustificationSubject and range JustificationGround. Mirrors the domain/range clauses of test_justified_by_has_named_domain_and_range." .
+    gmeow:saRationale "The five-way justification split: available-evidence and basing range over gmeow:JustificationGround; support-under-a-standard over gmeow:SupportAssessment; adequacy over gmeow:AdequacyAssessment; defeat (structural) over gmeow:Defeater — all domain gmeow:JustificationSubject. Available-evidence and basing are kept distinct (available != used)." .
 
-ex:saJustifiedByNotFunctional a gmeow:StructuralAssertion ;
+ex:saJustificationSplitNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:justifiedBy a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:justifiedBy is non-functional — multiple grounds may coexist (Principle 9). Mirrors the non-functional clause of test_justified_by_has_named_domain_and_range." .
+ASK {
+    VALUES ?p { gmeow:hasAvailableEvidence gmeow:basesBeliefOn gmeow:supportsUnder gmeow:adequateUnder gmeow:defeatedBy gmeow:hasDefeatStatus }
+    ?p a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "The justification and defeat edges are non-functional — several grounds, assessments, defeaters, and status flags coexist (Principle 9)." .
 
-# --- 10. defeatedBy ranges over JustificationStatus (MUST hold) ---------------
-ex:saDefeatedByStatusRange a gmeow:StructuralAssertion ;
+# --- 10. Defeat split: defeatedBy → Defeater, hasDefeatStatus → Status (MUST) --
+ex:saDefeatSplitRanges a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:defeatedBy a owl:ObjectProperty ; rdfs:range gmeow:JustificationStatus .
+    gmeow:defeatedBy a owl:ObjectProperty ; rdfs:range gmeow:Defeater .
+    gmeow:hasDefeatStatus a owl:ObjectProperty ; rdfs:domain gmeow:JustificationSubject ; rdfs:range gmeow:JustificationStatus .
 }""" ;
-    gmeow:saRationale "gmeow:defeatedBy is an object property ranging over gmeow:JustificationStatus. Mirrors test_defeated_by_has_status_range." .
+    gmeow:saRationale "The defeat reconcile: the STRUCTURAL defeater gmeow:defeatedBy ranges over gmeow:Defeater (Argument | StandpointClaim | EvidenceSpan), while the solver-set VERDICT flag gmeow:hasDefeatStatus ranges over gmeow:JustificationStatus — distinct facts (what defeats vs the adjudicated outcome)." .
 
 # --- 11. JustificationStatus individuals exist (MUST hold) --------------------
 ex:saJustificationStatusIndividuals a gmeow:StructuralAssertion ;
@@ -253,17 +260,18 @@ ASK {
 }""" ;
     gmeow:saRationale "The bipolar-argumentation edges gmeow:supportsClaim / gmeow:attacksClaim MUST be owl:ObjectProperties ranging over gmeow:ClaimToken (the claim-token end is fixed now)." .
 
-# --- 18. supports/attacksClaim have NO domain pre-argumentation (MUST-NOT) ----
-ex:saSupportAttackOpenDomain a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:mustNot ;
+# --- 18. supports/attacksClaim domain = Argument, range = ClaimToken (MUST) ----
+ex:saSupportAttackDomainArgument a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    VALUES ?p { gmeow:supportsClaim gmeow:attacksClaim }
-    ?p rdfs:domain ?d .
+    gmeow:supportsClaim a owl:ObjectProperty ; rdfs:domain gmeow:Argument ; rdfs:range gmeow:ClaimToken ; gmeow:pairsWith gmeow:Support .
+    gmeow:attacksClaim  a owl:ObjectProperty ; rdfs:domain gmeow:Argument ; rdfs:range gmeow:ClaimToken ; gmeow:pairsWith gmeow:Attack .
 }""" ;
-    gmeow:saRationale "The support/attack edges keep an OPEN domain (no rdfs:domain) until the argumentation layer mints gmeow:Argument as the proper domain — the open-domain idiom of gmeow:observedFeature. A premature domain would be the regression this guard forbids." .
+    gmeow:saRationale "Now that the argumentation layer mints gmeow:Argument, the bipolar edges CLOSE their domain onto it (the open-domain hook is satisfied): gmeow:supportsClaim / gmeow:attacksClaim MUST be owl:ObjectProperties with rdfs:domain gmeow:Argument and rdfs:range gmeow:ClaimToken, each gmeow:pairsWith its reified inference-slice promotion (gmeow:Support / gmeow:Attack — the flat ↔ reified tiering). This supersedes the former open-domain MUST-NOT." .
 
 # --- 19. ClaimEvaluation ⊑ ClaimToken — a claim about a claim (MUST hold) -----
 ex:saClaimEvaluationSubclassOfClaimToken a gmeow:StructuralAssertion ;
@@ -300,3 +308,101 @@ ex:saClaimTokenNotObservation a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:ClaimToken rdfs:subClassOf gmeow:Observation . }""" ;
     gmeow:saRationale "The four-way separation: the canonical claim token is a perdurant assertion act (logic:Event ⊑ gmeow:Activity), NOT an Observation relator. gmeow:ClaimToken MUST NOT be rdfs:subClassOf gmeow:Observation — the legacy gmeow:StandpointClaim ⊑ gmeow:Observation surface is the GENERATED union view, not the canonical record." .
+
+# --- 22. Factored-justification classes carry their stereotypes (MUST hold) ----
+ex:saJustificationFactorClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:SupportAssessment  a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:AdequacyAssessment a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:Defeater           a owl:Class , logic:Category ; rdfs:subClassOf owl:Thing .
+    gmeow:EpistemicStandard  a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:AdequacyVerdict    a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:standardOrdinary a gmeow:EpistemicStandard . gmeow:standardScientific a gmeow:EpistemicStandard .
+    gmeow:adequacyMet a gmeow:AdequacyVerdict . gmeow:adequacyUnmet a gmeow:AdequacyVerdict .
+}""" ;
+    gmeow:saRationale "The factored-justification machinery MUST mint gmeow:SupportAssessment / gmeow:AdequacyAssessment as logic:Kind reified assessments (subClassOf logic:Relator), gmeow:Defeater as a logic:Category named union, and gmeow:EpistemicStandard / gmeow:AdequacyVerdict as QualityValue vocabularies with their seeded individuals — support-under-a-standard, adequacy, the structural defeater, the named standards, and the adequacy verdicts." .
+
+# --- 23. justificationStatusUndermined seeded (MUST hold) ---------------------
+ex:saJustificationStatusUndermined a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:justificationStatusUndermined a gmeow:JustificationStatus .
+    gmeow:justificationStatusUndercut a gmeow:JustificationStatus .
+    gmeow:justificationStatusRebutted a gmeow:JustificationStatus .
+}""" ;
+    gmeow:saRationale "The defeat-status vocabulary gains gmeow:justificationStatusUndermined so all three typed-attack kinds (undermine / undercut / rebut) have a defeat-status twin (Principle 9)." .
+
+# --- 24. Locally-factive knowledge: KnowledgeClaim/Attribution relators (MUST) -
+ex:saKnowledgeRelators a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:KnowledgeClaim a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:KnowledgeAttribution a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:knownInWorld a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:EpistemicContext .
+    gmeow:underStandard a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:EpistemicStandard .
+    gmeow:knowerAgent a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:Agent .
+    gmeow:knownProposition a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:Proposition .
+    gmeow:attributingAgent a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeAttribution ; rdfs:range gmeow:Agent .
+    gmeow:attributedKnower a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeAttribution ; rdfs:range gmeow:Agent .
+    gmeow:attributedProposition a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeAttribution ; rdfs:range gmeow:Proposition .
+}""" ;
+    gmeow:saRationale "The locally-factive knowing relation is reified as gmeow:KnowledgeClaim (logic:Kind subClassOf logic:Relator) carrying gmeow:knownInWorld -> gmeow:EpistemicContext and gmeow:underStandard -> gmeow:EpistemicStandard, with the non-factive gmeow:KnowledgeAttribution alongside it — both CLAIM relators, deliberately NOT mental moments." .
+
+# --- 25. KnowledgeClaim is NOT a MentalMoment (the attitude stays Doxastic) ----
+ex:saKnowledgeClaimNotMentalMoment a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:KnowledgeClaim rdfs:subClassOf gmeow:MentalMoment . }""" ;
+    gmeow:saRationale "Principle 15: gmeow:KnowledgeClaim is the reified knowing RELATION (a claim apparatus), not the believing ATTITUDE — the attitude is gmeow:DoxasticState (the gmeow:MentalMoment). KnowledgeClaim MUST NOT be rdfs:subClassOf gmeow:MentalMoment." .
+
+# --- 26. Factive/attribution predicates are flat, open-range siblings (MUST) ---
+ex:saKnowledgePredicatesAgentDomain a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:knowsThatIn     a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+    gmeow:claimsToKnowThat a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+    gmeow:takesAsKnown    a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+}""" ;
+    gmeow:saRationale "The flat knowledge predicates (locally-factive gmeow:knowsThatIn, non-factive gmeow:claimsToKnowThat / gmeow:takesAsKnown) MUST be owl:ObjectProperties with rdfs:domain gmeow:Agent — the flat spine of the knowledge layer." .
+
+# --- 27. Knowledge predicates: NOT on the doxastic spine, open-range (MUST-NOT) -
+ex:saKnowledgePredicatesNotFactivePollution a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    {
+        VALUES ?p { gmeow:knowsThatIn gmeow:claimsToKnowThat gmeow:takesAsKnown }
+        VALUES ?super { gmeow:knowsThat gmeow:believes gmeow:knowsThatIn }
+        ?p rdfs:subPropertyOf ?super .
+        FILTER (?p != ?super)
+    } UNION {
+        VALUES ?p { gmeow:knowsThatIn gmeow:claimsToKnowThat gmeow:takesAsKnown }
+        ?p rdfs:range ?r .
+    } UNION {
+        VALUES ?p { gmeow:knowsThatIn gmeow:claimsToKnowThat gmeow:takesAsKnown }
+        ?p a owl:FunctionalProperty .
+    }
+}""" ;
+    gmeow:saRationale "The keystone non-factive spine must stay clean: gmeow:knowsThatIn (locally factive), gmeow:claimsToKnowThat, and gmeow:takesAsKnown (non-factive) MUST NOT be rdfs:subPropertyOf gmeow:knowsThat / gmeow:believes / gmeow:knowsThatIn (a subproperty edge would pollute the spine with factivity), MUST NOT declare an rdfs:range (open-range, Principle 13), and MUST NOT be functional (Principle 9). Factivity rides the world-local gmeow:KnowledgeClaim and is recorded by prose, never an asserted truth bit (saNoTruthBit)." .

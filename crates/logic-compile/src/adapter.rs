@@ -37,7 +37,8 @@ use super::graphutil::{
     RDF_TYPE,
 };
 use super::ir::{
-    ContextualScope, LogicAxiom, LogicProgram, LogicRule, ReasoningContract, LOGIC_NAMESPACE,
+    ContextualScope, Formula, LogicAxiom, LogicProgram, LogicRule, ReasoningContract,
+    LOGIC_NAMESPACE,
 };
 
 const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
@@ -211,6 +212,8 @@ pub fn assert_ir_isomorphic(
     let rules_b: HashSet<String> = prog_b.rules.iter().map(rule_key).collect();
     let contracts_a: HashSet<String> = prog_a.contracts.iter().map(contract_key).collect();
     let contracts_b: HashSet<String> = prog_b.contracts.iter().map(contract_key).collect();
+    let formulas_a: HashSet<String> = prog_a.formulas.iter().map(Formula::content_key).collect();
+    let formulas_b: HashSet<String> = prog_b.formulas.iter().map(Formula::content_key).collect();
 
     let diff = |from: &HashSet<String>, to: &HashSet<String>| -> Vec<String> {
         let mut v: Vec<String> = from.difference(to).cloned().collect();
@@ -236,6 +239,12 @@ pub fn assert_ir_isomorphic(
     }
     for item in diff(&contracts_b, &contracts_a) {
         lines.push(format!("B has, A lacks (contract): {item}"));
+    }
+    for item in diff(&formulas_a, &formulas_b) {
+        lines.push(format!("A has, B lacks (formula): {item}"));
+    }
+    for item in diff(&formulas_b, &formulas_a) {
+        lines.push(format!("B has, A lacks (formula): {item}"));
     }
 
     if lines.is_empty() {

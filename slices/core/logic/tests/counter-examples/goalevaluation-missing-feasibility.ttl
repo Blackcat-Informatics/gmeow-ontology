@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for logic:GoalEvaluationShape: a logic:GoalEvaluation with NO
+# logic:feasibilityStatus (one of the four required factored axes, sh:minCount 1),
+# so validation MUST emit shacl.MinCountConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecGoalEvaluationMissingFeasibility).
+# Lives under tests/ (NOT examples/) so the global make validate gate does not
+# reject it.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lgc/> .
+
+ex:goalReachOrbit a gmeow:Goal ;
+    rdfs:label "reach a stable orbit (fixture)"@en .
+
+ex:evalMissingFeasibility a logic:GoalEvaluation ;
+    logic:evaluatesGoal ex:goalReachOrbit ;
+    logic:satisfactionStatus logic:Satisfied ;
+    logic:lifecycleStatus logic:LifecycleActive ;
+    logic:goalEvaluationStatus logic:GoalEvaluationCompleted .

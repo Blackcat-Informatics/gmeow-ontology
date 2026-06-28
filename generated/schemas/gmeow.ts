@@ -5,6 +5,12 @@ export enum AboutnessModeEnum {
     aboutnessEnacts = "aboutnessEnacts",
 }
 
+export enum AcceptanceStatusEnum {
+    acceptanceIn = "acceptanceIn",
+    acceptanceOut = "acceptanceOut",
+    acceptanceUndecided = "acceptanceUndecided",
+}
+
 export enum AccessibilityFacetEnum {
     facetAuditory = "facetAuditory",
     facetClearance = "facetClearance",
@@ -25,6 +31,12 @@ export enum AccountStatusEnum {
     accountStatusActive = "accountStatusActive",
     accountStatusDormant = "accountStatusDormant",
     accountStatusHistorical = "accountStatusHistorical",
+}
+
+export enum AdequacyVerdictEnum {
+    adequacyMet = "adequacyMet",
+    adequacyUndetermined = "adequacyUndetermined",
+    adequacyUnmet = "adequacyUnmet",
 }
 
 export enum AestheticQualityEnum {
@@ -118,6 +130,12 @@ export enum AssetTypeEnum {
     assetTypeCryptocurrency = "assetTypeCryptocurrency",
     assetTypeRealEstate = "assetTypeRealEstate",
     assetTypeStock = "assetTypeStock",
+}
+
+export enum AttackKindEnum {
+    attackRebut = "attackRebut",
+    attackUndercut = "attackUndercut",
+    attackUndermine = "attackUndermine",
 }
 
 export enum AttestationTypeEnum {
@@ -612,11 +630,6 @@ export enum DayOfWeekEnum {
     dayWednesday = "dayWednesday",
 }
 
-export enum DefeaterKindEnum {
-    defeaterRebutting = "defeaterRebutting",
-    defeaterUndercutting = "defeaterUndercutting",
-}
-
 export enum DegreeOfFreedomEnum {
     dofFourThirtyThreeDuration = "dofFourThirtyThreeDuration",
     dofFourThirtyThreeInstrumentation = "dofFourThirtyThreeInstrumentation",
@@ -765,6 +778,14 @@ export enum EmploymentTypeEnum {
 export enum EntityEnum {
     polymeterPattern = "polymeterPattern",
     procedureIngestionRawRoot = "procedureIngestionRawRoot",
+}
+
+export enum EpistemicStandardEnum {
+    standardLegalBeyondReasonableDoubt = "standardLegalBeyondReasonableDoubt",
+    standardLegalClearAndConvincing = "standardLegalClearAndConvincing",
+    standardLegalPreponderance = "standardLegalPreponderance",
+    standardOrdinary = "standardOrdinary",
+    standardScientific = "standardScientific",
 }
 
 export enum EvaluationVerdictEnum {
@@ -1239,6 +1260,7 @@ export enum JustificationStatusEnum {
     justificationStatusGettier = "justificationStatusGettier",
     justificationStatusRebutted = "justificationStatusRebutted",
     justificationStatusUndercut = "justificationStatusUndercut",
+    justificationStatusUndermined = "justificationStatusUndermined",
 }
 
 export enum KeySchemeEnum {
@@ -3153,6 +3175,9 @@ export enum WritingSystemTypeEnum {
 export interface AboutnessMode {
 }
 
+export interface AcceptanceStatus {
+}
+
 export interface AccessibilityAssertion {
     assertionFacet?: AccessibilityFacet,
     assertionPolarity?: AccessibilityPolarity,
@@ -3180,6 +3205,14 @@ export interface AddressTenure extends TimeScopedRelation {
     tenuredContactPoint?: ContactPoint,
 }
 
+export interface AdequacyAssessment {
+    adequacyUnderStandard?: EpistemicStandard,
+    meetsThreshold?: AdequacyVerdict,
+}
+
+export interface AdequacyVerdict {
+}
+
 export interface AdoptiveParentChild extends ParentChildRelationship {
 }
 
@@ -3192,6 +3225,7 @@ export interface Agent extends Entity {
     attendsTo?: Entity[],
     awareOfNotKnowing?: string[],
     believes?: string[],
+    claimsToKnowThat?: string[],
     curiousAbout?: Entity[],
     doubts?: string[],
     email?: string[],
@@ -3216,6 +3250,7 @@ export interface Agent extends Entity {
     knowsAbout?: Entity[],
     knowsLanguage?: Language[],
     knowsThat?: string[],
+    knowsThatIn?: string[],
     mailmapEntry?: string[],
     makesOffer?: Offering[],
     memberOf?: Organization[],
@@ -3226,6 +3261,7 @@ export interface Agent extends Entity {
     slogan?: string[],
     supposes?: string[],
     suspendsJudgementOn?: string[],
+    takesAsKnown?: string[],
     telephone?: string[],
     understands?: Entity[],
     wondersWhether?: string[],
@@ -3302,6 +3338,22 @@ export interface ArchaeologicalFindContext extends Observation {
     findContextTarget?: PhysicalObject,
 }
 
+export interface Argument {
+    argumentConclusion?: string,
+    argumentInferenceStep?: InferenceCommitment,
+    attacksClaim?: ClaimToken[],
+    hasInferenceApplication?: InferenceApplication[],
+    hasPremiseUse?: PremiseUse[],
+    supportsClaim?: ClaimToken[],
+}
+
+export interface ArgumentEvaluation {
+    acceptanceStatus?: AcceptanceStatus,
+    evaluatesArgument?: Argument,
+    extensionMember?: Argument[],
+    underSemantics?: string,
+}
+
 export interface Article extends Work {
 }
 
@@ -3335,6 +3387,18 @@ export interface AtomicConstraint extends Constraint {
 
 export interface Attachment extends BodyPart {
     filename?: string,
+}
+
+export interface Attack {
+    attackKind?: AttackKind,
+    attackSource?: string[],
+    attackTarget?: AttackTarget,
+}
+
+export interface AttackKind {
+}
+
+export interface AttackTarget {
 }
 
 export interface Attestation extends JustificationGround {
@@ -3910,7 +3974,7 @@ export interface DatingMethod extends ObservationMethod {
 export interface DayOfWeek {
 }
 
-export interface DefeaterKind {
+export interface Defeater {
 }
 
 export interface DegreeOfFreedom {
@@ -4145,6 +4209,9 @@ export interface EntityExistence extends TimeScopedRelation {
 }
 
 export interface EpistemicContext extends Entity {
+}
+
+export interface EpistemicStandard {
 }
 
 export interface EtymologicalDerivation extends Observation {
@@ -4519,11 +4586,15 @@ export interface ImportActivity extends Activity {
 export interface IndexAlgorithm {
 }
 
+export interface InferenceApplication {
+    appliedRule?: string,
+    appliedSubstitution?: string[],
+}
+
 export interface InferenceCommitment {
     candidateHypothesis?: StandpointClaim[],
     conclusion?: StandpointClaim,
     explanandum?: string[],
-    hasDefeater?: StandpointClaim[],
     inferenceModeOf?: InferenceMode,
     premise?: string[],
     warrant?: string[],
@@ -4657,8 +4728,12 @@ export interface JustificationStatus {
 }
 
 export interface JustificationSubject {
-    defeatedBy?: JustificationStatus[],
-    justifiedBy?: JustificationGround[],
+    adequateUnder?: AdequacyAssessment[],
+    basesBeliefOn?: JustificationGround[],
+    defeatedBy?: Defeater[],
+    hasAvailableEvidence?: JustificationGround[],
+    hasDefeatStatus?: JustificationStatus[],
+    supportsUnder?: SupportAssessment[],
 }
 
 export interface KeyScheme {
@@ -4666,6 +4741,19 @@ export interface KeyScheme {
 
 export interface KinRelationship extends Observation {
     withinFamily?: Family[],
+}
+
+export interface KnowledgeAttribution {
+    attributedKnower?: Agent,
+    attributedProposition?: Proposition,
+    attributingAgent?: Agent,
+}
+
+export interface KnowledgeClaim {
+    knowerAgent?: Agent,
+    knownInWorld?: EpistemicContext,
+    knownProposition?: Proposition,
+    underStandard?: EpistemicStandard,
 }
 
 export interface KnowledgeLevel {
@@ -5630,6 +5718,10 @@ export interface PrecedenceTenure extends TimeScopedRelation {
     precedenceScope?: NormativeSystem,
 }
 
+export interface PremiseUse {
+    premiseUsed?: string,
+}
+
 export interface PrivacyNotice extends InformationObject {
 }
 
@@ -6190,7 +6282,6 @@ export interface StandpointClaim extends JustificationSubject {
     claimTruthDirectedness?: TruthDirectedness,
     claimVeridicality?: ClaimVeridicality[],
     competesWith?: StandpointClaim[],
-    defeaterKind?: DefeaterKind[],
     explains?: string[],
     explanatoryScore?: number[],
     inferenceMode?: InferenceMode[],
@@ -6244,7 +6335,21 @@ export interface StyleGuide extends InformationObject {
 export interface Summary extends InformationObject {
 }
 
+export interface Support {
+    supportSource?: SupportSource[],
+    supportTarget?: Argument,
+}
+
+export interface SupportAssessment {
+    supportGround?: JustificationGround,
+    supportStrength?: number[],
+    supportUnderStandard?: EpistemicStandard,
+}
+
 export interface SupportPolarity {
+}
+
+export interface SupportSource {
 }
 
 export interface SupportStatus {

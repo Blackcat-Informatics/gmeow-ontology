@@ -667,12 +667,12 @@ No pytest is deleted (there was none to delete); these are net-new declarative c
 | `extensions/dreaming` | 4 (2 / 2) | DreamReport = composed recollection Experience + the 2 hasValue restrictions; dreamElement domain-Experience object property + open range; no-new-named-class (pure composition, Principle 4/6) |
 | `core/accounts` | 5 (4 / 1) | AccountStatus/ServiceStatus QualityValue vocabs (OPEN — seeds present, NOT closed); OnlineAccount/OnlineService InformationObject Kinds; accountService/serviceShutdownDate functional shapes; accountStatus/serviceStatus NOT functional (Principle 9, prevents sameAs collapse) |
 | `core/guides` | 5 (2 / 3) | Recipe/LearningPath QualityValue vocabs; includesRecipe LearningPath→Recipe shape; every dogfooded Recipe well-formed (slug+title+goal); every LearningPath has audience+goal; includesRecipe referential integrity (targets are typed Recipes) |
-| `core/inference` | 7 (5 / 2) | Analogy/Correspondence/InferenceCommitment = Relator Kinds; Process/Tenure endurant-occurrent spine; InferenceMode/DefeaterKind value vocabs + Peirce tetrad + Pollock seeds; functional argument edges (conclusion/inferenceModeOf/correspondingSource-Target/tenureOf); competesWith symmetric; NO subclass of InferenceCommitment (Principle 9 — modes are values); open-range (Principle 13) argument inputs |
+| `core/inference` | 9 (6 / 3) | Analogy/Correspondence/InferenceCommitment = Relator Kinds; Process/Tenure endurant-occurrent spine; InferenceMode/AttackKind value vocabs + Peirce tetrad + the Argument/Attack/Support/ArgumentEvaluation acceptability layer; functional argument edges (conclusion/inferenceModeOf/correspondingSource-Target/tenureOf); competesWith symmetric; NO subclass of InferenceCommitment (Principle 9 — modes are values); open-range (Principle 13) argument inputs |
 
 **#869 Gap-1:** the two `mustNot` VALUES patterns (accounts status-properties, inference open-range
 inputs) enumerate the **fixed, closed set of properties each slice declares**, not a stand-in for
 an open universal. The two OPEN value vocabularies (AccountStatus, ServiceStatus) and the
-"closed-but-open" InferenceMode/DefeaterKind vocabularies are asserted present-but-not-closed,
+"closed-but-open" InferenceMode/AttackKind vocabularies are asserted present-but-not-closed,
 faithfully matching their module doctrine.
 
 **Batch-12 tally:** 21 fresh structural cells across 4 slices (13 must + 8 mustNot); 0 pytest

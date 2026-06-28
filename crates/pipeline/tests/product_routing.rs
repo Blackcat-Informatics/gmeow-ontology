@@ -23,8 +23,10 @@ use std::path::{Path, PathBuf};
 
 use gmeow_pipeline::node::{Stage, StageInput, StageProduct};
 use gmeow_pipeline::stages::compile_logic::{
-    CompileLogicStage, CANONICAL_RDF12_PATH, DIAG_RDF_PATH, DIAG_SARIF_PATH, PROJECTION_REPORT_PATH,
+    CompileLogicStage, CANONICAL_RDF12_PATH, DIAG_RDF_PATH, DIAG_SARIF_PATH,
+    LOGIC_PROJECTIONS_CHANNEL, PROJECTION_REPORT_PATH,
 };
+use gmeow_pipeline::stages::mappings::MappingsStage;
 
 /// The bundle named-graph IRIs the loss ledger and diagnostics ride.
 const GRAPH_PROJECTION_LEDGER: &str =
@@ -56,14 +58,14 @@ fn compiler_products_are_first_class_dag_artifacts() {
     let root = repo_root();
     let product = compile_product(&root);
 
-    // The IR, the loss ledger, and the diagnostics SARIF/RDF are committed-path
-    // artifacts of the DAG — not files written only by a side CLI, and not values
-    // that live only inside a conformance fixture comparison.
+    // The IR, the logic-projections channel, and the diagnostics SARIF/RDF are
+    // committed/in-memory products of the compile-logic DAG node — not files written
+    // only by a side CLI, and not values that live only inside a conformance fixture.
     for path in [
-        CANONICAL_RDF12_PATH,   // canonical IR
-        PROJECTION_REPORT_PATH, // loss ledger
-        DIAG_SARIF_PATH,        // diagnostics → SARIF
-        DIAG_RDF_PATH,          // diagnostics → gmeow:Finding RDF
+        CANONICAL_RDF12_PATH,      // canonical IR
+        LOGIC_PROJECTIONS_CHANNEL, // logic projection rows handed to mappings
+        DIAG_SARIF_PATH,           // diagnostics → SARIF
+        DIAG_RDF_PATH,             // diagnostics → gmeow:Finding RDF
     ] {
         assert!(
             product.artifact(path).is_some(),
@@ -71,12 +73,34 @@ fn compiler_products_are_first_class_dag_artifacts() {
         );
     }
 
+    // The committed loss ledger is now assembled by stage-mappings over the UNION of the
+    // logic projection rows (from compile-logic's channel) and the correspondence
+    // ledger; compile-logic no longer emits the committed file itself.
+    assert!(
+        product.artifact(PROJECTION_REPORT_PATH).is_none(),
+        "compile-logic must no longer emit the committed projection report"
+    );
+    let mut mappings_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+    mappings_upstream.insert("stage-compile-logic".to_string(), product);
+    let mappings = MappingsStage::new()
+        .run(StageInput {
+            root: &root,
+            upstream: &mappings_upstream,
+        })
+        .expect("mappings stage")
+        .product;
+
     // The loss ledger is a non-trivial RDF report (the ProjectionReport individual),
-    // not an empty placeholder.
-    let report = std::str::from_utf8(product.artifact(PROJECTION_REPORT_PATH).unwrap()).unwrap();
+    // not an empty placeholder — a generated artifact of the mappings stage.
+    let report = std::str::from_utf8(mappings.artifact(PROJECTION_REPORT_PATH).expect("report"))
+        .expect("utf8 report");
     assert!(
         report.contains("ProjectionReport"),
         "the loss ledger must carry a logic:ProjectionReport"
+    );
+    assert!(
+        report.contains("/target/sssom:") && report.contains("/target/edoal:"),
+        "the loss ledger must carry the correspondence-calculus rows"
     );
 
     // The PROJECTION_REPORT_PATH lives under generated/, NOT only under a conformance

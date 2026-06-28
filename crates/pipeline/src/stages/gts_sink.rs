@@ -140,7 +140,19 @@ mod tests {
                 upstream: &BTreeMap::new(),
             })
             .expect("compile-logic stage");
-        snap_upstream.insert("stage-compile-logic".to_string(), compile.product);
+        snap_upstream.insert("stage-compile-logic".to_string(), compile.product.clone());
+        // The snapshot now reads the FINAL projection-report loss ledger from the
+        // mappings product (logic rows ∪ correspondence rows); run the real mappings
+        // stage over the compile-logic product so the report is present.
+        let mut mappings_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        mappings_upstream.insert("stage-compile-logic".to_string(), compile.product);
+        let mappings = crate::stages::mappings::MappingsStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &mappings_upstream,
+            })
+            .expect("mappings stage");
+        snap_upstream.insert("stage-mappings".to_string(), mappings.product);
         // The snapshot folds the external-corpus divergence Findings; provide the
         // real stage-conformance product the SnapshotStage would consume.
         let conformance = crate::stages::conformance::ConformanceStage

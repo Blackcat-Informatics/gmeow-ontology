@@ -23,7 +23,7 @@ from gmeow_tools.feedback_bundle import build_feedback_bundle, verify_feedback_b
 #: The migrated surfaces this slice folds (alignment, coverage, acceptance,
 #: wikidata, constitution, crate-layering, box-roles, audit, generator drift,
 #: classic/engine cross-check, the logic/statement/mapping compilers, and the
-#: native slice-ownership report — #809).
+#: native slice-ownership report, and repo-static guard report.
 #: validate + native reason/verify are folded separately in `feedback` itself.
 _EXPECTED_SURFACES = {
     "alignment",
@@ -41,6 +41,7 @@ _EXPECTED_SURFACES = {
     "statement-compile",
     "mapping-compile",
     "slice-ownership",
+    "repo-static",
 }
 
 

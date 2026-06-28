@@ -1,0 +1,6 @@
+{
+  "https://example.org/teleology/strong-cyclic-plan/world": {
+    "quads": 9,
+    "status": "consistent"
+  }
+}

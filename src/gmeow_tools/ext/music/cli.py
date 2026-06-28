@@ -5,31 +5,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, Protocol
+from typing import Annotated, Any, NoReturn, cast
 
 import typer
-
-from gmeow_tools.ext.music import importer, reader, writer
-from gmeow_tools.ext.music.loss_manifest import (
-    NotationProfile,
-    get_profile,
-    import_manifest_turtle,
-    manifest_turtle,
-)
-from gmeow_tools.ext.music.model import Piece
-from gmeow_tools.ext.music.serializers import (
-    abc,
-    graphic,
-    kern,
-    lilypond,
-    mei,
-    mensural,
-    midi,
-    musicxml,
-    scl,
-    tab,
-)
-from gmeow_tools.gts_producer import gts_from_graph
+from gmeow_native import music as _native_music
 
 app = typer.Typer(
     name="gmeow-music",
@@ -37,39 +16,25 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
-
-class _SerializerModule(Protocol):
-    """Protocol for renderer modules."""
-
-    def render(self, piece: Piece, profile: NotationProfile) -> str | bytes: ...
+_music = cast(Any, _native_music)
+_ALL_FORMATS: list[str] = sorted(cast(list[str], _music.list_formats()))
 
 
-_TEXT_SERIALIZERS: dict[str, _SerializerModule] = {
-    "musicxml": musicxml,
-    "mei": mei,
-    "tab": tab,
-    "lilypond": lilypond,
-    "abc": abc,
-    "scl": scl,
-    "kern": kern,
-    "mensural": mensural,
-    "graphic": graphic,
-}
-
-_BINARY_SERIALIZERS: dict[str, _SerializerModule] = {
-    "midi": midi,
-}
-
-_ALL_FORMATS = sorted(_TEXT_SERIALIZERS.keys() | _BINARY_SERIALIZERS.keys())
+def _raise_music_runtime_error(message: str) -> NoReturn:
+    typer.echo(f"Error: {message}", err=True)
+    raise typer.Exit(1)
 
 
-def _render_piece(piece: Piece, format_name: str) -> str | bytes:
-    profile = get_profile(format_name)
-    if format_name in _TEXT_SERIALIZERS:
-        return _TEXT_SERIALIZERS[format_name].render(piece, profile)
-    if format_name in _BINARY_SERIALIZERS:
-        return _BINARY_SERIALIZERS[format_name].render(piece, profile)
-    raise typer.BadParameter(f"unsupported format: {format_name}")
+def _raise_music_value_error(exc: ValueError) -> NoReturn:
+    message = str(exc)
+    if message.startswith(
+        (
+            "unsupported format:",
+            "MusicXML import only supports",
+        )
+    ):
+        raise typer.BadParameter(message) from exc
+    _raise_music_runtime_error(message)
 
 
 @app.command()
@@ -79,23 +44,14 @@ def render(
     out: Annotated[Path, typer.Option("--out", "-o", help="Output file.")],
 ) -> None:
     """Project a GTS music-package to a notation format."""
-    piece = reader.piece_from_gts(source)
-    result = _render_piece(piece, to.lower())
-    out.parent.mkdir(parents=True, exist_ok=True)
-    if isinstance(result, bytes):
-        out.write_bytes(result)
-    else:
-        out.write_text(result, encoding="utf-8")
-    manifest_path = out.with_suffix(out.suffix + ".manifest.ttl")
-    manifest_path.write_text(
-        manifest_turtle(
-            to.lower(),
-            provenance=f"gmeow music render {source.name} --to {to} -o {out.name}",
-        ),
-        encoding="utf-8",
-    )
-    typer.echo(f"wrote {out}")
-    typer.echo(f"wrote {manifest_path}")
+    try:
+        written = _music.render_file(str(source), to.lower(), str(out))
+    except ValueError as exc:
+        _raise_music_value_error(exc)
+    except OSError as exc:
+        _raise_music_runtime_error(str(exc))
+    for path in written:
+        typer.echo(f"wrote {path}")
 
 
 @app.command(name="import")
@@ -104,19 +60,11 @@ def import_(
     out: Annotated[Path, typer.Option("--out", "-o", help="Output .gts file.")],
 ) -> None:
     """Project a MusicXML file into a GTS music-package."""
-    piece = importer.piece_from_musicxml(source)
-    graph = writer.piece_to_graph(piece)
-    data = gts_from_graph(graph)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_bytes(data)
-    manifest_path = out.with_suffix(out.suffix + ".manifest.ttl")
-    manifest_path.write_text(
-        import_manifest_turtle(
-            source,
-            piece.iri or "urn:gmeow:piece:imported",
-            provenance=f"gmeow music import {source.name} -o {out.name}",
-        ),
-        encoding="utf-8",
-    )
-    typer.echo(f"wrote {out}")
-    typer.echo(f"wrote {manifest_path}")
+    try:
+        written = _music.import_file(str(source), str(out))
+    except ValueError as exc:
+        _raise_music_value_error(exc)
+    except OSError as exc:
+        _raise_music_runtime_error(str(exc))
+    for path in written:
+        typer.echo(f"wrote {path}")
