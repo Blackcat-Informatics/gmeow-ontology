@@ -601,3 +601,85 @@ ASK {
     logic:ConcurrentComposition rdfs:subClassOf logic:SerializabilityCriterion .
 }""" ;
     gmeow:saRationale "logic:ConcurrentComposition MUST NOT be a subclass of logic:SerializabilityCriterion (or any of the three concurrency correctness concerns): it is the COMPOSITION OPERATOR, while SerializabilityCriterion is a correctness PROPERTY OF A HISTORY — the three concurrency concerns are kept pairwise distinct precisely because they are not interchangeable." .
+
+# === Semantics-aware validator findings + scoped coherence certificate ========
+# The slice carries its own correctness claims for the ME13 vocabulary as ontology
+# data: the 8-way finding taxonomy, the two completeness-gated coherence artifacts,
+# and the payload that scopes them. The runtime gate (conclusive->Certificate,
+# bounded->Attestation, forbidden glut->refused) is authored canonically in Rust
+# (crates/logic/src/certificate.rs); these assertions pin the vocabulary surface it
+# projects from.
+
+# --- 35. FindingCategory is a closed eight-member value set (MUST) ------------
+ex:saFindingCategoryClosedValueSet a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    logic:FindingCategory a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:FindingDataShapeViolation         a logic:FindingCategory .
+    logic:FindingModelingDisciplineViolation a logic:FindingCategory .
+    logic:FindingContradictionWitness       a logic:FindingCategory .
+    logic:FindingPermittedEpistemicConflict a logic:FindingCategory .
+    logic:FindingUnsupportedSemanticFeature a logic:FindingCategory .
+    logic:FindingIncompleteCheck            a logic:FindingCategory .
+    logic:FindingProjectionLoss             a logic:FindingCategory .
+    logic:FindingPolicyWarning              a logic:FindingCategory .
+}""" ;
+    gmeow:saRationale "logic:FindingCategory MUST be a closed value class with exactly its eight named individuals -- the orthogonal-to-severity KIND axis that makes 'not all findings are failures' machine-checkable. The Rust gmeow_diagnostics::FindingCategory enum mirrors this set one-to-one." .
+
+# --- 36. The two completeness-gated coherence artifacts exist (MUST) ----------
+ex:saCoherenceArtifactsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    logic:CoherenceCertificate      a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:CoherenceCheckAttestation a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+}""" ;
+    gmeow:saRationale "Both coherence outcomes MUST exist as TBox classes: logic:CoherenceCertificate (issued ONLY from a conclusive check) and the strictly weaker logic:CoherenceCheckAttestation (a bounded/incomplete check). The completeness gate that chooses between them is the whole point of having two artifacts rather than one." .
+
+# --- 37. Permitted conflict is distinct from a forbidden contradiction (MUST-NOT) ---
+ex:saPermittedConflictNotContradictionWitness a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:FindingPermittedEpistemicConflict owl:sameAs logic:FindingContradictionWitness .
+}""" ;
+    gmeow:saRationale "The permitted, disclosed conflict MUST NOT be identified with the forbidden contradiction witness -- they are distinct logic:FindingCategory individuals. This is the load-bearing distinction: a glut under a glut-admitting contract is coherent (non-failing), a glut under a glut-forbidding one is an integrity violation; collapsing them would erase the central ME13 claim." .
+
+# --- 38. The scoped coherence payload properties exist (MUST) -----------------
+ex:saCoherencePayloadPropertiesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:summarizesResult          a owl:ObjectProperty .
+    logic:bundleHash                a owl:DatatypeProperty .
+    logic:axiomHash                 a owl:DatatypeProperty .
+    logic:contradictionPolicy       a owl:ObjectProperty .
+    logic:checkIssuedAt             a owl:DatatypeProperty .
+    logic:permittedConflictWitness  a owl:ObjectProperty .
+    logic:forbiddenViolationWitness a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The scoped-payload properties MUST exist so a coherence outcome can carry its full evidence: the summarized result, the bundle/axiom hashes (H), the classifying contradiction policy, the injected issue timestamp, and the permitted/forbidden witness partition. Contract (C), fragment (F) and budget (B) are reached through logic:summarizesResult on the linked logic:ReasoningResult." .
+
+# --- 39. contradictionPolicy ranges over the four admissible valuations (MUST) ---
+ex:saContradictionPolicyValuesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    logic:AdmitAllFour     a logic:AdmissibleValuationPolicy .
+    logic:ForbidGap        a logic:AdmissibleValuationPolicy .
+    logic:ForbidGlut       a logic:AdmissibleValuationPolicy .
+    logic:ForbidGapAndGlut a logic:AdmissibleValuationPolicy .
+}""" ;
+    gmeow:saRationale "All four logic:AdmissibleValuationPolicy individuals MUST exist: logic:contradictionPolicy ranges over them, and the glut-admitting pair (AdmitAllFour, ForbidGap) versus the glut-forbidding pair (ForbidGlut, ForbidGapAndGlut) is exactly what classifies a witnessed glut as a permitted conflict or a forbidden violation. The Rust gmeow_logic_compile::compat::ContradictionPolicy enum mirrors these four and is wildcard-free so a new valuation is a compile error." .
