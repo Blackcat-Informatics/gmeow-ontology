@@ -272,14 +272,14 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
 
     if mode == RunMode::Regenerate {
         for product in products.values() {
-            for path in product.artifacts.keys() {
+            for (path, bytes) in product.artifacts() {
                 // `pipeline/`-prefixed artifacts are the in-memory dataflow
                 // (composed.nq / base-graph.nq / documentation.nq) the stages
                 // exchange — never committed to disk (mirrors the Check path).
                 if path.starts_with("pipeline/") {
                     continue;
                 }
-                write_artifact(root, path, &product.artifacts[path])?;
+                write_artifact(root, &path, &bytes)?;
             }
         }
     }
@@ -312,7 +312,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
 
     // ── Reconcile every produced artifact against committed / write it. ──
     for product in products.values() {
-        for (path, bytes) in &product.artifacts {
+        for (path, bytes) in &product.artifacts() {
             // Internal in-memory dataflow artifacts (under the `pipeline/` logical
             // prefix: base-graph.nq, composed.nq, documentation.nq) are NOT
             // committed outputs — they exist only to pass between stages. Skip.

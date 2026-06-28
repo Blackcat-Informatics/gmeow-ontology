@@ -13,10 +13,15 @@
 
 use std::collections::BTreeMap;
 use std::path::Path;
+use std::sync::Arc;
 
-use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
+use gmeow_rdf::provenance::DatasetProvenance;
+use gmeow_rdf::{PipelineBundle, RdfDataset};
 
+use crate::bundle::{
+    bundle_artifact, bundle_artifacts, bundle_from_artifacts, bundle_from_artifacts_over,
+    PipelineHandle,
+};
 use crate::error::PipelineError;
 
 /// The GMEOW namespace prefix that every pipeline term lives under.
@@ -96,66 +101,106 @@ impl StageKind {
 }
 
 /// The product of one stage: its id, the hex content digest of the value it
-/// produced (the cache key contribution downstream stages fold in — Merkle
-/// composition, #861 P2), and the named artifacts it emitted (logical path →
-/// bytes). Transform/export stages carry their compiled outputs here; the
-/// `gts_compose` / `gts_sink` stages fold every upstream artifact into the one
-/// bundle (#861 P3/P4).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// produced (the cache-key contribution downstream stages fold in — Merkle
+/// composition, #861 P2), and the structured [`PipelineBundle`] it emitted.
+///
+/// # The carrier (#1132 C4)
+///
+/// The carrier is an [`Arc<PipelineBundle<PipelineHandle>>`]: the frozen RDF
+/// dataset + lookaside + content-addressed blob store + provenance + typed-handle
+/// lane. The pre-C4 named byte artifacts (logical path → bytes) ride the bundle's
+/// byte-artifact lane (see [`crate::bundle`]); `gts_compose` / `gts_sink` fold the
+/// upstream lane into the one bundle (#861 P3/P4). C2/C3/C5 progressively replace
+/// the byte reads with dataset/lane reads and retire the lane per stage.
+///
+/// `digest` is the cache key: for a freshly produced bundle it is
+/// `bundle.digest().to_hex()` (the handle-excluded content fold), so `combined()`
+/// over stages stays an order-independent Merkle fold; abstract/test products may
+/// carry an explicit digest decoupled from the (empty) carrier.
+#[derive(Debug, Clone)]
 pub struct StageProduct {
     /// The id of the stage that produced this.
     pub stage_id: String,
-    /// The hex SHA-256 digest of the produced value (content-addressed).
+    /// The hex SHA-256 digest of the produced value (content-addressed cache key).
     pub digest: String,
-    /// The named artifacts this stage emitted, by logical path (sorted).
-    #[serde(default)]
-    pub artifacts: std::collections::BTreeMap<String, Vec<u8>>,
+    /// The structured carrier this stage emitted: the frozen dataset, lookaside
+    /// (including the byte-artifact lane), blob store, provenance, and handle lane.
+    pub bundle: Arc<PipelineBundle<PipelineHandle>>,
 }
 
 impl StageProduct {
     /// Construct an artifact-free product with an explicit digest (abstract
     /// stages / tests). Real transform stages use [`Self::from_artifacts`].
+    ///
+    /// The carrier is an empty bundle; the explicit `digest` is the cache key
+    /// (decoupled from the empty carrier so existing abstract stages keep their
+    /// declared digest).
     pub fn new(stage_id: impl Into<String>, digest: impl Into<String>) -> Self {
         Self {
             stage_id: stage_id.into(),
             digest: digest.into(),
-            artifacts: BTreeMap::new(),
+            bundle: Arc::new(bundle_from_artifacts(
+                BTreeMap::new(),
+                DatasetProvenance::new(),
+            )),
         }
     }
 
-    /// Construct a product from emitted artifacts; the digest is derived from the
-    /// sorted `(logical_path, content-digest)` pairs (order-independent).
+    /// Construct a product from emitted named byte artifacts; they ride the
+    /// bundle's byte-artifact lane and the digest is the bundle's content fold.
     pub fn from_artifacts(
         stage_id: impl Into<String>,
         artifacts: BTreeMap<String, Vec<u8>>,
     ) -> Self {
-        let mut hasher = Sha256::new();
-        for (path, bytes) in &artifacts {
-            hasher.update(path.as_bytes());
-            hasher.update(b"\x1f");
-            hasher.update(Sha256::digest(bytes));
-            hasher.update(b"\x1e");
-        }
-        let digest = hex_lower(&hasher.finalize());
+        let bundle = bundle_from_artifacts(artifacts, DatasetProvenance::new());
+        Self::from_bundle(stage_id, Arc::new(bundle))
+    }
+
+    /// Construct a product from named byte artifacts riding over an explicit
+    /// backing `dataset` (the lane travels alongside the frozen graph).
+    pub fn from_artifacts_over(
+        stage_id: impl Into<String>,
+        dataset: Arc<RdfDataset>,
+        artifacts: BTreeMap<String, Vec<u8>>,
+    ) -> Self {
+        let bundle = bundle_from_artifacts_over(dataset, artifacts, DatasetProvenance::new());
+        Self::from_bundle(stage_id, Arc::new(bundle))
+    }
+
+    /// Construct a product wrapping an already-assembled carrier; the digest is the
+    /// bundle's content fold (handle lane excluded).
+    pub fn from_bundle(
+        stage_id: impl Into<String>,
+        bundle: Arc<PipelineBundle<PipelineHandle>>,
+    ) -> Self {
+        let digest = bundle.digest().to_hex();
         Self {
             stage_id: stage_id.into(),
             digest,
-            artifacts,
+            bundle,
         }
     }
 
-    /// The bytes of one emitted artifact by logical path.
-    pub fn artifact(&self, logical_path: &str) -> Option<&[u8]> {
-        self.artifacts.get(logical_path).map(Vec::as_slice)
+    /// Borrow the structured carrier this product emitted.
+    pub fn bundle(&self) -> &Arc<PipelineBundle<PipelineHandle>> {
+        &self.bundle
     }
-}
 
-fn hex_lower(bytes: &[u8]) -> String {
-    let mut s = String::with_capacity(bytes.len() * 2);
-    for b in bytes {
-        s.push_str(&format!("{b:02x}"));
+    /// Borrow the frozen RDF dataset this product's bundle carries.
+    pub fn dataset(&self) -> &RdfDataset {
+        self.bundle.dataset()
     }
-    s
+
+    /// The bytes of one named byte-artifact-lane entry by logical path.
+    pub fn artifact(&self, logical_path: &str) -> Option<&[u8]> {
+        bundle_artifact(&self.bundle, logical_path)
+    }
+
+    /// The full `(logical_path → bytes)` map of this product's byte-artifact lane,
+    /// sorted by path. The surface `run_full` writes / compares against committed.
+    pub fn artifacts(&self) -> BTreeMap<String, Vec<u8>> {
+        bundle_artifacts(&self.bundle)
+    }
 }
 
 /// The input handed to a stage's `run`: the repo root and the products of every
