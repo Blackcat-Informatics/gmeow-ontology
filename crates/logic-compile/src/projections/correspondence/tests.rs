@@ -1,0 +1,164 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+use super::*;
+use crate::ir::PreservationKind;
+
+const SKOS_RELATED_MATCH: &str = "http://www.w3.org/2004/02/skos/core#relatedMatch";
+const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
+const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
+
+fn parse_nt(nt: &str) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+    gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        .expect("parse projection N-Triples")
+}
+
+/// The §14 worked example projects to a `skos:relatedMatch` alignment surface and
+/// NEVER to `skos:exactMatch` / `owl:equivalentClass` — and it carries a loss-ledger
+/// row declaring its under-approximation polarity.
+#[test]
+fn affine_triangle_projects_related_match_never_equivalence() {
+    let program = affine_triangle_worked_example();
+    let nt = project_correspondence(&program);
+
+    // Check the alignment PREDICATE position (`<...>` as a predicate IRI), not a bare
+    // substring — the loss-ledger prose names the forbidden predicates as disclosure.
+    assert!(
+        nt.contains(&format!("<{SKOS_RELATED_MATCH}>")),
+        "the affine overlap MUST surface a skos:relatedMatch edge:\n{nt}"
+    );
+    assert!(
+        !nt.contains(&format!("<{SKOS_EXACT_MATCH}>")),
+        "a caveated affine overlap MUST NOT surface a skos:exactMatch edge:\n{nt}"
+    );
+    assert!(
+        !nt.contains(&format!("<{OWL_EQUIVALENT_CLASS}>")),
+        "a caveated affine overlap MUST NOT surface an owl:equivalentClass edge:\n{nt}"
+    );
+    // The loss-ledger row: the lane declares its preservation polarity, never silent.
+    assert!(
+        nt.contains(&PreservationKind::SoundUnder.iri()),
+        "the lane MUST declare its SoundUnderApproximation preservation polarity:\n{nt}"
+    );
+    assert!(
+        nt.contains("lossyDrop"),
+        "the lane MUST carry an explicit loss-ledger row:\n{nt}"
+    );
+    // The §14 axes are present.
+    assert!(nt.contains("AffineCorrespondence"), "morphism class");
+    assert!(nt.contains("Overlaps"), "relation");
+    assert!(nt.contains("Vague"), "determinacy");
+    assert!(nt.contains("0.72"), "confidence");
+    assert!(nt.contains("not equivalent"), "the caveat text");
+}
+
+/// The overclaim gate REJECTS an attempt to emit a class equivalence for the §14
+/// affine/overlaps correspondence (a BUILD FAILURE), but ALLOWS the relation-sound
+/// related-match surface.
+#[test]
+fn overclaim_gate_rejects_equivalence_for_affine_overlap() {
+    let program = affine_triangle_worked_example();
+    let correspondence = &program.correspondences[0];
+
+    // Asking for equivalence is an overclaim → hard error.
+    let err = assert_no_overclaim_correspondence(correspondence, true)
+        .expect_err("emitting equivalence for a caveated affine overlap must HARD-fail");
+    assert!(
+        err.0.contains("Overclaim"),
+        "the error must name the overclaim: {err}"
+    );
+
+    // NOT asking for equivalence is fine (the related-match surface).
+    assert_no_overclaim_correspondence(correspondence, false)
+        .expect("the related-match surface is not an overclaim");
+}
+
+/// A genuine satisfaction-preserving `Equiv` MAY emit equivalence (the gate is not a
+/// blanket ban — it is relation-sound).
+#[test]
+fn overclaim_gate_allows_equivalence_for_true_equiv() {
+    use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
+    let equiv = Correspondence::new(
+        "https://blackcatinformatics.ca/gmeow/example/equiv",
+        CorrespondenceRelation::Equiv,
+        MorphismClass::Isomorphism,
+        MorphismKind::InstitutionMorphism,
+        false,
+        None,
+        None,
+        None,
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        None,
+    )
+    .expect("valid");
+    assert_no_overclaim_correspondence(&equiv, true)
+        .expect("a true satisfaction-preserving equivalence MAY emit equivalence");
+}
+
+/// A commitment-shifting bridge over an `Equiv` relation is STILL refused equivalence
+/// (the loss ledger refuses owl:equivalentClass for a by-reference bridge).
+#[test]
+fn overclaim_gate_refuses_equivalence_for_commitment_shifting_bridge() {
+    use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
+    let bridge = Correspondence::new(
+        "https://blackcatinformatics.ca/gmeow/example/bridge",
+        CorrespondenceRelation::Equiv,
+        MorphismClass::BridgeView,
+        MorphismKind::CommitmentShiftingBridge,
+        false,
+        None,
+        None,
+        None,
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        None,
+    )
+    .expect("valid");
+    assert_no_overclaim_correspondence(&bridge, true)
+        .expect_err("a commitment-shifting bridge must be refused equivalence");
+}
+
+/// Round-trip: project → parse re-derives a content-key-equal program (the cache-hit
+/// identity the typed handle relies on).
+#[test]
+fn projection_round_trips_to_equal_content_key() {
+    let program = affine_triangle_worked_example();
+    let nt = project_correspondence(&program);
+    let dataset = parse_nt(&nt);
+    let re_derived = parse_correspondence(&dataset).expect("re-derive correspondence program");
+    assert_eq!(
+        program.content_key(),
+        re_derived.content_key(),
+        "the cache re-derivation yields a content-key-equal correspondence program"
+    );
+    // And re-projecting the re-derived program is byte-identical (idempotent).
+    assert_eq!(
+        project_correspondence(&re_derived),
+        nt,
+        "re-projecting the re-derived program is byte-identical"
+    );
+}
+
+/// The projection is deterministic (sorted, byte-stable across runs).
+#[test]
+fn projection_is_byte_deterministic() {
+    let a = project_correspondence(&affine_triangle_worked_example());
+    let b = project_correspondence(&affine_triangle_worked_example());
+    assert_eq!(a, b, "the projection must be byte-deterministic");
+    // Sorted: every non-empty line ends with " ." and the body is sorted.
+    let lines: Vec<&str> = a.lines().filter(|l| !l.is_empty()).collect();
+    let mut sorted = lines.clone();
+    sorted.sort();
+    assert_eq!(lines, sorted, "the projection lines must be sorted");
+    assert!(
+        lines.iter().all(|l| l.ends_with(" .")),
+        "every triple line ends with ' .'"
+    );
+}

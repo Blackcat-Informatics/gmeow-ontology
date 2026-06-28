@@ -297,7 +297,25 @@ fn rebuild_handle(
                     })?;
             PipelineHandle::RelationalCore(Arc::new(program))
         }
-        "correspondence" => PipelineHandle::Correspondence(graph),
+        "correspondence" => {
+            // The REAL typed Correspondence handle (#1132 C10): its backing graph is the
+            // deterministic `graph/correspondence` projection of a `CorrespondenceProgram`,
+            // so on a cache hit the typed program is RE-DERIVED from that graph via the
+            // reverse parser. The consumer never re-projects; the cache boundary re-derives
+            // it ONCE here. A parse failure HARD-fails (no-optionality): a `correspondence`
+            // handle whose backing graph no longer parses is a corrupt cache, never a
+            // silently-dropped handle.
+            let program = gmeow_logic_compile::projections::correspondence::parse_correspondence(
+                graph.as_ref(),
+            )
+            .map_err(|e| {
+                PipelineError::Decode(format!(
+                    "cache: re-derive Correspondence handle from backing \
+                         graph/correspondence: {e}"
+                ))
+            })?;
+            PipelineHandle::Correspondence(Arc::new(program))
+        }
         other => {
             return Err(PipelineError::Decode(format!(
                 "cached handle has unknown PipelineHandle arm tag {other:?}"
@@ -1154,6 +1172,79 @@ mod tests {
         // The pin matches the reconstituted backing graph.
         assert_eq!(entry.content_digest, recon.graph_digest(graph_iri));
         // The bundle content fold round-trips.
+        assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
+    }
+
+    /// A bundle whose dataset carries a `graph/correspondence` named graph (the §14
+    /// affine-triangle worked example) with a typed Correspondence handle pinned to it
+    /// (#1132 C10).
+    fn correspondence_bundle() -> (
+        PipelineBundle<PipelineHandle>,
+        gmeow_logic_compile::projections::correspondence::CorrespondenceProgram,
+    ) {
+        use gmeow_logic_compile::projections::correspondence::{
+            affine_triangle_worked_example, project_correspondence,
+        };
+        use std::sync::Arc;
+        let program = affine_triangle_worked_example();
+        let projection = project_correspondence(&program);
+        let parsed = parse_dataset(projection.as_bytes(), "application/n-triples", None)
+            .expect("parse projection");
+        let graph_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
+        let mut b = RdfDatasetBuilder::new();
+        let term = RdfTerm::Iri(graph_iri.to_owned());
+        for quad in parsed.owned_quads() {
+            let mut routed = quad.clone();
+            routed.graph_name = Some(term.clone());
+            b.push_owned_quad(&routed);
+        }
+        let dataset = b.freeze().expect("freeze");
+        let mut bundle = PipelineBundle::new(
+            dataset,
+            RdfLookaside::default(),
+            Arc::new(ContentStore::new()),
+            DatasetProvenance::new(),
+        );
+        let pinned = bundle.graph_digest(graph_iri);
+        bundle
+            .pin_handle(
+                graph_iri,
+                PipelineHandle::Correspondence(Arc::new(program.clone())),
+                pinned,
+            )
+            .expect("pin Correspondence handle");
+        (bundle, program)
+    }
+
+    /// The C4 structural round-trip stays green for the Correspondence arm: the cache
+    /// re-derives the typed [`CorrespondenceProgram`] from the backing graph on a hit, to
+    /// a content-key-equal program, and the bundle digest is preserved.
+    #[test]
+    fn cached_correspondence_handle_re_derives_the_program() {
+        use std::sync::Arc;
+        let dir = tempfile::tempdir().unwrap();
+        let mut cache = PipelineCache::open(dir.path()).unwrap();
+
+        let (original, program) = correspondence_bundle();
+        let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(original.clone()));
+        cache.put("k", &product).unwrap();
+
+        let got = cache.get("k").unwrap().expect("cache hit");
+        let recon = got.bundle();
+
+        let graph_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
+        let entry = recon
+            .handle(graph_iri)
+            .expect("Correspondence handle re-attached");
+        let PipelineHandle::Correspondence(re_derived) = &entry.payload else {
+            panic!("the re-derived handle arm is Correspondence");
+        };
+        assert_eq!(
+            re_derived.content_key(),
+            program.content_key(),
+            "the cache re-derived the Correspondence handle's program faithfully"
+        );
+        assert_eq!(entry.content_digest, recon.graph_digest(graph_iri));
         assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
     }
 }

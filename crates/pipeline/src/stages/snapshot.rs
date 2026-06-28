@@ -223,6 +223,25 @@ pub fn build_snapshot(
         crate::stages::compile_logic::GRAPH_RELATIONAL_CORE,
         "relcore",
     )?;
+    // graph/correspondence ← the deterministic projection of the correspondence carrier
+    // lane (#1132 C10): the §14 affine-triangle worked transform (`foaf:Person` +
+    // `schema:ContactPoint` co-projecting onto `gmeow:contact`). Folded as its own
+    // queryable named graph so a repo-free consumer reads the alignment surface — kept at
+    // `skos:relatedMatch`, never `skos:exactMatch` / `owl:equivalentClass` (the overclaim
+    // gate forbids over-alignment) — and re-derives the typed Correspondence handle WITHOUT
+    // re-projecting. Sourced from the in-memory `stage-compile-logic` product (the SAME
+    // projection the typed handle pins to), already N-Triples.
+    let correspondence_nt = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::CORRESPONDENCE_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing compile-logic correspondence projection"))?;
+    add_named(
+        &mut builder,
+        &correspondence_nt,
+        crate::stages::compile_logic::GRAPH_CORRESPONDENCE,
+        "correspondence",
+    )?;
     // graph/reasoning ← the deterministic RDF projection of the typed ReasoningResult
     // (#1132 C7), folded as its own queryable named graph so a repo-free consumer reads
     // the five-axis verdict + provenance (and re-derives the typed Reasoning handle)
@@ -1055,6 +1074,22 @@ fn build_snapshot_bundle(
     let rc_nt = gmeow_logic_compile::relational_core::project_relational_core(rc_program.as_ref());
     let rc_dataset = relational_core_graph_dataset(rc_nt.as_bytes())?;
 
+    // ── the Correspondence handle payload + its backing graph/correspondence ──────
+    let corr_entry = compile
+        .bundle()
+        .handle(crate::stages::compile_logic::GRAPH_CORRESPONDENCE)
+        .ok_or_else(|| stage_err("stage-compile-logic product carries no Correspondence handle"))?;
+    let crate::bundle::PipelineHandle::Correspondence(corr_program) = &corr_entry.payload else {
+        return Err(stage_err(
+            "stage-compile-logic handle for graph/correspondence is not the Correspondence arm",
+        ));
+    };
+    let corr_program = corr_program.clone();
+    let corr_nt = gmeow_logic_compile::projections::correspondence::project_correspondence(
+        corr_program.as_ref(),
+    );
+    let corr_dataset = correspondence_graph_dataset(corr_nt.as_bytes())?;
+
     // ── the Reasoning handle payload + its backing graph/reasoning projection ─────
     let reason = upstream
         .get("stage-reason")
@@ -1078,6 +1113,7 @@ fn build_snapshot_bundle(
         logic_dataset.as_ref(),
         reasoning_dataset.as_ref(),
         rc_dataset.as_ref(),
+        corr_dataset.as_ref(),
     ]));
 
     let mut bundle =
@@ -1108,6 +1144,18 @@ fn build_snapshot_bundle(
         .map_err(|e| {
             stage_err(&format!(
                 "re-pin RelationalCore handle on snapshot product: {e}"
+            ))
+        })?;
+    let pinned_corr = bundle.graph_digest(crate::stages::compile_logic::GRAPH_CORRESPONDENCE);
+    bundle
+        .pin_handle(
+            crate::stages::compile_logic::GRAPH_CORRESPONDENCE,
+            crate::bundle::PipelineHandle::Correspondence(corr_program),
+            pinned_corr,
+        )
+        .map_err(|e| {
+            stage_err(&format!(
+                "re-pin Correspondence handle on snapshot product: {e}"
             ))
         })?;
     Ok(bundle)
@@ -1204,6 +1252,30 @@ fn relational_core_graph_dataset(
     builder.freeze().map_err(|e| {
         stage_err(&format!(
             "freeze snapshot graph/relational-core dataset: {e}"
+        ))
+    })
+}
+
+/// Parse the correspondence projection N-Triples and route every triple into the
+/// `graph/correspondence` named graph of a fresh frozen dataset — the backing graph the
+/// snapshot product's typed Correspondence handle pins to. Mirrors the compile-logic
+/// producer's `correspondence_graph_dataset` so both pin over the SAME projection.
+fn correspondence_graph_dataset(
+    projection_nt: &[u8],
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    use gmeow_rdf::{RdfDatasetBuilder, RdfTerm};
+    let parsed = parse_dataset(projection_nt, "application/n-triples", None)
+        .map_err(|e| stage_err(&format!("parse graph/correspondence projection: {e}")))?;
+    let graph = RdfTerm::Iri(crate::stages::compile_logic::GRAPH_CORRESPONDENCE.to_owned());
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in parsed.owned_quads() {
+        let mut routed = quad.clone();
+        routed.graph_name = Some(graph.clone());
+        builder.push_owned_quad(&routed);
+    }
+    builder.freeze().map_err(|e| {
+        stage_err(&format!(
+            "freeze snapshot graph/correspondence dataset: {e}"
         ))
     })
 }
@@ -2703,6 +2775,87 @@ mod logic_graph_golden_tests {
             folded_graph_nquads(&gts2, GRAPH_RELATIONAL_CORE),
             folded,
             "the graph/relational-core fold must be byte-deterministic"
+        );
+    }
+
+    const GRAPH_CORRESPONDENCE: &str = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
+
+    /// Byte golden (#1132 C10): the `graph/correspondence` named-graph content of an
+    /// emitted snapshot, over the §14 affine-triangle worked example. Pins the per-graph
+    /// fold path (construct → project N-Triples → add_named canonicalization → emit →
+    /// read-back) byte-for-byte, independent of the full gmeow.gts. Also asserts the
+    /// load-bearing correctness point in the folded bytes: `skos:relatedMatch` present,
+    /// `skos:exactMatch` + `owl:equivalentClass` absent, the loss-ledger row present. A
+    /// second emit is asserted byte-identical (determinism).
+    #[test]
+    fn graph_correspondence_fold_byte_golden() {
+        let corr_nt = gmeow_logic_compile::projections::correspondence::project_correspondence(
+            &gmeow_logic_compile::projections::correspondence::affine_triangle_worked_example(),
+        );
+
+        let build = || {
+            let mut builder = SnapshotBuilder::new();
+            let base = parse_nq(
+                b"<https://blackcatinformatics.ca/gmeow/> \
+                  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                  <http://www.w3.org/2002/07/owl#Ontology> .\n",
+            )
+            .expect("base parse");
+            builder.add_quads(&base, None, Some("base"));
+            add_named(
+                &mut builder,
+                corr_nt.as_bytes(),
+                GRAPH_CORRESPONDENCE,
+                "correspondence",
+            )
+            .expect("fold graph/correspondence");
+            emit_gts(
+                &builder,
+                "dist",
+                Some(vec!["gzip".to_string()]),
+                Vec::new(),
+                Vec::new(),
+                None,
+                None,
+                None,
+                gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            )
+            .expect("emit snapshot")
+        };
+
+        let gts = build();
+        let folded = folded_graph_nquads(&gts, GRAPH_CORRESPONDENCE);
+        assert!(
+            !folded.is_empty(),
+            "graph/correspondence must carry the projection"
+        );
+        // The load-bearing correctness point, asserted on the FOLDED snapshot bytes —
+        // checking the alignment PREDICATE position, not bare substrings (the loss-ledger
+        // prose mentions the forbidden predicate names as disclosure, not as edges).
+        assert!(
+            folded.contains("<http://www.w3.org/2004/02/skos/core#relatedMatch>"),
+            "the folded correspondence graph keeps the overlap at skos:relatedMatch:\n{folded}"
+        );
+        assert!(
+            !folded.contains("<http://www.w3.org/2004/02/skos/core#exactMatch>"),
+            "the folded correspondence graph MUST NOT emit a skos:exactMatch edge:\n{folded}"
+        );
+        assert!(
+            !folded.contains("<http://www.w3.org/2002/07/owl#equivalentClass>"),
+            "the folded correspondence graph MUST NOT emit an owl:equivalentClass edge:\n{folded}"
+        );
+        assert!(
+            folded.contains("lossyDrop"),
+            "the folded correspondence graph MUST carry the loss-ledger row:\n{folded}"
+        );
+        insta::assert_snapshot!("graph_correspondence_fold", folded);
+
+        // Determinism: a second build folds the SAME graph/correspondence content.
+        let gts2 = build();
+        assert_eq!(
+            folded_graph_nquads(&gts2, GRAPH_CORRESPONDENCE),
+            folded,
+            "the graph/correspondence fold must be byte-deterministic"
         );
     }
 

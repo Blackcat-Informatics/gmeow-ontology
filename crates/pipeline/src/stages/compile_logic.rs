@@ -35,6 +35,9 @@ use gmeow_diagnostics::{Finding, Location, Severity};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::LogicProgram;
 use gmeow_logic_compile::projections::compile_program;
+use gmeow_logic_compile::projections::correspondence::{
+    affine_triangle_worked_example, project_correspondence, CorrespondenceProgram,
+};
 use gmeow_logic_compile::relational_core::{
     lower_program, project_relational_core, RelationalCoreProgram,
 };
@@ -68,6 +71,17 @@ pub const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic"
 pub const GRAPH_RELATIONAL_CORE: &str =
     "https://blackcatinformatics.ca/gmeow/graph/relational-core";
 
+/// The named-graph IRI carrying the deterministic RDF projection of the compiled
+/// [`CorrespondenceProgram`] (#1132 C10) — the `logic:Correspondence` carrier lane and
+/// the §14 affine-triangle worked transform (`foaf:Person` + `schema:ContactPoint`
+/// co-projecting onto `gmeow:contact`). The compile-logic stage pins its typed
+/// [`PipelineHandle::Correspondence`] handle to THIS graph's canonical digest, and
+/// `stage-snapshot` folds the same projection into the bundle under this IRI — so the
+/// in-graph carriage and the typed handle are the two faces of one content identity. The
+/// projected alignment surface keeps a caveated overlap at `skos:relatedMatch` (NEVER
+/// `skos:exactMatch` / `owl:equivalentClass`); the overclaim gate forbids over-alignment.
+pub const GRAPH_CORRESPONDENCE: &str = "https://blackcatinformatics.ca/gmeow/graph/correspondence";
+
 /// Committed OWL 2 DL projection.
 pub const OWL_DL_PATH: &str = "generated/owl/gmeow-dl.ttl";
 /// Committed OWL 2 EL projection.
@@ -89,6 +103,11 @@ pub const PROJECTION_REPORT_PATH: &str = "generated/logic/projection-report.ttl"
 /// It is BOTH a committed artifact AND the backing graph the typed RelationalCore handle
 /// pins to (the same role the canonical RDF-1.2 projection plays for the Logic handle).
 pub const RELATIONAL_CORE_PATH: &str = "generated/logic/gmeow.relational-core.nt";
+/// Committed correspondence-lane projection (#1132 C10): the deterministic N-Triples RDF
+/// projection of the [`CorrespondenceProgram`] (the §14 affine-triangle worked transform).
+/// It is BOTH a committed artifact AND the backing graph the typed Correspondence handle
+/// pins to (the same role the canonical RDF-1.2 projection plays for the Logic handle).
+pub const CORRESPONDENCE_PATH: &str = "generated/logic/gmeow.correspondence.nt";
 
 /// Committed JSON projection of the compile diagnostics report.
 pub const DIAG_JSON_PATH: &str = "generated/diagnostics/logic-compile.json";
@@ -184,6 +203,20 @@ impl Stage for CompileLogicStage {
             relational_core_nt.clone().into_bytes(),
         );
 
+        // The correspondence carrier lane (#1132 C10): the §14 affine-triangle worked
+        // transform (`foaf:Person` + `schema:ContactPoint` co-projecting onto
+        // `gmeow:contact`). Constructed ONCE here, projected ONCE here, then carried BOTH
+        // as the typed `PipelineHandle::Correspondence` payload AND its backing
+        // `graph/correspondence` projection. The overclaim gate (run at construction +
+        // re-asserted below) keeps a caveated affine overlap at `skos:relatedMatch`,
+        // never `skos:exactMatch` / `owl:equivalentClass`.
+        let correspondence = affine_triangle_worked_example();
+        let correspondence_nt = project_correspondence(&correspondence);
+        artifacts.insert(
+            CORRESPONDENCE_PATH.to_string(),
+            correspondence_nt.clone().into_bytes(),
+        );
+
         // The compile diagnostics: the front-end parse findings (already coded
         // `logic-compile.<code>` by the shared bridge) plus one note finding per
         // structural lossy drop, so the loss ledger reaches the SARIF surface.
@@ -239,6 +272,8 @@ impl Stage for CompileLogicStage {
             &canonical_rdf12,
             relational_core,
             &relational_core_nt,
+            correspondence,
+            &correspondence_nt,
             artifacts,
         )?;
         Ok(StageOutput {
@@ -262,15 +297,19 @@ fn build_logic_bundle(
     canonical_rdf12_turtle: &str,
     relational_core: RelationalCoreProgram,
     relational_core_nt: &str,
+    correspondence: CorrespondenceProgram,
+    correspondence_nt: &str,
     artifacts: BTreeMap<String, Vec<u8>>,
 ) -> Result<PipelineBundle<PipelineHandle>, PipelineError> {
-    // Both handles ride one bundle: union their backing graphs (each in its own named
+    // All handles ride one bundle: union their backing graphs (each in its own named
     // graph) so each pins to the dataset the bundle carries.
     let logic_dataset = logic_graph_dataset(canonical_rdf12_turtle)?;
     let rc_dataset = relational_core_graph_dataset(relational_core_nt)?;
+    let corr_dataset = correspondence_graph_dataset(correspondence_nt)?;
     let dataset = Arc::new(gmeow_rdf::RdfDataset::union(&[
         logic_dataset.as_ref(),
         rc_dataset.as_ref(),
+        corr_dataset.as_ref(),
     ]));
     let mut bundle = bundle_from_artifacts_over(dataset, artifacts, DatasetProvenance::new());
     let pinned = bundle.graph_digest(GRAPH_LOGIC);
@@ -296,7 +335,41 @@ fn build_logic_bundle(
                 "pin RelationalCore handle to <{GRAPH_RELATIONAL_CORE}>: {e}"
             ))
         })?;
+    // The REAL typed Correspondence handle (#1132 C10): the typed correspondence program,
+    // pinned to its backing `graph/correspondence` projection. `pin_handle` HARD-fails on
+    // a digest mismatch, so a handle that disagrees with its backing graph can never attach.
+    let pinned_corr = bundle.graph_digest(GRAPH_CORRESPONDENCE);
+    bundle
+        .pin_handle(
+            GRAPH_CORRESPONDENCE,
+            PipelineHandle::Correspondence(Arc::new(correspondence)),
+            pinned_corr,
+        )
+        .map_err(|e| {
+            stage_err(format!(
+                "pin Correspondence handle to <{GRAPH_CORRESPONDENCE}>: {e}"
+            ))
+        })?;
     Ok(bundle)
+}
+
+/// Parse the correspondence N-Triples projection and route every triple into the
+/// `graph/correspondence` named graph of a fresh frozen dataset — the backing graph the
+/// typed Correspondence handle pins to and the cache re-derives the program from. Mirrors
+/// [`logic_graph_dataset`] so the in-graph carriage and the handle pin to one identity.
+fn correspondence_graph_dataset(projection_nt: &str) -> Result<Arc<RdfDataset>, PipelineError> {
+    let parsed = parse_dataset(projection_nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| stage_err(format!("parse correspondence projection: {e}")))?;
+    let graph = RdfTerm::Iri(GRAPH_CORRESPONDENCE.to_owned());
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in parsed.owned_quads() {
+        let mut routed = quad.clone();
+        routed.graph_name = Some(graph.clone());
+        builder.push_owned_quad(&routed);
+    }
+    builder
+        .freeze()
+        .map_err(|e| stage_err(format!("freeze graph/correspondence dataset: {e}")))
 }
 
 /// Parse the relational-core N-Triples projection and route every triple into the
@@ -683,6 +756,131 @@ mod tests {
             consumer_view.content_key(),
             re_derived.content_key(),
             "the consumer handle and the folded projection are one content identity"
+        );
+    }
+
+    // ── #1132 C10: the correspondence carrier lane ──────────────────────────────
+
+    /// The compile-logic stage pins a REAL typed [`PipelineHandle::Correspondence`]
+    /// handle to `graph/correspondence`, and that handle re-derives (via the SAME reverse
+    /// parser the cache uses) from its backing graph to a content-key-EQUAL program. The
+    /// load-bearing correctness point is asserted on the committed projection: the §14
+    /// affine overlap stays at `skos:relatedMatch`, never `skos:exactMatch` /
+    /// `owl:equivalentClass`, and the loss-ledger row is present.
+    #[test]
+    fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
+        use gmeow_logic_compile::projections::correspondence::parse_correspondence;
+        let root = repo_root();
+        let upstream = BTreeMap::new();
+        let out = CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &upstream,
+            })
+            .expect("compile-logic stage");
+        let bundle = out.product.bundle();
+        let entry = bundle
+            .handle(GRAPH_CORRESPONDENCE)
+            .expect("the stage pins a Correspondence handle to graph/correspondence");
+        // The pin is digest-valid: the pinned digest equals the live backing digest.
+        assert_eq!(
+            entry.content_digest,
+            bundle.graph_digest(GRAPH_CORRESPONDENCE),
+            "the Correspondence handle is digest-pinned to its backing graph/correspondence"
+        );
+        let PipelineHandle::Correspondence(program) = &entry.payload else {
+            panic!("the handle is the Correspondence arm carrying the typed program");
+        };
+
+        // The committed projection artifact: the load-bearing alignment correctness point.
+        let nt = out
+            .product
+            .artifact(CORRESPONDENCE_PATH)
+            .expect("correspondence artifact");
+        let nt_str = std::str::from_utf8(nt).expect("utf8");
+        // Check the alignment PREDICATE position (`<...#relatedMatch>` as a predicate),
+        // not a bare substring — the loss-ledger prose mentions the forbidden predicates
+        // by name (that prose is the disclosure, not an emitted alignment edge).
+        assert!(
+            nt_str.contains("<http://www.w3.org/2004/02/skos/core#relatedMatch>"),
+            "the affine overlap stays at skos:relatedMatch:\n{nt_str}"
+        );
+        assert!(
+            !nt_str.contains("<http://www.w3.org/2004/02/skos/core#exactMatch>"),
+            "a caveated overlap MUST NOT emit a skos:exactMatch edge:\n{nt_str}"
+        );
+        assert!(
+            !nt_str.contains("<http://www.w3.org/2002/07/owl#equivalentClass>"),
+            "a caveated overlap MUST NOT emit an owl:equivalentClass edge:\n{nt_str}"
+        );
+        assert!(
+            nt_str.contains("lossyDrop"),
+            "the lane carries an explicit loss-ledger row:\n{nt_str}"
+        );
+
+        // Re-derive the program from the backing graph exactly as the cache does.
+        let ds = parse_dataset(nt, "application/n-triples", None).expect("parse backing graph");
+        let re_derived = parse_correspondence(ds.as_ref()).expect("re-derive program");
+        assert_eq!(
+            re_derived.content_key(),
+            program.content_key(),
+            "the cache re-derivation yields a content-key-equal correspondence program"
+        );
+    }
+
+    /// The overclaim gate is a BUILD FAILURE for an attempt to emit a class equivalence
+    /// for the §14 affine/overlaps correspondence the stage carries (the gate fires).
+    #[test]
+    fn stage_correspondence_overclaim_gate_rejects_equivalence() {
+        use gmeow_logic_compile::projections::correspondence::assert_no_overclaim_correspondence;
+        let root = repo_root();
+        let upstream = BTreeMap::new();
+        let out = CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &upstream,
+            })
+            .expect("compile-logic stage");
+        let bundle = out.product.bundle();
+        let entry = bundle.handle(GRAPH_CORRESPONDENCE).expect("handle present");
+        let PipelineHandle::Correspondence(program) = &entry.payload else {
+            panic!("Correspondence arm");
+        };
+        let correspondence = &program.correspondences[0];
+        // Asking for equivalence over this caveated affine overlap is an overclaim → red.
+        assert_no_overclaim_correspondence(correspondence, true)
+            .expect_err("emitting equivalence for the §14 affine overlap must HARD-fail");
+        // The related-match surface (what the lane actually emits) is NOT an overclaim.
+        assert_no_overclaim_correspondence(correspondence, false)
+            .expect("the related-match surface is not an overclaim");
+    }
+
+    /// `pin_handle` HARD-fails when the Correspondence handle's pinned digest disagrees
+    /// with its backing graph (no-optionality, fail-closed).
+    #[test]
+    fn pin_correspondence_handle_hard_fails_on_digest_mismatch() {
+        use gmeow_logic_compile::projections::correspondence::{
+            affine_triangle_worked_example, project_correspondence,
+        };
+        let program = affine_triangle_worked_example();
+        let nt = project_correspondence(&program);
+        let dataset = correspondence_graph_dataset(&nt).expect("graph/correspondence dataset");
+        let mut bundle =
+            bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
+        let wrong = ContentDigest::of(b"not the correspondence canonical bytes");
+        let err = bundle
+            .pin_handle(
+                GRAPH_CORRESPONDENCE,
+                PipelineHandle::Correspondence(Arc::new(program)),
+                wrong,
+            )
+            .expect_err("a mismatched pin must HARD-fail");
+        assert!(
+            matches!(
+                err,
+                gmeow_rdf::PipelineBundleError::HandleDigestMismatch { .. }
+            ),
+            "the Correspondence handle pin must fail closed on a digest mismatch, got {err:?}"
         );
     }
 }

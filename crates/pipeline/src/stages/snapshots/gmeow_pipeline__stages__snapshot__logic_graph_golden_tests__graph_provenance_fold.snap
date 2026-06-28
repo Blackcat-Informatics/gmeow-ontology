@@ -6,6 +6,10 @@ expression: folded
 <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <https://blackcatinformatics.ca/gmeow/carrierGraph> <https://blackcatinformatics.ca/gmeow/graph/conformance> .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <https://blackcatinformatics.ca/gmeow/laneSlug> conformance .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <https://blackcatinformatics.ca/logic/loadBearing> false .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <https://blackcatinformatics.ca/gmeow/carrierGraph> <https://blackcatinformatics.ca/gmeow/graph/correspondence> .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <https://blackcatinformatics.ca/gmeow/laneSlug> correspondence .
+<https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> <https://blackcatinformatics.ca/logic/loadBearing> true .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> <https://blackcatinformatics.ca/gmeow/carrierGraph> <https://blackcatinformatics.ca/gmeow/graph/base> .
 <https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> <https://blackcatinformatics.ca/gmeow/laneSlug> dataset .
@@ -33,6 +37,7 @@ expression: folded
 <https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Execution> .
 <https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesProcedure> <https://blackcatinformatics.ca/gmeow/provenance/pipeline> .
 <https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> .
 <https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> .
 <https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> .
 <https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/logic> .
@@ -41,6 +46,7 @@ expression: folded
 <https://blackcatinformatics.ca/gmeow/provenance/pipeline-execution> <https://blackcatinformatics.ca/gmeow/executesStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/relational-core> .
 <https://blackcatinformatics.ca/gmeow/provenance/pipeline> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Procedure> .
 <https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> .
+<https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/correspondence> .
 <https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/dataset> .
 <https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/diagnostics> .
 <https://blackcatinformatics.ca/gmeow/provenance/pipeline> <https://blackcatinformatics.ca/gmeow/hasProcedureStep> <https://blackcatinformatics.ca/gmeow/provenance/lane/logic> .
