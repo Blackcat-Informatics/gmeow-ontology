@@ -1006,6 +1006,97 @@ fn reverse_authored_edge_already_backed_is_not_re_expanded() {
 }
 
 #[test]
+fn reverse_authored_edge_two_vantages_expands_to_two_edges() {
+    // A single flat gmeow:satisfiedBy statement whose reifier carries TWO gmeow:accordingTo
+    // vantages must yield TWO independent AuthoredEdge entries — one per co-agreeing evaluator.
+    let stmt = satisfied_by_reifier(&format!("{W}#goalOrbit"), &format!("{W}#sitStable")).unwrap();
+    let nq = format!(
+        "<{W}#goalOrbit> {sb} <{W}#sitStable> <{W}> .
+         <{stmt}> {acc} <{W}#vantageAlpha> <{W}> .
+         <{stmt}> {acc} <{W}#vantageBeta> <{W}> .
+",
+        sb = g("satisfiedBy"),
+        acc = g("accordingTo"),
+    );
+    let out = bridge_expand_authored_satisfied_by(&facts_of(&nq), W).unwrap();
+    // Two GoalEvaluation nodes must be minted, one per vantage.
+    let typed: Vec<&TeleologyQuad> = out
+        .iter()
+        .filter(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("GoalEvaluation")))
+        .collect();
+    assert_eq!(
+        typed.len(),
+        2,
+        "two evaluations must be minted for two co-agreeing vantages"
+    );
+    // Collect the two eval IRIs.
+    let mut eval_iris: Vec<String> = typed.iter().map(|q| q.subject.clone()).collect();
+    eval_iris.sort();
+    eval_iris.dedup();
+    assert_eq!(
+        eval_iris.len(),
+        2,
+        "the two minted evaluations must have distinct IRIs"
+    );
+    // Each eval node is attributed to its own vantage.
+    for eval_iri in &eval_iris {
+        let evaluators: Vec<String> = out
+            .iter()
+            .filter(|q| q.subject == *eval_iri && q.predicate == logic("evaluationEvaluator"))
+            .map(|q| q.object.clone())
+            .collect();
+        assert_eq!(
+            evaluators.len(),
+            1,
+            "each eval must have exactly one evaluationEvaluator"
+        );
+    }
+    // The vantages are both present across the two evaluations.
+    let all_evaluators: Vec<String> = out
+        .iter()
+        .filter(|q| q.predicate == logic("evaluationEvaluator"))
+        .map(|q| q.object.clone())
+        .collect();
+    assert!(
+        all_evaluators.contains(&n3(&format!("{W}#vantageAlpha"))),
+        "vantageAlpha must be present"
+    );
+    assert!(
+        all_evaluators.contains(&n3(&format!("{W}#vantageBeta"))),
+        "vantageBeta must be present"
+    );
+    // Idempotent.
+    let out2 = bridge_expand_authored_satisfied_by(&facts_of(&nq), W).unwrap();
+    assert_eq!(out, out2, "multi-vantage reverse bridge must be idempotent");
+}
+
+#[test]
+fn reverse_authored_edge_zero_vantage_uses_default_standpoint_single_edge() {
+    // Zero gmeow:accordingTo on the reifier → exactly ONE edge with gmeow:unspecifiedStandpoint.
+    let nq = format!(
+        "<{W}#goalOrbit> {sb} <{W}#sitStable> <{W}> .
+",
+        sb = g("satisfiedBy"),
+    );
+    let out = bridge_expand_authored_satisfied_by(&facts_of(&nq), W).unwrap();
+    let typed: Vec<&TeleologyQuad> = out
+        .iter()
+        .filter(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("GoalEvaluation")))
+        .collect();
+    assert_eq!(
+        typed.len(),
+        1,
+        "zero-vantage case must yield exactly one default evaluation"
+    );
+    assert!(
+        out.iter()
+            .any(|q| q.predicate == logic("evaluationEvaluator")
+                && q.object == n3(&gmeow(UNSPECIFIED_STANDPOINT))),
+        "the single default evaluation must be attributed to gmeow:unspecifiedStandpoint"
+    );
+}
+
+#[test]
 fn contested_evaluations_forward_generates_one_edge_and_retains_both() {
     // Two vantages on the same goal+situation: one Satisfied+completed, one Violated.
     let mut nq = eval_nq(

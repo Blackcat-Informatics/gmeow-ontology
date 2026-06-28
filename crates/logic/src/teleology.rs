@@ -1001,14 +1001,28 @@ fn authored_satisfied_by(facts: &WorldFacts) -> Result<Vec<AuthoredEdge>, String
     let mut out: Vec<AuthoredEdge> = Vec::new();
     for (goal, situation) in edges {
         let stmt = satisfied_by_reifier(&goal, &situation)?;
-        let vantage = facts
-            .object(&stmt, &gmeow(ACCORDING_TO))
-            .map_or_else(|| default_vantage.clone(), str::to_owned);
-        out.push(AuthoredEdge {
-            goal,
-            situation,
-            vantage,
-        });
+        let vantages: Vec<String> = facts
+            .objects(&stmt, &gmeow(ACCORDING_TO))
+            .into_iter()
+            .map(str::to_owned)
+            .collect();
+        if vantages.is_empty() {
+            // No accordingTo present — fall back to the documented default.
+            out.push(AuthoredEdge {
+                goal,
+                situation,
+                vantage: default_vantage.clone(),
+            });
+        } else {
+            // One AuthoredEdge per co-agreeing vantage so no vantage is dropped.
+            for vantage in vantages {
+                out.push(AuthoredEdge {
+                    goal: goal.clone(),
+                    situation: situation.clone(),
+                    vantage,
+                });
+            }
+        }
     }
     Ok(out)
 }
