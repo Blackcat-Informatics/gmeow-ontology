@@ -28,6 +28,13 @@ python = ["dep:pyo3"]
 # The RDF 1.2 kernel: stages exchange an in-memory dataset / bundle and stamp
 # provenance through this crate; the content store backs the pipeline cache.
 gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts"] }
+# The native, zero-dependency XSD value space (#906): the snapshot carrier
+# canonicalizes typed-literal lexical forms (`415.0`→`415.0`, `0.90`→`0.9`,
+# `+00:00`→`Z`) to the W3C-canonical mapping via `gmeow_xsd::parse_by_iri` +
+# `XsdValue::canonical_lexical`, replacing the transient-oxigraph-`Store` literal
+# normalizer (#1132 carrier-purity). DIRECT + NON-optional: the snapshot carrier
+# path is always on, so this must not be feature-gated.
+gmeow-xsd = { path = "../xsd" }
 # The export leaf reads the folded gts Graph model directly and reuses the
 # gmeow-gts N-Quads/TriG serializers (the lossless dataset forms) + the columnar
 # blob model for the parquet leaf (#861 P4). Same pin as gmeow-rdf links.

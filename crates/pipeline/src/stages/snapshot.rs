@@ -1939,21 +1939,34 @@ fn parse_turtle_dataset(
 }
 
 /// Serialize a frozen [`RdfDataset`] to N-Quads, the same byte form every named-graph
-/// source flows through before [`add_named`] re-canonicalizes it. Replaces the old
-/// `dataset_from_store` + serialize round-trip (no oxigraph `Store`).
+/// source flows through before [`add_named`] re-canonicalizes it. Fully native: no
+/// oxigraph `Store`, no oxigraph quad detour.
 ///
-/// CRITICAL: the typed-literal lexical forms are canonicalized to the XSD canonical
-/// mapping (`0.90` → `0.9`, `1.0` → `1`, `+00:00` → `Z`), matching exactly what
-/// inserting into an oxigraph `Store` did in the old `store_to_nquads` path. The native
-/// codecs PRESERVE raw lexical forms, so without this normalize the committed
-/// Store-normalized bundle (and every artifact re-derived from it) would drift. The
-/// canonicalization runs on the flat quad list so quoted-triple objects recurse.
+/// CRITICAL: the typed-literal lexical forms are canonicalized to the W3C-canonical XSD
+/// mapping (`0.90` → `0.9`, `1.0` → `1.0`, `415.0` → `415.0`, `+00:00` → `Z`) via
+/// [`gmeow_xsd::parse_by_iri`] + [`gmeow_xsd::XsdValue::canonical_lexical`]. The native
+/// codecs PRESERVE raw lexical forms on a faithful round-trip, so without this normalize
+/// the committed canonical bundle (and every artifact re-derived from it) would drift.
+/// Byte-compatibility with oxigraph's literal value-space is NOT a goal — correct native
+/// XSD-canonical output is. The canonicalization recurses into quoted-triple (RDF 1.2)
+/// objects, and a malformed typed literal HARD-fails (no-optionality).
+///
+/// The mapped quads / reifier bindings / annotations are re-interned through a fresh
+/// [`gmeow_rdf::RdfDatasetBuilder`] (carrying the full RDF 1.2 statement layer), so the
+/// whole pass stays on the native kernel — no transient oxigraph `Store`.
 fn dataset_to_nquads(dataset: &gmeow_rdf::RdfDataset) -> Result<Vec<u8>, PipelineError> {
-    let quads = flat_oxigraph_quads_from_dataset(dataset)
-        .map_err(|e| stage_err(&format!("dataset → quads: {e}")))?;
-    let canon = gmeow_rdf::oxigraph::canonicalize_quad_literals(&quads)
-        .map_err(|e| stage_err(&format!("literal canonicalize: {e}")))?;
-    let normalized = gmeow_rdf::dataset_from_oxigraph_quads(&canon)
+    let mut builder = gmeow_rdf::RdfDatasetBuilder::new();
+    for quad in dataset.owned_quads() {
+        builder.push_owned_quad(&canonicalize_quad_xsd(quad)?);
+    }
+    for reifier in dataset.owned_reifiers() {
+        builder.push_owned_reifier(&canonicalize_reifier_xsd(reifier)?);
+    }
+    for annotation in dataset.owned_annotations() {
+        builder.push_owned_annotation(&canonicalize_annotation_xsd(annotation)?);
+    }
+    let normalized = builder
+        .freeze()
         .map_err(|e| stage_err(&format!("literal-canonical freeze: {e}")))?;
     serialize_dataset(
         normalized.as_ref(),
@@ -1961,6 +1974,83 @@ fn dataset_to_nquads(dataset: &gmeow_rdf::RdfDataset) -> Result<Vec<u8>, Pipelin
         SerializeGraph::Dataset,
     )
     .map_err(|e| stage_err(&format!("serialize: {e}")))
+}
+
+/// Canonicalize every typed-literal lexical form in an owned [`gmeow_rdf::RdfQuad`] to
+/// the W3C XSD canonical mapping via gmeow-xsd, recursing into quoted-triple terms.
+fn canonicalize_quad_xsd(
+    mut quad: gmeow_rdf::RdfQuad,
+) -> Result<gmeow_rdf::RdfQuad, PipelineError> {
+    canonicalize_term_xsd(&mut quad.subject)?;
+    canonicalize_term_xsd(&mut quad.object)?;
+    if let Some(graph_name) = quad.graph_name.as_mut() {
+        canonicalize_term_xsd(graph_name)?;
+    }
+    Ok(quad)
+}
+
+/// As [`canonicalize_quad_xsd`] for an owned RDF 1.2 reifier binding.
+fn canonicalize_reifier_xsd(
+    mut reifier: gmeow_rdf::RdfReifier,
+) -> Result<gmeow_rdf::RdfReifier, PipelineError> {
+    canonicalize_triple_xsd(&mut reifier.statement)?;
+    canonicalize_term_xsd(&mut reifier.reifier)?;
+    Ok(reifier)
+}
+
+/// As [`canonicalize_quad_xsd`] for an owned RDF 1.2 statement annotation.
+fn canonicalize_annotation_xsd(
+    mut annotation: gmeow_rdf::RdfAnnotation,
+) -> Result<gmeow_rdf::RdfAnnotation, PipelineError> {
+    canonicalize_term_xsd(&mut annotation.reifier)?;
+    canonicalize_term_xsd(&mut annotation.object)?;
+    Ok(annotation)
+}
+
+/// Recurse a single owned [`gmeow_rdf::RdfTriple`], canonicalizing its term literals.
+fn canonicalize_triple_xsd(triple: &mut gmeow_rdf::RdfTriple) -> Result<(), PipelineError> {
+    canonicalize_term_xsd(&mut triple.subject)?;
+    canonicalize_term_xsd(&mut triple.object)?;
+    Ok(())
+}
+
+/// Canonicalize a single owned [`gmeow_rdf::RdfTerm`] in place: a typed literal with a
+/// recognized XSD datatype is rewritten to its W3C-canonical lexical form, a
+/// quoted-triple term recurses, and every other term (IRI, blank node, language-tagged
+/// literal, `xsd:string`/unrecognized-datatype literal) is left VERBATIM.
+///
+/// A malformed lexical for a RECOGNIZED XSD datatype HARD-fails (`Err` from
+/// `parse_by_iri`): an authored ontology should never carry one, so surface it
+/// (no-optionality) rather than silently passing it through.
+fn canonicalize_term_xsd(term: &mut gmeow_rdf::RdfTerm) -> Result<(), PipelineError> {
+    match term {
+        gmeow_rdf::RdfTerm::Literal(literal) => {
+            // A language tag (rdf:langString) has no numeric value space — verbatim.
+            if literal.language.is_some() {
+                return Ok(());
+            }
+            if let Some(datatype_iri) = literal.datatype.as_deref() {
+                match gmeow_xsd::parse_by_iri(&literal.lexical_form, datatype_iri) {
+                    // Recognized XSD datatype → rewrite to the canonical lexical form.
+                    Ok(Some(value)) => literal.lexical_form = value.canonical_lexical(),
+                    // Unrecognized datatype IRI → leave the lexical form VERBATIM.
+                    Ok(None) => {}
+                    // Malformed lexical for a recognized XSD datatype → HARD-fail.
+                    Err(e) => {
+                        return Err(stage_err(&format!(
+                            "malformed typed literal {:?}^^<{datatype_iri}> in the authored ontology: {e:?}",
+                            literal.lexical_form
+                        )));
+                    }
+                }
+            }
+            // A literal with no datatype (xsd:string) has no numeric value space —
+            // verbatim.
+            Ok(())
+        }
+        gmeow_rdf::RdfTerm::Triple(triple) => canonicalize_triple_xsd(triple),
+        gmeow_rdf::RdfTerm::Iri(_) | gmeow_rdf::RdfTerm::BlankNode(_) => Ok(()),
+    }
 }
 
 /// Parse a single Turtle source and serialize it straight to N-Quads (no `Store`).
@@ -2007,6 +2097,133 @@ fn stage_err(message: &str) -> PipelineError {
     PipelineError::Stage {
         stage: "stage-gts-sink".to_string(),
         message: message.to_string(),
+    }
+}
+
+#[cfg(test)]
+mod xsd_canon_tests {
+    use super::*;
+    use gmeow_rdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple};
+
+    const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+    const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
+
+    /// Serialize a single-quad dataset through `dataset_to_nquads` and return the
+    /// canonical N-Quads as a string.
+    fn nquads_of(quad: RdfQuad) -> String {
+        let mut b = RdfDatasetBuilder::new();
+        b.push_owned_quad(&quad);
+        let ds = b.freeze().expect("freeze");
+        String::from_utf8(dataset_to_nquads(ds.as_ref()).expect("nquads")).expect("utf8")
+    }
+
+    fn typed_quad(lexical: &str, datatype: &str) -> RdfQuad {
+        RdfQuad::new(
+            RdfTerm::iri("https://example.org/s"),
+            "https://example.org/p",
+            RdfTerm::literal(RdfLiteral::typed(lexical, datatype)),
+        )
+    }
+
+    /// A recognized XSD datatype is rewritten to its W3C-canonical lexical form —
+    /// `415.0`→`415.0`, `0.90`→`0.9`, `+00:00`→`Z` (correct native output; oxigraph
+    /// byte-parity is NOT a goal).
+    #[test]
+    fn recognized_xsd_literal_is_canonicalized() {
+        for (lex, datatype, expected) in [
+            ("0.90", XSD_DECIMAL, "0.9"),
+            ("415.0", XSD_DECIMAL, "415.0"),
+            ("-200.0", XSD_DECIMAL, "-200.0"),
+            (
+                "2024-06-01T10:00:00+00:00",
+                XSD_DATETIME,
+                "2024-06-01T10:00:00Z",
+            ),
+        ] {
+            let nq = nquads_of(typed_quad(lex, datatype));
+            assert!(
+                nq.contains(&format!("\"{expected}\"^^<{datatype}>")),
+                "{lex}^^<{datatype}> must canonicalize to {expected}; got:\n{nq}"
+            );
+        }
+    }
+
+    /// A language-tagged literal passes through VERBATIM (rdf:langString has no
+    /// numeric value space).
+    #[test]
+    fn language_tagged_literal_is_verbatim() {
+        let nq = nquads_of(RdfQuad::new(
+            RdfTerm::iri("https://example.org/s"),
+            "https://example.org/p",
+            RdfTerm::literal(RdfLiteral::language_tagged("hallo", "de")),
+        ));
+        assert!(
+            nq.contains("\"hallo\"@de"),
+            "lang literal verbatim; got:\n{nq}"
+        );
+    }
+
+    /// An unrecognized-datatype literal passes through VERBATIM (parse_by_iri →
+    /// Ok(None)): `0.90` keeps its trailing zero under a custom datatype.
+    #[test]
+    fn unknown_datatype_literal_is_verbatim() {
+        let custom = "https://example.org/myType";
+        let nq = nquads_of(typed_quad("0.90", custom));
+        assert!(
+            nq.contains(&format!("\"0.90\"^^<{custom}>")),
+            "unknown-datatype literal keeps its raw lexical form; got:\n{nq}"
+        );
+    }
+
+    /// A plain `xsd:string`-no-datatype literal passes through VERBATIM.
+    #[test]
+    fn plain_string_literal_is_verbatim() {
+        let nq = nquads_of(RdfQuad::new(
+            RdfTerm::iri("https://example.org/s"),
+            "https://example.org/p",
+            RdfTerm::literal(RdfLiteral::simple("0.90")),
+        ));
+        assert!(nq.contains("\"0.90\""), "plain string verbatim; got:\n{nq}");
+    }
+
+    /// A malformed lexical for a RECOGNIZED XSD datatype HARD-fails (no-optionality):
+    /// an authored ontology should never carry one, so surface it.
+    #[test]
+    fn malformed_recognized_literal_hard_fails() {
+        let mut b = RdfDatasetBuilder::new();
+        b.push_owned_quad(&typed_quad("not-a-decimal", XSD_DECIMAL));
+        let ds = b.freeze().expect("freeze");
+        let err = dataset_to_nquads(ds.as_ref())
+            .expect_err("a malformed xsd:decimal must hard-fail, not pass through");
+        let msg = format!("{err:?}");
+        assert!(
+            msg.contains("malformed typed literal"),
+            "error must name the malformed typed literal; got: {msg}"
+        );
+    }
+
+    /// A literal nested inside a quoted-triple (RDF 1.2 `<< s p o >>`) object is
+    /// canonicalized too (the recursion contract): `xsd:decimal` `0.90`→`0.9`.
+    #[test]
+    fn quoted_triple_object_literal_is_canonicalized() {
+        let inner = RdfTriple::new(
+            RdfTerm::iri("https://example.org/qs"),
+            "https://example.org/qp",
+            RdfTerm::literal(RdfLiteral::typed("0.90", XSD_DECIMAL)),
+        );
+        let nq = nquads_of(RdfQuad::new(
+            RdfTerm::iri("https://example.org/s"),
+            "https://example.org/p",
+            RdfTerm::triple(inner),
+        ));
+        assert!(
+            nq.contains(&format!("\"0.9\"^^<{XSD_DECIMAL}>")),
+            "the literal inside a quoted triple must canonicalize 0.90→0.9; got:\n{nq}"
+        );
+        assert!(
+            !nq.contains("\"0.90\""),
+            "the raw 0.90 form must not survive inside the quoted triple; got:\n{nq}"
+        );
     }
 }
 
