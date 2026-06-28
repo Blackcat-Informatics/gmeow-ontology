@@ -276,9 +276,15 @@ and the heaviest generated CONSTRUCT projections `schema-org`/`vcard`/`foaf`/
 `missing-definitions` whose per-shard aggregate × CI slowdown blew the budget);
 `gmeow-rdf-capi::c_smoke` (self-builds the libpurrdf cdylib, ~33 s cold
 compile on CI — build-time-bound, already covered by the dedicated `capi` CI job);
-and `w3c_rdfc10_heavy_offgate` (the sole RDFC-1.0 negative/poison vector `test074`,
+`w3c_rdfc10_heavy_offgate` (the sole RDFC-1.0 negative/poison vector `test074`,
 ~5.3 s on the call-budget guard — the rest of the W3C suite is sharded+gated, each
-shard under 1 s).
+shard under 1 s); and the `gmeow-validate`
+`deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate` test (the consumer
+`gmeow validate --deep` AC1: reasons over user data merged with the whole bundled
+TBox via the native Nemo chase, ~50 s full-fold — engine-bound like
+`ontology_entailments`; the same merge→inconsistency path is covered on-gate by the
+fast tiny-TBox `gmeow-logic` unit `reason_all_with_data_*` plus the on-gate
+`deep_pass_failure_*`/`deep_false_*` validate tests).
 
 Nearly the whole `gmeow-docs` test cluster is **on-gate**: each test loads a shared
 `DocsModel` *and* the rendered site for every available language from the

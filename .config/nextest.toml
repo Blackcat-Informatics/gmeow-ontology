@@ -30,6 +30,12 @@
 #     floor that nextest's process-per-test model cannot share; several land at 19-34 s.
 #     Engine-construction-bound and irreducible like ontology_entailments — carved off the
 #     gate, still run on maint-heavy. (Already serialized under the `engine` group below.)
+#   - gmeow-validate deep_surfaces_entailed_inconsistency..._heavy_offgate: the consumer
+#     `gmeow validate --deep` AC1 test reasons over the user data merged with the WHOLE
+#     bundled TBox via the native Nemo chase (~50 s full-fold) — engine-bound and
+#     irreducible like ontology_entailments. The fast per-commit coverage of the same
+#     merge→inconsistency path is the gmeow-logic unit test reason_all_with_data_* (tiny
+#     TBox) plus the on-gate deep_pass_failure_* / deep_false_* validate tests.
 #   - gmeow-conformance goal-rdf-list-functions: Nemo chase case.
 #   - gmeow-pipeline end_to_end / fold_parity / full-fold artifacts / snapshot codec
 #     round-trips / mapping byte-parity / scoreboards acceptance: full-DAG, minutes.
@@ -57,6 +63,7 @@ default-filter = '''
     | (package(gmeow-logic) & binary(ontology_entailments))
     | (package(gmeow-logic) & (binary(sparql_path_parity) | test(/sparql_path_lower::tests/)))
     | (package(gmeow-conformance) & test(/goal-rdf-list-functions/))
+    | (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
     | (package(gmeow-pipeline) & binary(/end_to_end|fold_parity/))
     | (package(gmeow-pipeline) & test(/stages::gts_sink|stages::snapshot::ustar_tests::build_docs_archive|stages::logic::tests::logic_artifacts_reproduce|scoreboards::tests::acceptance_runs_the_real_external_fixture|stages::mappings::tests|stages::docs_render::tests::docs_graph_is_nonempty/))
     | (package(gmeow-slice) & (binary(alignment_parity) | test(/sparql_emit::tests/) | test(/edoal_emit::tests::every_edoal/)))
@@ -136,6 +143,17 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 # grant a far longer terminate cliff than the 60s default — a 4–5-module closure is ~60–90s, well
 # past the default 120s terminate point under the engine memory cap.
 filter = 'package(gmeow-logic) & binary(ontology_entailments)'
+test-group = 'engine'
+slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# The consumer `gmeow validate --deep` AC1 test reasons over the user data merged
+# with the WHOLE bundled TBox via the native Nemo chase (~50s full-fold). It is
+# off-gated via `default-filter` (so it runs only on maint-heavy), but the override
+# still applies there (maint-heavy inherits default): serialize under the `engine`
+# memory group so the full-fold chase does not OOM-thrash, and grant the long
+# terminate cliff the other full-fold reasoning tests use.
+filter = 'package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/)'
 test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 

@@ -603,7 +603,25 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), S
         .map_err(|e| format!("validate --deep: GTS read error: {e}"))?;
     let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref())
         .map_err(|e| format!("validate --deep: native reasoning failed: {e}"))?;
+    fold_reasoning_result(&result, report);
+    Ok(())
+}
 
+/// Fold a shared `logic:ReasoningResult` verdict into `report` as the deep-pass
+/// finding projection. The SINGLE fold both the dev bundle-only pass
+/// ([`deep_semantic_findings`]) and the consumer user-data-merge pass
+/// ([`crate::data_validate::run`]) share, so the two surfaces can never drift.
+///
+/// Emits an error per contradiction witness when the run is inconsistent
+/// (`information=both`), a warning per unsatisfiable (provably-empty) class, and a
+/// warning per DL construct the native reasoner could not decide
+/// (`preservation.unsupported_constructs`). A consistent, fully-covered run adds one
+/// informational note. These findings are a projection of the single shared model,
+/// not a re-derivation.
+pub(crate) fn fold_reasoning_result(
+    result: &gmeow_logic::result::ReasoningResult,
+    report: &mut Report,
+) {
     if !result.is_consistent() {
         for witness in &result.provenance.contradiction_witnesses {
             report.add_finding(
@@ -665,8 +683,6 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), S
             .with_tool("validate"),
         );
     }
-
-    Ok(())
 }
 
 /// Convert a SHACL [`ValidationReport`] into structured findings via the

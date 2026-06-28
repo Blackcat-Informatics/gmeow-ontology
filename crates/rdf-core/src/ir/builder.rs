@@ -23,7 +23,7 @@ use std::sync::Arc;
 
 use hashbrown::HashTable;
 
-use crate::{RdfLiteral, RdfQuad, RdfTerm, RdfTextDirection};
+use crate::{RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTextDirection};
 
 use super::dataset::{QuadHandle, QuadIds, QuadRow, RdfDataset};
 use super::term::{
@@ -310,6 +310,12 @@ pub struct RdfDatasetBuilder {
     /// Sparse source locations keyed by the pushed-quad ordinal. Only quads with a
     /// recorded location appear here.
     locations: Vec<(QuadHandle, RdfLocation)>,
+    /// Counter for the next blank-node scope to use when merging a foreign dataset
+    /// via [`push_dataset`](RdfDatasetBuilder::push_dataset). Each call to
+    /// `push_dataset` claims one fresh scope (starting at 1; 0 = DEFAULT) so that
+    /// blank nodes from different source datasets can never collide even when their
+    /// labels are identical (standardize-apart, C0.2).
+    next_merge_scope: u32,
 }
 
 impl Default for RdfDatasetBuilder {
@@ -332,6 +338,13 @@ impl Extend<QuadIds> for RdfDatasetBuilder {
         // duplicates the reserve is a harmless over-estimate.
         let reserve = iter.size_hint().0;
         if reserve > 0 {
+            // Fail BEFORE mutating: quad ids are u32 (C0.8), so a merge that would
+            // push the table past u32::MAX must abort up front rather than reserve
+            // and then panic mid-loop in `next_id`/`intern` with a half-grown table.
+            assert!(
+                self.quads.len() + reserve <= u32::MAX as usize,
+                "bulk quad push exceeds maximum quad capacity of u32::MAX"
+            );
             self.quads.reserve(reserve);
             self.quad_index
                 .reserve(reserve, |&i| hash_of(&self.quads[i as usize]));
@@ -355,6 +368,8 @@ impl RdfDatasetBuilder {
             annotations: Vec::new(),
             annotation_index: HashTable::new(),
             locations: Vec::new(),
+            // Merge scopes start at 1; scope 0 is BlankScope::DEFAULT (local pushes).
+            next_merge_scope: 1,
         }
     }
 
@@ -421,15 +436,26 @@ impl RdfDatasetBuilder {
     /// This is the inverse of [`RdfDataset::to_owned_quad`](super::dataset::RdfDataset::to_owned_quad)
     /// at the owned boundary: tests and adapter edges that already hold
     /// [`RdfTerm`] values can freeze them into the concrete IR without detouring.
+    ///
+    /// Blank nodes are interned under [`BlankScope::DEFAULT`]. For cross-dataset
+    /// merges use [`push_dataset`](Self::push_dataset), which assigns a fresh scope
+    /// per merged dataset (standardize-apart, C0.2).
     pub fn intern_owned_term(&mut self, term: &RdfTerm) -> TermId {
+        self.intern_owned_term_scoped(term, BlankScope::DEFAULT)
+    }
+
+    /// Like [`intern_owned_term`](Self::intern_owned_term) but overrides the scope
+    /// used for every blank node (including blanks nested inside quoted triples).
+    /// Private: callers outside this module use the public `push_dataset` path.
+    fn intern_owned_term_scoped(&mut self, term: &RdfTerm, scope: BlankScope) -> TermId {
         match term {
             RdfTerm::Iri(iri) => self.intern_iri(iri.clone()),
-            RdfTerm::BlankNode(label) => self.intern_blank(label.clone(), BlankScope::DEFAULT),
+            RdfTerm::BlankNode(label) => self.intern_blank(label.clone(), scope),
             RdfTerm::Literal(literal) => self.intern_literal(literal.clone()),
             RdfTerm::Triple(triple) => {
-                let s = self.intern_owned_term(&triple.subject);
+                let s = self.intern_owned_term_scoped(&triple.subject, scope);
                 let p = self.intern_iri(triple.predicate.clone());
-                let o = self.intern_owned_term(&triple.object);
+                let o = self.intern_owned_term_scoped(&triple.object, scope);
                 self.intern_triple(s, p, o)
             }
         }
@@ -441,17 +467,107 @@ impl RdfDatasetBuilder {
     /// owned quad is preserved on the corresponding pushed quad handle. Structural
     /// validity remains the normal [`freeze`](Self::freeze) contract.
     pub fn push_owned_quad(&mut self, quad: &RdfQuad) {
+        self.push_owned_quad_scoped(quad, BlankScope::DEFAULT);
+    }
+
+    /// Like [`push_owned_quad`](Self::push_owned_quad) but routes blank interning
+    /// through `scope` (standardize-apart support for `push_dataset`).
+    fn push_owned_quad_scoped(&mut self, quad: &RdfQuad, scope: BlankScope) {
         let handle = self.next_quad_handle();
-        let s = self.intern_owned_term(&quad.subject);
+        let s = self.intern_owned_term_scoped(&quad.subject, scope);
         let p = self.intern_iri(quad.predicate.clone());
-        let o = self.intern_owned_term(&quad.object);
+        let o = self.intern_owned_term_scoped(&quad.object, scope);
         let g = quad
             .graph_name
             .as_ref()
-            .map(|graph_name| self.intern_owned_term(graph_name));
+            .map(|graph_name| self.intern_owned_term_scoped(graph_name, scope));
         self.push_quad(s, p, o, g);
         if let Some(location) = &quad.location {
             self.attach_location(handle, location.clone());
+        }
+    }
+
+    /// Push one owned RDF 1.2 reifier binding into this builder, re-interning the
+    /// reifier resource and the bound triple's `(s, p, o)` terms. The companion of
+    /// [`push_owned_quad`](Self::push_owned_quad) for the reifier side-table.
+    pub fn push_owned_reifier(&mut self, reifier: &RdfReifier) {
+        self.push_owned_reifier_scoped(reifier, BlankScope::DEFAULT);
+    }
+
+    /// Like [`push_owned_reifier`](Self::push_owned_reifier) but routes blank
+    /// interning through `scope`.
+    fn push_owned_reifier_scoped(&mut self, reifier: &RdfReifier, scope: BlankScope) {
+        let s = self.intern_owned_term_scoped(&reifier.statement.subject, scope);
+        let p = self.intern_iri(reifier.statement.predicate.clone());
+        let o = self.intern_owned_term_scoped(&reifier.statement.object, scope);
+        let triple = self.intern_triple(s, p, o);
+        let reifier_id = self.intern_owned_term_scoped(&reifier.reifier, scope);
+        self.push_reifier(reifier_id, triple);
+    }
+
+    /// Push one owned RDF 1.2 statement annotation into this builder, re-interning
+    /// the reifier resource and the `(predicate, object)` terms.
+    pub fn push_owned_annotation(&mut self, annotation: &RdfAnnotation) {
+        self.push_owned_annotation_scoped(annotation, BlankScope::DEFAULT);
+    }
+
+    /// Like [`push_owned_annotation`](Self::push_owned_annotation) but routes blank
+    /// interning through `scope`.
+    fn push_owned_annotation_scoped(&mut self, annotation: &RdfAnnotation, scope: BlankScope) {
+        let reifier_id = self.intern_owned_term_scoped(&annotation.reifier, scope);
+        let p = self.intern_iri(annotation.predicate.clone());
+        let o = self.intern_owned_term_scoped(&annotation.object, scope);
+        self.push_annotation(reifier_id, p, o);
+    }
+
+    /// Merge every quad, reifier, and annotation of `other` into this builder,
+    /// re-interning each owned term into THIS builder's interner (`TermId`s are
+    /// dataset-local, C0.8). This is the cross-dataset form the
+    /// [`Extend<QuadIds>`] doc reserves as follow-up: unlike the id-based bulk push,
+    /// it carries the FULL RDF 1.2 statement layer — reifier bindings and
+    /// annotations, not just base quads — so merging a graph that carries `<<>>` /
+    /// `rdf:reifies` does not silently drop its side-tables. Duplicates collapse on
+    /// freeze per the normal C0.4/C0.5 contract.
+    ///
+    /// # Standardize-apart (blank-node safety)
+    ///
+    /// Each call to `push_dataset` allocates a FRESH [`BlankScope`] for `other`
+    /// (scopes 1, 2, 3, … on successive calls; scope 0 is [`BlankScope::DEFAULT`]
+    /// reserved for direct `push_owned_*` pushes). Blank nodes from different source
+    /// datasets can therefore never collide even when they share the same label
+    /// (e.g. both datasets have `_:b0`). The qualified label rendered for legacy
+    /// consumers is `"{label}.s{n}"` per [`BlankScope::qualify_label`] (C0.2).
+    pub fn push_dataset(&mut self, other: &RdfDataset) {
+        // Allocate one fresh scope for this entire `other` dataset.
+        let scope = BlankScope(self.next_merge_scope);
+        self.next_merge_scope = self
+            .next_merge_scope
+            .checked_add(1)
+            .expect("merge scope counter exceeded u32::MAX");
+
+        // Reserve the dominant quad table up front (mirrors the Extend<QuadIds>
+        // reserve); the reifier/annotation tables grow on demand.
+        let reserve = other.quad_count();
+        if reserve > 0 {
+            // Fail BEFORE mutating: the merged quad table is u32-indexed, so abort
+            // up front if `other` would overflow it rather than corrupt builder
+            // state midway through the merge loop.
+            assert!(
+                self.quads.len() + reserve <= u32::MAX as usize,
+                "dataset merge exceeds maximum quad capacity of u32::MAX"
+            );
+            self.quads.reserve(reserve);
+            self.quad_index
+                .reserve(reserve, |&i| hash_of(&self.quads[i as usize]));
+        }
+        for quad in other.owned_quads() {
+            self.push_owned_quad_scoped(&quad, scope);
+        }
+        for reifier in other.owned_reifiers() {
+            self.push_owned_reifier_scoped(&reifier, scope);
+        }
+        for annotation in other.owned_annotations() {
+            self.push_owned_annotation_scoped(&annotation, scope);
         }
     }
 
@@ -832,6 +948,162 @@ mod tests {
             ds.annotations().count(),
             1,
             "duplicate annotation collapses"
+        );
+    }
+
+    /// `push_dataset` re-interns a foreign dataset's base quads into a fresh
+    /// builder's interner; quads shared with an already-merged dataset collapse.
+    #[test]
+    fn push_dataset_merges_and_dedupes_quads() {
+        let dataset_a = {
+            let mut b = RdfDatasetBuilder::new();
+            let (s, p, o, o2) = (
+                iri(&mut b, "s"),
+                iri(&mut b, "p"),
+                iri(&mut b, "o"),
+                iri(&mut b, "o2"),
+            );
+            b.push_quad(s, p, o, None);
+            b.push_quad(s, p, o2, None);
+            b.freeze().expect("valid A")
+        };
+        let dataset_b = {
+            let mut b = RdfDatasetBuilder::new();
+            let (s, s2, p, o, o2) = (
+                iri(&mut b, "s"),
+                iri(&mut b, "s2"),
+                iri(&mut b, "p"),
+                iri(&mut b, "o"),
+                iri(&mut b, "o2"),
+            );
+            b.push_quad(s2, p, o, None); // B-only quad
+            b.push_quad(s, p, o2, None); // shared with A → collapses on merge
+            b.freeze().expect("valid B")
+        };
+
+        let mut merged = RdfDatasetBuilder::new();
+        merged.push_dataset(&dataset_a);
+        merged.push_dataset(&dataset_b);
+        let merged = merged.freeze().expect("valid merged");
+
+        assert_eq!(
+            merged.quad_count(),
+            3,
+            "A(2) + B(2) with one shared quad → 3 distinct rows"
+        );
+        // The B-only quad resolves through the merged interner.
+        let has_b_only = merged.owned_quads().any(|q| {
+            q.subject == RdfTerm::Iri("http://example.org/s2".to_string())
+                && q.predicate == "http://example.org/p"
+                && q.object == RdfTerm::Iri("http://example.org/o".to_string())
+        });
+        assert!(has_b_only, "B-only quad survives the cross-dataset merge");
+    }
+
+    /// `push_dataset` carries the FULL RDF 1.2 statement layer: a merged dataset's
+    /// reifier bindings AND annotations survive, not just its base quads. (A
+    /// quad-only merge would silently drop these — the regression this guards.)
+    #[test]
+    fn push_dataset_carries_reifiers_and_annotations() {
+        let dataset = {
+            let mut b = RdfDatasetBuilder::new();
+            let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
+            let triple = b.intern_triple(s, p, o);
+            let r = iri(&mut b, "r");
+            let ap = iri(&mut b, "ap");
+            let ao = iri(&mut b, "ao");
+            b.push_reifier(r, triple);
+            b.push_annotation(r, ap, ao);
+            b.freeze().expect("valid source")
+        };
+
+        let mut merged = RdfDatasetBuilder::new();
+        merged.push_dataset(&dataset);
+        let merged = merged.freeze().expect("valid merged");
+
+        assert_eq!(
+            merged.reifiers().count(),
+            1,
+            "reifier binding survives merge"
+        );
+        assert_eq!(merged.annotations().count(), 1, "annotation survives merge");
+
+        let reifier = merged.owned_reifiers().next().expect("one reifier");
+        assert_eq!(
+            reifier.reifier,
+            RdfTerm::Iri("http://example.org/r".to_string())
+        );
+        assert_eq!(
+            reifier.statement.subject,
+            RdfTerm::Iri("http://example.org/s".to_string())
+        );
+        let annotation = merged.owned_annotations().next().expect("one annotation");
+        assert_eq!(
+            annotation.reifier,
+            RdfTerm::Iri("http://example.org/r".to_string())
+        );
+        assert_eq!(annotation.predicate, "http://example.org/ap");
+        assert_eq!(
+            annotation.object,
+            RdfTerm::Iri("http://example.org/ao".to_string())
+        );
+    }
+
+    /// `push_dataset` must NOT collapse blank nodes that have the same label but
+    /// originate from DIFFERENT source datasets (standardize-apart, C0.2).
+    ///
+    /// WITHOUT standardize-apart these would collapse to one node.
+    #[test]
+    fn push_dataset_standardizes_apart_blank_nodes() {
+        // Dataset A: single quad  _:b0 <ex:p> <ex:o1>
+        let dataset_a = {
+            let mut b = RdfDatasetBuilder::new();
+            let s = b.intern_blank("b0".to_string(), BlankScope::DEFAULT);
+            let p = b.intern_iri("http://example.org/p".to_string());
+            let o = b.intern_iri("http://example.org/o1".to_string());
+            b.push_quad(s, p, o, None);
+            b.freeze().expect("valid A")
+        };
+
+        // Dataset B: single quad  _:b0 <ex:p> <ex:o2>  (same blank label, different object)
+        let dataset_b = {
+            let mut b = RdfDatasetBuilder::new();
+            let s = b.intern_blank("b0".to_string(), BlankScope::DEFAULT);
+            let p = b.intern_iri("http://example.org/p".to_string());
+            let o = b.intern_iri("http://example.org/o2".to_string());
+            b.push_quad(s, p, o, None);
+            b.freeze().expect("valid B")
+        };
+
+        let mut merged = RdfDatasetBuilder::new();
+        merged.push_dataset(&dataset_a);
+        merged.push_dataset(&dataset_b);
+        let merged = merged.freeze().expect("valid merged");
+
+        // Both quads must survive: without standardize-apart the two _:b0 subjects
+        // would collapse into one node and one of the two objects would be lost.
+        assert_eq!(merged.quad_count(), 2, "both quads survive the merge");
+
+        // The two blank subject nodes must be DISTINCT (different TermIds / qualified
+        // labels), because they came from different source datasets.
+        let subjects: Vec<_> = merged.owned_quads().map(|q| q.subject).collect();
+        assert_eq!(subjects.len(), 2);
+        // Collect the unique subject labels; standardize-apart gives them distinct
+        // qualified labels via BlankScope::qualify_label.
+        let subject_labels: std::collections::HashSet<String> = subjects
+            .iter()
+            .filter_map(|t| {
+                if let RdfTerm::BlankNode(label) = t {
+                    Some(label.clone())
+                } else {
+                    None
+                }
+            })
+            .collect();
+        assert_eq!(
+            subject_labels.len(),
+            2,
+            "two distinct blank-node subjects after standardize-apart; got: {subject_labels:?}"
         );
     }
 

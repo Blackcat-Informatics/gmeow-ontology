@@ -17,16 +17,23 @@
 //!    graph); and
 //! 2. the six **gUFO/OntoUML disciplines** ([`crate::gufo::reasoning_invariants`]).
 //!
-//! No reasoner runs here — full consistency is the separate `--deep` pass. The
-//! bundle is the only input besides the data file, so the path is repo-free and
-//! Docker-free: an installed wheel carrying the folded `gmeow.gts` is sufficient.
+//! Tier-1 runs no reasoner. The opt-in **Tier-2 `--deep`** pass additionally runs
+//! the native DL reasoner over the user's data graph MERGED with the bundle's
+//! axioms, surfacing entailed contradictions the structural checks cannot see; it
+//! degrades gracefully (an advisory note, never a hard failure) if the semantic
+//! pass cannot run. The bundle is the only input besides the data file, so the path
+//! is repo-free and Docker-free: an installed wheel carrying the folded `gmeow.gts`
+//! is sufficient.
 //!
 //! The data-graph shape *selection* is authoritative here in Rust (the bundle
 //! reader untars `shapes-archive` and applies the exclusion set) rather than in
 //! the Python CLI surface, which passes only raw bytes.
 
+use std::sync::Arc;
+
 use gmeow_diagnostics::model::Location;
-use gmeow_diagnostics::Report;
+use gmeow_diagnostics::{Finding, Report, Severity};
+use gmeow_rdf::RdfDataset;
 use gmeow_shacl::shape_union::EXCLUDED;
 use oxigraph::store::Store;
 
@@ -49,22 +56,30 @@ const REP_SHAPES: &str = "shapes-archive";
 /// file's display path, recorded as each SHACL finding's physical location so
 /// SARIF `artifactLocation.uri` points at the user's file.
 ///
-/// The data graph is validated in isolation (no ontology merge): every shape is
+/// Tier-1 validates the data graph in isolation (no ontology merge): every shape is
 /// self-contained (`sh:targetClass` + constraints), so direct `rdf:type`
 /// assertions resolve without the TBox, and the finding set reflects only the
 /// user's graph. Named graphs in TriG/N-Quads are flattened to the default graph
 /// so the shapes see every triple.
 ///
+/// When `deep` is set, the opt-in **Tier-2** semantic pass additionally reasons over
+/// the user's data MERGED with the bundle's axioms and folds the shared
+/// `logic:ReasoningResult` verdict into the same report. Tier-2 degrades gracefully:
+/// any failure of the semantic pass becomes a single `validate.deep.unavailable`
+/// advisory note, leaving the complete Tier-1 result and its exit code intact.
+///
 /// # Errors
 ///
 /// Returns `Err` if the bundle carries no `shapes-archive` blob, the archive is
-/// malformed, the shapes fail to parse, or the data graph fails to parse.
+/// malformed, the shapes fail to parse, or the data graph fails to parse. A Tier-2
+/// (`deep`) failure is NOT an error — it is folded as an advisory note.
 pub fn run(
     data_bytes: &[u8],
     data_format: &str,
     gts_bytes: &[u8],
     namespace: &str,
     origin: &str,
+    deep: bool,
 ) -> Result<Report, String> {
     let shapes_ttl = data_graph_shapes_from_gts(gts_bytes)?;
     let store = data_store(data_bytes, data_format)?;
@@ -91,7 +106,100 @@ pub fn run(
         }
         report.add_finding(f);
     }
+
+    // Tier-2 (`--deep`): opt-in native semantic pass over user data + bundle axioms.
+    if deep {
+        run_deep_pass(gts_bytes, data_bytes, data_format, origin, &mut report);
+    }
+
     Ok(report)
+}
+
+/// Run the opt-in Tier-2 deep pass, folding either its verdict findings or — on any
+/// failure — a single `validate.deep.unavailable` advisory note into `report`.
+///
+/// This is the graceful-degradation boundary: a Tier-2 failure NEVER propagates, so
+/// the complete Tier-1 result and its exit code are always preserved. (In the shipped
+/// consumer wheel the reasoner co-ships with the validator in one native extension,
+/// so a literally absent reasoner is not a runtime state; this branch covers
+/// reasoning parse/read/run failures, which equally satisfy the never-crash contract.)
+fn run_deep_pass(
+    gts_bytes: &[u8],
+    data_bytes: &[u8],
+    data_format: &str,
+    origin: &str,
+    report: &mut Report,
+) {
+    let start = report.findings.len();
+    if let Err(e) = deep_consistency_findings(gts_bytes, data_bytes, data_format, report) {
+        let mut finding = Finding::new(
+            Severity::Note,
+            "validate.deep.unavailable",
+            format!("deep semantic pass skipped: {e}"),
+        )
+        .with_tool("validate");
+        finding.add_location(Location {
+            path: Some(origin.to_owned()),
+            ..Location::default()
+        });
+        report.add_finding(finding);
+        return;
+    }
+    for finding in &mut report.findings[start..] {
+        if finding.locations.is_empty() {
+            finding.add_location(Location {
+                path: Some(origin.to_owned()),
+                ..Location::default()
+            });
+        }
+    }
+}
+
+/// The opt-in Tier-2 semantic pass: reason over the user's data graph merged with
+/// the bundle's axioms and fold the shared `logic:ReasoningResult` verdict into
+/// `report` via [`crate::validate_all::fold_reasoning_result`] (the single fold the
+/// dev bundle-only pass also uses).
+///
+/// Unlike Tier-1 (which flattens to the default graph for SHACL), the reasoning
+/// dataset is parsed graph-preserving so the world-scoped native reasoner sees the
+/// user's worlds. This is a second parse of the data bytes, paid only on `--deep`.
+///
+/// # Errors
+///
+/// Returns `Err` if the bundle cannot be read, the user data cannot be parsed into a
+/// reasoning dataset, or the native reasoning run fails. The caller turns any such
+/// error into an advisory note (graceful degradation).
+fn deep_consistency_findings(
+    gts_bytes: &[u8],
+    data_bytes: &[u8],
+    data_format: &str,
+    report: &mut Report,
+) -> Result<(), String> {
+    let bundle =
+        gmeow_rdf::import_gts_events(gts_bytes).map_err(|e| format!("GTS read error: {e}"))?;
+    let user = data_dataset(data_bytes, data_format)?;
+    let result = gmeow_logic::reason::reason_all_with_data(bundle.dataset.as_ref(), user.as_ref())
+        .map_err(|e| format!("native reasoning failed: {e}"))?;
+    crate::validate_all::fold_reasoning_result(&result, report);
+    Ok(())
+}
+
+/// Parse external RDF data bytes into a graph-preserving [`RdfDataset`] for the
+/// Tier-2 reasoner (the world structure must survive, so this does NOT flatten the
+/// way [`data_store`] does for SHACL). Handles every supported format, routing
+/// JSON-LD through the gmeow-gts codec exactly as [`data_store`] does.
+fn data_dataset(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>, String> {
+    if is_json_ld(data_format) {
+        let text = std::str::from_utf8(data_bytes)
+            .map_err(|e| format!("data file is not valid UTF-8: {e}"))?;
+        let gts = gmeow_gts::from_yamlld::from_json_ld(text)
+            .map_err(|e| format!("JSON-LD parse error: {e}"))?;
+        let bundle = gmeow_rdf::import_gts_events(&gts)
+            .map_err(|e| format!("JSON-LD dataset read error: {e}"))?;
+        return Ok(bundle.dataset);
+    }
+    gmeow_rdf::parse_dataset(data_bytes, data_format, None)
+        .map_err(|e| format!("data graph parse error: {e}"))
 }
 
 /// Build an in-memory oxigraph store from external RDF data bytes, flattening any
@@ -215,6 +323,61 @@ mod tests {
         assert!(is_json_ld("  JSON-LD  "));
         assert!(!is_json_ld("turtle"));
         assert!(!is_json_ld("application/json"));
+    }
+
+    #[test]
+    fn deep_pass_failure_folds_advisory_note_and_preserves_tier1() {
+        // Graceful degradation (AC2): when the Tier-2 pass cannot run — here the
+        // bundle bytes are unreadable, so import_gts_events fails — the pre-existing
+        // Tier-1 findings survive unchanged and exactly one validate.deep.unavailable
+        // advisory Note is folded. No panic, no error propagation.
+        let mut report = Report::new("validate");
+        report.add_finding(
+            Finding::new(
+                Severity::Error,
+                "tier1.fixture",
+                "a pre-existing Tier-1 finding",
+            )
+            .with_tool("validate"),
+        );
+
+        run_deep_pass(
+            b"not a gts bundle",
+            b"ex:a ex:b ex:c .",
+            "turtle",
+            "fixture.ttl",
+            &mut report,
+        );
+
+        let unavailable: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.code == "validate.deep.unavailable")
+            .collect();
+        assert_eq!(
+            unavailable.len(),
+            1,
+            "exactly one advisory note on a failed deep pass: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+        assert_eq!(unavailable[0].severity, Severity::Note);
+        assert_eq!(
+            unavailable[0]
+                .locations
+                .first()
+                .and_then(|l| l.path.as_deref()),
+            Some("fixture.ttl"),
+            "validate.deep.unavailable must carry the origin path as its location"
+        );
+        assert!(
+            report.findings.iter().any(|f| f.code == "tier1.fixture"),
+            "the pre-existing Tier-1 finding must be preserved"
+        );
+        // No inconsistency error was fabricated from the failed pass.
+        assert!(!report
+            .findings
+            .iter()
+            .any(|f| f.code == "validate.deep.inconsistent"));
     }
 
     #[test]
