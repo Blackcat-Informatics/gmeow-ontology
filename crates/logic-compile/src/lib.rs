@@ -43,4 +43,5 @@ pub mod frontend;
 pub mod graphutil;
 pub mod ir;
 pub mod projections;
+pub mod relational_core;
 pub mod result_shape;

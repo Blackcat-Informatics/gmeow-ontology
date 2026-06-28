@@ -35,6 +35,9 @@ use gmeow_diagnostics::{Finding, Location, Severity};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::LogicProgram;
 use gmeow_logic_compile::projections::compile_program;
+use gmeow_logic_compile::relational_core::{
+    lower_program, project_relational_core, RelationalCoreProgram,
+};
 use gmeow_rdf::provenance::DatasetProvenance;
 use gmeow_rdf::{parse_dataset, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfTerm};
 
@@ -53,6 +56,18 @@ pub const SOURCE_PATH: &str = "slices/core/logic/module.ttl";
 /// in-graph carriage and the typed handle are the two faces of one content identity.
 pub const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic";
 
+/// The named-graph IRI carrying the deterministic RDF projection of the relational-core
+/// lowering of the compiled [`LogicProgram`] (#1132 C8) — the engine-agnostic
+/// Datalog±-with-stratified-negation dialect lowered from the program's Horn `rules`.
+/// The compile-logic stage pins its typed [`PipelineHandle::RelationalCore`] handle to
+/// THIS graph's canonical digest, and `stage-snapshot` folds the same projection into the
+/// bundle under this IRI — so the in-graph carriage and the typed handle are the two faces
+/// of one content identity. A downstream consumer reads this LOWERED lane WITHOUT
+/// re-lowering. When the full-FOL formula lowering lands, its richer lowering plugs into
+/// this SAME lane (same dialect + carried residue).
+pub const GRAPH_RELATIONAL_CORE: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/relational-core";
+
 /// Committed OWL 2 DL projection.
 pub const OWL_DL_PATH: &str = "generated/owl/gmeow-dl.ttl";
 /// Committed OWL 2 EL projection.
@@ -69,6 +84,11 @@ pub const CANONICAL_RDF12_PATH: &str = "generated/logic/gmeow.logic.rdf12.ttl";
 pub const RULES_PATH: &str = "generated/logic/gmeow.rls";
 /// Committed projection-report loss ledger (preservation kinds + lossy drops).
 pub const PROJECTION_REPORT_PATH: &str = "generated/logic/projection-report.ttl";
+/// Committed relational-core dialect projection (#1132 C8): the deterministic N-Triples
+/// RDF projection of the [`RelationalCoreProgram`] lowered from the program's Horn rules.
+/// It is BOTH a committed artifact AND the backing graph the typed RelationalCore handle
+/// pins to (the same role the canonical RDF-1.2 projection plays for the Logic handle).
+pub const RELATIONAL_CORE_PATH: &str = "generated/logic/gmeow.relational-core.nt";
 
 /// Committed JSON projection of the compile diagnostics report.
 pub const DIAG_JSON_PATH: &str = "generated/diagnostics/logic-compile.json";
@@ -151,6 +171,19 @@ impl Stage for CompileLogicStage {
         artifacts.insert(RULES_PATH.to_string(), arts.nemo.into_bytes());
         artifacts.insert(PROJECTION_REPORT_PATH.to_string(), arts.report.into_bytes());
 
+        // The relational-core lowering (#1132 C8): lower the program's Horn rules into the
+        // engine-agnostic Datalog±-with-stratified-negation dialect, then project it into
+        // a deterministic N-Triples graph. Keep the projection: it is BOTH a committed
+        // artifact AND the backing graph the typed RelationalCore handle pins to. The
+        // lowering runs EXACTLY ONCE here; every downstream consumer reads the typed handle
+        // (or the folded graph), never re-lowering.
+        let relational_core = lower_program(&program);
+        let relational_core_nt = project_relational_core(&relational_core);
+        artifacts.insert(
+            RELATIONAL_CORE_PATH.to_string(),
+            relational_core_nt.clone().into_bytes(),
+        );
+
         // The compile diagnostics: the front-end parse findings (already coded
         // `logic-compile.<code>` by the shared bridge) plus one note finding per
         // structural lossy drop, so the loss ledger reaches the SARIF surface.
@@ -201,7 +234,13 @@ impl Stage for CompileLogicStage {
         // folded into the `graph/logic` named graph. A downstream consumer takes the
         // typed `Arc<LogicProgram>` and never re-parses the logic graph; on a cache
         // hit the cache re-derives it from the backing graph via `parse_logic_dataset`.
-        let bundle = build_logic_bundle(program, &canonical_rdf12, artifacts)?;
+        let bundle = build_logic_bundle(
+            program,
+            &canonical_rdf12,
+            relational_core,
+            &relational_core_nt,
+            artifacts,
+        )?;
         Ok(StageOutput {
             product: StageProduct::from_bundle(self.id(), Arc::new(bundle)),
         })
@@ -221,9 +260,18 @@ impl Stage for CompileLogicStage {
 fn build_logic_bundle(
     program: LogicProgram,
     canonical_rdf12_turtle: &str,
+    relational_core: RelationalCoreProgram,
+    relational_core_nt: &str,
     artifacts: BTreeMap<String, Vec<u8>>,
 ) -> Result<PipelineBundle<PipelineHandle>, PipelineError> {
-    let dataset = logic_graph_dataset(canonical_rdf12_turtle)?;
+    // Both handles ride one bundle: union their backing graphs (each in its own named
+    // graph) so each pins to the dataset the bundle carries.
+    let logic_dataset = logic_graph_dataset(canonical_rdf12_turtle)?;
+    let rc_dataset = relational_core_graph_dataset(relational_core_nt)?;
+    let dataset = Arc::new(gmeow_rdf::RdfDataset::union(&[
+        logic_dataset.as_ref(),
+        rc_dataset.as_ref(),
+    ]));
     let mut bundle = bundle_from_artifacts_over(dataset, artifacts, DatasetProvenance::new());
     let pinned = bundle.graph_digest(GRAPH_LOGIC);
     bundle
@@ -233,7 +281,41 @@ fn build_logic_bundle(
             pinned,
         )
         .map_err(|e| stage_err(format!("pin Logic handle to <{GRAPH_LOGIC}>: {e}")))?;
+    // The REAL typed RelationalCore handle (#1132 C8): the typed dialect, pinned to its
+    // backing `graph/relational-core` projection. `pin_handle` HARD-fails on a digest
+    // mismatch, so a handle that disagrees with its backing graph can never attach.
+    let pinned_rc = bundle.graph_digest(GRAPH_RELATIONAL_CORE);
+    bundle
+        .pin_handle(
+            GRAPH_RELATIONAL_CORE,
+            PipelineHandle::RelationalCore(Arc::new(relational_core)),
+            pinned_rc,
+        )
+        .map_err(|e| {
+            stage_err(format!(
+                "pin RelationalCore handle to <{GRAPH_RELATIONAL_CORE}>: {e}"
+            ))
+        })?;
     Ok(bundle)
+}
+
+/// Parse the relational-core N-Triples projection and route every triple into the
+/// `graph/relational-core` named graph of a fresh frozen dataset — the backing graph the
+/// typed RelationalCore handle pins to and the cache re-derives the dialect from. Mirrors
+/// [`logic_graph_dataset`] so the in-graph carriage and the handle pin to one identity.
+fn relational_core_graph_dataset(projection_nt: &str) -> Result<Arc<RdfDataset>, PipelineError> {
+    let parsed = parse_dataset(projection_nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| stage_err(format!("parse relational-core projection: {e}")))?;
+    let graph = RdfTerm::Iri(GRAPH_RELATIONAL_CORE.to_owned());
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in parsed.owned_quads() {
+        let mut routed = quad.clone();
+        routed.graph_name = Some(graph.clone());
+        builder.push_owned_quad(&routed);
+    }
+    builder
+        .freeze()
+        .map_err(|e| stage_err(format!("freeze graph/relational-core dataset: {e}")))
 }
 
 /// Parse the canonical RDF-1.2 projection Turtle and route every triple into the
@@ -469,6 +551,138 @@ mod tests {
                 gmeow_rdf::PipelineBundleError::HandleDigestMismatch { .. }
             ),
             "the Logic handle pin must fail closed on a digest mismatch, got {err:?}"
+        );
+    }
+
+    // ── #1132 C8: the relational-core carrier lane ──────────────────────────────
+
+    /// The compile-logic stage pins a REAL typed [`PipelineHandle::RelationalCore`]
+    /// handle to `graph/relational-core`, and that handle re-derives (via the SAME
+    /// reverse parser the cache uses) from its backing graph to a content-key-EQUAL
+    /// dialect. Over main's Horn rules the lowering is `{exact}` (no residue).
+    #[test]
+    fn stage_pins_relational_core_handle_re_derivable_to_equal_dialect() {
+        use gmeow_logic_compile::relational_core::parse_relational_core;
+        let root = repo_root();
+        let upstream = BTreeMap::new();
+        let out = CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &upstream,
+            })
+            .expect("compile-logic stage");
+        let bundle = out.product.bundle();
+        let entry = bundle
+            .handle(GRAPH_RELATIONAL_CORE)
+            .expect("the stage pins a RelationalCore handle to graph/relational-core");
+        // The pin is digest-valid: the pinned digest equals the live backing digest.
+        assert_eq!(
+            entry.content_digest,
+            bundle.graph_digest(GRAPH_RELATIONAL_CORE),
+            "the RelationalCore handle is digest-pinned to its backing graph/relational-core"
+        );
+        let PipelineHandle::RelationalCore(program) = &entry.payload else {
+            panic!("the handle is the RelationalCore arm carrying the typed dialect");
+        };
+        // Main's rules are all Horn → the lowering is exact (no carried residue).
+        assert!(
+            program.residue.is_empty(),
+            "main's Horn rule set lowers with no residue; got {:?}",
+            program.residue
+        );
+
+        // Re-derive the dialect from the backing graph exactly as the cache does, off
+        // the committed N-Triples projection artifact.
+        let nt = out
+            .product
+            .artifact(RELATIONAL_CORE_PATH)
+            .expect("relational-core artifact");
+        let ds = parse_dataset(nt, "application/n-triples", None).expect("parse backing graph");
+        let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive dialect");
+        assert_eq!(
+            re_derived.content_key(),
+            program.content_key(),
+            "the cache re-derivation yields a content-key-equal relational-core dialect"
+        );
+    }
+
+    /// `pin_handle` HARD-fails when the RelationalCore handle's pinned digest disagrees
+    /// with its backing graph (no-optionality, fail-closed).
+    #[test]
+    fn pin_relational_core_handle_hard_fails_on_digest_mismatch() {
+        use gmeow_logic_compile::relational_core::{lower_program, project_relational_core};
+        let program = clean_program();
+        let lowered = lower_program(&program);
+        let nt = project_relational_core(&lowered);
+        let dataset = relational_core_graph_dataset(&nt).expect("graph/relational-core dataset");
+        let mut bundle =
+            bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
+        let wrong = ContentDigest::of(b"not the relational-core canonical bytes");
+        let err = bundle
+            .pin_handle(
+                GRAPH_RELATIONAL_CORE,
+                PipelineHandle::RelationalCore(Arc::new(lowered)),
+                wrong,
+            )
+            .expect_err("a mismatched pin must HARD-fail");
+        assert!(
+            matches!(
+                err,
+                gmeow_rdf::PipelineBundleError::HandleDigestMismatch { .. }
+            ),
+            "the RelationalCore handle pin must fail closed on a digest mismatch, got {err:?}"
+        );
+    }
+
+    /// No-second-lowering proof: the relational-core lowering runs EXACTLY ONCE (in the
+    /// producing stage). A downstream consumer reads the typed handle's already-lowered
+    /// dialect — it does NOT call `lower_program` again. This test exercises the consumer
+    /// path (`bundle.handle(...).payload`) and asserts it is the typed dialect, equal to
+    /// the producer's lowering of the SAME program, without invoking a fresh lowering on
+    /// the consumer side.
+    #[test]
+    fn downstream_consumer_reads_the_handle_without_re_lowering() {
+        let root = repo_root();
+        let upstream = BTreeMap::new();
+        let out = CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &upstream,
+            })
+            .expect("compile-logic stage");
+        let bundle = out.product.bundle();
+
+        // The CONSUMER path: take the typed handle. This is the ONLY way the dialect is
+        // obtained downstream — there is no second `lower_program` call here.
+        let entry = bundle
+            .handle(GRAPH_RELATIONAL_CORE)
+            .expect("handle present");
+        let PipelineHandle::RelationalCore(consumer_view) = &entry.payload else {
+            panic!("consumer reads the RelationalCore handle");
+        };
+
+        // It carries a real lowered dialect (facts/rules present), proving the consumer
+        // did not have to re-lower to read the rules.
+        assert!(
+            !consumer_view.facts.is_empty() || !consumer_view.rules.is_empty(),
+            "the handle carries the already-lowered dialect (facts and/or rules)"
+        );
+        // And it is the SAME content as the committed projection the producer emitted —
+        // i.e. the producer lowered once and that single result rides both faces.
+        let nt = out
+            .product
+            .artifact(RELATIONAL_CORE_PATH)
+            .expect("projection artifact");
+        let re_derived = gmeow_logic_compile::relational_core::parse_relational_core(
+            parse_dataset(nt, "application/n-triples", None)
+                .expect("parse")
+                .as_ref(),
+        )
+        .expect("re-derive");
+        assert_eq!(
+            consumer_view.content_key(),
+            re_derived.content_key(),
+            "the consumer handle and the folded projection are one content identity"
         );
     }
 }

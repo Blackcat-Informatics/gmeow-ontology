@@ -280,7 +280,23 @@ fn rebuild_handle(
             })?;
             PipelineHandle::Reasoning(Arc::new(result))
         }
-        "relational-core" => PipelineHandle::RelationalCore(graph),
+        "relational-core" => {
+            // The REAL typed RelationalCore handle (#1132 C8): its backing graph is the
+            // deterministic projection of a `RelationalCoreProgram`, so on a cache hit the
+            // typed dialect is RE-DERIVED from that graph via the reverse parser. The
+            // consumer never re-lowers; the cache boundary re-derives it ONCE here. A parse
+            // failure HARD-fails (no-optionality): a `relational-core` handle whose backing
+            // graph no longer parses is a corrupt cache, never a silently-dropped handle.
+            let program =
+                gmeow_logic_compile::relational_core::parse_relational_core(graph.as_ref())
+                    .map_err(|e| {
+                        PipelineError::Decode(format!(
+                            "cache: re-derive RelationalCore handle from backing \
+                             graph/relational-core: {e}"
+                        ))
+                    })?;
+            PipelineHandle::RelationalCore(Arc::new(program))
+        }
         "correspondence" => PipelineHandle::Correspondence(graph),
         other => {
             return Err(PipelineError::Decode(format!(
@@ -1043,6 +1059,97 @@ mod tests {
             result.as_ref(),
             &sample_reasoning_result(),
             "the cache re-derived the Reasoning handle's result faithfully"
+        );
+        // The pin matches the reconstituted backing graph.
+        assert_eq!(entry.content_digest, recon.graph_digest(graph_iri));
+        // The bundle content fold round-trips.
+        assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
+    }
+
+    /// A bundle whose dataset carries a `graph/relational-core` named graph (the
+    /// projection of a lowered Horn program) with a typed RelationalCore handle pinned
+    /// to it (#1132 C8).
+    fn relational_core_bundle() -> (
+        PipelineBundle<PipelineHandle>,
+        gmeow_logic_compile::relational_core::RelationalCoreProgram,
+    ) {
+        use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
+        use gmeow_logic_compile::relational_core::{lower_program, project_relational_core};
+        use std::sync::Arc;
+        let sc = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+        let ax = |s: &str, o: &str| {
+            LogicAxiom::new(s, sc, o, false, false, ContextualScope::default()).expect("axiom")
+        };
+        let rule = LogicRule::new(
+            ax("?x", "?z"),
+            vec![ax("?x", "?y"), ax("?y", "?z")],
+            vec![],
+            ContextualScope::default(),
+        );
+        let program = LogicProgram::new(
+            vec![ax(
+                "https://blackcatinformatics.ca/gmeow/Cat",
+                "https://blackcatinformatics.ca/gmeow/Animal",
+            )],
+            vec![rule],
+            vec![],
+            None,
+        );
+        let lowered = lower_program(&program);
+        let projection = project_relational_core(&lowered);
+        let parsed = parse_dataset(projection.as_bytes(), "application/n-triples", None)
+            .expect("parse projection");
+        let graph_iri = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE;
+        let mut b = RdfDatasetBuilder::new();
+        let term = RdfTerm::Iri(graph_iri.to_owned());
+        for quad in parsed.owned_quads() {
+            let mut routed = quad.clone();
+            routed.graph_name = Some(term.clone());
+            b.push_owned_quad(&routed);
+        }
+        let dataset = b.freeze().expect("freeze");
+        let mut bundle = PipelineBundle::new(
+            dataset,
+            RdfLookaside::default(),
+            Arc::new(ContentStore::new()),
+            DatasetProvenance::new(),
+        );
+        let pinned = bundle.graph_digest(graph_iri);
+        bundle
+            .pin_handle(
+                graph_iri,
+                PipelineHandle::RelationalCore(Arc::new(lowered.clone())),
+                pinned,
+            )
+            .expect("pin RelationalCore handle");
+        (bundle, lowered)
+    }
+
+    #[test]
+    fn cached_relational_core_handle_re_derives_the_dialect() {
+        use std::sync::Arc;
+        let dir = tempfile::tempdir().unwrap();
+        let mut cache = PipelineCache::open(dir.path()).unwrap();
+
+        let (original, lowered) = relational_core_bundle();
+        let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(original.clone()));
+        cache.put("k", &product).unwrap();
+
+        let got = cache.get("k").unwrap().expect("cache hit");
+        let recon = got.bundle();
+
+        let graph_iri = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE;
+        let entry = recon
+            .handle(graph_iri)
+            .expect("RelationalCore handle re-attached");
+        let PipelineHandle::RelationalCore(program) = &entry.payload else {
+            panic!("the re-derived handle arm is RelationalCore");
+        };
+        // The typed dialect round-trips faithfully (content-key-equal).
+        assert_eq!(
+            program.content_key(),
+            lowered.content_key(),
+            "the cache re-derived the RelationalCore handle's dialect faithfully"
         );
         // The pin matches the reconstituted backing graph.
         assert_eq!(entry.content_digest, recon.graph_digest(graph_iri));

@@ -38,6 +38,7 @@ use std::sync::Arc;
 
 use gmeow_logic::result::ReasoningResult;
 use gmeow_logic_compile::ir::LogicProgram;
+use gmeow_logic_compile::relational_core::RelationalCoreProgram;
 use gmeow_rdf::provenance::DatasetProvenance;
 use gmeow_rdf::{
     ContentStore, GtsBundle, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfLookaside,
@@ -77,9 +78,20 @@ pub enum PipelineHandle {
     /// (the binding rows / closure quads live in the bundle's dataset, not re-copied
     /// here — see the projection's round-trip contract).
     Reasoning(Arc<ReasoningResult>),
-    /// The Horn/relational-core projection (NNF→Skolem→Horn floor) over its
-    /// backing graph.
-    RelationalCore(Arc<RdfDataset>),
+    /// The relational-core layer: the typed [`RelationalCoreProgram`] (the engine-agnostic
+    /// Datalog±-with-stratified-negation dialect lowered from the compiled program's Horn
+    /// rules) over its backing `graph/relational-core` named graph — the REAL handle
+    /// (#1132 C8), not the C4 placeholder. Its backing graph is the deterministic RDF
+    /// projection of this dialect
+    /// ([`project_relational_core`](gmeow_logic_compile::relational_core::project_relational_core));
+    /// a consumer takes the typed handle and reads the lowered rules/facts/residue
+    /// WITHOUT re-lowering. On a cache hit the cache re-derives the dialect from the
+    /// backing graph via
+    /// [`parse_relational_core`](gmeow_logic_compile::relational_core::parse_relational_core).
+    /// When the full-FOL formula lowering lands, its richer non-Horn lowering plugs into
+    /// THIS arm (it produces the same dialect with carried residue) — the carrier never
+    /// changes shape.
+    RelationalCore(Arc<RelationalCoreProgram>),
     /// A correspondence/alignment projection (SSSOM/EDOAL/FnO) over its backing
     /// graph.
     Correspondence(Arc<RdfDataset>),
