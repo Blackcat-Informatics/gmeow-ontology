@@ -708,10 +708,11 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             );
         }
 
-        // Byte-stability invariant: drop every correspondence `ProjectionTarget` block
-        // (and its `hasProjection` link) and what remains must be byte-identical to the
-        // committed report — the logic rows are untouched; only correspondence rows are
-        // added.
+        // Byte-stability invariant: dropping every correspondence `ProjectionTarget`
+        // block (and its `hasProjection` link) from the freshly assembled report and
+        // from the committed report must leave byte-identical logic rows — the
+        // correspondence union must never perturb the logic projection. (The committed
+        // report itself carries the union, so both sides are filtered the same way.)
         let committed = std::fs::read_to_string(root.join(PROJECTION_REPORT_PATH))
             .expect("committed projection report");
         let is_correspondence = |line: &str| {
@@ -719,15 +720,17 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
                 .iter()
                 .any(|d| line.contains(&format!("/target/{d}")))
         };
-        let logic_only: String = report
-            .lines()
-            .filter(|l| !is_correspondence(l))
-            .map(|l| format!("{l}\n"))
-            .collect();
+        let strip_correspondence = |text: &str| -> String {
+            text.lines()
+                .filter(|l| !is_correspondence(l))
+                .map(|l| format!("{l}\n"))
+                .collect()
+        };
         assert_eq!(
-            logic_only, committed,
-            "the logic projection rows must be byte-identical to the committed report; \
-             only correspondence rows may be added"
+            strip_correspondence(report),
+            strip_correspondence(&committed),
+            "the logic projection rows must be byte-identical between the freshly \
+             assembled report and the committed report; only correspondence rows differ"
         );
     }
 
