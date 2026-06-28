@@ -114,8 +114,10 @@ pub struct FnFunction {
     /// primitives (e.g. the list functions) leave this empty so they are
     /// `fno:Function` ONLY.
     pub kind_types: Vec<String>,
-    /// `rdfs:seeAlso` (the first profile's `.rq`).
-    pub see_also: String,
+    /// `rdfs:seeAlso` (e.g. a projection function's `.rq` query), omitted when
+    /// `None`. Primitives with no related resource leave it unset rather than
+    /// pointing at a dummy or process-flow target.
+    pub see_also: Option<String>,
     /// Ordered `fno:expects` parameter IRIs (required first, then optional).
     pub expects: Vec<String>,
     /// The single `fno:Output` node (`fno:returns` is a one-element list).
@@ -293,11 +295,13 @@ pub fn to_quads(catalog: &FnoCatalog) -> Vec<RdfQuad> {
                 en(description),
             ));
         }
-        quads.push(RdfQuad::new(
-            fn_iri.clone(),
-            RDFS_SEE_ALSO,
-            RdfTerm::iri(&func.see_also),
-        ));
+        if let Some(see_also) = &func.see_also {
+            quads.push(RdfQuad::new(
+                fn_iri.clone(),
+                RDFS_SEE_ALSO,
+                RdfTerm::iri(see_also),
+            ));
+        }
 
         // fno:expects — an ordered rdf:List of the parameter IRIs.
         let expects: Vec<RdfTerm> = func.expects.iter().map(RdfTerm::iri).collect();
@@ -535,8 +539,9 @@ mod tests {
                 label: "demo function".to_owned(),
                 description: Some("a demo".to_owned()),
                 kind_types: vec![GMEOW_PROJECTION_FUNCTION.to_owned()],
-                see_also: "https://blackcatinformatics.ca/gmeow/queries/projections/demo.rq"
-                    .to_owned(),
+                see_also: Some(
+                    "https://blackcatinformatics.ca/gmeow/queries/projections/demo.rq".to_owned(),
+                ),
                 expects: vec![
                     "https://blackcatinformatics.ca/gmeow/paramFoo".to_owned(),
                     "https://blackcatinformatics.ca/gmeow/paramBar".to_owned(),

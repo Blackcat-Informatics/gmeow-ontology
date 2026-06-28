@@ -1,14 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! First-class RDF list functions (#1009 §5).
+//! First-class RDF list functions.
 //!
 //! Six primitive `rdf:List` operations declared as FnO functions and emitted to
 //! `generated/projections/list-functions.fno.ttl` (folded into `gmeow.gts`):
 //! `listLength`, `listGet`, `listIndexOf`, `listSlice`, `listConcat`,
-//! `listContains`. They give external `rdf:List` data (transcoder #671) and SPARQL
-//! authors a named, typed surface for the operations the logic layer already
-//! resolves recursively (`crates/logic/src/reason`).
+//! `listContains`. They give external `rdf:List` data and SPARQL authors a named,
+//! typed surface for the operations the logic layer resolves recursively
+//! (`crates/logic/src/reason`) and the native SPARQL engine executes directly
+//! (`crates/sparql-eval`, the `gmeow:list*` custom functions).
 //!
 //! Unlike `functions.fno.ttl` (GMEOW→external projection transforms derived from
 //! the mapping DSL) these are *primitives* — they bind no GMEOW data predicate, so
@@ -17,22 +18,14 @@
 //! but emitted into `generated/` so it ships in the bundle. The output is fixed
 //! (six functions), hence deterministic by construction.
 //!
-//! `rdfs:seeAlso` on each function points at the tracking issue #1016 (the purrdf
-//! SPARQL binding for all six + the remaining list-construction backing). Four of
-//! the six — `listContains`, `listLength`, `listGet`, `listIndexOf` — are already
-//! executably backed by the reasoning layer: a recursive `rdf:first`/`rdf:rest`
-//! walk with arithmetic builtins under `ProceduralPrologProfile` (conformance case
-//! `goal-rdf-list-functions`). The list-constructing `listSlice`/`listConcat` need
-//! value-inventing construction beyond the backward-goal query seam and stay
-//! deferred to #1016; the document banner and each function's `skos:definition`
-//! record this. (The earlier `logic:<name>` `seeAlso` targets were dangling — no
-//! such predicates exist — so they are replaced by the resolvable issue link.)
-
-/// The tracking issue for the executable purrdf SPARQL binding (all six) and the
-/// remaining list-construction backing (`listSlice`/`listConcat`). It is the
-/// resolvable `rdfs:seeAlso` target on every function, replacing the former dangling
-/// `logic:<name>` predicate links.
-const ISSUE_1016: &str = "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1016";
+//! All six are executably backed. The scalar readers — `listLength`, `listGet`,
+//! `listIndexOf`, `listContains` — resolve via a recursive `rdf:first`/`rdf:rest`
+//! walk with arithmetic builtins (conformance case `goal-rdf-list-functions`). The
+//! list-constructing `listSlice`/`listConcat` invent a fresh `rdf:List`: the native
+//! SPARQL engine mints the new cells and surfaces them (CONSTRUCT output / SELECT
+//! auxiliary graph), and the logic layer derives the result content. The functions
+//! carry no `rdfs:seeAlso` — there is no related on-graph resource to point at, and
+//! process/tracking links do not belong in the ontology.
 
 /// One list-function declaration.
 struct ListFn {
@@ -92,7 +85,7 @@ const FUNCTIONS: &[ListFn] = &[
     ListFn {
         name: "listSlice",
         label: "list slice",
-        definition: "A new rdf:List of the members in the half-open index range [start, end) of an rdf:List. Constructs a new list (value invention); executable backing is deferred to #1016 (the construction is an existential-rule / materialization concern, not the backward-goal query seam).",
+        definition: "A new rdf:List of the members in the half-open index range [start, end) of an rdf:List (indices clamped to the list bounds; an out-of-range or inverted range yields rdf:nil). Constructs a new list (value invention): the native SPARQL engine mints the fresh rdf:first/rdf:rest cells and surfaces them in CONSTRUCT output or the SELECT auxiliary graph.",
         expects: &["pList", "pSliceStart", "pSliceEnd"],
         output: "oListSlice",
         output_type: RDF_LIST,
@@ -100,7 +93,7 @@ const FUNCTIONS: &[ListFn] = &[
     ListFn {
         name: "listConcat",
         label: "list concat",
-        definition: "A new rdf:List that is the concatenation of two rdf:Lists (the members of the first followed by the members of the second). Constructs a new list (value invention); executable backing is deferred to #1016 (the construction is an existential-rule / materialization concern, not the backward-goal query seam).",
+        definition: "A new rdf:List that is the concatenation of two rdf:Lists (the members of the first followed by the members of the second). Constructs a new list (value invention): the native SPARQL engine mints the fresh rdf:first/rdf:rest cells and surfaces them in CONSTRUCT output or the SELECT auxiliary graph.",
         expects: &["pListA", "pListB"],
         output: "oListConcat",
         output_type: RDF_LIST,
@@ -170,13 +163,12 @@ const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 /// `rdfs:comment` for its generated banner.
 const BANNER: &str =
     "GENERATED by `gmeow regenerate` (mappings) — DO NOT EDIT. Six primitive rdf:List operations \
-     (listLength, listGet, listIndexOf, listSlice, listConcat, listContains) declared as FnO. \
-     Four are executably backed by the reasoning layer today — listContains, listLength, listGet, \
-     and listIndexOf — via the recursive rdf:first/rdf:rest walk with arithmetic builtins under \
-     ProceduralPrologProfile (conformance case goal-rdf-list-functions). The list-constructing \
-     operations (listSlice, listConcat) need value-inventing construction beyond the backward-goal \
-     query seam (an existential-rule / materialization concern); their executable backing — and a \
-     purrdf SPARQL binding for all six — is deferred to #1016 (see rdfs:seeAlso on each function).";
+     (listLength, listGet, listIndexOf, listSlice, listConcat, listContains) declared as FnO, all \
+     executable as native SPARQL custom functions (gmeow:list*). The scalar readers — listContains, \
+     listLength, listGet, listIndexOf — resolve via a recursive rdf:first/rdf:rest walk with \
+     arithmetic builtins (conformance case goal-rdf-list-functions). The list-constructing \
+     operations (listSlice, listConcat) invent a fresh rdf:List: the engine mints the new cells \
+     and surfaces them in CONSTRUCT output or the SELECT auxiliary graph.";
 
 /// Build the FnO catalog of the six primitive list functions from the
 /// [`FUNCTIONS`]/[`PARAMS`] consts (the single source of truth).
@@ -197,11 +189,10 @@ pub fn list_functions_catalog() -> gmeow_rdf::fno::FnoCatalog {
             description: Some(f.definition.to_owned()),
             // Primitive — `fno:Function` only.
             kind_types: vec![],
-            // Resolvable seeAlso → the #1016 tracking issue. The former
-            // `logic:<name>` predicate links were dangling (no such predicates
-            // exist); per-function backing status lives in `skos:definition` and
-            // the document banner.
-            see_also: ISSUE_1016.to_owned(),
+            // No `rdfs:seeAlso`: there is no related on-graph resource to point at,
+            // and per-function backing status lives in `skos:definition` and the
+            // document banner.
+            see_also: None,
             expects: f.expects.iter().map(|p| format!("{GMEOW_NS}{p}")).collect(),
             output: FnOutput {
                 iri: format!("{GMEOW_NS}{}", f.output),
