@@ -82,18 +82,50 @@ pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<RdfDataset, 
         datasets.push(bundle);
     }
 
-    // Mappings + reasoned closure fold in via their carried datasets. The reason
-    // stage's dataset is closure-only by construction (explanations/ledger are
-    // byte-lane only), so this union naturally excludes the report triples.
+    // Mappings + reasoned closure fold in via their carried datasets. Each looped
+    // contributor's DEFAULT graph is its ontology contribution (the mappings axioms /
+    // the reasoned closure); the reason product ALSO carries a named `graph/reasoning`
+    // graph (the typed-handle's backing projection, #1132 C7) that is NOT an ontology
+    // fact, so the union takes the DEFAULT graph only — keeping the composed dataset
+    // exactly the base ∪ statements ∪ mappings ∪ closure it was, and excluding the
+    // reasoning projection by construction (the same discipline that keeps the
+    // explanations/ledger reports out: they ride the byte/handle lanes, not the union).
+    let mut looped_defaults: Vec<Arc<RdfDataset>> = Vec::new();
     for (id, product) in upstream {
         if id == "stage-source-load" || id == "stage-statements" {
             continue;
         }
-        datasets.push(product.bundle().clone());
+        looped_defaults.push(default_graph_only(product.bundle().dataset())?);
     }
 
-    let refs: Vec<&RdfDataset> = datasets.iter().map(|b| b.dataset()).collect();
+    let mut refs: Vec<&RdfDataset> = datasets.iter().map(|b| b.dataset()).collect();
+    refs.extend(looped_defaults.iter().map(|d| d.as_ref()));
     Ok(RdfDataset::union(&refs))
+}
+
+/// Project `dataset` to a fresh frozen dataset carrying ONLY its default-graph quads
+/// (named-graph quads dropped), preserving the RDF-1.2 reifier/annotation side-tables
+/// (which are standpoint-scoped, never graph-scoped). Used by [`compose`] to fold a
+/// looped contributor's ontology contribution (its default graph) while excluding any
+/// named sidecar graph it carries (the reason product's `graph/reasoning` handle
+/// backing — #1132 C7).
+fn default_graph_only(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, PipelineError> {
+    let mut builder = gmeow_rdf::RdfDatasetBuilder::new();
+    for quad in dataset.owned_quads() {
+        if quad.graph_name.is_none() {
+            builder.push_owned_quad(&quad);
+        }
+    }
+    for reifier in dataset.owned_reifiers() {
+        builder.push_owned_reifier(&reifier);
+    }
+    for annotation in dataset.owned_annotations() {
+        builder.push_owned_annotation(&annotation);
+    }
+    builder.freeze().map_err(|e| PipelineError::Stage {
+        stage: "stage-gts-compose".to_string(),
+        message: format!("default-graph projection freeze: {e}"),
+    })
 }
 
 /// [`compose`] projected to the deterministic sorted N-Quads byte form (the

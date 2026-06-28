@@ -207,6 +207,18 @@ pub fn build_snapshot(
         crate::stages::compile_logic::GRAPH_LOGIC,
         "logic",
     )?;
+    // graph/reasoning ← the deterministic RDF projection of the typed ReasoningResult
+    // (#1132 C7), folded as its own queryable named graph so a repo-free consumer reads
+    // the five-axis verdict + provenance (and re-derives the typed Reasoning handle)
+    // without re-running the engine. Sourced from `stage-reason`'s typed handle so the
+    // graph the snapshot folds is the SAME projection the handle pins to.
+    let reasoning_nt = reasoning_projection_nt(upstream)?;
+    add_named(
+        &mut builder,
+        &reasoning_nt,
+        gmeow_logic::result_rdf::GRAPH_REASONING,
+        "reasoning",
+    )?;
 
     // Fold a deterministic tar archive of the JSON-LD-star + YAML-LD-star
     // serializations into the bundle (#699). The serializer reads THIS builder's
@@ -963,19 +975,21 @@ impl Stage for SnapshotStage {
 }
 
 /// Build the snapshot product bundle: the byte-artifact lane (the emitted `gmeow.gts`)
-/// riding over a dataset whose `graph/logic` named graph is the canonical RDF-1.2
-/// projection of the compiled program, with the upstream typed [`PipelineHandle::Logic`]
-/// re-pinned to that graph's canonical digest.
+/// riding over a dataset whose `graph/logic` and `graph/reasoning` named graphs are the
+/// canonical projections of the compiled program and the typed reasoning result, with
+/// the upstream typed [`PipelineHandle::Logic`] (#1132 C6) and
+/// [`PipelineHandle::Reasoning`](crate::bundle::PipelineHandle::Reasoning) (#1132 C7)
+/// re-pinned to those graphs' canonical digests.
 ///
-/// The `Arc<LogicProgram>` payload is taken from the upstream `stage-compile-logic`
-/// product's handle (never re-compiled / re-parsed); the backing graph is re-derived
-/// from that product's committed canonical RDF-1.2 artifact so the pinned digest is a
-/// pure function of the same projection the snapshot folded. A missing handle or a
-/// digest mismatch HARD-fails (no-optionality, fail-closed).
+/// Each handle's payload is taken from its upstream product's handle (never
+/// re-compiled / re-run); the backing graph is re-derived from the SAME projection the
+/// snapshot folded, so each pinned digest is a pure function of that projection alone.
+/// A missing handle or a digest mismatch HARD-fails (no-optionality, fail-closed).
 fn build_snapshot_bundle(
     upstream: &BTreeMap<String, StageProduct>,
     artifacts: BTreeMap<String, Vec<u8>>,
 ) -> Result<gmeow_rdf::PipelineBundle<crate::bundle::PipelineHandle>, PipelineError> {
+    // ── the Logic handle payload + its backing graph/logic projection ────────────
     let compile = upstream
         .get("stage-compile-logic")
         .ok_or_else(|| stage_err("missing stage-compile-logic product for the Logic handle"))?;
@@ -989,26 +1003,98 @@ fn build_snapshot_bundle(
         ));
     };
     let program = program.clone();
-
-    // Re-derive the backing graph/logic dataset from the committed canonical RDF-1.2
-    // artifact (the same projection the snapshot folded), so the pin is a function of
-    // that projection alone.
     let canonical_ttl = compile
         .artifact(crate::stages::compile_logic::CANONICAL_RDF12_PATH)
         .ok_or_else(|| stage_err("missing compile-logic canonical RDF-1.2 artifact"))?;
-    let dataset = logic_graph_dataset(canonical_ttl)?;
+    let logic_dataset = logic_graph_dataset(canonical_ttl)?;
+
+    // ── the Reasoning handle payload + its backing graph/reasoning projection ─────
+    let reason = upstream
+        .get("stage-reason")
+        .ok_or_else(|| stage_err("missing stage-reason product for the Reasoning handle"))?;
+    let reason_entry = reason
+        .bundle()
+        .handle(gmeow_logic::result_rdf::GRAPH_REASONING)
+        .ok_or_else(|| stage_err("stage-reason product carries no Reasoning handle"))?;
+    let crate::bundle::PipelineHandle::Reasoning(result) = &reason_entry.payload else {
+        return Err(stage_err(
+            "stage-reason handle for graph/reasoning is not the Reasoning arm",
+        ));
+    };
+    let result = result.clone();
+    let reasoning_nt = gmeow_logic::result_rdf::project_reasoning_result(result.as_ref());
+    let reasoning_dataset = reasoning_graph_dataset(reasoning_nt.as_bytes())?;
+
+    // Union the two backing graphs into one dataset (each in its own named graph), so
+    // both handles pin to the dataset the bundle carries.
+    let dataset = std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&[
+        logic_dataset.as_ref(),
+        reasoning_dataset.as_ref(),
+    ]));
 
     let mut bundle =
         crate::bundle::bundle_from_artifacts_over(dataset, artifacts, DatasetProvenance::new());
-    let pinned = bundle.graph_digest(crate::stages::compile_logic::GRAPH_LOGIC);
+    let pinned_logic = bundle.graph_digest(crate::stages::compile_logic::GRAPH_LOGIC);
     bundle
         .pin_handle(
             crate::stages::compile_logic::GRAPH_LOGIC,
             crate::bundle::PipelineHandle::Logic(program),
-            pinned,
+            pinned_logic,
         )
         .map_err(|e| stage_err(&format!("re-pin Logic handle on snapshot product: {e}")))?;
+    let pinned_reasoning = bundle.graph_digest(gmeow_logic::result_rdf::GRAPH_REASONING);
+    bundle
+        .pin_handle(
+            gmeow_logic::result_rdf::GRAPH_REASONING,
+            crate::bundle::PipelineHandle::Reasoning(result),
+            pinned_reasoning,
+        )
+        .map_err(|e| stage_err(&format!("re-pin Reasoning handle on snapshot product: {e}")))?;
     Ok(bundle)
+}
+
+/// The deterministic `graph/reasoning` projection (N-Triples bytes) of `stage-reason`'s
+/// typed [`crate::bundle::PipelineHandle::Reasoning`] result — the SAME projection the
+/// handle pins to, re-derived here from the typed handle (never re-run). A missing or
+/// wrong-arm handle HARD-fails (fail-closed, no-optionality).
+fn reasoning_projection_nt(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<Vec<u8>, PipelineError> {
+    let reason = upstream
+        .get("stage-reason")
+        .ok_or_else(|| stage_err("missing stage-reason product for the Reasoning handle"))?;
+    let entry = reason
+        .bundle()
+        .handle(gmeow_logic::result_rdf::GRAPH_REASONING)
+        .ok_or_else(|| stage_err("stage-reason product carries no Reasoning handle"))?;
+    let crate::bundle::PipelineHandle::Reasoning(result) = &entry.payload else {
+        return Err(stage_err(
+            "stage-reason handle for graph/reasoning is not the Reasoning arm",
+        ));
+    };
+    Ok(gmeow_logic::result_rdf::project_reasoning_result(result).into_bytes())
+}
+
+/// Parse the deterministic `graph/reasoning` projection N-Triples and route every
+/// triple into the `graph/reasoning` named graph of a fresh frozen dataset — the
+/// backing graph the snapshot product's typed Reasoning handle pins to. Mirrors
+/// [`logic_graph_dataset`] so the in-graph carriage and the handle pin to one identity.
+fn reasoning_graph_dataset(
+    projection_nt: &[u8],
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    use gmeow_rdf::{RdfDatasetBuilder, RdfTerm};
+    let parsed = parse_dataset(projection_nt, "application/n-triples", None)
+        .map_err(|e| stage_err(&format!("parse graph/reasoning projection: {e}")))?;
+    let graph = RdfTerm::Iri(gmeow_logic::result_rdf::GRAPH_REASONING.to_owned());
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in parsed.owned_quads() {
+        let mut routed = quad.clone();
+        routed.graph_name = Some(graph.clone());
+        builder.push_owned_quad(&routed);
+    }
+    builder
+        .freeze()
+        .map_err(|e| stage_err(&format!("freeze snapshot graph/reasoning dataset: {e}")))
 }
 
 /// Parse the canonical RDF-1.2 projection Turtle and route every triple into the
@@ -2336,6 +2422,87 @@ mod logic_graph_golden_tests {
             folded_graph_nquads(&gts2, GRAPH_LOGIC),
             folded,
             "the graph/logic fold must be byte-deterministic"
+        );
+    }
+
+    const GRAPH_REASONING: &str = gmeow_logic::result_rdf::GRAPH_REASONING;
+
+    /// A FIXED synthetic reasoning result — the byte-golden subject for the
+    /// `graph/reasoning` fold (deliberately synthetic so the golden is stable and
+    /// independent of any reasoner output).
+    fn fixed_reasoning_result() -> gmeow_logic::result::ReasoningResult {
+        use gmeow_logic::result::{
+            CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
+            ReasoningResult, ResultPayload, ResultProvenance,
+        };
+        ReasoningResult::new(
+            InputStatus::Valid,
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+            PreservationClaim::exact(),
+            InformationState::Supported,
+            ResultProvenance::native(
+                "contract:golden",
+                "https://blackcatinformatics.ca/gmeow/graph/world/actual",
+            ),
+            ResultPayload::Empty,
+        )
+    }
+
+    /// Byte golden (#1132 C7): the `graph/reasoning` named-graph content of an emitted
+    /// snapshot, over a FIXED synthetic reasoning result. Pins the per-graph fold path
+    /// (project → N-Triples → add_named canonicalization → emit → read-back)
+    /// byte-for-byte, independent of the full gmeow.gts. A second emit is asserted
+    /// byte-identical (determinism).
+    #[test]
+    fn graph_reasoning_fold_byte_golden() {
+        let reasoning_nt =
+            gmeow_logic::result_rdf::project_reasoning_result(&fixed_reasoning_result());
+
+        let build = || {
+            let mut builder = SnapshotBuilder::new();
+            let base = parse_nq(
+                b"<https://blackcatinformatics.ca/gmeow/> \
+                  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                  <http://www.w3.org/2002/07/owl#Ontology> .\n",
+            )
+            .expect("base parse");
+            builder.add_quads(&base, None, Some("base"));
+            add_named(
+                &mut builder,
+                reasoning_nt.as_bytes(),
+                GRAPH_REASONING,
+                "reasoning",
+            )
+            .expect("fold graph/reasoning");
+            emit_gts(
+                &builder,
+                "dist",
+                Some(vec!["gzip".to_string()]),
+                Vec::new(),
+                Vec::new(),
+                None,
+                None,
+                None,
+                gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            )
+            .expect("emit snapshot")
+        };
+
+        let gts = build();
+        let folded = folded_graph_nquads(&gts, GRAPH_REASONING);
+        assert!(
+            !folded.is_empty(),
+            "graph/reasoning must carry the projection"
+        );
+        insta::assert_snapshot!("graph_reasoning_fold", folded);
+
+        // Determinism: a second build folds the SAME graph/reasoning content.
+        let gts2 = build();
+        assert_eq!(
+            folded_graph_nquads(&gts2, GRAPH_REASONING),
+            folded,
+            "the graph/reasoning fold must be byte-deterministic"
         );
     }
 }
