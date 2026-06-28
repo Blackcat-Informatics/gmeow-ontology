@@ -65,7 +65,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	native-py native-py-wheel native-py-install validate validate-gts reason verify test test-fast rust-build rust-test check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene wasm wasm-pkg wasm-pkg-test \
+	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene carrier-purity wasm wasm-pkg wasm-pkg-test \
 	capi-build capi-header capi-check capi-install \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
@@ -291,7 +291,7 @@ lint-alignment: ## Lint SSSOM mappings for inverse and domain/range mismatches.
 doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 	$(GMEOW_DEV) doc-lint
 
-rust-gate: rust-build ## Warm Rust once, then run clippy, nextest, the 25s budget gate, and doctests serially.
+rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-purity gate, clippy, nextest, the 25s budget gate, and doctests serially.
 	cargo clippy --all-targets -- -D warnings
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile ci $(NEXTEST_PARTITION_ARG)
@@ -300,6 +300,18 @@ rust-gate: rust-build ## Warm Rust once, then run clippy, nextest, the 25s budge
 
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings
+
+carrier-purity: rust-build ## Prove the pipeline inter-stage carrier/transport path uses no oxigraph Store accumulation (#1132 C11).
+	@# STRUCTURAL gate: the composed value rides the native RdfDataset/PipelineBundle
+	@# carrier (RdfDataset::union), and `snapshot`'s named-graph assembly + the SOLE
+	@# `emit_gts` byte emitter create no oxigraph `Store` to accumulate/union/round-trip
+	@# the carried RDF. The test scans the carrier modules' PRODUCTION source for a
+	@# reintroduced `Store::new()` / `store_from_dataset` / `dataset_from_store` and FAILS
+	@# if one returns; it SANCTIONS the C3 `canonicalize_quad_literals` value normalizer
+	@# and excludes source-file parsing / the DAG loader (ingestion, not transport). The
+	@# bundled negative-arm unit test proves the detector flags a reintroduced accumulation.
+	cargo nextest run -p gmeow-pipeline --test carrier_purity
+	@echo "OK: pipeline carrier/transport path is oxigraph-Store-free (value-normalizer residual sanctioned)"
 
 rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 	cargo build -p gmeow-rdf-core

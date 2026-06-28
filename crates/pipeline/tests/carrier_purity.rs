@@ -1,0 +1,261 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Carrier-purity gate (#1132 C11).
+//!
+//! The build pipeline's inter-stage CARRIER/TRANSPORT path is NATIVE: the composed
+//! value rides `Arc<PipelineBundle<PipelineHandle>>`/`RdfDataset` handles, the
+//! `gts_compose` union is a native `RdfDataset::union`, and the `snapshot`
+//! named-graph assembly merges authored sources with the standardize-apart union and
+//! emits the bundle through the SOLE `emit_gts` byte emitter. No oxigraph `Store` is
+//! created to accumulate / union / round-trip the carried RDF on that path.
+//!
+//! This is a STRUCTURAL gate, not a fragile whole-crate grep: the pipeline crate
+//! LEGITIMATELY keeps oxigraph for three documented, NON-transport residuals, and the
+//! gate must not regress to forbidding those:
+//!
+//!   1. `crates/rdf/src/oxigraph.rs::canonicalize_quad_literals` — a transient-`Store`
+//!      literal VALUE-SPACE normalizer (#1132 C3) the carrier calls to reproduce the
+//!      committed bundle's oxigraph-canonicalized literal lexical forms. This is value
+//!      normalization, ORTHOGONAL to transport, and is the ONE sanctioned exception the
+//!      carrier code may call. (It lives in `crates/rdf`, not on the scanned path; the
+//!      gate names it so a reviewer knows the carrier deliberately calls it.)
+//!
+//!   2. Source-file PARSING in `source_load` / `statements` / `mappings` (oxigraph
+//!      parse of authored `.ttl` into a dataset). That is INGESTION, not inter-stage
+//!      transport, so those modules are out of the scanned set.
+//!
+//!   3. The DAG `loader` (`src/loader.rs`) and the oxigraph adapters in `crates/rdf`
+//!      (`store_from_dataset` / `dataset_from_store`) — general adapters / the build
+//!      graph loader, never the carrier transport. Out of the scanned set.
+//!
+//! What this gate FORBIDS — and FAILS on if reintroduced — is a `Store::new()`
+//! accumulation (or a `store_from_dataset` / `dataset_from_store` store round-trip)
+//! creeping back into the CARRIER functions: `gts_compose::compose`'s union path or
+//! `snapshot`'s named-graph assembly (`build_snapshot` / `load_authored_default` /
+//! `load_imports` / `build_snapshot_bundle` and the native helpers around them). Those
+//! two modules' PRODUCTION source (everything outside their `#[cfg(test)]` region) is
+//! scanned token-by-token; reintroducing oxigraph accumulation there turns this test
+//! red. The accompanying `tests::gate_would_fail_if_oxigraph_accumulation_returned`
+//! demonstrates the detector flags exactly that.
+
+use std::path::{Path, PathBuf};
+
+/// The carrier-transport source files whose PRODUCTION region must stay free of
+/// oxigraph store accumulation. Both are in the pipeline crate's `src/stages/`.
+const CARRIER_MODULES: [&str; 2] = ["src/stages/gts_compose.rs", "src/stages/snapshot.rs"];
+
+/// Tokens that signal an oxigraph `Store` is being created to ACCUMULATE / UNION /
+/// round-trip the carried RDF — exactly what the native carrier replaced. Any of these
+/// appearing in carrier production code is a transport regression.
+const FORBIDDEN_TOKENS: [&str; 3] = ["Store::new(", "store_from_dataset(", "dataset_from_store("];
+
+/// The ONE sanctioned oxigraph touch the carrier may call: the literal value-space
+/// normalizer (#1132 C3). It is value normalization, not transport, so a call to it is
+/// allowed — the gate names it explicitly rather than blanket-allowing `oxigraph::`.
+const SANCTIONED_VALUE_NORMALIZER: &str = "canonicalize_quad_literals";
+
+fn manifest_dir() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+}
+
+/// The PRODUCTION region of a Rust source: everything before the first top-level
+/// `#[cfg(test)]` attribute (the `#[cfg(test)] mod tests` blocks that legitimately
+/// build oxigraph oracles to PROVE the native path is byte-isomorphic to the old
+/// store path). Carrier modules keep all their test oracles after that line.
+fn production_region(source: &str) -> &str {
+    match source.find("\n#[cfg(test)]") {
+        Some(idx) => &source[..idx],
+        None => source,
+    }
+}
+
+/// Strip Rust line-comments (`//`, `///`, `//!`) so a doc-comment that NAMES a
+/// forbidden token (e.g. "the old `Store::new()+ingest_turtle` path") is not a false
+/// positive. Block comments are not used for these mentions in the carrier modules, so
+/// line-stripping is sufficient and keeps the scanner simple and robust.
+fn strip_line_comments(source: &str) -> String {
+    source
+        .lines()
+        .map(|line| match line.find("//") {
+            Some(idx) => &line[..idx],
+            None => line,
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// Scan a carrier module's production code for forbidden oxigraph accumulation tokens.
+/// Returns the list of `(token, line_snippet)` violations (empty ⇒ pure).
+fn scan_violations(module_rel: &str, source: &str) -> Vec<(String, String)> {
+    let prod = production_region(source);
+    let code = strip_line_comments(prod);
+    let mut violations = Vec::new();
+    for (lineno, line) in code.lines().enumerate() {
+        for token in FORBIDDEN_TOKENS {
+            if line.contains(token) {
+                violations.push((
+                    token.to_string(),
+                    format!("{module_rel}:{} | {}", lineno + 1, line.trim()),
+                ));
+            }
+        }
+    }
+    violations
+}
+
+fn read_module(root: &Path, rel: &str) -> String {
+    let path = root.join(rel);
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("carrier-purity: cannot read {}: {e}", path.display()))
+}
+
+#[test]
+fn carrier_transport_path_creates_no_oxigraph_store_for_accumulation() {
+    let root = manifest_dir();
+    let mut all_violations: Vec<(String, String)> = Vec::new();
+    for rel in CARRIER_MODULES {
+        let source = read_module(&root, rel);
+        all_violations.extend(scan_violations(rel, &source));
+    }
+    assert!(
+        all_violations.is_empty(),
+        "carrier-purity FAILED: an oxigraph Store accumulation/round-trip was reintroduced into \
+         the inter-stage carrier transport path. The composed value must ride the native \
+         `RdfDataset` / `PipelineBundle` carrier (RdfDataset::union), NOT a Store. Sanctioned \
+         exception: the `{SANCTIONED_VALUE_NORMALIZER}` literal value-space normalizer (which is \
+         NOT a transport Store). Violations:\n{}",
+        all_violations
+            .iter()
+            .map(|(tok, loc)| format!("  - `{tok}` at {loc}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+}
+
+#[test]
+fn sanctioned_value_normalizer_is_acknowledged_and_used_by_the_carrier() {
+    // The gate is HONEST about the residual: the carrier deliberately calls the
+    // value-space normalizer to match the committed bundle's literal lexical forms.
+    // If C3's normalizer call ever disappears the literal-drift contract changed —
+    // this assertion documents the dependency so a future edit is a conscious choice.
+    let root = manifest_dir();
+    let snapshot = read_module(&root, "src/stages/snapshot.rs");
+    assert!(
+        snapshot.contains(SANCTIONED_VALUE_NORMALIZER),
+        "carrier-purity: the sanctioned `{SANCTIONED_VALUE_NORMALIZER}` value-space normalizer \
+         (the ONE allowed oxigraph touch on the carrier path, #1132 C3) is no longer called by \
+         snapshot.rs — if this was intentional, update the gate's sanctioned-residual list."
+    );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Prove the detector actually FAILS when oxigraph accumulation is reintroduced:
+    /// feed it a synthetic carrier function that builds a `Store` and unions through
+    /// it, and confirm `scan_violations` flags it. This is the negative arm — without
+    /// it a vacuous always-pass scanner would look identical to a real gate.
+    #[test]
+    fn gate_would_fail_if_oxigraph_accumulation_returned() {
+        let reintroduced = r#"
+fn compose(upstream: &Foo) -> Result<RdfDataset, E> {
+    let store = Store::new()?;                 // <- accumulation regression
+    for product in upstream.values() {
+        rdf_bytes_into_store(&store, product.bytes(), "text/turtle", "carrier")?;
+    }
+    let dataset = dataset_from_store(&store)?; // <- store round-trip regression
+    Ok(dataset)
+}
+"#;
+        let violations = scan_violations("src/stages/gts_compose.rs", reintroduced);
+        let tokens: Vec<&str> = violations.iter().map(|(t, _)| t.as_str()).collect();
+        assert!(
+            tokens.contains(&"Store::new("),
+            "negative check: detector must flag a reintroduced `Store::new(` accumulation, got {tokens:?}"
+        );
+        assert!(
+            tokens.contains(&"dataset_from_store("),
+            "negative check: detector must flag a reintroduced `dataset_from_store(` round-trip, got {tokens:?}"
+        );
+    }
+
+    /// The sanctioned value normalizer is NOT mistaken for an accumulation token: a
+    /// line that calls `canonicalize_quad_literals` (the C3 residual) does not match
+    /// any forbidden token, so the carrier's legitimate value-normalization survives.
+    #[test]
+    fn sanctioned_value_normalizer_is_not_flagged() {
+        let normalizer_call = r#"
+fn dataset_to_nquads(dataset: &RdfDataset) -> Result<Vec<u8>, E> {
+    let canon = gmeow_rdf::oxigraph::canonicalize_quad_literals(&quads)?;
+    Ok(serialize(canon))
+}
+"#;
+        let violations = scan_violations("src/stages/snapshot.rs", normalizer_call);
+        assert!(
+            violations.is_empty(),
+            "the sanctioned `{SANCTIONED_VALUE_NORMALIZER}` value normalizer must NOT be flagged \
+             as a transport-Store accumulation, got {violations:?}"
+        );
+    }
+
+    /// A doc-comment that NAMES a forbidden token (the carrier modules describe the old
+    /// `Store::new()` path they replaced) is a comment, not code — the scanner strips
+    /// line-comments, so the mention is not a false positive.
+    #[test]
+    fn doc_comment_mention_of_old_store_path_is_not_flagged() {
+        let doc_mention = r#"
+/// The native equivalent of the old `Store::new()+ingest_turtle+store_to_nquads`
+/// trio (no oxigraph `Store`). Replaces the `dataset_from_store` round-trip.
+fn turtle_to_nquads(bytes: &[u8]) -> Result<Vec<u8>, E> {
+    native(bytes)
+}
+"#;
+        let violations = scan_violations("src/stages/snapshot.rs", doc_mention);
+        assert!(
+            violations.is_empty(),
+            "a doc-comment mention of the OLD store path must not be flagged, got {violations:?}"
+        );
+    }
+
+    /// The `#[cfg(test)]` region (where carrier modules legitimately build oxigraph
+    /// oracles to PROVE the native path is byte-isomorphic to the old store path) is
+    /// excluded: only PRODUCTION carrier code is scanned.
+    #[test]
+    fn cfg_test_oracle_region_is_excluded() {
+        let with_test_oracle = r#"
+fn compose() -> RdfDataset { native_union() }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn isomorphic_to_old_byte_path() {
+        let store = Store::new().unwrap();         // oracle, NOT carrier
+        let ds = dataset_from_store(&store).unwrap();
+    }
+}
+"#;
+        let violations = scan_violations("src/stages/gts_compose.rs", with_test_oracle);
+        assert!(
+            violations.is_empty(),
+            "carrier modules' #[cfg(test)] oracle region must be excluded from the scan, got {violations:?}"
+        );
+    }
+
+    /// The real carrier modules are pure: running the scanner over the committed
+    /// source finds no violations (the same assertion the top-level gate test makes,
+    /// re-checked here so the unit-test lane covers the live source too).
+    #[test]
+    fn live_carrier_modules_are_pure() {
+        let root = manifest_dir();
+        for rel in CARRIER_MODULES {
+            let source = read_module(&root, rel);
+            let violations = scan_violations(rel, &source);
+            assert!(
+                violations.is_empty(),
+                "live carrier module {rel} has oxigraph accumulation: {violations:?}"
+            );
+        }
+    }
+}
