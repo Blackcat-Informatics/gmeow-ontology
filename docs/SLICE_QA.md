@@ -167,3 +167,10 @@ graph-isomorphically before the old test (and any orphaned Python module) is
 removed. A deleted test that cited a `governance/constitution.ttl`
 `meta:artifact` must have that citation redirected to the Rust artifact that now
 proves the principle, or the constitution gate reds.
+
+**Deleting a test deletes its dossier.** A retention dossier exists *only* to
+justify a still-living pytest. So the removal change is not complete until it also
+deletes the matching `docs/test-retention/<name>.md`. Every removal issue must
+carry this in its acceptance criteria: *delete the pytest, delete its dossier(s),
+redirect any constitution citation* — all in the one change. A dossier left behind
+after its test is gone is itself a lint failure waiting to happen.
