@@ -35,6 +35,9 @@ pub use corpus::{
     audit_vendorable, lane_for_case, load_corpus_meta, parse_corpus_meta, CorpusMeta, Lane,
 };
 pub use lower::runner_verdict_json;
-pub use manifest::{parse_entailment_manifest, EntailmentKind, ManifestEntry};
+pub use manifest::{
+    manifest_entries, parse_test_manifest, parse_test_manifest_rdfxml, ManifestEntry,
+    ManifestTestKind, OntologyDoc,
+};
 pub use status::{outcome_for_szs, ExternalOutcome};
 pub use szs::{outcome_from_szs, parse_szs_status};

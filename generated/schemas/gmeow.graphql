@@ -2005,6 +2005,7 @@ enum PipelineEnum {
 
 enum PipelineStageEnum {
   stage_compile_logic
+  stage_conformance
   stage_docs_render
   stage_export_apache
   stage_export_bench

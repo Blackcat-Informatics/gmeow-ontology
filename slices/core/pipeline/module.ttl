@@ -210,6 +210,7 @@ gmeow:pipeline-build
         gmeow:stage-reason ,
         gmeow:stage-gts-compose ,
         gmeow:stage-validate ,
+        gmeow:stage-conformance ,
         gmeow:stage-docs-render ,
         gmeow:stage-snapshot ,
         gmeow:stage-export-schemas ,
@@ -316,6 +317,16 @@ gmeow:stage-validate
     gmeow:dataflowConsumes gmeow:stage-source-load ;
     gmeow:carriesEngineLock false .
 
+gmeow:stage-conformance
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "conformance"@x-gmeow-english ;
+    skos:definition "Grade the committed external conformance corpus (the W3C OWL 2 / ORE cases under conformance/logic/cases/external) — each case's frozen native verdict against its published external verdict — and emit the divergences as a gmeow:Finding N-Quads graph. A source-reading stage with no upstream product; the snapshot stage folds its output into the graph/conformance named graph so a repo-free consumer reads every reasoner-vs-corpus divergence from the bundle."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindTransform ;
+    gmeow:stageImpl "conformance" ;
+    gmeow:carriesEngineLock false .
+
 gmeow:stage-docs-render
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -339,6 +350,7 @@ gmeow:stage-snapshot
     gmeow:stageImpl "snapshot" ;
     gmeow:dataflowConsumes
         gmeow:stage-compile-logic ,
+        gmeow:stage-conformance ,
         gmeow:stage-docs-render ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-gts-compose ,

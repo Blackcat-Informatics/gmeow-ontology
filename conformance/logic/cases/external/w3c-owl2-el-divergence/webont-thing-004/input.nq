@@ -1,0 +1,6 @@
+<http://www.w3.org/2002/03owlt/Thing/consistent004#s> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-el/webont-thing-004/w> .
+<http://www.w3.org/2002/07/owl#Thing> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-el/webont-thing-004/w> .
+<http://www.w3.org/2002/07/owl#Thing> <http://www.w3.org/2002/07/owl#oneOf> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-el/webont-thing-004/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-el/webont-thing-004/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/Thing/consistent004#s> <https://gmeow.example/w3c-owl2-el/webont-thing-004/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-el/webont-thing-004/w> .

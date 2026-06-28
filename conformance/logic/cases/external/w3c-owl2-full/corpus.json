@@ -1,0 +1,8 @@
+{
+  "name": "w3c-owl2-full",
+  "spdx_license": "W3C",
+  "source_url": "https://www.w3.org/2009/11/owl-test/all.rdf",
+  "version_or_commit": "w3c-2009-11-archive",
+  "refresh_command": "curl -sSL https://www.w3.org/2009/11/owl-test/all.rdf -o .tmp/w3c-owl2/all.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --grade-suite .tmp/w3c-owl2/all.rdf w3c-owl2-full generated/conformance/divergence-w3c-owl2-full.nq",
+  "lane": "b"
+}

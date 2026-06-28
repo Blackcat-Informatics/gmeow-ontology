@@ -45,6 +45,12 @@ const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
 const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-analysis";
 const GRAPH_DOCUMENTATION: &str = "https://blackcatinformatics.ca/gmeow/graph/documentation";
 const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+/// The native↔external-corpus reasoning-divergence Findings, folded as their own
+/// queryable named graph so a repo-free consumer reads every coverage divergence
+/// (native-incomplete `DlGap` / native-disagrees `CorpusOnly`) against the W3C
+/// published expected verdicts without re-grading the corpus. Sibling of
+/// `graph/diagnostics` (correctness evidence, not validation/lint findings).
+const GRAPH_CONFORMANCE: &str = "https://blackcatinformatics.ca/gmeow/graph/conformance";
 /// The compiler's projection-report loss ledger, folded as its own queryable named
 /// graph so a repo-free consumer reads every projection's preservation kind and
 /// structural lossy drops without re-running the compiler.
@@ -100,6 +106,15 @@ pub fn build_snapshot(
         diagnostics.push(b'\n');
     }
     diagnostics.extend_from_slice(compile_diagnostics);
+
+    // graph/conformance ← the external-corpus reasoning-divergence Findings the
+    // conformance stage graded over the committed corpus. May be empty when every
+    // committed case agrees with its published expected verdict.
+    let conformance = upstream
+        .get("stage-conformance")
+        .and_then(|p| p.artifact(crate::stages::conformance::CONFORMANCE_NQ_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing conformance-stage divergence Finding graph"))?;
 
     // graph/projection-ledger ← the compiler's projection-report loss ledger (Turtle),
     // converted to N-Quads for the named-graph fold.
@@ -162,6 +177,12 @@ pub fn build_snapshot(
     add_named(&mut builder, &documentation, GRAPH_DOCUMENTATION, "doc")?;
     // graph/diagnostics ← the DAG-native SHACL + logic-compile diagnostics union.
     add_named(&mut builder, &diagnostics, GRAPH_DIAGNOSTICS, "diagnostics")?;
+    // graph/conformance ← the external-corpus divergence Findings. Folded only when
+    // non-empty: an all-agree committed corpus has no divergences, and folding an
+    // empty graph would add a phantom named-graph row (skip, like an empty source).
+    if !conformance.is_empty() {
+        add_named(&mut builder, &conformance, GRAPH_CONFORMANCE, "conformance")?;
+    }
     // graph/projection-ledger ← the compiler's projection-report loss ledger.
     add_named(
         &mut builder,
@@ -693,6 +714,11 @@ impl SnapshotStage {
                 // ledger folds into the bundle as its own named graph and the compile
                 // findings union into the diagnostics graph (no disk re-read).
                 "stage-compile-logic".to_string(),
+                // The external-corpus divergence Findings (graph/conformance):
+                // the conformance stage grades the committed corpus's native frozen
+                // verdict against the published external verdict and emits the
+                // divergences as a gmeow:Finding N-Quads product folded here.
+                "stage-conformance".to_string(),
                 "stage-docs-render".to_string(),
                 // The SHACL→JSON-Schema export leaf (#700): its in-memory product
                 // carries THIS run's freshly-emitted gmeow.schema.json / .openapi.json
@@ -744,7 +770,10 @@ impl Stage for SnapshotStage {
         // loss ledger as the projection-ledger named graph, unions the logic-compile
         // diagnostics into the diagnostics graph, and sources REP_AXIOMS from the
         // in-memory stage-compile-logic product (single-pass freshness).
-        "snapshot.v11-compile-logic-ledger"
+        // v12 folds the external-corpus divergence Findings (graph/conformance) from
+        // the stage-conformance product, when any committed case diverges from its
+        // published expected verdict.
+        "snapshot.v12-conformance-graph"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -1891,5 +1920,130 @@ mod ustar_tests {
         }
         let computed: usize = probe.iter().map(|&b| b as usize).sum();
         assert_eq!(stored, computed);
+    }
+}
+
+#[cfg(test)]
+mod conformance_fold_tests {
+    use super::*;
+
+    /// Read every named-graph IRI present in a folded snapshot's quad table.
+    fn folded_graph_names(gts: &[u8]) -> std::collections::BTreeSet<String> {
+        let g = gmeow_rdf::gts::read_graph(gts, true).expect("read_graph");
+        let mut names = std::collections::BTreeSet::new();
+        for &(_, _, _, gname) in &g.quads {
+            if let Some(gid) = gname {
+                if let Some(value) = g.terms.get(gid).and_then(|t| t.value.clone()) {
+                    names.insert(value);
+                }
+            }
+        }
+        names
+    }
+
+    /// A synthetic divergence Finding folds into the `graph/conformance` named
+    /// graph of the emitted snapshot — the C3 fold contract. Constructed
+    /// independently of the (currently all-agree) committed corpus so the assertion
+    /// holds regardless of whether a real divergence exists today.
+    #[test]
+    fn synthetic_divergence_lands_in_graph_conformance() {
+        // One CorpusOnly + one DlGap divergence, projected to gmeow:Finding N-Quads
+        // in the conformance graph by the shared emitter.
+        let conformance = gmeow_conformance::divergence::emit_divergence_nq(
+            "w3c-owl2-el",
+            &[
+                gmeow_logic::reason::ExternalComparison {
+                    case: "clash".to_owned(),
+                    world: "https://gmeow.example/w3c-owl2-el/clash/w".to_owned(),
+                    native: "consistent".to_owned(),
+                    published: "inconsistent".to_owned(),
+                },
+                gmeow_logic::reason::ExternalComparison {
+                    case: "beyond-el".to_owned(),
+                    world: "https://gmeow.example/w3c-owl2-el/beyond-el/w".to_owned(),
+                    native: "incomplete".to_owned(),
+                    published: "consistent".to_owned(),
+                },
+            ],
+        );
+        assert!(
+            !conformance.is_empty(),
+            "the synthetic divergence must emit Findings"
+        );
+
+        // Fold it through the SAME add_named path build_snapshot uses, emit, and
+        // read the bundle back.
+        let mut builder = SnapshotBuilder::new();
+        // A non-empty default graph so the bundle is well-formed.
+        let base = parse_nq(
+            b"<https://blackcatinformatics.ca/gmeow/> \
+              <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+              <http://www.w3.org/2002/07/owl#Ontology> .\n",
+        )
+        .expect("base parse");
+        builder.add_quads(&base, None, Some("base"));
+        add_named(
+            &mut builder,
+            conformance.as_bytes(),
+            GRAPH_CONFORMANCE,
+            "conformance",
+        )
+        .expect("fold conformance graph");
+
+        let gts = emit_gts(
+            &builder,
+            "dist",
+            Some(vec!["gzip".to_string()]),
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit snapshot");
+
+        let names = folded_graph_names(&gts);
+        assert!(
+            names.contains(GRAPH_CONFORMANCE),
+            "the folded snapshot must carry the graph/conformance named graph; got {names:?}"
+        );
+    }
+
+    /// An empty divergence (the all-agree corpus) is skipped — folding empty bytes
+    /// must NOT add a phantom `graph/conformance` slot.
+    #[test]
+    fn empty_divergence_adds_no_conformance_graph() {
+        let mut builder = SnapshotBuilder::new();
+        let base = parse_nq(
+            b"<https://blackcatinformatics.ca/gmeow/> \
+              <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+              <http://www.w3.org/2002/07/owl#Ontology> .\n",
+        )
+        .expect("base parse");
+        builder.add_quads(&base, None, Some("base"));
+        // Mirror build_snapshot's guard: an empty graph is never add_named'd.
+        let conformance: Vec<u8> = Vec::new();
+        if !conformance.is_empty() {
+            add_named(&mut builder, &conformance, GRAPH_CONFORMANCE, "conformance").expect("fold");
+        }
+
+        let gts = emit_gts(
+            &builder,
+            "dist",
+            Some(vec!["gzip".to_string()]),
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit snapshot");
+
+        assert!(
+            !folded_graph_names(&gts).contains(GRAPH_CONFORMANCE),
+            "an all-agree corpus must not fold a phantom graph/conformance"
+        );
     }
 }

@@ -17,6 +17,7 @@
 //! There is no I/O and no TTL emission here — serialization is the job of a later
 //! task. This module produces only the in-memory structured ledger.
 
+use gmeow_diagnostics::{Finding, Severity};
 use gmeow_rdf::RdfLoss;
 use std::collections::BTreeSet;
 
@@ -31,6 +32,15 @@ pub enum DivergenceKind {
     OracleOnly,
     /// A construct the native path did not decide (a coverage defect).
     DlGap,
+    /// The native path **decided**, but its verdict disagrees with a published
+    /// external corpus's expected result (the W3C OWL 2 / ORE ground truth).
+    ///
+    /// This is disjoint from [`DivergenceKind::DlGap`]: a case the native path
+    /// **cannot decide** (beyond the EL/RL fragment) is a `DlGap`, never a
+    /// `CorpusOnly`; only a wrong *decided* answer is a `CorpusOnly`. It is also
+    /// distinct from [`DivergenceKind::OracleOnly`], which records a live ELK/HermiT
+    /// oracle decision rather than a corpus's frozen published verdict.
+    CorpusOnly,
 }
 
 /// One classified row of the divergence ledger.
@@ -57,6 +67,7 @@ pub struct DivergenceLedger {
     pub native_only: usize,
     pub oracle_only: usize,
     pub dl_gap: usize,
+    pub corpus_only: usize,
 }
 
 /// The strict native↔oracle cross-check verdict over a [`DivergenceLedger`].
@@ -107,6 +118,13 @@ pub fn enforce(ledger: &DivergenceLedger) -> LedgerVerdict {
         reasons.push(format!(
             "{} native DL coverage gap(s): a construct the native path did not decide",
             ledger.dl_gap
+        ));
+    }
+    if ledger.corpus_only > 0 {
+        reasons.push(format!(
+            "{} corpus-only row(s): the native path decided a verdict that disagrees with \
+             the published external corpus's expected result (native ⊉ external ground truth)",
+            ledger.corpus_only
         ));
     }
     LedgerVerdict {
@@ -332,31 +350,113 @@ pub fn dl_gap_rows(gaps: &[RdfLoss]) -> Vec<LedgerRow> {
         .collect()
 }
 
-/// Assemble the final ledger from the three classified row groups.
+/// One native-vs-published verdict comparison for a single external-corpus
+/// case/world.
 ///
-/// Rows are concatenated in order (subsumption, then consistency, then gaps) and
-/// each [`DivergenceKind`] is tallied into the corresponding count. No I/O.
+/// `native` and `published` are the lowercase verdict tokens
+/// (`"consistent"` / `"inconsistent"` / `"incomplete"`): `native` is what the
+/// native reasoner decided, `published` is the corpus's frozen expected result.
+#[derive(Debug, Clone)]
+pub struct ExternalComparison {
+    pub case: String,
+    pub world: String,
+    pub native: String,
+    pub published: String,
+}
+
+/// Classify native verdicts against an external corpus's published expected
+/// verdicts, emitting one [`LedgerRow`] per comparison.
+///
+/// Disjointness (undecidable ≠ wrong-answer) is enforced here so an unanswerable
+/// case can never masquerade as a corpus disagreement:
+///
+/// * native `"incomplete"` — the native path could NOT decide — yields a
+///   [`DivergenceKind::DlGap`] row (a coverage defect), regardless of `published`;
+/// * native decided and equal to `published` yields a [`DivergenceKind::Agree`] row;
+/// * native decided and different from `published` yields a
+///   [`DivergenceKind::CorpusOnly`] row whose `object` carries the published
+///   expected verdict verbatim as the raw external provenance.
+///
+/// `subject` is the case id and `world` the scoped world IRI; `category` is
+/// `"external-corpus"`. Rows are emitted in input order (callers pass a
+/// deterministically-ordered slice).
+pub fn compare_external_corpus(corpus: &str, comparisons: &[ExternalComparison]) -> Vec<LedgerRow> {
+    comparisons
+        .iter()
+        .map(|c| {
+            let native = c.native.trim();
+            let published = c.published.trim();
+            if native == "incomplete" {
+                // Undecidable → a native coverage gap, NOT a corpus disagreement.
+                LedgerRow {
+                    kind: DivergenceKind::DlGap,
+                    category: "external-corpus".to_owned(),
+                    subject: c.case.clone(),
+                    object: published.to_owned(),
+                    world: c.world.clone(),
+                    detail: format!(
+                        "native could not decide {corpus} case {} (world {}); \
+                         the published expected verdict is {published}",
+                        c.case, c.world
+                    ),
+                }
+            } else if native == published {
+                LedgerRow {
+                    kind: DivergenceKind::Agree,
+                    category: "external-corpus".to_owned(),
+                    subject: c.case.clone(),
+                    object: published.to_owned(),
+                    world: c.world.clone(),
+                    detail: format!("native and the {corpus} published expected agree: {native}"),
+                }
+            } else {
+                LedgerRow {
+                    kind: DivergenceKind::CorpusOnly,
+                    category: "external-corpus".to_owned(),
+                    subject: c.case.clone(),
+                    object: published.to_owned(),
+                    world: c.world.clone(),
+                    detail: format!(
+                        "native decided {native} but the {corpus} published expected \
+                         is {published} for case {} (world {})",
+                        c.case, c.world
+                    ),
+                }
+            }
+        })
+        .collect()
+}
+
+/// Assemble the final ledger from the four classified row groups.
+///
+/// Rows are concatenated in order (subsumption, then consistency, then native DL
+/// gaps, then external-corpus divergences) and each [`DivergenceKind`] is tallied
+/// into the corresponding count. No I/O.
 pub fn build_ledger(
     subsumption: Vec<LedgerRow>,
     consistency: Vec<LedgerRow>,
     gaps: Vec<LedgerRow>,
+    corpus: Vec<LedgerRow>,
 ) -> DivergenceLedger {
     let mut rows: Vec<LedgerRow> =
-        Vec::with_capacity(subsumption.len() + consistency.len() + gaps.len());
+        Vec::with_capacity(subsumption.len() + consistency.len() + gaps.len() + corpus.len());
     rows.extend(subsumption);
     rows.extend(consistency);
     rows.extend(gaps);
+    rows.extend(corpus);
 
     let mut agree = 0usize;
     let mut native_only = 0usize;
     let mut oracle_only = 0usize;
     let mut dl_gap = 0usize;
+    let mut corpus_only = 0usize;
     for row in &rows {
         match row.kind {
             DivergenceKind::Agree => agree += 1,
             DivergenceKind::NativeOnly => native_only += 1,
             DivergenceKind::OracleOnly => oracle_only += 1,
             DivergenceKind::DlGap => dl_gap += 1,
+            DivergenceKind::CorpusOnly => corpus_only += 1,
         }
     }
 
@@ -366,7 +466,50 @@ pub fn build_ledger(
         native_only,
         oracle_only,
         dl_gap,
+        corpus_only,
     }
+}
+
+/// The stable kebab code suffix for a divergence kind (the structured signal
+/// that feeds the native⊇external coverage gate). `Agree` has no code — agreement is not a
+/// divergence and never becomes a finding.
+fn divergence_code_suffix(kind: &DivergenceKind) -> Option<&'static str> {
+    match kind {
+        DivergenceKind::Agree => None,
+        DivergenceKind::NativeOnly => Some("native-only"),
+        DivergenceKind::OracleOnly => Some("oracle-only"),
+        DivergenceKind::DlGap => Some("dl-gap"),
+        DivergenceKind::CorpusOnly => Some("corpus-only"),
+    }
+}
+
+/// Project a [`DivergenceLedger`] into restricted [`gmeow_diagnostics::Finding`]s —
+/// one per NON-`Agree` row.
+///
+/// The diagnostics doctrine declares the native↔oracle / native↔corpus
+/// divergence-ledger entries to BE `gmeow:Finding`s (a `gmeow:Observation` whose
+/// vantage is the conformance tooling), so this reuses the canonical Finding model
+/// rather than minting a parallel vocabulary. Every divergence is gate-failing, so
+/// the severity is [`Severity::Error`]; the `code` carries the structured kind
+/// (`reason.divergence.{kind}`) the native⊇external coverage gate keys on; the `message` is the
+/// row's `detail`, which for a `CorpusOnly` row carries the native verdict AND the
+/// raw published external expected verbatim (the external ground-truth provenance).
+pub fn divergence_findings(ledger: &DivergenceLedger) -> Vec<Finding> {
+    ledger
+        .rows
+        .iter()
+        .filter_map(|row| {
+            let suffix = divergence_code_suffix(&row.kind)?;
+            Some(
+                Finding::new(
+                    Severity::Error,
+                    format!("reason.divergence.{suffix}"),
+                    row.detail.clone(),
+                )
+                .with_tool("conformance"),
+            )
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -391,7 +534,7 @@ mod tests {
             rows.iter().all(|r| r.kind == DivergenceKind::Agree),
             "identical lists must all be Agree: {rows:?}"
         );
-        let ledger = build_ledger(rows, Vec::new(), Vec::new());
+        let ledger = build_ledger(rows, Vec::new(), Vec::new(), Vec::new());
         assert_eq!(ledger.native_only, 0, "no native-only rows");
         assert_eq!(ledger.oracle_only, 0, "no oracle-only rows");
         assert_eq!(ledger.agree, 2, "both tuples agree");
@@ -495,7 +638,7 @@ mod tests {
             rows[0].detail
         );
 
-        let ledger = build_ledger(Vec::new(), Vec::new(), rows);
+        let ledger = build_ledger(Vec::new(), Vec::new(), rows, Vec::new());
         assert_eq!(ledger.dl_gap, 1, "build_ledger tallies dl_gap == 1");
     }
 
@@ -506,7 +649,7 @@ mod tests {
         // Identical native+ELK subsumptions and matching consistency → all Agree.
         let subs = compare_subsumption(&[t(A, B, W)], &[t(A, B, W)]);
         let cons = compare_consistency(true, &[], Some(true), &[]);
-        let ledger = build_ledger(subs, cons, Vec::new());
+        let ledger = build_ledger(subs, cons, Vec::new(), Vec::new());
         let verdict = enforce(&ledger);
         assert!(verdict.passed, "pure agreement must pass: {verdict:?}");
         assert!(verdict.reasons.is_empty(), "no reasons when passing");
@@ -516,7 +659,7 @@ mod tests {
     fn enforce_fails_on_native_only() {
         // native ∖ ELK = one NativeOnly row.
         let subs = compare_subsumption(&[t(A, B, W), t(B, C, W)], &[t(A, B, W)]);
-        let ledger = build_ledger(subs, Vec::new(), Vec::new());
+        let ledger = build_ledger(subs, Vec::new(), Vec::new(), Vec::new());
         assert_eq!(ledger.native_only, 1);
         let verdict = enforce(&ledger);
         assert!(!verdict.passed, "a NativeOnly row must fail");
@@ -530,7 +673,7 @@ mod tests {
     fn enforce_fails_on_oracle_only() {
         // ELK ∖ native = one OracleOnly row → a coverage regression (native ⊉ oracle).
         let subs = compare_subsumption(&[t(A, B, W)], &[t(A, B, W), t(B, C, W)]);
-        let ledger = build_ledger(subs, Vec::new(), Vec::new());
+        let ledger = build_ledger(subs, Vec::new(), Vec::new(), Vec::new());
         assert_eq!(ledger.oracle_only, 1);
         let verdict = enforce(&ledger);
         assert!(
@@ -547,7 +690,7 @@ mod tests {
     fn enforce_fails_on_dl_gap_alone() {
         // A DlGap is a native coverage defect and fails even with no oracle drift.
         let gaps = dl_gap_rows(&[RdfLoss::new("reason.dl-gap.complementOf", "beyond EL")]);
-        let ledger = build_ledger(Vec::new(), Vec::new(), gaps);
+        let ledger = build_ledger(Vec::new(), Vec::new(), gaps, Vec::new());
         assert_eq!(ledger.dl_gap, 1);
         let verdict = enforce(&ledger);
         assert!(!verdict.passed, "a DlGap alone must fail");
@@ -563,12 +706,130 @@ mod tests {
         let subs = compare_subsumption(&[t(A, B, W)], &[t(C, B, W)]);
         // native {A⊑B}, elk {C⊑B}: A⊑B is NativeOnly, C⊑B is OracleOnly.
         let gaps = dl_gap_rows(&[RdfLoss::new("reason.dl-gap.union", "beyond EL")]);
-        let ledger = build_ledger(subs, Vec::new(), gaps);
+        let ledger = build_ledger(subs, Vec::new(), gaps, Vec::new());
         assert_eq!(ledger.native_only, 1);
         assert_eq!(ledger.oracle_only, 1);
         assert_eq!(ledger.dl_gap, 1);
         let verdict = enforce(&ledger);
         assert!(!verdict.passed);
         assert_eq!(verdict.reasons.len(), 3, "one reason per failing category");
+    }
+
+    // ── external-corpus grading (CorpusOnly vs DlGap disjointness) ──────────────
+
+    fn cmp(case: &str, world: &str, native: &str, published: &str) -> ExternalComparison {
+        ExternalComparison {
+            case: case.to_owned(),
+            world: world.to_owned(),
+            native: native.to_owned(),
+            published: published.to_owned(),
+        }
+    }
+
+    #[test]
+    fn external_agreement_is_agree_not_corpus_only() {
+        let rows = compare_external_corpus(
+            "w3c-owl2-el",
+            &[cmp("consistency/open", "w", "consistent", "consistent")],
+        );
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].kind, DivergenceKind::Agree);
+        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+        assert_eq!(ledger.corpus_only, 0);
+        assert!(enforce(&ledger).passed, "pure external agreement passes");
+    }
+
+    #[test]
+    fn external_wrong_decided_answer_is_corpus_only() {
+        // native DECIDED consistent, but the corpus published inconsistent.
+        let rows = compare_external_corpus(
+            "w3c-owl2-el",
+            &[cmp(
+                "inconsistency/clash",
+                "w",
+                "consistent",
+                "inconsistent",
+            )],
+        );
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].kind, DivergenceKind::CorpusOnly);
+        // The raw published expected is retained verbatim as provenance.
+        assert_eq!(rows[0].object, "inconsistent");
+        assert!(rows[0].detail.contains("published expected"));
+        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+        assert_eq!(ledger.corpus_only, 1);
+        let verdict = enforce(&ledger);
+        assert!(!verdict.passed, "a CorpusOnly row must fail the gate");
+        assert!(
+            verdict.reasons.iter().any(|r| r.contains("corpus-only")),
+            "reason names the corpus-only divergence: {verdict:?}"
+        );
+    }
+
+    #[test]
+    fn external_undecidable_is_dl_gap_never_corpus_only() {
+        // native COULD NOT decide (incomplete): a coverage gap, never a corpus
+        // disagreement — even though native ≠ published.
+        let rows = compare_external_corpus(
+            "ore-large",
+            &[cmp(
+                "beyond-el/cardinality",
+                "w",
+                "incomplete",
+                "consistent",
+            )],
+        );
+        assert_eq!(rows.len(), 1);
+        assert_eq!(
+            rows[0].kind,
+            DivergenceKind::DlGap,
+            "an undecidable case is a DlGap, not a CorpusOnly"
+        );
+        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+        assert_eq!(
+            ledger.corpus_only, 0,
+            "no corpus-only row for an undecidable case"
+        );
+        assert_eq!(ledger.dl_gap, 1);
+    }
+
+    // ── divergence_findings projection (divergence rows ARE gmeow:Findings) ─────
+
+    #[test]
+    fn divergence_findings_skip_agree_and_carry_kind_and_provenance() {
+        let external = compare_external_corpus(
+            "w3c-owl2-el",
+            &[
+                cmp("consistency/open", "w", "consistent", "consistent"), // Agree → dropped
+                cmp("clash", "w", "consistent", "inconsistent"),          // CorpusOnly
+                cmp("beyond/card", "w", "incomplete", "consistent"),      // DlGap
+            ],
+        );
+        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), external);
+        let findings = divergence_findings(&ledger);
+
+        assert_eq!(
+            findings.len(),
+            2,
+            "Agree row is not a finding: {findings:?}"
+        );
+        assert!(findings.iter().all(|f| f.severity == Severity::Error));
+        assert!(findings
+            .iter()
+            .all(|f| f.tool.as_deref() == Some("conformance")));
+
+        let corpus = findings
+            .iter()
+            .find(|f| f.code == "reason.divergence.corpus-only")
+            .expect("a corpus-only finding");
+        // The raw published expected verdict rides verbatim in the message.
+        assert!(
+            corpus.message.contains("inconsistent"),
+            "published expected is carried as provenance: {}",
+            corpus.message
+        );
+        assert!(findings
+            .iter()
+            .any(|f| f.code == "reason.divergence.dl-gap"));
     }
 }

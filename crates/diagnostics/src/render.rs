@@ -287,8 +287,20 @@ fn nq_escape(value: &str) -> String {
 /// normalized and findings are emitted in sorted order with content-addressed
 /// finding IRIs.
 pub fn to_gmeow_rdf(report: &Report) -> String {
+    to_gmeow_rdf_in_graph(report, DIAGNOSTICS_GRAPH)
+}
+
+/// Project a [`Report`] into `gmeow:Finding` N-Quads inside the named graph
+/// `graph_iri`.
+///
+/// This is the single emitter [`to_gmeow_rdf`] wraps for the canonical
+/// `graph/diagnostics`. Other producers of restricted Findings — e.g. the native↔
+/// oracle / native↔corpus reasoning divergence ledger, which the diagnostics
+/// doctrine declares ARE `gmeow:Finding`s — reuse it with their own named graph
+/// (`graph/conformance`) rather than duplicating the projection.
+pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
     let normalized = report.normalized();
-    let graph = format!("<{DIAGNOSTICS_GRAPH}>");
+    let graph = format!("<{graph_iri}>");
     let mut lines: Vec<String> = Vec::new();
     let rules = rule_map(&normalized);
 
@@ -1126,6 +1138,32 @@ mod tests {
             );
         }
         assert_eq!(nquads, to_gmeow_rdf(&comprehensive_report()));
+    }
+
+    #[test]
+    fn gmeow_rdf_in_graph_projects_into_the_requested_graph() {
+        // A non-diagnostics producer (e.g. the reasoning divergence ledger, whose
+        // entries ARE restricted Findings) reuses the single emitter with its own
+        // named graph; every line lands in that graph, none in graph/diagnostics.
+        let graph = "https://blackcatinformatics.ca/gmeow/graph/conformance";
+        let nquads = to_gmeow_rdf_in_graph(&comprehensive_report(), graph);
+        assert!(!nquads.is_empty(), "report projects at least one finding");
+        for line in nquads.lines() {
+            assert!(
+                line.ends_with(&format!("<{graph}> .")),
+                "line not in the requested graph: {line}"
+            );
+        }
+        // The bodies are identical to the diagnostics projection modulo the graph IRI.
+        let diag = to_gmeow_rdf(&comprehensive_report());
+        assert_eq!(
+            nquads.replace(
+                graph,
+                "https://blackcatinformatics.ca/gmeow/graph/diagnostics"
+            ),
+            diag,
+            "only the trailing graph IRI differs"
+        );
     }
 
     #[test]

@@ -1,0 +1,4 @@
+<http://example.org/a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-el/fs2rdf-equivalent-classes-2-ar/w> .
+<http://example.org/a> <http://www.w3.org/2002/07/owl#equivalentClass> <http://example.org/b> <https://gmeow.example/w3c-owl2-el/fs2rdf-equivalent-classes-2-ar/w> .
+<http://example.org/b> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-el/fs2rdf-equivalent-classes-2-ar/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-el/fs2rdf-equivalent-classes-2-ar/w> .

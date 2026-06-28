@@ -34,6 +34,11 @@ gmeow-logic = { path = "../logic" }
 # The pure compiler surface (parse_logic_str / compile_program / projections /
 # LedgerEntry) the harness drives, split out of gmeow-logic in #732.
 gmeow-logic-compile = { path = "../logic-compile" }
+# The diagnostics model + the single gmeow:Finding RDF projection. External-corpus
+# divergences ARE restricted Findings (diagnostics doctrine), so the divergence
+# emitter reuses this model and `render::to_gmeow_rdf_in_graph` rather than minting
+# a parallel vocabulary. `gmeow-logic` already depends on it — no new layering edge.
+gmeow-diagnostics = { path = "../diagnostics" }
 # Native RDF text codecs (#909): the comparator parses serialized RDF via
 # `gmeow_rdf::parse_dataset` (oxigraph-free text ingress through the gmeow-gts codecs)
 # instead of `oxigraph::io::RdfParser`; the `gmeow-rdf` dep + `oxigraph` feature below
@@ -71,3 +76,11 @@ harness = false
 # the standard libtest harness (not datatest-stable).
 [[test]]
 name = "dl_oracle_gold"
+
+# The W3C OWL 2 EL soundness-divergence regression gate: re-runs the eight
+# correctness-crux cases (seven agreeing soundness fixes + the owl:Thing-oneOf
+# honest gaps) through the native reasoner and pins each verdict + the exact
+# divergence-set membership. Offline + deterministic + sub-second (standard
+# libtest harness, not datatest-stable).
+[[test]]
+name = "el_divergence_gate"
