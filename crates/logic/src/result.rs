@@ -388,6 +388,32 @@ impl PreservationClaim {
         }
     }
 
+    /// Build a claim from the set of constructs a lowering could not carry — the
+    /// single polarity-derivation rule the `reason`, `query`, and `materialize`
+    /// lanes share so they cannot diverge: `{exact}` with an empty set when nothing
+    /// was dropped, else `{sound-under}` carrying the dropped constructs (a lane
+    /// that drops a derivation it cannot evaluate produces a sound *under*-
+    /// approximation of the full answer). This is the one place the
+    /// unsupported-set → polarity mapping lives.
+    pub fn for_unsupported<I, S>(constructs: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        let unsupported_constructs: BTreeSet<String> =
+            constructs.into_iter().map(Into::into).collect();
+        let mut polarities = BTreeSet::new();
+        polarities.insert(if unsupported_constructs.is_empty() {
+            PreservationKind::Exact
+        } else {
+            PreservationKind::SoundUnder
+        });
+        Self {
+            polarities,
+            unsupported_constructs,
+        }
+    }
+
     /// Insert a polarity, rejecting [`PreservationKind::ValidationOnly`] (which is
     /// not an answer-preservation polarity).
     ///
@@ -919,10 +945,10 @@ impl ReasoningResult {
         verdict: &DlVerdict,
         mut provenance: ResultProvenance,
     ) -> Self {
-        let mut preservation = PreservationClaim::default();
-        for c in &verdict.coverage.unsupported {
-            preservation.unsupported_constructs.insert(c.clone());
-        }
+        // The shared unsupported-set → polarity rule (One-Path): `{exact}` when the
+        // fragment is fully covered, `{sound-under}` carrying the uncovered
+        // constructs otherwise.
+        let preservation = PreservationClaim::for_unsupported(verdict.coverage.unsupported.clone());
         let unsupported = !preservation.unsupported_constructs.is_empty();
         // The native DL path runs to its end; an unsupported construct does not stop
         // the run, it bounds the fragment the answer is complete for.
@@ -932,12 +958,6 @@ impl ReasoningResult {
         } else {
             CompletenessStatus::CompleteForFragment
         };
-        // Sound but (when constructs are uncovered) incomplete; otherwise exact.
-        let _ = preservation.insert(if unsupported {
-            PreservationKind::SoundUnder
-        } else {
-            PreservationKind::Exact
-        });
 
         let conclusive = evaluation == EvaluationStatus::Completed
             || completeness == CompletenessStatus::CompleteForFragment;

@@ -250,6 +250,7 @@ pub fn fast_path(
                 let mut answer = AnswerSet {
                     bindings,
                     status: BudgetStatus::Partial,
+                    preservation: crate::result::PreservationClaim::exact(),
                 };
                 answer.canonicalize();
                 return Ok(answer);
@@ -268,6 +269,7 @@ pub fn fast_path(
     let mut answer = AnswerSet {
         bindings,
         status: BudgetStatus::Ok,
+        preservation: crate::result::PreservationClaim::exact(),
     };
     answer.canonicalize();
     Ok(answer)

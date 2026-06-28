@@ -98,6 +98,7 @@ pub fn resolve(
     let mut answer_set = AnswerSet {
         bindings: state.answers,
         status: state.status,
+        preservation: crate::result::PreservationClaim::exact(),
     };
     answer_set.canonicalize();
     Ok(answer_set)

@@ -432,9 +432,11 @@ fn materialize_default(
     .map_err(|e| format!("case {case_id}: materialize failed: {e}"))?;
 
     let exhausted = derived
+        .quads
         .iter()
         .any(|q| q.budget_status == BudgetStatus::Exhausted);
     let quads = derived
+        .quads
         .into_iter()
         .map(|dq| RunnerQuad {
             graph: dq.graph.as_str().to_string(),

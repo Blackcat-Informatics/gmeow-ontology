@@ -201,7 +201,11 @@ pub fn run_scryer(
         }
     }
 
-    let mut answer = AnswerSet { bindings, status };
+    let mut answer = AnswerSet {
+        bindings,
+        status,
+        preservation: crate::result::PreservationClaim::exact(),
+    };
     answer.canonicalize();
     Ok(answer)
 }
