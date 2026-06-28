@@ -109,7 +109,7 @@ pub fn run(
 
     // Tier-2 (`--deep`): opt-in native semantic pass over user data + bundle axioms.
     if deep {
-        run_deep_pass(gts_bytes, data_bytes, data_format, &mut report);
+        run_deep_pass(gts_bytes, data_bytes, data_format, origin, &mut report);
     }
 
     Ok(report)
@@ -123,16 +123,35 @@ pub fn run(
 /// consumer wheel the reasoner co-ships with the validator in one native extension,
 /// so a literally absent reasoner is not a runtime state; this branch covers
 /// reasoning parse/read/run failures, which equally satisfy the never-crash contract.)
-fn run_deep_pass(gts_bytes: &[u8], data_bytes: &[u8], data_format: &str, report: &mut Report) {
+fn run_deep_pass(
+    gts_bytes: &[u8],
+    data_bytes: &[u8],
+    data_format: &str,
+    origin: &str,
+    report: &mut Report,
+) {
+    let start = report.findings.len();
     if let Err(e) = deep_consistency_findings(gts_bytes, data_bytes, data_format, report) {
-        report.add_finding(
-            Finding::new(
-                Severity::Note,
-                "validate.deep.unavailable",
-                format!("deep semantic pass skipped: {e}"),
-            )
-            .with_tool("validate"),
-        );
+        let mut finding = Finding::new(
+            Severity::Note,
+            "validate.deep.unavailable",
+            format!("deep semantic pass skipped: {e}"),
+        )
+        .with_tool("validate");
+        finding.add_location(Location {
+            path: Some(origin.to_owned()),
+            ..Location::default()
+        });
+        report.add_finding(finding);
+        return;
+    }
+    for finding in &mut report.findings[start..] {
+        if finding.locations.is_empty() {
+            finding.add_location(Location {
+                path: Some(origin.to_owned()),
+                ..Location::default()
+            });
+        }
     }
 }
 
@@ -326,6 +345,7 @@ mod tests {
             b"not a gts bundle",
             b"ex:a ex:b ex:c .",
             "turtle",
+            "fixture.ttl",
             &mut report,
         );
 
@@ -341,6 +361,14 @@ mod tests {
             report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
         );
         assert_eq!(unavailable[0].severity, Severity::Note);
+        assert_eq!(
+            unavailable[0]
+                .locations
+                .first()
+                .and_then(|l| l.path.as_deref()),
+            Some("fixture.ttl"),
+            "validate.deep.unavailable must carry the origin path as its location"
+        );
         assert!(
             report.findings.iter().any(|f| f.code == "tier1.fixture"),
             "the pre-existing Tier-1 finding must be preserved"
