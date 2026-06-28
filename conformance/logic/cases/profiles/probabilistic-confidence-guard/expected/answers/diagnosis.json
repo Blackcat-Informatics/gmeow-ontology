@@ -5,5 +5,11 @@
       "probability": 1.0
     }
   ],
+  "preservation": {
+    "polarities": [
+      "ExactPreservation"
+    ],
+    "unsupported_constructs": []
+  },
   "status": "ok"
 }

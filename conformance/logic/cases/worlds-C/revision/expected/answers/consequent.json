@@ -4,5 +4,11 @@
       "Z": "<https://example.org/worlds-c/revision/fired>"
     }
   ],
+  "preservation": {
+    "polarities": [
+      "ExactPreservation"
+    ],
+    "unsupported_constructs": []
+  },
   "status": "ok"
 }

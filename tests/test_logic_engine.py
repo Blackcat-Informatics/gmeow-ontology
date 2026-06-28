@@ -72,14 +72,18 @@ _REQUIRED_META_FIELDS = {
 
 
 def test_materialize_ffi_marshals_quad_dicts() -> None:
-    """The binding returns a list of dicts carrying the full seam field set.
+    """The binding returns a ``{quads, preservation}`` disclosure dict.
 
     This is a pure FFI-contract check: it proves the ``DerivedQuad → Python
-    dict`` marshalling is wired correctly (a list of dicts, every required key
-    present, ``source_quad_ids`` list-typed). The *values* and engine behaviour
-    are asserted natively in ``materialize_core``'s ``#[test]`` module.
+    dict`` marshalling is wired correctly (a list of dicts under ``quads``, every
+    required key present, ``source_quad_ids`` list-typed) and that the preservation
+    disclosure surface is present. The *values* and engine behaviour are asserted
+    natively in ``materialize``'s ``#[test]`` module.
     """
-    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    out = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    assert isinstance(out, dict), f"expected disclosure dict, got {type(out)}"
+    assert "preservation" in out, "materialize must disclose a preservation claim"
+    result = out["quads"]
     assert isinstance(result, list), f"expected list, got {type(result)}"
     assert len(result) == 3, f"expected 3 quads back, got {len(result)}"
     for i, quad_dict in enumerate(result):
@@ -103,8 +107,10 @@ def test_empty_case_trivial() -> None:
     yields zero materialized quads.
     """
     rust_result = gmeow_logic.materialize("", "")
-    assert rust_result == [], "Rust materialize: empty input must return empty list"
-    assert len(rust_result) == 0
+    assert rust_result["quads"] == [], (
+        "Rust materialize: empty input must return no quads"
+    )
+    assert len(rust_result["quads"]) == 0
 
 
 def test_compile_logic_empty_source_rejected() -> None:

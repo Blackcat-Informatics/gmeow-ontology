@@ -7,5 +7,11 @@
       "Y": "<https://example.org/profiles/goal-pattern-fast/c>"
     }
   ],
+  "preservation": {
+    "polarities": [
+      "ExactPreservation"
+    ],
+    "unsupported_constructs": []
+  },
   "status": "ok"
 }
