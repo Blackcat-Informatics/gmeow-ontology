@@ -1,0 +1,11 @@
+# Competency: GMEOW must record, per formalization candidate, WHICH category of
+# force its prose carried — and the dogfood candidate population must span several
+# of the eleven closed categories (per-category, never one global %). This selects
+# the distinct logic:FormalizationCategory values present across the candidates.
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT DISTINCT ?category WHERE {
+    ?candidate a logic:FormalizationCandidate ;
+               logic:candidateCategory ?category .
+}
+ORDER BY ?category

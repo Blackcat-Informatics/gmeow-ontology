@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming fixture for logic:FormalizationCandidateShape — a fully-formed
+# FormalizationCandidate carrying all eight universal carrier properties:
+# candidateSourceHash, candidateExtractionProvenance, candidateScope,
+# candidateContract, candidateCategory, candidateLifecycle,
+# candidateProjectionBehavior, and candidateSemanticRisk.
+# Bound by tests/example-conformance.ttl (ex:ecCandidateWellformed,
+# gmeow:conforms). Self-contained: the harness loads logic/module.ttl + ONLY
+# this file against logic/shapes.ttl.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lgc/> .
+
+ex:contractEL a logic:ReasoningContract ;
+    rdfs:label "EL profile (fixture)"@en .
+
+ex:candidateWellformed a logic:FormalizationCandidate ;
+    logic:candidateSourceHash "sha256:0d1a…properpart"^^xsd:string ;
+    logic:candidateExtractionProvenance "logic-foundation-charter §Greenfield features"^^xsd:string ;
+    logic:candidateScope "logic:properPartOf over the endurant spine"^^xsd:string ;
+    logic:candidateContract ex:contractEL ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating .

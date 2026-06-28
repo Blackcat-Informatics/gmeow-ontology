@@ -133,6 +133,11 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
         return Ok(report);
     }
 
+    // The predicate IRIs of the DERIVED (non-EDB) edges — the finite-closure oracle
+    // for the non-entailment obligation check (Arm B): a forbidden predicate that was
+    // *derived* (not merely asserted) is a violation.
+    let mut derived_predicates: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
     for ax in result.inferred() {
         if ax.is_edb {
             continue;
@@ -143,6 +148,7 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
             .map_err(|e| format!("derived predicate IRI {:?}: {e}", ax.predicate))?;
         let object = NamedNode::new(bare_iri(&ax.object))
             .map_err(|e| format!("derived object IRI {:?}: {e}", ax.object))?;
+        derived_predicates.insert(predicate.as_str().to_owned());
         let quad = Quad::new(subject, predicate, object, GraphName::DefaultGraph);
         store
             .insert(&quad)
@@ -204,6 +210,23 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
         // Graph-located findings still need a physicalLocation for SARIF
         // code-scanning upload: anchor on the query's repo-relative path.
         finding.add_location(Location::new(Some(name.clone()), None, None, None));
+        report.add_finding(finding);
+    }
+
+    // 4. Typed formalization governance (LOGIC-FOUNDATION.md, §Typed formalization
+    //    governance): the executable non-entailment obligation checks (Arm A —
+    //    syntactic reachability over the foundation rule strata, plus the
+    //    unwired-discharge hard error) and the per-category formalization-candidate
+    //    coverage report (with the uncategorized-candidate hard error). Arm B (finite
+    //    closure) is the non-entailment-*.rq negative tests already run above. These
+    //    read the reasoned `store` directly — Rust authority, surfaced through the
+    //    already-wired `make verify` gate.
+    for finding in
+        crate::obligations::check_non_entailment_obligations(&store, &derived_predicates)?
+    {
+        report.add_finding(finding);
+    }
+    for finding in crate::obligations::formalization_coverage(&store)? {
         report.add_finding(finding);
     }
 
@@ -375,6 +398,319 @@ mod tests {
             summary.message.contains("aborted"),
             "summary must say 'aborted' when gaps prevent closure: {:?}",
             summary
+        );
+    }
+
+    // ── Typed formalization governance: Arm B + reviewer gate ───────────────────
+
+    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+    const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+    // The committed `.rq` files ARE the queries under test (include_str! keeps the
+    // tests in lockstep with what `make verify` runs).
+    const COUNTERPART_Q: &str =
+        include_str!("../../../slices/core/logic/queries/verify/non-entailment-counterpart.rq");
+    const REVIEWER_Q: &str =
+        include_str!("../../../slices/core/logic/queries/verify/reviewer-gate.rq");
+
+    fn gm(local: &str) -> String {
+        format!("{GMEOW}{local}")
+    }
+    fn lg(local: &str) -> String {
+        format!("{LOGIC}{local}")
+    }
+
+    fn dataset(triples: &[(&str, &str, &str)]) -> std::sync::Arc<RdfDataset> {
+        let mut builder = RdfDatasetBuilder::new();
+        for (s, p, o) in triples {
+            builder.push_owned_quad(&quad(s, p, o));
+        }
+        builder.freeze().expect("valid test dataset")
+    }
+
+    fn has_violation(report: &Report, code: &str) -> bool {
+        report
+            .findings
+            .iter()
+            .any(|f| f.code == code && f.severity == Severity::Error)
+    }
+
+    #[test]
+    fn counterpart_non_transitivity_green_then_red() {
+        let (a, b, c) = ("http://ex/a", "http://ex/b", "http://ex/c");
+        let cp = gm("counterpartOf");
+        let q = (
+            "queries/verify/non-entailment-counterpart.rq".to_owned(),
+            COUNTERPART_Q.to_owned(),
+        );
+        // Green: a chain A→B→C with no transitive A→C.
+        let green = dataset(&[(a, &cp, b), (b, &cp, c)]);
+        let report = verify(green.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            !has_violation(&report, "verify.non-entailment-counterpart"),
+            "no transitive edge → obligation discharged"
+        );
+        // Red: add the forbidden transitive A→C; the obligation must fire.
+        let red = dataset(&[(a, &cp, b), (b, &cp, c), (a, &cp, c)]);
+        let report = verify(red.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            has_violation(&report, "verify.non-entailment-counterpart"),
+            "transitive A→C in the closure → obligation violated"
+        );
+    }
+
+    #[test]
+    fn asserted_deceptive_intent_is_not_a_derived_violation() {
+        // Regression: an ASSERTED gmeow:deceptiveIntentClaim (the real-bundle shape —
+        // an attributed assessment) is EDB, never a DERIVED edge, so the finite-closure
+        // arm of the deception obligation must NOT fire on it. We assert the standing
+        // obligation alongside an asserted, attributed intent on a held≠projected gap
+        // and confirm no violation surfaces. (The red path — an actually-derived intent
+        // — is unit-tested in `obligations::tests::arm_b_finite_closure_green_then_red`.)
+        let intent_pred = "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim";
+        let mut builder = RdfDatasetBuilder::new();
+        // The standing obligation, declaring finite-closure discharge.
+        builder.push_owned_quad(&quad(
+            "http://ex/obl",
+            RDF_TYPE,
+            &lg("NonEntailmentObligation"),
+        ));
+        builder.push_owned_quad(&quad(
+            "http://ex/obl",
+            &lg("obligationDischargeCondition"),
+            &lg("DischargeFiniteClosure"),
+        ));
+        builder.push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri("http://ex/obl"),
+                lg("obligationForbiddenPredicate"),
+                RdfTerm::Literal(RdfLiteral::typed(
+                    intent_pred,
+                    "http://www.w3.org/2001/XMLSchema#anyURI",
+                )),
+            )
+            .in_graph(RdfTerm::iri(W)),
+        );
+        // An ASSERTED, attributed deceptive-intent claim on a held≠projected gap.
+        for (s, p, o) in [
+            ("http://ex/ev", gm("heldStandpoint"), "http://ex/held"),
+            ("http://ex/ev", gm("projectedStandpoint"), "http://ex/proj"),
+            (
+                "http://ex/ev",
+                gm("deceptiveIntentClaim"),
+                "http://ex/intent",
+            ),
+            ("http://ex/intent", gm("accordingTo"), "http://ex/assessor"),
+        ] {
+            builder.push_owned_quad(&quad(s, &p, o));
+        }
+        let dataset = builder.freeze().expect("valid test dataset");
+        // A no-op query (the obligation checks run regardless of the query list).
+        let q = (
+            "queries/verify/non-entailment-counterpart.rq".to_owned(),
+            COUNTERPART_Q.to_owned(),
+        );
+        let report = verify(dataset.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            !has_violation(&report, "verify.non-entailment.derived"),
+            "an asserted (EDB) attributed intent claim must not be read as a derived entailment"
+        );
+        assert!(
+            !has_violation(&report, "verify.non-entailment.violated"),
+            "deceptiveIntentClaim is not a foundation rule head → Arm A discharged"
+        );
+    }
+
+    #[test]
+    fn reviewer_gate_green_then_red() {
+        let (cand, reviewer) = ("http://ex/cand", "http://ex/reviewer");
+        let (candidate, lifecycle, accepted, reviewed_by, category, deriv) = (
+            lg("FormalizationCandidate"),
+            lg("candidateLifecycle"),
+            lg("CandidateAccepted"),
+            lg("reviewedBy"),
+            lg("candidateCategory"),
+            lg("CategoryDerivationRule"),
+        );
+        let q = (
+            "queries/verify/reviewer-gate.rq".to_owned(),
+            REVIEWER_Q.to_owned(),
+        );
+        // Green: an accepted candidate WITH a recorded reviewer decision (and a
+        // category, so the coverage check is also clean).
+        let green = dataset(&[
+            (cand, RDF_TYPE, &candidate),
+            (cand, &lifecycle, &accepted),
+            (cand, &reviewed_by, reviewer),
+            (cand, &category, &deriv),
+        ]);
+        let report = verify(green.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            !has_violation(&report, "verify.reviewer-gate"),
+            "a reviewed accepted candidate is canonical-legitimate"
+        );
+        // Red: an accepted candidate with NO reviewer decision — an extraction
+        // promoted straight to canonical. The gate must fire.
+        let red = dataset(&[
+            (cand, RDF_TYPE, &candidate),
+            (cand, &lifecycle, &accepted),
+            (cand, &category, &deriv),
+        ]);
+        let report = verify(red.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            has_violation(&report, "verify.reviewer-gate"),
+            "an unreviewed accepted candidate → reviewer-gate violation"
+        );
+    }
+
+    /// A `logic:reviewedBy` whose object is a plain literal is not an auditable
+    /// reviewer node — the tightened gate must still fire.
+    ///
+    /// This proves the inner `FILTER(isIRI(?reviewer) || isBlank(?reviewer))`
+    /// clause is load-bearing: the old query (bare `FILTER NOT EXISTS { ?candidate
+    /// logic:reviewedBy ?reviewer }`) would have passed this case because the
+    /// triple EXISTS; the new query correctly rejects it because the object is a
+    /// literal rather than a node.
+    #[test]
+    fn reviewer_gate_literal_reviewer_is_a_violation() {
+        let cand = "http://ex/cand-lit";
+        let (candidate, lifecycle, accepted, reviewed_by, category, deriv) = (
+            lg("FormalizationCandidate"),
+            lg("candidateLifecycle"),
+            lg("CandidateAccepted"),
+            lg("reviewedBy"),
+            lg("candidateCategory"),
+            lg("CategoryDerivationRule"),
+        );
+        let q = (
+            "queries/verify/reviewer-gate.rq".to_owned(),
+            REVIEWER_Q.to_owned(),
+        );
+        // Build the dataset manually so we can assert a literal-object triple.
+        let mut builder = RdfDatasetBuilder::new();
+        for (s, p, o) in [
+            (cand, RDF_TYPE, candidate.as_str()),
+            (cand, lifecycle.as_str(), accepted.as_str()),
+            (cand, category.as_str(), deriv.as_str()),
+        ] {
+            builder.push_owned_quad(&quad(s, p, o));
+        }
+        // The only reviewedBy value is a plain string literal — not a node.
+        builder.push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri(cand),
+                reviewed_by.clone(),
+                RdfTerm::Literal(RdfLiteral::typed(
+                    "alice",
+                    "http://www.w3.org/2001/XMLSchema#string",
+                )),
+            )
+            .in_graph(RdfTerm::iri(W)),
+        );
+        let dataset = builder.freeze().expect("valid literal-reviewer dataset");
+        let report = verify(dataset.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            has_violation(&report, "verify.reviewer-gate"),
+            "a literal-valued reviewedBy is not an auditable node → gate must fire"
+        );
+    }
+
+    // ── Typed formalization governance: conditional-carrier verify queries ───────
+
+    const NON_ENT_CARRIER_Q: &str = include_str!(
+        "../../../slices/core/logic/queries/verify/non-entailment-carrier-required.rq"
+    );
+    const PROMOTION_CASES_Q: &str =
+        include_str!("../../../slices/core/logic/queries/verify/promotion-cases-required.rq");
+
+    #[test]
+    fn non_entailment_carrier_required_green_then_red() {
+        // A FormalizationCandidate with CategoryNonEntailmentObligation that HAS
+        // a candidateNonEntailment link → zero rows (obligation is wired).
+        let cand = "http://ex/cand-ne";
+        let obl = "http://ex/obl-ne";
+        let (candidate, cat, ne_cat, candidate_ne) = (
+            lg("FormalizationCandidate"),
+            lg("candidateCategory"),
+            lg("CategoryNonEntailmentObligation"),
+            lg("candidateNonEntailment"),
+        );
+        let q = (
+            "queries/verify/non-entailment-carrier-required.rq".to_owned(),
+            NON_ENT_CARRIER_Q.to_owned(),
+        );
+        // Green: candidate with CategoryNonEntailmentObligation AND a candidateNonEntailment.
+        let green = dataset(&[
+            (cand, RDF_TYPE, &candidate),
+            (cand, &cat, &ne_cat),
+            (cand, &candidate_ne, obl),
+        ]);
+        let report = verify(green.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            !has_violation(&report, "verify.non-entailment-carrier-required"),
+            "a CategoryNonEntailmentObligation candidate with candidateNonEntailment is coherent"
+        );
+        // Red: CategoryNonEntailmentObligation candidate MISSING candidateNonEntailment → violation.
+        let red = dataset(&[(cand, RDF_TYPE, &candidate), (cand, &cat, &ne_cat)]);
+        let report = verify(red.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            has_violation(&report, "verify.non-entailment-carrier-required"),
+            "a CategoryNonEntailmentObligation candidate with no candidateNonEntailment → violation"
+        );
+    }
+
+    #[test]
+    fn promotion_cases_required_green_then_red() {
+        // An ACCEPTED candidate in an entailment-asserting category that HAS both
+        // positive and negative cases → zero rows.
+        let (cand, pos, neg, reviewer) = (
+            "http://ex/cand-pc",
+            "http://ex/pos-case",
+            "http://ex/neg-case",
+            "http://ex/reviewer",
+        );
+        let (candidate, lifecycle, accepted, reviewed_by, cat, int_cat, pos_case, neg_case) = (
+            lg("FormalizationCandidate"),
+            lg("candidateLifecycle"),
+            lg("CandidateAccepted"),
+            lg("reviewedBy"),
+            lg("candidateCategory"),
+            lg("CategoryIntegrityConstraint"),
+            lg("candidatePositiveCase"),
+            lg("candidateNegativeCase"),
+        );
+        let q = (
+            "queries/verify/promotion-cases-required.rq".to_owned(),
+            PROMOTION_CASES_Q.to_owned(),
+        );
+        // Green: accepted + entailment category + both cases present.
+        let green = dataset(&[
+            (cand, RDF_TYPE, &candidate),
+            (cand, &lifecycle, &accepted),
+            (cand, &reviewed_by, reviewer),
+            (cand, &cat, &int_cat),
+            (cand, &pos_case, pos),
+            (cand, &neg_case, neg),
+        ]);
+        let report = verify(green.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            !has_violation(&report, "verify.promotion-cases-required"),
+            "an accepted entailment-category candidate with both cases is promotion-ready"
+        );
+        // Red: accepted + entailment category MISSING the negative case → violation.
+        let red = dataset(&[
+            (cand, RDF_TYPE, &candidate),
+            (cand, &lifecycle, &accepted),
+            (cand, &reviewed_by, reviewer),
+            (cand, &cat, &int_cat),
+            (cand, &pos_case, pos),
+            // neg_case intentionally absent
+        ]);
+        let report = verify(red.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
+        assert!(
+            has_violation(&report, "verify.promotion-cases-required"),
+            "an accepted entailment-category candidate missing the negative case → violation"
         );
     }
 }

@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative example-conformance fixtures for the logic slice — the test-DSL
+# twin of the SHACL shapes in slices/core/logic/shapes.ttl ("this instance must
+# validate, that counter-example must be rejected"). The harness
+# (crates/slicetest run_conformance_cell) validates logic/module.ttl + the one
+# bound gmeow:exampleFile against logic/shapes.ttl and compares finding codes.
+#
+# MESSAGE→CODE shift: the original shapes assert specific sh:message strings;
+# these cells pin the constraint-component CODE (shacl.<ConstraintComponentLocalName>,
+# from gmeow_validate::findings::finding_from_shacl). The code form COLLAPSES
+# distinct sh:message strings that share a constraint component — e.g. two
+# different missing-property violations both report shacl.MinCountConstraintComponent,
+# indistinguishable by code alone. Because each counter-example is a SEPARATE
+# fixture isolating ONE violation, the (fixture, code) pair still pins the
+# specific constraint faithfully.
+#
+# CODE VERIFICATION: expectedViolationCode "shacl.MinCountConstraintComponent"
+# matches the code produced by gmeow_validate::findings::finding_from_shacl for
+# sh:minCount violations, confirmed against the unit tests in
+# crates/validate/src/findings.rs (MinCountConstraintComponent test, line ~263).
+#
+# The CONFORMING fixture lives under tests/conformance-fixtures/ (NOT examples/)
+# and the two counter-examples under tests/counter-examples/, so the global
+# `make validate` gate never loads them as data; they are validated SLICE-SCOPED
+# only (module + slice shapes), intentional and mirroring the concepts slice
+# exclusion rationale.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+# --- Conforming: a well-formed FormalizationCandidate -------------------------
+ex:ecCandidateWellformed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/candidate-wellformed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The fixture supplies all eight universal carrier properties (candidateSourceHash, candidateExtractionProvenance, candidateScope, candidateContract, candidateCategory, candidateLifecycle, candidateProjectionBehavior, candidateSemanticRisk), each single-valued and pointing to the correct type, so it satisfies logic:FormalizationCandidateShape and validates with no findings." .
+
+# --- Violating: FormalizationCandidate missing candidateSourceHash -----------
+ex:ecCandidateMissingSourceHash a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/candidate-missing-sourcehash.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits logic:candidateSourceHash (sh:minCount 1 on logic:FormalizationCandidateShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
+
+# --- Violating: FormalizationCandidate missing candidateCategory -------------
+ex:ecCandidateMissingCategory a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/candidate-missing-category.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits logic:candidateCategory (sh:minCount 1 on logic:FormalizationCandidateShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .

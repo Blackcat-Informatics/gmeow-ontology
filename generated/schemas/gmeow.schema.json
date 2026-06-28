@@ -12110,6 +12110,56 @@
           "then": {
             "$ref": "#/$defs/WebPage"
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "logic:FormalizationCandidate"
+                  },
+                  {
+                    "contains": {
+                      "const": "logic:FormalizationCandidate"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/logic:FormalizationCandidate"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "logic:NonEntailmentObligation"
+                  },
+                  {
+                    "contains": {
+                      "const": "logic:NonEntailmentObligation"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/logic:NonEntailmentObligation"
+          }
         }
       ],
       "description": "Validated by @type: a node typed gmeow:Foo MUST satisfy #/$defs/Foo (closed-world, #700). Nodes typed only by unmodeled classes are permissively allowed.",
@@ -18285,6 +18335,286 @@
         },
         "gmeow:pagePrincipalSubject": {}
       },
+      "type": "object"
+    },
+    "logic:FormalizationCandidate": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "logic:candidateCategory": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/logic/FormalizationCategory",
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "logic:candidateContract": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/logic/ReasoningContract",
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "logic:candidateExtractionProvenance": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "logic:candidateLifecycle": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/logic/CandidateLifecycleState",
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "logic:candidateProjectionBehavior": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/logic/PreservationKind",
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "logic:candidateScope": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "logic:candidateSemanticRisk": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/logic/SemanticRiskClass",
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "logic:candidateSourceHash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "required": [
+        "logic:candidateCategory",
+        "logic:candidateContract",
+        "logic:candidateExtractionProvenance",
+        "logic:candidateLifecycle",
+        "logic:candidateProjectionBehavior",
+        "logic:candidateScope",
+        "logic:candidateSemanticRisk",
+        "logic:candidateSourceHash"
+      ],
+      "type": "object"
+    },
+    "logic:NonEntailmentObligation": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "logic:obligationDischargeCondition": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/DischargeCondition",
+                  "type": "string"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$comment": "external class https://blackcatinformatics.ca/logic/DischargeCondition",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "logic:obligationForbiddenPredicate": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "required": [
+        "logic:obligationDischargeCondition",
+        "logic:obligationForbiddenPredicate"
+      ],
       "type": "object"
     }
   },

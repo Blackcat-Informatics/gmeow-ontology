@@ -38,6 +38,7 @@ use crate::shapes::{Constraint, NodeKindValue, Path, Shape, Shapes, Target};
 
 /// The GMEOW namespace (matches `crate::model::gmeow`).
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const XSD_NS: &str = "http://www.w3.org/2001/XMLSchema#";
 const RDF_NS: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
@@ -52,6 +53,7 @@ const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langSt
 /// namespace is matched before any shorter prefix could.  `(prefix, namespace)`.
 pub const PREFIXES: &[(&str, &str)] = &[
     ("gmeow", GMEOW_NS),
+    ("logic", LOGIC_NS),
     ("xsd", XSD_NS),
     ("rdf", RDF_NS),
     ("rdfs", RDFS_NS),
@@ -86,6 +88,26 @@ pub fn local_name(iri: &str) -> String {
 /// `$ref`; external classes get a permissive node-ref / string).
 fn is_gmeow(iri: &str) -> bool {
     iri.starts_with(GMEOW_NS)
+}
+
+/// Whether an IRI is in a known namespace (i.e. [`compact_iri`] would compact it
+/// to a `prefix:Local` CURIE rather than returning it verbatim).
+fn is_known_prefix(iri: &str) -> bool {
+    compact_iri(iri) != iri
+}
+
+/// The `$defs`/discriminator key for a target class. A `gmeow:` class keeps its
+/// bare local name (the historical keying — no schema-golden churn); any other
+/// known-namespace class is keyed by its full CURIE (`logic:FormalizationCandidate`),
+/// so cross-namespace local-name twins never collide. A `gmeow:` local name never
+/// contains a `:`, while a CURIE always does — the discriminator
+/// ([`node_def`]) relies on that to rebuild each `@type` const.
+fn def_key(iri: &str) -> String {
+    if is_gmeow(iri) {
+        local_name(iri)
+    } else {
+        compact_iri(iri)
+    }
 }
 
 /// A single un-mappable SHACL construct, recorded rather than silently dropped.
@@ -186,7 +208,7 @@ pub fn compile(shapes: &Shapes) -> CompiledSchema {
         let body = compile_object_schema(shape, &mut ctx);
         for target in &shape.targets {
             if let Target::Class(c) = target {
-                let name = local_name(c.as_str());
+                let name = def_key(c.as_str());
                 // First writer wins for a given class name; bodies are identical
                 // per shape so this only matters if two shapes target the same
                 // class (last one would otherwise clobber). Keep deterministic by
@@ -222,12 +244,13 @@ pub fn compile(shapes: &Shapes) -> CompiledSchema {
     }
 }
 
-/// Enforce the local-name keying precondition (#700 Gap D): every active
-/// `sh:targetClass` is in the gmeow namespace and local names are collision-free.
+/// Enforce the keying precondition (#700 Gap D): every active `sh:targetClass`
+/// is in a KNOWN namespace (so [`def_key`] yields a stable `$defs` key and
+/// [`node_def`] can rebuild its `@type` const) and those keys are collision-free.
 /// Panics with a descriptive message otherwise (build-time, fail-closed).
 fn assert_target_class_keys_are_unambiguous(shapes: &Shapes) {
     use std::collections::BTreeMap;
-    let mut local_to_iri: BTreeMap<String, String> = BTreeMap::new();
+    let mut key_to_iri: BTreeMap<String, String> = BTreeMap::new();
     for shape in &shapes.node_shapes {
         if shape.deactivated {
             continue;
@@ -236,19 +259,19 @@ fn assert_target_class_keys_are_unambiguous(shapes: &Shapes) {
             if let Target::Class(c) = target {
                 let iri = c.as_str();
                 assert!(
-                    is_gmeow(iri),
-                    "json_schema: non-gmeow sh:targetClass {iri:?} — the @type \
-                     discriminator assumes the gmeow: namespace and `$defs` keys use \
-                     the bare local name; extend the emitter (and OpenAPI key encoding) \
-                     before introducing non-gmeow target classes"
+                    is_known_prefix(iri),
+                    "json_schema: unknown-namespace sh:targetClass {iri:?} — the @type \
+                     discriminator and `$defs` keys derive from a known prefix CURIE; \
+                     register the namespace in PREFIXES (and confirm OpenAPI key encoding) \
+                     before introducing target classes from a new namespace"
                 );
-                let local = local_name(iri);
-                if let Some(prev) = local_to_iri.insert(local.clone(), iri.to_owned()) {
+                let key = def_key(iri);
+                if let Some(prev) = key_to_iri.insert(key.clone(), iri.to_owned()) {
                     assert_eq!(
                         prev, iri,
-                        "json_schema: distinct target classes share the local name \
-                         {local:?} ({prev} vs {iri}) — their `$defs`/OpenAPI keys would \
-                         collide; disambiguate before keying by local name"
+                        "json_schema: distinct target classes share the `$defs` key \
+                         {key:?} ({prev} vs {iri}) — their `$defs`/OpenAPI keys would \
+                         collide; disambiguate before keying"
                     );
                 }
             }
@@ -304,8 +327,10 @@ fn root_schema(defs: &Map<String, Value>) -> Value {
 ///
 /// A node carries `@id`/`@type`/`@annotation` permissively, then an `allOf` of
 /// per-class conditionals (sorted by class name for determinism). Each entry
-/// reads: *if* `@type` includes `gmeow:<Class>` (as a bare string OR an array
-/// member), *then* the node MUST satisfy `#/$defs/<Class>`.
+/// reads: *if* `@type` includes the class CURIE — `gmeow:<Class>` for a gmeow
+/// class, or the full `prefix:<Class>` for any other known namespace (e.g.
+/// `logic:FormalizationCandidate`) — as a bare string OR an array member,
+/// *then* the node MUST satisfy that class's `#/$defs` body.
 ///
 /// Closed-world semantics:
 /// * An instance typed `gmeow:Foo` that is MISSING a required property triggers
@@ -322,7 +347,15 @@ fn node_def(class_names: &[String]) -> Value {
     let conditionals: Vec<Value> = sorted
         .iter()
         .map(|name| {
-            let type_const = format!("gmeow:{name}");
+            // A `$defs` key carrying a `:` is already a CURIE (a non-gmeow class,
+            // e.g. `logic:FormalizationCandidate`); a colon-free key is a bare
+            // gmeow local name and takes the `gmeow:` prefix. Either way the
+            // `@type` const matches the compact IRI an instance node carries.
+            let type_const = if name.contains(':') {
+                (*name).clone()
+            } else {
+                format!("gmeow:{name}")
+            };
             json!({
                 "if": {
                     "required": ["@type"],
@@ -983,10 +1016,12 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "non-gmeow sh:targetClass")]
-    fn non_gmeow_target_class_hard_fails() {
-        // A non-gmeow sh:targetClass would never match the `gmeow:<Local>` @type
-        // discriminator; the keying guard must reject it loudly (#700 Gap D).
+    #[should_panic(expected = "unknown-namespace sh:targetClass")]
+    fn unknown_namespace_target_class_hard_fails() {
+        // A target class from an UNREGISTERED namespace has no prefix CURIE to key
+        // its `$defs`/discriminator by; the keying guard must reject it loudly
+        // (#700 Gap D). A KNOWN non-gmeow prefix (e.g. logic:) is accepted — see
+        // `logic_target_class_keyed_by_curie`.
         compile_ttl(
             r#"
             @prefix ex: <https://example.org/> .
@@ -994,6 +1029,43 @@ mod tests {
                 sh:targetClass ex:Person ;
                 sh:property [ sh:path gmeow:name ; sh:minCount 1 ] .
         "#,
+        );
+    }
+
+    #[test]
+    fn logic_target_class_keyed_by_curie() {
+        // A non-gmeow but KNOWN-prefix target class (logic:) keys its `$defs` body
+        // by the full CURIE and discriminates `@type` on that same CURIE, so a
+        // closed-world logic node is enforced exactly like a gmeow node (#772).
+        let schema = schema_of(&compile_ttl(
+            r#"
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .
+            logic:CandidateShape a sh:NodeShape ;
+                sh:targetClass logic:FormalizationCandidate ;
+                sh:property [ sh:path logic:candidateSourceHash ;
+                              sh:minCount 1 ; sh:datatype xsd:string ] .
+        "#,
+        ));
+        // The body is keyed by the CURIE, not a bare local name.
+        assert!(
+            def(&schema, "logic:FormalizationCandidate").is_object(),
+            "logic class must be keyed by its CURIE in $defs"
+        );
+        assert!(
+            schema["$defs"]["FormalizationCandidate"].is_null(),
+            "a logic class must NOT leak under a bare local-name key"
+        );
+        // The Node discriminator fires on the CURIE @type const and refs the CURIE key.
+        let node = def(&schema, "Node");
+        let conds = node["allOf"].as_array().expect("Node allOf");
+        let fires = conds.iter().any(|c| {
+            c["then"]["$ref"] == "#/$defs/logic:FormalizationCandidate"
+                && c["if"]["properties"]["@type"]["anyOf"][0]["const"]
+                    == "logic:FormalizationCandidate"
+        });
+        assert!(
+            fires,
+            "Node must discriminate logic:FormalizationCandidate on its CURIE @type"
         );
     }
 
