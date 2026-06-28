@@ -658,6 +658,7 @@ gmeow:knowsThatIn
     gmeow:avoidWhen "Avoid reading it as a GLOBAL truth verdict — factivity is world-LOCAL (relative to the gmeow:EpistemicContext), never across all worlds; for the non-factive vantage-indexed claim use gmeow:knowsThat, and for a merely reported 'they take themselves to know' use gmeow:claimsToKnowThat / gmeow:KnowledgeAttribution. Never make it a subproperty of the doxastic spine."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the agent at the proposition for the flat case; promote to a reified gmeow:KnowledgeClaim when the belief-world (gmeow:knownInWorld -> gmeow:EpistemicContext) and the gmeow:EpistemicStandard must be first-class. Keep it strictly separate from gmeow:knowsThat / gmeow:believes."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:KnowledgeClaim ;
     gmeow:useWhen "Use to record locally-factive knowledge — that an agent knows P holds in a particular belief-world — distinct from the non-factive gmeow:knowsThat; the world and standard ride the reified gmeow:KnowledgeClaim."@x-gmeow-english .
 
 gmeow:meetsThreshold

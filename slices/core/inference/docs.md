@@ -90,7 +90,8 @@ The Peircean mode value vocabulary (`gufo:AbstractIndividualType ⊑ gufo:Qualit
 ### gmeow:InferenceTenure
 
 The time-scoped fact (`gufo:SituationType ⊑ gmeow:TimeScopedRelation`) that a commitment's conclusion
-was held over an interval — opened on acceptance, closed when an attack fires (`gmeow:tenureOf` names
+was held over an interval — opened on acceptance, closed when the solver evaluates the corresponding
+`gmeow:Argument` as `gmeow:acceptanceOut` via a `gmeow:ArgumentEvaluation` (`gmeow:tenureOf` names
 the commitment; `gmeow:duringInterval` carries the period).
 
 ## The argumentation layer (Dung / ASPIC+)
@@ -137,12 +138,13 @@ are suppressed (`gmeow:displayable false`), never erased. Rivals are linked by t
 
 ## Belief revision is suppression
 
-A fired attack (a `gmeow:Attack`, evaluated `gmeow:acceptanceOut` by the solver) sets the
-conclusion-claim `gmeow:displayable false` and **closes** the `gmeow:InferenceTenure` (an end on its
-interval); the `gmeow:InferenceCommitment` and its `gmeow:Argument` are retained as audit (Principle
-10). The whole episode — how the agent believed, and why it stopped — stays queryable. This is the
-headline demonstration for the agent-memory consumer (Principle 15): an LLM stating *how* it reached a
-claim and revising belief without deleting history.
+When the solver evaluates a `gmeow:Argument` as `gmeow:acceptanceOut` via a
+`gmeow:ArgumentEvaluation` — a verdict to which a `gmeow:Attack` contributes — suppression follows:
+the conclusion-claim is marked `gmeow:displayable false` and the `gmeow:InferenceTenure` is
+**closed** (an end on its interval); the `gmeow:InferenceCommitment` and its `gmeow:Argument` are
+retained as audit (Principle 10). The whole episode — how the agent believed, and why it stopped —
+stays queryable. This is the headline demonstration for the agent-memory consumer (Principle 15): an
+LLM stating *how* it reached a claim and revising belief without deleting history.
 
 ## Alignment
 

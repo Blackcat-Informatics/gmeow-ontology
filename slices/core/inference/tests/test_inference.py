@@ -330,6 +330,8 @@ def test_all_examples_parse() -> None:
     conformance against the real method individuals is enforced by
     `make validate` / check_examples over the merged graph)."""
     examples = sorted((_SLICE / "examples").glob("*.ttl"))
-    assert len(examples) == 6
+    names = {example.name for example in examples}
+    assert "argumentation.ttl" in names
+    assert len(names) == 6
     for example in examples:
         Graph().parse(example, format="turtle")

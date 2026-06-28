@@ -130,15 +130,15 @@ spine to a `gmeow:DoxasticState`.
 
 "Justification" is not one thing. Following the canonical `LOGIC-FOUNDATION.md` account, this slice
 splits it into five independent components a single word usually hides — each non-functional, so
-competing values coexist (Principle 9), and each a solver judgement (Principle 12):
+competing values coexist (Principle 9):
 
-| Component | Edge | Range | Meaning |
-|---|---|---|---|
-| available evidence | `gmeow:hasAvailableEvidence` | `gmeow:JustificationGround` | what the agent has access to |
-| basing | `gmeow:basesBeliefOn` | `gmeow:JustificationGround` | which ground the belief is actually founded on (available ≠ used) |
-| support under a standard | `gmeow:supportsUnder` | `gmeow:SupportAssessment` | how strongly the evidence warrants the content, relative to a named `gmeow:EpistemicStandard` |
-| adequacy | `gmeow:adequateUnder` | `gmeow:AdequacyAssessment` | whether that support meets the standard's threshold (`gmeow:meetsThreshold` → `gmeow:AdequacyVerdict`) |
-| defeat | `gmeow:defeatedBy` / `gmeow:hasDefeatStatus` | `gmeow:Defeater` / `gmeow:JustificationStatus` | the structural defeater (what defeats) vs the solver-set verdict flag (the adjudicated outcome) |
+| Component | Edge | Range | Kind | Meaning |
+|---|---|---|---|---|
+| available evidence | `gmeow:hasAvailableEvidence` | `gmeow:JustificationGround` | asserted provenance | what the agent has access to — a modelling fact, never a solver judgement |
+| basing | `gmeow:basesBeliefOn` | `gmeow:JustificationGround` | asserted provenance | which ground the belief is actually founded on (available ≠ used) — a modelling fact |
+| support under a standard | `gmeow:supportsUnder` | `gmeow:SupportAssessment` | solver adjudication | how strongly the evidence warrants the content, relative to a named `gmeow:EpistemicStandard` (Principle 12) |
+| adequacy | `gmeow:adequateUnder` | `gmeow:AdequacyAssessment` | solver adjudication | whether that support meets the standard's threshold (`gmeow:meetsThreshold` → `gmeow:AdequacyVerdict`) (Principle 12) |
+| defeat | `gmeow:defeatedBy` / `gmeow:hasDefeatStatus` | `gmeow:Defeater` / `gmeow:JustificationStatus` | structural / solver adjudication | the structural defeater (what defeats — asserted) vs the solver-set verdict flag (the adjudicated outcome, Principle 12) |
 
 The `gmeow:EpistemicStandard` vocabulary names the bar — `gmeow:standardOrdinary`,
 `gmeow:standardScientific`, and the legal `gmeow:standardLegalPreponderance` /

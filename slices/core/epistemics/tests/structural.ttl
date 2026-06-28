@@ -353,6 +353,11 @@ ASK {
     gmeow:KnowledgeAttribution a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
     gmeow:knownInWorld a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:EpistemicContext .
     gmeow:underStandard a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:EpistemicStandard .
+    gmeow:knowerAgent a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:Agent .
+    gmeow:knownProposition a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:Proposition .
+    gmeow:attributingAgent a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeAttribution ; rdfs:range gmeow:Agent .
+    gmeow:attributedKnower a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeAttribution ; rdfs:range gmeow:Agent .
+    gmeow:attributedProposition a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeAttribution ; rdfs:range gmeow:Proposition .
 }""" ;
     gmeow:saRationale "The locally-factive knowing relation is reified as gmeow:KnowledgeClaim (logic:Kind subClassOf logic:Relator) carrying gmeow:knownInWorld -> gmeow:EpistemicContext and gmeow:underStandard -> gmeow:EpistemicStandard, with the non-factive gmeow:KnowledgeAttribution alongside it — both CLAIM relators, deliberately NOT mental moments." .
 

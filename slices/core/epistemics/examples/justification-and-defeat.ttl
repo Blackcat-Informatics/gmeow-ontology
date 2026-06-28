@@ -45,7 +45,7 @@ ex:wallClockReading a gmeow:EvidenceSpan ;
 ex:stoppedClock a gmeow:PhysicalObject ;
     rdfs:label "the stopped clock"@x-gmeow-english .
 
-ex:stoppedClockReading a gmeow:EvidenceSpan ;
+ex:stoppedClockReading a gmeow:EvidenceSpan , gmeow:Defeater ;
     rdfs:label "stopped-clock reading: 12:00"@x-gmeow-english ;
     gmeow:selectorTextQuote "12:00"@x-gmeow-english .
 
@@ -92,6 +92,7 @@ ex:adaGettierBelief a gmeow:DoxasticState ;
     gmeow:doxasticClaim ex:adaGettierClaim ;
     gmeow:hasAvailableEvidence ex:stoppedClockReading ;
     gmeow:basesBeliefOn ex:stoppedClockReading ;
+    gmeow:defeatedBy ex:stoppedClockReading ;                  # the structural defeater (an EvidenceSpan ⊑ Defeater)
     gmeow:hasDefeatStatus gmeow:justificationStatusGettier .   # the solver-set verdict flag
 
 ex:adaGettierClaim a gmeow:DoxasticStandpointClaim ;
