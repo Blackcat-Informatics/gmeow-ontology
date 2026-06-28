@@ -18,9 +18,13 @@
 //! `x-gmeow-*` language tags remapped to public BCP-47 at the projection boundary
 //! (#287) exactly as the Python `write_nquads` / `write_trig` do.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use gmeow_gts::model::{Graph, Term as GtsTerm, TermKind};
+use gmeow_validate::language_tags::{
+    self, filter_literals as authority_filter_literals, is_internal_tag,
+    marked as authority_marked, select_literal as authority_select_literal, LitDesc,
+};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
@@ -53,43 +57,6 @@ const LANGUAGE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Language";
 const LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/gmeow/languageTag";
 const BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
 
-// ── small language-tag helpers (mirror gmeow_validate / language_tags.py) ──────
-
-/// `^x-gmeow-[a-z0-9\-]+$` (case-insensitive) — the GMEOW internal private-use tag.
-fn is_internal_tag(lang: &str) -> bool {
-    let lower = lang.to_ascii_lowercase();
-    let Some(suffix) = lower.strip_prefix("x-gmeow-") else {
-        return false;
-    };
-    !suffix.is_empty()
-        && suffix
-            .chars()
-            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
-}
-
-/// The shared language-preference sort key: the carrier language wins, then tags
-/// lexicographically. Mirrors `language_tags.rank_language`.
-fn rank_language(lang: Option<&str>) -> (u8, String) {
-    let lower = lang.unwrap_or("").to_ascii_lowercase();
-    let rank = if lower == "x-gmeow-english" { 0 } else { 1 };
-    (rank, lower)
-}
-
-// ── literal bucketing ──────────────────────────────────────────────────────────
-
-/// One bucketed literal candidate: `(retagged_text, public_bcp47, original_lang)`.
-type LitRow = (String, Option<String>, String);
-
-/// The deterministic-first NON-empty-keyed bucket's head row, ranked by language
-/// (carrier language wins). Mirrors the `tagged = sorted(...); min(rank)` fallback.
-fn best_tagged(by_bcp: &BTreeMap<String, Vec<LitRow>>) -> Option<(&str, &LitRow)> {
-    by_bcp
-        .iter()
-        .filter(|(k, _)| !k.is_empty())
-        .map(|(k, v)| (k.as_str(), &v[0]))
-        .min_by(|a, b| rank_language(Some(a.0)).cmp(&rank_language(Some(b.0))))
-}
-
 // ── curie ──────────────────────────────────────────────────────────────────────
 
 fn curie(iri: &str) -> String {
@@ -111,6 +78,10 @@ pub(crate) struct FoldView<'a> {
     /// scope → (p, o) → [subject]
     po: BTreeMap<String, BTreeMap<(usize, usize), Vec<usize>>>,
     tag_map: BTreeMap<String, String>,
+    /// Cached `HashMap` form of `tag_map` — built once at construction and
+    /// passed by reference to `select_literal` / `filter_literals` to avoid
+    /// re-allocating on every per-literal call in the hot export fold.
+    tag_map_hash: HashMap<String, String>,
     /// Requested public BCP-47 tags in precedence order (mirrors
     /// `LangSelector.requested`). The export generator uses `["en"]`; the MCP
     /// consumer threads a per-call selection (e.g. `["fr"]`).
@@ -151,10 +122,16 @@ impl<'a> FoldView<'a> {
             spo: BTreeMap::new(),
             po: BTreeMap::new(),
             tag_map: BTreeMap::new(),
+            tag_map_hash: HashMap::new(),
             requested,
         };
         view.build_indexes();
         view.tag_map = view.build_tag_map();
+        view.tag_map_hash = view
+            .tag_map
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect();
         view
     }
 
@@ -370,88 +347,54 @@ impl<'a> FoldView<'a> {
         }
     }
 
-    /// `(retagged_text, public_bcp47, original_lang)` buckets keyed by lowercased
-    /// public tag (`""` for untagged). Shared by select_literal / filter_literals.
-    fn bucket_by_bcp(&self, candidates: &[usize]) -> BTreeMap<String, Vec<LitRow>> {
-        let mut by_bcp: BTreeMap<String, Vec<LitRow>> = BTreeMap::new();
-        for &tid in candidates {
-            let bcp = self.bcp47_for(tid);
-            let bucket = bcp.as_deref().unwrap_or("").to_ascii_lowercase();
-            let text = self.lex(tid).to_string();
-            let orig = self.lang(tid).unwrap_or("").to_string();
-            by_bcp.entry(bucket).or_default().push((text, bcp, orig));
-        }
-        for items in by_bcp.values_mut() {
-            items.sort_by(|a, b| {
-                (rank_language(Some(&a.2)), &a.0).cmp(&(rank_language(Some(&b.2)), &b.0))
-            });
-        }
-        by_bcp
+    /// Build the canonical-authority [`LitDesc`] slice for a list of literal tids
+    /// (lexical form + language tag), plus the matching `HashMap` tag map the
+    /// authority API takes. The returned descriptors share the `candidates`
+    /// indexing, so a [`language_tags::Selection`] `index` maps straight back to
+    /// `candidates[index]`.
+    fn lit_descs(&self, candidates: &[usize]) -> Vec<LitDesc> {
+        candidates
+            .iter()
+            .map(|&tid| LitDesc {
+                lexical: self.lex(tid).to_string(),
+                language: self.lang(tid).map(str::to_string),
+            })
+            .collect()
     }
 
-    /// `select_literal`: the single best literal for `self.requested`. Tries each
-    /// requested tag in precedence order (non-fallback), then the English /
-    /// first-tagged / untagged fallback chain (`is_fallback=true`). With
-    /// `requested == ["en"]` this is identical to the English-only path.
+    /// Resolve a [`language_tags::Selection`] back into the FoldView row shape
+    /// `(text, public_bcp47, is_fallback)`. The public tag is the literal's bucket
+    /// tag ([`Self::bcp47_for`]) — `Some` for any tagged literal — not the
+    /// authority's `retag_to` (which is `None` for already-public tags).
+    fn selection_row(
+        &self,
+        candidates: &[usize],
+        sel: &language_tags::Selection,
+    ) -> (String, Option<String>, bool) {
+        let tid = candidates[sel.index];
+        (
+            self.lex(tid).to_string(),
+            self.bcp47_for(tid),
+            sel.is_fallback,
+        )
+    }
+
+    /// `select_literal`: the single best literal for `self.requested`, via the
+    /// canonical [`language_tags::select_literal`] authority.
     fn select_literal(&self, candidates: &[usize]) -> Option<(String, Option<String>, bool)> {
-        if candidates.is_empty() {
-            return None;
-        }
-        let by_bcp = self.bucket_by_bcp(candidates);
-        for req in &self.requested {
-            if let Some(rows) = by_bcp.get(req) {
-                let (text, bcp, _) = &rows[0];
-                return Some((text.clone(), bcp.clone(), false));
-            }
-        }
-        // Fallback: English carrier, then deterministic-first tagged, then untagged.
-        if let Some(en) = by_bcp.get("en") {
-            let (text, bcp, _) = &en[0];
-            return Some((text.clone(), bcp.clone(), true));
-        }
-        if let Some((_, row)) = best_tagged(&by_bcp) {
-            let (text, bcp, _) = row;
-            return Some((text.clone(), bcp.clone(), true));
-        }
-        if let Some(untagged) = by_bcp.get("") {
-            let (text, bcp, _) = &untagged[0];
-            return Some((text.clone(), bcp.clone(), true));
-        }
-        None
+        let descs = self.lit_descs(candidates);
+        authority_select_literal(&descs, &self.requested, &self.tag_map_hash)
+            .map(|sel| self.selection_row(candidates, &sel))
     }
 
-    /// `filter_literals`: every literal matching `self.requested` (non-fallback),
-    /// or the English / first-tagged / untagged fallback (a single row,
-    /// `is_fallback=true`). With `requested == ["en"]` this is identical to the
-    /// English-only path.
+    /// `filter_literals`: every requested-language literal (or the fallback), via
+    /// the canonical [`language_tags::filter_literals`] authority.
     fn filter_literals(&self, candidates: &[usize]) -> Vec<(String, Option<String>, bool)> {
-        if candidates.is_empty() {
-            return Vec::new();
-        }
-        let by_bcp = self.bucket_by_bcp(candidates);
-        let mut results: Vec<(String, Option<String>, bool)> = Vec::new();
-        for req in &self.requested {
-            if let Some(rows) = by_bcp.get(req) {
-                results.extend(rows.iter().map(|(t, b, _)| (t.clone(), b.clone(), false)));
-            }
-        }
-        if !results.is_empty() {
-            return results;
-        }
-        // Fallback chain: English carrier, then first tagged, then untagged.
-        if let Some(en) = by_bcp.get("en") {
-            let (text, bcp, _) = &en[0];
-            return vec![(text.clone(), bcp.clone(), true)];
-        }
-        if let Some((_, row)) = best_tagged(&by_bcp) {
-            let (text, bcp, _) = row;
-            return vec![(text.clone(), bcp.clone(), true)];
-        }
-        if let Some(untagged) = by_bcp.get("") {
-            let (text, bcp, _) = &untagged[0];
-            return vec![(text.clone(), bcp.clone(), true)];
-        }
-        Vec::new()
+        let descs = self.lit_descs(candidates);
+        authority_filter_literals(&descs, &self.requested, &self.tag_map_hash)
+            .iter()
+            .map(|sel| self.selection_row(candidates, sel))
+            .collect()
     }
 }
 
@@ -1395,12 +1338,11 @@ fn write_jsonl(terms: &[Term]) -> Vec<u8> {
 
 // ── Markdown term reference ─────────────────────────────────────────────────────
 
+/// Append the language-fallback marker. The export leaf's fallback chain always
+/// resolves through the English carrier, so the marker language is always `en`;
+/// the policy itself lives in the [`language_tags::marked`] authority.
 fn marked(text: &str, fallback: bool) -> String {
-    if fallback {
-        format!("{text} [fallback: en]")
-    } else {
-        text.to_string()
-    }
+    authority_marked(text, fallback, "en")
 }
 
 fn append_md_advisory(lines: &mut Vec<String>, t: &Term) {

@@ -23,7 +23,8 @@ A **`gmeow:Language` has a self-minted IRI.** Registry codes — BCP-47, ISO 639
 Glottolog, Wikidata — are **optional alignments** (`gmeow:languageCode`,
 `gmeow:authorityLink`, `skos:exactMatch`), never the primary key. A code-less
 conlang or AI-language is therefore a **fully first-class, co-equal** language.
-`tests/test_languages.py` enforces that nothing requires a code.
+The `ex:saLanguageCodeNoRequiredCardinality` structural-assertion cell (in
+`slices/core/language/tests/structural.ttl`) enforces that nothing requires a code.
 
 To isolate the GMEOW graph from registry changes and support code-less conlangs, **all internal literals must use private-use BCP-47 tags (e.g. `@x-gmeow-english`)** for any GMEOW-namespaced property. The language entity's `gmeow:languageTag` functional property links the entity to its internal tag.
 
