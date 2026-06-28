@@ -11974,6 +11974,12 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/causalPartOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <https://blackcatinformatics.ca/gmeow/partOf> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/causalPartOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <https://blackcatinformatics.ca/gmeow/partOf> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/causallyEnables> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/QualityValue> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/causallyEnables> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/QualityValue> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
@@ -19124,6 +19130,12 @@
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/harmonicFunctionTonic> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/QualityValue> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/hasCausalPart> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <https://blackcatinformatics.ca/gmeow/hasPart> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/hasCausalPart> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <https://blackcatinformatics.ca/gmeow/hasPart> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/hasFather> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <https://blackcatinformatics.ca/gmeow/connectsTo> .

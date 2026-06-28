@@ -23,10 +23,13 @@
 #     whole-rooted gmeow:hasCausalPart inverse is derived.
 ex:launch a gmeow:Event ;
     rdfs:label "the rocket launch"@x-gmeow-english ;
-    gmeow:eventType gmeow:eventTypeCreation .
+    gmeow:eventType gmeow:eventTypeCreation ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 ex:ignition a gmeow:Event ;
     rdfs:label "first-stage ignition"@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeCreation ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:causalPartOf ex:launch .
 
 # --- The action→event seam carried with logic:occurrentBoundary.
@@ -34,8 +37,11 @@ ex:ignition a gmeow:Event ;
 #     once complete it is a CLOSED unitary event.
 ex:liftoffActivity a gmeow:Activity ;
     rdfs:label "the liftoff, in progress"@x-gmeow-english ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     logic:occurrentBoundary logic:Open .
 
 ex:liftoffRecord a gmeow:Event ;
     rdfs:label "the completed liftoff"@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeCreation ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     logic:occurrentBoundary logic:Closed .
