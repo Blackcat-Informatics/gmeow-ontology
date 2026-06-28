@@ -3,41 +3,44 @@
 
 # Five-minute demo: GTS music-package projections
 
-This walkthrough shows the `music-package` GTS profile in action.  In a few
+This walkthrough shows the `music-package` GTS profile in action. In a few
 commands you can project frame-relative canonical music data out to common
 notation formats and pull a MusicXML file back into the same canonical model.
 
 ## What you need
 
-- A GMEOW checkout with the `[music]` optional dependency installed:
+- A GMEOW checkout with the native extension installed:
 
   ```bash
-  uv sync --extra music
+  make install
   ```
 
-- The `gmeow-music` CLI entry point (installed automatically by `uv sync`).
+- The `gmeow-music` CLI entry point (installed automatically by the package).
 
 ## Run the scripted demo
 
 ```bash
-uv run --extra music python scripts/music_five_minute_demo.py
+uv run python scripts/music_five_minute_demo.py
 ```
 
-The script creates a short C-major scale fragment in the canonical model,
-renders it to MusicXML, ABC, Scala `.scl`, and MIDI, emits a canonical
-`demo.gts` package, then re-imports the MusicXML file into a second GTS file.
-All outputs land in `dist/music-demo/`.
+The script writes a compact MusicXML C-major fragment, imports it into a
+canonical `demo.gts` package, then renders that package to MusicXML, ABC, Scala
+`.scl`, and MIDI. All outputs land in `dist/music-demo/`.
 
 Expected output:
 
 ```text
-wrote dist/music-demo/demo.musicxml
-wrote dist/music-demo/demo.abc
-wrote dist/music-demo/demo.scl
-wrote dist/music-demo/demo.midi
+wrote dist/music-demo/seed.musicxml
 wrote dist/music-demo/demo.gts
-events: original=8 imported=8
-music21 parsed 8 notes from demo.musicxml
+wrote dist/music-demo/demo.gts.manifest.ttl
+wrote dist/music-demo/demo.musicxml
+wrote dist/music-demo/demo.musicxml.manifest.ttl
+wrote dist/music-demo/demo.abc
+wrote dist/music-demo/demo.abc.manifest.ttl
+wrote dist/music-demo/demo.scl
+wrote dist/music-demo/demo.scl.manifest.ttl
+wrote dist/music-demo/demo.midi
+wrote dist/music-demo/demo.midi.manifest.ttl
 ```
 
 ## Use the CLI directly
@@ -82,6 +85,6 @@ manifest records the provenance of that inward projection.
 ## Next steps
 
 - Read GTS-SPEC.md §13 for the `music-package` profile wire format.
-- See `src/gmeow_tools/ext/music/` for the solver, renderers, and importer.
-- Add new notation targets by implementing a renderer module and registering a
+- See `crates/music/` for the model, renderers, importer, and manifest catalog.
+- Add new notation targets by implementing a Rust renderer and registering a
   `NotationProjectionProfile` in `slices/extensions/music/module.ttl`.
