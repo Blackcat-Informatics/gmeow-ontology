@@ -18,7 +18,7 @@
 //! `x-gmeow-*` language tags remapped to public BCP-47 at the projection boundary
 //! (#287) exactly as the Python `write_nquads` / `write_trig` do.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use gmeow_gts::model::{Graph, Term as GtsTerm, TermKind};
 use gmeow_validate::language_tags::{
@@ -78,6 +78,10 @@ pub(crate) struct FoldView<'a> {
     /// scope → (p, o) → [subject]
     po: BTreeMap<String, BTreeMap<(usize, usize), Vec<usize>>>,
     tag_map: BTreeMap<String, String>,
+    /// Cached `HashMap` form of `tag_map` — built once at construction and
+    /// passed by reference to `select_literal` / `filter_literals` to avoid
+    /// re-allocating on every per-literal call in the hot export fold.
+    tag_map_hash: HashMap<String, String>,
     /// Requested public BCP-47 tags in precedence order (mirrors
     /// `LangSelector.requested`). The export generator uses `["en"]`; the MCP
     /// consumer threads a per-call selection (e.g. `["fr"]`).
@@ -118,10 +122,16 @@ impl<'a> FoldView<'a> {
             spo: BTreeMap::new(),
             po: BTreeMap::new(),
             tag_map: BTreeMap::new(),
+            tag_map_hash: HashMap::new(),
             requested,
         };
         view.build_indexes();
         view.tag_map = view.build_tag_map();
+        view.tag_map_hash = view
+            .tag_map
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect();
         view
     }
 
@@ -352,14 +362,6 @@ impl<'a> FoldView<'a> {
             .collect()
     }
 
-    /// The authority tag map as a `HashMap` (the API's input type).
-    fn tag_map_hash(&self) -> std::collections::HashMap<String, String> {
-        self.tag_map
-            .iter()
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect()
-    }
-
     /// Resolve a [`language_tags::Selection`] back into the FoldView row shape
     /// `(text, public_bcp47, is_fallback)`. The public tag is the literal's bucket
     /// tag ([`Self::bcp47_for`]) — `Some` for any tagged literal — not the
@@ -381,7 +383,7 @@ impl<'a> FoldView<'a> {
     /// canonical [`language_tags::select_literal`] authority.
     fn select_literal(&self, candidates: &[usize]) -> Option<(String, Option<String>, bool)> {
         let descs = self.lit_descs(candidates);
-        authority_select_literal(&descs, &self.requested, &self.tag_map_hash())
+        authority_select_literal(&descs, &self.requested, &self.tag_map_hash)
             .map(|sel| self.selection_row(candidates, &sel))
     }
 
@@ -389,7 +391,7 @@ impl<'a> FoldView<'a> {
     /// the canonical [`language_tags::filter_literals`] authority.
     fn filter_literals(&self, candidates: &[usize]) -> Vec<(String, Option<String>, bool)> {
         let descs = self.lit_descs(candidates);
-        authority_filter_literals(&descs, &self.requested, &self.tag_map_hash())
+        authority_filter_literals(&descs, &self.requested, &self.tag_map_hash)
             .iter()
             .map(|sel| self.selection_row(candidates, sel))
             .collect()
