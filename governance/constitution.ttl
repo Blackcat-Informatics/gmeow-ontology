@@ -143,8 +143,8 @@ meta:tests-suppression a meta:TestSuite ;
 
 meta:tests-reference-frames a meta:TestSuite ;
     rdfs:label "reference-frame relativity tests"@x-gmeow-english ;
-    meta:artifact "tests/test_reference_frames.py", "tests/test_calendar.py",
-        "tests/test_edtf.py" .
+    meta:artifact "crates/validate/tests/conformance_reference_frames.rs",
+        "tests/test_calendar.py", "tests/test_edtf.py" .
 
 meta:lint-reasoning-invariants a meta:Lint ;
     rdfs:label "closed-world reasoning invariants (solver boundary)"@x-gmeow-english ;
@@ -153,7 +153,7 @@ meta:lint-reasoning-invariants a meta:Lint ;
 
 meta:tests-reasoning a meta:TestSuite ;
     rdfs:label "entailment and reasoning-lint tests"@x-gmeow-english ;
-    meta:artifact "tests/test_reasoning_entailments.py", "tests/test_reasoning_lint.py" .
+    meta:artifact "tests/test_reasoning_entailments.py", "crates/validate/src/gufo.rs" .
 
 meta:gate-products a meta:Gate ;
     rdfs:label "the product surfaces: pip client, MCP memory triad, GTS engine"@x-gmeow-english ;
@@ -187,7 +187,7 @@ meta:gate-core-profile a meta:Gate ;
 
 meta:tests-slices a meta:TestSuite ;
     rdfs:label "slice anatomy and profile tests"@x-gmeow-english ;
-    meta:artifact "tests/test_slices.py", "tests/test_profiles.py" .
+    meta:artifact "tests/test_slices.py", "crates/validate/tests/conformance_profiles.rs" .
 
 meta:gate-crate-layering a meta:Gate ;
     rdfs:label "Rust crate layering: gmeow-rdf-core purity + acyclic crate DAG"@x-gmeow-english ;
