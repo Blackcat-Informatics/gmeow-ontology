@@ -18,6 +18,18 @@ const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 /// RDF type predicate IRI.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
+/// Look up `lang` in `tag_map`, trying the raw key first and then the
+/// lowercased form. This handles mixed/upper-case internal tags (e.g.
+/// ``X-GMEOW-FRENCH``) against a map whose keys are always lowercase.
+fn internal_tag_mapping<'a>(
+    lang: &str,
+    tag_map: &'a HashMap<String, String>,
+) -> Option<&'a String> {
+    tag_map
+        .get(lang)
+        .or_else(|| tag_map.get(&lang.to_lowercase()))
+}
+
 /// Return whether `lang` is a GMEOW internal private-use tag (``x-gmeow-*``).
 ///
 /// The pattern is ``^x-gmeow-[a-z0-9\-]+$``, matched case-insensitively.
@@ -298,7 +310,7 @@ pub fn resolve_lang_input(
             continue;
         }
         let normalized = if is_internal_tag(token) {
-            match tag_map.get(token) {
+            match internal_tag_mapping(token, tag_map) {
                 Some(bcp) => bcp.to_lowercase(),
                 None => {
                     return Err(UnknownLanguage {
@@ -362,7 +374,9 @@ fn bucket_key(lang: &Option<String>, tag_map: &HashMap<String, String>) -> Strin
     match lang {
         None => String::new(),
         Some(lang) => if is_internal_tag(lang) {
-            tag_map.get(lang).cloned().unwrap_or_else(|| lang.clone())
+            internal_tag_mapping(lang, tag_map)
+                .cloned()
+                .unwrap_or_else(|| lang.clone())
         } else {
             lang.clone()
         }
@@ -374,7 +388,7 @@ fn bucket_key(lang: &Option<String>, tag_map: &HashMap<String, String>) -> Strin
 /// internal tag WITH a map entry (needs retagging to public), else `None`.
 fn retag_to(lang: &Option<String>, tag_map: &HashMap<String, String>) -> Option<String> {
     match lang {
-        Some(lang) if is_internal_tag(lang) => tag_map.get(lang).cloned(),
+        Some(lang) if is_internal_tag(lang) => internal_tag_mapping(lang, tag_map).cloned(),
         _ => None,
     }
 }
@@ -529,7 +543,7 @@ fn retagged_literal(
     if !is_internal_tag(lang) {
         return None;
     }
-    let bcp = tag_map.get(lang)?;
+    let bcp = internal_tag_mapping(lang, tag_map)?;
     Some(gmeow_rdf::RdfLiteral::language_tagged(
         lit.lexical_form.clone(),
         bcp.clone(),
@@ -1063,6 +1077,71 @@ gmeow:Prolog a gmeow:FormalLanguage ;
         let tm = sample_tag_map();
         let err = resolve_lang_input(Some("x-gmeow-klingon"), &tm, None).expect_err("unknown");
         assert_eq!(err.tag, "x-gmeow-klingon");
+    }
+
+    // ── mixed/upper-case internal-tag normalisation ──────────────────────────
+
+    #[test]
+    fn resolve_lang_input_mixed_case_internal_tag_resolves_same_as_lowercase() {
+        // A mixed/upper-case internal tag must NOT raise UnknownLanguage; it must
+        // resolve to the same BCP-47 value as the canonical lowercase form.
+        let tm = sample_tag_map();
+
+        let lower = resolve_lang_input(Some("x-gmeow-french"), &tm, None)
+            .expect("lowercase internal tag must resolve");
+        let upper = resolve_lang_input(Some("X-GMEOW-FRENCH"), &tm, None)
+            .expect("UPPER-CASE internal tag must also resolve (Gap H2)");
+        let mixed = resolve_lang_input(Some("X-Gmeow-French"), &tm, None)
+            .expect("Mixed-Case internal tag must also resolve (Gap H2)");
+
+        assert_eq!(
+            lower.requested, upper.requested,
+            "X-GMEOW-FRENCH must resolve to the same BCP-47 as x-gmeow-french"
+        );
+        assert_eq!(
+            lower.requested, mixed.requested,
+            "X-Gmeow-French must resolve to the same BCP-47 as x-gmeow-french"
+        );
+        assert_eq!(
+            lower.requested,
+            vec!["fr".to_owned()],
+            "resolved tag must be fr"
+        );
+    }
+
+    #[test]
+    fn retag_graph_mixed_case_internal_tag_retagged() {
+        // A literal whose language tag is an upper/mixed-case internal tag must be
+        // retagged to the public BCP-47 form, not left unchanged (bucket_key and
+        // retagged_literal must both normalise the case).
+        let tm = sample_tag_map();
+
+        // Use X-GMEOW-ENGLISH (all caps) — maps to "en".
+        let nt = nt_lang("https://e/s", "https://e/label", "Hello", "X-GMEOW-ENGLISH");
+        let out = retag_graph(&nt, "ntriples", &tm).expect("retag must succeed for upper-case tag");
+        let text = String::from_utf8(out).expect("utf8");
+        assert!(
+            text.contains("\"Hello\"@en"),
+            "upper-case internal tag must be retagged to @en: {text}"
+        );
+        assert!(
+            !text.contains("@X-GMEOW-ENGLISH"),
+            "upper-case internal tag must not appear in output: {text}"
+        );
+    }
+
+    #[test]
+    fn bucket_key_mixed_case_internal_tag_resolves() {
+        // bucket_key must map a mixed-case internal tag to its BCP-47 bucket, not
+        // leave it as an unmapped raw tag (which would fall through as an unknown
+        // bucket and cause silent loss in select/filter paths).
+        let tm = sample_tag_map();
+        let lang = Some("X-Gmeow-Mandarin".to_owned());
+        let key = bucket_key(&lang, &tm);
+        assert_eq!(
+            key, "zh",
+            "mixed-case internal tag must resolve to its BCP-47 bucket key"
+        );
     }
 
     #[test]
