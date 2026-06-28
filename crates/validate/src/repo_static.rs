@@ -41,6 +41,7 @@ const GTS_SUBCOMMANDS: &[&str] = &[
 const RDFLIB_KEEPERS: &[&str] = &["oracles/engine_crosscheck.py", "oracles/rl_agreement.py"];
 
 const LANE_MAKE_TARGETS: &[&str] = &[
+    "full-release",
     "maint-classic-cross-check",
     "maint-reason-hermit",
     "maint-explain",
@@ -286,7 +287,7 @@ fn check_required_ci_jobs(root: &Path, report: &mut RepoStaticReport) {
             report.error(format!("{rel}: quality needs missing job {job_name:?}"));
             continue;
         };
-        let blob = workflow_job_text(job);
+        let blob = recursive_yaml_text(job);
         let hits = forbidden_hits(&blob);
         if !hits.is_empty() {
             report.error(format!(
@@ -388,28 +389,23 @@ fn check_makefile_lane_purity(root: &Path, report: &mut RepoStaticReport) {
                 hits.iter().cloned().collect::<Vec<_>>().join(", ")
             ));
         }
+        let invoked = makefile_invoked_targets(lines);
+        let intruders = invoked
+            .iter()
+            .filter(|target| lane_targets.contains(target.as_str()))
+            .cloned()
+            .collect::<Vec<_>>();
+        if !intruders.is_empty() {
+            report.error(format!(
+                "non-lane Makefile target {target:?} invokes oracle-lane target(s): {}",
+                intruders.join(", ")
+            ));
+        }
     }
 
-    let Some(check_lines) = recipes.get("check") else {
+    if !recipes.contains_key("check") {
         report.error("Makefile: the `check` target vanished");
         return;
-    };
-    let token_re = Regex::new(r"[A-Za-z][A-Za-z0-9_-]*").expect("static regex");
-    let invoked = check_lines
-        .iter()
-        .filter(|line| line.contains("$(MAKE)"))
-        .flat_map(|line| token_re.find_iter(line).map(|m| m.as_str().to_owned()))
-        .collect::<BTreeSet<_>>();
-    let intruders = invoked
-        .iter()
-        .filter(|target| lane_targets.contains(target.as_str()))
-        .cloned()
-        .collect::<Vec<_>>();
-    if !intruders.is_empty() {
-        report.error(format!(
-            "`make check` invokes oracle-lane target(s): {}",
-            intruders.join(", ")
-        ));
     }
 
     for target in LANE_TARGETS_THAT_MUST_HIT {
@@ -456,36 +452,6 @@ fn yaml_map_get<'a>(mapping: &'a serde_yaml::Mapping, key: &str) -> Option<&'a Y
     mapping.get(Yaml::String(key.to_owned()))
 }
 
-fn workflow_job_text(job: &Yaml) -> String {
-    let mut out = Vec::new();
-    let Some(steps) = yaml_get(job, "steps").and_then(Yaml::as_sequence) else {
-        return String::new();
-    };
-    for step in steps {
-        let Some(step_map) = step.as_mapping() else {
-            continue;
-        };
-        for key in ["name", "run", "uses"] {
-            if let Some(value) = yaml_map_get(step_map, key).and_then(yaml_scalar_text) {
-                out.push(value);
-            }
-        }
-        if let Some(with) = yaml_map_get(step_map, "with").and_then(Yaml::as_mapping) {
-            out.extend(with.values().filter_map(yaml_scalar_text));
-        }
-    }
-    out.join("\n")
-}
-
-fn yaml_scalar_text(value: &Yaml) -> Option<String> {
-    match value {
-        Yaml::String(s) => Some(s.clone()),
-        Yaml::Number(n) => Some(n.to_string()),
-        Yaml::Bool(b) => Some(b.to_string()),
-        _ => None,
-    }
-}
-
 fn recursive_yaml_text(value: &Yaml) -> String {
     match value {
         Yaml::String(s) => s.clone(),
@@ -520,6 +486,15 @@ fn forbidden_hits(text: &str) -> BTreeSet<String> {
             .map(|script| (*script).to_owned()),
     );
     hits
+}
+
+fn makefile_invoked_targets(lines: &[String]) -> BTreeSet<String> {
+    let token_re = Regex::new(r"[A-Za-z][A-Za-z0-9_-]*").expect("static regex");
+    lines
+        .iter()
+        .filter(|line| line.contains("$(MAKE)"))
+        .flat_map(|line| token_re.find_iter(line).map(|m| m.as_str().to_owned()))
+        .collect()
 }
 
 fn makefile_recipes(text: &str) -> BTreeMap<String, Vec<String>> {
@@ -862,6 +837,21 @@ mod tests {
     }
 
     #[test]
+    fn required_ci_job_container_token_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write(
+            &temp.path().join(".github/workflows/ci.yml"),
+            "on:\n  pull_request:\njobs:\n  lint:\n    container: obolibrary/robot\n    steps:\n      - run: make lint\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
+        );
+        let report = check_repo_static(temp.path());
+        assert!(report
+            .errors
+            .iter()
+            .any(|e| e.contains("required CI job") && e.contains("obolibrary/robot")));
+    }
+
+    #[test]
     fn classic_cross_check_pull_request_gate_must_use_job_if() {
         let temp = tempfile::tempdir().unwrap();
         write_minimal_repo(temp.path());
@@ -888,7 +878,22 @@ mod tests {
         assert!(report
             .errors
             .iter()
-            .any(|e| e.contains("make check") && e.contains("maint-classic-cross-check")));
+            .any(|e| e.contains("target \"check\"") && e.contains("maint-classic-cross-check")));
+    }
+
+    #[test]
+    fn non_check_make_oracle_target_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write(
+            &temp.path().join("Makefile"),
+            "check:\n\t$(MAKE) lint\nci:\n\t$(MAKE) maint-verify-docker\nlint:\n\ttrue\nmaint-classic-cross-check:\n\tdocker run obolibrary/robot\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-reasoning-cases:\n\tdocker run obolibrary/robot\nmaint-statements-docker-check:\n\tdocker run stain/jena\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
+        );
+        let report = check_repo_static(temp.path());
+        assert!(report
+            .errors
+            .iter()
+            .any(|e| e.contains("target \"ci\"") && e.contains("maint-verify-docker")));
     }
 
     #[test]

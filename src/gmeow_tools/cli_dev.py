@@ -1539,7 +1539,8 @@ def crate_check() -> None:
     for message in warnings:
         err_console.print(f"[yellow]warning[/yellow] {message}")
     if errors:
-        raise _fail(f"✗ {len(errors)} crate/static violation(s)")
+        message = f"✗ {len(errors)} crate/static violation(s)"
+        raise _fail(message)
     console.print(
         f"[green]✓ crate/static guards OK[/green] "
         f"({len(edges)} crates, RDF core pure, DAG acyclic; repo static seals clean)"

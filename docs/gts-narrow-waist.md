@@ -41,8 +41,9 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
 3. **Sealed by Rust gate.** `crates/validate/src/repo_static.rs` runs through
    `make crate-check` and statically proves the exporter does not import RDF
    parsers or touch canonical-source loaders; it also keeps the public CLI from
-   resurrecting retired GTS subcommands. The registry orders `gts` before every
-   consumer from declared inputs — never by hand.
+   resurrecting retired GTS subcommands.
+   Generator ordering remains registry-owned and outside this static seal:
+   consumers must express dependencies through declared inputs — never by hand.
 4. **Equivalence before deletion.** Each re-point proved value-equivalence
    against the old implementation before the old path was deleted —
    no compatibility shims survive.
