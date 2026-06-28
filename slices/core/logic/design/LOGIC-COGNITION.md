@@ -24,8 +24,8 @@ distinctions assessment exists to draw. The cognitive-assessment layer keeps the
 The layer is authored over GMEOW's own vocabulary of mind. Reasoning is carried by
 `gmeow:InferenceProcess` and committed to through `gmeow:InferenceCommitment`, each with a
 `gmeow:premise`, a `gmeow:conclusion`, a `gmeow:warrant`, and an `gmeow:inferenceMode` drawn from
-deduction, induction, abduction, and the analogical mode; defeaters attach through
-`gmeow:hasDefeater` with a `gmeow:DefeaterKind` of rebutting or undercutting. Second-order states are
+deduction, induction, abduction, and the analogical mode; conflict attaches through the typed
+`gmeow:Attack` with a `gmeow:AttackKind` of undermine, undercut, or rebut. Second-order states are
 `gmeow:MetacognitiveState`, pointing at what they are about through `gmeow:metaTarget`. Reasoning
 unfolds as a `gmeow:MentalProcess`, and competence changes through a `gmeow:LearningEvent`. The
 cognitive-assessment layer of `logic:` adds the *structured judgment* over these — the assessment
@@ -109,8 +109,9 @@ good deduction answer to different standards. A deduction is judged by the valid
 `gmeow:warrant`; an induction by the breadth and representativeness of the evidence its warrant
 generalizes; an abduction by its `gmeow:explanatoryScore` relative to the hypotheses it
 `gmeow:competesWith`; the analogical mode by the `gmeow:systematicity` of the correspondence it
-rests on. Defeat is part of quality: a `gmeow:hasDefeater` of kind rebutting attacks the conclusion,
-one of kind undercutting attacks the warrant, and an assessment of reasoning quality reads both. The
+rests on. Defeat is part of quality: a `gmeow:Attack` of kind rebut attacks the conclusion,
+one of kind undercut attacks the warrant, one of kind undermine attacks a premise, and an assessment
+of reasoning quality reads them. The
 standards an argument is held to — the acceptability of an inference under attack — are the typed
 argumentation account of
 [`LOGIC-FOUNDATION.md`](LOGIC-FOUNDATION.md#argumentation-and-epistemic-standards); the
@@ -169,8 +170,8 @@ Metacognitive posture is the second-order content the metacognition vocabulary c
 `gmeow:MetacognitiveState` aimed by `gmeow:metaTarget` at the agent's own reasoning,
 `gmeow:awareOfNotKnowing` for the recognized limits of knowledge, and `gmeow:epistemicSelfTrust` for
 the degree to which an agent relies on its own judgment. A reflection — an event typed by
-`gmeow:eventTypeReflection` — reviews the agent's own reasoning and may install a `gmeow:hasDefeater`
-on the agent's own inference commitment, revising belief by suppression rather than erasure. The
+`gmeow:eventTypeReflection` — reviews the agent's own reasoning and may install a typed `gmeow:Attack`
+on the agent's own argument, revising belief by suppression rather than erasure. The
 metacognition dimension of an assessment reads this posture as its subject.
 
 ## Assessment over recorded reasoning

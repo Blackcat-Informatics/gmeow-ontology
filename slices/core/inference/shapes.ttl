@@ -161,3 +161,218 @@ gmeow:CorrespondenceShape
         sh:severity sh:Violation ;
         sh:message "A Correspondence must map exactly one target element (gmeow:correspondingTarget)." ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# The argumentation layer (Dung / ASPIC+): an Argument concludes exactly once
+# and wraps at most one step; a typed Attack names exactly one target + one kind
+# and never attacks itself; Support accrues and never supports itself; an
+# ArgumentEvaluation carries exactly one semantics + one status (closed-world
+# twins of the functional object properties — kept in SHACL, not OWL).
+# --------------------------------------------------------------------------- #
+
+gmeow:ArgumentShape
+    a sh:NodeShape ;
+    rdfs:label "Argument shape"@x-gmeow-english ;
+    skos:definition "Well-formedness of a gmeow:Argument: exactly one conclusion (gmeow:argumentConclusion) and at most one wrapped Toulmin step (gmeow:argumentInferenceStep)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    sh:targetClass gmeow:Argument ;
+    sh:property [
+        sh:path gmeow:argumentConclusion ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Argument must establish exactly one conclusion (gmeow:argumentConclusion)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:argumentInferenceStep ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Argument wraps at most one Toulmin step (gmeow:argumentInferenceStep) — a multi-step chain is a chain of Arguments linked by gmeow:Support." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:hasPremiseUse ;
+        sh:class gmeow:PremiseUse ;
+        sh:severity sh:Violation ;
+        sh:message "If present, a premise use (gmeow:hasPremiseUse) must be a gmeow:PremiseUse." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:hasInferenceApplication ;
+        sh:class gmeow:InferenceApplication ;
+        sh:severity sh:Violation ;
+        sh:message "If present, an inference application (gmeow:hasInferenceApplication) must be a gmeow:InferenceApplication." ;
+    ] .
+
+gmeow:AttackShape
+    a sh:NodeShape ;
+    rdfs:label "Attack shape"@x-gmeow-english ;
+    skos:definition "Well-formedness of a typed gmeow:Attack: exactly one target (gmeow:attackTarget) typed as PremiseUse/InferenceApplication/StandpointClaim, exactly one kind (gmeow:attackKind), exactly one source gmeow:Argument (gmeow:attackSource), kind/target agreement (undermine→PremiseUse, undercut→InferenceApplication, rebut→StandpointClaim), and no self-attack or argument-component attack — irreflexivity in SHACL, keeping the DL profile clean."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    sh:targetClass gmeow:Attack ;
+    sh:property [
+        sh:path gmeow:attackTarget ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:or (
+            [ sh:class gmeow:PremiseUse ]
+            [ sh:class gmeow:InferenceApplication ]
+            [ sh:class gmeow:StandpointClaim ]
+        ) ;
+        sh:severity sh:Violation ;
+        sh:message "An Attack must name exactly one target (gmeow:attackTarget) — a gmeow:PremiseUse, gmeow:InferenceApplication, or conclusion gmeow:StandpointClaim." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:attackKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:AttackKind ;
+        sh:severity sh:Violation ;
+        sh:message "An Attack must carry exactly one kind (gmeow:attackKind) — gmeow:attackUndermine, gmeow:attackUndercut, or gmeow:attackRebut." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:attackSource ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:Argument ;
+        sh:severity sh:Violation ;
+        sh:message "An Attack must have exactly one attacking gmeow:Argument (gmeow:attackSource) — independent conflicts are separate Attack instances." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An Attack kind must agree with its target: undermine -> PremiseUse, undercut -> InferenceApplication, rebut -> StandpointClaim." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT $this WHERE {
+                $this gmeow:attackKind ?kind ;
+                      gmeow:attackTarget ?target .
+                FILTER (
+                    ?kind IN (gmeow:attackUndermine, gmeow:attackUndercut, gmeow:attackRebut)
+                )
+                OPTIONAL { ?target a gmeow:PremiseUse . BIND(true AS ?isPU) }
+                OPTIONAL { ?target a gmeow:InferenceApplication . BIND(true AS ?isIA) }
+                OPTIONAL { ?target a gmeow:StandpointClaim . BIND(true AS ?isSC) }
+                FILTER (
+                    (?kind = gmeow:attackUndermine && !BOUND(?isPU)) ||
+                    (?kind = gmeow:attackUndercut && !BOUND(?isIA)) ||
+                    (?kind = gmeow:attackRebut && !BOUND(?isSC))
+                )
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An Attack must not attack itself (gmeow:attackSource = gmeow:attackTarget) — conflict is irreflexive." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT $this WHERE {
+                $this gmeow:attackSource ?x ; gmeow:attackTarget ?x .
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An Argument must not attack its own component (conclusion, premise-use, or inference-application) — conflict is irreflexive." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT $this WHERE {
+                $this gmeow:attackSource ?source ;
+                      gmeow:attackTarget ?target .
+                ?source a gmeow:Argument .
+                { ?source gmeow:argumentConclusion ?target . }
+                UNION { ?source gmeow:hasPremiseUse ?target . }
+                UNION { ?source gmeow:hasInferenceApplication ?target . }
+            }
+        """ ;
+    ] .
+
+gmeow:SupportShape
+    a sh:NodeShape ;
+    rdfs:label "Support shape"@x-gmeow-english ;
+    skos:definition "Well-formedness of a gmeow:Support: exactly one supported argument (gmeow:supportTarget), at least one source (gmeow:supportSource), and no self-support (source != target). Independent supports are separate Support instances, so support accrues."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    sh:targetClass gmeow:Support ;
+    sh:property [
+        sh:path gmeow:supportTarget ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:Argument ;
+        sh:severity sh:Violation ;
+        sh:message "A Support must support exactly one gmeow:Argument (gmeow:supportTarget)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:supportSource ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:or (
+            [ sh:class gmeow:Argument ]
+            [ sh:class gmeow:StandpointClaim ]
+        ) ;
+        sh:severity sh:Violation ;
+        sh:message "A Support must have exactly one supporting structure (gmeow:supportSource) — independent sources are separate Support instances." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A Support must not support itself (gmeow:supportSource = gmeow:supportTarget) — support is irreflexive." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT $this WHERE {
+                $this gmeow:supportSource ?x ; gmeow:supportTarget ?x .
+            }
+        """ ;
+    ] .
+
+gmeow:ArgumentEvaluationShape
+    a sh:NodeShape ;
+    rdfs:label "Argument evaluation shape"@x-gmeow-english ;
+    skos:definition "Well-formedness of a gmeow:ArgumentEvaluation: exactly one evaluated argument (gmeow:evaluatesArgument), exactly one named semantics (gmeow:underSemantics), and exactly one acceptance status (gmeow:acceptanceStatus). The status is solver-set; the shape only checks that the verdict bundle is complete."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    sh:targetClass gmeow:ArgumentEvaluation ;
+    sh:property [
+        sh:path gmeow:evaluatesArgument ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:Argument ;
+        sh:severity sh:Violation ;
+        sh:message "An ArgumentEvaluation must assess exactly one gmeow:Argument (gmeow:evaluatesArgument)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:underSemantics ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An ArgumentEvaluation must name exactly one acceptability semantics (gmeow:underSemantics, a logic:ArgumentationSemantics)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:acceptanceStatus ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:AcceptanceStatus ;
+        sh:severity sh:Violation ;
+        sh:message "An ArgumentEvaluation must carry exactly one acceptance status (gmeow:acceptanceStatus) — gmeow:acceptanceIn / acceptanceOut / acceptanceUndecided." ;
+    ] .
+
+gmeow:PremiseUseShape
+    a sh:NodeShape ;
+    rdfs:label "Premise use shape"@x-gmeow-english ;
+    skos:definition "A gmeow:PremiseUse bases on exactly one premise (gmeow:premiseUsed) — the closed-world twin of the functional property."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    sh:targetClass gmeow:PremiseUse ;
+    sh:property [
+        sh:path gmeow:premiseUsed ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A PremiseUse must base on exactly one premise (gmeow:premiseUsed)." ;
+    ] .
+
+gmeow:InferenceApplicationShape
+    a sh:NodeShape ;
+    rdfs:label "Inference application shape"@x-gmeow-english ;
+    skos:definition "A gmeow:InferenceApplication applies exactly one rule (gmeow:appliedRule) — the closed-world twin of the functional property."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    sh:targetClass gmeow:InferenceApplication ;
+    sh:property [
+        sh:path gmeow:appliedRule ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An InferenceApplication must apply exactly one rule (gmeow:appliedRule)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:appliedSubstitution ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:appliedSubstitution must be an xsd:string." ;
+    ] .

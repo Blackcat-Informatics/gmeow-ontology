@@ -273,7 +273,10 @@ machine-construction floor that process-per-test cannot share; several reach
 `compiler_products_are_first_class_dag_artifacts` tests (both round-trip / route the
 full shipped bundle, which now carries the signal-dense per-correspondence
 preservation loss ledger — ~5 residue notes per alignment correspondence — so the
-artifact is irreducibly large); a Nemo conformance case; a few whole-ontology
+artifact is irreducibly large) and `reason_produces_nonempty_artifacts` (the reason
+stage's O(ontology-size) full-graph native reason, ~14 s solo, crosses the 25 s
+budget under gate contention as the ontology grows — fast per-commit reason coverage
+is `make reason` + the gmeow-logic unit reason tests); a Nemo conformance case; a few whole-ontology
 `gmeow-slice`/`gmeow-slicetest` emit/closure checks; the off-gate corpus parity
 queries (`OFF_GATE_HEAVY` in `crates/rdf/tests/sparql_eval_parity.rs` — now six:
 the `class-without-stereotype` anti-join, the ~107 s `ontolex` projection outlier,

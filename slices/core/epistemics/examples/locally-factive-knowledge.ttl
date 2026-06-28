@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — LOCALLY-FACTIVE knowledge vs NON-FACTIVE attribution.
+#
+# Two strictly separate constructs:
+#   1. Ada KNOWS (locally factive) that the Earth orbits the Sun, in her own
+#      belief-world, under the scientific standard. The reified gmeow:KnowledgeClaim
+#      carries the world + standard; factivity is WORLD-LOCAL — P holds in Ada's
+#      world, never asserted globally. The flat surface is gmeow:knowsThatIn.
+#   2. Bru merely CLAIMS to know (non-factive) that the Earth is flat, and a
+#      reporter ATTRIBUTES that knowledge-claim to him. Nothing is entailed true;
+#      gmeow:KnowledgeAttribution reifies (attributer, knower, proposition), kept
+#      strictly off the factive relation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- Propositions ------------------------------------------------------------
+ex:earthOrbitsSun a gmeow:Proposition ; rdfs:label "the Earth orbits the Sun"@x-gmeow-english .
+ex:earthIsFlat    a gmeow:Proposition ; rdfs:label "the Earth is flat"@x-gmeow-english .
+
+# --- Agents ------------------------------------------------------------------
+ex:ada      a gmeow:Agent ; rdfs:label "Ada"@x-gmeow-english .
+ex:bru      a gmeow:Agent ; rdfs:label "Bru"@x-gmeow-english .
+ex:reporter a gmeow:Agent ; rdfs:label "a reporter"@x-gmeow-english .
+
+# --- 1. Locally-factive knowledge (Ada knows, in her world) ------------------ #
+ex:adasWorld a gmeow:EpistemicContext ;
+    rdfs:label "Ada's belief-world"@x-gmeow-english .
+
+# Flat surface — the 80% case; sibling of (not subproperty of) gmeow:knowsThat.
+ex:ada gmeow:knowsThatIn ex:earthOrbitsSun .
+
+# Reified promotion — carries the world and the standard.
+ex:adaHeliocentricKnowledge a gmeow:KnowledgeClaim ;
+    rdfs:label "Ada knows the Earth orbits the Sun, in her world, scientifically"@x-gmeow-english ;
+    gmeow:knowerAgent ex:ada ;
+    gmeow:knownProposition ex:earthOrbitsSun ;
+    gmeow:knownInWorld ex:adasWorld ;                    # factivity is local to THIS world
+    gmeow:underStandard gmeow:standardScientific .
+
+# --- 2. Non-factive knowledge-attribution (Bru claims; reporter attributes) -- #
+# Flat: Bru takes himself to know — no truth entailed, no world.
+ex:bru gmeow:claimsToKnowThat ex:earthIsFlat .
+
+# Reified: the reporter attributes the knowledge-claim to Bru — a claim ABOUT
+# an attitude, never collapsed into the factive gmeow:KnowledgeClaim.
+ex:reporterAttributesToBru a gmeow:KnowledgeAttribution ;
+    rdfs:label "The reporter attributes to Bru that he takes himself to know the Earth is flat"@x-gmeow-english ;
+    gmeow:attributingAgent ex:reporter ;
+    gmeow:attributedKnower ex:bru ;
+    gmeow:attributedProposition ex:earthIsFlat .
