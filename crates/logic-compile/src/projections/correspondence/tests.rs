@@ -52,6 +52,60 @@ fn affine_triangle_projects_related_match_never_equivalence() {
     assert!(nt.contains("not equivalent"), "the caveat text");
 }
 
+/// `xsd:decimal` lexical space does not allow scientific notation. Values whose
+/// shortest Rust `f64` display would use an exponent are expanded before projection.
+#[test]
+fn decimal_projection_expands_scientific_notation() {
+    use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
+
+    let correspondence = Correspondence::new(
+        "https://blackcatinformatics.ca/gmeow/example/decimalProjection",
+        CorrespondenceRelation::RelatedMatch,
+        MorphismClass::BridgeView,
+        MorphismKind::CommitmentShiftingBridge,
+        false,
+        None,
+        None,
+        None,
+        vec![],
+        Some(1e-5),
+        None,
+        Some(1e20),
+        None,
+        None,
+    )
+    .expect("valid finite decimal correspondence");
+    let program =
+        CorrespondenceProgram::new(vec![correspondence], vec![], PreservationKind::SoundUnder);
+    let nt = project_correspondence(&program);
+
+    assert!(
+        nt.contains(&format!("\"0.00001\"^^<{XSD_DECIMAL}>")),
+        "small decimal must be fixed-form xsd:decimal:\n{nt}"
+    );
+    assert!(
+        nt.contains(&format!("\"100000000000000000000\"^^<{XSD_DECIMAL}>")),
+        "large decimal must be fixed-form xsd:decimal:\n{nt}"
+    );
+    let decimal_lexicals: Vec<&str> = nt
+        .lines()
+        .filter(|line| line.contains(XSD_DECIMAL))
+        .filter_map(|line| line.split('"').nth(1))
+        .collect();
+    assert!(
+        decimal_lexicals
+            .iter()
+            .all(|lexical| !lexical.contains('e') && !lexical.contains('E')),
+        "xsd:decimal lexicals must not use exponent notation: {decimal_lexicals:?}"
+    );
+
+    let dataset = parse_nt(&nt);
+    let re_derived = parse_correspondence(&dataset).expect("re-derive fixed decimals");
+    let got = &re_derived.correspondences[0];
+    assert_eq!(got.confidence, Some(1e-5));
+    assert_eq!(got.weight, Some(1e20));
+}
+
 /// The overclaim gate REJECTS an attempt to emit a class equivalence for the §14
 /// affine/overlaps correspondence (a BUILD FAILURE), but ALLOWS the relation-sound
 /// related-match surface.

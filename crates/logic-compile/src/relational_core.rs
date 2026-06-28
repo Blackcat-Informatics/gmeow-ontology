@@ -37,7 +37,7 @@
 //! cache hit uses to re-derive the typed payload from the backing graph. The two faces
 //! share one content identity ([`RelationalCoreProgram::content_key`]).
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_rdf::{RdfDataset, RdfLiteral, RdfTerm};
 
@@ -592,27 +592,29 @@ pub fn project_relational_core(program: &RelationalCoreProgram) -> String {
 /// fact/atom/rule node) — a corrupt projection HARD-fails, never re-derives a partial
 /// program (no-optionality).
 pub fn parse_relational_core(dataset: &RdfDataset) -> Result<RelationalCoreProgram, String> {
-    // Collect every (subject, predicate, object) triple as owned terms.
-    let mut quads: Vec<(String, String, RdfTerm)> = Vec::new();
+    // Index every (subject, predicate) once so reverse parsing is linear in graph
+    // size, not repeated scans over the full quad list for every atom/rule edge.
+    let mut by_sp: BTreeMap<(String, String), Vec<RdfTerm>> = BTreeMap::new();
     for quad in dataset.owned_quads() {
         let RdfTerm::Iri(subject) = &quad.subject else {
             continue;
         };
-        quads.push((subject.clone(), quad.predicate.clone(), quad.object.clone()));
+        by_sp
+            .entry((subject.clone(), quad.predicate.clone()))
+            .or_default()
+            .push(quad.object.clone());
     }
 
     let obj_of = |s: &str, p: &str| -> Option<RdfTerm> {
-        quads
-            .iter()
-            .find(|(qs, qp, _)| qs == s && qp == p)
-            .map(|(_, _, o)| o.clone())
+        by_sp
+            .get(&(s.to_owned(), p.to_owned()))
+            .and_then(|objects| objects.first().cloned())
     };
     let objs_of = |s: &str, p: &str| -> Vec<RdfTerm> {
-        quads
-            .iter()
-            .filter(|(qs, qp, _)| qs == s && qp == p)
-            .map(|(_, _, o)| o.clone())
-            .collect()
+        by_sp
+            .get(&(s.to_owned(), p.to_owned()))
+            .cloned()
+            .unwrap_or_default()
     };
     let iri_obj = |t: &RdfTerm| -> Option<String> {
         match t {

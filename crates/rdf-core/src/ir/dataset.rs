@@ -23,7 +23,7 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 
 use crate::dataset_view::GraphMatch;
 use crate::{
@@ -442,6 +442,41 @@ impl RdfDataset {
         self.annotations().map(|(reifier, predicate, object)| {
             self.to_owned_annotation(reifier, predicate, object)
         })
+    }
+
+    /// Project the quads of one named graph into a fresh default-graph dataset.
+    ///
+    /// Only quads whose graph name is the IRI `graph` contribute, and their graph
+    /// label is dropped so the result is the named graph's content in isolation. The
+    /// RDF 1.2 statement side-tables are carried as a unit, matching the projection
+    /// used for typed-handle backing graph digests and cache persistence.
+    #[must_use]
+    pub fn project_named_graph(&self, graph: &str) -> RdfDataset {
+        let mut builder = super::builder::RdfDatasetBuilder::new();
+        for quad in self.owned_quads() {
+            let in_graph = matches!(
+                &quad.graph_name,
+                Some(RdfTerm::Iri(iri)) if iri == graph
+            );
+            if !in_graph {
+                continue;
+            }
+            let mut projected = quad;
+            projected.graph_name = None;
+            builder.push_owned_quad(&projected);
+        }
+        for reifier in self.owned_reifiers() {
+            builder.push_owned_reifier(&reifier);
+        }
+        for annotation in self.owned_annotations() {
+            builder.push_owned_annotation(&annotation);
+        }
+        Arc::try_unwrap(
+            builder
+                .freeze()
+                .expect("a named-graph projection of a valid dataset is valid"),
+        )
+        .unwrap_or_else(|arc| arc.owned_snapshot())
     }
 
     /// Borrow (building on first access) the ordinal-indirection array for a

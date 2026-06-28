@@ -33,6 +33,8 @@
 //! boundary re-derives it (via [`parse_correspondence`]) from the backing graph on a
 //! hit. The program is never re-serialized between phases.
 
+use std::collections::BTreeMap;
+
 use crate::ir::{
     Correspondence, CorrespondenceRelation, MorphismKind, PreservationKind, LOGIC_NAMESPACE,
 };
@@ -288,9 +290,65 @@ fn triple_str(subject: &str, predicate: &str, lexical: &str) -> String {
 fn triple_bool(subject: &str, predicate: &str, value: bool) -> String {
     format!("<{subject}> <{predicate}> \"{value}\"^^<{XSD_BOOLEAN}> .")
 }
+
+fn expand_scientific_decimal(raw: &str) -> String {
+    let (mantissa, exponent) = raw
+        .split_once('e')
+        .or_else(|| raw.split_once('E'))
+        .expect("scientific decimal contains an exponent separator");
+    let exponent: isize = exponent
+        .parse()
+        .expect("f64 Display exponent is an integer");
+    let (sign, mantissa) = match mantissa.strip_prefix('-') {
+        Some(rest) => ("-", rest),
+        None => ("", mantissa),
+    };
+    let (int_part, frac_part) = mantissa.split_once('.').unwrap_or((mantissa, ""));
+    let digits = format!("{int_part}{frac_part}");
+    let decimal_pos = int_part.len() as isize + exponent;
+    let mut body = if decimal_pos <= 0 {
+        format!("0.{}{}", "0".repeat((-decimal_pos) as usize), digits)
+    } else if decimal_pos as usize >= digits.len() {
+        format!(
+            "{}{}",
+            digits,
+            "0".repeat(decimal_pos as usize - digits.len())
+        )
+    } else {
+        let idx = decimal_pos as usize;
+        format!("{}.{}", &digits[..idx], &digits[idx..])
+    };
+    if body.contains('.') {
+        while body.ends_with('0') {
+            body.pop();
+        }
+        if body.ends_with('.') {
+            body.pop();
+        }
+    }
+    if body == "0" {
+        "0".to_owned()
+    } else {
+        format!("{sign}{body}")
+    }
+}
+
+fn decimal_lexical(value: f64) -> String {
+    assert!(
+        value.is_finite(),
+        "logic decimal projection requires a finite f64, got {value}"
+    );
+    let value = if value == 0.0 { 0.0 } else { value };
+    let raw = value.to_string();
+    if raw.contains('e') || raw.contains('E') {
+        expand_scientific_decimal(&raw)
+    } else {
+        raw
+    }
+}
+
 fn triple_decimal(subject: &str, predicate: &str, value: f64) -> String {
-    // Canonical signed-zero collapse so -0.0 never differs from 0.0.
-    let v = if value == 0.0 { 0.0 } else { value };
+    let v = decimal_lexical(value);
     format!("<{subject}> <{predicate}> \"{v}\"^^<{XSD_DECIMAL}> .")
 }
 
@@ -429,47 +487,47 @@ pub fn parse_correspondence(
 ) -> Result<CorrespondenceProgram, String> {
     use gmeow_rdf::RdfTerm;
 
-    // Collect (subject, predicate, object) of every quad, keeping IRI subjects only.
-    let mut quads: Vec<(String, String, RdfTerm)> = Vec::new();
+    // Index (subject, predicate) once so every reverse-lookup is cheap even on a
+    // large graph/correspondence projection.
+    let mut by_sp: BTreeMap<(String, String), Vec<RdfTerm>> = BTreeMap::new();
     for quad in dataset.owned_quads() {
         let RdfTerm::Iri(subject) = &quad.subject else {
             continue;
         };
-        quads.push((subject.clone(), quad.predicate.clone(), quad.object.clone()));
+        by_sp
+            .entry((subject.clone(), quad.predicate.clone()))
+            .or_default()
+            .push(quad.object.clone());
     }
 
     let iri_obj = |s: &str, p: &str| -> Option<String> {
-        quads.iter().find_map(|(qs, qp, qo)| {
-            if qs == s && qp == p {
-                if let RdfTerm::Iri(i) = qo {
-                    return Some(i.clone());
-                }
-            }
-            None
-        })
+        by_sp
+            .get(&(s.to_owned(), p.to_owned()))?
+            .iter()
+            .find_map(|o| match o {
+                RdfTerm::Iri(i) => Some(i.clone()),
+                _ => None,
+            })
     };
     let lit_obj = |s: &str, p: &str| -> Option<String> {
-        quads.iter().find_map(|(qs, qp, qo)| {
-            if qs == s && qp == p {
-                if let RdfTerm::Literal(lit) = qo {
-                    return Some(lit.lexical_form.clone());
-                }
-            }
-            None
-        })
+        by_sp
+            .get(&(s.to_owned(), p.to_owned()))?
+            .iter()
+            .find_map(|o| match o {
+                RdfTerm::Literal(lit) => Some(lit.lexical_form.clone()),
+                _ => None,
+            })
     };
     let decimal_obj =
         |s: &str, p: &str| -> Option<f64> { lit_obj(s, p).and_then(|v| v.parse().ok()) };
     let iri_objs = |s: &str, p: &str| -> Vec<String> {
-        let mut out: Vec<String> = quads
-            .iter()
-            .filter_map(|(qs, qp, qo)| {
-                if qs == s && qp == p {
-                    if let RdfTerm::Iri(i) = qo {
-                        return Some(i.clone());
-                    }
-                }
-                None
+        let mut out: Vec<String> = by_sp
+            .get(&(s.to_owned(), p.to_owned()))
+            .into_iter()
+            .flat_map(|objects| objects.iter())
+            .filter_map(|o| match o {
+                RdfTerm::Iri(i) => Some(i.clone()),
+                _ => None,
             })
             .collect();
         out.sort();

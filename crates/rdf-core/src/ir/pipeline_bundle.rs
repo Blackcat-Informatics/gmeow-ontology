@@ -45,7 +45,7 @@ use sha2::{Digest, Sha256};
 use super::canon::canonicalize;
 use super::dataset::RdfDataset;
 use crate::provenance::DatasetProvenance;
-use crate::{ContentDigest, ContentStore, RdfLookaside, RdfTerm};
+use crate::{ContentDigest, ContentStore, RdfLookaside};
 
 /// Field separator inside the digest fold (mirrors `StageProduct::from_artifacts`).
 const SEP_FIELD: u8 = 0x1f;
@@ -237,44 +237,8 @@ impl<H> PipelineBundle<H> {
     /// pinned digest is checked against in [`pin_handle`](Self::pin_handle).
     #[must_use]
     pub fn graph_digest(&self, graph: &str) -> ContentDigest {
-        let subgraph = self.project_named_graph(graph);
+        let subgraph = self.dataset.project_named_graph(graph);
         ContentDigest::of(canonicalize(&subgraph).nquads.as_bytes())
-    }
-
-    /// Project the quads of one named graph into a fresh default-graph dataset,
-    /// carrying the reifier/annotation side-tables whose statements lie in that
-    /// graph's quads. Used only to compute [`graph_digest`](Self::graph_digest).
-    fn project_named_graph(&self, graph: &str) -> RdfDataset {
-        let mut builder = super::builder::RdfDatasetBuilder::new();
-        // Only quads in the requested named graph contribute; we drop the graph
-        // label so the projection is the graph's content in isolation.
-        for quad in self.dataset.owned_quads() {
-            let in_graph = matches!(
-                &quad.graph_name,
-                Some(RdfTerm::Iri(iri)) if iri == graph
-            );
-            if !in_graph {
-                continue;
-            }
-            let mut projected = quad.clone();
-            projected.graph_name = None;
-            builder.push_owned_quad(&projected);
-        }
-        // Carry the RDF 1.2 statement layer: reifier bindings and annotations whose
-        // reified statement is one of the projected quads travel with the subgraph,
-        // so a handle over a reified graph pins over the same content the graph holds.
-        for reifier in self.dataset.owned_reifiers() {
-            builder.push_owned_reifier(&reifier);
-        }
-        for annotation in self.dataset.owned_annotations() {
-            builder.push_owned_annotation(&annotation);
-        }
-        Arc::try_unwrap(
-            builder
-                .freeze()
-                .expect("a sub-projection of a valid dataset is valid"),
-        )
-        .unwrap_or_else(|arc| (*arc).owned_snapshot())
     }
 
     /// The content [`ContentDigest`] of this bundle: a SHA-256 fold over the
