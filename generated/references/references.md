@@ -607,7 +607,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | neo4j.com/labs/neosemantics | [link](https://neo4j.com/labs/neosemantics/) | 1 |
 | nodejs.org/dist/index.json | [link](https://nodejs.org/dist/index.json) | 1 |
 | nope.example | [link](https://nope.example/) | 1 |
-| nowhere.example/x | [link](https://nowhere.example/x) | 1 |
 | old.example.com/profile | [link](https://old.example.com/profile) | 1 |
 | ontobee.org/ontology/BFO | [link](https://ontobee.org/ontology/BFO) | 1 |
 | ontologi.atlas.vegvesen.no/bridge/v441/core/doc/v441-owl-doc/foaf_phone.html | [link](https://ontologi.atlas.vegvesen.no/bridge/v441/core/doc/v441-owl-doc/foaf_phone.html) | 1 |
