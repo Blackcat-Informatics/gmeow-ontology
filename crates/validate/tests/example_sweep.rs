@@ -64,6 +64,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/inference/examples/induction.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inquiry/examples/loaded-question.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inquiry/examples/open-question-and-resolution.ttl", // gmeow:observationMethod → shared method individual untyped standalone
+    "slices/core/logic/examples/formalization-governance.ttl", // logic:candidateCategory/candidateProjectionBehavior/candidateNonEntailment → shared governance individuals (categories, preservation kinds, the standing obligations) defined in module.ttl, untyped standalone
     "slices/core/metacognition/examples/dunning-kruger.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/metacognition/examples/reflection-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/observations/examples/temperature-reading.ttl", // gmeow:observationMethod → shared method individual untyped standalone

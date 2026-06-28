@@ -90,3 +90,42 @@ ex:rowOrgB2 a gmeow:ExpectedRow ;
 
 ex:rowOrgC2 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "neighbor" ; gmeow:cellValueIri ex:orgC ] .
+
+# ── Typed formalization governance ──────────────────────────────────────────────
+#
+# Does GMEOW record, per formalization candidate, the CATEGORY of force its prose
+# carried — and does the dogfood candidate population span several of the eleven
+# closed categories? Over the governance example data the candidates use five
+# distinct categories; cqExactRows pins that closed set, proving the per-category
+# coverage surface (the supersession of a single global %) is queryable.
+
+ex:cqFormalizationCandidateCategories a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/logic/queries/competency/formalization-candidate-categories.rq" ;
+    gmeow:cqDataFile  "examples/formalization-governance.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Every logic:FormalizationCandidate records its logic:candidateCategory; coverage is reported per category, never as one global %. The six dogfood candidates span exactly five distinct categories — derivation-rule, documentation-only, integrity-constraint, non-entailment-obligation, and typicality — so a SELECT DISTINCT over the candidate categories must return exactly those five." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqFormalizationCandidateCategoriesShape ;
+    gmeow:cqExpectRow
+        ex:rowCatDerivationRule, ex:rowCatDocumentationOnly, ex:rowCatIntegrityConstraint,
+        ex:rowCatNonEntailmentObligation, ex:rowCatTypicality .
+
+ex:cqFormalizationCandidateCategoriesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "category" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCatDerivationRule a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryDerivationRule ] .
+
+ex:rowCatDocumentationOnly a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryDocumentationOnly ] .
+
+ex:rowCatIntegrityConstraint a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryIntegrityConstraint ] .
+
+ex:rowCatNonEntailmentObligation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryNonEntailmentObligation ] .
+
+ex:rowCatTypicality a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryTypicality ] .

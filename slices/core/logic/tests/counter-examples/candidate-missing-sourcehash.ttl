@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for logic:FormalizationCandidateShape: a FormalizationCandidate
+# with NO logic:candidateSourceHash. logic:candidateSourceHash has sh:minCount 1,
+# so validation MUST emit shacl.MinCountConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecCandidateMissingSourceHash).
+# Lives under tests/ (NOT examples/) so the global make validate gate does not
+# reject it.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lgc/> .
+
+ex:contractEL a logic:ReasoningContract ;
+    rdfs:label "EL profile (fixture)"@en .
+
+ex:candidateMissingHash a logic:FormalizationCandidate ;
+    logic:candidateExtractionProvenance "logic-foundation-charter §Greenfield features"^^xsd:string ;
+    logic:candidateScope "logic:properPartOf over the endurant spine"^^xsd:string ;
+    logic:candidateContract ex:contractEL ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating .

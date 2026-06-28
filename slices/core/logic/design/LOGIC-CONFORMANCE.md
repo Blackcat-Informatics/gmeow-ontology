@@ -288,6 +288,16 @@ ill-formed individual must not trigger validation failures in a deployment that 
 conformance testing. Graphs that contain test data carry the `logic:TestGraph` type declaration and
 are excluded from the standard bundle by construction.
 
+**Non-entailment obligations are gate-checked.** Beyond the positive competency questions, the typed
+formalization governance (see [LOGIC-FOUNDATION.md, §Typed formalization
+governance](LOGIC-FOUNDATION.md#typed-formalization-governance)) contributes an *executable negative*
+surface: each `logic:NonEntailmentObligation` declares a forbidden predicate the closure must never
+derive, and the verify gate discharges it by syntactic reachability over the rule strata and by
+finite closure over the materialized derivation graph. An obligation that is violated — or that
+declares a discharge condition the engine does not wire — is a hard error, exactly like a failing
+competency question. The reviewer gate (an accepted `logic:FormalizationCandidate` with no recorded
+reviewer decision) and the per-category candidate-coverage report run in the same pass.
+
 Three kinds of slice-resident conformance data are defined:
 
 **Declarative competency questions.** A competency question is a query that the slice's vocabulary
