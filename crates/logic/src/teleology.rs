@@ -49,6 +49,7 @@ use std::collections::HashSet;
 use oxigraph::model::{NamedNode, Term};
 
 use crate::provenance::{mint_derivation_id, mint_reifier};
+use crate::result::PreservationClaim;
 use crate::store::WorldStore;
 
 // ── Namespace + vocabulary constants ───────────────────────────────────────────
@@ -820,6 +821,19 @@ const GMEOW_NS: &str = crate::provenance::NAMESPACE;
 /// `gmeow:satisfiedBy` — the flat, conclusive projection of a satisfied+completed
 /// `logic:GoalEvaluation`.
 const SATISFIED_BY: &str = "satisfiedBy";
+
+/// The IRI of the flat `gmeow:satisfiedBy` edge (used to detect the collapse in the output).
+const SATISFIED_BY_IRI: &str = "https://blackcatinformatics.ca/gmeow/satisfiedBy";
+
+/// The runtime preservation drop note emitted when `gmeow:satisfiedBy` edges appear in the
+/// materialized output, indicating that the factored `logic:GoalEvaluation` axes were
+/// collapsed to a flat binary edge.  Wording matches the compile-time disclosure in
+/// `gmeow_logic_compile::projections::GOAL_EVAL_COLLAPSE_DROP` exactly.
+const GOAL_EVAL_COLLAPSE_DROP: &str = concat!(
+    "logic:GoalEvaluation factored axes (satisfaction/feasibility/lifecycle status, ",
+    "satisfaction degree, criterion, evaluator/standpoint vantage multiplicity) ",
+    "collapsed to flat binary gmeow:satisfiedBy edge"
+);
 
 /// `gmeow:accordingTo` — the vantage / standpoint a flat statement is asserted under
 /// (the surface alias of `logic:evaluationEvaluator`; vantage ⊑ accordingTo).
@@ -2137,7 +2151,9 @@ const DEFAULT_SERIALIZABILITY_CRITERION: &str = "ConflictSerializability";
 /// Returns `Err` (no silent skip) for any malformed structure: a non-linear path, a
 /// malformed goal expression, a plan with no outcome branch, an invalid IRI in a
 /// conflict edge, or any provenance recipe failure.
-pub fn materialize_teleology(store: &WorldStore) -> Result<Vec<TeleologyQuad>, String> {
+pub fn materialize_teleology(
+    store: &WorldStore,
+) -> Result<(Vec<TeleologyQuad>, PreservationClaim), String> {
     let mut worlds = store.worlds();
     worlds.sort();
     worlds.dedup();
@@ -2222,7 +2238,19 @@ pub fn materialize_teleology(store: &WorldStore) -> Result<Vec<TeleologyQuad>, S
             q.object.clone(),
         ))
     });
-    Ok(out)
+
+    // Runtime preservation disclosure: when the forward bridge emitted one or more flat
+    // `gmeow:satisfiedBy` edges (projecting a factored `logic:GoalEvaluation` to a
+    // binary edge), the factored axes are absent from the materialized quads.  Disclose
+    // the collapse as a non-exact (SoundUnder) claim so downstream consumers see what
+    // was dropped.  When no `satisfiedBy` edge was generated the materialization is
+    // exact — the full `logic:GoalEvaluation` structure is present in the quads.
+    let claim = if out.iter().any(|q| q.predicate == SATISFIED_BY_IRI) {
+        PreservationClaim::for_unsupported(std::iter::once(GOAL_EVAL_COLLAPSE_DROP))
+    } else {
+        PreservationClaim::exact()
+    };
+    Ok((out, claim))
 }
 
 /// Echo one input `Triple` as a self-sourced asserted [`TeleologyQuad`] under the

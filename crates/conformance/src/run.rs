@@ -541,16 +541,17 @@ fn materialize_teleology(
              the native teleology evaluator has no budget governor"
         ));
     }
-    let quads = if input_nq.trim().is_empty() {
-        Vec::new()
+    let (quads, claim) = if input_nq.trim().is_empty() {
+        (Vec::new(), PreservationClaim::exact())
     } else {
         let store = WorldStore::new();
         store
             .load_nquads(input_nq)
             .map_err(|e| format!("case {case_id}: teleology N-Quads parse failed: {e}"))?;
-        let tq = teleology_evaluate(&store)
+        let (tq, claim) = teleology_evaluate(&store)
             .map_err(|e| format!("case {case_id}: teleology evaluation failed: {e}"))?;
-        tq.into_iter()
+        let quads: Vec<RunnerQuad> = tq
+            .into_iter()
             .map(|q| RunnerQuad {
                 graph: q.graph,
                 // Teleology subjects/objects are already bare / N3 respectively
@@ -562,12 +563,13 @@ fn materialize_teleology(
                 rule_iri: q.rule_iri,
                 source_quad_ids: q.source_quad_ids,
             })
-            .collect()
+            .collect();
+        (quads, claim)
     };
-    // The native teleology evaluator classifies/evaluates the given structure and
-    // records the result exactly — no lossy projection — so the materialization is
-    // an exact preservation claim, mirroring the foundation evaluator.
-    Ok((quads, "ok".to_string(), false, PreservationClaim::exact()))
+    // The production teleology claim carries the runtime preservation judgment:
+    // exact when no satisfiedBy edge was generated; SoundUnder (naming the dropped
+    // GoalEvaluation factored axes) when the forward bridge fired.
+    Ok((quads, "ok".to_string(), false, claim))
 }
 
 /// Produce one explanation skeleton per quad. Asserted quads get a trivial

@@ -1286,7 +1286,7 @@ fn materialize_teleology_runs_all_families_and_is_deterministic() {
     store.load_nquads(&nq).expect("base world");
     store.load_nquads(&ideal_nq).expect("ideal world");
 
-    let out = materialize_teleology(&store).unwrap();
+    let out = materialize_teleology(&store).unwrap().0;
 
     // Family 1+5: a GoalEvaluation + a flat satisfiedBy edge for the satisfied goal.
     assert!(out
@@ -1312,7 +1312,7 @@ fn materialize_teleology_runs_all_families_and_is_deterministic() {
     let store2 = WorldStore::new();
     store2.load_nquads(&nq).expect("base world");
     store2.load_nquads(&ideal_nq).expect("ideal world");
-    let out2 = materialize_teleology(&store2).unwrap();
+    let out2 = materialize_teleology(&store2).unwrap().0;
     assert_eq!(out, out2, "materialize_teleology must be deterministic");
 }
 
@@ -1333,7 +1333,7 @@ fn materialize_teleology_deontic_no_ideal_world_is_undetermined() {
     );
     let store = WorldStore::new();
     store.load_nquads(&nq).expect("base world");
-    let out = materialize_teleology(&store).unwrap();
+    let out = materialize_teleology(&store).unwrap().0;
     // The deontic evaluation carries goalEvaluationStatus = Undetermined.
     let is_undetermined = out.iter().any(|q| {
         q.predicate == logic("goalEvaluationStatus")
@@ -1365,7 +1365,7 @@ fn materialize_teleology_serializable_history_emits_no_anomaly() {
     );
     let store = WorldStore::new();
     store.load_nquads(&nq).expect("world");
-    let out = materialize_teleology(&store).unwrap();
+    let out = materialize_teleology(&store).unwrap().0;
     assert!(
         out.iter()
             .all(|q| q.object != n3(&logic("SerializationAnomaly"))),
@@ -1561,7 +1561,7 @@ fn effect_application_emits_append_only_supersession_quartet() {
         tt = l("transitionToState"),
     ));
     let store = store_from(&nq);
-    let out = materialize_teleology(&store).unwrap();
+    let out = materialize_teleology(&store).unwrap().0;
     // Successor state1 asserts sitX and sitZ.
     assert!(out.iter().any(|q| q.subject == format!("{W}#state1")
         && q.predicate == logic("situationObtains")
@@ -1609,7 +1609,7 @@ fn observation_conditioned_branch_is_selected_and_surfaced() {
         ba = l("branchActionSchema"),
     ));
     let store = store_from(&nq);
-    let out = materialize_teleology(&store).unwrap();
+    let out = materialize_teleology(&store).unwrap().0;
     // The observation's reveal is surfaced.
     assert!(out.iter().any(|q| q.subject == format!("{W}#obs")
         && q.predicate == logic("reveals")
@@ -1647,7 +1647,7 @@ fn observation_branch_with_non_matching_guard_is_not_selected() {
         ba = l("branchActionSchema"),
     ));
     let store = store_from(&nq);
-    let out = materialize_teleology(&store).unwrap();
+    let out = materialize_teleology(&store).unwrap().0;
     assert!(
         out.iter().all(|q| q.predicate != logic("selectedBranch")),
         "a non-matching guard must not select the branch"
@@ -1672,8 +1672,8 @@ fn new_facet_families_are_deterministic() {
         tf = l("transitionFromState"),
         tt = l("transitionToState"),
     ));
-    let a = materialize_teleology(&store_from(&nq)).unwrap();
-    let b = materialize_teleology(&store_from(&nq)).unwrap();
+    let a = materialize_teleology(&store_from(&nq)).unwrap().0;
+    let b = materialize_teleology(&store_from(&nq)).unwrap().0;
     assert_eq!(a, b, "new facet families must be deterministic");
 }
 
@@ -1699,7 +1699,7 @@ fn gate_probe_surfaces_invariant_breach_denial() {
         pst = l("probesState"),
     ));
     let store = store_from(&nq);
-    let out = materialize_teleology(&store).unwrap();
+    let out = materialize_teleology(&store).unwrap().0;
     assert!(out.iter().any(|q| q.subject == format!("{W}#probe")
         && q.predicate == logic("gateVerdict")
         && q.object == n3(&logic("GateDenied"))));

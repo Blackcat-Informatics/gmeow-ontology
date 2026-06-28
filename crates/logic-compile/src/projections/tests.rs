@@ -547,3 +547,86 @@ ex:nearbyOrgs a logic:PathShape ;
         "report and ledger must agree on the property-path target {expected_label:?}"
     );
 }
+
+// ── AC#9 — Teleology-specific loss disclosure (compile-time) ────────────────
+//
+// Verify that `compile_program` injects `GOAL_EVAL_COLLAPSE_DROP` into the
+// `preservation_ledger` for every LOSSY target when the program carries a
+// `gmeow:satisfiedBy` axiom, and leaves exact-preservation targets untouched.
+
+/// Build a minimal `LogicProgram` that carries exactly one axiom whose predicate
+/// is `SATISFIED_BY_IRI` (a ground `goal gmeow:satisfiedBy situation` fact).
+fn program_with_satisfied_by() -> crate::ir::LogicProgram {
+    use crate::ir::{LogicAxiom, LogicProgram};
+    let axiom = LogicAxiom::ground(
+        "https://example.org/goal",
+        SATISFIED_BY_IRI,
+        "https://example.org/situation",
+        false,
+    )
+    .expect("valid satisfied-by axiom");
+    LogicProgram::new(vec![axiom], vec![], vec![], None)
+}
+
+#[test]
+fn satisfied_by_axiom_injects_collapse_drop_on_lossy_targets() {
+    let program = program_with_satisfied_by();
+    let arts = compile_program(&program).expect("compile ok");
+
+    // Every GOAL_EVAL_COLLAPSE_TARGETS entry must carry the drop note.
+    for target in GOAL_EVAL_COLLAPSE_TARGETS {
+        let entry = arts
+            .preservation_ledger
+            .iter()
+            .find(|e| e.target == *target)
+            .unwrap_or_else(|| panic!("ledger must carry target {target:?}"));
+        assert!(
+            entry
+                .lossy_drops
+                .iter()
+                .any(|d| d == GOAL_EVAL_COLLAPSE_DROP),
+            "target {target:?} must carry the GoalEvaluation collapse drop;              got: {:?}",
+            entry.lossy_drops
+        );
+    }
+
+    // The exact-preservation targets (canonical-rdf12, nemo) must NOT be augmented.
+    for target in &["canonical-rdf12", "nemo"] {
+        let entry = arts
+            .preservation_ledger
+            .iter()
+            .find(|e| e.target == *target)
+            .unwrap_or_else(|| panic!("ledger must carry exact target {target:?}"));
+        assert!(
+            !entry.lossy_drops.iter().any(|d| d == GOAL_EVAL_COLLAPSE_DROP),
+            "exact target {target:?} must NOT carry the GoalEvaluation collapse drop;              got: {:?}",
+            entry.lossy_drops
+        );
+    }
+}
+
+#[test]
+fn no_satisfied_by_axiom_leaves_ledger_clean() {
+    use crate::ir::{LogicAxiom, LogicProgram};
+    // A program with a plain subClassOf fact — no satisfiedBy.
+    let axiom = LogicAxiom::ground(
+        "https://example.org/Bird",
+        "https://blackcatinformatics.ca/logic/subClassOf",
+        "https://example.org/Animal",
+        false,
+    )
+    .expect("valid axiom");
+    let program = LogicProgram::new(vec![axiom], vec![], vec![], None);
+    let arts = compile_program(&program).expect("compile ok");
+
+    // No target in the ledger should carry the collapse drop when there is no
+    // satisfiedBy axiom in the program.
+    for entry in &arts.preservation_ledger {
+        assert!(
+            !entry.lossy_drops.iter().any(|d| d == GOAL_EVAL_COLLAPSE_DROP),
+            "target {:?} must NOT carry the GoalEvaluation collapse drop when there              is no satisfiedBy axiom; got: {:?}",
+            entry.target,
+            entry.lossy_drops
+        );
+    }
+}
