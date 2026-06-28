@@ -72,7 +72,7 @@ pub struct Profile {
     /// (`"foundation_lowering": true`).
     pub foundation_lowering: bool,
     /// Whether the case opts into the teleology-lowering materialization
-    /// (`"teleology_lowering": true`, #1055 W1). Like `foundation_lowering`, the
+    /// (`"teleology_lowering": true`). Like `foundation_lowering`, the
     /// teleology evaluator has no budget governor and needs no nemo rules; a declared
     /// `budget_params` is a hard failure (enforced in the runner).
     pub teleology_lowering: bool,

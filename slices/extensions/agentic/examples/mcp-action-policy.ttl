@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Worked example — the REAL memory-MCP triad, dogfooded as action schemas under the
-# W1 canonical-process action theory (issue #1055).
+# canonical-process action theory.
 #
 # These are the three tools the production memory MCP server actually exposes
 # (src/gmeow_tools/mcp_server.py): `store_claim` (writes a reified claim to memory),
@@ -41,7 +41,7 @@
 # --------------------------------------------------------------------------- #
 # Capability individuals — the executional preconditions on the actor (what the
 # agent must be able to do). EXAMPLE individuals referenced by logic:capability,
-# left untyped to match the W1 conformance fixtures (the policy shape gates on the
+# left untyped to match the conformance fixtures (the policy shape gates on the
 # property's presence, not on a capability class — no new vocabulary is minted).
 # --------------------------------------------------------------------------- #
 

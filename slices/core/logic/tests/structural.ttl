@@ -490,12 +490,12 @@ ASK {
 }""" ;
     gmeow:saRationale "logic:SerializationAnomaly MUST be a history-level finding, NOT a contradiction witness. There is no single canonical contradiction-witness CLASS (the witness is the property logic:contradictionWitness / the verdict logic:InfoBoth), so the not-a-contradiction intent is pinned in text: the class definition MUST contain the word 'finding', distinguishing it from a contradiction witness that asserts a logical contradiction within a state." .
 
-# === W1 STEP-1 engine representation vocabulary (issue #1055) ==================
+# === Engine representation vocabulary ========================================
 # The goal-expression structure, per-outcome compensation reification, and the
 # situation-obtains reading the native teleology evaluator (crates/logic/src/
 # teleology.rs) reads and emits. Normative in design/LOGIC-TELEOLOGY.md.
 
-# --- W1.1 GoalExpressionKind is a closed nine-member value set (MUST) ---------
+# --- GoalExpressionKind is a closed nine-member value set (MUST) --------------
 ex:saGoalExpressionKindClosedSet a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -516,7 +516,7 @@ ASK {
 }""" ;
     gmeow:saRationale "logic:GoalExpressionKind MUST be a boxTBox owl:Class whose closed value set is exactly the nine compositional variants the engine dispatches on: AtomicGoal, ConjunctiveGoal, DisjunctiveGoal, AchievementGoal, MaintenanceGoal, AvoidanceGoal, OptimizationGoal, ConditionalGoal, DeadlineWindowGoal." .
 
-# --- W1.2 Goal-expression structure properties exist (MUST) -------------------
+# --- Goal-expression structure properties exist (MUST) -----------------------
 ex:saGoalExpressionStructureProps a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -532,7 +532,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The goal-expression structure the engine reads MUST exist as owl:ObjectProperty: logic:goalExpressionKind (selects the variant), logic:operand (sub-expressions of a conjunctive/disjunctive/conditional/deadline goal), logic:boundSituationType (the targeted situation type), logic:guardSituation (a conditional goal's guard), logic:deadlineWindow (a deadline-window goal's bounding interval), and logic:situationObtains (a situation type holds at a state)." .
 
-# --- W1.3 Outcome reifies a branch with its own compensation (MUST) ----------
+# --- Outcome reifies a branch with its own compensation (MUST) ---------------
 ex:saOutcomePerBranchCompensation a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -547,7 +547,7 @@ ASK {
 }""" ;
     gmeow:saRationale "A nondeterministic branch MUST be reified: logic:Outcome (boxTBox owl:Class) carries via logic:outcomeSituation the successor it reaches and reuses logic:compensation so each branch names the recovery for IT specifically; logic:nondeterministicOutcome points a logic:ActionSchema at its logic:Outcome branches, so compensation is outcome-indexed rather than one generic undo." .
 
-# --- W1.4 GoalEvaluationUndetermined is the open-window value (MUST) ----------
+# --- GoalEvaluationUndetermined is the open-window value (MUST) ---------------
 ex:saGoalEvaluationUndeterminedExists a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;

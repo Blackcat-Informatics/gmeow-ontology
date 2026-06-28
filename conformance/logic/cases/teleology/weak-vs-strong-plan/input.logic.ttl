@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# Conformance case: teleology/weak-vs-strong-plan (issue #1055 W1, Task 5).
+# Conformance case: teleology/weak-vs-strong-plan.
 #
 # A weak plan vs a strong plan over the SAME two-branch nondeterministic outcome set: the strong plan reaches the goal on EVERY outcome (StrongPlanSuccess); the weak plan has one outcome that misses the goal and is NOT recoverable (WeakPlanSuccess).
 #

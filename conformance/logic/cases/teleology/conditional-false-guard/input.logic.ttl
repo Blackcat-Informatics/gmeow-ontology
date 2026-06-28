@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# Conformance case: teleology/conditional-false-guard (issue #1055 W1, Task 5).
+# Conformance case: teleology/conditional-false-guard.
 #
 # A conditional goal whose guard situation is FALSE at the last state → the goal prescribes nothing (Satisfaction::DoesNotApply, no satisfactionStatus quad) + Completed (does-not-apply, NOT Unsatisfied).
 #

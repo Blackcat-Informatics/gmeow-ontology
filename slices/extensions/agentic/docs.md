@@ -88,7 +88,7 @@ papered over.
 ## Dogfood — the memory-MCP triad as governed action schemas
 
 `examples/mcp-action-policy.ttl` models the **real** memory-MCP tools the production
-server exposes (`src/gmeow_tools/mcp_server.py`) as action schemas under the W1
+server exposes (`src/gmeow_tools/mcp_server.py`) as action schemas under the
 canonical-process action theory — the dogfood case where the process model governs the
 agent's own tool calls under explicit **capability / precondition / compensation**
 (rollback).

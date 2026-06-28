@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native Rust evaluator for the W1 canonical-process *teleology* layer (issue #1055).
+//! Native Rust evaluator for the canonical-process *teleology* layer.
 //!
 //! This module is the canonical native evaluator for the teleology / transaction
 //! computations of the unified canonical process model: it EVALUATES and
 //! CLASSIFIES given structure and RECORDS the verdict as `logic:GoalEvaluation`
 //! quads and `logic:`-namespaced findings.  It mirrors [`crate::foundation`]'s
-//! determinism contract verbatim so the conformance runner (Task 5) can wire it in
+//! determinism contract verbatim so the conformance runner can wire it in
 //! the same way it wires the foundation evaluator.
 //!
 //! # P12 boundary (constitutional)
@@ -810,7 +810,7 @@ fn emit_goal_evaluation(
     Ok(())
 }
 
-// ── satisfiedBy ⟷ GoalEvaluation dual-authority bridge (Task 4b) ────────────────
+// ── satisfiedBy ⟷ GoalEvaluation dual-authority bridge ──────────────────────────
 
 /// The `gmeow:` vocabulary namespace (the surface vocabulary the flat
 /// `gmeow:satisfiedBy` / `gmeow:accordingTo` edges live in).  Matches
@@ -1158,7 +1158,7 @@ const OUTCOME_SITUATION: &str = "outcomeSituation";
 const COMPENSATION: &str = "compensation";
 
 /// Classify a plan's success over the nondeterministic outcome set of one action
-/// schema (the elementary case the W1 conformance scenarios exercise).
+/// schema (the elementary case the conformance scenarios exercise).
 ///
 /// `goal_situation` is the situation type that counts as reaching the goal.
 ///
@@ -1557,7 +1557,7 @@ pub fn evaluate_world_goals(store: &WorldStore, world: &str) -> Result<Vec<Teleo
     }
     canonical_sort(&mut out);
 
-    // ── Dual-authority bridge post-pass (Task 4b) ─────────────────────────────
+    // ── Dual-authority bridge post-pass ───────────────────────────────────────
     // Run BOTH directions over the input facts EXTENDED with the evaluations this
     // driver just emitted, so: (a) the forward direction projects a flat,
     // vantage-indexed `gmeow:satisfiedBy` edge from every satisfied+completed
@@ -1594,7 +1594,7 @@ pub fn evaluate_world_goals(store: &WorldStore, world: &str) -> Result<Vec<Teleo
     Ok(out)
 }
 
-// ── Whole-store materialization driver (conformance Task 5) ─────────────────────
+// ── Whole-store materialization driver ──────────────────────────────────────────
 
 /// Local name of `rdf:type`'s object for a `logic:Plan`.
 const PLAN_CLASS: &str = "Plan";
@@ -1916,7 +1916,7 @@ fn emit_history_anomaly(
 ) -> Result<Vec<TeleologyQuad>, String> {
     let _ = history;
     // The conflict edges are the world's logic:precedes facts (a single history per
-    // world in the W1 conformance scenarios), enumerated in content order.
+    // world in the conformance scenarios), enumerated in content order.
     let mut edges: Vec<ConflictEdge> = facts
         .triples
         .iter()

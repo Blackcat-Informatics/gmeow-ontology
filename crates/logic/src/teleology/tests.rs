@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Unit tests for the native teleology evaluator (issue #1055 W1).
+//! Unit tests for the native teleology evaluator.
 //!
-//! These build small N-Quads worlds mirroring the eight named W1 conformance
+//! These build small N-Quads worlds mirroring the eight named conformance
 //! scenarios, run the evaluator's pure computations, and assert (a) the factored
 //! verdict and (b) the content-addressed provenance determinism (same input → same
 //! derivation IRIs).
@@ -563,7 +563,7 @@ fn gate_denies_when_capability_unavailable() {
     assert!(matches!(gate, ActionGate::Deny { .. }));
 }
 
-// ── Task 6: the REAL memory-MCP triad's store_claim schema under gate_action ─────
+// ── The REAL memory-MCP triad's store_claim schema under gate_action ─────────────
 //
 // These exercise gate_action over EXACTLY the store_claim pattern dogfooded in
 // slices/extensions/agentic/examples/mcp-action-policy.ttl — same logic: facets
@@ -774,7 +774,7 @@ fn unknown_goal_kind_is_hard_error() {
     );
 }
 
-// ── Task 4b: satisfiedBy ⟷ GoalEvaluation dual-authority bridge ─────────────────
+// ── satisfiedBy ⟷ GoalEvaluation dual-authority bridge ──────────────────────────
 
 /// Shorthand for a `gmeow:` IRI in N-Quads angle-bracket form.
 fn g(local: &str) -> String {
@@ -1099,7 +1099,7 @@ fn driver_post_pass_emits_bridged_satisfied_by_edge() {
     );
 }
 
-// ── Task 5: whole-store materialize_teleology driver ────────────────────────────
+// ── Whole-store materialize_teleology driver ────────────────────────────────────
 
 #[test]
 fn materialize_teleology_runs_all_families_and_is_deterministic() {

@@ -520,7 +520,7 @@ fn materialize_foundation(
     Ok((quads, "ok".to_string(), false, PreservationClaim::exact()))
 }
 
-/// Teleology-lowering materialization via the native W1 teleology evaluator (#1055).
+/// Teleology-lowering materialization via the native canonical-process teleology evaluator.
 ///
 /// Mirrors [`materialize_foundation`] exactly: the teleology evaluator has no budget
 /// governor and needs no nemo rules, so a declared `budget_params` is a hard failure,

@@ -90,7 +90,7 @@ logic:FormalizationCandidateShape
     ] .
 
 # =========================================================================== #
-# Canonical process model (W1) — Plan / GoalEvaluation / ActionSchema shapes
+# Canonical process model — Plan / GoalEvaluation / ActionSchema shapes
 # =========================================================================== #
 
 logic:PlanShape
@@ -234,8 +234,8 @@ logic:ActionSchemaShape
 # not ontology vocabulary). It does NOT auto-apply to every logic:ActionSchema:
 # it targets only the opt-in marker subtype logic:McpActionSchema, so a plain
 # action schema is never forced to carry the stricter compensation obligation.
-# An MCP-action schema opts in by typing itself logic:McpActionSchema (Task 6
-# wires the MCP triad individuals this way; the conformance fixtures below do the
+# An MCP-action schema opts in by typing itself logic:McpActionSchema (the MCP
+# triad individuals are wired this way; the conformance fixtures below do the
 # same). Targeting the marker class — rather than a data-graph sh:targetNode — is
 # the engine-native opt-in: the native validator resolves sh:targetClass from
 # rdf:type in the data graph, and the merged ontology declares no instance of the

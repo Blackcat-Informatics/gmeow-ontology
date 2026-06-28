@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# Conformance case: teleology/outcome-specific-compensation (issue #1055 W1, Task 5).
+# Conformance case: teleology/outcome-specific-compensation.
 #
 # Two outcome branches of a realized plan recover by DIFFERENT compensation actions: the driver selects the compensation named on THE realized outcome branch (logic:selectedCompensation), not a generic schema-level undo — two plans, each realizing a different branch, select different compensations.
 #

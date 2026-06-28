@@ -51,7 +51,7 @@ ex:ecCandidateMissingCategory a gmeow:ExampleConformance ;
     gmeow:conformanceRationale "The counter-example omits logic:candidateCategory (sh:minCount 1 on logic:FormalizationCandidateShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
 
 # =========================================================================== #
-# Canonical process model (W1) conformance cells
+# Canonical process model conformance cells
 # =========================================================================== #
 
 # --- Conforming: a well-formed Plan ------------------------------------------

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# Conformance case: teleology/conjunctive-vs-disjunctive (issue #1055 W1, Task 5).
+# Conformance case: teleology/conjunctive-vs-disjunctive.
 #
 # A conjunctive goal and a disjunctive goal over the SAME two atomic sub-targets,
 # where exactly one sub-target's situation obtains. The native teleology evaluator
