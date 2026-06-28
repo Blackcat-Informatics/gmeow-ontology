@@ -1538,9 +1538,7 @@ def crate_check() -> None:
         err_console.print(f"[red]error[/red] {message}")
     for message in warnings:
         err_console.print(f"[yellow]warning[/yellow] {message}")
-    if not report["ok"]:
-        raise _fail(f"✗ {len(errors)} crate/static violation(s)")
-    if not static_report["ok"]:
+    if errors:
         raise _fail(f"✗ {len(errors)} crate/static violation(s)")
     console.print(
         f"[green]✓ crate/static guards OK[/green] "
