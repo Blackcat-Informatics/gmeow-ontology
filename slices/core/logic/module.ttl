@@ -658,6 +658,77 @@ logic:GoalExpression
     skos:definition "The typed IR term carrying the compositional structure of a goal's target so the engine can evaluate it compositionally, attached to a gmeow:Goal through logic:hasGoalCondition. Its node kind is one of nine variants: atomic (satisfied when a named situation type obtains), conjunctive and disjunctive (satisfied when all, or any, sub-expressions are), achievement (satisfied once the target first obtains along a path), maintenance (satisfied only while the target holds at every state of an interval, violated at the first failure), avoidance (the dual of maintenance — satisfied while a proscribed situation never obtains), optimization (directed at a measure, satisfied to the degree the measure is extremized rather than by a crisp boundary), conditional (a target applying only when a guard situation holds), and deadline-window (an achievement or maintenance target indexed to a bounding interval after which the window closes). Identity is STRUCTURAL: two expressions with the same node kind, operands, and bound situation type are the same term, so a goal condition is data the engine reads and writes rather than prose. The flat gmeow:hasGoal and conclusive gmeow:satisfiedBy edges are the surface views this richer form generates; projections that cannot hold the structure record the loss in the preservation ledger."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:GoalExpressionKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Goal Expression Kind"@x-gmeow-english ;
+    skos:definition "The closed value class of the node kind of a logic:GoalExpression — which of the nine compositional variants the expression is, read by the engine to evaluate it. Its individuals are logic:AtomicGoal (a named situation type obtains), logic:ConjunctiveGoal and logic:DisjunctiveGoal (all, or any, operand sub-expressions hold), logic:AchievementGoal (the target first obtains along a path), logic:MaintenanceGoal (the target holds at every state of an interval, violated at the first failure), logic:AvoidanceGoal (the dual — a proscribed situation never obtains), logic:OptimizationGoal (directed at a measure, satisfied to a degree rather than crisply), logic:ConditionalGoal (a target applying only when a guard situation holds), and logic:DeadlineWindowGoal (an achievement or maintenance target indexed to a bounding interval after which the window closes). The set is closed; a misspelt kind names no declared variant and is rejected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:AtomicGoal
+    a owl:NamedIndividual ,
+        logic:GoalExpressionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Atomic Goal"@x-gmeow-english ;
+    skos:definition "The logic:GoalExpressionKind for a leaf goal satisfied exactly when its logic:boundSituationType obtains at the relevant state. The base of the compositional algebra; contrast the conjunctive/disjunctive combinators and the temporal kinds."@x-gmeow-english .
+
+logic:ConjunctiveGoal
+    a owl:NamedIndividual ,
+        logic:GoalExpressionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Conjunctive Goal"@x-gmeow-english ;
+    skos:definition "The logic:GoalExpressionKind for a goal satisfied only when ALL of its logic:operand sub-expressions are satisfied. The conjunctive combinator of the goal algebra; co-equal counterpart of logic:DisjunctiveGoal."@x-gmeow-english .
+
+logic:DisjunctiveGoal
+    a owl:NamedIndividual ,
+        logic:GoalExpressionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Disjunctive Goal"@x-gmeow-english ;
+    skos:definition "The logic:GoalExpressionKind for a goal satisfied when ANY of its logic:operand sub-expressions is satisfied. The disjunctive combinator of the goal algebra; co-equal counterpart of logic:ConjunctiveGoal."@x-gmeow-english .
+
+logic:AchievementGoal
+    a owl:NamedIndividual ,
+        logic:GoalExpressionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Achievement Goal"@x-gmeow-english ;
+    skos:definition "The logic:GoalExpressionKind for a goal satisfied once its logic:boundSituationType FIRST obtains at any state along the logic:Path — a one-shot attainment. Contrast logic:MaintenanceGoal (must hold at every state)."@x-gmeow-english .
+
+logic:MaintenanceGoal
+    a owl:NamedIndividual ,
+        logic:GoalExpressionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Maintenance Goal"@x-gmeow-english ;
+    skos:definition "The logic:GoalExpressionKind for a goal satisfied only while its logic:boundSituationType holds at EVERY state of the interval, violated at the FIRST state it fails; while the bounding window is still open the evaluation is logic:GoalEvaluationUndetermined, not conclusively satisfied. The dual of logic:AvoidanceGoal."@x-gmeow-english .
+
+logic:AvoidanceGoal
+    a owl:NamedIndividual ,
+        logic:GoalExpressionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Avoidance Goal"@x-gmeow-english ;
+    skos:definition "The logic:GoalExpressionKind for a goal satisfied only while its proscribed logic:boundSituationType NEVER obtains across the interval, violated at the first state it obtains — the dual of logic:MaintenanceGoal. While the window is still open the evaluation is logic:GoalEvaluationUndetermined."@x-gmeow-english .
+
+logic:OptimizationGoal
+    a owl:NamedIndividual ,
+        logic:GoalExpressionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Optimization Goal"@x-gmeow-english ;
+    skos:definition "The logic:GoalExpressionKind for a goal directed at a logic:objectiveValue read in a logic:objectiveDirection, satisfied to the DEGREE the measure is extremized (carried as logic:satisfactionDegree) rather than by a crisp boundary. Its outcome is recorded as a degree, never folded into a crisp truth value."@x-gmeow-english .
+
+logic:ConditionalGoal
+    a owl:NamedIndividual ,
+        logic:GoalExpressionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Conditional Goal"@x-gmeow-english ;
+    skos:definition "The logic:GoalExpressionKind for a goal whose target applies only when its logic:guardSituation holds; when the guard is false the goal prescribes nothing and its evaluation reflects does-not-apply rather than satisfied or violated. The single operand carries the guarded target sub-expression."@x-gmeow-english .
+
+logic:DeadlineWindowGoal
+    a owl:NamedIndividual ,
+        logic:GoalExpressionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Deadline-Window Goal"@x-gmeow-english ;
+    skos:definition "The logic:GoalExpressionKind for an achievement or maintenance target indexed to a bounding logic:deadlineWindow interval; the evaluation stays logic:GoalEvaluationUndetermined while the window is open and becomes conclusive once it closes. The single operand carries the windowed target sub-expression."@x-gmeow-english .
+
+
 logic:LifecycleStatus
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1038,6 +1109,13 @@ logic:OpenWorldClosure
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Open-World Closure"@x-gmeow-english ;
     skos:definition "The open-world value of the closure map: for the predicate or context key it is bound to, absence of a fact means unknown rather than false. The default for any key not explicitly closed; the closure facet is a map, so this value is read per key, with logic:ClosedWorldClosure applied only inside a logic:WorldBoundary."@x-gmeow-english .
+
+logic:Outcome
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Outcome"@x-gmeow-english ;
+    skos:definition "One branch of the nondeterministic outcome set of a logic:ActionSchema: a single alternative result, naming via logic:outcomeSituation the successor situation it reaches and via the reused logic:compensation the action that recovers from THIS branch specifically. Reifying each branch as an Outcome is what lets compensation be outcome-indexed rather than a single generic undo across the schema, and what lets plan-success quantification (logic:planSuccessMode) range over the branches. A logic:ActionSchema points at its branches through logic:nondeterministicOutcome."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:OwlProjection
     a owl:NamedIndividual ,
@@ -1692,7 +1770,49 @@ logic:nondeterministicOutcome
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "nondeterministic outcome"@x-gmeow-english ;
-    skos:definition "Relates a logic:ActionSchema to one of its alternative effects, each a distinct successor situation — multi-valued, so an action whose result is not fixed is represented faithfully rather than collapsed to a single effect. The outcome set this enumerates is why plan success must be quantified (logic:planSuccessMode) and why compensation is outcome-indexed (logic:compensation). Domain logic:ActionSchema (stated in prose). One of the eight action-theory facets."@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionSchema to one of its alternative effects, each reified as a logic:Outcome node naming via logic:outcomeSituation the distinct successor situation it reaches — multi-valued, so an action whose result is not fixed is represented faithfully rather than collapsed to a single effect. The outcome set this enumerates is why plan success must be quantified (logic:planSuccessMode) and why compensation is outcome-indexed: each logic:Outcome branch carries its own logic:compensation. Domain logic:ActionSchema, range logic:Outcome (stated in prose). One of the eight action-theory facets."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:boundSituationType
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bound situation type"@x-gmeow-english ;
+    skos:definition "Relates an atomic, achievement, maintenance, or avoidance logic:GoalExpression to the logic:Situation type it targets — the situation whose obtaining (via logic:situationObtains at a state along the path) decides the goal. Domain logic:GoalExpression, range logic:Situation (stated in prose). Part of a goal expression's STRUCTURAL identity together with its kind and operands."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:deadlineWindow
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deadline window"@x-gmeow-english ;
+    skos:definition "Relates a deadline-window logic:GoalExpression to the bounding interval after which its window closes — until the window closes the evaluation is logic:GoalEvaluationUndetermined, and once it closes the judgment becomes conclusive. Domain logic:GoalExpression (stated in prose); the range is the bounding interval, left open in this standalone module. The companion of the goal's operand (its achievement or maintenance target)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:guardSituation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "guard situation"@x-gmeow-english ;
+    skos:definition "Relates a conditional logic:GoalExpression to the logic:Situation type that guards it — the goal's target (its operand) applies only when the guard holds (via logic:situationObtains). Domain logic:GoalExpression, range logic:Situation (stated in prose). When the guard is false the conditional goal prescribes nothing: the evaluation reflects does-not-apply rather than asserting satisfied or violated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:operand
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "operand"@x-gmeow-english ;
+    skos:definition "Relates a compositional logic:GoalExpression (conjunctive, disjunctive, conditional, or deadline-window) to one of its sub-expressions — multi-valued, so a conjunction or disjunction over several sub-goals is carried faithfully. Domain logic:GoalExpression, range logic:GoalExpression (stated in prose). For a conjunctive goal every operand must be satisfied; for a disjunctive goal any one suffices; a conditional or deadline-window goal carries its single guarded/windowed target as its operand."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:outcomeSituation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "outcome situation"@x-gmeow-english ;
+    skos:definition "Relates a logic:Outcome (one branch of an action schema's nondeterministic outcome set) to the successor logic:Situation it reaches. Domain logic:Outcome, range logic:Situation (stated in prose). The branch's own logic:compensation recovers from this specific successor, so recovery is outcome-indexed rather than a single generic undo."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:situationObtains
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "situation obtains"@x-gmeow-english ;
+    skos:definition "Relates a gmeow:State (a configuration along a logic:Path) to a logic:Situation type that obtains at it — the engine reads this to decide whether an atomic goal's logic:boundSituationType, or a conditional goal's logic:guardSituation, holds at a given state. Domain gmeow:State, range logic:Situation (stated in prose). It records that a situation type is realized at a state without mutating that state, mirroring the prose 'each gmeow:State realizes a logic:Situation' on logic:Path."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:observation
@@ -1841,6 +1961,13 @@ logic:goalEvaluationStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "goal evaluation status"@x-gmeow-english ;
     skos:definition "Relates a logic:GoalEvaluation to the logic:GoalEvaluationStatus it carries — whether the evaluation is conclusive. Domain logic:GoalEvaluation, range logic:GoalEvaluationStatus (stated in prose). Together with satisfaction status logic:Satisfied, the value logic:GoalEvaluationCompleted is the condition under which a gmeow:satisfiedBy edge is generated. DISTINCT from logic:resultEvaluation, which carries the engine-computation logic:EvaluationStatus of a logic:ReasoningResult."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:goalExpressionKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "goal expression kind"@x-gmeow-english ;
+    skos:definition "Relates a logic:GoalExpression to its logic:GoalExpressionKind — which of the nine compositional variants it is. Domain logic:GoalExpression, range logic:GoalExpressionKind (stated in prose). The engine reads this to dispatch the compositional evaluation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:satisfactionDegree

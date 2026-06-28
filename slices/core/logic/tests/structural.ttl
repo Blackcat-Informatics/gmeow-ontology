@@ -489,3 +489,71 @@ ASK {
     FILTER (CONTAINS(STR(?d), "finding"))
 }""" ;
     gmeow:saRationale "logic:SerializationAnomaly MUST be a history-level finding, NOT a contradiction witness. There is no single canonical contradiction-witness CLASS (the witness is the property logic:contradictionWitness / the verdict logic:InfoBoth), so the not-a-contradiction intent is pinned in text: the class definition MUST contain the word 'finding', distinguishing it from a contradiction witness that asserts a logical contradiction within a state." .
+
+# === W1 STEP-1 engine representation vocabulary (issue #1055) ==================
+# The goal-expression structure, per-outcome compensation reification, and the
+# situation-obtains reading the native teleology evaluator (crates/logic/src/
+# teleology.rs) reads and emits. Normative in design/LOGIC-TELEOLOGY.md.
+
+# --- W1.1 GoalExpressionKind is a closed nine-member value set (MUST) ---------
+ex:saGoalExpressionKindClosedSet a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:GoalExpressionKind a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:AtomicGoal         a logic:GoalExpressionKind .
+    logic:ConjunctiveGoal    a logic:GoalExpressionKind .
+    logic:DisjunctiveGoal    a logic:GoalExpressionKind .
+    logic:AchievementGoal    a logic:GoalExpressionKind .
+    logic:MaintenanceGoal    a logic:GoalExpressionKind .
+    logic:AvoidanceGoal      a logic:GoalExpressionKind .
+    logic:OptimizationGoal   a logic:GoalExpressionKind .
+    logic:ConditionalGoal    a logic:GoalExpressionKind .
+    logic:DeadlineWindowGoal a logic:GoalExpressionKind .
+}""" ;
+    gmeow:saRationale "logic:GoalExpressionKind MUST be a boxTBox owl:Class whose closed value set is exactly the nine compositional variants the engine dispatches on: AtomicGoal, ConjunctiveGoal, DisjunctiveGoal, AchievementGoal, MaintenanceGoal, AvoidanceGoal, OptimizationGoal, ConditionalGoal, DeadlineWindowGoal." .
+
+# --- W1.2 Goal-expression structure properties exist (MUST) -------------------
+ex:saGoalExpressionStructureProps a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:goalExpressionKind a owl:ObjectProperty .
+    logic:operand            a owl:ObjectProperty .
+    logic:boundSituationType a owl:ObjectProperty .
+    logic:guardSituation     a owl:ObjectProperty .
+    logic:deadlineWindow     a owl:ObjectProperty .
+    logic:situationObtains   a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The goal-expression structure the engine reads MUST exist as owl:ObjectProperty: logic:goalExpressionKind (selects the variant), logic:operand (sub-expressions of a conjunctive/disjunctive/conditional/deadline goal), logic:boundSituationType (the targeted situation type), logic:guardSituation (a conditional goal's guard), logic:deadlineWindow (a deadline-window goal's bounding interval), and logic:situationObtains (a situation type holds at a state)." .
+
+# --- W1.3 Outcome reifies a branch with its own compensation (MUST) ----------
+ex:saOutcomePerBranchCompensation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:Outcome          a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:outcomeSituation a owl:ObjectProperty .
+    logic:compensation     a owl:ObjectProperty .
+    logic:nondeterministicOutcome a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "A nondeterministic branch MUST be reified: logic:Outcome (boxTBox owl:Class) carries via logic:outcomeSituation the successor it reaches and reuses logic:compensation so each branch names the recovery for IT specifically; logic:nondeterministicOutcome points a logic:ActionSchema at its logic:Outcome branches, so compensation is outcome-indexed rather than one generic undo." .
+
+# --- W1.4 GoalEvaluationUndetermined is the open-window value (MUST) ----------
+ex:saGoalEvaluationUndeterminedExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:GoalEvaluationUndetermined a owl:NamedIndividual , logic:GoalEvaluationStatus .
+}""" ;
+    gmeow:saRationale "logic:GoalEvaluationUndetermined MUST be a logic:GoalEvaluationStatus member: the value the teleology evaluator emits for a maintenance/avoidance/deadline goal whose bounding window is still open and for a deontic evaluation with no accessible ideal world — never silently read as Satisfied or as a vacuous obligation." .
