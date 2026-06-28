@@ -47,6 +47,27 @@ gmeow:DoxasticStandpointClaimShape
         sh:class gmeow:JustificationStatus ;
         sh:severity sh:Violation ;
         sh:message "If present, gmeow:hasDefeatStatus on a DoxasticStandpointClaim must be an IRI typed as gmeow:JustificationStatus." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:defeatedBy ;
+        sh:minCount 0 ;
+        sh:class gmeow:Defeater ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:defeatedBy on a DoxasticStandpointClaim must be a gmeow:Defeater (Argument, StandpointClaim, or EvidenceSpan)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:supportsUnder ;
+        sh:minCount 0 ;
+        sh:class gmeow:SupportAssessment ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:supportsUnder on a DoxasticStandpointClaim must be a gmeow:SupportAssessment." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:adequateUnder ;
+        sh:minCount 0 ;
+        sh:class gmeow:AdequacyAssessment ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:adequateUnder on a DoxasticStandpointClaim must be a gmeow:AdequacyAssessment." ;
     ] .
 
 gmeow:DoxasticStateShape
@@ -109,6 +130,27 @@ gmeow:DoxasticStateShape
         sh:class gmeow:JustificationStatus ;
         sh:severity sh:Violation ;
         sh:message "If present, gmeow:hasDefeatStatus on a DoxasticState must be an IRI typed as gmeow:JustificationStatus." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:defeatedBy ;
+        sh:minCount 0 ;
+        sh:class gmeow:Defeater ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:defeatedBy on a DoxasticState must be a gmeow:Defeater (Argument, StandpointClaim, or EvidenceSpan)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:supportsUnder ;
+        sh:minCount 0 ;
+        sh:class gmeow:SupportAssessment ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:supportsUnder on a DoxasticState must be a gmeow:SupportAssessment." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:adequateUnder ;
+        sh:minCount 0 ;
+        sh:class gmeow:AdequacyAssessment ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:adequateUnder on a DoxasticState must be a gmeow:AdequacyAssessment." ;
     ] .
 
 gmeow:ClaimEvaluationShape
@@ -225,6 +267,12 @@ gmeow:SupportAssessmentShape
         sh:class gmeow:EpistemicStandard ;
         sh:severity sh:Violation ;
         sh:message "A SupportAssessment must name exactly one gmeow:EpistemicStandard (gmeow:supportUnderStandard)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:supportStrength ;
+        sh:datatype xsd:decimal ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:supportStrength must be an xsd:decimal." ;
     ] .
 
 gmeow:AdequacyAssessmentShape

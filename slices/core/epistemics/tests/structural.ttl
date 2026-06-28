@@ -391,6 +391,7 @@ ASK {
         VALUES ?p { gmeow:knowsThatIn gmeow:claimsToKnowThat gmeow:takesAsKnown }
         VALUES ?super { gmeow:knowsThat gmeow:believes gmeow:knowsThatIn }
         ?p rdfs:subPropertyOf ?super .
+        FILTER (?p != ?super)
     } UNION {
         VALUES ?p { gmeow:knowsThatIn gmeow:claimsToKnowThat gmeow:takesAsKnown }
         ?p rdfs:range ?r .

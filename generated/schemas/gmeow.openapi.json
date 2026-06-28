@@ -2739,6 +2739,49 @@
               }
             ]
           },
+          "gmeow:adequateUnder": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/AdequacyAssessment"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/AdequacyAssessment"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
           "gmeow:basesBeliefOn": {
             "anyOf": [
               {
@@ -2785,6 +2828,37 @@
                   "@id"
                 ],
                 "type": "object"
+              }
+            ]
+          },
+          "gmeow:defeatedBy": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:Defeater has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:Defeater has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
             ]
           },
@@ -2862,6 +2936,49 @@
                         "@id"
                       ],
                       "type": "object"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:supportsUnder": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SupportAssessment"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SupportAssessment"
                     },
                     {
                       "properties": {
@@ -17552,6 +17669,51 @@
               "@id"
             ],
             "type": "object"
+          },
+          "gmeow:supportStrength": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
           },
           "gmeow:supportUnderStandard": {
             "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
