@@ -78,6 +78,97 @@ impl Ord for Severity {
     }
 }
 
+/// The KIND of a finding — an axis ORTHOGONAL to [`Severity`], because not all
+/// findings are failures (the `logic:FindingCategory` value class).
+///
+/// Severity answers "how loud?"; category answers "what kind?". The load-bearing
+/// case is [`FindingCategory::PermittedEpistemicConflict`]: a disclosed, witnessed
+/// contradiction permitted by a glut-admitting reasoning contract is coherent, so
+/// it is emitted at a NON-error severity and never fails the gate. The wire values
+/// are the kebab spellings of the `logic:Finding*` individuals in
+/// `slices/core/logic/module.ttl`.
+///
+/// This is a PAYLOAD axis, not an ORDERING axis: it is deliberately kept out of
+/// [`Finding::sort_key`] and the SARIF fingerprint so adding a category to a
+/// finding never perturbs report ordering or churns goldens.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum FindingCategory {
+    /// A closed-world data-shape (SHACL) constraint breach. A failure.
+    DataShapeViolation,
+    /// An ontology modeling-discipline / structural breach, or an unsatisfiable
+    /// class surfaced by reasoning. A failure.
+    ModelingDisciplineViolation,
+    /// A within-world contradiction the contract FORBIDS. A failure.
+    ContradictionWitness,
+    /// A disclosed, witnessed contradiction the contract PERMITS. NOT a failure —
+    /// coherent, surfaced for transparency, never blocks a coherence certificate.
+    PermittedEpistemicConflict,
+    /// A construct the engine has no defined procedure for under the contract.
+    UnsupportedSemanticFeature,
+    /// A check that did not run to completion (budget-exhausted / incomplete).
+    IncompleteCheck,
+    /// A construct a lowering could not carry exactly (the loss ledger).
+    ProjectionLoss,
+    /// A trust / governance advisory (untrusted signer, soft policy note).
+    PolicyWarning,
+}
+
+impl FindingCategory {
+    /// Parse a kebab-case category label.
+    pub fn parse(value: &str) -> Result<Self, String> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "data-shape-violation" => Ok(Self::DataShapeViolation),
+            "modeling-discipline-violation" => Ok(Self::ModelingDisciplineViolation),
+            "contradiction-witness" => Ok(Self::ContradictionWitness),
+            "permitted-epistemic-conflict" => Ok(Self::PermittedEpistemicConflict),
+            "unsupported-semantic-feature" => Ok(Self::UnsupportedSemanticFeature),
+            "incomplete-check" => Ok(Self::IncompleteCheck),
+            "projection-loss" => Ok(Self::ProjectionLoss),
+            "policy-warning" => Ok(Self::PolicyWarning),
+            other => Err(format!(
+                "unknown finding category `{other}`; expected one of the eight \
+                 logic:FindingCategory wire values"
+            )),
+        }
+    }
+
+    /// The stable kebab-case wire spelling (matches the `serde` rename).
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::DataShapeViolation => "data-shape-violation",
+            Self::ModelingDisciplineViolation => "modeling-discipline-violation",
+            Self::ContradictionWitness => "contradiction-witness",
+            Self::PermittedEpistemicConflict => "permitted-epistemic-conflict",
+            Self::UnsupportedSemanticFeature => "unsupported-semantic-feature",
+            Self::IncompleteCheck => "incomplete-check",
+            Self::ProjectionLoss => "projection-loss",
+            Self::PolicyWarning => "policy-warning",
+        }
+    }
+
+    /// The local name of the matching `logic:Finding*` ontology individual, so the
+    /// RDF projection emits the same IRI the vocabulary mints.
+    pub fn iri_local(self) -> &'static str {
+        match self {
+            Self::DataShapeViolation => "FindingDataShapeViolation",
+            Self::ModelingDisciplineViolation => "FindingModelingDisciplineViolation",
+            Self::ContradictionWitness => "FindingContradictionWitness",
+            Self::PermittedEpistemicConflict => "FindingPermittedEpistemicConflict",
+            Self::UnsupportedSemanticFeature => "FindingUnsupportedSemanticFeature",
+            Self::IncompleteCheck => "FindingIncompleteCheck",
+            Self::ProjectionLoss => "FindingProjectionLoss",
+            Self::PolicyWarning => "FindingPolicyWarning",
+        }
+    }
+}
+
+impl fmt::Display for FindingCategory {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
 /// A concrete source or logical location for a diagnostic.
 ///
 /// Beyond the file `path`/`line`/`column` and a free-form `logical` name, a
@@ -264,6 +355,12 @@ pub struct Finding {
     pub tags: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub detail: Option<String>,
+    /// The KIND of this finding, orthogonal to its severity (the 8-way
+    /// `logic:FindingCategory`). `None` for findings that predate or fall outside
+    /// the taxonomy; `skip_serializing_if` keeps absent categories out of the wire
+    /// form so existing JSON/SARIF/RDF goldens are unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub category: Option<FindingCategory>,
     /// Structured slice attributions for this finding (§9 / S5).
     ///
     /// Records which slices (by public IRI, never numeric id) played which roles
@@ -284,12 +381,19 @@ impl Finding {
             suggestions: Vec::new(),
             tags: Vec::new(),
             detail: None,
+            category: None,
             attributions: Vec::new(),
         }
     }
 
     pub fn with_tool(mut self, tool: impl Into<String>) -> Self {
         self.tool = Some(tool.into());
+        self
+    }
+
+    /// Tag this finding with its [`FindingCategory`] (the orthogonal KIND axis).
+    pub fn with_category(mut self, category: FindingCategory) -> Self {
+        self.category = Some(category);
         self
     }
 
@@ -506,5 +610,67 @@ mod tests {
     #[test]
     fn empty_location_stays_empty_with_wire_fields() {
         assert!(Location::default().is_empty());
+    }
+
+    #[test]
+    fn finding_category_wire_values_round_trip() {
+        for category in [
+            FindingCategory::DataShapeViolation,
+            FindingCategory::ModelingDisciplineViolation,
+            FindingCategory::ContradictionWitness,
+            FindingCategory::PermittedEpistemicConflict,
+            FindingCategory::UnsupportedSemanticFeature,
+            FindingCategory::IncompleteCheck,
+            FindingCategory::ProjectionLoss,
+            FindingCategory::PolicyWarning,
+        ] {
+            // serde rename == as_str == the kebab wire value parse() accepts.
+            let json = serde_json::to_string(&category).expect("serialize");
+            assert_eq!(json, format!("\"{}\"", category.as_str()));
+            assert_eq!(FindingCategory::parse(category.as_str()), Ok(category));
+            let round: FindingCategory = serde_json::from_str(&json).expect("deserialize");
+            assert_eq!(round, category);
+        }
+        assert!(FindingCategory::parse("not-a-category").is_err());
+    }
+
+    #[test]
+    fn finding_without_category_serializes_compactly() {
+        // skip_serializing_if keeps an absent category out of the wire form, so
+        // existing JSON/SARIF/RDF goldens are byte-unchanged.
+        let finding = Finding::new(Severity::Error, "x.code", "msg");
+        assert_eq!(finding.category, None);
+        let json = serde_json::to_string(&finding).expect("serialize");
+        assert!(
+            !json.contains("category"),
+            "unexpected category key: {json}"
+        );
+    }
+
+    #[test]
+    fn with_category_attaches_and_round_trips() {
+        let finding = Finding::new(
+            Severity::Warning,
+            "validate.deep.permitted-conflict",
+            "glut",
+        )
+        .with_category(FindingCategory::PermittedEpistemicConflict);
+        let json = serde_json::to_string(&finding).expect("serialize");
+        assert!(json.contains("\"category\":\"permitted-epistemic-conflict\""));
+        let round: Finding = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(
+            round.category,
+            Some(FindingCategory::PermittedEpistemicConflict)
+        );
+    }
+
+    #[test]
+    fn category_is_not_an_ordering_axis() {
+        // Two findings identical but for category must compare equal under
+        // sort_key — the taxonomy never perturbs report ordering.
+        let bare = Finding::new(Severity::Error, "c", "m");
+        let tagged = Finding::new(Severity::Error, "c", "m")
+            .with_category(FindingCategory::ContradictionWitness);
+        assert_eq!(bare.sort_key(), tagged.sort_key());
     }
 }
