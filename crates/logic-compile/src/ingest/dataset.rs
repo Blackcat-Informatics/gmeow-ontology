@@ -24,7 +24,7 @@ const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 
 /// An owned RDF term in value space — the subset the alignment emitters read.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum DslTerm {
     /// An IRI by its full string.
     Iri(String),
@@ -267,12 +267,12 @@ impl<'a> DslView<'a> {
     }
 
     /// The members of an `rdf:List` headed by `head` (empty if `head` is `None`),
-    /// following `rdf:first`/`rdf:rest` to `rdf:nil`. A visited-set guards a cyclic
-    /// `rdf:rest` chain so traversal terminates.
+    /// following `rdf:first`/`rdf:rest` to `rdf:nil`. A visited-set over ALL list
+    /// nodes (IRI and blank alike) guards a cyclic `rdf:rest` chain so traversal
+    /// terminates even on a malformed IRI cycle such as `<x> rdf:rest <x>`.
     pub fn rdf_list(&self, head: Option<&DslTerm>) -> Vec<DslTerm> {
         let mut out: Vec<DslTerm> = Vec::new();
-        let mut seen: std::collections::BTreeSet<(String, gmeow_rdf::ir::BlankScope)> =
-            std::collections::BTreeSet::new();
+        let mut seen: std::collections::HashSet<DslTerm> = std::collections::HashSet::new();
         let mut node = head.cloned();
         while let Some(cur) = node {
             if let DslTerm::Iri(iri) = &cur {
@@ -280,11 +280,10 @@ impl<'a> DslView<'a> {
                     break;
                 }
             }
-            // Guard against a cyclic rest chain (only blank list nodes can cycle).
-            if let DslTerm::Blank { label, scope } = &cur {
-                if !seen.insert((label.clone(), *scope)) {
-                    break;
-                }
+            // Guard against a cyclic rest chain over any list node (IRI or blank):
+            // break on the first back-edge to a node already visited.
+            if !seen.insert(cur.clone()) {
+                break;
             }
             if let Some(first) = self.first_object_of(&cur, RDF_FIRST) {
                 out.push(first);

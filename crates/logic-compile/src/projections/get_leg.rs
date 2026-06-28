@@ -17,6 +17,57 @@ use crate::ingest::prefixes::ns_to_prefix;
 use crate::ingest::{DslTerm, DslView};
 use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
 
+/// The 45 projection profiles. The single authority shared by BOTH the EDOAL and the
+/// SPARQL-CONSTRUCT lowerings — keeping one copy makes "no spec drift between the two
+/// dialects" structurally true.
+pub const PROFILES: &[&str] = &[
+    "schema-org",
+    "vcard",
+    "foaf",
+    "geosparql",
+    "qb",
+    "ical",
+    "jcal",
+    "schema-org-schedule",
+    "owl-time",
+    "odrl",
+    "cc",
+    "dcterms",
+    "oai_dc",
+    "spdx",
+    "ontolex",
+    "web-annotation",
+    "skos",
+    "activitystreams",
+    "markdown",
+    "bot",
+    "sosa",
+    "crmarchaeo",
+    "ivoa",
+    "iptc",
+    "loinc",
+    "slsa",
+    "intoto",
+    "sigstore",
+    "mailmap",
+    "iiif",
+    "exif",
+    "doap",
+    "codemeta",
+    "resume",
+    "dcat",
+    "org",
+    "bibo",
+    "bibframe",
+    "gedcom",
+    "sioc",
+    "prov",
+    "lrmoo",
+    "mo",
+    "pon",
+    "jams",
+];
+
 pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 const GM_PROJECTION_MAPPING: &str = "https://blackcatinformatics.ca/gmeow/ProjectionMapping";
@@ -88,8 +139,19 @@ const GM_MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/gmeow/morphismCl
 pub enum Expr {
     Var(String),
     ConstIri(String),
-    ConstLiteral(String),
-    Op { op: String, args: Vec<Expr> },
+    /// A constant literal carrying its lexical form, datatype IRI, and optional
+    /// language tag — mirroring [`DslTerm::Literal`] so a typed/tagged FILTER or
+    /// BIND constant survives lowering as a proper SPARQL term rather than being
+    /// collapsed to a bare quoted string.
+    ConstLiteral {
+        lexical: String,
+        datatype: String,
+        language: Option<String>,
+    },
+    Op {
+        op: String,
+        args: Vec<Expr>,
+    },
 }
 
 /// One graph-pattern (or template) atom from the mapping DSL.
@@ -415,7 +477,17 @@ fn parse_bind(view: &DslView, node: &DslTerm) -> Result<Bind, String> {
 fn parse_expr(view: &DslView, node: &DslTerm) -> Result<Expr, String> {
     match node {
         DslTerm::Iri(iri) => return Ok(Expr::ConstIri(iri.clone())),
-        DslTerm::Literal { lexical, .. } => return Ok(Expr::ConstLiteral(lexical.clone())),
+        DslTerm::Literal {
+            lexical,
+            datatype,
+            language,
+        } => {
+            return Ok(Expr::ConstLiteral {
+                lexical: lexical.clone(),
+                datatype: datatype.clone(),
+                language: language.clone(),
+            })
+        }
         DslTerm::Blank { .. } => {}
     }
     if let Some(var) = view.object_literal_of_term(node, GM_EXPR_VAR) {
@@ -657,7 +729,11 @@ pub fn render_expr(expr: &Expr) -> Result<String, String> {
     match expr {
         Expr::Var(v) => Ok(format!("?{v}")),
         Expr::ConstIri(iri) => Ok(curie(iri)),
-        Expr::ConstLiteral(text) => Ok(sparql_string(text)),
+        Expr::ConstLiteral {
+            lexical,
+            datatype,
+            language,
+        } => Ok(sparql_literal(lexical, datatype, language.as_deref())),
         Expr::Op { op, args } => {
             let name = op_local(op);
             let rendered: Vec<String> = args
@@ -709,7 +785,14 @@ fn expr_sort_key(expr: &Expr) -> String {
     match expr {
         Expr::Var(v) => format!("var:{v}"),
         Expr::ConstIri(iri) => format!("iri:{iri}"),
-        Expr::ConstLiteral(text) => format!("lit:{text}"),
+        Expr::ConstLiteral {
+            lexical,
+            datatype,
+            language,
+        } => format!(
+            "lit:{lexical}^^{datatype}@{}",
+            language.as_deref().unwrap_or("")
+        ),
         Expr::Op { op, args } => {
             let inner: Vec<String> = args.iter().map(expr_sort_key).collect();
             format!("op:{}({})", op_local(op), inner.join(","))
@@ -816,7 +899,7 @@ fn order_binds(binds: Vec<Bind>) -> Result<Vec<Bind>, String> {
 /// Shorten an IRI to `prefix:local` via the canonical registry, else `<iri>`.
 pub fn curie(iri: &str) -> String {
     for (ns, prefix) in ns_to_prefix() {
-        if let Some(local) = iri.strip_prefix(ns) {
+        if let Some(local) = iri.strip_prefix(*ns) {
             return format!("{prefix}:{local}");
         }
     }
@@ -838,4 +921,83 @@ pub fn sparql_string(text: &str) -> String {
         .replace('\r', "\\r")
         .replace('\t', "\\t");
     format!("\"{escaped}\"")
+}
+
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+
+/// Render a constant literal to its proper SPARQL term syntax:
+/// - a language tag yields `"lex"@lang`;
+/// - `xsd:string` or no datatype yields a plain `"lex"` (byte-identical to the
+///   historical [`sparql_string`] rendering);
+/// - the SPARQL-native numeric/boolean datatypes yield their bare lexical form;
+/// - any other datatype yields the explicit typed form `"lex"^^<curie-or-iri>`.
+pub fn sparql_literal(lexical: &str, datatype: &str, language: Option<&str>) -> String {
+    if let Some(lang) = language {
+        return format!("{}@{lang}", sparql_string(lexical));
+    }
+    if datatype.is_empty() || datatype == XSD_STRING {
+        return sparql_string(lexical);
+    }
+    if is_bare_sparql_datatype(datatype) {
+        return lexical.to_owned();
+    }
+    format!("{}^^{}", sparql_string(lexical), curie(datatype))
+}
+
+/// Whether a datatype IRI is one SPARQL renders bare (its lexical form is a literal
+/// token in the grammar): the integer/decimal/double tower and `xsd:boolean`.
+fn is_bare_sparql_datatype(datatype: &str) -> bool {
+    matches!(
+        datatype,
+        "http://www.w3.org/2001/XMLSchema#integer"
+            | "http://www.w3.org/2001/XMLSchema#decimal"
+            | "http://www.w3.org/2001/XMLSchema#double"
+            | "http://www.w3.org/2001/XMLSchema#boolean"
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sparql_literal_plain_string_is_byte_identical() {
+        // No datatype and xsd:string both render as a bare quoted string, matching the
+        // historical sparql_string output (byte-parity for the committed corpus).
+        assert_eq!(sparql_literal("10.", "", None), "\"10.\"");
+        assert_eq!(sparql_literal("10.", XSD_STRING, None), "\"10.\"");
+        assert_eq!(sparql_literal("10.", "", None), sparql_string("10."));
+    }
+
+    #[test]
+    fn sparql_literal_language_tag() {
+        assert_eq!(
+            sparql_literal(
+                "hello",
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+                Some("en")
+            ),
+            "\"hello\"@en"
+        );
+    }
+
+    #[test]
+    fn sparql_literal_numeric_and_boolean_are_bare() {
+        assert_eq!(
+            sparql_literal("42", "http://www.w3.org/2001/XMLSchema#integer", None),
+            "42"
+        );
+        assert_eq!(
+            sparql_literal("false", "http://www.w3.org/2001/XMLSchema#boolean", None),
+            "false"
+        );
+    }
+
+    #[test]
+    fn sparql_literal_other_datatype_is_typed() {
+        assert_eq!(
+            sparql_literal("2026-06-28", "http://www.w3.org/2001/XMLSchema#date", None),
+            "\"2026-06-28\"^^xsd:date"
+        );
+    }
 }

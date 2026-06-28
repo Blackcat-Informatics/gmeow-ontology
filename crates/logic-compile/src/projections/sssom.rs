@@ -125,7 +125,7 @@ pub fn lower_sssom(
 ) -> Result<SssomLowering, String> {
     let sources = collect_sources(view);
     let ledger = build_ledger(&sources)?;
-    let sets = render_sets(&sources, version, release_date);
+    let sets = render_sets(&sources, version, release_date)?;
     Ok(SssomLowering { sets, ledger })
 }
 
@@ -312,7 +312,7 @@ fn render_sets(
     sources: &SssomSources,
     version: &str,
     release_date: &str,
-) -> BTreeMap<String, String> {
+) -> Result<BTreeMap<String, String>, String> {
     let table = ns_to_prefix();
 
     let mut by_file: BTreeMap<String, Vec<Row>> = BTreeMap::new();
@@ -322,12 +322,12 @@ fn render_sets(
             .clone()
             .unwrap_or_else(|| DEFAULT_JUSTIFICATION.to_owned());
         let row = Row {
-            subject_id: sssom_id(&eq.subject, &table),
+            subject_id: sssom_id(&eq.subject, table),
             subject_label: eq.subject_label.clone(),
-            predicate_id: sssom_id(&eq.predicate, &table),
-            object_id: sssom_id(&eq.obj, &table),
+            predicate_id: sssom_id(&eq.predicate, table),
+            object_id: sssom_id(&eq.obj, table),
             object_label: eq.object_label.clone(),
-            mapping_justification: sssom_id(&justification, &table),
+            mapping_justification: sssom_id(&justification, table),
             confidence: conf(eq.confidence),
             comment: eq.comment.clone(),
         };
@@ -337,9 +337,21 @@ fn render_sets(
     let mut out: BTreeMap<String, String> = BTreeMap::new();
     for (file, rows) in &by_file {
         let meta = sources.mapping_sets.get(file);
-        out.insert(file.clone(), render_one(rows, meta, version, release_date));
+        out.insert(file.clone(), render_one(rows, meta, version, release_date)?);
     }
-    out
+    Ok(out)
+}
+
+/// Reject a TSV cell whose value carries a raw tab/CR/LF. SSSOM is tab-separated,
+/// newline-delimited, so such a character would silently split a value across
+/// columns or rows — corrupting the table. Hard-fail rather than mangle the data.
+fn check_tsv_cell(column: &str, value: &str) -> Result<(), String> {
+    if value.contains(['\t', '\r', '\n']) {
+        return Err(format!(
+            "SSSOM cell `{column}` contains a tab/CR/LF that would corrupt the TSV: {value:?}"
+        ));
+    }
+    Ok(())
 }
 
 fn render_one(
@@ -347,7 +359,7 @@ fn render_one(
     meta: Option<&MappingSet>,
     version: &str,
     release_date: &str,
-) -> String {
+) -> Result<String, String> {
     let columns: Vec<&str> = SSSOM_ORDER
         .iter()
         .copied()
@@ -393,13 +405,18 @@ fn render_one(
         ))
     });
     for r in sorted {
-        let cells: Vec<&str> = columns.iter().map(|c| r.cell(c)).collect();
+        let mut cells: Vec<&str> = Vec::with_capacity(columns.len());
+        for c in &columns {
+            let value = r.cell(c);
+            check_tsv_cell(c, value)?;
+            cells.push(value);
+        }
         lines.push(cells.join("\t"));
     }
 
     let mut text = lines.join("\n");
     text.push('\n');
-    text
+    Ok(text)
 }
 
 fn sssom_header(
@@ -531,12 +548,12 @@ mod tests {
     fn render_one_emits_canonical_tsv() {
         let table = ns_to_prefix();
         let make = |subj: &str, pred: &str, obj: &str, c: Option<f64>| Row {
-            subject_id: sssom_id(subj, &table),
+            subject_id: sssom_id(subj, table),
             subject_label: String::new(),
-            predicate_id: sssom_id(pred, &table),
-            object_id: sssom_id(obj, &table),
+            predicate_id: sssom_id(pred, table),
+            object_id: sssom_id(obj, table),
             object_label: String::new(),
-            mapping_justification: sssom_id(DEFAULT_JUSTIFICATION, &table),
+            mapping_justification: sssom_id(DEFAULT_JUSTIFICATION, table),
             confidence: conf(c),
             comment: String::new(),
         };
@@ -561,7 +578,7 @@ mod tests {
             comment: "Demo  set\nwith   wrap".to_owned(),
             trailer: "# REFUSED nothing here".to_owned(),
         };
-        let text = render_one(&rows, Some(&meta), "0.1.0", "2026-06-03");
+        let text = render_one(&rows, Some(&meta), "0.1.0", "2026-06-03").unwrap();
         let expected = "\
 # mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/demo
 # mapping_set_version: 0.1.0
@@ -586,16 +603,16 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
     fn label_column_appears_only_when_populated() {
         let table = ns_to_prefix();
         let row = Row {
-            subject_id: sssom_id(&format!("{GMEOW}Foo"), &table),
+            subject_id: sssom_id(&format!("{GMEOW}Foo"), table),
             subject_label: "Foo label".to_owned(),
-            predicate_id: sssom_id("http://www.w3.org/2004/02/skos/core#exactMatch", &table),
-            object_id: sssom_id(&format!("{GMEOW}Bar"), &table),
+            predicate_id: sssom_id("http://www.w3.org/2004/02/skos/core#exactMatch", table),
+            object_id: sssom_id(&format!("{GMEOW}Bar"), table),
             object_label: String::new(),
-            mapping_justification: sssom_id(DEFAULT_JUSTIFICATION, &table),
+            mapping_justification: sssom_id(DEFAULT_JUSTIFICATION, table),
             confidence: conf(None),
             comment: String::new(),
         };
-        let text = render_one(&[row], None, "0.1.0", "2026-06-03");
+        let text = render_one(&[row], None, "0.1.0", "2026-06-03").unwrap();
         let header_row = text
             .lines()
             .find(|l| l.starts_with("subject_id"))
@@ -605,6 +622,24 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
             "subject_id\tsubject_label\tpredicate_id\tobject_id\tmapping_justification\tconfidence\tcomment"
         );
         assert!(!text.contains("mapping_set_id"));
+    }
+
+    #[test]
+    fn render_one_rejects_tab_in_cell() {
+        let table = ns_to_prefix();
+        let row = Row {
+            subject_id: sssom_id(&format!("{GMEOW}Foo"), table),
+            subject_label: "has\ttab".to_owned(),
+            predicate_id: sssom_id("http://www.w3.org/2004/02/skos/core#exactMatch", table),
+            object_id: sssom_id(&format!("{GMEOW}Bar"), table),
+            object_label: String::new(),
+            mapping_justification: sssom_id(DEFAULT_JUSTIFICATION, table),
+            confidence: conf(None),
+            comment: String::new(),
+        };
+        let err = render_one(&[row], None, "0.1.0", "2026-06-03")
+            .expect_err("a cell with a tab must be rejected");
+        assert!(err.contains("subject_label"), "{err}");
     }
 
     #[test]

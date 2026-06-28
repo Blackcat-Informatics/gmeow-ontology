@@ -211,12 +211,19 @@ pub fn registry_pairs() -> Vec<(String, String)> {
 
 /// Build the longest-namespace-first `(namespace, prefix)` table used to shorten an
 /// IRI to a CURIE. Stable sort keyed on descending namespace length; the tie-break
-/// among equal-length namespaces is the registry's own insertion order.
-pub fn ns_to_prefix() -> Vec<(&'static str, &'static str)> {
-    let mut pairs: Vec<(&'static str, &'static str)> =
-        PREFIX_REGISTRY.iter().map(|(p, ns)| (*ns, *p)).collect();
-    pairs.sort_by_key(|pair| std::cmp::Reverse(pair.0.len()));
-    pairs
+/// among equal-length namespaces is the registry's own insertion order. The table is
+/// computed and sorted once, then returned as a borrow of the cached slice — this is
+/// called per IRI (via `get_leg::curie`), so re-sorting the ~190-entry registry on
+/// every call would be wasteful.
+pub fn ns_to_prefix() -> &'static [(&'static str, &'static str)] {
+    static TABLE: std::sync::OnceLock<Vec<(&'static str, &'static str)>> =
+        std::sync::OnceLock::new();
+    TABLE.get_or_init(|| {
+        let mut pairs: Vec<(&'static str, &'static str)> =
+            PREFIX_REGISTRY.iter().map(|(p, ns)| (*ns, *p)).collect();
+        pairs.sort_by_key(|pair| std::cmp::Reverse(pair.0.len()));
+        pairs
+    })
 }
 
 /// A SSSOM-safe identifier: a `prefix:local` CURIE when a registry namespace
@@ -259,11 +266,11 @@ mod tests {
         // descending-namespace-length sort is what guarantees the most specific CURIE.
         let table = ns_to_prefix();
         assert_eq!(
-            sssom_id("http://purl.obolibrary.org/obo/OBI_0000123", &table),
+            sssom_id("http://purl.obolibrary.org/obo/OBI_0000123", table),
             "obi:0000123"
         );
         assert_eq!(
-            sssom_id("http://purl.obolibrary.org/obo/BFO_0000001", &table),
+            sssom_id("http://purl.obolibrary.org/obo/BFO_0000001", table),
             "bfo:BFO_0000001"
         );
     }
@@ -272,7 +279,7 @@ mod tests {
     fn unmatched_iri_is_bare() {
         let table = ns_to_prefix();
         assert_eq!(
-            sssom_id("http://unknown.example/x", &table),
+            sssom_id("http://unknown.example/x", table),
             "http://unknown.example/x"
         );
     }

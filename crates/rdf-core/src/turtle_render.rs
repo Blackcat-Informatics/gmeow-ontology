@@ -188,7 +188,7 @@ impl<'a> Renderer<'a> {
             if i > 0 {
                 body.push('\n');
             }
-            body.push_str(&self.term_label(*subj));
+            body.push_str(&self.subject_label(*subj, 0));
             body.push('\n');
             self.render_props(*subj, 1, &mut body, true);
         }
@@ -365,10 +365,21 @@ impl<'a> Renderer<'a> {
         }
     }
 
+    /// A subject term's label. Like [`term_label`](Self::term_label) for an IRI or
+    /// blank-node subject, but renders an RDF-1.2 quoted-triple subject via the
+    /// `<< s p o >>` path instead of silently flattening it to `[]` (which would drop
+    /// the asserted statement's subject identity from the graph).
+    fn subject_label(&self, id: TermId, depth: usize) -> String {
+        match self.dataset.resolve(id) {
+            TermRef::Triple { .. } => self.render_object(id, depth),
+            _ => self.term_label(id),
+        }
+    }
+
     fn iri(&self, iri: &str) -> String {
         for (prefix, ns) in &self.prefixes {
             if let Some(local) = iri.strip_prefix(ns.as_str()) {
-                if !local.is_empty() && local.chars().all(is_pn_local_char) {
+                if is_valid_pn_local(local) {
                     self.used_prefixes.borrow_mut().insert(prefix.clone());
                     return format!("{prefix}:{local}");
                 }
@@ -423,7 +434,7 @@ impl<'a> Renderer<'a> {
     fn abbrev_for_sort(&self, iri: &str) -> String {
         for (prefix, ns) in &self.prefixes {
             if let Some(local) = iri.strip_prefix(ns.as_str()) {
-                if !local.is_empty() && local.chars().all(is_pn_local_char) {
+                if is_valid_pn_local(local) {
                     return format!("{prefix}:{local}");
                 }
             }
@@ -681,8 +692,27 @@ fn fnv(mut hash: u64, bytes: &[u8]) -> u64 {
 
 // ── lexical helpers ──────────────────────────────────────────────────────────
 
-fn is_pn_local_char(c: char) -> bool {
-    c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.' | '~')
+/// Whether `local` is a CURIE local name safe to emit unescaped (so `prefix:local` is
+/// valid Turtle). This is a conservative ASCII subset of the `PN_LOCAL` grammar:
+/// - the first char is alphanumeric or `_`;
+/// - interior chars are alphanumeric or `_`/`-`/`.`;
+/// - the last char must not be `.` (a trailing `.` would read as the statement
+///   terminator), and `.` is disallowed in a single-char local;
+/// - `~` is disallowed (it is only legal in Turtle as the escape `\~`, never bare).
+///
+/// Anything outside this set falls back to the `<...>` absolute form at the call site.
+fn is_valid_pn_local(local: &str) -> bool {
+    let mut chars = local.chars();
+    let Some(first) = chars.next() else {
+        return false;
+    };
+    if !(first.is_ascii_alphanumeric() || first == '_') {
+        return false;
+    }
+    if local.ends_with('.') {
+        return false;
+    }
+    chars.all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.'))
 }
 
 fn escape_iri(iri: &str) -> String {
@@ -701,9 +731,22 @@ fn escape_iri(iri: &str) -> String {
 
 fn quote(value: &str) -> String {
     if value.contains('\n') {
-        let escaped = value
+        // Triple-quoted long string: `\` and the `"""` delimiter escape exactly as
+        // before (byte-parity-critical), then `\n` stays literal while every other
+        // control char (`< 0x20`, e.g. NUL/backspace/FF/CR/TAB) is `\uXXXX`-escaped.
+        // The control-char pass runs after the `\`/`"""` replaces; since it only
+        // rewrites chars `< 0x20` it never disturbs the `\`/`"` those introduced.
+        let pre = value
             .replace('\\', "\\\\")
             .replace("\"\"\"", "\\\"\\\"\\\"");
+        let mut escaped = String::with_capacity(pre.len());
+        for c in pre.chars() {
+            match c {
+                '\n' => escaped.push('\n'),
+                c if (c as u32) < 0x20 => escaped.push_str(&format!("\\u{:04X}", c as u32)),
+                c => escaped.push(c),
+            }
+        }
         format!("\"\"\"{escaped}\"\"\"")
     } else {
         let mut out = String::with_capacity(value.len() + 2);
@@ -714,6 +757,7 @@ fn quote(value: &str) -> String {
                 '\\' => out.push_str("\\\\"),
                 '\t' => out.push_str("\\t"),
                 '\r' => out.push_str("\\r"),
+                c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
                 c => out.push(c),
             }
         }
@@ -744,4 +788,49 @@ fn is_turtle_decimal(v: &str) -> bool {
 fn is_turtle_double(v: &str) -> bool {
     let lower = v.to_ascii_lowercase();
     lower.contains('e') && lower.parse::<f64>().is_ok()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pn_local_accepts_plain_names() {
+        assert!(is_valid_pn_local("foo"));
+        assert!(is_valid_pn_local("foo-bar_0"));
+        assert!(is_valid_pn_local("a.b"));
+        assert!(is_valid_pn_local("_foo"));
+    }
+
+    #[test]
+    fn pn_local_rejects_invalid_names() {
+        assert!(!is_valid_pn_local("")); // empty
+        assert!(!is_valid_pn_local("foo.")); // trailing dot
+        assert!(!is_valid_pn_local(".")); // lone dot
+        assert!(!is_valid_pn_local("foo~bar")); // tilde
+        assert!(!is_valid_pn_local("-foo")); // leading dash not allowed
+        assert!(!is_valid_pn_local(".foo")); // leading dot not allowed
+    }
+
+    #[test]
+    fn quote_escapes_control_chars_short_string() {
+        // NUL, backspace, form-feed escape as \uXXXX; tab/cr keep their named escapes.
+        assert_eq!(quote("a\u{0}b"), "\"a\\u0000b\"");
+        assert_eq!(quote("a\u{8}b"), "\"a\\u0008b\"");
+        assert_eq!(quote("a\u{c}b"), "\"a\\u000Cb\"");
+        assert_eq!(quote("a\tb"), "\"a\\tb\"");
+    }
+
+    #[test]
+    fn quote_escapes_control_chars_in_triple_quoted() {
+        // A newline forces the triple-quoted branch; a NUL must still be escaped, and
+        // the newline stays literal.
+        let out = quote("a\nb\u{0}c");
+        assert!(
+            out.starts_with("\"\"\"") && out.ends_with("\"\"\""),
+            "{out}"
+        );
+        assert!(out.contains('\n'), "{out}");
+        assert!(out.contains("\\u0000"), "{out}");
+    }
 }

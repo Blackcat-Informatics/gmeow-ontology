@@ -223,7 +223,7 @@ fn parse_pattern(dsl: &DslView, pattern: &DslTerm) -> Result<ParsedPattern, Stri
     for bind_node in dsl.objects_of_term(pattern, GM_BIND) {
         raw_binds.push(parse_bind(dsl, &bind_node)?);
     }
-    let binds = order_binds(raw_binds);
+    let binds = order_binds(raw_binds)?;
     Ok((atoms, value, binds))
 }
 
@@ -310,7 +310,7 @@ fn collect_expr_vars(dsl: &DslView, node: &DslTerm, out: &mut BTreeSet<String>) 
     }
 }
 
-fn order_binds(binds: Vec<Bind>) -> Vec<String> {
+fn order_binds(binds: Vec<Bind>) -> Result<Vec<String>, String> {
     let own: BTreeSet<String> = binds.iter().map(|b| b.var.clone()).collect();
     let mut deps: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for b in &binds {
@@ -326,13 +326,19 @@ fn order_binds(binds: Vec<Bind>) -> Vec<String> {
     let mut remaining: BTreeSet<String> = own.clone();
     let mut ordered: Vec<String> = Vec::new();
     while !remaining.is_empty() {
-        let mut ready: Vec<String> = remaining
+        let ready: Vec<String> = remaining
             .iter()
             .filter(|v| deps[*v].is_subset(&placed))
             .cloned()
             .collect();
         if ready.is_empty() {
-            ready = remaining.iter().cloned().collect();
+            // An unresolvable dependency cycle: hard-fail rather than silently break
+            // it (which would emit BINDs referring to not-yet-bound variables).
+            let cycle: Vec<String> = remaining.iter().map(|v| format!("?{v}")).collect();
+            return Err(format!(
+                "cyclic BIND/mint dependency among {}",
+                cycle.join(", ")
+            ));
         }
         for var in &ready {
             ordered.push(var.clone());
@@ -342,7 +348,7 @@ fn order_binds(binds: Vec<Bind>) -> Vec<String> {
             remaining.remove(var);
         }
     }
-    ordered
+    Ok(ordered)
 }
 
 fn parse_transform_bindings(
@@ -389,7 +395,7 @@ fn build_catalog(
 
     let mut catalog_fns: Vec<FnFunction> = Vec::new();
     let mut catalog_params: Vec<FnParam> = Vec::new();
-    let mut params_emitted: BTreeMap<String, String> = BTreeMap::new();
+    let mut params_emitted: BTreeMap<String, (String, bool)> = BTreeMap::new();
 
     for func in &sorted_fns {
         let profiles = used_by.get(&func.iri);
@@ -414,16 +420,22 @@ fn build_catalog(
                     func.iri
                 ));
             };
-            if let Some(prior) = params_emitted.get(&param) {
-                if prior != predicate {
+            if let Some((prior_predicate, prior_required)) = params_emitted.get(&param) {
+                if prior_predicate != predicate {
                     return Err(format!(
-                        "param IRI collision: {param} is minted from both {prior} and {predicate}"
+                        "param IRI collision: {param} is minted from both {prior_predicate} \
+                         and {predicate}"
+                    ));
+                }
+                if *prior_required != required {
+                    return Err(format!(
+                        "param requiredness collision: {param} is both required and optional"
                     ));
                 }
             }
             expects.push(param.clone());
             if !params_emitted.contains_key(&param) {
-                params_emitted.insert(param.clone(), predicate.clone());
+                params_emitted.insert(param.clone(), (predicate.clone(), required));
                 catalog_params.push(FnParam {
                     iri: param,
                     predicate: Some(predicate.clone()),
@@ -737,6 +749,23 @@ mod tests {
                 refs: BTreeSet::new(),
             },
         ];
-        assert_eq!(order_binds(binds), vec!["a", "b", "c"]);
+        assert_eq!(order_binds(binds).unwrap(), vec!["a", "b", "c"]);
+    }
+
+    #[test]
+    fn order_binds_rejects_cycle() {
+        // a depends on b and b depends on a → unresolvable cycle, hard-fail.
+        let binds = vec![
+            Bind {
+                var: "a".to_owned(),
+                refs: BTreeSet::from(["b".to_owned()]),
+            },
+            Bind {
+                var: "b".to_owned(),
+                refs: BTreeSet::from(["a".to_owned()]),
+            },
+        ];
+        let err = order_binds(binds).expect_err("a BIND cycle must be rejected");
+        assert!(err.contains("cyclic BIND/mint dependency"), "{err}");
     }
 }
