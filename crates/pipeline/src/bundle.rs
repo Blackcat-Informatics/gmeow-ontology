@@ -36,6 +36,7 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
+use gmeow_logic_compile::ir::LogicProgram;
 use gmeow_rdf::provenance::DatasetProvenance;
 use gmeow_rdf::{
     ContentStore, GtsBundle, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfLookaside,
@@ -45,16 +46,24 @@ use gmeow_rdf::{
 /// The pipeline-side typed-handle payload carried in the bundle's handle lane.
 ///
 /// Each arm is a typed projection over a named graph the bundle carries; later
-/// tasks (#1132 C6–C10) fill them with the real payloads. For C4 the lane only has
-/// to EXIST and be the carrier's `H` — the arms wrap the backing graph as an
-/// [`Arc<RdfDataset>`] placeholder so the variant is real and content-addressable.
+/// tasks (#1132 C7–C10) fill the remaining arms with their real payloads. For C4
+/// the lane only had to EXIST; C6 lands the FIRST real typed handle:
+/// [`Logic`](Self::Logic) now carries the compiled [`LogicProgram`] itself (the
+/// content-addressed IR), pinned to its backing `graph/logic` canonical RDF-1.2
+/// projection — a consumer takes the handle and NEVER re-parses the logic graph.
+/// The remaining arms still wrap their backing graph as an [`Arc<RdfDataset>`]
+/// placeholder so the variant is real and content-addressable.
 ///
 /// `#[non_exhaustive]` so later tasks grow the payloads additively.
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum PipelineHandle {
-    /// The logic layer (compiled logic program / rules) over its backing graph.
-    Logic(Arc<RdfDataset>),
+    /// The logic layer: the compiled [`LogicProgram`] (the typed, content-addressed
+    /// IR) over its backing `graph/logic` named graph — the REAL handle (#1132 C6),
+    /// not the C4 placeholder. Its backing graph is the canonical RDF-1.2 projection
+    /// of this program; the program's [`canonical_key`](LogicProgram::canonical_key)
+    /// is its content identity.
+    Logic(Arc<LogicProgram>),
     /// A materialized reasoning result (inferred closure / entailments) over its
     /// backing graph.
     Reasoning(Arc<RdfDataset>),
@@ -261,9 +270,11 @@ mod tests {
     }
 
     #[test]
-    fn pipeline_handle_arms_carry_a_backing_graph() {
-        let ds = empty_dataset();
-        let h = PipelineHandle::Logic(ds.clone());
+    fn pipeline_handle_logic_carries_the_compiled_program() {
+        // The Logic arm now carries the REAL typed IR (#1132 C6), not a backing-graph
+        // placeholder: an empty program is a valid, cloneable payload.
+        let program = Arc::new(LogicProgram::new(vec![], vec![], vec![], None));
+        let h = PipelineHandle::Logic(program);
         assert!(matches!(h, PipelineHandle::Logic(_)));
     }
 }

@@ -1,0 +1,7 @@
+---
+source: crates/pipeline/src/stages/snapshot.rs
+expression: folded
+---
+<https://blackcatinformatics.ca/gmeow/Animal> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Kind> .
+<https://blackcatinformatics.ca/gmeow/Cat> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Subkind> .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .

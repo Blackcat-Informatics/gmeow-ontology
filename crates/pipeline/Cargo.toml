@@ -100,6 +100,10 @@ ciborium = "0.2"
 
 [dev-dependencies]
 tempfile = "3"
+# Byte goldens for the per-graph `graph/logic` fold (#1132 C6): a deterministic
+# snapshot of the canonical RDF-1.2 named-graph carriage, regression-pinned
+# independent of the full gmeow.gts.
+insta = { version = "1.48", features = ["json"] }
 # The release-as-evidence fold tests build a deterministic Ed25519 signing key +
 # a synthetic OpenPGP public-key armor; same dalek the snapshot signer uses.
 ed25519-dalek = "2"
