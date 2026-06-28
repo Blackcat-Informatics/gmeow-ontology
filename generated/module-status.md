@@ -11,7 +11,7 @@ Tier-2 uplift backlog.
 | accessibility | extension | extensions | 2 | 3 | 6 | 0 | 1 | - | full |
 | accounts | core | core | 1 | 4 | 10 | 0 | 1 | 14/14 | full |
 | affect | extension | extensions | 2 | 5 | 6 | 0 | 1 | - | full |
-| agentic | extension | extensions | 6 | 1 | 4 | 0 | 2 | - | full |
+| agentic | extension | extensions | 6 | 1 | 4 | 0 | 3 | - | full |
 | aggregation | extension | extensions | 2 | 3 | 3 | 0 | 1 | - | full |
 | agreements | core | core | 2 | 3 | 2 | 0 | 1 | 5/5 | full |
 | ai | core | core | 5 | 11 | 23 | 0 | 1 | 34/34 | full |
@@ -53,7 +53,7 @@ Tier-2 uplift backlog.
 | learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
-| logic | core | core | 0 | 133 | 179 | 199 | 6 | 0/312 | full |
+| logic | core | core | 0 | 145 | 207 | 213 | 6 | 0/352 | full |
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | music | extension | extensions | 12 | 59 | 126 | 0 | 1 | - | full |
@@ -84,4 +84,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 12 | 0 | 1 | 18/18 | full |
 
-**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1201/1597 core class/property terms (#471).
+**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1201/1637 core class/property terms (#471).
