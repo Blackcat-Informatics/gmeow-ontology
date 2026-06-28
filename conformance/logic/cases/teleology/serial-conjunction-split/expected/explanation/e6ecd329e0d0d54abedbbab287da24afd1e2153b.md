@@ -1,0 +1,38 @@
+<!-- cited-iri-skeleton
+  http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+  https://blackcatinformatics.ca/gmeow/derivation/33732ed1f72483e04a13a046a5386627c2ab5d4a
+  https://blackcatinformatics.ca/gmeow/derivation/ae1c40aeb8d2655df2f564092642a1f27eaa783b
+  https://blackcatinformatics.ca/gmeow/reifier/b46c068f8ffd167e4e324ef014b5aa5526506716
+  https://blackcatinformatics.ca/gmeow/reifier/e6ecd329e0d0d54abedbbab287da24afd1e2153b
+  https://blackcatinformatics.ca/logic/SerialConjunction
+  https://blackcatinformatics.ca/logic/assert
+  https://blackcatinformatics.ca/logic/rule/transaction
+  https://blackcatinformatics.ca/logic/situationObtains
+  https://blackcatinformatics.ca/logic/txstate/25758be5bd8534bdd31e6d351f6a0a150fa6a75d
+  https://example.org/teleology/serial-conjunction-split/initialized
+  https://example.org/teleology/serial-conjunction-split/ser
+  https://example.org/teleology/serial-conjunction-split/world
+-->
+
+<!-- step-skeleton
+  step derivation=https://blackcatinformatics.ca/gmeow/derivation/33732ed1f72483e04a13a046a5386627c2ab5d4a
+    rule=https://blackcatinformatics.ca/logic/rule/transaction
+    term=https://blackcatinformatics.ca/logic/situationObtains
+    term=https://blackcatinformatics.ca/logic/txstate/25758be5bd8534bdd31e6d351f6a0a150fa6a75d
+    term=https://example.org/teleology/serial-conjunction-split/initialized
+  step derivation=https://blackcatinformatics.ca/gmeow/derivation/ae1c40aeb8d2655df2f564092642a1f27eaa783b
+    rule=https://blackcatinformatics.ca/logic/assert
+    term=http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+    term=https://blackcatinformatics.ca/logic/SerialConjunction
+    term=https://example.org/teleology/serial-conjunction-split/ser
+-->
+
+# Explanation for `<https://blackcatinformatics.ca/gmeow/reifier/e6ecd329e0d0d54abedbbab287da24afd1e2153b>`
+
+**World:** `<https://example.org/teleology/serial-conjunction-split/world>`
+**Target derivation:** `<https://blackcatinformatics.ca/gmeow/derivation/33732ed1f72483e04a13a046a5386627c2ab5d4a>`
+
+**Derived** by rule `<https://blackcatinformatics.ca/logic/rule/transaction>`:
+  `<https://blackcatinformatics.ca/logic/txstate/25758be5bd8534bdd31e6d351f6a0a150fa6a75d>` `<https://blackcatinformatics.ca/logic/situationObtains>` `<https://example.org/teleology/serial-conjunction-split/initialized>` *(in `<https://example.org/teleology/serial-conjunction-split/world>`)*
+  **Asserted fact** (input — `<https://blackcatinformatics.ca/gmeow/reifier/b46c068f8ffd167e4e324ef014b5aa5526506716>`):
+    `<https://example.org/teleology/serial-conjunction-split/ser>` `<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>` `<https://blackcatinformatics.ca/logic/SerialConjunction>` *(in `<https://example.org/teleology/serial-conjunction-split/world>`)*
