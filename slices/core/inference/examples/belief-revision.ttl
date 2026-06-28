@@ -5,15 +5,18 @@
 #
 # An agent inductively concluded "the printer is broken" from "it did not print".
 # Later a defeater arrives — "the document was never sent to the queue" — an
-# UNDERCUTTING defeater (Pollock): it does not assert the negation, it removes
-# the warrant (the failure no longer licenses 'broken'). Revision does NOT delete
+# UNDERCUTTING attack (Pollock's undercut, now a typed gmeow:Attack): it does not
+# assert the negation, it removes the warrant (the failure no longer licenses
+# 'broken') by attacking the gmeow:InferenceApplication. Revision does NOT delete
 # anything:
+#   * the argument is evaluated OUT by the solver (gmeow:ArgumentEvaluation);
 #   * the conclusion-claim is set gmeow:displayable false (suppressed from view);
 #   * the gmeow:InferenceTenure is CLOSED (an gmeow:endedAtTime on its interval);
-#   * the gmeow:InferenceCommitment is RETAINED as audit.
+#   * the gmeow:InferenceCommitment / gmeow:Argument are RETAINED as audit.
 # The whole episode remains queryable — how the agent believed, and why it stopped.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inference/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
@@ -41,24 +44,51 @@ ex:conclPrinterBroken a gmeow:StandpointClaim ;
     gmeow:claimModality gmeow:probable ;
     gmeow:inferenceMode gmeow:modeInduction ;
     gmeow:inferredFrom ex:premDidNotPrint ;
-    gmeow:displayable false .                     # Principle 10: suppressed by the fired defeater
-
-# --- The defeater (an undercutting one) ------------------------------------- #
-ex:defeaterNeverQueued a gmeow:StandpointClaim ;
-    rdfs:label "Defeater: the document was never queued"@x-gmeow-english ;
-    gmeow:vantage ex:operator ;
-    gmeow:observedFeature ex:propNeverQueued ;
-    gmeow:observationMethod gmeow:methodDirectObservation ;
-    gmeow:claimModality gmeow:unequivocal ;
-    gmeow:defeaterKind gmeow:defeaterUndercutting .  # removes the warrant, not asserts the negation
+    gmeow:displayable false .                     # Principle 10: suppressed by the fired attack
 
 # --- The reified argument, retained as audit -------------------------------- #
 ex:revisedCommitment a gmeow:InferenceCommitment ;
     rdfs:label "Inductive argument: did-not-print therefore broken (defeated)"@x-gmeow-english ;
     gmeow:inferenceModeOf gmeow:modeInduction ;
     gmeow:premise ex:premDidNotPrint ;
-    gmeow:conclusion ex:conclPrinterBroken ;
-    gmeow:hasDefeater ex:defeaterNeverQueued .
+    gmeow:conclusion ex:conclPrinterBroken .
+
+ex:premiseUseDidNotPrint a gmeow:PremiseUse ;
+    rdfs:label "The argument bases on 'it did not print'"@x-gmeow-english ;
+    gmeow:premiseUsed ex:premDidNotPrint .
+
+ex:inductiveStep a gmeow:InferenceApplication ;
+    rdfs:label "Inductive generalisation: failure-to-print => broken"@x-gmeow-english ;
+    gmeow:appliedRule "inductive generalisation from a single failure"@x-gmeow-english ;
+    gmeow:appliedSubstitution "device := printer; symptom := did-not-print"@x-gmeow-english .
+
+ex:brokenArgument a gmeow:Argument ;
+    rdfs:label "Argument: the printer is broken (defeated, retained as audit)"@x-gmeow-english ;
+    gmeow:argumentInferenceStep ex:revisedCommitment ;
+    gmeow:hasPremiseUse ex:premiseUseDidNotPrint ;
+    gmeow:hasInferenceApplication ex:inductiveStep ;
+    gmeow:argumentConclusion ex:conclPrinterBroken .
+
+# --- The undercutting attack: removes the warrant, not the negation --------- #
+ex:defeaterNeverQueued a gmeow:StandpointClaim ;
+    rdfs:label "Defeater: the document was never queued"@x-gmeow-english ;
+    gmeow:vantage ex:operator ;
+    gmeow:observedFeature ex:propNeverQueued ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:claimModality gmeow:unequivocal .
+
+ex:undercut a gmeow:Attack ;
+    rdfs:label "Undercut: never-queued removes the failure->broken warrant"@x-gmeow-english ;
+    gmeow:attackSource ex:defeaterNeverQueued ;
+    gmeow:attackTarget ex:inductiveStep ;          # the rule-application, not the premise or conclusion
+    gmeow:attackKind gmeow:attackUndercut .
+
+# --- The solver-set verdict: the argument is OUT (suppressed, not erased) ---- #
+ex:revisionEvaluation a gmeow:ArgumentEvaluation ;
+    rdfs:label "Grounded evaluation after the undercut: the argument is out"@x-gmeow-english ;
+    gmeow:evaluatesArgument ex:brokenArgument ;
+    gmeow:underSemantics logic:GroundedArgumentation ;
+    gmeow:acceptanceStatus gmeow:acceptanceOut .
 
 # --- The tenure — opened then closed (never deleted) ------------------------ #
 ex:brokenBeliefTenure a gmeow:InferenceTenure ;
@@ -68,4 +98,4 @@ ex:brokenBeliefTenure a gmeow:InferenceTenure ;
 
 ex:tenureInterval a gmeow:TimeInterval ;
     gmeow:startedAtTime "2026-06-15T11:00:00Z"^^xsd:dateTime ;
-    gmeow:endedAtTime   "2026-06-15T11:18:00Z"^^xsd:dateTime .  # closed when the defeater fired
+    gmeow:endedAtTime   "2026-06-15T11:18:00Z"^^xsd:dateTime .  # closed when the attack fired

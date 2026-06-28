@@ -55,8 +55,18 @@ _CLASSES = (
     "Analogy",
     "Correspondence",
     "InferenceMode",
-    "DefeaterKind",
     "InferenceTenure",
+    # The argumentation layer (Dung / ASPIC+).
+    "Argument",
+    "ArgumentEvaluation",
+    "Attack",
+    "AttackKind",
+    "AttackTarget",
+    "AcceptanceStatus",
+    "PremiseUse",
+    "InferenceApplication",
+    "Support",
+    "SupportSource",
 )
 
 
@@ -143,13 +153,13 @@ def test_inference_tenure_is_situation_under_timescoped() -> None:
 def test_value_vocabs_are_abstract_individual_types() -> None:
     """Stereotype namespace is logic: not gufo:."""
     graph = _graph()
-    for cls in ("InferenceMode", "DefeaterKind"):
+    for cls in ("InferenceMode", "AttackKind", "AcceptanceStatus"):
         assert (_g(cls), RDF.type, _logic("AbstractIndividualType")) in graph
         assert (_g(cls), RDFS.subClassOf, _logic("QualityValue")) in graph
 
 
 # --------------------------------------------------------------------------- #
-# Value individuals — Peirce's tetrad + Pollock's defeaters.
+# Value individuals — Peirce's tetrad + the typed attack / Dung labelling kinds.
 # --------------------------------------------------------------------------- #
 
 
@@ -159,10 +169,16 @@ def test_mode_individuals_typed() -> None:
         assert (_g(mode), RDF.type, _g("InferenceMode")) in graph
 
 
-def test_defeater_kind_individuals_typed() -> None:
+def test_attack_kind_individuals_typed() -> None:
     graph = _graph()
-    for kind in ("defeaterRebutting", "defeaterUndercutting"):
-        assert (_g(kind), RDF.type, _g("DefeaterKind")) in graph
+    for kind in ("attackUndermine", "attackUndercut", "attackRebut"):
+        assert (_g(kind), RDF.type, _g("AttackKind")) in graph
+
+
+def test_acceptance_status_individuals_typed() -> None:
+    graph = _graph()
+    for status in ("acceptanceIn", "acceptanceOut", "acceptanceUndecided"):
+        assert (_g(status), RDF.type, _g("AcceptanceStatus")) in graph
 
 
 # --------------------------------------------------------------------------- #
@@ -278,6 +294,11 @@ ex:badCommit a gmeow:InferenceCommitment ;
 # self-competition: competesWith must be irreflexive
 ex:selfRival a gmeow:StandpointClaim ; gmeow:observationMethod ex:methodReason ;
     gmeow:competesWith ex:selfRival .
+# self-attack: an Attack must not attack itself (attackSource == attackTarget)
+ex:selfAttack a gmeow:Attack ;
+    gmeow:attackSource ex:claimX ;
+    gmeow:attackTarget ex:claimX ;
+    gmeow:attackKind gmeow:attackRebut .
 """
 )
 
@@ -293,6 +314,7 @@ def test_malformed_commitment_is_flagged() -> None:
     blob = " ".join(result.errors)
     assert "assume what it proves" in blob  # premise == conclusion
     assert "irreflexive" in blob  # self-competition
+    assert "attack itself" in blob  # self-attack: the no-self-attack constraint fires
 
 
 def test_all_examples_parse() -> None:
@@ -300,6 +322,6 @@ def test_all_examples_parse() -> None:
     conformance against the real method individuals is enforced by
     `make validate` / check_examples over the merged graph)."""
     examples = sorted((_SLICE / "examples").glob("*.ttl"))
-    assert len(examples) == 5
+    assert len(examples) == 6
     for example in examples:
         Graph().parse(example, format="turtle")

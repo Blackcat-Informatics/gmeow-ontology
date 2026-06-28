@@ -7,6 +7,15 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
+gmeow:AcceptanceStatus
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Acceptance Status"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The Dung labelling status an gmeow:ArgumentEvaluation assigns an argument under a named acceptability semantics — a value vocabulary (individuals, never subclasses): gmeow:acceptanceIn (in the extension), gmeow:acceptanceOut (attacked by an accepted argument), gmeow:acceptanceUndecided (neither). A solver-set value (Principle 12): the engine writes exactly one, and there is no asserted accepted / isBest bit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:Analogy
     a logic:Kind ,
         owl:Class ;
@@ -14,6 +23,56 @@ gmeow:Analogy
     rdfs:label "Analogy"@x-gmeow-english ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "A reified analogical mapping — the source-to-target structure-mapping (Gentner) that warrants an analogical inference: it mediates a source domain (gmeow:analogicalSource), a target domain (gmeow:analogicalTarget), and the element-pair correspondences (gmeow:hasCorrespondence) holding between them, scored by structural consistency (gmeow:systematicity, solver-layer). The warrant of an analogical gmeow:InferenceCommitment points at an Analogy. Rival mappings compete; best-analogy selection is solver-layer like IBE, never an asserted isBest bit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Argument
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Argument"@x-gmeow-english ;
+    rdfs:subClassOf logic:Relator ;
+    skos:definition "A node in an argumentation framework — the attackable, supportable unit a named acceptability semantics is evaluated over (Dung / ASPIC+). An Argument wraps at most one Toulmin step (gmeow:argumentInferenceStep -> gmeow:InferenceCommitment), rests on the premises it actually uses (gmeow:hasPremiseUse) via the rule it applies (gmeow:hasInferenceApplication), and establishes a conclusion (gmeow:argumentConclusion). It bears the typed gmeow:Attack and the accruing gmeow:Support relations toward other arguments, and is the proper domain the epistemics gmeow:attacksClaim / gmeow:supportsClaim hooks pair with. A relator, not a process (the gmeow:Commitment idiom); whether it survives is the solver-layer gmeow:ArgumentEvaluation, never an asserted accepted bit (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:ArgumentEvaluation
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Argument Evaluation"@x-gmeow-english ;
+    rdfs:subClassOf logic:Relator ;
+    skos:definition "A reified, solver-set verdict on a gmeow:Argument — the gmeow:AcceptanceStatus it carries (gmeow:acceptanceStatus) under a named acceptability semantics (gmeow:underSemantics -> logic:ArgumentationSemantics), together with the extension it belongs to (gmeow:extensionMember). The argument-graph evaluation is COMPUTED, never asserted (Principle 12): there is no accepted / isBest bit, only the engine-written status; under a credulous (preferred) semantics several evaluations of one argument coexist, one per extension (Principle 9). Reifies the assessment so its semantics, status, and extension travel as one auditable bundle."@x-gmeow-english ;
+    skos:scopeNote "Couples to the central acceptability semantics by reference (gmeow:underSemantics -> logic:GroundedArgumentation / logic:PreferredArgumentation / logic:NoArgumentation / logic:PolicySpecificArgumentation), with no asserted triples into logic:. The named-acceptability-semantics account is canonical in design/LOGIC-FOUNDATION.md (Argumentation and epistemic standards), referenced here by prose (Principle 5)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Attack
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Attack"@x-gmeow-english ;
+    rdfs:subClassOf logic:Relator ;
+    skos:definition "A reified, TYPED attack between arguments — a structural conflict that names WHAT it attacks and HOW. It relates an attacking structure (gmeow:attackSource) to a target (gmeow:attackTarget, a gmeow:AttackTarget) under a kind (gmeow:attackKind, a gmeow:AttackKind): gmeow:attackUndermine attacks a gmeow:PremiseUse, gmeow:attackUndercut attacks a gmeow:InferenceApplication (the warrant), gmeow:attackRebut attacks the conclusion gmeow:StandpointClaim. The attack is the structural relation, never the adjudicated outcome — which argument survives is the solver-layer gmeow:ArgumentEvaluation. Self-attack is forbidden by SHACL, not OWL (the gmeow:competesWith discipline — doctrine in SHACL, keeping the DL profile clean)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:AttackKind
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Attack Kind"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The kind of a typed gmeow:Attack — a value vocabulary (individuals, never subclasses) naming what the attack targets: gmeow:attackUndermine (a premise), gmeow:attackUndercut (the warrant / inferential link), gmeow:attackRebut (the conclusion). The canonical three-way typed-attack distinction (design/LOGIC-FOUNDATION.md); it subsumes the older Pollock two-way rebutting / undercutting, of which undermine is the premise-directed third."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:AttackTarget
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Attack Target"@x-gmeow-english ;
+    rdfs:subClassOf owl:Thing ;
+    owl:equivalentClass [
+        a owl:Class ;
+        owl:unionOf ( gmeow:PremiseUse gmeow:InferenceApplication gmeow:StandpointClaim ) ;
+    ] ;
+    skos:definition "The class of things a typed gmeow:Attack can target — a gmeow:PremiseUse (undermine), a gmeow:InferenceApplication (undercut), or a conclusion gmeow:StandpointClaim (rebut). Introduced as a named superclass so that schema projections can assign a single range to gmeow:attackTarget instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Correspondence
@@ -25,13 +84,13 @@ gmeow:Correspondence
     skos:definition "A single mapped element-pair within an gmeow:Analogy — the reified relation that one source element (gmeow:correspondingSource) plays the same structural role as one target element (gmeow:correspondingTarget). Reached from its analogy via gmeow:hasCorrespondence. The atom of structure-mapping: an analogy's systematicity is the structural consistency of its set of Correspondences."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:DefeaterKind
-    a logic:AbstractIndividualType ,
+gmeow:InferenceApplication
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    rdfs:label "Defeater Kind"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The Pollock kind of a defeater — a value vocabulary (individuals, never subclasses): gmeow:defeaterRebutting (attacks the conclusion directly, giving reason to believe its negation) and gmeow:defeaterUndercutting (attacks the inferential link, removing the warrant without asserting the negation). Carried as a gmeow:defeaterKind value on a defeating gmeow:StandpointClaim."@x-gmeow-english ;
+    rdfs:label "Inference Application"@x-gmeow-english ;
+    rdfs:subClassOf logic:Relator ;
+    skos:definition "A reified application of an inference rule within a gmeow:Argument — the rule that licenses the step (gmeow:appliedRule, by reference at a logic: rule / proof-trace) together with the substitution that instantiates it (gmeow:appliedSubstitution). The target of an undercutting gmeow:Attack: granting the premises, an undercut denies that THIS rule-application supports the conclusion. Rule-applicability stays defeasible even where the deductive step is contract-local indefeasible (design/LOGIC-FOUNDATION.md)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InferenceCommitment
@@ -40,7 +99,7 @@ gmeow:InferenceCommitment
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Inference Commitment"@x-gmeow-english ;
     rdfs:subClassOf logic:Relator ;
-    skos:definition "The endurant, structured argument relation an inference instantiates — the reified Toulmin/Peircean commitment mediating its premises (gmeow:premise), its single conclusion (gmeow:conclusion, a gmeow:StandpointClaim), its warrant (gmeow:warrant), its mode (gmeow:inferenceModeOf), and its defeaters (gmeow:hasDefeater). A relator, not a process (the gmeow:Commitment idiom): the occurrent reasoning episode that bears it is the gmeow:InferenceProcess reached by gmeow:hasInferenceCommitment. Reifying is the on-demand tier; the flat 80% case hangs gmeow:inferredFrom + gmeow:inferenceMode directly on the conclusion-claim. Retained as audit when its conclusion is suppressed (belief revision), never erased (Principle 10)."@x-gmeow-english ;
+    skos:definition "The endurant, structured argument relation an inference instantiates — the reified Toulmin/Peircean commitment mediating its premises (gmeow:premise), its single conclusion (gmeow:conclusion, a gmeow:StandpointClaim), its warrant (gmeow:warrant), and its mode (gmeow:inferenceModeOf). The argumentation layer wraps it in a gmeow:Argument (gmeow:argumentInferenceStep) to bear the typed gmeow:Attack and accruing gmeow:Support relations. A relator, not a process (the gmeow:Commitment idiom): the occurrent reasoning episode that bears it is the gmeow:InferenceProcess reached by gmeow:hasInferenceCommitment. Reifying is the on-demand tier; the flat 80% case hangs gmeow:inferredFrom + gmeow:inferenceMode directly on the conclusion-claim. Retained as audit when its conclusion is suppressed (belief revision), never erased (Principle 10)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InferenceMode
@@ -71,6 +130,68 @@ gmeow:InferenceTenure
     skos:definition "The reified, time-scoped fact that an gmeow:InferenceCommitment's conclusion was held over an interval — opened when the conclusion is accepted and closed when a defeater fires, never deleted (Principle 10). Belief revision is the closing of a tenure (and gmeow:displayable false on the conclusion-claim), not the erasure of the commitment, which survives as audit. Carries its interval via gmeow:duringInterval (temporal module). Use only when the adoption / retraction of the conclusion is itself worth modelling; the common case is a bare claim with its modality."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+gmeow:PremiseUse
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Premise Use"@x-gmeow-english ;
+    rdfs:subClassOf logic:Relator ;
+    skos:definition "A reified USE of a premise within a gmeow:Argument — the basing fact that this argument actually rests on this premise (gmeow:premiseUsed), distinct from the merely AVAILABLE premises of the underlying gmeow:InferenceCommitment (available != used). The target of an undermining gmeow:Attack, which denies the used premise. Reached from its argument via gmeow:hasPremiseUse."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Support
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Support"@x-gmeow-english ;
+    rdfs:subClassOf logic:Relator ;
+    skos:definition "A reified, ACCRUING support relation in bipolar argumentation — an instance relating a supporting structure (gmeow:supportSource) to the gmeow:Argument it supports (gmeow:supportTarget). Each independent support is its own Support instance, so support ACCRUES: several independent supports for one conclusion combine rather than counting once (Principle 9; design/LOGIC-FOUNDATION.md). The support pole of bipolar argumentation; the attack pole is gmeow:Attack."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:SupportSource
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Support Source"@x-gmeow-english ;
+    rdfs:subClassOf owl:Thing ;
+    owl:equivalentClass [
+        a owl:Class ;
+        owl:unionOf ( gmeow:Argument gmeow:StandpointClaim ) ;
+    ] ;
+    skos:definition "The class of things that can supply support to an gmeow:Argument — another gmeow:Argument or a gmeow:StandpointClaim (an evidential consideration may be carried by either). Introduced as a named superclass so that schema projections can assign a single range to gmeow:supportSource instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:acceptanceIn
+    a gmeow:AcceptanceStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "in"@x-gmeow-english ;
+    skos:definition "The Dung 'in' label — the argument is accepted: it belongs to the extension and every attack on it is defeated by an accepted argument. A solver-set value (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:acceptanceOut
+    a gmeow:AcceptanceStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "out"@x-gmeow-english ;
+    skos:definition "The Dung 'out' label — the argument is rejected: it is attacked by an argument that is itself accepted. A solver-set value (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:acceptanceStatus
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:ArgumentEvaluation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "acceptance status"@x-gmeow-english ;
+    rdfs:range gmeow:AcceptanceStatus ;
+    skos:definition "The Dung labelling status a gmeow:ArgumentEvaluation assigns its argument — gmeow:acceptanceIn / gmeow:acceptanceOut / gmeow:acceptanceUndecided. Functional: one evaluation, one status. A solver-set value (Principle 12): the engine writes it, and there is no asserted accepted / isBest bit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:acceptanceUndecided
+    a gmeow:AcceptanceStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "undecided"@x-gmeow-english ;
+    skos:definition "The Dung 'undecided' label — the argument is neither in nor out: the semantics neither accepts nor rejects it (it lies on an even-length attack cycle or is otherwise unsettled). A solver-set value (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:analogicalSource
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Analogy ;
@@ -89,6 +210,95 @@ gmeow:analogicalTarget
     skos:definition "The target domain of a gmeow:Analogy — the less-familiar structure that inherits relations from the source via the correspondences. NOT functional."@x-gmeow-english ;
     skos:scopeNote "Range is intentionally OPEN (a target may be any entity, situation, or domain)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:appliedRule
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:InferenceApplication ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "applied rule"@x-gmeow-english ;
+    skos:definition "The inference rule a gmeow:InferenceApplication applies — the licence for the step. Functional: one application applies one rule."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN: the rule may be a logic: rule or proof-trace, an gmeow:Analogy, or a textual rule. The coupling to logic: is by reference (no asserted triples into logic:), mirroring gmeow:warrant."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:appliedSubstitution
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:InferenceApplication ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "applied substitution"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The substitution that instantiates a gmeow:InferenceApplication's rule — the variable bindings under which the rule fires, serialised as text. The logical form stays in logic: (by reference); this records, at the epistemic layer, which binding the agent used. NOT functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:argumentConclusion
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Argument ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "argument conclusion"@x-gmeow-english ;
+    skos:definition "The conclusion a gmeow:Argument establishes — the claim it concludes for. Functional: one argument, one conclusion (an argument concluding two things is two arguments)."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN: the conclusion may be a gmeow:StandpointClaim (the usual case, matching the wrapped gmeow:InferenceCommitment's gmeow:conclusion), a gmeow:Proposition, or any reified statement. Mirrors the open-range precedent of gmeow:inferredFrom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:argumentInferenceStep
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Argument ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "argument inference step"@x-gmeow-english ;
+    rdfs:range gmeow:InferenceCommitment ;
+    skos:definition "Relates a gmeow:Argument to the single Toulmin step (gmeow:InferenceCommitment) it wraps — the premises x conclusion x warrant structure the argument is built on. Functional: one Argument wraps at most one step; a multi-step chain is a chain of Arguments linked by gmeow:Support."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:attackKind
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Attack ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "attack kind"@x-gmeow-english ;
+    rdfs:range gmeow:AttackKind ;
+    skos:definition "The kind of a typed gmeow:Attack — gmeow:attackUndermine, gmeow:attackUndercut, or gmeow:attackRebut. Functional: an attack has exactly one kind (SHACL enforces it). The kind and the gmeow:attackTarget agree: undermine targets a gmeow:PremiseUse, undercut a gmeow:InferenceApplication, rebut a gmeow:StandpointClaim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:attackRebut
+    a gmeow:AttackKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "rebut"@x-gmeow-english ;
+    skos:definition "A rebutting attack — attacks the conclusion directly, arguing for its contrary (the conclusion gmeow:StandpointClaim is the gmeow:attackTarget). The Pollock rebutting defeater, now a typed-attack kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:attackSource
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Attack ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "attack source"@x-gmeow-english ;
+    skos:definition "The attacking structure of a typed gmeow:Attack — the gmeow:Argument (or other claim structure) mounting the attack. NOT functional."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN (an gmeow:Argument, a gmeow:StandpointClaim, or any reified counter-structure)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:attackTarget
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Attack ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "attack target"@x-gmeow-english ;
+    rdfs:range gmeow:AttackTarget ;
+    skos:definition "What a typed gmeow:Attack targets — a gmeow:PremiseUse (undermine), a gmeow:InferenceApplication (undercut), or a conclusion gmeow:StandpointClaim (rebut). Functional: an attack names exactly one target (SHACL enforces it), agreeing with its gmeow:attackKind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:attackUndercut
+    a gmeow:AttackKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "undercut"@x-gmeow-english ;
+    skos:definition "An undercutting attack — grants the premises but denies that the warrant supports the conclusion (the gmeow:InferenceApplication is the gmeow:attackTarget), removing support without asserting the conclusion's negation. The Pollock undercutting defeater, now a typed-attack kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:attackUndermine
+    a gmeow:AttackKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "undermine"@x-gmeow-english ;
+    skos:definition "An undermining attack — attacks a premise the argument assumes (the gmeow:PremiseUse is the gmeow:attackTarget). The premise-directed third typed-attack kind, beyond Pollock's two."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:candidateHypothesis
     a owl:ObjectProperty ;
@@ -140,28 +350,15 @@ gmeow:correspondingTarget
     skos:scopeNote "Range is intentionally OPEN (the element may be any entity or relation in the target domain)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:defeaterKind
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:StandpointClaim ;
+gmeow:evaluatesArgument
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:ArgumentEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    rdfs:label "defeater kind"@x-gmeow-english ;
-    rdfs:range gmeow:DefeaterKind ;
-    skos:definition "The Pollock kind of a defeating gmeow:StandpointClaim — gmeow:defeaterRebutting (attacks the conclusion) or gmeow:defeaterUndercutting (attacks the inferential link). NOT functional: a single claim may defeat in more than one way."@x-gmeow-english ;
+    rdfs:label "evaluates argument"@x-gmeow-english ;
+    rdfs:range gmeow:Argument ;
+    skos:definition "Relates a gmeow:ArgumentEvaluation to the gmeow:Argument it assesses. Functional: one evaluation assesses one argument under one semantics; a credulous semantics yields several evaluations of the same argument, one per extension."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:defeaterRebutting
-    a gmeow:DefeaterKind ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    rdfs:label "rebutting"@x-gmeow-english ;
-    skos:definition "A rebutting defeater (Pollock) — gives positive reason to believe the negation of the conclusion, attacking the conclusion directly."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:defeaterUndercutting
-    a gmeow:DefeaterKind ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    rdfs:label "undercutting"@x-gmeow-english ;
-    skos:definition "An undercutting defeater (Pollock) — attacks the inferential link, removing the warrant's support without asserting the conclusion's negation (the premises no longer license the conclusion)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:explains
     a owl:ObjectProperty ;
@@ -190,6 +387,15 @@ gmeow:explanatoryScore
     skos:definition "A solver-computed score of how well a candidate hypothesis explains its explanandum (simplicity, scope, coherence) — the basis on which inference-to-the-best-explanation ranks rivals. A solver-layer value (Principle 12), not an asserted truth: there is no isBest bit; the ranking promotes the winner's modality and suppresses the losers. NOT functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:extensionMember
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ArgumentEvaluation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "extension member"@x-gmeow-english ;
+    rdfs:range gmeow:Argument ;
+    skos:definition "Relates a gmeow:ArgumentEvaluation to an gmeow:Argument jointly accepted in the extension this evaluation records — the set of arguments accepted together under the semantics. NOT functional: an extension holds many arguments, and a preferred semantics admits several extensions, so several evaluations coexist (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 gmeow:hasCorrespondence
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Analogy ;
@@ -199,13 +405,13 @@ gmeow:hasCorrespondence
     skos:definition "Relates a gmeow:Analogy to one of its element-pair gmeow:Correspondence relations — the reified mapped pairs whose structural consistency is the analogy's gmeow:systematicity. NOT functional: an analogy holds many correspondences."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:hasDefeater
+gmeow:hasInferenceApplication
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:InferenceCommitment ;
+    rdfs:domain gmeow:Argument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    rdfs:label "has defeater"@x-gmeow-english ;
-    rdfs:range gmeow:StandpointClaim ;
-    skos:definition "Relates a reified gmeow:InferenceCommitment to a defeating gmeow:StandpointClaim — a consideration that, once accepted, withdraws support for the conclusion. NOT functional: a commitment may face several defeaters. A fired defeater closes the gmeow:InferenceTenure and sets the conclusion-claim gmeow:displayable false; the commitment is retained as audit (Principle 10). The defeating claim carries its Pollock kind via gmeow:defeaterKind."@x-gmeow-english ;
+    rdfs:label "has inference application"@x-gmeow-english ;
+    rdfs:range gmeow:InferenceApplication ;
+    skos:definition "Relates a gmeow:Argument to a gmeow:InferenceApplication (rule + substitution) by which it derives its conclusion from its premise-uses. NOT functional: an argument's derivation may chain several rule-applications."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasInferenceCommitment
@@ -215,6 +421,15 @@ gmeow:hasInferenceCommitment
     rdfs:label "has inference commitment"@x-gmeow-english ;
     rdfs:range gmeow:InferenceCommitment ;
     skos:definition "Relates an occurrent gmeow:InferenceProcess (the reasoning episode) to the endurant gmeow:InferenceCommitment (the argument structure) it instantiates — the bridge across the gUFO endurant/occurrent divide that keeps the two faces of inference distinct yet linked. NOT functional: one reasoning episode may settle several arguments."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasPremiseUse
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Argument ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "has premise use"@x-gmeow-english ;
+    rdfs:range gmeow:PremiseUse ;
+    skos:definition "Relates a gmeow:Argument to a gmeow:PremiseUse it rests on — the premises it actually bases on (available != used). NOT functional: an argument may use several premises."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:inferenceMode
@@ -283,6 +498,35 @@ gmeow:premise
     skos:scopeNote "Range is intentionally OPEN (a premise may be a claim, a proposition, or any reified statement), mirroring gmeow:inferredFrom."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:premiseUsed
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:PremiseUse ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "premise used"@x-gmeow-english ;
+    skos:definition "The premise a gmeow:PremiseUse bases on — the single premise this use actually rests on (the basing fact). Functional: one premise-use names one used premise."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN: a premise may be a gmeow:StandpointClaim, a gmeow:Proposition, an observation, or any reified statement. Mirrors gmeow:premise / gmeow:inferredFrom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:supportSource
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Support ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "support source"@x-gmeow-english ;
+    rdfs:range gmeow:SupportSource ;
+    skos:definition "The supporting structure of a gmeow:Support — a gmeow:SupportSource (another gmeow:Argument or a gmeow:StandpointClaim that lends support). NOT functional: support accrues from several sources."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:supportTarget
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Support ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "support target"@x-gmeow-english ;
+    rdfs:range gmeow:Argument ;
+    skos:definition "The gmeow:Argument a gmeow:Support supports. Functional: one Support instance supports one argument; independent supports for the same argument are separate Support instances, so support accrues (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 gmeow:systematicity
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Analogy ;
@@ -300,6 +544,16 @@ gmeow:tenureOf
     rdfs:label "tenure of"@x-gmeow-english ;
     rdfs:range gmeow:InferenceCommitment ;
     skos:definition "Relates a gmeow:InferenceTenure to the gmeow:InferenceCommitment whose conclusion it time-scopes — opened when the conclusion is accepted, closed (an gmeow:endedAtTime on its gmeow:duringInterval) when a defeater fires. Functional: one tenure tracks one commitment; the commitment survives the closing as audit (the gmeow:StandpointTenure → gmeow:standpointClaim idiom, applied to inference)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:underSemantics
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:ArgumentEvaluation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "under semantics"@x-gmeow-english ;
+    rdfs:range logic:ArgumentationSemantics ;
+    skos:definition "The named acceptability semantics under which a gmeow:ArgumentEvaluation is computed — logic:GroundedArgumentation, logic:PreferredArgumentation, logic:NoArgumentation, or logic:PolicySpecificArgumentation. Functional: one evaluation, one semantics. Coupling to logic: is by reference (no asserted triples into logic:)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:warrant
@@ -322,15 +576,16 @@ DOCTRINE.
   * No re-minted truth bit (Principle 6): strength rides the EXISTING logic: axes (logic:weight / logic:confidence / logic:evidenceStrength / logic:probability — BY REFERENCE, no asserted triples into logic:); modality reuses the EXISTING standpoint modality, now the six factored axes (gmeow:Polarity / ModalForce / CredenceLevel / AssertoricForce / TruthDirectedness / SupportStatus), of which the legacy five-value gmeow:StandpointModality (gmeow:unequivocal / probable / conceivable / refuted / bullshit) is the lossless projection a mode's default reads as.
   * ENDURANT / OCCURRENT SPLIT (gUFO's master split — the reason this slice does NOT mint a single double-typed gmeow:Inference). Two classes:
       - gmeow:InferenceProcess rdfs:subClassOf gmeow:MentalProcess — the OCCURRENT reasoning episode (perdurant); the reparenting hook the mentation slice reserves. Carries gmeow:experiencer and gmeow:mentalProcessType gmeow:processReasoning; gmeow:producesMentalMoment the belief it creates.
-      - gmeow:InferenceCommitment rdfs:subClassOf gufo:Relator — the ENDURANT structured argument relation (premises x conclusion x warrant x defeaters x assessor); the gmeow:Commitment idiom.
+      - gmeow:InferenceCommitment rdfs:subClassOf gufo:Relator — the ENDURANT structured argument relation (premises x conclusion x warrant); the gmeow:Commitment idiom.
       - gmeow:hasInferenceCommitment bridges process to commitment.
   * Three tiers of fidelity (flat-first, reify on demand — Principle 4): (1) FLAT spine on the claim — gmeow:inferredFrom + gmeow:inferenceMode, the 80% case; (2) the REIFIED gmeow:InferenceCommitment relator when the argument structure matters; (3) the OCCURRENT gmeow:InferenceProcess when the reasoning episode joins the agent's mental timeline.
+  * ARGUMENTATION LAYER (Dung / ASPIC+, design/LOGIC-FOUNDATION.md — Argumentation and epistemic standards): a gmeow:Argument is the attackable framework node wrapping a gmeow:InferenceCommitment (gmeow:argumentInferenceStep); it rests on gmeow:PremiseUse leaves (the USED premises, basing — available != used) and a gmeow:InferenceApplication (rule + substitution), and bears TYPED conflict — a gmeow:Attack names WHAT it attacks (gmeow:attackTarget: a gmeow:PremiseUse / gmeow:InferenceApplication / conclusion gmeow:StandpointClaim) and HOW (gmeow:attackKind: gmeow:attackUndermine / attackUndercut / attackRebut). Support ACCRUES (each gmeow:Support is its own instance; independent supports combine, never counted once). Which arguments survive is the solver-layer gmeow:ArgumentEvaluation under a named logic:ArgumentationSemantics (gmeow:underSemantics), labelling each gmeow:acceptanceIn / acceptanceOut / acceptanceUndecided — COMPUTED, never an asserted accepted bit (Principle 12). Self-attack and support cycles are forbidden in SHACL, not OWL (clean DL profile).
   * BELIEF UPTAKE (seam to epistemics): a deductively-closed belief is gmeow:believes with modality gmeow:unequivocal; an inductive / abductive / analogical belief arrives as gmeow:believes + attributed modality + confidence (the gmeow:deceptiveIntentClaim idiom: attributed, defeasible, vantage = the assessor).
   * BELIEF REVISION = SUPPRESSION (Principle 10): a fired defeater sets the conclusion-claim gmeow:displayable false and closes an gmeow:InferenceTenure; the gmeow:InferenceCommitment is retained as audit, never erased.
   * COMPUTE OUTSIDE THE LOGIC (Principle 12): gmeow:explanatoryScore (IBE) and gmeow:systematicity (Gentner) are solver-layer decimals; there is no isBest bit — the winner is promoted conceivable->probable, an axis transition (gmeow:polaritySuspend->gmeow:polarityAffirm, gmeow:modalForcePossible->gmeow:modalForceActual, gmeow:credencePossible->gmeow:credenceLikely) whose legacy projection is conceivable->probable, and the losers are suppressed.
   * eventTypeInference DROPPED (Principle 4): gmeow:InferenceProcess carrying gmeow:mentalProcessType gmeow:processReasoning is the single canonical occurrent marker; a parallel gmeow:EventType value would be a second canonical source for the same fact.
 
-ALIGNMENT (by reference — see mappings/equivalences.ttl). PROV-O (InferenceProcess ~ prov:Activity, inferredFrom ~ prov:wasDerivedFrom); CRMinf (InferenceCommitment ~ I1_Argumentation / I5_Inference_Making, StandpointModality ~ I6_Belief_Value); analogy ~ Gentner structure-mapping engine; AIF / Toulmin / Peirce in prose."""@x-gmeow-english ;
+ALIGNMENT (by reference — see mappings/equivalences.ttl). PROV-O (InferenceProcess ~ prov:Activity, inferredFrom ~ prov:wasDerivedFrom); CRMinf (InferenceCommitment ~ I1_Argumentation / I5_Inference_Making, StandpointModality ~ I6_Belief_Value); analogy ~ Gentner structure-mapping engine; AIF / ASPIC+ / Dung abstract argumentation (Argument / Attack / Support / ArgumentEvaluation); Toulmin / Peirce / Pollock (typed attacks) in prose."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "GMEOW Inference Module"@x-gmeow-english ;
     skos:definition "The GMEOW Inference Module — Peirce's tetrad (deduction, induction, abduction, analogy) as the epistemic face of a logic: derivation: what an agent believes when it accepts a reasoning step's conclusion."@x-gmeow-english ;
