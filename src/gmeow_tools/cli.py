@@ -434,6 +434,8 @@ def validate(
     """
     suffix = instance.suffix.lower()
     rdf_format = validate_data.format_for_suffix(suffix)
+    if deep and (schema is not None or rdf_format is None):
+        raise _fail("--deep is only supported for RDF validation without --schema")
     if schema is None and rdf_format is not None:
         _validate_rdf(instance, rdf_format, output, deep)
         return
