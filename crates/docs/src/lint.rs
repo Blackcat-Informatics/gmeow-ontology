@@ -101,14 +101,16 @@ fn lint_links(site: &Site, report: &mut Report) {
 }
 
 /// WARNING coverage findings over the vocabulary surface only.
+///
+/// The per-term coverage predicates live in [`crate::coverage`] — the single
+/// source shared with the rendered docs site — so a `docs/missing-*` warning fires
+/// exactly when the same dimension is shown absent on the term's page.
 fn lint_coverage(model: &DocsModel, report: &mut Report) {
-    // A term whose IRI appears as an alignment subject has at least one external
-    // crosswalk; the rest trip docs/missing-alignment. Build the lookup once so
-    // the per-term test is O(log n), not a full linkages scan.
-    let aligned: BTreeSet<&str> = model.linkages.iter().map(|l| l.subject.as_str()).collect();
+    let aligned = crate::coverage::alignment_subjects(model);
 
     // model.terms is already IRI-sorted → findings come out deterministically.
     for term in &model.terms {
+        let cov = crate::coverage::term_coverage(term, &aligned);
         let loc = Location::new(
             Some(format!("terms/{}/index.html", term_slug(term))),
             None,
@@ -122,7 +124,7 @@ fn lint_coverage(model: &DocsModel, report: &mut Report) {
             report.add_finding(finding);
         };
 
-        if term.definition.as_deref().unwrap_or("").trim().is_empty() {
+        if !cov.has_definition {
             emit(
                 "docs/missing-definition",
                 format!(
@@ -131,7 +133,7 @@ fn lint_coverage(model: &DocsModel, report: &mut Report) {
                 ),
             );
         }
-        if term.label.as_deref().unwrap_or("").trim().is_empty() {
+        if !cov.has_label {
             emit(
                 "docs/missing-label",
                 format!(
@@ -140,9 +142,7 @@ fn lint_coverage(model: &DocsModel, report: &mut Report) {
                 ),
             );
         }
-        // Usage advice = the useWhen/avoidWhen/howToUse triad ONLY; the consumer-
-        // routing fields are a separate surface and are not counted here.
-        if term.use_when.is_empty() && term.avoid_when.is_empty() && term.how_to_use.is_empty() {
+        if !cov.has_usage_advice {
             emit(
                 "docs/missing-usage-advice",
                 format!(
@@ -151,7 +151,7 @@ fn lint_coverage(model: &DocsModel, report: &mut Report) {
                 ),
             );
         }
-        if term.examples.is_empty() {
+        if !cov.has_example {
             emit(
                 "docs/missing-example",
                 format!(
@@ -160,7 +160,7 @@ fn lint_coverage(model: &DocsModel, report: &mut Report) {
                 ),
             );
         }
-        if term.scope_notes.is_empty() {
+        if !cov.has_scope_note {
             emit(
                 "docs/missing-scope-note",
                 format!(
@@ -169,7 +169,7 @@ fn lint_coverage(model: &DocsModel, report: &mut Report) {
                 ),
             );
         }
-        if !aligned.contains(term.iri.as_str()) {
+        if !cov.has_alignment {
             emit(
                 "docs/missing-alignment",
                 format!(
