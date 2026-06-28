@@ -197,3 +197,407 @@ ASK {
     logic:dimensionReliability a logic:AssessmentDimension .
 }""" ;
     gmeow:saRationale "All nine logic:AssessmentDimension individuals MUST exist -- the eight factored dimensions (awareness, declarative familiarity, conceptual understanding, procedural competence, transfer, explanatory ability, calibration, metacognition) plus the separately-introduced reliability dimension. They are an open value vocabulary; an assessment names exactly one (design/LOGIC-COGNITION.md)." .
+
+# === Teleology layer (goal expressions, evaluation, plans, decomposition) ======
+
+# --- 14. Teleology reified-node classes exist as TBox classes (MUST) ----------
+ex:saTeleologyNodeClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:GoalExpression a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:GoalEvaluation a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:Plan            a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:AndDecomposition a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:OrDecomposition  a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+}""" ;
+    gmeow:saRationale "The teleology reified-node classes MUST exist as owl:Class with gmeow:graphBoxRole gmeow:boxTBox: logic:GoalExpression (the typed IR goal-structure term), logic:GoalEvaluation (the reified vantage-indexed evaluation), logic:Plan (the transaction program with a goal-expression success criterion), and the two decomposition grouping nodes logic:AndDecomposition / logic:OrDecomposition." .
+
+# --- 15. GoalExpression exists as the structural-identity IR term (MUST) -------
+ex:saGoalExpressionStructuralIdentity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+ASK {
+    logic:GoalExpression a owl:Class ;
+        skos:definition ?d .
+    FILTER (CONTAINS(STR(?d), "STRUCTURAL"))
+}""" ;
+    gmeow:saRationale "logic:GoalExpression MUST be an owl:Class whose definition documents its STRUCTURAL identity (two expressions with the same node kind, operands, and bound situation type are the same term). Structural identity is an IR/engine property not expressible as a single triple, so the assertion pins the documented intent rather than the equality relation itself." .
+
+# --- 16. ActionSchema is punned as both class and node-kind individual (MUST) --
+ex:saActionSchemaPunned a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:ActionSchema a owl:Class , owl:NamedIndividual , logic:NodeKind ;
+        gmeow:graphBoxRole gmeow:boxTBox .
+}""" ;
+    gmeow:saRationale "logic:ActionSchema MUST be punned (OWL 2 DL metamodelling): simultaneously an owl:Class (whose instances are reusable action schemas), an owl:NamedIndividual, and a logic:NodeKind, carrying gmeow:graphBoxRole gmeow:boxTBox. The IR node-kind and the class of reusable schemas are one IRI." .
+
+# --- 17. The eight action-theory facets are object properties (MUST) ----------
+ex:saActionTheoryFacets a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:precondition            a owl:ObjectProperty .
+    logic:effect                  a owl:ObjectProperty .
+    logic:invariant               a owl:ObjectProperty .
+    logic:capability              a owl:ObjectProperty .
+    logic:nondeterministicOutcome a owl:ObjectProperty .
+    logic:observation             a owl:ObjectProperty .
+    logic:compensation            a owl:ObjectProperty .
+    logic:actionResource          a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The eight action-theory facets MUST all exist as owl:ObjectProperty: precondition, effect, invariant, capability, nondeterministicOutcome, observation, compensation, actionResource — the structure of a logic:ActionSchema that means–end reasoning reads." .
+
+# --- 18. Goal / occurrence link properties exist (MUST) -----------------------
+ex:saGoalOccurrenceLinks a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:hasGoalCondition   a owl:ObjectProperty .
+    logic:planGoal           a owl:ObjectProperty .
+    logic:instantiatesSchema a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The goal/occurrence link properties MUST exist as owl:ObjectProperty: logic:hasGoalCondition (gmeow:Goal -> logic:GoalExpression), logic:planGoal (logic:Plan -> gmeow:Goal), and logic:instantiatesSchema (gmeow:Event -> logic:ActionSchema)." .
+
+# --- 19. The four goal-decomposition relations exist (MUST) -------------------
+ex:saGoalDecompositionRelations a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:refinesGoal   a owl:ObjectProperty .
+    logic:contributesTo a owl:ObjectProperty .
+    logic:necessaryFor  a owl:ObjectProperty .
+    logic:sufficientFor a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The four goal-decomposition relations MUST exist as owl:ObjectProperty: refinesGoal, contributesTo, necessaryFor, sufficientFor — the satisfaction-dependency structure typed apart from the generic mereology spine." .
+
+# --- 20. The six goal-conflict relations exist (MUST) -------------------------
+ex:saGoalConflictRelations a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:contradictoryGoal      a owl:ObjectProperty .
+    logic:contraryGoal           a owl:ObjectProperty .
+    logic:preventsGoal           a owl:ObjectProperty .
+    logic:competesForResource    a owl:ObjectProperty .
+    logic:temporallyIncompatible a owl:ObjectProperty .
+    logic:deonticallyIncompatible a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The six goal-conflict relations MUST exist as owl:ObjectProperty: contradictoryGoal, contraryGoal, preventsGoal, competesForResource, temporallyIncompatible, deonticallyIncompatible — conflicts between independently-meaningful goals, each weaker than the constitutive gmeow:counterGoal." .
+
+# --- 21. No conflict relation subProperties counterGoal or properPartOf (MUST-NOT)
+ex:saConflictRelationsNotSubproperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    ?r rdfs:subPropertyOf ?super .
+    FILTER (?r IN (
+        logic:contradictoryGoal, logic:contraryGoal, logic:preventsGoal,
+        logic:competesForResource, logic:temporallyIncompatible,
+        logic:deonticallyIncompatible
+    ))
+    FILTER (?super IN (gmeow:counterGoal, gmeow:properPartOf))
+}""" ;
+    gmeow:saRationale "No logic: goal-conflict relation MUST be rdfs:subPropertyOf gmeow:counterGoal (the strongest, constitutive opposition) or gmeow:properPartOf (structural part-hood) — the six are ordinary relations between independently-meaningful goals, weaker than counterGoal and orthogonal to mereology; a subproperty edge would manufacture exactly the conflation this guards against." .
+
+# --- 22. The four factored GoalEvaluation status classes exist (MUST) --------
+ex:saGoalEvaluationStatusClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:SatisfactionStatus   a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:FeasibilityStatus    a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:LifecycleStatus      a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:GoalEvaluationStatus a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:Satisfied      a logic:SatisfactionStatus .
+    logic:Feasible       a logic:FeasibilityStatus .
+    logic:LifecycleActive a logic:LifecycleStatus .
+    logic:GoalEvaluationCompleted a logic:GoalEvaluationStatus .
+}""" ;
+    gmeow:saRationale "The four factored goal-evaluation status value classes MUST exist as boxTBox owl:Class with representative members: logic:SatisfactionStatus, logic:FeasibilityStatus, logic:LifecycleStatus, and logic:GoalEvaluationStatus — independent axes of a logic:GoalEvaluation rather than one collapsed label." .
+
+# --- 23. GoalEvaluationStatus is DISTINCT from EvaluationStatus (MUST) --------
+ex:saGoalEvaluationStatusDistinct a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:GoalEvaluationStatus a owl:Class .
+    logic:EvaluationStatus     a owl:Class .
+    FILTER (logic:GoalEvaluationStatus != logic:EvaluationStatus)
+}""" ;
+    gmeow:saRationale "logic:GoalEvaluationStatus (the goal-judgment conclusiveness axis) MUST be a DISTINCT owl:Class from logic:EvaluationStatus (the engine-computation axis of a logic:ReasoningResult) — two orthogonal axes that must never be conflated into one value set." .
+
+# --- 24. GoalEvaluation axis + quantity + link properties exist (MUST) --------
+ex:saGoalEvaluationProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:satisfactionStatus   a owl:ObjectProperty .
+    logic:feasibilityStatus    a owl:ObjectProperty .
+    logic:lifecycleStatus      a owl:ObjectProperty .
+    logic:goalEvaluationStatus a owl:ObjectProperty .
+    logic:evaluatesGoal        a owl:ObjectProperty .
+    logic:evaluatedAgainst     a owl:ObjectProperty .
+    logic:evaluationCriterion  a owl:ObjectProperty .
+    logic:evaluationEvaluator  a owl:ObjectProperty .
+    logic:objectiveDirection   a owl:ObjectProperty .
+    logic:satisfactionDegree   a owl:DatatypeProperty .
+    logic:objectiveValue       a owl:DatatypeProperty .
+    logic:utility              a owl:DatatypeProperty .
+}""" ;
+    gmeow:saRationale "The goal-evaluation axis selectors (satisfactionStatus, feasibilityStatus, lifecycleStatus, goalEvaluationStatus), links (evaluatesGoal, evaluatedAgainst, evaluationCriterion, evaluationEvaluator), and quantities MUST exist — the three unit-interval quantities (satisfactionDegree, objectiveValue, utility) as owl:DatatypeProperty matching the logic:confidence/logic:weight idiom, the rest as owl:ObjectProperty." .
+
+# --- 25. Plan success quantification exists as a closed value set (MUST) ------
+ex:saPlanSuccessMode a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:PlanSuccessMode a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:WeakPlanSuccess        a logic:PlanSuccessMode .
+    logic:StrongPlanSuccess      a logic:PlanSuccessMode .
+    logic:StrongCyclicPlanSuccess a logic:PlanSuccessMode .
+    logic:planSuccessMode a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "Plan success MUST be quantified over nondeterministic outcomes as a closed value set: logic:PlanSuccessMode (boxTBox class) with its three members logic:WeakPlanSuccess (some path), logic:StrongPlanSuccess (every path), logic:StrongCyclicPlanSuccess (every fair execution), plus the selector logic:planSuccessMode (logic:Plan -> logic:PlanSuccessMode)." .
+
+# --- 26. Transaction-layer new classes + supersededBy property exist (MUST) ---
+ex:saTransactionLayerClassesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:SerialConjunction          a owl:Class .
+    logic:SerializabilityCriterion   a owl:Class .
+    logic:IsolationLevel             a owl:Class .
+    logic:ConcurrencyControlProtocol a owl:Class .
+    logic:SerializationAnomaly       a owl:Class .
+    logic:supersededBy               a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The transaction-layer additions MUST exist with their correct rdf:type: the five new classes (SerialConjunction, the three concurrency value-set classes, SerializationAnomaly) as owl:Class, and the supersession-provenance counterpart logic:supersededBy as owl:ObjectProperty (the fourth provenance link that makes every del a supersession)." .
+
+# --- 27. Serial-conjunction combinator carries its two operands (MUST) --------
+ex:saSerialConjunctionOperands a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:SerialConjunction a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:leftOperand  a owl:ObjectProperty .
+    logic:rightOperand a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The serial-conjunction program combinator (a boxTBox class) MUST carry its binary operands logic:leftOperand and logic:rightOperand as object properties -- it is a program operator typed apart from logical conjunction." .
+
+# --- 28. Plan-to-path link exists (MUST) -------------------------------------
+ex:saPlanExecutedAlongPath a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:executedAlongPath a owl:ObjectProperty .
+    logic:Plan a owl:Class .
+    logic:Path a owl:Class .
+}""" ;
+    gmeow:saRationale "The four-link chain intention -> plan -> action -> transaction-path MUST be completed by logic:executedAlongPath relating a logic:Plan to the logic:Path it ran along -- the one link existing terms did not supply; it connects but does not subsume the two." .
+
+# --- 29. The three concurrency value-set classes are pairwise distinct IRIs (MUST) ---
+ex:saConcurrencyConcernsAreDistinct a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:SerializabilityCriterion   a owl:Class .
+    logic:IsolationLevel             a owl:Class .
+    logic:ConcurrencyControlProtocol a owl:Class .
+    FILTER (logic:SerializabilityCriterion != logic:IsolationLevel)
+    FILTER (logic:SerializabilityCriterion != logic:ConcurrencyControlProtocol)
+    FILTER (logic:IsolationLevel != logic:ConcurrencyControlProtocol)
+}""" ;
+    gmeow:saRationale "The three concurrency concerns MUST be three distinct, separately-declared owl:Class IRIs that are never conflated: a criterion is a history property, a level is a guarantee strength, a protocol is a mechanism." .
+
+# --- 30. The three concurrency value sets enumerate the right members (MUST) --
+ex:saConcurrencyValueSetMembers a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    logic:ConflictSerializability a logic:SerializabilityCriterion .
+    logic:ViewSerializability     a logic:SerializabilityCriterion .
+    logic:ReadUncommittedIsolation a logic:IsolationLevel .
+    logic:ReadCommittedIsolation   a logic:IsolationLevel .
+    logic:RepeatableReadIsolation  a logic:IsolationLevel .
+    logic:SnapshotIsolation        a logic:IsolationLevel .
+    logic:SerializableIsolation    a logic:IsolationLevel .
+    logic:OpacityIsolation         a logic:IsolationLevel .
+    logic:StrictTwoPhaseLocking       a logic:ConcurrencyControlProtocol .
+    logic:StrongStrictTwoPhaseLocking a logic:ConcurrencyControlProtocol .
+    logic:TimestampOrdering           a logic:ConcurrencyControlProtocol .
+    logic:OptimisticValidation        a logic:ConcurrencyControlProtocol .
+}""" ;
+    gmeow:saRationale "Each of the three closed concurrency value sets MUST enumerate exactly its declared members: the two serializability criteria, the six isolation levels (through opacity), and the four concurrency-control protocols." .
+
+# --- 31. SerializationAnomaly is NOT a contradiction witness (MUST) -----------
+# There is no canonical contradiction-WITNESS CLASS in the module: the witness is
+# carried by the property logic:contradictionWitness and the verdict value
+# logic:InfoBoth. So the not-a-contradiction intent is pinned in TEXT: the class
+# exists with a definition CONTAINING the word "finding".
+ex:saSerializationAnomalyIsAFinding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+ASK {
+    logic:SerializationAnomaly a owl:Class ;
+        skos:definition ?d .
+    FILTER (CONTAINS(STR(?d), "finding"))
+}""" ;
+    gmeow:saRationale "logic:SerializationAnomaly MUST be a history-level finding, NOT a contradiction witness. There is no single canonical contradiction-witness CLASS (the witness is the property logic:contradictionWitness / the verdict logic:InfoBoth), so the not-a-contradiction intent is pinned in text: the class definition MUST contain the word 'finding', distinguishing it from a contradiction witness that asserts a logical contradiction within a state." .
+
+# === Engine representation vocabulary ========================================
+# The goal-expression structure, per-outcome compensation reification, and the
+# situation-obtains reading the native teleology evaluator (crates/logic/src/
+# teleology.rs) reads and emits. Normative in design/LOGIC-TELEOLOGY.md.
+
+# --- GoalExpressionKind is a closed nine-member value set (MUST) --------------
+ex:saGoalExpressionKindClosedSet a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:GoalExpressionKind a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:AtomicGoal         a logic:GoalExpressionKind .
+    logic:ConjunctiveGoal    a logic:GoalExpressionKind .
+    logic:DisjunctiveGoal    a logic:GoalExpressionKind .
+    logic:AchievementGoal    a logic:GoalExpressionKind .
+    logic:MaintenanceGoal    a logic:GoalExpressionKind .
+    logic:AvoidanceGoal      a logic:GoalExpressionKind .
+    logic:OptimizationGoal   a logic:GoalExpressionKind .
+    logic:ConditionalGoal    a logic:GoalExpressionKind .
+    logic:DeadlineWindowGoal a logic:GoalExpressionKind .
+}""" ;
+    gmeow:saRationale "logic:GoalExpressionKind MUST be a boxTBox owl:Class whose closed value set is exactly the nine compositional variants the engine dispatches on: AtomicGoal, ConjunctiveGoal, DisjunctiveGoal, AchievementGoal, MaintenanceGoal, AvoidanceGoal, OptimizationGoal, ConditionalGoal, DeadlineWindowGoal." .
+
+# --- Goal-expression structure properties exist (MUST) -----------------------
+ex:saGoalExpressionStructureProps a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:goalExpressionKind a owl:ObjectProperty .
+    logic:operand            a owl:ObjectProperty .
+    logic:boundSituationType a owl:ObjectProperty .
+    logic:guardSituation     a owl:ObjectProperty .
+    logic:deadlineWindow     a owl:ObjectProperty .
+    logic:situationObtains   a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The goal-expression structure the engine reads MUST exist as owl:ObjectProperty: logic:goalExpressionKind (selects the variant), logic:operand (sub-expressions of a conjunctive/disjunctive/conditional/deadline goal), logic:boundSituationType (the targeted situation type), logic:guardSituation (a conditional goal's guard), logic:deadlineWindow (a deadline-window goal's bounding interval), and logic:situationObtains (a situation type holds at a state)." .
+
+# --- Outcome reifies a branch with its own compensation (MUST) ---------------
+ex:saOutcomePerBranchCompensation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:Outcome          a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:outcomeSituation a owl:ObjectProperty .
+    logic:compensation     a owl:ObjectProperty .
+    logic:nondeterministicOutcome a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "A nondeterministic branch MUST be reified: logic:Outcome (boxTBox owl:Class) carries via logic:outcomeSituation the successor it reaches and reuses logic:compensation so each branch names the recovery for IT specifically; logic:nondeterministicOutcome points a logic:ActionSchema at its logic:Outcome branches, so compensation is outcome-indexed rather than one generic undo." .
+
+# --- GoalEvaluationUndetermined is the open-window value (MUST) ---------------
+ex:saGoalEvaluationUndeterminedExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:GoalEvaluationUndetermined a owl:NamedIndividual , logic:GoalEvaluationStatus .
+}""" ;
+    gmeow:saRationale "logic:GoalEvaluationUndetermined MUST be a logic:GoalEvaluationStatus member: the value the teleology evaluator emits for a maintenance/avoidance/deadline goal whose bounding window is still open and for a deontic evaluation with no accessible ideal world — never silently read as Satisfied or as a vacuous obligation." .
+
+
+# --- 32. Transaction-layer branching, concurrent, iterative, and fallback combinators exist (MUST) ---
+ex:saTransactionCombinatorsFull a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:Choice               a owl:Class .
+    logic:ConcurrentComposition a owl:Class .
+    logic:Iteration            a owl:Class .
+    logic:Fallback             a owl:Class .
+    logic:iterationBody        a owl:ObjectProperty .
+    logic:iterationCondition   a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The four missing transaction-layer program combinators MUST exist: logic:Choice (guarded branching), logic:ConcurrentComposition (interleaved-path composition, distinct from the concurrency correctness concerns), logic:Iteration (loop with body + condition), and logic:Fallback (try primary, on failure alternate). Each is a boxTBox owl:Class mirroring logic:SerialConjunction. logic:iterationBody and logic:iterationCondition are the two dedicated properties of logic:Iteration (binary left/right operands do not fit a loop); the other three combinators reuse logic:leftOperand and logic:rightOperand." .
+
+# --- 33. Transaction-layer combinators carry correct boxTBox graphBoxRole (MUST) ---
+ex:saCombinatorBoxRole a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:Choice                a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:ConcurrentComposition a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:Iteration             a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:Fallback              a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+}""" ;
+    gmeow:saRationale "The four new program combinators (Choice, ConcurrentComposition, Iteration, Fallback) MUST carry gmeow:graphBoxRole gmeow:boxTBox — they are program-combinator classes in the TBox, typed apart from formula connectives, mirroring the boxTBox role of logic:SerialConjunction." .
+
+# --- 34. ConcurrentComposition is distinct from the concurrency correctness concerns (MUST-NOT) ---
+ex:saConcurrentCompositionDistinct a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    logic:ConcurrentComposition rdfs:subClassOf logic:SerializabilityCriterion .
+}""" ;
+    gmeow:saRationale "logic:ConcurrentComposition MUST NOT be a subclass of logic:SerializabilityCriterion (or any of the three concurrency correctness concerns): it is the COMPOSITION OPERATOR, while SerializabilityCriterion is a correctness PROPERTY OF A HISTORY — the three concurrency concerns are kept pairwise distinct precisely because they are not interchangeable." .

@@ -289,7 +289,7 @@ expression: summary
   ],
   "mapping_set_count": 54,
   "linkage_count": 1386,
-  "example_count": 104,
+  "example_count": 105,
   "concern_count": 7,
   "external_term_count": 1208,
   "sample_mapping_set": {
@@ -409,7 +409,7 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 277,
+  "shape_count": 278,
   "competency_count": 53,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",

@@ -147,6 +147,28 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         .collect();
     owned.extend(path_results);
 
+    // Teleology-specific lossy disclosure.  When the program carries the flat
+    // gmeow:satisfiedBy edge generated from a factored logic:GoalEvaluation, the
+    // OWL/flat surfaces cannot represent the factored axes (satisfaction /
+    // feasibility / lifecycle status, satisfaction degree, criterion,
+    // evaluator/standpoint vantage multiplicity).  Record the collapse as a
+    // structural drop on each lossy target HERE, in the production compile funnel,
+    // so the projection report AND the preservation ledger both disclose it on the
+    // real `gmeow logic compile` surface — not just under the conformance harness
+    // (maximal information flow; the two summaries are built from `owned` below and
+    // therefore agree).
+    if program
+        .axioms
+        .iter()
+        .any(|a| a.predicate == SATISFIED_BY_IRI)
+    {
+        for result in &mut owned {
+            if GOAL_EVAL_COLLAPSE_TARGETS.contains(&result.target.as_str()) {
+                result.lossy_drops.push(GOAL_EVAL_COLLAPSE_DROP.to_owned());
+            }
+        }
+    }
+
     let report_header = report::ReportHeader::of_program(program);
     let report = report::build_projection_report(program, &owned).map_err(|e| e.to_string())?;
 
@@ -522,6 +544,31 @@ pub fn assert_no_overclaim(
     }
     Ok(())
 }
+
+// --------------------------------------------------------------------------- //
+// Teleology-specific preservation disclosure (production pipeline)
+// --------------------------------------------------------------------------- //
+
+/// The full IRI of `gmeow:satisfiedBy` — the flat binary projection of a satisfied
+/// + completed `logic:GoalEvaluation`.
+pub const SATISFIED_BY_IRI: &str = "https://blackcatinformatics.ca/gmeow/satisfiedBy";
+
+/// The drop note appended to every LOSSY projection target when the teleology
+/// materialization emitted a `gmeow:satisfiedBy` edge.
+///
+/// Exact-preservation targets (`canonical-rdf12`, `nemo`) carry the full
+/// `logic:GoalEvaluation` structure in their materialized output and are excluded.
+pub const GOAL_EVAL_COLLAPSE_DROP: &str = concat!(
+    "logic:GoalEvaluation factored axes (satisfaction/feasibility/lifecycle status, ",
+    "satisfaction degree, criterion, evaluator/standpoint vantage multiplicity) ",
+    "collapsed to flat binary gmeow:satisfiedBy edge"
+);
+
+/// Targets that lose the `logic:GoalEvaluation` structure when a `satisfiedBy`
+/// collapse is present.  `canonical-rdf12` and `nemo` are exact-preservation
+/// targets and carry the full evaluation in their materialized output — they are NOT
+/// augmented.
+pub const GOAL_EVAL_COLLAPSE_TARGETS: &[&str] = &["owl-dl", "owl-el", "gufo", "datalog", "n3"];
 
 // --------------------------------------------------------------------------- //
 // Shared helpers (used by both text and rdf back-ends)

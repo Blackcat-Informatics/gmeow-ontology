@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for logic:McpActionPolicyShape: an MCP-action schema
+# (ex:mcpActionMissingCompensation, typed logic:McpActionSchema — the marker the
+# profile targets) with NO logic:compensation — an MCP tool that mutates external
+# state but declares no rollback. logic:compensation has sh:minCount 1 on the
+# profile, so validation MUST emit shacl.MinCountConstraintComponent (and no other
+# finding: the action still carries precondition + capability, so neither the
+# profile's other facets nor logic:ActionSchemaShape fire). Bound by
+# tests/example-conformance.ttl (ex:ecMcpActionMissingCompensation). Lives under
+# tests/ (NOT examples/) so the global make validate gate does not reject it.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lgc/> .
+
+ex:mcpActionMissingCompensation a logic:McpActionSchema ;
+    rdfs:label "MCP tool action: write file, no rollback (fixture)"@en ;
+    logic:capability ex:capabilityFilesystemWrite ;
+    logic:precondition ex:situationPathWritable .

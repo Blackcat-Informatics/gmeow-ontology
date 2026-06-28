@@ -1,0 +1,14 @@
+{
+  "https://example.org/teleology/deontic-no-ideal-world/idealOK": {
+    "quads": 1,
+    "status": "consistent"
+  },
+  "https://example.org/teleology/deontic-no-ideal-world/worldHolds": {
+    "quads": 10,
+    "status": "consistent"
+  },
+  "https://example.org/teleology/deontic-no-ideal-world/worldNoIdeal": {
+    "quads": 10,
+    "status": "consistent"
+  }
+}

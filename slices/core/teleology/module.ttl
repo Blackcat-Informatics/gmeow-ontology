@@ -208,7 +208,7 @@ gmeow:satisfiedBy
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "satisfied by"@x-gmeow-english ;
     rdfs:range logic:Situation ;
-    skos:definition "Relates a goal to a situation that counts as achieving it. NOT functional: many situations may satisfy one goal, and disputed satisfaction is several coexisting vantage-indexed claims through the statement layer — never a global verdict (Principle 9)."@x-gmeow-english ;
+    skos:definition "Relates a goal to a situation that counts as achieving it. NOT functional: many situations may satisfy one goal, and disputed satisfaction is several coexisting vantage-indexed claims through the statement layer — never a global verdict (Principle 9). This binary edge is the CONCLUSIVE PROJECTION of a reified logic:GoalEvaluation: an edge is generated from each evaluation whose satisfaction status is satisfied and whose goal-evaluation status is completed, under that evaluation's vantage. A directly authored gmeow:satisfiedBy edge — the common authoring case — deterministically expands into a default such satisfied/completed evaluation under the asserting vantage, so the flat and reified records never disagree: one is always derived from the other."@x-gmeow-english ;
     skos:example "ex:reachOrbit gmeow:satisfiedBy ex:firstStableOrbit ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting a single canonical satisfaction when achievement is contested; carry each contested judgement on the statement with gmeow:accordingTo (Principle 9), and never make this functional — many situations may satisfy one goal."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
