@@ -58,6 +58,10 @@ pub mod model;
 pub mod sssom;
 pub mod store;
 pub mod turtle;
+// The canonical, review-friendly Turtle RENDERER over the IR — the oxigraph-free half
+// of the on-disk normalizer (the oxigraph-coupled text parser stays in `gmeow-rdf`).
+// The wasm-clean canonical-Turtle authority for the correspondence EDOAL lowering.
+pub mod turtle_render;
 
 pub use backend::{
     RdfParseRequest, RdfParserBackend, RdfSerializeRequest, RdfSerializer, SerializeGraph,
@@ -104,6 +108,7 @@ pub use sssom::{
 };
 pub use store::RdfStoreCapabilities;
 pub use turtle::{emit_annotation, emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};
+pub use turtle_render::render as render_canonical_turtle;
 
 /// The common gmeow-rdf-core surface, for `use gmeow_rdf_core::prelude::*;`.
 ///
