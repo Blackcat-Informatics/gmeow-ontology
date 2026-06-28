@@ -321,8 +321,13 @@ fn cache_round_trips() {
     let p = StageProduct::new("s", "abc123");
     c.put("key1", &p).unwrap();
     assert_eq!(c.len(), 1);
-    assert_eq!(c.get("key1").unwrap(), Some(p));
-    assert_eq!(c.get("absent").unwrap(), None);
+    // `StageProduct`'s carrier (`Arc<PipelineBundle>`) has no value equality, so
+    // compare by the persisted fields: id, digest, and the byte-artifact lane.
+    let got = c.get("key1").unwrap().expect("cached product round-trips");
+    assert_eq!(got.stage_id, p.stage_id);
+    assert_eq!(got.digest, p.digest);
+    assert_eq!(got.artifacts(), p.artifacts());
+    assert!(c.get("absent").unwrap().is_none());
 
     // Reopening the same dir recovers the index (persistence).
     let c2 = PipelineCache::open(dir.path().join("c")).unwrap();

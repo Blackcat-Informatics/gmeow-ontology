@@ -819,13 +819,13 @@ impl Stage for SnapshotStage {
             .to_vec();
         // THIS run's compiled axiom surface, taken from the stage-compile-logic product
         // (consumes edge guarantees it exists) so REP_AXIOMS never lags a regenerate.
-        let compile_artifacts = &input
+        let compile_artifacts = input
             .upstream
             .get("stage-compile-logic")
             .ok_or_else(|| stage_err("missing stage-compile-logic product"))?
-            .artifacts;
+            .artifacts();
         let mut blobs =
-            build_archive_blobs(input.root, &schema_json, &openapi_json, compile_artifacts)?;
+            build_archive_blobs(input.root, &schema_json, &openapi_json, &compile_artifacts)?;
         blobs.extend(build_guide_blobs(input.root)?);
         blobs.push(build_docs_archive(input.root)?);
         // The native reasoner's explanation + DL/EL cross-check ledger reports, folded

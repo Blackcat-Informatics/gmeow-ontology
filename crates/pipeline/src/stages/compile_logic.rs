@@ -212,7 +212,7 @@ mod tests {
                 upstream: &upstream,
             })
             .expect("compile-logic stage");
-        let arts = &out.product.artifacts;
+        let arts = out.product.artifacts();
         for path in [
             OWL_DL_PATH,
             OWL_EL_PATH,

@@ -20,6 +20,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use gmeow_rdf::ContentDigest;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
@@ -59,6 +60,48 @@ pub fn stage_key(
         fields.push(src.as_bytes());
     }
     content_digest(&fields)
+}
+
+// ── TEMPORARY (#1132 C4 → C4b/2b): the on-disk cache stand-in ────────────────
+//
+// C4 swapped `StageProduct`'s carrier from a byte-map to a structured
+// `PipelineBundle` (no serde — the kernel bundle deliberately has none). The
+// persistent cache only needs to round-trip a stage's PRODUCED VALUE byte-for-byte,
+// so for C4 it serdes a minimal stand-in: the stage id, the content digest, and the
+// byte-artifact lane (logical path → bytes) the stages still speak. On load the
+// stand-in is reconstituted into a `StageProduct` via `from_artifacts` (which
+// rebuilds the identical lane) and the explicit cached digest is restored, so the
+// cache key contribution is unchanged.
+//
+// 2b replaces this with the full canonical-projection / structural-reconstitution
+// cache (dataset + lookaside + handles). Grep `cache stand-in` to find it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct CachedProduct {
+    stage_id: String,
+    digest: String,
+    /// The byte-artifact lane (logical path → bytes). The C4 cache only persists
+    /// this lane; the structured dataset/handle reconstitution is 2b's job.
+    #[serde(default)]
+    artifacts: BTreeMap<String, Vec<u8>>,
+}
+
+impl CachedProduct {
+    fn from_product(product: &StageProduct) -> Self {
+        Self {
+            stage_id: product.stage_id.clone(),
+            digest: product.digest.clone(),
+            artifacts: product.artifacts(),
+        }
+    }
+
+    fn into_product(self) -> StageProduct {
+        // Reconstitute the byte-artifact lane into a StageProduct, then restore the
+        // explicit cached digest (a `new`-style product carries a digest decoupled
+        // from its empty carrier, so we cannot always re-derive it).
+        let mut product = StageProduct::from_artifacts(self.stage_id, self.artifacts);
+        product.digest = self.digest;
+        product
+    }
 }
 
 // ── On-disk content-addressed cache ──────────────────────────────────────────
@@ -117,14 +160,14 @@ impl PipelineCache {
                 actual,
             });
         }
-        let product: StageProduct = serde_json::from_slice(&bytes)
+        let cached: CachedProduct = serde_json::from_slice(&bytes)
             .map_err(|e| PipelineError::Decode(format!("corrupt cached product: {e}")))?;
-        Ok(Some(product))
+        Ok(Some(cached.into_product()))
     }
 
     /// Store a stage product under `stage_key`, persisting the blob and index.
     pub fn put(&mut self, stage_key: &str, product: &StageProduct) -> Result<(), PipelineError> {
-        let bytes = serde_json::to_vec(product)
+        let bytes = serde_json::to_vec(&CachedProduct::from_product(product))
             .map_err(|e| PipelineError::Decode(format!("cannot serialize product: {e}")))?;
         let digest_hex = ContentDigest::of(&bytes).to_hex();
         write_atomic(&self.dir.join("blobs").join(&digest_hex), &bytes)?;

@@ -19,6 +19,7 @@ use std::sync::{Arc, LazyLock, Mutex};
 use gmeow_rdf::provenance::DatasetProvenance;
 use rayon::prelude::*;
 
+use crate::bundle::set_bundle_provenance;
 use crate::cache::{content_digest, stage_key, PipelineCache};
 use crate::error::PipelineError;
 use crate::graph::StageGraph;
@@ -93,7 +94,11 @@ impl RunContext {
 
 /// The result of a pipeline run: every stage's product plus the order-independent
 /// digest folding them all (the determinism witness).
-#[derive(Debug, Clone, PartialEq, Eq)]
+///
+/// `StageProduct`'s carrier (`Arc<PipelineBundle>`) has no value equality, so this
+/// no longer derives `PartialEq`/`Eq`; the determinism witness is the
+/// `combined_digest` (a `String`), which tests compare directly (#1132 C4).
+#[derive(Debug, Clone)]
 pub struct RunResult {
     /// Each stage's product, keyed by stage id (sorted).
     pub products: BTreeMap<String, StageProduct>,
@@ -164,12 +169,24 @@ pub fn run(
         // publish products for the next level.
         let mut level_max: u128 = 0;
         let mut level_max_id = String::new();
-        for r in runs {
+        for mut r in runs {
             if !r.cached {
                 ctx.cache.put(&r.key, &r.product)?;
             }
             let stage = by_id[r.id.as_str()];
+            // Register this stage as a provenance unit in the run-wide sidecar
+            // (kind-derived origin: SourceLoad → Source, derived stages → Generated).
             register_stage_unit(&mut ctx.provenance, &r.id, stage.kind());
+            // Thread a per-stage provenance into the produced bundle so the carrier
+            // CARRIES a provenance sidecar (#1132 C4 deliverable 3). Kept lightweight:
+            // one unit naming the producing stage; the full graph/occurrence
+            // projection over it is C9. Stamping AFTER the cache `put` keeps the
+            // persisted product's cache-key digest stable (the cache stand-in does
+            // not persist provenance), and `combined()` still folds sorted
+            // `(id, digest)` — the digest is the value the product was cached under.
+            let mut stage_prov = DatasetProvenance::new();
+            register_stage_unit(&mut stage_prov, &r.id, stage.kind());
+            set_bundle_provenance(&mut r.product.bundle, stage_prov);
             if profile {
                 if r.elapsed_ms > level_max {
                     level_max = r.elapsed_ms;

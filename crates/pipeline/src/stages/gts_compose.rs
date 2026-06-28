@@ -97,7 +97,7 @@ pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<Vec<u8>, Pip
             ingest(&store, crate::stages::reason::CLOSURE_PATH, closure)?;
             continue;
         }
-        for (path, bytes) in &product.artifacts {
+        for (path, bytes) in &product.artifacts() {
             if path.ends_with(".ttl") || path.ends_with(".nq") || path.ends_with(".nt") {
                 ingest(&store, path, bytes)?;
             }
