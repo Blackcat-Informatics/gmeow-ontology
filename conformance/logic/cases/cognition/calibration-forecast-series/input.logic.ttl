@@ -6,13 +6,17 @@
 # a calibration assessment names an explicit forecast/outcome series with a scoring
 # rule and reference class, kept APART from a single confidence value.
 #
-# Rule ex:isSeriesCalibration fires ONLY when a CognitiveAssessment has BOTH
-# logic:assessmentEvidence (the series) AND logic:assessmentMethod (the scoring rule)
-# in addition to being dimensioned on logic:dimensionCalibration.
+# Rule ex:isSeriesCalibration fires ONLY when a CognitiveAssessment is dimensioned
+# on logic:dimensionCalibration AND names BOTH logic:assessmentEvidence (the series)
+# AND logic:assessmentMethod (the scoring rule), where the series further names a
+# reference class. The head carries the SERIES, so the derived fact records which
+# forecast series the calibration is over — the series-side facts are surfaced, not
+# merely bound and discarded.
 #
-# A bare logic:confidence value on loneConfidence carries none of those series
-# attributes, so loneConfidence does NOT satisfy the rule body — proving that the
-# series-based framing is distinct from a single numeric confidence expression.
+# The negative control confAssess IS a calibration-dimensioned assessment carrying
+# a logic:confidence value, but no series, scoring rule, or reference class. It must
+# NOT satisfy the rule — proving the series-based framing is genuinely distinct from
+# a single numeric confidence expression, even on a calibration assessment.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://example.org/cognition/calibration-forecast-series/> .
@@ -20,7 +24,8 @@
 
 ex:ruleIsSeriesCalibration a logic:Rule ;
     logic:provenance ex:ruleIsSeriesCalibration ;
-    logic:head [ rdf:subject "?a" ; rdf:predicate ex:isSeriesCalibration ; rdf:object "?a" ] ;
+    logic:head [ rdf:subject "?a" ; rdf:predicate ex:isSeriesCalibration ; rdf:object "?series" ] ;
     logic:body [ rdf:subject "?a" ; rdf:predicate logic:assessmentDimension ; rdf:object logic:dimensionCalibration ] ,
                [ rdf:subject "?a" ; rdf:predicate logic:assessmentEvidence ; rdf:object "?series" ] ,
-               [ rdf:subject "?a" ; rdf:predicate logic:assessmentMethod ; rdf:object "?rule" ] .
+               [ rdf:subject "?a" ; rdf:predicate logic:assessmentMethod ; rdf:object "?rule" ] ,
+               [ rdf:subject "?series" ; rdf:predicate ex:hasReferenceClass ; rdf:object "?refClass" ] .
