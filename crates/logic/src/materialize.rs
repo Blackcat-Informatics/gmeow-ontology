@@ -459,6 +459,30 @@ fn dropped_rule_constructs(rules: &str) -> Vec<String> {
     }
 }
 
+/// The preservation judgment for a `(rules, profile)` pair — a property of the
+/// program and engine, independent of the input EDB. The faithful evaluators
+/// (well-founded, cautious-stable, the Nemo positive-Horn chase, and empty or
+/// genuinely stratifiable rule sets) carry `{exact}`; a declared StratifiedNAF set
+/// that FAILS stratification is echoed asserted-only, dropping — and disclosing —
+/// its derivation rules as `{sound-under}`. Computed before quad generation so the
+/// empty-input fast path discloses the SAME set a populated EDB would: an empty
+/// world must not erase the unsupported-rule disclosure (the legalization floor).
+fn routed_preservation(
+    rules: &str,
+    profile: Option<&str>,
+) -> Result<PreservationClaim, MaterializeError> {
+    let faithful = matches!(
+        profile,
+        Some("WellFoundedProfile") | Some("StableModelProfile")
+    ) || rules.trim().is_empty()
+        || crate::certify::is_stratifiable(rules).map_err(MaterializeError::Parse)?;
+    Ok(if faithful {
+        PreservationClaim::exact()
+    } else {
+        PreservationClaim::for_unsupported(dropped_rule_constructs(rules))
+    })
+}
+
 /// Echo only the asserted EDB facts per world (the honest minimal materialization
 /// for a declared `StratifiedNAFProfile` set that fails stratification). Mirrors
 /// `py::echo_edb_only`.
@@ -500,59 +524,58 @@ pub fn materialize_routed(
     time_ms: Option<u64>,
     profile: Option<&str>,
 ) -> Result<Materialization, MaterializeError> {
+    // Preservation is a property of `(rules, profile)`, independent of the EDB — derive
+    // it ONCE (One-Path) so every return path below (empty input, native routing, the
+    // Nemo chase) discloses the SAME judgment. An empty world must never erase the
+    // unsupported-rule disclosure a populated one would carry.
+    let preservation = routed_preservation(rules, profile)?;
+
     if input.trim().is_empty() {
         return Ok(Materialization {
             quads: vec![],
-            preservation: PreservationClaim::exact(),
+            preservation,
         });
     }
 
-    // Non-stratifiable native routing (issue #651). `None` ⇒ fall through to Nemo.
-    // Each arm carries its own preservation: the well-founded and cautious-stable
-    // evaluators are faithful (`{exact}`); the declared-StratifiedNAF EDB-echo is a
-    // sound under-approximation that drops — and discloses — the derivation rules.
-    let routed: Option<(Vec<crate::rule_ir::DerivedRow>, PreservationClaim)> = match profile {
+    // Non-stratifiable native routing. `None` ⇒ fall through to Nemo. The well-founded
+    // and cautious-stable evaluators run their native fixpoints; any other profile with
+    // a declared set that fails stratification (⇔ `preservation` discloses dropped
+    // rules) is echoed asserted-only.
+    let routed: Option<Vec<crate::rule_ir::DerivedRow>> = match profile {
         Some("WellFoundedProfile") => {
             let store = crate::store::WorldStore::new();
             store.load_nquads(input).map_err(MaterializeError::Parse)?;
             let eval_rules =
                 crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
-            Some((
+            Some(
                 crate::wellfounded::materialize(&store, &eval_rules)
                     .map_err(MaterializeError::Chase)?,
-                PreservationClaim::exact(),
-            ))
+            )
         }
         Some("StableModelProfile") => {
             let store = crate::store::WorldStore::new();
             store.load_nquads(input).map_err(MaterializeError::Parse)?;
             let eval_rules =
                 crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
-            Some((
+            Some(
                 crate::stablemodel::cautious_materialize(&store, &eval_rules)
                     .map_err(MaterializeError::Chase)?,
-                PreservationClaim::exact(),
-            ))
+            )
         }
         _ => {
             // PositiveHorn / declared StratifiedNAF / Probabilistic / Procedural / None.
-            // Empty rules (projection-only) and genuinely stratified sets run on Nemo;
-            // only a declared set that FAILS stratification is echoed asserted-only,
-            // dropping the rules — which the preservation claim discloses.
-            if rules.trim().is_empty()
-                || crate::certify::is_stratifiable(rules).map_err(MaterializeError::Parse)?
-            {
+            // Empty rules (projection-only) and genuinely stratified sets run on Nemo
+            // (`preservation` is exact); a declared set that FAILS stratification has a
+            // non-empty unsupported set and is echoed asserted-only.
+            if preservation.unsupported_constructs.is_empty() {
                 None
             } else {
-                Some((
-                    echo_edb_only(input)?,
-                    PreservationClaim::for_unsupported(dropped_rule_constructs(rules)),
-                ))
+                Some(echo_edb_only(input)?)
             }
         }
     };
 
-    if let Some((rows, preservation)) = routed {
+    if let Some(rows) = routed {
         let quads = rows
             .into_iter()
             .map(derived_row_to_quad)
@@ -568,7 +591,7 @@ pub fn materialize_routed(
     let quads = materialize_core(rules, input, max_rule_firings, max_answers, time_ms)?;
     Ok(Materialization {
         quads,
-        preservation: PreservationClaim::exact(),
+        preservation,
     })
 }
 
@@ -953,6 +976,48 @@ mod tests {
         assert!(
             !m.quads.is_empty(),
             "the asserted EDB must still be echoed under the non-stratifiable path"
+        );
+    }
+
+    /// The legalization floor holds on the empty-input fast path too: an empty world
+    /// with a non-stratifiable rule set must STILL disclose the dropped rules — the
+    /// unsupported set is a property of the program, not of the EDB, so a degenerate
+    /// (empty) input must not erase the disclosure into a bare `{exact}`.
+    #[test]
+    fn materialize_routed_empty_input_still_discloses_non_stratifiable_rules() {
+        let m = materialize_routed(
+            NON_STRAT_RULES,
+            "",
+            None,
+            None,
+            None,
+            Some("StratifiedNAFProfile"),
+        )
+        .expect("routed materialize must not fail on empty input");
+
+        // No facts ⇒ no quads, but the unsupported-rule disclosure must survive.
+        assert!(m.quads.is_empty(), "empty input yields no quads");
+        assert!(
+            m.preservation
+                .polarities
+                .contains(&PreservationKind::SoundUnder),
+            "empty input with non-stratifiable rules must still be SoundUnder, got {:?}",
+            m.preservation.polarities
+        );
+        assert!(
+            !m.preservation.polarities.contains(&PreservationKind::Exact),
+            "a dropped-rule disclosure must not also claim Exact"
+        );
+        assert_eq!(
+            m.preservation.unsupported_constructs,
+            [
+                "https://example.org/ns/ruleLose",
+                "https://example.org/ns/ruleWin"
+            ]
+            .into_iter()
+            .map(str::to_owned)
+            .collect(),
+            "the dropped rule IRIs must be disclosed even with an empty EDB"
         );
     }
 
