@@ -235,6 +235,20 @@ pub fn build_snapshot(
         gmeow_logic::result_rdf::GRAPH_REASONING,
         "reasoning",
     )?;
+    // graph/provenance ← the dogfooded occurrence-based provenance projection
+    // (#1132 C9), folded as its own queryable named graph so a repo-free consumer reads
+    // the full compilation-unit + per-lane carrier manifest (public IRIs + OriginKind +
+    // logic:loadBearing) WITHOUT re-running the build. The per-quad attribution sidecar
+    // is built + gated here (an UNATTRIBUTED authored quad HARD-fails); only its PUBLIC
+    // projection (`public_projection` — NO runtime UnitId/ArtifactId/OriginSetId, S0.5)
+    // reaches the graph.
+    let provenance_nt = build_provenance_projection(root)?;
+    add_named(
+        &mut builder,
+        provenance_nt.as_bytes(),
+        crate::stages::provenance_graph::GRAPH_PROVENANCE,
+        "provenance",
+    )?;
 
     // Fold a deterministic tar archive of the JSON-LD-star + YAML-LD-star
     // serializations into the bundle (#699). The serializer reads THIS builder's
@@ -882,8 +896,11 @@ impl Stage for SnapshotStage {
         // in-memory stage-compile-logic product (single-pass freshness).
         // v12 folds the external-corpus divergence Findings (graph/conformance) from
         // the stage-conformance product, when any committed case diverges from its
-        // published expected verdict.
-        "snapshot.v12-conformance-graph"
+        // published expected verdict. v13 folds the dogfooded occurrence-based
+        // provenance projection (graph/provenance) — the public compilation-unit +
+        // per-lane carrier manifest (no runtime ids, S0.5) — and gates that every
+        // authored quad carries ≥1 stage-origin (#1132 C9).
+        "snapshot.v13-provenance-graph"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -1094,6 +1111,33 @@ fn build_snapshot_bundle(
             ))
         })?;
     Ok(bundle)
+}
+
+/// Build the per-quad provenance sidecar for the authored base graph, GATE it
+/// (every authored quad must carry ≥1 occurrence — an unattributed quad is a HARD
+/// FAIL, no-optionality), and project its PUBLIC projection into the deterministic
+/// `graph/provenance` N-Triples (#1132 C9). Only public unit names/IRIs + kinds +
+/// artifact paths reach the projection — NO runtime `UnitId` / `ArtifactId` /
+/// `OriginSetId` (S0.5). The fixed carrier-lane manifest + the realized process
+/// vocab (`gmeow:Procedure` / `gmeow:ProcedureStep` / `gmeow:Execution`) round it out.
+fn build_provenance_projection(root: &Path) -> Result<String, PipelineError> {
+    let (prov, expected) = crate::stages::source_load::attributed_base_provenance(root)?;
+    // The hard-fail gate: every authored quad has ≥1 stage-origin occurrence and every
+    // occurrence references a registered unit + artifact. A violation aborts the build.
+    gmeow_rdf::provenance::check_provenance(&prov, &expected).map_err(|errors| {
+        stage_err(&format!(
+            "provenance gate: {} authored quad(s) unattributed or mis-attributed: {}",
+            errors.len(),
+            errors
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+                .join("; ")
+        ))
+    })?;
+    Ok(crate::stages::provenance_graph::project_provenance_graph(
+        &prov.public_projection(),
+    ))
 }
 
 /// The deterministic `graph/reasoning` projection (N-Triples bytes) of `stage-reason`'s
@@ -2660,6 +2704,145 @@ mod logic_graph_golden_tests {
             folded,
             "the graph/relational-core fold must be byte-deterministic"
         );
+    }
+
+    const GRAPH_PROVENANCE: &str = crate::stages::provenance_graph::GRAPH_PROVENANCE;
+
+    /// A FIXED synthetic provenance projection — the byte-golden subject for the
+    /// `graph/provenance` fold. Three units (root / source / import) so every
+    /// `OriginKind` branch is exercised; deliberately synthetic so the golden is
+    /// stable and independent of the real ontology (whose unit set churns).
+    fn fixed_provenance_projection() -> Vec<(String, String, String, Option<String>)> {
+        vec![
+            (
+                "imports/prov.ttl".to_string(),
+                "import".to_string(),
+                "imports/prov.ttl".to_string(),
+                None,
+            ),
+            (
+                "ontology/gmeow.ttl".to_string(),
+                "root-ontology".to_string(),
+                "ontology/gmeow.ttl".to_string(),
+                None,
+            ),
+            (
+                "slices/core/epistemics/module.ttl".to_string(),
+                "source".to_string(),
+                "slices/core/epistemics/module.ttl".to_string(),
+                None,
+            ),
+        ]
+    }
+
+    /// Byte golden (#1132 C9): the `graph/provenance` named-graph content of an emitted
+    /// snapshot, over a FIXED synthetic provenance projection. Pins the per-graph fold
+    /// path (public projection → N-Triples → add_named canonicalization → emit →
+    /// read-back) byte-for-byte, independent of the full gmeow.gts. A second emit is
+    /// asserted byte-identical (determinism). The golden ALSO proves S0.5 (no runtime id).
+    #[test]
+    fn graph_provenance_fold_byte_golden() {
+        let prov_nt = crate::stages::provenance_graph::project_provenance_graph(
+            &fixed_provenance_projection(),
+        );
+
+        let build = || {
+            let mut builder = SnapshotBuilder::new();
+            let base = parse_nq(
+                b"<https://blackcatinformatics.ca/gmeow/> \
+                  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                  <http://www.w3.org/2002/07/owl#Ontology> .\n",
+            )
+            .expect("base parse");
+            builder.add_quads(&base, None, Some("base"));
+            add_named(
+                &mut builder,
+                prov_nt.as_bytes(),
+                GRAPH_PROVENANCE,
+                "provenance",
+            )
+            .expect("fold graph/provenance");
+            emit_gts(
+                &builder,
+                "dist",
+                Some(vec!["gzip".to_string()]),
+                Vec::new(),
+                Vec::new(),
+                None,
+                None,
+                None,
+                gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            )
+            .expect("emit snapshot")
+        };
+
+        let gts = build();
+        let folded = folded_graph_nquads(&gts, GRAPH_PROVENANCE);
+        assert!(
+            !folded.is_empty(),
+            "graph/provenance must carry the projection"
+        );
+        // S0.5: the folded bytes must NOT contain any runtime id.
+        assert!(
+            !folded.contains("unit#"),
+            "no runtime UnitId in graph/provenance"
+        );
+        assert!(
+            !folded.contains("artifact#"),
+            "no runtime ArtifactId in graph/provenance"
+        );
+        assert!(
+            !folded.contains("origin-set#"),
+            "no runtime OriginSetId in graph/provenance"
+        );
+        insta::assert_snapshot!("graph_provenance_fold", folded);
+
+        // Determinism: a second build folds the SAME graph/provenance content.
+        let gts2 = build();
+        assert_eq!(
+            folded_graph_nquads(&gts2, GRAPH_PROVENANCE),
+            folded,
+            "the graph/provenance fold must be byte-deterministic"
+        );
+    }
+
+    /// The hard-fail attribution gate passes on the REAL ontology (#1132 C9): every
+    /// authored quad carries ≥1 stage-origin occurrence. Builds the real per-quad
+    /// provenance sidecar and runs `check_provenance` over its full coverage set.
+    #[test]
+    fn real_ontology_every_quad_is_attributed() {
+        let root = repo_root();
+        let (prov, expected) =
+            crate::stages::source_load::attributed_base_provenance(&root).expect("attribute");
+        assert!(
+            expected.len() > 5_000,
+            "real authored base graph unexpectedly small: {} quads",
+            expected.len()
+        );
+        gmeow_rdf::provenance::check_provenance(&prov, &expected)
+            .expect("every authored quad must carry ≥1 stage-origin occurrence");
+        // The public projection over the real ontology must carry NO runtime id.
+        for (name, kind, artifact, _loc) in prov.public_projection() {
+            for field in [&name, &kind, &artifact] {
+                assert!(!field.contains("unit#"), "runtime UnitId leaked: {field}");
+                assert!(
+                    !field.contains("artifact#"),
+                    "runtime ArtifactId leaked: {field}"
+                );
+                assert!(
+                    !field.contains("origin-set#"),
+                    "runtime OriginSetId leaked: {field}"
+                );
+            }
+        }
+    }
+
+    fn repo_root() -> std::path::PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap()
     }
 }
 

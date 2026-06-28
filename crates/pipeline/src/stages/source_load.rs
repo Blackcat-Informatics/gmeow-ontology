@@ -14,14 +14,92 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+use std::collections::HashMap;
+
 use gmeow_rdf::oxigraph::{
     flat_oxigraph_quads_from_dataset, flat_oxigraph_quads_from_dataset_scoped, GraphPolicy,
 };
-use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
+use gmeow_rdf::provenance::{DatasetProvenance, OriginKind};
+use gmeow_rdf::{parse_dataset, serialize_dataset, QuadHandle, SerializeGraph};
+use oxigraph::model::Quad;
 use oxigraph::store::Store;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+
+/// The `OriginKind` an authored file contributes, by its repo-relative role:
+/// `ontology/gmeow.ttl` is the [`OriginKind::RootOntology`], every `imports/*.ttl`
+/// is an [`OriginKind::Import`], and every slice `module.ttl` is an
+/// [`OriginKind::Source`]. The classification is a pure function of the path, so the
+/// provenance attribution is reproducible (no-optionality — every authored file maps
+/// to a concrete kind, never an unknown).
+fn authored_origin_kind(root: &Path, path: &Path) -> OriginKind {
+    let rel = path.strip_prefix(root).unwrap_or(path);
+    let rel_str = rel.to_string_lossy().replace('\\', "/");
+    if rel_str == "ontology/gmeow.ttl" {
+        OriginKind::RootOntology
+    } else if rel_str.starts_with("imports/") {
+        OriginKind::Import
+    } else {
+        OriginKind::Source
+    }
+}
+
+/// Build the per-quad provenance sidecar for the authored base graph (#1132 C9).
+///
+/// Every authored file (`ontology/gmeow.ttl`, every slice `module.ttl`, every
+/// `imports/*.ttl`) is registered as one compilation [`unit`](DatasetProvenance::register_unit)
+/// — by its repo-relative path, with the path-derived [`OriginKind`] — and one
+/// [`artifact`](DatasetProvenance::register_artifact) under that same path. Each quad the
+/// file contributes is recorded as one [`AssertionOccurrence`](gmeow_rdf::provenance::AssertionOccurrence)
+/// keyed by a content-deduplicated [`QuadHandle`]: two files asserting the same triple
+/// collapse to ONE handle but TWO occurrences (the set-valued S0.3 invariant). Blank-node
+/// labels are standardized per file (the same FNV scope the load store uses), so a
+/// structurally-distinct blank axiom in two files keeps two handles.
+///
+/// Returns `(provenance, expected_handles)` where `expected_handles` is every distinct
+/// handle minted — the coverage set [`check_provenance`](gmeow_rdf::provenance::check_provenance)
+/// asserts is fully attributed. An UNATTRIBUTED authored quad is impossible by
+/// construction (every quad is recorded as it is seen); the gate is the hard-fail proof.
+pub fn attributed_base_provenance(
+    root: &Path,
+) -> Result<(DatasetProvenance, Vec<QuadHandle>), PipelineError> {
+    let mut prov = DatasetProvenance::new();
+    // Content key (the standardized oxigraph quad) → its deduplicated handle. Two files
+    // asserting an identical triple share the handle but record distinct occurrences.
+    let mut handle_of: HashMap<Quad, QuadHandle> = HashMap::new();
+    let mut next: u32 = 0;
+
+    for path in authored_files(root)? {
+        let bytes = std::fs::read(&path)?;
+        let scope = path.display().to_string();
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let kind = authored_origin_kind(root, &path);
+        let unit = prov.register_unit(rel.clone(), kind);
+        let artifact = prov.register_artifact(rel);
+
+        let dataset = parse_dataset(&bytes, "text/turtle", None)
+            .map_err(|e| PipelineError::Parse(format!("syntax error in {scope}: {e}")))?;
+        let quads = flat_oxigraph_quads_from_dataset_scoped(&dataset, &scope)
+            .map_err(|e| PipelineError::Parse(format!("IR → quads in {scope}: {e}")))?;
+        for quad in quads {
+            let handle = *handle_of.entry(quad).or_insert_with(|| {
+                let h = QuadHandle::from_index(next);
+                next += 1;
+                h
+            });
+            prov.record_occurrence(handle, unit, artifact, None);
+        }
+    }
+
+    let mut expected: Vec<QuadHandle> = handle_of.into_values().collect();
+    expected.sort_unstable_by_key(|h| h.index());
+    Ok((prov, expected))
+}
 
 /// Logical path of the published base graph (N-Quads, in-memory dataflow).
 pub const BASE_GRAPH_PATH: &str = "pipeline/base-graph.nq";

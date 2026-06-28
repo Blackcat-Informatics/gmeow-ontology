@@ -39,6 +39,7 @@ pub mod metadata;
 pub mod okf;
 pub mod parquet;
 pub mod profiles;
+pub mod provenance_graph;
 pub mod reason;
 pub mod references;
 pub mod release;
