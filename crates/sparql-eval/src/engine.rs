@@ -182,10 +182,11 @@ fn materialize(outcome: Outcome, ctx: &EvalCtx<'_>) -> SparqlResult {
     match outcome {
         Outcome::Solutions(seq) => {
             let (variables, rows) = crate::eval::materialize_solutions(&seq, ctx);
+            let aux = ctx.constructed_dataset(&rows);
             SparqlResult::Solutions {
                 variables,
                 rows,
-                aux: ctx.constructed_dataset(),
+                aux,
             }
         }
         Outcome::Graph(graph) => SparqlResult::Graph(graph),

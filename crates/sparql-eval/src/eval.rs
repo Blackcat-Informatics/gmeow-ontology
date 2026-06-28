@@ -130,9 +130,12 @@ pub struct EvalCtx<'d> {
     /// Quads invented during evaluation by value-constructing builtins
     /// (`gmeow:listSlice`/`gmeow:listConcat` mint fresh `rdf:List` cells). A SPARQL
     /// expression returns one term, so the new cells are buffered here and surface at
-    /// the result boundary: [`crate::construct::eval_construct`] unions them into the
-    /// CONSTRUCT output, and the native `query` egress folds them into
-    /// `SparqlResult::Solutions::aux`. Empty whenever no constructing builtin ran.
+    /// the result boundary — but only the cells **reachable from the surviving result
+    /// rows** ([`Self::reachable_constructed`]): a list minted on a row later pruned by
+    /// `FILTER`/`DISTINCT`/`LIMIT`/etc. must not leak orphaned cells.
+    /// [`crate::construct::eval_construct`] folds the reachable set into the CONSTRUCT
+    /// output, and the native `query` egress into `SparqlResult::Solutions::aux`. Empty
+    /// whenever no constructing builtin ran.
     pub(crate) constructed: Vec<(TermValue, TermValue, TermValue)>,
 }
 
@@ -177,20 +180,56 @@ impl<'d> EvalCtx<'d> {
         }
     }
 
-    /// Freeze the quads invented during evaluation (see [`Self::constructed`]) into a
-    /// standalone dataset — the auxiliary graph surfaced alongside a SELECT/ASK
-    /// result. An empty buffer yields an empty (but valid) dataset.
-    pub(crate) fn constructed_dataset(&self) -> Arc<RdfDataset> {
+    /// Freeze the invented quads reachable from the surviving result `rows` (see
+    /// [`Self::reachable_constructed`]) into a standalone dataset — the auxiliary graph
+    /// surfaced alongside a SELECT/ASK result. The common empty-buffer case yields an
+    /// empty (but valid) dataset.
+    pub(crate) fn constructed_dataset(&self, rows: &[Vec<Option<TermValue>>]) -> Arc<RdfDataset> {
         let mut builder = gmeow_rdf_core::RdfDatasetBuilder::new();
-        for (s, p, o) in &self.constructed {
-            let s = builder.intern_value(s);
-            let p = builder.intern_value(p);
-            let o = builder.intern_value(o);
+        for (s, p, o) in self.reachable_constructed(rows) {
+            let s = builder.intern_value(&s);
+            let p = builder.intern_value(&p);
+            let o = builder.intern_value(&o);
             builder.push_quad(s, p, o, None);
         }
         builder
             .freeze()
             .expect("constructed list cells are positionally valid by construction")
+    }
+
+    /// The constructed cells (see [`Self::constructed`]) reachable, via
+    /// `rdf:first`/`rdf:rest`, from a term bound in a surviving result `row` — so a
+    /// list minted on a row later removed by `FILTER`/`HAVING`/`DISTINCT`/`LIMIT` (or a
+    /// failed join) contributes no orphaned cells to the egress.
+    ///
+    /// `TermValue` is not `Hash`, so the forest walk uses linear scans; the buffer
+    /// holds only THIS query's freshly-minted cells, so it is small, and the common
+    /// empty case is a fast no-op.
+    pub(crate) fn reachable_constructed(
+        &self,
+        rows: &[Vec<Option<TermValue>>],
+    ) -> Vec<(TermValue, TermValue, TermValue)> {
+        if self.constructed.is_empty() {
+            return Vec::new();
+        }
+        // Seed the walk with every term bound in a surviving row.
+        let mut worklist: Vec<TermValue> = rows.iter().flatten().filter_map(Clone::clone).collect();
+        let mut visited: Vec<TermValue> = Vec::new();
+        let mut out: Vec<(TermValue, TermValue, TermValue)> = Vec::new();
+        while let Some(node) = worklist.pop() {
+            if visited.contains(&node) {
+                continue;
+            }
+            visited.push(node.clone());
+            for (s, p, o) in &self.constructed {
+                if *s == node {
+                    out.push((s.clone(), p.clone(), o.clone()));
+                    // Follow the rest chain and any nested-list member head.
+                    worklist.push(o.clone());
+                }
+            }
+        }
+        out
     }
 
     /// Attach a `SERVICE` federation source for this evaluation. The borrow shares

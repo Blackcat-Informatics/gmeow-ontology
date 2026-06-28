@@ -1001,4 +1001,42 @@ mod tests {
         // binding triple (1) + two cells (4) = 5 quads.
         assert_eq!(graph.quad_count(), 5);
     }
+
+    #[test]
+    fn pruned_row_does_not_leak_constructed_cells_into_aux() {
+        // A list is minted on a row that FILTER then removes. Its cells were buffered,
+        // but no row survives, so they must NOT surface in the SELECT aux graph (the
+        // row↔aux contract — no orphaned cells).
+        let ds = list_ds();
+        let q = format!(
+            "{PREFIX} SELECT ?s WHERE {{ ?q <http://ex/list> ?l . \
+             BIND(g:listSlice(?l, 0, 2) AS ?s) FILTER(1 > 2) }}"
+        );
+        let (rows, aux) = run_constructed(&ds, &q);
+        assert!(rows.is_empty(), "all rows are filtered out, got {rows:?}");
+        assert_eq!(
+            aux.quad_count(),
+            0,
+            "orphaned cells leaked: {:?}",
+            triples(&aux)
+        );
+    }
+
+    #[test]
+    fn pruned_row_does_not_leak_constructed_cells_into_construct() {
+        // Same contract for CONSTRUCT: a list minted on a filtered row contributes no
+        // orphaned cells to the output graph.
+        let ds = list_ds();
+        let q = format!(
+            "{PREFIX} CONSTRUCT {{ <http://ex/out> <http://ex/has> ?s }} \
+             WHERE {{ ?q <http://ex/list> ?l . BIND(g:listSlice(?l, 0, 2) AS ?s) FILTER(1 > 2) }}"
+        );
+        let graph = run_graph(&ds, &q);
+        assert_eq!(
+            graph.quad_count(),
+            0,
+            "orphaned cells leaked: {:?}",
+            triples(&graph)
+        );
+    }
 }
