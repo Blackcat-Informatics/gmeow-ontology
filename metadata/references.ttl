@@ -1173,13 +1173,6 @@
     gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/212> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/298fa949bd8f0504> .
 
-<https://blackcatinformatics.ca/gmeow/references/citation/2993b3adaf28b153> a gmeow:CitationAct ;
-    rdfs:label "tests/test_gts_views.py"@en ;
-    gmeow:citationIntent gmeow:intentBridgedByReference ;
-    gmeow:citedEntity <https://nowhere.example/x> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/tests/test_gts_views.py> ;
-    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/2993b3adaf28b153> .
-
 <https://blackcatinformatics.ca/gmeow/references/citation/2a1edc6f959faa9e> a gmeow:CitationAct ;
     rdfs:label "docs/import-provenance.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
@@ -8813,9 +8806,6 @@ foaf:homepage a gmeow:CreativeWork ;
 <https://blackcatinformatics.ca/gmeow/references/selector/298fa949bd8f0504> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/212:62" .
 
-<https://blackcatinformatics.ca/gmeow/references/selector/2993b3adaf28b153> a gmeow:Selector ;
-    gmeow:selectorLocator "tests/test_gts_views.py:142" .
-
 <https://blackcatinformatics.ca/gmeow/references/selector/2a1edc6f959faa9e> a gmeow:Selector ;
     gmeow:selectorLocator "docs/import-provenance.md:99" .
 
@@ -11526,9 +11516,9 @@ repo:CITATION.cff a gmeow:CreativeWork ;
     rdfs:label "tests/test_gts_cli.py"@en ;
     gmeow:sourceLocation "tests/test_gts_cli.py" .
 
-<https://blackcatinformatics.ca/gmeow/repo/tests/test_gts_views.py> a gmeow:CreativeWork ;
-    rdfs:label "tests/test_gts_views.py"@en ;
-    gmeow:sourceLocation "tests/test_gts_views.py" .
+<https://blackcatinformatics.ca/gmeow/repo/tests/test_languages.py> a gmeow:CreativeWork ;
+    rdfs:label "tests/test_languages.py"@en ;
+    gmeow:sourceLocation "tests/test_languages.py" .
 
 <https://blackcatinformatics.ca/gmeow/repo/tests/test_notes.py> a gmeow:CreativeWork ;
     rdfs:label "tests/test_notes.py"@en ;
@@ -12613,10 +12603,6 @@ brick: a gmeow:CreativeWork ;
 <https://nope.example/> a gmeow:CreativeWork ;
     rdfs:label "nope.example"@en ;
     gmeow:sourceLocation "https://nope.example/" .
-
-<https://nowhere.example/x> a gmeow:CreativeWork ;
-    rdfs:label "nowhere.example/x"@en ;
-    gmeow:sourceLocation "https://nowhere.example/x" .
 
 <https://old.example.com/profile> a gmeow:CreativeWork ;
     rdfs:label "old.example.com/profile"@en ;
