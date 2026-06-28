@@ -28,7 +28,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_rdf::{parse_dataset, TermRef};
-use gmeow_validate::language_tags::load_tag_map;
+use gmeow_validate::language_tags::{load_inverse_tag_map, load_tag_map, retag_graph_to_internal};
 
 /// The GMEOW namespace prefix.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -333,6 +333,78 @@ fn language_tag_map_is_deterministic_and_covers_catalog() {
             .unwrap_or_else(|| panic!("missing tag mapping for {internal_tag}"));
         assert!(!bcp.is_empty(), "empty BCP-47 mapping for {internal_tag}");
     }
+}
+
+/// Catalog-data coverage: `load_inverse_tag_map` over the REAL catalog recovers the
+/// three project translation targets — English, French, and Mandarin.
+///
+/// This is a DATA audit that the inline unit test in `language_tags.rs`
+/// (`load_inverse_tag_map_recovers_natural_tags`) cannot substitute for: that test
+/// uses a 2-language synthetic fixture and asserts the LOGIC is correct. This test
+/// asserts that the CATALOG actually carries the three required mappings. An
+/// authoring error (missing `bcp47Tag`, wrong tag, removed individual) would break
+/// this test but leave the unit test green.
+#[test]
+fn inverse_tag_map_recovers_natural_internal_tags() {
+    let bytes = catalog_bytes();
+    let inv = load_inverse_tag_map(&bytes, "turtle")
+        .expect("load_inverse_tag_map must succeed on the reference catalog");
+
+    assert_eq!(
+        inv.get("en"),
+        Some(&"x-gmeow-english".to_owned()),
+        "catalog inverse map must recover en → x-gmeow-english"
+    );
+    assert_eq!(
+        inv.get("fr"),
+        Some(&"x-gmeow-french".to_owned()),
+        "catalog inverse map must recover fr → x-gmeow-french"
+    );
+    assert_eq!(
+        inv.get("zh"),
+        Some(&"x-gmeow-mandarin".to_owned()),
+        "catalog inverse map must recover zh → x-gmeow-mandarin"
+    );
+}
+
+/// Catalog round-trip: `retag_graph_to_internal` using the catalog's inverse map
+/// converts `@en` and `@zh` literals to `@x-gmeow-english` and `@x-gmeow-mandarin`
+/// respectively; verifies the catalog DATA drives the real graph-rewrite path.
+///
+/// This complements the unit-level `retag_graph_to_internal_lifts_public_tags` test
+/// (which uses a synthetic 2-entry map) by asserting that the catalog-derived
+/// inverse map actually produces the correct internal tags on a concrete N-Triples
+/// graph — exercising the end-to-end catalog → inverse-map → retag path.
+#[test]
+fn retag_graph_to_internal_catalog_round_trip() {
+    let bytes = catalog_bytes();
+    let inv = load_inverse_tag_map(&bytes, "turtle")
+        .expect("load_inverse_tag_map must succeed on the reference catalog");
+
+    // Build a small N-Triples graph with one @en and one @zh literal.
+    let nt = "<https://e/s> <https://e/label> \"Hello\"@en .\n\
+              <https://e/s> <https://e/label> \"中文\"@zh .\n";
+
+    let out = retag_graph_to_internal(nt.as_bytes(), "ntriples", &inv)
+        .expect("retag_graph_to_internal must succeed");
+    let text = String::from_utf8(out).expect("output must be valid UTF-8");
+
+    assert!(
+        text.contains("\"Hello\"@x-gmeow-english"),
+        "@en must be retagged to @x-gmeow-english using catalog inverse map: {text}"
+    );
+    assert!(
+        text.contains("\"中文\"@x-gmeow-mandarin"),
+        "@zh must be retagged to @x-gmeow-mandarin using catalog inverse map: {text}"
+    );
+    assert!(
+        !text.contains("\"Hello\"@en"),
+        "original @en literal must not survive in output: {text}"
+    );
+    assert!(
+        !text.contains("\"中文\"@zh"),
+        "original @zh literal must not survive in output: {text}"
+    );
 }
 
 /// Belt-and-braces coverage guard: the catalog defines the full ISO 639-1 sweep,
