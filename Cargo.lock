@@ -2054,6 +2054,7 @@ dependencies = [
  "jsonschema",
  "oxigraph",
  "pyo3",
+ "rayon",
  "regex",
  "rstest",
  "serde",

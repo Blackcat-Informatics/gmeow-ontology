@@ -5,8 +5,9 @@
 //!
 //! The orchestration builds the ontology oxigraph [`Store`] once and parses the
 //! SHACL shapes once, then runs every lint/SHACL phase against the shared store.
-//! Example files are validated via a scoped overlay (example-only quads are
-//! inserted, validated, then removed) so the base store is never contaminated.
+//! Example files are validated in parallel: each rayon worker holds its own private
+//! copy of the base store and overlays one example at a time (inserted, validated,
+//! then removed), so the shared base is never contaminated.
 //!
 //! Timing records are collected when [`ValidateOptions::timings`] is true and
 //! can be serialized to JSON alongside the error/warning output.
@@ -18,6 +19,7 @@ use gmeow_diagnostics::{Finding, Location, Report, Severity};
 use gmeow_gts::model::Graph;
 use oxigraph::model::Quad;
 use oxigraph::store::Store;
+use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use gmeow_slice::catalog::SliceCatalog;
@@ -146,7 +148,7 @@ impl ValidationRun {
     /// 7. Reasoning/gUFO invariants
     /// 8. Merged SHACL validation
     /// 9. Example coverage check
-    /// 10. Per-example SHACL via scoped overlay
+    /// 10. Per-example SHACL via per-worker scoped overlay (parallel)
     /// 11. Mapping DSL SHACL
     /// 12. Statement DSL SHACL
     /// 13. Test DSL SHACL
@@ -396,62 +398,91 @@ impl ValidationRun {
             shacl_findings.extend(result);
         }
 
-        // Phase 11: mapping DSL SHACL.
-        if !mapping_dsl_dir.is_empty() {
-            if let Some(dsl_shapes_ttl) = &options.mapping_shapes_ttl {
-                let start = Instant::now();
-                let paths = collect_ttl_paths(mapping_dsl_dir)?;
-                let (result, meta) = check_dsl(&paths, dsl_shapes_ttl, "mapping", cache.as_ref())?;
-                if options.timings {
-                    timings.push(Timing {
-                        phase: "mapping-dsl-shacl".to_owned(),
-                        elapsed_ms: start.elapsed().as_millis(),
-                        metadata: meta,
-                    });
-                }
-                shacl_findings.extend(result);
-            }
-        }
+        // Phases 11-13: mapping / statement / test DSL SHACL. Each builds its OWN
+        // merged store and runs one independent SHACL pass, so the three run
+        // concurrently via `rayon::join`. Each closure keeps its original guard and
+        // builds its own `Timing`; results are folded — and timings pushed — in fixed
+        // (mapping, statement, test) order AFTER the join, so the shared `timings`
+        // vec is never touched concurrently and the output stays deterministic.
+        type DslPhaseResult = Result<Option<(Vec<Finding>, Timing)>, String>;
 
-        // Phase 12: statement DSL SHACL.
-        if !statement_dsl_dir.is_empty() {
-            if let Some(dsl_shapes_ttl) = &options.statement_shapes_ttl {
-                let start = Instant::now();
-                let paths = collect_ttl_paths(statement_dsl_dir)?;
-                let (result, meta) =
-                    check_dsl(&paths, dsl_shapes_ttl, "statement", cache.as_ref())?;
-                if options.timings {
-                    timings.push(Timing {
-                        phase: "statement-dsl-shacl".to_owned(),
-                        elapsed_ms: start.elapsed().as_millis(),
-                        metadata: meta,
-                    });
-                }
-                shacl_findings.extend(result);
+        let dsl_mapping = || -> DslPhaseResult {
+            if mapping_dsl_dir.is_empty() {
+                return Ok(None);
             }
-        }
+            let Some(dsl_shapes_ttl) = &options.mapping_shapes_ttl else {
+                return Ok(None);
+            };
+            let start = Instant::now();
+            let paths = collect_ttl_paths(mapping_dsl_dir)?;
+            let (result, meta) = check_dsl(&paths, dsl_shapes_ttl, "mapping", cache.as_ref())?;
+            Ok(Some((
+                result,
+                Timing {
+                    phase: "mapping-dsl-shacl".to_owned(),
+                    elapsed_ms: start.elapsed().as_millis(),
+                    metadata: meta,
+                },
+            )))
+        };
 
-        // Phase 13: test DSL SHACL.
-        if let (Some(test_dsl_dir), Some(dsl_shapes_ttl)) =
-            (&options.test_dsl_dir, &options.test_dsl_shapes_ttl)
-        {
-            if !test_dsl_dir.is_empty() {
-                let start = Instant::now();
-                let mut paths = collect_ttl_paths(test_dsl_dir)?;
-                if let Some(slices_dir) = &options.slices_dir {
-                    paths.extend(collect_slice_test_files(slices_dir)?);
-                }
-                paths.sort();
-                if !paths.is_empty() {
-                    let (result, meta) = check_dsl(&paths, dsl_shapes_ttl, "test", cache.as_ref())?;
-                    if options.timings {
-                        timings.push(Timing {
-                            phase: "test-dsl-shacl".to_owned(),
-                            elapsed_ms: start.elapsed().as_millis(),
-                            metadata: meta,
-                        });
-                    }
-                    shacl_findings.extend(result);
+        let dsl_statement = || -> DslPhaseResult {
+            if statement_dsl_dir.is_empty() {
+                return Ok(None);
+            }
+            let Some(dsl_shapes_ttl) = &options.statement_shapes_ttl else {
+                return Ok(None);
+            };
+            let start = Instant::now();
+            let paths = collect_ttl_paths(statement_dsl_dir)?;
+            let (result, meta) = check_dsl(&paths, dsl_shapes_ttl, "statement", cache.as_ref())?;
+            Ok(Some((
+                result,
+                Timing {
+                    phase: "statement-dsl-shacl".to_owned(),
+                    elapsed_ms: start.elapsed().as_millis(),
+                    metadata: meta,
+                },
+            )))
+        };
+
+        let dsl_test = || -> DslPhaseResult {
+            let (Some(test_dsl_dir), Some(dsl_shapes_ttl)) =
+                (&options.test_dsl_dir, &options.test_dsl_shapes_ttl)
+            else {
+                return Ok(None);
+            };
+            if test_dsl_dir.is_empty() {
+                return Ok(None);
+            }
+            let start = Instant::now();
+            let mut paths = collect_ttl_paths(test_dsl_dir)?;
+            if let Some(slices_dir) = &options.slices_dir {
+                paths.extend(collect_slice_test_files(slices_dir)?);
+            }
+            paths.sort();
+            if paths.is_empty() {
+                return Ok(None);
+            }
+            let (result, meta) = check_dsl(&paths, dsl_shapes_ttl, "test", cache.as_ref())?;
+            Ok(Some((
+                result,
+                Timing {
+                    phase: "test-dsl-shacl".to_owned(),
+                    elapsed_ms: start.elapsed().as_millis(),
+                    metadata: meta,
+                },
+            )))
+        };
+
+        let (mapping_res, (statement_res, test_res)) =
+            rayon::join(dsl_mapping, || rayon::join(dsl_statement, dsl_test));
+
+        for phase_res in [mapping_res, statement_res, test_res] {
+            if let Some((result, timing)) = phase_res? {
+                shacl_findings.extend(result);
+                if options.timings {
+                    timings.push(timing);
                 }
             }
         }
@@ -878,7 +909,34 @@ fn check_example_coverage(slices_dir: &str) -> Result<PhaseResult, String> {
     Ok(result)
 }
 
-/// Phase 10: validate every slice example against the ontology via scoped overlay.
+/// One cached SHACL phase outcome: the structured findings plus a cache-status tag
+/// (`"cache-hit"` / `"cache-miss"` / `"cache-disabled"`), or a hard error. Matches
+/// the return shape of [`run_cached`].
+type CachedPhaseResult = Result<(Vec<Finding>, Option<String>), String>;
+
+/// Upper bound on rayon workers used for per-example SHACL validation. Each worker
+/// holds one full copy of the base ontology store, so this caps the resident-store
+/// RAM (and the per-worker build cost) on many-core machines while still saturating
+/// the few-core CI runners that gate this lane.
+const EXAMPLE_VALIDATION_MAX_WORKERS: usize = 8;
+
+/// Build one independent in-memory store from the base ontology quad snapshot.
+///
+/// Used as the per-worker `map_init` state for parallel example validation. A fresh
+/// store (not a `Store::clone`, which shares `Arc<Content>`) is required so each
+/// worker can overlay and restore examples without affecting any other worker.
+fn build_overlay_store(base_quads: &[Quad]) -> Store {
+    let store = Store::new().expect("in-memory store creation is infallible");
+    for quad in base_quads {
+        store
+            .insert(quad)
+            .expect("inserting a base quad into an in-memory store is infallible");
+    }
+    store
+}
+
+/// Phase 10: validate every slice example against the ontology, in parallel, via a
+/// non-mutating `base ∪ overlay` view per example.
 fn check_examples(
     store: &Store,
     shapes: &gmeow_shacl::shapes::Shapes,
@@ -886,21 +944,67 @@ fn check_examples(
     cache: Option<&ValidationCache>,
     base_key: &str,
 ) -> Result<(Vec<Finding>, Option<String>), String> {
+    // `find_example_files` returns a name-sorted list (see its `sort_by`). Each
+    // example is an independent whole-ontology SHACL pass — the dominant cost of
+    // `validate` — so validate them in parallel.
+    //
+    // The SHACL shapes include SHACL-SPARQL targets, which need a queryable
+    // `base ∪ example` store; cloning an oxigraph `Store` shares its `Arc<Content>`
+    // (a clone is NOT isolated), so a real per-validation store must be built. To
+    // avoid rebuilding the whole base PER EXAMPLE (which dominates on few-core CI),
+    // snapshot the base quads ONCE and give each rayon WORKER its own independent
+    // store via `map_init` (≈ worker-count builds, not one per example). Each worker
+    // overlays an example onto its store, validates with the fast native `Store`
+    // backend, and restores — exactly the original per-example semantics, now sharded
+    // across workers. Worker count is capped so the number of full-store copies (and
+    // their RAM) stays bounded on many-core machines while still scaling on CI.
+    let examples = find_example_files(slices_dir)?;
+
+    let base_quads: Vec<Quad> = store
+        .iter()
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| format!("snapshot base store for parallel example validation: {e}"))?;
+
+    let worker_cap = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(4)
+        .clamp(1, EXAMPLE_VALIDATION_MAX_WORKERS);
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(worker_cap)
+        .build()
+        .map_err(|e| format!("build example-validation thread pool: {e}"))?;
+
+    let results: Vec<CachedPhaseResult> = pool.install(|| {
+        examples
+            .par_iter()
+            .map_init(
+                || build_overlay_store(&base_quads),
+                |worker_store, (name, path)| -> CachedPhaseResult {
+                    let example_key = if let Some(cache) = cache {
+                        let file_key = cache.files_cache_key(std::slice::from_ref(path))?;
+                        ValidationCache::cache_key(&[base_key.as_bytes(), file_key.as_bytes()])
+                    } else {
+                        ValidationCache::cache_key(&[
+                            base_key.as_bytes(),
+                            path.to_string_lossy().as_bytes(),
+                        ])
+                    };
+                    run_cached(cache, "example-shacl", &example_key, || {
+                        run_example_shacl(worker_store, shapes, path, name)
+                    })
+                },
+            )
+            .collect()
+    });
+
+    // Sequential, in-order fold: accumulate findings and hit/miss counts, and
+    // propagate the FIRST error by index (deterministic regardless of which thread
+    // finished first).
     let mut findings: Vec<Finding> = Vec::new();
     let mut hits: usize = 0;
     let mut misses: usize = 0;
-
-    for (name, path) in find_example_files(slices_dir)? {
-        let example_key = if let Some(cache) = cache {
-            let file_key = cache.files_cache_key(std::slice::from_ref(&path))?;
-            ValidationCache::cache_key(&[base_key.as_bytes(), file_key.as_bytes()])
-        } else {
-            ValidationCache::cache_key(&[base_key.as_bytes(), path.to_string_lossy().as_bytes()])
-        };
-
-        let (example_findings, meta) = run_cached(cache, "example-shacl", &example_key, || {
-            run_example_shacl(store, shapes, &path, &name)
-        })?;
+    for result in results {
+        let (example_findings, meta) = result?;
         match meta.as_deref() {
             Some("cache-hit") => hits += 1,
             Some("cache-miss") => misses += 1,
@@ -917,7 +1021,14 @@ fn check_examples(
     Ok((findings, metadata))
 }
 
-/// Validate one example file against the ontology + shapes via scoped overlay.
+/// Validate one example file against the ontology + shapes via a scoped overlay on
+/// this worker's private store.
+///
+/// `store` is the calling rayon worker's OWN independent store (built by
+/// [`build_overlay_store`]); the example quads are overlaid and removed via
+/// [`OverlayGuard`] so the worker's base is restored for its next example. Because
+/// the store is per-worker, the mutation is thread-safe and uses the fast native
+/// `Store` SHACL/SPARQL backend.
 fn run_example_shacl(
     store: &Store,
     shapes: &gmeow_shacl::shapes::Shapes,
