@@ -44,39 +44,75 @@ pub struct TermCoverage {
     pub has_alignment: bool,
 }
 
+/// One documentation-coverage dimension: a stable machine key (for the search
+/// index) plus a human display label (for the rendered docs body, literal English
+/// like the rest of the term-page section headings).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CoverageDimension {
+    /// Stable machine key, never localized: e.g. `"usage_advice"`.
+    pub key: &'static str,
+    /// Human display label for the rendered page: e.g. `"Usage advice"`.
+    pub label: &'static str,
+}
+
+/// The coverage dimensions in stable display order. Each mirrors a `docs/missing-*`
+/// lint code, and the order matches [`TermCoverage::flags`].
+pub const DIMENSIONS: [CoverageDimension; TermCoverage::TOTAL] = [
+    CoverageDimension {
+        key: "definition",
+        label: "Definition",
+    },
+    CoverageDimension {
+        key: "label",
+        label: "Label",
+    },
+    CoverageDimension {
+        key: "usage_advice",
+        label: "Usage advice",
+    },
+    CoverageDimension {
+        key: "example",
+        label: "Example",
+    },
+    CoverageDimension {
+        key: "scope_note",
+        label: "Scope note",
+    },
+    CoverageDimension {
+        key: "alignment",
+        label: "Alignment",
+    },
+];
+
 impl TermCoverage {
     /// The number of coverage dimensions.
     pub const TOTAL: usize = 6;
 
-    /// Each dimension in stable display order, paired with the `UI_TEMPLATES` key
-    /// for its human label and whether the term carries it. The renderer maps the
-    /// key through [`crate::ui_string`] so the dimension labels are localized from
-    /// the single UI-string source.
-    pub fn dimensions(&self) -> [(&'static str, bool); Self::TOTAL] {
+    /// The presence flag for each dimension, in [`DIMENSIONS`] order.
+    pub fn flags(&self) -> [bool; Self::TOTAL] {
         [
-            ("coverage_dim_definition", self.has_definition),
-            ("coverage_dim_label", self.has_label),
-            ("coverage_dim_usage_advice", self.has_usage_advice),
-            ("coverage_dim_example", self.has_example),
-            ("coverage_dim_scope_note", self.has_scope_note),
-            ("coverage_dim_alignment", self.has_alignment),
+            self.has_definition,
+            self.has_label,
+            self.has_usage_advice,
+            self.has_example,
+            self.has_scope_note,
+            self.has_alignment,
         ]
     }
 
     /// How many of the [`TOTAL`](Self::TOTAL) dimensions the term carries.
     pub fn present_count(&self) -> usize {
-        self.dimensions()
-            .iter()
-            .filter(|(_, present)| *present)
-            .count()
+        self.flags().iter().filter(|present| **present).count()
     }
 
-    /// The UI-label keys of the dimensions the term is MISSING, in display order.
+    /// The machine keys of the dimensions the term is MISSING, in display order —
+    /// the search-index facet for filtering under-documented terms.
     pub fn missing_keys(&self) -> Vec<&'static str> {
-        self.dimensions()
-            .into_iter()
-            .filter(|(_, present)| !present)
-            .map(|(key, _)| key)
+        DIMENSIONS
+            .iter()
+            .zip(self.flags())
+            .filter(|(_, present)| !*present)
+            .map(|(dim, _)| dim.key)
             .collect()
     }
 }

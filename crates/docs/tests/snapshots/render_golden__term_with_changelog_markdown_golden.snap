@@ -44,6 +44,11 @@ A reified record of one change to a vocabulary term in a given release — a fir
 
 - **Status:** experimental
 
+## Documentation coverage
+
+- **4 of 6 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✗ Alignment
+- See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
+
 ## Profiles
 
 - `full` · `music`

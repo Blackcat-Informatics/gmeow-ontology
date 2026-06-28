@@ -23,6 +23,9 @@ expression: summary
     "id": "gmeow:yaw",
     "kind": "term",
     "label": "yaw",
+    "missing_coverage": [
+      "scope_note"
+    ],
     "url": "terms/yaw/index.html"
   },
   "record_count": 2343

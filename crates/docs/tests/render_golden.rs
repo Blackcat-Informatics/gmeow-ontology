@@ -289,6 +289,55 @@ fn search_index_json_golden() {
     insta::assert_json_snapshot!(summary);
 }
 
+/// The documentation-health page renders the shared coverage source, not a
+/// re-derivation: every per-dimension "Covered" count equals the number of terms
+/// the coverage source marks as carrying that dimension, and the completeness
+/// distribution partitions every term exactly once. A byte golden would drift with
+/// slice content (like the coverage-ratchet baseline); this invariant does not, and
+/// it guards that the dashboard can never silently disagree with the lint gate.
+#[test]
+fn documentation_health_counts_match_the_coverage_source() {
+    use gmeow_docs::coverage::{alignment_subjects, term_coverage, TermCoverage, DIMENSIONS};
+
+    let model = common::cached_model();
+    let page = to_markdown(&model, &Page::Health);
+
+    let aligned = alignment_subjects(&model);
+    let coverages: Vec<TermCoverage> = model
+        .terms
+        .iter()
+        .map(|t| term_coverage(t, &aligned))
+        .collect();
+    let total = coverages.len();
+
+    // Per-dimension covered counts (the row continues with a `%` column, so the
+    // `| label | covered | total |` prefix is a substring match).
+    for (i, dim) in DIMENSIONS.iter().enumerate() {
+        let covered = coverages.iter().filter(|c| c.flags()[i]).count();
+        let row = format!("| {} | {covered} | {total} |", dim.label);
+        assert!(
+            page.contains(&row),
+            "health page missing dimension row `{row}`"
+        );
+    }
+
+    // The completeness distribution partitions every term exactly once.
+    let mut distributed = 0usize;
+    for k in 0..=TermCoverage::TOTAL {
+        let count = coverages.iter().filter(|c| c.present_count() == k).count();
+        let row = format!("| {k} / {} | {count} |", TermCoverage::TOTAL);
+        assert!(
+            page.contains(&row),
+            "health page missing distribution row `{row}`"
+        );
+        distributed += count;
+    }
+    assert_eq!(
+        distributed, total,
+        "distribution must cover every term once"
+    );
+}
+
 #[test]
 fn llms_txt_header_golden() {
     // The standard llmstxt.org index is ~2k bullets; lock only its deterministic

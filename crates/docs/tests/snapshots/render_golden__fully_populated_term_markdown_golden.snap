@@ -52,6 +52,11 @@ The entity whose data quality is being assessed — the feature of interest of t
 
 - **Status:** stable
 
+## Documentation coverage
+
+- **5 of 6 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment
+- See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
+
 ## Profiles
 
 - `full`
