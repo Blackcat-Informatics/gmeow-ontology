@@ -10,7 +10,7 @@
 pub mod py;
 
 use std::cmp::Ordering;
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
@@ -35,9 +35,9 @@ fn gm(local: &str) -> String {
     format!("{GM}{local}")
 }
 
-fn gcd(mut a: i64, mut b: i64) -> i64 {
-    a = a.abs();
-    b = b.abs();
+fn gcd(a: i64, b: i64) -> u64 {
+    let mut a = a.unsigned_abs();
+    let mut b = b.unsigned_abs();
     while b != 0 {
         let r = a % b;
         a = b;
@@ -62,8 +62,11 @@ impl Fraction {
         if denominator == 0 {
             return Err("fraction denominator must not be zero".to_string());
         }
+        if numerator == i64::MIN || denominator == i64::MIN {
+            return Err("fraction values must not be i64::MIN".to_string());
+        }
         let sign = if denominator < 0 { -1 } else { 1 };
-        let g = gcd(numerator, denominator);
+        let g = gcd(numerator, denominator) as i64;
         Ok(Self {
             numerator: sign * numerator / g,
             denominator: sign * denominator / g,
@@ -106,7 +109,8 @@ impl Fraction {
 
 impl Ord for Fraction {
     fn cmp(&self, other: &Self) -> Ordering {
-        (self.numerator * other.denominator).cmp(&(other.numerator * self.denominator))
+        (self.numerator as i128 * other.denominator as i128)
+            .cmp(&(other.numerator as i128 * self.denominator as i128))
     }
 }
 
@@ -730,6 +734,8 @@ struct Triple {
     object: Object,
 }
 
+type TripleIndex = HashMap<String, HashMap<String, Vec<Object>>>;
+
 fn term_id(term: &Term) -> Option<String> {
     match term.kind {
         TermKind::Iri => term.value.clone(),
@@ -765,95 +771,93 @@ fn triples_from_gts(bytes: &[u8]) -> Vec<Triple> {
         .collect()
 }
 
-fn has_type(triples: &[Triple], subject: &str, class: &str) -> bool {
-    triples.iter().any(|triple| {
-        triple.subject == subject
-            && triple.predicate == RDF_TYPE
-            && triple.object == Object::Iri(class.to_string())
+fn index_triples(triples: Vec<Triple>) -> TripleIndex {
+    let mut index: TripleIndex = HashMap::new();
+    for triple in triples {
+        index
+            .entry(triple.subject)
+            .or_default()
+            .entry(triple.predicate)
+            .or_default()
+            .push(triple.object);
+    }
+    index
+}
+
+fn objects<'a>(index: &'a TripleIndex, subject: &str, predicate: &str) -> Option<&'a [Object]> {
+    index.get(subject)?.get(predicate).map(Vec::as_slice)
+}
+
+fn has_type(index: &TripleIndex, subject: &str, class: &str) -> bool {
+    objects(index, subject, RDF_TYPE).is_some_and(|objects| {
+        objects
+            .iter()
+            .any(|object| matches!(object, Object::Iri(value) if value == class))
     })
 }
 
-fn first_iri(triples: &[Triple], subject: &str, predicate: &str) -> Option<String> {
-    triples.iter().find_map(|triple| {
-        if triple.subject == subject && triple.predicate == predicate {
-            match &triple.object {
-                Object::Iri(value) | Object::Bnode(value) => Some(value.clone()),
-                Object::Literal(_) => None,
-            }
-        } else {
-            None
-        }
-    })
-}
-
-fn all_iris(triples: &[Triple], subject: &str, predicate: &str) -> Vec<String> {
-    triples
+fn first_iri(index: &TripleIndex, subject: &str, predicate: &str) -> Option<String> {
+    objects(index, subject, predicate)?
         .iter()
-        .filter_map(|triple| {
-            if triple.subject == subject && triple.predicate == predicate {
-                match &triple.object {
+        .find_map(|object| match object {
+            Object::Iri(value) | Object::Bnode(value) => Some(value.clone()),
+            Object::Literal(_) => None,
+        })
+}
+
+fn all_iris(index: &TripleIndex, subject: &str, predicate: &str) -> Vec<String> {
+    objects(index, subject, predicate)
+        .map(|objects| {
+            objects
+                .iter()
+                .filter_map(|object| match object {
                     Object::Iri(value) | Object::Bnode(value) => Some(value.clone()),
                     Object::Literal(_) => None,
-                }
-            } else {
-                None
-            }
+                })
+                .collect()
         })
-        .collect()
+        .unwrap_or_default()
 }
 
-fn first_literal(triples: &[Triple], subject: &str, predicate: &str) -> Option<String> {
-    triples.iter().find_map(|triple| {
-        if triple.subject == subject && triple.predicate == predicate {
-            match &triple.object {
-                Object::Literal(value) => Some(value.clone()),
-                Object::Iri(value) | Object::Bnode(value) => Some(value.clone()),
-            }
-        } else {
-            None
-        }
-    })
-}
-
-fn first_i64(triples: &[Triple], subject: &str, predicate: &str) -> Option<i64> {
-    first_literal(triples, subject, predicate)?.parse().ok()
-}
-
-fn first_f64(triples: &[Triple], subject: &str, predicate: &str) -> Option<f64> {
-    first_literal(triples, subject, predicate)?.parse().ok()
-}
-
-fn first_bool(triples: &[Triple], subject: &str, predicate: &str) -> bool {
-    matches!(
-        first_literal(triples, subject, predicate)
-            .unwrap_or_default()
-            .to_ascii_lowercase()
-            .as_str(),
-        "true" | "1"
-    )
-}
-
-fn load_tuning(triples: &[Triple], iri: &str) -> TuningSystem {
-    let mut degrees = triples
+fn first_literal(index: &TripleIndex, subject: &str, predicate: &str) -> Option<String> {
+    objects(index, subject, predicate)?
         .iter()
-        .filter_map(|triple| {
-            if triple.subject == iri && triple.predicate == gm("hasPitchValue") {
-                match &triple.object {
-                    Object::Iri(node) | Object::Bnode(node) => {
-                        first_f64(triples, node, &gm("centsFromOrigin"))
-                    }
-                    Object::Literal(_) => None,
-                }
-            } else {
-                None
+        .next()
+        .map(|object| match object {
+            Object::Literal(value) | Object::Iri(value) | Object::Bnode(value) => value.clone(),
+        })
+}
+
+fn first_i64(index: &TripleIndex, subject: &str, predicate: &str) -> Option<i64> {
+    first_literal(index, subject, predicate)?.parse().ok()
+}
+
+fn first_f64(index: &TripleIndex, subject: &str, predicate: &str) -> Option<f64> {
+    first_literal(index, subject, predicate)?.parse().ok()
+}
+
+fn first_bool(index: &TripleIndex, subject: &str, predicate: &str) -> bool {
+    let value = first_literal(index, subject, predicate).unwrap_or_default();
+    let trimmed = value.trim();
+    trimmed.eq_ignore_ascii_case("true") || trimmed == "1"
+}
+
+fn load_tuning(index: &TripleIndex, iri: &str) -> TuningSystem {
+    let mut degrees = objects(index, iri, &gm("hasPitchValue"))
+        .unwrap_or_default()
+        .iter()
+        .filter_map(|object| match object {
+            Object::Iri(node) | Object::Bnode(node) => {
+                first_f64(index, node, &gm("centsFromOrigin"))
             }
+            Object::Literal(_) => None,
         })
         .collect::<Vec<_>>();
     degrees.sort_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
     TuningSystem {
         iri: iri.to_string(),
-        label: first_literal(triples, iri, RDFS_LABEL).unwrap_or_else(|| iri.to_string()),
-        division_count: first_i64(triples, iri, &gm("divisionCount")),
+        label: first_literal(index, iri, RDFS_LABEL).unwrap_or_else(|| iri.to_string()),
+        division_count: first_i64(index, iri, &gm("divisionCount")),
         degrees_cents: if degrees.is_empty() {
             None
         } else {
@@ -862,98 +866,97 @@ fn load_tuning(triples: &[Triple], iri: &str) -> TuningSystem {
     }
 }
 
-fn load_time_frame(triples: &[Triple], iri: &str) -> TimeFrame {
+fn load_time_frame(index: &TripleIndex, iri: &str) -> TimeFrame {
     TimeFrame {
         iri: iri.to_string(),
-        label: first_literal(triples, iri, RDFS_LABEL).unwrap_or_else(|| iri.to_string()),
-        beats_per_measure: first_i64(triples, iri, &gm("beatsPerMeasure")),
-        beat_unit: first_i64(triples, iri, &gm("beatUnit")),
+        label: first_literal(index, iri, RDFS_LABEL).unwrap_or_else(|| iri.to_string()),
+        beats_per_measure: first_i64(index, iri, &gm("beatsPerMeasure")),
+        beat_unit: first_i64(index, iri, &gm("beatUnit")),
     }
 }
 
-fn load_pitch(triples: &[Triple], iri: &str) -> Option<PitchValue> {
-    first_f64(triples, iri, &gm("centsFromOrigin")).map(|cents| PitchValue {
+fn load_pitch(index: &TripleIndex, iri: &str) -> Option<PitchValue> {
+    first_f64(index, iri, &gm("centsFromOrigin")).map(|cents| PitchValue {
         cents,
-        spelled_name: first_literal(triples, iri, RDFS_LABEL),
+        spelled_name: first_literal(index, iri, RDFS_LABEL),
     })
 }
 
 pub fn piece_from_gts_bytes(bytes: &[u8]) -> Result<Piece, String> {
-    let triples = triples_from_gts(bytes);
-    let mut pieces = triples
+    let index = index_triples(triples_from_gts(bytes));
+    let musical_expression = gm("MusicalExpression");
+    let musical_work = gm("MusicalWork");
+    let mut pieces = index
         .iter()
-        .filter(|triple| {
-            triple.predicate == RDF_TYPE
-                && matches!(
-                    &triple.object,
-                    Object::Iri(class)
-                        if class == &gm("MusicalExpression") || class == &gm("MusicalWork")
-                )
+        .filter_map(|(subject, predicates)| {
+            let has_music_type = predicates.get(RDF_TYPE).is_some_and(|objects| {
+                objects.iter().any(|object| {
+                    matches!(object, Object::Iri(class) if class == &musical_expression || class == &musical_work)
+                })
+            });
+            has_music_type.then(|| subject.clone())
         })
-        .map(|triple| triple.subject.clone())
         .collect::<BTreeSet<_>>();
     let piece_iri = pieces
         .pop_first()
         .ok_or_else(|| "no MusicalExpression or MusicalWork found in graph".to_string())?;
     let mut piece = Piece {
-        title: first_literal(&triples, &piece_iri, RDFS_LABEL),
-        composer: first_literal(&triples, &piece_iri, &gm("composer")),
+        title: first_literal(&index, &piece_iri, RDFS_LABEL),
+        composer: first_literal(&index, &piece_iri, &gm("composer")),
         iri: piece_iri.clone(),
         voices: Vec::new(),
     };
-    for voice_iri in all_iris(&triples, &piece_iri, &gm("hasVoice")) {
-        let tuning = first_iri(&triples, &voice_iri, &gm("voiceTuningFrame"))
-            .map(|iri| load_tuning(&triples, &iri));
-        let time_frame = first_iri(&triples, &voice_iri, &gm("voiceTimeFrame"))
-            .map(|iri| load_time_frame(&triples, &iri));
+    for voice_iri in all_iris(&index, &piece_iri, &gm("hasVoice")) {
+        let tuning = first_iri(&index, &voice_iri, &gm("voiceTuningFrame"))
+            .map(|iri| load_tuning(&index, &iri));
+        let time_frame = first_iri(&index, &voice_iri, &gm("voiceTimeFrame"))
+            .map(|iri| load_time_frame(&index, &iri));
         let mut voice = Voice {
             iri: voice_iri.clone(),
-            label: first_literal(&triples, &voice_iri, RDFS_LABEL),
+            label: first_literal(&index, &voice_iri, RDFS_LABEL),
             tuning,
             time_frame,
             events: Vec::new(),
         };
-        let mut event_iris = triples
+        let segment_of = gm("segmentOf");
+        let tone_event = gm("ToneEvent");
+        let mut event_iris = index
             .iter()
-            .filter_map(|triple| {
-                if triple.predicate == gm("segmentOf")
-                    && triple.object == Object::Iri(voice_iri.clone())
-                    && has_type(&triples, &triple.subject, &gm("ToneEvent"))
-                {
-                    Some(triple.subject.clone())
-                } else {
-                    None
-                }
+            .filter_map(|(subject, predicates)| {
+                let in_voice = predicates.get(&segment_of).is_some_and(|objects| {
+                    objects
+                        .iter()
+                        .any(|object| matches!(object, Object::Iri(value) if value == &voice_iri))
+                });
+                (in_voice && has_type(&index, subject, &tone_event)).then(|| subject.clone())
             })
             .collect::<BTreeSet<_>>();
         for event_iri in std::mem::take(&mut event_iris) {
-            let Some(span_iri) = first_iri(&triples, &event_iri, &gm("segmentSpan")) else {
+            let Some(span_iri) = first_iri(&index, &event_iri, &gm("segmentSpan")) else {
                 continue;
             };
-            let Some(start_num) = first_i64(&triples, &span_iri, &gm("timeStartNumerator")) else {
+            let Some(start_num) = first_i64(&index, &span_iri, &gm("timeStartNumerator")) else {
                 continue;
             };
-            let Some(start_den) = first_i64(&triples, &span_iri, &gm("timeStartDenominator"))
-            else {
+            let Some(start_den) = first_i64(&index, &span_iri, &gm("timeStartDenominator")) else {
                 continue;
             };
-            let Some(dur_num) = first_i64(&triples, &span_iri, &gm("timeDurationNumerator")) else {
+            let Some(dur_num) = first_i64(&index, &span_iri, &gm("timeDurationNumerator")) else {
                 continue;
             };
-            let Some(dur_den) = first_i64(&triples, &span_iri, &gm("timeDurationDenominator"))
-            else {
+            let Some(dur_den) = first_i64(&index, &span_iri, &gm("timeDurationDenominator")) else {
                 continue;
             };
-            let pitch = first_iri(&triples, &event_iri, &gm("toneEventPitchValue"))
-                .and_then(|iri| load_pitch(&triples, &iri));
+            let pitch = first_iri(&index, &event_iri, &gm("toneEventPitchValue"))
+                .and_then(|iri| load_pitch(&index, &iri));
             voice.events.push(ToneEvent {
                 onset: Fraction::new(start_num, start_den)?,
                 duration: Fraction::new(dur_num, dur_den)?,
                 pitch,
-                is_unpitched: first_bool(&triples, &event_iri, &gm("toneEventIsUnpitched")),
-                dynamics: first_literal(&triples, &event_iri, &gm("toneEventDynamics")),
-                articulation: first_literal(&triples, &event_iri, &gm("toneEventArticulation")),
-                timbre: first_literal(&triples, &event_iri, &gm("toneEventTimbre")),
+                is_unpitched: first_bool(&index, &event_iri, &gm("toneEventIsUnpitched")),
+                dynamics: first_literal(&index, &event_iri, &gm("toneEventDynamics")),
+                articulation: first_literal(&index, &event_iri, &gm("toneEventArticulation")),
+                timbre: first_literal(&index, &event_iri, &gm("toneEventTimbre")),
             });
         }
         voice.events.sort_by_key(|event| event.onset);
@@ -1297,23 +1300,33 @@ fn varlen(mut value: u32) -> Vec<u8> {
 
 fn render_midi(piece: &Piece) -> Vec<u8> {
     let mut events = vec![(0_u32, vec![0xff, 0x51, 0x03, 0x07, 0xa1, 0x20])];
-    let mut current_tick = 0_i64;
-    if let Some(voice) = piece.voices.first() {
+    let mut timed_events = Vec::new();
+    for voice in &piece.voices {
         let beat_unit = voice.beat_unit();
         for event in &voice.events {
             let onset = (event.onset.div(beat_unit) * f64::from(DEFAULT_PPQN)).round() as i64;
             let duration = (event.duration.div(beat_unit) * f64::from(DEFAULT_PPQN)).round() as i64;
             if event.is_unpitched || event.pitch.is_none() {
-                current_tick = onset + duration;
                 continue;
             }
             let midi = event.pitch.as_ref().expect("checked").to_midi_number();
             let pitch = (midi.round() as i64).clamp(0, 127) as u8;
-            let delta = (onset - current_tick).max(0) as u32;
-            events.push((delta, vec![0x90, pitch, 96]));
-            events.push((duration.max(1) as u32, vec![0x80, pitch, 0]));
-            current_tick = onset + duration;
+            let onset = onset.max(0);
+            timed_events.push((onset, 1_u8, vec![0x90, pitch, 96]));
+            timed_events.push((onset + duration.max(1), 0_u8, vec![0x80, pitch, 0]));
         }
+    }
+    timed_events.sort_by(|left, right| {
+        left.0
+            .cmp(&right.0)
+            .then_with(|| left.1.cmp(&right.1))
+            .then_with(|| left.2.cmp(&right.2))
+    });
+    let mut current_tick = 0_i64;
+    for (tick, _order, message) in timed_events {
+        let delta = (tick - current_tick).max(0) as u32;
+        events.push((delta, message));
+        current_tick = tick;
     }
     events.push((0, vec![0xff, 0x2f, 0x00]));
 
@@ -1585,11 +1598,10 @@ pub fn manifest_turtle(format_name: &str, provenance: Option<&str>) -> Result<St
     Ok(out)
 }
 
-fn percent_encode_path(path: &Path) -> String {
-    path.to_string_lossy()
-        .bytes()
+fn percent_encode_path(path: &str) -> String {
+    path.bytes()
         .map(|b| match b {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'/' | b'-' | b'.' | b'_' | b'~' => {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'/' | b':' | b'-' | b'.' | b'_' | b'~' => {
                 (b as char).to_string()
             }
             other => format!("%{other:02X}"),
@@ -1598,14 +1610,15 @@ fn percent_encode_path(path: &Path) -> String {
 }
 
 fn file_uri(path: &Path) -> Result<String, String> {
-    let absolute = if path.is_absolute() {
-        path.to_path_buf()
+    let absolute =
+        std::path::absolute(path).map_err(|e| format!("failed to resolve absolute path: {e}"))?;
+    let normalized = absolute.to_string_lossy().replace('\\', "/");
+    let prefix = if normalized.starts_with('/') {
+        "file://"
     } else {
-        std::env::current_dir()
-            .map_err(|e| format!("cannot resolve current directory: {e}"))?
-            .join(path)
+        "file:///"
     };
-    Ok(format!("file://{}", percent_encode_path(&absolute)))
+    Ok(format!("{prefix}{}", percent_encode_path(&normalized)))
 }
 
 pub fn import_manifest_turtle(
@@ -1756,6 +1769,57 @@ pub(crate) fn fixture_piece() -> Piece {
 mod tests {
     use super::*;
 
+    fn read_varlen(data: &[u8], idx: &mut usize) -> u32 {
+        let mut value = 0_u32;
+        loop {
+            let byte = data[*idx];
+            *idx += 1;
+            value = (value << 7) | u32::from(byte & 0x7f);
+            if byte & 0x80 == 0 {
+                return value;
+            }
+        }
+    }
+
+    fn midi_note_events(bytes: &[u8]) -> Vec<(u32, u8, u8)> {
+        assert!(bytes.starts_with(b"MThd"));
+        let track_len_offset = 18;
+        assert_eq!(&bytes[14..18], b"MTrk");
+        let track_len = u32::from_be_bytes(
+            bytes[track_len_offset..track_len_offset + 4]
+                .try_into()
+                .expect("track length"),
+        ) as usize;
+        let mut idx = 22;
+        let end = idx + track_len;
+        let mut tick = 0_u32;
+        let mut events = Vec::new();
+        while idx < end {
+            tick += read_varlen(bytes, &mut idx);
+            let status = bytes[idx];
+            idx += 1;
+            if status == 0xff {
+                idx += 1;
+                let len = read_varlen(bytes, &mut idx) as usize;
+                idx += len;
+                continue;
+            }
+            let pitch = bytes[idx];
+            idx += 1;
+            idx += 1;
+            if matches!(status, 0x80 | 0x90) {
+                events.push((tick, status, pitch));
+            }
+        }
+        events
+    }
+
+    #[test]
+    fn fraction_rejects_i64_min_values() {
+        assert!(Fraction::new(i64::MIN, 1).unwrap_err().contains("i64::MIN"));
+        assert!(Fraction::new(1, i64::MIN).unwrap_err().contains("i64::MIN"));
+    }
+
     #[test]
     fn piece_graph_gts_round_trip_preserves_events() {
         let piece = fixture_piece();
@@ -1799,6 +1863,44 @@ mod tests {
         };
         assert!(scl.contains("Projection profile"));
         assert!(scl.contains("\n12\n"));
+    }
+
+    #[test]
+    fn midi_renderer_orders_overlapping_notes_by_absolute_tick() {
+        let mut piece = fixture_piece();
+        piece.voices[0].events = vec![
+            ToneEvent {
+                onset: Fraction::from_i64(0),
+                duration: Fraction::from_i64(1),
+                pitch: Some(PitchValue::from_midi_number(60.0)),
+                is_unpitched: false,
+                dynamics: None,
+                articulation: None,
+                timbre: None,
+            },
+            ToneEvent {
+                onset: Fraction::new(1, 2).expect("half beat"),
+                duration: Fraction::from_i64(1),
+                pitch: Some(PitchValue::from_midi_number(64.0)),
+                is_unpitched: false,
+                dynamics: None,
+                articulation: None,
+                timbre: None,
+            },
+        ];
+        let midi = match render_piece(&piece, "midi").unwrap() {
+            Rendered::Binary(bytes) => bytes,
+            Rendered::Text(_) => panic!("midi is binary"),
+        };
+        assert_eq!(
+            midi_note_events(&midi),
+            vec![
+                (0, 0x90, 60),
+                (960, 0x90, 64),
+                (1920, 0x80, 60),
+                (2880, 0x80, 64),
+            ]
+        );
     }
 
     #[test]
@@ -1888,12 +1990,13 @@ mod tests {
         assert!(manifest.contains("gmeow:projectionFunction"));
         assert!(manifest.contains("gmeow:declaredLoss"));
         let import = import_manifest_turtle(
-            Path::new("fixtures/source.musicxml"),
+            Path::new("fixtures/source file.musicxml"),
             "urn:gmeow:piece:imported",
             Some("import provenance"),
         )
         .expect("import manifest");
         assert!(import.contains("prov:wasDerivedFrom"));
         assert!(import.contains("file://"));
+        assert!(import.contains("source%20file.musicxml"));
     }
 }
