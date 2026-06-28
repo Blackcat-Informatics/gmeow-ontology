@@ -73,7 +73,7 @@ duration reports are still useful for identifying repeated work.
   - `tests/test_gts_gen.py::test_cross_hash_seed_builds_are_byte_identical`: 113.09s
   - `tests/test_ontology_docs.py::test_external_ontology_catalog_has_specific_descriptions`: 82.70s
   - `tests/test_compile_no_drift.py::test_committed_artifacts_match_dsl`: 78.55s
-  - `tests/test_narrow_waist.py::test_behavioral_seal_exporters_render_from_snapshot_alone`: 61.11s
+  - former Python narrow-waist behavioral seal: 61.11s
   - several mapping compiler and suppression conformance tests at 39-52s.
 
 Focused module timings:

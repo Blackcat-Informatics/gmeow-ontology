@@ -642,6 +642,9 @@ def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
             str(PROJECT_ROOT / "crates")
         )
 
+    def _repo_static() -> DiagnosticsReport:
+        return gmeow_validate.repo_static_diagnostics_report(str(PROJECT_ROOT))
+
     def _box_roles() -> DiagnosticsReport:
         from gmeow_tools import box_roles
 
@@ -729,6 +732,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
         ("wikidata", _wikidata),
         ("constitution", _constitution),
         ("crate-layering", _crate_layering),
+        ("repo-static", _repo_static),
         ("box-roles", _box_roles),
         ("audit", _audit),
         ("generated", _generated),
@@ -1516,28 +1520,30 @@ def doc_lint() -> None:
 
 @app.command(name="crate-check")
 def crate_check() -> None:
-    """Verify Rust crate layering: RDF core purity + an acyclic crate DAG (#820 S0).
+    """Verify Rust crate layering and repository-static policy.
 
     ``gmeow-rdf-core`` is the oxigraph-free RDF 1.2 kernel,
     ``gmeow-rdf-events`` is the neutral protocol seam, and ``gmeow-rdf`` is the
     oxigraph/PyO3 adapter that depends on and re-exports the core. The
-    first-party crate dependency graph must stay acyclic. This is the Rust-side
-    twin of Principle 16 — slice / domain semantics layer ABOVE the core, never
-    inside it.
+    first-party crate dependency graph must stay acyclic. The same Rust gate also
+    owns static repository policy: narrow-waist, lane-purity, and first-party
+    upstream-rdflib import seals.
     """
     report = gmeow_validate.crate_layering_check(str(PROJECT_ROOT / "crates"))
-    errors = list(report["errors"])
-    warnings = list(report["warnings"])
+    static_report = gmeow_validate.repo_static_check(str(PROJECT_ROOT))
+    errors = [*list(report["errors"]), *list(static_report["errors"])]
+    warnings = [*list(report["warnings"]), *list(static_report["warnings"])]
     edges = report["edges"]
     for message in errors:
         err_console.print(f"[red]error[/red] {message}")
     for message in warnings:
         err_console.print(f"[yellow]warning[/yellow] {message}")
-    if not report["ok"]:
-        raise _fail(f"✗ {len(errors)} crate-layering violation(s)")
+    if errors:
+        message = f"✗ {len(errors)} crate/static violation(s)"
+        raise _fail(message)
     console.print(
-        f"[green]✓ crate layering OK[/green] "
-        f"({len(edges)} crates, RDF core pure, DAG acyclic)"
+        f"[green]✓ crate/static guards OK[/green] "
+        f"({len(edges)} crates, RDF core pure, DAG acyclic; repo static seals clean)"
     )
 
 
