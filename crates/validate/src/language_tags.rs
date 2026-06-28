@@ -577,7 +577,9 @@ pub fn retag_graph_to_internal(
 /// Parse `rdf_bytes`, rewrite each literal object through `rewrite` (when it
 /// returns `Some`, the object is replaced), copy everything else verbatim, and
 /// serialize back to N-Triples. The full RDF 1.2 statement layer (reifiers +
-/// annotations) and quoted-triple terms are carried through unchanged.
+/// annotations) and quoted-triple terms are carried through — reifier statement
+/// objects are updated when the underlying quad's literal was rewritten, keeping
+/// the reifier's statement in sync with the base triple.
 fn rewrite_graph<F>(rdf_bytes: &[u8], format: &str, rewrite: F) -> Result<Vec<u8>, String>
 where
     F: Fn(&gmeow_rdf::RdfLiteral) -> Option<gmeow_rdf::RdfLiteral>,
@@ -586,18 +588,44 @@ where
     let dataset =
         parse_dataset(rdf_bytes, media_type, None).map_err(|e| format!("RDF parse error: {e}"))?;
 
+    // First pass: build the quad set and record which (subject, predicate, old_lit)
+    // triples had their literal rewritten, so we can update matching reifier statements.
+    let mut literal_rewrites: HashMap<
+        (String, String, gmeow_rdf::RdfLiteral),
+        gmeow_rdf::RdfLiteral,
+    > = HashMap::new();
     let mut builder = gmeow_rdf::RdfDatasetBuilder::new();
     for mut quad in dataset.owned_quads() {
         if let gmeow_rdf::RdfTerm::Literal(lit) = &quad.object {
             if let Some(new_lit) = rewrite(lit) {
+                let key = (
+                    quad.subject.to_string(),
+                    quad.predicate.clone(),
+                    lit.clone(),
+                );
+                literal_rewrites.insert(key, new_lit.clone());
                 quad.object = gmeow_rdf::RdfTerm::Literal(new_lit);
             }
         }
         builder.push_owned_quad(&quad);
     }
-    for reifier in dataset.owned_reifiers() {
+
+    // Second pass: copy reifiers, updating any whose statement object was rewritten.
+    for mut reifier in dataset.owned_reifiers() {
+        if let gmeow_rdf::RdfTerm::Literal(obj_lit) = &reifier.statement.object {
+            let key = (
+                reifier.statement.subject.to_string(),
+                reifier.statement.predicate.clone(),
+                obj_lit.clone(),
+            );
+            if let Some(new_lit) = literal_rewrites.get(&key) {
+                reifier.statement.object = gmeow_rdf::RdfTerm::Literal(new_lit.clone());
+            }
+        }
         builder.push_owned_reifier(&reifier);
     }
+    // Annotations reference the reifier IRI (not the statement literal), so the
+    // reifier identity is unchanged after a retag — copy all annotations verbatim.
     for annotation in dataset.owned_annotations() {
         builder.push_owned_annotation(&annotation);
     }
@@ -645,8 +673,17 @@ pub fn filter_graph(
 
     // For each group, compute the chosen literal set. If it equals the current
     // set, mark the group as a no-op (skip); else record the replacement set.
+    //
+    // `stmt_remap` captures the old→new literal mapping for replaced groups, keyed by
+    // (subject_str, predicate, old_literal). Value `Some(new_lit)` means the old literal
+    // was retained but retagged; `None` means it was dropped entirely. This is used below
+    // to keep reifier statements in sync with the filtered quad set.
     let mut group_replacement: HashMap<GroupKey, Vec<gmeow_rdf::RdfLiteral>> = HashMap::new();
     let mut group_skip: HashSet<GroupKey> = HashSet::new();
+    let mut stmt_remap: HashMap<
+        (String, String, gmeow_rdf::RdfLiteral),
+        Option<gmeow_rdf::RdfLiteral>,
+    > = HashMap::new();
     for (key, literals) in &group_lits {
         let descs: Vec<LitDesc> = literals
             .iter()
@@ -678,6 +715,18 @@ pub fn filter_graph(
         if current == chosen_set {
             group_skip.insert(key.clone());
         } else {
+            // Build stmt_remap entries for this replaced group.
+            // Start by marking all old literals as dropped (None).
+            for old_lit in literals {
+                stmt_remap.insert((key.0.clone(), key.1.clone(), old_lit.clone()), None);
+            }
+            // Overwrite with Some(new_lit) for each selection that survived.
+            for (i, sel) in selections.iter().enumerate() {
+                stmt_remap.insert(
+                    (key.0.clone(), key.1.clone(), literals[sel.index].clone()),
+                    Some(chosen[i].clone()),
+                );
+            }
             group_replacement.insert(key.clone(), chosen);
         }
     }
@@ -714,10 +763,41 @@ pub fn filter_graph(
         }
         builder.push_owned_quad(&quad);
     }
-    for reifier in dataset.owned_reifiers() {
+
+    // Handle the RDF 1.2 statement layer. For replaced groups:
+    // - If a reifier's statement object was dropped, the reifier itself is dropped.
+    // - If a reifier's statement object was retagged, the reifier statement is updated.
+    // - Reifiers on unchanged quads (skip groups or non-target quads) pass through.
+    // Annotations whose reifier was dropped are also removed.
+    let mut dropped_reifier_ids: HashSet<String> = HashSet::new();
+    for mut reifier in dataset.owned_reifiers() {
+        if let gmeow_rdf::RdfTerm::Literal(obj_lit) = &reifier.statement.object {
+            let remap_key = (
+                reifier.statement.subject.to_string(),
+                reifier.statement.predicate.clone(),
+                obj_lit.clone(),
+            );
+            if let Some(remap) = stmt_remap.get(&remap_key) {
+                match remap {
+                    Some(new_lit) => {
+                        // Retagged: update the statement object and keep the reifier.
+                        reifier.statement.object = gmeow_rdf::RdfTerm::Literal(new_lit.clone());
+                        builder.push_owned_reifier(&reifier);
+                    }
+                    None => {
+                        // Dropped: record this reifier's ID so its annotations are pruned.
+                        dropped_reifier_ids.insert(reifier.reifier.to_string());
+                    }
+                }
+                continue;
+            }
+        }
         builder.push_owned_reifier(&reifier);
     }
     for annotation in dataset.owned_annotations() {
+        if dropped_reifier_ids.contains(&annotation.reifier.to_string()) {
+            continue;
+        }
         builder.push_owned_annotation(&annotation);
     }
 
@@ -1264,5 +1344,217 @@ gmeow:French a gmeow:Language ;
             TermRef::Iri(iri) => iri.to_owned(),
             _ => String::new(),
         }
+    }
+
+    // ── reifier/annotation sync tests ───────────────────────────────────────
+
+    /// Build N-Triples bytes for a dataset that includes a quad, a reifier on it,
+    /// and an annotation on the reifier. Returns the serialized bytes.
+    fn build_nt_with_reifier(
+        subject: &str,
+        predicate: &str,
+        lexical: &str,
+        lang: &str,
+        reifier_iri: &str,
+        annotation_predicate: &str,
+        annotation_value: &str,
+    ) -> Vec<u8> {
+        use gmeow_rdf::{
+            RdfAnnotation, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple,
+        };
+
+        let subject_term = RdfTerm::iri(subject);
+        let object_lit = RdfLiteral::language_tagged(lexical, lang);
+        let object_term = RdfTerm::Literal(object_lit);
+        let stmt = RdfTriple::new(subject_term.clone(), predicate, object_term.clone());
+
+        let reifier_term = RdfTerm::iri(reifier_iri);
+        let reifier = RdfReifier::new(reifier_term.clone(), stmt);
+        let annotation = RdfAnnotation::new(
+            reifier_term,
+            annotation_predicate,
+            RdfTerm::literal(RdfLiteral::simple(annotation_value)),
+        );
+
+        let mut builder = RdfDatasetBuilder::new();
+        builder.push_owned_quad(&RdfQuad::new(subject_term, predicate, object_term));
+        builder.push_owned_reifier(&reifier);
+        builder.push_owned_annotation(&annotation);
+
+        let dataset = builder.freeze().expect("freeze");
+        gmeow_rdf::serialize_dataset(
+            &dataset,
+            "application/n-triples",
+            gmeow_rdf::SerializeGraph::DefaultGraph,
+        )
+        .expect("serialize")
+    }
+
+    #[test]
+    fn rewrite_graph_retag_updates_reifier_statement() {
+        let tm = sample_tag_map();
+
+        // Build a dataset: one quad with @x-gmeow-english, a reifier on it, and an
+        // annotation on the reifier.
+        let input = build_nt_with_reifier(
+            "https://e/s",
+            "https://e/label",
+            "Hello",
+            "x-gmeow-english",
+            "https://e/r1",
+            "https://e/confidence",
+            "high",
+        );
+
+        let out = retag_graph(&input, "ntriples", &tm).expect("retag");
+        let text = String::from_utf8(out.clone()).expect("utf8");
+
+        // The base quad must be retagged to @en.
+        assert!(text.contains("\"Hello\"@en"), "base quad retagged: {text}");
+        assert!(
+            !text.contains("@x-gmeow-english"),
+            "internal tag must be gone: {text}"
+        );
+
+        // The reifier's statement object must also be updated to @en.
+        // We check by parsing the output and inspecting owned_reifiers().
+        let reparsed = parse_dataset(&out, "application/n-triples", None).expect("reparse");
+        let reifier_stmt_updated = reparsed.owned_reifiers().any(|r| {
+            if let gmeow_rdf::RdfTerm::Literal(lit) = &r.statement.object {
+                lit.language.as_deref() == Some("en") && lit.lexical_form == "Hello"
+            } else {
+                false
+            }
+        });
+        assert!(
+            reifier_stmt_updated,
+            "reifier statement object must be updated to @en; output:\n{text}"
+        );
+
+        // The annotation on <https://e/r1> must still be present.
+        let has_annotation = reparsed
+            .owned_annotations()
+            .any(|a| a.reifier.to_string() == "<https://e/r1>");
+        assert!(has_annotation, "annotation on r1 must survive: {text}");
+    }
+
+    #[test]
+    fn filter_graph_drops_reifier_for_dropped_literal() {
+        use gmeow_rdf::{
+            RdfAnnotation, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple,
+        };
+
+        // Dataset: two quads (English + French) on the same (s, p), with a reifier
+        // only on the English quad.
+        let subject_term = RdfTerm::iri("https://e/s");
+        let pred = "https://e/label";
+        let en_lit = RdfLiteral::language_tagged("Hello", "x-gmeow-english");
+        let fr_lit = RdfLiteral::language_tagged("Bonjour", "x-gmeow-french");
+
+        let en_stmt = RdfTriple::new(subject_term.clone(), pred, RdfTerm::Literal(en_lit.clone()));
+        let reifier_term = RdfTerm::iri("https://e/r_en");
+        let reifier = RdfReifier::new(reifier_term.clone(), en_stmt);
+        let annotation = RdfAnnotation::new(
+            reifier_term,
+            "https://e/confidence",
+            RdfTerm::literal(RdfLiteral::simple("high")),
+        );
+
+        let mut builder = RdfDatasetBuilder::new();
+        builder.push_owned_quad(&RdfQuad::new(
+            subject_term.clone(),
+            pred,
+            RdfTerm::Literal(en_lit),
+        ));
+        builder.push_owned_quad(&RdfQuad::new(subject_term, pred, RdfTerm::Literal(fr_lit)));
+        builder.push_owned_reifier(&reifier);
+        builder.push_owned_annotation(&annotation);
+
+        let dataset = builder.freeze().expect("freeze");
+        let input = gmeow_rdf::serialize_dataset(
+            &dataset,
+            "application/n-triples",
+            gmeow_rdf::SerializeGraph::DefaultGraph,
+        )
+        .expect("serialize");
+
+        let tm = sample_tag_map();
+        let preds = vec![pred.to_owned()];
+        // Request only French — English quad is dropped.
+        let out =
+            filter_graph(&input, "ntriples", &tm, &["fr".to_owned()], &preds).expect("filter");
+        let text = String::from_utf8(out.clone()).expect("utf8");
+
+        // French quad survives, retagged to @fr.
+        assert!(text.contains("\"Bonjour\"@fr"), "french survives: {text}");
+        // English quad is gone.
+        assert!(!text.contains("Hello"), "english dropped: {text}");
+
+        let reparsed = parse_dataset(&out, "application/n-triples", None).expect("reparse");
+
+        // The reifier on the dropped English quad must not appear.
+        let reifier_present = reparsed
+            .owned_reifiers()
+            .any(|r| r.reifier.to_string() == "<https://e/r_en>");
+        assert!(
+            !reifier_present,
+            "reifier for dropped literal must be absent: {text}"
+        );
+
+        // The annotation on the dropped reifier must also be gone.
+        let annotation_present = reparsed
+            .owned_annotations()
+            .any(|a| a.reifier.to_string() == "<https://e/r_en>");
+        assert!(
+            !annotation_present,
+            "annotation for dropped reifier must be absent: {text}"
+        );
+    }
+
+    #[test]
+    fn filter_graph_retag_updates_reifier_statement() {
+        // Dataset: one quad with @x-gmeow-english, a reifier on it.
+        // Request "en" → the quad is retagged to @en, and the reifier statement
+        // must follow.
+        let input = build_nt_with_reifier(
+            "https://e/s",
+            "https://e/label",
+            "Hello",
+            "x-gmeow-english",
+            "https://e/r_en",
+            "https://e/note",
+            "tested",
+        );
+
+        let tm = sample_tag_map();
+        let preds = vec!["https://e/label".to_owned()];
+        let out =
+            filter_graph(&input, "ntriples", &tm, &["en".to_owned()], &preds).expect("filter");
+        let text = String::from_utf8(out.clone()).expect("utf8");
+
+        // The quad must be retagged to @en.
+        assert!(
+            text.contains("\"Hello\"@en"),
+            "quad retagged to @en: {text}"
+        );
+        assert!(
+            !text.contains("@x-gmeow-english"),
+            "internal tag gone: {text}"
+        );
+
+        let reparsed = parse_dataset(&out, "application/n-triples", None).expect("reparse");
+
+        // The reifier's statement object must be @en, not @x-gmeow-english.
+        let reifier_updated = reparsed.owned_reifiers().any(|r| {
+            if let gmeow_rdf::RdfTerm::Literal(lit) = &r.statement.object {
+                lit.language.as_deref() == Some("en") && lit.lexical_form == "Hello"
+            } else {
+                false
+            }
+        });
+        assert!(
+            reifier_updated,
+            "reifier statement must be updated to @en: {text}"
+        );
     }
 }
