@@ -408,6 +408,15 @@ def validate(
         "-f",
         help="Output for RDF conformance: human, sarif, or json.",
     ),
+    deep: bool = typer.Option(
+        False,
+        "--deep",
+        help=(
+            "Opt-in Tier-2 native semantic pass: after the structural Tier-1 "
+            "checks, reason over your data merged with the bundled axioms and "
+            "surface entailed inconsistencies. No reasoner runs without this flag."
+        ),
+    ),
 ) -> None:
     """Validate RDF data against the bundle, or a JSON/YAML instance against a schema.
 
@@ -416,20 +425,26 @@ def validate(
     ``.owl``, ``.jsonld``) run repo-free Tier-1 conformance —
     SHACL plus the OntoUML disciplines — against the SHACL shape surface folded
     into the bundled ``gmeow.gts``, with no reasoner, repo, or Docker required.
-    ``.json``/``.yaml`` run JSON-Schema instance validation, and ``--schema``
-    forces the JSON-Schema path for any input. Either mode exits non-zero on a
-    validation error.
+    Adding ``--deep`` runs the opt-in Tier-2 semantic pass on top: the native DL
+    reasoner over your data merged with the bundled axioms, surfacing entailed
+    contradictions the structural checks cannot see (degrading to an advisory note,
+    never a crash, if it cannot run). ``.json``/``.yaml`` run JSON-Schema instance
+    validation, and ``--schema`` forces the JSON-Schema path for any input. Either
+    mode exits non-zero on a validation error.
     """
     suffix = instance.suffix.lower()
     rdf_format = validate_data.format_for_suffix(suffix)
     if schema is None and rdf_format is not None:
-        _validate_rdf(instance, rdf_format, output)
+        _validate_rdf(instance, rdf_format, output, deep)
         return
     _validate_instance(instance, schema)
 
 
-def _validate_rdf(instance: Path, fmt: str, output: str) -> None:
-    """Run repo-free RDF Tier-1 conformance and emit in the requested format."""
+def _validate_rdf(instance: Path, fmt: str, output: str, deep: bool = False) -> None:
+    """Run repo-free RDF Tier-1 conformance and emit in the requested format.
+
+    When *deep* is set, the native engine also runs the opt-in Tier-2 semantic pass.
+    """
     output = output.lower()
     if output not in ("human", "sarif", "json"):
         raise _fail(f"unknown --format {output!r}: expected human, sarif, or json")
@@ -438,7 +453,7 @@ def _validate_rdf(instance: Path, fmt: str, output: str) -> None:
     gts_bytes = _read_bytes_or_fail(_default_gts_file())
     try:
         report = validate_data.validate_rdf(
-            data_bytes, fmt, gts_bytes, NAMESPACE, str(instance)
+            data_bytes, fmt, gts_bytes, NAMESPACE, str(instance), deep
         )
     except ValueError as exc:
         raise _fail(f"validation error: {exc}") from exc
