@@ -136,10 +136,13 @@ pub enum RcTerm {
 
 impl RcTerm {
     fn from_value(value: &str, is_literal: bool) -> Self {
-        if value.starts_with('?') {
-            Self::Var(value.to_owned())
-        } else if is_literal {
+        // A declared literal MUST win before the variable-syntax heuristic: a lexical
+        // form that happens to start with '?' (e.g. a string literal "?foo") must be
+        // classified as Literal, not Var.
+        if is_literal {
             Self::Literal(value.to_owned())
+        } else if value.starts_with('?') {
+            Self::Var(value.to_owned())
         } else if is_absolute_iri(value) {
             Self::Iri(value.to_owned())
         } else {
@@ -558,7 +561,27 @@ pub fn project_relational_core(program: &RelationalCoreProgram) -> String {
         let head_iri = emit_atom(&mut lines, &rule.head, "head");
         lines.push(triple_iri(&r_iri, &p_rc_head(), &head_iri));
         for (index, body_atom) in rule.body.iter().enumerate() {
-            let b_iri = emit_atom(&mut lines, body_atom, "body");
+            // Scope the body-atom node IRI by rule key AND atom index so that the same
+            // atom appearing at different positions (or in different rules) gets a
+            // distinct node — avoiding rcIndex collision on a shared content-keyed node.
+            let b_scope_key = format!("{}\u{1c}{index}\u{1c}{}", rule.key(), body_atom.key());
+            let b_iri = atom_node_iri("body", &b_scope_key);
+            // Emit atom-node triples directly (emit_atom is content-keyed; here we need
+            // the scope-keyed IRI instead).
+            lines.push(triple_iri(&b_iri, RDF_TYPE, &class_atom()));
+            lines.push(triple(
+                &b_iri,
+                &p_rc_subject(),
+                &term_nt(&body_atom.subject),
+            ));
+            lines.push(triple_iri(&b_iri, &p_rc_predicate(), &body_atom.predicate));
+            lines.push(triple(&b_iri, &p_rc_object(), &term_nt(&body_atom.object)));
+            if matches!(body_atom.object, RcTerm::Literal(_)) {
+                lines.push(triple_bool(&b_iri, &p_rc_object_literal(), true));
+            }
+            if body_atom.negated {
+                lines.push(triple_bool(&b_iri, &p_rc_negated(), true));
+            }
             lines.push(triple_iri(&r_iri, &p_rc_body(), &b_iri));
             // The body order is stored so the rule re-derives identically.
             lines.push(triple_int(&b_iri, &p_rc_index(), index));
@@ -884,6 +907,53 @@ mod tests {
         let mut sorted = lines.clone();
         sorted.sort_unstable();
         assert_eq!(lines, sorted, "projection lines are sorted (deterministic)");
+    }
+
+    /// Finding 1 regression: a literal whose lexical form begins with '?' must be
+    /// classified as a Literal, not as a Var, regardless of variable-syntax heuristic.
+    #[test]
+    fn declared_literal_starting_with_question_mark_is_not_a_var() {
+        let term = RcTerm::from_value("?sparql-like-literal", true);
+        assert!(
+            matches!(term, RcTerm::Literal(_)),
+            "is_literal=true MUST win over variable-syntax heuristic; got {term:?}"
+        );
+        // Countercheck: without is_literal=true, '?' still produces Var.
+        let var_term = RcTerm::from_value("?x", false);
+        assert!(
+            matches!(var_term, RcTerm::Var(_)),
+            "without is_literal flag, '?' prefix still produces Var"
+        );
+    }
+
+    /// Finding 2 regression: a rule with a repeated body atom (same content at two
+    /// positions) must round-trip without rcIndex collision on a shared node IRI.
+    #[test]
+    fn repeated_body_atom_round_trips_with_distinct_indices() {
+        let sc = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+        // ?x sc ?z :- ?x sc ?y, ?x sc ?y .   (same atom twice — pathological but legal)
+        let rule = LogicRule::new(
+            ax("?x", sc, "?z", false, false),
+            vec![
+                ax("?x", sc, "?y", false, false),
+                ax("?x", sc, "?y", false, false), // duplicate
+            ],
+            vec![],
+            ContextualScope::default(),
+        );
+        let program = LogicProgram::new(vec![], vec![rule], vec![], None);
+        let lowered = lower_program(&program);
+        // Project then re-derive: must reconstruct 2 body atoms, not 1.
+        let nt = project_relational_core(&lowered);
+        let ds = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+            .expect("parse projection");
+        let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive");
+        assert_eq!(
+            re_derived.rules[0].body.len(),
+            2,
+            "both body occurrences must survive the round-trip (no rcIndex collision)"
+        );
+        assert_eq!(re_derived, lowered, "full round-trip value equality");
     }
 
     #[test]
