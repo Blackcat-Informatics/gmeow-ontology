@@ -1,0 +1,11 @@
+{
+  "bindings": [
+    {
+      "X": "<https://example.org/profiles/goal-rdf-list-functions/y>"
+    },
+    {
+      "X": "<https://example.org/profiles/goal-rdf-list-functions/z>"
+    }
+  ],
+  "status": "ok"
+}
