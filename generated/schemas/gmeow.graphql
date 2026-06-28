@@ -4836,6 +4836,7 @@ type FinancialTransaction {
 type Finding {
   id: String
   iri: String
+  findingCategory: [String!]
   findingCode: [String!]
   findingHelpUri: [String!]
   findingLocation: [String!]

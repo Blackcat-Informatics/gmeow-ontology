@@ -201,6 +201,9 @@ fn stable_fingerprint(finding: &Finding) -> String {
 
 /// The GMEOW namespace IRI prefix.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+/// The `logic:` namespace IRI prefix — home of the `logic:FindingCategory`
+/// taxonomy individuals a finding's category projects to.
+const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 /// The named graph the diagnostics projection lives in.
 const DIAGNOSTICS_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -359,6 +362,17 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
                 &subject,
                 &format!("{GMEOW}findingTool"),
                 &format!("\"{}\"", nq_escape(tool)),
+                &mut lines,
+            );
+        }
+        // The orthogonal finding KIND, pointing at the matching logic:Finding*
+        // taxonomy individual. Guarded by Some so an un-categorized finding leaves
+        // the projection byte-unchanged.
+        if let Some(category) = finding.category {
+            triple(
+                &subject,
+                &format!("{GMEOW}findingCategory"),
+                &format!("<{LOGIC}{}>", category.iri_local()),
                 &mut lines,
             );
         }
@@ -773,6 +787,11 @@ fn sarif_result(finding: &Finding) -> Value {
     let mut props = serde_json::Map::new();
     if let Some(detail) = &finding.detail {
         props.insert("detail".to_owned(), json!(detail));
+    }
+    // The orthogonal finding KIND (the 8-way taxonomy), guarded by Some so an
+    // un-categorized finding leaves the SARIF result byte-unchanged.
+    if let Some(category) = finding.category {
+        props.insert("gmeow.category".to_owned(), json!(category.as_str()));
     }
     if !finding.attributions.is_empty() {
         // Sorted (role, slice_iri) for deterministic output.
@@ -1520,6 +1539,50 @@ mod tests {
         assert_eq!(counts["docs/dangling-link"], 2);
         assert_eq!(counts["docs/missing-example"], 5);
         assert_eq!(counts["docs/missing-alignment"], 3);
+    }
+
+    #[test]
+    fn category_projects_to_sarif_property_and_rdf_individual() {
+        use crate::model::FindingCategory;
+        let mut report = Report::new("validate");
+        report.add_finding(
+            Finding::new(
+                Severity::Warning,
+                "validate.deep.permitted-conflict",
+                "disclosed glut under a glut-admitting contract",
+            )
+            .with_tool("validate")
+            .with_category(FindingCategory::PermittedEpistemicConflict),
+        );
+
+        // SARIF: the category rides result.properties as the kebab wire value.
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        assert_eq!(
+            value["runs"][0]["results"][0]["properties"]["gmeow.category"],
+            "permitted-epistemic-conflict"
+        );
+
+        // RDF: one gmeow:findingCategory triple pointing at the logic: individual.
+        let nquads = to_gmeow_rdf(&report);
+        assert!(
+            nquads.contains(
+                "<https://blackcatinformatics.ca/gmeow/findingCategory> \
+                 <https://blackcatinformatics.ca/logic/FindingPermittedEpistemicConflict>"
+            ),
+            "findingCategory triple missing: {nquads}"
+        );
+    }
+
+    #[test]
+    fn absent_category_leaves_outputs_unchanged() {
+        // A finding with no category emits neither the SARIF property nor the RDF
+        // triple — the byte-stability guarantee for existing goldens.
+        let mut report = Report::new("validate");
+        report.add_finding(Finding::new(Severity::Error, "x", "boom"));
+        let sarif = to_sarif(&report).unwrap();
+        assert!(!sarif.contains("gmeow.category"));
+        let nquads = to_gmeow_rdf(&report);
+        assert!(!nquads.contains("findingCategory"));
     }
 
     /// Recursively collect every `"uri"` string value under a JSON node.

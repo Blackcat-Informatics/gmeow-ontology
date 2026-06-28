@@ -5131,6 +5131,7 @@ class FinancialTransaction(Event):
 class Finding(Observation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Finding"
     is_a: ClassVar[str] = "Observation"
+    findingCategory: list[str] | None = Field(default=None)
     findingCode: list[str] | None = Field(default=None)
     findingHelpUri: list[str] | None = Field(default=None)
     findingLocation: list[str] | None = Field(default=None)
