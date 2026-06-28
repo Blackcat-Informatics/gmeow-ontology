@@ -104,14 +104,22 @@ impl Stage for ReasonStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         // Union the upstream transforms into the dataset the reasoner consumes.
-        let composed = crate::stages::gts_compose::compose(input.upstream)?;
+        let composed = crate::stages::gts_compose::compose_nquads(input.upstream)?;
         let (closure, explanations, ledger) = reason_artifacts(&composed)?;
+        // Carry the CLOSURE ONLY as the bundle's frozen dataset — this is the reason
+        // stage's contribution to `gts_compose`'s union. The EXPLANATIONS and LEDGER
+        // are diagnostic REPORTS (proof skeletons / DL·EL crosscheck), NOT ontology
+        // facts; they stay byte-lane only and are EXCLUDED from the compose union BY
+        // CONSTRUCTION (the dataset carries the closure alone), which replaces the old
+        // path-based skip in `gts_compose`.
+        let closure_dataset = gmeow_rdf::parse_dataset(closure.as_bytes(), "text/turtle", None)
+            .map_err(|e| PipelineError::Parse(format!("reason closure parse: {e}")))?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(CLOSURE_PATH.to_string(), closure.into_bytes());
         artifacts.insert(EXPLANATIONS_PATH.to_string(), explanations.into_bytes());
         artifacts.insert(LEDGER_PATH.to_string(), ledger.into_bytes());
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
+            product: StageProduct::from_artifacts_over(self.id(), closure_dataset, artifacts),
         })
     }
 }

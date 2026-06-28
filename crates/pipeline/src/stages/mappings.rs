@@ -345,10 +345,44 @@ impl Stage for MappingsStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let artifacts = compile_mappings(input.root)?;
+        // Carry the union of the RDF outputs (`.ttl` / `.nq` / `.nt` — the alignment
+        // axioms / projections this stage contributes to compose) as the bundle's
+        // frozen dataset; the non-RDF outputs (`.json`, `.jsonld`, `.tsv`, `.rq`) stay
+        // byte-lane only. Each RDF artifact is parsed and the per-input datasets are
+        // unioned (standardize-apart per input), so `gts_compose` folds in this one
+        // dataset instead of re-parsing each byte artifact.
+        let dataset = mappings_rdf_dataset(&artifacts)?;
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
+            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
         })
     }
+}
+
+/// Parse every RDF artifact (`.ttl` / `.nq` / `.nt`) of the mappings byte-artifact
+/// map and union them into one frozen dataset (the native contribution
+/// `gts_compose` folds). Non-RDF artifacts are skipped. Inputs are unioned in
+/// sorted-path order (the `BTreeMap` order) under [`RdfDataset::union`], which
+/// standardizes blank scopes apart per input and canonicalizes on freeze.
+fn mappings_rdf_dataset(
+    artifacts: &BTreeMap<String, Vec<u8>>,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    let mut parsed: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = Vec::new();
+    for (path, bytes) in artifacts {
+        let media_type = if path.ends_with(".nq") {
+            "application/n-quads"
+        } else if path.ends_with(".nt") {
+            "application/n-triples"
+        } else if path.ends_with(".ttl") {
+            "text/turtle"
+        } else {
+            continue;
+        };
+        let ds = gmeow_rdf::parse_dataset(bytes, media_type, None)
+            .map_err(|e| PipelineError::Parse(format!("mappings RDF parse of {path}: {e}")))?;
+        parsed.push(ds);
+    }
+    let refs: Vec<&gmeow_rdf::RdfDataset> = parsed.iter().map(|a| a.as_ref()).collect();
+    Ok(std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&refs)))
 }
 
 #[cfg(test)]
