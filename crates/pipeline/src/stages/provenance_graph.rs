@@ -55,7 +55,7 @@ struct Lane {
     load_bearing: bool,
 }
 
-/// The fixed carrier-lane manifest (#1132 C6–C9). Order is irrelevant — the emitter
+/// The fixed carrier-lane manifest (C6–C9). Order is irrelevant — the emitter
 /// sorts — but kept declaration-stable for readability. The graph IRIs mirror the
 /// snapshot's named-graph constants; the load-bearing classification follows the
 /// `logic:loadBearing` doctrine (carrier graphs bear, report graphs are droppable).
@@ -98,6 +98,11 @@ const LANES: &[Lane] = &[
     Lane {
         slug: "conformance",
         graph: "https://blackcatinformatics.ca/gmeow/graph/conformance",
+        load_bearing: false,
+    },
+    Lane {
+        slug: "provenance",
+        graph: GRAPH_PROVENANCE,
         load_bearing: false,
     },
 ];

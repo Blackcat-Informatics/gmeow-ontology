@@ -178,13 +178,15 @@ pub fn run(
             // (kind-derived origin: SourceLoad → Source, derived stages → Generated).
             register_stage_unit(&mut ctx.provenance, &r.id, stage.kind());
             // Thread a per-stage provenance into the produced bundle so the carrier
-            // CARRIES a provenance sidecar (#1132 C4 deliverable 3). Kept lightweight:
-            // one unit naming the producing stage; the full graph/occurrence
-            // projection over it is C9. Stamping AFTER the cache `put` keeps the
-            // persisted product's cache-key digest stable (the cache stand-in does
-            // not persist provenance), and `combined()` still folds sorted
-            // `(id, digest)` — the digest is the value the product was cached under.
-            let mut stage_prov = DatasetProvenance::new();
+            // CARRIES a provenance sidecar (C4 deliverable 3). The producing stage is
+            // MERGED into whatever provenance the bundle already carries (e.g.
+            // reconstituted from cache, or accumulated upstream) rather than replacing
+            // it, so carried occurrences/units are never dropped; `register_unit`
+            // dedups by name so re-stamping a cache-restored unit is idempotent.
+            // Stamping AFTER the cache `put` keeps the persisted product's cache-key
+            // digest stable, and `combined()` still folds sorted `(id, digest)` — the
+            // digest is the value the product was cached under.
+            let mut stage_prov = r.product.bundle.provenance().clone();
             register_stage_unit(&mut stage_prov, &r.id, stage.kind());
             set_bundle_provenance(&mut r.product.bundle, stage_prov);
             if profile {
