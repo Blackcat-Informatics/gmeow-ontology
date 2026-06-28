@@ -1,0 +1,12 @@
+---
+source: crates/docs/tests/lint_regression.rs
+expression: coverage
+---
+{
+  "docs/missing-alignment": 1688,
+  "docs/missing-definition": 1,
+  "docs/missing-example": 892,
+  "docs/missing-label": 1,
+  "docs/missing-scope-note": 2141,
+  "docs/missing-usage-advice": 903
+}
