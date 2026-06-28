@@ -3463,11 +3463,11 @@ logic:assessmentScale
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:assessmentLevel
-    a owl:ObjectProperty ;
+    a rdf:Property ;
     rdfs:domain logic:CognitiveAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "assessment level"@x-gmeow-english ;
-    skos:definition "The value a logic:CognitiveAssessment takes on its logic:assessmentScale: an ordinal logic:AssessmentLevel individual when the scale is ordinal (the case the coarse-ladder projection reads), or a continuous literal otherwise. Range logic:AssessmentLevel or a literal (stated in prose, matching the module's convention)."@x-gmeow-english ;
+    skos:definition "The value a logic:CognitiveAssessment takes on its logic:assessmentScale: an ordinal logic:AssessmentLevel individual when the scale is ordinal (the case the coarse-ladder projection reads), or a continuous literal otherwise (a Brier or logarithmic score on a continuous scale). Because the range spans both an individual and a literal it is a plain rdf:Property, not an owl:ObjectProperty (which could not carry the continuous literal) — the same open-range convention the module states in prose elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:assessmentEvaluator
@@ -4002,8 +4002,9 @@ logic:ruleProjectHasMastered
 # A first-class, reified declaration that one relation is DEFEASIBLE (defeater-
 # blockable) evidence for another, never a strict entailment. The recast of
 # expertise's gmeow:hasSkill → gmeow:knowsAbout: possessing a skill (tacit can-do)
-# is defeasible evidence for knowing-about (propositional), the two coming apart
-# (tacit competence with no articulable knowledge, and vice versa). Because the
+# is defeasible evidence for knowing-about (descriptive, fact-level familiarity),
+# the two coming apart (tacit competence with no articulable knowledge, and vice
+# versa). Because the
 # support is defeasible, the shipped reasoning NEVER materializes the supported
 # edge from the evidence: gmeow:knowsAbout's only shipped source is the
 # declarative-familiarity ladder projection, never gmeow:hasSkill. A consumer that
@@ -4055,7 +4056,7 @@ logic:skillEvidenceForKnowsAbout
         logic:DefeasibleEvidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "skill is defeasible evidence for knowing about"@x-gmeow-english ;
-    skos:definition "The shipped declaration recasting expertise's former gmeow:hasSkill ⊑ gmeow:knowsAbout: possessing a skill in a subject is DEFEASIBLE evidence that the agent knows about it, not a strict subproperty entailment — tacit competence and propositional knowing-about come apart. The supported gmeow:knowsAbout edge is never materialized from gmeow:hasSkill under the default reasoning (its only shipped source is the declarative-familiarity ladder projection); a consumer opting into defeasible reasoning draws it, defeated when the competence is purely tacit."@x-gmeow-english ;
+    skos:definition "The shipped declaration recasting expertise's former gmeow:hasSkill ⊑ gmeow:knowsAbout: possessing a skill in a subject is DEFEASIBLE evidence that the agent knows about it, not a strict subproperty entailment — tacit competence and descriptive, fact-level knowing-about come apart. The supported gmeow:knowsAbout edge is never materialized from gmeow:hasSkill under the default reasoning (its only shipped source is the declarative-familiarity ladder projection); a consumer opting into defeasible reasoning draws it, defeated when the competence is purely tacit."@x-gmeow-english ;
     logic:evidenceProperty gmeow:hasSkill ;
     logic:evidenceFor gmeow:knowsAbout ;
     logic:defeasibleStrength "moderate" .

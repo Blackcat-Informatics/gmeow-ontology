@@ -8,9 +8,12 @@
 #
 # This returns a row → FAILURE when an agent both has a skill in a subject AND
 # knows-about that same subject (asserted or in the EL/DL closure), yet nothing
-# legitimately justifies the knowing-about (no deeper rung, no backing
-# declarative-familiarity assessment — the canonical source of knows-about) — the
-# signature of the forbidden hasSkill → knowsAbout entailment in the reasoned graph.
+# legitimately justifies the knowing-about (no deeper rung, and no backing
+# declarative-familiarity assessment whose level clears a profile's knows-about
+# threshold — the canonical source of knows-about) — the signature of the
+# forbidden hasSkill → knowsAbout entailment in the reasoned graph. The exemption
+# mirrors the projection rule: a sub-threshold declarative assessment does NOT
+# project knows-about, so it must not excuse a knows-about edge here either.
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
@@ -23,6 +26,11 @@ SELECT ?agent ?subject WHERE {
     FILTER NOT EXISTS {
         ?assessment logic:assessedAgent ?agent ;
                     logic:assessmentSubject ?subject ;
-                    logic:assessmentDimension logic:dimensionDeclarativeFamiliarity .
+                    logic:assessmentDimension logic:dimensionDeclarativeFamiliarity ;
+                    logic:assessmentLevel ?level .
+        ?row logic:projectsLadderEdge gmeow:knowsAbout ;
+             logic:sourceDimension logic:dimensionDeclarativeFamiliarity ;
+             logic:thresholdLevel ?threshold .
+        ?level logic:levelAtOrAbove ?threshold .
     }
 }
