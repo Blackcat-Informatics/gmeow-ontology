@@ -7,6 +7,25 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
+gmeow:AdequacyAssessment
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Adequacy Assessment"@x-gmeow-english ;
+    rdfs:subClassOf logic:Relator ;
+    skos:definition "A reified, solver-set judgement that a justification's support MEETS (or fails) the threshold of a named epistemic standard — carrying the standard (gmeow:adequacyUnderStandard -> gmeow:EpistemicStandard) and the verdict (gmeow:meetsThreshold -> gmeow:AdequacyVerdict). Adequacy is the fourth of the five factored justification components (available-evidence, basing, support-under-a-standard, adequacy, defeat): whether the support meets the standard's bar. COMPUTED, never asserted (Principle 12); the same basis may be adequate under one standard and inadequate under a stricter one, so several assessments coexist (Principle 9)."@x-gmeow-english ;
+    skos:scopeNote "Reached from a gmeow:JustificationSubject via gmeow:adequateUnder. Formalises the 'adequacy — meets the standard's threshold' component of design/LOGIC-FOUNDATION.md (Argumentation and epistemic standards), by prose reference (Principle 5)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:AdequacyVerdict
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Adequacy Verdict"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The solver-set outcome of a gmeow:AdequacyAssessment — a value vocabulary (individuals, never subclasses): gmeow:adequacyMet (the support meets the standard's threshold), gmeow:adequacyUnmet (it falls short), gmeow:adequacyUndetermined (the solver cannot yet decide). A solver value (Principle 12); there is no asserted 'adequate' bit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:Attestation
     rdfs:subClassOf gmeow:JustificationGround .
 
@@ -18,11 +37,11 @@ gmeow:ClaimEvaluation
     rdfs:subClassOf gmeow:ClaimToken ;
     skos:definition "An evaluative claim about a claim — a judgment of a claim token against a standard (warranted / unwarranted, sincere / insincere, sound / unsound), itself a claim token (the foundation: an evaluation is a separate claim with its own standpoint and provenance). Reuses the whole claim apparatus recursively: it gmeow:evaluates the target token, is held according to a frame via inherited gmeow:accordingTo (its CONTEXT — a gmeow:Standpoint, the materialised typed context truth is relative to), and carries its verdict as the gmeow:Proposition it gmeow:expresses under a modality. One token may be evaluated differently under different contexts, and those evaluations coexist (Principle 9); the reasoner never sets a verdict (Principle 12)."@x-gmeow-english ;
     skos:example "ex:eval1 a gmeow:ClaimEvaluation ; gmeow:evaluates ex:tok1 ; gmeow:accordingTo ex:courtFrame ; gmeow:expresses ex:tok1IsWarranted ."@x-gmeow-english ;
-    skos:scopeNote "The formal four-valued (Belnap / FDE) TRUTH verdict of a reasoner is the logic:ReasoningResult (logic:resultInformation) — a distinct standard, referenced not duplicated. The lightweight defeat flag on a claim is gmeow:defeatedBy → gmeow:JustificationStatus; gmeow:ClaimEvaluation is the heavy, context-indexed, reifiable form whose own identity, frame, and provenance are first-class. Context is gmeow:Standpoint (the materialised typed context); a single undifferentiated world would be a category error (the typed-context-algebra doctrine)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a bare defeat flag (use gmeow:defeatedBy directly on the claim) and for the reasoner's truth verdict (that is logic:ReasoningResult); avoid letting one evaluation win over the rest — competing evaluations under different contexts coexist (Principle 9)."@x-gmeow-english ;
+    skos:scopeNote "The formal four-valued (Belnap / FDE) TRUTH verdict of a reasoner is the logic:ReasoningResult (logic:resultInformation) — a distinct standard, referenced not duplicated. The lightweight defeat flag on a claim is gmeow:hasDefeatStatus → gmeow:JustificationStatus; gmeow:ClaimEvaluation is the heavy, context-indexed, reifiable form whose own identity, frame, and provenance are first-class. Context is gmeow:Standpoint (the materialised typed context); a single undifferentiated world would be a category error (the typed-context-algebra doctrine)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a bare defeat flag (use gmeow:hasDefeatStatus directly on the claim) and for the reasoner's truth verdict (that is logic:ReasoningResult); avoid letting one evaluation win over the rest — competing evaluations under different contexts coexist (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint one ClaimEvaluation per (token, context) assessment; point gmeow:evaluates at the target gmeow:ClaimToken, gmeow:accordingTo at the gmeow:Standpoint context, and gmeow:expresses at the verdict proposition; carry the qualitative verdict as its claim modality. Supersede by minting a new evaluation and suppressing the old with gmeow:displayable false (Principle 10)."@x-gmeow-english ;
-    gmeow:useWhen "Use when the assessment of a claim token under a particular context / standard is itself a fact of interest — when the context, the verdict, and the evaluation's own identity and provenance must be queryable or revisable, beyond a bare gmeow:defeatedBy flag."@x-gmeow-english .
+    gmeow:useWhen "Use when the assessment of a claim token under a particular context / standard is itself a fact of interest — when the context, the verdict, and the evaluation's own identity and provenance must be queryable or revisable, beyond a bare gmeow:hasDefeatStatus flag."@x-gmeow-english .
 
 gmeow:ClaimToken
     a logic:Event ,
@@ -38,6 +57,19 @@ gmeow:ClaimToken
     gmeow:howToUse "Mint one ClaimToken per assertion act; link its content with gmeow:expresses (one or many propositions), its performing agent with gmeow:wasAssociatedWith, its frame with gmeow:accordingTo; attach the reported attitude with gmeow:heldByAttitude and the producing event via the inverse of gmeow:producesClaim; evaluations reference it via gmeow:evaluates. Retract by suppression (gmeow:displayable false), never deletion (Principle 10)."@x-gmeow-english ;
     gmeow:useWhen "Use as the canonical assertion-act token whenever a proposition is PUT FORWARD by a source on an occasion — so the content, the act, the attitude, and the evaluation stay four distinct identities (the foundational claim separation)."@x-gmeow-english .
 
+gmeow:Defeater
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Defeater"@x-gmeow-english ;
+    rdfs:subClassOf owl:Thing ;
+    owl:equivalentClass [
+        a owl:Class ;
+        owl:unionOf ( gmeow:Argument gmeow:StandpointClaim gmeow:EvidenceSpan ) ;
+    ] ;
+    skos:definition "The class of things that can DEFEAT a justification — an gmeow:Argument (the inference-slice argumentation node), a gmeow:StandpointClaim (a defeating consideration), or a gmeow:EvidenceSpan (defeating evidence). The structural defeater that gmeow:defeatedBy points at, distinct from the solver-set verdict FLAG gmeow:hasDefeatStatus -> gmeow:JustificationStatus. Introduced as a named superclass so that schema projections can assign a single range to gmeow:defeatedBy instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:DoxasticStandpointClaim
     a logic:SubKind ,
         owl:Class ;
@@ -48,7 +80,7 @@ gmeow:DoxasticStandpointClaim
     skos:example "ex:aliceRoundClaim a gmeow:DoxasticStandpointClaim ; gmeow:vantage ex:alice ; gmeow:observedFeature ex:earthIsRound ; gmeow:claimOfBelief ex:aliceBelievesRound ; gmeow:claimModality gmeow:unequivocal ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the flat doxastic spine suffices; do not mint both a flat believes statement and a DoxasticStandpointClaim for the same holding without a clear reason (Principle 4)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint one DoxasticStandpointClaim per (agent, proposition, belief-modality) tuple; set its vantage to the agent, observedFeature to the proposition, claimModality to the qualitative belief value, and claimOfBelief to the underlying DoxasticState. Justification and defeat are modeled via gmeow:justifiedBy and gmeow:defeatedBy in this module."@x-gmeow-english ;
+    gmeow:howToUse "Mint one DoxasticStandpointClaim per (agent, proposition, belief-modality) tuple; set its vantage to the agent, observedFeature to the proposition, claimModality to the qualitative belief value, and claimOfBelief to the underlying DoxasticState. Justification is factored via gmeow:hasAvailableEvidence / gmeow:basesBeliefOn / gmeow:supportsUnder / gmeow:adequateUnder and defeat via gmeow:defeatedBy / gmeow:hasDefeatStatus in this module."@x-gmeow-english ;
     gmeow:useWhen "Use when a belief report must be a first-class StandpointClaim that can be justified, defeated, or standpoint-indexed independently of the flat gmeow:believes / gmeow:knowsThat spine (Principle 9)."@x-gmeow-english .
 
 gmeow:DoxasticState
@@ -119,6 +151,15 @@ gmeow:EpistemicContext
     gmeow:howToUse "Mint an EpistemicContext when an agent's belief-world needs to be a first-class context — the contexts logic:doxasticallyAccessible relates; link the believing gmeow:DoxasticState to its content and let the typed accessibility relation, not the bare logic:accessibleFrom, carry any cross-context reasoning."@x-gmeow-english ;
     gmeow:useWhen "Use to name the doxastic context (belief-world) an agent's knowledge or belief is held true relative to — the typed context of the context algebra that logic:doxasticallyAccessible ranges over, distinct from the gmeow:DoxasticState mental moment."@x-gmeow-english .
 
+gmeow:EpistemicStandard
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Epistemic Standard"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The standard of evidential adequacy a justification is assessed against — a closed-but-open value vocabulary (individuals, never subclasses; the gmeow:StandpointModality idiom): gmeow:standardOrdinary, gmeow:standardScientific, gmeow:standardLegalPreponderance, gmeow:standardLegalClearAndConvincing, gmeow:standardLegalBeyondReasonableDoubt. The named standard parameterises support and adequacy (gmeow:supportsUnder, gmeow:adequateUnder) and the locally-factive gmeow:knowsThatIn: how strongly the evidence must warrant the content differs by standard, so the same basis may be adequate under one and inadequate under another (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:EvidenceSpan
     rdfs:subClassOf gmeow:JustificationGround .
 
@@ -132,12 +173,12 @@ gmeow:JustificationGround
         a owl:Class ;
         owl:unionOf ( gmeow:EvidenceSpan gmeow:Attestation gmeow:DoxasticState ) ;
     ] ;
-    skos:definition "The class of things that can serve as a justification basis — an evidence span, an attestation, or a further doxastic state. Introduced as a named superclass so that schema projections can assign a single range to gmeow:justifiedBy instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound gmeow:justifiedBy ex:photoEvidence , ex:expertAttestation , ex:bobBelievesRound ."@x-gmeow-english ;
+    skos:definition "The class of things that can serve as a justification basis — an evidence span, an attestation, or a further doxastic state. Introduced as a named superclass so that schema projections can assign a single range to the justification edges (gmeow:hasAvailableEvidence, gmeow:basesBeliefOn) instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:hasAvailableEvidence ex:photoEvidence , ex:expertAttestation , ex:bobBelievesRound ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it as an independent kind of entity; it is a schema-friendly union category whose instances are always EvidenceSpans, Attestations, or DoxasticStates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Let instances be typed as gmeow:EvidenceSpan, gmeow:Attestation, or gmeow:DoxasticState; the explicit subClassOf axioms make them gmeow:JustificationGrounds for downstream schemas."@x-gmeow-english ;
-    gmeow:useWhen "Use as the range of gmeow:justifiedBy when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english .
+    gmeow:useWhen "Use as the range of gmeow:hasAvailableEvidence and gmeow:basesBeliefOn when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english .
 
 gmeow:JustificationStatus
     a logic:AbstractIndividualType ,
@@ -145,11 +186,11 @@ gmeow:JustificationStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Justification Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "A value vocabulary for justification-defeat states of a doxastic state or standpoint-claim — solver-set flags such as Gettier-case, defeated, undercut, and rebutted. These are quality values (gufo:QualityValue) attached via gmeow:defeatedBy; the reasoner never infers them (Principle 12)."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound gmeow:defeatedBy gmeow:justificationStatusGettier ."@x-gmeow-english ;
+    skos:definition "A value vocabulary for justification-defeat states of a doxastic state or standpoint-claim — solver-set flags such as Gettier-case, defeated, undermined, undercut, and rebutted. These are quality values (gufo:QualityValue) attached via gmeow:hasDefeatStatus; the reasoner never infers them (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:hasDefeatStatus gmeow:justificationStatusGettier ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it as a global truth predicate or letting the reasoner promote/derogate statuses; it is a solver annotation only."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Reference one of the seeded individuals from a defeatedBy link on a gmeow:DoxasticState or gmeow:StandpointClaim; align undercut/rebutted with the inference slice's Pollock defeater kinds (gmeow:defeaterUndercutting / gmeow:defeaterRebutting)."@x-gmeow-english ;
+    gmeow:howToUse "Reference one of the seeded individuals from a gmeow:hasDefeatStatus link on a gmeow:DoxasticState or gmeow:StandpointClaim; align undermined/undercut/rebutted with the inference slice's typed attack kinds (gmeow:attackUndermine / gmeow:attackUndercut / gmeow:attackRebut)."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary when a solver marks a gmeow:DoxasticState or gmeow:StandpointClaim with a justification-defeat status."@x-gmeow-english .
 
 gmeow:JustificationSubject
@@ -162,12 +203,12 @@ gmeow:JustificationSubject
         a owl:Class ;
         owl:unionOf ( gmeow:DoxasticState gmeow:StandpointClaim ) ;
     ] ;
-    skos:definition "The class of things that can carry justification or defeat relations — a doxastic state or a standpoint claim. Introduced as a named superclass so that schema projections (LinkML, TypeScript, GraphQL) can assign a single domain to gmeow:justifiedBy and gmeow:defeatedBy instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:justifiedBy ex:photoEvidence . ex:aliceRoundClaim a gmeow:StandpointClaim ; gmeow:defeatedBy gmeow:justificationStatusGettier ."@x-gmeow-english ;
+    skos:definition "The class of things that can carry justification or defeat relations — a doxastic state or a standpoint claim. Introduced as a named superclass so that schema projections (LinkML, TypeScript, GraphQL) can assign a single domain to the justification edges (gmeow:hasAvailableEvidence, gmeow:basesBeliefOn, gmeow:supportsUnder, gmeow:adequateUnder, gmeow:defeatedBy, gmeow:hasDefeatStatus) instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:hasAvailableEvidence ex:photoEvidence . ex:aliceRoundClaim a gmeow:StandpointClaim ; gmeow:hasDefeatStatus gmeow:justificationStatusGettier ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it as an independent kind of entity; it is a schema-friendly union category whose instances are always DoxasticStates or StandpointClaims."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Let instances be typed as gmeow:DoxasticState or gmeow:StandpointClaim; the explicit subClassOf axioms make them gmeow:JustificationSubjects for downstream schemas."@x-gmeow-english ;
-    gmeow:useWhen "Use as the domain of gmeow:justifiedBy and gmeow:defeatedBy when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english .
+    gmeow:useWhen "Use as the domain of the justification and defeat edges when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english .
 
 gmeow:Proposition
     a logic:Kind ,
@@ -186,6 +227,16 @@ gmeow:Proposition
 gmeow:StandpointClaim
     rdfs:subClassOf gmeow:JustificationSubject .
 
+gmeow:SupportAssessment
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Support Assessment"@x-gmeow-english ;
+    rdfs:subClassOf logic:Relator ;
+    skos:definition "A reified, solver-set judgement of HOW STRONGLY a justification ground warrants its content RELATIVE TO a named epistemic standard — carrying the ground (gmeow:supportGround -> gmeow:JustificationGround), the standard (gmeow:supportUnderStandard -> gmeow:EpistemicStandard), and a solver-layer strength (gmeow:supportStrength, xsd:decimal). Support-under-a-standard is the third of the five factored justification components (available-evidence, basing, support-under-a-standard, adequacy, defeat): the same evidence warrants more under a lenient standard than under a strict one. A solver value (Principle 12), and several assessments under different standards coexist (Principle 9)."@x-gmeow-english ;
+    skos:scopeNote "Reached from a gmeow:JustificationSubject via gmeow:supportsUnder. Formalises the 'support under a standard' component of design/LOGIC-FOUNDATION.md (Argumentation and epistemic standards), by prose reference (Principle 5)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:accepts
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
@@ -199,17 +250,70 @@ gmeow:accepts
     gmeow:howToUse "Point the agent at the proposition or reified statement it works from; keep gmeow:accepts strictly separate from gmeow:believes so the projection layer never silently promotes an accepted premise to a believed or known one (Principle 1)."@x-gmeow-english ;
     gmeow:useWhen "Use to record a pragmatic stance — a premise taken on for argument, a policy default, an 'assume for the sake of argument' — that the agent works from WITHOUT thereby believing it true."@x-gmeow-english .
 
+gmeow:adequacyMet
+    a gmeow:AdequacyVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "adequacy met"@x-gmeow-english ;
+    skos:definition "The support meets the named standard's threshold — the justification is adequate under that standard. A solver-set value (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:adequacyUnderStandard
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:AdequacyAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "adequacy under standard"@x-gmeow-english ;
+    rdfs:range gmeow:EpistemicStandard ;
+    skos:definition "The named epistemic standard a gmeow:AdequacyAssessment judges the support against. Functional: one assessment, one standard."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:adequacyUndetermined
+    a gmeow:AdequacyVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "adequacy undetermined"@x-gmeow-english ;
+    skos:definition "The solver cannot yet decide whether the support meets the standard's threshold — adequacy is undetermined. A solver-set value (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:adequacyUnmet
+    a gmeow:AdequacyVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "adequacy unmet"@x-gmeow-english ;
+    skos:definition "The support falls short of the named standard's threshold — the justification is inadequate under that standard. A solver-set value (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:adequateUnder
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:JustificationSubject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "adequate under"@x-gmeow-english ;
+    rdfs:range gmeow:AdequacyAssessment ;
+    skos:definition "Relates a gmeow:JustificationSubject (a gmeow:DoxasticState or gmeow:StandpointClaim) to a reified gmeow:AdequacyAssessment — whether its support meets a named standard's threshold. The ADEQUACY component of the five-way justification split. NOT functional: adequacy may be assessed under several standards, and those assessments coexist (Principle 9). A solver judgement (Principle 12), never a reasoner entailment that the belief counts as knowledge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 gmeow:attacksClaim
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "attacks claim"@x-gmeow-english ;
     rdfs:range gmeow:ClaimToken ;
-    skos:definition "Relates an attacking structure — an argument, a counter-claim — to the claim token it attacks. The attack pole of bipolar argumentation; the support counterpart is gmeow:supportsClaim. Domain is intentionally OPEN (no rdfs:domain) until the argumentation layer mints gmeow:Argument as the proper domain; only the ClaimToken end is fixed now (the open-domain idiom of gmeow:observedFeature). Non-functional; competing attacks coexist (Principle 9). Distinct from gmeow:defeatedBy (a solver-set verdict flag): attacksClaim records the structural attack relation, not the adjudicated outcome."@x-gmeow-english ;
+    skos:definition "Relates an attacking structure — an argument, a counter-claim — to the claim token it attacks. The attack pole of bipolar argumentation; the support counterpart is gmeow:supportsClaim. Domain is intentionally OPEN (no rdfs:domain) until the argumentation layer mints gmeow:Argument as the proper domain; only the ClaimToken end is fixed now (the open-domain idiom of gmeow:observedFeature). Non-functional; competing attacks coexist (Principle 9). Distinct from gmeow:hasDefeatStatus (a solver-set verdict flag): attacksClaim records the structural attack relation, not the adjudicated outcome."@x-gmeow-english ;
     skos:example "ex:counterArg gmeow:attacksClaim ex:tok1 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid conflating it with the adjudicated verdict (gmeow:defeatedBy) — an attack is structural, a verdict is the solver's call; and avoid narrowing the domain before the argumentation layer supplies gmeow:Argument."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with the adjudicated verdict (gmeow:hasDefeatStatus) — an attack is structural, a verdict is the solver's call; and avoid narrowing the domain before the argumentation layer supplies gmeow:Argument."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the attacking structure at the gmeow:ClaimToken; leave the domain open until the argumentation layer supplies gmeow:Argument, then narrow there, not here."@x-gmeow-english ;
     gmeow:useWhen "Use to record that some structure attacks a claim token — the attack pole of bipolar argumentation, ClaimToken-end only for now."@x-gmeow-english .
+
+gmeow:basesBeliefOn
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:JustificationSubject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "bases belief on"@x-gmeow-english ;
+    rdfs:range gmeow:JustificationGround ;
+    skos:definition "Relates a gmeow:JustificationSubject to the gmeow:JustificationGround its belief is actually FOUNDED ON — the BASING component of the five-way justification split. Distinct from gmeow:hasAvailableEvidence (what the agent merely has access to): available != used. NOT functional: a belief may be based on several grounds, and competing basings coexist (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:basesBeliefOn ex:photoEvidence ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for evidence merely available but not used (that is gmeow:hasAvailableEvidence) and for an adequacy verdict (that is gmeow:adequateUnder); basing records which available ground the belief actually rests on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point from a gmeow:DoxasticState or gmeow:StandpointClaim at the gmeow:JustificationGround(s) it is actually founded on; pair with gmeow:hasAvailableEvidence for the wider accessible set."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which available ground a belief is actually based on — the basing relation, distinct from mere availability."@x-gmeow-english .
 
 gmeow:believes
     a owl:ObjectProperty ;
@@ -257,13 +361,13 @@ gmeow:defeatedBy
     rdfs:domain gmeow:JustificationSubject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "defeated by"@x-gmeow-english ;
-    rdfs:range gmeow:JustificationStatus ;
-    skos:definition "A doxastic state or standpoint-claim is marked with a justification-defeat status — a solver-set flag such as Gettier-case or defeated. Non-functional: a state or claim may carry several defeat markers over time, and old markers are suppressed rather than erased (Principle 10). This is a solver annotation only; the reasoner never promotes or retracts it (Principle 12)."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound gmeow:defeatedBy gmeow:justificationStatusGettier ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid treating it as a reasoner-entailed truth bit or as a deletion signal; it is a solver annotation and should be paired with gmeow:displayable false for suppressed defeated claims rather than erasing them."@x-gmeow-english ;
+    rdfs:range gmeow:Defeater ;
+    skos:definition "Relates a gmeow:JustificationSubject (a gmeow:DoxasticState or gmeow:StandpointClaim) to the structural gmeow:Defeater that defeats it — an gmeow:Argument, a defeating gmeow:StandpointClaim, or a defeating gmeow:EvidenceSpan. The DEFEAT component of the five-way justification split, recording WHAT does the defeating. Distinct from the solver-set verdict FLAG gmeow:hasDefeatStatus -> gmeow:JustificationStatus, which records the adjudicated outcome (Gettier / defeated / undercut / rebutted). NOT functional: several defeaters may bear on one subject, and old ones are suppressed rather than erased (Principle 10)."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:defeatedBy ex:counterEvidence ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a gmeow:JustificationStatus value (that is the flag gmeow:hasDefeatStatus) — gmeow:defeatedBy names the structural defeater (an Argument, claim, or evidence span), not the verdict; and avoid treating it as a deletion signal (pair with gmeow:displayable false, Principle 10)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point from a gmeow:DoxasticState or gmeow:StandpointClaim at one or more gmeow:JustificationStatus individuals; update by minting a new status link and suppressing the old one with gmeow:displayable false (Principle 10)."@x-gmeow-english ;
-    gmeow:useWhen "Use to flag that a reified gmeow:DoxasticState or gmeow:StandpointClaim has a known justification problem (Gettier case, defeated, undercut, rebutted) as determined by the solver layer."@x-gmeow-english .
+    gmeow:howToUse "Point from a gmeow:DoxasticState or gmeow:StandpointClaim at the gmeow:Defeater(s) that defeat it (an gmeow:Argument, gmeow:StandpointClaim, or gmeow:EvidenceSpan); record the adjudicated outcome separately with gmeow:hasDefeatStatus."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the structural defeater(s) bearing on a reified gmeow:DoxasticState or gmeow:StandpointClaim — what does the defeating — keeping the solver's verdict flag on gmeow:hasDefeatStatus."@x-gmeow-english .
 
 gmeow:doubts
     a owl:ObjectProperty ;
@@ -360,6 +464,32 @@ gmeow:groundsClaim
     gmeow:howToUse "Point a gmeow:DoxasticState (or teleology gmeow:IntentionalMode) at each gmeow:ClaimToken it grounds; read gmeow:heldByAttitude by inversion from the token side. Leave absent for a held attitude never put forward as a claim."@x-gmeow-english ;
     gmeow:useWhen "Use from a held attitude to reach the claim token(s) it grounds — the attitude-rooted direction of the attitude↔token link."@x-gmeow-english .
 
+gmeow:hasAvailableEvidence
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:JustificationSubject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "has available evidence"@x-gmeow-english ;
+    rdfs:range gmeow:JustificationGround ;
+    skos:definition "Relates a gmeow:JustificationSubject to a gmeow:JustificationGround the agent HAS ACCESS TO — the AVAILABLE-EVIDENCE component of the five-way justification split. Distinct from gmeow:basesBeliefOn (the ground actually used): available != used. NOT functional: many grounds may be available, and they coexist (Principle 9). Records only availability, never adequacy (that is gmeow:adequateUnder, Principle 12)."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:hasAvailableEvidence ex:photoEvidence , ex:expertAttestation ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as the basing ground (that is gmeow:basesBeliefOn) or as an adequacy verdict (gmeow:adequateUnder); availability is only that the ground is accessible as a potential basis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point from a gmeow:DoxasticState or gmeow:StandpointClaim at the gmeow:JustificationGround(s) accessible to the agent; mark which are actually used with gmeow:basesBeliefOn."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the evidence available to an agent as a potential basis — the accessible set, distinct from what the belief is actually based on."@x-gmeow-english .
+
+gmeow:hasDefeatStatus
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:JustificationSubject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "has defeat status"@x-gmeow-english ;
+    rdfs:range gmeow:JustificationStatus ;
+    skos:definition "A gmeow:JustificationSubject (a gmeow:DoxasticState or gmeow:StandpointClaim) is marked with a justification-defeat STATUS — a solver-set flag such as Gettier-case, defeated, undermined, undercut, or rebutted. The adjudicated VERDICT, distinct from the structural defeater gmeow:defeatedBy -> gmeow:Defeater (which records what does the defeating). Non-functional: a subject may carry several markers over time, and old markers are suppressed rather than erased (Principle 10). A solver annotation only; the reasoner never promotes or retracts it (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:hasDefeatStatus gmeow:justificationStatusGettier ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at the structural defeater (that is gmeow:defeatedBy -> gmeow:Defeater) or treating it as a reasoner-entailed truth bit or deletion signal; pair with gmeow:displayable false for suppressed defeated claims (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point from a gmeow:DoxasticState or gmeow:StandpointClaim at one or more gmeow:JustificationStatus individuals; record what does the defeating separately with gmeow:defeatedBy; update by minting a new status link and suppressing the old one (Principle 10)."@x-gmeow-english ;
+    gmeow:useWhen "Use to flag that a reified gmeow:DoxasticState or gmeow:StandpointClaim has a known justification problem (Gettier case, defeated, undermined, undercut, rebutted) as determined by the solver layer."@x-gmeow-english .
+
 gmeow:heldByAttitude
     a owl:ObjectProperty ;
     rdfs:domain gmeow:ClaimToken ;
@@ -392,28 +522,22 @@ gmeow:justificationStatusRebutted
     a gmeow:JustificationStatus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "rebutted"@x-gmeow-english ;
-    skos:definition "A rebutting justification-defeat marker — positive reason has been given to believe the negation of the target doxastic state or standpoint-claim, attacking the conclusion directly. Aligns with gmeow:defeaterRebutting in the inference slice. A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
+    skos:definition "A rebutting justification-defeat marker — positive reason has been given to believe the negation of the target doxastic state or standpoint-claim, attacking the conclusion directly. Aligns with gmeow:attackRebut in the inference slice. A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:justificationStatusUndercut
     a gmeow:JustificationStatus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "undercut"@x-gmeow-english ;
-    skos:definition "An undercutting justification-defeat marker — the inferential or evidential link supporting the target is attacked, removing the warrant without asserting the target's negation. Aligns with gmeow:defeaterUndercutting in the inference slice. A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
+    skos:definition "An undercutting justification-defeat marker — the inferential or evidential link supporting the target is attacked, removing the warrant without asserting the target's negation. Aligns with gmeow:attackUndercut in the inference slice. A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:justifiedBy
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:JustificationSubject ;
+gmeow:justificationStatusUndermined
+    a gmeow:JustificationStatus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
-    rdfs:label "justified by"@x-gmeow-english ;
-    rdfs:range gmeow:JustificationGround ;
-    skos:definition "A doxastic state or standpoint-claim is justified by some evidence span, attestation, or further doxastic state — the basing / available-evidence relation. Non-functional: a single state or claim may be supported by several independent grounds, and competing justifications coexist (Principle 9). This property models only that the ground is available as a basis; it does NOT assert that the basis is adequate, and it never promotes justified-true-belief to knowledge — adequacy and Gettier verdicts are solver work (Principle 12)."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound gmeow:justifiedBy ex:photoEvidence , ex:expertAttestation ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading it as an adequacy verdict or as a reasoner entailment that the belief counts as knowledge; avoid using it on the flat gmeow:believes / gmeow:knowsThat spine (promote to the reified tier first)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point from a gmeow:DoxasticState or gmeow:StandpointClaim at one or more gmeow:EvidenceSpan, gmeow:Attestation, or gmeow:DoxasticState individuals; let the solver decide whether the basis is adequate, and let multiple bases coexist."@x-gmeow-english ;
-    gmeow:useWhen "Use to record that a reified gmeow:DoxasticState or gmeow:StandpointClaim has some evidence span, attestation, or supporting doxastic state as a justification basis — the available-evidence / basing structure."@x-gmeow-english .
+    rdfs:label "undermined"@x-gmeow-english ;
+    skos:definition "An undermining justification-defeat marker — a premise the target relies on has been attacked. Aligns with gmeow:attackUndermine in the inference slice (the premise-directed third typed-attack kind). A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:knowsThat
     a owl:ObjectProperty ;
@@ -421,13 +545,23 @@ gmeow:knowsThat
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "knows that"@x-gmeow-english ;
     rdfs:subPropertyOf gmeow:believes ;
-    skos:definition "An agent knows that a proposition holds — justified, standpoint-true belief held from a vantage. THE KEYSTONE: gmeow:knowsThat rdfs:subPropertyOf gmeow:believes, so asserting knowsThat materialises believes (knowledge entails belief); the reverse never holds. knowsThat is NON-FACTIVE: it carries no truth commitment and no isTrue axiom — it is a vantage-indexed CLAIM that (belief and truth-per-frame and justification) holds, never a global verdict. The reasoner never promotes justified-true-belief to knowledge; that judgement, and any Gettier defeater, is solver work (Principle 12). Range OPEN, like gmeow:believes. Justification grounds are modeled in this module via gmeow:justifiedBy and gmeow:defeatedBy."@x-gmeow-english ;
+    skos:definition "An agent knows that a proposition holds — justified, standpoint-true belief held from a vantage. THE KEYSTONE: gmeow:knowsThat rdfs:subPropertyOf gmeow:believes, so asserting knowsThat materialises believes (knowledge entails belief); the reverse never holds. knowsThat is NON-FACTIVE: it carries no truth commitment and no isTrue axiom — it is a vantage-indexed CLAIM that (belief and truth-per-frame and justification) holds, never a global verdict. The reasoner never promotes justified-true-belief to knowledge; that judgement, and any Gettier defeater, is solver work (Principle 12). Range OPEN, like gmeow:believes. Justification is factored in this module into the five components available-evidence (gmeow:hasAvailableEvidence), basing (gmeow:basesBeliefOn), support-under-a-standard (gmeow:supportsUnder), adequacy (gmeow:adequateUnder), and defeat (gmeow:defeatedBy / gmeow:hasDefeatStatus). The locally-factive companion gmeow:knowsThatIn adds a world and a standard."@x-gmeow-english ;
     skos:example "ex:alice gmeow:knowsThat ex:earthIsRound ."@x-gmeow-english ;
     skos:scopeNote "No factive knows: unlike SUMO/CYC knows, asserting gmeow:knowsThat commits the proposition true in NO global model — truth is per-frame (gmeow:standpointModality / gmeow:claimModality, standpoint slice). The only entailment is the safe one: knowsThat implies believes."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as a factive 'knows X is true' verdict — it is NON-FACTIVE, a vantage-indexed claim with no isTrue axiom; promotion of justified-true-belief to knowledge and any Gettier defeater is solver work (Principle 12), never a reasoner entailment, and truth stays per-frame on gmeow:standpointModality / gmeow:claimModality."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point the agent at the proposition or reified statement; carry truth-per-frame on gmeow:standpointModality / gmeow:accordingTo of the holding statement, model justification grounds via gmeow:justifiedBy and gmeow:defeatedBy declared in this module, and rely only on the safe entailment knowsThat ⊑ believes — never on a global truth bit."@x-gmeow-english ;
+    gmeow:howToUse "Point the agent at the proposition or reified statement; carry truth-per-frame on gmeow:standpointModality / gmeow:accordingTo of the holding statement, factor justification via gmeow:hasAvailableEvidence / gmeow:basesBeliefOn / gmeow:supportsUnder / gmeow:adequateUnder / gmeow:defeatedBy declared in this module, and rely only on the safe entailment knowsThat ⊑ believes — never on a global truth bit."@x-gmeow-english ;
     gmeow:useWhen "Use to record justified, standpoint-true belief held from a vantage — the keystone knowledge-that attitude; asserting it materialises gmeow:believes (knowledge entails belief), so reach for it only when the holding is justified, not merely held."@x-gmeow-english .
+
+gmeow:meetsThreshold
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:AdequacyAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "meets threshold"@x-gmeow-english ;
+    rdfs:range gmeow:AdequacyVerdict ;
+    skos:definition "The solver-set verdict of a gmeow:AdequacyAssessment — whether the support meets the standard's threshold (gmeow:adequacyMet / gmeow:adequacyUnmet / gmeow:adequacyUndetermined). Functional: one assessment, one verdict. A solver value (Principle 12); there is no asserted 'adequate' bit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:producesClaim
     a owl:ObjectProperty ;
@@ -442,17 +576,90 @@ gmeow:producesClaim
     gmeow:howToUse "Point an gmeow:Event at each gmeow:ClaimToken uttered within it; a single observing event producing several claims is the canonical 'one observation, several claims' case."@x-gmeow-english ;
     gmeow:useWhen "Use from an event to reach the claim tokens it produced — for 'one observation producing several claims' and event-rooted provenance."@x-gmeow-english .
 
+gmeow:standardLegalBeyondReasonableDoubt
+    a gmeow:EpistemicStandard ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "beyond reasonable doubt"@x-gmeow-english ;
+    skos:definition "The criminal-law standard — the strictest practical threshold: the evidence must leave no reasonable doubt. The highest of the seeded gmeow:EpistemicStandard values."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:standardLegalClearAndConvincing
+    a gmeow:EpistemicStandard ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "clear and convincing"@x-gmeow-english ;
+    skos:definition "The intermediate legal standard — the evidence must make the claim highly probable, stricter than preponderance but short of beyond-reasonable-doubt."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:standardLegalPreponderance
+    a gmeow:EpistemicStandard ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "preponderance of the evidence"@x-gmeow-english ;
+    skos:definition "The civil-law standard — the claim is more likely true than not (> 50%). The most lenient of the seeded legal gmeow:EpistemicStandard values."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:standardOrdinary
+    a gmeow:EpistemicStandard ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "ordinary"@x-gmeow-english ;
+    skos:definition "The everyday standard of 'knowing' — the ordinary threshold of warranted assertion in common life, below the deliberate rigour of the scientific or legal standards."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:standardScientific
+    a gmeow:EpistemicStandard ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "scientific"@x-gmeow-english ;
+    skos:definition "The scientific-evidential standard — the threshold of warranted assertion under methodical inquiry (controlled evidence, replication, declared confidence), distinct from the ordinary and legal standards."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:supportGround
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:SupportAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "support ground"@x-gmeow-english ;
+    rdfs:range gmeow:JustificationGround ;
+    skos:definition "The gmeow:JustificationGround whose warranting strength a gmeow:SupportAssessment measures. Functional: one assessment weighs one ground (under one standard)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:supportStrength
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:SupportAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "support strength"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "A solver-computed measure of how strongly a gmeow:SupportAssessment's ground warrants its content under the named standard. A solver-layer value (Principle 12), not an asserted adequacy verdict (that is gmeow:meetsThreshold). NOT functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:supportUnderStandard
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:SupportAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "support under standard"@x-gmeow-english ;
+    rdfs:range gmeow:EpistemicStandard ;
+    skos:definition "The named epistemic standard a gmeow:SupportAssessment measures support relative to. Functional: one assessment, one standard."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 gmeow:supportsClaim
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "supports claim"@x-gmeow-english ;
     rdfs:range gmeow:ClaimToken ;
-    skos:definition "Relates a supporting structure — an argument, an evidence span, another claim token — to the claim token it supports. The support pole of bipolar argumentation; the attack counterpart is gmeow:attacksClaim. Domain is intentionally OPEN (no rdfs:domain) until the argumentation layer mints gmeow:Argument as the proper domain; only the ClaimToken end is fixed now (the open-domain idiom of gmeow:observedFeature). Non-functional: many structures may support one token, and competing support/attack relations coexist (Principle 9). Distinct from gmeow:justifiedBy (which bases a DoxasticState on grounds) — supportsClaim targets the claim TOKEN — and from gmeow:defeatedBy (an adjudicated solver verdict) — support is a structural relation, not a verdict."@x-gmeow-english ;
+    skos:definition "Relates a supporting structure — an argument, an evidence span, another claim token — to the claim token it supports. The support pole of bipolar argumentation; the attack counterpart is gmeow:attacksClaim. Domain is intentionally OPEN (no rdfs:domain) until the argumentation layer mints gmeow:Argument as the proper domain; only the ClaimToken end is fixed now (the open-domain idiom of gmeow:observedFeature). Non-functional: many structures may support one token, and competing support/attack relations coexist (Principle 9). Distinct from gmeow:basesBeliefOn (which bases a DoxasticState on grounds) — supportsClaim targets the claim TOKEN — and from gmeow:hasDefeatStatus (an adjudicated solver verdict) — support is a structural relation, not a verdict."@x-gmeow-english ;
     skos:example "ex:arg1 gmeow:supportsClaim ex:tok1 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid narrowing its domain in the core before the argumentation layer mints gmeow:Argument; avoid using it for justification grounds on a DoxasticState (that is gmeow:justifiedBy)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid narrowing its domain in the core before the argumentation layer mints gmeow:Argument; avoid using it for justification grounds on a DoxasticState (that is gmeow:basesBeliefOn)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the supporting structure at the gmeow:ClaimToken; leave the domain open until the argumentation layer supplies gmeow:Argument, then narrow there, not here."@x-gmeow-english ;
     gmeow:useWhen "Use to record that some structure supports a claim token — the support pole of bipolar argumentation, ClaimToken-end only for now."@x-gmeow-english .
+
+gmeow:supportsUnder
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:JustificationSubject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "supports under"@x-gmeow-english ;
+    rdfs:range gmeow:SupportAssessment ;
+    skos:definition "Relates a gmeow:JustificationSubject (a gmeow:DoxasticState or gmeow:StandpointClaim) to a reified gmeow:SupportAssessment — how strongly its evidence warrants the content RELATIVE TO a named epistemic standard. The SUPPORT-UNDER-A-STANDARD component of the five-way justification split. NOT functional: support may be assessed under several standards, and those assessments coexist (Principle 9). A solver judgement (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:suspendsJudgementOn
     a owl:ObjectProperty ;
@@ -489,7 +696,7 @@ DOCTRINE.
   * Keystone: gmeow:knowsThat rdfs:subPropertyOf gmeow:believes — knowledge is justified, standpoint-true belief held from a vantage, and there is NO factive knows. Asserting knowsThat materialises believes; the reverse never holds; neither commits global truth. The reasoner never promotes justified-true-belief to knowledge — that verdict (and its Gettier defeaters) is solver work (Principle 12).
   * No truth bit: there is no isTrue, no truth datatype, no factivity axiom anywhere. Truth-per-frame rides the standpoint modality (gmeow:standpointModality on a flattened statement, gmeow:claimModality on a reified StandpointClaim), reused from the standpoint slice, never re-minted (Principle 6).
   * Flat-first (Principle 4 / Principle 13): the believes / doubts / suspendsJudgementOn / accepts / knowsThat spine is the cheap 80% surface with an OPEN range (point at any reified statement or claim). The reified tier (DoxasticState, credence, doxasticClaim, DoxasticTenure) and the mental-moment grounding live in this module as the promotion target when credence, temporal scope, or standpoint modality must be first-class.
-  * Justification hook: gmeow:justifiedBy links a DoxasticState to its supporting EvidenceSpan, Attestation, or DoxasticState. Full inferential argumentation remains in the inference slice; the lightweight hook lives in this module.
+  * Factored justification (five components, design/LOGIC-FOUNDATION.md): available-evidence (gmeow:hasAvailableEvidence), basing (gmeow:basesBeliefOn — available != used), support-under-a-standard (gmeow:supportsUnder -> gmeow:SupportAssessment), adequacy (gmeow:adequateUnder -> gmeow:AdequacyAssessment, meeting a gmeow:EpistemicStandard threshold), and defeat — split into the structural defeater (gmeow:defeatedBy -> gmeow:Defeater) and the solver-set verdict flag (gmeow:hasDefeatStatus -> gmeow:JustificationStatus). All are solver judgements (Principle 12); full inferential argumentation lives in the inference slice.
   * believes is documented — never axiomatised — as riding gmeow:accordingTo on the statement (an owl:ObjectProperty cannot subproperty an owl:AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). The bridge is realised in the projection layer.
   * Acceptance is not belief: gmeow:accepts is pragmatic (a premise taken on for argument) and entails neither belief nor truth (Principle 1)."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;

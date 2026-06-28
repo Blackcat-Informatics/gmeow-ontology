@@ -11,7 +11,9 @@ cognition slice (objectual, agent → entity): epistemics relates an agent to a 
 an entity. This slice provides both the flat doxastic spine and the reified tier: `gmeow:Proposition`,
 `gmeow:DoxasticState` (a `kernel:MentalMoment`), `gmeow:credence`, `gmeow:doxasticClaim`
 (linked to a `standpoint:StandpointClaim`), and `gmeow:DoxasticTenure` (a `temporal:TimeScopedRelation`).
-Justification grounds are modeled in this module via `gmeow:justifiedBy`; full inferential argumentation lives in the inference slice.
+Justification is factored five ways in this module (`gmeow:hasAvailableEvidence`, `gmeow:basesBeliefOn`,
+`gmeow:supportsUnder`, `gmeow:adequateUnder`, and defeat via `gmeow:defeatedBy` / `gmeow:hasDefeatStatus`);
+full inferential argumentation lives in the inference slice.
 
 ## The flat doxastic spine
 
@@ -66,7 +68,7 @@ All alignments are by reference (Principle 5); GMEOW never imports an external a
 | `gmeow:Proposition` | `wd:Q108163` | `skos:relatedMatch` | Wikidata "proposition", entity-page verified |
 | `gmeow:believes` | `sumo:believes` | `skos:relatedMatch` | SUMO's predicate is conceptually adjacent; GMEOW's is non-factive and standpoint-indexed |
 | `gmeow:knowsThat` | `sumo:knows` | `skos:relatedMatch` | explicitly **non-factive**: GMEOW `knowsThat` entails only `believes`, never global truth |
-| `gmeow:justifiedBy` | `crminf:J2_concluded_that` | `skos:relatedMatch` | direction of support is inverted |
+| `gmeow:basesBeliefOn` | `crminf:J2_concluded_that` | `skos:relatedMatch` | direction of support is inverted |
 
 `gmeow:credence` and `gmeow:accepts` are left unaligned: no canonical, resolvable RDF vocabulary
 was found. ATOMIC belief edges and AIF S-/RA-nodes are referenced in prose only; no stable,
@@ -124,16 +126,29 @@ spine to a `gmeow:DoxasticState`.
 | `gmeow:DoxasticTenure` | Time-scoped belief-revision history — a `temporal:TimeScopedRelation`. |
 | `gmeow:tenureOfDoxasticState` | The `DoxasticState` whose holding interval the tenure records (functional). |
 
-### `gmeow:justifiedBy`
+### Factored justification (the five-way split)
 
-The lightweight belief→justifier hook. `gmeow:justifiedBy` points from a `gmeow:DoxasticState`
-to the thing that supports it — typically an `EvidenceSpan`, an `Attestation`, or another
-`DoxasticState`. It is non-functional: a belief may rest on multiple independent grounds,
-and competing justifications coexist (Principle 9).
+"Justification" is not one thing. Following the canonical `LOGIC-FOUNDATION.md` account, this slice
+splits it into five independent components a single word usually hides — each non-functional, so
+competing values coexist (Principle 9), and each a solver judgement (Principle 12):
 
-This property is intentionally thin. It records *that* a doxastic state is supported, not the
-full inferential argument structure. Full argument graphs, inference-making acts, and defeater
-chains live in the inference slice.
+| Component | Edge | Range | Meaning |
+|---|---|---|---|
+| available evidence | `gmeow:hasAvailableEvidence` | `gmeow:JustificationGround` | what the agent has access to |
+| basing | `gmeow:basesBeliefOn` | `gmeow:JustificationGround` | which ground the belief is actually founded on (available ≠ used) |
+| support under a standard | `gmeow:supportsUnder` | `gmeow:SupportAssessment` | how strongly the evidence warrants the content, relative to a named `gmeow:EpistemicStandard` |
+| adequacy | `gmeow:adequateUnder` | `gmeow:AdequacyAssessment` | whether that support meets the standard's threshold (`gmeow:meetsThreshold` → `gmeow:AdequacyVerdict`) |
+| defeat | `gmeow:defeatedBy` / `gmeow:hasDefeatStatus` | `gmeow:Defeater` / `gmeow:JustificationStatus` | the structural defeater (what defeats) vs the solver-set verdict flag (the adjudicated outcome) |
+
+The `gmeow:EpistemicStandard` vocabulary names the bar — `gmeow:standardOrdinary`,
+`gmeow:standardScientific`, and the legal `gmeow:standardLegalPreponderance` /
+`...ClearAndConvincing` / `...BeyondReasonableDoubt` — so the same basis may be adequate under one
+standard and inadequate under a stricter one. The **defeat reconcile** keeps two distinct facts
+apart: `gmeow:defeatedBy` names *what* does the defeating (an `inference:Argument`, a
+`gmeow:StandpointClaim`, or a `gmeow:EvidenceSpan`), while `gmeow:hasDefeatStatus` carries the
+solver's adjudicated verdict (`gmeow:justificationStatusGettier` / `...Defeated` / `...Undermined` /
+`...Undercut` / `...Rebutted`, aligned with the inference slice's `gmeow:AttackKind`). Full argument
+graphs and inference-making acts live in the inference slice.
 
 ### `revise_belief` — suppression, not deletion
 
@@ -151,8 +166,8 @@ is the reference epistemic ledger for this slice. It models an operator deciding
 flagship LLM recalled a meeting date correctly:
 
 - `ex:propRecall` mints the shared `gmeow:Proposition`.
-- The operator's original `gmeow:DoxasticState` carries `gmeow:credence "0.85"` and is
-  `gmeow:justifiedBy` an `EvidenceSpan` pinned to a calendar chunk.
+- The operator's original `gmeow:DoxasticState` carries `gmeow:credence "0.85"` and
+  `gmeow:hasAvailableEvidence` / `gmeow:basesBeliefOn` an `EvidenceSpan` pinned to a calendar chunk.
 - A defeater arrives; the operator revises to a lower-credence state and a new
   `gmeow:DoxasticTenure`. The original tenure is closed with `gmeow:endedAtTime` and
   suppressed with `gmeow:displayable false` (Principle 10); the old `DoxasticState` is
