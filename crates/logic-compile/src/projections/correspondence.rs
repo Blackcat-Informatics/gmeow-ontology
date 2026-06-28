@@ -242,11 +242,35 @@ impl CorrespondenceProgram {
 
     /// A deterministic, order-independent content key for the whole program — the
     /// content identity shared with the backing projection.
+    ///
+    /// The key includes the FULL correspondence payload in stable canonical order:
+    /// IRI, relation, morphism class, morphism kind, and every numeric coefficient.
+    /// Two correspondences that differ only in relation or morphism cannot collide.
     pub fn content_key(&self) -> String {
         let corr = self
             .correspondences
             .iter()
-            .map(|c| c.iri.clone())
+            .map(|c| {
+                // Encode every field that distinguishes one correspondence from another.
+                // Stable order: IRI | relation | morphism_class | morphism_kind |
+                //               confidence | evidence_strength | weight | probability
+                let confidence = c.confidence.map(decimal_lexical).unwrap_or_default();
+                let evidence_strength =
+                    c.evidence_strength.map(decimal_lexical).unwrap_or_default();
+                let weight = c.weight.map(decimal_lexical).unwrap_or_default();
+                let probability = c.probability.map(decimal_lexical).unwrap_or_default();
+                format!(
+                    "{}|{}|{}|{}|{}|{}|{}|{}",
+                    c.iri,
+                    c.relation.as_str(),
+                    c.morphism_class.as_str(),
+                    c.morphism_kind.as_str(),
+                    confidence,
+                    evidence_strength,
+                    weight,
+                    probability,
+                )
+            })
             .collect::<Vec<_>>()
             .join(",");
         let caveats = self
@@ -607,8 +631,15 @@ pub fn parse_correspondence(
         correspondences.push(correspondence);
 
         // Caveats: each hasCaveat object carries an rdfs:comment.
+        // HARD-FAIL if the text is absent — a caveat without text is a corrupt graph,
+        // never a silently-empty comment (no-optionality).
         for caveat_iri in iri_objs(&corr_iri, &p_has_caveat()) {
-            let text = lit_obj(&caveat_iri, RDFS_COMMENT).unwrap_or_default();
+            let text = lit_obj(&caveat_iri, RDFS_COMMENT).ok_or_else(|| {
+                format!(
+                    "caveat <{caveat_iri}> on correspondence <{corr_iri}> has no rdfs:comment \
+                     text; a corrupt graph must not silently produce an empty caveat"
+                )
+            })?;
             caveats.push((
                 corr_iri.clone(),
                 CorrespondenceCaveat {
