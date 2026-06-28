@@ -260,17 +260,18 @@ ASK {
 }""" ;
     gmeow:saRationale "The bipolar-argumentation edges gmeow:supportsClaim / gmeow:attacksClaim MUST be owl:ObjectProperties ranging over gmeow:ClaimToken (the claim-token end is fixed now)." .
 
-# --- 18. supports/attacksClaim have NO domain pre-argumentation (MUST-NOT) ----
-ex:saSupportAttackOpenDomain a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:mustNot ;
+# --- 18. supports/attacksClaim domain = Argument, range = ClaimToken (MUST) ----
+ex:saSupportAttackDomainArgument a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    VALUES ?p { gmeow:supportsClaim gmeow:attacksClaim }
-    ?p rdfs:domain ?d .
+    gmeow:supportsClaim a owl:ObjectProperty ; rdfs:domain gmeow:Argument ; rdfs:range gmeow:ClaimToken ; gmeow:pairsWith gmeow:Support .
+    gmeow:attacksClaim  a owl:ObjectProperty ; rdfs:domain gmeow:Argument ; rdfs:range gmeow:ClaimToken ; gmeow:pairsWith gmeow:Attack .
 }""" ;
-    gmeow:saRationale "The support/attack edges keep an OPEN domain (no rdfs:domain) until the argumentation layer mints gmeow:Argument as the proper domain — the open-domain idiom of gmeow:observedFeature. A premature domain would be the regression this guard forbids." .
+    gmeow:saRationale "Now that the argumentation layer mints gmeow:Argument, the bipolar edges CLOSE their domain onto it (the open-domain hook is satisfied): gmeow:supportsClaim / gmeow:attacksClaim MUST be owl:ObjectProperties with rdfs:domain gmeow:Argument and rdfs:range gmeow:ClaimToken, each gmeow:pairsWith its reified inference-slice promotion (gmeow:Support / gmeow:Attack — the flat ↔ reified tiering). This supersedes the former open-domain MUST-NOT." .
 
 # --- 19. ClaimEvaluation ⊑ ClaimToken — a claim about a claim (MUST hold) -----
 ex:saClaimEvaluationSubclassOfClaimToken a gmeow:StructuralAssertion ;

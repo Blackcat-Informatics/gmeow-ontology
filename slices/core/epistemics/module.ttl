@@ -311,15 +311,17 @@ gmeow:adequateUnder
 
 gmeow:attacksClaim
     a owl:ObjectProperty ;
+    rdfs:domain gmeow:Argument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "attacks claim"@x-gmeow-english ;
     rdfs:range gmeow:ClaimToken ;
-    skos:definition "Relates an attacking structure — an argument, a counter-claim — to the claim token it attacks. The attack pole of bipolar argumentation; the support counterpart is gmeow:supportsClaim. Domain is intentionally OPEN (no rdfs:domain) until the argumentation layer mints gmeow:Argument as the proper domain; only the ClaimToken end is fixed now (the open-domain idiom of gmeow:observedFeature). Non-functional; competing attacks coexist (Principle 9). Distinct from gmeow:hasDefeatStatus (a solver-set verdict flag): attacksClaim records the structural attack relation, not the adjudicated outcome."@x-gmeow-english ;
+    skos:definition "Relates an gmeow:Argument (the inference-slice argumentation node) to the gmeow:ClaimToken it attacks — the coarse, flat 80%-case attack edge. The attack pole of bipolar argumentation; the support counterpart is gmeow:supportsClaim. The reified, TYPED promotion (naming WHAT — premise / warrant / conclusion — and HOW) is the inference-slice gmeow:Attack, which this property gmeow:pairsWith. Non-functional; competing attacks coexist (Principle 9). Distinct from gmeow:hasDefeatStatus (a solver-set verdict flag): attacksClaim records the structural attack relation, not the adjudicated outcome."@x-gmeow-english ;
     skos:example "ex:counterArg gmeow:attacksClaim ex:tok1 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid conflating it with the adjudicated verdict (gmeow:hasDefeatStatus) — an attack is structural, a verdict is the solver's call; and avoid narrowing the domain before the argumentation layer supplies gmeow:Argument."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with the adjudicated verdict (gmeow:hasDefeatStatus) — an attack is structural, a verdict is the solver's call; and for a fine-grained typed attack (target + kind) use the reified gmeow:Attack rather than this coarse flat edge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point the attacking structure at the gmeow:ClaimToken; leave the domain open until the argumentation layer supplies gmeow:Argument, then narrow there, not here."@x-gmeow-english ;
-    gmeow:useWhen "Use to record that some structure attacks a claim token — the attack pole of bipolar argumentation, ClaimToken-end only for now."@x-gmeow-english .
+    gmeow:howToUse "Point an gmeow:Argument at the gmeow:ClaimToken it attacks for the flat case; promote to a reified gmeow:Attack (gmeow:pairsWith) when the attack must name its gmeow:attackTarget and gmeow:attackKind."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:Attack ;
+    gmeow:useWhen "Use to record that an gmeow:Argument attacks a claim token — the coarse flat attack pole of bipolar argumentation; reify with gmeow:Attack for the typed form."@x-gmeow-english .
 
 gmeow:attributedKnower
     a owl:FunctionalProperty ,
@@ -747,15 +749,17 @@ gmeow:supportUnderStandard
 
 gmeow:supportsClaim
     a owl:ObjectProperty ;
+    rdfs:domain gmeow:Argument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "supports claim"@x-gmeow-english ;
     rdfs:range gmeow:ClaimToken ;
-    skos:definition "Relates a supporting structure — an argument, an evidence span, another claim token — to the claim token it supports. The support pole of bipolar argumentation; the attack counterpart is gmeow:attacksClaim. Domain is intentionally OPEN (no rdfs:domain) until the argumentation layer mints gmeow:Argument as the proper domain; only the ClaimToken end is fixed now (the open-domain idiom of gmeow:observedFeature). Non-functional: many structures may support one token, and competing support/attack relations coexist (Principle 9). Distinct from gmeow:basesBeliefOn (which bases a DoxasticState on grounds) — supportsClaim targets the claim TOKEN — and from gmeow:hasDefeatStatus (an adjudicated solver verdict) — support is a structural relation, not a verdict."@x-gmeow-english ;
+    skos:definition "Relates an gmeow:Argument (the inference-slice argumentation node) to the gmeow:ClaimToken it supports — the coarse, flat 80%-case support edge. The support pole of bipolar argumentation; the attack counterpart is gmeow:attacksClaim. The reified, accruing promotion is the inference-slice gmeow:Support, which this property gmeow:pairsWith. Non-functional: many arguments may support one token, and competing support/attack relations coexist (Principle 9). Distinct from gmeow:basesBeliefOn (which bases a DoxasticState on grounds) — supportsClaim targets the claim TOKEN — and from gmeow:hasDefeatStatus (an adjudicated solver verdict) — support is a structural relation, not a verdict."@x-gmeow-english ;
     skos:example "ex:arg1 gmeow:supportsClaim ex:tok1 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid narrowing its domain in the core before the argumentation layer mints gmeow:Argument; avoid using it for justification grounds on a DoxasticState (that is gmeow:basesBeliefOn)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for justification grounds on a DoxasticState (that is gmeow:basesBeliefOn); and for accruing reified support use the inference-slice gmeow:Support rather than this coarse flat edge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point the supporting structure at the gmeow:ClaimToken; leave the domain open until the argumentation layer supplies gmeow:Argument, then narrow there, not here."@x-gmeow-english ;
-    gmeow:useWhen "Use to record that some structure supports a claim token — the support pole of bipolar argumentation, ClaimToken-end only for now."@x-gmeow-english .
+    gmeow:howToUse "Point an gmeow:Argument at the gmeow:ClaimToken it supports for the flat case; promote to a reified gmeow:Support (gmeow:pairsWith) when support must accrue from several independent sources."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:Support ;
+    gmeow:useWhen "Use to record that an gmeow:Argument supports a claim token — the coarse flat support pole of bipolar argumentation; reify with gmeow:Support for accrual."@x-gmeow-english .
 
 gmeow:supportsUnder
     a owl:ObjectProperty ;
