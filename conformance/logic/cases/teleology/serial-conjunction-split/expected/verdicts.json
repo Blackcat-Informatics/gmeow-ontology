@@ -1,0 +1,6 @@
+{
+  "https://example.org/teleology/serial-conjunction-split/world": {
+    "quads": 26,
+    "status": "consistent"
+  }
+}

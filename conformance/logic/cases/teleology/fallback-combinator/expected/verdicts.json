@@ -1,6 +1,6 @@
 {
   "https://example.org/teleology/fallback-combinator/world": {
-    "quads": 3,
+    "quads": 21,
     "status": "consistent"
   }
 }

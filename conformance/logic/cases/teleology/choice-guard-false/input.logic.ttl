@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/choice-guard-false.
+#
+# A logic:Choice whose logic:guardSituation (requestPresent) does NOT hold at the start state dispatches to the RIGHT operand (idle), not the left (serveRequest). Proves guard-false dispatch — the structural dual of the guard-true choice-combinator case.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/choice-guard-false/> .
+
+ex:GoalExpression a logic:GoalExpression .
