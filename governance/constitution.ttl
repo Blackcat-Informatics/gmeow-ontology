@@ -211,7 +211,7 @@ meta:lint-term-naming a meta:Lint ;
 
 meta:gate-suppression-injection a meta:Gate ;
     rdfs:label "suppression guards injected into every projection CONSTRUCT"@x-gmeow-english ;
-    meta:artifact "crates/slice/src/sparql_emit.rs" ;
+    meta:artifact "crates/logic-compile/src/projections/sparql.rs" ;
     meta:symbol "injected_guards" .
 
 meta:tests-leak-conformance a meta:TestSuite ;
