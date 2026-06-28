@@ -38,7 +38,8 @@
 #     TBox) plus the on-gate deep_pass_failure_* / deep_false_* validate tests.
 #   - gmeow-conformance goal-rdf-list-functions: Nemo chase case.
 #   - gmeow-pipeline end_to_end / fold_parity / full-fold artifacts / snapshot codec
-#     round-trips / mapping byte-parity / scoreboards acceptance: full-DAG, minutes.
+#     round-trips / mapping byte-parity / EDOAL/SPARQL corpus parity /
+#     scoreboards acceptance: full-DAG, minutes.
 #   - gmeow-pipeline stages::yaml_ld dist_jsonld_roundtrips_through_oxigraph: parses
 #     the entire dist JSON-LD into oxigraph and serializes it back — an O(ontology
 #     size) round-trip that sits just under the zero-headroom 25 s budget and crosses
@@ -82,7 +83,7 @@ default-filter = '''
     | (package(gmeow-conformance) & test(/goal-rdf-list-functions/))
     | (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
     | (package(gmeow-pipeline) & binary(/end_to_end|fold_parity/))
-    | (package(gmeow-pipeline) & test(/stages::gts_sink|stages::snapshot::ustar_tests::build_docs_archive|stages::logic::tests::logic_artifacts_reproduce|scoreboards::tests::acceptance_runs_the_real_external_fixture|stages::mappings::tests|stages::docs_render::tests::docs_graph_is_nonempty|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_oxigraph|compiler_products_are_first_class_dag_artifacts|stages::reason::tests::reason_produces_nonempty_artifacts/))
+    | (package(gmeow-pipeline) & test(/stages::gts_sink|stages::snapshot::ustar_tests::build_docs_archive|stages::logic::tests::logic_artifacts_reproduce|scoreboards::tests::acceptance_runs_the_real_external_fixture|stages::mappings::tests|sparql_lowering_matches_committed_corpus_modulo_order|stages::docs_render::tests::docs_graph_is_nonempty|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_oxigraph|compiler_products_are_first_class_dag_artifacts|stages::reason::tests::reason_produces_nonempty_artifacts/))
     | (package(gmeow-slice) & binary(alignment_parity))
     | (package(gmeow-slicetest) & test(/places.tests.structural/))
     | (package(gmeow-rdf-capi) & binary(c_smoke))
