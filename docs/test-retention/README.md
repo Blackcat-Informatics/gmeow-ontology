@@ -58,6 +58,10 @@ Removed because a Rust artifact already asserts the same behavior:
   `consumer_llms_txt_uses_standard_format`, `consumer_llms_full_inlines_terms`,
   and the native MCP memory/server tests. The Python CLI now only launches the
   native server.
+- `test_narrow_waist`, `test_lane_purity`, `test_no_rdflib_in_runtime`: the
+  repository static guards now live in `crates/validate/src/repo_static.rs` and
+  run through `make crate-check`, covering the narrow-waist, Java/Docker
+  lane-purity, and first-party upstream-`rdflib` import seals.
 
 Constitution `meta:artifact` citations of deleted tests were redirected to the
 Rust artifact that now proves the principle.

@@ -35,6 +35,7 @@ use crate::instance::{self, InstanceFormat};
 use crate::language_tags;
 use crate::lint::{self, LintConfig, LintReport};
 use crate::mapping_eval;
+use crate::repo_static;
 use crate::slice_ownership;
 use crate::statement;
 use crate::store;
@@ -750,6 +751,23 @@ fn crate_layering_diagnostics_report(py: Python<'_>, crates_dir: String) -> PyRe
     Ok(Py::new(py, PyReport::from_engine(diagnostics))?.into_any())
 }
 
+#[pyfunction]
+fn repo_static_check(py: Python<'_>, project_root: String) -> PyResult<Py<PyAny>> {
+    let report = repo_static::check_repo_static(&PathBuf::from(project_root));
+    let out = PyDict::new(py);
+    out.set_item("ok", report.ok())?;
+    out.set_item("errors", PyList::new(py, report.errors.iter())?)?;
+    out.set_item("warnings", PyList::new(py, report.warnings.iter())?)?;
+    Ok(out.into_any().unbind())
+}
+
+#[pyfunction]
+fn repo_static_diagnostics_report(py: Python<'_>, project_root: String) -> PyResult<Py<PyAny>> {
+    let report = repo_static::check_repo_static(&PathBuf::from(project_root));
+    let diagnostics = repo_static::to_diagnostics_report(&report);
+    Ok(Py::new(py, PyReport::from_engine(diagnostics))?.into_any())
+}
+
 fn non_negative_finite_duration(value: f64, name: &str) -> Result<Duration, String> {
     if value < 0.0 || !value.is_finite() {
         return Err(format!("{name} must be a non-negative finite float"));
@@ -1252,6 +1270,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(wikidata_diagnostics_report, m)?)?;
     m.add_function(wrap_pyfunction!(crate_layering_check, m)?)?;
     m.add_function(wrap_pyfunction!(crate_layering_diagnostics_report, m)?)?;
+    m.add_function(wrap_pyfunction!(repo_static_check, m)?)?;
+    m.add_function(wrap_pyfunction!(repo_static_diagnostics_report, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_check_existence, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_coverage_report, m)?)?;
     m.add_function(wrap_pyfunction!(dc_coverage_report, m)?)?;
