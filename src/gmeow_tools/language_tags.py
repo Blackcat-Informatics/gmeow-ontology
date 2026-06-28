@@ -478,15 +478,14 @@ def filter_graph(
     For every ``(s, p)`` where *p* is in *predicates* and the objects include
     language-tagged literals, the objects are replaced by the literals selected
     by *selector* (or the English fallback). Non-language objects and triples
-    whose predicate is not in *predicates* are left untouched.
+    whose predicate is not in *predicates* are left untouched. Both IRI and
+    blank-node subjects are in scope.
 
-    The grouping, selection, fallback, and set-equality skip are the Rust
-    authority's (``gmeow_validate.filter_graph``). Python marshals the graph to
-    the native pass, then reconciles the language-literal delta per
-    ``(IRI subject, predicate)`` in place — only language-tagged literal objects
-    on the target predicates are added or removed, so blank nodes and every
-    structural triple are left exactly as they are (never relabeled). Mutates and
-    returns *graph*.
+    Every keep/drop/retag decision is fully delegated to the Rust authority via
+    ``gmeow_validate.filter_literals``. Python only marshals literal descriptors
+    per ``(subject, predicate)`` group, applies the returned verdicts in place on
+    the original graph, and never makes an independent policy decision. Mutates
+    and returns *graph*.
     """
     if tag_map is None:
         tag_map = _default_tag_map()
@@ -494,38 +493,32 @@ def filter_graph(
         set(predicates) if predicates is not None else _annotation_predicates()
     )
 
-    selected = Graph()
-    selected.parse(
-        data=gmeow_validate.filter_graph(
-            _graph_nt(graph),
-            "ntriples",
-            tag_map,
-            list(selector.requested),
-            [str(p) for p in target_preds],
-        ),
-        format="ntriples",
-    )
-
-    # Reconcile only the (IRI subject, target predicate) language-literal sets.
-    # The native pass touches no other triple, and blank-node subjects are never
-    # in scope, so applying just this delta keeps every structural triple intact.
     for p_ in target_preds:
+        # Collect all subjects (IRI or blank node) that have language-tagged
+        # literal objects on this predicate.
         subjects = {
             s_
             for s_, _p, o_ in graph.triples((None, p_, None))
-            if isinstance(s_, URIRef) and isinstance(o_, Literal) and o_.language
+            if isinstance(o_, Literal) and o_.language
         }
         for s_ in subjects:
-            current = {
+            # Materialize the list BEFORE building pairs so indices are stable.
+            current_list = [
                 o_
                 for o_ in graph.objects(s_, p_)
                 if isinstance(o_, Literal) and o_.language
-            }
-            chosen = {
-                o_
-                for o_ in selected.objects(s_, p_)
-                if isinstance(o_, Literal) and o_.language
-            }
+            ]
+            if not current_list:
+                continue
+            pairs = [(str(lit), lit.language) for lit in current_list]
+            chosen: set[Literal] = set()
+            for index, retag, _is_fallback in gmeow_validate.filter_literals(
+                pairs, list(selector.requested), tag_map
+            ):
+                lit = current_list[index]
+                out = Literal(str(lit), lang=retag) if retag else lit
+                chosen.add(out)
+            current = set(current_list)
             if current == chosen:
                 continue
             for old in current - chosen:
