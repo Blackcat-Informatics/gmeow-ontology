@@ -23,6 +23,8 @@ pub mod bench;
 pub mod catalog;
 pub mod compile_logic;
 pub mod conformance;
+// The oxigraph-free correspondence lowerings caller (SSSOM/FnO/EDOAL/SPARQL, #1089).
+pub mod correspondence_lower;
 pub mod diag_render;
 pub mod docs_render;
 pub mod evals;

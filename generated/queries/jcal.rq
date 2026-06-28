@@ -7,12 +7,12 @@ CONSTRUCT {
     ?reminder a <https://tools.ietf.org/rfc/rfc7265#valarm> .
     ?reminder <https://tools.ietf.org/rfc/rfc7265#trigger> ?trig .
     ?reminder <https://tools.ietf.org/rfc/rfc7265#action> ?act .
+    ?cal a <https://tools.ietf.org/rfc/rfc7265#vcalendar> .
+    ?cal <https://tools.ietf.org/rfc/rfc7265#tzid> ?tzid .
     ?task a <https://tools.ietf.org/rfc/rfc7265#vtodo> .
     ?task <https://tools.ietf.org/rfc/rfc7265#due> ?due .
     ?task <https://tools.ietf.org/rfc/rfc7265#priority> ?prio .
     ?task <https://tools.ietf.org/rfc/rfc7265#status> ?ts .
-    ?cal a <https://tools.ietf.org/rfc/rfc7265#vcalendar> .
-    ?cal <https://tools.ietf.org/rfc/rfc7265#tzid> ?tzid .
 }
 WHERE {
     {
@@ -21,16 +21,16 @@ WHERE {
         FILTER NOT EXISTS { ?reminder gmeow:displayable false . }
     }
     UNION {
+        ?cal rdf:type ?type .
+        OPTIONAL { ?cal gmeow:calendarTimeZone ?tz . }
+        OPTIONAL { ?tz gmeow:timeZoneIanaId ?tzid . }
+        FILTER NOT EXISTS { ?cal gmeow:displayable false . }
+    }
+    UNION {
         ?task rdf:type ?type .
         OPTIONAL { ?task gmeow:taskDueDate ?due . }
         OPTIONAL { ?task gmeow:taskPriority ?prio . }
         OPTIONAL { ?task gmeow:taskStatus ?ts . }
         FILTER NOT EXISTS { ?task gmeow:displayable false . }
-    }
-    UNION {
-        ?cal rdf:type ?type .
-        OPTIONAL { ?cal gmeow:calendarTimeZone ?tz . }
-        OPTIONAL { ?tz gmeow:timeZoneIanaId ?tzid . }
-        FILTER NOT EXISTS { ?cal gmeow:displayable false . }
     }
 }

@@ -7,27 +7,19 @@ PREFIX org: <http://www.w3.org/ns/org#>
 
 CONSTRUCT {
     ?omOrg org:member ?omAgent .
-    ?osub org:subOrganizationOf ?oparent .
-    ?orole a org:Role .
     ?omember org:memberOf ?ozTarget .
     ?mship a org:Membership .
     ?mship org:member ?agent .
     ?mship org:organization ?mbOrg .
     ?mship org:role ?mrole .
     ?orgz a org:FormalOrganization .
+    ?orole a org:Role .
+    ?osub org:subOrganizationOf ?oparent .
 }
 WHERE {
     {
         ?omOrg gmeow:hasMember ?omAgent .
         FILTER NOT EXISTS { ?omOrg gmeow:displayable false . }
-    }
-    UNION {
-        ?osub gmeow:subOrganizationOf ?oparent .
-        FILTER NOT EXISTS { ?osub gmeow:displayable false . }
-    }
-    UNION {
-        ?orole a gmeow:Role .
-        FILTER NOT EXISTS { ?orole gmeow:displayable false . }
     }
     UNION {
         ?omember gmeow:memberOf ?ozTarget .
@@ -45,5 +37,13 @@ WHERE {
     UNION {
         ?orgz a gmeow:Organization .
         FILTER NOT EXISTS { ?orgz gmeow:displayable false . }
+    }
+    UNION {
+        ?orole a gmeow:Role .
+        FILTER NOT EXISTS { ?orole gmeow:displayable false . }
+    }
+    UNION {
+        ?osub gmeow:subOrganizationOf ?oparent .
+        FILTER NOT EXISTS { ?osub gmeow:displayable false . }
     }
 }

@@ -4,14 +4,14 @@
 //! The `mappings` stage (#861 P3): compile the alignment artifacts.
 //!
 //! All mapping artifact families are Rust-owned and wired directly here:
-//!   * **SSSOM** → `gmeow_slice::emit_sssom_sets(root)` (byte-identical to the
-//!     historical Python emitter, its own parity gate) → `generated/mappings/*.sssom.tsv`.
-//!   * **FnO** → `gmeow_slice::emit_fno(root)` → `generated/projections/functions.fno.ttl`.
-//!   * **EDOAL** → `gmeow_slice::emit_edoal_sets(root)` (byte-identical to the
-//!     historical Python emitter — built as N-Triples then serialized through the
-//!     project's canonical Turtle serializer) → `generated/projections/*.edoal.ttl`.
-//!   * **SPARQL CONSTRUCT** → `gmeow_slice::emit_sparql_sets(root)` (the
-//!     closed-algebra text renderer) → `generated/queries/*.rq`.
+//!   * **SSSOM / FnO / EDOAL / SPARQL CONSTRUCT** → the oxigraph-free
+//!     `gmeow-logic-compile` correspondence lowerings, driven by
+//!     [`correspondence_lower::lower_all`]. EDOAL + SPARQL lower from one shared get-leg
+//!     model, so the `spec-drift` invariant is gone by construction. SSSOM/EDOAL are
+//!     byte-identical to the historical emitter; SPARQL/FnO use a deterministic cell
+//!     order (content-equal to the historical hash order). Outputs:
+//!     `generated/mappings/*.sssom.tsv`, `generated/projections/functions.fno.ttl`,
+//!     `generated/projections/*.edoal.ttl`, `generated/queries/*.rq`.
 //!   * **Standpoint projections** → `gmeow_slice::emit_standpoint_sets(root)` — the
 //!     seven hand-authored `standpoint-*.rq` (six peer-model re-expressions:
 //!     Standpoint-OWL 2, CRMinf, PROV-O, Web Annotation, schema.org Claim, BBC
@@ -28,16 +28,15 @@ use std::path::Path;
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
 use gmeow_rdf::RdfSeverity;
-use gmeow_slice::emit_sssom_sets;
-use gmeow_slice::fno_emit::emit_fno;
 use gmeow_slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
 use gmeow_slice::{
-    emit_claim_view, emit_dsl_stats, emit_edoal_sets, emit_list_functions, emit_sparql_sets,
-    emit_standpoint_sets, lint_prefix_consistency, lint_projection, CLAIM_VIEW_FILE,
+    emit_claim_view, emit_dsl_stats, emit_list_functions, emit_standpoint_sets,
+    lint_prefix_consistency, lint_projection, CLAIM_VIEW_FILE,
 };
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::stages::correspondence_lower;
 
 /// Directory (logical-path prefix) of the SSSOM TSV sets.
 pub const SSSOM_DIR: &str = "generated/mappings";
@@ -84,37 +83,23 @@ pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
         });
     }
 
-    // SSSOM — byte-identical to the Python emitter.
-    let sssom = emit_sssom_sets(root).map_err(|e| PipelineError::Stage {
+    // The four alignment dialects (#1089) are now produced by the oxigraph-free
+    // `gmeow-logic-compile` correspondence lowerings: SSSOM (1:1 lattice band), FnO
+    // (transform functions), EDOAL + SPARQL-CONSTRUCT (one shared get leg, so
+    // `spec-drift` is gone by construction). One native parse of the DSL + ontology
+    // sources drives all four.
+    let aligned = correspondence_lower::lower_all(root).map_err(|e| PipelineError::Stage {
         stage: "stage-mappings".to_string(),
-        message: format!("SSSOM emission failed: {e}"),
+        message: format!("correspondence lowering failed: {e}"),
     })?;
-    for (filename, tsv) in sssom {
+    for (filename, tsv) in aligned.sssom {
         artifacts.insert(format!("{SSSOM_DIR}/{filename}"), tsv.into_bytes());
     }
-
-    // FnO — the transform catalog as N-Triples (compared by isomorphism).
-    let fno = emit_fno(root).map_err(|e| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message: format!("FnO emission failed: {e}"),
-    })?;
-    artifacts.insert(FNO_PATH.to_string(), fno.into_bytes());
-
-    // EDOAL — per-profile alignment Turtle (byte-identical to the Python emitter).
-    let edoal = emit_edoal_sets(root).map_err(|e| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message: format!("EDOAL emission failed: {e}"),
-    })?;
-    for (filename, ttl) in edoal {
+    artifacts.insert(FNO_PATH.to_string(), aligned.fno.into_bytes());
+    for (filename, ttl) in aligned.edoal {
         artifacts.insert(format!("{EDOAL_DIR}/{filename}"), ttl.into_bytes());
     }
-
-    // SPARQL CONSTRUCT — per-profile executable projection queries.
-    let sparql = emit_sparql_sets(root).map_err(|e| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message: format!("SPARQL emission failed: {e}"),
-    })?;
-    for (filename, rq) in sparql {
+    for (filename, rq) in aligned.sparql {
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
     }
 
