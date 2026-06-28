@@ -22,6 +22,19 @@
 //! - **WARNING `docs/missing-label`** — a vocabulary term with no `rdfs:label`
 //!   (annotation-contract triad, VOCABULARY SURFACE ONLY — example individuals
 //!   are never linted; warning for now so the gate stays green).
+//! - **WARNING `docs/missing-usage-advice`** — a vocabulary term carrying no
+//!   usage advice at all: empty `gmeow:useWhen` AND `gmeow:avoidWhen` AND
+//!   `gmeow:howToUse` (the consumer-routing fields `gmeow:useForConsumer` /
+//!   `gmeow:avoidForConsumer` are a separate surface and do NOT count as advice).
+//! - **WARNING `docs/missing-example`** — a vocabulary term with no `skos:example`
+//!   worked-usage prose.
+//! - **WARNING `docs/missing-scope-note`** — a vocabulary term with no
+//!   `skos:scopeNote` usage-advice prose.
+//! - **WARNING `docs/missing-alignment`** — a vocabulary term whose IRI is not the
+//!   subject of any term equivalence (no external crosswalk; a super-ontology
+//!   coverage opportunity). All four richness findings are report-only warnings
+//!   (the gate stays green) — a ratchet whose baseline burns down as source prose
+//!   and alignments land.
 
 use std::collections::BTreeSet;
 
@@ -88,40 +101,82 @@ fn lint_links(site: &Site, report: &mut Report) {
 }
 
 /// WARNING coverage findings over the vocabulary surface only.
+///
+/// The per-term coverage predicates live in [`crate::coverage`] — the single
+/// source shared with the rendered docs site — so a `docs/missing-*` warning fires
+/// exactly when the same dimension is shown absent on the term's page.
 fn lint_coverage(model: &DocsModel, report: &mut Report) {
+    let aligned = crate::coverage::alignment_subjects(model);
+
     // model.terms is already IRI-sorted → findings come out deterministically.
     for term in &model.terms {
+        let cov = crate::coverage::term_coverage(term, &aligned);
         let loc = Location::new(
             Some(format!("terms/{}/index.html", term_slug(term))),
             None,
             None,
             Some(term.curie.clone()),
         );
-        if term.definition.as_deref().unwrap_or("").trim().is_empty() {
-            let mut finding = Finding::new(
-                Severity::Warning,
+        // Emit a report-only coverage WARNING anchored at this term.
+        let mut emit = |code: &'static str, message: String| {
+            let mut finding = Finding::new(Severity::Warning, code, message).with_tool(TOOL);
+            finding.add_location(loc.clone());
+            report.add_finding(finding);
+        };
+
+        if !cov.has_definition {
+            emit(
                 "docs/missing-definition",
                 format!(
                     "term `{}` has no skos:definition/rdfs:comment (documentation coverage gap)",
                     term.curie
                 ),
-            )
-            .with_tool(TOOL);
-            finding.add_location(loc.clone());
-            report.add_finding(finding);
+            );
         }
-        if term.label.as_deref().unwrap_or("").trim().is_empty() {
-            let mut finding = Finding::new(
-                Severity::Warning,
+        if !cov.has_label {
+            emit(
                 "docs/missing-label",
                 format!(
                     "term `{}` has no rdfs:label (annotation-contract triad incomplete)",
                     term.curie
                 ),
-            )
-            .with_tool(TOOL);
-            finding.add_location(loc);
-            report.add_finding(finding);
+            );
+        }
+        if !cov.has_usage_advice {
+            emit(
+                "docs/missing-usage-advice",
+                format!(
+                    "term `{}` has no usage advice (gmeow:useWhen/avoidWhen/howToUse) (documentation coverage gap)",
+                    term.curie
+                ),
+            );
+        }
+        if !cov.has_example {
+            emit(
+                "docs/missing-example",
+                format!(
+                    "term `{}` has no skos:example (documentation coverage gap)",
+                    term.curie
+                ),
+            );
+        }
+        if !cov.has_scope_note {
+            emit(
+                "docs/missing-scope-note",
+                format!(
+                    "term `{}` has no skos:scopeNote (documentation coverage gap)",
+                    term.curie
+                ),
+            );
+        }
+        if !cov.has_alignment {
+            emit(
+                "docs/missing-alignment",
+                format!(
+                    "term `{}` has no external alignment (term equivalence) — super-ontology coverage opportunity",
+                    term.curie
+                ),
+            );
         }
     }
 }
@@ -212,7 +267,7 @@ fn resolve(dir: &str, href: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{DocTerm, DocTermCategory};
+    use crate::model::{DocLinkage, DocTerm, DocTermCategory};
     use crate::render::render_site;
     use std::collections::BTreeMap;
 
@@ -276,26 +331,47 @@ mod tests {
         cat(local, DocTermCategory::Class, definition, label)
     }
 
+    /// A term with NO coverage gaps: definition, label, scope note, example, the
+    /// full usage-advice triad, and (via `populated`) a matching alignment.
+    fn rich(local: &str, category: DocTermCategory, label: &str) -> DocTerm {
+        DocTerm {
+            scope_notes: vec![format!("Scope of {local}.")],
+            examples: vec![format!("Worked use of {local}.")],
+            use_when: vec![format!("Use {local} when …")],
+            avoid_when: vec![format!("Avoid {local} when …")],
+            how_to_use: vec![format!("Idiomatic {local} use.")],
+            ..cat(local, category, Some("Fully covered."), Some(label))
+        }
+    }
+
+    /// An external term equivalence whose subject is the GMEOW term `local`, so it
+    /// satisfies the `docs/missing-alignment` check.
+    fn linkage(local: &str) -> DocLinkage {
+        DocLinkage {
+            mapping_set: None,
+            subject: format!("{GMEOW}{local}"),
+            subject_curie: format!("gmeow:{local}"),
+            predicate: "skos:closeMatch".to_string(),
+            object: format!("http://example.org/{local}"),
+            justification: None,
+            confidence: None,
+            owner_slice: format!("{GMEOW}slice/zoo"),
+        }
+    }
+
     /// The static nav + getting-started page always link to both the classes and
     /// properties category indexes, which only render when their category is
-    /// non-empty; a fully-populated ontology has both, so test models do too.
+    /// non-empty; a fully-populated ontology has both, so test models do too. Both
+    /// seed terms are fully covered (and aligned) so only `extra` terms can warn.
     fn populated(extra: Vec<DocTerm>) -> DocsModel {
         let mut terms = vec![
-            cat(
-                "Animal",
-                DocTermCategory::Class,
-                Some("An animal."),
-                Some("Animal"),
-            ),
-            cat(
-                "hasOwner",
-                DocTermCategory::Property,
-                Some("Ownership."),
-                Some("has owner"),
-            ),
+            rich("Animal", DocTermCategory::Class, "Animal"),
+            rich("hasOwner", DocTermCategory::Property, "has owner"),
         ];
         terms.extend(extra);
-        model_with_terms(terms)
+        let mut model = model_with_terms(terms);
+        model.linkages = vec![linkage("Animal"), linkage("hasOwner")];
+        model
     }
 
     #[test]
@@ -341,13 +417,36 @@ mod tests {
     }
 
     #[test]
-    fn missing_definition_and_label_are_warnings() {
-        // `populated` seeds two fully-annotated terms; the bare term adds exactly
-        // one missing-definition + one missing-label warning, no errors.
+    fn coverage_gaps_are_warnings() {
+        // `populated` seeds two fully-covered terms (definition, label, scope note,
+        // example, usage-advice triad, alignment); the bare term adds EXACTLY one
+        // of each of the six coverage warnings — and no errors.
         let model = populated(vec![term("Bare", None, None)]);
         let site = render_site(&model);
         let report = lint(&model, &site);
         assert_eq!(report.error_count(), 0);
-        assert_eq!(report.warning_count(), 2);
+        assert_eq!(report.warning_count(), 6, "{:?}", report.legacy_errors());
+        let codes: BTreeSet<&str> = report.findings.iter().map(|f| f.code.as_str()).collect();
+        for code in [
+            "docs/missing-definition",
+            "docs/missing-label",
+            "docs/missing-usage-advice",
+            "docs/missing-example",
+            "docs/missing-scope-note",
+            "docs/missing-alignment",
+        ] {
+            assert!(codes.contains(code), "expected `{code}`; got {codes:?}");
+        }
+    }
+
+    #[test]
+    fn fully_covered_terms_emit_no_coverage_warnings() {
+        // The two `rich` + aligned seed terms carry every annotation, so a model of
+        // only those must produce zero warnings (and zero errors).
+        let model = populated(Vec::new());
+        let site = render_site(&model);
+        let report = lint(&model, &site);
+        assert_eq!(report.error_count(), 0);
+        assert_eq!(report.warning_count(), 0, "{:?}", report.legacy_errors());
     }
 }

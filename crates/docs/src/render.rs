@@ -62,6 +62,9 @@ pub enum Page {
     GettingStarted,
     /// `about/index`.
     About,
+    /// The documentation-health dashboard (`health/index`) — per-dimension
+    /// coverage of the vocabulary surface and a completeness distribution.
+    Health,
     /// `changelog/index`.
     Changelog,
     /// A vocabulary category index (`classes/`, `properties/`, …).
@@ -122,6 +125,7 @@ impl Page {
             Page::Landing => String::new(),
             Page::GettingStarted => "getting-started".to_string(),
             Page::About => "about".to_string(),
+            Page::Health => "health".to_string(),
             Page::Changelog => "changelog".to_string(),
             Page::Category(category) => category_dir(*category).to_string(),
             Page::Term(slug) => format!("terms/{slug}"),
@@ -162,6 +166,7 @@ impl Page {
             Page::Landing => model.title.clone(),
             Page::GettingStarted => "Getting started".to_string(),
             Page::About => "About".to_string(),
+            Page::Health => "Documentation health".to_string(),
             Page::Changelog => "Changelog".to_string(),
             Page::Category(category) => category_plural(*category).to_string(),
             Page::Term(slug) => model
@@ -354,6 +359,7 @@ fn pages(model: &DocsModel) -> Vec<Page> {
         Page::Landing,
         Page::GettingStarted,
         Page::About,
+        Page::Health,
         Page::Changelog,
         Page::SliceIndex,
         Page::LinkageIndex,
@@ -415,6 +421,7 @@ pub fn to_markdown(model: &DocsModel, page: &Page) -> String {
         Page::Landing => md_landing(model),
         Page::GettingStarted => md_getting_started(model),
         Page::About => md_about(model),
+        Page::Health => md_health(model),
         Page::Changelog => md_changelog(model),
         Page::Category(category) => md_category(model, *category),
         Page::Term(slug) => md_term(model, slug),
@@ -562,6 +569,13 @@ fn md_landing(model: &DocsModel) -> String {
     push_line(
         &mut out,
         &format!(
+            "- [Documentation health]({}index.md) — per-dimension coverage of the vocabulary surface.",
+            rel(&from, &Page::Health.dir())
+        ),
+    );
+    push_line(
+        &mut out,
+        &format!(
             "- [Getting started]({}index.md)",
             rel(&from, &Page::GettingStarted.dir())
         ),
@@ -571,6 +585,61 @@ fn md_landing(model: &DocsModel) -> String {
         &format!("- [About]({}index.md)", rel(&from, &Page::About.dir())),
     );
     blank(&mut out);
+    out
+}
+
+/// The documentation-health dashboard: per-dimension coverage of the vocabulary
+/// surface and a completeness distribution. Reads the shared coverage source, so
+/// its per-dimension *covered* counts are the exact complement of the
+/// `docs/missing-*` lint counts.
+fn md_health(model: &DocsModel) -> String {
+    let mut out = String::new();
+    heading(&mut out, 1, "Documentation health");
+    line(
+        &mut out,
+        &format!(
+            "Coverage of the {} documentation dimensions across **{}** vocabulary terms. Each \
+             dimension mirrors a `docs/missing-*` lint code; the covered counts grow as source \
+             prose, examples, scope notes, and external alignments land. Per-term detail lives \
+             on each term page's *Documentation coverage* section.",
+            crate::coverage::TermCoverage::TOTAL,
+            model.terms.len()
+        ),
+    );
+
+    let aligned = crate::coverage::alignment_subjects(model);
+    let coverages: Vec<crate::coverage::TermCoverage> = model
+        .terms
+        .iter()
+        .map(|t| crate::coverage::term_coverage(t, &aligned))
+        .collect();
+    let total = coverages.len();
+
+    // Per-dimension coverage — covered count = total − (the docs/missing-* count).
+    heading(&mut out, 2, "Coverage by dimension");
+    push_line(&mut out, "| Dimension | Covered | Total | % |");
+    push_line(&mut out, "| --- | --- | --- | --- |");
+    for (i, dim) in crate::coverage::DIMENSIONS.iter().enumerate() {
+        let covered = coverages.iter().filter(|c| c.flags()[i]).count();
+        let pct = (covered * 100).checked_div(total).unwrap_or(0);
+        push_line(
+            &mut out,
+            &format!("| {} | {covered} | {total} | {pct}% |", dim.label),
+        );
+    }
+    blank(&mut out);
+
+    // Completeness distribution: how many terms carry exactly k of the dimensions.
+    heading(&mut out, 2, "Completeness distribution");
+    push_line(&mut out, "| Dimensions present | Terms |");
+    push_line(&mut out, "| --- | --- |");
+    let dims_total = crate::coverage::TermCoverage::TOTAL;
+    for k in (0..=dims_total).rev() {
+        let count = coverages.iter().filter(|c| c.present_count() == k).count();
+        push_line(&mut out, &format!("| {k} / {dims_total} | {count} |"));
+    }
+    blank(&mut out);
+
     out
 }
 
@@ -1008,6 +1077,39 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         &format!("- **Status:** {}", term.stability.label()),
     );
     blank(&mut out);
+
+    // ── Documentation coverage (always present) ──────────────────────────────────
+    // The six richness dimensions this term carries, read from the shared coverage
+    // source — exactly the predicates behind the `docs/missing-*` lint, so the page
+    // and the gate can never disagree about what a term is missing.
+    {
+        let aligned = crate::coverage::alignment_subjects(model);
+        let cov = crate::coverage::term_coverage(term, &aligned);
+        heading(&mut out, 2, "Documentation coverage");
+        let badges = crate::coverage::DIMENSIONS
+            .iter()
+            .zip(cov.flags())
+            .map(|(dim, present)| format!("{} {}", if present { "✓" } else { "✗" }, dim.label))
+            .collect::<Vec<_>>()
+            .join(" · ");
+        push_line(
+            &mut out,
+            &format!(
+                "- **{} of {} dimensions present.** {}",
+                cov.present_count(),
+                crate::coverage::TermCoverage::TOTAL,
+                badges
+            ),
+        );
+        push_line(
+            &mut out,
+            &format!(
+                "- See [Documentation health]({}index.md) for coverage across the whole vocabulary.",
+                rel(&Page::Term(term_slug(term)).dir(), &Page::Health.dir())
+            ),
+        );
+        blank(&mut out);
+    }
 
     // ── Profiles (#1026 — named profiles whose membership includes this term) ────
     if !term.profiles.is_empty() {
@@ -2891,6 +2993,11 @@ struct SearchRecord {
     /// Crosswalk facet — `tag:object` tokens (terms only); omitted when empty.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     alignments: Vec<String>,
+    /// Documentation-coverage facet — machine keys of the dimensions a term is
+    /// MISSING (terms only), so a client can filter under-documented terms; omitted
+    /// from JSON when the term is fully covered.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    missing_coverage: Vec<&'static str>,
 }
 
 /// Build the deterministic `search-index.json`: one record per term, slice,
@@ -2898,6 +3005,7 @@ struct SearchRecord {
 pub fn search_index_json(model: &DocsModel) -> String {
     let mut records: Vec<SearchRecord> = Vec::new();
     let alignment_facets = precompute_alignment_facets(model);
+    let aligned = crate::coverage::alignment_subjects(model);
 
     for term in &model.terms {
         records.push(SearchRecord {
@@ -2911,6 +3019,7 @@ pub fn search_index_json(model: &DocsModel) -> String {
                 .get(term.iri.as_str())
                 .cloned()
                 .unwrap_or_default(),
+            missing_coverage: crate::coverage::term_coverage(term, &aligned).missing_keys(),
         });
     }
     for slice in &model.slices {
@@ -2922,6 +3031,7 @@ pub fn search_index_json(model: &DocsModel) -> String {
             url: format!("{}/index.html", Page::Slice(slice_slug(slice)).dir()),
             advice: Vec::new(),
             alignments: Vec::new(),
+            missing_coverage: Vec::new(),
         });
     }
     for concern in &model.concerns {
@@ -2933,6 +3043,7 @@ pub fn search_index_json(model: &DocsModel) -> String {
             url: format!("{}/index.html", Page::Concern(concern_slug(concern)).dir()),
             advice: Vec::new(),
             alignments: Vec::new(),
+            missing_coverage: Vec::new(),
         });
     }
     for set in &model.mapping_sets {
@@ -2944,6 +3055,7 @@ pub fn search_index_json(model: &DocsModel) -> String {
             url: format!("{}/index.html", Page::LinkageIndex.dir()),
             advice: Vec::new(),
             alignments: Vec::new(),
+            missing_coverage: Vec::new(),
         });
     }
 

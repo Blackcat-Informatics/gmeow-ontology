@@ -467,7 +467,13 @@ fn finding_text_lines(finding: &Finding, rules: &BTreeMap<&str, &Rule>, out: &mu
     }
 }
 
-/// Render a compact terminal-safe plain-text report.
+/// Render a compact terminal-safe plain-text report — the FULL per-finding form
+/// (one message line each, plus suggestion/help lines).
+///
+/// Canonical consumer: artifact / SARIF-adjacent paths and any caller that needs
+/// every finding spelled out. For an interactive console gate that may surface
+/// thousands of report-only findings (e.g. the coverage ratchet), prefer
+/// [`to_text_summarized`], which collapses non-error findings to per-code counts.
 pub fn to_text(report: &Report) -> String {
     let normalized = report.normalized();
     let rules = rule_map(&normalized);
@@ -475,6 +481,60 @@ pub fn to_text(report: &Report) -> String {
     for finding in &normalized.findings {
         finding_text_lines(finding, &rules, &mut lines);
     }
+    lines.join("\n")
+}
+
+/// Render a console-digestible report: every ERROR finding in FULL (errors are
+/// actionable and, on a healthy gate, few), then every non-error finding
+/// (warnings/notes/info) collapsed to a single `SEVERITY code: N finding(s)` line
+/// per `(severity, code)`.
+///
+/// Canonical consumer: the interactive `doc-lint` console (and any gate that emits
+/// high-volume report-only warnings). It keeps a thousand-term coverage ratchet
+/// from flooding the terminal while preserving the per-term detail in the
+/// structured report consumed by [`to_text`]/[`to_json`]/[`to_sarif`].
+pub fn to_text_summarized(report: &Report) -> String {
+    use crate::model::Severity;
+
+    // Errors in full — they must stay individually actionable. Clone and normalize
+    // ONLY the error findings (plus the shared rules) rather than the whole report:
+    // on a high-volume report-only gate the non-error findings number in the
+    // thousands, and cloning them just to count them is pure allocation overhead.
+    let mut error_report = Report::new(report.tool.clone());
+    error_report.rules = report.rules.clone();
+    error_report.findings = report
+        .findings
+        .iter()
+        .filter(|f| f.severity == Severity::Error)
+        .cloned()
+        .collect();
+    error_report.normalize();
+    let rules = rule_map(&error_report);
+    let mut lines = Vec::new();
+    for finding in &error_report.findings {
+        finding_text_lines(finding, &rules, &mut lines);
+    }
+
+    // Non-error findings collapse to one count line per (severity, code), counted
+    // over the BORROWED originals — no clone. `normalize()` only sorts/dedups tags,
+    // suggestions, locations and rules; it never drops a finding or rewrites its
+    // `severity`/`code`, so a raw count is identical to a normalized one. Keying on
+    // the severity/code strings keeps the order deterministic via the `BTreeMap`
+    // without requiring `Severity: Ord`.
+    let mut counts: BTreeMap<(&str, &str), usize> = BTreeMap::new();
+    for finding in report
+        .findings
+        .iter()
+        .filter(|f| f.severity != Severity::Error)
+    {
+        *counts
+            .entry((finding.severity.as_str(), finding.code.as_str()))
+            .or_default() += 1;
+    }
+    for ((severity, code), count) in &counts {
+        lines.push(format!("{severity} {code}: {count} finding(s)"));
+    }
+
     lines.join("\n")
 }
 
@@ -1400,6 +1460,66 @@ mod tests {
             advice_rule.get("helpUri").is_some(),
             "advice.sample rule must carry helpUri"
         );
+    }
+
+    #[test]
+    fn summarized_text_collapses_warnings_to_per_code_counts() {
+        let mut report = Report::new("gmeow-docs");
+        // Two errors (rendered in full) + many warnings across two codes.
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "docs/dangling-link",
+            "broken alpha",
+        ));
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "docs/dangling-link",
+            "broken beta",
+        ));
+        for i in 0..5 {
+            report.add_finding(Finding::new(
+                Severity::Warning,
+                "docs/missing-example",
+                format!("term {i}"),
+            ));
+        }
+        for i in 0..3 {
+            report.add_finding(Finding::new(
+                Severity::Warning,
+                "docs/missing-alignment",
+                format!("aligned {i}"),
+            ));
+        }
+
+        let text = to_text_summarized(&report);
+        // Errors appear individually, in full.
+        assert!(
+            text.contains("error docs/dangling-link: broken alpha"),
+            "{text}"
+        );
+        assert!(
+            text.contains("error docs/dangling-link: broken beta"),
+            "{text}"
+        );
+        // Warnings collapse to one count line per code — no per-term warning lines.
+        assert!(
+            text.contains("warning docs/missing-example: 5 finding(s)"),
+            "{text}"
+        );
+        assert!(
+            text.contains("warning docs/missing-alignment: 3 finding(s)"),
+            "{text}"
+        );
+        assert!(
+            !text.contains("term 0"),
+            "individual warnings must not be listed: {text}"
+        );
+
+        // counts_by_code tallies every code (errors + warnings).
+        let counts = report.counts_by_code();
+        assert_eq!(counts["docs/dangling-link"], 2);
+        assert_eq!(counts["docs/missing-example"], 5);
+        assert_eq!(counts["docs/missing-alignment"], 3);
     }
 
     /// Recursively collect every `"uri"` string value under a JSON node.

@@ -1,17 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Anchor/link/coverage lint regression suite (R2 of #859).
+//! Anchor/link/coverage lint regression suite.
 //!
 //! The in-module `lint.rs` tests already cover each finding code in isolation
-//! over synthetic models. This integration suite adds the two things those
-//! cannot: (1) the **live-model doctrine gate** — the real discovered docs must
-//! lint with ZERO errors (what the `make check` doc-lint gate enforces), and (2)
-//! a deterministic-ordering regression over a site that triggers ALL four codes
-//! at once. Findings are documented as deterministically sorted; this pins it.
+//! over synthetic models. This integration suite adds three things those cannot:
+//! (1) the **live-model doctrine gate** — the real discovered docs must lint with
+//! ZERO errors (what the `make check` doc-lint gate enforces); (2) a
+//! deterministic-ordering regression over a site that triggers EVERY finding code
+//! at once; and (3) the **recorded coverage-ratchet baseline** — an insta snapshot
+//! of the live per-code coverage-warning counts that burns down as source prose
+//! and alignments land. Findings are documented as deterministically sorted; this
+//! pins it.
 
-// Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
-// for this file. Identical behaviour on pass; insta snapshots are unaffected.
+// Rich colored line-diffs on assert_eq! failure; shadows the std macro for this
+// file. Identical behaviour on pass; insta snapshots are unaffected.
 use pretty_assertions::assert_eq;
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -104,9 +107,10 @@ fn model_with_terms(terms: Vec<DocTerm>) -> DocsModel {
 
 #[test]
 fn site_triggering_all_codes_emits_each_and_is_deterministic() {
-    // A bare term (→ docs/missing-definition + docs/missing-label warnings) plus a
-    // hand-built site whose pages carry a dangling internal link
-    // (→ docs/dangling-link) and a broken in-page anchor (→ docs/broken-anchor).
+    // A bare term with no linkage trips every coverage warning (missing
+    // definition, label, usage-advice, example, scope-note, alignment); the
+    // hand-built site adds a dangling internal link (→ docs/dangling-link) and a
+    // broken in-page anchor (→ docs/broken-anchor). Together: all eight codes.
     let model = model_with_terms(vec![term("Bare", None, None)]);
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     files.insert(
@@ -126,6 +130,10 @@ fn site_triggering_all_codes_emits_each_and_is_deterministic() {
         "docs/broken-anchor",
         "docs/missing-definition",
         "docs/missing-label",
+        "docs/missing-usage-advice",
+        "docs/missing-example",
+        "docs/missing-scope-note",
+        "docs/missing-alignment",
     ] {
         assert!(
             codes.contains(code),
@@ -141,4 +149,26 @@ fn site_triggering_all_codes_emits_each_and_is_deterministic() {
             .collect::<Vec<_>>()
     };
     assert_eq!(seq(&report), seq(&lint(&model, &site)));
+}
+
+#[test]
+fn coverage_ratchet_baseline_is_recorded() {
+    // The recorded report-only ratchet: a snapshot of the live per-code coverage
+    // WARNING counts. These are warnings (the gate stays green); this golden is the
+    // committed baseline, and the counts are EXPECTED to fall over time as source
+    // prose, examples, scope notes, and alignments land. When they change, run
+    // `cargo insta review` and accept the lower numbers — the diff is the burn-down
+    // ledger. This golden legitimately drifts with slice content; do not chase it in
+    // unrelated PRs.
+    let model = common::cached_model();
+    let site = common::cached_site();
+    let report = lint(&model, &site);
+
+    let coverage: BTreeMap<&str, usize> = report
+        .counts_by_code()
+        .into_iter()
+        .filter(|(code, _)| code.starts_with("docs/missing-"))
+        .collect();
+
+    insta::assert_json_snapshot!("coverage_ratchet_baseline", coverage);
 }
