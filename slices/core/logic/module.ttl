@@ -35,11 +35,13 @@ logic:AbstractIndividualType
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:ActionSchema
-    a owl:NamedIndividual ,
+    a owl:Class ,
+        owl:NamedIndividual ,
         logic:NodeKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Action Schema"@x-gmeow-english ;
-    skos:definition "A named precondition / effect / invariant template that a transaction program may invoke: the reusable unit of state change. Distinct from the concrete transaction program that instantiates it, so a reusable schema is never conflated with a single state-changing run."@x-gmeow-english .
+    skos:definition "A named precondition / effect / invariant template that a transaction program may invoke: the reusable unit of state change. Distinct from the concrete transaction program that instantiates it, so a reusable schema is never conflated with a single state-changing run. Punned (OWL 2 DL metamodelling): it is simultaneously the IR node kind AND the class whose instances are specific reusable action schemas — an action occurrence is a gmeow:Event that instantiates one such schema through logic:instantiatesSchema. The structure means–end reasoning reads is declared on a schema by the eight action-theory facets: logic:precondition, logic:effect, logic:invariant, logic:capability, logic:nondeterministicOutcome, logic:observation, logic:compensation, and logic:actionResource."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:AdmissibleValuationPolicy
     a owl:Class ;
@@ -564,6 +566,202 @@ logic:FuzzyMeasure
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Fuzzy Measure"@x-gmeow-english ;
     skos:definition "The uncertainty measure carrying fuzzy (degree-of-truth) membership values. One member of the uncertainty-measure set facet, which may carry several measures at once; distinct from logic:ProbabilisticMeasure (a calibrated probability) and logic:WeightedRankingMeasure (a solver preference order)."@x-gmeow-english .
+
+# === Teleology layer: goal expressions, evaluation, plans, decomposition ======
+# The reasoning structure over GMEOW's own teleological vocabulary (gmeow:Goal,
+# gmeow:Desire/Intention/Commitment, gmeow:satisfiedBy). Classes and named
+# individuals are grouped as one cohesive cluster (mirroring the ReasoningResult
+# status cluster); the teleology object/datatype properties are grouped together
+# in the property block below. Normative in design/LOGIC-TELEOLOGY.md.
+
+logic:AndDecomposition
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "And-Decomposition"@x-gmeow-english ;
+    skos:definition "The decomposition of a gmeow:Goal under which all of its necessary sub-goals must hold together for the parent to be satisfied — a conjunctive node of the and-or goal graph means–end search runs over. It groups the logic:necessaryFor sub-goals of the parent: every grouped sub-goal must be satisfied. The co-equal counterpart of logic:OrDecomposition (any one sufficient sub-goal settles the parent); the two compose into the and-or goal graph. Decomposition carries satisfaction dependency and is typed apart from the generic mereology spine — a sub-goal may be both a gmeow:properPartOf and logic:necessaryFor its parent, yet part-hood alone does not express the satisfaction dependency planning needs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FeasibilityStatus
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Feasibility Status"@x-gmeow-english ;
+    skos:definition "The closed value class of the feasibility axis of a logic:GoalEvaluation: whether the goal is reachable from the situation it is judged against. Its individuals are logic:Feasible (a path to the goal exists), logic:Blocked (no path exists in the current situation but the obstruction may lift), logic:Infeasible (no path exists in any reachable situation), and logic:FeasibilityUnknown (the feasibility question has not been settled). The set is closed; a misspelt value is rejected. This axis varies independently of satisfaction, lifecycle, and goal-evaluation status — a goal may be partial in satisfaction, blocked in feasibility, and active in lifecycle at once."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Feasible
+    a owl:NamedIndividual ,
+        logic:FeasibilityStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Feasible"@x-gmeow-english ;
+    skos:definition "The logic:FeasibilityStatus value for a goal a path can reach from the situation it is judged against — the goal is achievable. Contrast logic:Blocked (no current path, but the obstruction may lift) and logic:Infeasible (no path in any reachable situation)."@x-gmeow-english .
+
+logic:Blocked
+    a owl:NamedIndividual ,
+        logic:FeasibilityStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Blocked"@x-gmeow-english ;
+    skos:definition "The logic:FeasibilityStatus value for a goal with no path from the current situation, where the obstruction may yet lift — temporarily unreachable rather than permanently so. Contrast logic:Infeasible (unreachable in every reachable situation) and logic:Feasible (a path exists)."@x-gmeow-english .
+
+logic:Infeasible
+    a owl:NamedIndividual ,
+        logic:FeasibilityStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Infeasible"@x-gmeow-english ;
+    skos:definition "The logic:FeasibilityStatus value for a goal no path can reach from any reachable situation — permanently unachievable, not merely currently obstructed. The strongest infeasibility reading; contrast logic:Blocked (the obstruction may lift)."@x-gmeow-english .
+
+logic:FeasibilityUnknown
+    a owl:NamedIndividual ,
+        logic:FeasibilityStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Feasibility Unknown"@x-gmeow-english ;
+    skos:definition "The logic:FeasibilityStatus value when the reachability question has not been settled — the engine has neither found a path nor proved none exists. The first-class fourth value, kept distinct from logic:Blocked so an unexamined goal is never silently read as obstructed."@x-gmeow-english .
+
+logic:GoalEvaluation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Goal Evaluation"@x-gmeow-english ;
+    skos:definition "The reified, vantage-indexed record of whether a goal is met: one logic:GoalEvaluation per (goal, situation or world it is judged against, evaluator holding the judgment, time of judgment, criterion applied), identified by that tuple of subjects and attributed through gmeow:accordingTo. Its outcome is factored into independent axes rather than one collapsed label — logic:satisfactionStatus, logic:feasibilityStatus, logic:lifecycleStatus, logic:goalEvaluationStatus, and the logic:satisfactionDegree quantity — each varying independently. The binary gmeow:satisfiedBy edge is the conclusive projection of this record: an edge is generated from each evaluation whose satisfaction status is logic:Satisfied and whose goal-evaluation status is logic:GoalEvaluationCompleted, and a directly authored gmeow:satisfiedBy edge deterministically expands into a default such evaluation under the asserting vantage, so the flat and reified records never disagree. Two evaluators who disagree are two coexisting evaluations, each retained rather than reconciled (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:GoalEvaluationStatus
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Goal Evaluation Status"@x-gmeow-english ;
+    skos:definition "The closed value class of the goal-evaluation-completeness axis of a logic:GoalEvaluation: whether the evaluation has reached a conclusive judgment. Its individuals are logic:GoalEvaluationCompleted (a conclusive judgment), logic:GoalEvaluationUndetermined (not yet conclusive — a maintenance or avoidance goal whose window has not closed holds so far but is not yet conclusively satisfied), and logic:GoalEvaluationUnsupported (the evaluator has no defined procedure for the judgment). The set is closed; a misspelt value is rejected. DISTINCT from logic:EvaluationStatus, the engine-computation axis of a logic:ReasoningResult (what the engine was able to do): the two are orthogonal and must never be conflated — one factors a goal judgment's conclusiveness, the other a reasoning run's computational completion."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:GoalEvaluationCompleted
+    a owl:NamedIndividual ,
+        logic:GoalEvaluationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Goal Evaluation Completed"@x-gmeow-english ;
+    skos:definition "The logic:GoalEvaluationStatus value for a goal evaluation that has reached a conclusive judgment. Together with satisfaction status logic:Satisfied it is the condition under which a gmeow:satisfiedBy edge is generated. A maintenance or avoidance goal reaches this only when its window closes (satisfied) or its target fails (violated)."@x-gmeow-english .
+
+logic:GoalEvaluationUndetermined
+    a owl:NamedIndividual ,
+        logic:GoalEvaluationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Goal Evaluation Undetermined"@x-gmeow-english ;
+    skos:definition "The logic:GoalEvaluationStatus value for a goal evaluation not yet conclusive — most characteristically a maintenance or avoidance goal whose bounding window has not closed: holding so far is not conclusive satisfaction. Distinct from logic:GoalEvaluationUnsupported (no procedure exists): here the procedure exists but the judgment is open."@x-gmeow-english .
+
+logic:GoalEvaluationUnsupported
+    a owl:NamedIndividual ,
+        logic:GoalEvaluationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Goal Evaluation Unsupported"@x-gmeow-english ;
+    skos:definition "The logic:GoalEvaluationStatus value for a goal evaluation the evaluator has no defined procedure for — the judgment cannot be made under the applicable criterion. Distinct from logic:GoalEvaluationUndetermined (the procedure exists but the judgment is open)."@x-gmeow-english .
+
+logic:GoalExpression
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Goal Expression"@x-gmeow-english ;
+    skos:definition "The typed IR term carrying the compositional structure of a goal's target so the engine can evaluate it compositionally, attached to a gmeow:Goal through logic:hasGoalCondition. Its node kind is one of nine variants: atomic (satisfied when a named situation type obtains), conjunctive and disjunctive (satisfied when all, or any, sub-expressions are), achievement (satisfied once the target first obtains along a path), maintenance (satisfied only while the target holds at every state of an interval, violated at the first failure), avoidance (the dual of maintenance — satisfied while a proscribed situation never obtains), optimization (directed at a measure, satisfied to the degree the measure is extremized rather than by a crisp boundary), conditional (a target applying only when a guard situation holds), and deadline-window (an achievement or maintenance target indexed to a bounding interval after which the window closes). Identity is STRUCTURAL: two expressions with the same node kind, operands, and bound situation type are the same term, so a goal condition is data the engine reads and writes rather than prose. The flat gmeow:hasGoal and conclusive gmeow:satisfiedBy edges are the surface views this richer form generates; projections that cannot hold the structure record the loss in the preservation ledger."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:LifecycleStatus
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Lifecycle Status"@x-gmeow-english ;
+    skos:definition "The closed value class of the lifecycle axis of a logic:GoalEvaluation: where the goal stands in its adoption history. Its individuals are logic:LifecycleActive (currently held), logic:LifecycleRetired (no longer pursued, its tenure closed), and logic:LifecycleSuperseded (replaced by another goal). The set is closed; a misspelt value is rejected. This axis varies independently of satisfaction and feasibility — goal revision is supersession, never erasure, so a retired or superseded goal remains an auditable closed tenure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:LifecycleActive
+    a owl:NamedIndividual ,
+        logic:LifecycleStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Lifecycle Active"@x-gmeow-english ;
+    skos:definition "The logic:LifecycleStatus value for a goal currently held and pursued — its adoption tenure open. Contrast logic:LifecycleRetired (tenure closed) and logic:LifecycleSuperseded (replaced)."@x-gmeow-english .
+
+logic:LifecycleRetired
+    a owl:NamedIndividual ,
+        logic:LifecycleStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Lifecycle Retired"@x-gmeow-english ;
+    skos:definition "The logic:LifecycleStatus value for a goal no longer pursued, its adoption tenure closed by supersession rather than erased — the abandoned goal remains auditable. Contrast logic:LifecycleSuperseded, where a specific replacement goal takes its place."@x-gmeow-english .
+
+logic:LifecycleSuperseded
+    a owl:NamedIndividual ,
+        logic:LifecycleStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Lifecycle Superseded"@x-gmeow-english ;
+    skos:definition "The logic:LifecycleStatus value for a goal replaced by another — a closed tenure standing under a successor goal. Distinct from logic:LifecycleRetired (closed with no successor named)."@x-gmeow-english .
+
+logic:OrDecomposition
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Or-Decomposition"@x-gmeow-english ;
+    skos:definition "The decomposition of a gmeow:Goal under which any one sufficient sub-goal settles the parent on its own — a disjunctive node of the and-or goal graph means–end search runs over. It groups the logic:sufficientFor sub-goals of the parent: satisfying any one settles it. The co-equal counterpart of logic:AndDecomposition (all necessary sub-goals must hold together); the two compose into the and-or goal graph. Like all decomposition it carries satisfaction dependency and is typed apart from the generic mereology spine, which carries only structural part-hood."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Plan
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Plan"@x-gmeow-english ;
+    skos:definition "A transaction program (a logic:TransactionProgram-kind node) whose primitive operations invoke action schemas and whose success criterion is a goal expression. As a program it carries the structure a decomposed goal alone cannot — ordering and serial composition, guards, branching, concurrency, loops, and fallback — all in the operators of the transaction layer. A POLICY is a plan whose branches are conditioned on what an earlier action's observation reveals rather than fixed in advance; this is a reading of a plan, NOT a separate class. Plan adoption and revision are recorded as an intention is: a plan is held over an interval and revised by suppression, never mutated. Because an action schema may carry a nondeterministic outcome set, plan success is quantified over those outcomes through logic:planSuccessMode rather than left to the bare executional-success reading."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:PlanSuccessMode
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Plan Success Mode"@x-gmeow-english ;
+    skos:definition "The closed value class of the success quantification a logic:Plan declares over the nondeterministic outcomes of its action schemas. Its individuals are logic:WeakPlanSuccess (some outcome path reaches the goal), logic:StrongPlanSuccess (every outcome path reaches it), and logic:StrongCyclicPlanSuccess (every fair execution is guaranteed to reach it in finitely many steps, allowing retried loops through recoverable failures). The set is closed; a misspelt value is rejected. The quantification exists because the bare executional-success reading of the transaction layer would count the mere existence of one favourable path as success."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:WeakPlanSuccess
+    a owl:NamedIndividual ,
+        logic:PlanSuccessMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Weak Plan Success"@x-gmeow-english ;
+    skos:definition "The logic:PlanSuccessMode value under which a plan succeeds when SOME outcome path reaches the goal — the existential reading. The weakest of the three; contrast logic:StrongPlanSuccess (every path) and logic:StrongCyclicPlanSuccess (every fair execution, allowing loops)."@x-gmeow-english .
+
+logic:StrongPlanSuccess
+    a owl:NamedIndividual ,
+        logic:PlanSuccessMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Strong Plan Success"@x-gmeow-english ;
+    skos:definition "The logic:PlanSuccessMode value under which a plan succeeds when EVERY outcome path reaches the goal — the universal reading, guaranteeing the goal regardless of how nondeterminism resolves. Contrast logic:WeakPlanSuccess (some path) and logic:StrongCyclicPlanSuccess (every fair execution, allowing retried loops)."@x-gmeow-english .
+
+logic:StrongCyclicPlanSuccess
+    a owl:NamedIndividual ,
+        logic:PlanSuccessMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Strong-Cyclic Plan Success"@x-gmeow-english ;
+    skos:definition "The logic:PlanSuccessMode value under which a plan succeeds when every FAIR execution is guaranteed to reach the goal in finitely many steps, allowing retried loops through recoverable failures — the reading that tolerates cyclic recovery a strong plan forbids while still guaranteeing eventual success a weak plan does not. Between logic:WeakPlanSuccess and logic:StrongPlanSuccess in strength."@x-gmeow-english .
+
+logic:SatisfactionStatus
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Satisfaction Status"@x-gmeow-english ;
+    skos:definition "The closed value class of the satisfaction axis of a logic:GoalEvaluation: to what extent the goal is met against the situation it is judged against. Its individuals are logic:Satisfied (fully met), logic:PartiallySatisfied (met in part — held apart from a low logic:confidence in a satisfied evaluation, which is a different question), logic:Violated (a maintenance or avoidance target has failed), and logic:Unsatisfied (not met, with no positive partial progress recorded). The set is closed; a misspelt value is rejected. Together with logic:GoalEvaluationCompleted, logic:Satisfied is the condition under which a gmeow:satisfiedBy edge is generated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Satisfied
+    a owl:NamedIndividual ,
+        logic:SatisfactionStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Satisfied"@x-gmeow-english ;
+    skos:definition "The logic:SatisfactionStatus value for a goal fully met against the situation it is judged against. Together with goal-evaluation status logic:GoalEvaluationCompleted it is the condition that generates a gmeow:satisfiedBy edge. Distinct from a high logic:confidence in a satisfied evaluation — how met is not how sure."@x-gmeow-english .
+
+logic:PartiallySatisfied
+    a owl:NamedIndividual ,
+        logic:SatisfactionStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Partially Satisfied"@x-gmeow-english ;
+    skos:definition "The logic:SatisfactionStatus value for a goal met in part, its extent carried as a logic:satisfactionDegree quantity. Held apart from a low logic:confidence in a logic:Satisfied evaluation: partial satisfaction is how much of the goal is achieved, never how sure the evaluator is. Contrast logic:Unsatisfied (no positive progress) and logic:Violated (a target has failed)."@x-gmeow-english .
+
+logic:Violated
+    a owl:NamedIndividual ,
+        logic:SatisfactionStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Violated"@x-gmeow-english ;
+    skos:definition "The logic:SatisfactionStatus value for a goal whose target has failed — a maintenance goal that failed at some state of its interval, or an avoidance goal whose proscribed situation obtained. Stronger than logic:Unsatisfied: a violation is an active breach, not mere non-achievement."@x-gmeow-english .
+
+logic:Unsatisfied
+    a owl:NamedIndividual ,
+        logic:SatisfactionStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unsatisfied"@x-gmeow-english ;
+    skos:definition "The logic:SatisfactionStatus value for a goal not met, with no positive partial progress recorded. Distinct from logic:Violated (an active breach of a maintenance or avoidance target) and from logic:PartiallySatisfied (some progress made)."@x-gmeow-english .
 
 logic:GovernanceRegime
     a owl:Class ;
@@ -1442,6 +1640,259 @@ logic:counterfactuallyCloser
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "counterfactually closer"@x-gmeow-english ;
     skos:definition "The typed counterfactual accessibility relation under a declared closeness ordering (Lewis comparative similarity, a generalized closeness poset over contexts). Counterfactual reasoning is a USE of typed contexts: a counterfactual claim is truth in the counterfactually-closer accessible contexts under the ordering. Closeness is declared data, not a fixed semantics. logic:accessibleFrom is its generic superproperty in prose only — NOT asserted rdfs:subPropertyOf — so what would have been never leaks into what is by walking the bare superproperty."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# === Teleology layer properties: action-theory facets, goal/occurrence links, =
+# === decomposition, conflict, goal-evaluation axes and quantities ============
+# Object properties carry gmeow:boxRBox, matching the module's object-property
+# convention; the unit-interval quantity properties (logic:satisfactionDegree,
+# logic:objectiveValue, logic:utility) are datatype properties with no rdfs:range,
+# matching logic:confidence / logic:weight. Domains are stated in prose, matching
+# the module's domain/range convention. Normative in design/LOGIC-TELEOLOGY.md.
+
+# --- Action-theory facets (domain logic:ActionSchema, stated in prose) --------
+
+logic:precondition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "precondition"@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionSchema to the situation that must hold for the action to apply — the gate on the elementary state transition the schema grounds. Domain logic:ActionSchema (stated in prose, matching the module's domain/range convention). One of the eight action-theory facets means–end reasoning reads."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:effect
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect"@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionSchema to the change it introduces, expressed as the supersession primitives of the transaction layer (ins/del), NEVER as physical erasure — executing an occurrence is the elementary update whose ins/del a transaction path records. Domain logic:ActionSchema (stated in prose). One of the eight action-theory facets."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:invariant
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "invariant"@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionSchema to what the action must preserve across its execution — the condition that holds before, during, and after. Domain logic:ActionSchema (stated in prose). One of the eight action-theory facets, distinct from logic:precondition (what must hold to begin) and logic:effect (what changes)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:capability
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "capability"@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionSchema to what an agent must be able to do to execute it — the executional precondition on the actor rather than on the state. Domain logic:ActionSchema (stated in prose). One of the eight action-theory facets, distinct from logic:precondition (a precondition on the situation, not the agent)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:nondeterministicOutcome
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "nondeterministic outcome"@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionSchema to one of its alternative effects, each a distinct successor situation — multi-valued, so an action whose result is not fixed is represented faithfully rather than collapsed to a single effect. The outcome set this enumerates is why plan success must be quantified (logic:planSuccessMode) and why compensation is outcome-indexed (logic:compensation). Domain logic:ActionSchema (stated in prose). One of the eight action-theory facets."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:observation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "observation"@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionSchema to what executing the action reveals — the seam to the cognitive layer (design/LOGIC-COGNITION.md). A plan whose next action is chosen from what an earlier action's observation reveals is a policy. Domain logic:ActionSchema (stated in prose). One of the eight action-theory facets; a NEW facet, not a reuse of any cognition term."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:compensation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "compensation"@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionSchema to the action that undoes this one — the basis for recoverable transactions. Tied to the realized outcome, not the schema as a whole: when the outcome set is nondeterministic each branch names the compensation that recovers from IT, so recovery matches what actually happened rather than applying one generic undo across every branch. Domain logic:ActionSchema (stated in prose). One of the eight action-theory facets."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:actionResource
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "action resource"@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionSchema to what the action consumes or requires — the seam to the resource-competing goal conflict (logic:competesForResource), where two goals draw on a resource an action schema declares and the supply is insufficient for both. Domain logic:ActionSchema (stated in prose). One of the eight action-theory facets. DISTINCT from logic:resourcePolicy, which is a ReasoningContract→ResourcePolicy engine-budget property — a different concept that must not be conflated with an action's consumable resource."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Goal / occurrence links --------------------------------------------------
+
+logic:hasGoalCondition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has goal condition"@x-gmeow-english ;
+    skos:definition "Relates a gmeow:Goal to the logic:GoalExpression carrying the compositional structure of its target. Domain gmeow:Goal, range logic:GoalExpression (stated in prose, matching the module's domain/range convention). The flat gmeow:hasGoal and conclusive gmeow:satisfiedBy edges are the surface views this richer condition generates; gmeow:intentionGoal stays functional and ranges over gmeow:Goal — goal structure lives on the goal through this property, leaving the functional edge untouched."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:planGoal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "plan goal"@x-gmeow-english ;
+    skos:definition "Relates a logic:Plan to the gmeow:Goal that is its success criterion — the goal the plan's steps, invoking action schemas, are arranged to reach. Domain logic:Plan, range gmeow:Goal (stated in prose). The plan's success against this goal is quantified over nondeterministic outcomes through logic:planSuccessMode."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:instantiatesSchema
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "instantiates schema"@x-gmeow-english ;
+    skos:definition "Relates a gmeow:Event (an action occurrence — a particular event executed along a particular path) to the logic:ActionSchema it instantiates. Domain gmeow:Event, range logic:ActionSchema (stated in prose). The occurrence is the same perdurant an intentional moment links to through gmeow:motivates; the schema is the reusable type it instantiates. The schema names what an action does; the path records that it was done and what changed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Goal decomposition (gmeow:Goal -> gmeow:Goal, satisfaction dependency) ----
+
+logic:refinesGoal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refines goal"@x-gmeow-english ;
+    skos:definition "Relates a sub-gmeow:Goal to a coarser gmeow:Goal it makes precise. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of the four decomposition relations carrying satisfaction dependency, typed apart from gmeow:properPartOf (structural part-hood): a sub-goal may be both a proper part and refine its parent, yet part-hood alone does not express the refinement."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:contributesTo
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "contributes to"@x-gmeow-english ;
+    skos:definition "Relates a sub-gmeow:Goal whose satisfaction advances a gmeow:Goal without settling it. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of the four decomposition relations carrying satisfaction dependency; weaker than logic:necessaryFor (required) and logic:sufficientFor (settles on its own), and distinct from gmeow:properPartOf, which carries only structural part-hood."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:necessaryFor
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "necessary for"@x-gmeow-english ;
+    skos:definition "Relates a sub-gmeow:Goal that must be satisfied for a gmeow:Goal to be satisfied. Domain gmeow:Goal, range gmeow:Goal (stated in prose). The relation an logic:AndDecomposition groups: all necessary sub-goals must hold together. One of the four decomposition relations carrying satisfaction dependency, typed apart from gmeow:properPartOf (structural part-hood) — the satisfaction dependency planning needs that part-hood alone does not express."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:sufficientFor
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "sufficient for"@x-gmeow-english ;
+    skos:definition "Relates a sub-gmeow:Goal whose satisfaction settles a gmeow:Goal on its own. Domain gmeow:Goal, range gmeow:Goal (stated in prose). The relation an logic:OrDecomposition groups: any one sufficient sub-goal settles the parent. One of the four decomposition relations carrying satisfaction dependency, distinct from gmeow:properPartOf (structural part-hood)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Goal conflict (gmeow:Goal -> gmeow:Goal; weaker than gmeow:counterGoal) ---
+
+logic:contradictoryGoal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "contradictory goal"@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals in contradictory conflict: satisfying one entails violating the other in EVERY world. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of six conflict relations between independently-meaningful goals, each WEAKER than gmeow:counterGoal — the strongest, constitutive opposition that partly defines what a goal means. A witnessed conflict is surfaced as a context-indexed finding, never silently resolved."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:contraryGoal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "contrary goal"@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals in contrary conflict: the two cannot both be satisfied, though both may fail. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of six conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition) and than logic:contradictoryGoal (which also forces one to be violated when the other is satisfied)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:preventsGoal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "prevents goal"@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals where achieving one closes the path to the other. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of six conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition). Distinct from logic:contradictoryGoal: prevention closes a path, it does not entail violation in every world."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:competesForResource
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "competes for resource"@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals that both draw on a resource an action schema declares (logic:actionResource), where the supply is insufficient for both. Domain gmeow:Goal, range gmeow:Goal (stated in prose). The seam between goal conflict and the action-theory resource facet. One of six conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:temporallyIncompatible
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "temporally incompatible"@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals each achievable on its own but not within the windows both require. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of six conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition); the conflict is in the scheduling, not in the goals' content."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:deonticallyIncompatible
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deontically incompatible"@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals whose conjunction a norm makes impermissible even where it is physically reachable. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of six conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition). Deontic force arrives with the norms vocabulary, which ranges over goals — the dependency points toward the goal layer, never the reverse."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- GoalEvaluation axes, links, and quantities -------------------------------
+
+logic:satisfactionStatus
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "satisfaction status"@x-gmeow-english ;
+    skos:definition "Relates a logic:GoalEvaluation to the logic:SatisfactionStatus it carries — the satisfaction axis of the factored outcome. Domain logic:GoalEvaluation, range logic:SatisfactionStatus (stated in prose). Varies independently of feasibility, lifecycle, and goal-evaluation status."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:feasibilityStatus
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "feasibility status"@x-gmeow-english ;
+    skos:definition "Relates a logic:GoalEvaluation to the logic:FeasibilityStatus it carries — the feasibility axis of the factored outcome. Domain logic:GoalEvaluation, range logic:FeasibilityStatus (stated in prose). Varies independently of satisfaction, lifecycle, and goal-evaluation status."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:lifecycleStatus
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lifecycle status"@x-gmeow-english ;
+    skos:definition "Relates a logic:GoalEvaluation to the logic:LifecycleStatus it carries — the lifecycle axis of the factored outcome. Domain logic:GoalEvaluation, range logic:LifecycleStatus (stated in prose). Varies independently of satisfaction, feasibility, and goal-evaluation status."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:goalEvaluationStatus
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "goal evaluation status"@x-gmeow-english ;
+    skos:definition "Relates a logic:GoalEvaluation to the logic:GoalEvaluationStatus it carries — whether the evaluation is conclusive. Domain logic:GoalEvaluation, range logic:GoalEvaluationStatus (stated in prose). Together with satisfaction status logic:Satisfied, the value logic:GoalEvaluationCompleted is the condition under which a gmeow:satisfiedBy edge is generated. DISTINCT from logic:resultEvaluation, which carries the engine-computation logic:EvaluationStatus of a logic:ReasoningResult."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:satisfactionDegree
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "satisfaction degree"@x-gmeow-english ;
+    skos:definition "The quantity carried on a logic:GoalEvaluation for a goal met to a degree rather than crisply — how much of the goal is achieved. Domain logic:GoalEvaluation (stated in prose). The range is intentionally left open (no rdfs:range), matching the other quantitative axes (logic:confidence, logic:probability, logic:weight, logic:evidenceStrength): the value is a unit-interval decimal. DISTINCT from those uncertainty measures and from logic:objectiveValue and logic:utility — how much of the goal is met is never how sure the evaluator is, never the measure an optimization goal extremizes, and never how desirable the outcome is; none substitutes for another."@x-gmeow-english .
+
+logic:objectiveValue
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "objective value"@x-gmeow-english ;
+    skos:definition "The measured quantity an optimization goal extremizes, carried on a logic:GoalEvaluation. Domain logic:GoalEvaluation (stated in prose). The range is intentionally left open (no rdfs:range), matching the module's quantitative axes; its direction and unit/frame are carried by logic:objectiveDirection. NEVER folded into a truth value and never into an uncertainty measure — DISTINCT from logic:confidence, logic:probability, logic:weight, logic:evidenceStrength, from logic:satisfactionDegree, and from logic:utility. A probability over outcomes is never the objective value being optimized."@x-gmeow-english .
+
+logic:objectiveDirection
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "objective direction"@x-gmeow-english ;
+    skos:definition "Relates an optimization-goal logic:GoalEvaluation to the direction and unit/frame against which its logic:objectiveValue is read — whether the measure is to be maximized or minimized, and in what units the value is stated. Domain logic:GoalEvaluation (stated in prose); the range is left open so the direction/unit-frame may be carried as a structured value. The companion of logic:objectiveValue: a value without its direction and frame is uninterpretable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:utility
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "utility"@x-gmeow-english ;
+    skos:definition "The preference quantity carried on a logic:GoalEvaluation — how desirable an outcome is. The ONE preference term: utility and preference are one concept here, so no separate preference property is minted. Domain logic:GoalEvaluation (stated in prose). The range is intentionally left open (no rdfs:range), matching the module's quantitative axes. DISTINCT from the uncertainty measures (logic:confidence, logic:probability, logic:weight, logic:evidenceStrength) and from logic:satisfactionDegree and logic:objectiveValue — desirability is never sureness, never how much of the goal is met, and never the measure an optimization goal extremizes; none substitutes for another."@x-gmeow-english .
+
+logic:evaluatesGoal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "evaluates goal"@x-gmeow-english ;
+    skos:definition "Relates a logic:GoalEvaluation to the gmeow:Goal it judges. Domain logic:GoalEvaluation, range gmeow:Goal (stated in prose). One of the subjects in the identifying tuple of an evaluation (goal, situation/world, evaluator, time, criterion)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:evaluatedAgainst
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "evaluated against"@x-gmeow-english ;
+    skos:definition "Relates a logic:GoalEvaluation to the situation or world it is judged against. Domain logic:GoalEvaluation (stated in prose); the range ranges over a situation (logic:Situation) or a world/context, left open in this standalone module. One of the subjects in the identifying tuple of an evaluation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:evaluationCriterion
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "evaluation criterion"@x-gmeow-english ;
+    skos:definition "Relates a logic:GoalEvaluation to the criterion applied in reaching its judgment — the standard against which satisfaction, feasibility, and the quantities are read. Domain logic:GoalEvaluation (stated in prose). One of the subjects in the identifying tuple of an evaluation; two evaluations differing only in criterion are distinct records."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:evaluationEvaluator
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "evaluation evaluator"@x-gmeow-english ;
+    skos:definition "Relates a logic:GoalEvaluation to the vantage holding the judgment — the evaluator the record is attributed to. Domain logic:GoalEvaluation (stated in prose). Aligns with gmeow:accordingTo: a goal evaluation is a vantage-indexed claim, never a global verdict, so two evaluators who disagree are two coexisting evaluations rather than one elected winner (Principle 9). One of the subjects in the identifying tuple of an evaluation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:planSuccessMode
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "plan success mode"@x-gmeow-english ;
+    skos:definition "Relates a logic:Plan to the logic:PlanSuccessMode quantifying its success over the nondeterministic outcomes of its action schemas. Domain logic:Plan, range logic:PlanSuccessMode (stated in prose). The quantification exists because the bare executional-success reading of the transaction layer would count one favourable path as success; this declares whether some, every, or every fair execution must reach the goal."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:activationBasis
