@@ -476,6 +476,22 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
         ));
     }
 
+    // ── Runtime preservation judgment (opt-in canonical JSON, #773) ───────────
+    // The materialization's preservation claim: `{exact}` for the faithful chase,
+    // `{sound-under}` naming the dropped derivation rules for the non-stratifiable
+    // EDB-echo path. Distinct from the compile-time `preservation-ledger.json`
+    // above (per-target lowering classes); this pins what a given run disclosed.
+    let runtime_preservation_path = expected.join("runtime-preservation.json");
+    if runtime_preservation_path.exists() {
+        diff_json_golden(
+            &runtime_preservation_path,
+            &out.preservation,
+            case_id,
+            "runtime-preservation",
+            &mut diffs,
+        );
+    }
+
     // ── Budget governor markers (declares-budget ⇒ require-golden) ─────────────
     let budget_path = expected.join("budget.json");
     let actual_budget = serde_json::json!({
