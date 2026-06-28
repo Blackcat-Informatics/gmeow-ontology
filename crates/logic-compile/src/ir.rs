@@ -1013,6 +1013,558 @@ impl PathShapeIr {
 }
 
 // --------------------------------------------------------------------------- //
+// The correspondence calculus (the ninth node kind's spine)
+// --------------------------------------------------------------------------- //
+//
+// A [`Correspondence`] is the IR realization of `NodeKind::Correspondence`: an
+// asymmetric lens (`get`/`put` legs) wrapped in a meta-formula envelope — a typed
+// relation on an ordered lattice, an algebraic class on the ordered law-spine, the
+// separated quantitative axes, claimed laws with discharge verdict, and a standpoint
+// index.  Every facet is a closed value enum whose local names are taken verbatim from
+// `slices/core/logic/module.ttl` (the `*_values_match_module_ttl` tests pin each set).
+// See `design/LOGIC-CORRESPONDENCE.md`.
+
+/// The `logic:CorrespondenceRelation` lattice: `Equiv` ⊐ {`Subsumes`, `SubsumedBy`} ⊐
+/// `Overlaps` ⊐ `RelatedMatch`, with `Disjoint` the negative pole.  Variant order is
+/// the lattice order (strongest first), so the derived `Ord` ranks relations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum CorrespondenceRelation {
+    /// `logic:Equiv` — same extension (lattice top).
+    Equiv,
+    /// `logic:Subsumes` — source broader than the view.
+    Subsumes,
+    /// `logic:SubsumedBy` — source narrower than the view.
+    SubsumedBy,
+    /// `logic:Overlaps` — shared instances, neither subsuming.
+    Overlaps,
+    /// `logic:RelatedMatch` — associated, no logical alignment.
+    RelatedMatch,
+    /// `logic:Disjoint` — asserted non-alignment (negative pole).
+    Disjoint,
+}
+
+impl CorrespondenceRelation {
+    /// The local name exactly as it appears in `module.ttl`.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Equiv => "Equiv",
+            Self::Subsumes => "Subsumes",
+            Self::SubsumedBy => "SubsumedBy",
+            Self::Overlaps => "Overlaps",
+            Self::RelatedMatch => "RelatedMatch",
+            Self::Disjoint => "Disjoint",
+        }
+    }
+
+    /// The full IRI (`LOGIC_NAMESPACE + local_name`).
+    pub fn iri(&self) -> String {
+        format!("{LOGIC_NAMESPACE}{}", self.as_str())
+    }
+
+    /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
+    pub fn from_local(name: &str) -> Option<Self> {
+        Some(match name {
+            "Equiv" => Self::Equiv,
+            "Subsumes" => Self::Subsumes,
+            "SubsumedBy" => Self::SubsumedBy,
+            "Overlaps" => Self::Overlaps,
+            "RelatedMatch" => Self::RelatedMatch,
+            "Disjoint" => Self::Disjoint,
+            _ => return None,
+        })
+    }
+}
+
+impl fmt::Display for CorrespondenceRelation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// The `logic:MorphismClass` ordered law-spine — the seven rungs capping how much
+/// invertibility a correspondence may lawfully claim, strongest first.  The derived
+/// `Ord` is the spine order; composition can only weaken the rung, never strengthen it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum MorphismClass {
+    /// `logic:Isomorphism` — full round-trip both ways (top rung).
+    Isomorphism,
+    /// `logic:SectionRetraction` — perfect subsumption (`put ∘ get = id_S`).
+    SectionRetraction,
+    /// `logic:WellBehavedLens` — GetPut + PutGet (PutPut optional).
+    WellBehavedLens,
+    /// `logic:LossyLens` — non-injective `get`; one direction faithful.
+    LossyLens,
+    /// `logic:Prism` — partial map on a sum/optional, in-focus variant only.
+    Prism,
+    /// `logic:AffineCorrespondence` — co-projection onto a shared component.
+    AffineCorrespondence,
+    /// `logic:BridgeView` — commitment-shifting comorphism, no preservation (floor).
+    BridgeView,
+}
+
+impl MorphismClass {
+    /// The local name exactly as it appears in `module.ttl`.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Isomorphism => "Isomorphism",
+            Self::SectionRetraction => "SectionRetraction",
+            Self::WellBehavedLens => "WellBehavedLens",
+            Self::LossyLens => "LossyLens",
+            Self::Prism => "Prism",
+            Self::AffineCorrespondence => "AffineCorrespondence",
+            Self::BridgeView => "BridgeView",
+        }
+    }
+
+    /// The full IRI (`LOGIC_NAMESPACE + local_name`).
+    pub fn iri(&self) -> String {
+        format!("{LOGIC_NAMESPACE}{}", self.as_str())
+    }
+
+    /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
+    pub fn from_local(name: &str) -> Option<Self> {
+        Some(match name {
+            "Isomorphism" => Self::Isomorphism,
+            "SectionRetraction" => Self::SectionRetraction,
+            "WellBehavedLens" => Self::WellBehavedLens,
+            "LossyLens" => Self::LossyLens,
+            "Prism" => Self::Prism,
+            "AffineCorrespondence" => Self::AffineCorrespondence,
+            "BridgeView" => Self::BridgeView,
+            _ => return None,
+        })
+    }
+}
+
+impl fmt::Display for MorphismClass {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// The `logic:MorphismKind` qualifier, orthogonal to the rung: the
+/// satisfaction-preserving / commitment-shifting split.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum MorphismKind {
+    /// `logic:InstitutionMorphism` — satisfaction-preserving morphism.
+    InstitutionMorphism,
+    /// `logic:CommitmentShiftingBridge` — by-reference bridge; the loss ledger refuses
+    /// `owl:equivalentClass` for it.
+    CommitmentShiftingBridge,
+}
+
+impl MorphismKind {
+    /// The local name exactly as it appears in `module.ttl`.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::InstitutionMorphism => "InstitutionMorphism",
+            Self::CommitmentShiftingBridge => "CommitmentShiftingBridge",
+        }
+    }
+
+    /// The full IRI (`LOGIC_NAMESPACE + local_name`).
+    pub fn iri(&self) -> String {
+        format!("{LOGIC_NAMESPACE}{}", self.as_str())
+    }
+
+    /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
+    pub fn from_local(name: &str) -> Option<Self> {
+        Some(match name {
+            "InstitutionMorphism" => Self::InstitutionMorphism,
+            "CommitmentShiftingBridge" => Self::CommitmentShiftingBridge,
+            _ => return None,
+        })
+    }
+}
+
+impl fmt::Display for MorphismKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// The `logic:Determinacy` axis: whether the target relationship is ontically crisp or
+/// vague (kept distinct from `logic:confidence`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Determinacy {
+    /// `logic:Crisp` — ontically sharp.
+    Crisp,
+    /// `logic:Vague` — ontically fuzzy (pairs with `AffineCorrespondence`).
+    Vague,
+}
+
+impl Determinacy {
+    /// The local name exactly as it appears in `module.ttl`.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Crisp => "Crisp",
+            Self::Vague => "Vague",
+        }
+    }
+
+    /// The full IRI (`LOGIC_NAMESPACE + local_name`).
+    pub fn iri(&self) -> String {
+        format!("{LOGIC_NAMESPACE}{}", self.as_str())
+    }
+
+    /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
+    pub fn from_local(name: &str) -> Option<Self> {
+        Some(match name {
+            "Crisp" => Self::Crisp,
+            "Vague" => Self::Vague,
+            _ => return None,
+        })
+    }
+}
+
+impl fmt::Display for Determinacy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// The `logic:CorrespondenceLaw` value class: the lens laws a correspondence may claim.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum CorrespondenceLaw {
+    /// `logic:GetPut` — `put(get(s), s) = s` (acquisition stability).
+    GetPut,
+    /// `logic:PutGet` — `get(put(v, s)) = v` (update faithfulness).
+    PutGet,
+    /// `logic:PutPut` — `put(v2, put(v1, s)) = put(v2, s)` (very-well-behaved).
+    PutPut,
+    /// `logic:SectionLaw` — `put ∘ get = id_S` (perfect subsumption).
+    SectionLaw,
+}
+
+impl CorrespondenceLaw {
+    /// The local name exactly as it appears in `module.ttl`.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::GetPut => "GetPut",
+            Self::PutGet => "PutGet",
+            Self::PutPut => "PutPut",
+            Self::SectionLaw => "SectionLaw",
+        }
+    }
+
+    /// The full IRI (`LOGIC_NAMESPACE + local_name`).
+    pub fn iri(&self) -> String {
+        format!("{LOGIC_NAMESPACE}{}", self.as_str())
+    }
+
+    /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
+    pub fn from_local(name: &str) -> Option<Self> {
+        Some(match name {
+            "GetPut" => Self::GetPut,
+            "PutGet" => Self::PutGet,
+            "PutPut" => Self::PutPut,
+            "SectionLaw" => Self::SectionLaw,
+            _ => return None,
+        })
+    }
+}
+
+impl fmt::Display for CorrespondenceLaw {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// The `logic:DischargeVerdict` value class (reused from the foundation's
+/// non-entailment machinery): the result a law-claim check returns.  A typed IR mirror
+/// of the `logic:DischargeVerdict` individuals in `module.ttl` — the foundation engine
+/// works over the graph in string wire form; this is the IR-layer enum so a
+/// `Correspondence` carries its law verdicts typed and content-addressed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum DischargeVerdict {
+    /// `logic:ObligationDischarged` — conclusively checked within a declared condition.
+    ObligationDischarged,
+    /// `logic:ObligationUnknown` — not-yet-discharged, carried forward (never "proved
+    /// absent"); the honest verdict for an unchecked or inconclusive law.
+    ObligationUnknown,
+    /// `logic:ObligationViolated` — the law is refuted (a hard error).
+    ObligationViolated,
+}
+
+impl DischargeVerdict {
+    /// The local name exactly as it appears in `module.ttl`.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::ObligationDischarged => "ObligationDischarged",
+            Self::ObligationUnknown => "ObligationUnknown",
+            Self::ObligationViolated => "ObligationViolated",
+        }
+    }
+
+    /// The full IRI (`LOGIC_NAMESPACE + local_name`).
+    pub fn iri(&self) -> String {
+        format!("{LOGIC_NAMESPACE}{}", self.as_str())
+    }
+
+    /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
+    pub fn from_local(name: &str) -> Option<Self> {
+        Some(match name {
+            "ObligationDischarged" => Self::ObligationDischarged,
+            "ObligationUnknown" => Self::ObligationUnknown,
+            "ObligationViolated" => Self::ObligationViolated,
+            _ => return None,
+        })
+    }
+}
+
+impl fmt::Display for DischargeVerdict {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// The `logic:DischargeCondition` value class (reused from the foundation): the
+/// condition under which a law claim's verdict is conclusively checkable.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum DischargeCondition {
+    /// `logic:DischargeCertifiedFragment`.
+    DischargeCertifiedFragment,
+    /// `logic:DischargeFiniteClosure`.
+    DischargeFiniteClosure,
+    /// `logic:DischargeSyntacticReachability`.
+    DischargeSyntacticReachability,
+    /// `logic:DischargeConservativeExtension`.
+    DischargeConservativeExtension,
+    /// `logic:DischargeBoundedCorpus`.
+    DischargeBoundedCorpus,
+}
+
+impl DischargeCondition {
+    /// The local name exactly as it appears in `module.ttl`.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::DischargeCertifiedFragment => "DischargeCertifiedFragment",
+            Self::DischargeFiniteClosure => "DischargeFiniteClosure",
+            Self::DischargeSyntacticReachability => "DischargeSyntacticReachability",
+            Self::DischargeConservativeExtension => "DischargeConservativeExtension",
+            Self::DischargeBoundedCorpus => "DischargeBoundedCorpus",
+        }
+    }
+
+    /// The full IRI (`LOGIC_NAMESPACE + local_name`).
+    pub fn iri(&self) -> String {
+        format!("{LOGIC_NAMESPACE}{}", self.as_str())
+    }
+
+    /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
+    pub fn from_local(name: &str) -> Option<Self> {
+        Some(match name {
+            "DischargeCertifiedFragment" => Self::DischargeCertifiedFragment,
+            "DischargeFiniteClosure" => Self::DischargeFiniteClosure,
+            "DischargeSyntacticReachability" => Self::DischargeSyntacticReachability,
+            "DischargeConservativeExtension" => Self::DischargeConservativeExtension,
+            "DischargeBoundedCorpus" => Self::DischargeBoundedCorpus,
+            _ => return None,
+        })
+    }
+}
+
+impl fmt::Display for DischargeCondition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// A `logic:LawClaim`: a claimed [`CorrespondenceLaw`] with its discharge state — the
+/// [`DischargeVerdict`] and, when checked under one, the [`DischargeCondition`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct LawClaimIr {
+    /// The lens law being claimed (`logic:lawClaimed`).
+    pub law: CorrespondenceLaw,
+    /// The verdict the check returned (`logic:lawDischargeVerdict`).
+    pub verdict: DischargeVerdict,
+    /// The condition the verdict was established under (`logic:lawDischargeCondition`);
+    /// `None` for an authored-but-unverified claim.
+    pub condition: Option<DischargeCondition>,
+}
+
+impl LawClaimIr {
+    /// A deterministic content / sort key (law, then verdict, then condition).
+    pub fn sort_key(&self) -> String {
+        format!(
+            "{}{SEP}{}{SEP}{}",
+            self.law.as_str(),
+            self.verdict.as_str(),
+            self.condition.map(|c| c.as_str()).unwrap_or(""),
+        )
+    }
+}
+
+/// Format an optional unit-interval axis for the content key, collapsing `-0.0` to
+/// `0.0` (signed-zero determinism) and rendering `None` as the empty string.
+fn opt_axis_key(v: Option<f64>) -> String {
+    match v {
+        Some(x) => {
+            let x = if x == 0.0 { 0.0 } else { x };
+            x.to_string()
+        }
+        None => String::new(),
+    }
+}
+
+/// A `logic:Correspondence` IR node — the ninth node kind realized: an asymmetric lens
+/// (the `get`/`put` legs) wrapped in a relation/axes/laws/standpoint envelope.
+///
+/// Identity is content-addressed: [`Correspondence::sort_key`] is the IRI and
+/// [`Correspondence::content_key`] folds every field deterministically (the `law_claims`
+/// are sorted and deduped at construction, so two correspondences differing only in the
+/// order their claims were supplied compare equal).  No `Eq`/`Hash` derive: the
+/// quantitative axes are `f64` (mirrors [`LogicAxiom`]).
+#[derive(Debug, Clone, PartialEq)]
+pub struct Correspondence {
+    /// IRI string of the correspondence individual (identity).
+    pub iri: String,
+    /// The typed relation on the lattice (`logic:correspondenceRelation`).
+    pub relation: CorrespondenceRelation,
+    /// The rung on the ordered law-spine (`logic:morphismClass`).
+    pub morphism_class: MorphismClass,
+    /// The satisfaction-preserving / commitment-shifting qualifier (`logic:morphismKind`).
+    pub morphism_kind: MorphismKind,
+    /// Whether the forward leg retains a source witness (`logic:mnemomorphic`); the bit
+    /// that lets a correspondence claim `SectionLaw`.  Defaults `false`.
+    pub mnemomorphic: bool,
+    /// Whether the target relationship is crisp or vague (`logic:hasDeterminacy`).
+    pub determinacy: Option<Determinacy>,
+    /// IRI of the `logic:TransactionProgram` realizing the get leg (`logic:getLeg`).
+    pub get_leg: Option<String>,
+    /// IRI of the `logic:TransactionProgram` realizing the put leg (`logic:putLeg`).
+    pub put_leg: Option<String>,
+    /// The claimed lens laws with discharge state (`logic:hasLawClaim`); sorted+deduped.
+    pub law_claims: Vec<LawClaimIr>,
+    /// `logic:confidence` — curator's epistemic confidence in `[0, 1]`.
+    pub confidence: Option<f64>,
+    /// `logic:evidenceStrength` — provenance-derived warrant in `[0, 1]`.
+    pub evidence_strength: Option<f64>,
+    /// `logic:weight` — solver ranking (finite; not range-bound).
+    pub weight: Option<f64>,
+    /// `logic:probability` — only under a declared dependency model; in `[0, 1]`.
+    pub probability: Option<f64>,
+    /// IRI of the standpoint (`logic:accordingTo`); `None` ⇒ unspecified standpoint
+    /// (unspecified, not universal).
+    pub according_to: Option<String>,
+}
+
+impl Correspondence {
+    /// Construct a correspondence, validating identity, the optional-string
+    /// determinism guards, and the unit-interval axes, and canonicalizing the law
+    /// claims (sorted + deduped at construction).
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        iri: impl Into<String>,
+        relation: CorrespondenceRelation,
+        morphism_class: MorphismClass,
+        morphism_kind: MorphismKind,
+        mnemomorphic: bool,
+        determinacy: Option<Determinacy>,
+        get_leg: Option<String>,
+        put_leg: Option<String>,
+        law_claims: Vec<LawClaimIr>,
+        confidence: Option<f64>,
+        evidence_strength: Option<f64>,
+        weight: Option<f64>,
+        probability: Option<f64>,
+        according_to: Option<String>,
+    ) -> Result<Self, String> {
+        let iri = iri.into();
+        if iri.is_empty() {
+            return Err("Correspondence.iri must be a non-empty IRI string".to_owned());
+        }
+        // Some("") collides with None in content_key() (content-addressing determinism
+        // hazard): reject an empty/whitespace optional string so Some("") is never built.
+        for (field, val) in [
+            ("get_leg", &get_leg),
+            ("put_leg", &put_leg),
+            ("according_to", &according_to),
+        ] {
+            if let Some(s) = val {
+                if s.trim().is_empty() {
+                    return Err(format!(
+                        "Correspondence.{field} must be a non-empty IRI string when present; \
+                         pass None to leave it unset"
+                    ));
+                }
+            }
+        }
+        // The unit-interval axes must be a finite value in [0, 1]; `weight` is a finite
+        // ranking, not range-bound.  NaN/infinite would break content-key determinism.
+        for (field, val) in [
+            ("confidence", confidence),
+            ("evidence_strength", evidence_strength),
+            ("probability", probability),
+        ] {
+            if let Some(x) = val {
+                if !(0.0..=1.0).contains(&x) {
+                    return Err(format!("Correspondence.{field} must be in [0, 1], got {x}"));
+                }
+            }
+        }
+        if let Some(w) = weight {
+            if !w.is_finite() {
+                return Err(format!("Correspondence.weight must be finite, got {w}"));
+            }
+        }
+        let mut law_claims = law_claims;
+        law_claims.sort_by_cached_key(LawClaimIr::sort_key);
+        law_claims.dedup();
+        Ok(Self {
+            iri,
+            relation,
+            morphism_class,
+            morphism_kind,
+            mnemomorphic,
+            determinacy,
+            get_leg,
+            put_leg,
+            law_claims,
+            confidence,
+            evidence_strength,
+            weight,
+            probability,
+            according_to,
+        })
+    }
+
+    /// Stable sort key for canonical ordering — the correspondence IRI is unique.
+    pub fn sort_key(&self) -> String {
+        self.iri.clone()
+    }
+
+    /// A deterministic full-content key for canonical equality, folding every field
+    /// with explicit `name=value` framing and empty-string defaults.
+    fn content_key(&self) -> String {
+        let claims = self
+            .law_claims
+            .iter()
+            .map(LawClaimIr::sort_key)
+            .collect::<Vec<_>>()
+            .join(",");
+        format!(
+            "{}{SEP}rel={}{SEP}class={}{SEP}kind={}{SEP}mnemo={}{SEP}det={}{SEP}\
+             get={}{SEP}put={}{SEP}conf={}{SEP}ev={}{SEP}w={}{SEP}prob={}{SEP}\
+             at={}{SEP}laws={claims}",
+            self.iri,
+            self.relation.as_str(),
+            self.morphism_class.as_str(),
+            self.morphism_kind.as_str(),
+            py_bool(self.mnemomorphic),
+            self.determinacy.map(|d| d.as_str()).unwrap_or(""),
+            self.get_leg.as_deref().unwrap_or(""),
+            self.put_leg.as_deref().unwrap_or(""),
+            opt_axis_key(self.confidence),
+            opt_axis_key(self.evidence_strength),
+            opt_axis_key(self.weight),
+            opt_axis_key(self.probability),
+            self.according_to.as_deref().unwrap_or(""),
+        )
+    }
+}
+
+// --------------------------------------------------------------------------- //
 // Top-level container
 // --------------------------------------------------------------------------- //
 
@@ -1033,6 +1585,10 @@ pub struct LogicProgram {
     /// Attached via [`LogicProgram::with_path_shapes`]; empty for the
     /// historical path-shape-free corpus, so the canonical key is unchanged there.
     pub path_shapes: Vec<PathShapeIr>,
+    /// Correspondence-calculus nodes in canonical order (`logic:Correspondence`).
+    /// Attached via [`LogicProgram::with_correspondences`]; empty for the
+    /// historical correspondence-free corpus, so the canonical key is unchanged there.
+    pub correspondences: Vec<Correspondence>,
     /// IRI of the source graph/document (optional provenance).
     pub source_iri: Option<String>,
 }
@@ -1057,6 +1613,7 @@ impl LogicProgram {
             rules,
             contracts,
             path_shapes: Vec::new(),
+            correspondences: Vec::new(),
             source_iri,
         }
     }
@@ -1069,6 +1626,17 @@ impl LogicProgram {
         let mut path_shapes = path_shapes;
         path_shapes.sort_by_cached_key(PathShapeIr::sort_key);
         self.path_shapes = path_shapes;
+        self
+    }
+
+    /// Attach the program's `logic:Correspondence` nodes, canonicalizing them into
+    /// sorted order.  Kept separate from [`Self::new`] so existing call sites are
+    /// untouched and the byte-pinned canonical key of a correspondence-free program is
+    /// unchanged (the correspondences segment is append-only when present).
+    pub fn with_correspondences(mut self, correspondences: Vec<Correspondence>) -> Self {
+        let mut correspondences = correspondences;
+        correspondences.sort_by_cached_key(Correspondence::sort_key);
+        self.correspondences = correspondences;
         self
     }
 
@@ -1109,6 +1677,17 @@ impl LogicProgram {
                 .join("\n");
             key.push_str("\nPATHSHAPES\n");
             key.push_str(&shapes);
+        }
+        // Append-only: a correspondence-free program keeps its exact historical key.
+        if !self.correspondences.is_empty() {
+            let corr = self
+                .correspondences
+                .iter()
+                .map(Correspondence::content_key)
+                .collect::<Vec<_>>()
+                .join("\n");
+            key.push_str("\nCORRESPONDENCES\n");
+            key.push_str(&corr);
         }
         key
     }
