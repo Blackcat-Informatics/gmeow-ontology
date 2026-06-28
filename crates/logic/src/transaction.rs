@@ -537,7 +537,7 @@ const OUTCOME_OF_PROGRAM: &str = "outcomeOfProgram";
 const TRANSACTION_START: &str = "transactionStart";
 const TRANSACTION_SUCCEEDS: &str = "transactionSucceeds";
 const TEMPORALLY_SUCCEEDS: &str = "temporallySucceeds";
-const EXECUTED_ALONG: &str = "executedAlong";
+const EXECUTED_ALONG_PATH: &str = "executedAlongPath";
 const PATH_CLASS: &str = "Path";
 
 /// The `xsd:boolean` N3 literal form.
@@ -552,7 +552,7 @@ fn xsd_bool(v: bool) -> String {
 /// `logic:TransactionOutcome` carrying `logic:outcomeOfProgram`, `logic:transactionStart`,
 /// and `logic:transactionSucceeds` (`true` iff the executed path is non-empty).  On
 /// success it also emits the executed path (`logic:temporallySucceeds` edges + a minted
-/// `logic:Path` linked by `logic:executedAlong`) and, per elementary step, the
+/// `logic:Path` linked by the reused `logic:executedAlongPath`) and, per elementary step, the
 /// situation-level supersession substrate via [`crate::teleology::effect_quads`].  On
 /// failure ONLY the outcome node is emitted — the start state is untouched.
 ///
@@ -614,14 +614,14 @@ pub(crate) fn emit_transaction_outcome(
     );
 
     if outcome.succeeded() {
-        // The executed path: temporallySucceeds edges + a minted logic:Path linked by
-        // logic:executedAlong (oldest → newest; the start may be the only state).
+        // The executed path: temporallySucceeds edges + a minted logic:Path linked by the
+        // reused logic:executedAlongPath (oldest → newest; the start may be the only state).
         let path_iri = format!(
             "{LOGIC_NAMESPACE}path/{}",
             sha1_hex(&format!("{root}\n{start}\n{world}\npath"))
         );
         emit(&path_iri, RDF_TYPE.to_owned(), n3(&logic(PATH_CLASS)));
-        emit(&outcome_iri, logic(EXECUTED_ALONG), n3(&path_iri));
+        emit(&outcome_iri, logic(EXECUTED_ALONG_PATH), n3(&path_iri));
         for pair in outcome.path.windows(2) {
             // temporallySucceeds(successor, predecessor): "b succeeds a".
             emit(&pair[1], logic(TEMPORALLY_SUCCEEDS), n3(&pair[0]));

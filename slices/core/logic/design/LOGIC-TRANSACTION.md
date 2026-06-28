@@ -54,6 +54,23 @@ relations are:
 Static reasoning is the degenerate one-state path; it remains the default Evolution value, so the
 rest of the system is unaffected unless a contract selects `transaction-path`.
 
+## Materialized outcome
+
+Executing a program is not a side effect that vanishes — the verdict and the executed path are
+**carried into the graph**. The native evaluator runs every executable program root (a combinator
+that declares its start with `logic:transitionFromState`) and records a **`logic:TransactionOutcome`**:
+it carries `logic:outcomeOfProgram` (the program run), `logic:transactionStart` (the start state),
+and `logic:transactionSucceeds` (the boolean executional-entailment verdict — *a path exists from the
+start*). On success the outcome also carries the executed run as a `logic:Path` of states ordered by
+`logic:temporallySucceeds` and linked through `logic:executedAlongPath`, with each elementary step's
+support recorded as the supersession quartet (§Elementary updates). On failure only the outcome node
+is recorded — the start state is untouched, realizing "failure leaves the start state untouched".
+
+The outcome is typed apart from neighbouring verdicts it must never be confused with: it is **not** a
+`logic:GoalEvaluation` (at-a-state satisfaction of a goal) and **not** a `logic:PlanSuccessMode` (a
+plan's success classification over a nondeterministic outcome set) — it records one concrete run's
+success or failure under executional entailment.
+
 ## Elementary updates are supersession, never erasure
 
 The state-changing primitives are `ins` (assert) and `del` (retire). Three dimensions must be kept
