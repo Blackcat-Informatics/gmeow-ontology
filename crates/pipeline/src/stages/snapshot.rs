@@ -21,6 +21,7 @@ use std::path::{Path, PathBuf};
 
 use gmeow_rdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder};
 use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
+use gmeow_rdf::provenance::DatasetProvenance;
 use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
 use oxigraph::model::Quad;
 use rayon::prelude::*;
@@ -115,6 +116,19 @@ pub fn build_snapshot(
         .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing conformance-stage divergence Finding graph"))?;
 
+    // graph/logic ← the compiler's canonical RDF-1.2 projection of the LogicProgram
+    // (#1132 C6), folded as its own queryable named graph so a repo-free consumer reads
+    // the full logic IR (and re-derives the typed handle) without re-running the
+    // compiler. Sourced from the in-memory `stage-compile-logic` product (Turtle),
+    // converted to N-Quads for the named-graph fold.
+    let logic_rdf12 = {
+        let canonical_ttl = upstream
+            .get("stage-compile-logic")
+            .and_then(|p| p.artifact(crate::stages::compile_logic::CANONICAL_RDF12_PATH))
+            .ok_or_else(|| stage_err("missing compile-logic canonical RDF-1.2 projection"))?;
+        turtle_to_nquads(canonical_ttl)?
+    };
+
     // graph/projection-ledger ← the compiler's projection-report loss ledger (Turtle),
     // converted to N-Quads for the named-graph fold via the native codec (no `Store`).
     let projection_ledger = {
@@ -185,6 +199,13 @@ pub fn build_snapshot(
         &projection_ledger,
         GRAPH_PROJECTION_LEDGER,
         "projledger",
+    )?;
+    // graph/logic ← the canonical RDF-1.2 projection of the compiled LogicProgram.
+    add_named(
+        &mut builder,
+        &logic_rdf12,
+        crate::stages::compile_logic::GRAPH_LOGIC,
+        "logic",
     )?;
 
     // Fold a deterministic tar archive of the JSON-LD-star + YAML-LD-star
@@ -928,11 +949,88 @@ impl Stage for SnapshotStage {
         let views = build_snapshot_views(&gts)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(SNAPSHOT_PATH.to_string(), gts);
+        // Carry the typed Logic handle forward (#1132 C6): the snapshot product's
+        // bundle backs `graph/logic` with the SAME canonical RDF-1.2 projection it
+        // folded into gmeow.gts, and re-pins the upstream `Arc<LogicProgram>` to it —
+        // so every leaf downstream of the snapshot takes the typed handle and never
+        // re-parses the logic graph.
+        let bundle = build_snapshot_bundle(input.upstream, artifacts)?;
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts)
+            product: StageProduct::from_bundle(self.id(), std::sync::Arc::new(bundle))
                 .with_snapshot_views(std::sync::Arc::new(views)),
         })
     }
+}
+
+/// Build the snapshot product bundle: the byte-artifact lane (the emitted `gmeow.gts`)
+/// riding over a dataset whose `graph/logic` named graph is the canonical RDF-1.2
+/// projection of the compiled program, with the upstream typed [`PipelineHandle::Logic`]
+/// re-pinned to that graph's canonical digest.
+///
+/// The `Arc<LogicProgram>` payload is taken from the upstream `stage-compile-logic`
+/// product's handle (never re-compiled / re-parsed); the backing graph is re-derived
+/// from that product's committed canonical RDF-1.2 artifact so the pinned digest is a
+/// pure function of the same projection the snapshot folded. A missing handle or a
+/// digest mismatch HARD-fails (no-optionality, fail-closed).
+fn build_snapshot_bundle(
+    upstream: &BTreeMap<String, StageProduct>,
+    artifacts: BTreeMap<String, Vec<u8>>,
+) -> Result<gmeow_rdf::PipelineBundle<crate::bundle::PipelineHandle>, PipelineError> {
+    let compile = upstream
+        .get("stage-compile-logic")
+        .ok_or_else(|| stage_err("missing stage-compile-logic product for the Logic handle"))?;
+    let entry = compile
+        .bundle()
+        .handle(crate::stages::compile_logic::GRAPH_LOGIC)
+        .ok_or_else(|| stage_err("stage-compile-logic product carries no Logic handle"))?;
+    let crate::bundle::PipelineHandle::Logic(program) = &entry.payload else {
+        return Err(stage_err(
+            "stage-compile-logic handle for graph/logic is not the Logic arm",
+        ));
+    };
+    let program = program.clone();
+
+    // Re-derive the backing graph/logic dataset from the committed canonical RDF-1.2
+    // artifact (the same projection the snapshot folded), so the pin is a function of
+    // that projection alone.
+    let canonical_ttl = compile
+        .artifact(crate::stages::compile_logic::CANONICAL_RDF12_PATH)
+        .ok_or_else(|| stage_err("missing compile-logic canonical RDF-1.2 artifact"))?;
+    let dataset = logic_graph_dataset(canonical_ttl)?;
+
+    let mut bundle =
+        crate::bundle::bundle_from_artifacts_over(dataset, artifacts, DatasetProvenance::new());
+    let pinned = bundle.graph_digest(crate::stages::compile_logic::GRAPH_LOGIC);
+    bundle
+        .pin_handle(
+            crate::stages::compile_logic::GRAPH_LOGIC,
+            crate::bundle::PipelineHandle::Logic(program),
+            pinned,
+        )
+        .map_err(|e| stage_err(&format!("re-pin Logic handle on snapshot product: {e}")))?;
+    Ok(bundle)
+}
+
+/// Parse the canonical RDF-1.2 projection Turtle and route every triple into the
+/// `graph/logic` named graph of a fresh frozen dataset — the backing graph the
+/// snapshot product's typed Logic handle pins to. Mirrors the compile-logic producer's
+/// `logic_graph_dataset` so both pin over the SAME projection.
+fn logic_graph_dataset(
+    canonical_rdf12_turtle: &[u8],
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    use gmeow_rdf::{RdfDatasetBuilder, RdfTerm};
+    let parsed = parse_dataset(canonical_rdf12_turtle, "text/turtle", None)
+        .map_err(|e| stage_err(&format!("parse canonical rdf12: {e}")))?;
+    let graph = RdfTerm::Iri(crate::stages::compile_logic::GRAPH_LOGIC.to_owned());
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in parsed.owned_quads() {
+        let mut routed = quad.clone();
+        routed.graph_name = Some(graph.clone());
+        builder.push_owned_quad(&routed);
+    }
+    builder
+        .freeze()
+        .map_err(|e| stage_err(&format!("freeze snapshot graph/logic dataset: {e}")))
 }
 
 /// Parse the emitted `gmeow.gts` bytes ONCE into the two shared views the
@@ -2119,6 +2217,125 @@ mod conformance_fold_tests {
         assert!(
             !folded_graph_names(&gts).contains(GRAPH_CONFORMANCE),
             "an all-agree corpus must not fold a phantom graph/conformance"
+        );
+    }
+}
+
+#[cfg(test)]
+mod logic_graph_golden_tests {
+    use super::*;
+    use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram};
+
+    const GRAPH_LOGIC: &str = crate::stages::compile_logic::GRAPH_LOGIC;
+
+    /// A small, FIXED clean program — its canonical RDF-1.2 projection is the byte
+    /// golden subject. Deliberately synthetic (not the real module) so the golden is
+    /// stable and the per-graph fold is regression-pinned independent of the full
+    /// gmeow.gts and independent of any logic-module edit.
+    fn fixed_program() -> LogicProgram {
+        let ax = |s: &str, o: &str| {
+            LogicAxiom::new(
+                s,
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+                o,
+                false,
+                false,
+                ContextualScope::default(),
+            )
+            .expect("valid axiom")
+        };
+        LogicProgram::new(
+            vec![
+                ax(
+                    "https://blackcatinformatics.ca/gmeow/Animal",
+                    "https://blackcatinformatics.ca/logic/Kind",
+                ),
+                ax(
+                    "https://blackcatinformatics.ca/gmeow/Cat",
+                    "https://blackcatinformatics.ca/logic/Subkind",
+                ),
+            ],
+            vec![],
+            vec![],
+            None,
+        )
+    }
+
+    /// Read the canonical N-Quads of one named graph from an emitted snapshot,
+    /// sorted — a deterministic byte surface for the per-graph golden.
+    fn folded_graph_nquads(gts: &[u8], graph_iri: &str) -> String {
+        let g = gmeow_rdf::gts::read_graph(gts, true).expect("read_graph");
+        let mut rows: Vec<String> = Vec::new();
+        for &(s, p, o, gname) in &g.quads {
+            let Some(gid) = gname else { continue };
+            let in_graph = g
+                .terms
+                .get(gid)
+                .and_then(|t| t.value.clone())
+                .is_some_and(|v| v == graph_iri);
+            if !in_graph {
+                continue;
+            }
+            let term = |id: usize| -> String {
+                let t = &g.terms[id];
+                match t.value.clone() {
+                    Some(v) if v.starts_with("http") || v.starts_with("urn:") => format!("<{v}>"),
+                    Some(v) => v,
+                    None => format!("_:{id}"),
+                }
+            };
+            rows.push(format!("{} {} {} .", term(s), term(p), term(o)));
+        }
+        rows.sort();
+        rows.join("\n")
+    }
+
+    /// Byte golden (#1132 C6): the `graph/logic` named-graph content of an emitted
+    /// snapshot, over a FIXED synthetic program. Pins the per-graph fold path
+    /// (canonical RDF-1.2 → N-Quads → add_named canonicalization → emit → read-back)
+    /// byte-for-byte, independent of the full gmeow.gts. A second emit is asserted
+    /// byte-identical (determinism).
+    #[test]
+    fn graph_logic_fold_byte_golden() {
+        let arts = gmeow_logic_compile::projections::compile_program(&fixed_program())
+            .expect("compile fixed program");
+        let logic_nq = turtle_to_nquads(arts.canonical_rdf12.as_bytes()).expect("turtle → nq");
+
+        let build = || {
+            let mut builder = SnapshotBuilder::new();
+            let base = parse_nq(
+                b"<https://blackcatinformatics.ca/gmeow/> \
+                  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                  <http://www.w3.org/2002/07/owl#Ontology> .\n",
+            )
+            .expect("base parse");
+            builder.add_quads(&base, None, Some("base"));
+            add_named(&mut builder, &logic_nq, GRAPH_LOGIC, "logic").expect("fold graph/logic");
+            emit_gts(
+                &builder,
+                "dist",
+                Some(vec!["gzip".to_string()]),
+                Vec::new(),
+                Vec::new(),
+                None,
+                None,
+                None,
+                gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            )
+            .expect("emit snapshot")
+        };
+
+        let gts = build();
+        let folded = folded_graph_nquads(&gts, GRAPH_LOGIC);
+        assert!(!folded.is_empty(), "graph/logic must carry the projection");
+        insta::assert_snapshot!("graph_logic_fold", folded);
+
+        // Determinism: a second build folds the SAME graph/logic content.
+        let gts2 = build();
+        assert_eq!(
+            folded_graph_nquads(&gts2, GRAPH_LOGIC),
+            folded,
+            "the graph/logic fold must be byte-deterministic"
         );
     }
 }

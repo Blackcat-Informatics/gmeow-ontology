@@ -223,14 +223,33 @@ fn handle_arm_tag(handle: &PipelineHandle) -> &'static str {
     }
 }
 
-/// Re-derive a [`PipelineHandle`] of the given arm tag over its backing sub-dataset.
-/// The placeholder arms (C4) all wrap an `Arc<RdfDataset>`; the tag selects the arm.
+/// Re-derive a [`PipelineHandle`] of the given arm tag from its backing sub-dataset.
+///
+/// The C4 placeholder arms (`reasoning` / `relational-core` / `correspondence`) wrap
+/// the backing `Arc<RdfDataset>` directly. The `logic` arm carries the REAL typed IR
+/// (#1132 C6): its backing graph is the canonical RDF-1.2 projection of a
+/// [`LogicProgram`], so on a cache hit the program is RE-DERIVED from that backing
+/// graph via the reverse parser ([`parse_logic_dataset`]) — the consumer never
+/// re-parses the logic graph itself, the cache boundary does it ONCE here. A parse
+/// failure HARD-fails (no-optionality): a `logic` handle whose backing graph no longer
+/// parses to a program is a corrupt cache, never a silently-dropped handle.
 fn rebuild_handle(
     arm: &str,
     graph: Arc<gmeow_rdf::RdfDataset>,
 ) -> Result<PipelineHandle, PipelineError> {
     Ok(match arm {
-        "logic" => PipelineHandle::Logic(graph),
+        "logic" => {
+            let (program, _diags) =
+                gmeow_logic_compile::frontend::parse_logic_dataset(graph.as_ref(), None).map_err(
+                    |e| {
+                        PipelineError::Decode(format!(
+                            "cache: re-derive Logic handle program from backing graph/logic: {}",
+                            e.0
+                        ))
+                    },
+                )?;
+            PipelineHandle::Logic(Arc::new(program))
+        }
         "reasoning" => PipelineHandle::Reasoning(graph),
         "relational-core" => PipelineHandle::RelationalCore(graph),
         "correspondence" => PipelineHandle::Correspondence(graph),
@@ -687,24 +706,71 @@ fn write_atomic(target: &Path, bytes: &[u8]) -> Result<(), PipelineError> {
 mod tests {
     use super::*;
 
-    use gmeow_rdf::{PipelineBundle, RdfDatasetBuilder, TermId};
+    use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram};
+    use gmeow_rdf::{PipelineBundle, RdfDatasetBuilder, RdfTerm, TermId};
 
     fn iri(b: &mut RdfDatasetBuilder, n: &str) -> TermId {
         b.intern_iri(format!("http://example.org/{n}"))
     }
 
-    /// A non-trivial dataset: one default-graph quad and one quad in named graph `g`.
-    fn dataset_with_named_graph() -> Arc<gmeow_rdf::RdfDataset> {
-        let mut b = RdfDatasetBuilder::new();
-        let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
-        let go = iri(&mut b, "go");
-        let g = b.intern_iri("http://example.org/graph".to_string());
-        b.push_quad(s, p, o, None); // default graph
-        b.push_quad(s, p, go, Some(g)); // named graph
-        b.freeze().expect("valid")
+    const GRAPH_IRI: &str = "http://example.org/graph";
+
+    /// A tiny but real [`LogicProgram`] whose canonical RDF-1.2 projection is an EXACT
+    /// graph round-trip: only `rdf:type → logic:Class` axioms (the form the reverse
+    /// parser re-extracts) and a `None` source (out-of-graph provenance the canonical
+    /// graph does not carry). Its projection backs the cache's `Logic` handle, so the
+    /// cache's re-derivation (`parse_logic_dataset(graph, None)`) reconstructs a
+    /// canonical-key-equal program.
+    fn sample_logic_program() -> LogicProgram {
+        let ax = |s: &str, o: &str| {
+            LogicAxiom::new(
+                s,
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+                o,
+                false,
+                false,
+                ContextualScope::default(),
+            )
+            .expect("valid axiom")
+        };
+        LogicProgram::new(
+            vec![
+                ax(
+                    "https://blackcatinformatics.ca/gmeow/Animal",
+                    "https://blackcatinformatics.ca/logic/Kind",
+                ),
+                ax(
+                    "https://blackcatinformatics.ca/gmeow/Cat",
+                    "https://blackcatinformatics.ca/logic/Subkind",
+                ),
+            ],
+            vec![],
+            vec![],
+            None,
+        )
     }
 
-    const GRAPH_IRI: &str = "http://example.org/graph";
+    /// A non-trivial dataset: one default-graph quad plus the canonical RDF-1.2
+    /// projection of [`sample_logic_program`] folded into named graph [`GRAPH_IRI`]
+    /// (so the attached `Logic` handle has a real, re-derivable backing graph).
+    fn dataset_with_named_graph() -> Arc<gmeow_rdf::RdfDataset> {
+        let arts = gmeow_logic_compile::projections::compile_program(&sample_logic_program())
+            .expect("compile sample program");
+        let logic_ds = parse_dataset(arts.canonical_rdf12.as_bytes(), "text/turtle", None)
+            .expect("parse canonical rdf12");
+
+        let mut b = RdfDatasetBuilder::new();
+        let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
+        b.push_quad(s, p, o, None); // a default-graph quad
+                                    // Fold every triple of the logic projection into the named graph GRAPH_IRI.
+        let graph = RdfTerm::Iri(GRAPH_IRI.to_owned());
+        for quad in logic_ds.owned_quads() {
+            let mut routed = quad.clone();
+            routed.graph_name = Some(graph.clone());
+            b.push_owned_quad(&routed);
+        }
+        b.freeze().expect("valid")
+    }
 
     /// Build a richly populated bundle: dataset (≥1 named graph), a lookaside Blob
     /// resource + matching blob, a populated provenance, and one attached handle.
@@ -734,11 +800,13 @@ mod tests {
 
         let mut bundle = PipelineBundle::new(dataset, lookaside, Arc::new(blobs), prov);
 
-        // Attach one handle over the named graph (re-derive its sub-dataset).
-        let subgraph = Arc::new(project_named_graph(bundle.dataset(), GRAPH_IRI));
+        // Attach the REAL typed Logic handle (#1132 C6) over the named graph: the
+        // payload is the compiled program, pinned to the canonical digest of its
+        // backing `graph/logic` projection.
+        let program = Arc::new(sample_logic_program());
         let pinned = bundle.graph_digest(GRAPH_IRI);
         bundle
-            .pin_handle(GRAPH_IRI, PipelineHandle::Logic(subgraph), pinned)
+            .pin_handle(GRAPH_IRI, PipelineHandle::Logic(program), pinned)
             .expect("pin handle over the named graph");
         bundle
     }
@@ -779,9 +847,15 @@ mod tests {
         // handles: re-derived, present, and still pin-valid.
         assert_eq!(recon.handles.len(), original.handles.len(), "handle count");
         let entry = recon.handle(GRAPH_IRI).expect("handle re-attached");
-        assert!(
-            matches!(entry.payload, PipelineHandle::Logic(_)),
-            "handle arm preserved"
+        let PipelineHandle::Logic(reconstituted) = &entry.payload else {
+            panic!("handle arm preserved (Logic)");
+        };
+        // The REAL typed Logic handle (#1132 C6) re-derives from its backing
+        // `graph/logic` projection to a canonical-key-equal program.
+        assert_eq!(
+            reconstituted.canonical_key(),
+            sample_logic_program().canonical_key(),
+            "the cache re-derived the Logic handle's program canonical-key-equal"
         );
         // The pinned digest matches the LIVE backing graph (pin_handle re-checked it).
         assert_eq!(
