@@ -563,6 +563,132 @@ fn gate_denies_when_capability_unavailable() {
     assert!(matches!(gate, ActionGate::Deny { .. }));
 }
 
+// ── Task 6: the REAL memory-MCP triad's store_claim schema under gate_action ─────
+//
+// These exercise gate_action over EXACTLY the store_claim pattern dogfooded in
+// slices/extensions/agentic/examples/mcp-action-policy.ttl — same logic: facets
+// (capability / precondition / compensation) and the same triad wiring (store_claim's
+// compensation is revise_belief). The example's ex: IRIs live in a CC-BY example
+// namespace; here they ride the test world (W) under the SAME local names so the
+// structure the policy reads is identical.
+
+/// Build the store_claim McpActionSchema (precondition wellFormedClaim, capability
+/// memoryWriteCapability, compensation reviseBelief — the rollback) with a one-state
+/// path where `obtained` lists the situation locals that obtain at state0.
+fn store_claim_triad_nq(obtained: &[&str]) -> String {
+    let mut nq = path_nq(&[obtained]);
+    nq.push_str(&format!(
+        "<{W}#storeClaim> {} <{W}#wellFormedClaim> <{W}> .\n",
+        l("precondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#storeClaim> {} <{W}#memoryWriteCapability> <{W}> .\n",
+        l("capability")
+    ));
+    nq.push_str(&format!(
+        "<{W}#storeClaim> {} <{W}#reviseBelief> <{W}> .\n",
+        l("compensation")
+    ));
+    nq
+}
+
+#[test]
+fn store_claim_admitted_when_precondition_holds_and_capability_available() {
+    // well-formed claim obtains AND memory-write capability is held → ADMIT.
+    let f = facts_of(&store_claim_triad_nq(&["wellFormedClaim"]));
+    let mut caps = BTreeSet::new();
+    caps.insert(format!("{W}#memoryWriteCapability"));
+    let gate = gate_action(
+        &f,
+        &format!("{W}#storeClaim"),
+        &format!("{W}#state0"),
+        &caps,
+    );
+    assert_eq!(gate, ActionGate::Admit);
+}
+
+#[test]
+fn store_claim_denied_on_missing_precondition_with_revise_belief_rollback() {
+    // precondition (well-formed claim) does NOT obtain → DENY, carrying revise_belief
+    // as the compensation/rollback. Capability is available so the precondition is the
+    // sole cause.
+    let f = facts_of(&store_claim_triad_nq(&[])); // state0 has no situations obtaining
+    let mut caps = BTreeSet::new();
+    caps.insert(format!("{W}#memoryWriteCapability"));
+    let gate = gate_action(
+        &f,
+        &format!("{W}#storeClaim"),
+        &format!("{W}#state0"),
+        &caps,
+    );
+    match gate {
+        ActionGate::Deny {
+            compensation,
+            reason,
+        } => {
+            assert_eq!(
+                compensation,
+                Some(format!("{W}#reviseBelief")),
+                "rollback for a denied store_claim must be revise_belief (P10 suppression)"
+            );
+            assert!(
+                reason.contains("wellFormedClaim"),
+                "denial reason must name the failing precondition, got {reason:?}"
+            );
+        }
+        ActionGate::Admit => panic!("expected denial when the precondition is absent"),
+    }
+}
+
+#[test]
+fn store_claim_denied_on_unavailable_capability_with_revise_belief_rollback() {
+    // precondition holds but the memory-write capability is NOT available → DENY,
+    // again carrying revise_belief as the rollback.
+    let f = facts_of(&store_claim_triad_nq(&["wellFormedClaim"]));
+    let caps = BTreeSet::new(); // no capabilities held
+    let gate = gate_action(
+        &f,
+        &format!("{W}#storeClaim"),
+        &format!("{W}#state0"),
+        &caps,
+    );
+    match gate {
+        ActionGate::Deny {
+            compensation,
+            reason,
+        } => {
+            assert_eq!(compensation, Some(format!("{W}#reviseBelief")));
+            assert!(
+                reason.contains("memoryWriteCapability"),
+                "denial reason must name the unavailable capability, got {reason:?}"
+            );
+        }
+        ActionGate::Admit => panic!("expected denial when the capability is unavailable"),
+    }
+}
+
+#[test]
+fn store_claim_gate_is_deterministic() {
+    // Same input → identical verdict (P12 pure function over given structure).
+    let f = facts_of(&store_claim_triad_nq(&["wellFormedClaim"]));
+    let mut caps = BTreeSet::new();
+    caps.insert(format!("{W}#memoryWriteCapability"));
+    let a = gate_action(
+        &f,
+        &format!("{W}#storeClaim"),
+        &format!("{W}#state0"),
+        &caps,
+    );
+    let b = gate_action(
+        &f,
+        &format!("{W}#storeClaim"),
+        &format!("{W}#state0"),
+        &caps,
+    );
+    assert_eq!(a, b);
+    assert_eq!(a, ActionGate::Admit);
+}
+
 // ── Scenario 8: contested evaluations (two coexisting GoalEvaluations) ───────────
 
 #[test]

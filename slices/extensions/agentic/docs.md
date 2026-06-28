@@ -84,3 +84,29 @@ Anthropic `tool_use`, and MCP tool schemas are JSON specifications with no stabl
 namespace: bridging them is a projection concern (Lillith worked example Workflow Run Crate, the
 OpenLineage precedent), recorded as REFUSED cells in the mapping trailer rather than
 papered over.
+
+## Dogfood — the memory-MCP triad as governed action schemas
+
+`examples/mcp-action-policy.ttl` models the **real** memory-MCP tools the production
+server exposes (`src/gmeow_tools/mcp_server.py`) as action schemas under the W1
+canonical-process action theory — the dogfood case where the process model governs the
+agent's own tool calls under explicit **capability / precondition / compensation**
+(rollback).
+
+- **`store_claim`** (`logic:McpActionSchema`) — writes a reified claim. Its
+  `logic:compensation` is `revise_belief`: suppression undoes the store (P10,
+  never erasure).
+- **`revise_belief`** (`logic:McpActionSchema`) — suppresses a claim (P10). Its
+  `logic:compensation` is `store_claim`: a suppression is reversible by re-asserting
+  the claim, never by deletion.
+- **`recall`** (a plain `logic:ActionSchema`, **not** `logic:McpActionSchema`) — the
+  read path, with a precondition + capability but **no** compensation, because a read
+  changes no state and so needs no rollback.
+
+Typing the two write tools `logic:McpActionSchema` opts them into the stricter
+`logic:McpActionPolicyShape` (capability + precondition + compensation each required);
+`recall` stays a plain `logic:ActionSchema`, where the compensation obligation would be
+vacuous. The companion Rust evaluator (`crates/logic/src/teleology.rs`, `gate_action`)
+exercises the same `store_claim` pattern: **admit** when the precondition holds and the
+memory-write capability is available, **deny** (carrying `revise_belief` as the
+rollback) when either is missing.
