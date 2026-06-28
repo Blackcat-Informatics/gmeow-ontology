@@ -662,10 +662,10 @@ impl Stage for MetadataStage {
         "metadata.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let gts = crate::stages::snapshot::snapshot_bytes(input.upstream)?;
-        let bundle = gmeow_rdf::import_gts_events(&gts)
-            .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))?;
-        let store = bundle.dataset.as_ref();
+        // The shared parse-once event-import view of THIS run's snapshot fold (#1132
+        // C5) — no re-parse of the gmeow.gts bytes.
+        let events = crate::stages::snapshot::snapshot_events(input.upstream)?;
+        let store = events.dataset.as_ref();
 
         let void = build_void_store(store)?;
         let dcat = build_dcat_store(store, input.root)?;

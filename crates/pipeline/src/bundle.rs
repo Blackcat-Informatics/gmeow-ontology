@@ -38,8 +38,8 @@ use std::sync::Arc;
 
 use gmeow_rdf::provenance::DatasetProvenance;
 use gmeow_rdf::{
-    ContentStore, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfLookaside, RdfLookasideKind,
-    RdfLookasideResource,
+    ContentStore, GtsBundle, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfLookaside,
+    RdfLookasideKind, RdfLookasideResource,
 };
 
 /// The pipeline-side typed-handle payload carried in the bundle's handle lane.
@@ -64,6 +64,47 @@ pub enum PipelineHandle {
     /// A correspondence/alignment projection (SSSOM/EDOAL/FnO) over its backing
     /// graph.
     Correspondence(Arc<RdfDataset>),
+}
+
+/// The parse-once-and-share snapshot views (#1132 C5).
+///
+/// `stage-snapshot` emits the structured `gmeow.gts` bytes ONCE (`emit_gts`). Every
+/// fold-reading export leaf needs ONE of two parsed views of those exact bytes:
+///
+/// * the [`GtsBundle`] event-import view (`import_gts_events`) — the value-interned
+///   RDF 1.2 dataset the reasoning / lpg / metadata leaves fold over, and
+/// * the [`gmeow_gts::model::Graph`] model view (`gts::read_graph`) — the term/quad
+///   surface the export / parquet / okf / schemas / yaml-ld leaves render from.
+///
+/// Before C5 each leaf re-parsed the SAME `gmeow.gts` bytes independently (N-1
+/// redundant parses). C5 makes `stage-snapshot` parse the EMITTED bytes ONCE into
+/// both views and carry them here on its [`crate::node::StageProduct`], so the leaves
+/// consume the shared in-memory view. Because the views are the parse of the exact
+/// emitted bytes (done once), they are byte-identical to what each leaf parsed
+/// before — the carrier swap changes WHEN the parse happens (once, in the snapshot),
+/// not WHAT it yields.
+///
+/// The views ride on the `StageProduct`, NOT inside the content-addressed
+/// `PipelineBundle` (they are derived, non-canonical projections — keeping them off
+/// the bundle leaves the bundle digest a pure function of the GTS bytes). They are
+/// therefore NOT reconstructed on a cache hit; a leaf that runs while its upstream
+/// snapshot was served from cache falls back to parsing the lane bytes (the same
+/// bytes, the same parse — still byte-identical). On the fresh-run path
+/// (`make check-generated` wipes the cache) the snapshot always runs and the views
+/// are always present, so the redundant parses are eliminated.
+#[derive(Debug, Clone)]
+pub struct SnapshotViews {
+    /// The `import_gts_events` event-import view (RDF 1.2 dataset + envelope).
+    pub events: Arc<GtsBundle>,
+    /// The `gts::read_graph` model view (term/quad surface).
+    pub graph: Arc<gmeow_gts::model::Graph>,
+}
+
+impl SnapshotViews {
+    /// Pair the two parsed views of one snapshot's `gmeow.gts` bytes.
+    pub fn new(events: Arc<GtsBundle>, graph: Arc<gmeow_gts::model::Graph>) -> Self {
+        Self { events, graph }
+    }
 }
 
 /// The lookaside-resource name prefix marking a byte-artifact lane entry. A bundle

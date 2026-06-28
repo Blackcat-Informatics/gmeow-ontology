@@ -226,6 +226,71 @@ pub(crate) fn snapshot_bytes(
         .ok_or_else(|| stage_err("missing stage-snapshot gmeow.gts artifact"))
 }
 
+/// Borrow the upstream `stage-snapshot` product (or HARD-fail if a leaf forgot to
+/// declare the consumes edge — fail-closed, no-optionality).
+fn snapshot_product(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<&StageProduct, PipelineError> {
+    upstream
+        .get("stage-snapshot")
+        .ok_or_else(|| stage_err("missing stage-snapshot product"))
+}
+
+/// The shared `import_gts_events` view of THIS run's `gmeow.gts` (#1132 C5).
+///
+/// Returns the snapshot's parse-once view when present (the fresh-run path, where the
+/// snapshot stage ran and parsed the emitted bytes ONCE), eliminating the leaf's
+/// redundant re-parse. On a cache hit the views are not reconstructed, so this falls
+/// back to parsing the lane bytes — the SAME bytes, so the result is byte-identical
+/// to the former per-leaf `import_gts_events(snapshot_bytes(..))`.
+pub(crate) fn snapshot_events(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<std::sync::Arc<gmeow_rdf::GtsBundle>, PipelineError> {
+    let product = snapshot_product(upstream)?;
+    if let Some(views) = product.snapshot_views() {
+        return Ok(views.events.clone());
+    }
+    let gts = product
+        .artifact(SNAPSHOT_PATH)
+        .ok_or_else(|| stage_err("missing stage-snapshot gmeow.gts artifact"))?;
+    let bundle = gmeow_rdf::import_gts_events(gts)
+        .map_err(|e| stage_err(&format!("read snapshot gmeow.gts: {e}")))?;
+    Ok(std::sync::Arc::new(bundle))
+}
+
+/// The shared `gts::read_graph` model view of THIS run's `gmeow.gts` (#1132 C5).
+///
+/// Same parse-once-or-fall-back contract as [`snapshot_events`]: returns the
+/// snapshot's shared model view on the fresh-run path, else re-parses the lane bytes
+/// (byte-identical to the former per-leaf `gts::read_graph(snapshot_bytes(..))`).
+pub(crate) fn snapshot_graph(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<std::sync::Arc<gmeow_gts::model::Graph>, PipelineError> {
+    graph_view_of(snapshot_product(upstream)?, SNAPSHOT_PATH)
+}
+
+/// The shared `gts::read_graph` model view carried on (or re-parsed from) `product`,
+/// where `gts_path` is the byte-artifact-lane path holding its `gmeow.gts` bytes.
+///
+/// Returns the product's shared parse-once view when present, else re-parses the lane
+/// bytes (byte-identical). Used by the `stage-export-schemas` leaf, whose upstream is
+/// the narrow-waist `stage-gts-sink` (which forwards the snapshot's views over the
+/// verbatim-re-emitted bytes).
+pub(crate) fn graph_view_of(
+    product: &StageProduct,
+    gts_path: &str,
+) -> Result<std::sync::Arc<gmeow_gts::model::Graph>, PipelineError> {
+    if let Some(views) = product.snapshot_views() {
+        return Ok(views.graph.clone());
+    }
+    let gts = product
+        .artifact(gts_path)
+        .ok_or_else(|| stage_err(&format!("missing gmeow.gts artifact {gts_path}")))?;
+    let graph = gmeow_rdf::gts::read_graph(gts, true)
+        .map_err(|e| stage_err(&format!("read snapshot gmeow.gts: {e}")))?;
+    Ok(std::sync::Arc::new(graph))
+}
+
 // ── Archive blobs (#861 regression fix) ─────────────────────────────────────────
 //
 // The pre-pipeline generator folded five TAR archives into `gmeow.gts` —
@@ -853,12 +918,37 @@ impl Stage for SnapshotStage {
             },
         ];
         let gts = build_snapshot(input.root, input.upstream, blobs, report_blobs)?;
+        // Parse-once-and-share (#1132 C5): parse the EMITTED bytes ONCE into both
+        // views the fold-reading leaves need, and carry them on the product so each
+        // leaf consumes the shared in-memory view instead of re-parsing `gmeow.gts`.
+        // Parsing the emitted bytes (not a pre-emit in-memory structure) is what
+        // guarantees the shared view is byte-identical to the per-leaf re-parse it
+        // replaces. The bytes still ride the byte-artifact lane (the sink writes them
+        // and a cache-restored snapshot has no views — leaves fall back to the lane).
+        let views = build_snapshot_views(&gts)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(SNAPSHOT_PATH.to_string(), gts);
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
+            product: StageProduct::from_artifacts(self.id(), artifacts)
+                .with_snapshot_views(std::sync::Arc::new(views)),
         })
     }
+}
+
+/// Parse the emitted `gmeow.gts` bytes ONCE into the two shared views the
+/// fold-reading export leaves consume (#1132 C5): the `import_gts_events`
+/// event-import view and the `gts::read_graph` model view. Both are the parse of the
+/// SAME emitted bytes, so a downstream leaf reading either is byte-identical to its
+/// former independent re-parse.
+fn build_snapshot_views(gts: &[u8]) -> Result<crate::bundle::SnapshotViews, PipelineError> {
+    let events = gmeow_rdf::import_gts_events(gts)
+        .map_err(|e| stage_err(&format!("snapshot import_gts_events: {e}")))?;
+    let graph = gmeow_rdf::gts::read_graph(gts, true)
+        .map_err(|e| stage_err(&format!("snapshot read_graph: {e}")))?;
+    Ok(crate::bundle::SnapshotViews::new(
+        std::sync::Arc::new(events),
+        std::sync::Arc::new(graph),
+    ))
 }
 
 // ── default graph (authored ontology, NO imports) ───────────────────────────────
