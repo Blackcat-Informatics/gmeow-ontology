@@ -2031,42 +2031,49 @@ logic:contradictoryGoal
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "contradictory goal"@x-gmeow-english ;
-    skos:definition "Relates two gmeow:Goals in contradictory conflict: satisfying one entails violating the other in EVERY world. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of six conflict relations between independently-meaningful goals, each WEAKER than gmeow:counterGoal — the strongest, constitutive opposition that partly defines what a goal means. A witnessed conflict is surfaced as a context-indexed finding, never silently resolved."@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals in contradictory conflict: satisfying one entails violating the other in EVERY world. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of seven conflict relations between independently-meaningful goals, each WEAKER than gmeow:counterGoal — the strongest, constitutive opposition that partly defines what a goal means. A witnessed conflict is surfaced as a context-indexed finding, never silently resolved."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:contraryGoal
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "contrary goal"@x-gmeow-english ;
-    skos:definition "Relates two gmeow:Goals in contrary conflict: the two cannot both be satisfied, though both may fail. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of six conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition) and than logic:contradictoryGoal (which also forces one to be violated when the other is satisfied)."@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals in contrary conflict: the two cannot both be satisfied, though both may fail. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of seven conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition) and than logic:contradictoryGoal (which also forces one to be violated when the other is satisfied)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:preventsGoal
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "prevents goal"@x-gmeow-english ;
-    skos:definition "Relates two gmeow:Goals where achieving one closes the path to the other. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of six conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition). Distinct from logic:contradictoryGoal: prevention closes a path, it does not entail violation in every world."@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals where achieving one closes the path to the other. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of seven conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition). Distinct from logic:contradictoryGoal: prevention closes a path, it does not entail violation in every world."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:competesForResource
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "competes for resource"@x-gmeow-english ;
-    skos:definition "Relates two gmeow:Goals that both draw on a resource an action schema declares (logic:actionResource), where the supply is insufficient for both. Domain gmeow:Goal, range gmeow:Goal (stated in prose). The seam between goal conflict and the action-theory resource facet. One of six conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition)."@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals that both draw on a resource an action schema declares (logic:actionResource), where the supply is insufficient for both. Domain gmeow:Goal, range gmeow:Goal (stated in prose). The seam between goal conflict and the action-theory resource facet. One of seven conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:temporallyIncompatible
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "temporally incompatible"@x-gmeow-english ;
-    skos:definition "Relates two gmeow:Goals each achievable on its own but not within the windows both require. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of six conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition); the conflict is in the scheduling, not in the goals' content."@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals each achievable on its own but not within the windows both require. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of seven conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition); the conflict is in the scheduling, not in the goals' content."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:deonticallyIncompatible
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "deontically incompatible"@x-gmeow-english ;
-    skos:definition "Relates two gmeow:Goals whose conjunction a norm makes impermissible even where it is physically reachable. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of six conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition). Deontic force arrives with the norms vocabulary, which ranges over goals — the dependency points toward the goal layer, never the reverse."@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals whose conjunction a norm makes impermissible even where it is physically reachable. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of seven conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition). Deontic force arrives with the norms vocabulary, which ranges over goals — the dependency points toward the goal layer, never the reverse."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:lowerPriorityUnderPolicy
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lower priority under policy"@x-gmeow-english ;
+    skos:definition "Relates two gmeow:Goals where, under a governing priority ordering established by an applicable policy, one goal is deprioritised in favour of the other — a conflict resolved by policy precedence rather than by logical, temporal, or deontic impossibility. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of seven conflict relations between independently-meaningful goals, weaker than gmeow:counterGoal (constitutive opposition). Distinct from logic:deonticallyIncompatible: the conjunction is not normatively impermissible — it is merely ranked lower by the policy ordering; and distinct from logic:competesForResource: the deprioritisation is a priority decision, not an exhaustion of supply."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- GoalEvaluation axes, links, and quantities -------------------------------

@@ -237,7 +237,10 @@ engine does about it. The conflict relations are:
   insufficient for both;
 - **temporally-incompatible** — each is achievable, but not within the windows both require;
 - **deontically-incompatible** — a norm makes the conjunction impermissible even where it is
-  physically reachable.
+  physically reachable;
+- **lower-priority-under-policy** — under a governing priority ordering established by an applicable
+  policy, one goal is deprioritised in favour of the other; the conflict is resolved by policy
+  precedence, not by logical, temporal, or deontic impossibility.
 
 A goal's `gmeow:counterGoal` is the strongest of these: constitutive opposition, the named shadow
 that partly defines what the goal means, symmetric and irreflexive. The remaining conflict kinds are
