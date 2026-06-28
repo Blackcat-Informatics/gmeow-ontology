@@ -4,5 +4,11 @@
       "N": "\"2\"^^<http://www.w3.org/2001/XMLSchema#integer>"
     }
   ],
+  "preservation": {
+    "polarities": [
+      "ExactPreservation"
+    ],
+    "unsupported_constructs": []
+  },
   "status": "ok"
 }
