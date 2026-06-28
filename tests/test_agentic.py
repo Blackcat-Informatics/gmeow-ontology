@@ -15,10 +15,8 @@ Migrated to crates/validate/tests/conformance_agentic.rs (#867):
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
-import pytest
 from gmeow_rdf.compat.rdflib import Graph, Namespace
 
 from gmeow_tools.graph import load_merged_graph
@@ -105,34 +103,3 @@ def test_memory_applies_the_verbatim_or_digest_doctrine(tmp_path: Path) -> None:
     assert record.arguments.startswith("blake3:")
     small = mem.record_tool_call("urn:gmeow:tool:write_file", arguments="tiny")
     assert small.arguments == "tiny"
-
-
-def test_mcp_triad_is_the_first_live_producer(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Dogfood (#390): store/revise record themselves; recall records
-    nothing (read path); the stored claim links back via wasGeneratedBy."""
-    from gts.examples.agent_memory import Memory
-
-    from gmeow_tools.mcp_server import recall, revise_belief, store_claim
-
-    monkeypatch.setenv("GMEOW_MEMORY_PATH", str(tmp_path / "memory.gts"))
-    stored = json.loads(store_claim("tool calls are provenance"))
-    assert stored["ok"], stored
-    claim_id = stored["claim"]["id"]
-
-    assert json.loads(recall("provenance"))["ok"]
-    assert json.loads(revise_belief(claim_id, reason="superseded test"))["ok"]
-
-    calls = Memory(tmp_path / "memory.gts").tool_calls()
-    assert [c.tool for c in calls] == [
-        "urn:gmeow:tool:store_claim",
-        "urn:gmeow:tool:revise_belief",
-    ]
-    assert calls[0].generated == (claim_id,)
-    # toolResult is the VERBATIM payload the tool returned, byte-faithful.
-    result = json.loads(calls[0].result or "{}")
-    assert result["ok"] is True
-    assert result["claim"]["id"] == claim_id
-    args = json.loads(calls[0].arguments or "{}")
-    assert args["text"] == "tool calls are provenance"

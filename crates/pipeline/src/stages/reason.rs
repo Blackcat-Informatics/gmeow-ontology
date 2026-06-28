@@ -119,32 +119,19 @@ impl Stage for ReasonStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::stages::source_load::{load_authored_store, store_to_nquads};
-    use std::path::Path;
-
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
 
     #[test]
-    fn reason_produces_nonempty_artifacts_over_the_authored_graph() {
-        let root = repo_root();
-        // Reason over the authored base graph (imports + slice TBox) — the
-        // reasoner's EDB. (Statements/mappings add ABox metadata; the TBox closure
-        // is exercised by the base alone.)
-        let store = load_authored_store(&root).unwrap();
-        let nq = store_to_nquads(&store).unwrap();
-        let (closure, explanations, ledger) = reason_artifacts(&nq).expect("reason");
+    fn reason_produces_nonempty_artifacts_over_tiny_graph() {
+        let nq = br#"
+<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/B> <http://gmeow.example/w> .
+<http://example.org/B> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> <http://gmeow.example/w> .
+"#;
+        let (closure, explanations, ledger) = reason_artifacts(nq).expect("reason");
 
         // Wiring check: the native reasoner ran end-to-end and the three
         // builders produced their artifacts (each carries at least its generated
-        // header). Closure-CONTENT fold-parity against the committed logic
-        // artifacts is a P6 gate (and is subject to the committed-vs-local
-        // reasoner env-skew), so it is not asserted here.
+        // header), and the closure contains a concrete derived transitive
+        // subclass axiom.
         for (name, ttl) in [
             ("closure", &closure),
             ("explanations", &explanations),
@@ -152,5 +139,6 @@ mod tests {
         ] {
             assert!(!ttl.trim().is_empty(), "{name} artifact is empty");
         }
+        assert!(closure.contains("<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> ."));
     }
 }
