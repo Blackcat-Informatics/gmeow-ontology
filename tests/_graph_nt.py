@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""Test-only rdflib→N-Triples seam for the graph-free validation path (#579).
+"""Test-only rdflib→N-Triples seam for the graph-free validation path.
 
 The production validation path (``gmeow_tools.validate``) no longer accepts
 rdflib graphs — it takes FILE PATHS or N-Triples strings and builds its oxigraph
@@ -38,9 +38,6 @@ from gmeow_tools.validate import (
 )
 from gmeow_tools.validate import (
     structural_lint as _structural_lint,
-)
-from gmeow_tools.validate import (
-    term_naming_lint as _term_naming_lint,
 )
 
 
@@ -84,31 +81,17 @@ def structural_lint(graph: Graph) -> ValidationResult:
         return _structural_lint(paths)
 
 
-def term_naming_lint(graph: Graph) -> ValidationResult:
-    """Run the term-naming lint over a synthetic rdflib *graph*."""
-    with graph_as_paths(graph) as paths:
-        return _term_naming_lint(paths)
-
-
-def reasoning_lint(graph: Graph) -> ValidationResult:
-    """Run the reasoning lint (validate wrapper) over a synthetic rdflib *graph*."""
-    from gmeow_tools.validate import reasoning_lint as _rl
-
-    with graph_as_paths(graph) as paths:
-        return _rl(paths)
-
-
 def guide_anchor_lint(graph: Graph, root: Path | None = None) -> ValidationResult:
     """Run the guide-anchor lint over a synthetic rdflib *graph*."""
     with graph_as_paths(graph) as paths:
         return _guide_anchor_lint(paths, root=root)
 
 
-# Reasoning per-check shims: serialize the graph and route each anti-pattern check
-# straight through the native ``gmeow_validate.reasoning_*_nt`` engine (#579). The
-# Rust check returns ``{"errors": [...], ...}``; tests want the bare error list. The
-# production ``validate_all`` path calls the same native entry points from Rust over
-# file paths — this seam only adapts a hand-built synthetic graph to that input.
+# Reasoning per-check shims: serialize the graph and route each anti-pattern
+# check straight through the native ``gmeow_validate.reasoning_*_nt`` engine. The
+# Rust check returns ``{"errors": [...], ...}``; tests want the bare error list.
+# The production ``validate_all`` path calls the same native entry points from
+# Rust over file paths — this seam only adapts a hand-built synthetic graph.
 
 
 def _reasoning_check(
@@ -119,33 +102,11 @@ def _reasoning_check(
     return list(report["errors"])
 
 
-def exactly_one_stereotype(graph: Graph) -> list[str]:
-    return _reasoning_check(gmeow_validate.reasoning_exactly_one_stereotype_nt, graph)
-
-
-def identity_overlap(graph: Graph) -> list[str]:
-    return _reasoning_check(gmeow_validate.reasoning_identity_overlap_nt, graph)
-
-
 def anti_rigidity_discipline(graph: Graph) -> list[str]:
     return _reasoning_check(gmeow_validate.reasoning_anti_rigidity_discipline_nt, graph)
-
-
-def relator_mediation(graph: Graph) -> list[str]:
-    return _reasoning_check(gmeow_validate.reasoning_relator_mediation_nt, graph)
 
 
 def coequal_facet_orthogonality(graph: Graph) -> list[str]:
     return _reasoning_check(
         gmeow_validate.reasoning_coequal_facet_orthogonality_nt, graph
     )
-
-
-def frame_declaration_completeness(graph: Graph) -> list[str]:
-    return _reasoning_check(
-        gmeow_validate.reasoning_frame_declaration_completeness_nt, graph
-    )
-
-
-def reasoning_invariants(graph: Graph) -> list[str]:
-    return _reasoning_check(gmeow_validate.reasoning_invariants_nt, graph)
