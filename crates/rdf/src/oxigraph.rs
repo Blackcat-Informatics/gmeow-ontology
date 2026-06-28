@@ -227,39 +227,6 @@ pub fn rdf_quad_from_oxigraph(quad: &Quad) -> RdfQuad {
     rdf_quad
 }
 
-/// Canonicalize the typed-literal lexical forms in a flat oxigraph quad list to
-/// oxigraph's value-space canonical mapping (`0.90` → `0.9`, `1.0` → `1`, `415.0` →
-/// `415`, `+00:00` → `Z`, …), matching EXACTLY what inserting them into an oxigraph
-/// [`Store`] does — by round-tripping through a transient in-memory `Store`.
-///
-/// The native RDF text codecs deliberately PRESERVE raw lexical forms (a faithful
-/// round-trip), so a consumer that must reproduce a `Store`-normalized artifact (the
-/// committed authored default graph, historically assembled by accumulating into a
-/// `Store`) applies this pass. This MUST use oxigraph's own canonicalization, NOT the
-/// W3C-spec XSD canonical mapping: oxigraph's `oxsdatatypes` deviates from the spec for
-/// `xsd:decimal` (it drops the mandatory trailing `.0`, emitting `415` where the spec
-/// requires `415.0`), and the committed artifact embeds oxigraph's form. A `gmeow_xsd`
-/// reimplementation would therefore drift; the transient `Store` is the only exact
-/// source. This is a value-space NORMALIZE — orthogonal to the per-source blank-node
-/// ACCUMULATION/scoping the snapshot replaced with [`RdfDataset::union`].
-///
-/// # Errors
-///
-/// Returns an [`RdfDiagnostic`] if the transient store cannot be created/inserted/read.
-pub fn canonicalize_quad_literals(quads: &[Quad]) -> Result<Vec<Quad>, RdfDiagnostic> {
-    let store =
-        Store::new().map_err(|e| RdfDiagnostic::error("oxigraph-store-create", e.to_string()))?;
-    for quad in quads {
-        store
-            .insert(quad)
-            .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
-    }
-    store
-        .iter()
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(|e| RdfDiagnostic::error("oxigraph-store-iter", e.to_string()))
-}
-
 fn rdf_term_from_oxigraph(term: &Term) -> RdfTerm {
     match term {
         Term::NamedNode(node) => RdfTerm::iri(node.as_str()),
@@ -479,76 +446,6 @@ mod tests {
             builder.push_owned_quad(&quad);
         }
         builder.freeze().expect("valid test dataset")
-    }
-
-    /// `canonicalize_quad_literals` must reproduce oxigraph's Store value-space
-    /// normalization — including oxigraph's NON-W3C-spec `xsd:decimal` form (it drops
-    /// the spec-mandated trailing `.0`, emitting `415` not `415.0`). The committed
-    /// authored default graph embeds this oxigraph form, so a `gmeow_xsd` (spec)
-    /// reimplementation would drift; this test pins the Store-exact behavior.
-    #[test]
-    fn canonicalize_quad_literals_matches_oxigraph_store_value_space() {
-        let dec = NamedNode::new("http://www.w3.org/2001/XMLSchema#decimal").unwrap();
-        let dt = NamedNode::new("http://www.w3.org/2001/XMLSchema#dateTime").unwrap();
-        let s = NamedNode::new("https://example.org/s").unwrap();
-        let p = NamedNode::new("https://example.org/p").unwrap();
-        let cases = [
-            ("0.90", &dec, "0.9"),
-            ("1.0", &dec, "1"),
-            ("415.0", &dec, "415"),
-            ("-200.0", &dec, "-200"),
-            ("2024-06-01T10:00:00+00:00", &dt, "2024-06-01T10:00:00Z"),
-        ];
-        for (lex, datatype, expected) in cases {
-            let lit = Literal::new_typed_literal(lex, datatype.clone());
-            let quads = vec![Quad::new(
-                s.clone(),
-                p.clone(),
-                lit,
-                GraphName::DefaultGraph,
-            )];
-            let out = canonicalize_quad_literals(&quads).expect("canonicalize");
-            let Term::Literal(got) = &out[0].object else {
-                panic!("expected a literal object");
-            };
-            assert_eq!(
-                got.value(),
-                expected,
-                "{lex}^^{} must canonicalize to {expected} (oxigraph Store form)",
-                datatype.as_str()
-            );
-        }
-    }
-
-    /// A language-tagged literal and an unknown-datatype literal pass through VERBATIM
-    /// (the Store only normalizes value-space datatypes it understands).
-    #[test]
-    fn canonicalize_quad_literals_leaves_lang_and_unknown_verbatim() {
-        let s = NamedNode::new("https://example.org/s").unwrap();
-        let p = NamedNode::new("https://example.org/p").unwrap();
-        let lang = Literal::new_language_tagged_literal("hallo", "de").unwrap();
-        let custom = Literal::new_typed_literal(
-            "0.90",
-            NamedNode::new("https://example.org/myType").unwrap(),
-        );
-        let quads = vec![
-            Quad::new(s.clone(), p.clone(), lang.clone(), GraphName::DefaultGraph),
-            Quad::new(s, p, custom.clone(), GraphName::DefaultGraph),
-        ];
-        let out = canonicalize_quad_literals(&quads).expect("canonicalize");
-        // Both survive with their raw lexical form; order is set-based, so match by value.
-        let values: Vec<String> = out
-            .iter()
-            .filter_map(|q| match &q.object {
-                Term::Literal(l) => Some(l.value().to_string()),
-                _ => None,
-            })
-            .collect();
-        assert!(values.contains(&"hallo".to_string()));
-        assert!(
-            values.contains(&"0.90".to_string()),
-            "an unknown-datatype literal keeps its raw lexical form"
-        );
     }
 
     #[test]

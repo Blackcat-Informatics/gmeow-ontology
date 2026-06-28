@@ -307,11 +307,14 @@ carrier-purity: rust-build ## Prove the pipeline inter-stage carrier/transport p
 	@# `emit_gts` byte emitter create no oxigraph `Store` to accumulate/union/round-trip
 	@# the carried RDF. The test scans the carrier modules' PRODUCTION source for a
 	@# reintroduced `Store::new()` / `store_from_dataset` / `dataset_from_store` and FAILS
-	@# if one returns; it SANCTIONS the C3 `canonicalize_quad_literals` value normalizer
-	@# and excludes source-file parsing / the DAG loader (ingestion, not transport). The
-	@# bundled negative-arm unit test proves the detector flags a reintroduced accumulation.
+	@# if one returns. The carrier's typed-literal value-space canonicalization is now
+	@# NATIVE (gmeow_xsd::parse_by_iri + XsdValue::canonical_lexical), so there is NO
+	@# sanctioned-exception residual — the former `canonicalize_quad_literals` transient
+	@# `Store` is gone. Excludes source-file parsing / the DAG loader (ingestion, not
+	@# transport). The bundled negative-arm unit test proves the detector flags a
+	@# reintroduced accumulation.
 	cargo nextest run -p gmeow-pipeline --test carrier_purity
-	@echo "OK: pipeline carrier/transport path is oxigraph-Store-free (value-normalizer residual sanctioned)"
+	@echo "OK: pipeline carrier/transport path is oxigraph-Store-free (native gmeow_xsd literal canon, no sanctioned residual)"
 
 rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 	cargo build -p gmeow-rdf-core

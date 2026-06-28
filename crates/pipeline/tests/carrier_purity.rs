@@ -11,23 +11,22 @@
 //! created to accumulate / union / round-trip the carried RDF on that path.
 //!
 //! This is a STRUCTURAL gate, not a fragile whole-crate grep: the pipeline crate
-//! LEGITIMATELY keeps oxigraph for three documented, NON-transport residuals, and the
+//! LEGITIMATELY keeps oxigraph for two documented, NON-transport residuals, and the
 //! gate must not regress to forbidding those:
 //!
-//!   1. `crates/rdf/src/oxigraph.rs::canonicalize_quad_literals` — a transient-`Store`
-//!      literal VALUE-SPACE normalizer (#1132 C3) the carrier calls to reproduce the
-//!      committed bundle's oxigraph-canonicalized literal lexical forms. This is value
-//!      normalization, ORTHOGONAL to transport, and is the ONE sanctioned exception the
-//!      carrier code may call. (It lives in `crates/rdf`, not on the scanned path; the
-//!      gate names it so a reviewer knows the carrier deliberately calls it.)
-//!
-//!   2. Source-file PARSING in `source_load` / `statements` / `mappings` (oxigraph
+//!   1. Source-file PARSING in `source_load` / `statements` / `mappings` (oxigraph
 //!      parse of authored `.ttl` into a dataset). That is INGESTION, not inter-stage
 //!      transport, so those modules are out of the scanned set.
 //!
-//!   3. The DAG `loader` (`src/loader.rs`) and the oxigraph adapters in `crates/rdf`
+//!   2. The DAG `loader` (`src/loader.rs`) and the oxigraph adapters in `crates/rdf`
 //!      (`store_from_dataset` / `dataset_from_store`) — general adapters / the build
 //!      graph loader, never the carrier transport. Out of the scanned set.
+//!
+//! There is NO sanctioned-exception carve-out: the carrier's typed-literal value-space
+//! canonicalization is now NATIVE (`gmeow_xsd::parse_by_iri` + `XsdValue::canonical_lexical`
+//! in `snapshot::dataset_to_nquads`), so the former transient-`Store`
+//! `canonicalize_quad_literals` residual (#1132 C3) is GONE — the carrier path uses NO
+//! oxigraph `Store` at all.
 //!
 //! What this gate FORBIDS — and FAILS on if reintroduced — is a `Store::new()`
 //! accumulation (or a `store_from_dataset` / `dataset_from_store` store round-trip)
@@ -49,11 +48,6 @@ const CARRIER_MODULES: [&str; 2] = ["src/stages/gts_compose.rs", "src/stages/sna
 /// round-trip the carried RDF — exactly what the native carrier replaced. Any of these
 /// appearing in carrier production code is a transport regression.
 const FORBIDDEN_TOKENS: [&str; 3] = ["Store::new(", "store_from_dataset(", "dataset_from_store("];
-
-/// The ONE sanctioned oxigraph touch the carrier may call: the literal value-space
-/// normalizer (#1132 C3). It is value normalization, not transport, so a call to it is
-/// allowed — the gate names it explicitly rather than blanket-allowing `oxigraph::`.
-const SANCTIONED_VALUE_NORMALIZER: &str = "canonicalize_quad_literals";
 
 fn manifest_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -122,9 +116,9 @@ fn carrier_transport_path_creates_no_oxigraph_store_for_accumulation() {
         all_violations.is_empty(),
         "carrier-purity FAILED: an oxigraph Store accumulation/round-trip was reintroduced into \
          the inter-stage carrier transport path. The composed value must ride the native \
-         `RdfDataset` / `PipelineBundle` carrier (RdfDataset::union), NOT a Store. Sanctioned \
-         exception: the `{SANCTIONED_VALUE_NORMALIZER}` literal value-space normalizer (which is \
-         NOT a transport Store). Violations:\n{}",
+         `RdfDataset` / `PipelineBundle` carrier (RdfDataset::union), NOT a Store. There is NO \
+         sanctioned exception: the carrier's typed-literal value-space canonicalization is native \
+         (gmeow_xsd). Violations:\n{}",
         all_violations
             .iter()
             .map(|(tok, loc)| format!("  - `{tok}` at {loc}"))
@@ -134,18 +128,24 @@ fn carrier_transport_path_creates_no_oxigraph_store_for_accumulation() {
 }
 
 #[test]
-fn sanctioned_value_normalizer_is_acknowledged_and_used_by_the_carrier() {
-    // The gate is HONEST about the residual: the carrier deliberately calls the
-    // value-space normalizer to match the committed bundle's literal lexical forms.
-    // If C3's normalizer call ever disappears the literal-drift contract changed —
-    // this assertion documents the dependency so a future edit is a conscious choice.
+fn carrier_literal_canonicalization_is_native_gmeow_xsd_not_an_oxigraph_store() {
+    // The carrier's typed-literal value-space canonicalization (#1132 C3) is NATIVE:
+    // `snapshot::dataset_to_nquads` maps each literal through `gmeow_xsd::parse_by_iri`
+    // + `XsdValue::canonical_lexical`, with NO transient oxigraph `Store`. The former
+    // `canonicalize_quad_literals` residual is GONE — assert it is neither referenced by
+    // the carrier nor present anywhere in the crate, so a reviewer sees the carve-out is
+    // genuinely retired (not merely renamed).
     let root = manifest_dir();
     let snapshot = read_module(&root, "src/stages/snapshot.rs");
     assert!(
-        snapshot.contains(SANCTIONED_VALUE_NORMALIZER),
-        "carrier-purity: the sanctioned `{SANCTIONED_VALUE_NORMALIZER}` value-space normalizer \
-         (the ONE allowed oxigraph touch on the carrier path, #1132 C3) is no longer called by \
-         snapshot.rs — if this was intentional, update the gate's sanctioned-residual list."
+        snapshot.contains("gmeow_xsd::parse_by_iri"),
+        "carrier-purity: snapshot.rs must canonicalize typed literals via the native \
+         `gmeow_xsd::parse_by_iri` (the oxigraph `canonicalize_quad_literals` residual is retired)."
+    );
+    assert!(
+        !snapshot.contains("canonicalize_quad_literals"),
+        "carrier-purity: the retired oxigraph `canonicalize_quad_literals` value-space normalizer \
+         must no longer appear in the carrier — the canonicalization is native gmeow_xsd now."
     );
 }
 
@@ -181,22 +181,28 @@ fn compose(upstream: &Foo) -> Result<RdfDataset, E> {
         );
     }
 
-    /// The sanctioned value normalizer is NOT mistaken for an accumulation token: a
-    /// line that calls `canonicalize_quad_literals` (the C3 residual) does not match
-    /// any forbidden token, so the carrier's legitimate value-normalization survives.
+    /// The native gmeow-xsd literal canonicalization is NOT mistaken for an
+    /// accumulation token: the carrier's value-space normalization is now
+    /// `gmeow_xsd::parse_by_iri` + `XsdValue::canonical_lexical` (no oxigraph `Store`),
+    /// which matches none of the forbidden transport tokens, so it survives the scan.
     #[test]
-    fn sanctioned_value_normalizer_is_not_flagged() {
-        let normalizer_call = r#"
-fn dataset_to_nquads(dataset: &RdfDataset) -> Result<Vec<u8>, E> {
-    let canon = gmeow_rdf::oxigraph::canonicalize_quad_literals(&quads)?;
-    Ok(serialize(canon))
+    fn native_xsd_canonicalization_is_not_flagged() {
+        let native_canon = r#"
+fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), E> {
+    if let Some(dt) = literal.datatype.as_deref() {
+        match gmeow_xsd::parse_by_iri(&literal.lexical_form, dt)? {
+            Some(value) => literal.lexical_form = value.canonical_lexical(),
+            None => {}
+        }
+    }
+    Ok(())
 }
 "#;
-        let violations = scan_violations("src/stages/snapshot.rs", normalizer_call);
+        let violations = scan_violations("src/stages/snapshot.rs", native_canon);
         assert!(
             violations.is_empty(),
-            "the sanctioned `{SANCTIONED_VALUE_NORMALIZER}` value normalizer must NOT be flagged \
-             as a transport-Store accumulation, got {violations:?}"
+            "the native gmeow_xsd literal canonicalization must NOT be flagged as a \
+             transport-Store accumulation, got {violations:?}"
         );
     }
 
