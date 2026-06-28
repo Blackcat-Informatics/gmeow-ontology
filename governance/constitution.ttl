@@ -157,14 +157,14 @@ meta:tests-reasoning a meta:TestSuite ;
 
 meta:gate-products a meta:Gate ;
     rdfs:label "the product surfaces: pip client, MCP memory triad, GTS engine"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/gts_producer.py", "src/gmeow_tools/mcp_server.py",
+    meta:artifact "src/gmeow_tools/gts_producer.py", "crates/pipeline/src/mcp.rs",
         "docs/mcp-server.md" ;
     meta:symbol "store_claim" ;
     meta:cliCommand "mcp" .
 
 meta:tests-products a meta:TestSuite ;
     rdfs:label "client / MCP memory / GTS engine tests"@x-gmeow-english ;
-    meta:artifact "tests/test_mcp_memory.py",
+    meta:artifact "crates/pipeline/src/mcp.rs",
         "tests/test_gts_producer.py", "tests/test_gts_views.py" .
 
 meta:tests-claim-spine a meta:TestSuite ;

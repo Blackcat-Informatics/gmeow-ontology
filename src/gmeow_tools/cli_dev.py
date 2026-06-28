@@ -2343,9 +2343,11 @@ def mcp_start() -> None:
     Exposes validation, compilation, reasoning, and term-lookup tools plus
     ontology resources to AI agents via the Model Context Protocol.
     """
-    from gmeow_tools.mcp_server import run
+    from gmeow_native import pipeline
 
-    run()
+    from gmeow_tools.config import GTS_SNAPSHOT_FILE
+
+    pipeline.run_dev_mcp(GTS_SNAPSHOT_FILE.read_bytes(), str(PROJECT_ROOT))
 
 
 @app.command(name="import-foundation")

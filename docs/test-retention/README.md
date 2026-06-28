@@ -51,14 +51,13 @@ Removed because a Rust artifact already asserts the same behavior:
   `test_lexicon`) → slicetest cells + `conformance_*.rs`.
 - `test_images`, `test_music_analysis/collections/pitch`, `test_procedures` →
   slice `structural.ttl` cells + `conformance_*.rs`.
-- `test_mcp_server`, `test_mcp_server_consumer`: the MCP read-surface
-  (`lookup_term`/`llms`/per-language selection) is Rust — `crates/pipeline`
-  `McpView` + `export.rs`, asserted by `lookup_envelope_matches_consumer_contract`,
-  `consumer_llms_txt_uses_standard_format`, `consumer_llms_full_inlines_terms`.
-  What remained in pytest was thin FastMCP framing + startup-lang validation over
-  that Rust surface. (The Python server module stays — the `gmeow mcp` CLI still
-  launches it — until the server loop is ported to Rust; only its tests go. The
-  memory triad `test_mcp_memory` survives: its `Memory` impl is still Python.)
+- `test_mcp_server`, `test_mcp_server_consumer`, `test_mcp_memory`: the MCP
+  read-surface, stdio server loop, startup-lang validation, and grounded-memory
+  triad are Rust — `crates/pipeline/src/mcp.rs` plus `export.rs`, asserted by
+  `lookup_envelope_matches_consumer_contract`,
+  `consumer_llms_txt_uses_standard_format`, `consumer_llms_full_inlines_terms`,
+  and the native MCP memory/server tests. The Python CLI now only launches the
+  native server.
 
 Constitution `meta:artifact` citations of deleted tests were redirected to the
 Rust artifact that now proves the principle.

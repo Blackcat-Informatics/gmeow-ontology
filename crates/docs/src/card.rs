@@ -130,7 +130,7 @@ pub fn render_card_body(card: &Card) -> String {
 
 /// Render a complete, standalone card: `# {title}\n\n` followed by
 /// [`render_card_body`]. Used for the per-term `card.md` file and the live MCP
-/// `gmeow_doc_card`.
+/// `doc_card`.
 pub fn render_card(title: &str, card: &Card) -> String {
     format!("# {title}\n\n{}", render_card_body(card))
 }
