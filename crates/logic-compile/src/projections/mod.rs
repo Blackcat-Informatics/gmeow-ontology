@@ -290,6 +290,35 @@ fn dialect_target(dialect: &str) -> &str {
     }
 }
 
+/// One loss-ledger note per `logic:Formula` a Horn-fragment target cannot carry, each
+/// tagged with the closed [`FormulaShape`](crate::ir::FormulaShape) set naming *which*
+/// first-order constructs exceed the Horn+NAF fragment — carried-and-flagged in the
+/// canonical `logic:` layer (lossless under canonical-rdf12, reached for execution through
+/// the relational-core lowering), never silently dropped (take1 §10.1 legalization). The
+/// per-instance, closed-tag form keeps the ledger informative and the goldens stable (no
+/// free text). Emitted only when the program carries formulas, so a formula-free program's
+/// ledger is byte-unchanged.
+fn formula_residue_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
+    program
+        .formulas
+        .iter()
+        .enumerate()
+        .map(|(i, f)| {
+            let tags = f
+                .shape_tags()
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<_>>()
+                .join("+");
+            format!(
+                "logic:Formula #{i} [{tags}] (full first-order quantifier / connective tree) \
+                 is not representable in {target_label}; it remains in the canonical logic: \
+                 layer (carried by canonical-rdf12) as flagged unsupported residue"
+            )
+        })
+        .collect()
+}
+
 /// Per-target metadata: `(preservationKind, complexityClass, structural drops)`.
 /// The per-target metadata table (the loss-ledger source of truth).
 pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<&'static str>) {
@@ -591,7 +620,7 @@ pub(crate) fn is_modal_or_scoped(axiom: &LogicAxiom) -> bool {
 /// contracts losslessly and must NOT call this; the Nemo target consumes the
 /// contract as the engine-selecting input (it is not encoded in the `.rls`).
 pub(crate) fn contract_drop_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
-    program
+    let mut notes: Vec<String> = program
         .contracts
         .iter()
         .map(|contract| {
@@ -605,7 +634,12 @@ pub(crate) fn contract_drop_notes(program: &LogicProgram, target_label: &str) ->
                  RDF 1.2 projection)"
             )
         })
-        .collect()
+        .collect();
+    // The full-FOL formula layer is beyond every Horn-fragment target; disclose each formula
+    // as its own shape-tagged drop (take1 §10.1 legalization — carried+flagged, never
+    // silent). A formula-free program adds nothing, so its ledger is byte-unchanged.
+    notes.extend(formula_residue_notes(program, target_label));
+    notes
 }
 
 /// The standard GENERATED header for a target.

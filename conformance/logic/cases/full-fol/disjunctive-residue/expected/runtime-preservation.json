@@ -1,0 +1,8 @@
+{
+  "polarities": [
+    "SoundUnderApproximation"
+  ],
+  "unsupported_constructs": [
+    "non-relational-core formula (not a Horn clause of binary atoms) [167cd0227c6b]"
+  ]
+}

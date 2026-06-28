@@ -800,3 +800,55 @@ fn path_shape_max_depth_above_cap_is_skipped_with_diagnostic() {
         "expected a MALFORMED_PATH_SHAPE diagnostic mentioning the hard cap: {diags:?}"
     );
 }
+
+// ── Quantifier binder hard-fails: a malformed/vacuous binder must NOT silently narrow ──
+
+#[test]
+fn quantifier_with_malformed_bound_var_is_malformed_not_silently_narrowed() {
+    // A ∀ node whose binder carrier is missing its logic:termVariable must surface a
+    // MALFORMED_FORMULA diagnostic and be skipped — never silently parsed as ∀{} or a
+    // narrower binder (which would change the formula's meaning).
+    let (prog, diags) = parse(
+        "ex:f1 a logic:Formula ;
+            logic:forall ex:body1 ;
+            logic:quantifiedVariable ex:qv1 .
+         ex:qv1 logic:termIndex 0 .
+         ex:body1 a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument ex:arg1 .
+         ex:arg1 logic:termIndex 0 ; logic:termVariable \"x\" .",
+    );
+    assert!(
+        prog.formulas.is_empty(),
+        "a malformed binder must be skipped, not narrowed: {:?}",
+        prog.formulas
+    );
+    assert!(
+        diags.iter().any(|d| d.code == "MALFORMED_FORMULA"),
+        "expected a MALFORMED_FORMULA diagnostic for a binder missing termVariable: {diags:?}"
+    );
+}
+
+#[test]
+fn vacuous_quantifier_is_malformed() {
+    // A ∀ node with a body but ZERO logic:quantifiedVariable carriers is a vacuous binder
+    // — almost always a malformed source. It must surface MALFORMED_FORMULA, not parse as
+    // ∀{}.
+    let (prog, diags) = parse(
+        "ex:f1 a logic:Formula ;
+            logic:forall ex:body1 .
+         ex:body1 a logic:Formula ;
+            logic:relation ex:p ;
+            logic:argument ex:arg1 .
+         ex:arg1 logic:termIndex 0 ; logic:termVariable \"x\" .",
+    );
+    assert!(
+        prog.formulas.is_empty(),
+        "a vacuous quantifier must be skipped: {:?}",
+        prog.formulas
+    );
+    assert!(
+        diags.iter().any(|d| d.code == "MALFORMED_FORMULA"),
+        "expected a MALFORMED_FORMULA diagnostic for a vacuous quantifier: {diags:?}"
+    );
+}
