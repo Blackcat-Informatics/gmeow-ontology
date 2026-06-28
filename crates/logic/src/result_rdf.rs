@@ -297,7 +297,14 @@ fn project_provenance(sink: &mut Sink, subject: &Node, prov: &ResultProvenance) 
             Node::iri(assumption_iri(*assumption)),
         );
     }
-    for witness in &prov.contradiction_witnesses {
+    // Sort witnesses into a canonical order before emission so the blank-node
+    // numbering (which depends on emission order) is deterministic regardless of
+    // caller ordering.  Two structurally-equal ReasoningResults whose witness
+    // vecs are permutations of each other must mint the same digest.
+    let mut sorted_witnesses: Vec<&ContradictionWitness> =
+        prov.contradiction_witnesses.iter().collect();
+    sorted_witnesses.sort();
+    for witness in sorted_witnesses {
         project_witness(sink, subject, witness);
     }
 }
@@ -671,8 +678,8 @@ pub fn parse_reasoning_graph(nt_body: &str) -> Result<ReasoningResult, String> {
         req(one_str("resultContractHash"), "resultContractHash")?,
         world.clone(),
     );
-    prov.query = one_str("resultQuery").unwrap_or_default();
-    prov.conclusion = one_str("resultConclusion").unwrap_or_default();
+    prov.query = req(one_str("resultQuery"), "resultQuery")?;
+    prov.conclusion = req(one_str("resultConclusion"), "resultConclusion")?;
     prov.proof = parse_derivation(&triples, &subject, "resultProof");
     prov.counterproof = parse_derivation(&triples, &subject, "resultCounterproof");
     prov.context = ResultContext {
@@ -686,9 +693,9 @@ pub fn parse_reasoning_graph(nt_body: &str) -> Result<ReasoningResult, String> {
         version: req(one_str("resultEngineVersion"), "resultEngineVersion")?,
     };
     prov.consumed_budget = crate::result::BudgetUsage {
-        consumed: one_str("resultBudgetConsumed")
-            .and_then(|s| s.parse().ok())
-            .unwrap_or(0),
+        consumed: req(one_str("resultBudgetConsumed"), "resultBudgetConsumed")?
+            .parse::<u64>()
+            .map_err(|e| format!("graph/reasoning: resultBudgetConsumed not a u64: {e}"))?,
         allowance: one_str("resultBudgetAllowance").and_then(|s| s.parse().ok()),
         limit: one_str("resultBudgetLimit").and_then(|s| budget_limit_from_wire(&s)),
     };
@@ -803,12 +810,36 @@ fn parse_derived_axioms(triples: &[ParsedTriple], subject: &str) -> Vec<Inferred
         let Some(node) = link.object_blank() else {
             continue;
         };
-        let field = |local: &str| {
-            triples
+        // axiom_term() can emit IRIs, blank nodes (_:b), or string literals.
+        // The original code only called object_iri(), so blank-node and literal
+        // axiom terms were silently lost (empty-string fallback).  Reconstruct
+        // all three shapes so every emitted axiom term round-trips.
+        //
+        // IRI: object_iri() returns the bare IRI value (no angle brackets),
+        //   which matches both the bare-IRI stored form (the test fixture) and
+        //   the bracketed <iri> form from the native chase (both normalise to
+        //   the same IRI node on emission, and the bare value round-trips).
+        // Blank: object_blank() returns the label without "_:"; re-add it so
+        //   axiom_term() on the next projection recognises the blank form.
+        // Literal: object_string() returns the unescaped lex, which IS the
+        //   original value stored in InferredAxiom (axiom_term kept the whole
+        //   `"lit"` form as the lex, so it survives escape→unescape intact).
+        let field = |local: &str| -> String {
+            let t = triples
                 .iter()
-                .find(|t| t.subject == node && t.predicate == logic(local))
-                .and_then(|t| t.object_iri())
-                .unwrap_or_default()
+                .find(|t| t.subject == node && t.predicate == logic(local));
+            match t {
+                Some(t) => {
+                    if let Some(iri) = t.object_iri() {
+                        iri
+                    } else if let Some(b) = t.object_blank() {
+                        format!("_:{b}")
+                    } else {
+                        t.object_string().unwrap_or_default()
+                    }
+                }
+                None => String::new(),
+            }
         };
         out.push(InferredAxiom {
             subject: field("axiomSubject"),
