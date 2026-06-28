@@ -1,20 +1,23 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
-//! Corpus parity oracle for the FnO correspondence lowering (#1089).
+//! Corpus parity oracle for the FnO correspondence lowering.
 //!
-//! Proves the oxigraph-free FnO lowering reproduces the historical emitter exactly:
+//! Proves the oxigraph-free FnO lowering reproduces the committed catalog exactly:
 //! natively merge the DSL sources (for functions/cells) and the ontology sources (for
 //! `rdfs:range` typing + the language-tag map) into two `DslView`s, lower via
-//! `gmeow_logic_compile::projections::fno::lower_fno`, and assert the N-Triples text is
-//! byte-identical to `gmeow_slice::fno_emit::emit_fno(root)` (the oxigraph emitter,
-//! itself already gated against the committed `functions.fno.ttl`).
+//! `gmeow_logic_compile::projections::fno::lower_fno`, and compare the lowered
+//! N-Triples to the committed `generated/projections/functions.fno.ttl` (re-parsed to a
+//! normalized N-Triples line multiset). The committed artifact is the source of truth.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::fno::lower_fno;
-use gmeow_rdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder};
+use gmeow_rdf::{
+    parse_dataset, serialize_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder,
+    SerializeGraph,
+};
 use gmeow_slice::{ArtifactRole, SliceCatalog};
 
 fn repo_root() -> PathBuf {
@@ -91,15 +94,32 @@ fn merge_slice_artifacts(root: &Path, role: ArtifactRole, b: &mut RdfDatasetBuil
     }
 }
 
+/// Re-serialize an RDF text source (Turtle or N-Triples) to canonical full-IRI
+/// N-Triples so the committed Turtle catalog and the lowered N-Triples compare on the
+/// same surface. Returns a SORTED `Vec` (a multiset, NOT a set): a dropped or
+/// duplicated triple cannot hide.
+fn ntriples_multiset(bytes: &[u8], media_type: &str) -> Vec<String> {
+    let ds = parse_dataset(bytes, media_type, None).expect("parse rdf source");
+    let nt = serialize_dataset(
+        &ds,
+        NativeRdfFormat::NTriples.media_type(),
+        SerializeGraph::DefaultGraph,
+    )
+    .expect("serialize to N-Triples");
+    let text = String::from_utf8(nt).expect("utf8 N-Triples");
+    normalize_expects_index(&text)
+}
+
 /// Collapse the positional index of an `fno:expects` rdf:List blank label so that a
 /// deterministic list reordering compares equal: `…_expects_0` / `…_expects_1` → a
-/// single `…_expects_X`. The historical emitter ordered the expects list by the
-/// oxigraph store's hash order; the lowering orders it deterministically (lexically),
-/// so the two graphs are equal up to that list permutation (the same parameter SET,
-/// just listed in a different order). Every other triple — including each `rdf:first`
-/// member and the function/param/mapping nodes — must still match exactly.
-fn normalize_expects_index(nt: &str) -> std::collections::BTreeSet<String> {
-    let mut out = std::collections::BTreeSet::new();
+/// single `…_expects_X`. The two catalogs hold the same parameter SET, just listed in
+/// a possibly-different order; every other triple — including each `rdf:first` member
+/// and the function/param/mapping nodes — must still match exactly. Blank-node labels
+/// are otherwise stable (the lowering and the committed serializer both mint
+/// deterministic labels), so a sorted multiset comparison is exact up to this list
+/// permutation. Returns a SORTED `Vec` (multiset), not a deduping set.
+fn normalize_expects_index(nt: &str) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
     for line in nt.lines() {
         let mut s = String::with_capacity(line.len());
         let mut rest = line;
@@ -112,64 +132,83 @@ fn normalize_expects_index(nt: &str) -> std::collections::BTreeSet<String> {
             rest = &rest[digits..];
         }
         s.push_str(rest);
-        out.insert(s);
+        out.push(s);
+    }
+    out.sort();
+    out
+}
+
+/// The per-subject `rdfs:seeAlso` triples in a multiset, keyed by subject. The emitter
+/// (and so the committed catalog) picks a function's implementation-query `.rq` from
+/// the FIRST cell using the transform in the oxigraph store's hash order; the lowering
+/// picks it deterministically. For a multi-profile function the two pick different
+/// `.rq` objects — the ONLY admissible divergence. This collapse keeps each seeAlso
+/// per-subject so a dropped/extra seeAlso still surfaces (it is not folded away).
+fn see_also_by_subject(lines: &[String]) -> std::collections::BTreeMap<String, Vec<String>> {
+    let mut out: std::collections::BTreeMap<String, Vec<String>> =
+        std::collections::BTreeMap::new();
+    for line in lines {
+        if line.contains("#seeAlso>") {
+            if let Some(subj) = line.split_whitespace().next() {
+                out.entry(subj.to_owned()).or_default().push(line.clone());
+            }
+        }
     }
     out
 }
 
 #[test]
-fn fno_lowering_matches_emitter_modulo_expects_order() {
+fn fno_lowering_matches_committed_modulo_expects_and_seealso() {
     let root = repo_root();
     let dsl = merge_dsl(&root);
     let onto = merge_ontology(&root);
     let dsl_view = DslView::new(&dsl);
     let onto_view = DslView::new(&onto);
 
-    let lowered = lower_fno(&dsl_view, &onto_view).expect("lower fno").catalog;
-    let emitted = gmeow_slice::fno_emit::emit_fno(&root).expect("emit_fno");
-    assert!(!lowered.is_empty(), "FnO catalog should be non-empty");
+    let lowered_nt = lower_fno(&dsl_view, &onto_view).expect("lower fno").catalog;
+    assert!(!lowered_nt.is_empty(), "FnO catalog should be non-empty");
 
-    let lo = normalize_expects_index(&lowered);
-    let em = normalize_expects_index(&emitted);
+    let committed_path = root.join("generated/projections/functions.fno.ttl");
+    let committed_bytes =
+        std::fs::read(&committed_path).expect("committed functions.fno.ttl present");
 
-    let only_emitter: Vec<&String> = em.difference(&lo).collect();
-    let only_lowered: Vec<&String> = lo.difference(&em).collect();
+    let lo = normalize_expects_index(&lowered_nt);
+    let co = ntriples_multiset(&committed_bytes, NativeRdfFormat::Turtle.media_type());
 
-    // The ONLY admissible divergence is `rdfs:seeAlso`: the emitter picks a function's
-    // implementation-query `.rq` from the FIRST cell that uses the transform in the
-    // oxigraph store's hash order; the lowering picks it deterministically (the first
-    // cell in IRI-sorted order). For a multi-profile function the two pick different
-    // profiles. Everything else — types, labels, params, expects (modulo order),
-    // implementations, mappings — must match exactly. Each diverging seeAlso must be
-    // over the SAME function in both sets (same subject, different `.rq` object).
-    let see_subjects = |lines: &[&String]| -> std::collections::BTreeSet<String> {
-        lines
-            .iter()
-            .filter(|l| l.contains("#seeAlso>"))
-            .filter_map(|l| l.split_whitespace().next().map(str::to_owned))
-            .collect()
-    };
-    let non_see = |lines: &[&String]| -> Vec<String> {
+    // Partition each side into seeAlso vs everything else. The non-seeAlso multisets
+    // must be IDENTICAL — every parameter triple (modulo expects-list order), label,
+    // type, output, implementation and mapping triple must match exactly.
+    let non_see = |lines: &[String]| -> Vec<String> {
         lines
             .iter()
             .filter(|l| !l.contains("#seeAlso>"))
-            .map(|s| (*s).clone())
+            .cloned()
             .collect()
     };
-
-    let e_non_see = non_see(&only_emitter);
-    let l_non_see = non_see(&only_lowered);
-    assert!(
-        e_non_see.is_empty() && l_non_see.is_empty(),
-        "FnO lowering diverged beyond the deterministic seeAlso choice:\n  emitter-only non-seeAlso ({}): {:?}\n  lowered-only non-seeAlso ({}): {:?}",
-        e_non_see.len(),
-        e_non_see.iter().take(8).collect::<Vec<_>>(),
-        l_non_see.len(),
-        l_non_see.iter().take(8).collect::<Vec<_>>(),
-    );
+    let lo_non_see = non_see(&lo);
+    let co_non_see = non_see(&co);
     assert_eq!(
-        see_subjects(&only_emitter),
-        see_subjects(&only_lowered),
-        "seeAlso divergence must be over the same set of functions (deterministic vs hash first-profile)",
+        lo_non_see, co_non_see,
+        "FnO lowering diverged from the committed catalog beyond the deterministic seeAlso choice",
     );
+
+    // Each diverging seeAlso must be over the SAME subject in both (deterministic vs
+    // hash first-profile picks a different `.rq`), with the SAME count per subject —
+    // so a dropped or extra seeAlso triple is still caught.
+    let lo_see = see_also_by_subject(&lo);
+    let co_see = see_also_by_subject(&co);
+    let lo_subjects: std::collections::BTreeSet<&String> = lo_see.keys().collect();
+    let co_subjects: std::collections::BTreeSet<&String> = co_see.keys().collect();
+    assert_eq!(
+        lo_subjects, co_subjects,
+        "seeAlso subjects diverged between lowering and committed catalog",
+    );
+    for (subj, lo_lines) in &lo_see {
+        let co_lines = &co_see[subj];
+        assert_eq!(
+            lo_lines.len(),
+            co_lines.len(),
+            "seeAlso triple count for {subj} differs (a dropped/extra seeAlso)",
+        );
+    }
 }

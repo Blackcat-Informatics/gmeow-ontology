@@ -96,31 +96,10 @@ class OwnershipAnalyzer:
 
 # ── Module-level functions ─────────────────────────────────────────────────────
 
-def emit_sssom(root: str) -> dict[str, str]:
-    """Emit every SSSOM TSV from the repo at ``root``.
-
-    Returns ``{sssom_file: tsv_text}`` (bare file names), byte-identical to the
-    historical Python emitter (#848). Sources every input natively from ``root``:
-    slice mapping artifacts, the shared ``dsl/mappings/`` tree, the prefix map,
-    and ``metadata/gmeow-self.ttl`` for the version + release date.
-    """
-    ...
-
-def emit_fno(root: str) -> str:
-    """Emit the FnO function catalog from the repo at ``root``.
-
-    Returns the ``functions.fno.ttl`` graph as full-IRI N-Triples text,
-    graph-isomorphic to the historical Python emitter (#848). Sources every input
-    natively from ``root``: the projection functions + cells from the
-    ``dsl/mappings/`` tree + slice mapping artifacts, and each input predicate's
-    ``rdfs:range`` from ``ontology/gmeow.ttl`` + slice module artifacts.
-    """
-    ...
-
 # One ``ProjectionDiagnostic`` dict per cross-layer projection-lint problem. The
 # shape matches ``gmeow_rdf.SssomDiagnostic`` so the Python finding leg packs both
-# the same way; ``check`` is the drift family (``fno-type`` / ``fno-ref`` /
-# ``spec-drift``) the leg maps to the ``mapping-compile.<check>`` code.
+# the same way; ``check`` is the drift family (``fno-type`` / ``fno-ref``) the leg
+# maps to the ``mapping-compile.<check>`` code.
 class ProjectionDiagnostic(TypedDict):
     severity: str
     code: str

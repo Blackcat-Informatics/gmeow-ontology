@@ -9,7 +9,7 @@
 //! assert each emitted artifact is byte-identical to the committed
 //! `generated/projections/*.edoal.ttl` and `generated/queries/*.rq`.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -90,7 +90,31 @@ fn merge_ontology(root: &Path) -> Arc<RdfDataset> {
     b.freeze().expect("freeze ontology")
 }
 
-fn assert_corpus(label: &str, emitted: &BTreeMap<String, String>, committed_dir: &Path) {
+/// The set of committed file names under `dir` whose name ends with `suffix`.
+fn committed_file_set(dir: &Path, suffix: &str) -> BTreeSet<String> {
+    std::fs::read_dir(dir)
+        .unwrap_or_else(|_| panic!("read committed dir {}", dir.display()))
+        .filter_map(|e| e.ok())
+        .filter_map(|e| e.file_name().into_string().ok())
+        .filter(|n| n.ends_with(suffix))
+        .collect()
+}
+
+fn assert_corpus(
+    label: &str,
+    emitted: &BTreeMap<String, String>,
+    committed_dir: &Path,
+    suffix: &str,
+) {
+    // Set-equality FIRST: the emitted key set MUST equal the committed file set, so a
+    // dropped or stray artifact fails before the per-file content diff.
+    let emitted_keys: BTreeSet<String> = emitted.keys().cloned().collect();
+    let committed_keys = committed_file_set(committed_dir, suffix);
+    assert_eq!(
+        emitted_keys, committed_keys,
+        "{label}: emitted file set diverged from the committed corpus (missing/extra artifact)",
+    );
+
     let mut mismatches: Vec<String> = Vec::new();
     for (file, text) in emitted {
         let path = committed_dir.join(file);
@@ -148,6 +172,7 @@ fn edoal_lowering_matches_committed_corpus() {
         "EDOAL",
         &emitted,
         &root.join("generated").join("projections"),
+        ".edoal.ttl",
     );
 }
 
@@ -199,6 +224,21 @@ fn sparql_lowering_matches_committed_corpus_modulo_order() {
     );
 
     let committed_dir = root.join("generated").join("queries");
+
+    // Set-equality FIRST: the per-profile `.rq` set the lowering emits MUST equal the
+    // committed per-profile `.rq` set (the `standpoint-*.rq` + `observation-claim-view.rq`
+    // queries are emitted by other producers and are excluded here). A dropped or stray
+    // artifact fails before the content diff.
+    let emitted_keys: BTreeSet<String> = emitted.keys().cloned().collect();
+    let committed_keys: BTreeSet<String> = committed_file_set(&committed_dir, ".rq")
+        .into_iter()
+        .filter(|n| !n.starts_with("standpoint-") && n != "observation-claim-view.rq")
+        .collect();
+    assert_eq!(
+        emitted_keys, committed_keys,
+        "emitted per-profile `.rq` set diverged from the committed corpus (missing/extra artifact)",
+    );
+
     let mut mismatches: Vec<String> = Vec::new();
     for (file, text) in &emitted {
         let committed = std::fs::read_to_string(committed_dir.join(file))
@@ -237,13 +277,39 @@ fn sparql_lowering_matches_committed_corpus_modulo_order() {
 #[test]
 fn edoal_and_sparql_share_one_get_leg() {
     // Spec-drift gone by construction: both dialects consume the SAME parsed get-leg
-    // model instance. Prove the shared extraction is well-formed and identical when
-    // both call it (the lowerings each call `projections` on the same view).
+    // model. Extract the get leg ONCE, then drive both `lower_edoal` and `lower_sparql`
+    // — they share that one extraction — and prove the extraction is deterministic by
+    // re-running it and comparing the get-leg CONTENTS, cell-by-cell (not just the
+    // length), so a content drift between two runs is caught.
     let root = repo_root();
     let dsl = merge_dsl(&root);
-    let view = DslView::new(&dsl);
-    let a = projections(&view).expect("get leg a");
-    let b = projections(&view).expect("get leg b");
-    assert_eq!(a.len(), b.len(), "the shared get leg is deterministic");
-    assert!(!a.is_empty(), "the get leg has projection cells");
+    let onto = merge_ontology(&root);
+    let dsl_view = DslView::new(&dsl);
+    let onto_view = DslView::new(&onto);
+
+    // One extraction of the shared get leg.
+    let leg = projections(&dsl_view).expect("shared get leg");
+    assert!(!leg.is_empty(), "the get leg has projection cells");
+
+    // Both dialects lower from that same model surface and succeed.
+    let edoal = lower_edoal(&dsl_view, &onto_view).expect("lower edoal");
+    let sparql = lower_sparql(&dsl_view, &onto_view).expect("lower sparql");
+    assert!(
+        !edoal.alignments.is_empty(),
+        "edoal lowered from the get leg"
+    );
+    assert!(
+        !sparql.queries.is_empty(),
+        "sparql lowered from the get leg"
+    );
+
+    // Re-extract and compare the get-leg CONTENTS (the `Debug` rendering is a faithful
+    // content projection of each cell) — equal iff the extraction is deterministic.
+    let again = projections(&dsl_view).expect("re-extract get leg");
+    let leg_repr: Vec<String> = leg.iter().map(|c| format!("{c:?}")).collect();
+    let again_repr: Vec<String> = again.iter().map(|c| format!("{c:?}")).collect();
+    assert_eq!(
+        leg_repr, again_repr,
+        "the shared get leg is content-deterministic across extractions",
+    );
 }

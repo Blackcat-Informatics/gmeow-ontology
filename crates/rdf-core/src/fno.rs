@@ -11,7 +11,8 @@
 //! ## The seam
 //!
 //! Unlike the transitional design, the [`FnoCatalog`] is now BUILT IN RUST — the
-//! `gmeow-slice` FnO emitter (`crates/slice/src/fno_emit.rs`) discovers the
+//! oxigraph-free FnO correspondence lowering
+//! (`crates/logic-compile/src/projections/fno.rs`) discovers the
 //! projection functions + cells from the slice framework + the repo DSL tree,
 //! reads each input predicate's ontology `rdfs:range` (the fail-closed untyped-param
 //! guard), scans the projection cells, sorts + aggregates the var bindings, mints
@@ -76,9 +77,9 @@ const X_GMEOW_ENGLISH: &str = "x-gmeow-english";
 /// The fully-resolved FnO catalog the `gmeow-slice` emitter assembles and
 /// serializes here.
 ///
-/// Every IRI / label / type / blank-node label is already derived by the emitter;
+/// Every IRI / label / type / blank-node label is already derived by the lowering;
 /// this struct is a pure data carrier — no ontology reads, no minting, no sorting
-/// happens here (that all stays in `crates/slice/src/fno_emit.rs`).
+/// happens here (that all stays in `crates/logic-compile/src/projections/fno.rs`).
 #[derive(Debug, Clone)]
 pub struct FnoCatalog {
     /// The root ontology IRI the document `dcterms:isPartOf`.

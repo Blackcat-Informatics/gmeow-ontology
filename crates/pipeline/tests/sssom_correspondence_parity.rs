@@ -10,7 +10,7 @@
 //! (the historical oxigraph emitter already matches them), so new-lowering == committed
 //! transitively proves new == old.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -134,6 +134,22 @@ fn sssom_lowering_matches_committed_corpus() {
     );
 
     let committed_dir = root.join("generated").join("mappings");
+
+    // Set-equality FIRST: the emitted key set MUST equal the committed `*.sssom.tsv`
+    // file set, so a dropped or stray artifact fails before the per-file content diff
+    // (a `>=N` count guard would let a swap slip through).
+    let emitted_keys: BTreeSet<String> = emitted.keys().cloned().collect();
+    let committed_keys: BTreeSet<String> = std::fs::read_dir(&committed_dir)
+        .expect("read committed mappings dir")
+        .filter_map(|e| e.ok())
+        .filter_map(|e| e.file_name().into_string().ok())
+        .filter(|n| n.ends_with(".sssom.tsv"))
+        .collect();
+    assert_eq!(
+        emitted_keys, committed_keys,
+        "emitted SSSOM file set diverged from the committed corpus (missing/extra artifact)",
+    );
+
     let mut mismatches: Vec<String> = Vec::new();
     let mut checked = 0usize;
     for (file, tsv) in &emitted {

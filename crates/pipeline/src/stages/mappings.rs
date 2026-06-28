@@ -494,12 +494,11 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
 
     #[test]
     fn sssom_emits_and_overlaps_byte_identically_with_committed() {
-        // The stage wires `gmeow_slice::emit_sssom_sets` — the SAME Rust the
-        // Python build calls — so for every set it emits that has a committed
-        // counterpart, the bytes MUST match exactly (the emitter's own parity
-        // contract). The total set count vs committed is subject to the
-        // committed-vs-local env/staleness drift and is the CI `check-generated`
-        // gate, not asserted here.
+        // The stage drives the oxigraph-free SSSOM correspondence lowering, so for
+        // every set it emits that has a committed counterpart, the bytes MUST match
+        // exactly (the lowering's parity contract). The total set count vs committed
+        // is subject to the committed-vs-local env/staleness drift and is the CI
+        // `check-generated` gate, not asserted here.
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile").artifacts;
         let mut overlap = 0usize;
@@ -520,10 +519,9 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
 
     #[test]
     fn edoal_and_sparql_emit_byte_identically_with_committed() {
-        // The stage wires `gmeow_slice::emit_edoal_sets` / `emit_sparql_sets` — the
-        // same Rust the byte-parity unit tests in the slice crate exercise. Every
-        // EDOAL `.edoal.ttl` and SPARQL `.rq` the stage emits MUST equal its
-        // committed counterpart byte-for-byte (the emitters' parity contract).
+        // The stage drives the oxigraph-free EDOAL + SPARQL correspondence lowerings.
+        // Every EDOAL `.edoal.ttl` and SPARQL `.rq` the stage emits MUST equal its
+        // committed counterpart byte-for-byte (the lowerings' parity contract).
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile").artifacts;
         let mut edoal = 0usize;
@@ -701,8 +699,9 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
 
     #[test]
     fn fno_is_well_formed_ntriples() {
-        // Wiring check: `emit_fno` produces a non-empty FnO catalog that parses.
-        // (Committed-byte/iso parity is the CI `check-generated` gate, env-matched.)
+        // Wiring check: the FnO correspondence lowering produces a non-empty FnO
+        // catalog that parses. (Committed-byte/iso parity is the CI `check-generated`
+        // gate, env-matched.)
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile").artifacts;
         let fno = artifacts.get(FNO_PATH).expect("fno artifact");
