@@ -39,7 +39,8 @@ ex:opBeliefOriginal a gmeow:DoxasticState ;
     gmeow:doxasticContent ex:propRecall ;
     gmeow:doxasticClaim ex:opClaimOriginal ;
     gmeow:credence "0.85"^^xsd:decimal ;
-    gmeow:justifiedBy ex:evidenceSpan1 .
+    gmeow:hasAvailableEvidence ex:evidenceSpan1 ;
+    gmeow:basesBeliefOn ex:evidenceSpan1 .
 
 ex:opClaimOriginal a gmeow:StandpointClaim ;
     rdfs:label "original operator claim: LLM recalled the meeting date correctly"@x-gmeow-english ;

@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/strong-cyclic-plan.
+#
+# A plan over a two-branch nondeterministic outcome set where one branch reaches
+# the goal directly (successOut → goalSit) and one branch produces a transient
+# failure (transientFailOut → retrySit) that is recoverable (recoverableOutcome
+# "true").  Every fair execution eventually reaches goalSit via the retry loop,
+# so the evaluator must emit StrongCyclicPlanSuccess, NOT WeakPlanSuccess (which
+# would require at least one non-recoverable non-reaching outcome) and NOT
+# StrongPlanSuccess (which would require EVERY outcome to reach the goal).
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
+# the projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/strong-cyclic-plan/> .
+
+ex:GoalExpression a logic:GoalExpression .

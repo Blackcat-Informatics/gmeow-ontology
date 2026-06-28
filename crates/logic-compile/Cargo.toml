@@ -31,6 +31,11 @@ gmeow-sparql-algebra = { path = "../sparql-algebra" }
 # sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
 # sha256(sort_key)[:12], matching the legacy compiler byte-for-byte.
 sha2 = "0.10"
+# serde: the projection-result ledger rows + report header counts are passed as an
+# in-memory product (JSON) from the compile-logic pipeline stage to the mappings stage,
+# which assembles the FINAL projection report over the union of the logic rows and the
+# correspondence ledger. Pure-Rust + wasm-clean (no oxigraph / no std::fs).
+serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]
 # insta: snapshot goldens for the projection back-ends (the `.snap` files are the

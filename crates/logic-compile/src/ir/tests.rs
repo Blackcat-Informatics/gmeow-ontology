@@ -335,6 +335,102 @@ fn node_kind_values_match_module_ttl() {
 }
 
 #[test]
+fn formula_shape_values_match_module_ttl() {
+    let from_rust: std::collections::BTreeSet<&str> =
+        FormulaShape::ALL.iter().map(|s| s.as_str()).collect();
+
+    let from_ttl = individuals_of_type(&module_ttl_text(), "FormulaShape");
+    let from_ttl_refs: std::collections::BTreeSet<&str> =
+        from_ttl.iter().map(String::as_str).collect();
+    assert_eq!(
+        from_rust, from_ttl_refs,
+        "FormulaShape enum must match the logic:FormulaShape individuals in module.ttl"
+    );
+
+    // as_str ↔ from_local round-trips for every variant; ALL is in canonical order.
+    for s in FormulaShape::ALL {
+        assert_eq!(FormulaShape::from_local(s.as_str()), Some(s));
+    }
+    assert!(FormulaShape::from_local("NotAShape").is_none());
+    let ordered: Vec<&str> = FormulaShape::ALL.iter().map(|s| s.as_str()).collect();
+    let mut sorted = ordered.clone();
+    sorted.sort_unstable();
+    assert_eq!(
+        ordered, sorted,
+        "ALL must be declared in as_str-lexical order"
+    );
+}
+
+#[test]
+fn shape_tags_classify_the_residue_constructs() {
+    let var = |n: &str| Term::var(n).unwrap();
+    let rel = |l: &str, args: Vec<Term>| {
+        Formula::atom(
+            Term::iri(format!("https://blackcatinformatics.ca/logic/{l}")).unwrap(),
+            args,
+        )
+        .unwrap()
+    };
+
+    // ∀x.(p(x) ∧ ¬q(x)) → quantified + strong-negation + nested, and the unary atoms
+    // p(x)/q(x) are non-binary predications → variadic too.
+    let f1 = Formula::Forall {
+        vars: vec!["x".into()],
+        body: Box::new(Formula::And(vec![
+            rel("p", vec![var("x")]),
+            Formula::Not(Box::new(rel("q", vec![var("x")]))),
+        ])),
+    };
+    assert_eq!(
+        f1.shape_tags(),
+        vec![
+            FormulaShape::Nested,
+            FormulaShape::Quantified,
+            FormulaShape::StrongNegation,
+            FormulaShape::Variadic,
+        ]
+    );
+
+    // ∃y.(r(y) ∨ s(y)) → disjunctive + quantified + nested (+ variadic, unary atoms).
+    let f2 = Formula::Exists {
+        vars: vec!["y".into()],
+        body: Box::new(Formula::Or(vec![
+            rel("r", vec![var("y")]),
+            rel("s", vec![var("y")]),
+        ])),
+    };
+    assert_eq!(
+        f2.shape_tags(),
+        vec![
+            FormulaShape::Disjunctive,
+            FormulaShape::Nested,
+            FormulaShape::Quantified,
+            FormulaShape::Variadic,
+        ]
+    );
+
+    // A flat implication of binary atoms is still a connective tree → nested only.
+    let f3 = Formula::Implies(
+        Box::new(rel("p", vec![var("x"), var("z")])),
+        Box::new(rel("q", vec![var("x"), var("z")])),
+    );
+    assert_eq!(f3.shape_tags(), vec![FormulaShape::Nested]);
+
+    // A sequence-marker / non-binary predication → variadic.
+    let f4 = Formula::atom(
+        Term::iri("https://blackcatinformatics.ca/logic/rel".to_owned()).unwrap(),
+        vec![Term::sequence_marker("xs").unwrap()],
+    )
+    .unwrap();
+    assert_eq!(f4.shape_tags(), vec![FormulaShape::Variadic]);
+
+    // Totality: every non-trivially-Horn formula yields at least one tag.
+    for f in [&f1, &f2, &f3, &f4] {
+        assert!(!f.shape_tags().is_empty());
+    }
+}
+
+#[test]
 fn node_kind_folds_into_keys_only_when_non_default() {
     // Axiom: the default ObjectLevelFormula keeps the byte-identical historical key.
     let base = axiom("ex:s", "p", "ex:o");
@@ -1242,4 +1338,169 @@ fn corr_err(iri: &str, get_leg: Option<String>) -> String {
         None,
     )
     .unwrap_err()
+}
+
+// ── Full first-order Formula AST (#719) ──────────────────────────────────────
+
+/// A variable term.
+fn tv(name: &str) -> Term {
+    Term::var(name).unwrap()
+}
+
+/// A `logic:`-local IRI term.
+fn ti(local: &str) -> Term {
+    Term::iri(format!("{LOGIC}{local}")).unwrap()
+}
+
+/// A predication `local(args…)` with a reified (IRI) relation.
+fn pred(local: &str, args: Vec<Term>) -> Formula {
+    Formula::atom(ti(local), args).unwrap()
+}
+
+#[test]
+fn alpha_equivalence_renames_bound_variable() {
+    // ∀x.p(x) ≡ ∀y.p(y)
+    let a = Formula::Forall {
+        vars: vec!["x".into()],
+        body: Box::new(pred("p", vec![tv("x")])),
+    };
+    let b = Formula::Forall {
+        vars: vec!["y".into()],
+        body: Box::new(pred("p", vec![tv("y")])),
+    };
+    assert_eq!(a.content_key(), b.content_key());
+}
+
+#[test]
+fn alpha_equivalence_holds_for_nested_binders() {
+    // ∀x∃y.r(x,y) ≡ ∀a∃b.r(a,b)
+    let mk = |outer: &str, inner: &str| Formula::Forall {
+        vars: vec![outer.into()],
+        body: Box::new(Formula::Exists {
+            vars: vec![inner.into()],
+            body: Box::new(pred("r", vec![tv(outer), tv(inner)])),
+        }),
+    };
+    assert_eq!(mk("x", "y").content_key(), mk("a", "b").content_key());
+}
+
+#[test]
+fn free_variable_rename_is_not_alpha_equivalent() {
+    // p(x) with free x is NOT p(y) with free y — free vars are meaning.
+    assert_ne!(
+        pred("p", vec![tv("x")]).content_key(),
+        pred("p", vec![tv("y")]).content_key()
+    );
+}
+
+#[test]
+fn conjunction_is_commutative_and_associative() {
+    let a = pred("p", vec![tv("x")]);
+    let b = pred("q", vec![tv("x")]);
+    let c = pred("r", vec![tv("x")]);
+    // commutative
+    assert_eq!(
+        Formula::And(vec![a.clone(), b.clone()]).content_key(),
+        Formula::And(vec![b.clone(), a.clone()]).content_key()
+    );
+    // associative / flattened: And[And[a,b],c] ≡ And[a,b,c]
+    let nested = Formula::And(vec![Formula::And(vec![a.clone(), b.clone()]), c.clone()]);
+    let flat = Formula::And(vec![a, b, c]);
+    assert_eq!(nested.content_key(), flat.content_key());
+}
+
+#[test]
+fn biconditional_is_commutative_but_implication_is_ordered() {
+    let a = pred("p", vec![tv("x")]);
+    let b = pred("q", vec![tv("x")]);
+    assert_eq!(
+        Formula::Iff(Box::new(a.clone()), Box::new(b.clone())).content_key(),
+        Formula::Iff(Box::new(b.clone()), Box::new(a.clone())).content_key()
+    );
+    assert_ne!(
+        Formula::Implies(Box::new(a.clone()), Box::new(b.clone())).content_key(),
+        Formula::Implies(Box::new(b), Box::new(a)).content_key()
+    );
+}
+
+#[test]
+fn binder_block_order_is_significant() {
+    // ∀{x,y}.r(x,y) is NOT ∀{y,x}.r(x,y) (renaming, not prefix permutation).
+    let xy = Formula::Forall {
+        vars: vec!["x".into(), "y".into()],
+        body: Box::new(pred("r", vec![tv("x"), tv("y")])),
+    };
+    let yx = Formula::Forall {
+        vars: vec!["y".into(), "x".into()],
+        body: Box::new(pred("r", vec![tv("x"), tv("y")])),
+    };
+    assert_ne!(xy.content_key(), yx.content_key());
+}
+
+#[test]
+fn sequence_marker_keys_distinctly_from_variable() {
+    // p(...x) is not p(x): a sequence marker binds a sequence, a var binds one term.
+    let marker = Formula::atom(ti("p"), vec![Term::sequence_marker("x").unwrap()]).unwrap();
+    let single = pred("p", vec![tv("x")]);
+    assert_ne!(marker.content_key(), single.content_key());
+}
+
+#[test]
+fn term_constructors_reject_empty_and_blank_strings() {
+    assert!(Term::var("").is_err());
+    assert!(Term::var("   ").is_err());
+    assert!(Term::iri("  ").is_err());
+    assert!(Term::sequence_marker("").is_err());
+    // Some("") datatype collides with None — rejected; a None datatype is fine.
+    assert!(Term::literal("v", Some(String::new())).is_err());
+    assert!(Term::literal("", None).is_ok()); // an empty lexical is a legal RDF literal
+}
+
+#[test]
+fn atom_relation_must_be_an_iri() {
+    // A predicate variable would break first-orderness.
+    assert!(Formula::atom(tv("P"), vec![tv("x")]).is_err());
+    assert!(Formula::atom(Term::literal("L", None).unwrap(), vec![tv("x")]).is_err());
+    assert!(Formula::atom(ti("p"), vec![tv("x")]).is_ok());
+}
+
+#[test]
+fn canonical_key_is_unchanged_for_formula_free_program() {
+    // Corpus safety: attaching no formulas must not alter the historical key.
+    let ax = axiom(&format!("{LOGIC}x"), &kind_pred(), &format!("{LOGIC}y"));
+    let base = LogicProgram::new(vec![ax.clone()], vec![], vec![], None);
+    let attached = LogicProgram::new(vec![ax], vec![], vec![], None).with_formulas(vec![]);
+    assert_eq!(base.canonical_key(), attached.canonical_key());
+    assert!(!base.canonical_key().contains("FORMULAS"));
+}
+
+#[test]
+fn canonical_key_appends_formulas_when_present() {
+    let f = Formula::Forall {
+        vars: vec!["x".into()],
+        body: Box::new(pred("p", vec![tv("x")])),
+    };
+    let prog = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+    assert!(prog.canonical_key().contains("FORMULAS"));
+}
+
+#[test]
+fn with_formulas_sorts_canonically() {
+    // A unary atom is non-trivial (arity ≠ 2), so it may live in `formulas`.
+    let pa = pred("a", vec![tv("x")]);
+    let pz = pred("z", vec![tv("x")]);
+    let prog =
+        LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![pz.clone(), pa.clone()]);
+    let keys: Vec<String> = prog.formulas.iter().map(Formula::content_key).collect();
+    let mut expected = vec![pa.content_key(), pz.content_key()];
+    expected.sort();
+    assert_eq!(keys, expected);
+}
+
+#[test]
+#[should_panic(expected = "trivially-Horn")]
+fn with_formulas_rejects_binary_atom() {
+    // A binary atom is a triple — it belongs in `axioms`, not `formulas`.
+    let f = pred("r", vec![tv("x"), tv("y")]);
+    let _ = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
 }

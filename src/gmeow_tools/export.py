@@ -31,6 +31,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict
 
+import gmeow_validate
 from gts.model import Graph, TermKind
 from gts.nquads import to_nquads
 from gts.trig import to_trig
@@ -879,8 +880,12 @@ def _ttl_literal(text: str, lang: str | None = None) -> str:
 
 
 def marked(text: str, fallback: bool, fallback_lang: str = "en") -> str:
-    """Append a fallback marker when the value was resolved via English."""
-    return f"{text} [fallback: {fallback_lang}]" if fallback else text
+    """Append a fallback marker when the value was resolved via English.
+
+    Delegates the presentation policy to the Rust authority in
+    ``gmeow_validate``; Python is the thin UI wrapper.
+    """
+    return gmeow_validate.marked(text, fallback, fallback_lang)
 
 
 def _term_summary(term: Term) -> str:

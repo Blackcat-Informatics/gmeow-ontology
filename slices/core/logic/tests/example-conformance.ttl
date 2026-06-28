@@ -49,3 +49,72 @@ ex:ecCandidateMissingCategory a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits logic:candidateCategory (sh:minCount 1 on logic:FormalizationCandidateShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
+
+# =========================================================================== #
+# Canonical process model conformance cells
+# =========================================================================== #
+
+# --- Conforming: a well-formed Plan ------------------------------------------
+ex:ecPlanWellformed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/plan-wellformed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The fixture supplies exactly one logic:planGoal (a gmeow:Goal) and exactly one logic:planSuccessMode (logic:WeakPlanSuccess), satisfying logic:PlanShape with no findings." .
+
+# --- Violating: Plan missing planSuccessMode ---------------------------------
+ex:ecPlanMissingSuccessMode a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/plan-missing-successmode.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits logic:planSuccessMode (sh:minCount 1 on logic:PlanShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
+
+# --- Conforming: a well-formed GoalEvaluation --------------------------------
+ex:ecGoalEvaluationWellformed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/goalevaluation-wellformed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The fixture carries exactly one value of each of the four factored axes (logic:satisfactionStatus, logic:feasibilityStatus, logic:lifecycleStatus, logic:goalEvaluationStatus), one logic:evaluatesGoal, and a single optional logic:satisfactionDegree, satisfying logic:GoalEvaluationShape with no findings." .
+
+# --- Violating: GoalEvaluation missing feasibilityStatus ---------------------
+ex:ecGoalEvaluationMissingFeasibility a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/goalevaluation-missing-feasibility.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits logic:feasibilityStatus, one of the four required factored axes (sh:minCount 1 on logic:GoalEvaluationShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
+
+# --- Conforming: a well-formed ActionSchema ----------------------------------
+ex:ecActionSchemaWellformed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/actionschema-wellformed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The fixture carries the two required facets (logic:precondition, logic:capability) plus optional single-valued logic:effect / logic:observation and two multi-valued logic:nondeterministicOutcome values, satisfying logic:ActionSchemaShape with no findings." .
+
+# --- Violating: ActionSchema missing capability ------------------------------
+ex:ecActionSchemaMissingCapability a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/actionschema-missing-capability.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits logic:capability, one of the two required facets (sh:minCount 1 on logic:ActionSchemaShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
+
+# --- Conforming: an MCP-action schema under the governance profile -----------
+ex:ecMcpActionWellformed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/mcp-action-wellformed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The fixture's ex:mcpActionWellformed (typed logic:McpActionSchema, the marker logic:McpActionPolicyShape targets) declares the three required governance facets — logic:capability, logic:precondition, logic:compensation (rollback) — satisfying the profile (and, as a subtype, logic:ActionSchemaShape) with no findings." .
+
+# --- Violating: MCP-action schema missing compensation (rollback) ------------
+ex:ecMcpActionMissingCompensation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/mcp-action-missing-compensation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's ex:mcpActionMissingCompensation (typed logic:McpActionSchema) omits logic:compensation (sh:minCount 1 on logic:McpActionPolicyShape — an MCP tool that mutates state with no rollback), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
+
+# --- Conforming: satisfiedBy backed by a vantage-scoped GoalEvaluation -------
+ex:ecSatisfiedByBacked a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/satisfiedby-backed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The fixture's conclusive gmeow:satisfiedBy(goal, situation) edge is backed by a logic:GoalEvaluation under a vantage (logic:evaluationEvaluator) with evaluatesGoal = goal, evaluatedAgainst = situation, satisfactionStatus = logic:Satisfied, goalEvaluationStatus = logic:GoalEvaluationCompleted, so logic:SatisfiedByBackedByEvaluationShape's sh:sparql constraint does NOT fire and the backing evaluation also satisfies logic:GoalEvaluationShape — no findings." .
+
+# --- Violating: satisfiedBy with no backing GoalEvaluation -------------------
+ex:ecSatisfiedByUnbacked a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/satisfiedby-unbacked.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example asserts a conclusive gmeow:satisfiedBy(goal, situation) edge with NO backing logic:GoalEvaluation under any vantage, so the vantage-scoped dual-authority sh:sparql constraint on logic:SatisfiedByBackedByEvaluationShape fires and validation MUST emit shacl.SPARQLConstraintComponent and NO other finding. The check is never a global verdict: it fires only because no vantage backs the edge at all (Principle 9)." .

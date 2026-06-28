@@ -957,12 +957,42 @@ impl ReasoningResult {
     pub fn from_dl_verdict(
         inferred: Vec<InferredAxiom>,
         verdict: &DlVerdict,
+        provenance: ResultProvenance,
+    ) -> Self {
+        Self::from_dl_verdict_with_preservation(
+            inferred,
+            verdict,
+            &PreservationClaim::exact(),
+            provenance,
+        )
+    }
+
+    /// Like [`Self::from_dl_verdict`], but UNIONS an additional lowering claim's
+    /// unsupported constructs into the preservation set before deriving polarity.
+    ///
+    /// Used by the program-carrying `reason` lane: the formula → relational-core lowering
+    /// may carry first-order constructs (disjunctive heads, `∃`-functions, sequence
+    /// markers, …) that did not lower to the evaluable Horn fragment. The answer is
+    /// complete only for the fragment BOTH the DL construct coverage and the lowering
+    /// cover; the residue is disclosed (`{sound-under}` + `unsupported_constructs`), never
+    /// silently absent. Passing [`PreservationClaim::exact`] recovers [`Self::from_dl_verdict`].
+    pub fn from_dl_verdict_with_preservation(
+        inferred: Vec<InferredAxiom>,
+        verdict: &DlVerdict,
+        extra: &PreservationClaim,
         mut provenance: ResultProvenance,
     ) -> Self {
         // The shared unsupported-set → polarity rule (One-Path): `{exact}` when the
-        // fragment is fully covered, `{sound-under}` carrying the uncovered
-        // constructs otherwise.
-        let preservation = PreservationClaim::for_unsupported(&verdict.coverage.unsupported);
+        // fragment is fully covered, `{sound-under}` carrying the uncovered constructs
+        // otherwise — over the UNION of the DL coverage gap and the lowering residue.
+        let mut merged: BTreeSet<String> = verdict
+            .coverage
+            .unsupported
+            .iter()
+            .map(ToString::to_string)
+            .collect();
+        merged.extend(extra.unsupported_constructs.iter().cloned());
+        let preservation = PreservationClaim::for_unsupported(merged);
         let unsupported = !preservation.unsupported_constructs.is_empty();
         // The native DL path runs to its end; an unsupported construct does not stop
         // the run, it bounds the fragment the answer is complete for.

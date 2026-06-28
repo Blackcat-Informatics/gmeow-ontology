@@ -41,6 +41,9 @@ pub mod adapter;
 pub mod compat;
 pub mod frontend;
 pub mod graphutil;
+// Wasm-clean ingestion of the alignment DSL + ontology (the oxigraph-free read layer
+// the correspondence lowerings consume; file I/O + parsing live in the caller).
+pub mod ingest;
 pub mod ir;
 pub mod projections;
 pub mod relational_core;

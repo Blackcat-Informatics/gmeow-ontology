@@ -13,7 +13,7 @@
 //! of" the `Report` of another — PyO3 raises
 //! `TypeError: 'Report' object is not an instance of 'Report'` across the seam.
 //!
-//! Folding all five engine crates into ONE cdylib makes `PyReport` (and every
+//! Folding the engine crates into ONE cdylib makes `PyReport` (and every
 //! other shared pyclass) a single type the whole extension agrees on.
 //!
 //! # Layout
@@ -35,6 +35,8 @@
 //! * `gmeow_native.foundation` — the foundation-corpus importer (#944): the
 //!   `import_foundation` surface (foundation.ttl + budget report + six
 //!   projections).
+//! * `gmeow_native.music` — the music-package toolchain: GTS package I/O,
+//!   notation renderers, MusicXML import, and loss manifests.
 //!
 //! Each submodule is also registered in `sys.modules` under its dotted name so
 //! `import gmeow_native.validate` (and friends) resolves. The legacy import
@@ -97,6 +99,7 @@ fn gmeow_native(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
         "foundation",
         gmeow_foundation_corpus::register,
     )?;
+    add_engine_submodule(py, m, &sys_modules, "music", gmeow_music::py::register)?;
 
     Ok(())
 }

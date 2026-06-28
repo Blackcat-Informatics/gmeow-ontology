@@ -54,11 +54,13 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/epistemics/examples/belief-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/epistemics/examples/claim-token-split.ttl", // gmeow:observationMethod → shared method individual (methodExpertJudgement) untyped standalone
     "slices/core/epistemics/examples/flagship-epistemic-ledger.ttl", // gmeow:epistemicAgent → Agent not typed standalone
-    "slices/core/epistemics/examples/justification-and-defeat.ttl", // gmeow:defeatedBy → JustificationStatus not typed standalone
+    "slices/core/epistemics/examples/justification-and-defeat.ttl", // gmeow:hasDefeatStatus / supportUnderStandard → shared status/standard individuals untyped standalone
+    "slices/core/epistemics/examples/locally-factive-knowledge.ttl", // gmeow:underStandard → gmeow:standardScientific (shared EpistemicStandard) + gmeow:knowerAgent → Agent untyped standalone
     "slices/core/gts/examples/dist-package.ttl", // gmeow:gtsProfile → shared profile individual untyped standalone
     "slices/core/imagination/examples/reality-monitoring.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inference/examples/abduction.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inference/examples/analogy.ttl", // gmeow:observationMethod → shared method individual untyped standalone
+    "slices/core/inference/examples/argumentation.ttl", // gmeow:observationMethod + gmeow:underSemantics → logic:GroundedArgumentation (shared) untyped standalone
     "slices/core/inference/examples/belief-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inference/examples/deduction.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inference/examples/induction.ttl", // gmeow:observationMethod → shared method individual untyped standalone

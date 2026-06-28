@@ -63,7 +63,7 @@ gmeow-rdf-core = { path = "../rdf-core", default-features = false }
 # components). The python-gated py_store value comparator also uses it.
 gmeow-xsd = { path = "../xsd" }
 ciborium = { version = "0.2", optional = true }
-gmeow-gts = { version = "0.9.9", optional = true }
+gmeow-gts = { version = "0.9.9", optional = true, features = ["duckdb"] }
 gmeow-rdf-events = { path = "../rdf-events", optional = true }
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"], optional = true }
 # pyo3 is pulled ONLY by the `python` feature (maturin). Same version/abi3 as the

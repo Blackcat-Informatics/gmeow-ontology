@@ -9,9 +9,9 @@
 //! [`RdfDataset`]: the evaluator needs `term_id_by_value` (P4 #838), which is an
 //! inherent method on the dataset rather than part of the `DatasetView` trait.
 //!
-//! The [`PlanCache`] memoizes parsing so the static `sparql_emit`-generated query
-//! set compiles to algebra once, not per run. Full cost-based planning is out of S6
-//! scope (S7b #929); the cache holds only the parsed [`Query`].
+//! The [`PlanCache`] memoizes parsing so the static generated query corpus compiles
+//! to algebra once, not per run. Full cost-based planning is out of scope here; the
+//! cache holds only the parsed [`Query`].
 
 use std::cell::RefCell;
 use std::sync::Arc;

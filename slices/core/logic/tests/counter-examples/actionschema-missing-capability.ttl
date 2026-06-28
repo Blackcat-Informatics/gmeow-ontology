@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for logic:ActionSchemaShape: a logic:ActionSchema with NO
+# logic:capability (one of the two required facets, sh:minCount 1), so validation
+# MUST emit shacl.MinCountConstraintComponent (and no other finding). Bound by
+# tests/example-conformance.ttl (ex:ecActionSchemaMissingCapability). Lives under
+# tests/ (NOT examples/) so the global make validate gate does not reject it.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lgc/> .
+
+ex:schemaReadGauge a logic:ActionSchema ;
+    rdfs:label "read a gauge (fixture, missing capability)"@en ;
+    logic:precondition ex:situationGaugePowered .

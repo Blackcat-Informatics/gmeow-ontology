@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/conditional-false-guard.
+#
+# A conditional goal whose guard situation is FALSE at the last state → the goal prescribes nothing (Satisfaction::DoesNotApply, no satisfactionStatus quad) + Completed (does-not-apply, NOT Unsatisfied).
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
+# the projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/conditional-false-guard/> .
+
+ex:GoalExpression a logic:GoalExpression .

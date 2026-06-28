@@ -925,6 +925,105 @@ fn strip_angle(s: &str) -> &str {
         .unwrap_or(s)
 }
 
+// ── Evaluable rule → Nemo `.rls` text (inverse of `parse_eval_rules`) ────────────
+
+/// Render evaluable rules back to Nemo `.rls` text — the inverse of
+/// [`parse_eval_rules`].
+///
+/// Mirrors the 3-ary `pred(subject, object, world)` encoding that
+/// `gmeow_logic_compile`'s `project_nemo` emits for `LogicProgram.rules`, so
+/// formula-derived rules join the SAME chase the program rules and the DL calculus run
+/// in. The world slot is threaded by a fresh variable across a rule's head and body (a
+/// bodyless rule is a ground fact in the `"default"` world). `parse_eval_rules` drops the
+/// world slot, so `parse_eval_rules(eval_rules_to_rls(rs)) == rs` for the binary fragment.
+pub(crate) fn eval_rules_to_rls(rules: &[EvalRule]) -> String {
+    let mut out = String::new();
+    for rule in rules {
+        let name = rule.rule_iri.replace('\\', "\\\\").replace('"', "\\\"");
+        out.push_str(&format!("#[name(\"{name}\")]\n"));
+
+        if rule.body.is_empty() && rule.distinct_pairs.is_empty() {
+            // A bodyless rule is a ground fact, asserted in the "default" world.
+            out.push_str(&format!(
+                "{}.\n",
+                render_eval_atom(&rule.head, "\"default\"")
+            ));
+            continue;
+        }
+
+        let world = fresh_world_var(rule);
+        let mut parts: Vec<String> = rule
+            .body
+            .iter()
+            .map(|ba| render_eval_atom(ba, &world))
+            .collect();
+        for (a, b) in &rule.distinct_pairs {
+            parts.push(format!("{a} != {b}"));
+        }
+        out.push_str(&format!(
+            "{} :-\n    {} .\n",
+            render_eval_atom(&rule.head, &world),
+            parts.join(",\n    ")
+        ));
+    }
+    out
+}
+
+/// Render one [`EvalAtom`] as `[~]<pred>(subject, object, world)`.
+fn render_eval_atom(atom: &EvalAtom, world: &str) -> String {
+    let prefix = if atom.negated { "~" } else { "" };
+    format!(
+        "{prefix}<{}>({}, {}, {world})",
+        atom.predicate.as_str(),
+        render_eval_term(&atom.subject),
+        render_eval_term(&atom.object),
+    )
+}
+
+/// Render one [`EvalTerm`] in Nemo surface syntax (`?var`, `<iri>`, or `"literal"`).
+fn render_eval_term(term: &EvalTerm) -> String {
+    match term {
+        EvalTerm::Var(name) => name.clone(),
+        EvalTerm::ConstNamed(nn) => format!("<{}>", nn.as_str()),
+        EvalTerm::ConstLit(Term::Literal(lit)) => {
+            let escaped = lit.value().replace('\\', "\\\\").replace('"', "\\\"");
+            format!("\"{escaped}\"")
+        }
+        EvalTerm::ConstLit(other) => other.to_string(),
+    }
+}
+
+/// A `?W`-style world variable not already used by `rule`, so the head's world slot is
+/// bound by the body (Nemo safety). Only freshness matters — the parse side drops the
+/// world slot — so the exact name is immaterial to round-trip identity.
+fn fresh_world_var(rule: &EvalRule) -> String {
+    let mut used: HashSet<String> = HashSet::new();
+    collect_var(&rule.head.subject, &mut used);
+    collect_var(&rule.head.object, &mut used);
+    for ba in &rule.body {
+        collect_var(&ba.subject, &mut used);
+        collect_var(&ba.object, &mut used);
+    }
+    for (a, b) in &rule.distinct_pairs {
+        used.insert(a.clone());
+        used.insert(b.clone());
+    }
+    let mut candidate = "?W".to_owned();
+    let mut i = 0u32;
+    while used.contains(&candidate) {
+        i += 1;
+        candidate = format!("?W{i}");
+    }
+    candidate
+}
+
+/// Record a variable term's name in `used`.
+fn collect_var(term: &EvalTerm, used: &mut HashSet<String>) {
+    if let EvalTerm::Var(name) = term {
+        used.insert(name.clone());
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -962,6 +1061,49 @@ mod tests {
         assert_eq!(r.body.len(), 1);
         assert!(!r.body[0].negated);
         assert_eq!(r.body[0].predicate.as_str(), format!("{NS}p"));
+    }
+
+    #[test]
+    fn eval_rules_to_rls_round_trips_through_parse() {
+        // The writer is the inverse of the parser on the binary fragment: rendering a
+        // body-carrying EvalRule to RLS and re-parsing yields the identical EvalRule (the
+        // world slot is threaded then dropped, so it never perturbs identity). Exercises a
+        // plain rule and a negated body literal.
+        let rls = format!(
+            "{}<{NS}s>(?X, ?Z, ?W) :- <{NS}p>(?X, ?Z, ?W), ~<{NS}q>(?X, ?Z, ?W) .\n",
+            rls_simple(),
+        );
+        let rules = parse_eval_rules(&rls).expect("parse original");
+        assert_eq!(rules.len(), 2);
+        let rendered = eval_rules_to_rls(&rules);
+        let reparsed = parse_eval_rules(&rendered).expect("parse rendered");
+        assert_eq!(
+            rules, reparsed,
+            "eval_rules_to_rls must round-trip through parse_eval_rules:\n{rendered}"
+        );
+    }
+
+    #[test]
+    fn eval_rules_to_rls_renders_a_bodyless_rule_as_a_default_world_fact() {
+        // A Skolemized existential lowers to a bodyless EvalRule; it must render as a
+        // ground fact in the "default" world (which the chase consumes as EDB).
+        let nn = |l: &str| NamedNode::new(format!("{NS}{l}")).unwrap();
+        let fact_rule = EvalRule {
+            head: EvalAtom {
+                subject: EvalTerm::ConstNamed(nn("a")),
+                predicate: nn("t"),
+                object: EvalTerm::ConstNamed(nn("b")),
+                negated: false,
+            },
+            body: vec![],
+            rule_iri: format!("{NS}rule/fact"),
+            distinct_pairs: vec![],
+        };
+        let rendered = eval_rules_to_rls(&[fact_rule]);
+        assert!(
+            rendered.contains(&format!("<{NS}t>(<{NS}a>, <{NS}b>, \"default\").")),
+            "bodyless rule must render as a default-world ground fact: {rendered}"
+        );
     }
 
     #[test]

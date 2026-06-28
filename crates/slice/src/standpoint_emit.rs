@@ -4,7 +4,7 @@
 //! Native standpoint-projection emission — GMEOW's hand-authored
 //! `generated/queries/standpoint-*.rq` SPARQL CONSTRUCT projections (#861).
 //!
-//! Unlike the per-profile SPARQL projections ([`crate::sparql_emit`]), these
+//! Unlike the per-profile SPARQL projections (the correspondence lowerings), these
 //! queries are NOT compiled from the `mapping-dsl/` tree: they are fixed,
 //! template-coded SPARQL strings. Six re-express the standpoint axis as each
 //! peer model (Standpoint-OWL 2, CRMinf, PROV-O, Web Annotation, schema.org
@@ -14,7 +14,7 @@
 //! claim-modality axes down to the legacy five-value `gmeow:claimModality`.
 //!
 //! Each emitter assembles a fixed `header` + `body` and threads the body through
-//! the shared [`crate::sparql_emit::prefix_block`] (registry-ordered `PREFIX`
+//! the shared [`crate::mapping_support::prefix_block`] (registry-ordered `PREFIX`
 //! emission) so the declared prefixes track the body exactly as Python's
 //! `_prefix_block` did. The output is **byte-identical** to the committed
 //! `standpoint-*.rq` (the parity gate).
@@ -22,7 +22,7 @@
 use std::collections::BTreeMap;
 
 use crate::error::SliceError;
-use crate::sparql_emit::{prefix_block, GENERATED_BANNER};
+use crate::mapping_support::{prefix_block, GENERATED_BANNER};
 
 /// GMEOW's ontology IRI (no trailing slash), mirroring `config.ONTOLOGY_IRI`.
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";

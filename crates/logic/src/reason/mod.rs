@@ -111,6 +111,63 @@ pub fn reason_all(edb: &RdfDataset) -> Result<ReasoningResult, String> {
     Ok(typed_result(inferred, &verdict))
 }
 
+/// Reason over a canonical [`LogicProgram`]'s rules AND full-FOL formulas against `edb`,
+/// returning the shared typed [`ReasoningResult`].
+///
+/// This is the program-carrying entry the full-FOL formula layer flows through to actual
+/// evaluation. The pipeline is `Formula → relational-core lowering → EvalRule → RLS →
+/// chase`, run alongside the program's own Horn rules (the canonical Nemo projection) and
+/// the fixed DL calculus, in one chase over `edb`:
+///
+/// 1. `relational_core::lower_formulas` legalizes each formula: the Horn-expressible
+///    fragment becomes evaluable rules; everything beyond it (disjunctive heads,
+///    `∃`-functions, sequence markers, …) is carried as flagged residue.
+/// 2. The evaluable rules are rendered to Nemo `.rls` ([`crate::rule_ir::eval_rules_to_rls`])
+///    in the same ternary encoding as the program rules, so they join the same chase.
+/// 3. The result's preservation claim UNIONS the lowering residue with the DL coverage gap
+///    ([`ReasoningResult::from_dl_verdict_with_preservation`]): a non-evaluable formula is
+///    disclosed (`{sound-under}` + `unsupported_constructs`), never silently absent.
+///
+/// The program's ground facts (axioms), if any, are expected in `edb` — the data graph is
+/// the fact source, the program is the rule/formula source (the conformance-harness split).
+///
+/// # Errors
+///
+/// Returns `Err(String)` if the Nemo projection of the program rules fails (e.g. a head
+/// variable unbound by any body atom), or if the chase fails to parse/validate/evaluate/decode.
+pub fn reason_program(
+    program: &gmeow_logic_compile::ir::LogicProgram,
+    edb: &RdfDataset,
+) -> Result<ReasoningResult, String> {
+    use gmeow_logic_compile::projections::text::{extract_nemo_rules_section, project_nemo};
+
+    // 1. Lower the full-FOL formulas through the relational-core waist.
+    let (formula_rls, formula_preservation) = crate::relational_core::formula_eval_rls(program);
+
+    // 2. The program's own Horn rules, via the canonical Nemo projection (rules section only;
+    //    facts come from `edb`).
+    let program_nemo = project_nemo(program)?;
+    let program_rules = extract_nemo_rules_section(&program_nemo.content)?;
+
+    // 3. Run program rules + formula-derived rules ALONGSIDE the fixed DL calculus, so the
+    //    program's consequences and DL consistency are computed in one chase.
+    let rules = format!("{}\n{program_rules}\n{formula_rls}", dl::dl_rules());
+    let mut inferred = run_reasoning(edb, &rules)?;
+    dl::augment_inferred_with_dl(&mut inferred, edb)?;
+    inferred.sort();
+    let verdict = dl::verdict_from_inferred(&inferred, edb)?;
+
+    // 4. Fold into the shared result, unioning the formula-lowering residue into the
+    //    preservation claim.
+    let provenance = ResultProvenance::native(native_contract_hash(), "");
+    Ok(ReasoningResult::from_dl_verdict_with_preservation(
+        inferred,
+        &verdict,
+        &formula_preservation,
+        provenance,
+    ))
+}
+
 /// Reason over a user-supplied data graph MERGED with the bundle's axioms, returning
 /// the same shared typed [`ReasoningResult`] as [`reason_all`].
 ///
@@ -351,6 +408,129 @@ mod tests {
                 .any(|w| w.individual == X),
             "x must be a contradiction witness in the merged run: {:?}",
             merged.provenance.contradiction_witnesses
+        );
+    }
+
+    // ── Program-carrying reason: the full-FOL formula layer actually evaluates ──
+
+    use gmeow_logic_compile::ir::{Formula, LogicProgram, PreservationKind, Term};
+
+    const KNOWS: &str = "http://gmeow.example/knows";
+    const TRUSTS: &str = "http://gmeow.example/trusts";
+    const ALICE: &str = "http://gmeow.example/alice";
+    const BOB: &str = "http://gmeow.example/bob";
+    const SAM: &str = "http://gmeow.example/sam";
+
+    fn fml_atom(rel: &str, args: Vec<Term>) -> Formula {
+        Formula::atom(Term::iri(rel.to_owned()).unwrap(), args).unwrap()
+    }
+
+    #[test]
+    fn reason_program_evaluates_a_horn_formula_end_to_end() {
+        // ∀x. (knows(x, alice) → trusts(x, bob)) is Horn-expressible, so it must lower to a
+        // rule that the chase fires: given knows(sam, alice), the program must DERIVE
+        // trusts(sam, bob). This is the formula layer evaluating end-to-end (not dead code).
+        let formula = Formula::Forall {
+            vars: vec!["x".into()],
+            body: Box::new(Formula::Implies(
+                Box::new(fml_atom(
+                    KNOWS,
+                    vec![
+                        Term::var("x").unwrap(),
+                        Term::iri(ALICE.to_owned()).unwrap(),
+                    ],
+                )),
+                Box::new(fml_atom(
+                    TRUSTS,
+                    vec![Term::var("x").unwrap(), Term::iri(BOB.to_owned()).unwrap()],
+                )),
+            )),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![formula]);
+        let edb = dataset(vec![quad(SAM, KNOWS, ALICE)]);
+
+        let result = reason_program(&program, edb.as_ref()).expect("reason_program ok");
+
+        // Objects decode to their N3 surface (`<iri>`); subjects/predicates are bare IRIs.
+        let bob_obj = format!("<{BOB}>");
+        assert!(
+            result
+                .inferred()
+                .iter()
+                .any(|ax| { ax.subject == SAM && ax.predicate == TRUSTS && ax.object == bob_obj }),
+            "the Horn formula must derive trusts(sam, bob); closure: {:?}",
+            result
+                .inferred()
+                .iter()
+                .map(|a| (&a.subject, &a.predicate, &a.object))
+                .collect::<Vec<_>>()
+        );
+        // The Horn formula lowers exactly — it adds no formula residue to the claim.
+        assert!(
+            !result
+                .preservation
+                .unsupported_constructs
+                .iter()
+                .any(|c| c.contains("formula") || c.contains("disjunct")),
+            "a fully-evaluable Horn formula adds no formula residue: {:?}",
+            result.preservation.unsupported_constructs
+        );
+    }
+
+    #[test]
+    fn reason_program_discloses_non_horn_formula_residue() {
+        // ∀x. (knows(x, alice) → (trusts(x, bob) ∨ trusts(x, sam))) has a disjunctive head:
+        // it does NOT lower to a rule, so it must be disclosed as residue in the result's
+        // preservation claim — flagged, never silently evaluated as one disjunct.
+        let formula = Formula::Forall {
+            vars: vec!["x".into()],
+            body: Box::new(Formula::Implies(
+                Box::new(fml_atom(
+                    KNOWS,
+                    vec![
+                        Term::var("x").unwrap(),
+                        Term::iri(ALICE.to_owned()).unwrap(),
+                    ],
+                )),
+                Box::new(Formula::Or(vec![
+                    fml_atom(
+                        TRUSTS,
+                        vec![Term::var("x").unwrap(), Term::iri(BOB.to_owned()).unwrap()],
+                    ),
+                    fml_atom(
+                        TRUSTS,
+                        vec![Term::var("x").unwrap(), Term::iri(SAM.to_owned()).unwrap()],
+                    ),
+                ])),
+            )),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![formula]);
+        let edb = dataset(vec![quad(SAM, KNOWS, ALICE)]);
+
+        let result = reason_program(&program, edb.as_ref()).expect("reason_program ok");
+
+        // Eval-path honesty: the disjunctive formula is disclosed (SoundUnder), and it does
+        // NOT silently materialize either disjunct.
+        assert!(
+            result
+                .preservation
+                .polarities
+                .contains(&PreservationKind::SoundUnder),
+            "a non-evaluable formula must drop the claim to SoundUnder: {:?}",
+            result.preservation.polarities
+        );
+        assert!(
+            !result.preservation.unsupported_constructs.is_empty(),
+            "the disjunctive residue must be disclosed, not silently absent"
+        );
+        assert!(
+            !result.inferred().iter().any(|ax| ax.predicate == TRUSTS),
+            "neither disjunct may be silently materialized: {:?}",
+            result
+                .inferred()
+                .iter()
+                .map(|a| (&a.subject, &a.predicate, &a.object))
+                .collect::<Vec<_>>()
         );
     }
 }

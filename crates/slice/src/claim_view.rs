@@ -6,7 +6,7 @@
 //!
 //! Unlike the standpoint projections ([`crate::standpoint_emit`], which re-express
 //! GMEOW in *external* peer models) and the per-profile SPARQL projections
-//! ([`crate::sparql_emit`]), this is an INTERNAL gmeow→gmeow view: it materialises
+//! (the correspondence lowerings), this is an INTERNAL gmeow→gmeow view: it materialises
 //! the legacy `gmeow:Observation` / `gmeow:StandpointClaim` query surface FROM the
 //! canonical `gmeow:ClaimToken` layer, so generic "all observations about X"
 //! consumers keep working after the proposition / claim-token / attitude /
@@ -17,7 +17,7 @@
 //! (`gmeow:wasAssociatedWith`). The output is byte-identical to the committed
 //! `observation-claim-view.rq` (the parity gate).
 
-use crate::sparql_emit::{prefix_block, GENERATED_BANNER};
+use crate::mapping_support::{prefix_block, GENERATED_BANNER};
 
 /// The committed file name of the internal observation union view.
 pub const CLAIM_VIEW_FILE: &str = "observation-claim-view.rq";

@@ -34,6 +34,20 @@ relations are:
   ψ over the remaining suffix. Serial conjunction is a program combinator, typed apart from
   ordinary conjunction (which holds *at* a state) — see the formula-versus-program operator typing
   in [`LOGIC-IR.md`](LOGIC-IR.md);
+- **guarded choice** — *if guard then φ else ψ*: selects between two sub-programs based on
+  whether a situation type (`logic:guardSituation`) holds at the current state. Typed apart from
+  a conditional formula connective (which holds at a state) — `logic:Choice` is the structural
+  operator, dispatching control rather than evaluating truth;
+- **concurrent composition** — *φ ∥ ψ*: two sub-programs advance together with their elementary
+  steps interleaved over a shared path. The composition operator (`logic:ConcurrentComposition`)
+  is DISTINCT from the three separately-declared correctness concerns (serializability criterion,
+  isolation level, and concurrency-control protocol) — see §Concurrent transactions;
+- **iteration** — *while cond do body*: repeats a body sub-program while a loop condition holds.
+  A loop has a body (`logic:iterationBody`) and a condition (`logic:iterationCondition`), not two
+  co-equal operands, so dedicated properties replace the binary left/right pair;
+- **fallback** — *try φ else ψ*: attempts the primary sub-program; when the primary's executional
+  entailment does not hold, executes the alternate. Typed apart from action-level
+  `logic:compensation`, which undoes an action that *ran* and reached an outcome;
 - **executional entailment** — a transaction *succeeds* when there exists a path from the start
   state along which the program holds; failure leaves the start state untouched.
 

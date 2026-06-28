@@ -6,6 +6,11 @@ retags literals for public-facing outputs.
 
 Principle 4 (one canonical source) + Principle 9 (co-equal, non-privileged facets):
 canonical authored literals use internal tags; public projections emit BCP-47.
+
+The policy is owned by the Rust ``gmeow_validate`` crate; this module is a thin UI
+wrapper that marshals rdflib graphs and literals to and from the native authority
+and reconstructs rdflib objects from its verdicts. No selection, filtering, or
+retagging decision is made in Python.
 """
 
 from __future__ import annotations
@@ -15,7 +20,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 import gmeow_validate
-from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib import Graph, Literal, URIRef
 
 from gmeow_tools.config import NAMESPACE
 
@@ -26,9 +31,9 @@ GM = URIRef(NAMESPACE)
 def _annotation_predicates() -> frozenset[URIRef]:
     """Standard annotation predicates whose literals are subject to the policy.
 
-    The registry is owned by the Rust validate crate (#630); this reads it back
-    through the native ``gmeow_validate.annotation_predicates`` surface so there is
-    a single source of truth instead of a parallel Python constant.
+    The registry is owned by the Rust validate crate; this reads it back through
+    the native ``gmeow_validate.annotation_predicates`` surface so there is a
+    single source of truth instead of a parallel Python constant.
     """
     return frozenset(URIRef(p) for p in gmeow_validate.annotation_predicates())
 
@@ -36,101 +41,34 @@ def _annotation_predicates() -> frozenset[URIRef]:
 def is_internal_tag(lang: str | None) -> bool:
     """Return whether *lang* is a GMEOW internal private-use tag.
 
-    Delegates to the Rust authority in ``gmeow_validate`` (#819 Task 10).
+    Delegates to the Rust authority in ``gmeow_validate``.
     """
     if lang is None:
         return False
     return gmeow_validate.is_internal_tag(lang)
 
 
-def _language_class_iri() -> URIRef:
-    return URIRef(NAMESPACE + "Language")
+def _graph_nt(graph: Graph) -> bytes:
+    """Serialise *graph* to N-Triples bytes for the native policy boundary."""
+    return graph.serialize(format="ntriples").encode()
 
 
-def load_tag_map(
-    graph: Graph, *, classes: list[URIRef] | None = None
-) -> dict[str, str]:
+def load_tag_map(graph: Graph) -> dict[str, str]:
     """Build a mapping from internal language tag to BCP-47 tag.
 
     Scans ``gmeow:Language`` and its explicit subclasses
-    (``gmeow:FormalLanguage``, ``gmeow:ProgrammingLanguage``) in *graph* by
-    default. Because rdflib does not perform OWL inference, each concrete class is
-    queried directly and a seen-set deduplicates shared individuals.
-    Returns ``{internal_tag: bcp47_tag}``.
-
-    When the default ``classes`` are used (all three language classes), delegates
-    to the Rust authority ``gmeow_validate.load_tag_map`` via N-Triples
-    serialization (#819 Task 10).  When an explicit ``classes`` list is provided
-    (e.g. the inverse-map path) the rdflib scan path is used, because the Rust
-    function always scans all three classes.
+    (``gmeow:FormalLanguage``, ``gmeow:ProgrammingLanguage``) for
+    ``gmeow:languageTag`` / ``gmeow:bcp47Tag`` pairs. The scan and validation are
+    performed by the Rust authority ``gmeow_validate.load_tag_map`` via N-Triples
+    serialization; Python only marshals the graph.
 
     Args:
         graph: An rdflib graph containing GMEOW language individuals.
-        classes: Restrict the scan to these language classes (default: all
-            three). The inverse map uses natural ``gmeow:Language`` only — a
-            programming language's code is tagged ``en`` too, so including them
-            would make the ``en`` reverse ambiguous.
 
     Returns:
         A dict mapping internal tag strings to BCP-47 tag strings.
     """
-    if classes is None:
-        # Fast path: delegate to Rust (serialise once, parse once).
-        nt_bytes = graph.serialize(format="ntriples").encode()
-        return gmeow_validate.load_tag_map(nt_bytes, "ntriples")
-
-    # Restricted-class path (used by load_inverse_tag_map).
-    return _load_tag_map_python(graph, classes)
-
-
-def _load_tag_map_python(graph: Graph, classes: list[URIRef]) -> dict[str, str]:
-    """Pure-Python restricted-class tag-map scan (used by the inverse-map path).
-
-    The Rust function always scans all three language classes; when a subset is
-    needed (e.g. ``gmeow:Language`` only for the inverse map), this path is used.
-    """
-    tag_prop = URIRef(NAMESPACE + "languageTag")
-    bcp_prop = URIRef(NAMESPACE + "bcp47Tag")
-
-    def _single_value(subject: URIRef, predicate: URIRef) -> str:
-        values = sorted(
-            {
-                str(obj)
-                for obj in graph.objects(subject, predicate)
-                if isinstance(obj, Literal)
-            }
-        )
-        if not values:
-            raise _MissingTagError(f"{subject} has no value for {predicate}")
-        if len(values) > 1:
-            raise _AmbiguousTagError(
-                f"{subject} has ambiguous values for {predicate}: {values}. "
-                "Tag-map projection requires a single canonical value."
-            )
-        return values[0]
-
-    tag_map: dict[str, str] = {}
-    seen: set[URIRef] = set()
-    for cls in classes:
-        for lang in graph.subjects(RDF.type, cls):
-            if not isinstance(lang, URIRef) or lang in seen:
-                continue
-            seen.add(lang)
-            try:
-                int_val = _single_value(lang, tag_prop)
-                bcp_val = _single_value(lang, bcp_prop)
-            except _MissingTagError:
-                continue
-            tag_map[int_val] = bcp_val
-    return tag_map
-
-
-class _MissingTagError(ValueError):
-    """Raised when a required language tag property is absent."""
-
-
-class _AmbiguousTagError(ValueError):
-    """Raised when a language tag property has more than one distinct value."""
+    return gmeow_validate.load_tag_map(_graph_nt(graph), "ntriples")
 
 
 @lru_cache(maxsize=1)
@@ -141,42 +79,16 @@ def _default_tag_map() -> dict[str, str]:
     return load_tag_map(load_merged_graph())
 
 
-def retag_literal(lit: Literal, tag_map: dict[str, str] | None = None) -> Literal:
-    """Retag a literal from internal to BCP-47 when a mapping exists.
-
-    If ``lit.language`` is an internal tag and *tag_map* contains a mapping,
-    returns a new ``Literal`` with the BCP-47 tag and the same lexical value.
-    Otherwise returns *lit* unchanged.
-
-    Args:
-        lit: The source literal.
-        tag_map: Optional pre-loaded tag map. If omitted, loads from the merged
-            ontology graph.
-
-    Returns:
-        A retagged literal or the original.
-    """
-    if tag_map is None:
-        tag_map = _default_tag_map()
-    if not lit.language or not is_internal_tag(lit.language):
-        return lit
-    bcp = tag_map.get(lit.language)
-    if bcp is None:
-        return lit
-    return Literal(str(lit), lang=bcp)
-
-
 def rank_language(lang: str | None) -> tuple[int, str]:
     """The shared language-preference sort key (term-representation agnostic).
 
-    Deterministic across multilingual labels (#287: the seed languages
-    introduced fr/zh labels): the artifact carrier language
-    (``x-gmeow-english``) wins, then the remaining tags in lexicographic
-    order — never graph order. One function, used by BOTH the rdflib path
-    (:func:`public_literal`) and the GTS fold view (#267 narrow waist), so
-    their selections agree by construction.
+    Deterministic across multilingual labels: the artifact carrier language
+    (``x-gmeow-english``) wins, then the remaining tags in lexicographic order —
+    never graph order. One function, used by BOTH the rdflib path
+    (:func:`public_literal`) and the GTS fold view (the narrow waist), so their
+    selections agree by construction.
 
-    Delegates to the Rust authority in ``gmeow_validate`` (#819 Task 10).
+    Delegates to the Rust authority in ``gmeow_validate``.
     """
     return gmeow_validate.rank_language(lang or "")
 
@@ -197,7 +109,9 @@ def public_literal(
     3. No literal → ``None``.
 
     This is deterministic: internal-mapped literals win because they are the
-    canonical GMEOW-authored values; everything else is a fallback.
+    canonical GMEOW-authored values; everything else is a fallback. The ranking
+    and internal-tag tests bottom out in the Rust authority
+    (``rank_language`` / ``is_internal_tag``).
 
     Args:
         graph: The data graph.
@@ -291,25 +205,98 @@ def check_annotation_literal(
     )
 
 
+_PROBE_SUBJECT = "https://blackcatinformatics.ca/gmeow/_lang-probe"
+_PROBE_PREDICATE = "https://blackcatinformatics.ca/gmeow/_lang-probe-of"
+
+
+def _lang_remap(
+    languages: Iterable[str | None],
+    native_pass: object,
+    *args: object,
+) -> dict[str, str]:
+    """Ask the Rust authority for the per-language retag of a literal-only pass.
+
+    ``retag_graph`` / ``retag_graph_to_internal`` rewrite a literal's language tag
+    as a function of that tag alone (subject/predicate/lexical are untouched). To
+    keep the decision in Rust while mutating literals in place — leaving every
+    blank node and structural triple untouched — the distinct languages are batched
+    into a SINGLE probe graph (one triple per distinct language, with a
+    position-indexed subject IRI so subjects are unambiguous regardless of tag
+    content), the native pass is run ONCE, and the results are read back as
+    ``{old_lang: new_lang}`` for the tags the authority actually changed.
+
+    Position-index subjects (``<_PROBE_SUBJECT/0>``, ``<_PROBE_SUBJECT/1>``, …) are
+    used rather than per-tag IRIs so that BCP-47 tags containing characters that
+    are invalid or percent-encoded in IRIs (e.g. ``x-gmeow-english``, ``zh-Hans``)
+    never produce ambiguous or invalid subject IRIs.
+    """
+    distinct = sorted({lang for lang in languages if lang})
+    if not distinct:
+        return {}
+
+    # Build a single N-Triples payload with one probe triple per distinct tag.
+    # Subject IRI encodes the position index so it is unambiguous after the pass.
+    lines: list[str] = []
+    for i, old in enumerate(distinct):
+        subject_iri = f"{_PROBE_SUBJECT}/{i}"
+        lines.append(f'<{subject_iri}> <{_PROBE_PREDICATE}> "probe"@{old} .\n')
+    payload = "".join(lines)
+
+    out = Graph()
+    out.parse(
+        data=native_pass(payload.encode(), "ntriples", *args),  # type: ignore[operator]
+        format="ntriples",
+    )
+
+    probe_p = URIRef(_PROBE_PREDICATE)
+    remap: dict[str, str] = {}
+    for i, old in enumerate(distinct):
+        probe_s = URIRef(f"{_PROBE_SUBJECT}/{i}")
+        for obj in out.objects(probe_s, probe_p):
+            if isinstance(obj, Literal) and obj.language and obj.language != old:
+                remap[old] = obj.language
+    return remap
+
+
+def _apply_remap(graph: Graph, remap: dict[str, str]) -> Graph:
+    """Swap every language-tagged literal in *graph* whose tag is in *remap*.
+
+    Only literal objects are touched; subjects (including blank nodes), predicates,
+    and lexical forms are left exactly as they are, so no blank node is relabeled.
+    """
+    if not remap:
+        return graph
+    swaps = []
+    for s_, p_, o_ in graph:
+        if isinstance(o_, Literal) and o_.language and o_.language in remap:
+            new = Literal(str(o_), lang=remap[o_.language])
+            if new != o_:
+                swaps.append((s_, p_, o_, new))
+    for s_, p_, old, new in swaps:
+        graph.remove((s_, p_, old))
+        graph.add((s_, p_, new))
+    return graph
+
+
 def retag_graph(graph: Graph, *, tag_map: dict[str, str] | None = None) -> Graph:
     """Retag every internal-tagged literal in *graph* to its public BCP-47 form.
 
-    The projection-boundary pass (#287): generated consumer artifacts carry
-    standard tags; internal ``x-gmeow-*`` tags exist only in canonical
-    sources (and the statements compilation, which is the canonical form).
-    Mutates and returns *graph*.
+    The projection-boundary pass: generated consumer artifacts carry standard
+    tags; internal ``x-gmeow-*`` tags exist only in canonical sources (and the
+    statements compilation, which is the canonical form). Each per-language retag
+    decision is the Rust authority's (``gmeow_validate.retag_graph``); Python only
+    applies the resulting ``{old_lang: new_lang}`` swap in place, touching literal
+    objects only so blank nodes and structure are preserved. Mutates and returns
+    *graph*.
     """
     if tag_map is None:
         tag_map = _default_tag_map()
-    swaps = []
-    for s_, p_, o_ in graph:
-        if isinstance(o_, Literal) and o_.language and is_internal_tag(o_.language):
-            swaps.append((s_, p_, o_, retag_literal(o_, tag_map=tag_map)))
-    for s_, p_, old, new in swaps:
-        if new != old:
-            graph.remove((s_, p_, old))
-            graph.add((s_, p_, new))
-    return graph
+    remap = _lang_remap(
+        (o.language for _s, _p, o in graph if isinstance(o, Literal)),
+        gmeow_validate.retag_graph,
+        tag_map,
+    )
+    return _apply_remap(graph, remap)
 
 
 def load_inverse_tag_map(graph: Graph) -> dict[str, str]:
@@ -320,13 +307,10 @@ def load_inverse_tag_map(graph: Graph) -> dict[str, str]:
     the ``en`` reverse ambiguous — but a consumer *prose* ``@en`` literal is
     natural English. A BCP-47 tag that several natural languages still share is
     dropped rather than guessed (the no-fabrication discipline). Keys are
-    lowercased to match rdflib's normalized ``Literal.language``.
+    lowercased to match rdflib's normalized ``Literal.language``. Delegates to the
+    Rust authority ``gmeow_validate.load_inverse_tag_map``.
     """
-    natural = load_tag_map(graph, classes=[_language_class_iri()])
-    by_bcp: dict[str, set[str]] = {}
-    for internal, bcp in natural.items():
-        by_bcp.setdefault(bcp.lower(), set()).add(internal)
-    return {bcp: next(iter(ints)) for bcp, ints in by_bcp.items() if len(ints) == 1}
+    return gmeow_validate.load_inverse_tag_map(_graph_nt(graph), "ntriples")
 
 
 @lru_cache(maxsize=1)
@@ -343,29 +327,21 @@ def retag_graph_to_internal(
     """Retag every public BCP-47 literal to its canonical ``x-gmeow-*`` form.
 
     The **inverse** of :func:`retag_graph` — the up-projection boundary pass
-    (#451 invertible-FnO, ``fnComposeBcp`` read backwards): a consumer source
+    (the invertible-FnO ``fnComposeBcp`` read backwards): a consumer source
     carries public tags (``en``/``fr``/``zh``), but the pure-GMEOW intermediate
     is canonical, so an ``@en`` literal becomes ``@x-gmeow-english``. A public tag
-    with no internal counterpart (no GMEOW language individual) is left as-is.
+    with no internal counterpart (no GMEOW language individual) is left as-is. The
+    retag decision is the Rust authority's; Python only marshals and reparses.
     Mutates and returns *graph*.
     """
     if tag_map is None:
         tag_map = _default_inverse_tag_map()
-    swaps = []
-    for s_, p_, o_ in graph:
-        if (
-            isinstance(o_, Literal)
-            and o_.language
-            and not is_internal_tag(o_.language)
-            and o_.language.lower() in tag_map
-        ):
-            new = Literal(str(o_), lang=tag_map[o_.language.lower()])
-            swaps.append((s_, p_, o_, new))
-    for s_, p_, old, new in swaps:
-        if new != old:
-            graph.remove((s_, p_, old))
-            graph.add((s_, p_, new))
-    return graph
+    remap = _lang_remap(
+        (o.language for _s, _p, o in graph if isinstance(o, Literal)),
+        gmeow_validate.retag_graph_to_internal,
+        tag_map,
+    )
+    return _apply_remap(graph, remap)
 
 
 class UnknownLanguageError(ValueError):
@@ -417,63 +393,22 @@ def resolve_lang_input(
     * Comma-separated lists preserve order and are de-duplicated.
     * Unknown tags raise :class:`UnknownLanguageError` with the available list.
 
+    The resolution is the Rust authority's (``gmeow_validate.resolve_lang_input``);
+    Python only reconstructs the :class:`LangSelector` and raises on the reported
+    unknown tag.
+
     Args:
         raw: The raw language request, e.g. ``"fr,en"`` or ``None``.
         tag_map: Mapping from internal ``x-gmeow-*`` tags to public BCP-47.
         available: Optional set of allowed public BCP-47 tags. When omitted,
             the values of *tag_map* are used (the full mapped catalog).
     """
-    if available is None:
-        available_set = frozenset(v.lower() for v in tag_map.values())
-    else:
-        available_set = frozenset(a.lower() for a in available)
-    if not raw or not raw.strip():
-        return LangSelector(requested=("en",), available=available_set)
-
-    tokens = [token.strip() for token in raw.split(",") if token.strip()]
-    resolved: list[str] = []
-    seen: set[str] = set()
-    for token in tokens:
-        if is_internal_tag(token):
-            bcp = tag_map.get(token)
-            if bcp is None:
-                raise UnknownLanguageError(
-                    token, sorted(available_set, key=lambda t: (t != "en", t))
-                )
-            normalized = bcp.lower()
-        else:
-            normalized = token.lower()
-        if normalized not in seen:
-            if normalized not in available_set:
-                raise UnknownLanguageError(
-                    token, sorted(available_set, key=lambda t: (t != "en", t))
-                )
-            seen.add(normalized)
-            resolved.append(normalized)
-
-    if not resolved:
-        return LangSelector(requested=("en",), available=available_set)
-    return LangSelector(requested=tuple(resolved), available=available_set)
-
-
-def _bcp47_for_literal(lit: Literal, tag_map: dict[str, str]) -> str | None:
-    """Return the public BCP-47 tag for a literal, if any."""
-    lang = lit.language
-    if not lang:
-        return None
-    if is_internal_tag(lang):
-        return tag_map.get(lang, lang)
-    return lang
-
-
-def _retagged(lit: Literal, tag_map: dict[str, str]) -> Literal:
-    """Return a BCP-47-retagged copy of *lit* if it carries an internal tag."""
-    if not lit.language or not is_internal_tag(lit.language):
-        return lit
-    bcp = tag_map.get(lit.language)
-    if bcp is None:
-        return lit
-    return Literal(str(lit), lang=bcp)
+    requested, avail, unknown = gmeow_validate.resolve_lang_input(
+        raw, tag_map, list(available) if available is not None else None
+    )
+    if unknown is not None:
+        raise UnknownLanguageError(unknown, avail)
+    return LangSelector(requested=tuple(requested), available=frozenset(avail))
 
 
 def select_literal(
@@ -486,7 +421,11 @@ def select_literal(
 
     Returns ``(literal, is_fallback)``. The literal is retagged to its public
     BCP-47 form. Requested languages are tried in order; if none match, the
-    English carrier language is returned as a fallback.
+    English carrier language is returned as a fallback. The selection — index,
+    retag tag, and fallback flag — is the Rust authority's
+    (``gmeow_validate.select_literal``); Python only reconstructs the rdflib
+    literal, preserving the original object (and its datatype) when no retag
+    applies.
     """
     if tag_map is None:
         tag_map = _default_tag_map()
@@ -495,39 +434,14 @@ def select_literal(
     if not candidates:
         return None, False
 
-    # Build public-tag index. Within each public tag, prefer internal-tagged
-    # canonical literals (the carrier language wins) over external-tagged or
-    # untagged co-existing values — same discipline as public_literal.
-    by_bcp: dict[str, list[tuple[Literal, str]]] = {}
-    for lit in candidates:
-        bcp = _bcp47_for_literal(lit, tag_map)
-        retagged = _retagged(lit, tag_map)
-        orig_lang = lit.language or ""
-        bucket = bcp.lower() if bcp is not None else ""
-        by_bcp.setdefault(bucket, []).append((retagged, orig_lang))
-    for key in by_bcp:
-        by_bcp[key].sort(key=lambda item: (rank_language(item[1]), str(item[0])))
-
-    for req in selector.requested:
-        if req in by_bcp:
-            return by_bcp[req][0][0], False
-
-    # Fallback to English, then the deterministic first tagged literal, then
-    # any untagged literal.
-    if "en" in by_bcp:
-        return by_bcp["en"][0][0], True
-
-    tagged = sorted(
-        (bcp, literal_lists[0]) for bcp, literal_lists in by_bcp.items() if bcp
-    )
-    if tagged:
-        # Use the same rank_language ordering as public_literal for stability.
-        best = min(tagged, key=lambda item: rank_language(item[0]))
-        return best[1][0], True
-
-    if "" in by_bcp:
-        return by_bcp[""][0][0], True
-    return None, False
+    pairs = [(str(lit), lit.language) for lit in candidates]
+    res = gmeow_validate.select_literal(pairs, list(selector.requested), tag_map)
+    if res is None:
+        return None, False
+    index, retag, is_fallback = res
+    lit = candidates[index]
+    out = Literal(str(lit), lang=retag) if retag else lit
+    return out, is_fallback
 
 
 def filter_literals(
@@ -541,7 +455,9 @@ def filter_literals(
     Each result is ``(retagged_literal, is_fallback)``. If no requested language
     is present, the English carrier-language literal is returned with
     ``is_fallback=True``. If English is also absent, the deterministic first
-    tagged literal is returned as fallback.
+    tagged literal is returned as fallback. The selection is the Rust authority's
+    (``gmeow_validate.filter_literals``); Python only reconstructs the rdflib
+    literals, preserving the original object when no retag applies.
     """
     if tag_map is None:
         tag_map = _default_tag_map()
@@ -550,38 +466,15 @@ def filter_literals(
     if not candidates:
         return []
 
-    by_bcp: dict[str, list[tuple[Literal, str]]] = {}
-    for lit in candidates:
-        bcp = _bcp47_for_literal(lit, tag_map)
-        retagged = _retagged(lit, tag_map)
-        orig_lang = lit.language or ""
-        bucket = bcp.lower() if bcp is not None else ""
-        by_bcp.setdefault(bucket, []).append((retagged, orig_lang))
-    for key in by_bcp:
-        # Internal-tagged canonical literals sort first; within that, lexical
-        # order keeps multi-valued advisories deterministic.
-        by_bcp[key].sort(key=lambda item: (rank_language(item[1]), str(item[0])))
-
+    pairs = [(str(lit), lit.language) for lit in candidates]
     results: list[tuple[Literal, bool]] = []
-    for req in selector.requested:
-        for lit, _orig in by_bcp.get(req, []):
-            results.append((lit, False))
-
-    if results:
-        return results
-
-    # Fallback chain.
-    if "en" in by_bcp:
-        return [(by_bcp["en"][0][0], True)]
-    tagged = sorted(
-        (bcp, literal_lists[0]) for bcp, literal_lists in by_bcp.items() if bcp
-    )
-    if tagged:
-        best = min(tagged, key=lambda item: rank_language(item[0]))
-        return [(best[1][0], True)]
-    if "" in by_bcp:
-        return [(by_bcp[""][0][0], True)]
-    return []
+    for index, retag, is_fallback in gmeow_validate.filter_literals(
+        pairs, list(selector.requested), tag_map
+    ):
+        lit = candidates[index]
+        out = Literal(str(lit), lang=retag) if retag else lit
+        results.append((out, is_fallback))
+    return results
 
 
 def filter_graph(
@@ -596,8 +489,14 @@ def filter_graph(
     For every ``(s, p)`` where *p* is in *predicates* and the objects include
     language-tagged literals, the objects are replaced by the literals selected
     by *selector* (or the English fallback). Non-language objects and triples
-    whose predicate is not in *predicates* are left untouched. Mutates and
-    returns *graph*.
+    whose predicate is not in *predicates* are left untouched. Both IRI and
+    blank-node subjects are in scope.
+
+    Every keep/drop/retag decision is fully delegated to the Rust authority via
+    ``gmeow_validate.filter_literals``. Python only marshals literal descriptors
+    per ``(subject, predicate)`` group, applies the returned verdicts in place on
+    the original graph, and never makes an independent policy decision. Mutates
+    and returns *graph*.
     """
     if tag_map is None:
         tag_map = _default_tag_map()
@@ -605,29 +504,36 @@ def filter_graph(
         set(predicates) if predicates is not None else _annotation_predicates()
     )
 
-    # Group language-tagged objects by (s, p).
-    grouped: dict[tuple[URIRef, URIRef], list[Literal]] = {}
-    for s_, p_, o_ in graph:
-        if (
-            isinstance(s_, URIRef)
-            and isinstance(p_, URIRef)
-            and p_ in target_preds
-            and isinstance(o_, Literal)
-            and o_.language
-        ):
-            grouped.setdefault((s_, p_), []).append(o_)
-
-    for (s_, p_), literals in grouped.items():
-        selected = filter_literals(literals, selector, tag_map=tag_map)
-        if not selected:
-            continue
-        # Only mutate if the chosen set differs from the current set.
-        current = set(literals)
-        chosen = {lit for lit, _fallback in selected}
-        if chosen == current:
-            continue
-        for old in current:
-            graph.remove((s_, p_, old))
-        for lit in sorted(chosen, key=lambda lit: str(lit)):
-            graph.add((s_, p_, lit))
+    for p_ in target_preds:
+        # Collect all subjects (IRI or blank node) that have language-tagged
+        # literal objects on this predicate.
+        subjects = {
+            s_
+            for s_, _p, o_ in graph.triples((None, p_, None))
+            if isinstance(o_, Literal) and o_.language
+        }
+        for s_ in subjects:
+            # Materialize the list BEFORE building pairs so indices are stable.
+            current_list = [
+                o_
+                for o_ in graph.objects(s_, p_)
+                if isinstance(o_, Literal) and o_.language
+            ]
+            if not current_list:
+                continue
+            pairs = [(str(lit), lit.language) for lit in current_list]
+            chosen: set[Literal] = set()
+            for index, retag, _is_fallback in gmeow_validate.filter_literals(
+                pairs, list(selector.requested), tag_map
+            ):
+                lit = current_list[index]
+                out = Literal(str(lit), lang=retag) if retag else lit
+                chosen.add(out)
+            current = set(current_list)
+            if current == chosen:
+                continue
+            for old in current - chosen:
+                graph.remove((s_, p_, old))
+            for new in sorted(chosen - current, key=str):
+                graph.add((s_, p_, new))
     return graph
