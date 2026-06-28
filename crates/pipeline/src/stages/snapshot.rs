@@ -966,23 +966,20 @@ impl Stage for SnapshotStage {
                 rep: REP_SHACL_FINDINGS.to_string(),
             },
         ];
-        let gts = build_snapshot(input.root, input.upstream, blobs, report_blobs)?;
-        // Parse-once-and-share (#1132 C5): parse the EMITTED bytes ONCE into both
-        // views the fold-reading leaves need, and carry them on the product so each
-        // leaf consumes the shared in-memory view instead of re-parsing `gmeow.gts`.
-        // Parsing the emitted bytes (not a pre-emit in-memory structure) is what
-        // guarantees the shared view is byte-identical to the per-leaf re-parse it
-        // replaces. The bytes still ride the byte-artifact lane (the sink writes them
-        // and a cache-restored snapshot has no views — leaves fall back to the lane).
+        // Assemble the snapshot carrier ONCE: the single native RdfDataset that is both
+        // serialized to gmeow.gts AND carried as the product's bundle. No second assembly.
+        let carrier = assemble_carrier(input.root, input.upstream)?;
+        let gts = serialize_snapshot(carrier.as_ref(), blobs, report_blobs)?;
+        // Parse-once-and-share (C5): parse the EMITTED bytes ONCE into both views the
+        // fold-reading leaves need, and carry them on the product so each leaf consumes
+        // the shared in-memory view instead of re-parsing `gmeow.gts`. (The bytes still
+        // ride the byte-artifact lane — a cache-restored snapshot has no views.)
         let views = build_snapshot_views(&gts)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(SNAPSHOT_PATH.to_string(), gts);
-        // Carry the typed Logic handle forward (#1132 C6): the snapshot product's
-        // bundle backs `graph/logic` with the SAME canonical RDF-1.2 projection it
-        // folded into gmeow.gts, and re-pins the upstream `Arc<LogicProgram>` to it —
-        // so every leaf downstream of the snapshot takes the typed handle and never
-        // re-parses the logic graph.
-        let bundle = build_snapshot_bundle(input.upstream, artifacts)?;
+        // The product's bundle IS the assembled carrier — the SAME dataset serialized to
+        // gmeow.gts — with the upstream typed handles re-pinned to it.
+        let bundle = build_snapshot_bundle(carrier, input.upstream, artifacts)?;
         Ok(StageOutput {
             product: StageProduct::from_bundle(self.id(), std::sync::Arc::new(bundle))
                 .with_snapshot_views(std::sync::Arc::new(views)),
@@ -1002,6 +999,7 @@ impl Stage for SnapshotStage {
 /// snapshot folded, so each pinned digest is a pure function of that projection alone.
 /// A missing handle or a digest mismatch HARD-fails (no-optionality, fail-closed).
 fn build_snapshot_bundle(
+    carrier: std::sync::Arc<gmeow_rdf::RdfDataset>,
     upstream: &BTreeMap<String, StageProduct>,
     artifacts: BTreeMap<String, Vec<u8>>,
 ) -> Result<gmeow_rdf::PipelineBundle<crate::bundle::PipelineHandle>, PipelineError> {
@@ -1059,18 +1057,12 @@ fn build_snapshot_bundle(
     };
     let result = result.clone();
 
-    // The producers already folded these named graphs into their carriers: compile-logic
-    // carries graph/logic + graph/relational-core + graph/correspondence, stage-reason
-    // carries graph/reasoning. The snapshot bundle's dataset is their IN-MEMORY UNION — no
-    // projection is re-derived and no graph is re-parsed (the carrier is the single
-    // internal transport; each projection was transformed once, upstream).
-    let dataset = std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&[
-        compile.bundle().dataset(),
-        reason.bundle().dataset(),
-    ]));
-
+    // The bundle's dataset IS the assembled snapshot carrier (the whole snapshot, the same
+    // value serialized to gmeow.gts) — never a second, partial assembly. The carried
+    // graph/logic + relational-core + correspondence + reasoning are already folded into
+    // it, so each typed handle re-pins to ITS graph in the carrier (digest hard-checked).
     let mut bundle =
-        crate::bundle::bundle_from_artifacts_over(dataset, artifacts, DatasetProvenance::new());
+        crate::bundle::bundle_from_artifacts_over(carrier, artifacts, DatasetProvenance::new());
     let pinned_logic = bundle.graph_digest(crate::stages::compile_logic::GRAPH_LOGIC);
     bundle
         .pin_handle(
