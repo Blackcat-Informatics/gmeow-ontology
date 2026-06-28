@@ -33,6 +33,20 @@ pub fn is_internal_tag(lang: &str) -> bool {
             .all(|c| c.is_ascii_alphanumeric() || c == '-')
 }
 
+/// Append the language-fallback presentation marker to `text`.
+///
+/// When `fallback` is true (the value was resolved via the carrier language
+/// rather than a requested one), returns ``"{text} [fallback: {fallback_lang}]"``;
+/// otherwise returns `text` unchanged. This is the presentation-side companion to
+/// the selection logic that produces the `is_fallback` flag.
+pub fn marked(text: &str, fallback: bool, fallback_lang: &str) -> String {
+    if fallback {
+        format!("{text} [fallback: {fallback_lang}]")
+    } else {
+        text.to_owned()
+    }
+}
+
 /// The shared language-preference sort key.
 ///
 /// Returns ``(0, lang.lower())`` for ``x-gmeow-english`` and
@@ -752,6 +766,13 @@ mod tests {
         assert!(!is_internal_tag("x-gmeow-")); // empty suffix
         assert!(!is_internal_tag("xx-gmeow-no")); // wrong prefix
         assert!(!is_internal_tag("x-gmeow")); // no suffix segment
+    }
+
+    #[test]
+    fn marked_appends_fallback_marker() {
+        assert_eq!(marked("Hello", false, "en"), "Hello");
+        assert_eq!(marked("Hello", true, "en"), "Hello [fallback: en]");
+        assert_eq!(marked("Bonjour", true, "fr"), "Bonjour [fallback: fr]");
     }
 
     #[test]

@@ -1,12 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# Type stub for the gmeow_validate PyO3 extension (#819 Task 10).
+# Type stub for the gmeow_validate PyO3 extension.
 #
 # Signatures transcribed verbatim from crates/validate/src/py.rs — keep in
-# lockstep with that file (the ABI source of truth).  The language-tag functions
-# (is_internal_tag, rank_language, load_tag_map) are the new additions in
-# Task 10; the rest mirrors the existing validated surface.
+# lockstep with that file (the ABI source of truth).
 
 from __future__ import annotations
 
@@ -60,10 +58,11 @@ class ValidationStore:
 
 def annotation_predicates() -> list[str]: ...
 
-# ── Language-tag policy core (#819 Task 10) ──────────────────────────────────
+# ── Language-tag policy core ─────────────────────────────────────────────────
 
 def is_internal_tag(lang: str) -> bool: ...
 def rank_language(lang: str) -> tuple[int, str]: ...
+def marked(text: str, fallback: bool, fallback_lang: str) -> str: ...
 def load_tag_map(rdf_bytes: bytes, format: str) -> dict[str, str]: ...
 def load_inverse_tag_map(rdf_bytes: bytes, format: str) -> dict[str, str]: ...
 def resolve_lang_input(
@@ -239,7 +238,7 @@ def constitution_full_report(
     root: str,
 ) -> Any: ...
 
-# ── CrossRef deposit-XML (Task 11, #819) ─────────────────────────────────────
+# ── CrossRef deposit-XML ─────────────────────────────────────────────────────
 
 def build_deposit_xml_native(
     self_description_json: str,

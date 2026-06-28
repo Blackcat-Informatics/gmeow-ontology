@@ -1118,6 +1118,16 @@ fn rank_language(lang: &str) -> (u8, String) {
     language_tags::rank_language(lang)
 }
 
+/// Append the language-fallback presentation marker to `text`.
+///
+/// Returns ``"{text} [fallback: {fallback_lang}]"`` when `fallback` is true, else
+/// `text` unchanged. Mirrors ``language_tags::marked``; the presentation-side
+/// companion to the selection logic that produces the fallback flag.
+#[pyfunction]
+fn marked(text: &str, fallback: bool, fallback_lang: &str) -> String {
+    language_tags::marked(text, fallback, fallback_lang)
+}
+
 /// Parse RDF bytes and build the ``{internal_tag: bcp47_tag}`` mapping.
 ///
 /// `rdf_bytes` is raw RDF data; `format` is a format string accepted by
@@ -1390,6 +1400,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(annotation_predicates, m)?)?;
     m.add_function(wrap_pyfunction!(is_internal_tag, m)?)?;
     m.add_function(wrap_pyfunction!(rank_language, m)?)?;
+    m.add_function(wrap_pyfunction!(marked, m)?)?;
     m.add_function(wrap_pyfunction!(load_tag_map, m)?)?;
     m.add_function(wrap_pyfunction!(load_inverse_tag_map, m)?)?;
     m.add_function(wrap_pyfunction!(resolve_lang_input, m)?)?;
