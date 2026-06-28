@@ -250,6 +250,59 @@ impl<H> PipelineBundle<H> {
         self.handles.remove(graph)
     }
 
+    /// Fold an additional named graph into the carrier and pin a typed handle to it,
+    /// preserving every already-pinned graph.
+    ///
+    /// The quads of `graph_quads` (which carry `g == graph`) union into the dataset;
+    /// the handle for `graph` is then pinned to that graph's canonical digest. This is
+    /// the carrier-accumulation primitive: a producing stage folds its named graph into
+    /// the carrier AS IT FLOWS, so the terminal step never re-folds it from a byte
+    /// artifact (the dataset is the single internal transport; the projection is
+    /// transformed once, upstream).
+    ///
+    /// Accumulation is ADDITIVE: it MUST NOT change any already-pinned graph's digest.
+    /// A violation HARD-fails with [`PipelineBundleError::HandleDigestMismatch`] for the
+    /// disturbed graph (no-optionality) — the carrier never silently rewrites a graph a
+    /// downstream handle already pinned. This is the single-assembly integrity invariant
+    /// (there is only ever one copy of each graph, so no cross-copy check is needed).
+    ///
+    /// # Errors
+    ///
+    /// [`PipelineBundleError::HandleDigestMismatch`] if folding `graph_quads` would shift
+    /// an already-pinned graph's digest.
+    pub fn accumulate_named_graph(
+        &mut self,
+        graph: impl Into<HandleKey>,
+        graph_quads: &RdfDataset,
+        payload: H,
+    ) -> Result<(), PipelineBundleError> {
+        let graph = graph.into();
+        // Record every already-pinned graph's digest to enforce the additive invariant.
+        let prior: Vec<(HandleKey, ContentDigest)> = self
+            .handles
+            .iter()
+            .map(|(k, e)| (k.clone(), e.content_digest))
+            .collect();
+        // Fold the new named graph into the single carrier dataset.
+        self.dataset = Arc::new(RdfDataset::union(&[&self.dataset, graph_quads]));
+        // Additive invariant: no previously pinned graph may have shifted.
+        for (k, pinned) in prior {
+            let actual = self.graph_digest(&k);
+            if actual != pinned {
+                return Err(PipelineBundleError::HandleDigestMismatch {
+                    graph: k,
+                    pinned,
+                    actual,
+                });
+            }
+        }
+        // Pin the new handle to its now-present backing graph.
+        let content_digest = self.graph_digest(&graph);
+        self.handles
+            .insert(graph, HandleEntry::new(payload, content_digest));
+        Ok(())
+    }
+
     /// The canonical [`ContentDigest`] of the named graph `graph` — the subgraph of
     /// the dataset whose quads carry `g == <graph>`, canonicalized to N-Quads.
     ///
@@ -435,6 +488,84 @@ mod tests {
         ));
         // The bundle is unchanged on failure.
         assert!(bundle.handle(graph).is_none());
+    }
+
+    /// A dataset with one quad in named graph `graph` (object `obj`), nothing else.
+    fn named_graph_dataset(graph: &str, obj: &str) -> Arc<RdfDataset> {
+        let mut b = RdfDatasetBuilder::new();
+        let (s, p) = (iri(&mut b, "s"), iri(&mut b, "p"));
+        let o = iri(&mut b, obj);
+        let g = b.intern_iri(graph.to_string());
+        b.push_quad(s, p, o, Some(g));
+        b.freeze().expect("valid")
+    }
+
+    #[test]
+    fn accumulate_named_graph_is_additive_and_pins() {
+        let mut bundle = empty_bundle();
+        // Pin a handle to the existing named graph first.
+        let g1 = "http://example.org/graph";
+        let d1 = bundle.graph_digest(g1);
+        bundle
+            .pin_handle(
+                g1,
+                SyntheticHandle {
+                    note: "first".to_owned(),
+                },
+                d1,
+            )
+            .expect("first pin");
+        // Accumulate a NEW disjoint named graph + handle.
+        let g2 = "http://example.org/graph2";
+        let g2_ds = named_graph_dataset(g2, "z");
+        bundle
+            .accumulate_named_graph(
+                g2,
+                &g2_ds,
+                SyntheticHandle {
+                    note: "second".to_owned(),
+                },
+            )
+            .expect("additive accumulate succeeds");
+        // The first handle's pinned digest is UNCHANGED (additive), and both are present.
+        assert_eq!(bundle.handle(g1).map(|h| h.content_digest), Some(d1));
+        assert!(bundle.handle(g2).is_some());
+        // The new graph's content actually rides the carrier now.
+        assert_ne!(
+            bundle.graph_digest(g2),
+            bundle.graph_digest("http://example.org/absent")
+        );
+    }
+
+    #[test]
+    fn accumulate_disturbing_a_pinned_graph_hard_fails() {
+        let mut bundle = empty_bundle();
+        let g1 = "http://example.org/graph";
+        let d1 = bundle.graph_digest(g1);
+        bundle
+            .pin_handle(
+                g1,
+                SyntheticHandle {
+                    note: "first".to_owned(),
+                },
+                d1,
+            )
+            .expect("first pin");
+        // Folding more quads INTO the already-pinned graph shifts its digest → HARD fail.
+        let extra = named_graph_dataset(g1, "extra");
+        let err = bundle
+            .accumulate_named_graph(
+                g1,
+                &extra,
+                SyntheticHandle {
+                    note: "x".to_owned(),
+                },
+            )
+            .expect_err("disturbing a pinned graph must hard-fail");
+        assert!(matches!(
+            err,
+            PipelineBundleError::HandleDigestMismatch { .. }
+        ));
     }
 
     #[test]
