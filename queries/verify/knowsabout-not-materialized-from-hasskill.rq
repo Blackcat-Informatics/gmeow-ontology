@@ -1,0 +1,25 @@
+# Native verify QC (#778) — the load-bearing regression guard. Removing the
+# strict gmeow:hasSkill rdfs:subPropertyOf gmeow:knowsAbout must NOT be silently
+# undone by a rule that re-materializes the same edge. The canonical source of a
+# gmeow:knowsAbout edge is a declarative-familiarity logic:CognitiveAssessment
+# (via the ladder projection) or a deeper rung; a skill is defeasible evidence
+# only and never a source under the shipped reasoning.
+#
+# This returns a row → FAILURE when an agent both has a skill in a subject AND
+# knows-about that same subject, yet nothing legitimately justifies the
+# knowing-about (no deeper rung, no backing assessment) — the signature of the
+# forbidden hasSkill → knowsAbout entailment surviving in materialized form.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?agent ?subject WHERE {
+    ?agent gmeow:hasSkill ?subject .
+    ?agent gmeow:knowsAbout ?subject .
+    FILTER NOT EXISTS { ?agent gmeow:understands ?subject }
+    FILTER NOT EXISTS { ?agent gmeow:hasMastered ?subject }
+    FILTER NOT EXISTS {
+        ?assessment logic:assessedAgent ?agent ;
+                    logic:assessmentSubject ?subject .
+    }
+}

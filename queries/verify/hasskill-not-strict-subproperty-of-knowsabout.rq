@@ -1,0 +1,13 @@
+# Native verify QC (#778) — gmeow:hasSkill is NOT a strict subproperty of
+# gmeow:knowsAbout. Skill (tacit can-do) and knowing-about (propositional) come
+# apart, so a skill is only DEFEASIBLE evidence (logic:skillEvidenceForKnowsAbout)
+# for knowing-about, never a strict rdfs:subPropertyOf entailment. If the strict
+# subproperty edge is present in the reasoned graph, this returns a row → FAILURE.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?sub WHERE {
+    VALUES ?sub { gmeow:hasSkill }
+    ?sub rdfs:subPropertyOf gmeow:knowsAbout .
+}
