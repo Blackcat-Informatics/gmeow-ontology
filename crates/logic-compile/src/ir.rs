@@ -1410,8 +1410,8 @@ fn opt_axis_key(v: Option<f64>) -> String {
 /// A `logic:Correspondence` IR node — the ninth node kind realized: an asymmetric lens
 /// (the `get`/`put` legs) wrapped in a relation/axes/laws/standpoint envelope.
 ///
-/// Identity is content-addressed: [`Correspondence::sort_key`] is the IRI and
-/// [`Correspondence::content_key`] folds every field deterministically (the `law_claims`
+/// Identity is content-addressed: the IRI is the sort key (compared directly on the
+/// `iri` field) and [`Correspondence::content_key`] folds every field deterministically (the `law_claims`
 /// are sorted and deduped at construction, so two correspondences differing only in the
 /// order their claims were supplied compare equal).  No `Eq`/`Hash` derive: the
 /// quantitative axes are `f64` (mirrors [`LogicAxiom`]).
@@ -1529,11 +1529,6 @@ impl Correspondence {
         })
     }
 
-    /// Stable sort key for canonical ordering — the correspondence IRI is unique.
-    pub fn sort_key(&self) -> String {
-        self.iri.clone()
-    }
-
     /// A deterministic full-content key for canonical equality, folding every field
     /// with explicit `name=value` framing and empty-string defaults.
     fn content_key(&self) -> String {
@@ -1635,7 +1630,7 @@ impl LogicProgram {
     /// unchanged (the correspondences segment is append-only when present).
     pub fn with_correspondences(mut self, correspondences: Vec<Correspondence>) -> Self {
         let mut correspondences = correspondences;
-        correspondences.sort_by_cached_key(Correspondence::sort_key);
+        correspondences.sort_by(|a, b| a.iri.cmp(&b.iri));
         self.correspondences = correspondences;
         self
     }
