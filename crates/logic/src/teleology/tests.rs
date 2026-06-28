@@ -973,6 +973,155 @@ fn driver_post_pass_emits_bridged_satisfied_by_edge() {
     );
 }
 
+// ── Task 5: whole-store materialize_teleology driver ────────────────────────────
+
+#[test]
+fn materialize_teleology_runs_all_families_and_is_deterministic() {
+    // A world carrying: a goal-condition (family 1+5), a plan (family 2), a deontic
+    // context + an ideal world (family 3), and a cyclic concurrent history (family 4).
+    let mut nq = path_nq(&[&["sitA"]]);
+    // Family 1: an atomic goal whose situation obtains → Satisfied/Completed → bridged.
+    nq.push_str(&goal_expr_nq(
+        "atomA",
+        "AtomicGoal",
+        &format!(
+            "<{W}#atomA> {} <{W}#sitA> <{W}> .\n",
+            l("boundSituationType")
+        ),
+    ));
+    nq.push_str(&format!(
+        "<{W}#goal1> {} <{W}#atomA> <{W}> .\n",
+        l("hasGoalCondition")
+    ));
+    // Family 2: a plan over a 2-outcome schema where every outcome reaches the goal → Strong.
+    nq.push_str(&format!(
+        "<{W}#plan1> {ty} {plan} <{W}> .\n\
+         <{W}#plan1> {ps} <{W}#schema> <{W}> .\n\
+         <{W}#plan1> {pgs} <{W}#goalSit> <{W}> .\n",
+        ty = rdf_type_tok(),
+        plan = l("Plan"),
+        ps = l("planSchema"),
+        pgs = l("planGoalSituation"),
+    ));
+    nq.push_str(&two_outcome_schema_nq(true, true, false));
+    // Family 3: a deontic context with an accessible ideal world satisfying the goal.
+    let iw = "https://blackcatinformatics.ca/gmeow/examples/w1/idealX";
+    nq.push_str(&format!(
+        "<{W}#ctx> {ty} {dc} <{W}> .\n\
+         <{W}#ctx> {pg} <{W}#goalNorm> <{W}> .\n\
+         <{W}#ctx> {pgs} <{iw}#mustHold> <{W}> .\n\
+         <{W}#ctx> {di} <{iw}> <{W}> .\n",
+        ty = rdf_type_tok(),
+        dc = l("DeonticContext"),
+        pg = l("prescribesGoal"),
+        pgs = l("prescribedGoalSituation"),
+        di = l("deonticallyIdeal"),
+    ));
+    let ideal_nq = format!(
+        "<{iw}#s0> {} <{iw}#mustHold> <{iw}> .\n",
+        l("situationObtains")
+    );
+    // Family 4: a cyclic conflict history → SerializationAnomaly finding.
+    nq.push_str(&format!(
+        "<{W}#hist> {ty} {ch} <{W}> .\n\
+         <{W}#t1> {pr} <{W}#t2> <{W}> .\n\
+         <{W}#t2> {pr} <{W}#t1> <{W}> .\n",
+        ty = rdf_type_tok(),
+        ch = l("ConcurrentHistory"),
+        pr = l("precedes"),
+    ));
+
+    let store = WorldStore::new();
+    store.load_nquads(&nq).expect("base world");
+    store.load_nquads(&ideal_nq).expect("ideal world");
+
+    let out = materialize_teleology(&store).unwrap();
+
+    // Family 1+5: a GoalEvaluation + a flat satisfiedBy edge for the satisfied goal.
+    assert!(out
+        .iter()
+        .any(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("GoalEvaluation"))));
+    assert!(out.iter().any(|q| q.predicate == gmeow(SATISFIED_BY)));
+    // Family 2: planSuccessMode = StrongPlanSuccess.
+    assert!(out.iter().any(|q| q.subject == format!("{W}#plan1")
+        && q.predicate == logic("planSuccessMode")
+        && q.object == n3(&logic("StrongPlanSuccess"))));
+    // Family 3: a deontic GoalEvaluation attributing the obligation to goalNorm, Satisfied.
+    assert!(
+        out.iter()
+            .any(|q| q.predicate == logic("evaluatesGoal")
+                && q.object == n3(&format!("{W}#goalNorm")))
+    );
+    // Family 4: a SerializationAnomaly finding (NOT a contradiction witness).
+    assert!(out
+        .iter()
+        .any(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("SerializationAnomaly"))));
+
+    // Determinism: re-running over a fresh store yields byte-identical quads + ids.
+    let store2 = WorldStore::new();
+    store2.load_nquads(&nq).expect("base world");
+    store2.load_nquads(&ideal_nq).expect("ideal world");
+    let out2 = materialize_teleology(&store2).unwrap();
+    assert_eq!(out, out2, "materialize_teleology must be deterministic");
+}
+
+#[test]
+fn materialize_teleology_deontic_no_ideal_world_is_undetermined() {
+    // A deontic context naming an ideal world that is NOT in the store → no accessible
+    // ideal world → the deontic GoalEvaluation is Undetermined, never a vacuous Satisfied.
+    let nq = format!(
+        "<{W}#ctx> {ty} {dc} <{W}> .\n\
+         <{W}#ctx> {pg} <{W}#goalNorm> <{W}> .\n\
+         <{W}#ctx> {pgs} <{W}#mustHold> <{W}> .\n\
+         <{W}#ctx> {di} <{W}#absentIdeal> <{W}> .\n",
+        ty = rdf_type_tok(),
+        dc = l("DeonticContext"),
+        pg = l("prescribesGoal"),
+        pgs = l("prescribedGoalSituation"),
+        di = l("deonticallyIdeal"),
+    );
+    let store = WorldStore::new();
+    store.load_nquads(&nq).expect("base world");
+    let out = materialize_teleology(&store).unwrap();
+    // The deontic evaluation carries goalEvaluationStatus = Undetermined.
+    let is_undetermined = out.iter().any(|q| {
+        q.predicate == logic("goalEvaluationStatus")
+            && q.object == n3(&logic("GoalEvaluationUndetermined"))
+    });
+    assert!(
+        is_undetermined,
+        "no accessible ideal world must be Undetermined: {out:?}"
+    );
+    // And it asserts NO satisfactionStatus = Satisfied (no fabricated truth value).
+    assert!(
+        !out.iter().any(|q| q.subject.contains("/eval/")
+            && q.predicate == logic("satisfactionStatus")
+            && q.object == n3(&logic("Satisfied"))),
+        "an undetermined obligation must not assert Satisfied"
+    );
+}
+
+#[test]
+fn materialize_teleology_serializable_history_emits_no_anomaly() {
+    // An acyclic history → conflict-serializable → NO SerializationAnomaly finding.
+    let nq = format!(
+        "<{W}#hist> {ty} {ch} <{W}> .\n\
+         <{W}#t1> {pr} <{W}#t2> <{W}> .\n\
+         <{W}#t2> {pr} <{W}#t3> <{W}> .\n",
+        ty = rdf_type_tok(),
+        ch = l("ConcurrentHistory"),
+        pr = l("precedes"),
+    );
+    let store = WorldStore::new();
+    store.load_nquads(&nq).expect("world");
+    let out = materialize_teleology(&store).unwrap();
+    assert!(
+        out.iter()
+            .all(|q| q.object != n3(&logic("SerializationAnomaly"))),
+        "a serializable history must emit no anomaly: {out:?}"
+    );
+}
+
 #[test]
 fn nonlinear_path_is_hard_error() {
     let nq = format!(

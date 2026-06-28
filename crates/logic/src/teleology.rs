@@ -1594,6 +1594,368 @@ pub fn evaluate_world_goals(store: &WorldStore, world: &str) -> Result<Vec<Teleo
     Ok(out)
 }
 
+// ── Whole-store materialization driver (conformance Task 5) ─────────────────────
+
+/// Local name of `rdf:type`'s object for a `logic:Plan`.
+const PLAN_CLASS: &str = "Plan";
+/// `logic:planSchema` — the action schema whose nondeterministic outcomes a plan ranges over.
+const PLAN_SCHEMA: &str = "planSchema";
+/// `logic:planGoalSituation` — the situation type that counts as the plan reaching its goal.
+const PLAN_GOAL_SITUATION: &str = "planGoalSituation";
+/// `logic:planSuccessMode` — the selector the driver emits the classified mode under.
+const PLAN_SUCCESS_MODE: &str = "planSuccessMode";
+/// `logic:realizedOutcome` — the nondeterministic outcome branch that actually occurred.
+const REALIZED_OUTCOME: &str = "realizedOutcome";
+/// `logic:selectedCompensation` — the outcome-specific compensation the driver selects for a realized outcome.
+const SELECTED_COMPENSATION: &str = "selectedCompensation";
+
+/// `rdf:type` object for a `logic:DeonticContext`.
+const DEONTIC_CONTEXT_CLASS: &str = "DeonticContext";
+/// `logic:prescribedGoalSituation` — the atomic goal situation a deontic context prescribes.
+const PRESCRIBED_GOAL_SITUATION: &str = "prescribedGoalSituation";
+/// `logic:proscribedSituation` — the situation whose obtaining positively supports the goal's negation.
+const PROSCRIBED_SITUATION: &str = "proscribedSituation";
+/// `logic:prescribesGoal` — the (gmeow:Goal) the deontic context attributes the obligation/prohibition verdict to.
+const PRESCRIBES_GOAL: &str = "prescribesGoal";
+
+/// `rdf:type` object for a `logic:ConcurrentHistory`.
+const CONCURRENT_HISTORY_CLASS: &str = "ConcurrentHistory";
+/// `logic:precedes` — a conflict (precedence) edge `from precedes to` in a concurrent history.
+const PRECEDES: &str = "precedes";
+/// `logic:serializabilityCriterion` — the criterion a serialization-anomaly finding is recorded against.
+const SERIALIZABILITY_CRITERION: &str = "serializabilityCriterion";
+/// The default conflict-serializability criterion when a history names none.
+const DEFAULT_SERIALIZABILITY_CRITERION: &str = "ConflictSerializability";
+
+/// Materialize ALL applicable teleology computations over the worlds of `store`.
+///
+/// This is the conformance runner's single teleology entry point (the analogue of
+/// [`crate::foundation::evaluate`]): given a [`WorldStore`] built from a case's
+/// `input.nq`, it runs — per world, worlds in sorted order — every teleology
+/// computation the world's facts call for and returns the union of emitted
+/// [`TeleologyQuad`]s in canonical `(graph, subject, predicate, object)` order.
+///
+/// The five families, each a pure classification over the given structure (P12):
+///
+/// 1. **Goal-expression evaluation** — every `goal logic:hasGoalCondition expr` bound
+///    to a `logic:GoalExpression`, evaluated over the world's `logic:Path`, emitted as a
+///    factored `logic:GoalEvaluation` ([`evaluate_world_goals`], which ALSO runs the
+///    satisfiedBy⟷GoalEvaluation bridge post-pass — family 5).
+/// 2. **Plan-success classification** — every `logic:Plan` (with a `logic:planSchema`
+///    and a `logic:planGoalSituation`), emitting `logic:planSuccessMode`; when the plan
+///    names a `logic:realizedOutcome`, the outcome-specific `logic:selectedCompensation`
+///    is selected from THAT branch.
+/// 3. **Deontic obligation/prohibition** — every `logic:DeonticContext` (with a
+///    `logic:prescribesGoal`, `logic:prescribedGoalSituation`, and the
+///    `logic:deonticallyIdeal` accessibility into other worlds of the same store),
+///    emitting a `logic:GoalEvaluation` whose status is `GoalEvaluationUndetermined`
+///    when no accessible ideal world exists (never a vacuous obligation).
+/// 4. **Serialization-anomaly detection** — every `logic:ConcurrentHistory` carrying
+///    `logic:precedes` conflict edges, emitting a `logic:SerializationAnomaly` finding
+///    when the precedence graph has a cycle (a finding, never a ⊥ witness).
+/// 5. **satisfiedBy⟷GoalEvaluation bridge** — run inside [`evaluate_world_goals`]'s
+///    post-pass over each world's facts (forward + reverse), keeping the flat and
+///    reified records in agreement per-vantage.
+///
+/// Determinism is the foundation contract verbatim: worlds sorted, per-world structure
+/// enumerated in content order, first-wins dedup on `(g, s, p, o)`, content-addressed
+/// provenance, canonical final sort.
+///
+/// # Errors
+///
+/// Returns `Err` (no silent skip) for any malformed structure: a non-linear path, a
+/// malformed goal expression, a plan with no outcome branch, an invalid IRI in a
+/// conflict edge, or any provenance recipe failure.
+pub fn materialize_teleology(store: &WorldStore) -> Result<Vec<TeleologyQuad>, String> {
+    let mut worlds = store.worlds();
+    worlds.sort();
+    worlds.dedup();
+
+    // Per-world fact views, read ONCE up front so the deontic family can index the ideal
+    // worlds accessible from any base world without re-reading the store.
+    let mut world_facts: BTreeMap<String, WorldFacts> = BTreeMap::new();
+    for w in &worlds {
+        world_facts.insert(w.clone(), WorldFacts::read(store, w));
+    }
+
+    let mut out: Vec<TeleologyQuad> = Vec::new();
+    for world in &worlds {
+        let facts = &world_facts[world];
+
+        // ── Family 0: echo the asserted EDB facts ────────────────────────────────
+        // Mirror the foundation evaluator: every input triple is echoed as a
+        // self-sourced asserted quad (rule = logic:assert). This is what makes the
+        // derived quads' `source_quad_ids` reifiers resolve in the explanation index
+        // (`explain_all` builds its reifier→quad map from ALL rows; a derived quad whose
+        // antecedent is an authored fact would otherwise dangle). The echo carries the
+        // object in its original N3 form so literals (degrees, recoverable flags) round
+        // trip faithfully.
+        for t in &facts.triples {
+            out.push(asserted_quad(world, t));
+        }
+
+        // ── Family 1 + 5: goal-expression evaluation + bridge post-pass ──────────
+        // `evaluate_world_goals` reads its own WorldFacts and runs the bridge; reuse it
+        // wholesale so the conformance fold matches the unit-tested driver exactly.
+        out.extend(evaluate_world_goals(store, world)?);
+
+        // ── Family 2: plan-success classification (+ outcome compensation) ───────
+        for plan in typed_subjects(facts, PLAN_CLASS) {
+            out.extend(emit_plan_success(facts, world, &plan)?);
+        }
+
+        // ── Family 3: deontic obligation / prohibition ───────────────────────────
+        for ctx in typed_subjects(facts, DEONTIC_CONTEXT_CLASS) {
+            out.extend(emit_deontic_evaluation(facts, world, &ctx, &world_facts)?);
+        }
+
+        // ── Family 4: serialization-anomaly detection ────────────────────────────
+        for history in typed_subjects(facts, CONCURRENT_HISTORY_CLASS) {
+            out.extend(emit_history_anomaly(facts, world, &history)?);
+        }
+    }
+
+    canonical_sort(&mut out);
+    // First-wins dedup on (graph, subject, predicate, object) — the foundation fold's
+    // discipline; the bridge already dedups within a world, this guards cross-family
+    // overlap (e.g. a goal evaluation a deontic family would re-emit).
+    let mut seen: HashSet<(String, String, String, String)> = HashSet::new();
+    out.retain(|q| {
+        seen.insert((
+            q.graph.clone(),
+            q.subject.clone(),
+            q.predicate.clone(),
+            q.object.clone(),
+        ))
+    });
+    Ok(out)
+}
+
+/// Echo one input `Triple` as a self-sourced asserted [`TeleologyQuad`] under the
+/// `logic:assert` sentinel rule.
+///
+/// The reifier is the content-addressed identity of the `(s, p, o)` triple via the
+/// shared [`crate::provenance::reifier_from_strings`] recipe (the same one
+/// `triple_reifier` / the explanation engine agree on), so a derived quad citing this
+/// fact's reifier resolves to this very echoed row. `derivation_id` hashes the assert
+/// rule over the fact's own reifier (depth-0, self-rooted) exactly like the foundation
+/// evaluator's asserted echo.
+fn asserted_quad(world: &str, t: &Triple) -> TeleologyQuad {
+    let reifier = crate::provenance::reifier_from_strings(&t.subject, &t.predicate, &t.object_n3);
+    let deriv = mint_derivation_id(crate::provenance::ASSERT_RULE_IRI, &[reifier.as_str()]);
+    TeleologyQuad {
+        graph: world.to_owned(),
+        subject: t.subject.clone(),
+        predicate: t.predicate.clone(),
+        object: t.object_n3.clone(),
+        rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
+        source_quad_ids: vec![reifier],
+        derivation_id: deriv,
+    }
+}
+
+/// The distinct subjects in `facts` typed `rdf:type logic:<class_local>`, sorted.
+fn typed_subjects(facts: &WorldFacts, class_local: &str) -> Vec<String> {
+    let class_iri = logic(class_local);
+    let mut subs: Vec<String> = facts
+        .triples
+        .iter()
+        .filter(|t| t.predicate == RDF_TYPE)
+        .filter(|t| t.object_iri.as_deref() == Some(class_iri.as_str()))
+        .map(|t| t.subject.clone())
+        .collect();
+    subs.sort();
+    subs.dedup();
+    subs
+}
+
+/// Classify one `logic:Plan` and emit `logic:planSuccessMode`; when the plan names a
+/// realized outcome, also emit the outcome-specific `logic:selectedCompensation`.
+fn emit_plan_success(
+    facts: &WorldFacts,
+    world: &str,
+    plan: &str,
+) -> Result<Vec<TeleologyQuad>, String> {
+    let schema = facts
+        .object(plan, &logic(PLAN_SCHEMA))
+        .ok_or_else(|| format!("logic:Plan {plan:?} has no logic:planSchema"))?
+        .to_owned();
+    let goal_situation = facts
+        .object(plan, &logic(PLAN_GOAL_SITUATION))
+        .ok_or_else(|| format!("logic:Plan {plan:?} has no logic:planGoalSituation"))?
+        .to_owned();
+    let mode = classify_plan_success(facts, &schema, &goal_situation)?;
+
+    let source = triple_reifier(plan, &logic(PLAN_SCHEMA), &schema)?;
+    let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
+    let mut out: Vec<TeleologyQuad> = Vec::new();
+    let mut push = |subject: &str, p: &str, o_n3: String| {
+        out.push(TeleologyQuad {
+            graph: world.to_owned(),
+            subject: subject.to_owned(),
+            predicate: p.to_owned(),
+            object: o_n3,
+            rule_iri: TELEOLOGY_RULE_IRI.to_owned(),
+            source_quad_ids: vec![source.clone()],
+            derivation_id: deriv.clone(),
+        });
+    };
+    // A plan whose outcome set reaches the goal under SOME mode records that mode; a
+    // plan no outcome reaches records none (PlanSuccess::None.local() == None) — the
+    // classification is honest about total failure rather than inventing a weak success.
+    if let Some(local) = mode.local() {
+        push(plan, &logic(PLAN_SUCCESS_MODE), n3(&logic(local)));
+    }
+
+    // Outcome-specific compensation: when the plan names the branch that actually
+    // occurred, select THAT outcome's compensation (not a generic schema undo).
+    if let Some(realized) = facts.object(plan, &logic(REALIZED_OUTCOME)) {
+        let realized = realized.to_owned();
+        let comp = compensation_for_outcome(facts, &realized)?;
+        let csource = triple_reifier(&realized, &logic(COMPENSATION), &comp)?;
+        let cderiv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[csource.as_str()]);
+        out.push(TeleologyQuad {
+            graph: world.to_owned(),
+            subject: plan.to_owned(),
+            predicate: logic(SELECTED_COMPENSATION),
+            object: n3(&comp),
+            rule_iri: TELEOLOGY_RULE_IRI.to_owned(),
+            source_quad_ids: vec![csource],
+            derivation_id: cderiv,
+        });
+    }
+    Ok(out)
+}
+
+/// Evaluate one `logic:DeonticContext` and emit a `logic:GoalEvaluation` over its
+/// deontically-ideal accessible worlds.
+///
+/// The verdict maps to the factored axes: an obligation that holds → `Satisfied` +
+/// `Completed`; a prohibition that holds → `Violated` + `Completed`; neither →
+/// `Unsatisfied` + `Completed`; NO accessible ideal world → `Unsatisfied` +
+/// `Undetermined` (never a vacuous obligation — the conclusiveness axis carries the
+/// "no ideal world" signal, not a fabricated truth value).
+fn emit_deontic_evaluation(
+    facts: &WorldFacts,
+    world: &str,
+    ctx: &str,
+    world_facts: &BTreeMap<String, WorldFacts>,
+) -> Result<Vec<TeleologyQuad>, String> {
+    let goal = facts
+        .object(ctx, &logic(PRESCRIBES_GOAL))
+        .ok_or_else(|| format!("logic:DeonticContext {ctx:?} has no logic:prescribesGoal"))?
+        .to_owned();
+    let goal_situation = facts
+        .object(ctx, &logic(PRESCRIBED_GOAL_SITUATION))
+        .ok_or_else(|| {
+            format!("logic:DeonticContext {ctx:?} has no logic:prescribedGoalSituation")
+        })?
+        .to_owned();
+    // A proscribed situation is optional: a context that names none can never witness
+    // ProhibitionHolds (no positive support for the negation), which is correct.
+    let proscribed = facts
+        .object(ctx, &logic(PROSCRIBED_SITUATION))
+        .unwrap_or("")
+        .to_owned();
+
+    let verdict = evaluate_deontic(facts, world, world_facts, &goal_situation, &proscribed);
+    let (sat, status) = match verdict {
+        DeonticVerdict::ObligationHolds => (Satisfaction::Satisfied, EvaluationStatus::Completed),
+        DeonticVerdict::ProhibitionHolds => (Satisfaction::Violated, EvaluationStatus::Completed),
+        DeonticVerdict::Neither => (Satisfaction::Unsatisfied, EvaluationStatus::Completed),
+        DeonticVerdict::Undetermined => (Satisfaction::Unsatisfied, EvaluationStatus::Undetermined),
+    };
+
+    // The evaluation node is content-addressed over (context, goal, world) so re-running
+    // is idempotent. The deontic verdict is judged against the BASE world under the
+    // default-of-silence vantage, exactly like a path evaluation.
+    let eval_iri = mint_deontic_eval_iri(ctx, &goal, world);
+    let source = triple_reifier(ctx, &logic(PRESCRIBES_GOAL), &goal)?;
+    let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
+    let mut out: Vec<TeleologyQuad> = Vec::new();
+    let mut push = |p: &str, o_n3: String| {
+        out.push(TeleologyQuad {
+            graph: world.to_owned(),
+            subject: eval_iri.clone(),
+            predicate: p.to_owned(),
+            object: o_n3,
+            rule_iri: TELEOLOGY_RULE_IRI.to_owned(),
+            source_quad_ids: vec![source.clone()],
+            derivation_id: deriv.clone(),
+        });
+    };
+    push(RDF_TYPE, n3(&logic("GoalEvaluation")));
+    push(&logic(EVALUATES_GOAL), n3(&goal));
+    push(&logic(EVALUATED_AGAINST), n3(world));
+    push(
+        &logic(EVALUATION_EVALUATOR),
+        n3(&gmeow(UNSPECIFIED_STANDPOINT)),
+    );
+    if let Some(local) = sat.local() {
+        push(&logic(SATISFACTION_STATUS), n3(&logic(local)));
+    }
+    push(&logic(GOAL_EVALUATION_STATUS), n3(&logic(status.local())));
+    Ok(out)
+}
+
+/// Mint a deterministic deontic-evaluation node IRI (content-addressed over context,
+/// goal, and base world), so re-running yields the same node.
+fn mint_deontic_eval_iri(ctx: &str, goal: &str, world: &str) -> String {
+    let payload = format!("deontic\n{ctx}\n{goal}\n{world}");
+    format!("{LOGIC_NS}eval/{}", crate::provenance::sha1_hex(&payload))
+}
+
+/// Detect a serialization anomaly over one `logic:ConcurrentHistory`'s `logic:precedes`
+/// conflict edges, emitting a `logic:SerializationAnomaly` finding for a cycle.
+///
+/// A serializable (acyclic) history emits nothing — there is no anomaly to record.
+fn emit_history_anomaly(
+    facts: &WorldFacts,
+    world: &str,
+    history: &str,
+) -> Result<Vec<TeleologyQuad>, String> {
+    let _ = history;
+    // The conflict edges are the world's logic:precedes facts (a single history per
+    // world in the W1 conformance scenarios), enumerated in content order.
+    let mut edges: Vec<ConflictEdge> = facts
+        .triples
+        .iter()
+        .filter(|t| t.predicate == logic(PRECEDES))
+        .filter_map(|t| {
+            t.object_iri.as_deref().map(|to| ConflictEdge {
+                from: t.subject.clone(),
+                to: to.to_owned(),
+            })
+        })
+        .collect();
+    edges.sort();
+    edges.dedup();
+
+    let criterion = facts
+        .object(history, &logic(SERIALIZABILITY_CRITERION))
+        .map_or_else(|| logic(DEFAULT_SERIALIZABILITY_CRITERION), str::to_owned);
+
+    match detect_serialization_anomaly(&edges) {
+        SerializationVerdict::Serializable => Ok(Vec::new()),
+        SerializationVerdict::Anomaly(cycle) => {
+            // The finding node is content-addressed over (history, cycle) so re-running
+            // is idempotent.
+            let finding_iri = mint_anomaly_finding_iri(history, &cycle);
+            emit_serialization_anomaly(world, &finding_iri, &cycle, &criterion, &edges)
+        }
+    }
+}
+
+/// Mint a deterministic serialization-anomaly finding IRI (content-addressed over the
+/// history and the canonical cycle), so re-running yields the same finding node.
+fn mint_anomaly_finding_iri(history: &str, cycle: &[String]) -> String {
+    let payload = format!("anomaly\n{history}\n{}", cycle.join("\n"));
+    format!(
+        "{LOGIC_NS}finding/{}",
+        crate::provenance::sha1_hex(&payload)
+    )
+}
+
 /// Mint a deterministic evaluation node IRI for the default vantage.
 fn mint_eval_iri(goal: &str, goal_expr: &str, world: &str) -> String {
     let payload = format!("{goal}\n{goal_expr}\n{world}");

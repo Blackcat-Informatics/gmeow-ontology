@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/contested-evaluations (issue #1055 W1, Task 5).
+#
+# Two vantages disagree about the same goal+situation: one authored logic:GoalEvaluation is Satisfied+Completed, the other Violated+Completed. BOTH records are retained (no global verdict); the forward bridge generates exactly ONE flat gmeow:satisfiedBy edge — for the satisfied vantage only — attributed to that vantage via gmeow:accordingTo.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
+# the projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/contested-evaluations/> .
+
+ex:GoalExpression a logic:GoalExpression .

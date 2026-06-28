@@ -71,6 +71,11 @@ pub struct Profile {
     /// Whether the case opts into the foundation-lowering chase
     /// (`"foundation_lowering": true`).
     pub foundation_lowering: bool,
+    /// Whether the case opts into the teleology-lowering materialization
+    /// (`"teleology_lowering": true`, #1055 W1). Like `foundation_lowering`, the
+    /// teleology evaluator has no budget governor and needs no nemo rules; a declared
+    /// `budget_params` is a hard failure (enforced in the runner).
+    pub teleology_lowering: bool,
     /// The foundation anti-rigidity policy (default
     /// [`DEFAULT_ANTI_RIGIDITY_POLICY`]).
     pub anti_rigidity_policy: String,
@@ -137,6 +142,11 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
     // Python `... is True` identity check — never auto-gated on stereotype presence).
     let foundation_lowering = obj.get("foundation_lowering").and_then(Value::as_bool) == Some(true);
 
+    // `teleology_lowering` opts in only on a strict boolean `true` (mirrors
+    // `foundation_lowering` — never auto-gated, never silently coerced from a truthy
+    // non-bool).
+    let teleology_lowering = obj.get("teleology_lowering").and_then(Value::as_bool) == Some(true);
+
     let anti_rigidity_policy = obj
         .get("anti_rigidity_policy")
         .and_then(Value::as_str)
@@ -161,6 +171,7 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
         semantic_profile,
         budget_params,
         foundation_lowering,
+        teleology_lowering,
         anti_rigidity_policy,
         counterfactual_profile,
         certify,
@@ -304,6 +315,7 @@ mod tests {
         assert_eq!(p.semantic_profile, DEFAULT_SEMANTIC_PROFILE);
         assert!(p.budget_params.is_none());
         assert!(!p.foundation_lowering);
+        assert!(!p.teleology_lowering);
         assert_eq!(p.anti_rigidity_policy, DEFAULT_ANTI_RIGIDITY_POLICY);
         assert!(p.counterfactual_profile.is_none());
         assert!(!p.certify);
@@ -490,6 +502,28 @@ mod tests {
                 .unwrap()
                 .foundation_lowering
         );
+    }
+
+    #[test]
+    fn teleology_lowering_requires_strict_true() {
+        assert!(
+            parse_profile("c", &json!({ "teleology_lowering": true }))
+                .unwrap()
+                .teleology_lowering
+        );
+        // A non-true value (string, 1) does NOT opt in (parallel to foundation_lowering).
+        assert!(
+            !parse_profile("c", &json!({ "teleology_lowering": "true" }))
+                .unwrap()
+                .teleology_lowering
+        );
+        assert!(
+            !parse_profile("c", &json!({ "teleology_lowering": 1 }))
+                .unwrap()
+                .teleology_lowering
+        );
+        // Absent ⇒ false.
+        assert!(!parse_profile("c", &json!({})).unwrap().teleology_lowering);
     }
 
     #[test]
