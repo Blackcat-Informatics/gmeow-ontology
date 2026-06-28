@@ -108,22 +108,32 @@ pub fn run(
     }
 
     // Tier-2 (`--deep`): opt-in native semantic pass over user data + bundle axioms.
-    // Graceful by contract — any failure folds an advisory note rather than
-    // propagating, so the complete Tier-1 result is always returned.
     if deep {
-        if let Err(e) = deep_consistency_findings(gts_bytes, data_bytes, data_format, &mut report) {
-            report.add_finding(
-                Finding::new(
-                    Severity::Note,
-                    "validate.deep.unavailable",
-                    format!("deep semantic pass skipped: {e}"),
-                )
-                .with_tool("validate"),
-            );
-        }
+        run_deep_pass(gts_bytes, data_bytes, data_format, &mut report);
     }
 
     Ok(report)
+}
+
+/// Run the opt-in Tier-2 deep pass, folding either its verdict findings or — on any
+/// failure — a single `validate.deep.unavailable` advisory note into `report`.
+///
+/// This is the graceful-degradation boundary: a Tier-2 failure NEVER propagates, so
+/// the complete Tier-1 result and its exit code are always preserved. (In the shipped
+/// consumer wheel the reasoner co-ships with the validator in one native extension,
+/// so a literally absent reasoner is not a runtime state; this branch covers
+/// reasoning parse/read/run failures, which equally satisfy the never-crash contract.)
+fn run_deep_pass(gts_bytes: &[u8], data_bytes: &[u8], data_format: &str, report: &mut Report) {
+    if let Err(e) = deep_consistency_findings(gts_bytes, data_bytes, data_format, report) {
+        report.add_finding(
+            Finding::new(
+                Severity::Note,
+                "validate.deep.unavailable",
+                format!("deep semantic pass skipped: {e}"),
+            )
+            .with_tool("validate"),
+        );
+    }
 }
 
 /// The opt-in Tier-2 semantic pass: reason over the user's data graph merged with
@@ -294,6 +304,52 @@ mod tests {
         assert!(is_json_ld("  JSON-LD  "));
         assert!(!is_json_ld("turtle"));
         assert!(!is_json_ld("application/json"));
+    }
+
+    #[test]
+    fn deep_pass_failure_folds_advisory_note_and_preserves_tier1() {
+        // Graceful degradation (AC2): when the Tier-2 pass cannot run — here the
+        // bundle bytes are unreadable, so import_gts_events fails — the pre-existing
+        // Tier-1 findings survive unchanged and exactly one validate.deep.unavailable
+        // advisory Note is folded. No panic, no error propagation.
+        let mut report = Report::new("validate");
+        report.add_finding(
+            Finding::new(
+                Severity::Error,
+                "tier1.fixture",
+                "a pre-existing Tier-1 finding",
+            )
+            .with_tool("validate"),
+        );
+
+        run_deep_pass(
+            b"not a gts bundle",
+            b"ex:a ex:b ex:c .",
+            "turtle",
+            &mut report,
+        );
+
+        let unavailable: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.code == "validate.deep.unavailable")
+            .collect();
+        assert_eq!(
+            unavailable.len(),
+            1,
+            "exactly one advisory note on a failed deep pass: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+        assert_eq!(unavailable[0].severity, Severity::Note);
+        assert!(
+            report.findings.iter().any(|f| f.code == "tier1.fixture"),
+            "the pre-existing Tier-1 finding must be preserved"
+        );
+        // No inconsistency error was fabricated from the failed pass.
+        assert!(!report
+            .findings
+            .iter()
+            .any(|f| f.code == "validate.deep.inconsistent"));
     }
 
     #[test]

@@ -178,3 +178,101 @@ fn unknown_format_hard_fails() {
         .expect_err("JSON instance is not an RDF format");
     assert!(err.contains("parse error") || err.contains("unsupported"));
 }
+
+/// An individual typed into two classes the bundled TBox declares
+/// `owl:disjointWith` (`gmeow:PhysicalObject` ⊥ `gmeow:Agent`). This is a DL
+/// entailment, NOT a SHACL shape, so Tier-1 cannot see it — only the merged
+/// `--deep` chase forces the individual into `owl:Nothing`.
+const DEEP_INCONSISTENT_TTL: &str = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://example.org/> .
+
+ex:rover a gmeow:PhysicalObject, gmeow:Agent .
+"#;
+
+fn has_code(report: &gmeow_diagnostics::Report, code: &str) -> bool {
+    report.findings.iter().any(|f| f.code == code)
+}
+
+fn any_deep_code(report: &gmeow_diagnostics::Report) -> bool {
+    report
+        .findings
+        .iter()
+        .any(|f| f.code.starts_with("validate.deep."))
+}
+
+/// AC1, off-gated (`heavy_offgate`): the consumer `--deep` pass reasons over the
+/// user data merged with the WHOLE bundled TBox via the native Nemo chase — an
+/// irreducibly engine-heavy full-fold run (~50 s), like `ontology_entailments`. It
+/// is carved off the per-commit budget gate and runs on `maint-heavy`; the fast
+/// per-commit coverage of the same merge→inconsistency path is the gmeow-logic unit
+/// test `reason_all_with_data_merges_user_abox_into_bundle_tbox` (tiny TBox) plus the
+/// on-gate `deep_pass_failure_*` / `deep_false_*` tests.
+#[test]
+fn deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate() {
+    let gts = bundle_bytes();
+
+    // Tier-1 (deep=false) sees nothing: PhysicalObject ⊥ Agent is not a structural
+    // shape, so the data passes the default reasoner-free pass with no deep findings.
+    let tier1 = data_validate::run(
+        DEEP_INCONSISTENT_TTL.as_bytes(),
+        "turtle",
+        &gts,
+        NS,
+        "deep.ttl",
+        false,
+    )
+    .expect("tier-1 run");
+    assert!(
+        !any_deep_code(&tier1),
+        "the default pass must emit no validate.deep.* findings"
+    );
+    assert!(
+        !has_code(&tier1, "validate.deep.inconsistent"),
+        "Tier-1 alone must NOT surface the entailed inconsistency"
+    );
+
+    // Tier-2 (deep=true) merges the data with the bundle TBox and the native DL
+    // reasoner forces the individual into owl:Nothing — an error Tier-1 missed.
+    let deep = data_validate::run(
+        DEEP_INCONSISTENT_TTL.as_bytes(),
+        "turtle",
+        &gts,
+        NS,
+        "deep.ttl",
+        true,
+    )
+    .expect("deep run");
+    assert!(
+        has_code(&deep, "validate.deep.inconsistent"),
+        "--deep must surface the entailed inconsistency: {:?}",
+        deep.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+    );
+    assert!(
+        deep.error_count() > tier1.error_count(),
+        "the entailed inconsistency must raise the error count over Tier-1 alone"
+    );
+}
+
+#[test]
+fn deep_false_is_the_reasoner_free_default() {
+    // AC3: the pinned Tier-1 fixture under the default (deep=false) keeps its exact
+    // 2-errors-1-warning shape AND carries no validate.deep.* findings — the deep
+    // reasoner does not run without the flag.
+    let gts = bundle_bytes();
+    let report = data_validate::run(FAIL_TTL.as_bytes(), "turtle", &gts, NS, "fail.ttl", false)
+        .expect("tier-1 run");
+    assert_eq!(
+        report.error_count(),
+        2,
+        "Tier-1 default error shape changed"
+    );
+    assert_eq!(
+        report.warning_count(),
+        1,
+        "Tier-1 default warning shape changed"
+    );
+    assert!(
+        !any_deep_code(&report),
+        "no validate.deep.* findings may appear without --deep"
+    );
+}
