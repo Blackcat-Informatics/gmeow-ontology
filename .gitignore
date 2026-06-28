@@ -71,3 +71,6 @@ mutants.out*/
 
 # Nightly rustc internal-compiler-error crash dumps (never commit)
 rustc-ice-*.txt
+
+# insta pending-snapshot temp files (never commit)
+*.snap.new
