@@ -26,23 +26,22 @@ use oxigraph::model::NamedNode;
 
 use crate::certify::certify as certify_rules;
 use crate::dispatch::dispatch_query;
-use crate::materialize::{materialize_core, MaterializeError, ASSERTED_PROFILE};
+use crate::materialize::{materialize_routed, MaterializeError};
 use crate::query_ir::{parse_query_program, Budget};
-use crate::rule_ir::{DerivedRow, EvalRule};
+use crate::result::PreservationClaim;
+use crate::rule_ir::EvalRule;
 use crate::seam::{DerivedQuad, WorldStoreForeign};
 use crate::store::WorldStore;
 
-// ── Non-stratifiable native routing (issue #651) ────────────────────────────────
+// ── Materialization marshalling ─────────────────────────────────────────────────
 //
-// The Nemo chase rejects negation-in-a-cycle outright (`SelectionStrategyError`),
-// so it cannot evaluate the well-founded or stable-model semantics. Those are
-// evaluated by native Rust ([`crate::wellfounded`] / [`crate::stablemodel`]) —
-// no Nemo, no Python oracle. A declared `StratifiedNAFProfile` set that fails
-// stratification (the certifier's negative control) cannot run on Nemo either; it
-// materialises asserted-only (the lossy-positive minimal), with the projection
-// loss recorded on the Python side. Everything else (PositiveHorn, genuinely
-// stratified NAF, projection-only EDB round-trips) falls through to the Nemo path
-// unchanged — `profile = None` preserves the pre-#651 behaviour byte-for-byte.
+// The non-stratifiable native routing (well-founded / stable-model / the
+// declared-StratifiedNAF EDB echo) and its preservation disclosure live in
+// [`crate::materialize::materialize_routed`], the single PyO3-free entry point the
+// conformance harness also drives. This module keeps only the marshalling shell:
+// call `materialize_routed` off the GIL, then serialize its `Materialization`
+// (quads + preservation claim) into the disclosure dict. The two helpers below
+// remain for [`stable_models`], which surfaces the individual answer sets.
 
 /// Load an N-Quads string into a world-indexed [`WorldStore`].
 fn world_store_from_nquads(input: &str) -> PyResult<WorldStore> {
@@ -58,93 +57,26 @@ fn parse_eval_rules(rules: &str) -> PyResult<Vec<EvalRule>> {
     crate::rule_ir::parse_eval_rules(rules).map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
-/// Serialise native [`DerivedRow`]s to the SAME Python-dict shape as
-/// [`derived_quad_to_dict`] (the materialize seam contract), so the runner's
-/// row→`MaterializationResult` adapter consumes them unchanged. The native
-/// non-stratifiable paths run to a polynomial fixpoint / bounded enumeration with
-/// no budget ceiling, so `budget_status` is always `"ok"`.
-fn derived_rows_to_dicts(py: Python<'_>, rows: &[DerivedRow]) -> PyResult<Vec<Py<PyAny>>> {
-    rows.iter()
-        .map(|r| {
-            let d = PyDict::new(py);
-            d.set_item("graph", r.graph.as_str())?;
-            d.set_item("subject", r.subject.to_string())?;
-            d.set_item("predicate", r.predicate.as_str())?;
-            d.set_item("object", r.object.to_string())?;
-            d.set_item("graph_component", r.graph.as_str())?;
-            d.set_item("derivation_id", r.derivation_id.as_str())?;
-            d.set_item("rule_iri", r.rule_iri.as_str())?;
-            d.set_item("source_quad_ids", r.source_quad_ids.clone())?;
-            d.set_item("profile", ASSERTED_PROFILE)?;
-            d.set_item("budget_status", "ok")?;
-            Ok(d.into_any().unbind())
-        })
-        .collect()
-}
-
-/// Echo only the asserted EDB facts (per world) as materialized quads. Used for a
-/// declared `StratifiedNAFProfile` set that is genuinely non-stratifiable: Nemo
-/// would reject it, the well-founded/stable evaluators are not selected, so the
-/// honest minimal materialization is the input itself (loss recorded Python-side).
-fn echo_edb_only(input: &str) -> PyResult<Vec<DerivedRow>> {
-    let store = world_store_from_nquads(input)?;
-    let mut worlds = store.worlds();
-    worlds.sort();
-    let mut rows: Vec<DerivedRow> = Vec::new();
-    for world in &worlds {
-        let edb = crate::rule_ir::world_edb_facts(&store, world)
-            .map_err(pyo3::exceptions::PyRuntimeError::new_err)?;
-        rows.extend(
-            crate::rule_ir::echo_asserted(world, &edb)
-                .map_err(pyo3::exceptions::PyRuntimeError::new_err)?,
-        );
+/// Build the `{polarities, unsupported_constructs}` disclosure dict from a
+/// [`PreservationClaim`] — the single shape every result surface uses to disclose
+/// which formulas a lowering did not evaluate, mirroring the `reason_native`
+/// `preservation` key.
+fn preservation_to_dict<'py>(
+    py: Python<'py>,
+    claim: &PreservationClaim,
+) -> PyResult<Bound<'py, PyDict>> {
+    let d = PyDict::new(py);
+    let polarities = PyList::empty(py);
+    for kind in &claim.polarities {
+        polarities.append(kind.as_str())?;
     }
-    Ok(rows)
-}
-
-/// Route a non-stratifiable program to its native evaluator, returning `Some(rows)`
-/// when handled, or `None` to fall through to the Nemo chase.
-fn route_non_stratifiable(
-    py: Python<'_>,
-    rules: &str,
-    input: &str,
-    profile: Option<&str>,
-) -> PyResult<Option<Vec<Py<PyAny>>>> {
-    let rows: Vec<DerivedRow> = match profile {
-        Some("WellFoundedProfile") => {
-            let store = world_store_from_nquads(input)?;
-            let eval_rules = parse_eval_rules(rules)?;
-            crate::wellfounded::materialize(&store, &eval_rules).map_err(|e| {
-                pyo3::exceptions::PyRuntimeError::new_err(format!(
-                    "well-founded materialization failed: {e}"
-                ))
-            })?
-        }
-        Some("StableModelProfile") => {
-            let store = world_store_from_nquads(input)?;
-            let eval_rules = parse_eval_rules(rules)?;
-            crate::stablemodel::cautious_materialize(&store, &eval_rules).map_err(|e| {
-                pyo3::exceptions::PyRuntimeError::new_err(format!(
-                    "stable-model materialization failed: {e}"
-                ))
-            })?
-        }
-        _ => {
-            // PositiveHorn / declared StratifiedNAF / None / projection-only.
-            // Empty rules (projection-only) and genuinely stratified sets run on
-            // Nemo; only a declared set that FAILS stratification is echoed here.
-            if rules.trim().is_empty() {
-                return Ok(None);
-            }
-            let stratifiable = crate::certify::is_stratifiable(rules)
-                .map_err(pyo3::exceptions::PyValueError::new_err)?;
-            if stratifiable {
-                return Ok(None);
-            }
-            echo_edb_only(input)?
-        }
-    };
-    Ok(Some(derived_rows_to_dicts(py, &rows)?))
+    d.set_item("polarities", polarities)?;
+    let unsupported = PyList::empty(py);
+    for c in &claim.unsupported_constructs {
+        unsupported.append(c.as_str())?;
+    }
+    d.set_item("unsupported_constructs", unsupported)?;
+    Ok(d)
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -189,10 +121,19 @@ fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<Py<PyAny>>
 ///
 /// # Returns
 ///
-/// A list of Python dicts, one per derived quad (including EDB facts, since
-/// Nemo returns EDB predicates in `derived_predicates()`).  Each dict carries
-/// the full seam metadata: graph, subject, predicate, object, graph_component,
-/// derivation_id, rule_iri, source_quad_ids, profile, budget_status.
+/// A dict `{"quads": [...], "preservation": {...}}` (downstream disclosure):
+///
+/// - `quads` — a list of Python dicts, one per derived quad (including EDB facts,
+///   since Nemo returns EDB predicates in `derived_predicates()`).  Each dict
+///   carries the full seam metadata: graph, subject, predicate, object,
+///   graph_component, derivation_id, rule_iri, source_quad_ids, profile,
+///   budget_status.
+/// - `preservation` — `{polarities, unsupported_constructs}`: the preservation
+///   judgment for this materialization. Faithful paths (the Nemo chase, the
+///   well-founded and cautious-stable evaluators) carry `{exact}` with an empty
+///   set; the non-stratifiable EDB-echo path carries `{sound-under}` naming the
+///   dropped derivation rules, so a consumer always sees which formulas the engine
+///   did not evaluate rather than silently receiving a thinned answer.
 ///
 /// Provenance is real — not stubs:
 /// - Asserted (EDB) quads carry `rule_iri = logic:assert`,
@@ -201,8 +142,8 @@ fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<Py<PyAny>>
 ///   `source_quad_ids` of the immediate antecedents, and a content-addressed
 ///   `derivation_id`.
 ///
-/// An empty (or whitespace-only) `input` returns an empty list immediately
-/// without invoking the chase.
+/// An empty (or whitespace-only) `input` returns `{"quads": [], "preservation":
+/// {exact}}` immediately without invoking the chase.
 ///
 /// # Budget governor (issue #502)
 ///
@@ -241,46 +182,48 @@ fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<Py<PyAny>>
 /// `RuntimeError` for chase or decode failures.
 #[pyfunction]
 #[pyo3(signature = (rules, input, max_rule_firings=None, max_answers=None, time_ms=None, profile=None))]
-fn materialize(
-    py: Python<'_>,
+fn materialize<'py>(
+    py: Python<'py>,
     rules: &str,
     input: &str,
     max_rule_firings: Option<u64>,
     max_answers: Option<u64>,
     time_ms: Option<u64>,
     profile: Option<&str>,
-) -> PyResult<Vec<Py<PyAny>>> {
-    // ── Short-circuit: nothing to do ──────────────────────────────────────────
-    if input.trim().is_empty() {
-        return Ok(vec![]);
-    }
-
-    // ── Non-stratifiable native routing (issue #651) ─────────────────────────
-    // Well-founded / stable-model semantics (and a declared-StratifiedNAF set that
-    // fails stratification) are evaluated natively — the Nemo chase below rejects
-    // negation-in-a-cycle. `profile = None` with stratifiable rules returns `None`
-    // here and falls through to the byte-identical pre-#651 Nemo path.
-    if let Some(rows) = route_non_stratifiable(py, rules, input, profile)? {
-        return Ok(rows);
-    }
-
-    // ── Pure engine pipeline (GIL released) ──────────────────────────────────
-    // The whole parse → encode → chase → decode → budget pipeline is engine work
-    // with no Python contact, so we run it off the GIL. See [`crate::materialize`]
-    // for the implementation and its native `#[test]` coverage; the FFI keeps only
-    // the marshalling shell below.
-    let final_quads = py
-        .detach(|| materialize_core(rules, input, max_rule_firings, max_answers, time_ms))
+) -> PyResult<Bound<'py, PyDict>> {
+    // ── Engine pipeline (GIL released) ───────────────────────────────────────
+    // Routing (non-stratifiable native paths vs. the Nemo chase) and the
+    // preservation disclosure both live in `materialize_routed`, the single
+    // PyO3-free entry point the conformance harness also drives — so the FFI keeps
+    // only the marshalling shell and the two callers cannot diverge.
+    let materialization = py
+        .detach(|| {
+            materialize_routed(
+                rules,
+                input,
+                max_rule_firings,
+                max_answers,
+                time_ms,
+                profile,
+            )
+        })
         .map_err(|e| match e {
             MaterializeError::Parse(m) => pyo3::exceptions::PyValueError::new_err(m),
             MaterializeError::Chase(m) => pyo3::exceptions::PyRuntimeError::new_err(m),
         })?;
 
-    // ── Serialize to Python dicts ────────────────────────────────────────────
-    final_quads
-        .iter()
-        .map(|dq| derived_quad_to_dict(py, dq))
-        .collect()
+    // ── Serialize to the {quads, preservation} disclosure dict ───────────────
+    let quads = PyList::empty(py);
+    for dq in &materialization.quads {
+        quads.append(derived_quad_to_dict(py, dq)?)?;
+    }
+    let out = PyDict::new(py);
+    out.set_item("quads", quads)?;
+    out.set_item(
+        "preservation",
+        preservation_to_dict(py, &materialization.preservation)?,
+    )?;
+    Ok(out)
 }
 
 // ── certify ─────────────────────────────────────────────────────────────────
@@ -352,9 +295,12 @@ fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<Py<PyAny>> {
 ///
 /// # Returns
 ///
-/// A dict `{"bindings": [ {var: canonical_str, …}, … ], "status": "ok"|"partial"|"exhausted"}`
+/// A dict `{"bindings": [ {var: canonical_str, …}, … ], "status":
+/// "ok"|"partial"|"exhausted", "preservation": {polarities, unsupported_constructs}}`
 /// where each canonical value is the oracle/engine `Const` form (`<iri>` for IRIs).
-/// The binding list is canonically sorted for determinism.
+/// The binding list is canonically sorted for determinism. The `preservation` key
+/// (downstream disclosure) carries the judgment for the evaluation: a faithful backward
+/// goal is `{exact}`; it surfaces any constructs the target could not evaluate.
 ///
 /// # Errors
 ///
@@ -418,6 +364,10 @@ fn query(
         let result = PyDict::new(py);
         result.set_item("bindings", bindings)?;
         result.set_item("status", answer.status_str())?;
+        result.set_item(
+            "preservation",
+            preservation_to_dict(py, &answer.result.preservation)?,
+        )?;
         return Ok(result.into_any().unbind());
     }
 
@@ -433,28 +383,39 @@ fn query(
     };
     // The counterfactual path returns a CfAnswer (status may be "unknown" or
     // "incomplete"); the plain path returns an AnswerSet. Normalize both to a
-    // binding list plus a canonical status string.
-    let (answer_bindings, status_str): (Vec<crate::query_ir::Binding>, String) =
-        if crate::counterfactual::is_counterfactual(&program) {
-            // Honor a program-declared `depth_budget(N)`; otherwise the engine default.
-            let depth = program
-                .counterfactual
-                .as_ref()
-                .and_then(|c| c.depth_budget)
-                .unwrap_or(crate::counterfactual::DEFAULT_DEPTH_BUDGET);
-            let mut cf = crate::counterfactual::construct_and_resolve(
-                &store, &program, profile, &budget, depth, None,
-            )
+    // binding list, a canonical status string, and the preservation claim each
+    // carries (downstream disclosure — both surfaces disclose what the target evaluated).
+    let (answer_bindings, status_str, preservation): (
+        Vec<crate::query_ir::Binding>,
+        String,
+        PreservationClaim,
+    ) = if crate::counterfactual::is_counterfactual(&program) {
+        // Honor a program-declared `depth_budget(N)`; otherwise the engine default.
+        let depth = program
+            .counterfactual
+            .as_ref()
+            .and_then(|c| c.depth_budget)
+            .unwrap_or(crate::counterfactual::DEFAULT_DEPTH_BUDGET);
+        let mut cf = crate::counterfactual::construct_and_resolve(
+            &store, &program, profile, &budget, depth, None,
+        )
+        .map_err(value_err)?;
+        let status = cf.status_str().to_owned();
+        let preservation = cf.result.preservation.clone();
+        (std::mem::take(&mut cf.bindings), status, preservation)
+    } else {
+        let answer = dispatch_query(&foreign, &store, &world_nn, &program, profile, &budget)
             .map_err(value_err)?;
-            let status = cf.status_str().to_owned();
-            (std::mem::take(&mut cf.bindings), status)
-        } else {
-            let answer = dispatch_query(&foreign, &store, &world_nn, &program, profile, &budget)
-                .map_err(value_err)?;
-            (answer.bindings, answer.status.as_str().to_owned())
-        };
+        let preservation = answer.preservation.clone();
+        (
+            answer.bindings,
+            answer.status.as_str().to_owned(),
+            preservation,
+        )
+    };
 
-    // 6. Build the Python result dict: {"bindings": [...], "status": "..."}.
+    // 6. Build the Python result dict: {"bindings": [...], "status": "...",
+    //    "preservation": {...}}.
     let bindings = PyList::empty(py);
     for binding in &answer_bindings {
         let row = PyDict::new(py);
@@ -466,6 +427,7 @@ fn query(
     let result = PyDict::new(py);
     result.set_item("bindings", bindings)?;
     result.set_item("status", status_str)?;
+    result.set_item("preservation", preservation_to_dict(py, &preservation)?)?;
     Ok(result.into_any().unbind())
 }
 
@@ -746,8 +708,9 @@ fn materialize_explained<'py>(
     time_ms: Option<u64>,
     profile: Option<&str>,
 ) -> PyResult<Bound<'py, PyDict>> {
-    // 1. Run the chase exactly as `materialize` does — same helpers, same output.
-    let quad_objs = materialize(
+    // 1. Run the chase exactly as `materialize` does — same routing, same output —
+    //    and reuse its `{quads, preservation}` disclosure dict.
+    let materialized = materialize(
         py,
         rules,
         input,
@@ -756,13 +719,22 @@ fn materialize_explained<'py>(
         time_ms,
         profile,
     )?;
+    let quad_list = materialized
+        .get_item("quads")?
+        .expect("materialize always sets a `quads` key")
+        .cast_into::<PyList>()
+        .map_err(|e| {
+            pyo3::exceptions::PyRuntimeError::new_err(format!(
+                "materialize_explained: `quads` was not a list: {e}"
+            ))
+        })?;
 
     // 2. Decode those same quad dicts into explain Rows (the SAME decoder the
     //    standalone `explain` pyfunction uses) and run the explanation skeleton —
     //    no payload is rebuilt in Python, no FFI boundary is recrossed.
-    let quad_dicts: Vec<Bound<'py, PyDict>> = quad_objs
+    let quad_dicts: Vec<Bound<'py, PyDict>> = quad_list
         .iter()
-        .map(|obj| obj.bind(py).clone().cast_into::<PyDict>())
+        .map(|obj| obj.cast_into::<PyDict>())
         .collect::<Result<_, _>>()
         .map_err(|e| {
             pyo3::exceptions::PyRuntimeError::new_err(format!(
@@ -772,10 +744,17 @@ fn materialize_explained<'py>(
     let explanation_rows = explain_rows_from_dicts(&quad_dicts)?;
     let explanation_objs = explain_rows_to_dicts(py, &explanation_rows)?;
 
-    // 3. Assemble the fused result dict.
+    // 3. Assemble the fused result dict, forwarding the preservation disclosure
+    //    so the fused surface carries the same judgment `materialize` does.
     let out = PyDict::new(py);
-    out.set_item("quads", quad_objs)?;
+    out.set_item("quads", quad_list)?;
     out.set_item("explanations", explanation_objs)?;
+    out.set_item(
+        "preservation",
+        materialized
+            .get_item("preservation")?
+            .expect("materialize always sets a `preservation` key"),
+    )?;
     Ok(out)
 }
 
@@ -1206,18 +1185,10 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     status.set_item("information", typed.information.wire())?;
     out.set_item("status", status)?;
 
-    let preservation = PyDict::new(py);
-    let polarities = PyList::empty(py);
-    for kind in &typed.preservation.polarities {
-        polarities.append(kind.as_str())?;
-    }
-    preservation.set_item("polarities", polarities)?;
-    let unsupported = PyList::empty(py);
-    for c in &typed.preservation.unsupported_constructs {
-        unsupported.append(c.as_str())?;
-    }
-    preservation.set_item("unsupported_constructs", unsupported)?;
-    out.set_item("preservation", preservation)?;
+    out.set_item(
+        "preservation",
+        preservation_to_dict(py, &typed.preservation)?,
+    )?;
 
     let provenance = PyDict::new(py);
     provenance.set_item("contract_hash", typed.provenance.contract_hash.as_str())?;

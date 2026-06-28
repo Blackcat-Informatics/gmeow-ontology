@@ -21,6 +21,7 @@ use gmeow_logic::explain::{explain_all, Row};
 use gmeow_logic::foundation::{evaluate as foundation_evaluate, AntiRigidityPolicy};
 use gmeow_logic::materialize::materialize_routed;
 use gmeow_logic::query_ir::{parse_query_program, Budget};
+use gmeow_logic::result::PreservationClaim;
 use gmeow_logic::seam::{BudgetStatus, WorldStoreForeign};
 use gmeow_logic::store::WorldStore;
 use gmeow_logic_compile::frontend::{parse_logic_str, Diagnostic, Severity};
@@ -94,8 +95,15 @@ pub struct CaseOutputs {
     pub certification: serde_json::Value,
     pub budget_status: String,
     pub incomplete: bool,
-    /// `{query_stem: {"bindings": [...], "status": "..."}}` for each `queries/*.logic`.
+    /// `{query_stem: {"bindings": [...], "status": "...", "preservation": {...}}}` for
+    /// each `queries/*.logic`.
     pub answers: BTreeMap<String, serde_json::Value>,
+    /// The materialization's runtime preservation judgment (downstream disclosure):
+    /// `{polarities, unsupported_constructs}`. `{exact}` for the faithful chase /
+    /// foundation paths; `{sound-under}` naming the dropped rules for the
+    /// non-stratifiable EDB-echo path. Distinct from the compile-time projection
+    /// ledger in `projections.ledger`.
+    pub preservation: serde_json::Value,
 }
 
 /// The four RDF projection targets compared by graph-isomorphism.
@@ -182,7 +190,7 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
 
     // ── Materialization (+ explanations) ─────────────────────────────────────
     let input_nq = read_optional(case_dir, "input.nq")?;
-    let (quads, budget_status, incomplete) = if profile.foundation_lowering {
+    let (quads, budget_status, incomplete, mat_preservation) = if profile.foundation_lowering {
         materialize_foundation(&case_id, &input_nq, &profile)?
     } else {
         materialize_default(&case_id, &nemo_rules, &input_nq, &profile)?
@@ -252,6 +260,7 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         budget_status,
         incomplete,
         answers,
+        preservation: serialize::preservation_to_json(&mat_preservation),
     })
 }
 
@@ -299,6 +308,10 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
         budget_status: "ok".to_string(),
         incomplete: false,
         answers: BTreeMap::new(),
+        // The case was refused as unsupported and never evaluated — disclose
+        // `{unsupported}` (the legalization floor), never a false `{exact}` that would
+        // hide the refusal from a consumer reading `CaseOutputs.preservation`.
+        preservation: serialize::preservation_to_json(&PreservationClaim::unsupported()),
     }
 }
 
@@ -413,13 +426,14 @@ fn bare_iri(term: &str) -> String {
 }
 
 /// Default (non-foundation) materialization: the profile-routed chase. Returns the
-/// quads plus the aggregate budget status / incomplete flag.
+/// quads, the aggregate budget status / incomplete flag, and the preservation
+/// judgment disclosing any derivation rules the routing could not evaluate.
 fn materialize_default(
     case_id: &str,
     nemo_rules: &str,
     input_nq: &str,
     profile: &Profile,
-) -> Result<(Vec<RunnerQuad>, String, bool), String> {
+) -> Result<(Vec<RunnerQuad>, String, bool, PreservationClaim), String> {
     let budget = profile.budget_params.clone().unwrap_or_default();
     let derived = materialize_routed(
         nemo_rules,
@@ -431,10 +445,13 @@ fn materialize_default(
     )
     .map_err(|e| format!("case {case_id}: materialize failed: {e}"))?;
 
+    let preservation = derived.preservation;
     let exhausted = derived
+        .quads
         .iter()
         .any(|q| q.budget_status == BudgetStatus::Exhausted);
     let quads = derived
+        .quads
         .into_iter()
         .map(|dq| RunnerQuad {
             graph: dq.graph.as_str().to_string(),
@@ -448,7 +465,7 @@ fn materialize_default(
         .collect();
 
     let status = if exhausted { "exhausted" } else { "ok" };
-    Ok((quads, status.to_string(), exhausted))
+    Ok((quads, status.to_string(), exhausted, preservation))
 }
 
 /// Foundation-lowering materialization via the native OntoUML evaluator. The
@@ -458,7 +475,7 @@ fn materialize_foundation(
     case_id: &str,
     input_nq: &str,
     profile: &Profile,
-) -> Result<(Vec<RunnerQuad>, String, bool), String> {
+) -> Result<(Vec<RunnerQuad>, String, bool, PreservationClaim), String> {
     if profile.budget_params.is_some() {
         return Err(format!(
             "case {case_id}: foundation_lowering cases cannot declare budget_params — \
@@ -495,7 +512,9 @@ fn materialize_foundation(
             })
             .collect()
     };
-    Ok((quads, "ok".to_string(), false))
+    // The foundation evaluator runs the stratified chase to completion — faithful,
+    // nothing dropped, so the materialization is exact.
+    Ok((quads, "ok".to_string(), false, PreservationClaim::exact()))
 }
 
 /// Produce one explanation skeleton per quad. Asserted quads get a trivial
@@ -622,6 +641,7 @@ fn resolve_query(
         return Ok(serde_json::json!({
             "bindings": bindings,
             "status": answer.status_str(),
+            "preservation": serialize::preservation_to_json(&answer.result.preservation),
         }));
     }
 
@@ -630,39 +650,48 @@ fn resolve_query(
         max_steps: None,
     };
 
-    // Counterfactual (#505) vs plain backward goal (#504).
-    let (bindings_vec, status): (Vec<gmeow_logic::query_ir::Binding>, String) =
-        if gmeow_logic::counterfactual::is_counterfactual(&program) {
-            let depth = program
-                .counterfactual
-                .as_ref()
-                .and_then(|c| c.depth_budget)
-                .unwrap_or(gmeow_logic::counterfactual::DEFAULT_DEPTH_BUDGET);
-            let mut cf = gmeow_logic::counterfactual::construct_and_resolve(
-                &store,
-                &program,
-                profile_str,
-                &budget,
-                depth,
-                None,
-            )
-            .map_err(err)?;
-            let status = cf.status_str().to_string();
-            (std::mem::take(&mut cf.bindings), status)
-        } else {
-            let foreign =
-                WorldStoreForeign::from_world(&store, &world, profile_str).map_err(err)?;
-            let answer = gmeow_logic::dispatch::dispatch_query(
-                &foreign,
-                &store,
-                &world_nn,
-                &program,
-                profile_str,
-                &budget,
-            )
-            .map_err(err)?;
-            (answer.bindings, answer.status.as_str().to_string())
-        };
+    // Counterfactual vs plain backward goal. Both carry a preservation
+    // claim disclosing what the target evaluated.
+    let (bindings_vec, status, preservation): (
+        Vec<gmeow_logic::query_ir::Binding>,
+        String,
+        gmeow_logic::result::PreservationClaim,
+    ) = if gmeow_logic::counterfactual::is_counterfactual(&program) {
+        let depth = program
+            .counterfactual
+            .as_ref()
+            .and_then(|c| c.depth_budget)
+            .unwrap_or(gmeow_logic::counterfactual::DEFAULT_DEPTH_BUDGET);
+        let mut cf = gmeow_logic::counterfactual::construct_and_resolve(
+            &store,
+            &program,
+            profile_str,
+            &budget,
+            depth,
+            None,
+        )
+        .map_err(err)?;
+        let status = cf.status_str().to_string();
+        let preservation = cf.result.preservation.clone();
+        (std::mem::take(&mut cf.bindings), status, preservation)
+    } else {
+        let foreign = WorldStoreForeign::from_world(&store, &world, profile_str).map_err(err)?;
+        let answer = gmeow_logic::dispatch::dispatch_query(
+            &foreign,
+            &store,
+            &world_nn,
+            &program,
+            profile_str,
+            &budget,
+        )
+        .map_err(err)?;
+        let preservation = answer.preservation.clone();
+        (
+            answer.bindings,
+            answer.status.as_str().to_string(),
+            preservation,
+        )
+    };
 
     let bindings: Vec<serde_json::Value> = bindings_vec
         .iter()
@@ -674,7 +703,11 @@ fn resolve_query(
             serde_json::Value::Object(obj)
         })
         .collect();
-    Ok(serde_json::json!({ "bindings": bindings, "status": status }))
+    Ok(serde_json::json!({
+        "bindings": bindings,
+        "status": status,
+        "preservation": serialize::preservation_to_json(&preservation),
+    }))
 }
 
 /// Whether a quad is an asserted (EDB) input fact rather than a derived one.
@@ -749,6 +782,13 @@ mod gating_tests {
         assert!(out.materialized_nquads.is_empty());
         assert!(out.answers.is_empty());
         assert_eq!(out.verdicts, serde_json::json!({}));
+        // The refusal is disclosed as `{unsupported}` (the legalization floor), never a
+        // false `{exact}` that would hide it from a consumer reading `preservation`.
+        assert_eq!(
+            out.preservation,
+            serialize::preservation_to_json(&PreservationClaim::unsupported()),
+            "a refused expect_unsupported case must disclose {{unsupported}}, not {{exact}}"
+        );
     }
 
     #[test]

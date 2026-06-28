@@ -139,6 +139,25 @@ pub fn budget_to_json(budget_status: &str, incomplete: bool) -> serde_json::Valu
     serde_json::json!({ "budget_status": budget_status, "incomplete": incomplete })
 }
 
+/// Build the **runtime** preservation-disclosure JSON from a result's
+/// [`PreservationClaim`]: `{ polarities: [...], unsupported_constructs: [...] }`,
+/// both sorted for determinism. This is the runtime judgment a result carries —
+/// distinct from the compile-time projection ledger ([`ledger_to_json`]), which
+/// describes per-target lowering classes rather than what a given evaluation
+/// dropped. The shape mirrors the `gmeow_logic` `preservation` PyO3 dict key.
+pub fn preservation_to_json(claim: &gmeow_logic::result::PreservationClaim) -> serde_json::Value {
+    let polarities: Vec<&str> = claim.polarities.iter().map(|k| k.as_str()).collect();
+    let unsupported: Vec<&str> = claim
+        .unsupported_constructs
+        .iter()
+        .map(String::as_str)
+        .collect();
+    serde_json::json!({
+        "polarities": polarities,
+        "unsupported_constructs": unsupported,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

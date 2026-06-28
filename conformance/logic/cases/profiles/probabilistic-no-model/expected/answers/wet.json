@@ -1,4 +1,8 @@
 {
   "bindings": [],
+  "preservation": {
+    "polarities": [],
+    "unsupported_constructs": []
+  },
   "status": "unknown"
 }

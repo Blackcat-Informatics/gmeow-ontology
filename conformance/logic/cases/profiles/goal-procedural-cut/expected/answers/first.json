@@ -4,5 +4,11 @@
       "Y": "<https://example.org/profiles/goal-procedural-cut/b>"
     }
   ],
+  "preservation": {
+    "polarities": [
+      "ExactPreservation"
+    ],
+    "unsupported_constructs": []
+  },
   "status": "ok"
 }
