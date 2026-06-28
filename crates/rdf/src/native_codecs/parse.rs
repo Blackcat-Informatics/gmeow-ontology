@@ -19,7 +19,8 @@
 //! N-Triples/N-Quads require absolute IRIs and ignore the base (N/A by syntax).
 
 use std::collections::HashSet;
-use std::sync::Arc;
+use std::panic::{catch_unwind, take_hook, AssertUnwindSafe};
+use std::sync::{Arc, LazyLock, Mutex};
 
 use gmeow_gts::model::{Graph as GtsGraph, TermKind as GtsTermKind};
 
@@ -31,6 +32,8 @@ use crate::{
 /// The `rdf:reifies` predicate IRI: a triple-term object under this predicate is the
 /// RDF 1.2 reifier binding the statement layer folds out of the base quad table.
 pub(crate) const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+
+static CODEC_PANIC_HOOK_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
 /// A subject/object node presented to [`fold_statement_layer`], already interned into
 /// the builder. The predicate IRI string travels alongside (see [`FoldRow`]) so the
@@ -125,9 +128,48 @@ pub fn parse_dataset(
     let text = std::str::from_utf8(bytes)
         .map_err(|e| RdfDiagnostic::error("native-codec-utf8", e.to_string()))?;
 
-    let gts_bytes = encode_to_gts(format, text, base_iri)?;
+    let gts_bytes = encode_to_gts_without_panicking(format, text, base_iri)?;
     let graph = crate::gts::read_all_segments(&gts_bytes)?;
     dataset_from_gts_graph(&graph)
+}
+
+fn encode_to_gts_without_panicking(
+    format: NativeRdfFormat,
+    text: &str,
+    base_iri: Option<&str>,
+) -> Result<Vec<u8>, RdfDiagnostic> {
+    let _guard = CODEC_PANIC_HOOK_LOCK
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    // `catch_unwind` still invokes the process-wide panic hook. Suppress it only
+    // while calling the dependency codec so malformed user input returns a quiet
+    // diagnostic instead of printing a panic banner to stderr.
+    let previous_hook = take_hook();
+    std::panic::set_hook(Box::new(|_| {}));
+    let outcome = catch_unwind(AssertUnwindSafe(|| encode_to_gts(format, text, base_iri)));
+    std::panic::set_hook(previous_hook);
+
+    match outcome {
+        Ok(result) => result,
+        Err(payload) => Err(RdfDiagnostic::error(
+            "native-codec-panic",
+            format!(
+                "native GTS RDF codec panicked while parsing {}: {}",
+                format.media_type(),
+                panic_payload_message(payload.as_ref()),
+            ),
+        )),
+    }
+}
+
+fn panic_payload_message(payload: &(dyn std::any::Any + Send)) -> String {
+    if let Some(message) = payload.downcast_ref::<&str>() {
+        (*message).to_owned()
+    } else if let Some(message) = payload.downcast_ref::<String>() {
+        message.clone()
+    } else {
+        "non-string panic payload".to_owned()
+    }
 }
 
 /// Drive `text` through the matching `gmeow-gts` `from_*` codec, returning GTS bytes.
@@ -457,6 +499,13 @@ mod tests {
         let err =
             parse_dataset(&[0xff, 0xfe], "text/turtle", None).expect_err("invalid utf-8 must fail");
         assert_eq!(err.code, "native-codec-utf8");
+    }
+
+    #[test]
+    fn native_codec_dependency_panic_becomes_diagnostic() {
+        let err = parse_dataset("0À".as_bytes(), "text/turtle", None)
+            .expect_err("malformed input must be rejected without unwinding");
+        assert_eq!(err.code, "native-codec-panic");
     }
 
     #[test]
