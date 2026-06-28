@@ -1,4 +1,4 @@
-# Native verify QC (#778) — the load-bearing regression guard. Removing the
+# Native verify QC — the load-bearing regression guard. Removing the
 # strict gmeow:hasSkill rdfs:subPropertyOf gmeow:knowsAbout must NOT be silently
 # undone by a rule that re-materializes the same edge. The canonical source of a
 # gmeow:knowsAbout edge is a declarative-familiarity logic:CognitiveAssessment

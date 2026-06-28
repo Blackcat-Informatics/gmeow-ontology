@@ -1,4 +1,4 @@
-# Native verify QC (#778) — gmeow:hasSkill is NOT a strict subproperty of
+# Native verify QC — gmeow:hasSkill is NOT a strict subproperty of
 # gmeow:knowsAbout. Skill (tacit can-do) and knowing-about (propositional) come
 # apart, so a skill is only DEFEASIBLE evidence (logic:skillEvidenceForKnowsAbout)
 # for knowing-about, never a strict rdfs:subPropertyOf entailment. If the strict
