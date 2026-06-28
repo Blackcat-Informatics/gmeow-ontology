@@ -2638,6 +2638,13 @@ logic:retiredByTransaction
     rdfs:label "retired by transaction"@x-gmeow-english ;
     skos:definition "Relates a retired support/reified assertion to the elementary update or transaction-path step that retired it. It is transition provenance: it explains why the support no longer holds in the successor state without deleting the support from the historical path."@x-gmeow-english .
 
+logic:supersededBy
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "superseded by"@x-gmeow-english ;
+    skos:definition "Relates a retired support/reified assertion version to the update or successor support that supersedes it in the append-only store. It is the missing counterpart that, together with logic:activeInState, logic:validUntilState, and logic:retiredByTransaction, makes every `del` a supersession rather than an erasure: the retired version is never removed, it is recorded as superseded by the version that took its place. The substrate therefore stays monotonic and append-only — a superseded assertion remains recoverable, and the supersession chain reconstructs the full history of what replaced what. Suppression-not-erasure: `del` removes a support, it does not destroy the historical record. Domain a retired support/reified assertion version, range the superseding update or successor support (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:transitionFromState
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -4511,6 +4518,169 @@ logic:skillEvidenceForKnowsAbout
     logic:evidenceProperty gmeow:hasSkill ;
     logic:evidenceFor gmeow:knowsAbout ;
     logic:defeasibleStrength "moderate" .
+
+# === Transaction layer: serial composition, concurrency, and anomalies =======
+# The serial-conjunction combinator (a program operator typed APART from logical
+# conjunction), the three separately-declared concurrency concerns kept apart
+# (history criterion vs guarantee strength vs implementation mechanism), and the
+# history-level serialization anomaly that is a finding, never a contradiction
+# witness. Normative in design/LOGIC-TRANSACTION.md, §Concurrent transactions.
+
+# --- Serial composition operator ---------------------------------------------
+
+logic:SerialConjunction
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Serial Conjunction"@x-gmeow-english ;
+    skos:definition "The serial-conjunction program combinator (⊗, 'do φ then ψ'): the path along which the program executes splits so that φ holds over a prefix and ψ holds over the remaining suffix. It is a PROGRAM combinator over the transaction layer's path semantics, typed APART from ordinary (at-a-state) logical conjunction — a program operator is never conflated with the logical connective that holds at a single state, matching the formula-versus-program operator typing of the IR. Its two operands are carried by logic:leftOperand (the prefix program) and logic:rightOperand (the suffix program). The base relations of the layer are elementary state transitions, this serial conjunction, and executional entailment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:leftOperand
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "left operand"@x-gmeow-english ;
+    skos:definition "Relates a binary transaction-program combinator (for example a logic:SerialConjunction) to its left/prefix operand — the program that holds over the prefix of the executing path. Range a transaction-program node (stated in prose). Paired with logic:rightOperand."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:rightOperand
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "right operand"@x-gmeow-english ;
+    skos:definition "Relates a binary transaction-program combinator (for example a logic:SerialConjunction) to its right/suffix operand — the program that holds over the suffix of the executing path. Range a transaction-program node (stated in prose). Paired with logic:leftOperand."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Plan-to-path link (closing the four-link chain) -------------------------
+# The chain intention -> plan -> action -> transaction-path is otherwise
+# expressible through existing terms: gmeow:Intention carries its goal via
+# gmeow:intentionGoal and motivates the action occurrence via gmeow:motivates;
+# logic:Plan carries the same goal via logic:planGoal; the action occurrence
+# (a gmeow:Event) links to its reusable type via logic:instantiatesSchema. The
+# one genuine gap is relating a Plan to the specific Path along which it ran,
+# which logic:executedAlongPath closes. It CONNECTS the plan and the path; it
+# does NOT subsume either — a plan is the program, a path is the executed run.
+
+logic:executedAlongPath
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "executed along path"@x-gmeow-english ;
+    skos:definition "Relates a logic:Plan to the logic:Path along which a particular run of it executed — the executed history that realizes the program. Domain logic:Plan, range logic:Path (stated in prose). This is the one link the four-notion chain intention -> plan -> action -> transaction-path did not already have: intention reaches its goal and action through gmeow:intentionGoal / gmeow:motivates, a logic:Plan reaches the same goal through logic:planGoal, and an action occurrence reaches its type through logic:instantiatesSchema, but no existing term tied a plan to the run that executed it. It CONNECTS the plan to its path but does NOT subsume either: a plan is the program (what is intended to be done), a path is the executed run (how state actually changed); the link records that this program ran along that history without conflating the two."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Concurrency: three distinct, separately-declared concerns ----------------
+
+logic:SerializabilityCriterion
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Serializability Criterion"@x-gmeow-english ;
+    skos:definition "A correctness property OF A HISTORY — not a protocol and not a guarantee strength. The closed value class of serializability criteria for a concurrent transaction history. Its individuals are logic:ConflictSerializability (an equivalent serial order exists reachable with no swap of conflicting operations) and logic:ViewSerializability (some serial order has the same read-from and final-write relationships). The set is closed; a misspelt value is rejected. This is one of three distinct, separately-declared concurrency concerns that must NOT be conflated: a logic:SerializabilityCriterion is a property of a history, a logic:IsolationLevel is a declared guarantee strength, and a logic:ConcurrencyControlProtocol is an implementation mechanism — keeping them apart is required because they are not interchangeable and an implicit assumption about any one of them is a defect."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ConflictSerializability
+    a owl:NamedIndividual ,
+        logic:SerializabilityCriterion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Conflict Serializability"@x-gmeow-english ;
+    skos:definition "The logic:SerializabilityCriterion value satisfied when an equivalent serial order exists that is reachable from the history by swapping only non-conflicting operations — no swap of a pair of conflicting operations is required. A history property, not a protocol. Contrast logic:ViewSerializability."@x-gmeow-english .
+
+logic:ViewSerializability
+    a owl:NamedIndividual ,
+        logic:SerializabilityCriterion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "View Serializability"@x-gmeow-english ;
+    skos:definition "The logic:SerializabilityCriterion value satisfied when some serial order has the same read-from and final-write relationships as the history — equivalent on what each read observed and which write was last. A history property, not a protocol. Strictly weaker than logic:ConflictSerializability is not implied; the two are distinct criteria a history may satisfy."@x-gmeow-english .
+
+logic:IsolationLevel
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Isolation Level"@x-gmeow-english ;
+    skos:definition "The declared GUARANTEE STRENGTH a schedule must meet — not a history property and not an implementation mechanism. The closed value class spanning the standard isolation spectrum up to and including full serializability and opacity. Its individuals are logic:ReadUncommittedIsolation, logic:ReadCommittedIsolation, logic:RepeatableReadIsolation, logic:SnapshotIsolation, logic:SerializableIsolation, and logic:OpacityIsolation — the strongest, under which even aborted or in-flight transactions never observe an inconsistent state, strictly stronger than serializability. The set is closed; a misspelt value is rejected. This is one of three distinct, separately-declared concurrency concerns that must NOT be conflated: a logic:IsolationLevel is a guarantee strength, a logic:SerializabilityCriterion is a property of a history, and a logic:ConcurrencyControlProtocol is an implementation mechanism."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ReadUncommittedIsolation
+    a owl:NamedIndividual ,
+        logic:IsolationLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Read Uncommitted Isolation"@x-gmeow-english ;
+    skos:definition "The logic:IsolationLevel guarantee under which a transaction may observe uncommitted writes of others — the weakest level of the standard spectrum, admitting dirty reads."@x-gmeow-english .
+
+logic:ReadCommittedIsolation
+    a owl:NamedIndividual ,
+        logic:IsolationLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Read Committed Isolation"@x-gmeow-english ;
+    skos:definition "The logic:IsolationLevel guarantee under which a transaction observes only committed writes, but successive reads of the same item may differ — dirty reads excluded, non-repeatable reads still admitted."@x-gmeow-english .
+
+logic:RepeatableReadIsolation
+    a owl:NamedIndividual ,
+        logic:IsolationLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Repeatable Read Isolation"@x-gmeow-english ;
+    skos:definition "The logic:IsolationLevel guarantee under which re-reads of an item a transaction has read return the same value — non-repeatable reads excluded, phantom rows still admitted."@x-gmeow-english .
+
+logic:SnapshotIsolation
+    a owl:NamedIndividual ,
+        logic:IsolationLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Snapshot Isolation"@x-gmeow-english ;
+    skos:definition "The logic:IsolationLevel guarantee under which a transaction reads from a consistent snapshot taken at its start — strong against most anomalies yet still admitting write skew, so strictly weaker than logic:SerializableIsolation."@x-gmeow-english .
+
+logic:SerializableIsolation
+    a owl:NamedIndividual ,
+        logic:IsolationLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Serializable Isolation"@x-gmeow-english ;
+    skos:definition "The logic:IsolationLevel guarantee under which the schedule is equivalent to some serial execution of the committed transactions — full serializability. Strictly weaker than logic:OpacityIsolation, which additionally constrains aborted and in-flight transactions."@x-gmeow-english .
+
+logic:OpacityIsolation
+    a owl:NamedIndividual ,
+        logic:IsolationLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Opacity Isolation"@x-gmeow-english ;
+    skos:definition "The logic:IsolationLevel guarantee under which even aborted or in-flight transactions never observe an inconsistent state — the strongest level, STRICTLY STRONGER than serializability (logic:SerializableIsolation), which constrains only committed transactions."@x-gmeow-english .
+
+logic:ConcurrencyControlProtocol
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Concurrency Control Protocol"@x-gmeow-english ;
+    skos:definition "The IMPLEMENTATION MECHANISM that enforces a chosen isolation level — HOW a guarantee is achieved, never the guarantee itself. The closed value class of concurrency-control protocols. Its individuals are logic:StrictTwoPhaseLocking, logic:StrongStrictTwoPhaseLocking, logic:TimestampOrdering, and logic:OptimisticValidation. The set is closed; a misspelt value is rejected. This is one of three distinct, separately-declared concurrency concerns that must NOT be conflated: a logic:ConcurrencyControlProtocol is a mechanism, a logic:SerializabilityCriterion is a property of a history, and a logic:IsolationLevel is a guarantee strength — a protocol is how a guarantee is achieved, it is never the guarantee itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:StrictTwoPhaseLocking
+    a owl:NamedIndividual ,
+        logic:ConcurrencyControlProtocol ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Strict Two-Phase Locking"@x-gmeow-english ;
+    skos:definition "The logic:ConcurrencyControlProtocol that holds all EXCLUSIVE (write) locks until the transaction commits or aborts, preventing cascading aborts on writes. Contrast logic:StrongStrictTwoPhaseLocking, which additionally holds shared (read) locks to commit."@x-gmeow-english .
+
+logic:StrongStrictTwoPhaseLocking
+    a owl:NamedIndividual ,
+        logic:ConcurrencyControlProtocol ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Strong Strict Two-Phase Locking"@x-gmeow-english ;
+    skos:definition "The logic:ConcurrencyControlProtocol that holds ALL locks — both shared (read) and exclusive (write) — until commit or abort, yielding the strongest, strictest two-phase-locking discipline. The strong-strict variant the design names distinctly from the strict variant (logic:StrictTwoPhaseLocking), which releases shared locks earlier."@x-gmeow-english .
+
+logic:TimestampOrdering
+    a owl:NamedIndividual ,
+        logic:ConcurrencyControlProtocol ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Timestamp Ordering"@x-gmeow-english ;
+    skos:definition "The logic:ConcurrencyControlProtocol that assigns each transaction a timestamp and orders conflicting operations by it, aborting any operation that would violate the timestamp order. A mechanism, not a guarantee."@x-gmeow-english .
+
+logic:OptimisticValidation
+    a owl:NamedIndividual ,
+        logic:ConcurrencyControlProtocol ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Optimistic Validation"@x-gmeow-english ;
+    skos:definition "The logic:ConcurrencyControlProtocol that lets transactions run without locking and validates for conflicts at commit time, aborting and retrying on a detected conflict. A mechanism, not a guarantee."@x-gmeow-english .
+
+# --- Serialization anomaly: a finding, never a contradiction witness ----------
+
+logic:SerializationAnomaly
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Serialization Anomaly"@x-gmeow-english ;
+    skos:definition "A HISTORY-LEVEL finding: a pattern of conflicting operations, read-from edges, and happens-before arcs in a transaction history that admits no equivalent serial execution under the declared policy. Lost updates, write skew, and read/write anomalies are findings of this kind. It is DISTINCT from a contradiction witness (logic:contradictionWitness, which asserts ⊥ within a single state) and must NOT be modelled as one: the final state after a non-serializable schedule may be perfectly logically consistent while the schedule still has no equivalent serial execution, so a serialization anomaly is a property of the history, never a logical contradiction inside a state. It is surfaced as a finding with its dependency cycle or violated isolation level described; a non-serializable schedule is never silently linearized."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .

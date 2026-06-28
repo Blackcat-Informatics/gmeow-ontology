@@ -391,3 +391,101 @@ ASK {
     logic:planSuccessMode a owl:ObjectProperty .
 }""" ;
     gmeow:saRationale "Plan success MUST be quantified over nondeterministic outcomes as a closed value set: logic:PlanSuccessMode (boxTBox class) with its three members logic:WeakPlanSuccess (some path), logic:StrongPlanSuccess (every path), logic:StrongCyclicPlanSuccess (every fair execution), plus the selector logic:planSuccessMode (logic:Plan -> logic:PlanSuccessMode)." .
+
+# --- 24. Transaction-layer new classes + supersededBy property exist (MUST) ---
+ex:saTransactionLayerClassesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:SerialConjunction          a owl:Class .
+    logic:SerializabilityCriterion   a owl:Class .
+    logic:IsolationLevel             a owl:Class .
+    logic:ConcurrencyControlProtocol a owl:Class .
+    logic:SerializationAnomaly       a owl:Class .
+    logic:supersededBy               a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The transaction-layer additions MUST exist with their correct rdf:type: the five new classes (SerialConjunction, the three concurrency value-set classes, SerializationAnomaly) as owl:Class, and the supersession-provenance counterpart logic:supersededBy as owl:ObjectProperty (the fourth provenance link that makes every del a supersession)." .
+
+# --- 25. Serial-conjunction combinator carries its two operands (MUST) --------
+ex:saSerialConjunctionOperands a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:SerialConjunction a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:leftOperand  a owl:ObjectProperty .
+    logic:rightOperand a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The serial-conjunction program combinator (a boxTBox class) MUST carry its binary operands logic:leftOperand and logic:rightOperand as object properties -- it is a program operator typed apart from logical conjunction." .
+
+# --- 26. Plan-to-path link exists (MUST) -------------------------------------
+ex:saPlanExecutedAlongPath a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:executedAlongPath a owl:ObjectProperty .
+    logic:Plan a owl:Class .
+    logic:Path a owl:Class .
+}""" ;
+    gmeow:saRationale "The four-link chain intention -> plan -> action -> transaction-path MUST be completed by logic:executedAlongPath relating a logic:Plan to the logic:Path it ran along -- the one link existing terms did not supply; it connects but does not subsume the two." .
+
+# --- 27. The three concurrency value-set classes are pairwise distinct IRIs (MUST) ---
+ex:saConcurrencyConcernsAreDistinct a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:SerializabilityCriterion   a owl:Class .
+    logic:IsolationLevel             a owl:Class .
+    logic:ConcurrencyControlProtocol a owl:Class .
+    FILTER (logic:SerializabilityCriterion != logic:IsolationLevel)
+    FILTER (logic:SerializabilityCriterion != logic:ConcurrencyControlProtocol)
+    FILTER (logic:IsolationLevel != logic:ConcurrencyControlProtocol)
+}""" ;
+    gmeow:saRationale "The three concurrency concerns MUST be three distinct, separately-declared owl:Class IRIs that are never conflated: a criterion is a history property, a level is a guarantee strength, a protocol is a mechanism." .
+
+# --- 28. The three concurrency value sets enumerate the right members (MUST) --
+ex:saConcurrencyValueSetMembers a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    logic:ConflictSerializability a logic:SerializabilityCriterion .
+    logic:ViewSerializability     a logic:SerializabilityCriterion .
+    logic:ReadUncommittedIsolation a logic:IsolationLevel .
+    logic:ReadCommittedIsolation   a logic:IsolationLevel .
+    logic:RepeatableReadIsolation  a logic:IsolationLevel .
+    logic:SnapshotIsolation        a logic:IsolationLevel .
+    logic:SerializableIsolation    a logic:IsolationLevel .
+    logic:OpacityIsolation         a logic:IsolationLevel .
+    logic:StrictTwoPhaseLocking       a logic:ConcurrencyControlProtocol .
+    logic:StrongStrictTwoPhaseLocking a logic:ConcurrencyControlProtocol .
+    logic:TimestampOrdering           a logic:ConcurrencyControlProtocol .
+    logic:OptimisticValidation        a logic:ConcurrencyControlProtocol .
+}""" ;
+    gmeow:saRationale "Each of the three closed concurrency value sets MUST enumerate exactly its declared members: the two serializability criteria, the six isolation levels (through opacity), and the four concurrency-control protocols." .
+
+# --- 29. SerializationAnomaly is NOT a contradiction witness (MUST) -----------
+# There is no canonical contradiction-WITNESS CLASS in the module: the witness is
+# carried by the property logic:contradictionWitness and the verdict value
+# logic:InfoBoth. So the not-a-contradiction intent is pinned in TEXT: the class
+# exists with a definition CONTAINING the word "finding".
+ex:saSerializationAnomalyIsAFinding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+ASK {
+    logic:SerializationAnomaly a owl:Class ;
+        skos:definition ?d .
+    FILTER (CONTAINS(STR(?d), "finding"))
+}""" ;
+    gmeow:saRationale "logic:SerializationAnomaly MUST be a history-level finding, NOT a contradiction witness. There is no single canonical contradiction-witness CLASS (the witness is the property logic:contradictionWitness / the verdict logic:InfoBoth), so the not-a-contradiction intent is pinned in text: the class definition MUST contain the word 'finding', distinguishing it from a contradiction witness that asserts a logical contradiction within a state." .
