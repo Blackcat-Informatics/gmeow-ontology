@@ -1,0 +1,9 @@
+{
+  "polarities": [
+    "SoundUnderApproximation"
+  ],
+  "unsupported_constructs": [
+    "https://example.org/decidability/non-stratified-flagged/ruleLose",
+    "https://example.org/decidability/non-stratified-flagged/ruleWin"
+  ]
+}

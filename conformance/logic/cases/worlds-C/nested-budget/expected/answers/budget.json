@@ -1,4 +1,10 @@
 {
   "bindings": [],
+  "preservation": {
+    "polarities": [
+      "ExactPreservation"
+    ],
+    "unsupported_constructs": []
+  },
   "status": "incomplete"
 }

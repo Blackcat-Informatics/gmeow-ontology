@@ -295,6 +295,13 @@ pub struct AnswerSet {
     pub bindings: Vec<Binding>,
     /// Whether resolution completed within budget.
     pub status: BudgetStatus,
+    /// The preservation judgment disclosing any formulas the evaluation could not
+    /// carry (downstream disclosure). The backward-goal / Scryer dispatch is a
+    /// faithful evaluator, so this is `{exact}` with an empty unsupported set;
+    /// budget-incompleteness is carried on [`Self::status`], not here. The field is
+    /// always present so a consumer can uniformly read the disclosure on every
+    /// answer surface, never having to assume "no lowering ⇒ nothing dropped".
+    pub preservation: crate::result::PreservationClaim,
 }
 
 impl AnswerSet {
@@ -1633,6 +1640,7 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
         let mut ans = AnswerSet {
             bindings: vec![b1.clone(), b3.clone(), b2.clone()],
             status: BudgetStatus::Ok,
+            preservation: crate::result::PreservationClaim::exact(),
         };
         ans.canonicalize();
         assert_eq!(ans.bindings[0]["Y"], "<https://example.org/a>");
