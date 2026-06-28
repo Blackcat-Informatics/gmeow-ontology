@@ -164,7 +164,7 @@ fn coverage_ratchet_baseline_is_recorded() {
     let site = common::cached_site();
     let report = lint(&model, &site);
 
-    let coverage: BTreeMap<String, usize> = report
+    let coverage: BTreeMap<&str, usize> = report
         .counts_by_code()
         .into_iter()
         .filter(|(code, _)| code.starts_with("docs/missing-"))

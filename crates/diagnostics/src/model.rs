@@ -403,11 +403,12 @@ impl Report {
     ///
     /// The deterministic per-code tally behind the summarized text render and the
     /// recorded coverage-ratchet baselines — a stable, low-cardinality projection
-    /// of a report that may hold thousands of per-term findings.
-    pub fn counts_by_code(&self) -> BTreeMap<String, usize> {
-        let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+    /// of a report that may hold thousands of per-term findings. The keys borrow
+    /// the codes already owned by the report, so tallying allocates no strings.
+    pub fn counts_by_code(&self) -> BTreeMap<&str, usize> {
+        let mut counts: BTreeMap<&str, usize> = BTreeMap::new();
         for finding in &self.findings {
-            *counts.entry(finding.code.clone()).or_default() += 1;
+            *counts.entry(finding.code.as_str()).or_default() += 1;
         }
         counts
     }
