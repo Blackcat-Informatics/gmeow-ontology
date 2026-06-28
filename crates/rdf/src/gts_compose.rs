@@ -742,6 +742,14 @@ mod tests {
     #[test]
     fn rsyncable_threshold_only_rewrites_default_zstd() {
         assert_eq!(
+            choose_transform(
+                &["zstd".to_string()],
+                DEFAULT_RSYNCABLE_THRESHOLD,
+                DEFAULT_RSYNCABLE_THRESHOLD,
+            ),
+            vec!["zstd".to_string()]
+        );
+        assert_eq!(
             choose_transform(&["zstd".to_string()], 10, 1),
             vec!["zstd-rsyncable".to_string()]
         );

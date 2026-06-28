@@ -159,10 +159,11 @@ impl GtsFoldView {
                         .unwrap_or(PublicValue::String(lex));
                 }
                 if xsd_type == Some("boolean") {
-                    return PublicValue::Boolean(matches!(
-                        lex.to_ascii_lowercase().as_str(),
-                        "true" | "1"
-                    ));
+                    return match lex.to_ascii_lowercase().as_str() {
+                        "true" | "1" => PublicValue::Boolean(true),
+                        "false" | "0" => PublicValue::Boolean(false),
+                        _ => PublicValue::String(lex),
+                    };
                 }
                 if let Some(lang) = self.lang(tid) {
                     return PublicValue::LanguageString {
@@ -249,7 +250,9 @@ impl GtsFoldView {
     pub fn value(&self, s_tid: usize, p_iri: &str, scope: Option<&str>) -> Option<usize> {
         self.objects(s_tid, p_iri, scope)
             .into_iter()
-            .min_by_key(|&tid| self.nq_token(tid))
+            .map(|tid| (self.nq_token(tid), tid))
+            .min_by(|(left, _), (right, _)| left.cmp(right))
+            .map(|(_, tid)| tid)
     }
 
     pub fn predicate_objects(&self, s_tid: usize, scope: Option<&str>) -> Vec<(usize, usize)> {
@@ -363,9 +366,7 @@ impl GtsFoldView {
             }
         }
         let first = candidates[0];
-        let public = self
-            .lang(first)
-            .and_then(|lang| self.tag_map.get(lang).cloned());
+        let public = self.public_bcp47_for(first);
         (self.lex(first).to_string(), public)
     }
 
@@ -812,8 +813,28 @@ mod tests {
                 lang: "en".to_string()
             }
         );
+        assert_eq!(
+            view.public_literal(cat, RDFS_LABEL, None),
+            ("Cat".to_string(), Some("en".to_string()))
+        );
         let age = view.objects(cat, &(EX.to_string() + "age"), None)[0];
         assert_eq!(view.public_value(age), PublicValue::Integer(7));
+    }
+
+    #[test]
+    fn invalid_boolean_literals_stay_strings() {
+        let mut writer = Writer::new("dist");
+        writer.add_terms(&[
+            iri(&(XSD.to_string() + "boolean")),
+            lit("false", None, Some(0)),
+            lit("not-a-boolean", None, Some(0)),
+        ]);
+        let view = GtsFoldView::new(gmeow_gts::reader::read(&writer.to_bytes(), true, None));
+        assert_eq!(view.public_value(1), PublicValue::Boolean(false));
+        assert_eq!(
+            view.public_value(2),
+            PublicValue::String("not-a-boolean".to_string())
+        );
     }
 
     #[test]
