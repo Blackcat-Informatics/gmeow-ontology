@@ -207,6 +207,22 @@ pub fn build_snapshot(
         crate::stages::compile_logic::GRAPH_LOGIC,
         "logic",
     )?;
+    // graph/relational-core ← the deterministic projection of the relational-core lowering
+    // (#1132 C8), folded as its own queryable named graph so a repo-free consumer reads
+    // the lowered Datalog±/relational-core dialect (and re-derives the typed handle)
+    // WITHOUT re-lowering. Sourced from the in-memory `stage-compile-logic` product (the
+    // SAME projection the typed RelationalCore handle pins to), already N-Triples.
+    let relational_core_nt = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::RELATIONAL_CORE_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing compile-logic relational-core projection"))?;
+    add_named(
+        &mut builder,
+        &relational_core_nt,
+        crate::stages::compile_logic::GRAPH_RELATIONAL_CORE,
+        "relcore",
+    )?;
     // graph/reasoning ← the deterministic RDF projection of the typed ReasoningResult
     // (#1132 C7), folded as its own queryable named graph so a repo-free consumer reads
     // the five-axis verdict + provenance (and re-derives the typed Reasoning handle)
@@ -1008,6 +1024,20 @@ fn build_snapshot_bundle(
         .ok_or_else(|| stage_err("missing compile-logic canonical RDF-1.2 artifact"))?;
     let logic_dataset = logic_graph_dataset(canonical_ttl)?;
 
+    // ── the RelationalCore handle payload + its backing graph/relational-core ─────
+    let rc_entry = compile
+        .bundle()
+        .handle(crate::stages::compile_logic::GRAPH_RELATIONAL_CORE)
+        .ok_or_else(|| stage_err("stage-compile-logic product carries no RelationalCore handle"))?;
+    let crate::bundle::PipelineHandle::RelationalCore(rc_program) = &rc_entry.payload else {
+        return Err(stage_err(
+            "stage-compile-logic handle for graph/relational-core is not the RelationalCore arm",
+        ));
+    };
+    let rc_program = rc_program.clone();
+    let rc_nt = gmeow_logic_compile::relational_core::project_relational_core(rc_program.as_ref());
+    let rc_dataset = relational_core_graph_dataset(rc_nt.as_bytes())?;
+
     // ── the Reasoning handle payload + its backing graph/reasoning projection ─────
     let reason = upstream
         .get("stage-reason")
@@ -1025,11 +1055,12 @@ fn build_snapshot_bundle(
     let reasoning_nt = gmeow_logic::result_rdf::project_reasoning_result(result.as_ref());
     let reasoning_dataset = reasoning_graph_dataset(reasoning_nt.as_bytes())?;
 
-    // Union the two backing graphs into one dataset (each in its own named graph), so
-    // both handles pin to the dataset the bundle carries.
+    // Union the three backing graphs into one dataset (each in its own named graph), so
+    // all handles pin to the dataset the bundle carries.
     let dataset = std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&[
         logic_dataset.as_ref(),
         reasoning_dataset.as_ref(),
+        rc_dataset.as_ref(),
     ]));
 
     let mut bundle =
@@ -1050,6 +1081,18 @@ fn build_snapshot_bundle(
             pinned_reasoning,
         )
         .map_err(|e| stage_err(&format!("re-pin Reasoning handle on snapshot product: {e}")))?;
+    let pinned_rc = bundle.graph_digest(crate::stages::compile_logic::GRAPH_RELATIONAL_CORE);
+    bundle
+        .pin_handle(
+            crate::stages::compile_logic::GRAPH_RELATIONAL_CORE,
+            crate::bundle::PipelineHandle::RelationalCore(rc_program),
+            pinned_rc,
+        )
+        .map_err(|e| {
+            stage_err(&format!(
+                "re-pin RelationalCore handle on snapshot product: {e}"
+            ))
+        })?;
     Ok(bundle)
 }
 
@@ -1095,6 +1138,30 @@ fn reasoning_graph_dataset(
     builder
         .freeze()
         .map_err(|e| stage_err(&format!("freeze snapshot graph/reasoning dataset: {e}")))
+}
+
+/// Parse the relational-core projection N-Triples and route every triple into the
+/// `graph/relational-core` named graph of a fresh frozen dataset — the backing graph the
+/// snapshot product's typed RelationalCore handle pins to. Mirrors the compile-logic
+/// producer's `relational_core_graph_dataset` so both pin over the SAME projection.
+fn relational_core_graph_dataset(
+    projection_nt: &[u8],
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    use gmeow_rdf::{RdfDatasetBuilder, RdfTerm};
+    let parsed = parse_dataset(projection_nt, "application/n-triples", None)
+        .map_err(|e| stage_err(&format!("parse graph/relational-core projection: {e}")))?;
+    let graph = RdfTerm::Iri(crate::stages::compile_logic::GRAPH_RELATIONAL_CORE.to_owned());
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in parsed.owned_quads() {
+        let mut routed = quad.clone();
+        routed.graph_name = Some(graph.clone());
+        builder.push_owned_quad(&routed);
+    }
+    builder.freeze().map_err(|e| {
+        stage_err(&format!(
+            "freeze snapshot graph/relational-core dataset: {e}"
+        ))
+    })
 }
 
 /// Parse the canonical RDF-1.2 projection Turtle and route every triple into the
@@ -2503,6 +2570,95 @@ mod logic_graph_golden_tests {
             folded_graph_nquads(&gts2, GRAPH_REASONING),
             folded,
             "the graph/reasoning fold must be byte-deterministic"
+        );
+    }
+
+    const GRAPH_RELATIONAL_CORE: &str = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE;
+
+    /// A FIXED synthetic relational-core program — the byte-golden subject for the
+    /// `graph/relational-core` fold (a clean Horn program with one rule, so the golden
+    /// is stable and independent of the real module).
+    fn fixed_relational_core() -> gmeow_logic_compile::relational_core::RelationalCoreProgram {
+        use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
+        use gmeow_logic_compile::relational_core::lower_program;
+        let sc = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+        let ax = |s: &str, p: &str, o: &str| {
+            LogicAxiom::new(s, p, o, false, false, ContextualScope::default()).expect("axiom")
+        };
+        // ?x sc ?z :- ?x sc ?y, ?y sc ?z .
+        let rule = LogicRule::new(
+            ax("?x", sc, "?z"),
+            vec![ax("?x", sc, "?y"), ax("?y", sc, "?z")],
+            vec![],
+            ContextualScope::default(),
+        );
+        let program = LogicProgram::new(
+            vec![ax(
+                "https://blackcatinformatics.ca/gmeow/Cat",
+                sc,
+                "https://blackcatinformatics.ca/gmeow/Animal",
+            )],
+            vec![rule],
+            vec![],
+            None,
+        );
+        lower_program(&program)
+    }
+
+    /// Byte golden (#1132 C8): the `graph/relational-core` named-graph content of an
+    /// emitted snapshot, over a FIXED synthetic relational-core program. Pins the
+    /// per-graph fold path (lower → project N-Triples → add_named canonicalization →
+    /// emit → read-back) byte-for-byte, independent of the full gmeow.gts. A second emit
+    /// is asserted byte-identical (determinism).
+    #[test]
+    fn graph_relational_core_fold_byte_golden() {
+        let rc_nt =
+            gmeow_logic_compile::relational_core::project_relational_core(&fixed_relational_core());
+
+        let build = || {
+            let mut builder = SnapshotBuilder::new();
+            let base = parse_nq(
+                b"<https://blackcatinformatics.ca/gmeow/> \
+                  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                  <http://www.w3.org/2002/07/owl#Ontology> .\n",
+            )
+            .expect("base parse");
+            builder.add_quads(&base, None, Some("base"));
+            add_named(
+                &mut builder,
+                rc_nt.as_bytes(),
+                GRAPH_RELATIONAL_CORE,
+                "relcore",
+            )
+            .expect("fold graph/relational-core");
+            emit_gts(
+                &builder,
+                "dist",
+                Some(vec!["gzip".to_string()]),
+                Vec::new(),
+                Vec::new(),
+                None,
+                None,
+                None,
+                gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            )
+            .expect("emit snapshot")
+        };
+
+        let gts = build();
+        let folded = folded_graph_nquads(&gts, GRAPH_RELATIONAL_CORE);
+        assert!(
+            !folded.is_empty(),
+            "graph/relational-core must carry the projection"
+        );
+        insta::assert_snapshot!("graph_relational_core_fold", folded);
+
+        // Determinism: a second build folds the SAME graph/relational-core content.
+        let gts2 = build();
+        assert_eq!(
+            folded_graph_nquads(&gts2, GRAPH_RELATIONAL_CORE),
+            folded,
+            "the graph/relational-core fold must be byte-deterministic"
         );
     }
 }
