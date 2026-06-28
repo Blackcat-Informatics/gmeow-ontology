@@ -1,0 +1,3 @@
+<https://example.org/occurrent/boundary-mismatch/E> <https://blackcatinformatics.ca/logic/occurrentBoundary> <https://blackcatinformatics.ca/logic/Closed> <https://example.org/occurrent/boundary-mismatch/schema> .
+<https://example.org/occurrent/boundary-mismatch/E> <https://blackcatinformatics.ca/logic/occurrentBoundary> <https://blackcatinformatics.ca/logic/Open> <https://example.org/occurrent/boundary-mismatch/schema> .
+<https://example.org/occurrent/boundary-mismatch/E> <https://blackcatinformatics.ca/logic/violation> <https://blackcatinformatics.ca/logic/OccurrentBoundaryMismatch> <https://example.org/occurrent/boundary-mismatch/schema> .

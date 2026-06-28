@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: occurrent/causal-transitive
+# AC: YAMATO occurrent mereology (#1081) — causalPartOf transitivity.
+#
+# ex:A causalPartOf ex:B, ex:B causalPartOf ex:C. The transitivity rule must
+# derive causalPartOf(A, C); the causal⊑temporal lift then yields temporalPartOf
+# for each pair. The chase seeds only from input.nq; this is the mirror axiom.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/occurrent/causal-transitive/> .
+
+ex:A logic:causalPartOf ex:B .
+ex:B logic:causalPartOf ex:C .

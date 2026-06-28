@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: occurrent/boundary-mismatch
+# AC: YAMATO occurrent constraint (#1081) — OccurrentBoundaryMismatch.
+#
+# ex:E is asserted with BOTH occurrentBoundary Open and Closed. An occurrent must
+# not be both, so the violation rule must derive
+# violation(E, OccurrentBoundaryMismatch). The chase seeds only from input.nq
+# world facts; this program is the mirror axiom.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/occurrent/boundary-mismatch/> .
+
+ex:E logic:occurrentBoundary logic:Open .
+ex:E logic:occurrentBoundary logic:Closed .
