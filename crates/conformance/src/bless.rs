@@ -125,7 +125,7 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
         write_text(&mat_path, &out.materialized_nquads)?;
     }
 
-    // Runtime preservation judgment (opt-in, #773): refresh an existing golden or
+    // Runtime preservation judgment (opt-in): refresh an existing golden or
     // seed in init mode — a case opts in by committing `runtime-preservation.json`.
     write_if(init, &expected.join("runtime-preservation.json"), |p| {
         write_json(p, &out.preservation)

@@ -432,8 +432,8 @@ fn derived_row_to_quad(row: crate::rule_ir::DerivedRow) -> Result<DerivedQuad, M
 }
 
 /// A profile-routed materialization: the derived quads plus the preservation
-/// judgment disclosing any derivation rules the routing could not evaluate (#773
-/// downstream disclosure). The faithful evaluators — the Nemo chase, the
+/// judgment disclosing any derivation rules the routing could not evaluate
+/// (downstream disclosure). The faithful evaluators — the Nemo chase, the
 /// well-founded alternating fixpoint, and the cautious-stable materializer — carry
 /// `{exact}`; the non-stratifiable EDB-echo path, which materializes only the
 /// asserted facts because the declared engine cannot evaluate the rules, carries
@@ -448,7 +448,7 @@ pub struct Materialization {
 }
 
 /// The rule IRIs of a non-stratifiable rule set — the derivation rules the EDB-echo
-/// path could not evaluate (#773 disclosure). The IRIs come from each rule's
+/// path could not evaluate (downstream disclosure). The IRIs come from each rule's
 /// `#[name(...)]`, or `logic:rule/anonymous` for unnamed rules. Best-effort: if the
 /// text does not re-parse as eval rules, a single generic marker is returned so the
 /// loss is named, never silent.
@@ -887,7 +887,7 @@ mod tests {
         );
     }
 
-    // ── #773 downstream disclosure of unsupported (dropped) rules ────────────────
+    // ── downstream disclosure of unsupported (dropped) rules ───────────────────
 
     use gmeow_logic_compile::ir::PreservationKind;
 
@@ -910,7 +910,7 @@ mod tests {
         "<https://example.org/ns/p2> <https://example.org/world/game> .\n",
     );
 
-    /// #773 disclosure: the non-stratifiable EDB-echo path MUST disclose the dropped
+    /// Disclosure: the non-stratifiable EDB-echo path MUST disclose the dropped
     /// derivation rules as a sound under-approximation — never silently return a bare
     /// `{exact}`. This is the adversarial guard against a regression to the optimistic
     /// `PreservationClaim::exact()` default.
@@ -956,7 +956,7 @@ mod tests {
         );
     }
 
-    /// #773 disclosure is uniform: a faithful stratifiable chase carries `{exact}`
+    /// Disclosure is uniform: a faithful stratifiable chase carries `{exact}`
     /// with an empty unsupported set — the disclosure surface is present even when
     /// nothing was dropped, so a consumer never has to assume.
     #[test]

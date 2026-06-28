@@ -476,7 +476,7 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
         ));
     }
 
-    // ── Runtime preservation judgment (opt-in canonical JSON, #773) ───────────
+    // ── Runtime preservation judgment (opt-in canonical JSON) ─────────────────
     // The materialization's preservation claim: `{exact}` for the faithful chase,
     // `{sound-under}` naming the dropped derivation rules for the non-stratifiable
     // EDB-echo path. Distinct from the compile-time `preservation-ledger.json`

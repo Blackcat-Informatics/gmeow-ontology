@@ -121,7 +121,7 @@ fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<Py<PyAny>>
 ///
 /// # Returns
 ///
-/// A dict `{"quads": [...], "preservation": {...}}` (#773 downstream disclosure):
+/// A dict `{"quads": [...], "preservation": {...}}` (downstream disclosure):
 ///
 /// - `quads` — a list of Python dicts, one per derived quad (including EDB facts,
 ///   since Nemo returns EDB predicates in `derived_predicates()`).  Each dict
@@ -212,7 +212,7 @@ fn materialize<'py>(
             MaterializeError::Chase(m) => pyo3::exceptions::PyRuntimeError::new_err(m),
         })?;
 
-    // ── Serialize to the {quads, preservation} disclosure dict (#773) ────────
+    // ── Serialize to the {quads, preservation} disclosure dict ───────────────
     let quads = PyList::empty(py);
     for dq in &materialization.quads {
         quads.append(derived_quad_to_dict(py, dq)?)?;
@@ -299,7 +299,7 @@ fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<Py<PyAny>> {
 /// "ok"|"partial"|"exhausted", "preservation": {polarities, unsupported_constructs}}`
 /// where each canonical value is the oracle/engine `Const` form (`<iri>` for IRIs).
 /// The binding list is canonically sorted for determinism. The `preservation` key
-/// (#773 disclosure) carries the judgment for the evaluation: a faithful backward
+/// (downstream disclosure) carries the judgment for the evaluation: a faithful backward
 /// goal is `{exact}`; it surfaces any constructs the target could not evaluate.
 ///
 /// # Errors
@@ -384,7 +384,7 @@ fn query(
     // The counterfactual path returns a CfAnswer (status may be "unknown" or
     // "incomplete"); the plain path returns an AnswerSet. Normalize both to a
     // binding list, a canonical status string, and the preservation claim each
-    // carries (#773 disclosure — both surfaces disclose what the target evaluated).
+    // carries (downstream disclosure — both surfaces disclose what the target evaluated).
     let (answer_bindings, status_str, preservation): (
         Vec<crate::query_ir::Binding>,
         String,
@@ -745,7 +745,7 @@ fn materialize_explained<'py>(
     let explanation_objs = explain_rows_to_dicts(py, &explanation_rows)?;
 
     // 3. Assemble the fused result dict, forwarding the preservation disclosure
-    //    (#773) so the fused surface carries the same judgment `materialize` does.
+    //    so the fused surface carries the same judgment `materialize` does.
     let out = PyDict::new(py);
     out.set_item("quads", quad_list)?;
     out.set_item("explanations", explanation_objs)?;

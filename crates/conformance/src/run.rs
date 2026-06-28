@@ -98,7 +98,7 @@ pub struct CaseOutputs {
     /// `{query_stem: {"bindings": [...], "status": "...", "preservation": {...}}}` for
     /// each `queries/*.logic`.
     pub answers: BTreeMap<String, serde_json::Value>,
-    /// The materialization's runtime preservation judgment (#773 disclosure):
+    /// The materialization's runtime preservation judgment (downstream disclosure):
     /// `{polarities, unsupported_constructs}`. `{exact}` for the faithful chase /
     /// foundation paths; `{sound-under}` naming the dropped rules for the
     /// non-stratifiable EDB-echo path. Distinct from the compile-time projection
@@ -425,7 +425,7 @@ fn bare_iri(term: &str) -> String {
 
 /// Default (non-foundation) materialization: the profile-routed chase. Returns the
 /// quads, the aggregate budget status / incomplete flag, and the preservation
-/// judgment disclosing any derivation rules the routing could not evaluate (#773).
+/// judgment disclosing any derivation rules the routing could not evaluate.
 fn materialize_default(
     case_id: &str,
     nemo_rules: &str,
@@ -648,8 +648,8 @@ fn resolve_query(
         max_steps: None,
     };
 
-    // Counterfactual (#505) vs plain backward goal (#504). Both carry a preservation
-    // claim disclosing what the target evaluated (#773).
+    // Counterfactual vs plain backward goal. Both carry a preservation
+    // claim disclosing what the target evaluated.
     let (bindings_vec, status, preservation): (
         Vec<gmeow_logic::query_ir::Binding>,
         String,

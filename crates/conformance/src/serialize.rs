@@ -140,7 +140,7 @@ pub fn budget_to_json(budget_status: &str, incomplete: bool) -> serde_json::Valu
 }
 
 /// Build the **runtime** preservation-disclosure JSON from a result's
-/// [`PreservationClaim`] (#773): `{ polarities: [...], unsupported_constructs: [...] }`,
+/// [`PreservationClaim`]: `{ polarities: [...], unsupported_constructs: [...] }`,
 /// both sorted for determinism. This is the runtime judgment a result carries —
 /// distinct from the compile-time projection ledger ([`ledger_to_json`]), which
 /// describes per-target lowering classes rather than what a given evaluation

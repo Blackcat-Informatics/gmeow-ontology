@@ -296,7 +296,7 @@ pub struct AnswerSet {
     /// Whether resolution completed within budget.
     pub status: BudgetStatus,
     /// The preservation judgment disclosing any formulas the evaluation could not
-    /// carry (#773 downstream disclosure). The backward-goal / Scryer dispatch is a
+    /// carry (downstream disclosure). The backward-goal / Scryer dispatch is a
     /// faithful evaluator, so this is `{exact}` with an empty unsupported set;
     /// budget-incompleteness is carried on [`Self::status`], not here. The field is
     /// always present so a consumer can uniformly read the disclosure on every
