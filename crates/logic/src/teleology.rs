@@ -315,6 +315,36 @@ impl WorldFacts {
     fn has(&self, subject: &str, predicate: &str, object: &str) -> bool {
         self.objects(subject, predicate).contains(&object)
     }
+
+    /// Return a NEW content-sorted fact view extending `self` with the triples carried
+    /// by `quads` (their `(subject, predicate, object)` shape; the per-quad provenance
+    /// is dropped — facts are ground triples).
+    ///
+    /// Used by the dual-authority bridge post-pass so the forward direction can read the
+    /// `logic:GoalEvaluation`s the driver itself just emitted, exactly as if they had
+    /// been authored in the input — keeping the fold deterministic and store-free.
+    fn extended_with(&self, quads: &[TeleologyQuad]) -> Self {
+        let mut triples = self.triples.clone();
+        for q in quads {
+            let object_iri = strip_angle_opt(&q.object).map(str::to_owned);
+            triples.push(Triple {
+                subject: q.subject.clone(),
+                predicate: q.predicate.clone(),
+                object_iri,
+                object_n3: q.object.clone(),
+            });
+        }
+        triples.sort();
+        triples.dedup();
+        let mut sp_index: HashMap<(String, String), Vec<usize>> = HashMap::new();
+        for (i, t) in triples.iter().enumerate() {
+            sp_index
+                .entry((t.subject.clone(), t.predicate.clone()))
+                .or_default()
+                .push(i);
+        }
+        Self { triples, sp_index }
+    }
 }
 
 /// Strip `<` … `>` if both delimiters are present.
@@ -756,6 +786,16 @@ fn emit_goal_evaluation(
     };
     push(RDF_TYPE, &n3(&logic("GoalEvaluation")));
     push(&logic(EVALUATES_GOAL), &n3(goal_iri));
+    // The situation/world judged against and the holding vantage complete the
+    // identifying tuple, making a driver-emitted evaluation a well-formed,
+    // vantage-indexed record the dual-authority bridge can project a flat
+    // gmeow:satisfiedBy edge from. A path evaluation is judged against the world
+    // (its path) under the default-of-silence vantage (gmeow:unspecifiedStandpoint).
+    push(&logic(EVALUATED_AGAINST), &n3(world));
+    push(
+        &logic(EVALUATION_EVALUATOR),
+        &n3(&gmeow(UNSPECIFIED_STANDPOINT)),
+    );
     if let Some(local) = verdict.satisfaction.local() {
         push(&logic(SATISFACTION_STATUS), &n3(&logic(local)));
     }
@@ -768,6 +808,319 @@ fn emit_goal_evaluation(
         push(&logic(SATISFACTION_DEGREE), &lit);
     }
     Ok(())
+}
+
+// ── satisfiedBy ⟷ GoalEvaluation dual-authority bridge (Task 4b) ────────────────
+
+/// The `gmeow:` vocabulary namespace (the surface vocabulary the flat
+/// `gmeow:satisfiedBy` / `gmeow:accordingTo` edges live in).  Matches
+/// [`crate::provenance::NAMESPACE`] verbatim.
+const GMEOW_NS: &str = crate::provenance::NAMESPACE;
+
+/// `gmeow:satisfiedBy` — the flat, conclusive projection of a satisfied+completed
+/// `logic:GoalEvaluation`.
+const SATISFIED_BY: &str = "satisfiedBy";
+
+/// `gmeow:accordingTo` — the vantage / standpoint a flat statement is asserted under
+/// (the surface alias of `logic:evaluationEvaluator`; vantage ⊑ accordingTo).
+const ACCORDING_TO: &str = "accordingTo";
+
+/// `logic:evaluationEvaluator` — the vantage a reified `logic:GoalEvaluation` is
+/// attributed to.
+const EVALUATION_EVALUATOR: &str = "evaluationEvaluator";
+
+/// `logic:evaluatedAgainst` — the situation / world a goal evaluation is judged against.
+const EVALUATED_AGAINST: &str = "evaluatedAgainst";
+
+/// `gmeow:unspecifiedStandpoint` — the documented default-of-silence vantage for a flat
+/// `gmeow:satisfiedBy` edge authored with no explicit `gmeow:accordingTo` (unspecified,
+/// NOT universal — see `slices/core/standpoint`).
+const UNSPECIFIED_STANDPOINT: &str = "unspecifiedStandpoint";
+
+/// Build a `gmeow:`-namespaced IRI string.
+fn gmeow(local: &str) -> String {
+    format!("{GMEOW_NS}{local}")
+}
+
+/// Reifier IRI for a `(subject, gmeow:satisfiedBy, object)` triple — the reified
+/// statement node that carries the edge's vantage (`gmeow:accordingTo`), via the
+/// golden-pinned [`mint_reifier`] recipe.
+fn satisfied_by_reifier(goal: &str, situation: &str) -> Result<String, String> {
+    triple_reifier(goal, &gmeow(SATISFIED_BY), situation)
+}
+
+/// A satisfied + completed evaluation, projected to the `(goal, situation, vantage)`
+/// tuple that grounds the flat `gmeow:satisfiedBy` edge.
+struct SatisfiedEval {
+    /// The source `logic:GoalEvaluation` node IRI.
+    eval_iri: String,
+    /// `logic:evaluatesGoal`.
+    goal: String,
+    /// `logic:evaluatedAgainst`.
+    situation: String,
+    /// `logic:evaluationEvaluator` (the vantage; aligned with `gmeow:accordingTo`).
+    vantage: String,
+}
+
+/// Enumerate every `logic:GoalEvaluation` in the world that is BOTH
+/// `logic:satisfactionStatus = logic:Satisfied` AND
+/// `logic:goalEvaluationStatus = logic:GoalEvaluationCompleted`, in deterministic
+/// content order.  An evaluation missing its goal, situation, or evaluator is skipped
+/// (it cannot ground a vantage-indexed flat edge) — the no-optionality contract on the
+/// SHACL `logic:GoalEvaluationShape` governs well-formedness; the bridge is a pure
+/// projection over the evaluations that ARE complete.
+fn satisfied_completed_evals(facts: &WorldFacts) -> Vec<SatisfiedEval> {
+    let satisfied = logic("Satisfied");
+    let completed = logic("GoalEvaluationCompleted");
+    // The distinct evaluation subjects, in sorted order (insertion-order enumeration).
+    let mut evals: Vec<&str> = facts
+        .triples
+        .iter()
+        .filter(|t| t.predicate == logic(SATISFACTION_STATUS))
+        .filter(|t| t.object_iri.as_deref() == Some(satisfied.as_str()))
+        .map(|t| t.subject.as_str())
+        .collect();
+    evals.sort_unstable();
+    evals.dedup();
+
+    let mut out: Vec<SatisfiedEval> = Vec::new();
+    for e in evals {
+        // Must ALSO be completed; satisfaction alone is not the projection condition.
+        if !facts.has(e, &logic(GOAL_EVALUATION_STATUS), &completed) {
+            continue;
+        }
+        let (Some(goal), Some(situation), Some(vantage)) = (
+            facts.object(e, &logic(EVALUATES_GOAL)),
+            facts.object(e, &logic(EVALUATED_AGAINST)),
+            facts.object(e, &logic(EVALUATION_EVALUATOR)),
+        ) else {
+            // An incomplete (goal/situation/vantage missing) evaluation cannot project a
+            // vantage-indexed edge — skip rather than mint a non-vantage-indexed one.
+            continue;
+        };
+        out.push(SatisfiedEval {
+            eval_iri: e.to_owned(),
+            goal: goal.to_owned(),
+            situation: situation.to_owned(),
+            vantage: vantage.to_owned(),
+        });
+    }
+    out
+}
+
+/// **Forward bridge.** Generate the flat, vantage-indexed `gmeow:satisfiedBy(goal,
+/// situation)` edges that are the conclusive projection of every satisfied + completed
+/// `logic:GoalEvaluation` in `facts`.
+///
+/// Per the source-of-truth rule (`LOGIC-TELEOLOGY.md` §"Goal evaluation is reified
+/// and factored"): evaluations are canonical, and an edge is generated from each
+/// evaluation whose `logic:satisfactionStatus` is `logic:Satisfied` AND whose
+/// `logic:goalEvaluationStatus` is `logic:GoalEvaluationCompleted`.
+///
+/// The edge is **vantage-indexed** (Principle 9): it is emitted as the flat triple
+/// `goal gmeow:satisfiedBy situation` PLUS a reified statement (the [`mint_reifier`]
+/// node of that flat triple) carrying `gmeow:accordingTo vantage`, where `vantage` is
+/// the source evaluation's `logic:evaluationEvaluator`.  Two contested evaluators that
+/// both reach satisfied+completed therefore each generate their OWN edge under their
+/// own vantage — there is never one global verdict; a single satisfied vantage among
+/// dissenters generates exactly one edge.
+///
+/// Provenance: the derivation id is minted (via [`mint_derivation_id`]) from the source
+/// evaluation's `logic:satisfactionStatus` reifier, so re-running over the same input
+/// yields byte-identical quads and ids (determinism).
+///
+/// # Errors
+///
+/// Returns `Err` for an invalid IRI in a goal/situation/vantage (a malformed input the
+/// reifier recipe rejects).
+pub fn bridge_generate_satisfied_by(
+    facts: &WorldFacts,
+    world: &str,
+) -> Result<Vec<TeleologyQuad>, String> {
+    let mut out: Vec<TeleologyQuad> = Vec::new();
+    for ev in satisfied_completed_evals(facts) {
+        // The antecedent: the satisfaction-status quad of the SOURCE evaluation.
+        let source = triple_reifier(
+            &ev.eval_iri,
+            &logic(SATISFACTION_STATUS),
+            &logic("Satisfied"),
+        )?;
+        let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
+        // The reified statement node of the flat edge (carries the vantage).
+        let stmt = satisfied_by_reifier(&ev.goal, &ev.situation)?;
+        let mut push = |subject: &str, p: &str, o_n3: String| {
+            out.push(TeleologyQuad {
+                graph: world.to_owned(),
+                subject: subject.to_owned(),
+                predicate: p.to_owned(),
+                object: o_n3,
+                rule_iri: TELEOLOGY_RULE_IRI.to_owned(),
+                source_quad_ids: vec![source.clone()],
+                derivation_id: deriv.clone(),
+            });
+        };
+        // The flat, conclusive edge.
+        push(&ev.goal, &gmeow(SATISFIED_BY), n3(&ev.situation));
+        // The reified statement carrying its vantage — this is what makes the flat edge
+        // vantage-indexed rather than a global verdict.
+        push(&stmt, &gmeow(ACCORDING_TO), n3(&ev.vantage));
+    }
+    canonical_sort(&mut out);
+    Ok(out)
+}
+
+/// An authored flat `gmeow:satisfiedBy(goal, situation)` edge and the vantage it is
+/// asserted under.
+struct AuthoredEdge {
+    goal: String,
+    situation: String,
+    /// The vantage read off the edge's `gmeow:accordingTo`, or the documented default
+    /// (`gmeow:unspecifiedStandpoint`) when the edge carries none.
+    vantage: String,
+}
+
+/// Enumerate the authored flat `gmeow:satisfiedBy(goal, situation)` edges, resolving
+/// each edge's vantage from the `gmeow:accordingTo` of its reified statement (the
+/// [`mint_reifier`] node of the flat triple); an edge with no such index defaults to
+/// `gmeow:unspecifiedStandpoint` (unspecified, NOT universal).
+fn authored_satisfied_by(facts: &WorldFacts) -> Result<Vec<AuthoredEdge>, String> {
+    let default_vantage = gmeow(UNSPECIFIED_STANDPOINT);
+    let mut edges: Vec<(String, String)> = facts
+        .triples
+        .iter()
+        .filter(|t| t.predicate == gmeow(SATISFIED_BY))
+        .filter_map(|t| {
+            t.object_iri
+                .as_deref()
+                .map(|o| (t.subject.clone(), o.to_owned()))
+        })
+        .collect();
+    edges.sort();
+    edges.dedup();
+
+    let mut out: Vec<AuthoredEdge> = Vec::new();
+    for (goal, situation) in edges {
+        let stmt = satisfied_by_reifier(&goal, &situation)?;
+        let vantage = facts
+            .object(&stmt, &gmeow(ACCORDING_TO))
+            .map_or_else(|| default_vantage.clone(), str::to_owned);
+        out.push(AuthoredEdge {
+            goal,
+            situation,
+            vantage,
+        });
+    }
+    Ok(out)
+}
+
+/// Mint the content-addressed IRI of the DEFAULT `logic:GoalEvaluation` for an authored
+/// edge, hashing `(goal, situation, vantage)` so re-running yields the SAME node
+/// (idempotent, deterministic) — the reverse direction's analogue of [`mint_eval_iri`].
+fn mint_default_eval_iri(goal: &str, situation: &str, vantage: &str) -> String {
+    let payload = format!("{goal}\n{situation}\n{vantage}");
+    format!("{LOGIC_NS}eval/{}", crate::provenance::sha1_hex(&payload))
+}
+
+/// **Reverse bridge.** Expand each AUTHORED flat `gmeow:satisfiedBy(goal, situation)`
+/// edge that has NO backing `logic:GoalEvaluation` under its asserting vantage into a
+/// DEFAULT evaluation carrying `logic:satisfactionStatus = logic:Satisfied`,
+/// `logic:goalEvaluationStatus = logic:GoalEvaluationCompleted`,
+/// `logic:evaluatesGoal = goal`, `logic:evaluatedAgainst = situation`, and
+/// `logic:evaluationEvaluator = vantage` (the edge's `gmeow:accordingTo`, or
+/// `gmeow:unspecifiedStandpoint` when none).
+///
+/// The minted evaluation node's IRI is content-addressed over `(goal, situation,
+/// vantage)` ([`mint_default_eval_iri`]), so re-running yields the SAME node
+/// (idempotent).  "Backing exists" is checked PER VANTAGE: an edge already backed by a
+/// satisfied+completed evaluation under its own vantage is NOT re-expanded, while a
+/// contested vantage that authored the same flat edge still gets its own default
+/// evaluation.  This is the reverse of [`bridge_generate_satisfied_by`]; together they
+/// keep the flat and reified records in agreement per-vantage.
+///
+/// Provenance: derivation id minted from the authored flat edge's reifier.
+///
+/// # Errors
+///
+/// Returns `Err` for an invalid IRI in a goal/situation (the reifier recipe rejects it).
+pub fn bridge_expand_authored_satisfied_by(
+    facts: &WorldFacts,
+    world: &str,
+) -> Result<Vec<TeleologyQuad>, String> {
+    // Index the (goal, situation, vantage) tuples ALREADY backed by a satisfied+completed
+    // evaluation, so an authored edge with a real backing under its vantage is left alone.
+    let backed: BTreeSet<(String, String, String)> = satisfied_completed_evals(facts)
+        .into_iter()
+        .map(|ev| (ev.goal, ev.situation, ev.vantage))
+        .collect();
+
+    let mut out: Vec<TeleologyQuad> = Vec::new();
+    for edge in authored_satisfied_by(facts)? {
+        let key = (
+            edge.goal.clone(),
+            edge.situation.clone(),
+            edge.vantage.clone(),
+        );
+        if backed.contains(&key) {
+            // Already backed under THIS vantage — the flat and reified records agree;
+            // do not mint a duplicate default evaluation.
+            continue;
+        }
+        let eval_iri = mint_default_eval_iri(&edge.goal, &edge.situation, &edge.vantage);
+        let source = satisfied_by_reifier(&edge.goal, &edge.situation)?;
+        let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
+        let mut push = |p: &str, o_n3: String| {
+            out.push(TeleologyQuad {
+                graph: world.to_owned(),
+                subject: eval_iri.clone(),
+                predicate: p.to_owned(),
+                object: o_n3,
+                rule_iri: TELEOLOGY_RULE_IRI.to_owned(),
+                source_quad_ids: vec![source.clone()],
+                derivation_id: deriv.clone(),
+            });
+        };
+        push(RDF_TYPE, n3(&logic("GoalEvaluation")));
+        push(&logic(EVALUATES_GOAL), n3(&edge.goal));
+        push(&logic(EVALUATED_AGAINST), n3(&edge.situation));
+        push(&logic(EVALUATION_EVALUATOR), n3(&edge.vantage));
+        push(&logic(SATISFACTION_STATUS), n3(&logic("Satisfied")));
+        push(
+            &logic(GOAL_EVALUATION_STATUS),
+            n3(&logic("GoalEvaluationCompleted")),
+        );
+    }
+    canonical_sort(&mut out);
+    Ok(out)
+}
+
+/// Run BOTH bridge directions over one world and return the union of their quads in
+/// canonical order: forward (`logic:GoalEvaluation` → flat `gmeow:satisfiedBy`) and
+/// reverse (authored flat `gmeow:satisfiedBy` → default `logic:GoalEvaluation`).
+///
+/// After this post-pass the flat and reified records agree PER VANTAGE — one is always
+/// derived from the other (`LOGIC-TELEOLOGY.md`).  First-wins dedup on
+/// `(graph, subject, predicate, object)` keeps a single record where both directions
+/// would emit the same key.
+///
+/// # Errors
+///
+/// Returns `Err` for an invalid IRI in either direction.
+pub fn bridge(facts: &WorldFacts, world: &str) -> Result<Vec<TeleologyQuad>, String> {
+    let mut out = bridge_generate_satisfied_by(facts, world)?;
+    out.extend(bridge_expand_authored_satisfied_by(facts, world)?);
+    canonical_sort(&mut out);
+    // First-wins dedup on the (graph, subject, predicate, object) key — the same
+    // dedup discipline the foundation runner's fold applies.
+    let mut seen: HashSet<(String, String, String, String)> = HashSet::new();
+    out.retain(|q| {
+        seen.insert((
+            q.graph.clone(),
+            q.subject.clone(),
+            q.predicate.clone(),
+            q.object.clone(),
+        ))
+    });
+    Ok(out)
 }
 
 // ── 2. Plan-success classification ──────────────────────────────────────────────
@@ -1201,6 +1554,41 @@ pub fn evaluate_world_goals(store: &WorldStore, world: &str) -> Result<Vec<Teleo
         let verdict = evaluate_goal_over_path(&facts, goal_expr, &states)?;
         let eval_iri = mint_eval_iri(goal, goal_expr, world);
         emit_goal_evaluation(world, &eval_iri, goal, &verdict, &mut out)?;
+    }
+    canonical_sort(&mut out);
+
+    // ── Dual-authority bridge post-pass (Task 4b) ─────────────────────────────
+    // Run BOTH directions over the input facts EXTENDED with the evaluations this
+    // driver just emitted, so: (a) the forward direction projects a flat,
+    // vantage-indexed `gmeow:satisfiedBy` edge from every satisfied+completed
+    // evaluation (driver-emitted OR authored); and (b) the reverse direction expands
+    // any authored `gmeow:satisfiedBy` edge that no vantage's evaluation backs into a
+    // default satisfied+completed `logic:GoalEvaluation`. Afterwards the flat and
+    // reified records agree per-vantage. First-wins dedup on (graph, subject,
+    // predicate, object) keeps the bridge edges distinct from the driver's quads.
+    let bridged_facts = facts.extended_with(&out);
+    let bridged = bridge(&bridged_facts, world)?;
+    let mut seen: HashSet<(String, String, String, String)> = out
+        .iter()
+        .map(|q| {
+            (
+                q.graph.clone(),
+                q.subject.clone(),
+                q.predicate.clone(),
+                q.object.clone(),
+            )
+        })
+        .collect();
+    for q in bridged {
+        let key = (
+            q.graph.clone(),
+            q.subject.clone(),
+            q.predicate.clone(),
+            q.object.clone(),
+        );
+        if seen.insert(key) {
+            out.push(q);
+        }
     }
     canonical_sort(&mut out);
     Ok(out)

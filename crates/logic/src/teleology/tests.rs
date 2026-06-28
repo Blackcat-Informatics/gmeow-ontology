@@ -648,6 +648,331 @@ fn unknown_goal_kind_is_hard_error() {
     );
 }
 
+// ── Task 4b: satisfiedBy ⟷ GoalEvaluation dual-authority bridge ─────────────────
+
+/// Shorthand for a `gmeow:` IRI in N-Quads angle-bracket form.
+fn g(local: &str) -> String {
+    format!("<https://blackcatinformatics.ca/gmeow/{local}>")
+}
+
+/// Build a reified GoalEvaluation in N-Quads under the given vantage with the given
+/// satisfaction + goal-evaluation status.
+fn eval_nq(
+    eval: &str,
+    goal: &str,
+    situation: &str,
+    vantage: &str,
+    sat_status: &str,
+    eval_status: &str,
+) -> String {
+    let e = format!("<{W}#{eval}>");
+    format!(
+        "{e} {ty} {ge} <{W}> .\n\
+         {e} {eg} <{W}#{goal}> <{W}> .\n\
+         {e} {ea} <{W}#{situation}> <{W}> .\n\
+         {e} {ev} <{W}#{vantage}> <{W}> .\n\
+         {e} {ss} {sat} <{W}> .\n\
+         {e} {gs} {est} <{W}> .\n",
+        ty = rdf_type_tok(),
+        ge = l("GoalEvaluation"),
+        eg = l("evaluatesGoal"),
+        ea = l("evaluatedAgainst"),
+        ev = l("evaluationEvaluator"),
+        ss = l("satisfactionStatus"),
+        sat = l(sat_status),
+        gs = l("goalEvaluationStatus"),
+        est = l(eval_status),
+    )
+}
+
+/// The rdf:type predicate as an N-Quads token.
+fn rdf_type_tok() -> String {
+    "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>".to_string()
+}
+
+#[test]
+fn forward_satisfied_completed_emits_one_vantage_indexed_edge() {
+    let nq = eval_nq(
+        "ev1",
+        "goalOrbit",
+        "sitStable",
+        "vantageMC",
+        "Satisfied",
+        "GoalEvaluationCompleted",
+    );
+    let f = facts_of(&nq);
+    let out = bridge_generate_satisfied_by(&f, W).unwrap();
+    // Exactly one flat satisfiedBy edge.
+    let flat: Vec<&TeleologyQuad> = out
+        .iter()
+        .filter(|q| q.predicate == gmeow(SATISFIED_BY))
+        .collect();
+    assert_eq!(
+        flat.len(),
+        1,
+        "one satisfied+completed eval → one flat edge"
+    );
+    assert_eq!(flat[0].subject, format!("{W}#goalOrbit"));
+    assert_eq!(flat[0].object, n3(&format!("{W}#sitStable")));
+    // The edge is vantage-indexed: a reified statement carries gmeow:accordingTo vantage.
+    let acc: Vec<&TeleologyQuad> = out
+        .iter()
+        .filter(|q| q.predicate == gmeow(ACCORDING_TO))
+        .collect();
+    assert_eq!(acc.len(), 1, "the edge must carry exactly one vantage");
+    assert_eq!(acc[0].object, n3(&format!("{W}#vantageMC")));
+    // Provenance is content-addressed under the teleology rule.
+    for q in &out {
+        assert_eq!(q.rule_iri, TELEOLOGY_RULE_IRI);
+        assert!(q
+            .derivation_id
+            .starts_with("https://blackcatinformatics.ca/gmeow/derivation/"));
+    }
+}
+
+#[test]
+fn forward_undetermined_or_partial_emits_no_edge() {
+    // Satisfied but UNDETERMINED → no edge (not conclusive).
+    let nq_undet = eval_nq(
+        "ev1",
+        "goalOrbit",
+        "sitStable",
+        "vantageMC",
+        "Satisfied",
+        "GoalEvaluationUndetermined",
+    );
+    let out = bridge_generate_satisfied_by(&facts_of(&nq_undet), W).unwrap();
+    assert!(
+        out.iter().all(|q| q.predicate != gmeow(SATISFIED_BY)),
+        "satisfied-but-undetermined must NOT generate a satisfiedBy edge"
+    );
+    // PartiallySatisfied + completed → no edge (not Satisfied).
+    let nq_partial = eval_nq(
+        "ev1",
+        "goalOrbit",
+        "sitStable",
+        "vantageMC",
+        "PartiallySatisfied",
+        "GoalEvaluationCompleted",
+    );
+    let out = bridge_generate_satisfied_by(&facts_of(&nq_partial), W).unwrap();
+    assert!(
+        out.iter().all(|q| q.predicate != gmeow(SATISFIED_BY)),
+        "partial satisfaction must NOT generate a satisfiedBy edge"
+    );
+}
+
+#[test]
+fn reverse_authored_edge_with_no_backing_mints_default_eval() {
+    // Authored flat edge with an explicit vantage but no reified evaluation backing it.
+    let stmt = satisfied_by_reifier(&format!("{W}#goalOrbit"), &format!("{W}#sitStable")).unwrap();
+    let nq = format!(
+        "<{W}#goalOrbit> {sb} <{W}#sitStable> <{W}> .\n\
+         <{stmt}> {acc} <{W}#vantageMC> <{W}> .\n",
+        sb = g("satisfiedBy"),
+        acc = g("accordingTo"),
+    );
+    let f = facts_of(&nq);
+    let out = bridge_expand_authored_satisfied_by(&f, W).unwrap();
+    // Exactly one default GoalEvaluation, attributed to the asserting vantage.
+    let typed: Vec<&TeleologyQuad> = out
+        .iter()
+        .filter(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("GoalEvaluation")))
+        .collect();
+    assert_eq!(typed.len(), 1, "one default evaluation minted");
+    let eval_iri = &typed[0].subject;
+    assert!(out.iter().any(|q| q.subject == *eval_iri
+        && q.predicate == logic("satisfactionStatus")
+        && q.object == n3(&logic("Satisfied"))));
+    assert!(out.iter().any(|q| q.subject == *eval_iri
+        && q.predicate == logic("goalEvaluationStatus")
+        && q.object == n3(&logic("GoalEvaluationCompleted"))));
+    assert!(out.iter().any(|q| q.subject == *eval_iri
+        && q.predicate == logic("evaluationEvaluator")
+        && q.object == n3(&format!("{W}#vantageMC"))));
+    assert!(out.iter().any(|q| q.subject == *eval_iri
+        && q.predicate == logic("evaluatesGoal")
+        && q.object == n3(&format!("{W}#goalOrbit"))));
+    assert!(out.iter().any(|q| q.subject == *eval_iri
+        && q.predicate == logic("evaluatedAgainst")
+        && q.object == n3(&format!("{W}#sitStable"))));
+
+    // Idempotent: re-running yields the SAME content-addressed eval node id + quads.
+    let out2 = bridge_expand_authored_satisfied_by(&facts_of(&nq), W).unwrap();
+    assert_eq!(out, out2, "reverse bridge must be idempotent/deterministic");
+}
+
+#[test]
+fn reverse_authored_edge_no_vantage_uses_default_standpoint() {
+    let nq = format!(
+        "<{W}#goalOrbit> {sb} <{W}#sitStable> <{W}> .\n",
+        sb = g("satisfiedBy"),
+    );
+    let out = bridge_expand_authored_satisfied_by(&facts_of(&nq), W).unwrap();
+    assert!(
+        out.iter()
+            .any(|q| q.predicate == logic("evaluationEvaluator")
+                && q.object == n3(&gmeow(UNSPECIFIED_STANDPOINT))),
+        "an authored edge with no accordingTo defaults to gmeow:unspecifiedStandpoint"
+    );
+}
+
+#[test]
+fn reverse_authored_edge_already_backed_is_not_re_expanded() {
+    // Authored edge AND a satisfied+completed evaluation already back it under the same
+    // vantage — the reverse direction must not mint a duplicate default.
+    let mut nq = format!(
+        "<{W}#goalOrbit> {sb} <{W}#sitStable> <{W}> .\n",
+        sb = g("satisfiedBy"),
+    );
+    let stmt = satisfied_by_reifier(&format!("{W}#goalOrbit"), &format!("{W}#sitStable")).unwrap();
+    nq.push_str(&format!(
+        "<{stmt}> {acc} <{W}#vantageMC> <{W}> .\n",
+        acc = g("accordingTo"),
+    ));
+    nq.push_str(&eval_nq(
+        "ev1",
+        "goalOrbit",
+        "sitStable",
+        "vantageMC",
+        "Satisfied",
+        "GoalEvaluationCompleted",
+    ));
+    let out = bridge_expand_authored_satisfied_by(&facts_of(&nq), W).unwrap();
+    assert!(
+        out.is_empty(),
+        "an edge already backed under its vantage must not be re-expanded: {out:?}"
+    );
+}
+
+#[test]
+fn contested_evaluations_forward_generates_one_edge_and_retains_both() {
+    // Two vantages on the same goal+situation: one Satisfied+completed, one Violated.
+    let mut nq = eval_nq(
+        "evSat",
+        "goalOrbit",
+        "sitStable",
+        "vantageMC",
+        "Satisfied",
+        "GoalEvaluationCompleted",
+    );
+    nq.push_str(&eval_nq(
+        "evViol",
+        "goalOrbit",
+        "sitStable",
+        "vantageAudit",
+        "Violated",
+        "GoalEvaluationCompleted",
+    ));
+    let f = facts_of(&nq);
+    let out = bridge_generate_satisfied_by(&f, W).unwrap();
+    // EXACTLY one flat edge — only the satisfied vantage generates one; NO global verdict.
+    let flat: Vec<&TeleologyQuad> = out
+        .iter()
+        .filter(|q| q.predicate == gmeow(SATISFIED_BY))
+        .collect();
+    assert_eq!(
+        flat.len(),
+        1,
+        "only the satisfied vantage generates an edge"
+    );
+    // The edge is attributed to the SATISFIED vantage, not a merged/global one.
+    let acc: Vec<&TeleologyQuad> = out
+        .iter()
+        .filter(|q| q.predicate == gmeow(ACCORDING_TO))
+        .collect();
+    assert_eq!(acc.len(), 1);
+    assert_eq!(acc[0].object, n3(&format!("{W}#vantageMC")));
+    // The dissenting (Violated) evaluation is in the INPUT and the bridge neither reads
+    // it as a generator nor deletes it — the input facts still carry it untouched.
+    assert!(
+        f.triples.iter().any(|t| t.subject.ends_with("#evViol")
+            && t.predicate == logic("satisfactionStatus")
+            && t.object_iri.as_deref() == Some(logic("Violated").as_str())),
+        "the dissenting evaluation must remain present and untouched"
+    );
+}
+
+#[test]
+fn round_trip_forward_of_reverse_is_stable() {
+    // Author a flat edge → reverse expands a default eval → forward over the union
+    // regenerates the SAME flat edge (flat and reified agree per-vantage).
+    let nq = format!(
+        "<{W}#goalOrbit> {sb} <{W}#sitStable> <{W}> .\n",
+        sb = g("satisfiedBy"),
+    );
+    let f = facts_of(&nq);
+    let reverse = bridge_expand_authored_satisfied_by(&f, W).unwrap();
+    let extended = f.extended_with(&reverse);
+    let forward = bridge_generate_satisfied_by(&extended, W).unwrap();
+    // The regenerated flat edge matches the authored one, under the default vantage.
+    let flat: Vec<&TeleologyQuad> = forward
+        .iter()
+        .filter(|q| q.predicate == gmeow(SATISFIED_BY))
+        .collect();
+    assert_eq!(flat.len(), 1);
+    assert_eq!(flat[0].subject, format!("{W}#goalOrbit"));
+    assert_eq!(flat[0].object, n3(&format!("{W}#sitStable")));
+    let acc = forward
+        .iter()
+        .find(|q| q.predicate == gmeow(ACCORDING_TO))
+        .unwrap();
+    assert_eq!(acc.object, n3(&gmeow(UNSPECIFIED_STANDPOINT)));
+    // Running the combined bridge again over the union is stable (idempotent fold).
+    let combined = bridge(&extended, W).unwrap();
+    let combined2 = bridge(&extended, W).unwrap();
+    assert_eq!(combined, combined2, "combined bridge must be deterministic");
+}
+
+#[test]
+fn bridge_determinism_same_input_identical_quads_and_ids() {
+    let mut nq = eval_nq(
+        "ev1",
+        "goalOrbit",
+        "sitStable",
+        "vantageMC",
+        "Satisfied",
+        "GoalEvaluationCompleted",
+    );
+    nq.push_str(&format!(
+        "<{W}#goalOther> {sb} <{W}#sitOther> <{W}> .\n",
+        sb = g("satisfiedBy"),
+    ));
+    let a = bridge(&facts_of(&nq), W).unwrap();
+    let b = bridge(&facts_of(&nq), W).unwrap();
+    assert_eq!(a, b, "same input → byte-identical quads + provenance ids");
+}
+
+#[test]
+fn driver_post_pass_emits_bridged_satisfied_by_edge() {
+    // The driver evaluates an atomic goal whose situation obtains → Satisfied/Completed,
+    // and the bridge post-pass projects the flat gmeow:satisfiedBy edge from it.
+    let mut nq = path_nq(&[&["sitA"]]);
+    nq.push_str(&goal_expr_nq(
+        "atomA",
+        "AtomicGoal",
+        &format!(
+            "<{W}#atomA> {} <{W}#sitA> <{W}> .\n",
+            l("boundSituationType")
+        ),
+    ));
+    nq.push_str(&format!(
+        "<{W}#goal1> {} <{W}#atomA> <{W}> .\n",
+        l("hasGoalCondition")
+    ));
+    let out = evaluate_world_goals(&store_from(&nq), W).unwrap();
+    // The driver emitted a Satisfied+Completed evaluation; the bridge post-pass projects
+    // the flat edge AND its vantage index.
+    assert!(
+        out.iter().any(|q| q.predicate == gmeow(SATISFIED_BY)),
+        "driver post-pass must emit the flat gmeow:satisfiedBy edge: {out:?}"
+    );
+    assert!(
+        out.iter().any(|q| q.predicate == gmeow(ACCORDING_TO)),
+        "the bridged edge must carry its vantage (gmeow:accordingTo)"
+    );
+}
+
 #[test]
 fn nonlinear_path_is_hard_error() {
     let nq = format!(
