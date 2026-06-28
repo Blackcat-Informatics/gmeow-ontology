@@ -366,7 +366,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                 "modal/world context and contextual scope are not carried by a path surface",
             ],
         ),
-        // ── Correspondence-calculus alignment lowerings (#1089) ──────────────────
+        // ── Correspondence-calculus alignment lowerings ──────────────────────────
         "sssom" => (
             PreservationKind::SoundUnder,
             "N/A (1:1 lattice band)",
@@ -420,7 +420,7 @@ const LEDGER_TARGETS: [&str; 12] = [
     "canonical-rdf12",
     "nemo",
     "property-path",
-    // The correspondence-calculus alignment lowerings (#1089): each carries its own
+    // The correspondence-calculus alignment lowerings: each carries its own
     // preservation judgment in the same loss ledger as OWL/Datalog/gUFO.
     "sssom",
     "fno",

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
-//! Corpus parity oracle for the SSSOM correspondence lowering (#1089).
+//! Corpus parity oracle for the SSSOM correspondence lowering.
 //!
 //! Proves the full oxigraph-free rail end-to-end on real data: parse the DSL + slice
 //! mapping sources natively into one merged `RdfDataset`, lower every

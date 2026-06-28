@@ -97,7 +97,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
         });
     }
 
-    // The four alignment dialects (#1089) are now produced by the oxigraph-free
+    // The four alignment dialects are now produced by the oxigraph-free
     // `gmeow-logic-compile` correspondence lowerings: SSSOM (1:1 lattice band), FnO
     // (transform functions), EDOAL + SPARQL-CONSTRUCT (one shared get leg, so
     // `spec-drift` is gone by construction). One native parse of the DSL + ontology

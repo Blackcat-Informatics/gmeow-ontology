@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
-//! Corpus parity oracle for the EDOAL + SPARQL correspondence lowerings (#1089).
+//! Corpus parity oracle for the EDOAL + SPARQL correspondence lowerings.
 //!
 //! Both dialects lower from ONE shared get-leg model (`get_leg::projections`), so they
 //! cannot drift. This proves the full oxigraph-free rail on real data: natively merge

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The caller for the oxigraph-free correspondence lowerings (#1089).
+//! The caller for the oxigraph-free correspondence lowerings.
 //!
 //! The SSSOM / FnO / EDOAL / SPARQL alignment artifacts are now produced by the
 //! wasm-clean `gmeow-logic-compile` correspondence lowerings, not by the historical
@@ -47,8 +47,17 @@ pub struct CorrespondenceArtifacts {
 
 /// Lower every alignment dialect from the sources under `root`.
 pub fn lower_all(root: &Path) -> Result<CorrespondenceArtifacts, SliceError> {
-    let dsl = merge_dsl(root)?;
-    let onto = merge_ontology(root)?;
+    // Discover the slice catalog once and share it across both merges (the DSL
+    // `Mapping` artifacts and the ontology `Module` artifacts), rather than
+    // rescanning the `slices/` tree per role.
+    let slices_dir = root.join("slices");
+    let catalog = if slices_dir.is_dir() {
+        Some(SliceCatalog::discover(&slices_dir)?)
+    } else {
+        None
+    };
+    let dsl = merge_dsl(root, catalog.as_ref())?;
+    let onto = merge_ontology(root, catalog.as_ref())?;
     let dsl_view = DslView::new(&dsl);
     let onto_view = DslView::new(&onto);
     let (version, release_date) = read_self_metadata(root)?;
@@ -97,22 +106,21 @@ fn collect_ttl_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SliceErro
 }
 
 fn merge_slice_artifacts(
-    root: &Path,
+    catalog: Option<&SliceCatalog>,
     role: ArtifactRole,
     b: &mut RdfDatasetBuilder,
 ) -> Result<(), SliceError> {
-    let slices_dir = root.join("slices");
-    if !slices_dir.is_dir() {
+    let Some(catalog) = catalog else {
         return Ok(());
-    }
-    let catalog = SliceCatalog::discover(&slices_dir)?;
-    let mut artifacts: Vec<(PathBuf, Vec<u8>)> = Vec::new();
+    };
+    // Borrow the artifact bytes (no clone): the catalog outlives this merge.
+    let mut artifacts: Vec<(PathBuf, &[u8])> = Vec::new();
     for record in catalog.records() {
         for artifact in &record.artifacts {
             if artifact.role == role {
                 artifacts.push((
                     record.slice_dir.join(&artifact.logical_path),
-                    artifact.content.clone(),
+                    &artifact.content,
                 ));
             }
         }
@@ -128,7 +136,7 @@ fn merge_slice_artifacts(
 /// The DSL source set (functions + cells): the sorted `dsl/mappings/**/*.ttl` tree,
 /// then the sorted slice `Mapping` artifacts — the same order the historical store
 /// loaded them, so collisions resolve identically.
-fn merge_dsl(root: &Path) -> Result<Arc<RdfDataset>, SliceError> {
+fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> Result<Arc<RdfDataset>, SliceError> {
     let mut b = RdfDatasetBuilder::new();
     let mut files = Vec::new();
     collect_ttl_files(&root.join("dsl").join("mappings"), &mut files)?;
@@ -138,13 +146,16 @@ fn merge_dsl(root: &Path) -> Result<Arc<RdfDataset>, SliceError> {
         let ds = parse_turtle(&bytes, &path.display().to_string())?;
         b.push_dataset(&ds);
     }
-    merge_slice_artifacts(root, ArtifactRole::Mapping, &mut b)?;
+    merge_slice_artifacts(catalog, ArtifactRole::Mapping, &mut b)?;
     b.freeze().map_err(|e| SliceError::Parse(e.to_string()))
 }
 
 /// The ontology source set (`rdfs:range` / suppression vocabulary / language tags):
 /// `ontology/gmeow.ttl`, then the sorted slice `Module` artifacts.
-fn merge_ontology(root: &Path) -> Result<Arc<RdfDataset>, SliceError> {
+fn merge_ontology(
+    root: &Path,
+    catalog: Option<&SliceCatalog>,
+) -> Result<Arc<RdfDataset>, SliceError> {
     let mut b = RdfDatasetBuilder::new();
     let onto = root.join("ontology").join("gmeow.ttl");
     if onto.is_file() {
@@ -152,7 +163,7 @@ fn merge_ontology(root: &Path) -> Result<Arc<RdfDataset>, SliceError> {
         let ds = parse_turtle(&bytes, "ontology/gmeow.ttl")?;
         b.push_dataset(&ds);
     }
-    merge_slice_artifacts(root, ArtifactRole::Module, &mut b)?;
+    merge_slice_artifacts(catalog, ArtifactRole::Module, &mut b)?;
     b.freeze().map_err(|e| SliceError::Parse(e.to_string()))
 }
 
