@@ -879,5 +879,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(acceptance, m)?)?;
     m.add_function(wrap_pyfunction!(acceptance_diagnostics_report, m)?)?;
     m.add_class::<crate::mcp::McpView>()?;
+    m.add_class::<crate::mcp::McpServer>()?;
+    m.add_function(wrap_pyfunction!(crate::mcp::run_consumer_mcp, m)?)?;
+    m.add_function(wrap_pyfunction!(crate::mcp::run_dev_mcp, m)?)?;
     Ok(())
 }

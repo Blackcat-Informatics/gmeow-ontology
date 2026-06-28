@@ -964,9 +964,9 @@ def crossref(
 @app.command(name="mcp")
 def mcp_start() -> None:
     """Start the consumer-safe GMEOW MCP server (stdio transport)."""
-    from gmeow_tools.mcp_server_consumer import run
+    from gmeow_native import pipeline
 
-    run()
+    pipeline.run_consumer_mcp(GTS_SNAPSHOT_FILE.read_bytes())
 
 
 @app.command(

@@ -38,8 +38,6 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
 const ALIGNMENTS_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/alignments";
-// Only the MCP consumer surface (`doc_url_map`) reads the documentation graph.
-#[cfg(any(feature = "python", test))]
 const DOCUMENTATION_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/documentation";
 
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
@@ -538,7 +536,7 @@ impl J {
 
     /// `json.dumps(obj)` compact form with the DEFAULT `ensure_ascii=True` — every
     /// non-ASCII scalar is `\uXXXX`-escaped (astral chars as surrogate pairs).
-    /// The consumer's `gmeow_lookup_term` returns `json.dumps(result)` (no
+    /// The MCP `lookup_term` tool returns `json.dumps(result)` (no
     /// `ensure_ascii=False`), so its envelope is ASCII-escaped — unlike the
     /// OKF index, which is explicitly `ensure_ascii=False`. Only the MCP consumer
     /// surface (`python`/`test`) calls it.
@@ -852,6 +850,7 @@ fn fold_owner_slice_map(view: &FoldView) -> std::collections::HashMap<String, St
 /// The local name of an IRI: the tail after the last `/` or `#`. Mirrors
 /// `gmeow_docs::render::local_name` so the folded card's `slice:` value matches
 /// the docs-site card byte-for-byte.
+#[cfg(any(feature = "python", test))]
 fn slice_local_name(iri: &str) -> &str {
     let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
     &iri[cut..]
@@ -1693,18 +1692,17 @@ fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
     gmeow_docs::llms::render_index(title, &prose, &sections).into_bytes()
 }
 
-// ── MCP consumer surfaces (#1031) ────────────────────────────────────────────
+// ── MCP consumer surfaces ────────────────────────────────────────────────────
 //
-// The consumer-safe MCP server (`gmeow_tools.mcp_server_consumer`) exposes five
-// `export`-backed surfaces: `lookup_term`, `llms_txt`, `llms_full`, `doc_card`,
-// and `okf_index`. These renderers emit the standard llmstxt.org format via the
-// shared `gmeow_docs::llms` skeleton (`# H1` + `> {GMEOW_SUMMARY}` blockquote +
-// `## Section` markdown-link bullets, `⊑` subclass marker, `→` property arrow) —
-// the same format the dist export and docs SITE index produce, differing only in
-// whether bullets carry a site URL. The per-term card (`doc_card`) and the
-// inlined `llms_full` blocks render through the single `gmeow_docs::card`
-// renderer, so the MCP card is the genuine twin of the docs-site `card.md`
-// (#1027). Python is now thin FastMCP wiring; all of this logic lives here.
+// The native MCP server exposes five `export`-backed surfaces: `lookup_term`,
+// `llms_txt`, `llms_full`, `doc_card`, and `okf_index`. These renderers emit the
+// standard llmstxt.org format via the shared `gmeow_docs::llms` skeleton (`# H1`
+// + `> {GMEOW_SUMMARY}` blockquote + `## Section` markdown-link bullets, `⊑`
+// subclass marker, `→` property arrow) — the same format the dist export and
+// docs SITE index produce, differing only in whether bullets carry a site URL.
+// The per-term card (`doc_card`) and the inlined `llms_full` blocks render
+// through the single `gmeow_docs::card` renderer, so the MCP card is the genuine
+// twin of the docs-site `card.md`.
 //
 // Gated to `python` (the only runtime consumer, via `crate::mcp`) and `test`
 // (the byte-format goldens) so a plain rlib build carries no dead code.
@@ -1721,9 +1719,8 @@ mod consumer {
 
     /// Resolve a CURIE / local name / IRI / case-insensitive label — or a single
     /// unambiguous CURIE/label prefix — to a term. Exact matches win immediately;
-    /// a prefix resolves only when it matches exactly one term. Mirrors
-    /// `mcp_server_consumer._lookup_term`; shared by `gmeow_lookup_term` and the
-    /// `gmeow_doc_card` surface.
+    /// a prefix resolves only when it matches exactly one term. Shared by
+    /// `lookup_term` and the `doc_card` surface.
     fn resolve_term<'a>(terms: &'a [Term], query: &str) -> Option<&'a Term> {
         let needle = query.trim();
         if needle.is_empty() {
@@ -1758,10 +1755,9 @@ mod consumer {
         }
     }
 
-    /// `gmeow_lookup_term`: resolve a query to its `as_record()` JSON with
+    /// `lookup_term`: resolve a query to its `as_record()` JSON with
     /// `"ok": true` appended, or the
-    /// `{"ok": false, "error": "Term not found: <query>"}` envelope. Mirrors
-    /// `mcp_server_consumer._lookup_term` + the tool's envelope wrapping.
+    /// `{"ok": false, "error": "Term not found: <query>"}` envelope.
     pub(crate) fn lookup_envelope(terms: &[Term], query: &str) -> String {
         let Some(term) = resolve_term(terms, query) else {
             return lookup_not_found(query);
@@ -1790,7 +1786,7 @@ mod consumer {
         out
     }
 
-    /// `gmeow_llms_txt`: the standard llmstxt.org vocabulary index (#1027),
+    /// `llms_txt`: the standard llmstxt.org vocabulary index (#1027),
     /// rendered through the shared `gmeow_docs::llms` emitter so it matches the
     /// docs-site and dist forms byte-for-byte modulo URLs. `doc_urls` maps a term
     /// IRI to its published site URL (recovered from the doc graph via
@@ -1810,7 +1806,7 @@ mod consumer {
         gmeow_docs::llms::render_index(title, &prose, &sections)
     }
 
-    /// `gmeow_doc_card`: a prompt-ready Markdown card for one term (#1027) — the
+    /// `doc_card`: a prompt-ready Markdown card for one term (#1027) — the
     /// live MCP twin of the docs-site `terms/{slug}/card.md`. Resolves the query,
     /// then renders a `# {curie}{signature}` card with the definition and every
     /// advisory field, through the ONE shared `gmeow_docs::card` renderer the
@@ -1889,7 +1885,7 @@ mod consumer {
             .unwrap_or(curie_str)
     }
 
-    /// `gmeow_okf_index`: the OKF manifest envelope
+    /// `okf_index`: the OKF manifest envelope
     /// `{ok, format, lossy, count, documents:[{path, type, title, resource}]}`.
     /// The per-document `path`s mirror the bundle layout the `okf` export leaf renders.
     pub(crate) fn okf_index_envelope(terms: &[Term]) -> String {
@@ -2680,7 +2676,7 @@ mod tests {
         (collect_terms(&view), title, version)
     }
 
-    /// `gmeow_lookup_term`: exact CURIE match → `as_record` with `ok:true`;
+    /// `lookup_term`: exact CURIE match → `as_record` with `ok:true`;
     /// unknown → `{"ok": false, "error": "Term not found: …"}`; per-language label.
     #[test]
     fn lookup_envelope_matches_consumer_contract() {
@@ -2724,7 +2720,7 @@ mod tests {
         assert_eq!(fr["label"], serde_json::json!("français"));
     }
 
-    /// `gmeow_llms_txt`: the STANDARD llmstxt.org format (#1027) — H1 + canonical
+    /// `llms_txt`: the STANDARD llmstxt.org format (#1027) — H1 + canonical
     /// summary blockquote + unified `⊑`/`→` signatures + bullets linking into the
     /// published docs site (URLs recovered from the doc graph). One format across
     /// the dist/MCP/site surfaces; the old consumer-specific format is retired.
@@ -2788,7 +2784,7 @@ mod tests {
         );
     }
 
-    /// `gmeow_doc_card`: resolves a term and renders a `# {curie}` card with the
+    /// `doc_card`: resolves a term and renders a `# {curie}` card with the
     /// metadata + definition; an unresolved query yields the plain not-found line.
     #[test]
     fn doc_card_md_renders_card_and_not_found() {
@@ -2815,7 +2811,7 @@ mod tests {
         assert_eq!(miss, "Term not found: gmeow:NoSuchTerm\n");
     }
 
-    /// `gmeow_llms_full` / `llms-full.txt`: the standard header then a `### ` block
+    /// `llms_full` / `llms-full.txt`: the standard header then a `### ` block
     /// per term inlined in full (no links).
     #[test]
     fn consumer_llms_full_inlines_terms() {
@@ -2958,7 +2954,7 @@ mod tests {
         assert!(!gmeow_docs::card::render_card_body(&term_to_card(&no_slice)).contains("- slice:"));
     }
 
-    /// `gmeow_okf_index`: the manifest envelope wraps `ok`/`format`/`lossy`/`count`
+    /// `okf_index`: the manifest envelope wraps `ok`/`format`/`lossy`/`count`
     /// around per-document `{path, type, title, resource}` records.
     #[test]
     fn okf_index_envelope_shape() {
