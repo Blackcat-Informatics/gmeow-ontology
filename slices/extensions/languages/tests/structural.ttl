@@ -3,9 +3,9 @@
 #
 # Declarative structural assertions for the languages extension slice — the
 # slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
-# formerly hand-written in tests/test_languages.py. Each assertion runs as a
-# SPARQL ASK over the languages module graph (gmeow:scopeModule) under the
-# native Rust harness (crates/slicetest).
+# of the language vocabulary. Each assertion runs as a SPARQL ASK over the
+# languages module graph (gmeow:scopeModule) under the native Rust harness
+# (crates/slicetest).
 #
 # Languages is migrated: class stereotypes are logic:
 # (logic:AbstractIndividualType, logic:Kind, logic:SubKind, logic:Event,
@@ -507,3 +507,27 @@ ASK {
     gmeow:nativeLanguage rdfs:subPropertyOf gmeow:knowsLanguage .
 }""" ;
     gmeow:saRationale "gmeow:nativeLanguage MUST be rdfs:subPropertyOf gmeow:knowsLanguage — native language is a specialisation of the general language-knowledge shortcut. Mirrors test_knows_language_shortcut_and_native_subproperty (subPropertyOf arm)." .
+
+# --- 33. LanguageVersion is a subclass of Language (MUST)
+ex:saLanguageVersionSubclassLanguage a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:LanguageVersion rdfs:subClassOf gmeow:Language .
+}""" ;
+    gmeow:saRationale "gmeow:LanguageVersion MUST be rdfs:subClassOf gmeow:Language — a dated language revision is itself a fully usable language bearing its own scripts, names and status. This is the languages-extension arm of the language hierarchy spine (the core arm — Language/FormalLanguage/ProgrammingLanguage/WritingSystem — is pinned in slices/core/language). Mirrors test_language_hierarchy (LanguageVersion arm)." .
+
+# --- 34. LanguageVersion carries logic:SubKind discipline (MUST)
+ex:saLanguageVersionIsSubKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:LanguageVersion a logic:SubKind ;
+        rdfs:subClassOf gmeow:Language .
+}""" ;
+    gmeow:saRationale "gmeow:LanguageVersion MUST carry the logic:SubKind stereotype in addition to being a subclass of gmeow:Language. A dated language revision is a fully-usable language in its own right — Ithkuil 1993 and New Ithkuil are distinct languages that share lineage, not mere sub-varieties — and must participate in the gUFO Kind/SubKind identity discipline that every Language refinement is required to bear. This cell is the extensions-side arm of that discipline guard; the core-side arm (which enforces no bare Language subclass may lack logic:SubKind) is pinned in slices/core/language." .

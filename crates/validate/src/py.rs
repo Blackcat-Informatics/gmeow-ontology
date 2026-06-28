@@ -16,13 +16,13 @@
 //! #579). pyo3 cannot link into wasm, so the crate is simply never built for
 //! wasm.
 
-use std::collections::{BTreeSet, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::PathBuf;
 use std::time::Duration;
 
 use gmeow_diagnostics::py::PyReport;
 use pyo3::prelude::*;
-use pyo3::types::{PyCapsule, PyDict, PyList};
+use pyo3::types::{PyBytes, PyCapsule, PyDict, PyList};
 
 use crate::constitution;
 use crate::coverage;
@@ -1118,6 +1118,16 @@ fn rank_language(lang: &str) -> (u8, String) {
     language_tags::rank_language(lang)
 }
 
+/// Append the language-fallback presentation marker to `text`.
+///
+/// Returns ``"{text} [fallback: {fallback_lang}]"`` when `fallback` is true, else
+/// `text` unchanged. Mirrors ``language_tags::marked``; the presentation-side
+/// companion to the selection logic that produces the fallback flag.
+#[pyfunction]
+fn marked(text: &str, fallback: bool, fallback_lang: &str) -> String {
+    language_tags::marked(text, fallback, fallback_lang)
+}
+
 /// Parse RDF bytes and build the ``{internal_tag: bcp47_tag}`` mapping.
 ///
 /// `rdf_bytes` is raw RDF data; `format` is a format string accepted by
@@ -1135,6 +1145,154 @@ fn load_tag_map(py: Python<'_>, rdf_bytes: &[u8], format: &str) -> PyResult<Py<P
         d.set_item(k, v)?;
     }
     Ok(d.into_any().unbind())
+}
+
+/// Parse RDF bytes and build the BCP-47 → internal ``{bcp47_tag: internal_tag}``
+/// mapping — the inverse of [`load_tag_map`].
+///
+/// Built from natural ``gmeow:Language`` individuals only (NOT formal or
+/// programming languages); ambiguous BCP-47 tags are dropped (no fabrication).
+/// `rdf_bytes` is raw RDF data; `format` is a format string accepted by
+/// [`crate::language_tags::load_inverse_tag_map`]. Hard failures map to a
+/// ``ValueError``. Returns a Python ``dict[str, str]``.
+#[pyfunction]
+fn load_inverse_tag_map(py: Python<'_>, rdf_bytes: &[u8], format: &str) -> PyResult<Py<PyAny>> {
+    let map = language_tags::load_inverse_tag_map(rdf_bytes, format)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let d = PyDict::new(py);
+    for (k, v) in &map {
+        d.set_item(k, v)?;
+    }
+    Ok(d.into_any().unbind())
+}
+
+/// Resolve CLI/env language input into the tagged ``(requested,
+/// available_en_first, unknown_tag)`` tuple.
+///
+/// `raw` is the user request (``None``/empty → default ``["en"]``); `tag_map` is
+/// the internal→BCP-47 mapping; `available` optionally restricts the known-tag
+/// set (defaults to the mapped catalog). On success returns
+/// ``(requested, available_en_first, None)``; when a tag is unknown returns
+/// ``([], available_en_first, unknown_tag)`` (the ``en``-first available list and
+/// the offending token) so the caller can raise its own error.
+#[pyfunction]
+fn resolve_lang_input(
+    raw: Option<String>,
+    tag_map: HashMap<String, String>,
+    available: Option<Vec<String>>,
+) -> PyResult<(Vec<String>, Vec<String>, Option<String>)> {
+    match language_tags::resolve_lang_input(raw.as_deref(), &tag_map, available.as_deref()) {
+        Ok(selector) => {
+            // The selector's `available` is a `BTreeSet`; render it en-first
+            // (``en`` carrier first, then lexicographic) to match the error path.
+            let mut avail: Vec<String> = selector.available.into_iter().collect();
+            avail.sort_by(|a, b| (a != "en", a).cmp(&(b != "en", b)));
+            Ok((selector.requested, avail, None))
+        }
+        // `u.available` is already en-first sorted.
+        Err(u) => Ok((Vec::new(), u.available, Some(u.tag))),
+    }
+}
+
+/// Select the single best literal for the `requested` languages.
+///
+/// `lits` is a list of ``(lexical, language)`` pairs; `requested` is the BCP-47
+/// precedence list; `tag_map` is the internal→BCP-47 mapping. Returns
+/// ``(index, retag_to, is_fallback)`` for the chosen literal, or ``None`` when no
+/// literal can be selected.
+#[pyfunction]
+fn select_literal(
+    lits: Vec<(String, Option<String>)>,
+    requested: Vec<String>,
+    tag_map: HashMap<String, String>,
+) -> PyResult<Option<(usize, Option<String>, bool)>> {
+    let descs: Vec<language_tags::LitDesc> = lits
+        .into_iter()
+        .map(|(lexical, language)| language_tags::LitDesc { lexical, language })
+        .collect();
+    Ok(language_tags::select_literal(&descs, &requested, &tag_map)
+        .map(|sel| (sel.index, sel.retag_to, sel.is_fallback)))
+}
+
+/// Return every selected literal of the matched requested buckets, or the single
+/// fallback.
+///
+/// `lits` is a list of ``(lexical, language)`` pairs; `requested` is the BCP-47
+/// precedence list; `tag_map` is the internal→BCP-47 mapping. Returns one
+/// ``(index, retag_to, is_fallback)`` triple per selected literal.
+#[pyfunction]
+fn filter_literals(
+    lits: Vec<(String, Option<String>)>,
+    requested: Vec<String>,
+    tag_map: HashMap<String, String>,
+) -> PyResult<Vec<(usize, Option<String>, bool)>> {
+    let descs: Vec<language_tags::LitDesc> = lits
+        .into_iter()
+        .map(|(lexical, language)| language_tags::LitDesc { lexical, language })
+        .collect();
+    Ok(language_tags::filter_literals(&descs, &requested, &tag_map)
+        .into_iter()
+        .map(|sel| (sel.index, sel.retag_to, sel.is_fallback))
+        .collect())
+}
+
+/// Retag every internal ``x-gmeow-*`` literal in `rdf_bytes` to its public BCP-47
+/// form via `tag_map`.
+///
+/// `format` is a format string accepted by [`crate::language_tags::retag_graph`];
+/// all non-matching quads are carried through verbatim. Hard failures map to a
+/// ``ValueError``. Returns N-Triples bytes.
+#[pyfunction]
+fn retag_graph(
+    py: Python<'_>,
+    rdf_bytes: &[u8],
+    format: &str,
+    tag_map: HashMap<String, String>,
+) -> PyResult<Py<PyBytes>> {
+    let out = language_tags::retag_graph(rdf_bytes, format, &tag_map)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(PyBytes::new(py, &out).unbind())
+}
+
+/// Retag every public BCP-47 literal in `rdf_bytes` to its canonical
+/// ``x-gmeow-*`` form via `inverse_map` — the inverse of [`retag_graph`].
+///
+/// `format` is a format string accepted by
+/// [`crate::language_tags::retag_graph_to_internal`]; all non-matching quads are
+/// carried through verbatim. Hard failures map to a ``ValueError``. Returns
+/// N-Triples bytes.
+#[pyfunction]
+fn retag_graph_to_internal(
+    py: Python<'_>,
+    rdf_bytes: &[u8],
+    format: &str,
+    inverse_map: HashMap<String, String>,
+) -> PyResult<Py<PyBytes>> {
+    let out = language_tags::retag_graph_to_internal(rdf_bytes, format, &inverse_map)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(PyBytes::new(py, &out).unbind())
+}
+
+/// Retain only the language-selected literals for `predicates` in `rdf_bytes`.
+///
+/// `format` is a format string accepted by [`crate::language_tags::filter_graph`];
+/// `tag_map` is the internal→BCP-47 mapping; `requested` is the BCP-47 precedence
+/// list; `predicates` is the set of predicate IRIs to filter. Groups whose chosen
+/// set equals their current set are left untouched; all non-matching quads are
+/// carried through verbatim. Hard failures map to a ``ValueError``. Returns
+/// N-Triples bytes.
+#[pyfunction]
+fn filter_graph(
+    py: Python<'_>,
+    rdf_bytes: &[u8],
+    format: &str,
+    tag_map: HashMap<String, String>,
+    requested: Vec<String>,
+    predicates: Vec<String>,
+) -> PyResult<Py<PyBytes>> {
+    let out = language_tags::filter_graph(rdf_bytes, format, &tag_map, &requested, &predicates)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(PyBytes::new(py, &out).unbind())
 }
 
 /// Build the CrossRef deposit XML from a JSON-serialised ``DepositInput``.
@@ -1242,7 +1400,15 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(annotation_predicates, m)?)?;
     m.add_function(wrap_pyfunction!(is_internal_tag, m)?)?;
     m.add_function(wrap_pyfunction!(rank_language, m)?)?;
+    m.add_function(wrap_pyfunction!(marked, m)?)?;
     m.add_function(wrap_pyfunction!(load_tag_map, m)?)?;
+    m.add_function(wrap_pyfunction!(load_inverse_tag_map, m)?)?;
+    m.add_function(wrap_pyfunction!(resolve_lang_input, m)?)?;
+    m.add_function(wrap_pyfunction!(select_literal, m)?)?;
+    m.add_function(wrap_pyfunction!(filter_literals, m)?)?;
+    m.add_function(wrap_pyfunction!(retag_graph, m)?)?;
+    m.add_function(wrap_pyfunction!(retag_graph_to_internal, m)?)?;
+    m.add_function(wrap_pyfunction!(filter_graph, m)?)?;
     m.add_function(wrap_pyfunction!(check_syntax, m)?)?;
     m.add_function(wrap_pyfunction!(check_sameas_ban, m)?)?;
     m.add_function(wrap_pyfunction!(structural_lint, m)?)?;
