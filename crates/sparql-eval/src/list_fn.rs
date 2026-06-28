@@ -4,9 +4,11 @@
 //! The GMEOW `rdf:List` SPARQL extension functions.
 //!
 //! These bind the FnO list primitives — `listLength`, `listGet`, `listIndexOf`,
-//! `listSlice`, `listConcat`, `listContains` — to executable SPARQL custom
+//! `listSlice`, `listConcat`, `listContains` — to executable SPARQL extension
 //! functions, so a query can write `gmeow:listLength(?list)` directly. They are
-//! dispatched from the `Function::Custom(iri)` arm of [`crate::expr`].
+//! recognized at parse time as members of the closed
+//! [`GmeowFn`](gmeow_sparql_algebra::GmeowFn) registry and dispatched from the
+//! `Function::Gmeow` arm of [`crate::expr`].
 //!
 //! Two shapes:
 //!
@@ -24,6 +26,7 @@
 //! hard-fails ([`EvalError::Data`]) rather than looping forever.
 
 use gmeow_rdf_core::{BlankScope, TermId, TermValue};
+use gmeow_sparql_algebra::GmeowFn;
 use gmeow_xsd::XsdValue;
 
 use crate::error::EvalError;
@@ -32,43 +35,33 @@ use crate::expr::xsd_of;
 use crate::scratch::{term_id_to_value, SolutionTerm};
 use crate::DetHashSet;
 
-/// The GMEOW vocabulary namespace; function IRIs are `GMEOW_NS + local`.
-pub(crate) const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
-
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 
-// FnO local names (the IRI is `GMEOW_NS + name`).
-const LIST_LENGTH: &str = "listLength";
-const LIST_GET: &str = "listGet";
-const LIST_INDEX_OF: &str = "listIndexOf";
-const LIST_SLICE: &str = "listSlice";
-const LIST_CONCAT: &str = "listConcat";
-const LIST_CONTAINS: &str = "listContains";
-
-/// Dispatch a GMEOW list function by its full IRI.
+/// Evaluate a GMEOW `rdf:List` extension function.
 ///
-/// Returns `None` when `iri` is not a GMEOW list function (the caller then falls
-/// through to the generic `unsupported` error), and `Some(result)` otherwise, where
-/// the inner result follows the usual expression contract: `Ok(Some)` is a value,
-/// `Ok(None)` is a SPARQL error/unbound, and `Err` is a hard failure.
+/// The parser has already resolved the call to a [`GmeowFn`] variant, so this is a
+/// total dispatch over the six list functions. The result follows the usual
+/// expression contract: `Ok(Some)` is a value, `Ok(None)` is a SPARQL error/unbound,
+/// and `Err` is a hard failure. The non-list [`GmeowFn::HeldIn`] is handled by its
+/// own arm in [`crate::expr`] and never reaches here (defensively an internal error).
 pub(crate) fn dispatch(
-    iri: &str,
+    func: GmeowFn,
     vals: &[Option<TermValue>],
     ctx: &mut EvalCtx<'_>,
-) -> Option<Result<Option<SolutionTerm>, EvalError>> {
-    let local = iri.strip_prefix(GMEOW_NS)?;
-    let result = match local {
-        LIST_LENGTH => list_length(ctx, vals),
-        LIST_GET => list_get(ctx, vals),
-        LIST_INDEX_OF => list_index_of(ctx, vals),
-        LIST_CONTAINS => list_contains(ctx, vals),
-        LIST_SLICE => list_slice(ctx, vals),
-        LIST_CONCAT => list_concat(ctx, vals),
-        _ => return None,
-    };
-    Some(result)
+) -> Result<Option<SolutionTerm>, EvalError> {
+    match func {
+        GmeowFn::ListLength => list_length(ctx, vals),
+        GmeowFn::ListGet => list_get(ctx, vals),
+        GmeowFn::ListIndexOf => list_index_of(ctx, vals),
+        GmeowFn::ListContains => list_contains(ctx, vals),
+        GmeowFn::ListSlice => list_slice(ctx, vals),
+        GmeowFn::ListConcat => list_concat(ctx, vals),
+        GmeowFn::HeldIn => Err(EvalError::internal(
+            "gmeow:heldIn is not an rdf:List function",
+        )),
+    }
 }
 
 /// `gmeow:listLength(list)` → the number of members, as `xsd:integer`. A non-list
@@ -494,10 +487,27 @@ mod tests {
     }
 
     #[test]
-    fn unknown_custom_function_still_hard_fails() {
-        let ds = list_ds();
+    fn unknown_gmeow_function_is_a_parse_error() {
+        // The gmeow function surface is a CLOSED registry: an unrecognized
+        // gmeow-namespace IRI in call position fails fast at parse time and never
+        // reaches evaluation.
+        use gmeow_sparql_algebra::SparqlParser;
         let q = format!("{PREFIX} SELECT ?x WHERE {{ BIND(g:notAListFunction(1) AS ?x) }}");
-        let err = eval_err(&ds, &q);
+        let err = SparqlParser::new()
+            .parse_query(&q)
+            .expect_err("closed registry must reject an unknown gmeow function");
+        assert!(
+            err.to_string().contains("unknown gmeow extension function"),
+            "got {err}"
+        );
+    }
+
+    #[test]
+    fn unknown_custom_function_still_hard_fails() {
+        // A non-gmeow custom IRI parses to `Function::Custom` and hard-fails at eval.
+        let ds = list_ds();
+        let q = "SELECT ?x WHERE { BIND(<http://example.org/notAFunction>(1) AS ?x) }";
+        let err = eval_err(&ds, q);
         assert!(matches!(err, EvalError::Unsupported(_)), "got {err:?}");
     }
 
