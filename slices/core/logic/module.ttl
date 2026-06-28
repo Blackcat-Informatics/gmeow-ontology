@@ -3778,6 +3778,10 @@ logic:ruleProjectIsAwareOf
         rdf:object    "?subject"
     ] ;
     logic:body [
+        rdf:subject   "?profile" ;
+        rdf:predicate logic:hasThresholdRow ;
+        rdf:object    "?row"
+    ] , [
         rdf:subject   "?row" ;
         rdf:predicate logic:projectsLadderEdge ;
         rdf:object    gmeow:isAwareOf
@@ -3823,6 +3827,10 @@ logic:ruleProjectKnowsAbout
         rdf:object    "?subject"
     ] ;
     logic:body [
+        rdf:subject   "?profile" ;
+        rdf:predicate logic:hasThresholdRow ;
+        rdf:object    "?row"
+    ] , [
         rdf:subject   "?row" ;
         rdf:predicate logic:projectsLadderEdge ;
         rdf:object    gmeow:knowsAbout
@@ -3868,6 +3876,10 @@ logic:ruleProjectUnderstands
         rdf:object    "?subject"
     ] ;
     logic:body [
+        rdf:subject   "?profile" ;
+        rdf:predicate logic:hasThresholdRow ;
+        rdf:object    "?row"
+    ] , [
         rdf:subject   "?row" ;
         rdf:predicate logic:projectsLadderEdge ;
         rdf:object    gmeow:understands
@@ -3905,7 +3917,7 @@ logic:ruleProjectHasMastered
     a logic:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "project ladder edge: has mastered"@x-gmeow-english ;
-    skos:definition "Emits gmeow:hasMastered only when BOTH a procedural-competence assessment and a transfer assessment of the same agent on the same subject clear their gmeow:hasMastered rows. The two-row conjunction is why mastery of one narrow task no longer implies broad command — transfer must clear too. Positive Horn; thresholds read from the profile."@x-gmeow-english ;
+    skos:definition "Emits gmeow:hasMastered only when BOTH a procedural-competence assessment and a transfer assessment of the same agent on the same subject clear their gmeow:hasMastered rows, where both rows belong to the SAME logic:LadderProjectionProfile. The two-row conjunction is why mastery of one narrow task no longer implies broad command — transfer must clear too — and the shared-profile join is why a procedural threshold from one profile can never be mixed with a transfer threshold from another. Positive Horn; thresholds read from the profile."@x-gmeow-english ;
     logic:provenance logic:ruleProjectHasMastered ;
     logic:head [
         rdf:subject   "?agent" ;
@@ -3913,6 +3925,14 @@ logic:ruleProjectHasMastered
         rdf:object    "?subject"
     ] ;
     logic:body [
+        rdf:subject   "?profile" ;
+        rdf:predicate logic:hasThresholdRow ;
+        rdf:object    "?rowProc"
+    ] , [
+        rdf:subject   "?profile" ;
+        rdf:predicate logic:hasThresholdRow ;
+        rdf:object    "?rowTransfer"
+    ] , [
         rdf:subject   "?rowProc" ;
         rdf:predicate logic:projectsLadderEdge ;
         rdf:object    gmeow:hasMastered
