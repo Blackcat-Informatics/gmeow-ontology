@@ -538,6 +538,50 @@ mod tests {
     }
 
     #[test]
+    fn list_membership_is_term_exact_not_value_space() {
+        // The single member is "1"^^xsd:integer. listIndexOf/listContains match by
+        // structural (lexical + datatype) term identity — the SAME equality the
+        // logic oracle uses (Prolog unification), which is the parity contract — and
+        // NOT SPARQL value-space: "1"^^xsd:decimal is numerically equal but a
+        // distinct term, so it does not match.
+        use gmeow_rdf_core::RdfLiteral;
+        const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+        const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+        let mut b = RdfDatasetBuilder::new();
+        let first = b.intern_iri(super::RDF_FIRST.to_owned());
+        let rest = b.intern_iri(super::RDF_REST.to_owned());
+        let nil = b.intern_iri(super::RDF_NIL.to_owned());
+        let l0 = b.intern_iri("http://ex/l0".to_owned());
+        let one_int = b.intern_literal(RdfLiteral::typed("1", XSD_INTEGER));
+        b.push_quad(l0, first, one_int, None);
+        b.push_quad(l0, rest, nil, None);
+        let ds = b.freeze().expect("freeze");
+
+        // The exact term is a member at index 0.
+        let q_exact = format!(
+            "{PREFIX} SELECT ?b ?n WHERE {{ \
+             BIND(g:listContains(<http://ex/l0>, \"1\"^^<{XSD_INTEGER}>) AS ?b) \
+             BIND(g:listIndexOf(<http://ex/l0>, \"1\"^^<{XSD_INTEGER}>) AS ?n) }}"
+        );
+        assert_eq!(
+            rows(&ds, &q_exact),
+            vec![vec!["true".to_owned(), "0".to_owned()]]
+        );
+
+        // A value-equal but structurally distinct term (different datatype) does not
+        // match: listContains is false, listIndexOf is unbound.
+        let q_distinct = format!(
+            "{PREFIX} SELECT ?b ?n WHERE {{ \
+             BIND(g:listContains(<http://ex/l0>, \"1\"^^<{XSD_DECIMAL}>) AS ?b) \
+             BIND(g:listIndexOf(<http://ex/l0>, \"1\"^^<{XSD_DECIMAL}>) AS ?n) }}"
+        );
+        assert_eq!(
+            rows(&ds, &q_distinct),
+            vec![vec!["false".to_owned(), "UNBOUND".to_owned()]]
+        );
+    }
+
+    #[test]
     fn torn_list_missing_rest_is_a_hard_data_error() {
         // l0 -> first x, rest l1 ; l1 -> first y  (no rdf:rest on the 2nd cell).
         let mut b = RdfDatasetBuilder::new();

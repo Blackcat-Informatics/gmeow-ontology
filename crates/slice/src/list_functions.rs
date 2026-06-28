@@ -77,7 +77,7 @@ const FUNCTIONS: &[ListFn] = &[
     ListFn {
         name: "listIndexOf",
         label: "list index of",
-        definition: "The zero-based index of the first occurrence of a value in an rdf:List, or absent when the value is not a member. Executably backed by the reasoning layer: a recursive walk with count arithmetic under ProceduralPrologProfile (conformance case goal-rdf-list-functions).",
+        definition: "The zero-based index of the first occurrence of a value in an rdf:List, or absent when the value is not a member. Membership is term-exact: a value matches a member by RDF term identity (lexical form and datatype), not by SPARQL value-space, so 1 (xsd:integer) does not match 1 (xsd:decimal). Executably backed by the reasoning layer: a recursive walk with count arithmetic under ProceduralPrologProfile (conformance case goal-rdf-list-functions).",
         expects: &["pList", "pValue"],
         output: "oListIndexOf",
         output_type: XSD_INTEGER,
@@ -101,7 +101,7 @@ const FUNCTIONS: &[ListFn] = &[
     ListFn {
         name: "listContains",
         label: "list contains",
-        definition: "True when a value is a member of an rdf:List, false otherwise. Executably backed by the reasoning layer: a recursive rdf:first/rdf:rest membership walk under ProceduralPrologProfile (conformance case goal-rdf-list-functions).",
+        definition: "True when a value is a member of an rdf:List, false otherwise. Membership is term-exact: a value matches a member by RDF term identity (lexical form and datatype), not by SPARQL value-space, so 1 (xsd:integer) does not match 1 (xsd:decimal). Executably backed by the reasoning layer: a recursive rdf:first/rdf:rest membership walk under ProceduralPrologProfile (conformance case goal-rdf-list-functions).",
         expects: &["pList", "pValue"],
         output: "oListContains",
         output_type: XSD_BOOLEAN,
