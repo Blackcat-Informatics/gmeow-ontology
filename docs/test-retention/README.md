@@ -26,6 +26,16 @@ has shipped is a deletion order.
 | Oracle / Docker orchestration | drives external reasoners (HermiT/ELK/ROBOT) or the rdflib trust-anchor; no Rust twin by design | Retire with the classic-cross-check lane, or reimplement the harness in Rust |
 | Static repo guard | AST / filesystem / workflow assertions about the repo itself | Port the static check into a Rust gate |
 
+**Projection cluster — one migration, not many ports.** The up-projection,
+projection (FnO/EDOAL/SPARQL), transform/transpile, mappings, and alignment tests
+are all retired by the **Correspondence Calculus**
+(`docs/APPLIED_CATEGORY_THEORY/take1.md`): `dsl/mappings` becomes a frontend into
+`logic:Correspondence`; SSSOM/EDOAL/FnO/CONSTRUCT/up-lift become *lowerings* of one
+`get`/`put` leg pair; up-projection becomes the **derived** `put` leg
+(mnemomorphism); and the `conformance/correspondence` round-trip + overclaim gates
+replace the Python projection/alignment checks. Their dossiers name that migration
+rather than a per-tool port.
+
 ## Deletion ledger (this branch)
 
 Removed because a Rust artifact already asserts the same behavior:

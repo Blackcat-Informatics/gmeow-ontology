@@ -23,7 +23,14 @@ and there is no Rust port of the engine whose tests could subsume these.
 
 ## What is needed to move it to Rust
 
-Port the up-projection engine to a Rust crate (lift-map builder + projection
-executor), then cover it with crate-level golden tests over the same fixtures
-and delete these files. This is part of the Python-cull (Python = UI-only)
-program; the engine is one of the larger Python algorithms still outstanding.
+Up-projection is not ported as a standalone heuristic — it is subsumed by the
+Correspondence Calculus (`docs/APPLIED_CATEGORY_THEORY/take1.md`). Under that
+design the external→GMEOW direction is the `put` leg of a `logic:Correspondence`,
+**derived** (not hand-authored) for mnemomorphic cells: `put` is the projection
+along the retained source-witness, law-bearing by construction. The current
+`crates/pipeline/src/up_projection.rs` heuristic is then deleted under the
+equivalence-before-deletion migration (the lift map becomes correspondence legs;
+the "~81% liftable" audit becomes a derived loss-ledger statistic). These pytest
+files lose their subject when the lowering engine + the `conformance/correspondence`
+round-trip/mnemomorphism gates regenerate the same outputs and are deleted in that
+change — not by a per-file Rust port.
