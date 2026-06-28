@@ -250,7 +250,36 @@ fn rebuild_handle(
                 )?;
             PipelineHandle::Logic(Arc::new(program))
         }
-        "reasoning" => PipelineHandle::Reasoning(graph),
+        "reasoning" => {
+            // The REAL typed Reasoning handle (#1132 C7): its backing graph is the
+            // deterministic `graph/reasoning` projection of a `ReasoningResult`, so on
+            // a cache hit the verdict-and-provenance result is RE-DERIVED from that
+            // graph via the reverse parser (the binding rows / closure quads are not
+            // carried in this graph — they live in the bundle's default-graph dataset,
+            // per the projection's documented round-trip contract). The consumer never
+            // re-parses the reasoning graph; the cache boundary does it ONCE here. A
+            // parse failure HARD-fails (no-optionality): a `reasoning` handle whose
+            // backing graph no longer parses is a corrupt cache, never a dropped handle.
+            // The backing sub-dataset is default-graph only (the cache's
+            // `project_named_graph` strips the graph name), so its canonical N-Quads
+            // lines are `s p o .` — exactly the N-Triples shape the projection's reverse
+            // parser reads.
+            let nt = serialize_dataset(graph.as_ref(), DATASET_MEDIA_TYPE, SerializeGraph::Dataset)
+                .map_err(|e| {
+                    PipelineError::Decode(format!(
+                        "cache: serialize Reasoning handle backing graph: {e}"
+                    ))
+                })?;
+            let nt = String::from_utf8(nt).map_err(|e| {
+                PipelineError::Decode(format!("cache: Reasoning backing graph not UTF-8: {e}"))
+            })?;
+            let result = gmeow_logic::result_rdf::parse_reasoning_graph(&nt).map_err(|e| {
+                PipelineError::Decode(format!(
+                    "cache: re-derive Reasoning handle result from backing graph/reasoning: {e}"
+                ))
+            })?;
+            PipelineHandle::Reasoning(Arc::new(result))
+        }
         "relational-core" => PipelineHandle::RelationalCore(graph),
         "correspondence" => PipelineHandle::Correspondence(graph),
         other => {
@@ -928,5 +957,96 @@ mod tests {
             matches!(err, PipelineError::Decode(_)),
             "tampered handle backing graph fails to re-pin (hard fail), got {err:?}"
         );
+    }
+
+    /// A `ReasoningResult` whose `graph/reasoning` projection backs a cache handle, so
+    /// the cache's re-derivation (`parse_reasoning_graph`) reconstructs a faithful
+    /// verdict-and-provenance result (#1132 C7).
+    fn sample_reasoning_result() -> gmeow_logic::result::ReasoningResult {
+        use gmeow_logic::result::{
+            CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
+            ReasoningResult, ResultPayload, ResultProvenance,
+        };
+        // projection_class mirrors the result's `preservation` axis in every real
+        // construction; the parser reconstructs it from that axis, so the fixture sets
+        // them equal (an inconsistent fixture would test a state no real result holds).
+        let mut prov =
+            ResultProvenance::native("contract:cache-test", "http://example.org/world/w");
+        prov.projection_class = PreservationClaim::exact();
+        ReasoningResult::new(
+            InputStatus::Valid,
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+            PreservationClaim::exact(),
+            InformationState::Supported,
+            prov,
+            ResultPayload::Empty,
+        )
+    }
+
+    /// A bundle whose dataset carries a `graph/reasoning` named graph (the projection
+    /// of [`sample_reasoning_result`]) with a typed Reasoning handle pinned to it.
+    fn reasoning_bundle() -> PipelineBundle<PipelineHandle> {
+        use std::sync::Arc;
+        let result = sample_reasoning_result();
+        let projection = gmeow_logic::result_rdf::project_reasoning_result(&result);
+        let parsed = parse_dataset(projection.as_bytes(), "application/n-triples", None)
+            .expect("parse projection");
+        let graph_iri = gmeow_logic::result_rdf::GRAPH_REASONING;
+        let mut b = RdfDatasetBuilder::new();
+        let term = RdfTerm::Iri(graph_iri.to_owned());
+        for quad in parsed.owned_quads() {
+            let mut routed = quad.clone();
+            routed.graph_name = Some(term.clone());
+            b.push_owned_quad(&routed);
+        }
+        let dataset = b.freeze().expect("freeze");
+        let mut bundle = PipelineBundle::new(
+            dataset,
+            RdfLookaside::default(),
+            Arc::new(ContentStore::new()),
+            DatasetProvenance::new(),
+        );
+        let pinned = bundle.graph_digest(graph_iri);
+        bundle
+            .pin_handle(
+                graph_iri,
+                PipelineHandle::Reasoning(Arc::new(result)),
+                pinned,
+            )
+            .expect("pin Reasoning handle");
+        bundle
+    }
+
+    #[test]
+    fn cached_reasoning_handle_re_derives_the_result() {
+        use std::sync::Arc;
+        let dir = tempfile::tempdir().unwrap();
+        let mut cache = PipelineCache::open(dir.path()).unwrap();
+
+        let original = reasoning_bundle();
+        let product = StageProduct::from_bundle("stage-reason", Arc::new(original.clone()));
+        cache.put("k", &product).unwrap();
+
+        let got = cache.get("k").unwrap().expect("cache hit");
+        let recon = got.bundle();
+
+        let graph_iri = gmeow_logic::result_rdf::GRAPH_REASONING;
+        let entry = recon
+            .handle(graph_iri)
+            .expect("Reasoning handle re-attached");
+        let PipelineHandle::Reasoning(result) = &entry.payload else {
+            panic!("the re-derived handle arm is Reasoning");
+        };
+        // The verdict-and-provenance result round-trips faithfully (axes + provenance).
+        assert_eq!(
+            result.as_ref(),
+            &sample_reasoning_result(),
+            "the cache re-derived the Reasoning handle's result faithfully"
+        );
+        // The pin matches the reconstituted backing graph.
+        assert_eq!(entry.content_digest, recon.graph_digest(graph_iri));
+        // The bundle content fold round-trips.
+        assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
     }
 }

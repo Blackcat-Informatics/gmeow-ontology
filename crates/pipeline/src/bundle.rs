@@ -36,6 +36,7 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
+use gmeow_logic::result::ReasoningResult;
 use gmeow_logic_compile::ir::LogicProgram;
 use gmeow_rdf::provenance::DatasetProvenance;
 use gmeow_rdf::{
@@ -64,9 +65,18 @@ pub enum PipelineHandle {
     /// of this program; the program's [`canonical_key`](LogicProgram::canonical_key)
     /// is its content identity.
     Logic(Arc<LogicProgram>),
-    /// A materialized reasoning result (inferred closure / entailments) over its
-    /// backing graph.
-    Reasoning(Arc<RdfDataset>),
+    /// The reasoning layer: the typed [`ReasoningResult`] (the five-axis verdict +
+    /// provenance bundle) over its backing `graph/reasoning` named graph — the REAL
+    /// handle (#1132 C7), not the C4 placeholder. Its backing graph is the
+    /// deterministic RDF projection of this result
+    /// ([`project_reasoning_result`](gmeow_logic::result_rdf::project_reasoning_result));
+    /// a consumer takes the typed handle and reads the verdict/provenance without
+    /// re-running the reasoner. On a cache hit the cache re-derives the
+    /// verdict-and-provenance result from the backing graph via
+    /// [`parse_reasoning_graph`](gmeow_logic::result_rdf::parse_reasoning_graph)
+    /// (the binding rows / closure quads live in the bundle's dataset, not re-copied
+    /// here — see the projection's round-trip contract).
+    Reasoning(Arc<ReasoningResult>),
     /// The Horn/relational-core projection (NNF→Skolem→Horn floor) over its
     /// backing graph.
     RelationalCore(Arc<RdfDataset>),
