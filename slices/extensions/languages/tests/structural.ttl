@@ -507,3 +507,14 @@ ASK {
     gmeow:nativeLanguage rdfs:subPropertyOf gmeow:knowsLanguage .
 }""" ;
     gmeow:saRationale "gmeow:nativeLanguage MUST be rdfs:subPropertyOf gmeow:knowsLanguage — native language is a specialisation of the general language-knowledge shortcut. Mirrors test_knows_language_shortcut_and_native_subproperty (subPropertyOf arm)." .
+
+# --- 33. LanguageVersion is a subclass of Language (MUST)
+ex:saLanguageVersionSubclassLanguage a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:LanguageVersion rdfs:subClassOf gmeow:Language .
+}""" ;
+    gmeow:saRationale "gmeow:LanguageVersion MUST be rdfs:subClassOf gmeow:Language — a dated language revision is itself a fully usable language bearing its own scripts, names and status. This is the languages-extension arm of the language hierarchy spine (the core arm — Language/FormalLanguage/ProgrammingLanguage/WritingSystem — is pinned in slices/core/language). Mirrors test_language_hierarchy (LanguageVersion arm)." .

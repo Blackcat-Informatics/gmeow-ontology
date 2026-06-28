@@ -68,3 +68,85 @@ ASK {
     FILTER (?c != gmeow:Language)
 }""" ;
     gmeow:saRationale "Every named class refining gmeow:Language MUST carry the logic:SubKind stereotype (the gUFO Kind/SubKind discipline): the slice MUST NOT declare a subclass of gmeow:Language that is not stereotyped logic:SubKind, so language refinements stay specializations of the one identity-bearing Kind." .
+
+# --- 5. The plain rdfs:subClassOf hierarchy spine (MUST hold) ----------------
+ex:saLanguageHierarchyPlainSubclass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Language            rdfs:subClassOf gmeow:InformationObject .
+    gmeow:FormalLanguage      rdfs:subClassOf gmeow:Language .
+    gmeow:ProgrammingLanguage rdfs:subClassOf gmeow:FormalLanguage .
+    gmeow:WritingSystem       rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "The language hierarchy spine MUST hold as plain rdfs:subClassOf edges: gmeow:Language and gmeow:WritingSystem refine gmeow:InformationObject, gmeow:FormalLanguage refines gmeow:Language, and gmeow:ProgrammingLanguage refines gmeow:FormalLanguage. The gmeow:LanguageVersion arm of this hierarchy is pinned in the languages extension slice that defines it." .
+
+# --- 6. languageTag is a functional Language→xsd:string tag (MUST hold) -------
+ex:saLanguageTagCharacter a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:languageTag a owl:DatatypeProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Language ;
+        rdfs:range xsd:string .
+}""" ;
+    gmeow:saRationale "gmeow:languageTag MUST be an owl:DatatypeProperty AND owl:FunctionalProperty with rdfs:domain gmeow:Language and rdfs:range xsd:string — each anchoring Language individual carries exactly one internal x-gmeow-* private-use tag string." .
+
+# --- 7. languageCode is a (non-functional) DatatypeProperty (MUST hold) -------
+ex:saLanguageCodeIsDatatypeProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:languageCode a owl:DatatypeProperty . }""" ;
+    gmeow:saRationale "gmeow:languageCode MUST be an owl:DatatypeProperty — registry codes (BCP-47/ISO 639/Glottocode) are literal alignments, never identity." .
+
+# --- 8. languageCode is NOT functional (MUST-NOT) ----------------------------
+ex:saLanguageCodeNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:languageCode a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:languageCode MUST NOT be owl:FunctionalProperty — a language carries codes across several registries simultaneously, so the registry alignment is optional and multi-valued." .
+
+# --- 9. No cardinality restriction forces a language to carry a code (MUST-NOT)
+ex:saLanguageCodeNoRequiredCardinality a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    ?restriction owl:onProperty gmeow:languageCode .
+    { ?restriction owl:minCardinality ?n }
+    UNION { ?restriction owl:cardinality ?n }
+    UNION { ?restriction owl:minQualifiedCardinality ?n }
+}""" ;
+    gmeow:saRationale "No owl:Restriction onProperty gmeow:languageCode may carry an owl:minCardinality, owl:cardinality, or owl:minQualifiedCardinality — registry independence means a code-less conlang or AI-generated language is fully first-class, so nothing forces a Language to carry a code." .
+
+# --- 10. bcp47Tag is NOT functional (MUST-NOT) -------------------------------
+ex:saBcp47TagNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:bcp47Tag a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:bcp47Tag MUST NOT be owl:FunctionalProperty — a language legitimately exposes several valid BCP-47 tags across script, region, or variant contexts (zh, zh-Hans, …), unlike the single functional internal gmeow:languageTag." .
+
+# --- 11. The seed languages carry both internal and BCP-47 tags (MUST hold) --
+ex:saSeedLanguagesCarryBothTags a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:langEnglish  a gmeow:Language ; gmeow:languageTag ?et ; gmeow:bcp47Tag ?eb .
+    gmeow:langFrench   a gmeow:Language ; gmeow:languageTag ?ft ; gmeow:bcp47Tag ?fb .
+    gmeow:langMandarin a gmeow:Language ; gmeow:languageTag ?mt ; gmeow:bcp47Tag ?mb .
+}""" ;
+    gmeow:saRationale "The three seed language individuals (English, French, Mandarin — the framework's own translation targets) MUST each be typed gmeow:Language and carry BOTH an internal gmeow:languageTag (x-gmeow-*) and a projected gmeow:bcp47Tag, so the private-use anchor and its standard projection are both present on every seed." .
