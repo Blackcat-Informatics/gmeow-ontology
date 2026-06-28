@@ -1709,3 +1709,56 @@ fn gate_probe_surfaces_invariant_breach_denial() {
         "a denied probe must surface the denial reason"
     );
 }
+
+// ── logic:evaluationTime vocabulary completeness ─────────────────────────────
+
+/// `logic:evaluationTime` is the "time of judgment" axis of the GoalEvaluation
+/// identifying tuple.  No code path currently carries a timestamp into evaluation
+/// emission, so the property exists for vocabulary completeness only.  This test
+/// proves two things:
+///
+/// 1. The property IRI is correctly named — `logic("evaluationTime")` returns the
+///    canonical `https://blackcatinformatics.ca/logic/evaluationTime` IRI.
+/// 2. Driver-emitted GoalEvaluation quads do NOT contain a spurious
+///    `logic:evaluationTime` triple (absence is intentional: time-of-judgment is
+///    unspecified in the default bridge path, not defaulted).
+#[test]
+fn evaluation_time_iri_and_absent_from_driver_emitted_eval() {
+    // 1. IRI correctness.
+    let expected_iri = "https://blackcatinformatics.ca/logic/evaluationTime";
+    assert_eq!(
+        logic("evaluationTime"),
+        expected_iri,
+        "logic:evaluationTime IRI must match the minted vocabulary surface"
+    );
+
+    // 2. No evaluationTime triple on a driver-emitted GoalEvaluation.
+    // Build the simplest world that produces a GoalEvaluation: one atomic goal
+    // satisfied by the only state in the path.
+    let mut nq = path_nq(&[&["sitA"]]);
+    nq.push_str(&goal_expr_nq(
+        "atomA",
+        "AtomicGoal",
+        &format!(
+            "<{W}#atomA> {} <{W}#sitA> <{W}> .\n",
+            l("boundSituationType")
+        ),
+    ));
+    nq.push_str(&format!(
+        "<{W}#goalA> {has_cond} <{W}#atomA> <{W}> .\n",
+        has_cond = l("hasGoalCondition"),
+    ));
+    let store = store_from(&nq);
+    let out = materialize_teleology(&store).unwrap().0;
+    // At least one GoalEvaluation quad must have been emitted.
+    assert!(
+        out.iter().any(|q| q.predicate == logic("evaluatesGoal")),
+        "expected at least one GoalEvaluation to be emitted"
+    );
+    // None of the emitted quads should carry evaluationTime.
+    assert!(
+        out.iter().all(|q| q.predicate != logic("evaluationTime")),
+        "driver-emitted GoalEvaluation must NOT carry logic:evaluationTime \
+         (time-of-judgment is unspecified, not defaulted)"
+    );
+}

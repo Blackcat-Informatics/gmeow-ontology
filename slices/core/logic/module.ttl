@@ -2159,6 +2159,14 @@ logic:evaluationCriterion
     skos:definition "Relates a logic:GoalEvaluation to the criterion applied in reaching its judgment — the standard against which satisfaction, feasibility, and the quantities are read. Domain logic:GoalEvaluation (stated in prose). One of the subjects in the identifying tuple of an evaluation; two evaluations differing only in criterion are distinct records."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:evaluationTime
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "evaluation time"@x-gmeow-english ;
+    rdfs:range xsd:dateTime ;
+    skos:definition "The time of judgment component of the logic:GoalEvaluation identifying tuple: when this evaluation was made. Domain logic:GoalEvaluation (stated in prose); range xsd:dateTime (a full ISO-8601 instant, never xsd:date). Two evaluations of the same goal, situation, evaluator, and criterion made at different times are distinct records. When no explicit time is recorded the identifying tuple component is absent, not defaulted — absence means the time of judgment is unspecified rather than unknown."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:evaluationEvaluator
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
