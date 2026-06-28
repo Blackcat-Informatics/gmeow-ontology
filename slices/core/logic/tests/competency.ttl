@@ -149,9 +149,9 @@ ex:rowCatTypicality a gmeow:ExpectedRow ;
 # necessity walk over accessibleFrom) is not exercised here; that machinery lives in
 # the native engine and is kept apart from the typed relations by construction.
 ex:cqKeystoneNoCrossTypeSuperproperty a gmeow:CompetencyQuestion ;
-    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?typed WHERE { VALUES ?typed { logic:epistemicallyPossible logic:doxasticallyAccessible logic:deonticallyIdeal logic:temporallySucceeds logic:counterfactuallyCloser } ?typed rdfs:subPropertyOf logic:accessibleFrom }" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?typed WHERE { VALUES ?typed { logic:epistemicallyPossible logic:doxasticallyAccessible logic:deonticallyIdeal logic:temporallySucceeds logic:counterfactuallyCloser gmeow:sharpens } ?typed rdfs:subPropertyOf logic:accessibleFrom }" ;
     gmeow:cqReasoning gmeow:reasoningRdfs ;
-    gmeow:cqRationale "The five typed accessibility relations MUST NOT be rdfs:subPropertyOf logic:accessibleFrom even after RDFS closure (rdfs5 transitivity); the bare superproperty licenses no cross-type entailment, so this query returns the empty set." ;
+    gmeow:cqRationale "All six typed accessibility relations — the five logic: kernel relations plus gmeow:sharpens — MUST NOT be rdfs:subPropertyOf logic:accessibleFrom even after RDFS closure (rdfs5 transitivity); the bare superproperty licenses no cross-type entailment, so this query returns the empty set. gmeow:sharpens is included because an asserted or inferred gmeow:sharpens rdfs:subPropertyOf logic:accessibleFrom would reopen the cross-type path for standpoint contexts." ;
     gmeow:cqResultShape ex:cqKeystoneNoCrossTypeSuperpropertyShape ;
     gmeow:cqExpectRowCount 0 .
 

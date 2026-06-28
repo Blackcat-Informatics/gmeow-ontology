@@ -179,12 +179,12 @@ gmeow:sharpens
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "sharpens"@x-gmeow-english ;
     rdfs:range gmeow:Standpoint ;
-    skos:definition "S1 sharpens S2: every precisification S1 admits is also admitted by S2, so S1 is the more specific frame (the standpoint ⊆ / refinement relation of Standpoint Logic; CKR's coverage relation). Transitive. Every standpoint sharpens gmeow:universalStandpoint."@x-gmeow-english ;
+    skos:definition "S1 sharpens S2: every precisification S1 admits is also admitted by S2, so S1 is the more specific frame (the standpoint ⊆ / refinement relation of Standpoint Logic; CKR's coverage relation). Transitive. Every standpoint except gmeow:unspecifiedStandpoint sharpens gmeow:universalStandpoint — the default-of-silence sits outside the refinement order and carries no gmeow:sharpens edge."@x-gmeow-english ;
     skos:example "ex:cityCouncilView gmeow:sharpens ex:regionalView ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as a ranking that picks a winner — sharpening is containment, not preference, and the broader frame is not 'more true' than the sharper one; competing, incomparable standpoints simply both sharpen the universal standpoint (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:sharpens from the more specific standpoint to the broader one and let transitivity build the poset; anchor every standpoint to gmeow:universalStandpoint at the top, and let a Standpoint-Logic reasoner read □/◊ entailments across the refinement order."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:sharpens from the more specific standpoint to the broader one and let transitivity build the poset; anchor every standpoint except gmeow:unspecifiedStandpoint to gmeow:universalStandpoint at the top, and let a Standpoint-Logic reasoner read □/◊ entailments across the refinement order."@x-gmeow-english ;
     gmeow:useWhen "Use to order two standpoints by precisification — when one frame is a strict refinement of another (every precisification it admits is admitted by the broader frame), building the standpoint poset whose top is gmeow:universalStandpoint."@x-gmeow-english .
 
 gmeow:standpointClaim
