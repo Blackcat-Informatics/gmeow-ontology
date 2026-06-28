@@ -17,4 +17,5 @@
 <https://example.org/profiles/well-founded/ruleWin> <https://blackcatinformatics.ca/logic/provenance> <https://example.org/profiles/well-founded/ruleWin> .
 
 # === Rules ===
-{ ?X <https://example.org/profiles/well-founded/move> ?Y . ?Y <https://example.org/profiles/well-founded/win> ?Y . } log:implies { ?X <https://example.org/profiles/well-founded/win> ?X . } .
+# negation-as-failure guard dropped (monotone N3 over-approximation): ~{ ?Y <https://example.org/profiles/well-founded/win> ?Y }
+{ ?X <https://example.org/profiles/well-founded/move> ?Y . } log:implies { ?X <https://example.org/profiles/well-founded/win> ?X . } .

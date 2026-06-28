@@ -107,16 +107,16 @@ fn assert_all_parse(dir: &Path, label: &str) -> (usize, usize) {
 #[test]
 fn all_hand_authored_queries_parse() {
     let (files, queries) = assert_all_parse(&repo_root().join("queries"), "queries/");
-    // Exact gate: 90 tracked `.rq` files; one holds 3 queries → 92 individual
+    // Exact gate: 92 tracked `.rq` files; one holds 3 queries → 94 individual
     // queries. A drop here means a corpus file was deleted/moved or a checkout
     // is stripped — fail loudly rather than passing a shrunken corpus.
     assert_eq!(
-        files, 90,
-        "expected 90 hand-authored .rq files, found {files}"
+        files, 92,
+        "expected 92 hand-authored .rq files, found {files}"
     );
     assert_eq!(
-        queries, 92,
-        "expected 92 hand-authored queries, parsed {queries}"
+        queries, 94,
+        "expected 94 hand-authored queries, parsed {queries}"
     );
 }
 

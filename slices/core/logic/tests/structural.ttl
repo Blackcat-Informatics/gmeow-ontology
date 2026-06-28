@@ -160,3 +160,40 @@ ASK {
         rdfs:range logic:Process .
 }""" ;
     gmeow:saRationale "The constitutive reading of 'events are made of processes': logic:occurrentConstituent MUST be an owl:ObjectProperty with rdfs:domain logic:Event and rdfs:range logic:Process — the bridge from the unitary, completed event to the dissective process whose unfolding it bounds." .
+
+# --- 12. CognitiveAssessment construct + projection + defeasible-evidence vocabulary (MUST) ---
+ex:saCognitiveAssessmentVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:CognitiveAssessment a owl:Class .
+    logic:AssessmentDimension a owl:Class .
+    logic:SubjectGranularity a owl:Class .
+    logic:AssessmentLevel a owl:Class .
+    logic:LadderProjectionProfile a owl:Class .
+    logic:DimensionThreshold a owl:Class .
+    logic:DefeasibleEvidence a owl:Class .
+    logic:defaultLadderProfile a logic:LadderProjectionProfile .
+    logic:skillEvidenceForKnowsAbout a logic:DefeasibleEvidence .
+}""" ;
+    gmeow:saRationale "The canonical multidimensional logic:CognitiveAssessment construct, its value-vocabulary classes (AssessmentDimension / SubjectGranularity / AssessmentLevel), the ladder-projection profile machinery (LadderProjectionProfile / DimensionThreshold with the shipped logic:defaultLadderProfile), and the defeasible-evidence construct (DefeasibleEvidence with the shipped logic:skillEvidenceForKnowsAbout) MUST all be present -- they are the asserted-TBox spine of the cognitive-assessment layer (design/LOGIC-COGNITION.md)." .
+
+# --- 13. The nine factored assessment dimensions exist (MUST) -----------------
+ex:saAssessmentDimensionsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    logic:dimensionAwareness a logic:AssessmentDimension .
+    logic:dimensionDeclarativeFamiliarity a logic:AssessmentDimension .
+    logic:dimensionConceptualUnderstanding a logic:AssessmentDimension .
+    logic:dimensionProceduralCompetence a logic:AssessmentDimension .
+    logic:dimensionTransfer a logic:AssessmentDimension .
+    logic:dimensionExplanatoryAbility a logic:AssessmentDimension .
+    logic:dimensionCalibration a logic:AssessmentDimension .
+    logic:dimensionMetacognition a logic:AssessmentDimension .
+    logic:dimensionReliability a logic:AssessmentDimension .
+}""" ;
+    gmeow:saRationale "All nine logic:AssessmentDimension individuals MUST exist -- the eight factored dimensions (awareness, declarative familiarity, conceptual understanding, procedural competence, transfer, explanatory ability, calibration, metacognition) plus the separately-introduced reliability dimension. They are an open value vocabulary; an assessment names exactly one (design/LOGIC-COGNITION.md)." .

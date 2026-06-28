@@ -177,3 +177,14 @@ ASK {
     ?r4 owl:onProperty gmeow:skillProficiencyScale ; owl:someValuesFrom gmeow:ProficiencyScale .
 }""" ;
     gmeow:saRationale "gmeow:SkillProficiency MUST carry OWL someValuesFrom restrictions on each of its four core roles (Agent, Skill, ProficiencyLevel, ProficiencyScale) — the open-world EL axiomatisation mirrors gmeow:LanguageProficiency. Mirrors test_skill_proficiency_some_values_from_axioms." .
+
+# --- 9. hasSkill is NOT a subproperty of knowsAbout (MUST-NOT) ----------------
+ex:saHasSkillNotSubpropertyOfKnowsAbout a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasSkill rdfs:subPropertyOf gmeow:knowsAbout .
+}""" ;
+    gmeow:saRationale "gmeow:hasSkill MUST NOT be axiomatised as rdfs:subPropertyOf gmeow:knowsAbout -- tacit can-do competence and propositional knowing-about come apart, so a skill is only DEFEASIBLE evidence (formalized centrally as logic:skillEvidenceForKnowsAbout) for knowing-about, never a strict subproperty entailment. The shipped reasoning never materializes gmeow:knowsAbout from a skill (Principle 9)." .

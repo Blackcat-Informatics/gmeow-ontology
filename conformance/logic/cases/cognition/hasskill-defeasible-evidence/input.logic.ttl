@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: cognition/hasskill-defeasible-evidence
+# AC (ME12): gmeow:hasSkill → gmeow:knowsAbout is DEFEASIBLE evidence, not a strict
+# subproperty entailment. The shipped reasoning never materializes knowsAbout from a
+# skill (no such rule ships in slices/core/logic); this case is the ONLY home of the
+# opt-in defeasible rule, run under an explicit StratifiedNAF contract. It derives
+# gmeow:knowsAbout from gmeow:hasSkill by default, BUT is defeated when the
+# competence is declared purely tacit (gmeow:competenceIsPurelyTacit) — negation as
+# failure. So:
+#   * dana (skilled, no defeater)  => gmeow:knowsAbout is derived (defeasible default fires)
+#   * cleo (skilled, purely tacit) => gmeow:knowsAbout is NOT derived (defeater blocks it)
+# This is exactly the can-do / knows-that coming apart: tacit competence without
+# articulable knowledge.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Opt-in defeasible default: a skill is evidence for knowing-about, UNLESS the
+# competence is declared purely tacit. The logic:negatedBody atom is the defeater.
+logic:ruleSkillDefeasiblyKnowsAbout a logic:Rule ;
+    logic:provenance logic:ruleSkillDefeasiblyKnowsAbout ;
+    logic:formalizationCategory logic:CategoryDefeasibleDefault ;
+    logic:head [ rdf:subject "?agent" ; rdf:predicate gmeow:knowsAbout ; rdf:object "?skill" ] ;
+    logic:body [ rdf:subject "?agent" ; rdf:predicate gmeow:hasSkill ; rdf:object "?skill" ] ;
+    logic:negatedBody [ rdf:subject "?agent" ; rdf:predicate gmeow:competenceIsPurelyTacit ; rdf:object "?skill" ] .

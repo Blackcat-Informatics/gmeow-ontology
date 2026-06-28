@@ -309,3 +309,17 @@ ASK {
     ?p rdfs:subPropertyOf gmeow:hasGoal .
 }""" ;
     gmeow:saRationale "gmeow:attendsTo, interestedIn, and curiousAbout MUST NOT be axiomatised as rdfs:subPropertyOf gmeow:hasGoal -- attention/interest are attentional pulls, not teleological desires; the axes are orthogonal and the boundary is conceptual, enforced by review not axiom (Principle 9). Mirrors test_no_axiom_bridge_to_teleology_desire." .
+
+# --- 17. Flat spectrum properties pair with logic:CognitiveAssessment (MUST) --
+ex:saSpectrumPairsWithAssessment a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:isAwareOf  gmeow:pairsWith logic:CognitiveAssessment .
+    gmeow:knowsAbout gmeow:pairsWith logic:CognitiveAssessment .
+    gmeow:understands gmeow:pairsWith logic:CognitiveAssessment .
+    gmeow:hasMastered gmeow:pairsWith logic:CognitiveAssessment .
+}""" ;
+    gmeow:saRationale "gmeow:isAwareOf, knowsAbout, understands, and hasMastered MUST all carry gmeow:pairsWith logic:CognitiveAssessment -- the ladder is a generated coarse view of the multidimensional assessment, and the pairsWith link surfaces that canonical construct in gmeow describe (Principle 15)." .

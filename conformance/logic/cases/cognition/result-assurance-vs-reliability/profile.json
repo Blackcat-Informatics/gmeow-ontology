@@ -1,0 +1,6 @@
+{
+  "reasoning_contract": {"preset": "PositiveHornProfile"},
+  "world_types": ["epistemic"],
+  "mode": "native",
+  "expected_decidability_class": "decidable"
+}

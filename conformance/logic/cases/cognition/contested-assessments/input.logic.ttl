@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: cognition/contested-assessments
+# AC (ME12, design/LOGIC-COGNITION.md §The cognitive assessment is reified):
+# an assessment is vantage-indexed like any other claim — a self-assessment and an
+# observer's assessment of the same agent on the same dimension are two COEXISTING
+# records, never reconciled into one verdict. This case carries two contested
+# logic:CognitiveAssessment instances of one agent (ada) on one dimension
+# (metacognition) attributed to two standpoints via gmeow:accordingTo, with
+# DIFFERENT levels (self: strong, observer: emerging).
+#
+# A non-reconciling rule surfaces each assessment's evaluator (ex:assessmentHeldBy)
+# so the materialized output shows BOTH assessments retained, each attributed to its
+# own evaluator (ada vs mentor) — nothing collapses the two differing levels into a
+# single verdict.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/cognition/contested-assessments/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+ex:ruleAssessmentHeldBy a logic:Rule ;
+    logic:provenance ex:ruleAssessmentHeldBy ;
+    logic:head [ rdf:subject "?assessment" ; rdf:predicate ex:assessmentHeldBy ; rdf:object "?evaluator" ] ;
+    logic:body [ rdf:subject "?assessment" ; rdf:predicate logic:assessmentEvaluator ; rdf:object "?evaluator" ] .

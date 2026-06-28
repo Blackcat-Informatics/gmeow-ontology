@@ -22,4 +22,5 @@
 
 # === Rules ===
 { ?X <https://example.org/decidability/non-stratified-flagged/win> ?X . } log:implies { ?X <https://example.org/decidability/non-stratified-flagged/lose> ?X . } .
-{ ?X <https://example.org/decidability/non-stratified-flagged/move> ?Y . ?Y <https://example.org/decidability/non-stratified-flagged/lose> ?Y . } log:implies { ?X <https://example.org/decidability/non-stratified-flagged/win> ?X . } .
+# negation-as-failure guard dropped (monotone N3 over-approximation): ~{ ?Y <https://example.org/decidability/non-stratified-flagged/lose> ?Y }
+{ ?X <https://example.org/decidability/non-stratified-flagged/move> ?Y . } log:implies { ?X <https://example.org/decidability/non-stratified-flagged/win> ?X . } .
