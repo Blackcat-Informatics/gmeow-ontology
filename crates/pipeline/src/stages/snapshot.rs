@@ -1060,10 +1060,6 @@ fn build_snapshot_bundle(
         ));
     };
     let program = program.clone();
-    let canonical_ttl = compile
-        .artifact(crate::stages::compile_logic::CANONICAL_RDF12_PATH)
-        .ok_or_else(|| stage_err("missing compile-logic canonical RDF-1.2 artifact"))?;
-    let logic_dataset = logic_graph_dataset(canonical_ttl)?;
 
     // ── the RelationalCore handle payload + its backing graph/relational-core ─────
     let rc_entry = compile
@@ -1076,8 +1072,6 @@ fn build_snapshot_bundle(
         ));
     };
     let rc_program = rc_program.clone();
-    let rc_nt = gmeow_logic_compile::relational_core::project_relational_core(rc_program.as_ref());
-    let rc_dataset = relational_core_graph_dataset(rc_nt.as_bytes())?;
 
     // ── the Correspondence handle payload + its backing graph/correspondence ──────
     let corr_entry = compile
@@ -1090,10 +1084,6 @@ fn build_snapshot_bundle(
         ));
     };
     let corr_program = corr_program.clone();
-    let corr_nt = gmeow_logic_compile::projections::correspondence::project_correspondence(
-        corr_program.as_ref(),
-    );
-    let corr_dataset = correspondence_graph_dataset(corr_nt.as_bytes())?;
 
     // ── the Reasoning handle payload + its backing graph/reasoning projection ─────
     let reason = upstream
@@ -1109,16 +1099,15 @@ fn build_snapshot_bundle(
         ));
     };
     let result = result.clone();
-    let reasoning_nt = gmeow_logic::result_rdf::project_reasoning_result(result.as_ref());
-    let reasoning_dataset = reasoning_graph_dataset(reasoning_nt.as_bytes())?;
 
-    // Union the three backing graphs into one dataset (each in its own named graph), so
-    // all handles pin to the dataset the bundle carries.
+    // The producers already folded these named graphs into their carriers: compile-logic
+    // carries graph/logic + graph/relational-core + graph/correspondence, stage-reason
+    // carries graph/reasoning. The snapshot bundle's dataset is their IN-MEMORY UNION — no
+    // projection is re-derived and no graph is re-parsed (the carrier is the single
+    // internal transport; each projection was transformed once, upstream).
     let dataset = std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&[
-        logic_dataset.as_ref(),
-        reasoning_dataset.as_ref(),
-        rc_dataset.as_ref(),
-        corr_dataset.as_ref(),
+        compile.bundle().dataset(),
+        reason.bundle().dataset(),
     ]));
 
     let mut bundle =
@@ -1213,98 +1202,6 @@ fn reasoning_projection_nt(
         ));
     };
     Ok(gmeow_logic::result_rdf::project_reasoning_result(result).into_bytes())
-}
-
-/// Parse the deterministic `graph/reasoning` projection N-Triples and route every
-/// triple into the `graph/reasoning` named graph of a fresh frozen dataset — the
-/// backing graph the snapshot product's typed Reasoning handle pins to. Mirrors
-/// [`logic_graph_dataset`] so the in-graph carriage and the handle pin to one identity.
-fn reasoning_graph_dataset(
-    projection_nt: &[u8],
-) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
-    use gmeow_rdf::{RdfDatasetBuilder, RdfTerm};
-    let parsed = parse_dataset(projection_nt, "application/n-triples", None)
-        .map_err(|e| stage_err(&format!("parse graph/reasoning projection: {e}")))?;
-    let graph = RdfTerm::Iri(gmeow_logic::result_rdf::GRAPH_REASONING.to_owned());
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in parsed.owned_quads() {
-        let mut routed = quad.clone();
-        routed.graph_name = Some(graph.clone());
-        builder.push_owned_quad(&routed);
-    }
-    builder
-        .freeze()
-        .map_err(|e| stage_err(&format!("freeze snapshot graph/reasoning dataset: {e}")))
-}
-
-/// Parse the relational-core projection N-Triples and route every triple into the
-/// `graph/relational-core` named graph of a fresh frozen dataset — the backing graph the
-/// snapshot product's typed RelationalCore handle pins to. Mirrors the compile-logic
-/// producer's `relational_core_graph_dataset` so both pin over the SAME projection.
-fn relational_core_graph_dataset(
-    projection_nt: &[u8],
-) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
-    use gmeow_rdf::{RdfDatasetBuilder, RdfTerm};
-    let parsed = parse_dataset(projection_nt, "application/n-triples", None)
-        .map_err(|e| stage_err(&format!("parse graph/relational-core projection: {e}")))?;
-    let graph = RdfTerm::Iri(crate::stages::compile_logic::GRAPH_RELATIONAL_CORE.to_owned());
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in parsed.owned_quads() {
-        let mut routed = quad.clone();
-        routed.graph_name = Some(graph.clone());
-        builder.push_owned_quad(&routed);
-    }
-    builder.freeze().map_err(|e| {
-        stage_err(&format!(
-            "freeze snapshot graph/relational-core dataset: {e}"
-        ))
-    })
-}
-
-/// Parse the correspondence projection N-Triples and route every triple into the
-/// `graph/correspondence` named graph of a fresh frozen dataset — the backing graph the
-/// snapshot product's typed Correspondence handle pins to. Mirrors the compile-logic
-/// producer's `correspondence_graph_dataset` so both pin over the SAME projection.
-fn correspondence_graph_dataset(
-    projection_nt: &[u8],
-) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
-    use gmeow_rdf::{RdfDatasetBuilder, RdfTerm};
-    let parsed = parse_dataset(projection_nt, "application/n-triples", None)
-        .map_err(|e| stage_err(&format!("parse graph/correspondence projection: {e}")))?;
-    let graph = RdfTerm::Iri(crate::stages::compile_logic::GRAPH_CORRESPONDENCE.to_owned());
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in parsed.owned_quads() {
-        let mut routed = quad.clone();
-        routed.graph_name = Some(graph.clone());
-        builder.push_owned_quad(&routed);
-    }
-    builder.freeze().map_err(|e| {
-        stage_err(&format!(
-            "freeze snapshot graph/correspondence dataset: {e}"
-        ))
-    })
-}
-
-/// Parse the canonical RDF-1.2 projection Turtle and route every triple into the
-/// `graph/logic` named graph of a fresh frozen dataset — the backing graph the
-/// snapshot product's typed Logic handle pins to. Mirrors the compile-logic producer's
-/// `logic_graph_dataset` so both pin over the SAME projection.
-fn logic_graph_dataset(
-    canonical_rdf12_turtle: &[u8],
-) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
-    use gmeow_rdf::{RdfDatasetBuilder, RdfTerm};
-    let parsed = parse_dataset(canonical_rdf12_turtle, "text/turtle", None)
-        .map_err(|e| stage_err(&format!("parse canonical rdf12: {e}")))?;
-    let graph = RdfTerm::Iri(crate::stages::compile_logic::GRAPH_LOGIC.to_owned());
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in parsed.owned_quads() {
-        let mut routed = quad.clone();
-        routed.graph_name = Some(graph.clone());
-        builder.push_owned_quad(&routed);
-    }
-    builder
-        .freeze()
-        .map_err(|e| stage_err(&format!("freeze snapshot graph/logic dataset: {e}")))
 }
 
 /// Parse the emitted `gmeow.gts` bytes ONCE into the two shared views the
