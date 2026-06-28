@@ -237,14 +237,52 @@ impl<'a> DslView<'a> {
             .collect()
     }
 
+    /// The lexical form + datatype IRI of the first literal object of
+    /// `<term> <pred> ?o`.
+    pub fn literal_of_term(
+        &self,
+        subject: &DslTerm,
+        pred: &str,
+    ) -> Option<(String, Option<String>)> {
+        match self.first_object_of(subject, pred) {
+            Some(DslTerm::Literal {
+                lexical, datatype, ..
+            }) => Some((lexical, Some(datatype))),
+            _ => None,
+        }
+    }
+
+    /// Parse an RDF boolean object of `<term> <pred> ?o`: a literal `true`/`1` (case-
+    /// and whitespace-insensitive) is `true`; any other literal is `false`; a present
+    /// non-literal object is `true`; absence is `false`.
+    pub fn object_bool_of_term(&self, subject: &DslTerm, pred: &str) -> bool {
+        match self.first_object_of(subject, pred) {
+            Some(DslTerm::Literal { lexical, .. }) => {
+                let v = lexical.trim().to_lowercase();
+                v == "true" || v == "1"
+            }
+            Some(_) => true,
+            None => false,
+        }
+    }
+
     /// The members of an `rdf:List` headed by `head` (empty if `head` is `None`),
-    /// following `rdf:first`/`rdf:rest` to `rdf:nil`.
+    /// following `rdf:first`/`rdf:rest` to `rdf:nil`. A visited-set guards a cyclic
+    /// `rdf:rest` chain so traversal terminates.
     pub fn rdf_list(&self, head: Option<&DslTerm>) -> Vec<DslTerm> {
         let mut out: Vec<DslTerm> = Vec::new();
+        let mut seen: std::collections::BTreeSet<(String, gmeow_rdf::ir::BlankScope)> =
+            std::collections::BTreeSet::new();
         let mut node = head.cloned();
         while let Some(cur) = node {
             if let DslTerm::Iri(iri) = &cur {
                 if iri == RDF_NIL {
+                    break;
+                }
+            }
+            // Guard against a cyclic rest chain (only blank list nodes can cycle).
+            if let DslTerm::Blank { label, scope } = &cur {
+                if !seen.insert((label.clone(), *scope)) {
                     break;
                 }
             }

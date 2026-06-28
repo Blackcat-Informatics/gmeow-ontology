@@ -17,11 +17,17 @@
 //! claims `ExactPreservation` but dropped content.  [`report::build_projection_report`]
 //! aggregates the loss ledger.
 
+// The EDOAL correspondence lowering (get leg + relation lattice → EDOAL alignment).
+pub mod edoal;
 // The FnO correspondence lowering (get-leg transform functions → FnO catalog).
 pub mod fno;
+// The shared get leg both EDOAL and SPARQL lower from (spec-drift gone by construction).
+pub mod get_leg;
 pub mod paths;
 pub mod rdf;
 pub mod report;
+// The SPARQL-CONSTRUCT correspondence lowering (get leg → executable CONSTRUCT).
+pub mod sparql;
 // The SSSOM correspondence lowering (1:1 lattice band → SSSOM TSV).
 pub mod sssom;
 pub mod text;
