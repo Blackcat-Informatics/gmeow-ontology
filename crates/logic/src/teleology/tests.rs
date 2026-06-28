@@ -1295,3 +1295,326 @@ fn nonlinear_path_is_hard_error() {
         "got: {err}"
     );
 }
+
+// ── Facet: invariant (breach denies the action) ──────────────────────────────────
+
+#[test]
+fn invariant_holding_admits_action() {
+    // precondition + capability + invariant all hold → admit.
+    let mut nq = path_nq(&[&["ready", "balanced"]]);
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#ready> <{W}> .\n",
+        l("precondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#balanced> <{W}> .\n",
+        l("invariant")
+    ));
+    let f = facts_of(&nq);
+    let caps = BTreeSet::new();
+    let gate = gate_action(&f, &format!("{W}#schema"), &format!("{W}#state0"), &caps);
+    assert_eq!(gate, ActionGate::Admit);
+}
+
+#[test]
+fn invariant_breach_denies_action_with_reason_and_compensation() {
+    // precondition holds but the invariant (balanced) is NOT obtaining → hard deny,
+    // never a silent pass; the denial names the breached invariant and carries rollback.
+    let mut nq = path_nq(&[&["ready"]]); // balanced does NOT obtain
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#ready> <{W}> .\n",
+        l("precondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#balanced> <{W}> .\n",
+        l("invariant")
+    ));
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#rollback> <{W}> .\n",
+        l("compensation")
+    ));
+    let f = facts_of(&nq);
+    let caps = BTreeSet::new();
+    let gate = gate_action(&f, &format!("{W}#schema"), &format!("{W}#state0"), &caps);
+    match gate {
+        ActionGate::Deny {
+            compensation,
+            reason,
+        } => {
+            assert!(
+                reason.contains("invariant") && reason.contains("balanced"),
+                "denial must name the breached invariant, got {reason:?}"
+            );
+            assert_eq!(compensation, Some(format!("{W}#rollback")));
+        }
+        ActionGate::Admit => panic!("a breached invariant must deny, not pass"),
+    }
+}
+
+// ── Facet: actionResource (exhaustion / absence gates the action) ────────────────
+
+#[test]
+fn resource_supplied_and_not_exhausted_admits() {
+    let mut nq = path_nq(&[&["ready"]]);
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#ready> <{W}> .\n",
+        l("precondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#engineLock> <{W}> .\n",
+        l("actionResource")
+    ));
+    nq.push_str(&format!(
+        "<{W}#state0> {} <{W}#engineLock> <{W}> .\n",
+        l("resourceSupply")
+    ));
+    let f = facts_of(&nq);
+    let caps = BTreeSet::new();
+    let gate = gate_action(&f, &format!("{W}#schema"), &format!("{W}#state0"), &caps);
+    assert_eq!(gate, ActionGate::Admit);
+}
+
+#[test]
+fn resource_not_supplied_gates_action() {
+    let mut nq = path_nq(&[&["ready"]]); // state supplies NO resource
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#ready> <{W}> .\n",
+        l("precondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#engineLock> <{W}> .\n",
+        l("actionResource")
+    ));
+    let f = facts_of(&nq);
+    let caps = BTreeSet::new();
+    let gate = gate_action(&f, &format!("{W}#schema"), &format!("{W}#state0"), &caps);
+    match gate {
+        ActionGate::Deny { reason, .. } => assert!(
+            reason.contains("resource") && reason.contains("engineLock"),
+            "denial must name the unavailable resource, got {reason:?}"
+        ),
+        ActionGate::Admit => panic!("an unsupplied resource must gate the action"),
+    }
+}
+
+#[test]
+fn resource_exhausted_gates_action() {
+    // The resource is supplied but flagged exhausted → still gated.
+    let mut nq = path_nq(&[&["ready"]]);
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#ready> <{W}> .\n",
+        l("precondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#engineLock> <{W}> .\n",
+        l("actionResource")
+    ));
+    nq.push_str(&format!(
+        "<{W}#state0> {} <{W}#engineLock> <{W}> .\n",
+        l("resourceSupply")
+    ));
+    nq.push_str(&format!(
+        "<{W}#engineLock> {} \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> <{W}> .\n",
+        l("resourceExhausted")
+    ));
+    let f = facts_of(&nq);
+    let caps = BTreeSet::new();
+    let gate = gate_action(&f, &format!("{W}#schema"), &format!("{W}#state0"), &caps);
+    assert!(
+        matches!(gate, ActionGate::Deny { .. }),
+        "an exhausted resource must gate the action"
+    );
+}
+
+// ── Facet: effect (ins/del supersession, append-only) ────────────────────────────
+
+#[test]
+fn effect_computes_successor_support_as_supersession() {
+    // Predecessor state0 obtains {sitX, sitY}; the effect ins sitZ and del sitY.
+    // Successor support = {sitX, sitZ}; sitY is RETIRED (recorded as superseded), never
+    // erased from the predecessor.
+    let mut nq = path_nq(&[&["sitX", "sitY"]]);
+    nq.push_str(&format!("<{W}#schema> {} <{W}#eff> <{W}> .\n", l("effect")));
+    nq.push_str(&format!("<{W}#eff> {} <{W}#sitZ> <{W}> .\n", l("ins")));
+    nq.push_str(&format!("<{W}#eff> {} <{W}#sitY> <{W}> .\n", l("del")));
+    let f = facts_of(&nq);
+    let support = apply_effect(&f, &format!("{W}#schema"), &format!("{W}#state0")).unwrap();
+    assert!(support.asserted.contains(&format!("{W}#sitX")));
+    assert!(support.asserted.contains(&format!("{W}#sitZ")));
+    assert!(
+        !support.asserted.contains(&format!("{W}#sitY")),
+        "del removes sitY from the active successor support"
+    );
+    assert!(
+        support.retired.contains(&format!("{W}#sitY")),
+        "the retired support must be recorded, never silently dropped"
+    );
+}
+
+#[test]
+fn effect_application_emits_append_only_supersession_quartet() {
+    let mut nq = path_nq(&[&["sitX", "sitY"]]);
+    nq.push_str(&format!("<{W}#schema> {} <{W}#eff> <{W}> .\n", l("effect")));
+    nq.push_str(&format!("<{W}#eff> {} <{W}#sitZ> <{W}> .\n", l("ins")));
+    nq.push_str(&format!("<{W}#eff> {} <{W}#sitY> <{W}> .\n", l("del")));
+    // The transaction step instantiating the schema, from state0 to state1.
+    nq.push_str(&format!(
+        "<{W}#step> {ty} {ts} <{W}> .\n\
+         <{W}#step> {is} <{W}#schema> <{W}> .\n\
+         <{W}#step> {tf} <{W}#state0> <{W}> .\n\
+         <{W}#step> {tt} <{W}#state1> <{W}> .\n",
+        ty = rdf_type_tok(),
+        ts = l("TransactionStep"),
+        is = l("instantiatesSchema"),
+        tf = l("transitionFromState"),
+        tt = l("transitionToState"),
+    ));
+    let store = store_from(&nq);
+    let out = materialize_teleology(&store).unwrap();
+    // Successor state1 asserts sitX and sitZ.
+    assert!(out.iter().any(|q| q.subject == format!("{W}#state1")
+        && q.predicate == logic("situationObtains")
+        && q.object == n3(&format!("{W}#sitZ"))));
+    // sitY is superseded (append-only), carrying the full quartet.
+    assert!(out
+        .iter()
+        .any(|q| q.subject == format!("{W}#sitY") && q.predicate == logic("supersededBy")));
+    assert!(out.iter().any(|q| q.subject == format!("{W}#sitY")
+        && q.predicate == logic("validUntilState")
+        && q.object == n3(&format!("{W}#state1"))));
+    assert!(out
+        .iter()
+        .any(|q| q.subject == format!("{W}#sitY") && q.predicate == logic("retiredByTransaction")));
+    // The predecessor state0 STILL carries sitY (echoed) — del is not erasure.
+    assert!(out.iter().any(|q| q.subject == format!("{W}#state0")
+        && q.predicate == logic("situationObtains")
+        && q.object == n3(&format!("{W}#sitY"))));
+}
+
+// ── Facet: observation (observation-conditioned policy) ──────────────────────────
+
+#[test]
+fn observation_conditioned_branch_is_selected_and_surfaced() {
+    // An action schema reveals sitObserved; a policy branch guarded on sitObserved
+    // invokes nextSchema. The driver selects the branch and surfaces the next schema.
+    let mut nq = String::new();
+    nq.push_str(&format!(
+        "<{W}#senseSchema> {ty} {as_} <{W}> .\n\
+         <{W}#senseSchema> {ob} <{W}#obs> <{W}> .\n\
+         <{W}#obs> {rv} <{W}#sitObserved> <{W}> .\n",
+        ty = rdf_type_tok(),
+        as_ = l("ActionSchema"),
+        ob = l("observation"),
+        rv = l("reveals"),
+    ));
+    nq.push_str(&format!(
+        "<{W}#policy> {pb} <{W}#branch> <{W}> .\n\
+         <{W}#branch> {bo} <{W}#obs> <{W}> .\n\
+         <{W}#branch> {bg} <{W}#sitObserved> <{W}> .\n\
+         <{W}#branch> {ba} <{W}#nextSchema> <{W}> .\n",
+        pb = l("planBranch"),
+        bo = l("branchObservation"),
+        bg = l("branchGuard"),
+        ba = l("branchActionSchema"),
+    ));
+    let store = store_from(&nq);
+    let out = materialize_teleology(&store).unwrap();
+    // The observation's reveal is surfaced.
+    assert!(out.iter().any(|q| q.subject == format!("{W}#obs")
+        && q.predicate == logic("reveals")
+        && q.object == n3(&format!("{W}#sitObserved"))));
+    // The policy selects the matching branch and surfaces the next action schema.
+    assert!(out.iter().any(|q| q.subject == format!("{W}#policy")
+        && q.predicate == logic("selectedBranch")
+        && q.object == n3(&format!("{W}#branch"))));
+    assert!(out.iter().any(|q| q.subject == format!("{W}#policy")
+        && q.predicate == logic("nextActionSchema")
+        && q.object == n3(&format!("{W}#nextSchema"))));
+}
+
+#[test]
+fn observation_branch_with_non_matching_guard_is_not_selected() {
+    // The branch guard does NOT match what the observation reveals → no selection.
+    let mut nq = String::new();
+    nq.push_str(&format!(
+        "<{W}#senseSchema> {ty} {as_} <{W}> .\n\
+         <{W}#senseSchema> {ob} <{W}#obs> <{W}> .\n\
+         <{W}#obs> {rv} <{W}#sitObserved> <{W}> .\n",
+        ty = rdf_type_tok(),
+        as_ = l("ActionSchema"),
+        ob = l("observation"),
+        rv = l("reveals"),
+    ));
+    nq.push_str(&format!(
+        "<{W}#policy> {pb} <{W}#branch> <{W}> .\n\
+         <{W}#branch> {bo} <{W}#obs> <{W}> .\n\
+         <{W}#branch> {bg} <{W}#otherSit> <{W}> .\n\
+         <{W}#branch> {ba} <{W}#nextSchema> <{W}> .\n",
+        pb = l("planBranch"),
+        bo = l("branchObservation"),
+        bg = l("branchGuard"),
+        ba = l("branchActionSchema"),
+    ));
+    let store = store_from(&nq);
+    let out = materialize_teleology(&store).unwrap();
+    assert!(
+        out.iter().all(|q| q.predicate != logic("selectedBranch")),
+        "a non-matching guard must not select the branch"
+    );
+}
+
+#[test]
+fn new_facet_families_are_deterministic() {
+    // The four new facet families must be byte-deterministic (foundation contract).
+    let mut nq = path_nq(&[&["sitX", "sitY"]]);
+    nq.push_str(&format!("<{W}#schema> {} <{W}#eff> <{W}> .\n", l("effect")));
+    nq.push_str(&format!("<{W}#eff> {} <{W}#sitZ> <{W}> .\n", l("ins")));
+    nq.push_str(&format!("<{W}#eff> {} <{W}#sitY> <{W}> .\n", l("del")));
+    nq.push_str(&format!(
+        "<{W}#step> {ty} {ts} <{W}> .\n\
+         <{W}#step> {is} <{W}#schema> <{W}> .\n\
+         <{W}#step> {tf} <{W}#state0> <{W}> .\n\
+         <{W}#step> {tt} <{W}#state1> <{W}> .\n",
+        ty = rdf_type_tok(),
+        ts = l("TransactionStep"),
+        is = l("instantiatesSchema"),
+        tf = l("transitionFromState"),
+        tt = l("transitionToState"),
+    ));
+    let a = materialize_teleology(&store_from(&nq)).unwrap();
+    let b = materialize_teleology(&store_from(&nq)).unwrap();
+    assert_eq!(a, b, "new facet families must be deterministic");
+}
+
+#[test]
+fn gate_probe_surfaces_invariant_breach_denial() {
+    // A gate probe over a schema whose invariant is breached emits a GateDenied verdict.
+    let mut nq = path_nq(&[&["ready"]]); // balanced does NOT obtain
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#ready> <{W}> .\n",
+        l("precondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#balanced> <{W}> .\n",
+        l("invariant")
+    ));
+    nq.push_str(&format!(
+        "<{W}#probe> {ty} {gp} <{W}> .\n\
+         <{W}#probe> {ps} <{W}#schema> <{W}> .\n\
+         <{W}#probe> {pst} <{W}#state0> <{W}> .\n",
+        ty = rdf_type_tok(),
+        gp = l("GateProbe"),
+        ps = l("probesSchema"),
+        pst = l("probesState"),
+    ));
+    let store = store_from(&nq);
+    let out = materialize_teleology(&store).unwrap();
+    assert!(out.iter().any(|q| q.subject == format!("{W}#probe")
+        && q.predicate == logic("gateVerdict")
+        && q.object == n3(&logic("GateDenied"))));
+    assert!(
+        out.iter()
+            .any(|q| q.subject == format!("{W}#probe") && q.predicate == logic("gateDenialReason")),
+        "a denied probe must surface the denial reason"
+    );
+}

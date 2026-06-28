@@ -161,6 +161,28 @@ occurrence is the elementary update whose `ins`/`del` effects the path records a
 ([`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md#elementary-updates-are-supersession-never-erasure)).
 The schema names *what an action does*; the path records *that it was done and what changed*.
 
+All eight facets are *executed* by the native teleology evaluator, not merely declared. The
+**precondition** and **capability** facets gate an action through the action-gate verdict (a
+`logic:GateProbe` pairs a schema with a state and the held capabilities, yielding
+`logic:GateAdmitted` or `logic:GateDenied`). The **invariant** facet extends that gate: an invariant
+the action would not preserve at the state is a hard, surfaced denial naming the breached invariant —
+never a silent pass. The **effect** facet is applied over a `logic:TransactionStep` (which
+`logic:instantiatesSchema` from a predecessor state to a successor): the successor situation's support
+is computed as `predecessor ∪ ins \ del`, and every deleted support is recorded through the
+append-only supersession quartet (`logic:activeInState`, `logic:validUntilState`,
+`logic:retiredByTransaction`, `logic:supersededBy`) so a retired support stays recoverable and the
+predecessor state still carries it — `del` is supersession, never erasure. The **actionResource**
+facet is the representation-level resource seam: a state supplies resources through
+`logic:resourceSupply`, and an action requiring a resource the state does not supply, or one flagged
+`logic:resourceExhausted`, is gated — this evaluates the represented resource facet only and is *not*
+a real build engine-lock, though it is exactly the structure the resource-competing goal conflict
+(`logic:competesForResource`) reads. The **observation** facet is surfaced: the observation value an
+action reveals (`logic:reveals`) is materialized, and a plan whose `logic:planBranch` branches are
+conditioned on it (`logic:branchObservation`, selected by a `logic:branchGuard` matching the revealed
+situation) is read as a policy — the evaluator surfaces `logic:selectedBranch` and the branch's
+`logic:nextActionSchema`, so the policy's next action is chosen from what an observation revealed
+rather than fixed in advance.
+
 ## Plans and nondeterministic outcomes
 
 A **plan** (`logic:Plan`) is a transaction program whose primitive operations invoke action schemas
@@ -278,7 +300,15 @@ named cases that pin its distinctions, at least:
 - **outcome-specific compensation**, where two outcome branches recover by different actions;
 - a deontic context with **no accessible ideal world**, which evaluates `undetermined` rather than
   yielding a vacuous obligation;
-- **contested goal evaluations**, where two vantages disagree and both records are retained.
+- **contested goal evaluations**, where two vantages disagree and both records are retained;
+- an **invariant breach** that denies the action, surfaced as a `logic:GateDenied` verdict naming
+  the breached invariant rather than passing silently;
+- an **effect applied as supersession**, where the successor situation's support is `ins`ed and
+  `del`ed with the retired support recorded append-only (recoverable), never erased;
+- a **resource exhaustion** that gates the action, where a required `logic:actionResource` is
+  supplied but flagged exhausted;
+- an **observation-conditioned policy**, where the branch whose guard matches the revealed
+  situation is selected and its next action schema surfaced.
 
 ## Constitutional alignment
 

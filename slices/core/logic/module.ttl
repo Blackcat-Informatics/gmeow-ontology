@@ -1836,6 +1836,142 @@ logic:actionResource
     skos:definition "Relates a logic:ActionSchema to what the action consumes or requires — the seam to the resource-competing goal conflict (logic:competesForResource), where two goals draw on a resource an action schema declares and the supply is insufficient for both. Domain logic:ActionSchema (stated in prose). One of the eight action-theory facets. DISTINCT from logic:resourcePolicy, which is a ReasoningContract→ResourcePolicy engine-budget property — a different concept that must not be conflated with an action's consumable resource."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Action-theory facet evaluation seams (stated in prose) -------------------
+# The representation-level properties the native teleology evaluator reads to
+# evaluate the effect, observation, and actionResource facets. Each is a pure
+# data property over the given structure; none drives a real engine-lock.
+
+logic:resourceSupply
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "resource supply"@x-gmeow-english ;
+    skos:definition "Relates a state to a resource it supplies, recording resource availability at that state for the logic:actionResource facet. The native evaluator gates an action whose required logic:actionResource a state does not supply (or that is flagged logic:resourceExhausted). Domain a state, range the supplied resource (stated in prose). This is the representation-level resource seam to logic:competesForResource — it evaluates the represented resource facet only and is NOT a real build engine-lock."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:resourceExhausted
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "resource exhausted"@x-gmeow-english ;
+    skos:definition "A boolean marker on a resource that has been depleted: a resource flagged logic:resourceExhausted \"true\" is unavailable even where a state supplies it (logic:resourceSupply), so an action requiring it via logic:actionResource is gated. Domain a resource, range xsd:boolean (stated in prose). The depletion half of the representation-level resource facet, kept distinct from engine-budget exhaustion."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:reveals
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reveals"@x-gmeow-english ;
+    skos:definition "Relates the observation value an action schema names through logic:observation to the situation that executing the action reveals. The native evaluator surfaces the revealed situation in the materialized output so a policy can branch on it. Domain the logic:observation value, range the revealed logic:Situation (stated in prose). The reading half of the observation facet's seam to the cognitive layer (design/LOGIC-COGNITION.md)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:planBranch
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "plan branch"@x-gmeow-english ;
+    skos:definition "Relates a plan to one of its observation-conditioned branches. A plan that carries logic:planBranch branches whose choice depends on what an earlier action's logic:observation reveals is a POLICY — a reading of a plan, not a separate class (see logic:Plan). Domain a plan, range a branch (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:branchObservation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "branch observation"@x-gmeow-english ;
+    skos:definition "Relates a policy branch to the observation value its selection is conditioned on — the observation whose logic:reveals decides whether this branch fires. Domain a policy branch, range the logic:observation value (stated in prose). What makes a plan's branching observation-conditioned rather than fixed in advance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:branchGuard
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "branch guard"@x-gmeow-english ;
+    skos:definition "Relates a policy branch to the revealed situation that selects it: when the branch's logic:branchObservation reveals (logic:reveals) this situation, the branch is selected. Domain a policy branch, range the guarding logic:Situation (stated in prose). The guard the native evaluator matches against the observation's revealed situation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:branchActionSchema
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "branch action schema"@x-gmeow-english ;
+    skos:definition "Relates a policy branch to the logic:ActionSchema it invokes when selected — the next action the policy takes for this observation. Domain a policy branch, range logic:ActionSchema (stated in prose). The native evaluator surfaces it as logic:nextActionSchema on the policy when the branch's logic:branchGuard matches the observation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:selectedBranch
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "selected branch"@x-gmeow-english ;
+    skos:definition "Relates a policy to the branch the native evaluator selected because its logic:branchGuard matched the situation an earlier action's observation revealed (logic:reveals). Domain a policy, range the selected branch (stated in prose). The materialized record of an observation-conditioned policy decision."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:nextActionSchema
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "next action schema"@x-gmeow-english ;
+    skos:definition "Relates a policy to the logic:ActionSchema its selected branch invokes — the next action chosen from what an observation revealed. Domain a policy, range logic:ActionSchema (stated in prose). Surfaced by the native evaluator alongside logic:selectedBranch so a policy reading is possible from the materialized output."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:GateProbe
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Gate Probe"@x-gmeow-english ;
+    skos:definition "A node pairing a logic:ActionSchema (via logic:probesSchema) with the state (via logic:probesState) the action-gate verdict is computed against, plus the capabilities the state makes available (logic:capabilityAvailable). The native evaluator emits a logic:gateVerdict — logic:GateAdmitted or logic:GateDenied — surfacing the precondition, capability, invariant-breach, and resource-exhaustion gates as recorded findings rather than silent passes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:probesSchema
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "probes schema"@x-gmeow-english ;
+    skos:definition "Relates a logic:GateProbe to the logic:ActionSchema it gates. Domain logic:GateProbe, range logic:ActionSchema (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:probesState
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "probes state"@x-gmeow-english ;
+    skos:definition "Relates a logic:GateProbe to the state the schema is gated against — the state whose logic:situationObtains and logic:resourceSupply facts the gate reads. Domain logic:GateProbe, range a state (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:capabilityAvailable
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "capability available"@x-gmeow-english ;
+    skos:definition "Relates a state to a capability the actor holds at it — the executional capability the gate matches an action schema's logic:capability against. Domain a state, range the available capability (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:gateVerdict
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "gate verdict"@x-gmeow-english ;
+    skos:definition "Relates a logic:GateProbe to its action-gate verdict, one of logic:GateAdmitted or logic:GateDenied. Domain logic:GateProbe (stated in prose). The materialized verdict of the precondition / capability / invariant / resource gate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:gateDenialReason
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "gate denial reason"@x-gmeow-english ;
+    skos:definition "A human-readable reason on a denied logic:GateProbe naming the failing gate — the unmet precondition, the unavailable capability, the breached invariant, or the unavailable resource. Domain logic:GateProbe, range a string literal (stated in prose). A breach is a surfaced verdict, never a silent pass."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:gateCompensation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "gate compensation"@x-gmeow-english ;
+    skos:definition "Relates a denied logic:GateProbe to the logic:compensation (rollback) the schema would run on denial. Domain logic:GateProbe, range the compensation action (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:GateAdmitted
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Gate Admitted"@x-gmeow-english ;
+    skos:definition "The logic:gateVerdict value for an action the gate admits: every precondition holds, every capability is available, every invariant is preserved, and every required resource is available."@x-gmeow-english .
+
+logic:GateDenied
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Gate Denied"@x-gmeow-english ;
+    skos:definition "The logic:gateVerdict value for an action the gate denies: a precondition, capability, invariant, or resource gate failed. The probe carries a logic:gateDenialReason naming the failing gate and, when declared, the logic:gateCompensation rollback."@x-gmeow-english .
+
+logic:TransactionStep
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Transaction Step"@x-gmeow-english ;
+    skos:definition "An elementary update / transaction-path step that instantiates an action schema (logic:instantiatesSchema) and carries the path edge from a predecessor state (logic:transitionFromState) to a successor state (logic:transitionToState). The native evaluator applies the schema's logic:effect over the step, computing the successor situation's support as ins/del supersession: inserted supports become active, deleted supports are recorded via the append-only supersession quartet (logic:activeInState, logic:validUntilState, logic:retiredByTransaction, logic:supersededBy) and never erased."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- Goal / occurrence links --------------------------------------------------
 
 logic:hasGoalCondition

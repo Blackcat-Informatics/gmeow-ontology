@@ -1477,12 +1477,44 @@ pub enum ActionGate {
 
 const PRECONDITION: &str = "precondition";
 const CAPABILITY: &str = "capability";
+const INVARIANT: &str = "invariant";
+const ACTION_RESOURCE: &str = "actionResource";
+/// `logic:resourceSupply` — relates a state to a resource it supplies (availability).
+const RESOURCE_SUPPLY: &str = "resourceSupply";
+/// `logic:resourceExhausted` — a boolean marker on a resource that is depleted.
+const RESOURCE_EXHAUSTED: &str = "resourceExhausted";
+
+/// Whether a resource is supplied at `state` AND not marked exhausted.
+///
+/// Resource availability is a state fact (`state logic:resourceSupply resource`); a
+/// resource the state does not supply, or one supplied but flagged
+/// `logic:resourceExhausted "true"`, is unavailable.  This is the representation-level
+/// seam to `logic:competesForResource` — two goals drawing on the same declared
+/// resource whose supply is insufficient — NOT a real build engine-lock.
+fn resource_available(facts: &WorldFacts, state: &str, resource: &str) -> bool {
+    if !facts.has(state, &logic(RESOURCE_SUPPLY), resource) {
+        return false;
+    }
+    !facts
+        .object_n3(resource, &logic(RESOURCE_EXHAUSTED))
+        .is_some_and(|v| v.starts_with("\"true\""))
+}
 
 /// Gate a proposed action under an action schema against the current state.
 ///
-/// Admit iff every `logic:precondition` situation obtains at `state` AND every
-/// `logic:capability` is available.  On failure, return the schema's
-/// `logic:compensation` (rollback) to run.  Pure function over given structure (P12).
+/// Admit iff, in deterministic order:
+///
+/// 1. every `logic:precondition` situation obtains at `state`;
+/// 2. every `logic:capability` is in `available_capabilities`;
+/// 3. every `logic:invariant` situation holds at `state` (the breach is a hard,
+///    surfaced denial — an invariant the action would not preserve gates it, never a
+///    silent pass); and
+/// 4. every `logic:actionResource` the schema requires is available at `state` (the
+///    state supplies it via `logic:resourceSupply` and it is not exhausted) — the
+///    representation-level resource facet, not a real engine-lock.
+///
+/// On any failure, return the schema's `logic:compensation` (rollback) to run.  Pure
+/// function over given structure (P12).
 #[must_use]
 pub fn gate_action(
     facts: &WorldFacts,
@@ -1519,8 +1551,431 @@ pub fn gate_action(
             };
         }
     }
+    // Invariant: every preserved condition must hold at the state across the action's
+    // execution. A breach is a hard, surfaced denial — never a silent pass.
+    let invariants: Vec<String> = facts
+        .objects(schema, &logic(INVARIANT))
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    for inv in &invariants {
+        if !obtains_at(facts, state, inv) {
+            return ActionGate::Deny {
+                compensation,
+                reason: format!("invariant {inv:?} is breached in state {state:?}"),
+            };
+        }
+    }
+    // Resource: every required resource must be available at the state (supplied and
+    // not exhausted). A required resource the state does not supply gates the action.
+    let resources: Vec<String> = facts
+        .objects(schema, &logic(ACTION_RESOURCE))
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    for res in &resources {
+        if !resource_available(facts, state, res) {
+            return ActionGate::Deny {
+                compensation,
+                reason: format!(
+                    "resource {res:?} is unavailable (not supplied or exhausted) in state {state:?}"
+                ),
+            };
+        }
+    }
     ActionGate::Admit
 }
+
+// ── 6. Effect application as ins/del supersession ────────────────────────────────
+
+/// `logic:transitionFromState` — the predecessor state a transaction step starts from.
+const TRANSITION_FROM_STATE: &str = "transitionFromState";
+/// `logic:transitionToState` — the successor state a transaction step materializes.
+const TRANSITION_TO_STATE: &str = "transitionToState";
+/// `logic:instantiatesSchema` — the action schema an occurrence/elementary update runs.
+const INSTANTIATES_SCHEMA: &str = "instantiatesSchema";
+/// `logic:ins` — a support the effect asserts into the successor state.
+const INS: &str = "ins";
+/// `logic:del` — a support the effect retires from the successor state.
+const DEL: &str = "del";
+/// `logic:activeInState` — the predecessor state a retired support was active in.
+const ACTIVE_IN_STATE: &str = "activeInState";
+/// `logic:validUntilState` — the successor state at which a support stops holding.
+const VALID_UNTIL_STATE: &str = "validUntilState";
+/// `logic:retiredByTransaction` — the update/step that retired a support.
+const RETIRED_BY_TRANSACTION: &str = "retiredByTransaction";
+/// `logic:supersededBy` — the update/successor support that superseded a retired one.
+const SUPERSEDED_BY: &str = "supersededBy";
+
+/// The computed support of a successor situation after an effect applies, kept as the
+/// asserted set and the retired set so the caller can see both — `del` is recorded as
+/// supersession, NEVER erased.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SuccessorSupport {
+    /// Supports active in the successor state: the predecessor's carried-forward
+    /// supports plus the effect's `ins`, minus the effect's `del`.
+    pub asserted: BTreeSet<String>,
+    /// Supports the effect retired — recorded as superseded (recoverable), not erased.
+    pub retired: BTreeSet<String>,
+}
+
+/// Apply an action schema's `logic:effect` over a transaction step, computing the
+/// successor situation's support as an ins/del SUPERSESSION over the predecessor.
+///
+/// The predecessor support is the set of situations obtaining at `from_state`
+/// (`logic:situationObtains`).  The effect node (`schema logic:effect node`) carries
+/// `logic:ins` supports (asserted into the successor) and `logic:del` supports (retired
+/// from it).  The successor's asserted set is `predecessor ∪ ins \ del`; the retired set
+/// is exactly the `del` supports that were active in the predecessor — these are NEVER
+/// dropped from the historical record, they are returned as `retired` and emitted with
+/// the supersession quartet by [`emit_effect_application`].
+///
+/// P12: pure computation over the given structure; no search, no mutation of the store.
+///
+/// # Errors
+///
+/// Returns `Err` if the schema names no `logic:effect` node (a malformed effect facet is
+/// a hard error, never a silent empty effect).
+pub fn apply_effect(
+    facts: &WorldFacts,
+    schema: &str,
+    from_state: &str,
+) -> Result<SuccessorSupport, String> {
+    let effect = facts
+        .object(schema, &logic(EFFECT))
+        .ok_or_else(|| format!("logic:ActionSchema {schema:?} names no logic:effect node"))?
+        .to_owned();
+    let predecessor: BTreeSet<String> = facts
+        .objects(from_state, &logic(SITUATION_OBTAINS))
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    let ins: BTreeSet<String> = facts
+        .objects(&effect, &logic(INS))
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    let del: BTreeSet<String> = facts
+        .objects(&effect, &logic(DEL))
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    // The retired set is the del supports that were ACTIVE in the predecessor — a del of
+    // a support that was never active retires nothing (no phantom supersession).
+    let retired: BTreeSet<String> = del.intersection(&predecessor).cloned().collect();
+    // asserted = predecessor ∪ ins \ del.
+    let mut asserted: BTreeSet<String> = predecessor.union(&ins).cloned().collect();
+    for d in &del {
+        asserted.remove(d);
+    }
+    Ok(SuccessorSupport { asserted, retired })
+}
+
+/// Emit the materialized quads for an effect application over a transaction step.
+///
+/// The step (`step`) carries `logic:instantiatesSchema schema`,
+/// `logic:transitionFromState from`, and `logic:transitionToState to`.  This emits, for
+/// the computed successor support:
+///
+/// - the successor state's asserted supports as `to logic:situationObtains support`
+///   (the effect's `ins` plus the carried-forward predecessor supports); and
+/// - for every retired support, the full supersession quartet
+///   (`logic:activeInState from`, `logic:validUntilState to`,
+///   `logic:retiredByTransaction step`, `logic:supersededBy step`) so the retired
+///   support stays recoverable/append-only — NEVER erased.
+///
+/// Provenance is content-addressed over the effect link the application grounded.
+///
+/// # Errors
+///
+/// Returns `Err` if the schema's effect facet is malformed, or for an invalid IRI in
+/// the provenance recipe.
+fn emit_effect_application(
+    facts: &WorldFacts,
+    world: &str,
+    step: &str,
+) -> Result<Vec<TeleologyQuad>, String> {
+    let schema = facts
+        .object(step, &logic(INSTANTIATES_SCHEMA))
+        .ok_or_else(|| {
+            format!("transaction step {step:?} has no logic:instantiatesSchema action schema")
+        })?
+        .to_owned();
+    let from_state = facts
+        .object(step, &logic(TRANSITION_FROM_STATE))
+        .ok_or_else(|| format!("transaction step {step:?} has no logic:transitionFromState"))?
+        .to_owned();
+    let to_state = facts
+        .object(step, &logic(TRANSITION_TO_STATE))
+        .ok_or_else(|| format!("transaction step {step:?} has no logic:transitionToState"))?
+        .to_owned();
+    let effect = facts
+        .object(&schema, &logic(EFFECT))
+        .ok_or_else(|| format!("logic:ActionSchema {schema:?} names no logic:effect node"))?
+        .to_owned();
+    let support = apply_effect(facts, &schema, &from_state)?;
+
+    let source = triple_reifier(&schema, &logic(EFFECT), &effect)?;
+    let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
+    let mut out: Vec<TeleologyQuad> = Vec::new();
+    let mut push = |subject: &str, p: &str, o_n3: String| {
+        out.push(TeleologyQuad {
+            graph: world.to_owned(),
+            subject: subject.to_owned(),
+            predicate: p.to_owned(),
+            object: o_n3,
+            rule_iri: TELEOLOGY_RULE_IRI.to_owned(),
+            source_quad_ids: vec![source.clone()],
+            derivation_id: deriv.clone(),
+        });
+    };
+    // The successor state's asserted support — the effect advances the path by
+    // materializing these supports in the successor snapshot.
+    for sit in &support.asserted {
+        push(&to_state, &logic(SITUATION_OBTAINS), n3(sit));
+    }
+    // Every retired support is recorded as a SUPERSESSION (append-only), never erased:
+    // the support remains recoverable via the quartet and the historical predecessor
+    // state still carries it.
+    for sit in &support.retired {
+        push(sit, &logic(ACTIVE_IN_STATE), n3(&from_state));
+        push(sit, &logic(VALID_UNTIL_STATE), n3(&to_state));
+        push(sit, &logic(RETIRED_BY_TRANSACTION), n3(step));
+        push(sit, &logic(SUPERSEDED_BY), n3(step));
+    }
+    Ok(out)
+}
+
+// ── 7. Observation-conditioned policy ────────────────────────────────────────────
+
+/// `logic:reveals` — relates an observation value to the situation it reveals.
+const REVEALS: &str = "reveals";
+/// `logic:branchObservation` — the observation a policy branch is conditioned on.
+const BRANCH_OBSERVATION: &str = "branchObservation";
+/// `logic:branchGuard` — the revealed situation that selects a policy branch.
+const BRANCH_GUARD: &str = "branchGuard";
+/// `logic:branchActionSchema` — the action schema a selected policy branch invokes.
+const BRANCH_ACTION_SCHEMA: &str = "branchActionSchema";
+/// `logic:selectedBranch` — the policy branch the engine selects from the observation.
+const SELECTED_BRANCH: &str = "selectedBranch";
+/// `logic:nextActionSchema` — the action schema the selected branch invokes (surfaced).
+const NEXT_ACTION_SCHEMA: &str = "nextActionSchema";
+
+/// Emit the observation an action schema reveals, and — when a policy conditions a branch
+/// on it — the selected branch and its next action schema, so a policy reading is
+/// possible from the materialized quads.
+///
+/// The schema's `logic:observation` value reveals a situation via `logic:reveals`.  A
+/// policy branch (`branch logic:branchObservation observation`,
+/// `branch logic:branchGuard revealedSituation`,
+/// `branch logic:branchActionSchema nextSchema`) whose guard matches the revealed
+/// situation is SELECTED: the engine surfaces `policy logic:selectedBranch branch` and
+/// `policy logic:nextActionSchema nextSchema`.  This is what makes a plan a policy — its
+/// next action is chosen from what an earlier action's observation revealed, not fixed in
+/// advance.
+///
+/// P12: classification over the given structure; no search.
+///
+/// # Errors
+///
+/// Returns `Err` for an invalid IRI in the provenance recipe.
+fn emit_observation_policy(
+    facts: &WorldFacts,
+    world: &str,
+    schema: &str,
+) -> Result<Vec<TeleologyQuad>, String> {
+    let observations: Vec<String> = facts
+        .objects(schema, &logic(OBSERVATION))
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    let mut out: Vec<TeleologyQuad> = Vec::new();
+    for obs in &observations {
+        // What the observation reveals — surfaced verbatim so a policy can read it.
+        let revealed: Vec<String> = facts
+            .objects(obs, &logic(REVEALS))
+            .iter()
+            .map(|s| (*s).to_owned())
+            .collect();
+        let source = triple_reifier(schema, &logic(OBSERVATION), obs)?;
+        let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
+        for rev in &revealed {
+            out.push(TeleologyQuad {
+                graph: world.to_owned(),
+                subject: obs.clone(),
+                predicate: logic(REVEALS),
+                object: n3(rev),
+                rule_iri: TELEOLOGY_RULE_IRI.to_owned(),
+                source_quad_ids: vec![source.clone()],
+                derivation_id: deriv.clone(),
+            });
+            // Observation-conditioned branching: any policy branch whose guard matches
+            // this revealed situation is selected, and its next action schema surfaced —
+            // the policy reading of a plan.
+            for branch in branches_conditioned_on(facts, obs) {
+                if facts.has(&branch, &logic(BRANCH_GUARD), rev) {
+                    let next = facts
+                        .object(&branch, &logic(BRANCH_ACTION_SCHEMA))
+                        .map(str::to_owned);
+                    for policy in policies_with_branch(facts, &branch) {
+                        let bsource = triple_reifier(&branch, &logic(BRANCH_GUARD), rev)?;
+                        let bderiv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[bsource.as_str()]);
+                        out.push(TeleologyQuad {
+                            graph: world.to_owned(),
+                            subject: policy.clone(),
+                            predicate: logic(SELECTED_BRANCH),
+                            object: n3(&branch),
+                            rule_iri: TELEOLOGY_RULE_IRI.to_owned(),
+                            source_quad_ids: vec![bsource.clone()],
+                            derivation_id: bderiv.clone(),
+                        });
+                        if let Some(next_schema) = &next {
+                            out.push(TeleologyQuad {
+                                graph: world.to_owned(),
+                                subject: policy.clone(),
+                                predicate: logic(NEXT_ACTION_SCHEMA),
+                                object: n3(next_schema),
+                                rule_iri: TELEOLOGY_RULE_IRI.to_owned(),
+                                source_quad_ids: vec![bsource.clone()],
+                                derivation_id: bderiv.clone(),
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// The policy branches conditioned on `observation` via `logic:branchObservation`, sorted.
+fn branches_conditioned_on(facts: &WorldFacts, observation: &str) -> Vec<String> {
+    let mut subs: Vec<String> = facts
+        .triples
+        .iter()
+        .filter(|t| t.predicate == logic(BRANCH_OBSERVATION))
+        .filter(|t| t.object_iri.as_deref() == Some(observation))
+        .map(|t| t.subject.clone())
+        .collect();
+    subs.sort();
+    subs.dedup();
+    subs
+}
+
+/// The policies (plans) that carry `branch` via `logic:planBranch`, sorted.
+fn policies_with_branch(facts: &WorldFacts, branch: &str) -> Vec<String> {
+    let mut subs: Vec<String> = facts
+        .triples
+        .iter()
+        .filter(|t| t.predicate == logic(PLAN_BRANCH))
+        .filter(|t| t.object_iri.as_deref() == Some(branch))
+        .map(|t| t.subject.clone())
+        .collect();
+    subs.sort();
+    subs.dedup();
+    subs
+}
+
+/// `logic:effect` — the action schema's change facet.
+const EFFECT: &str = "effect";
+/// `logic:observation` — the action schema's observation facet.
+const OBSERVATION: &str = "observation";
+/// `logic:planBranch` — a policy/plan's observation-conditioned branch.
+const PLAN_BRANCH: &str = "planBranch";
+
+// ── 8. Gate-probe materialization (invariant + resource verdicts) ────────────────
+
+/// `logic:GateProbe` — a node pairing an action schema with the state (and held
+/// capabilities) the gate verdict is computed against.
+const GATE_PROBE_CLASS: &str = "GateProbe";
+/// `logic:probesSchema` — the action schema a gate probe gates.
+const PROBES_SCHEMA: &str = "probesSchema";
+/// `logic:probesState` — the state a gate probe gates the schema against.
+const PROBES_STATE: &str = "probesState";
+/// `logic:capabilityAvailable` — a capability the probed state makes available.
+const CAPABILITY_AVAILABLE: &str = "capabilityAvailable";
+/// `logic:gateVerdict` — the gate verdict (admit/deny) the probe records.
+const GATE_VERDICT: &str = "gateVerdict";
+/// `logic:gateDenialReason` — the human-readable denial reason on a denied probe.
+const GATE_DENIAL_REASON: &str = "gateDenialReason";
+/// `logic:gateCompensation` — the compensation the denied gate would run.
+const GATE_COMPENSATION: &str = "gateCompensation";
+/// `logic:GateAdmitted` — the admit verdict individual.
+const GATE_ADMITTED: &str = "GateAdmitted";
+/// `logic:GateDenied` — the deny verdict individual.
+const GATE_DENIED: &str = "GateDenied";
+
+/// Emit the gate verdict for one `logic:GateProbe`, surfacing the invariant-breach and
+/// resource-exhaustion denials (and the precondition/capability ones) as materialized
+/// quads with provenance.
+///
+/// The probe pairs a schema (`logic:probesSchema`) with a state (`logic:probesState`)
+/// and the capabilities the state makes available (`logic:capabilityAvailable`).  The
+/// emitted `logic:gateVerdict` is `logic:GateAdmitted` or `logic:GateDenied`; a denial
+/// also carries `logic:gateDenialReason` and, when declared, `logic:gateCompensation`.
+///
+/// # Errors
+///
+/// Returns `Err` for a probe missing its schema or state, or an invalid provenance IRI.
+fn emit_gate_probe(
+    facts: &WorldFacts,
+    world: &str,
+    probe: &str,
+) -> Result<Vec<TeleologyQuad>, String> {
+    let schema = facts
+        .object(probe, &logic(PROBES_SCHEMA))
+        .ok_or_else(|| format!("logic:GateProbe {probe:?} has no logic:probesSchema"))?
+        .to_owned();
+    let state = facts
+        .object(probe, &logic(PROBES_STATE))
+        .ok_or_else(|| format!("logic:GateProbe {probe:?} has no logic:probesState"))?
+        .to_owned();
+    let caps: BTreeSet<String> = facts
+        .objects(&state, &logic(CAPABILITY_AVAILABLE))
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    let gate = gate_action(facts, &schema, &state, &caps);
+
+    let source = triple_reifier(probe, &logic(PROBES_SCHEMA), &schema)?;
+    let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
+    let mut out: Vec<TeleologyQuad> = Vec::new();
+    let mut push = |p: &str, o_n3: String| {
+        out.push(TeleologyQuad {
+            graph: world.to_owned(),
+            subject: probe.to_owned(),
+            predicate: p.to_owned(),
+            object: o_n3,
+            rule_iri: TELEOLOGY_RULE_IRI.to_owned(),
+            source_quad_ids: vec![source.clone()],
+            derivation_id: deriv.clone(),
+        });
+    };
+    match gate {
+        ActionGate::Admit => {
+            push(&logic(GATE_VERDICT), n3(&logic(GATE_ADMITTED)));
+        }
+        ActionGate::Deny {
+            compensation,
+            reason,
+        } => {
+            push(&logic(GATE_VERDICT), n3(&logic(GATE_DENIED)));
+            push(
+                &logic(GATE_DENIAL_REASON),
+                format!("\"{}\"", reason.replace('\\', "\\\\").replace('"', "\\\"")),
+            );
+            if let Some(comp) = compensation {
+                push(&logic(GATE_COMPENSATION), n3(&comp));
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// `logic:TransactionStep` — an elementary update / step whose effect the driver applies.
+const TRANSACTION_STEP_CLASS: &str = "TransactionStep";
+/// `logic:ActionSchema` — the reusable action template the facets are declared on.
+const ACTION_SCHEMA_CLASS: &str = "ActionSchema";
 
 // ── Top-level driver: evaluate all goals in a world & emit GoalEvaluations ───────
 
@@ -1714,6 +2169,29 @@ pub fn materialize_teleology(store: &WorldStore) -> Result<Vec<TeleologyQuad>, S
         // ── Family 4: serialization-anomaly detection ────────────────────────────
         for history in typed_subjects(facts, CONCURRENT_HISTORY_CLASS) {
             out.extend(emit_history_anomaly(facts, world, &history)?);
+        }
+
+        // ── Family 6: effect application as ins/del supersession ──────────────────
+        // Every logic:TransactionStep applies the effect of the schema it instantiates,
+        // computing the successor situation's support; retired supports are recorded as
+        // supersession (recoverable, append-only), never erased.
+        for step in typed_subjects(facts, TRANSACTION_STEP_CLASS) {
+            out.extend(emit_effect_application(facts, world, &step)?);
+        }
+
+        // ── Family 7: observation-conditioned policy ─────────────────────────────
+        // Every action schema that declares a logic:observation surfaces what it reveals
+        // and, when a policy conditions a branch on it, the selected branch and next
+        // action schema — the policy reading of a plan.
+        for schema in typed_subjects(facts, ACTION_SCHEMA_CLASS) {
+            out.extend(emit_observation_policy(facts, world, &schema)?);
+        }
+
+        // ── Family 8: gate-probe verdicts (invariant + resource + precond/cap) ────
+        // Every logic:GateProbe pairs a schema with a state; the gate verdict surfaces
+        // invariant-breach and resource-exhaustion denials as hard, recorded findings.
+        for probe in typed_subjects(facts, GATE_PROBE_CLASS) {
+            out.extend(emit_gate_probe(facts, world, &probe)?);
         }
     }
 
