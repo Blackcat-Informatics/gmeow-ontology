@@ -116,19 +116,6 @@ pub fn build_snapshot(
         .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing conformance-stage divergence Finding graph"))?;
 
-    // graph/logic ← the compiler's canonical RDF-1.2 projection of the LogicProgram
-    // (C6), folded as its own queryable named graph so a repo-free consumer reads
-    // the full logic IR (and re-derives the typed handle) without re-running the
-    // compiler. Sourced from the in-memory `stage-compile-logic` product (Turtle),
-    // converted to N-Quads for the named-graph fold.
-    let logic_rdf12 = {
-        let canonical_ttl = upstream
-            .get("stage-compile-logic")
-            .and_then(|p| p.artifact(crate::stages::compile_logic::CANONICAL_RDF12_PATH))
-            .ok_or_else(|| stage_err("missing compile-logic canonical RDF-1.2 projection"))?;
-        turtle_to_nquads(canonical_ttl)?
-    };
-
     // graph/projection-ledger ← the FINAL projection-report loss ledger (Turtle),
     // converted to N-Quads for the named-graph fold via the native codec (no `Store`).
     // Assembled by stage-mappings over the UNION of the logic projection rows and the
@@ -202,60 +189,51 @@ pub fn build_snapshot(
         GRAPH_PROJECTION_LEDGER,
         "projledger",
     )?;
-    // graph/logic ← the canonical RDF-1.2 projection of the compiled LogicProgram.
-    add_named(
-        &mut builder,
-        &logic_rdf12,
-        crate::stages::compile_logic::GRAPH_LOGIC,
-        "logic",
-    )?;
-    // graph/relational-core ← the deterministic projection of the relational-core lowering
-    // (#1132 C8), folded as its own queryable named graph so a repo-free consumer reads
-    // the lowered Datalog±/relational-core dialect (and re-derives the typed handle)
-    // WITHOUT re-lowering. Sourced from the in-memory `stage-compile-logic` product (the
-    // SAME projection the typed RelationalCore handle pins to), already N-Triples.
-    let relational_core_nt = upstream
+    // graph/logic + graph/relational-core + graph/correspondence ride stage-compile-logic's
+    // carrier; graph/reasoning rides stage-reason's. Fold each named graph DIRECTLY from the
+    // producing carrier's dataset via the native ingestion — no artifact re-fetch, no
+    // projection re-derivation. The projection was transformed once, upstream; the carrier
+    // is the single internal transport for it.
+    let compile = upstream
         .get("stage-compile-logic")
-        .and_then(|p| p.artifact(crate::stages::compile_logic::RELATIONAL_CORE_PATH))
-        .map(<[u8]>::to_vec)
-        .ok_or_else(|| stage_err("missing compile-logic relational-core projection"))?;
-    add_named(
-        &mut builder,
-        &relational_core_nt,
-        crate::stages::compile_logic::GRAPH_RELATIONAL_CORE,
-        "relcore",
+        .ok_or_else(|| stage_err("missing stage-compile-logic product"))?;
+    let reason = upstream
+        .get("stage-reason")
+        .ok_or_else(|| stage_err("missing stage-reason product for the Reasoning handle"))?;
+    // `project_named_graph` returns the subgraph in the DEFAULT graph (name stripped),
+    // so each is re-rooted back into its named graph before folding — otherwise the
+    // logic/relational-core/correspondence/reasoning quads would leak into the authored
+    // default graph and the reasoner would over-infer over them.
+    let logic_iri = crate::stages::compile_logic::GRAPH_LOGIC;
+    let rc_iri = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE;
+    let corr_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
+    let reasoning_iri = gmeow_logic::result_rdf::GRAPH_REASONING;
+    let logic_graph = rooted_in_graph(
+        &compile.bundle().dataset().project_named_graph(logic_iri),
+        logic_iri,
     )?;
-    // graph/correspondence ← the deterministic projection of the correspondence carrier
-    // lane (#1132 C10): the §14 affine-triangle worked transform (`foaf:Person` +
-    // `schema:ContactPoint` co-projecting onto `gmeow:contact`). Folded as its own
-    // queryable named graph so a repo-free consumer reads the alignment surface — kept at
-    // `skos:relatedMatch`, never `skos:exactMatch` / `owl:equivalentClass` (the overclaim
-    // gate forbids over-alignment) — and re-derives the typed Correspondence handle WITHOUT
-    // re-projecting. Sourced from the in-memory `stage-compile-logic` product (the SAME
-    // projection the typed handle pins to), already N-Triples.
-    let correspondence_nt = upstream
-        .get("stage-compile-logic")
-        .and_then(|p| p.artifact(crate::stages::compile_logic::CORRESPONDENCE_PATH))
-        .map(<[u8]>::to_vec)
-        .ok_or_else(|| stage_err("missing compile-logic correspondence projection"))?;
-    add_named(
-        &mut builder,
-        &correspondence_nt,
-        crate::stages::compile_logic::GRAPH_CORRESPONDENCE,
-        "correspondence",
+    let relational_core_graph = rooted_in_graph(
+        &compile.bundle().dataset().project_named_graph(rc_iri),
+        rc_iri,
     )?;
-    // graph/reasoning ← the deterministic RDF projection of the typed ReasoningResult
-    // (#1132 C7), folded as its own queryable named graph so a repo-free consumer reads
-    // the five-axis verdict + provenance (and re-derives the typed Reasoning handle)
-    // without re-running the engine. Sourced from `stage-reason`'s typed handle so the
-    // graph the snapshot folds is the SAME projection the handle pins to.
-    let reasoning_nt = reasoning_projection_nt(upstream)?;
-    add_named(
-        &mut builder,
-        &reasoning_nt,
-        gmeow_logic::result_rdf::GRAPH_REASONING,
-        "reasoning",
+    let correspondence_graph = rooted_in_graph(
+        &compile.bundle().dataset().project_named_graph(corr_iri),
+        corr_iri,
     )?;
+    let reasoning_graph = rooted_in_graph(
+        &reason.bundle().dataset().project_named_graph(reasoning_iri),
+        reasoning_iri,
+    )?;
+    for graph in [
+        &logic_graph,
+        &relational_core_graph,
+        &correspondence_graph,
+        &reasoning_graph,
+    ] {
+        builder
+            .add_dataset(graph.as_ref())
+            .map_err(|e| stage_err(&format!("fold carrier graph into snapshot: {e}")))?;
+    }
     // graph/provenance ← the dogfooded occurrence-based provenance projection
     // (#1132 C9), folded as its own queryable named graph so a repo-free consumer reads
     // the full compilation-unit + per-lane carrier manifest (public IRIs + OriginKind +
@@ -1182,26 +1160,31 @@ fn build_provenance_projection(root: &Path) -> Result<String, PipelineError> {
     ))
 }
 
-/// The deterministic `graph/reasoning` projection (N-Triples bytes) of `stage-reason`'s
-/// typed [`crate::bundle::PipelineHandle::Reasoning`] result — the SAME projection the
-/// handle pins to, re-derived here from the typed handle (never re-run). A missing or
-/// wrong-arm handle HARD-fails (fail-closed, no-optionality).
-fn reasoning_projection_nt(
-    upstream: &BTreeMap<String, StageProduct>,
-) -> Result<Vec<u8>, PipelineError> {
-    let reason = upstream
-        .get("stage-reason")
-        .ok_or_else(|| stage_err("missing stage-reason product for the Reasoning handle"))?;
-    let entry = reason
-        .bundle()
-        .handle(gmeow_logic::result_rdf::GRAPH_REASONING)
-        .ok_or_else(|| stage_err("stage-reason product carries no Reasoning handle"))?;
-    let crate::bundle::PipelineHandle::Reasoning(result) = &entry.payload else {
-        return Err(stage_err(
-            "stage-reason handle for graph/reasoning is not the Reasoning arm",
-        ));
-    };
-    Ok(gmeow_logic::result_rdf::project_reasoning_result(result).into_bytes())
+/// Re-root every quad of `src` into the named graph `graph_iri` (preserving the
+/// graph-less reifier/annotation side-tables), so a carrier subgraph projected via
+/// [`RdfDataset::project_named_graph`](gmeow_rdf::RdfDataset::project_named_graph) —
+/// which strips the graph name to the default graph — folds back into ITS named graph,
+/// never the authored default graph.
+fn rooted_in_graph(
+    src: &gmeow_rdf::RdfDataset,
+    graph_iri: &str,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    use gmeow_rdf::{RdfDatasetBuilder, RdfTerm};
+    let graph = RdfTerm::Iri(graph_iri.to_owned());
+    let mut builder = RdfDatasetBuilder::new();
+    for mut quad in src.owned_quads() {
+        quad.graph_name = Some(graph.clone());
+        builder.push_owned_quad(&quad);
+    }
+    for reifier in src.owned_reifiers() {
+        builder.push_owned_reifier(&reifier);
+    }
+    for annotation in src.owned_annotations() {
+        builder.push_owned_annotation(&annotation);
+    }
+    builder
+        .freeze()
+        .map_err(|e| stage_err(&format!("re-root carrier graph <{graph_iri}>: {e}")))
 }
 
 /// Parse the emitted `gmeow.gts` bytes ONCE into the two shared views the
