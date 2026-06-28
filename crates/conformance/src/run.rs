@@ -534,7 +534,7 @@ fn materialize_teleology(
     case_id: &str,
     input_nq: &str,
     profile: &Profile,
-) -> Result<(Vec<RunnerQuad>, String, bool), String> {
+) -> Result<(Vec<RunnerQuad>, String, bool, PreservationClaim), String> {
     if profile.budget_params.is_some() {
         return Err(format!(
             "case {case_id}: teleology_lowering cases cannot declare budget_params — \
@@ -564,7 +564,10 @@ fn materialize_teleology(
             })
             .collect()
     };
-    Ok((quads, "ok".to_string(), false))
+    // The native teleology evaluator classifies/evaluates the given structure and
+    // records the result exactly — no lossy projection — so the materialization is
+    // an exact preservation claim, mirroring the foundation evaluator.
+    Ok((quads, "ok".to_string(), false, PreservationClaim::exact()))
 }
 
 /// Produce one explanation skeleton per quad. Asserted quads get a trivial
