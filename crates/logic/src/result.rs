@@ -414,6 +414,20 @@ impl PreservationClaim {
         }
     }
 
+    /// `{unsupported}` — the legalization floor: the program was refused as
+    /// unsupported and never evaluated, so none of the answer-preservation polarities
+    /// (`exact` / `sound-under` / `complete-over`) applies. A refused case carries
+    /// this instead of a false `{exact}`, so a consumer reading the claim sees the
+    /// case was not evaluated rather than assuming its (empty) answer was faithful.
+    pub fn unsupported() -> Self {
+        let mut polarities = BTreeSet::new();
+        polarities.insert(PreservationKind::Unsupported);
+        Self {
+            polarities,
+            unsupported_constructs: BTreeSet::new(),
+        }
+    }
+
     /// Insert a polarity, rejecting [`PreservationKind::ValidationOnly`] (which is
     /// not an answer-preservation polarity).
     ///

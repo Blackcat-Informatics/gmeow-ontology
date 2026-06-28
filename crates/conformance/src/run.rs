@@ -308,8 +308,10 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
         budget_status: "ok".to_string(),
         incomplete: false,
         answers: BTreeMap::new(),
-        // No lowering occurred (refused/unevaluated case): exact with an empty set.
-        preservation: serialize::preservation_to_json(&PreservationClaim::exact()),
+        // The case was refused as unsupported and never evaluated — disclose
+        // `{unsupported}` (the legalization floor), never a false `{exact}` that would
+        // hide the refusal from a consumer reading `CaseOutputs.preservation`.
+        preservation: serialize::preservation_to_json(&PreservationClaim::unsupported()),
     }
 }
 
@@ -780,6 +782,13 @@ mod gating_tests {
         assert!(out.materialized_nquads.is_empty());
         assert!(out.answers.is_empty());
         assert_eq!(out.verdicts, serde_json::json!({}));
+        // The refusal is disclosed as `{unsupported}` (the legalization floor), never a
+        // false `{exact}` that would hide it from a consumer reading `preservation`.
+        assert_eq!(
+            out.preservation,
+            serialize::preservation_to_json(&PreservationClaim::unsupported()),
+            "a refused expect_unsupported case must disclose {{unsupported}}, not {{exact}}"
+        );
     }
 
     #[test]
