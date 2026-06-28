@@ -1,0 +1,3 @@
+<https://example.org/teleology/fallback-combinator/resilientRoute> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Fallback> <https://example.org/teleology/fallback-combinator/world> .
+<https://example.org/teleology/fallback-combinator/resilientRoute> <https://blackcatinformatics.ca/logic/leftOperand> <https://example.org/teleology/fallback-combinator/primaryRoute> <https://example.org/teleology/fallback-combinator/world> .
+<https://example.org/teleology/fallback-combinator/resilientRoute> <https://blackcatinformatics.ca/logic/rightOperand> <https://example.org/teleology/fallback-combinator/backupRoute> <https://example.org/teleology/fallback-combinator/world> .

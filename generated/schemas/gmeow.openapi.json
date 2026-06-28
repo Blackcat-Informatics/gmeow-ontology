@@ -12118,6 +12118,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "logic:ActionSchema"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:ActionSchema"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:ActionSchema"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "logic:FormalizationCandidate"
                     },
                     {
@@ -12143,6 +12168,56 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "logic:GoalEvaluation"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:GoalEvaluation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:GoalEvaluation"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "logic:McpActionSchema"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:McpActionSchema"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:McpActionSchema"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "logic:NonEntailmentObligation"
                     },
                     {
@@ -12160,6 +12235,31 @@
             },
             "then": {
               "$ref": "#/$defs/logic:NonEntailmentObligation"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "logic:Plan"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:Plan"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:Plan"
             }
           }
         ],
@@ -18338,6 +18438,58 @@
         },
         "type": "object"
       },
+      "logic:ActionSchema": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:actionResource": {},
+          "logic:capability": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "logic:effect": {},
+          "logic:invariant": {},
+          "logic:observation": {},
+          "logic:precondition": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "logic:capability",
+          "logic:precondition"
+        ],
+        "type": "object"
+      },
       "logic:FormalizationCandidate": {
         "properties": {
           "@annotation": {
@@ -18524,6 +18676,219 @@
         ],
         "type": "object"
       },
+      "logic:GoalEvaluation": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:evaluatesGoal": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Goal"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Goal"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "logic:feasibilityStatus": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/FeasibilityStatus",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:goalEvaluationStatus": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/GoalEvaluationStatus",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:lifecycleStatus": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/LifecycleStatus",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:objectiveValue": {},
+          "logic:satisfactionDegree": {},
+          "logic:satisfactionStatus": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/SatisfactionStatus",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:utility": {}
+        },
+        "required": [
+          "logic:evaluatesGoal",
+          "logic:feasibilityStatus",
+          "logic:goalEvaluationStatus",
+          "logic:lifecycleStatus",
+          "logic:satisfactionStatus"
+        ],
+        "type": "object"
+      },
+      "logic:McpActionSchema": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:capability": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "logic:compensation": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "logic:precondition": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "logic:capability",
+          "logic:compensation",
+          "logic:precondition"
+        ],
+        "type": "object"
+      },
       "logic:NonEntailmentObligation": {
         "properties": {
           "@annotation": {
@@ -18615,6 +18980,71 @@
         "required": [
           "logic:obligationDischargeCondition",
           "logic:obligationForbiddenPredicate"
+        ],
+        "type": "object"
+      },
+      "logic:Plan": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:planGoal": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Goal"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:planSuccessMode": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/PlanSuccessMode",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "logic:planGoal",
+          "logic:planSuccessMode"
         ],
         "type": "object"
       }

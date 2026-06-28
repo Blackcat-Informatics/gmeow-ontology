@@ -1,0 +1,3 @@
+<https://example.org/teleology/concurrent-composition/parallelExec> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ConcurrentComposition> <https://example.org/teleology/concurrent-composition/world> .
+<https://example.org/teleology/concurrent-composition/parallelExec> <https://blackcatinformatics.ca/logic/leftOperand> <https://example.org/teleology/concurrent-composition/monitorSensors> <https://example.org/teleology/concurrent-composition/world> .
+<https://example.org/teleology/concurrent-composition/parallelExec> <https://blackcatinformatics.ca/logic/rightOperand> <https://example.org/teleology/concurrent-composition/executeMotion> <https://example.org/teleology/concurrent-composition/world> .

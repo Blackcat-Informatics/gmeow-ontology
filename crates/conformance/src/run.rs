@@ -24,6 +24,7 @@ use gmeow_logic::query_ir::{parse_query_program, Budget};
 use gmeow_logic::result::PreservationClaim;
 use gmeow_logic::seam::{BudgetStatus, WorldStoreForeign};
 use gmeow_logic::store::WorldStore;
+use gmeow_logic::teleology::materialize_teleology as teleology_evaluate;
 use gmeow_logic_compile::frontend::{parse_logic_str, Diagnostic, Severity};
 use gmeow_logic_compile::projections::compile_program;
 
@@ -192,6 +193,8 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     let input_nq = read_optional(case_dir, "input.nq")?;
     let (quads, budget_status, incomplete, mat_preservation) = if profile.foundation_lowering {
         materialize_foundation(&case_id, &input_nq, &profile)?
+    } else if profile.teleology_lowering {
+        materialize_teleology(&case_id, &input_nq, &profile)?
     } else {
         materialize_default(&case_id, &nemo_rules, &input_nq, &profile)?
     };
@@ -515,6 +518,58 @@ fn materialize_foundation(
     // The foundation evaluator runs the stratified chase to completion — faithful,
     // nothing dropped, so the materialization is exact.
     Ok((quads, "ok".to_string(), false, PreservationClaim::exact()))
+}
+
+/// Teleology-lowering materialization via the native canonical-process teleology evaluator.
+///
+/// Mirrors [`materialize_foundation`] exactly: the teleology evaluator has no budget
+/// governor and needs no nemo rules, so a declared `budget_params` is a hard failure,
+/// and the only input it reads is the world-scoped `input.nq`. It runs ALL applicable
+/// teleology computations (goal-expression evaluation, plan-success classification,
+/// deontic obligation/prohibition, serialization-anomaly detection, and the
+/// satisfiedBy⟷GoalEvaluation bridge) over the worlds the EDB carries, mapping each
+/// [`gmeow_logic::teleology::TeleologyQuad`] → [`RunnerQuad`] (the mapping is identical
+/// to the foundation one — the two quad types are shape-identical).
+fn materialize_teleology(
+    case_id: &str,
+    input_nq: &str,
+    profile: &Profile,
+) -> Result<(Vec<RunnerQuad>, String, bool, PreservationClaim), String> {
+    if profile.budget_params.is_some() {
+        return Err(format!(
+            "case {case_id}: teleology_lowering cases cannot declare budget_params — \
+             the native teleology evaluator has no budget governor"
+        ));
+    }
+    let (quads, claim) = if input_nq.trim().is_empty() {
+        (Vec::new(), PreservationClaim::exact())
+    } else {
+        let store = WorldStore::new();
+        store
+            .load_nquads(input_nq)
+            .map_err(|e| format!("case {case_id}: teleology N-Quads parse failed: {e}"))?;
+        let (tq, claim) = teleology_evaluate(&store)
+            .map_err(|e| format!("case {case_id}: teleology evaluation failed: {e}"))?;
+        let quads: Vec<RunnerQuad> = tq
+            .into_iter()
+            .map(|q| RunnerQuad {
+                graph: q.graph,
+                // Teleology subjects/objects are already bare / N3 respectively
+                // (shape-identical to FoundationQuad).
+                subject: q.subject,
+                predicate: q.predicate,
+                obj: q.object,
+                derivation_id: q.derivation_id,
+                rule_iri: q.rule_iri,
+                source_quad_ids: q.source_quad_ids,
+            })
+            .collect();
+        (quads, claim)
+    };
+    // The production teleology claim carries the runtime preservation judgment:
+    // exact when no satisfiedBy edge was generated; SoundUnder (naming the dropped
+    // GoalEvaluation factored axes) when the forward bridge fired.
+    Ok((quads, "ok".to_string(), false, claim))
 }
 
 /// Produce one explanation skeleton per quad. Asserted quads get a trivial

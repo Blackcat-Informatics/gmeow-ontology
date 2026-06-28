@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming fixture for logic:McpActionPolicyShape — an MCP-action schema
+# (ex:mcpActionWellformed, typed logic:McpActionSchema, the opt-in marker the
+# profile targets via sh:targetClass) declaring the three governance facets the
+# profile requires: logic:capability, logic:precondition, and logic:compensation
+# (rollback = compensation). Because logic:McpActionSchema is a subclass of
+# logic:ActionSchema it also satisfies logic:ActionSchemaShape (precondition +
+# capability present). Bound by tests/example-conformance.ttl
+# (ex:ecMcpActionWellformed, gmeow:conforms). Self-contained: the harness loads
+# logic/module.ttl + ONLY this file against logic/shapes.ttl.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lgc/> .
+
+ex:mcpActionWellformed a logic:McpActionSchema ;
+    rdfs:label "MCP tool action: write file (fixture)"@en ;
+    logic:capability ex:capabilityFilesystemWrite ;
+    logic:precondition ex:situationPathWritable ;
+    logic:compensation ex:actionRestorePriorContents .

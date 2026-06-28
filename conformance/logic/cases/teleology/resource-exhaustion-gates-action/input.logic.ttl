@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/resource-exhaustion-gates-action.
+#
+# An action schema declares a logic:actionResource (buildLock). The probed state SUPPLIES
+# the resource (logic:resourceSupply) but it is flagged logic:resourceExhausted "true",
+# so the resource is unavailable: the gate verdict is logic:GateDenied with a reason
+# naming the unavailable resource and the schema's compensation. This is the
+# representation-level resource facet (the seam to logic:competesForResource), NOT a real
+# build engine-lock.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/resource-exhaustion-gates-action/> .
+
+ex:GoalExpression a logic:GoalExpression .

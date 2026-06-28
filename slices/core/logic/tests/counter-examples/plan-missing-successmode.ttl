@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for logic:PlanShape: a logic:Plan with NO logic:planSuccessMode.
+# logic:planSuccessMode has sh:minCount 1, so validation MUST emit
+# shacl.MinCountConstraintComponent (and no other finding). Bound by
+# tests/example-conformance.ttl (ex:ecPlanMissingSuccessMode). Lives under tests/
+# (NOT examples/) so the global make validate gate does not reject it.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lgc/> .
+
+ex:goalReachOrbit a gmeow:Goal ;
+    rdfs:label "reach a stable orbit (fixture)"@en .
+
+ex:planMissingMode a logic:Plan ;
+    logic:planGoal ex:goalReachOrbit .

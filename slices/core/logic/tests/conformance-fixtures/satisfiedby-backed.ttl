@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming fixture for logic:SatisfiedByBackedByEvaluationShape (the
+# vantage-scoped dual-authority check): a gmeow:Goal whose conclusive
+# gmeow:satisfiedBy(goal, situation) edge IS backed by a logic:GoalEvaluation
+# under a vantage (logic:evaluationEvaluator) with logic:evaluatesGoal = the goal,
+# logic:evaluatedAgainst = the situation, logic:satisfactionStatus = logic:Satisfied,
+# and logic:goalEvaluationStatus = logic:GoalEvaluationCompleted. The backing
+# evaluation is itself well-formed (all four factored axes) so it also satisfies
+# logic:GoalEvaluationShape. Bound by tests/example-conformance.ttl
+# (ex:ecSatisfiedByBacked, gmeow:conforms). Self-contained: the harness loads
+# logic/module.ttl + ONLY this file against logic/shapes.ttl.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lgc/> .
+
+ex:goalReachOrbit a gmeow:Goal ;
+    rdfs:label "reach a stable orbit (fixture)"@en ;
+    gmeow:satisfiedBy ex:situationFirstStableOrbit .
+
+ex:evalReachOrbitMission a logic:GoalEvaluation ;
+    logic:evaluatesGoal ex:goalReachOrbit ;
+    logic:evaluatedAgainst ex:situationFirstStableOrbit ;
+    logic:evaluationEvaluator ex:vantageMissionControl ;
+    logic:satisfactionStatus logic:Satisfied ;
+    logic:feasibilityStatus logic:Feasible ;
+    logic:lifecycleStatus logic:LifecycleActive ;
+    logic:goalEvaluationStatus logic:GoalEvaluationCompleted .

@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/outcome-specific-compensation.
+#
+# Two outcome branches of a realized plan recover by DIFFERENT compensation actions: the driver selects the compensation named on THE realized outcome branch (logic:selectedCompensation), not a generic schema-level undo — two plans, each realizing a different branch, select different compensations.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
+# the projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/outcome-specific-compensation/> .
+
+ex:GoalExpression a logic:GoalExpression .

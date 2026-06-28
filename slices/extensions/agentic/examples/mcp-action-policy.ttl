@@ -1,0 +1,106 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — the REAL memory-MCP triad, dogfooded as action schemas under the
+# canonical-process action theory.
+#
+# These are the three tools the production memory MCP server actually exposes
+# (src/gmeow_tools/mcp_server.py): `store_claim` (writes a reified claim to memory),
+# `revise_belief` (SUPPRESSES a claim — P10 suppression-not-erasure, the recovery /
+# rollback action), and `recall` (the read path, which records nothing). This file
+# models each tool as a logic:ActionSchema and brings the two WRITE tools under the
+# stricter MCP-action governance profile (logic:McpActionPolicyShape) by typing them
+# logic:McpActionSchema — the dogfood case where the canonical process model governs
+# the agent's own tool calls under explicit capability / precondition / compensation
+# (rollback).
+#
+# THE GOVERNANCE WIRING.
+#   • store_claim  — logic:McpActionSchema: capability = memory-write, precondition =
+#     a well-formed claim, compensation = revise_belief. Suppression UNDOES the store
+#     (P10: the rollback is suppression, never erasure).
+#   • revise_belief — logic:McpActionSchema: capability = memory-write, precondition =
+#     the target claim exists, compensation = store_claim (re-assertion). P10 again:
+#     a suppression is itself reversible by RE-STORING the claim, never by deletion.
+#   • recall — a PLAIN logic:ActionSchema (NOT logic:McpActionSchema): a read action
+#     with precondition + capability (memory-read) but NO compensation, because a read
+#     changes no state and so needs no rollback. This is exactly why it is a plain
+#     action schema rather than a governed write action: the McpActionPolicyShape's
+#     compensation requirement would be vacuous on a read.
+#
+# The companion Rust evaluator crate (crates/logic/src/teleology.rs, gate_action)
+# exercises this same store_claim schema pattern: ADMIT when the well-formed-claim
+# precondition obtains in the state AND the memory-write capability is available;
+# DENY (carrying revise_belief as the rollback) when the precondition is absent or the
+# capability is unavailable.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --------------------------------------------------------------------------- #
+# Capability individuals — the executional preconditions on the actor (what the
+# agent must be able to do). EXAMPLE individuals referenced by logic:capability,
+# left untyped to match the conformance fixtures (the policy shape gates on the
+# property's presence, not on a capability class — no new vocabulary is minted).
+# --------------------------------------------------------------------------- #
+
+ex:memoryWriteCapability
+    rdfs:label "memory-write capability"@x-gmeow-english ;
+    rdfs:comment "What the agent must be able to do to mutate memory (store/suppress a claim)."@x-gmeow-english .
+
+ex:memoryReadCapability
+    rdfs:label "memory-read capability"@x-gmeow-english ;
+    rdfs:comment "What the agent must be able to do to read memory (recall claims)."@x-gmeow-english .
+
+# --------------------------------------------------------------------------- #
+# Situation individuals — the state gates (logic:precondition targets). EXAMPLE
+# individuals referenced by logic:precondition, left untyped for the same reason.
+# --------------------------------------------------------------------------- #
+
+ex:wellFormedClaim
+    rdfs:label "a well-formed claim is presented"@x-gmeow-english ;
+    rdfs:comment "store_claim's precondition: the claim to write is well-formed."@x-gmeow-english .
+
+ex:targetClaimExists
+    rdfs:label "the target claim exists in memory"@x-gmeow-english ;
+    rdfs:comment "revise_belief's precondition: the claim to suppress is present."@x-gmeow-english .
+
+ex:memoryReadable
+    rdfs:label "memory is readable"@x-gmeow-english ;
+    rdfs:comment "recall's precondition: the memory store is available to read."@x-gmeow-english .
+
+# --------------------------------------------------------------------------- #
+# store_claim — a GOVERNED WRITE action (logic:McpActionSchema).
+# Compensation is revise_belief: suppression undoes the store (P10).
+# --------------------------------------------------------------------------- #
+
+ex:storeClaim a logic:McpActionSchema ;
+    rdfs:label "store_claim — write a reified claim to memory"@x-gmeow-english ;
+    logic:capability   ex:memoryWriteCapability ;
+    logic:precondition ex:wellFormedClaim ;
+    logic:compensation ex:reviseBelief .
+
+# --------------------------------------------------------------------------- #
+# revise_belief — a GOVERNED WRITE action (logic:McpActionSchema). Suppresses a
+# claim (never deletes — P10). Its compensation is store_claim: a suppression is
+# reversible by RE-STORING (re-asserting) the claim, never by erasure.
+# --------------------------------------------------------------------------- #
+
+ex:reviseBelief a logic:McpActionSchema ;
+    rdfs:label "revise_belief — suppress a claim (P10, never delete)"@x-gmeow-english ;
+    logic:capability   ex:memoryWriteCapability ;
+    logic:precondition ex:targetClaimExists ;
+    logic:compensation ex:storeClaim .
+
+# --------------------------------------------------------------------------- #
+# recall — a PLAIN read action (logic:ActionSchema, NOT McpActionSchema). It has a
+# precondition + capability but NO compensation: a read changes no state, so there
+# is nothing to roll back. This is why it is not a governed write action.
+# --------------------------------------------------------------------------- #
+
+ex:recall a logic:ActionSchema ;
+    rdfs:label "recall — read claims from memory (records nothing)"@x-gmeow-english ;
+    rdfs:comment "A read action: precondition + capability but NO compensation, because reading changes no state. Typed as a plain logic:ActionSchema rather than logic:McpActionSchema for exactly this reason — the MCP-action policy's compensation requirement would be vacuous on a read."@x-gmeow-english ;
+    logic:capability   ex:memoryReadCapability ;
+    logic:precondition ex:memoryReadable .
