@@ -203,6 +203,13 @@ impl PyReport {
         render::to_text(&self.inner)
     }
 
+    /// Render a console-digestible report: errors in full, every non-error finding
+    /// collapsed to a per-code count line. The surface the `doc-lint` console uses
+    /// so a high-volume coverage ratchet does not flood the terminal.
+    fn render_text_summarized(&self) -> String {
+        render::to_text_summarized(&self.inner)
+    }
+
     /// Render only the advisory (Note/Info) findings as text (#760 F1).
     fn render_advisory_text(&self) -> String {
         render::to_text_advisories(&self.inner)

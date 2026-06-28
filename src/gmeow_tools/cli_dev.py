@@ -1486,20 +1486,23 @@ def lint_alignment(
 
 @app.command(name="doc-lint")
 def doc_lint() -> None:
-    """Lint the rust-rendered ontology-docs site for integrity + coverage (#853 T5).
+    """Lint the rust-rendered ontology-docs site for integrity + coverage.
 
     Builds the native ``gmeow_docs`` documentation set from the slice catalog and
     runs its lint, emitting a shared ``gmeow:Finding`` report. ERRORS are integrity
     defects (dangling internal links, broken in-page anchors) — a dangling link is
-    always a render bug and fails the gate. WARNINGS are coverage gaps (terms
-    missing a definition or label on the vocabulary surface) and do not fail.
+    always a render bug and fails the gate. WARNINGS are coverage gaps on the
+    vocabulary surface (terms missing a definition, label, usage advice, example,
+    scope note, or external alignment) and do not fail. The summarized render keeps
+    errors in full while collapsing the high-volume coverage warnings to a per-code
+    count, so the gate output stays digestible.
     """
     import gmeow_docs as _docs  # legacy-name shim → gmeow_native.docs submodule
 
     docset = _docs.DocSet.from_root(str(PROJECT_ROOT))
     report = docset.lint()
 
-    text = report.render_text()
+    text = report.render_text_summarized()
     if text.strip():
         console.print(text)
 

@@ -72,6 +72,11 @@ expression: "to_html(&model, &Page::Term(slug))"
 <ul>
 <li><strong>Status:</strong> stable</li>
 </ul>
+<h2>Documentation coverage</h2>
+<ul>
+<li><strong>5 of 6 dimensions present.</strong> ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment</li>
+<li>See <a href="../../health/index.html">Documentation health</a> for coverage across the whole vocabulary.</li>
+</ul>
 <h2>Profiles</h2>
 <ul>
 <li><code>full</code></li>

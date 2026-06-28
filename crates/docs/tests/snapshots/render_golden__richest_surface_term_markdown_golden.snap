@@ -65,6 +65,11 @@ A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a t
 
 - **Status:** stable
 
+## Documentation coverage
+
+- **5 of 6 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment
+- See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
+
 ## Profiles
 
 - `claims` · `dreaming` · `full` · `memory` · `music` · `narrative`

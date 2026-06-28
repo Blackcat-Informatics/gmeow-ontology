@@ -399,6 +399,20 @@ impl Report {
             .count()
     }
 
+    /// The number of findings carrying each finding code, keyed by code (sorted).
+    ///
+    /// The deterministic per-code tally behind the summarized text render and the
+    /// recorded coverage-ratchet baselines — a stable, low-cardinality projection
+    /// of a report that may hold thousands of per-term findings. The keys borrow
+    /// the codes already owned by the report, so tallying allocates no strings.
+    pub fn counts_by_code(&self) -> BTreeMap<&str, usize> {
+        let mut counts: BTreeMap<&str, usize> = BTreeMap::new();
+        for finding in &self.findings {
+            *counts.entry(finding.code.as_str()).or_default() += 1;
+        }
+        counts
+    }
+
     pub fn normalize(&mut self) {
         for finding in &mut self.findings {
             finding.normalize();
