@@ -495,24 +495,34 @@ pub fn to_text(report: &Report) -> String {
 /// structured report consumed by [`to_text`]/[`to_json`]/[`to_sarif`].
 pub fn to_text_summarized(report: &Report) -> String {
     use crate::model::Severity;
-    let normalized = report.normalized();
-    let rules = rule_map(&normalized);
-    let mut lines = Vec::new();
 
-    // Errors in full — they must stay individually actionable.
-    for finding in normalized
+    // Errors in full — they must stay individually actionable. Clone and normalize
+    // ONLY the error findings (plus the shared rules) rather than the whole report:
+    // on a high-volume report-only gate the non-error findings number in the
+    // thousands, and cloning them just to count them is pure allocation overhead.
+    let mut error_report = Report::new(report.tool.clone());
+    error_report.rules = report.rules.clone();
+    error_report.findings = report
         .findings
         .iter()
         .filter(|f| f.severity == Severity::Error)
-    {
+        .cloned()
+        .collect();
+    error_report.normalize();
+    let rules = rule_map(&error_report);
+    let mut lines = Vec::new();
+    for finding in &error_report.findings {
         finding_text_lines(finding, &rules, &mut lines);
     }
 
-    // Non-error findings collapse to one count line per (severity, code). Keying
-    // on the severity/code strings keeps the order deterministic without requiring
-    // `Severity: Ord`.
+    // Non-error findings collapse to one count line per (severity, code), counted
+    // over the BORROWED originals — no clone. `normalize()` only sorts/dedups tags,
+    // suggestions, locations and rules; it never drops a finding or rewrites its
+    // `severity`/`code`, so a raw count is identical to a normalized one. Keying on
+    // the severity/code strings keeps the order deterministic via the `BTreeMap`
+    // without requiring `Severity: Ord`.
     let mut counts: BTreeMap<(&str, &str), usize> = BTreeMap::new();
-    for finding in normalized
+    for finding in report
         .findings
         .iter()
         .filter(|f| f.severity != Severity::Error)
