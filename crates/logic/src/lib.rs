@@ -53,6 +53,7 @@ pub mod sparql_path_lower;
 pub mod stablemodel;
 pub mod store;
 pub mod teleology;
+pub mod transaction;
 pub mod transition;
 pub mod verify;
 pub mod versioning;
