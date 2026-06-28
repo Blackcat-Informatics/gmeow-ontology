@@ -38,11 +38,11 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
    `gmeow_tools.gts_views.FoldView` and import **neither rdflib nor
    gmeow_rdf** (`metadata.py` keeps rdflib strictly as the *output
    serializer* for its freshly built description graphs — the one allowance).
-3. **Sealed by test.** `tests/test_narrow_waist.py` enforces it twice over:
-   a behavioral seal (every canonical-source reader monkeypatched to raise;
-   all five exporters must still render) and a static import seal (AST scan
-   of the exporter modules). The registry orders `gts` before every consumer
-   from declared inputs — never by hand.
+3. **Sealed by Rust gate.** `crates/validate/src/repo_static.rs` runs through
+   `make crate-check` and statically proves the exporter does not import RDF
+   parsers or touch canonical-source loaders; it also keeps the public CLI from
+   resurrecting retired GTS subcommands. The registry orders `gts` before every
+   consumer from declared inputs — never by hand.
 4. **Equivalence before deletion.** Each re-point proved value-equivalence
    against the old implementation before the old path was deleted —
    no compatibility shims survive.
