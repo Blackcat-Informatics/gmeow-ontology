@@ -23,7 +23,7 @@ use std::sync::Arc;
 
 use hashbrown::HashTable;
 
-use crate::{RdfLiteral, RdfQuad, RdfTerm, RdfTextDirection};
+use crate::{RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTextDirection};
 
 use super::dataset::{QuadHandle, QuadIds, QuadRow, RdfDataset};
 use super::term::{
@@ -455,6 +455,55 @@ impl RdfDatasetBuilder {
         }
     }
 
+    /// Push one owned RDF 1.2 reifier binding into this builder, re-interning the
+    /// reifier resource and the bound triple's `(s, p, o)` terms. The companion of
+    /// [`push_owned_quad`](Self::push_owned_quad) for the reifier side-table.
+    pub fn push_owned_reifier(&mut self, reifier: &RdfReifier) {
+        let s = self.intern_owned_term(&reifier.statement.subject);
+        let p = self.intern_iri(reifier.statement.predicate.clone());
+        let o = self.intern_owned_term(&reifier.statement.object);
+        let triple = self.intern_triple(s, p, o);
+        let reifier_id = self.intern_owned_term(&reifier.reifier);
+        self.push_reifier(reifier_id, triple);
+    }
+
+    /// Push one owned RDF 1.2 statement annotation into this builder, re-interning
+    /// the reifier resource and the `(predicate, object)` terms.
+    pub fn push_owned_annotation(&mut self, annotation: &RdfAnnotation) {
+        let reifier_id = self.intern_owned_term(&annotation.reifier);
+        let p = self.intern_iri(annotation.predicate.clone());
+        let o = self.intern_owned_term(&annotation.object);
+        self.push_annotation(reifier_id, p, o);
+    }
+
+    /// Merge every quad, reifier, and annotation of `other` into this builder,
+    /// re-interning each owned term into THIS builder's interner (`TermId`s are
+    /// dataset-local, C0.8). This is the cross-dataset form the
+    /// [`Extend<QuadIds>`] doc reserves as follow-up: unlike the id-based bulk push,
+    /// it carries the FULL RDF 1.2 statement layer — reifier bindings and
+    /// annotations, not just base quads — so merging a graph that carries `<<>>` /
+    /// `rdf:reifies` does not silently drop its side-tables. Duplicates collapse on
+    /// freeze per the normal C0.4/C0.5 contract.
+    pub fn push_dataset(&mut self, other: &RdfDataset) {
+        // Reserve the dominant quad table up front (mirrors the Extend<QuadIds>
+        // reserve); the reifier/annotation tables grow on demand.
+        let reserve = other.quad_count();
+        if reserve > 0 {
+            self.quads.reserve(reserve);
+            self.quad_index
+                .reserve(reserve, |&i| hash_of(&self.quads[i as usize]));
+        }
+        for quad in other.owned_quads() {
+            self.push_owned_quad(&quad);
+        }
+        for reifier in other.owned_reifiers() {
+            self.push_owned_reifier(&reifier);
+        }
+        for annotation in other.owned_annotations() {
+            self.push_owned_annotation(&annotation);
+        }
+    }
+
     /// Crate-internal read access to an interned term. [`freeze`](Self::freeze) and
     /// [`super::validate`] consume this to materialize and check the dataset.
     pub(crate) fn term(&self, id: TermId) -> &InternedTerm {
@@ -832,6 +881,104 @@ mod tests {
             ds.annotations().count(),
             1,
             "duplicate annotation collapses"
+        );
+    }
+
+    /// `push_dataset` re-interns a foreign dataset's base quads into a fresh
+    /// builder's interner; quads shared with an already-merged dataset collapse.
+    #[test]
+    fn push_dataset_merges_and_dedupes_quads() {
+        let dataset_a = {
+            let mut b = RdfDatasetBuilder::new();
+            let (s, p, o, o2) = (
+                iri(&mut b, "s"),
+                iri(&mut b, "p"),
+                iri(&mut b, "o"),
+                iri(&mut b, "o2"),
+            );
+            b.push_quad(s, p, o, None);
+            b.push_quad(s, p, o2, None);
+            b.freeze().expect("valid A")
+        };
+        let dataset_b = {
+            let mut b = RdfDatasetBuilder::new();
+            let (s, s2, p, o, o2) = (
+                iri(&mut b, "s"),
+                iri(&mut b, "s2"),
+                iri(&mut b, "p"),
+                iri(&mut b, "o"),
+                iri(&mut b, "o2"),
+            );
+            b.push_quad(s2, p, o, None); // B-only quad
+            b.push_quad(s, p, o2, None); // shared with A → collapses on merge
+            b.freeze().expect("valid B")
+        };
+
+        let mut merged = RdfDatasetBuilder::new();
+        merged.push_dataset(&dataset_a);
+        merged.push_dataset(&dataset_b);
+        let merged = merged.freeze().expect("valid merged");
+
+        assert_eq!(
+            merged.quad_count(),
+            3,
+            "A(2) + B(2) with one shared quad → 3 distinct rows"
+        );
+        // The B-only quad resolves through the merged interner.
+        let has_b_only = merged.owned_quads().any(|q| {
+            q.subject == RdfTerm::Iri("http://example.org/s2".to_string())
+                && q.predicate == "http://example.org/p"
+                && q.object == RdfTerm::Iri("http://example.org/o".to_string())
+        });
+        assert!(has_b_only, "B-only quad survives the cross-dataset merge");
+    }
+
+    /// `push_dataset` carries the FULL RDF 1.2 statement layer: a merged dataset's
+    /// reifier bindings AND annotations survive, not just its base quads. (A
+    /// quad-only merge would silently drop these — the regression this guards.)
+    #[test]
+    fn push_dataset_carries_reifiers_and_annotations() {
+        let dataset = {
+            let mut b = RdfDatasetBuilder::new();
+            let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
+            let triple = b.intern_triple(s, p, o);
+            let r = iri(&mut b, "r");
+            let ap = iri(&mut b, "ap");
+            let ao = iri(&mut b, "ao");
+            b.push_reifier(r, triple);
+            b.push_annotation(r, ap, ao);
+            b.freeze().expect("valid source")
+        };
+
+        let mut merged = RdfDatasetBuilder::new();
+        merged.push_dataset(&dataset);
+        let merged = merged.freeze().expect("valid merged");
+
+        assert_eq!(
+            merged.reifiers().count(),
+            1,
+            "reifier binding survives merge"
+        );
+        assert_eq!(merged.annotations().count(), 1, "annotation survives merge");
+
+        let reifier = merged.owned_reifiers().next().expect("one reifier");
+        assert_eq!(
+            reifier.reifier,
+            RdfTerm::Iri("http://example.org/r".to_string())
+        );
+        assert_eq!(
+            reifier.statement.subject,
+            RdfTerm::Iri("http://example.org/s".to_string())
+        );
+        let annotation = merged.owned_annotations().next().expect("one annotation");
+        assert_eq!(
+            annotation.reifier,
+            RdfTerm::Iri("http://example.org/r".to_string())
+        );
+        assert_eq!(annotation.predicate, "http://example.org/ap");
+        assert_eq!(
+            annotation.object,
+            RdfTerm::Iri("http://example.org/ao".to_string())
         );
     }
 
