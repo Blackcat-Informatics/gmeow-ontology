@@ -143,7 +143,16 @@ fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 pub fn store_to_nquads(store: &Store) -> Result<Vec<u8>, PipelineError> {
     let dataset = gmeow_rdf::oxigraph::dataset_from_store(store)
         .map_err(|e| PipelineError::Parse(e.to_string()))?;
-    let buf = serialize_dataset(&dataset, "application/n-quads", SerializeGraph::Dataset)
+    dataset_to_sorted_nquads(&dataset)
+}
+
+/// Serialize a frozen [`RdfDataset`] to the SAME deterministic N-Quads byte form
+/// [`store_to_nquads`] produces (full RDF 1.2 statement layer, lines sorted
+/// bytewise ascending, trailing newline). This is the single dataset → N-Quads
+/// projection the pipeline's in-memory dataflow speaks; the `gts_compose` stage
+/// projects the composed UNION dataset through it for the `composed.nq` byte lane.
+pub fn dataset_to_sorted_nquads(dataset: &gmeow_rdf::RdfDataset) -> Result<Vec<u8>, PipelineError> {
+    let buf = serialize_dataset(dataset, "application/n-quads", SerializeGraph::Dataset)
         .map_err(|e| PipelineError::Parse(format!("serialize failed: {e}")))?;
     // Sort lines for determinism (oxigraph iteration order is not guaranteed).
     let text = String::from_utf8(buf)
@@ -248,11 +257,17 @@ impl Stage for SourceLoadStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let store = load_authored_store(input.root)?;
-        let nq = store_to_nquads(&store)?;
+        // Carry the authored base graph as the bundle's frozen dataset (the native
+        // contribution `gts_compose` unions), and keep emitting the BASE_GRAPH_PATH
+        // N-Quads byte lane for the pre-C3 byte readers. Both come from the SAME
+        // store via `dataset_from_store` — no extra serialize→parse round-trip.
+        let dataset = gmeow_rdf::oxigraph::dataset_from_store(&store)
+            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+        let nq = dataset_to_sorted_nquads(&dataset)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(BASE_GRAPH_PATH.to_string(), nq);
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
+            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
         })
     }
 }
