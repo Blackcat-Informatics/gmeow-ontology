@@ -1,0 +1,17 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: list slice — the gmeow:listSlice backing.
+% Enumerates the members in the half-open index range [Start, End): an indexed
+% access at/3 over the rdf:first/rdf:rest chain (the get/3 idiom) selected by an
+% index generator inRange/3 driven by the arithmetic/comparison builtins. The
+% logic layer derives the slice CONTENT; the new rdf:List cells are invented by the
+% query engine (the materialization seam). Slice [1, 3) over (x y z) returns {y, z}.
+:- prefix(ex, 'https://example.org/profiles/goal-rdf-list-functions/').
+:- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+ex:at(L, 0, X) :- rdf:first(L, X).
+ex:at(L, N, X) :- N > 0, rdf:rest(L, R), M is N - 1, ex:at(R, M, X).
+ex:inRange(Start, End, Start) :- Start < End.
+ex:inRange(Start, End, I) :- Start < End, S1 is Start + 1, ex:inRange(S1, End, I).
+ex:slice(L, Start, End, X) :- ex:inRange(Start, End, I), ex:at(L, I, X).
+?- ex:slice(ex:l0, 1, 3, X).

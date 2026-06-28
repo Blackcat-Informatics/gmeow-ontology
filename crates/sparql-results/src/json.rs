@@ -85,7 +85,9 @@ fn write_base(result: &SparqlResult, out: &mut String) -> Result<(), Error> {
             out.push_str(if *value { "true" } else { "false" });
             out.push('}');
         }
-        SparqlResult::Solutions { variables, rows } => {
+        SparqlResult::Solutions {
+            variables, rows, ..
+        } => {
             out.push_str("{\"head\":{\"vars\":[");
             for (i, var) in variables.iter().enumerate() {
                 if i > 0 {
@@ -324,7 +326,11 @@ mod tests {
                 Some(lit("Grace", XSD_STRING)),
             ],
         ];
-        let result = SparqlResult::Solutions { variables, rows };
+        let result = SparqlResult::Solutions {
+            variables,
+            rows,
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
+        };
 
         let expected = concat!(
             "{\"head\":{\"vars\":[\"s\",\"b\",\"name\",\"age\",\"label\"]},",
@@ -371,6 +377,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["t".to_string()],
             rows: vec![vec![Some(triple)]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let text = json_text(&result, &ResultProvenance::default());
         assert!(
@@ -398,6 +405,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["t".to_string()],
             rows: vec![vec![Some(triple)]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let err = to_json(&result, &ResultProvenance::default())
             .expect_err("non-IRI predicate must be rejected");
@@ -421,6 +429,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["t".to_string()],
             rows: vec![vec![Some(triple)]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let err = to_json(&result, &ResultProvenance::default())
             .expect_err("bnode predicate must be rejected");
@@ -442,6 +451,7 @@ mod tests {
                 language: Some("en".to_string()),
                 direction: Some(RdfTextDirection::Ltr),
             })]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let text = json_text(&result, &ResultProvenance::default());
         assert!(
@@ -455,6 +465,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["v".to_string()],
             rows: vec![vec![Some(lit("x", XSD_STRING))]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let text = json_text(&result, &ResultProvenance::default());
         assert!(
@@ -471,6 +482,7 @@ mod tests {
             rows: vec![vec![Some(TermValue::Iri(
                 "http://example.org/s".to_string(),
             ))]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let provenance = ResultProvenance {
             query_hash: Some("deadbeef".to_string()),

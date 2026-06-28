@@ -1,0 +1,19 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: list concatenation — the gmeow:listConcat backing.
+% Enumerates the members of the result list with their result index J: the left
+% list keeps its index (idxMember/3), the right list is shifted by the left length
+% (len/2 + arithmetic). The logic layer derives the concatenation CONTENT; the new
+% rdf:List cells are invented by the query engine (the materialization seam).
+% Concatenating (x y z) with itself returns the indexed members
+% {(0,x),(1,y),(2,z),(3,x),(4,y),(5,z)}.
+:- prefix(ex, 'https://example.org/profiles/goal-rdf-list-functions/').
+:- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+ex:idxMember(L, 0, X) :- rdf:first(L, X).
+ex:idxMember(L, N, X) :- rdf:rest(L, R), ex:idxMember(R, M, X), N is M + 1.
+ex:len(rdf:nil, 0).
+ex:len(L, N) :- rdf:rest(L, R), ex:len(R, M), N is M + 1.
+ex:concat(A, _, I, X) :- ex:idxMember(A, I, X).
+ex:concat(A, B, J, X) :- ex:len(A, LA), ex:idxMember(B, K, X), J is LA + K.
+?- ex:concat(ex:l0, ex:l0, J, X).

@@ -18,7 +18,7 @@
 use std::rc::Rc;
 use std::sync::Arc;
 
-use gmeow_rdf_core::{GraphMatch, RdfDataset, TermValue};
+use gmeow_rdf_core::{GraphMatch, RdfDataset, TermFactory, TermValue};
 use gmeow_sparql_algebra::{GraphPattern, Query};
 
 use crate::dataset_spec::ActiveDataset;
@@ -127,6 +127,16 @@ pub struct EvalCtx<'d> {
     /// the default engine path: a non-silent `SERVICE` then hard-fails. Tests and
     /// the conformance harness inject an in-memory source via [`EvalCtx::with_remote`].
     pub(crate) remote: Option<&'d dyn crate::remote::RemoteQuerySource>,
+    /// Quads invented during evaluation by value-constructing builtins
+    /// (`gmeow:listSlice`/`gmeow:listConcat` mint fresh `rdf:List` cells). A SPARQL
+    /// expression returns one term, so the new cells are buffered here and surface at
+    /// the result boundary — but only the cells **reachable from the surviving result
+    /// rows** ([`Self::reachable_constructed`]): a list minted on a row later pruned by
+    /// `FILTER`/`DISTINCT`/`LIMIT`/etc. must not leak orphaned cells.
+    /// [`crate::construct::eval_construct`] folds the reachable set into the CONSTRUCT
+    /// output, and the native `query` egress into `SparqlResult::Solutions::aux`. Empty
+    /// whenever no constructing builtin ran.
+    pub(crate) constructed: Vec<(TermValue, TermValue, TermValue)>,
 }
 
 impl<'d> EvalCtx<'d> {
@@ -166,7 +176,60 @@ impl<'d> EvalCtx<'d> {
             options: EvalOptions::default(),
             exists_inner_cache: DetHashMap::default(),
             remote: None,
+            constructed: Vec::new(),
         }
+    }
+
+    /// Freeze the invented quads reachable from the surviving result `rows` (see
+    /// [`Self::reachable_constructed`]) into a standalone dataset — the auxiliary graph
+    /// surfaced alongside a SELECT/ASK result. The common empty-buffer case yields an
+    /// empty (but valid) dataset.
+    pub(crate) fn constructed_dataset(&self, rows: &[Vec<Option<TermValue>>]) -> Arc<RdfDataset> {
+        let mut builder = gmeow_rdf_core::RdfDatasetBuilder::new();
+        for (s, p, o) in self.reachable_constructed(rows) {
+            let s = builder.intern_value(&s);
+            let p = builder.intern_value(&p);
+            let o = builder.intern_value(&o);
+            builder.push_quad(s, p, o, None);
+        }
+        builder
+            .freeze()
+            .expect("constructed list cells are positionally valid by construction")
+    }
+
+    /// The constructed cells (see [`Self::constructed`]) reachable, via
+    /// `rdf:first`/`rdf:rest`, from a term bound in a surviving result `row` — so a
+    /// list minted on a row later removed by `FILTER`/`HAVING`/`DISTINCT`/`LIMIT` (or a
+    /// failed join) contributes no orphaned cells to the egress.
+    ///
+    /// `TermValue` is not `Hash`, so the forest walk uses linear scans; the buffer
+    /// holds only THIS query's freshly-minted cells, so it is small, and the common
+    /// empty case is a fast no-op.
+    pub(crate) fn reachable_constructed(
+        &self,
+        rows: &[Vec<Option<TermValue>>],
+    ) -> Vec<(TermValue, TermValue, TermValue)> {
+        if self.constructed.is_empty() {
+            return Vec::new();
+        }
+        // Seed the walk with every term bound in a surviving row.
+        let mut worklist: Vec<TermValue> = rows.iter().flatten().filter_map(Clone::clone).collect();
+        let mut visited: Vec<TermValue> = Vec::new();
+        let mut out: Vec<(TermValue, TermValue, TermValue)> = Vec::new();
+        while let Some(node) = worklist.pop() {
+            if visited.contains(&node) {
+                continue;
+            }
+            visited.push(node.clone());
+            for (s, p, o) in &self.constructed {
+                if *s == node {
+                    out.push((s.clone(), p.clone(), o.clone()));
+                    // Follow the rest chain and any nested-list member head.
+                    worklist.push(o.clone());
+                }
+            }
+        }
+        out
     }
 
     /// Attach a `SERVICE` federation source for this evaluation. The borrow shares

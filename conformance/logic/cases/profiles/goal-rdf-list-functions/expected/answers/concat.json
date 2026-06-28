@@ -1,0 +1,29 @@
+{
+  "bindings": [
+    {
+      "J": "\"0\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+      "X": "<https://example.org/profiles/goal-rdf-list-functions/x>"
+    },
+    {
+      "J": "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+      "X": "<https://example.org/profiles/goal-rdf-list-functions/y>"
+    },
+    {
+      "J": "\"2\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+      "X": "<https://example.org/profiles/goal-rdf-list-functions/z>"
+    },
+    {
+      "J": "\"3\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+      "X": "<https://example.org/profiles/goal-rdf-list-functions/x>"
+    },
+    {
+      "J": "\"4\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+      "X": "<https://example.org/profiles/goal-rdf-list-functions/y>"
+    },
+    {
+      "J": "\"5\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+      "X": "<https://example.org/profiles/goal-rdf-list-functions/z>"
+    }
+  ],
+  "status": "ok"
+}

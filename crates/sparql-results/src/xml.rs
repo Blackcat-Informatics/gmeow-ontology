@@ -66,7 +66,9 @@ fn write_srx(
     out.push_str("<sparql xmlns=\"http://www.w3.org/2005/sparql-results#\">\n");
 
     match result {
-        SparqlResult::Solutions { variables, rows } => {
+        SparqlResult::Solutions {
+            variables, rows, ..
+        } => {
             write_head(variables, out)?;
             write_results(variables, rows, out)?;
         }
@@ -374,6 +376,7 @@ mod tests {
                     Some(lit("Grace", XSD_STRING)),
                 ],
             ],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let expected = concat!(
             "<?xml version=\"1.0\"?>\n",
@@ -440,6 +443,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["t".to_string()],
             rows: vec![vec![Some(triple)]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let text = xml_text(&result, &ResultProvenance::default());
         assert!(
@@ -467,6 +471,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["t".to_string()],
             rows: vec![vec![Some(triple)]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let err = to_xml(&result, &ResultProvenance::default())
             .expect_err("non-IRI predicate must be rejected");
@@ -490,6 +495,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["t".to_string()],
             rows: vec![vec![Some(triple)]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let err = to_xml(&result, &ResultProvenance::default())
             .expect_err("bnode predicate must be rejected");
@@ -509,6 +515,7 @@ mod tests {
                 language: Some("en".to_string()),
                 direction: Some(RdfTextDirection::Ltr),
             })]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let text = xml_text(&result, &ResultProvenance::default());
         assert!(text.contains("gmeow:dir=\"ltr\""), "missing dir: {text}");
@@ -530,6 +537,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["v".to_string()],
             rows: vec![vec![Some(lit("x", XSD_STRING))]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let text = xml_text(&result, &ResultProvenance::default());
         assert!(!text.contains("gmeow:dir"), "must stay clean: {text}");
@@ -540,6 +548,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["v<&>\"".to_string()],
             rows: vec![vec![Some(lit("a & b < c > d \"e\"", XSD_STRING))]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let text = xml_text(&result, &ResultProvenance::default());
         assert!(
@@ -559,6 +568,7 @@ mod tests {
             rows: vec![vec![Some(TermValue::Iri(
                 "http://example.org/s".to_string(),
             ))]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let provenance = ResultProvenance {
             query_hash: Some("deadbeef".to_string()),
@@ -621,6 +631,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["v".to_string()],
             rows: vec![vec![Some(lit("bad\u{1}value", XSD_STRING))]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let err = to_xml(&result, &ResultProvenance::default())
             .expect_err("illegal C0 control char must be rejected");
@@ -647,6 +658,7 @@ mod tests {
                 language: None,
                 direction: None,
             })]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let text = xml_text(&result, &ResultProvenance::default());
         assert!(
@@ -662,6 +674,7 @@ mod tests {
                 language: None,
                 direction: None,
             })]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let text2 = xml_text(&result2, &ResultProvenance::default());
         assert!(
@@ -676,6 +689,7 @@ mod tests {
                 language: None,
                 direction: None,
             })]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let text3 = xml_text(&result3, &ResultProvenance::default());
         assert!(
@@ -691,6 +705,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["v".to_string()],
             rows: vec![vec![Some(lit("a\nb", XSD_STRING))]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let text = xml_text(&result, &ResultProvenance::default());
         assert!(

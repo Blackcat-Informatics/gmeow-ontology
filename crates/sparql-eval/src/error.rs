@@ -38,6 +38,15 @@ pub enum EvalError {
     /// the query rather than silently contributing no bindings; `SERVICE SILENT`
     /// instead swallows the failure to the join identity.
     Remote(String),
+
+    /// The dataset carries structurally malformed RDF that a builtin cannot
+    /// interpret — e.g. a cyclic `rdf:List` (a cell reachable from itself) or a
+    /// list cell missing its `rdf:first`/`rdf:rest` edge. Distinct from
+    /// [`EvalError::Internal`] (an evaluator bug over valid data) and
+    /// [`EvalError::Unsupported`] (a valid construct out of scope): this is bad
+    /// *input*. Per the hard-fail doctrine it aborts the query loudly rather than
+    /// looping forever or guessing an answer.
+    Data(String),
 }
 
 impl EvalError {
@@ -55,6 +64,11 @@ impl EvalError {
     pub fn remote(what: impl Into<String>) -> Self {
         Self::Remote(what.into())
     }
+
+    /// Construct an [`EvalError::Data`] from any displayable message.
+    pub fn data(what: impl Into<String>) -> Self {
+        Self::Data(what.into())
+    }
 }
 
 impl core::fmt::Display for EvalError {
@@ -66,6 +80,7 @@ impl core::fmt::Display for EvalError {
             }
             EvalError::Internal(msg) => write!(f, "internal evaluator error: {msg}"),
             EvalError::Remote(msg) => write!(f, "SERVICE federation error: {msg}"),
+            EvalError::Data(msg) => write!(f, "malformed RDF input: {msg}"),
         }
     }
 }

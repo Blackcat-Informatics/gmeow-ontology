@@ -761,7 +761,7 @@ fn build_catalog(
                 Some(func.description.clone())
             },
             kind_types: vec![GM_PROJECTION_FUNCTION.to_owned()],
-            see_also,
+            see_also: Some(see_also),
             expects,
             output: FnOutput {
                 iri: output_iri(&func.iri),
@@ -1273,7 +1273,7 @@ gmeow:foo rdfs:range <http://www.w3.org/2001/XMLSchema#string> .
         assert_eq!(f.expects, vec![format!("{GMEOW}paramFoo")]);
         assert_eq!(f.output.iri, format!("{GMEOW}outDemo"));
         // The seeAlso is the using profile's .rq (NOT the schema-org default).
-        assert_eq!(f.see_also, profile_query_iri("schema-org"));
+        assert_eq!(f.see_also, Some(profile_query_iri("schema-org")));
 
         // One param, typed from the ontology range.
         assert_eq!(catalog.params.len(), 1);

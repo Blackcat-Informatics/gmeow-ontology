@@ -1222,6 +1222,9 @@ fn eval_function(
 
         // ---- gmeow extension functions (CLOSED, exhaustive) ----------------
         Function::Gmeow(GmeowFn::HeldIn) => eval_held_in(&vals, ctx),
+        // The six `rdf:List` functions (`gmeow:listLength`, …) — every other gmeow
+        // function is a list function, so this arm is total over the registry.
+        Function::Gmeow(list_func) => crate::list_fn::dispatch(*list_func, &vals, ctx),
 
         // ---- permanent hard errors (never a wrong answer) -----------------
         Function::Custom(iri) => Err(EvalError::unsupported(format!(

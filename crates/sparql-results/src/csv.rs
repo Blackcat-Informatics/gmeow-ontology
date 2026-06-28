@@ -35,7 +35,9 @@ pub fn to_csv(
     provenance: &ResultProvenance,
 ) -> Result<SerializeOutcome, Error> {
     let (variables, rows) = match result {
-        SparqlResult::Solutions { variables, rows } => (variables, rows),
+        SparqlResult::Solutions {
+            variables, rows, ..
+        } => (variables, rows),
         SparqlResult::Boolean(_) => {
             return Err(Error::Format(
                 "SPARQL Results CSV is defined only for SELECT variable bindings, not ASK"
@@ -185,6 +187,7 @@ mod tests {
                     Some(lit("Grace", XSD_STRING)),
                 ],
             ],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let expected = concat!(
             "s,b,name,age,label\r\n",
@@ -205,6 +208,7 @@ mod tests {
                 Some(lit("has \"quote\"", XSD_STRING)),
                 Some(lit("line\nbreak", XSD_STRING)),
             ]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let expected = concat!(
             "a,b,c\r\n",
@@ -223,6 +227,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["t".to_string()],
             rows: vec![vec![Some(triple)]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         // The token contains spaces but no quoting trigger, so it is emitted raw.
         let expected = concat!(
@@ -263,6 +268,7 @@ mod tests {
             rows: vec![vec![Some(TermValue::Iri(
                 "http://example.org/x".to_string(),
             ))]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let expected = concat!("a,b,c\r\n", "http://example.org/x,,\r\n",);
         assert_eq!(csv_text(&result, &ResultProvenance::default()), expected);
@@ -275,6 +281,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["a".to_string()],
             rows: vec![vec![Some(iri.clone()), Some(iri)]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let err = to_csv(&result, &ResultProvenance::default())
             .expect_err("over-wide row must be rejected");
@@ -291,6 +298,7 @@ mod tests {
             rows: vec![vec![Some(TermValue::Iri(
                 "http://example.org/s".to_string(),
             ))]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let provenance = ResultProvenance {
             query_hash: Some("deadbeef".to_string()),
