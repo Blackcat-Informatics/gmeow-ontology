@@ -2,5 +2,12 @@
 % Nemo (.rls) projection of the canonical logic: program.
 
 % === Ground facts (axioms) ===
+<https://blackcatinformatics.ca/logic/obligationDischargeCondition>(<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation>, <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability>, "default").
+<https://blackcatinformatics.ca/logic/obligationDischargeVerdict>(<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation>, <https://blackcatinformatics.ca/logic/ObligationDischarged>, "default").
+<https://blackcatinformatics.ca/logic/obligationForbiddenPredicate>(<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation>, "https://blackcatinformatics.ca/gmeow/counterpartOf", "default").
+<https://blackcatinformatics.ca/logic/obligationDischargeCondition>(<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation>, <https://blackcatinformatics.ca/logic/DischargeFiniteClosure>, "default").
+<https://blackcatinformatics.ca/logic/obligationDischargeCondition>(<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation>, <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability>, "default").
+<https://blackcatinformatics.ca/logic/obligationDischargeVerdict>(<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation>, <https://blackcatinformatics.ca/logic/ObligationDischarged>, "default").
+<https://blackcatinformatics.ca/logic/obligationForbiddenPredicate>(<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation>, "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim", "default").
 
 % === Rules ===

@@ -4,6 +4,13 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability> .
+<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationDischargeVerdict> <https://blackcatinformatics.ca/logic/ObligationDischarged> .
+<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> "https://blackcatinformatics.ca/gmeow/counterpartOf" .
+<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability> .
+<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeFiniteClosure> .
+<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeVerdict> <https://blackcatinformatics.ca/logic/ObligationDischarged> .
+<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim" .
 <https://blackcatinformatics.ca/logic/PositiveHornProfile> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ReasoningPreset> .
 <https://blackcatinformatics.ca/logic/PositiveHornProfile> <https://blackcatinformatics.ca/logic/formulaFragment> <https://blackcatinformatics.ca/logic/HornFragment> .
 <https://blackcatinformatics.ca/logic/PositiveHornProfile> <https://blackcatinformatics.ca/logic/modelSemantics> <https://blackcatinformatics.ca/logic/LeastModelSemantics> .

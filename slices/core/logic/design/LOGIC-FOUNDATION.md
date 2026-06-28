@@ -451,17 +451,29 @@ reasoned core. `gmeow:logic` therefore governs the prose-to-axiom transition exp
 constraint becomes a formal axiom **only** by passing through a **FormalizationCandidate** lifecycle,
 in which the candidate is *typed by category* and reviewed before it is admitted as canonical. The
 categories are themselves a precision instrument — they record what *kind* of force the prose was
-meant to carry:
+meant to carry. They are an **eleven-member closed set** (`logic:FormalizationCategory`); each is a
+distinct atomic kind, never collapsed (Principle 9), so that "necessary" and "sufficient" — and
+"defeasible default" and "typicality" — are each their own category rather than a bundled pair:
 
-- **definition** — necessary-and-sufficient identity of a term;
-- **necessary** / **sufficient** — one-directional conditions;
-- **constraint** — an integrity condition whose violation is a finding, not a derivation;
-- **derivation** — a productive rule whose head is entailed;
-- **default** / **typicality** — defeasible or generic-by-default content;
+- **equivalence-definition** — necessary-and-sufficient identity of a term;
+- **necessary-condition** — a one-directional necessary condition;
+- **sufficient-condition** — a one-directional sufficient condition;
+- **integrity-constraint** — an integrity condition whose violation is a finding, not a derivation;
+- **derivation-rule** — a productive rule whose head is entailed;
+- **defeasible-default** — defeasible content that a more specific fact may override;
+- **typicality** — generic, what-normally-holds content (distinct from a default's override force);
 - **recommendation** — advisory, never enforced;
-- **non-entailment** — a deliberate *non*-assertion (see below);
-- **overlap** — a mereological sharing fact;
-- **doc-only** — prose that is explanatory and is *not* to be formalized at all.
+- **non-entailment-obligation** — a deliberate *non*-assertion (see below);
+- **deliberate-overlap** — a mereological sharing fact deliberately admitted;
+- **documentation-only** — prose that is explanatory and is *not* to be formalized at all.
+
+A candidate additionally carries a **semantic-risk class** (`logic:SemanticRiskClass`, a closed
+set) recording how far a wrong formalization would propagate: `core-contaminating` (a bad axiom
+would corrupt the reasoned core), `projection-only` (the blast radius is confined to a lossy
+projection surface), or `advisory` (no entailment consequence at all). The risk class is what makes
+the reviewer gate proportionate — a `core-contaminating` candidate demands the strictest review, an
+`advisory` one the lightest — and it is recorded explicitly rather than left implicit (the
+refuse-to-collapse ethos applied to review effort).
 
 Crucially, **deliberate non-assertions are first-class and executable.** A `NonEntailmentObligation`
 records a conclusion the foundation must *never* draw. Because the canonical logic is semi-decidable,
@@ -502,6 +514,20 @@ A non-entailment obligation is not a comment that the axioms happen to respect a
 an executable obligation the foundation is held to, with a declared discharge condition. The
 *absence* of an inference is as machine-checked as its presence — within the stated fragment or
 bound, and carried as `unknown` everywhere else.
+
+The lifecycle is a **closed four-state machine** (`logic:CandidateLifecycleState`):
+`proposed` → `under-review` → `accepted` or `rejected`. An extraction — an LLM's most of all —
+*always* enters at `proposed`; `accepted` (the canonical, axiom-bearing state) is reachable only
+through `under-review` with a recorded reviewer decision, never directly. A candidate asserted as
+`accepted` without that review is a checked governance violation, not a soft warning. Each obligation
+check records a **discharge verdict** from a closed three-value set (`logic:DischargeVerdict`):
+`discharged`, `unknown` (carried forward, never "proved absent"), or `violated`. Of the five
+discharge conditions above, the foundation engine wires two — **syntactic reachability** over the
+rule strata and **finite closure** over the materialized derivation graph — because those are the
+conditions the two standing obligations rest on. The other three (certified-fragment,
+conservative-extension, bounded-corpus) are named in the closed set but not yet engine-backed; an
+obligation that declares one of them is a hard error ("no executable discharge path"), so an unwired
+condition can never be mistaken for a silent pass.
 
 ## The Ithkuil precision ethos
 

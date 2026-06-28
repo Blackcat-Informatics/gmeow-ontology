@@ -9,5 +9,12 @@
 # N3 projection of the canonical logic: program.
 
 # === Axioms ===
+<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability> .
+<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationDischargeVerdict> <https://blackcatinformatics.ca/logic/ObligationDischarged> .
+<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> 'https://blackcatinformatics.ca/gmeow/counterpartOf' .
+<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeFiniteClosure> .
+<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability> .
+<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeVerdict> <https://blackcatinformatics.ca/logic/ObligationDischarged> .
+<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim' .
 
 # === Rules ===

@@ -2477,6 +2477,420 @@ logic:producesResultShape
     rdfs:label "produces result shape"@x-gmeow-english ;
     skos:definition "Relates a query (or a competency question) to the logic:ResultShape its result set is guaranteed to satisfy. The query's bindings are validated against this shape after execution; a mismatch is a hard, surfaced error. Single-valued. Range logic:ResultShape (stated in prose)."@x-gmeow-english .
 
+# ── The typed formalization-governance surface (CBox) ───────────────────────────
+# The prose-to-axiom transition, made executable. Every extracted statement enters
+# as a typed logic:FormalizationCandidate with a lifecycle; only a reviewer-promoted
+# candidate becomes a canonical axiom. Deliberate non-assertions are first-class,
+# machine-checked logic:NonEntailmentObligations. The home box is CBox (constraints
+# and shapes). Normative in design/LOGIC-FOUNDATION.md, §Typed formalization
+# governance.
+
+logic:FormalizationCandidate
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Formalization Candidate"@x-gmeow-english ;
+    skos:definition "A typed, reviewable proposal to turn a prose constraint into a formal axiom: the governed unit of the prose-to-axiom transition. It carries its source-text hash (logic:candidateSourceHash), extraction provenance (logic:candidateExtractionProvenance), intended scope (logic:candidateScope) and reasoning contract (logic:candidateContract, ME1), its logic:FormalizationCategory, its logic:CandidateLifecycleState and reviewer decision (logic:reviewedBy), a positive competency case and a negative countermodel (logic:candidatePositiveCase / logic:candidateNegativeCase), any required logic:NonEntailmentObligation (logic:candidateNonEntailment), its projection behaviour (logic:candidateProjectionBehavior) and its logic:SemanticRiskClass. An LLM extraction always enters as a candidate, never directly as an accepted axiom; only a candidate promoted through review becomes canonical (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:NonEntailmentObligation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Non-Entailment Obligation"@x-gmeow-english ;
+    skos:definition "A first-class, executable record of a conclusion the foundation must NEVER draw: a deliberate non-assertion the engine is held to, not a comment the axioms happen to respect. It names the forbidden predicate (logic:obligationForbiddenPredicate), the logic:DischargeCondition under which absence-of-proof is conclusively checkable, and the logic:DischargeVerdict the check returns. Because the canonical logic is semi-decidable, an obligation is conclusively discharged only within a stated fragment or bound; outside it the verdict is logic:ObligationUnknown, carried forward, never 'proved absent'. The two standing obligations are 'intent must not be derived from structural deception' and 'counterpart must not become transitive' (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+# The two STANDING obligations the charter names verbatim — foundation commitments
+# resident in the reasoned graph, so the verify gate checks them over the real
+# shipped foundation (not merely over a fixture). Each forbids an assertion-only
+# predicate from EVER becoming a foundation rule head (Arm A) or appearing as a
+# derived edge (Arm B): gmeow:deceptiveIntentClaim and gmeow:counterpartOf are
+# attributed / asserted, never entailed.
+
+logic:IntentNotFromDeceptionObligation
+    a owl:NamedIndividual ,
+        logic:NonEntailmentObligation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "intent must not be derived from structural deception"@x-gmeow-english ;
+    skos:definition "The standing non-entailment obligation that the presence of a held≠projected gap is EVIDENCE, never ENTAILMENT, of deceptive intent: the foundation must never derive gmeow:deceptiveIntentClaim (an attributed, defeasible standpoint claim) from a structural deception gap. Enforced by syntactic reachability over the rule strata (no rule head produces the predicate) and finite closure over the materialized derivation graph (the predicate appears in no DERIVED edge). Guards the deception slice held/projected model (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim"^^xsd:anyURI ;
+    logic:obligationDischargeCondition
+        logic:DischargeSyntacticReachability ,
+        logic:DischargeFiniteClosure ;
+    logic:obligationDischargeVerdict logic:ObligationDischarged .
+
+logic:CounterpartNonTransitivityObligation
+    a owl:NamedIndividual ,
+        logic:NonEntailmentObligation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "counterpart must not become transitive"@x-gmeow-english ;
+    skos:definition "The standing non-entailment obligation that cross-realm counterpart identity (gmeow:counterpartOf) stays non-transitive: it is symmetric but deliberately not transitive, so the foundation must never derive it (any derivation, transitive or otherwise, is forbidden — it is assertion-only). Discharged by syntactic reachability over the counterpart rule heads (no rule head produces the predicate). Guards the coreference slice (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/counterpartOf"^^xsd:anyURI ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability ;
+    logic:obligationDischargeVerdict logic:ObligationDischarged .
+
+# ── Closed value class: the eleven formalization categories ──────────────────────
+
+logic:FormalizationCategory
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Formalization Category"@x-gmeow-english ;
+    skos:definition "The closed eleven-member value class of the logic:candidateCategory facet: the kind of force a prose constraint was meant to carry. Its individuals are logic:CategoryEquivalenceDefinition, logic:CategoryNecessaryCondition, logic:CategorySufficientCondition, logic:CategoryIntegrityConstraint, logic:CategoryDerivationRule, logic:CategoryDefeasibleDefault, logic:CategoryTypicality, logic:CategoryRecommendation, logic:CategoryNonEntailmentObligation, logic:CategoryDeliberateOverlap and logic:CategoryDocumentationOnly. The set is closed and atomic (Principle 9: necessary and sufficient are two categories, not one), so a misspelt label names no declared category and is rejected rather than silently accepted (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:CategoryEquivalenceDefinition
+    a owl:NamedIndividual ,
+        logic:FormalizationCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Equivalence Definition"@x-gmeow-english ;
+    skos:definition "The logic:FormalizationCategory for prose stating the necessary-and-sufficient identity of a term — a definitional equivalence. Wire value `equivalence-definition`."@x-gmeow-english .
+
+logic:CategoryNecessaryCondition
+    a owl:NamedIndividual ,
+        logic:FormalizationCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Necessary Condition"@x-gmeow-english ;
+    skos:definition "The logic:FormalizationCategory for prose stating a one-directional necessary condition (the term implies the condition). Wire value `necessary-condition`."@x-gmeow-english .
+
+logic:CategorySufficientCondition
+    a owl:NamedIndividual ,
+        logic:FormalizationCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Sufficient Condition"@x-gmeow-english ;
+    skos:definition "The logic:FormalizationCategory for prose stating a one-directional sufficient condition (the condition implies the term). Wire value `sufficient-condition`."@x-gmeow-english .
+
+logic:CategoryIntegrityConstraint
+    a owl:NamedIndividual ,
+        logic:FormalizationCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Integrity Constraint"@x-gmeow-english ;
+    skos:definition "The logic:FormalizationCategory for an integrity condition whose violation is a finding, not a derivation — a CBox constraint rather than a productive rule. Wire value `integrity-constraint`."@x-gmeow-english .
+
+logic:CategoryDerivationRule
+    a owl:NamedIndividual ,
+        logic:FormalizationCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Derivation Rule"@x-gmeow-english ;
+    skos:definition "The logic:FormalizationCategory for a productive rule whose head is entailed — content that adds to the reasoned closure. Wire value `derivation-rule`."@x-gmeow-english .
+
+logic:CategoryDefeasibleDefault
+    a owl:NamedIndividual ,
+        logic:FormalizationCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Defeasible Default"@x-gmeow-english ;
+    skos:definition "The logic:FormalizationCategory for defeasible content a more specific fact may override — default-logic force, distinct from plain typicality. Wire value `defeasible-default`."@x-gmeow-english .
+
+logic:CategoryTypicality
+    a owl:NamedIndividual ,
+        logic:FormalizationCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Typicality"@x-gmeow-english ;
+    skos:definition "The logic:FormalizationCategory for generic, what-normally-holds content — kept distinct from logic:CategoryDefeasibleDefault, whose force is override rather than genericity. Wire value `typicality`."@x-gmeow-english .
+
+logic:CategoryRecommendation
+    a owl:NamedIndividual ,
+        logic:FormalizationCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Recommendation"@x-gmeow-english ;
+    skos:definition "The logic:FormalizationCategory for advisory content that is never enforced — guidance carried but not reasoned over. Wire value `recommendation`."@x-gmeow-english .
+
+logic:CategoryNonEntailmentObligation
+    a owl:NamedIndividual ,
+        logic:FormalizationCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Non-Entailment Obligation"@x-gmeow-english ;
+    skos:definition "The logic:FormalizationCategory for a deliberate non-assertion — prose recording a conclusion the foundation must never draw, realized as a logic:NonEntailmentObligation. Wire value `non-entailment-obligation`."@x-gmeow-english .
+
+logic:CategoryDeliberateOverlap
+    a owl:NamedIndividual ,
+        logic:FormalizationCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Deliberate Overlap"@x-gmeow-english ;
+    skos:definition "The logic:FormalizationCategory for a mereological sharing fact deliberately admitted — an intended overlap rather than an accidental one. Wire value `deliberate-overlap`."@x-gmeow-english .
+
+logic:CategoryDocumentationOnly
+    a owl:NamedIndividual ,
+        logic:FormalizationCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Documentation Only"@x-gmeow-english ;
+    skos:definition "The logic:FormalizationCategory for explanatory prose that is NOT to be formalized at all — the category that records a deliberate decision to leave content unaxiomatized. Wire value `documentation-only`."@x-gmeow-english .
+
+# ── Closed value class: the candidate lifecycle states ───────────────────────────
+
+logic:CandidateLifecycleState
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Candidate Lifecycle State"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:candidateLifecycle facet: the four-state machine a logic:FormalizationCandidate moves through. Its individuals are logic:CandidateProposed (entry; every extraction lands here), logic:CandidateUnderReview, logic:CandidateAccepted (canonical, axiom-bearing) and logic:CandidateRejected. logic:CandidateAccepted is reachable only through logic:CandidateUnderReview with a recorded logic:reviewedBy decision, never directly. The set is closed, so a misspelt state names no declared value and is rejected (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:CandidateProposed
+    a owl:NamedIndividual ,
+        logic:CandidateLifecycleState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Proposed"@x-gmeow-english ;
+    skos:definition "The lifecycle entry state: a candidate freshly extracted and not yet reviewed. An LLM extraction ALWAYS enters here; it carries no canonical force. Wire value `proposed`."@x-gmeow-english .
+
+logic:CandidateUnderReview
+    a owl:NamedIndividual ,
+        logic:CandidateLifecycleState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Under Review"@x-gmeow-english ;
+    skos:definition "The lifecycle state of a candidate a reviewer is actively adjudicating — the mandatory waypoint between logic:CandidateProposed and logic:CandidateAccepted. Wire value `under-review`."@x-gmeow-english .
+
+logic:CandidateAccepted
+    a owl:NamedIndividual ,
+        logic:CandidateLifecycleState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Accepted"@x-gmeow-english ;
+    skos:definition "The canonical, axiom-bearing lifecycle state: a candidate a reviewer has promoted, reachable only through logic:CandidateUnderReview with a recorded logic:reviewedBy decision. A candidate asserted as accepted without that review is a checked governance violation, not a soft warning. Wire value `accepted`."@x-gmeow-english .
+
+logic:CandidateRejected
+    a owl:NamedIndividual ,
+        logic:CandidateLifecycleState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rejected"@x-gmeow-english ;
+    skos:definition "The terminal lifecycle state for a candidate review declined to formalize — recorded rather than deleted, so the decision (and its negative case) is auditable. Wire value `rejected`."@x-gmeow-english .
+
+# ── Closed value class: the five discharge conditions ────────────────────────────
+
+logic:DischargeCondition
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Discharge Condition"@x-gmeow-english ;
+    skos:definition "The closed five-member value class of the logic:obligationDischargeCondition facet: the condition under which a logic:NonEntailmentObligation's absence-of-proof is conclusively checkable. Its individuals are logic:DischargeCertifiedFragment, logic:DischargeFiniteClosure, logic:DischargeSyntacticReachability, logic:DischargeConservativeExtension and logic:DischargeBoundedCorpus. The foundation engine wires logic:DischargeSyntacticReachability and logic:DischargeFiniteClosure; the other three are named but not yet engine-backed, so an obligation declaring one of them is a hard error rather than a silent pass. The set is closed, so a misspelt condition names no declared value and is rejected (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DischargeCertifiedFragment
+    a owl:NamedIndividual ,
+        logic:DischargeCondition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Certified Fragment"@x-gmeow-english ;
+    skos:definition "The discharge condition holding when the check runs within a certified complete fragment (e.g. a Datalog stratum or EL profile over which the chase terminates and is complete). Named in the closed set but not yet engine-backed. Wire value `certified-fragment`."@x-gmeow-english .
+
+logic:DischargeFiniteClosure
+    a owl:NamedIndividual ,
+        logic:DischargeCondition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finite Closure"@x-gmeow-english ;
+    skos:definition "The discharge condition holding when a finite materialized derivation graph is available and complete: the obligation is discharged by checking the forbidden predicate is absent from that closure. Engine-backed (the foundation chase over an adversarial fixture). Wire value `finite-closure`."@x-gmeow-english .
+
+logic:DischargeSyntacticReachability
+    a owl:NamedIndividual ,
+        logic:DischargeCondition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Syntactic Reachability"@x-gmeow-english ;
+    skos:definition "The discharge condition holding when a syntactic dependency/reachability analysis over the rule heads shows the forbidden predicate is unreachable — no rule head unifies with it, directly or through any chain of rule applications. Engine-backed (reachability over the foundation rule strata). Wire value `syntactic-reachability`."@x-gmeow-english .
+
+logic:DischargeConservativeExtension
+    a owl:NamedIndividual ,
+        logic:DischargeCondition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Conservative Extension"@x-gmeow-english ;
+    skos:definition "The discharge condition holding when a conservative-extension proof establishes the added axioms cannot introduce the forbidden conclusion. Named in the closed set but not yet engine-backed. Wire value `conservative-extension`."@x-gmeow-english .
+
+logic:DischargeBoundedCorpus
+    a owl:NamedIndividual ,
+        logic:DischargeCondition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Bounded Corpus"@x-gmeow-english ;
+    skos:definition "The discharge condition holding when the obligation is explicitly bounded to a declared corpus or mutation-test space and exhaustive checking within that bound is complete. Named in the closed set but not yet engine-backed. Wire value `bounded-corpus`."@x-gmeow-english .
+
+# ── Closed value class: the discharge verdict ────────────────────────────────────
+
+logic:DischargeVerdict
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Discharge Verdict"@x-gmeow-english ;
+    skos:definition "The closed three-value class of the logic:obligationDischargeVerdict facet: the result an obligation check returns. Its individuals are logic:ObligationDischarged, logic:ObligationUnknown (carried forward, never 'proved absent') and logic:ObligationViolated. The set is closed, so a misspelt verdict names no declared value and is rejected (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ObligationDischarged
+    a owl:NamedIndividual ,
+        logic:DischargeVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Discharged"@x-gmeow-english ;
+    skos:definition "The discharge verdict for an obligation conclusively checked within its declared logic:DischargeCondition: the forbidden conclusion is provably not drawn within the stated fragment or bound. Wire value `discharged`."@x-gmeow-english .
+
+logic:ObligationUnknown
+    a owl:NamedIndividual ,
+        logic:DischargeVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unknown"@x-gmeow-english ;
+    skos:definition "The discharge verdict outside any wired discharge condition: not 'proved absent' but not-yet-discharged, carried forward to the next evaluation cycle or stronger fragment. The honest verdict the semi-decidable canonical logic demands. Wire value `unknown`."@x-gmeow-english .
+
+logic:ObligationViolated
+    a owl:NamedIndividual ,
+        logic:DischargeVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Violated"@x-gmeow-english ;
+    skos:definition "The discharge verdict when the forbidden predicate IS reachable or present in the closure: the obligation is broken and the check is a hard error. Wire value `violated`."@x-gmeow-english .
+
+# ── Closed value class: the semantic-risk class ──────────────────────────────────
+
+logic:SemanticRiskClass
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Semantic Risk Class"@x-gmeow-english ;
+    skos:definition "The closed value class of the logic:candidateSemanticRisk facet: how far a wrong formalization of a candidate would propagate, which makes the reviewer gate proportionate. Its individuals are logic:RiskCoreContaminating, logic:RiskProjectionOnly and logic:RiskAdvisory. The set is closed, so a misspelt class names no declared value and is rejected (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RiskCoreContaminating
+    a owl:NamedIndividual ,
+        logic:SemanticRiskClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Core Contaminating"@x-gmeow-english ;
+    skos:definition "The semantic-risk class for a candidate whose wrong formalization would corrupt the reasoned core — the highest risk, demanding the strictest review. Wire value `core-contaminating`."@x-gmeow-english .
+
+logic:RiskProjectionOnly
+    a owl:NamedIndividual ,
+        logic:SemanticRiskClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Projection Only"@x-gmeow-english ;
+    skos:definition "The semantic-risk class for a candidate whose blast radius is confined to a lossy projection surface, leaving the reasoned core intact. Wire value `projection-only`."@x-gmeow-english .
+
+logic:RiskAdvisory
+    a owl:NamedIndividual ,
+        logic:SemanticRiskClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Advisory"@x-gmeow-english ;
+    skos:definition "The semantic-risk class for a candidate with no entailment consequence at all — advisory content, the lightest review. Wire value `advisory`."@x-gmeow-english .
+
+# ── Candidate carrier properties (RBox) ──────────────────────────────────────────
+
+logic:candidateSourceHash
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate source hash"@x-gmeow-english ;
+    skos:definition "The content hash of the source text a logic:FormalizationCandidate was extracted from: the anchor that ties the candidate back to the exact prose it formalizes and detects drift if that prose changes. Single-valued, xsd:string. Domain logic:FormalizationCandidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateExtractionProvenance
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate extraction provenance"@x-gmeow-english ;
+    skos:definition "The provenance of a candidate's extraction — what produced it (an extractor identifier, run, or model invocation reference). Records that an automated extraction is exactly that, so it enters at logic:CandidateProposed and earns no canonical force without review. Single-valued, xsd:string. Domain logic:FormalizationCandidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateScope
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate scope"@x-gmeow-english ;
+    skos:definition "The intended scope of a candidate's axiom — the terms, slice, or context it is meant to constrain. Read together with logic:candidateContract (the reasoning semantics it is interpreted under). Single-valued, xsd:string. Domain logic:FormalizationCandidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateContract
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range logic:ReasoningContract ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate contract"@x-gmeow-english ;
+    skos:definition "Relates a logic:FormalizationCandidate to the logic:ReasoningContract (ME1) its proposed axiom would be interpreted under — the semantics that make 'sound' meaningful for it. Single-valued. Domain logic:FormalizationCandidate, range logic:ReasoningContract."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateCategory
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range logic:FormalizationCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate category"@x-gmeow-english ;
+    skos:definition "Relates a logic:FormalizationCandidate to the logic:FormalizationCategory recording what kind of force its prose carried. Single-valued and REQUIRED: a candidate with no category resolving to the closed set is a hard governance error, never silently bucketed. Domain logic:FormalizationCandidate, range logic:FormalizationCategory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateLifecycle
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range logic:CandidateLifecycleState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate lifecycle"@x-gmeow-english ;
+    skos:definition "Relates a logic:FormalizationCandidate to its current logic:CandidateLifecycleState. Single-valued. logic:CandidateAccepted is the canonical state and is legitimate only with a recorded logic:reviewedBy decision. Domain logic:FormalizationCandidate, range logic:CandidateLifecycleState."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:reviewedBy
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reviewed by"@x-gmeow-english ;
+    skos:definition "Relates a logic:FormalizationCandidate to the reviewer decision that promoted it — a provenance/agent individual recording who reviewed it and when (range stated in prose, a reviewer provenance node, so the keystone gate is machine-auditable rather than trusting a free literal). Its presence is what a logic:CandidateAccepted candidate is checked against. Single-valued. Domain logic:FormalizationCandidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidatePositiveCase
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate positive case"@x-gmeow-english ;
+    skos:definition "Relates a logic:FormalizationCandidate to a positive competency case its proposed axiom must satisfy — a gmeow:CompetencyQuestion whose expected answer the axiom should produce (range gmeow:CompetencyQuestion, stated in prose). Domain logic:FormalizationCandidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateNegativeCase
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate negative case"@x-gmeow-english ;
+    skos:definition "Relates a logic:FormalizationCandidate to a negative case or countermodel — a gmeow:CompetencyQuestion the axiom must NOT satisfy, recording the boundary the formalization must respect (range gmeow:CompetencyQuestion, stated in prose). Domain logic:FormalizationCandidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateNonEntailment
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range logic:NonEntailmentObligation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate non-entailment"@x-gmeow-english ;
+    skos:definition "Relates a logic:FormalizationCandidate to a logic:NonEntailmentObligation its axiom is required to respect — the forbidden conclusion the formalization must not let the engine draw. Domain logic:FormalizationCandidate, range logic:NonEntailmentObligation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateProjectionBehavior
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range logic:PreservationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate projection behavior"@x-gmeow-english ;
+    skos:definition "Relates a logic:FormalizationCandidate to the logic:PreservationKind its axiom would carry under projection — how faithfully it survives down-projection to OWL/Datalog/SHACL. Reuses the loss-ledger preservation polarity rather than minting a parallel note. Single-valued. Domain logic:FormalizationCandidate, range logic:PreservationKind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateSemanticRisk
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range logic:SemanticRiskClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate semantic risk"@x-gmeow-english ;
+    skos:definition "Relates a logic:FormalizationCandidate to its logic:SemanticRiskClass — how far a wrong formalization would propagate, which sets how strict the reviewer gate must be. Single-valued. Domain logic:FormalizationCandidate, range logic:SemanticRiskClass."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# ── Obligation carrier properties (RBox) ─────────────────────────────────────────
+
+logic:obligationForbiddenPredicate
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:NonEntailmentObligation ;
+    rdfs:range xsd:anyURI ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "obligation forbidden predicate"@x-gmeow-english ;
+    skos:definition "The IRI of the predicate a logic:NonEntailmentObligation forbids the closure from ever containing (and forbids any rule head from producing). The check reads this IRI, then either proves it unreachable over the rule strata (logic:DischargeSyntacticReachability) or absent from the materialized closure (logic:DischargeFiniteClosure). Single-valued, xsd:anyURI. Domain logic:NonEntailmentObligation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:obligationDischargeCondition
+    a owl:ObjectProperty ;
+    rdfs:domain logic:NonEntailmentObligation ;
+    rdfs:range logic:DischargeCondition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "obligation discharge condition"@x-gmeow-english ;
+    skos:definition "Relates a logic:NonEntailmentObligation to the logic:DischargeCondition under which its absence-of-proof is conclusively checkable. An obligation declaring a condition the engine does not wire (anything other than logic:DischargeSyntacticReachability or logic:DischargeFiniteClosure) is a hard error, never a silent pass. Domain logic:NonEntailmentObligation, range logic:DischargeCondition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:obligationDischargeVerdict
+    a owl:ObjectProperty ;
+    rdfs:domain logic:NonEntailmentObligation ;
+    rdfs:range logic:DischargeVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "obligation discharge verdict"@x-gmeow-english ;
+    skos:definition "Relates a logic:NonEntailmentObligation to the logic:DischargeVerdict the check returned — logic:ObligationDischarged, logic:ObligationUnknown or logic:ObligationViolated. Computed by the engine, not asserted by hand. Domain logic:NonEntailmentObligation, range logic:DischargeVerdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .
 

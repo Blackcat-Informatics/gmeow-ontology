@@ -1,0 +1,14 @@
+# Non-entailment obligation (Arm B — finite closure): counterpart must not become
+# transitive. gmeow:counterpartOf is symmetric but deliberately NOT transitive, so
+# the reasoned closure must never contain a third edge A→C alongside a chain A→B→C
+# with three distinct nodes. Any returned row is a violation (LOGIC-FOUNDATION.md,
+# §Typed formalization governance).
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?a ?b ?c WHERE {
+    ?a gmeow:counterpartOf ?b .
+    ?b gmeow:counterpartOf ?c .
+    ?a gmeow:counterpartOf ?c .
+    FILTER(?a != ?b && ?b != ?c && ?a != ?c)
+}
+ORDER BY ?a ?b ?c
