@@ -342,7 +342,10 @@ fn cache_hard_fails_on_corruption() {
     c.put("key1", &StageProduct::new("s", "abc123")).unwrap();
 
     // Corrupt the blob: append a byte so its re-hash no longer matches the index.
-    let blobs = cdir.join("blobs");
+    // The on-disk store lives under the version-segmented `v<CACHE_VERSION>` leaf.
+    let blobs = cdir
+        .join(format!("v{}", crate::cache::CACHE_VERSION))
+        .join("blobs");
     for entry in std::fs::read_dir(&blobs).unwrap() {
         let path = entry.unwrap().path();
         let mut bytes = std::fs::read(&path).unwrap();
