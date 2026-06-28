@@ -1,0 +1,7 @@
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ex:     <http://ex/>
+PREFIX gmeow:  <https://blackcatinformatics.ca/gmeow/>
+ASK {
+  ?r rdf:reifies <<( ?s ?p ?o )>> .
+  FILTER( gmeow:heldIn(?r, ex:commonSense) )
+}

@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Standpoint-poset data for the gmeow:heldIn EXTEND case. The claim `ex:claim`
+# reifies `<< ex:earth ex:shape ex:sphere >>` from the vantage of the sharper
+# frame `ex:geodesy`, which DIRECTLY sharpens (is more specific than) the broader
+# frame `ex:commonSense` (the materialized poset edge the engine reads — it does
+# NOT compute transitive closure). So a claim held in `ex:geodesy` counts as held
+# in `ex:commonSense`. No incumbent SPARQL engine can express this poset-aware
+# "held-in-a-broader-frame" relation.
+@prefix ex:     <http://ex/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+
+ex:claim rdf:reifies <<( ex:earth ex:shape ex:sphere )>> ;
+         gmeow:accordingTo ex:geodesy .
+
+ex:geodesy gmeow:sharpens ex:commonSense .

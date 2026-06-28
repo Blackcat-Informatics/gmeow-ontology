@@ -668,6 +668,12 @@ fn fmt_function_name(s: &mut String, f: &Function) {
         Function::Predicate => "PREDICATE",
         Function::Object => "OBJECT",
         Function::IsTriple => "isTRIPLE",
+        Function::Gmeow(g) => {
+            // Emit the full canonical gmeow IRI so a re-parse re-dispatches to the same
+            // GmeowFn (the parser recognizes any IRI under GMEOW_NS in call position).
+            let _ = write!(s, "<{}{}>", crate::GMEOW_NS, g.local_name());
+            return;
+        }
         Function::Custom(n) => {
             let _ = write!(s, "<{}>", n.as_str());
             return;
@@ -740,9 +746,10 @@ mod tests {
 
     /// Parse a full query and return its root pattern.
     fn pattern_of(query: &str) -> GraphPattern {
-        const GM: &str = "PREFIX gmeow: <https://gmeow.ai/ontology#>\n";
+        let gm = format!("PREFIX gmeow: <{}>\n", crate::GMEOW_NS);
+        let gm = gm.as_str();
         match SparqlParser::new()
-            .parse_query(&format!("{GM}{query}"))
+            .parse_query(&format!("{gm}{query}"))
             .unwrap_or_else(|e| panic!("parse `{query}`: {e:?}"))
         {
             Query::Select { pattern, .. } => pattern,

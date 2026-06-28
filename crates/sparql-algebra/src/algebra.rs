@@ -813,8 +813,48 @@ pub enum Function {
     Object,
     /// `isTRIPLE(t)` — RDF 1.2 triple-term test.
     IsTriple,
-    /// A custom function identified by IRI.
+    /// A gmeow extension function (a CLOSED, exhaustive seam, dispatched at parse
+    /// time from an IRI under the canonical gmeow namespace). See [`GmeowFn`].
+    Gmeow(GmeowFn),
+    /// A custom function identified by an arbitrary (non-gmeow) IRI.
     Custom(NamedNode),
+}
+
+/// The CLOSED set of gmeow SPARQL extension functions.
+///
+/// Recognized at PARSE time from an IRI under the canonical gmeow namespace
+/// (`{GMEOW_NS}{local-name}`, see [`crate::GMEOW_NS`]). The set is exhaustive: an
+/// IRI under the gmeow namespace whose local-name is not one of these in call
+/// position is a hard parse error, never a [`Function::Custom`]. This keeps the
+/// gmeow function surface a small, fully-enumerated contract rather than an open
+/// custom-IRI escape hatch.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum GmeowFn {
+    /// `gmeow:heldIn(reifier, standpoint) -> xsd:boolean` — direct (already-reasoned)
+    /// standpoint-membership: true iff the reified statement `reifier` is held in
+    /// `standpoint` (its vantage standpoint equals, or sharpens, the queried one).
+    HeldIn,
+}
+
+impl GmeowFn {
+    /// The gmeow vocabulary local-name (the suffix after [`crate::GMEOW_NS`]) for this
+    /// function — used by both the parser (to recognize) and the serializer (to emit).
+    #[must_use]
+    pub const fn local_name(self) -> &'static str {
+        match self {
+            GmeowFn::HeldIn => "heldIn",
+        }
+    }
+
+    /// Map a gmeow vocabulary local-name to its [`GmeowFn`], or `None` if it is not a
+    /// recognized gmeow extension function. The inverse of [`GmeowFn::local_name`].
+    #[must_use]
+    pub fn from_local_name(name: &str) -> Option<Self> {
+        match name {
+            "heldIn" => Some(GmeowFn::HeldIn),
+            _ => None,
+        }
+    }
 }
 
 /// A single `ORDER BY` sort key.
