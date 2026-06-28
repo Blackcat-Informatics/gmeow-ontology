@@ -287,6 +287,15 @@ lowering carries the singleton polarity set `{exact}` with an empty unsupported-
 the polarity set and the unsupported-set (or the full structured claim they reference) to see exactly
 which formulas the target did not evaluate.
 
+This is the contract the full-FOL formula evaluation honours. When a program's `logic:Formula` layer is
+evaluated, the Horn-expressible fragment lowers exactly and runs in the chase, while any formula that
+exceeds it (a disjunctive head, an existential needing a Skolem function, a sequence-marker or
+non-binary predication) is carried as an unsupported construct: the result then holds the
+`under-approximation` polarity (`sound-under`) — never a false `{exact}` — and the unsupported-set names
+the residue by its closed `logic:FormulaShape` tag. Crucially, a non-evaluable formula contributes
+**nothing** to the answer rather than being approximated by one disjunct or one witness: the consumer
+sees a flagged residue, not a fabricated consequence.
+
 **`information` — a four-valued (Belnap/FDE) information state about the queried proposition, plus two
 explicit non-results.** It records what the *model's evidence* says — *when the evaluation was
 conclusive and there were semantics to say anything at all*:

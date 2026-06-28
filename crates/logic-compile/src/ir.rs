@@ -1562,6 +1562,413 @@ impl Correspondence {
 }
 
 // --------------------------------------------------------------------------- //
+// Full first-order formula AST (the typed full-FOL core)
+// --------------------------------------------------------------------------- //
+
+/// A first-order **term**: the leaf of the [`Formula`] AST.
+///
+/// Closed by construction — there is **no predicate-variable variant**, which is
+/// precisely what keeps the object level first-order (`design/LOGIC-IR.md` §"What the
+/// IR is"): a relation or type quantified over is reified to its HiLog individual
+/// (`logic:instanceOf` / `logic:orderedType` / `logic:Type`) and appears here as
+/// [`Term::Iri`], never as a higher-typed slot.  Variables carry their **authored**
+/// name (no `?` sigil — that is a surface convention); the canonical key replaces the
+/// name with a binder-relative token so alpha-equivalent formulas share identity.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Term {
+    /// A bound or free variable (authored name, no `?` sigil).
+    Var(String),
+    /// An IRI constant — an individual, or a reified relation/type (HiLog).
+    Iri(String),
+    /// A data literal: lexical form plus an optional datatype IRI (`None` = a plain
+    /// literal). An empty `lexical` is a legal RDF literal; a `Some("")` datatype is not.
+    Literal {
+        /// The literal's lexical form.
+        lexical: String,
+        /// The datatype IRI, or `None` for a plain literal.
+        datatype: Option<String>,
+    },
+    /// A sequence marker (Common Logic `...x`): a variadic placeholder that binds a
+    /// **sequence** of terms, not a single term. A distinct variant so the AST cannot
+    /// confuse a single-term variable with a sequence one.
+    SequenceMarker(String),
+}
+
+impl Term {
+    /// A variable term, rejecting an empty/whitespace-only name (a blank name collides
+    /// with absence and breaks the alpha-normalized key's determinism).
+    pub fn var(name: impl Into<String>) -> Result<Self, String> {
+        let name = name.into();
+        if name.trim().is_empty() {
+            return Err("Term::Var name must be non-empty".to_owned());
+        }
+        Ok(Self::Var(name))
+    }
+
+    /// An IRI term, rejecting an empty/whitespace-only IRI.
+    pub fn iri(iri: impl Into<String>) -> Result<Self, String> {
+        let iri = iri.into();
+        if iri.trim().is_empty() {
+            return Err("Term::Iri must be a non-empty IRI string".to_owned());
+        }
+        Ok(Self::Iri(iri))
+    }
+
+    /// A literal term. The lexical form may be empty (a legal RDF literal); a present
+    /// datatype must be a non-empty IRI (`Some("")` would collide with `None`).
+    pub fn literal(lexical: impl Into<String>, datatype: Option<String>) -> Result<Self, String> {
+        if let Some(dt) = &datatype {
+            if dt.trim().is_empty() {
+                return Err(
+                    "Term::Literal datatype must be a non-empty IRI when present; pass None"
+                        .to_owned(),
+                );
+            }
+        }
+        Ok(Self::Literal {
+            lexical: lexical.into(),
+            datatype,
+        })
+    }
+
+    /// A sequence-marker term, rejecting an empty/whitespace-only name.
+    pub fn sequence_marker(name: impl Into<String>) -> Result<Self, String> {
+        let name = name.into();
+        if name.trim().is_empty() {
+            return Err("Term::SequenceMarker name must be non-empty".to_owned());
+        }
+        Ok(Self::SequenceMarker(name))
+    }
+
+    /// `true` for a marker that binds a sequence rather than a single term.
+    fn is_sequence_marker(&self) -> bool {
+        matches!(self, Self::SequenceMarker(_))
+    }
+
+    /// The canonical key fragment for this term under a binding environment `env`
+    /// (innermost binder last). A `Var`/`SequenceMarker` whose name is bound resolves
+    /// to its binder-relative token; a free one resolves to a stable `free_<name>`.
+    /// The leading tag letter keeps the four term kinds from ever colliding (so a
+    /// variable and a sequence marker of the same name are distinct).
+    fn key_in(&self, env: &[(String, String)]) -> String {
+        match self {
+            Self::Var(n) => format!("V{SEP}{}", resolve_binding(env, n)),
+            Self::Iri(i) => format!("I{SEP}{i}"),
+            Self::Literal { lexical, datatype } => {
+                format!("L{SEP}{lexical}{SEP}{}", datatype.as_deref().unwrap_or(""))
+            }
+            Self::SequenceMarker(n) => format!("S{SEP}{}", resolve_binding(env, n)),
+        }
+    }
+}
+
+/// Resolve a variable/marker name against the binding environment (innermost first).
+/// Bound names map to their binder-relative token; a free name maps to `free_<name>`
+/// (free variables are part of meaning and are never renamed).
+fn resolve_binding(env: &[(String, String)], name: &str) -> String {
+    for (authored, token) in env.iter().rev() {
+        if authored == name {
+            return token.clone();
+        }
+    }
+    format!("free_{name}")
+}
+
+/// A first-order **formula** — the full-FOL core the IR's spec promises
+/// (`design/LOGIC-IR.md`). Horn+NAF (today's [`LogicAxiom`] / [`LogicRule`]) is a
+/// recognized **sub-fragment** carried unchanged in [`LogicProgram::axioms`] /
+/// [`LogicProgram::rules`]; this enum carries the formulas that exceed that fragment.
+///
+/// Canonical identity is computed by [`Formula::content_key`], which performs a single
+/// env-aware normalizing walk: bound variables are alpha-renamed to binder-relative
+/// tokens (so equal-up-to-renaming formulas share a key), commutative connectives
+/// (`And`/`Or`/`Iff`) are flattened and order-normalized, and `Implies` order is kept.
+/// The stored structure is intentionally **not** mutated at construction — a
+/// sub-formula's canonical operand order can depend on an outer binder not yet known
+/// when it is built, so normalization belongs in the key, not the data.
+///
+/// Identity always flows through [`Formula::content_key`], never through derived
+/// `PartialEq` (which is structural, not alpha/order-aware) — exactly as the rest of the
+/// IR uses `sort_key`/`content_key` as the authority. A binary [`Formula::Atom`] *is* a
+/// Horn triple, so there is no separate triple leaf: the Horn sub-fragment lives in
+/// [`LogicProgram::axioms`] / [`LogicProgram::rules`], and a trivially-Horn atom may not
+/// enter [`LogicProgram::formulas`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Formula {
+    /// An atomic predication `relation(arg₀, …, argₙ)`. `relation` is a [`Term::Iri`]
+    /// (the reified relation / HiLog individual — the constructor rejects a
+    /// `Var`/`Literal`/`SequenceMarker` in relation position, enforcing first-orderness);
+    /// `args` is variadic and MAY contain a [`Term::SequenceMarker`], which is how the
+    /// fixed arity-3 atom is generalized.
+    Atom {
+        /// The reified relation (always an [`Term::Iri`]).
+        relation: Term,
+        /// The (variadic) argument terms.
+        args: Vec<Term>,
+    },
+    /// Strong / explicit negation `¬φ` — **distinct** from negation-as-failure
+    /// ([`LogicAxiom::negated`]); the two are never conflated.
+    Not(Box<Formula>),
+    /// Conjunction `φ₁ ∧ … ∧ φₙ` (variadic, n ≥ 2). Commutative + associative
+    /// (flattened and order-normalized in the key).
+    And(Vec<Formula>),
+    /// Disjunction `φ₁ ∨ … ∨ φₙ` (variadic, n ≥ 2). Commutative + associative.
+    Or(Vec<Formula>),
+    /// Material implication `φ → ψ` (ordered, non-commutative).
+    Implies(Box<Formula>, Box<Formula>),
+    /// Biconditional `φ ↔ ψ` (commutative — the pair is order-normalized in the key).
+    Iff(Box<Formula>, Box<Formula>),
+    /// Universal quantification `∀ vars . φ`. Multi-variable block order is significant
+    /// (alpha-equivalence is renaming, not prefix permutation); nested binders normalize
+    /// via binder depth.
+    Forall {
+        /// The bound variable names (authored).
+        vars: Vec<String>,
+        /// The quantified body.
+        body: Box<Formula>,
+    },
+    /// Existential quantification `∃ vars . φ`. Skolem/witness identity is scoped at the
+    /// evaluable-lowering layer; the AST only pins the binder and body.
+    Exists {
+        /// The bound variable names (authored).
+        vars: Vec<String>,
+        /// The quantified body.
+        body: Box<Formula>,
+    },
+}
+
+/// The closed set of first-order shape tags a Horn-fragment projection target discloses
+/// when it cannot carry a `logic:Formula`. Each tag names a construct that pushes the
+/// formula beyond the binary Horn+NAF fragment, so the loss ledger states *which* construct
+/// was carried-and-flagged rather than emitting one opaque free-text note (free text makes
+/// the goldens fragile). The string form ([`FormulaShape::as_str`]) is the byte-stable
+/// ledger token; it mirrors the `logic:FormulaShape` individuals in `module.ttl`
+/// (`formula_shape_values_match_module_ttl` pins the two in sync). Variants are declared in
+/// `as_str`-lexical order so the derived `Ord` is the canonical ledger order.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum FormulaShape {
+    /// A disjunction `∨` appears — a choice the determinate Horn body cannot express.
+    Disjunctive,
+    /// The formula is a connective/quantifier tree, not a flat predication.
+    Nested,
+    /// A quantifier `∀`/`∃` appears (nested or alternating beyond the implicit universal
+    /// closure of a Horn rule).
+    Quantified,
+    /// Strong/explicit negation `¬` appears — distinct from negation-as-failure.
+    StrongNegation,
+    /// A predication whose arity is not the binary Horn shape: it carries a sequence marker
+    /// or a non-binary (unary / n≥3) argument list — the generalization beyond fixed arity.
+    Variadic,
+}
+
+impl FormulaShape {
+    /// Every shape tag, in canonical (`as_str`-lexical) order.
+    pub const ALL: [FormulaShape; 5] = [
+        FormulaShape::Disjunctive,
+        FormulaShape::Nested,
+        FormulaShape::Quantified,
+        FormulaShape::StrongNegation,
+        FormulaShape::Variadic,
+    ];
+
+    /// The byte-stable ledger token, equal to the local name of the mirroring
+    /// `logic:FormulaShape` individual in `module.ttl`.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            FormulaShape::Disjunctive => "Disjunctive",
+            FormulaShape::Nested => "Nested",
+            FormulaShape::Quantified => "Quantified",
+            FormulaShape::StrongNegation => "StrongNegation",
+            FormulaShape::Variadic => "Variadic",
+        }
+    }
+
+    /// Parse a shape tag from its `module.ttl` local name; `None` if unrecognized.
+    pub fn from_local(s: &str) -> Option<Self> {
+        FormulaShape::ALL.into_iter().find(|k| k.as_str() == s)
+    }
+}
+
+impl Formula {
+    /// An atomic predication, enforcing first-orderness: `relation` MUST be a
+    /// [`Term::Iri`] (a reified relation / HiLog individual), never a variable, literal,
+    /// or sequence marker.
+    pub fn atom(relation: Term, args: Vec<Term>) -> Result<Self, String> {
+        if !matches!(relation, Term::Iri(_)) {
+            return Err(
+                "Formula::Atom relation must be a Term::Iri (the reified relation / HiLog \
+                 individual); a predicate variable would break first-orderness"
+                    .to_owned(),
+            );
+        }
+        Ok(Self::Atom { relation, args })
+    }
+
+    /// `true` when this formula is a *trivially-Horn* leaf that belongs in
+    /// [`LogicProgram::axioms`], not [`LogicProgram::formulas`]: a [`Formula::Atom`] that
+    /// is exactly a binary predication (an IRI relation with two non-sequence-marker
+    /// args) — i.e. an ordinary triple. Such a node has a Horn home and must not enter the
+    /// formula collection, where it would give one fact two distinct content keys.
+    fn is_trivially_horn(&self) -> bool {
+        match self {
+            Self::Atom { relation, args } => {
+                matches!(relation, Term::Iri(_))
+                    && args.len() == 2
+                    && !args.iter().any(Term::is_sequence_marker)
+            }
+            _ => false,
+        }
+    }
+
+    /// The closed [`FormulaShape`] tags this formula exhibits, ordered and deduped — the
+    /// residue classification a Horn-fragment target discloses, never free text. **Total**:
+    /// every formula admitted into [`LogicProgram::formulas`] is non-trivially-Horn, so the
+    /// result is non-empty (a bare predication there is variadic or non-binary → `Variadic`;
+    /// any connective/quantifier is at least `Nested`).
+    pub fn shape_tags(&self) -> Vec<FormulaShape> {
+        let mut set = std::collections::BTreeSet::new();
+        self.collect_shapes(&mut set);
+        set.into_iter().collect()
+    }
+
+    fn collect_shapes(&self, out: &mut std::collections::BTreeSet<FormulaShape>) {
+        match self {
+            Self::Atom { args, .. } => {
+                // A binary, marker-free atom is trivially-Horn and never reaches `formulas`;
+                // anything else is a variadic / non-binary predication.
+                if args.len() != 2 || args.iter().any(Term::is_sequence_marker) {
+                    out.insert(FormulaShape::Variadic);
+                }
+            }
+            Self::Not(b) => {
+                out.insert(FormulaShape::StrongNegation);
+                out.insert(FormulaShape::Nested);
+                b.collect_shapes(out);
+            }
+            Self::And(fs) => {
+                out.insert(FormulaShape::Nested);
+                fs.iter().for_each(|f| f.collect_shapes(out));
+            }
+            Self::Or(fs) => {
+                out.insert(FormulaShape::Disjunctive);
+                out.insert(FormulaShape::Nested);
+                fs.iter().for_each(|f| f.collect_shapes(out));
+            }
+            Self::Implies(a, b) | Self::Iff(a, b) => {
+                out.insert(FormulaShape::Nested);
+                a.collect_shapes(out);
+                b.collect_shapes(out);
+            }
+            Self::Forall { body, .. } | Self::Exists { body, .. } => {
+                out.insert(FormulaShape::Quantified);
+                out.insert(FormulaShape::Nested);
+                body.collect_shapes(out);
+            }
+        }
+    }
+
+    /// Alpha- and order-normalized content key — a pure function of the formula's
+    /// *meaning* up to bound-variable renaming and commutative reordering. Two formulas
+    /// equal up to those share this key; everything else (including free-variable
+    /// renaming and `Implies` operand order) is preserved.
+    pub fn content_key(&self) -> String {
+        let mut env: Vec<(String, String)> = Vec::new();
+        self.key_in(&mut env, 0)
+    }
+
+    /// Canonical sort key for ordering the [`LogicProgram::formulas`] collection. A
+    /// formula has no separate identity field, so the full content key *is* the sort key
+    /// (order-independent and alpha-stable).
+    pub fn sort_key(&self) -> String {
+        self.content_key()
+    }
+
+    /// The normalizing walk. `env` maps an authored bound name to its binder-relative
+    /// token (innermost binder last); `depth` is the number of enclosing quantifier
+    /// blocks (used to build de-Bruijn-style tokens `q{depth}_{i}`).
+    fn key_in(&self, env: &mut Vec<(String, String)>, depth: usize) -> String {
+        match self {
+            Self::Atom { relation, args } => {
+                let r = relation.key_in(env);
+                let a = args
+                    .iter()
+                    .map(|t| t.key_in(env))
+                    .collect::<Vec<_>>()
+                    .join(",");
+                format!("ATOM{SEP}{r}{SEP}({a})")
+            }
+            Self::Not(f) => format!("NOT{SEP}{}", f.key_in(env, depth)),
+            Self::And(fs) => commutative_key("AND", fs, env, depth),
+            Self::Or(fs) => commutative_key("OR", fs, env, depth),
+            Self::Implies(a, b) => {
+                format!(
+                    "IMPL{SEP}{}{SEP}{}",
+                    a.key_in(env, depth),
+                    b.key_in(env, depth)
+                )
+            }
+            Self::Iff(a, b) => {
+                let mut pair = [a.key_in(env, depth), b.key_in(env, depth)];
+                pair.sort();
+                format!("IFF{SEP}{}{SEP}{}", pair[0], pair[1])
+            }
+            Self::Forall { vars, body } => binder_key("ALL", vars, body, env, depth),
+            Self::Exists { vars, body } => binder_key("EX", vars, body, env, depth),
+        }
+    }
+}
+
+/// Key a flattened, order-normalized commutative connective (`And`/`Or`). Same-tag
+/// children are flattened (`And[And[a,b],c]` ≡ `And[a,b,c]`), each operand keyed at the
+/// same depth (these connectives bind nothing), then sorted so operand order is immaterial.
+fn commutative_key(
+    tag: &str,
+    fs: &[Formula],
+    env: &mut Vec<(String, String)>,
+    depth: usize,
+) -> String {
+    let mut operands: Vec<&Formula> = Vec::new();
+    flatten_commutative(tag, fs, &mut operands);
+    let mut keys = operands
+        .iter()
+        .map(|f| f.key_in(env, depth))
+        .collect::<Vec<_>>();
+    keys.sort();
+    format!("{tag}{SEP}({})", keys.join(","))
+}
+
+/// Collect the operands of a commutative connective, flattening nested same-tag nodes.
+fn flatten_commutative<'a>(tag: &str, fs: &'a [Formula], out: &mut Vec<&'a Formula>) {
+    for f in fs {
+        match (tag, f) {
+            ("AND", Formula::And(inner)) => flatten_commutative(tag, inner, out),
+            ("OR", Formula::Or(inner)) => flatten_commutative(tag, inner, out),
+            _ => out.push(f),
+        }
+    }
+}
+
+/// Key a quantifier binder. Each bound variable gets a binder-relative token
+/// `q{depth}_{i}` (block order significant); the body is keyed at `depth + 1` with the
+/// new bindings pushed, then they are popped. The variable count is folded in so a
+/// vacuous binder still alters identity.
+fn binder_key(
+    tag: &str,
+    vars: &[String],
+    body: &Formula,
+    env: &mut Vec<(String, String)>,
+    depth: usize,
+) -> String {
+    let base = env.len();
+    for (i, v) in vars.iter().enumerate() {
+        env.push((v.clone(), format!("q{depth}_{i}")));
+    }
+    let body_key = body.key_in(env, depth + 1);
+    env.truncate(base);
+    format!("{tag}{SEP}[{}]{SEP}{body_key}", vars.len())
+}
+
+// --------------------------------------------------------------------------- //
 // Top-level container
 // --------------------------------------------------------------------------- //
 
@@ -1586,6 +1993,12 @@ pub struct LogicProgram {
     /// Attached via [`LogicProgram::with_correspondences`]; empty for the
     /// historical correspondence-free corpus, so the canonical key is unchanged there.
     pub correspondences: Vec<Correspondence>,
+    /// Full first-order [`Formula`] nodes that exceed the Horn+NAF sub-fragment, in
+    /// canonical (sort-key) order. Attached via [`LogicProgram::with_formulas`]; empty
+    /// for the historical Horn-only corpus, so the canonical key is byte-unchanged there.
+    /// Horn+NAF stays in [`Self::axioms`] / [`Self::rules`] — a trivially-Horn leaf may
+    /// not enter here.
+    pub formulas: Vec<Formula>,
     /// IRI of the source graph/document (optional provenance).
     pub source_iri: Option<String>,
 }
@@ -1611,6 +2024,7 @@ impl LogicProgram {
             contracts,
             path_shapes: Vec::new(),
             correspondences: Vec::new(),
+            formulas: Vec::new(),
             source_iri,
         }
     }
@@ -1634,6 +2048,30 @@ impl LogicProgram {
         let mut correspondences = correspondences;
         correspondences.sort_by(|a, b| a.iri.cmp(&b.iri));
         self.correspondences = correspondences;
+        self
+    }
+
+    /// Attach the program's full-FOL [`Formula`] nodes, canonicalizing them into sorted
+    /// order. Kept separate from [`Self::new`] so existing call sites are untouched and
+    /// the byte-pinned canonical key of a formula-free (Horn-only) program is unchanged
+    /// (the formulas segment is append-only when present).
+    ///
+    /// **Hard-fails** if a top-level formula is *trivially Horn* (a bare triple or binary
+    /// atom): such a fact has a home in [`Self::axioms`], and admitting it here would give
+    /// one fact two distinct content-addressed identities (a content-addressing
+    /// split-brain). The frontend never emits one; this guard makes the invariant a check.
+    pub fn with_formulas(mut self, formulas: Vec<Formula>) -> Self {
+        for f in &formulas {
+            assert!(
+                !f.is_trivially_horn(),
+                "LogicProgram.formulas may not hold a trivially-Horn leaf (a bare triple or \
+                 binary atom); it belongs in LogicProgram.axioms — key={}",
+                f.content_key()
+            );
+        }
+        let mut formulas = formulas;
+        formulas.sort_by_cached_key(Formula::sort_key);
+        self.formulas = formulas;
         self
     }
 
@@ -1685,6 +2123,18 @@ impl LogicProgram {
                 .join("\n");
             key.push_str("\nCORRESPONDENCES\n");
             key.push_str(&corr);
+        }
+        // Append-only at the FIXED position after CORRESPONDENCES (frozen once committed):
+        // a formula-free (Horn-only) program keeps its exact historical key.
+        if !self.formulas.is_empty() {
+            let forms = self
+                .formulas
+                .iter()
+                .map(Formula::content_key)
+                .collect::<Vec<_>>()
+                .join("\n");
+            key.push_str("\nFORMULAS\n");
+            key.push_str(&forms);
         }
         key
     }

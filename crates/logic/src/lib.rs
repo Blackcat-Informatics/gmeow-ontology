@@ -38,6 +38,7 @@ pub mod provenance;
 pub mod query_ir;
 pub mod reason;
 pub mod reference_resolver;
+pub mod relational_core;
 pub mod result;
 /// The typed `logic:ResultShape` lives in the Nemo-free `gmeow-logic-compile`
 /// crate (alongside `LOGIC_NAMESPACE`/`PreservationKind`) so pure-data consumers

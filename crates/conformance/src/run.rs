@@ -182,7 +182,17 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     }
 
     let arts = compile_program(&program).map_err(|e| prefix(format!("compile failed: {e}")))?;
-    let nemo_rules = arts.nemo_rules.clone();
+    // The program's Horn rules, plus the relational-core lowering of its full-FOL formulas
+    // so the Horn-expressible formula fragment evaluates in the SAME chase. A formula-free
+    // program appends nothing, so every existing case is byte-identical; the non-Horn
+    // residue is disclosed by the lowering's preservation claim, never silently materialized.
+    let mut nemo_rules = arts.nemo_rules.clone();
+    let (formula_rls, formula_preservation) =
+        gmeow_logic::relational_core::formula_eval_rls(&program);
+    if !formula_rls.trim().is_empty() {
+        nemo_rules.push('\n');
+        nemo_rules.push_str(&formula_rls);
+    }
 
     // ── Static certification against the declared profile ────────────────────
     let verdict = gmeow_logic::certify::certify(&nemo_rules, &profile.semantic_profile)
@@ -191,13 +201,28 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
 
     // ── Materialization (+ explanations) ─────────────────────────────────────
     let input_nq = read_optional(case_dir, "input.nq")?;
-    let (quads, budget_status, incomplete, mat_preservation) = if profile.foundation_lowering {
+    let (quads, budget_status, incomplete, mut mat_preservation) = if profile.foundation_lowering {
         materialize_foundation(&case_id, &input_nq, &profile)?
     } else if profile.teleology_lowering {
         materialize_teleology(&case_id, &input_nq, &profile)?
     } else {
         materialize_default(&case_id, &nemo_rules, &input_nq, &profile)?
     };
+    // Carry the full-FOL formula residue into the runtime preservation claim (maximal
+    // information flow): a non-Horn formula that did not lower to an evaluable rule is
+    // disclosed here as a SoundUnder construct, never silently absent. A clean (fully
+    // Horn-expressible or formula-free) program adds nothing, so the golden is unchanged.
+    if !formula_preservation.unsupported_constructs.is_empty() {
+        mat_preservation
+            .unsupported_constructs
+            .extend(formula_preservation.unsupported_constructs.iter().cloned());
+        mat_preservation
+            .polarities
+            .remove(&gmeow_logic_compile::ir::PreservationKind::Exact);
+        mat_preservation
+            .polarities
+            .insert(gmeow_logic_compile::ir::PreservationKind::SoundUnder);
+    }
     let explanations = run_explanations(&case_id, &quads)?;
 
     // ── N-Quads serialization + downstream artifacts ─────────────────────────

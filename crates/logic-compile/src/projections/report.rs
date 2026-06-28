@@ -63,6 +63,9 @@ pub struct ReportHeader {
     pub rule_count: usize,
     /// `logic:profileCount` — the number of reasoning contracts (profiles).
     pub profile_count: usize,
+    /// `logic:formulaCount` — the number of full-FOL formulas (the non-Horn layer).
+    /// Emitted only when non-zero, so a formula-free report is byte-unchanged.
+    pub formula_count: usize,
 }
 
 impl ReportHeader {
@@ -72,6 +75,7 @@ impl ReportHeader {
             axiom_count: program.axioms.len(),
             rule_count: program.rules.len(),
             profile_count: program.contracts.len(),
+            formula_count: program.formulas.len(),
         }
     }
 }
@@ -126,6 +130,13 @@ pub fn build_projection_report_from(
         &logic("profileCount"),
         int_literal(header.profile_count),
     );
+    if header.formula_count > 0 {
+        g.add_lit(
+            &report_iri,
+            &logic("formulaCount"),
+            int_literal(header.formula_count),
+        );
+    }
 
     // Targets in sorted order (the Python `sorted(projections, key=target)`).
     let mut sorted: Vec<&ProjectionResult> = projections.iter().collect();

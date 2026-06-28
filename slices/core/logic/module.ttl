@@ -5018,6 +5018,232 @@ logic:SerializationAnomaly
     skos:definition "A HISTORY-LEVEL finding: a pattern of conflicting operations, read-from edges, and happens-before arcs in a transaction history that admits no equivalent serial execution under the declared policy. Lost updates, write skew, and read/write anomalies are findings of this kind. It is DISTINCT from a contradiction witness (logic:contradictionWitness, which asserts ⊥ within a single state) and must NOT be modelled as one: the final state after a non-serializable schedule may be perfectly logically consistent while the schedule still has no equivalent serial execution, so a serialization anomaly is a property of the history, never a logical contradiction inside a state. It is surfaced as a finding with its dependency cycle or violated isolation level described; a non-serializable schedule is never silently linearized."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# ── The full first-order formula AST surface (TBox + RBox) ────────────────────
+# The reified vocabulary the typed full-FOL formula core serializes into: a
+# logic:Formula tree of quantifiers (logic:forall / logic:exists), connectives
+# (logic:and / logic:or / logic:not / logic:antecedent+logic:consequent /
+# logic:iff), and atomic predications (logic:relation over ordered term-carrier
+# arguments). Horn+NAF rules remain the recognized sub-fragment carried by
+# logic:Rule; this surface carries the formulas that exceed it. Relations are
+# reified as logic:Type individuals (the HiLog reflection — see logic:instanceOf
+# / logic:orderedType / logic:Type), so the object level stays first-order: there
+# is no predicate-variable term.
+
+logic:Formula
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Formula"@x-gmeow-english ;
+    skos:definition "A first-order formula node: the reified AST node a non-Horn logic: statement compiles into. A logic:Formula is a quantifier (carrying logic:forall or logic:exists over a body and one or more logic:quantifiedVariable bindings), a connective (logic:and, logic:or, logic:not, logic:antecedent with logic:consequent, or logic:iff over sub-formulae), or an atomic predication (logic:relation over ordered logic:argument terms). It is the unified full-FOL core of which Horn+NAF derivation rules are a recognized sub-fragment; the canonical RDF 1.2 serialization round-trips it losslessly, while weaker projections carry any formula they cannot express as flagged unsupported residue."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:SequenceMarker
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Sequence Marker"@x-gmeow-english ;
+    skos:definition "A variadic argument placeholder (the Common Logic '…x' form) that binds a sequence of terms rather than a single term, generalizing the fixed arity-three atom to predications of any arity. A term-carrier argument whose value is a logic:termSequenceMarker denotes one; keeping it a distinct kind stops a single-term variable from being mistaken for a sequence one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:hasFormula
+    a owl:ObjectProperty ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has formula"@x-gmeow-english ;
+    skos:definition "Relates a program or container to a top-level logic:Formula it asserts. Top-level formulae are reached by this property; sub-formulae are reached by the connective and quantifier properties, so a formula referenced as another's component is not also a top-level assertion."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:forall
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "for all"@x-gmeow-english ;
+    skos:definition "Relates a universal-quantifier logic:Formula to its body formula. The bound variables are carried by logic:quantifiedVariable; their block order is significant. Universal quantification ranges over individuals in the domain of discourse (the object level stays first-order)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:exists
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "exists"@x-gmeow-english ;
+    skos:definition "Relates an existential-quantifier logic:Formula to its body formula. The bound variables are carried by logic:quantifiedVariable. Existential witnesses are Skolemized only at the evaluable-lowering layer; the AST node pins the binder and body, not the witness identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:and
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "and"@x-gmeow-english ;
+    skos:definition "Relates a conjunction logic:Formula to each of its operand sub-formulae (multi-valued, two or more). Conjunction is commutative and associative, so the canonical identity flattens nested conjunctions and is insensitive to operand order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:or
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "or"@x-gmeow-english ;
+    skos:definition "Relates a disjunction logic:Formula to each of its operand sub-formulae (multi-valued, two or more). Disjunction is commutative and associative, so the canonical identity flattens nested disjunctions and is insensitive to operand order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:not
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "not"@x-gmeow-english ;
+    skos:definition "Relates a strong-negation logic:Formula to its single negated sub-formula. This is explicit (classical) negation and is kept distinct from negation-as-failure, which is a body-literal flag on a derivation rule (logic:negatedBody): the two are never conflated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:antecedent
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "antecedent"@x-gmeow-english ;
+    skos:definition "Relates a material-implication logic:Formula to its antecedent (the hypothesis). Paired with logic:consequent; the two name the implication's operands explicitly so the ordered, non-commutative reading never depends on serialization order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:consequent
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "consequent"@x-gmeow-english ;
+    skos:definition "Relates a material-implication logic:Formula to its consequent (the conclusion). Paired with logic:antecedent; their presence marks the node as an implication, distinct from the commutative logic:iff."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:iff
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "if and only if"@x-gmeow-english ;
+    skos:definition "Relates a biconditional logic:Formula to each of its two operand sub-formulae. The biconditional is commutative, so the canonical identity is insensitive to which operand is which — unlike the ordered logic:antecedent / logic:consequent of an implication."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:relation
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:range logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "relation"@x-gmeow-english ;
+    skos:definition "Relates an atomic-predication logic:Formula to the relation it predicates, over its ordered logic:argument terms. The relation is reified as a logic:Type individual per the HiLog reflection (see logic:instanceOf and logic:orderedType): predicating over a reified relation individual keeps the object level first-order rather than admitting a predicate variable, so no separate relation or predicate class is minted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:argument
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "argument"@x-gmeow-english ;
+    skos:definition "Relates an atomic-predication logic:Formula to one of its argument term-carriers. Each carrier fixes its position with logic:termIndex and its value with exactly one term-value property (logic:termIri, logic:termVariable, logic:termLiteral, or logic:termSequenceMarker), so a variadic argument list — including sequence markers — round-trips with its order and term kinds intact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:quantifiedVariable
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "quantified variable"@x-gmeow-english ;
+    skos:definition "Relates a quantifier logic:Formula to one of its bound-variable term-carriers. Each carrier fixes its position in the binder block with logic:termIndex and its name with logic:termVariable; block order is significant, because bound-variable renaming preserves meaning but reordering a quantifier prefix does not."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termIri
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term IRI"@x-gmeow-english ;
+    skos:definition "Carries an IRI-constant term value on an argument term-carrier: the argument is an individual (or a reified relation or type) named by this IRI. One of the four mutually exclusive term-value properties; exactly one is present on each carrier."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termIndex
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term index"@x-gmeow-english ;
+    skos:definition "The zero-based ordinal of a term-carrier within its ordered list — an argument within an atomic predication, or a bound variable within a quantifier block. Fixing position explicitly makes the variadic, order-significant lists round-trip independent of RDF statement order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termVariable
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term variable"@x-gmeow-english ;
+    skos:definition "Carries a variable term value (the authored variable name, without a sigil) on a term-carrier: a single-term variable, bound by an enclosing quantifier or free. One of the four mutually exclusive term-value properties."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termLiteral
+    a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term literal"@x-gmeow-english ;
+    skos:definition "Carries a data-literal term value (its lexical form) on an argument term-carrier; the term's datatype rides on the companion logic:termLiteralDatatype. One of the four mutually exclusive term-value properties."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termLiteralDatatype
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:range rdfs:Datatype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term literal datatype"@x-gmeow-english ;
+    skos:definition "Carries the datatype IRI of a literal term value on an argument term-carrier that also bears logic:termLiteral. Absent for a plain literal. Held separately from the literal so the typed-literal term round-trips losslessly regardless of how an intermediate reader handles literal datatypes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termSequenceMarker
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term sequence marker"@x-gmeow-english ;
+    skos:definition "Carries a sequence-marker term value (the authored marker name) on an argument term-carrier: the argument is a logic:SequenceMarker binding a sequence of terms rather than a single one. One of the four mutually exclusive term-value properties."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# ── The full-FOL residue shape vocabulary (loss-ledger disclosure) ────────────
+# The closed value set a Horn-fragment projection target discloses when it cannot
+# carry a logic:Formula: each tag names which first-order construct exceeds the
+# Horn+NAF fragment, so the loss ledger states the kind of residue carried-and-
+# flagged in the canonical logic: layer rather than emitting an opaque note.
+
+logic:FormulaShape
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Formula Shape"@x-gmeow-english ;
+    skos:definition "The closed class of first-order shape tags a Horn-fragment projection target discloses when it cannot represent a logic:Formula. Each individual names one construct that pushes a formula beyond the binary Horn+NAF fragment, so the loss ledger records which constructs were carried-and-flagged in the canonical logic: layer instead of one opaque note. The set is closed — its individuals are logic:Disjunctive, logic:Nested, logic:Quantified, logic:StrongNegation, and logic:Variadic — so a misspelt tag names no declared value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Disjunctive
+    a owl:NamedIndividual ,
+        logic:FormulaShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Disjunctive"@x-gmeow-english ;
+    skos:definition "The residue shape tag for a formula in which a disjunction (logic:or) appears — a choice the single determinate body of a Horn rule cannot express. Disclosed when a Horn-fragment target carries such a formula as flagged unsupported residue."@x-gmeow-english .
+
+logic:Nested
+    a owl:NamedIndividual ,
+        logic:FormulaShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Nested"@x-gmeow-english ;
+    skos:definition "The residue shape tag for a formula that is a connective or quantifier tree rather than a flat predication — it carries logical structure (logic:and, logic:or, logic:not, an implication, logic:iff, or a quantifier) that the flat body of a Horn rule cannot hold. Disclosed when a Horn-fragment target carries such a formula as flagged unsupported residue."@x-gmeow-english .
+
+logic:Quantified
+    a owl:NamedIndividual ,
+        logic:FormulaShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Quantified"@x-gmeow-english ;
+    skos:definition "The residue shape tag for a formula in which an explicit quantifier (logic:forall or logic:exists) appears — quantification nested or alternating beyond the implicit universal closure of a Horn rule. Disclosed when a Horn-fragment target carries such a formula as flagged unsupported residue."@x-gmeow-english .
+
+logic:StrongNegation
+    a owl:NamedIndividual ,
+        logic:FormulaShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Strong Negation"@x-gmeow-english ;
+    skos:definition "The residue shape tag for a formula in which strong (explicit, classical) negation (logic:not) appears — distinct from negation-as-failure, which a Horn rule body already carries. Disclosed when a Horn-fragment target carries such a formula as flagged unsupported residue."@x-gmeow-english .
+
+logic:Variadic
+    a owl:NamedIndividual ,
+        logic:FormulaShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Variadic"@x-gmeow-english ;
+    skos:definition "The residue shape tag for an atomic predication whose argument arity is not the binary Horn shape: it carries a logic:SequenceMarker or a non-binary (unary or n-ary) argument list — the generalization beyond the fixed arity-three triple. Disclosed when a Horn-fragment target carries such a formula as flagged unsupported residue."@x-gmeow-english .
+
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .
 

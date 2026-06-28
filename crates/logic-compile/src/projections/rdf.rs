@@ -11,7 +11,7 @@
 
 use gmeow_rdf::{serialize_dataset, RdfDatasetBuilder, RdfLiteral, SerializeGraph};
 
-use super::super::ir::{LogicModality, LogicProgram};
+use super::super::ir::{Formula, LogicModality, LogicProgram, Term};
 use super::{
     assert_no_overclaim, contract_drop_notes, generated_banner, is_modal_or_scoped, target_meta,
     OverclaimError, ProjectionResult, GMEOW_NS, LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS, RDF_TYPE,
@@ -685,7 +685,117 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         }
     }
 
+    // Full first-order formulas (the typed full-FOL core beyond the Horn fragment).
+    // ExactPreservation: every formula is emitted in full as a reified logic:Formula
+    // tree, so nothing is dropped and the canonical target stays lossless.
+    for (idx, formula) in program.formulas.iter().enumerate() {
+        let f_node = format!("{LOGIC_NS}formula/_{:06}", idx + 1);
+        g.add_iri(
+            &format!("{GMEOW_NS}logic/gmeow.logic.rdf12"),
+            &logic("hasFormula"),
+            &f_node,
+        );
+        emit_formula(&mut g, &f_node, formula);
+    }
+
     rdf_result("canonical-rdf12", g, "Canonical RDF 1.2", Vec::new())
+}
+
+/// Emit a [`Formula`] as a reified `logic:Formula` tree rooted at `node`. Deterministic
+/// minted child IRIs (path segment + zero-padded index) make the serialization stable;
+/// commutative connectives sort their operands by content key so emission order does not
+/// depend on the stored vector order.
+fn emit_formula(g: &mut TripleSink, node: &str, formula: &Formula) {
+    g.add_iri(node, RDF_TYPE, &logic("Formula"));
+    match formula {
+        Formula::Atom { relation, args } => {
+            if let Term::Iri(iri) = relation {
+                g.add_iri(node, &logic("relation"), iri);
+            }
+            for (i, arg) in args.iter().enumerate() {
+                let arg_node = format!("{node}/arg/{i:04}");
+                g.add_iri(node, &logic("argument"), &arg_node);
+                emit_term_index(g, &arg_node, i);
+                emit_term_value(g, &arg_node, arg);
+            }
+        }
+        Formula::Not(f) => {
+            let child = format!("{node}/not");
+            g.add_iri(node, &logic("not"), &child);
+            emit_formula(g, &child, f);
+        }
+        Formula::And(fs) => emit_operands(g, node, "and", fs),
+        Formula::Or(fs) => emit_operands(g, node, "or", fs),
+        Formula::Iff(a, b) => {
+            let operands = [(**a).clone(), (**b).clone()];
+            emit_operands(g, node, "iff", &operands);
+        }
+        Formula::Implies(a, b) => {
+            let an = format!("{node}/antecedent");
+            let cn = format!("{node}/consequent");
+            g.add_iri(node, &logic("antecedent"), &an);
+            emit_formula(g, &an, a);
+            g.add_iri(node, &logic("consequent"), &cn);
+            emit_formula(g, &cn, b);
+        }
+        Formula::Forall { vars, body } => emit_quantifier(g, node, "forall", vars, body),
+        Formula::Exists { vars, body } => emit_quantifier(g, node, "exists", vars, body),
+    }
+}
+
+/// Emit the operands of a commutative connective (`and`/`or`/`iff`), sorted by content
+/// key so the minted child IRIs are a deterministic function of the operand SET.
+fn emit_operands(g: &mut TripleSink, node: &str, link: &str, operands: &[Formula]) {
+    let mut indexed: Vec<&Formula> = operands.iter().collect();
+    indexed.sort_by_cached_key(|f| f.content_key());
+    for (i, f) in indexed.iter().enumerate() {
+        let child = format!("{node}/{link}/{i:04}");
+        g.add_iri(node, &logic(link), &child);
+        emit_formula(g, &child, f);
+    }
+}
+
+/// Emit a quantifier node: its body plus an ordered list of bound-variable carriers.
+fn emit_quantifier(g: &mut TripleSink, node: &str, link: &str, vars: &[String], body: &Formula) {
+    let body_node = format!("{node}/body");
+    g.add_iri(node, &logic(link), &body_node);
+    emit_formula(g, &body_node, body);
+    for (i, v) in vars.iter().enumerate() {
+        let var_node = format!("{node}/var/{i:04}");
+        g.add_iri(node, &logic("quantifiedVariable"), &var_node);
+        emit_term_index(g, &var_node, i);
+        g.add_lit(&var_node, &logic("termVariable"), RdfLiteral::simple(v));
+    }
+}
+
+/// Emit the zero-based `logic:termIndex` ordinal on a term-carrier node.
+fn emit_term_index(g: &mut TripleSink, node: &str, index: usize) {
+    g.add_lit(
+        node,
+        &logic("termIndex"),
+        RdfLiteral::typed(index.to_string(), format!("{XSD_NS}nonNegativeInteger")),
+    );
+}
+
+/// Emit the single term-value property of a term-carrier node, by term kind.
+fn emit_term_value(g: &mut TripleSink, node: &str, term: &Term) {
+    match term {
+        Term::Iri(iri) => g.add_iri(node, &logic("termIri"), iri),
+        Term::Var(name) => g.add_lit(node, &logic("termVariable"), RdfLiteral::simple(name)),
+        Term::Literal { lexical, datatype } => {
+            // The lexical rides on logic:termLiteral; the datatype IRI rides on a separate
+            // logic:termLiteralDatatype triple, because the front-end's literal reader
+            // keeps only a literal's lexical form. This keeps the typed-literal round-trip
+            // lossless without reaching into the byte-pinned rule-term parser.
+            g.add_lit(node, &logic("termLiteral"), RdfLiteral::simple(lexical));
+            if let Some(dt) = datatype {
+                g.add_iri(node, &logic("termLiteralDatatype"), dt);
+            }
+        }
+        Term::SequenceMarker(name) => {
+            g.add_lit(node, &logic("termSequenceMarker"), RdfLiteral::simple(name))
+        }
+    }
 }
 
 /// Project a single [`ReasoningContract`] losslessly as DIRECT facet properties.
