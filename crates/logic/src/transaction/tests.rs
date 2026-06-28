@@ -452,6 +452,12 @@ fn materializes_success_outcome_with_path() {
     assert!(
         quads
             .iter()
+            .any(|q| q.predicate.ends_with("executedAlongPath")),
+        "outcome links to its logic:Path"
+    );
+    assert!(
+        quads
+            .iter()
             .any(|q| q.predicate.ends_with("situationObtains")
                 && q.object == format!("<{W}#sit_lft>"))
     );
@@ -500,7 +506,9 @@ fn materializes_failure_outcome_leaves_start_untouched() {
         "no substrate on failure"
     );
     assert!(
-        !quads.iter().any(|q| q.predicate.ends_with("executedAlong")),
+        !quads
+            .iter()
+            .any(|q| q.predicate.ends_with("executedAlongPath")),
         "no path link on failure"
     );
 }
