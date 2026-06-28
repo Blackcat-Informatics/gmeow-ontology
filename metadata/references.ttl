@@ -1691,13 +1691,6 @@
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/src/gmeow_tools/config.py> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/3b48eb1a67db740d> .
 
-<https://blackcatinformatics.ca/gmeow/references/citation/3b7121d5568aea21> a gmeow:CitationAct ;
-    rdfs:label "tests/test_languages.py"@en ;
-    gmeow:citationIntent gmeow:intentBridgedByReference ;
-    gmeow:citedEntity xsd:language ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/tests/test_languages.py> ;
-    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/3b7121d5568aea21> .
-
 <https://blackcatinformatics.ca/gmeow/references/citation/3bae741e72debb82> a gmeow:CitationAct ;
     rdfs:label "tests/test_alignments.py"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
@@ -9035,9 +9028,6 @@ foaf:homepage a gmeow:CreativeWork ;
 <https://blackcatinformatics.ca/gmeow/references/selector/3b48eb1a67db740d> a gmeow:Selector ;
     gmeow:selectorLocator "src/gmeow_tools/config.py:285" .
 
-<https://blackcatinformatics.ca/gmeow/references/selector/3b7121d5568aea21> a gmeow:Selector ;
-    gmeow:selectorLocator "tests/test_languages.py:388" .
-
 <https://blackcatinformatics.ca/gmeow/references/selector/3bae741e72debb82> a gmeow:Selector ;
     gmeow:selectorLocator "tests/test_alignments.py:65" .
 
@@ -11525,10 +11515,6 @@ repo:CITATION.cff a gmeow:CreativeWork ;
 <https://blackcatinformatics.ca/gmeow/repo/tests/test_gts_views.py> a gmeow:CreativeWork ;
     rdfs:label "tests/test_gts_views.py"@en ;
     gmeow:sourceLocation "tests/test_gts_views.py" .
-
-<https://blackcatinformatics.ca/gmeow/repo/tests/test_languages.py> a gmeow:CreativeWork ;
-    rdfs:label "tests/test_languages.py"@en ;
-    gmeow:sourceLocation "tests/test_languages.py" .
 
 <https://blackcatinformatics.ca/gmeow/repo/tests/test_notes.py> a gmeow:CreativeWork ;
     rdfs:label "tests/test_notes.py"@en ;

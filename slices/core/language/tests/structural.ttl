@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the language slice (Tier-B
-# closeout). The repo-level test_languages.py is projection/tag/catalog data
-# checks (KEEP), not TBox structure; these cells pin the slice's asserted-TBox
-# spine fresh (MAXIMAL coverage, dogfooding). Each runs as a SPARQL ASK over the
-# module graph (gmeow:scopeModule).
+# Declarative structural assertions for the language slice. These cells pin the
+# slice's asserted-TBox spine — the subClassOf hierarchy, property characteristics,
+# and domain/range invariants of the language vocabulary (MAXIMAL coverage,
+# dogfooding). Each runs as a SPARQL ASK over the module graph (gmeow:scopeModule).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/language/tests/> .

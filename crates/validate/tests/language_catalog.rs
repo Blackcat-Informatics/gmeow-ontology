@@ -1,12 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native replacement for the reference-catalog data-audit tests (Category B).
+//! Reference-catalog data audits.
 //!
 //! These integration tests assert the *shape and coverage* of the GMEOW language
-//! reference catalog (`imports/languages-reference.ttl`) — the same facts the
-//! Python `tests/test_languages.py` Category-B cases assert against the merged
-//! rdflib graph:
+//! reference catalog (`imports/languages-reference.ttl`):
 //!
 //!   - every catalog natural language carries `rdfs:label`, `skos:definition`,
 //!     `gmeow:languageTag`, `gmeow:bcp47Tag`, `gmeow:languageCode`, and a
@@ -23,10 +21,8 @@
 //! The pure `load_tag_map` / `load_inverse_tag_map` / `retag_graph_to_internal`
 //! *logic* is exercised by inline unit tests in
 //! `crates/validate/src/language_tags.rs`; here we only assert CATALOG COVERAGE.
-//!
-//! Authority note: the Python cases are the spec. Where a count/comparison appears
-//! below it mirrors the Python's exact operator and threshold (set-equality for the
-//! ISO 639-1 sweep; presence checks for the per-language annotations).
+//! The ISO 639-1 sweep is a set-equality against the complete code set; the
+//! per-language checks assert the presence of each required annotation.
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -48,7 +44,6 @@ const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
 
 /// The complete ISO 639-1 two-letter code set (184 entries, stable since 2000).
-/// Mirrors `EXPECTED_ISO639_1_CODES` in `tests/test_languages.py`.
 const EXPECTED_ISO639_1_CODES: &[&str] = &[
     "aa", "ab", "ae", "af", "ak", "am", "an", "ar", "as", "av", "ay", "az", "ba", "be", "bg", "bi",
     "bm", "bn", "bo", "br", "bs", "ca", "ce", "ch", "co", "cr", "cs", "cu", "cv", "cy", "da", "de",

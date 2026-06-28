@@ -1464,12 +1464,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.w3.org/2001/XMLSchema#language",
-    "id": "language-3b7121d5",
-    "title": "www.w3.org/2001/XMLSchema",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.w3.org/2001/XMLSchema#string",
     "id": "string-24ea0d6e",
     "title": "www.w3.org/2001/XMLSchema",
