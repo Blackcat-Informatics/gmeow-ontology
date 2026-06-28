@@ -43,8 +43,8 @@ use super::graphutil::{
     RDF_TYPE,
 };
 use super::ir::{
-    ComplexityClass, ContextualScope, LogicAxiom, LogicModality, LogicProgram, LogicRule, PathBase,
-    PathShapeIr, ReasoningContract, SemanticProfileId, LOGIC_NAMESPACE,
+    ComplexityClass, ContextualScope, Formula, LogicAxiom, LogicModality, LogicProgram, LogicRule,
+    PathBase, PathShapeIr, ReasoningContract, SemanticProfileId, Term, LOGIC_NAMESPACE,
 };
 
 fn logic_iri(local: &str) -> String {
@@ -199,6 +199,35 @@ fn is_facet_config_predicate(prop_local: &str) -> bool {
         )
 }
 
+/// The reserved `logic:` predicate-local names that build the full-FOL formula AST
+/// (#719).  Like the rule-structural predicates, these are consumed by
+/// [`extract_formulas`] to reconstruct [`Formula`] trees and must NOT leak into
+/// `prog.axioms` (where they would pollute the Datalog / N3 / ledger projections and
+/// break the canonical round-trip).
+fn is_formula_structural_predicate(prop_local: &str) -> bool {
+    matches!(
+        prop_local,
+        "hasFormula"
+            | "relation"
+            | "argument"
+            | "and"
+            | "or"
+            | "not"
+            | "antecedent"
+            | "consequent"
+            | "iff"
+            | "forall"
+            | "exists"
+            | "quantifiedVariable"
+            | "termIndex"
+            | "termIri"
+            | "termVariable"
+            | "termLiteral"
+            | "termLiteralDatatype"
+            | "termSequenceMarker"
+    )
+}
+
 /// Collect the IRIs / blank-node ids of every subject typed
 /// `logic:ReasoningContract`, `logic:ReasoningPreset`, OR `logic:ClosureEntry`.
 /// These are the meta-configuration nodes whose facet-config triples must be kept
@@ -236,6 +265,11 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         if is_facet_config_predicate(p_local)
             && config_subjects.contains(&subject_str(&quad.subject))
         {
+            continue;
+        }
+        // Formula-AST structural triples are consumed by extract_formulas; they are
+        // never domain facts (#719).
+        if is_formula_structural_predicate(p_local) {
             continue;
         }
         match LogicAxiom::new(
@@ -1008,6 +1042,183 @@ fn extract_path_shapes(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) ->
 // Public API
 // --------------------------------------------------------------------------- //
 
+// --------------------------------------------------------------------------- //
+// Full first-order formula extraction (#719; absent logic:Formula → empty list)
+// --------------------------------------------------------------------------- //
+
+/// The sub-formula link predicates: a `logic:Formula` reached through any of these is a
+/// COMPONENT of another formula, so it is not a top-level assertion (`logic:hasFormula`).
+const FORMULA_SUBLINKS: [&str; 8] = [
+    "not",
+    "and",
+    "or",
+    "antecedent",
+    "consequent",
+    "iff",
+    "forall",
+    "exists",
+];
+
+/// Read top-level `logic:Formula` trees into [`Formula`]s.  Fail-soft, like the rest of
+/// the front-end: a malformed node emits a `MALFORMED_FORMULA` warning and is skipped,
+/// never silently dropped.  A trivially-Horn predication is never a top-level formula by
+/// construction of the projection, so the `with_formulas` invariant is not tripped.
+fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<Formula> {
+    let formula_ty = Node::iri(logic_iri("Formula"));
+    let subjects = subjects_with(store, &nn(RDF_TYPE), &formula_ty);
+
+    // A formula reached by a sub-formula link is a component, not a top-level node.
+    let mut referenced: HashSet<String> = HashSet::new();
+    for subj in &subjects {
+        for link in FORMULA_SUBLINKS {
+            for obj in objects(store, subj, &nn(&logic_iri(link))) {
+                referenced.insert(term_str(&obj));
+            }
+        }
+    }
+
+    let mut formulas: Vec<Formula> = Vec::new();
+    for subj in &subjects {
+        if referenced.contains(&subject_str(subj)) {
+            continue;
+        }
+        match parse_formula(store, subj) {
+            Some(f) => formulas.push(f),
+            None => diagnostics.push(Diagnostic::warning(
+                "MALFORMED_FORMULA",
+                "logic:Formula node could not be reconstructed; skipped",
+                Some(subject_str(subj)),
+            )),
+        }
+    }
+    formulas
+}
+
+/// The single child formula reached by `link` from `node` (or `None`).
+fn child_subject(store: &RdfDataset, node: &Subject, link: &str) -> Option<Subject> {
+    value(store, node, &nn(&logic_iri(link))).and_then(|t| term_as_subject(&t))
+}
+
+/// Every child formula reached by `link` from `node`.
+fn child_subjects(store: &RdfDataset, node: &Subject, link: &str) -> Vec<Subject> {
+    objects(store, node, &nn(&logic_iri(link)))
+        .iter()
+        .filter_map(term_as_subject)
+        .collect()
+}
+
+/// Recursively reconstruct a [`Formula`] rooted at `node`, branching on which structural
+/// property family is present.  Returns `None` on a malformed node; the top-level
+/// [`extract_formulas`] emits one `MALFORMED_FORMULA` warning per failed formula.
+fn parse_formula(store: &RdfDataset, node: &Subject) -> Option<Formula> {
+    // Atomic predication.
+    if let Some(rel) = value(store, node, &nn(&logic_iri("relation"))) {
+        let relation = Term::iri(term_str(&rel)).ok()?;
+        let args = parse_term_carriers(store, node, "argument")?;
+        return Formula::atom(relation, args).ok();
+    }
+    // Strong negation.
+    if let Some(child) = child_subject(store, node, "not") {
+        return Some(Formula::Not(Box::new(parse_formula(store, &child)?)));
+    }
+    // Conjunction / disjunction (commutative; operand order is immaterial to identity).
+    for link in ["and", "or"] {
+        let children = child_subjects(store, node, link);
+        if !children.is_empty() {
+            let parsed: Option<Vec<Formula>> =
+                children.iter().map(|c| parse_formula(store, c)).collect();
+            let parsed = parsed?;
+            return Some(if link == "and" {
+                Formula::And(parsed)
+            } else {
+                Formula::Or(parsed)
+            });
+        }
+    }
+    // Biconditional (exactly two operands).
+    let iff_children = child_subjects(store, node, "iff");
+    if iff_children.len() == 2 {
+        let a = parse_formula(store, &iff_children[0])?;
+        let b = parse_formula(store, &iff_children[1])?;
+        return Some(Formula::Iff(Box::new(a), Box::new(b)));
+    }
+    // Material implication.
+    if let (Some(a), Some(c)) = (
+        child_subject(store, node, "antecedent"),
+        child_subject(store, node, "consequent"),
+    ) {
+        let ant = parse_formula(store, &a)?;
+        let con = parse_formula(store, &c)?;
+        return Some(Formula::Implies(Box::new(ant), Box::new(con)));
+    }
+    // Quantifiers.
+    for link in ["forall", "exists"] {
+        if let Some(body_node) = child_subject(store, node, link) {
+            let vars = parse_bound_vars(store, node)?;
+            let body = Box::new(parse_formula(store, &body_node)?);
+            return Some(if link == "forall" {
+                Formula::Forall { vars, body }
+            } else {
+                Formula::Exists { vars, body }
+            });
+        }
+    }
+    None
+}
+
+/// Read an ordered argument list from `node`'s `logic:<link>` term-carriers (sorted by
+/// `logic:termIndex`).  Returns `None` if any carrier is malformed.
+fn parse_term_carriers(store: &RdfDataset, node: &Subject, link: &str) -> Option<Vec<Term>> {
+    let mut indexed: Vec<(usize, Term)> = Vec::new();
+    for carrier in child_subjects(store, node, link) {
+        let idx = value(store, &carrier, &nn(&logic_iri("termIndex")))
+            .and_then(|t| term_str(&t).parse::<usize>().ok())?;
+        indexed.push((idx, parse_term(store, &carrier)?));
+    }
+    indexed.sort_by_key(|(i, _)| *i);
+    Some(indexed.into_iter().map(|(_, t)| t).collect())
+}
+
+/// Read a quantifier's ordered bound-variable names from its `logic:quantifiedVariable`
+/// term-carriers (sorted by `logic:termIndex`).
+///
+/// Returns `None` if any carrier is malformed (unparsable `termIndex` or missing
+/// `termVariable`) or if the binder is vacuous (zero bound variables) — a malformed
+/// binder must surface as `MALFORMED_FORMULA`, never silently narrow `∀{x,y}` to `∀{x}`.
+fn parse_bound_vars(store: &RdfDataset, node: &Subject) -> Option<Vec<String>> {
+    let mut indexed: Vec<(usize, String)> = Vec::new();
+    for carrier in child_subjects(store, node, "quantifiedVariable") {
+        let idx = value(store, &carrier, &nn(&logic_iri("termIndex")))
+            .and_then(|t| term_str(&t).parse::<usize>().ok())?;
+        let name = value(store, &carrier, &nn(&logic_iri("termVariable"))).map(|t| term_str(&t))?;
+        indexed.push((idx, name));
+    }
+    if indexed.is_empty() {
+        return None;
+    }
+    indexed.sort_by_key(|(i, _)| *i);
+    Some(indexed.into_iter().map(|(_, n)| n).collect())
+}
+
+/// Reconstruct a [`Term`] from a term-carrier node by its single term-value property.
+fn parse_term(store: &RdfDataset, carrier: &Subject) -> Option<Term> {
+    if let Some(t) = value(store, carrier, &nn(&logic_iri("termIri"))) {
+        return Term::iri(term_str(&t)).ok();
+    }
+    if let Some(t) = value(store, carrier, &nn(&logic_iri("termVariable"))) {
+        return Term::var(term_str(&t)).ok();
+    }
+    if let Some(t) = value(store, carrier, &nn(&logic_iri("termLiteral"))) {
+        let datatype =
+            value(store, carrier, &nn(&logic_iri("termLiteralDatatype"))).map(|d| term_str(&d));
+        return Term::literal(term_str(&t), datatype).ok();
+    }
+    if let Some(t) = value(store, carrier, &nn(&logic_iri("termSequenceMarker"))) {
+        return Term::sequence_marker(term_str(&t)).ok();
+    }
+    None
+}
+
 /// Parse a `logic:` RDF source already loaded into a wasm-clean [`RdfDataset`]
 /// (default graph) into a [`LogicProgram`] + diagnostics.
 pub fn parse_logic_dataset(
@@ -1047,9 +1258,11 @@ pub fn parse_logic_dataset(
     let contracts = extract_contracts(store, &mut diagnostics);
     let rules = extract_rules(store, &mut diagnostics);
     let path_shapes = extract_path_shapes(store, &mut diagnostics);
+    let formulas = extract_formulas(store, &mut diagnostics);
 
-    let program =
-        LogicProgram::new(all_axioms, rules, contracts, source_iri).with_path_shapes(path_shapes);
+    let program = LogicProgram::new(all_axioms, rules, contracts, source_iri)
+        .with_path_shapes(path_shapes)
+        .with_formulas(formulas);
     Ok((program, diagnostics))
 }
 
