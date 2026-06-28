@@ -557,3 +557,47 @@ ASK {
     logic:GoalEvaluationUndetermined a owl:NamedIndividual , logic:GoalEvaluationStatus .
 }""" ;
     gmeow:saRationale "logic:GoalEvaluationUndetermined MUST be a logic:GoalEvaluationStatus member: the value the teleology evaluator emits for a maintenance/avoidance/deadline goal whose bounding window is still open and for a deontic evaluation with no accessible ideal world — never silently read as Satisfied or as a vacuous obligation." .
+
+
+# --- 30. Transaction-layer branching, concurrent, iterative, and fallback combinators exist (MUST) ---
+ex:saTransactionCombinatorsFull a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:Choice               a owl:Class .
+    logic:ConcurrentComposition a owl:Class .
+    logic:Iteration            a owl:Class .
+    logic:Fallback             a owl:Class .
+    logic:iterationBody        a owl:ObjectProperty .
+    logic:iterationCondition   a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The four missing transaction-layer program combinators MUST exist: logic:Choice (guarded branching), logic:ConcurrentComposition (interleaved-path composition, distinct from the concurrency correctness concerns), logic:Iteration (loop with body + condition), and logic:Fallback (try primary, on failure alternate). Each is a boxTBox owl:Class mirroring logic:SerialConjunction. logic:iterationBody and logic:iterationCondition are the two dedicated properties of logic:Iteration (binary left/right operands do not fit a loop); the other three combinators reuse logic:leftOperand and logic:rightOperand." .
+
+# --- 31. Transaction-layer combinators carry correct boxTBox graphBoxRole (MUST) ---
+ex:saCombinatorBoxRole a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:Choice                a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:ConcurrentComposition a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:Iteration             a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:Fallback              a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+}""" ;
+    gmeow:saRationale "The four new program combinators (Choice, ConcurrentComposition, Iteration, Fallback) MUST carry gmeow:graphBoxRole gmeow:boxTBox — they are program-combinator classes in the TBox, typed apart from formula connectives, mirroring the boxTBox role of logic:SerialConjunction." .
+
+# --- 32. ConcurrentComposition is distinct from the concurrency correctness concerns (MUST-NOT) ---
+ex:saConcurrentCompositionDistinct a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    logic:ConcurrentComposition rdfs:subClassOf logic:SerializabilityCriterion .
+}""" ;
+    gmeow:saRationale "logic:ConcurrentComposition MUST NOT be a subclass of logic:SerializabilityCriterion (or any of the three concurrency correctness concerns): it is the COMPOSITION OPERATOR, while SerializabilityCriterion is a correctness PROPERTY OF A HISTORY — the three concurrency concerns are kept pairwise distinct precisely because they are not interchangeable." .

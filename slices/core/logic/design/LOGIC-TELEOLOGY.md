@@ -311,7 +311,19 @@ named cases that pin its distinctions, at least:
 - a **resource exhaustion** that gates the action, where a required `logic:actionResource` is
   supplied but flagged exhausted;
 - an **observation-conditioned policy**, where the branch whose guard matches the revealed
-  situation is selected and its next action schema surfaced.
+  situation is selected and its next action schema surfaced;
+- a **guarded choice** (`logic:Choice`), where the left sub-program is selected when the guard
+  holds and the right when it does not — the structural program combinator behind policy dispatch,
+  typed apart from a conditional formula connective;
+- a **concurrent composition** (`logic:ConcurrentComposition`), where two sub-programs advance
+  with interleaved steps — the composition operator, distinct from the correctness concerns
+  (`logic:SerializabilityCriterion`, `logic:IsolationLevel`, `logic:ConcurrencyControlProtocol`);
+- an **iteration** (`logic:Iteration`), where a body sub-program repeats while a loop condition
+  holds — structurally expressible with `logic:iterationBody` and `logic:iterationCondition`,
+  the program-level counterpart of the loop quantification `logic:StrongCyclicPlanSuccess` covers;
+- a **fallback** (`logic:Fallback`), where the primary sub-program is attempted and the alternate
+  runs on failure — typed apart from action-level `logic:compensation`, which undoes an action
+  that ran and reached a realized outcome.
 
 ## Constitutional alignment
 

@@ -4827,6 +4827,56 @@ logic:rightOperand
     skos:definition "Relates a binary transaction-program combinator (for example a logic:SerialConjunction) to its right/suffix operand — the program that holds over the suffix of the executing path. Range a transaction-program node (stated in prose). Paired with logic:leftOperand."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Branching, concurrent, iterative, and fallback combinators ---------------
+# The four missing program combinators that complete the transaction layer's
+# operator set as named in logic:Plan's definition and LOGIC-TELEOLOGY.md.
+# Each is typed APART from the corresponding logical connective — a program
+# operator is never confused with a formula connective — and mirrors
+# logic:SerialConjunction exactly in structure and annotation style.
+# Normative in design/LOGIC-TRANSACTION.md and design/LOGIC-TELEOLOGY.md.
+
+logic:Choice
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Choice"@x-gmeow-english ;
+    skos:definition "The guarded-choice program combinator: selects one of two sub-programs based on whether a guard situation holds at the current state. The left operand (logic:leftOperand) is executed when the guard holds; the right operand (logic:rightOperand) is executed when it does not. The guard is declared through logic:guardSituation, reusing the same property the conditional goal expression reads — a choice combinator is a PROGRAM operator that dispatches on a guard, typed APART from a conditional formula connective that holds at a single state. The two operands are binary, carried by logic:leftOperand and logic:rightOperand (the same properties logic:SerialConjunction uses). A plan whose branches are conditioned on what an earlier observation revealed is a POLICY — a reading of a plan, not a separate class — and its branches are resolved through logic:planBranch, logic:branchGuard, and logic:nextActionSchema; logic:Choice is the structural combinator that expresses the branching operator in the program body. Distinct from goal-level logic:DisjunctiveGoal, which evaluates a truth-at-a-state condition over sub-expressions, not a program that dispatches control to one of two sub-programs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ConcurrentComposition
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Concurrent Composition"@x-gmeow-english ;
+    skos:definition "The concurrent-composition program combinator: two sub-programs advance together with their elementary steps interleaved over a shared path. The left sub-program is carried by logic:leftOperand and the right by logic:rightOperand. This is the COMPOSITION OPERATOR that states two programs run concurrently — it is DISTINCT from the three separately-declared concurrency correctness concerns the transaction layer keeps apart: (a) logic:SerializabilityCriterion is a correctness PROPERTY OF A HISTORY (conflict-serializability or view-serializability), (b) logic:IsolationLevel is the declared GUARANTEE STRENGTH a schedule must meet, and (c) logic:ConcurrencyControlProtocol is the IMPLEMENTATION MECHANISM enforcing that strength. ConcurrentComposition names the structural operator; whether the resulting history is serializable, what isolation is declared, and which protocol enforces it are separately-declared facets. A logic:ConcurrentHistory carries the conflict edges whose cycle structure logic:SerializationAnomaly detects; logic:ConcurrentComposition names the program that gives rise to such a history. Typed APART from ordinary (at-a-state) conjunction — concurrent programs advance over a shared path segment, while a conjunctive formula holds at a single state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Iteration
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Iteration"@x-gmeow-english ;
+    skos:definition "The iteration program combinator: repeats a body sub-program while a loop condition holds. The body is carried by logic:iterationBody and the loop condition by logic:iterationCondition. Binary left/right operand semantics do not fit iteration — a loop has a body and a separate condition, not two co-equal operands — so logic:iterationBody and logic:iterationCondition are minted as dedicated properties rather than repurposing logic:leftOperand / logic:rightOperand. A logic:Iteration is the program-level counterpart of the loop/retry structure logic:StrongCyclicPlanSuccess quantifies over: a strong-cyclic plan succeeds when every fair execution of a loop through recoverable failures terminates at the goal in finitely many steps. The loop condition is a situation type checked before each body execution; when it does not hold the iteration terminates. Typed APART from recursive goal structures and from plain goal decomposition, which carry satisfaction dependency rather than control flow."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:iterationBody
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "iteration body"@x-gmeow-english ;
+    skos:definition "Relates a logic:Iteration combinator to the sub-program that constitutes its loop body — the program executed on each iteration pass. Domain logic:Iteration, range a transaction-program node (stated in prose). Paired with logic:iterationCondition, which carries the guard situation checked before each pass. Distinct from logic:leftOperand / logic:rightOperand (binary co-equal operands of serial, choice, concurrent, and fallback combinators): a loop body is not co-equal with a loop condition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:iterationCondition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "iteration condition"@x-gmeow-english ;
+    skos:definition "Relates a logic:Iteration combinator to the situation type that gates each pass of the loop body — the loop is executed while this situation obtains at the current state; when it does not hold the iteration terminates. Domain logic:Iteration, range logic:Situation (stated in prose). Paired with logic:iterationBody. Reuses the situation-type pattern of logic:guardSituation and logic:boundSituationType: the engine reads this against the current path state via logic:situationObtains."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:Fallback
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Fallback"@x-gmeow-english ;
+    skos:definition "The fallback program combinator: attempts the primary sub-program (logic:leftOperand); if it fails (the primary executional entailment does not hold from the current state), executes the alternate sub-program (logic:rightOperand). It is a PROGRAM combinator over the transaction layer path semantics, typed APART from action-level logic:compensation: a compensation undoes the EFFECT of an action that ran and reached an outcome, recovering from a realized nondeterministic outcome branch, while logic:Fallback is a STRUCTURAL OPERATOR that routes control to an alternate path when the primary program cannot succeed from the current state. The two sub-programs are binary, carried by logic:leftOperand (the primary) and logic:rightOperand (the alternate), reusing the same properties logic:SerialConjunction and logic:Choice use. A plan strong-cyclic success through recoverable failures is the quantification-level counterpart: logic:Fallback is the operator that makes recovery structurally expressible in the program body."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- Plan-to-path link (closing the four-link chain) -------------------------
 # The chain intention -> plan -> action -> transaction-path is otherwise
 # expressible through existing terms: gmeow:Intention carries its goal via

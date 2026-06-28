@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/concurrent-composition.
+#
+# A logic:ConcurrentComposition program combinator (parallel/concurrent operator)
+# is declared over two sub-programs: monitorSensors (left operand) and
+# executeMotion (right operand) advance together with their elementary steps
+# interleaved over a shared path. This pins the structural vocabulary and the
+# key distinction: ConcurrentComposition is the COMPOSITION OPERATOR, DISTINCT
+# from the three separately-declared concurrency correctness concerns —
+# logic:SerializabilityCriterion (a history property), logic:IsolationLevel
+# (a declared guarantee strength), and logic:ConcurrencyControlProtocol (an
+# implementation mechanism). Those concerns govern HOW concurrent histories are
+# controlled; ConcurrentComposition is the structural operator that NAMES that
+# two programs run concurrently.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
+# the projections need (no asserted teleology triples here — the world facts live
+# in input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/concurrent-composition/> .
+
+ex:GoalExpression a logic:GoalExpression .
