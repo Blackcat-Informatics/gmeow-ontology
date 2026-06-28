@@ -2820,6 +2820,7 @@ class StandpointEnum(str, Enum):
     standpointTranscriberA = "standpointTranscriberA"
     standpointTurkishTheory = "standpointTurkishTheory"
     universalStandpoint = "universalStandpoint"
+    unspecifiedStandpoint = "unspecifiedStandpoint"
 
 
 class StandpointModalityEnum(str, Enum):
@@ -4866,6 +4867,12 @@ class EntityExistence(TimeScopedRelation):
     existenceCreationEvent: list[Event] | None = Field(default=None)
     existenceDestructionEvent: list[Event] | None = Field(default=None)
     existenceEntity: Entity | None = Field(default=None)
+
+
+class EpistemicContext(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/EpistemicContext"
+    is_a: ClassVar[str] = "Entity"
+    pass
 
 
 class EtymologicalDerivation(Observation):
@@ -7105,6 +7112,12 @@ class ScalarQuantity(Entity):
     quantityValue: float | None = Field(default=None)
 
 
+class Scenario(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Scenario"
+    is_a: ClassVar[str] = "Entity"
+    pass
+
+
 class SceneGraphEdge(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/SceneGraphEdge"
     sceneConfidence: float | None = Field(default=None)
@@ -7459,6 +7472,12 @@ class StandpointTenure(TimeScopedRelation):
     standpointClaim: StandpointClaim | None = Field(default=None)
     tenurePosition: list[str] | None = Field(default=None)
     tenureStandpoint: Standpoint | None = Field(default=None)
+
+
+class State(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/State"
+    is_a: ClassVar[str] = "Entity"
+    pass
 
 
 class StepParentChild(ParentChildRelationship):

@@ -153,7 +153,7 @@ ex:saUniversalStandpointIsStandpoint a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:universalStandpoint a gmeow:Standpoint . }""" ;
-    gmeow:saRationale "gmeow:universalStandpoint MUST be typed gmeow:Standpoint -- the top of the sharpens poset, the frame under which every unindexed statement is held. Mirrors test_sharpens_is_transitive_and_universal_standpoint_declared (universalStandpoint part)." .
+    gmeow:saRationale "gmeow:universalStandpoint MUST be typed gmeow:Standpoint -- the top of the sharpens poset, the explicit-universal frame (unindexed statements default to gmeow:unspecifiedStandpoint). Mirrors test_sharpens_is_transitive_and_universal_standpoint_declared (universalStandpoint part)." .
 
 # --- 9. Five StandpointModality seed individuals exist (MUST) -----------------
 ex:saStandpointModalitySeeds a gmeow:StructuralAssertion ;
@@ -433,3 +433,64 @@ ASK {
         gmeow:decomposesToAxis gmeow:polarityAffirm , gmeow:modalForceActual , gmeow:credenceUnspecified , gmeow:assertoricAssert , gmeow:truthIndifferent , gmeow:supportNeither .
 }""" ;
     gmeow:saRationale "Each of the five legacy gmeow:StandpointModality values MUST retain its gmeow:StandpointModality typing AND carry its canonical six-axis gmeow:decomposesToAxis bundle -- augment-not-replace: the legacy surface stays the lossless projection target, and these bundles are the declarative source the Rust round-trip (crates/slice/src/standpoint_modality.rs) cross-checks. bullshit=truthIndifferent (not a truth value); refuted=polarityDeny+supportOpposed (frame-relative, Principle 9)." .
+
+# --- 27. Scenario is a logic:Kind subclass of Entity (MUST) -------------------
+ex:saScenarioIsKindEntity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Scenario a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:Scenario MUST be an owl:Class typed logic:Kind and a subclass of gmeow:Entity -- a hypothesized situation under consideration, one of the distinct typed contexts of the context algebra, kept apart from logic:PossibleWorld and gmeow:Standpoint." .
+
+# --- 28. State is a logic:Kind subclass of Entity (MUST) ----------------------
+ex:saStateIsKindEntity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:State a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:State MUST be an owl:Class typed logic:Kind and a subclass of gmeow:Entity -- one state of affairs along a logic:Path (the position a logic:Situation realizes), distinct from logic:Situation (the reified snapshot)." .
+
+# --- 29. unspecifiedStandpoint is a Standpoint individual (MUST) --------------
+ex:saUnspecifiedStandpointIsStandpoint a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:unspecifiedStandpoint a gmeow:Standpoint . }""" ;
+    gmeow:saRationale "gmeow:unspecifiedStandpoint MUST be typed gmeow:Standpoint -- the default-of-silence frame an unindexed statement is held in (unspecified, not universal); the sibling of gmeow:universalStandpoint." .
+
+# --- 30. unspecifiedStandpoint sits outside the sharpens poset (MUST-NOT) -----
+ex:saUnspecifiedStandpointOutsidePoset a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    { ?x gmeow:sharpens gmeow:unspecifiedStandpoint . }
+    UNION
+    { gmeow:unspecifiedStandpoint gmeow:sharpens ?y . }
+}""" ;
+    gmeow:saRationale "gmeow:unspecifiedStandpoint MUST NOT be the top of the sharpens poset nor sharpen anything -- silence sits outside the refinement order and licenses no propagation; only gmeow:universalStandpoint is the explicit-universal top that every standpoint sharpens." .
+
+# --- 31. unspecifiedStandpoint is distinct from universalStandpoint (MUST-NOT) ---
+ex:saUnspecifiedNotSameAsUniversal a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { gmeow:unspecifiedStandpoint owl:sameAs gmeow:universalStandpoint . }
+    UNION
+    { gmeow:universalStandpoint owl:sameAs gmeow:unspecifiedStandpoint . }
+}""" ;
+    gmeow:saRationale "gmeow:unspecifiedStandpoint MUST NOT be owl:sameAs gmeow:universalStandpoint -- the central 'unspecified, not universal' distinction: the default-of-silence and the explicit-universal top are distinct frames; conflating them re-introduces the silent-universality collapse." .

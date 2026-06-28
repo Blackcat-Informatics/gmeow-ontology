@@ -2796,6 +2796,7 @@ enum StandpointEnum {
   standpointTranscriberA
   standpointTurkishTheory
   universalStandpoint
+  unspecifiedStandpoint
 }
 
 enum StandpointModalityEnum {
@@ -4505,6 +4506,11 @@ type EntityExistence {
   existenceCreationEvent: [Event!]
   existenceDestructionEvent: [Event!]
   existenceEntity: Entity
+}
+
+type EpistemicContext {
+  id: String
+  iri: String
 }
 
 type EtymologicalDerivation {
@@ -6978,6 +6984,11 @@ type ScalarQuantity {
   quantityValue: Float
 }
 
+type Scenario {
+  id: String
+  iri: String
+}
+
 type SceneGraphEdge {
   id: String
   iri: String
@@ -7369,6 +7380,11 @@ type StandpointTenure {
   standpointClaim: StandpointClaim
   tenurePosition: [String!]
   tenureStandpoint: Standpoint
+}
+
+type State {
+  id: String
+  iri: String
 }
 
 type StepParentChild {

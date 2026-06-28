@@ -1,0 +1,102 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the logic slice -- the slice-resident
+# test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants of the typed
+# context algebra. Each assertion runs as a SPARQL ASK over the logic module
+# graph (gmeow:scopeModule) under the native Rust slicetest harness
+# (crates/slicetest).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+# --- 1. The five typed accessibility relations are object properties (MUST) ---
+ex:saTypedAccessibilityRelationsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:epistemicallyPossible  a owl:ObjectProperty .
+    logic:doxasticallyAccessible a owl:ObjectProperty .
+    logic:deonticallyIdeal       a owl:ObjectProperty .
+    logic:temporallySucceeds     a owl:ObjectProperty .
+    logic:counterfactuallyCloser a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The five typed accessibility relations MUST exist as owl:ObjectProperty -- each typed context kind reasons over its own named accessibility relation rather than one undifferentiated relation." .
+
+# --- 2. No typed relation is rdfs:subPropertyOf accessibleFrom (MUST-NOT, keystone) ---
+ex:saTypedRelationsNotSubpropertyAccessibleFrom a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    ?r rdfs:subPropertyOf logic:accessibleFrom .
+    FILTER (?r IN (
+        logic:epistemicallyPossible, logic:doxasticallyAccessible,
+        logic:deonticallyIdeal, logic:temporallySucceeds,
+        logic:counterfactuallyCloser
+    ))
+}""" ;
+    gmeow:saRationale "No typed accessibility relation MUST be rdfs:subPropertyOf logic:accessibleFrom -- the generic superproperty licenses NO cross-type entailment by itself; an asserted subproperty edge would re-enable the cross-type subproperty inference the context algebra forbids (believed leaking into true, fiction into actual, ideal into is). The superproperty relationship is documented in prose only." .
+
+# --- 3. No typed relation asserts an OWL property characteristic (MUST-NOT) ---
+ex:saTypedRelationsAssertNoCharacteristics a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    ?r a ?c .
+    FILTER (?r IN (
+        logic:epistemicallyPossible, logic:doxasticallyAccessible,
+        logic:deonticallyIdeal, logic:temporallySucceeds,
+        logic:counterfactuallyCloser
+    ))
+    FILTER (?c IN (
+        owl:TransitiveProperty, owl:SymmetricProperty, owl:ReflexiveProperty,
+        owl:IrreflexiveProperty, owl:FunctionalProperty,
+        owl:InverseFunctionalProperty, owl:AsymmetricProperty
+    ))
+}""" ;
+    gmeow:saRationale "No logic: kernel accessibility relation MUST assert an OWL property characteristic -- the kernel documents logical character (strict order, non-reflexivity) in prose, matching logic:accessibleFrom which asserts none. The gmeow:sharpens characteristic (owl:TransitiveProperty) lives in the standpoint slice, an intentional asymmetry." .
+
+# --- 4. PossibleWorld and Path are TBox classes (MUST) ------------------------
+ex:saTypedContextKernelClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:PossibleWorld a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:Path          a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+}""" ;
+    gmeow:saRationale "logic:PossibleWorld and logic:Path MUST be owl:Class with gmeow:graphBoxRole gmeow:boxTBox -- the alethic-world and history kernel context types of the typed context algebra." .
+
+# --- 5. ExecutionMode facet exists with both values and selector (MUST) -------
+ex:saExecutionModeFacet a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:ExecutionMode a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:CommittedExecution a logic:ExecutionMode .
+    logic:HypotheticalExecution a logic:ExecutionMode .
+    logic:executionMode a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The execution-commitment facet MUST exist: logic:ExecutionMode (boxTBox class), its two values logic:CommittedExecution (default) and logic:HypotheticalExecution (the sandbox operator), and the selector logic:executionMode. The sandbox operator is realized as a facet value, orthogonal to the evolution facet." .
+
+# --- 6. No reified modal-possibility operator class (MUST-NOT) ----------------
+ex:saNoReifiedPossibilityClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { logic:Possibility a owl:Class } UNION { logic:ModalOperator a owl:Class }
+}""" ;
+    gmeow:saRationale "No reified modal-possibility class MUST exist -- the sandbox operator (logic:HypotheticalExecution) is DISTINCT from modal possibility, which stays computed as the standard translation over the appropriate typed accessibility relation (logic:epistemicallyPossible / logic:doxasticallyAccessible) rather than reified. Conflating sandbox execution with modal possibility is the error this guards against." .

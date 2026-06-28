@@ -8,6 +8,20 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix fno: <https://w3id.org/function/ontology#> .
 
+gmeow:Scenario
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "Scenario"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ;
+    skos:definition "A hypothesized situation under consideration — a context that entertains a supposition without asserting it. One of the distinct typed contexts of the logic context algebra, kept apart from a logic:PossibleWorld (an alethic possibility), a gmeow:Standpoint (a named perspective), and a gmeow:State (one state of affairs along a logic:Path): entertaining a scenario is neither claiming it is possible nor adopting a perspective on it. The logic: accessibility machinery stays central in the logic slice and is referenced here in prose only, with no asserted logic: triples."@x-gmeow-english ;
+    skos:example "ex:fundingShortfall a gmeow:Scenario ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with a logic:PossibleWorld (entertaining a scenario does not assert its alethic possibility) or with a gmeow:Standpoint (a scenario is a hypothesized situation, not a perspective truth is held relative to)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint a Scenario to entertain a supposition as a context under consideration; hold its contents according to it without asserting them in the base graph, and reason within it under context-indexed entailment, with no implicit union with other contexts."@x-gmeow-english ;
+    gmeow:useWhen "Use to name a hypothesized situation under consideration as a first-class context — when a supposition is entertained and reasoned within without being asserted as actual or as alethically possible."@x-gmeow-english .
+
 gmeow:Standpoint
     a logic:Kind ,
         owl:Class ;
@@ -20,7 +34,7 @@ gmeow:Standpoint
     gmeow:docsConcern gmeow:concernStandpoints ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxTBox ;
-    gmeow:howToUse "Mint the Standpoint, order it under gmeow:sharpens (every standpoint sharpens gmeow:universalStandpoint), and reference it from a statement via gmeow:accordingTo or from a reified gmeow:Observation via gmeow:vantage; an unindexed statement is held according to gmeow:universalStandpoint by default."@x-gmeow-english ;
+    gmeow:howToUse "Mint the Standpoint, order it under gmeow:sharpens (every standpoint except gmeow:unspecifiedStandpoint sharpens gmeow:universalStandpoint — silence sits outside the refinement order), and reference it from a statement via gmeow:accordingTo or from a reified gmeow:Observation via gmeow:vantage; an unindexed statement is held in gmeow:unspecifiedStandpoint by default — unspecified, not universal; only an explicit gmeow:universalStandpoint index propagates as universal."@x-gmeow-english ;
     gmeow:useWhen "Use to mint a named frame as a first-class vantage — when a state's official position, a community's usage, or an editorial point of view needs its own identity, labels, or place in the gmeow:sharpens poset to be the value of gmeow:accordingTo or gmeow:vantage."@x-gmeow-english .
 
 gmeow:StandpointModality
@@ -63,11 +77,25 @@ gmeow:StandpointTenure
     gmeow:howToUse "Mint the tenure, bind its frame with gmeow:tenureStandpoint and the held claim with gmeow:tenurePosition, scope it in standpoint-time via gmeow:duringInterval (temporal module); it generates exactly one gmeow:standpointClaim observation whose vantage is the tenureStandpoint and whose observedFeature is the tenurePosition."@x-gmeow-english ;
     gmeow:useWhen "Use when the adoption or withdrawal of a standpoint's position over an interval is itself the fact of interest — recognition granted then revoked — so the change is an opened-then-closed tenure carrying its standpoint-time interval, retained never deleted (Principle 10)."@x-gmeow-english .
 
+gmeow:State
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "State"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ;
+    skos:definition "One state of affairs along a history — the position (index) within a logic:Path that a logic:Situation realizes. DISTINCT from logic:Situation: the Situation is the reified state-of-affairs snapshot (the static counterpart of an Event), while a State is the position on the path at which a Situation is realized; succession between States along a path is the typed accessibility relation logic:temporallySucceeds. One of the distinct typed contexts of the logic context algebra; the relationship to logic:Situation and logic:Path is stated in prose, not as a subclass edge into a reasoned class."@x-gmeow-english ;
+    skos:example "ex:beforeMerge a gmeow:State ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the reified state-of-affairs content — that is logic:Situation; a gmeow:State is the path position the Situation realizes. Avoid asserting State succession with the bare logic:accessibleFrom rather than the typed logic:temporallySucceeds."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint a State as a position along a logic:Path, realized by a logic:Situation; order States with logic:temporallySucceeds (a strict order) and read truth along the path under context-indexed entailment."@x-gmeow-english ;
+    gmeow:useWhen "Use to name one state of affairs along a history — a position on a logic:Path that a logic:Situation realizes — when path-relative truth or temporal succession of configurations must be modelled."@x-gmeow-english .
+
 gmeow:accordingTo
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "according to"@x-gmeow-english ;
-    skos:definition "The standpoint / frame within which the annotated statement is asserted true — *according to whom*. DISTINCT from gmeow:wasAttributedTo (which source RECORDED the claim) and gmeow:confidence (how sure we are); a claim may carry all three with no inferential bridge among them. Its value is a gmeow:Agent (a polity, community, or organization IRI) or a gmeow:Standpoint individual (a frame that needs its own identity). When a statement is promoted to a reified gmeow:Observation, gmeow:accordingTo becomes the gmeow:vantage of the relator (vantage ⊑ accordingTo — documented, not axiomatised, because accordingTo is an AnnotationProperty and vantage is an ObjectProperty). Standpoint-TIME — when the frame held this position — rides gmeow:validFrom / gmeow:validUntil on the same statement in the light case, or a reified gmeow:StandpointTenure when the adoption / withdrawal is itself the fact of interest. The range is intentionally open. An unindexed statement is held according to gmeow:universalStandpoint (the uncontested global facts)."@x-gmeow-english ;
+    skos:definition "The standpoint / frame within which the annotated statement is asserted true — *according to whom*. DISTINCT from gmeow:wasAttributedTo (which source RECORDED the claim) and gmeow:confidence (how sure we are); a claim may carry all three with no inferential bridge among them. Its value is a gmeow:Agent (a polity, community, or organization IRI) or a gmeow:Standpoint individual (a frame that needs its own identity). When a statement is promoted to a reified gmeow:Observation, gmeow:accordingTo becomes the gmeow:vantage of the relator (vantage ⊑ accordingTo — documented, not axiomatised, because accordingTo is an AnnotationProperty and vantage is an ObjectProperty). Standpoint-TIME — when the frame held this position — rides gmeow:validFrom / gmeow:validUntil on the same statement in the light case, or a reified gmeow:StandpointTenure when the adoption / withdrawal is itself the fact of interest. The range is intentionally open. An unindexed statement is held in gmeow:unspecifiedStandpoint — unspecified, not universal; only an explicit gmeow:universalStandpoint index (or explicit quantification over all contexts of a stated type) propagates as universal."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernStandpoints ,
         gmeow:concernStatementMetadata ;
     gmeow:graphBoxRole gmeow:boxCBox ,
@@ -151,12 +179,12 @@ gmeow:sharpens
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "sharpens"@x-gmeow-english ;
     rdfs:range gmeow:Standpoint ;
-    skos:definition "S1 sharpens S2: every precisification S1 admits is also admitted by S2, so S1 is the more specific frame (the standpoint ⊆ / refinement relation of Standpoint Logic; CKR's coverage relation). Transitive. Every standpoint sharpens gmeow:universalStandpoint."@x-gmeow-english ;
+    skos:definition "S1 sharpens S2: every precisification S1 admits is also admitted by S2, so S1 is the more specific frame (the standpoint ⊆ / refinement relation of Standpoint Logic; CKR's coverage relation). Transitive. Every standpoint except gmeow:unspecifiedStandpoint sharpens gmeow:universalStandpoint — the default-of-silence sits outside the refinement order and carries no gmeow:sharpens edge."@x-gmeow-english ;
     skos:example "ex:cityCouncilView gmeow:sharpens ex:regionalView ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as a ranking that picks a winner — sharpening is containment, not preference, and the broader frame is not 'more true' than the sharper one; competing, incomparable standpoints simply both sharpen the universal standpoint (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:sharpens from the more specific standpoint to the broader one and let transitivity build the poset; anchor every standpoint to gmeow:universalStandpoint at the top, and let a Standpoint-Logic reasoner read □/◊ entailments across the refinement order."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:sharpens from the more specific standpoint to the broader one and let transitivity build the poset; anchor every standpoint except gmeow:unspecifiedStandpoint to gmeow:universalStandpoint at the top, and let a Standpoint-Logic reasoner read □/◊ entailments across the refinement order."@x-gmeow-english ;
     gmeow:useWhen "Use to order two standpoints by precisification — when one frame is a strict refinement of another (every precisification it admits is admitted by the broader frame), building the standpoint poset whose top is gmeow:universalStandpoint."@x-gmeow-english .
 
 gmeow:standpointClaim
@@ -231,7 +259,15 @@ gmeow:universalStandpoint
     a gmeow:Standpoint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "universal standpoint (*)"@x-gmeow-english ;
-    skos:definition "The universal standpoint * — the top of the poset, admitting every precisification: the uncontested global facts every standpoint shares. A statement with no gmeow:accordingTo is held according to the universal standpoint; every standpoint gmeow:sharpens it."@x-gmeow-english ;
+    skos:definition "The universal standpoint * — the top of the poset, admitting every precisification: the uncontested global facts every standpoint shares. A statement with no gmeow:accordingTo is held in gmeow:unspecifiedStandpoint, not the universal standpoint; universalStandpoint remains the explicit-universal top of the poset that every standpoint except gmeow:unspecifiedStandpoint gmeow:sharpens."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:unspecifiedStandpoint
+    a gmeow:Standpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "unspecified standpoint"@x-gmeow-english ;
+    skos:definition "The default-of-silence standpoint: a statement asserted with no context index is held in gmeow:unspecifiedStandpoint — unspecified, not universal. It is not implicitly true in every context, not in any particular context, and not at the top of the gmeow:sharpens poset; silence licenses no propagation. Only an explicit universal assertion — a statement indexed to gmeow:universalStandpoint, or one that explicitly quantifies over all contexts of a stated type — propagates as universal. Treating an unindexed statement as universally true is the world-semantics analogue of the closed-world collapse, manufacturing a claim the author never made. Contrast gmeow:universalStandpoint, which remains the explicit-universal top of the poset; gmeow:unspecifiedStandpoint sits outside the refinement order and carries no gmeow:sharpens edge in either direction."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 

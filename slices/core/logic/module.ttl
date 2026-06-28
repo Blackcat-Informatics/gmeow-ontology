@@ -428,8 +428,29 @@ logic:EvolutionMode
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Evolution Mode"@x-gmeow-english ;
-    skos:definition "The facet value class of the evolution facet: whether and how state changes over the course of reasoning. Single-valued on a ReasoningContract. Its individuals range from the static (one-state) default through state-transition to the Transaction-Logic transaction-path semantics; evolution is independent of the model-semantics facet, which is why state-change reasoning is a facet value, never a parallel profile."@x-gmeow-english ;
+    skos:definition "The facet value class of the evolution facet: whether and how state changes over the course of reasoning. Single-valued on a ReasoningContract. Its individuals range from the static (one-state) default through state-transition to the Transaction-Logic transaction-path semantics; evolution is independent of the model-semantics facet, which is why state-change reasoning is a facet value, never a parallel profile. Commitment — whether a program's effects are committed or discarded — is a separate orthogonal facet (logic:ExecutionMode), not a value of this one: a program may be hypothetically executed (logic:HypotheticalExecution) under any evolution mode."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ExecutionMode
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Execution Mode"@x-gmeow-english ;
+    skos:definition "The facet value class of the execution-commitment facet: whether a Transaction-Logic program's effects are committed or discarded. Single-valued on a ReasoningContract and ORTHOGONAL to the evolution facet — a program may be executed hypothetically under any logic:EvolutionMode, because commitment (commit vs. discard) and state-change shape are independent dimensions. Its individuals are logic:CommittedExecution (the default) and logic:HypotheticalExecution (the sandbox operator). The sandbox operator is DISTINCT from modal possibility (◇): ◇ is the standard translation over the appropriate typed accessibility relation — logic:epistemicallyPossible or logic:doxasticallyAccessible (an alethic or doxastic claim about what is possible), not over the bare logic:accessibleFrom superproperty — whereas hypothetical execution asserts a program can execute from here without committing; conflating them would let an execution sandbox masquerade as a statement about what is possible."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:CommittedExecution
+    a owl:NamedIndividual ,
+        logic:ExecutionMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Committed Execution"@x-gmeow-english ;
+    skos:definition "The execution-mode value under which a transaction program's elementary updates are committed — the effects advance the path and persist. The default execution mode; contrast logic:HypotheticalExecution, which discards effects."@x-gmeow-english .
+
+logic:HypotheticalExecution
+    a owl:NamedIndividual ,
+        logic:ExecutionMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Hypothetical Execution"@x-gmeow-english ;
+    skos:definition "The execution-mode value realizing the sandbox/hypothetical operator: a transaction program is executed to test whether it WOULD succeed, with its effects discarded rather than committed. It asserts that a program can execute from here without committing, and is NOT modal possibility (◇) — ◇ is the standard translation over the appropriate typed accessibility relation, logic:epistemicallyPossible or logic:doxasticallyAccessible (an alethic or doxastic claim), not over the bare logic:accessibleFrom superproperty; the two share construction machinery but are separate typed operators with separate meanings. The sandbox operator of the Transaction-Logic design, kept apart from the alethic/doxastic possibility of the context algebra."@x-gmeow-english .
 
 logic:ExactPreservation
     a owl:NamedIndividual ,
@@ -1307,6 +1328,20 @@ logic:WellFoundedSemantics
     rdfs:label "Well-Founded Semantics"@x-gmeow-english ;
     skos:definition "The model-semantics facet value selecting the well-founded semantics: a unique, three-valued (true/false/undefined), total, polynomial-time model for normal programs, leaving genuinely circular literals undefined rather than branching. Single-valued on a ReasoningContract; the deterministic counterpart of the non-deterministic logic:StableModelSemantics for unstratified negation."@x-gmeow-english .
 
+logic:Path
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Path"@x-gmeow-english ;
+    skos:definition "An ordered run of states — a history — over which the typed accessibility relation logic:temporallySucceeds is read; the typed context of the context algebra that carries the Transaction-Logic state sequence, whose edges logic:transitionFromState and logic:transitionToState walk and whose positions are gmeow:State configurations, each realizing a logic:Situation. 'History' is the documented synonym. One of the distinct typed contexts (alongside logic:PossibleWorld, gmeow:EpistemicContext, gmeow:Standpoint, gmeow:Scenario, gmeow:State, gmeow:ReferenceFrame, gmeow:NarrativeReferenceFrame); no inference may cross into it by walking the bare logic:accessibleFrom superproperty, and its relation to states and situations is stated in prose, not as a subclass edge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:PossibleWorld
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Possible World"@x-gmeow-english ;
+    skos:definition "A typed alethic context — a logic:World of alethic possibility, one of the distinct typed contexts of the context algebra (alongside the doxastic gmeow:EpistemicContext, the perspectival gmeow:Standpoint, the hypothesized gmeow:Scenario, the gmeow:State along a logic:Path, the gmeow:ReferenceFrame, and the gmeow:NarrativeReferenceFrame). The contexts its typed accessibility relation logic:epistemicallyPossible ranges over; the modal operators (necessity, possibility) are the standard translation over that typed relation, never over a blurred union. It is a logic:World of the alethic world-type (stated in prose, not as a subclass edge), so no inference may cross into it by walking the bare logic:accessibleFrom superproperty."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:World
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1331,7 +1366,42 @@ logic:accessibleFrom
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "accessible from"@x-gmeow-english ;
-    skos:definition "The Kripke accessibility relation between worlds: relates a world to a world from which it is reachable, generalizing the standpoint sharpening poset. The modal operators are the standard translation over this relation — necessity is truth in every accessible world, possibility truth in some. Evaluation is bounded universal quantification because the world set is the finite, materialized contextual index, not the unbounded space of all logically possible worlds."@x-gmeow-english .
+    skos:definition "The generic Kripke accessibility abstraction between worlds: relates a world to a world from which it is reachable, generalizing the standpoint sharpening poset. It exists for uniform traversal and provenance, not for inference — the modal operators are NOT translated over this bare relation. Necessity and possibility are evaluated over the appropriate named, typed accessibility relation (necessity is truth in every accessible context of that type, possibility truth in some), never over the blurred union of all of them. That evaluation is bounded universal quantification because the world set is the finite, materialized contextual index, not the unbounded space of all logically possible worlds. logic:accessibleFrom is the generic superproperty of the six typed accessibility relations — logic:epistemicallyPossible, logic:doxasticallyAccessible, logic:deonticallyIdeal, logic:temporallySucceeds, logic:counterfactuallyCloser, and gmeow:sharpens — but only in prose: these are NOT asserted rdfs:subPropertyOf it, because the generic superproperty licenses no cross-type entailment by itself. An inference may follow a named, typed accessibility relation; it may not conclude anything by walking the bare superproperty across contexts of different types. The one pre-existing typed sub-relation, gmeow:sharpens, carries owl:TransitiveProperty in the standpoint slice, while the five logic: kernel relations assert no OWL characteristics and document their logical character in prose — an intentional asymmetry, not an oversight."@x-gmeow-english .
+
+logic:epistemicallyPossible
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "epistemically possible"@x-gmeow-english ;
+    skos:definition "The typed alethic accessibility relation between logic:PossibleWorlds — a world is epistemically (alethically) accessible from another. logic:accessibleFrom is its generic superproperty in prose only: it is NOT asserted rdfs:subPropertyOf logic:accessibleFrom, because the generic superproperty licenses no cross-type entailment and a subproperty edge would manufacture exactly that inference. The modal operators are the standard translation over THIS relation, never over a blurred union of accessibility relations. It asserts no OWL characteristic; its logical character is documented in prose, matching the kernel convention."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:doxasticallyAccessible
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "doxastically accessible"@x-gmeow-english ;
+    skos:definition "The typed doxastic accessibility relation between gmeow:EpistemicContexts — what an agent's beliefs hold accessible. It need not be reflexive (an agent may believe a falsehood); this character is documented in prose, not asserted as an OWL characteristic, matching the kernel convention. logic:accessibleFrom is its generic superproperty in prose only — NOT asserted rdfs:subPropertyOf — so the bare superproperty licenses no cross-type entailment and what is believed never leaks into what is true."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:deonticallyIdeal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deontically ideal"@x-gmeow-english ;
+    skos:definition "The typed deontic accessibility relation: a context is deontically ideal — an ought-world — relative to an issuer. Deontic reasoning is a USE of typed contexts, not a separate context type: a deontic claim is truth in the deontically-ideal accessible contexts of an issuer. Deontic accessibility is serial — every context from which an obligation is read has at least one accessible ideal context — so the 'satisfied in every ideal context' condition is never vacuously true; an empty ideal set yields undetermined rather than vacuous truth. logic:accessibleFrom is its generic superproperty in prose only — NOT asserted rdfs:subPropertyOf — so what is ideal never leaks into what is."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:temporallySucceeds
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "temporally succeeds"@x-gmeow-english ;
+    skos:definition "The typed temporal accessibility relation along a logic:Path: one gmeow:State succeeds another in the ordered run of states. A strict order (irreflexive and transitive) — its character is documented in prose, not asserted as OWL characteristics, matching the kernel convention. logic:accessibleFrom is its generic superproperty in prose only — NOT asserted rdfs:subPropertyOf — so the bare superproperty licenses no cross-type entailment across context types."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:counterfactuallyCloser
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "counterfactually closer"@x-gmeow-english ;
+    skos:definition "The typed counterfactual accessibility relation under a declared closeness ordering (Lewis comparative similarity, a generalized closeness poset over contexts). Counterfactual reasoning is a USE of typed contexts: a counterfactual claim is truth in the counterfactually-closer accessible contexts under the ordering. Closeness is declared data, not a fixed semantics. logic:accessibleFrom is its generic superproperty in prose only — NOT asserted rdfs:subPropertyOf — so what would have been never leaks into what is by walking the bare superproperty."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:activationBasis
     a owl:ObjectProperty ;
@@ -1608,6 +1678,13 @@ logic:evolution
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "evolution"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:EvolutionMode it selects — whether and how state changes. Single-valued on the contract. Domain logic:ReasoningContract, range logic:EvolutionMode (stated in prose, matching the module's convention). Evolution is independent of the model-semantics facet, which is why state-change reasoning (logic:TransactionPathEvolution) is a facet value, never a parallel profile."@x-gmeow-english .
+
+logic:executionMode
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "execution mode"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:ExecutionMode it selects — whether transaction effects are committed (logic:CommittedExecution, the default) or discarded (logic:HypotheticalExecution, the sandbox operator). Single-valued on the contract. Domain logic:ReasoningContract, range logic:ExecutionMode (stated in prose, matching the module's domain/range convention). Independent of logic:evolution: a hypothetical run may compose with any evolution mode. This facet carries the sandbox operator, which is distinct from modal possibility — modal possibility is computed as the standard translation over the appropriate typed accessibility relation (logic:epistemicallyPossible / logic:doxasticallyAccessible), never over the bare logic:accessibleFrom superproperty and never reified as a possibility class."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:expandsToFacet
     a owl:ObjectProperty ;
