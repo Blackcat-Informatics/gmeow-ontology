@@ -20,6 +20,8 @@
 pub mod paths;
 pub mod rdf;
 pub mod report;
+// The SSSOM correspondence lowering (1:1 lattice band → SSSOM TSV).
+pub mod sssom;
 pub mod text;
 
 use super::ir::{LogicAxiom, LogicModality, LogicProgram, PreservationKind};
