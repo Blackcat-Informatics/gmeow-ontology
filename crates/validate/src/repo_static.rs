@@ -492,7 +492,7 @@ fn makefile_invoked_targets(lines: &[String]) -> BTreeSet<String> {
     let token_re = Regex::new(r"[A-Za-z][A-Za-z0-9_-]*").expect("static regex");
     lines
         .iter()
-        .filter(|line| line.contains("$(MAKE)"))
+        .filter(|line| line.contains("$(MAKE)") || line.contains("${MAKE}"))
         .flat_map(|line| token_re.find_iter(line).map(|m| m.as_str().to_owned()))
         .collect()
 }
@@ -888,6 +888,21 @@ mod tests {
         write(
             &temp.path().join("Makefile"),
             "check:\n\t$(MAKE) lint\nci:\n\t$(MAKE) maint-verify-docker\nlint:\n\ttrue\nmaint-classic-cross-check:\n\tdocker run obolibrary/robot\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-reasoning-cases:\n\tdocker run obolibrary/robot\nmaint-statements-docker-check:\n\tdocker run stain/jena\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
+        );
+        let report = check_repo_static(temp.path());
+        assert!(report
+            .errors
+            .iter()
+            .any(|e| e.contains("target \"ci\"") && e.contains("maint-verify-docker")));
+    }
+
+    #[test]
+    fn brace_make_oracle_target_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write(
+            &temp.path().join("Makefile"),
+            "check:\n\t$(MAKE) lint\nci:\n\t${MAKE} maint-verify-docker\nlint:\n\ttrue\nmaint-classic-cross-check:\n\tdocker run obolibrary/robot\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-reasoning-cases:\n\tdocker run obolibrary/robot\nmaint-statements-docker-check:\n\tdocker run stain/jena\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
         );
         let report = check_repo_static(temp.path());
         assert!(report
