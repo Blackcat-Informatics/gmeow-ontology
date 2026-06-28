@@ -137,8 +137,10 @@ gmeow:hasMastered
     skos:example "ex:lillith gmeow:hasMastered ex:owlReasoning ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when comprehension stops short of expert command (use gmeow:understands) and avoid using it for demonstrated skill — mastery of a subject and the competence to perform a task are orthogonal (gmeow:hasSkill)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:hasMastered from the agent to the subject; it entails every shallower level, so one assertion answers awareness, familiarity, and comprehension queries alike. Carry contested or attributed depth on the statement layer."@x-gmeow-english ;
-    gmeow:pairsWith gmeow:KnowledgeProficiency ;
+    gmeow:howToUse "Record a logic:CognitiveAssessment on the procedural-competence and transfer dimensions and let the projection emit gmeow:hasMastered under the declared logic:LadderProjectionProfile, rather than asserting the rung directly; the subproperty chain still answers every shallower-depth query. Carry contested or attributed depth on the statement layer."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:KnowledgeProficiency ,
+        logic:CognitiveAssessment ;
+    skos:scopeNote "Instance edges of gmeow:hasMastered are a GENERATED COARSE VIEW, rule-materialized from logic:CognitiveAssessment under a declared logic:LadderProjectionProfile (procedural competence AND transfer must both clear their thresholds, so mastery of one narrow task never implies broad command); the multidimensional assessment is the canonical record, and the rdfs:subPropertyOf chain is retained as the ladder's internal monotonicity. See design/LOGIC-COGNITION.md §Projection to the coarse knowledge ladder."@x-gmeow-english ;
     gmeow:useWhen "Use for the deepest objectual knowledge relation — expert command of a subject sufficient to extend, teach, or innovate on it."@x-gmeow-english .
 
 gmeow:interestedIn
@@ -164,12 +166,14 @@ gmeow:isAwareOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
     rdfs:label "is aware of"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
-    skos:definition "Faintest level of the knowledge spectrum: the agent has encountered the subject and knows it exists, without necessarily knowing facts about it. Entailed by every deeper level (knowsAbout, understands, hasMastered) and by gmeow:hasSkill."@x-gmeow-english ;
+    skos:definition "Faintest level of the knowledge spectrum: the agent has encountered the subject and knows it exists, without necessarily knowing facts about it. Entailed by every deeper level (knowsAbout, understands, hasMastered)."@x-gmeow-english ;
     skos:example "ex:lillith gmeow:isAwareOf ex:quantumComputing ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it directly when a deeper level holds (assert that level and let it entail this one), avoid it for propositional belief about a claim (that is the epistemics slice), and avoid it for the 'can do' axis (that is gmeow:hasSkill)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it directly when a deeper level holds (record an assessment and let the projection emit it), avoid it for propositional belief about a claim (that is the epistemics slice), and avoid it for the 'can do' axis (that is gmeow:hasSkill)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert the deepest level that truly holds and read the shallower ones by subproperty entailment; carry whose-knowledge and how-deep as a vantage-indexed claim on the statement layer when it is contested or attributed."@x-gmeow-english ;
-    gmeow:pairsWith gmeow:KnowledgeProficiency ;
+    gmeow:howToUse "Record a logic:CognitiveAssessment on the awareness dimension and let the projection emit gmeow:isAwareOf under the declared logic:LadderProjectionProfile, rather than asserting it directly; the subproperty chain reads it from any deeper rung. Carry whose-knowledge and how-deep as a vantage-indexed claim on the statement layer when it is contested or attributed."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:KnowledgeProficiency ,
+        logic:CognitiveAssessment ;
+    skos:scopeNote "Instance edges of gmeow:isAwareOf are a GENERATED COARSE VIEW, rule-materialized from logic:CognitiveAssessment under a declared logic:LadderProjectionProfile (the awareness dimension clearing its threshold); the multidimensional assessment is the canonical record, and the rdfs:subPropertyOf chain is retained as the ladder's internal monotonicity. See design/LOGIC-COGNITION.md §Projection to the coarse knowledge ladder."@x-gmeow-english ;
     gmeow:useWhen "Use for the shallowest objectual knowledge relation — the agent has merely encountered a subject and knows it exists — or to query every agent at that depth or deeper, since the deeper levels entail it."@x-gmeow-english .
 
 gmeow:knowledgeAware
@@ -279,12 +283,14 @@ gmeow:knowsAbout
     rdfs:label "knows about"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
     rdfs:subPropertyOf gmeow:isAwareOf ;
-    skos:definition "Second level of the knowledge spectrum: the agent knows facts about the subject and can describe it — familiarity, not yet working comprehension. The exactMatch anchor for schema:knowsAbout. Entails gmeow:isAwareOf; entailed by gmeow:understands, gmeow:hasMastered and gmeow:hasSkill."@x-gmeow-english ;
+    skos:definition "Second level of the knowledge spectrum: the agent knows facts about the subject and can describe it — familiarity, not yet working comprehension. The exactMatch anchor for schema:knowsAbout. Entails gmeow:isAwareOf; entailed by gmeow:understands and gmeow:hasMastered. A skill provides only DEFEASIBLE evidence for it, never entailment."@x-gmeow-english ;
     skos:example "ex:lillith gmeow:knowsAbout ex:rdfSemantics ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the agent genuinely comprehends and can apply the subject (use gmeow:understands) and avoid conflating descriptive familiarity with the 'can do' competence axis (gmeow:hasSkill)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:knowsAbout from the agent to the subject; it entails gmeow:isAwareOf automatically, and is itself entailed when a deeper level or a skill is asserted."@x-gmeow-english ;
-    gmeow:pairsWith gmeow:KnowledgeProficiency ;
+    gmeow:howToUse "Record a logic:CognitiveAssessment on the declarative-familiarity dimension and let the projection emit gmeow:knowsAbout under the declared logic:LadderProjectionProfile, rather than asserting it directly; it entails gmeow:isAwareOf automatically and is itself entailed by any deeper rung. A skill is not a source of this edge — it is defeasible evidence only."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:KnowledgeProficiency ,
+        logic:CognitiveAssessment ;
+    skos:scopeNote "Instance edges of gmeow:knowsAbout are a GENERATED COARSE VIEW, rule-materialized from logic:CognitiveAssessment under a declared logic:LadderProjectionProfile (the declarative-familiarity dimension clearing its threshold — never from gmeow:hasSkill, which is defeasible evidence only); the multidimensional assessment is the canonical record, and the rdfs:subPropertyOf chain is retained as the ladder's internal monotonicity. See design/LOGIC-COGNITION.md §Projection to the coarse knowledge ladder."@x-gmeow-english ;
     gmeow:useWhen "Use when the agent knows facts about a subject and can describe it — familiarity beyond mere awareness — and as the schema:knowsAbout export anchor."@x-gmeow-english .
 
 gmeow:remembers
@@ -338,8 +344,10 @@ gmeow:understands
     skos:example "ex:lillith gmeow:understands ex:descriptionLogic ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when only descriptive familiarity holds (use gmeow:knowsAbout), when expert command holds (use gmeow:hasMastered), and avoid reading comprehension as competency — gmeow:hasSkill is the orthogonal 'can do' axis."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:understands from the agent to the subject; it entails the two shallower levels and is entailed by gmeow:hasMastered, so a single assertion materialises the whole tail."@x-gmeow-english ;
-    gmeow:pairsWith gmeow:KnowledgeProficiency ;
+    gmeow:howToUse "Record a logic:CognitiveAssessment on the conceptual-understanding dimension and let the projection emit gmeow:understands under the declared logic:LadderProjectionProfile, rather than asserting it directly; it entails the two shallower rungs and is entailed by gmeow:hasMastered, so the projected edge materialises the whole tail."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:KnowledgeProficiency ,
+        logic:CognitiveAssessment ;
+    skos:scopeNote "Instance edges of gmeow:understands are a GENERATED COARSE VIEW, rule-materialized from logic:CognitiveAssessment under a declared logic:LadderProjectionProfile (the conceptual-understanding dimension clearing its threshold); the multidimensional assessment is the canonical record, and the rdfs:subPropertyOf chain is retained as the ladder's internal monotonicity. See design/LOGIC-COGNITION.md §Projection to the coarse knowledge ladder."@x-gmeow-english ;
     gmeow:useWhen "Use when the agent comprehends a subject and can reason with and apply it, beyond merely reciting facts about it."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/cognition>
@@ -350,7 +358,7 @@ gmeow:understands
 This minimal core seeds the slice with one axis — the knowledge spectrum — and is deliberately small; belief, justification, and knowledge-that (the propositional epistemic relations) belong to the sibling epistemics slice, not here.
 
 DOCTRINE.
-  * The knowledge spectrum is four ORDINAL levels of epistemic depth toward a subject — isAwareOf ⊑ knowsAbout ⊑ understands ⊑ hasMastered — chained by rdfs:subPropertyOf so the deeper level entails every shallower one. One deep claim materialises the whole tail, so a query at any level catches every agent at that depth or deeper. This entailment IS the reasoning value of the spectrum (Principle 12: the levels are recorded; threshold judgements are solver-side).
+  * The knowledge spectrum is four ORDINAL levels of epistemic depth toward a subject — isAwareOf ⊑ knowsAbout ⊑ understands ⊑ hasMastered — chained by rdfs:subPropertyOf so the deeper level entails every shallower one. The chain is the spectrum's internal monotonicity: one rung materialises the whole shallower tail, so a query at any level catches every agent at that depth or deeper. The spectrum is a GENERATED COARSE VIEW of the multidimensional logic:CognitiveAssessment (logic slice): each rung's instance edges are rule-materialized from assessments that clear a declared logic:LadderProjectionProfile threshold (awareness → isAwareOf, declarative familiarity → knowsAbout, conceptual understanding → understands, procedural competence AND transfer → hasMastered). The factored assessment is the canonical record; the ladder is the readable ordinal projection a consumer that needs one number can use, and never re-establishes the independent dimensions as a single ordinal entailment chain (Principle 12: the levels are recorded; threshold judgements are solver-side).
   * The boundaries between levels are deliberately VAGUE. Only the ORDER is asserted; no crisp cutoff is claimed. The subproperty chain needs none — it encodes the ordering, not a partition.
   * Comprehension is NOT competency. The spectrum is the 'knows' axis; gmeow:hasSkill (expertise slice) is the 'can do' axis. A skill is DEFEASIBLE evidence for knowing about its subject — formalized centrally as a logic:DefeasibleEvidence — never a strict subproperty entailment: tacit competence and propositional knowing-about come apart, so the shipped reasoning never materializes gmeow:knowsAbout from a skill. The axes stay orthogonal and are never silently bridged (Principle 9).
   * Whose knowledge it is, and how deep, is a vantage-indexed claim through the statement layer (Principle 9): knowledge attributed to an agent by an observer and knowledge avowed by the agent coexist; a contested depth is two coexisting claims, never a global verdict.
