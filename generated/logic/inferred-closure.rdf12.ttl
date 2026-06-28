@@ -196,8 +196,8 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
-<http://purl.org/nemo/gufo#ComparativeRelationshipType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/1fba8b87011edfe85e9bb9111e9934ce14ae0c51> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <http://purl.org/nemo/gufo#ComparativeRelationshipType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/1fba8b87011edfe85e9bb9111e9934ce14ae0c51> >> ;
+<http://purl.org/nemo/gufo#ComparativeRelationshipType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/533000e7f2ecdaecdf8659cb55550b08c2279717> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <http://purl.org/nemo/gufo#ComparativeRelationshipType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/533000e7f2ecdaecdf8659cb55550b08c2279717> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -400,8 +400,8 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
-<http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/0a68390a95b579c455a5865a409fedbc2f2416e9> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/0a68390a95b579c455a5865a409fedbc2f2416e9> >> ;
+<http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/a3fb1568dc1c1a5f8bd88d77fe99241358e61d99> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/a3fb1568dc1c1a5f8bd88d77fe99241358e61d99> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -430,8 +430,8 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
-<http://purl.org/nemo/gufo#MaterialRelationshipType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/1fba8b87011edfe85e9bb9111e9934ce14ae0c51> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <http://purl.org/nemo/gufo#MaterialRelationshipType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/1fba8b87011edfe85e9bb9111e9934ce14ae0c51> >> ;
+<http://purl.org/nemo/gufo#MaterialRelationshipType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/533000e7f2ecdaecdf8659cb55550b08c2279717> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <http://purl.org/nemo/gufo#MaterialRelationshipType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/533000e7f2ecdaecdf8659cb55550b08c2279717> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -586,8 +586,8 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
-<http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/0a68390a95b579c455a5865a409fedbc2f2416e9> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/0a68390a95b579c455a5865a409fedbc2f2416e9> >> ;
+<http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/a3fb1568dc1c1a5f8bd88d77fe99241358e61d99> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/a3fb1568dc1c1a5f8bd88d77fe99241358e61d99> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -31894,12 +31894,6 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-type> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
-<https://blackcatinformatics.ca/gmeow/skolem/0b313661eb19967a906c542f3de3d5e20d2dd05a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/0b79d927e25284466ce9139b7070109e50317865> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/skolem/0b313661eb19967a906c542f3de3d5e20d2dd05a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/0b79d927e25284466ce9139b7070109e50317865> >> ;
-   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;
-   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;
-   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/skolem/136ce01629552489aed87f3eafd57746d311adac> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aexists-witness-type> ;
@@ -31942,8 +31936,8 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
-<https://blackcatinformatics.ca/gmeow/skolem/1dac987c1fe1036148bdb183ce22a400d6efb455> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/0b79d927e25284466ce9139b7070109e50317865> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/skolem/1dac987c1fe1036148bdb183ce22a400d6efb455> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/0b79d927e25284466ce9139b7070109e50317865> >> ;
+<https://blackcatinformatics.ca/gmeow/skolem/1dac987c1fe1036148bdb183ce22a400d6efb455> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/5de99744bd3742ce44be627011435e036df2cda0> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/skolem/1dac987c1fe1036148bdb183ce22a400d6efb455> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/5de99744bd3742ce44be627011435e036df2cda0> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -31952,6 +31946,12 @@
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/skolem/45365351bd1e9bfb5c9c5ab0cdbca2d3705254a9> <http://www.w3.org/2002/07/owl#disjointWith> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Acomplement-disjoint> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Acomplement-disjoint> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
+<https://blackcatinformatics.ca/gmeow/skolem/5f29d4de7a806b7ef7b79479eed708e95f93359d> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/5de99744bd3742ce44be627011435e036df2cda0> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/skolem/5f29d4de7a806b7ef7b79479eed708e95f93359d> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/5de99744bd3742ce44be627011435e036df2cda0> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Aunion-member> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 <https://blackcatinformatics.ca/gmeow/skolem/84fe873c140a722ff38cbe142a9018a45792b060> <http://www.w3.org/2002/07/owl#disjointWith> <http://purl.org/nemo/gufo#ConcreteIndividualType> .
