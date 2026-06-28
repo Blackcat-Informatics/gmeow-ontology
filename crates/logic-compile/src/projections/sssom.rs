@@ -165,27 +165,27 @@ fn extract_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) {
 }
 
 fn extract_mapping_sets(view: &DslView, out: &mut BTreeMap<String, MappingSet>) {
-    // Last-write-wins on a file collision, resolved by the subject-IRI-sorted
-    // iteration of `subjects_of_type` (matching the historical store order).
+    // Same-file collision: the lexically-smallest MappingSet IRI is canonical. The
+    // `subjects_of_type` iteration is IRI-ascending and `or_insert` keeps the first,
+    // so the smallest IRI wins — a deterministic rule replacing the historical store's
+    // hash-order accident (e.g. gmeow-music declares both `gmeow:mapsetMusic` and
+    // `gmeow:mapsetMusicNotation`; the former, smaller, is canonical).
     for subject in view.subjects_of_type(GM_MAPPING_SET) {
         let Some(file) = view.object_literal(&subject, GM_SSSOM_FILE) else {
             continue;
         };
-        out.insert(
-            file,
-            MappingSet {
-                set_id: view.object_literal(&subject, GM_SET_ID).unwrap_or_default(),
-                license: view
-                    .object_literal(&subject, GM_LICENSE)
-                    .unwrap_or_default(),
-                comment: view
-                    .object_literal(&subject, GM_SET_COMMENT)
-                    .unwrap_or_default(),
-                trailer: view
-                    .object_literal(&subject, GM_SET_TRAILER)
-                    .unwrap_or_default(),
-            },
-        );
+        out.entry(file).or_insert_with(|| MappingSet {
+            set_id: view.object_literal(&subject, GM_SET_ID).unwrap_or_default(),
+            license: view
+                .object_literal(&subject, GM_LICENSE)
+                .unwrap_or_default(),
+            comment: view
+                .object_literal(&subject, GM_SET_COMMENT)
+                .unwrap_or_default(),
+            trailer: view
+                .object_literal(&subject, GM_SET_TRAILER)
+                .unwrap_or_default(),
+        });
     }
 }
 
