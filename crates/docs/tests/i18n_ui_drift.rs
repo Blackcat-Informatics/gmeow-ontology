@@ -4,12 +4,12 @@
 //! UI-string single-source-of-truth drift guard.
 //!
 //! `UI_TEMPLATES` is the ONE source of the documentation UI-chrome strings: the
-//! renderer reads it (via `ui_default`/`ui_string`) and the PyO3 `ui_templates()`
-//! export hands the very same table to the `.pot` authoring pipeline — there is no
-//! second copy to diverge from. These tests pin that contract:
+//! renderer reads it (via `ui_default`/`ui_string`) and the native `.pot`
+//! extraction (`i18n_extract`) reads the very same table directly in Rust — there
+//! is no second copy to diverge from. These tests pin that contract:
 //!
 //! 1. the table itself stays well-formed (sorted, unique, non-empty, the expected
-//!    key count) — so both consumers see a clean single source;
+//!    key count) — so every consumer sees a clean single source;
 //! 2. per-language override catalogs cannot silently drift — a translated key that
 //!    is not in `UI_TEMPLATES` (a phantom key) or an override for an undeclared
 //!    language is caught, not silently ignored at render time;
@@ -60,8 +60,8 @@ fn override_pairs(catalog: &UiCatalog) -> Vec<(String, String)> {
 
 #[test]
 fn ui_templates_is_a_well_formed_single_source() {
-    // Both the renderer and the PyO3 `ui_templates()` export read THIS table; if it
-    // is clean, the single source is clean for both.
+    // Both the renderer and the native `.pot` extraction read THIS table; if it
+    // is clean, the single source is clean for every consumer.
     assert_eq!(UI_TEMPLATES.len(), 60, "UI-template key count changed");
 
     let mut keys: Vec<&str> = UI_TEMPLATES.iter().map(|(k, _)| *k).collect();
