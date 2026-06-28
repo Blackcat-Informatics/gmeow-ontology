@@ -22,7 +22,7 @@ has shipped is a deletion order.
 |---|---|---|
 | Python CLI surface | `gmeow`/`gmeow-dev` are Typer apps; `CliRunner`/subprocess behavior is Python-only | Port the CLI to Rust (`clap`) with integration tests |
 | PyO3 seam | tests the binding's marshalling/error-surfacing, which Rust cannot test from the inside | Delete when the Python surface that owns the seam is removed |
-| Python tool algorithm | the implementation under test is still live Python (up-projection, transform, projections, mappings, saturate, coverage, crossref, language-tags, music package, gts views/producer) | Port the tool to a Rust crate; cover with crate tests |
+| Python tool algorithm | the implementation under test is still live Python (up-projection, transform, projections, mappings, saturate, coverage, crossref, language-tags, gts views/producer) | Port the tool to a Rust crate; cover with crate tests |
 | Oracle / Docker orchestration | drives external reasoners (HermiT/ELK/ROBOT) or the rdflib trust-anchor; no Rust twin by design | Retire with the classic-cross-check lane, or reimplement the harness in Rust |
 | Static repo guard | AST / filesystem / workflow assertions about the repo itself | Port the static check into a Rust gate |
 
