@@ -251,6 +251,7 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.w3.org/2001/XMLSchema | [link](http://www.w3.org/2001/XMLSchema#dateTime) | 1 |
 | www.w3.org/2001/XMLSchema | [link](http://www.w3.org/2001/XMLSchema#decimal) | 1 |
 | www.w3.org/2001/XMLSchema | [link](http://www.w3.org/2001/XMLSchema#integer) | 1 |
+| www.w3.org/2001/XMLSchema | [link](http://www.w3.org/2001/XMLSchema#language) | 1 |
 | www.w3.org/2001/XMLSchema | [link](http://www.w3.org/2001/XMLSchema#string) | 1 |
 | www.w3.org/2001/XMLSchema-instance | [link](http://www.w3.org/2001/XMLSchema-instance) | 1 |
 | www.w3.org/2002/07/owl | [link](http://www.w3.org/2002/07/owl#) | 1 |

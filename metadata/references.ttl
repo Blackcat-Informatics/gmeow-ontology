@@ -1691,6 +1691,13 @@
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/src/gmeow_tools/config.py> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/3b48eb1a67db740d> .
 
+<https://blackcatinformatics.ca/gmeow/references/citation/3b7121d5568aea21> a gmeow:CitationAct ;
+    rdfs:label "crates/validate/src/language_tags.rs"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity xsd:language ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/src/language_tags.rs> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/3b7121d5568aea21> .
+
 <https://blackcatinformatics.ca/gmeow/references/citation/3bae741e72debb82> a gmeow:CitationAct ;
     rdfs:label "tests/test_alignments.py"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
@@ -9028,6 +9035,9 @@ foaf:homepage a gmeow:CreativeWork ;
 <https://blackcatinformatics.ca/gmeow/references/selector/3b48eb1a67db740d> a gmeow:Selector ;
     gmeow:selectorLocator "src/gmeow_tools/config.py:285" .
 
+<https://blackcatinformatics.ca/gmeow/references/selector/3b7121d5568aea21> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/validate/src/language_tags.rs:73" .
+
 <https://blackcatinformatics.ca/gmeow/references/selector/3bae741e72debb82> a gmeow:Selector ;
     gmeow:selectorLocator "tests/test_alignments.py:65" .
 
@@ -11447,6 +11457,10 @@ repo:CITATION.cff a gmeow:CreativeWork ;
 <https://blackcatinformatics.ca/gmeow/repo/crates/validate/src/gufo.rs> a gmeow:CreativeWork ;
     rdfs:label "crates/validate/src/gufo.rs"@en ;
     gmeow:sourceLocation "crates/validate/src/gufo.rs" .
+
+<https://blackcatinformatics.ca/gmeow/repo/crates/validate/src/language_tags.rs> a gmeow:CreativeWork ;
+    rdfs:label "crates/validate/src/language_tags.rs"@en ;
+    gmeow:sourceLocation "crates/validate/src/language_tags.rs" .
 
 <https://blackcatinformatics.ca/gmeow/repo/src/gmeow_tools/references.py> a gmeow:CreativeWork ;
     rdfs:label "src/gmeow_tools/references.py"@en ;
