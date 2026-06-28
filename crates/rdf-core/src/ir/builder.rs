@@ -338,6 +338,13 @@ impl Extend<QuadIds> for RdfDatasetBuilder {
         // duplicates the reserve is a harmless over-estimate.
         let reserve = iter.size_hint().0;
         if reserve > 0 {
+            // Fail BEFORE mutating: quad ids are u32 (C0.8), so a merge that would
+            // push the table past u32::MAX must abort up front rather than reserve
+            // and then panic mid-loop in `next_id`/`intern` with a half-grown table.
+            assert!(
+                self.quads.len() + reserve <= u32::MAX as usize,
+                "bulk quad push exceeds maximum quad capacity of u32::MAX"
+            );
             self.quads.reserve(reserve);
             self.quad_index
                 .reserve(reserve, |&i| hash_of(&self.quads[i as usize]));
@@ -542,6 +549,13 @@ impl RdfDatasetBuilder {
         // reserve); the reifier/annotation tables grow on demand.
         let reserve = other.quad_count();
         if reserve > 0 {
+            // Fail BEFORE mutating: the merged quad table is u32-indexed, so abort
+            // up front if `other` would overflow it rather than corrupt builder
+            // state midway through the merge loop.
+            assert!(
+                self.quads.len() + reserve <= u32::MAX as usize,
+                "dataset merge exceeds maximum quad capacity of u32::MAX"
+            );
             self.quads.reserve(reserve);
             self.quad_index
                 .reserve(reserve, |&i| hash_of(&self.quads[i as usize]));
