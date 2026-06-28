@@ -370,7 +370,8 @@ fn deontic_no_ideal_world_is_undetermined() {
         &ideals,
         &format!("{W}#goalSit"),
         &format!("{W}#proscribed"),
-    );
+    )
+    .expect("valid deontic path");
     assert_eq!(
         v,
         DeonticVerdict::Undetermined,
@@ -396,7 +397,8 @@ fn deontic_obligation_holds_in_every_ideal_world() {
         &ideals,
         &format!("{iw}#goalSit"),
         &format!("{iw}#proscribed"),
-    );
+    )
+    .expect("valid deontic path");
     assert_eq!(v, DeonticVerdict::ObligationHolds);
 }
 
@@ -418,11 +420,43 @@ fn deontic_prohibition_needs_support_for_negation() {
         &ideals,
         &format!("{iw}#goalSit"),
         &format!("{iw}#proscribed"),
-    );
+    )
+    .expect("valid deontic path");
     assert_eq!(
         v,
         DeonticVerdict::ProhibitionHolds,
         "support-for-negation (positive witness) must give ProhibitionHolds"
+    );
+}
+
+// ── Scenario 7b: deontic forked ideal-world path → hard error ───────────────────
+
+#[test]
+fn deontic_forked_ideal_world_path_is_hard_error() {
+    // Build an ideal world whose temporallySucceeds graph is forked: both s1 and s2
+    // succeed s0, giving s0 two successors — ordered_states must return Err.
+    let iw = "https://blackcatinformatics.ca/gmeow/examples/w1/ideal";
+    let base_nq = format!("<{W}#x> {} <{iw}> <{W}> .\n", l("deonticallyIdeal"));
+    let base = facts_of(&base_nq);
+    // s1 → s0 and s2 → s0 both via temporallySucceeds: s0 has two successors.
+    let ideal_nq = format!(
+        "<{iw}#s1> {ts} <{iw}#s0> <{iw}> .\n\
+         <{iw}#s2> {ts} <{iw}#s0> <{iw}> .\n",
+        ts = l("temporallySucceeds"),
+    );
+    let store = store_from(&ideal_nq);
+    let mut ideals: BTreeMap<String, WorldFacts> = BTreeMap::new();
+    ideals.insert(iw.to_owned(), WorldFacts::read(&store, iw));
+    let result = evaluate_deontic(
+        &base,
+        W,
+        &ideals,
+        &format!("{iw}#goalSit"),
+        &format!("{iw}#proscribed"),
+    );
+    assert!(
+        result.is_err(),
+        "a forked ideal-world path must hard-fail, not degrade to Neither"
     );
 }
 

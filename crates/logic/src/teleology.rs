@@ -1259,14 +1259,19 @@ pub enum DeonticVerdict {
 /// - no accessible ideal world → `Undetermined` (never vacuously true)
 ///
 /// P12: classification over the given accessibility structure; no search.
-#[must_use]
+///
+/// # Errors
+///
+/// Returns `Err` if any accessible ideal world carries a non-linear path
+/// (cyclic, forked, or disconnected).  The caller must surface this error;
+/// degrading to `Neither` is not permitted.
 pub fn evaluate_deontic(
     base_facts: &WorldFacts,
     base_world: &str,
     ideal_world_facts: &BTreeMap<String, WorldFacts>,
     goal_situation: &str,
     proscribed_situation: &str,
-) -> DeonticVerdict {
+) -> Result<DeonticVerdict, String> {
     let _ = base_world;
     let mut ideals: Vec<&str> = base_facts
         .triples
@@ -1278,19 +1283,16 @@ pub fn evaluate_deontic(
     ideals.sort_unstable();
     ideals.dedup();
     if ideals.is_empty() {
-        return DeonticVerdict::Undetermined;
+        return Ok(DeonticVerdict::Undetermined);
     }
     let mut all_satisfied = true;
     let mut all_negation_supported = true;
     for w in &ideals {
         let wf = &ideal_world_facts[*w];
-        let last = ordered_states(wf).ok().and_then(|s| s.last().cloned());
-        let satisfied = last
-            .as_deref()
-            .is_some_and(|s| obtains_at(wf, s, goal_situation));
-        let neg_supported = last
-            .as_deref()
-            .is_some_and(|s| obtains_at(wf, s, proscribed_situation));
+        let states = ordered_states(wf)?;
+        let last = states.last().map(String::as_str);
+        let satisfied = last.is_some_and(|s| obtains_at(wf, s, goal_situation));
+        let neg_supported = last.is_some_and(|s| obtains_at(wf, s, proscribed_situation));
         if !satisfied {
             all_satisfied = false;
         }
@@ -1299,11 +1301,11 @@ pub fn evaluate_deontic(
         }
     }
     if all_satisfied {
-        DeonticVerdict::ObligationHolds
+        Ok(DeonticVerdict::ObligationHolds)
     } else if all_negation_supported {
-        DeonticVerdict::ProhibitionHolds
+        Ok(DeonticVerdict::ProhibitionHolds)
     } else {
-        DeonticVerdict::Neither
+        Ok(DeonticVerdict::Neither)
     }
 }
 
@@ -1858,7 +1860,7 @@ fn emit_deontic_evaluation(
         .unwrap_or("")
         .to_owned();
 
-    let verdict = evaluate_deontic(facts, world, world_facts, &goal_situation, &proscribed);
+    let verdict = evaluate_deontic(facts, world, world_facts, &goal_situation, &proscribed)?;
     let (sat, status) = match verdict {
         DeonticVerdict::ObligationHolds => (Satisfaction::Satisfied, EvaluationStatus::Completed),
         DeonticVerdict::ProhibitionHolds => (Satisfaction::Violated, EvaluationStatus::Completed),
