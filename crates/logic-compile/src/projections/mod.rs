@@ -17,6 +17,7 @@
 //! claims `ExactPreservation` but dropped content.  [`report::build_projection_report`]
 //! aggregates the loss ledger.
 
+pub mod correspondence;
 pub mod paths;
 pub mod rdf;
 pub mod report;

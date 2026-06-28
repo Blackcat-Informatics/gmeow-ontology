@@ -38,6 +38,7 @@ use std::sync::Arc;
 
 use gmeow_logic::result::ReasoningResult;
 use gmeow_logic_compile::ir::LogicProgram;
+use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::relational_core::RelationalCoreProgram;
 use gmeow_rdf::provenance::DatasetProvenance;
 use gmeow_rdf::{
@@ -92,9 +93,19 @@ pub enum PipelineHandle {
     /// THIS arm (it produces the same dialect with carried residue) — the carrier never
     /// changes shape.
     RelationalCore(Arc<RelationalCoreProgram>),
-    /// A correspondence/alignment projection (SSSOM/EDOAL/FnO) over its backing
-    /// graph.
-    Correspondence(Arc<RdfDataset>),
+    /// The correspondence/alignment layer: the typed [`CorrespondenceProgram`] (the set
+    /// of `logic:Correspondence` IR nodes + caveats + declared preservation polarity)
+    /// over its backing `graph/correspondence` named graph — the REAL handle (#1132 C10),
+    /// not the C4 placeholder. Its backing graph is the deterministic RDF projection of
+    /// this program
+    /// ([`project_correspondence`](gmeow_logic_compile::projections::correspondence::project_correspondence));
+    /// a consumer takes the typed handle and reads the alignment surface (which keeps a
+    /// caveated overlap at `skos:relatedMatch`, never `skos:exactMatch` /
+    /// `owl:equivalentClass` — the overclaim gate forbids over-alignment) WITHOUT
+    /// re-projecting. On a cache hit the cache re-derives the program from the backing
+    /// graph via
+    /// [`parse_correspondence`](gmeow_logic_compile::projections::correspondence::parse_correspondence).
+    Correspondence(Arc<CorrespondenceProgram>),
 }
 
 /// The parse-once-and-share snapshot views (#1132 C5).

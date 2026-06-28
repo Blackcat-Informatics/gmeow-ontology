@@ -81,6 +81,11 @@ const LANES: &[Lane] = &[
         load_bearing: true,
     },
     Lane {
+        slug: "correspondence",
+        graph: "https://blackcatinformatics.ca/gmeow/graph/correspondence",
+        load_bearing: true,
+    },
+    Lane {
         slug: "diagnostics",
         graph: "https://blackcatinformatics.ca/gmeow/graph/diagnostics",
         load_bearing: false,
