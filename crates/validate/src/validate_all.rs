@@ -15,8 +15,9 @@
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-use gmeow_diagnostics::{Finding, Location, Report, Severity};
+use gmeow_diagnostics::{Finding, FindingCategory, Location, Report, Severity};
 use gmeow_gts::model::Graph;
+use gmeow_logic::certificate::ContradictionPolicy;
 use oxigraph::model::Quad;
 use oxigraph::store::Store;
 use rayon::prelude::*;
@@ -603,7 +604,11 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), S
         .map_err(|e| format!("validate --deep: GTS read error: {e}"))?;
     let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref())
         .map_err(|e| format!("validate --deep: native reasoning failed: {e}"))?;
-    fold_reasoning_result(&result, report);
+    // The native DL deep pass reasons under classical semantics — a glut IS
+    // owl:Nothing, a forbidden violation. A bundle that opts into paraconsistency
+    // declares a glut-admitting contract; the production closure excludes the
+    // test-graph fixtures that carry such gluts.
+    fold_reasoning_result(&result, ContradictionPolicy::DEFAULT, report);
     Ok(())
 }
 
@@ -620,11 +625,32 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), S
 /// not a re-derivation.
 pub(crate) fn fold_reasoning_result(
     result: &gmeow_logic::result::ReasoningResult,
+    policy: ContradictionPolicy,
     report: &mut Report,
 ) {
     if !result.is_consistent() {
+        // A within-world glut is a permitted, DISCLOSED conflict when the governing
+        // contract admits gluts, and a FORBIDDEN integrity violation otherwise. A
+        // permitted conflict is coherent — it is emitted at NON-error severity
+        // (logic:FindingPermittedEpistemicConflict) so the gate stays green; a
+        // forbidden one is the failing logic:FindingContradictionWitness.
+        let permitted = policy.glut_permitted();
         for witness in &result.provenance.contradiction_witnesses {
-            report.add_finding(
+            let finding = if permitted {
+                Finding::new(
+                    Severity::Warning,
+                    "validate.deep.permitted-conflict",
+                    format!(
+                        "individual {} carries a within-world contradiction in world {}, \
+                         permitted and disclosed under contradiction policy {} \
+                         (logic:ReasoningResult information=both)",
+                        witness.individual,
+                        witness.world,
+                        policy.local_name()
+                    ),
+                )
+                .with_category(FindingCategory::PermittedEpistemicConflict)
+            } else {
                 Finding::new(
                     Severity::Error,
                     "validate.deep.inconsistent",
@@ -634,8 +660,9 @@ pub(crate) fn fold_reasoning_result(
                         witness.individual, witness.world
                     ),
                 )
-                .with_tool("validate"),
-            );
+                .with_category(FindingCategory::ContradictionWitness)
+            };
+            report.add_finding(finding.with_tool("validate"));
         }
     }
 
@@ -649,7 +676,8 @@ pub(crate) fn fold_reasoning_result(
                     unsat.class, unsat.world
                 ),
             )
-            .with_tool("validate"),
+            .with_tool("validate")
+            .with_category(FindingCategory::ModelingDisciplineViolation),
         );
     }
 
@@ -663,7 +691,8 @@ pub(crate) fn fold_reasoning_result(
                      reasoner; the semantic verdict is incomplete for it"
                 ),
             )
-            .with_tool("validate"),
+            .with_tool("validate")
+            .with_category(FindingCategory::UnsupportedSemanticFeature),
         );
     }
 
@@ -1433,6 +1462,67 @@ ex:x rdf:type ex:A .
                 .iter()
                 .any(|f| f.code == "validate.deep.inconsistent"),
             "a consistent bundle must NOT flag inconsistency"
+        );
+    }
+
+    #[test]
+    fn fold_categorizes_permitted_versus_forbidden_glut() {
+        // A real within-world glut, reasoned from an inconsistent fixture.
+        let inconsistent = "\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix ex: <http://gmeow.example/> .
+ex:A rdfs:subClassOf ex:B .
+ex:A rdfs:subClassOf ex:C .
+ex:B owl:disjointWith ex:C .
+ex:x rdf:type ex:A .
+";
+        let bytes = gts_bytes_from_turtle(inconsistent);
+        let bundle = gmeow_rdf::import_gts_events(&bytes).expect("gts read");
+        let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).expect("reason");
+        assert!(!result.is_consistent(), "the fixture must produce a glut");
+
+        // FORBIDDEN (classical): an Error categorized ContradictionWitness; gate fails.
+        let mut forbidden = Report::new("validate");
+        fold_reasoning_result(
+            &result,
+            ContradictionPolicy::ForbidGapAndGlut,
+            &mut forbidden,
+        );
+        let f = forbidden
+            .findings
+            .iter()
+            .find(|f| f.code == "validate.deep.inconsistent")
+            .expect("forbidden glut must emit a deep.inconsistent error");
+        assert_eq!(f.severity, Severity::Error);
+        assert_eq!(f.category, Some(FindingCategory::ContradictionWitness));
+        assert!(!forbidden.ok(), "a forbidden glut must fail the gate");
+
+        // PERMITTED (glut-admitting): a Warning categorized PermittedEpistemicConflict;
+        // the gate stays green — the load-bearing acceptance criterion (c).
+        let mut permitted = Report::new("validate");
+        fold_reasoning_result(&result, ContradictionPolicy::ForbidGap, &mut permitted);
+        assert!(
+            !permitted
+                .findings
+                .iter()
+                .any(|f| f.code == "validate.deep.inconsistent"),
+            "a permitted glut must NOT emit the forbidden inconsistency error"
+        );
+        let p = permitted
+            .findings
+            .iter()
+            .find(|f| f.code == "validate.deep.permitted-conflict")
+            .expect("permitted glut must emit a permitted-conflict warning");
+        assert_eq!(p.severity, Severity::Warning);
+        assert_eq!(
+            p.category,
+            Some(FindingCategory::PermittedEpistemicConflict)
+        );
+        assert!(
+            permitted.ok(),
+            "a permitted, disclosed contradiction must NOT fail the gate"
         );
     }
 

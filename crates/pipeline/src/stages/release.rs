@@ -151,6 +151,63 @@ pub fn fold_release_bundle(
     )
 }
 
+/// The `rep` discriminator the scoped coherence-certificate evidence rides under.
+const COHERENCE_REP: &str = "coherence";
+
+/// Build the scoped coherence-certificate evidence over `snapshot_bytes` — reason
+/// over the bundle, build the [`CoherenceOutcome`], and emit it as N-Quads typed
+/// `logic:CoherenceCertificate` / `logic:CoherenceCheckAttestation`. The result is
+/// folded as one more signed evidence artifact, so the certificate rides the
+/// bundle's Ed25519 signature (Principle 18) — there is NO new signing step and no
+/// key handling here.
+///
+/// The release bundle is reasoned under classical native DL semantics, where a glut
+/// is a forbidden integrity violation. `issued_at` is INJECTED (mirrors the release
+/// timestamp) so the fold stays deterministic.
+///
+/// # Errors
+/// Returns `Err` if the snapshot cannot be read, native reasoning fails, or coherence
+/// is REFUSED — a bundle carrying a forbidden integrity violation must never be signed
+/// as coherent (no-optionality / hard-fail).
+pub fn build_coherence_evidence(
+    snapshot_bytes: &[u8],
+    issued_at: &str,
+) -> Result<EvidenceInput, String> {
+    use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+
+    let bundle = gmeow_rdf::import_gts_events(snapshot_bytes)
+        .map_err(|e| format!("coherence certificate: GTS read error: {e}"))?;
+    let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref())
+        .map_err(|e| format!("coherence certificate: native reasoning failed: {e}"))?;
+    let bundle_hash = digest_string(snapshot_bytes);
+    let outcome = CoherenceOutcome::from_reasoning_result(
+        &result,
+        bundle_hash,
+        Vec::<String>::new(),
+        ContradictionPolicy::DEFAULT,
+        issued_at,
+    );
+    if outcome.is_refused() {
+        return Err(
+            "coherence certificate: the bundle being released carries a forbidden \
+             integrity violation; an incoherent bundle must not be signed as coherent"
+                .to_owned(),
+        );
+    }
+    let label = if outcome.issues_certificate() {
+        "Scoped coherence certificate"
+    } else {
+        "Coherence check attestation"
+    };
+    Ok(EvidenceInput {
+        data: outcome.to_nquads(GRAPH_ATTESTATIONS).into_bytes(),
+        media_type: "application/n-quads".to_owned(),
+        attestation_type_iri: resolve_attestation_type_iri("attestationTypeCoherenceCertificate"),
+        rep: COHERENCE_REP.to_owned(),
+        subject_label: label.to_owned(),
+    })
+}
+
 /// Consumer-side outcome of verifying a signed release-evidence bundle (#673,
 /// §18). The `artifacts_verified` count is the number of per-artifact
 /// attestations whose attested bytes were actually found in the bundle.
@@ -730,6 +787,46 @@ mod tests {
             &armor,
         )
         .expect("fold release bundle")
+    }
+
+    #[test]
+    fn build_coherence_evidence_emits_a_certificate_artifact() {
+        let snapshot = tiny_snapshot();
+        let evidence = build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z")
+            .expect("a consistent snapshot must yield a coherence certificate");
+        assert_eq!(evidence.rep, "coherence");
+        assert!(evidence
+            .attestation_type_iri
+            .ends_with("attestationTypeCoherenceCertificate"));
+        let nq = String::from_utf8(evidence.data.clone()).expect("utf8 nquads");
+        assert!(
+            nq.contains("<https://blackcatinformatics.ca/logic/CoherenceCertificate>"),
+            "a conclusive consistent bundle must yield a certificate: {nq}"
+        );
+        assert!(nq.contains("<https://blackcatinformatics.ca/logic/bundleHash>"));
+        // Deterministic with the injected timestamp.
+        let again = build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z").unwrap();
+        assert_eq!(evidence.data, again.data);
+    }
+
+    #[test]
+    fn coherence_certificate_folds_into_the_signed_bundle_deterministically() {
+        // Folding the coherence evidence into the signed bundle proves the
+        // certificate rides the existing Ed25519 bundle signature (no new signing
+        // step), and the fold stays byte-deterministic with the injected timestamp.
+        let snapshot = tiny_snapshot();
+        let with_cert = || {
+            let mut evidence = evidence_inputs();
+            evidence.push(build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z").unwrap());
+            fold(&snapshot, evidence, "2026-06-28T00:00:00Z")
+        };
+        let a = with_cert();
+        let b = with_cert();
+        assert!(!a.is_empty());
+        assert_eq!(
+            a, b,
+            "the coherence-folded signed bundle must be byte-deterministic"
+        );
     }
 
     /// Release attestations are not folded into the dev `gmeow.gts` bundle that
