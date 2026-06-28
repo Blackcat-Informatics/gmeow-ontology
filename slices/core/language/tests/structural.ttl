@@ -126,8 +126,9 @@ ASK {
     { ?restriction owl:minCardinality ?n }
     UNION { ?restriction owl:cardinality ?n }
     UNION { ?restriction owl:minQualifiedCardinality ?n }
+    UNION { ?restriction owl:qualifiedCardinality ?n }
 }""" ;
-    gmeow:saRationale "No owl:Restriction onProperty gmeow:languageCode may carry an owl:minCardinality, owl:cardinality, or owl:minQualifiedCardinality — registry independence means a code-less conlang or AI-generated language is fully first-class, so nothing forces a Language to carry a code." .
+    gmeow:saRationale "No owl:Restriction onProperty gmeow:languageCode may carry an owl:minCardinality, owl:cardinality, owl:minQualifiedCardinality, or owl:qualifiedCardinality — registry independence means a code-less conlang or AI-generated language is fully first-class, so nothing forces a Language to carry a code." .
 
 # --- 10. bcp47Tag is NOT functional (MUST-NOT) -------------------------------
 ex:saBcp47TagNotFunctional a gmeow:StructuralAssertion ;
