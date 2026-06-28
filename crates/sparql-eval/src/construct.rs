@@ -144,6 +144,17 @@ pub(crate) fn eval_construct(
         }
     }
 
+    // Value-constructing builtins (`gmeow:listSlice`/`listConcat`) invent fresh
+    // `rdf:List` cells while the WHERE is evaluated. A SPARQL expression can only
+    // return the list head, so the cells are buffered on the context; fold them into
+    // the CONSTRUCT output here so a constructed list materializes as triples.
+    for (s, p, o) in &ctx.constructed {
+        let s = builder.intern_value(s);
+        let p = builder.intern_value(p);
+        let o = builder.intern_value(o);
+        builder.push_quad(s, p, o, None);
+    }
+
     builder
         .freeze()
         .map_err(|d| EvalError::internal(format!("CONSTRUCT output failed to freeze: {d:?}")))

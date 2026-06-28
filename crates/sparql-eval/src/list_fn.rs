@@ -23,7 +23,7 @@
 //! The walk is cycle-guarded: a cyclic or torn `rdf:List` is malformed input and
 //! hard-fails ([`EvalError::Data`]) rather than looping forever.
 
-use gmeow_rdf_core::{TermId, TermValue};
+use gmeow_rdf_core::{BlankScope, TermId, TermValue};
 use gmeow_xsd::XsdValue;
 
 use crate::error::EvalError;
@@ -144,24 +144,82 @@ fn list_contains(
 }
 
 /// `gmeow:listSlice(list, start, end)` → a fresh `rdf:List` of the members in the
-/// half-open index range `[start, end)` (clamped to the list bounds; an empty range
-/// yields `rdf:nil`). Implemented in Task 2.
+/// half-open index range `[start, end)`. Indices are clamped to the list bounds
+/// (negatives to 0), so an out-of-range or inverted range yields `rdf:nil`. The new
+/// cells are buffered on [`EvalCtx`] and surface at the result boundary (see
+/// [`materialize_list`]). A non-list / non-integer argument yields a SPARQL error.
 fn list_slice(
     ctx: &mut EvalCtx<'_>,
     vals: &[Option<TermValue>],
 ) -> Result<Option<SolutionTerm>, EvalError> {
-    let _ = (ctx, vals);
-    Err(EvalError::unsupported("gmeow:listSlice (pending Task 2)"))
+    let (Some(head), Some(start), Some(end)) = (arg(vals, 0), arg(vals, 1), arg(vals, 2)) else {
+        return Ok(None);
+    };
+    let (Some(start), Some(end)) = (as_index(start), as_index(end)) else {
+        return Ok(None);
+    };
+    let Some(members) = walk(ctx, head)? else {
+        return Ok(None);
+    };
+    let len = members.len() as i64;
+    let lo = start.clamp(0, len);
+    let hi = end.clamp(lo, len); // also enforces hi >= lo → inverted ranges are empty
+    let slice: Vec<TermValue> = members[lo as usize..hi as usize].to_vec();
+    let value = materialize_list(ctx, slice);
+    Ok(Some(intern(ctx, value)))
 }
 
 /// `gmeow:listConcat(listA, listB)` → a fresh `rdf:List` of A's members followed by
-/// B's. Implemented in Task 2.
+/// B's. The new cells are buffered on [`EvalCtx`] and surface at the result boundary
+/// (see [`materialize_list`]). A non-list argument yields a SPARQL error.
 fn list_concat(
     ctx: &mut EvalCtx<'_>,
     vals: &[Option<TermValue>],
 ) -> Result<Option<SolutionTerm>, EvalError> {
-    let _ = (ctx, vals);
-    Err(EvalError::unsupported("gmeow:listConcat (pending Task 2)"))
+    let (Some(a), Some(b)) = (arg(vals, 0), arg(vals, 1)) else {
+        return Ok(None);
+    };
+    let (Some(mut left), Some(right)) = (walk(ctx, a)?, walk(ctx, b)?) else {
+        return Ok(None);
+    };
+    left.extend(right);
+    let value = materialize_list(ctx, left);
+    Ok(Some(intern(ctx, value)))
+}
+
+/// Invent a fresh `rdf:List` carrying `members` in order, returning its head term.
+///
+/// Each cell is a fresh blank node (minted from the shared `bnode_counter`, so
+/// labels never collide with CONSTRUCT-template or `BNODE()` blanks). The cell quads
+/// `cell rdf:first member` / `cell rdf:rest next` are pushed onto
+/// [`EvalCtx::constructed`] to surface at the result boundary; the empty list is
+/// simply `rdf:nil` (no cells).
+fn materialize_list(ctx: &mut EvalCtx<'_>, members: Vec<TermValue>) -> TermValue {
+    if members.is_empty() {
+        return iri(RDF_NIL);
+    }
+    let n = members.len();
+    let cells: Vec<TermValue> = (0..n)
+        .map(|_| {
+            ctx.bnode_counter += 1;
+            TermValue::Blank {
+                label: format!("lc{}", ctx.bnode_counter),
+                scope: BlankScope::DEFAULT,
+            }
+        })
+        .collect();
+    for (i, member) in members.into_iter().enumerate() {
+        let rest = if i + 1 < n {
+            cells[i + 1].clone()
+        } else {
+            iri(RDF_NIL)
+        };
+        ctx.constructed
+            .push((cells[i].clone(), iri(RDF_FIRST), member));
+        ctx.constructed
+            .push((cells[i].clone(), iri(RDF_REST), rest));
+    }
+    cells[0].clone()
 }
 
 // ---------------------------------------------------------------------------
@@ -467,5 +525,228 @@ mod tests {
         let err = eval_err(&ds, &q);
         assert!(matches!(err, EvalError::Data(_)), "got {err:?}");
         assert!(err.to_string().contains("cyclic"));
+    }
+
+    // ── constructing functions: listSlice / listConcat ───────────────────────
+
+    use gmeow_rdf_core::{SparqlEngine, SparqlRequest, SparqlResult, TermRef};
+
+    use crate::engine::NativeSparqlEngine;
+
+    const RDF_NIL_STR: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>";
+
+    /// Resolve a dataset to sorted `(s, p, o)` string triples.
+    fn triples(ds: &RdfDataset) -> Vec<(String, String, String)> {
+        let term = |id| match ds.resolve(id) {
+            TermRef::Iri(i) => format!("<{i}>"),
+            TermRef::Blank { label, .. } => format!("_:{label}"),
+            TermRef::Literal { lexical, .. } => lexical.to_owned(),
+            TermRef::Triple { .. } => "<<triple>>".to_owned(),
+        };
+        let mut out: Vec<_> = ds
+            .quads()
+            .map(|q| (term(q.s), term(q.p), term(q.o)))
+            .collect();
+        out.sort();
+        out
+    }
+
+    /// Walk a constructed `rdf:List` from `head`, returning member object strings.
+    fn members_of(ds: &RdfDataset, head: &str) -> Vec<String> {
+        let first = format!("<{}>", super::RDF_FIRST);
+        let rest = format!("<{}>", super::RDF_REST);
+        let ts = triples(ds);
+        let mut members = Vec::new();
+        let mut cur = head.to_owned();
+        while cur != RDF_NIL_STR {
+            let f = ts
+                .iter()
+                .find(|(s, p, _)| s == &cur && p == &first)
+                .map(|(_, _, o)| o.clone());
+            let r = ts
+                .iter()
+                .find(|(s, p, _)| s == &cur && p == &rest)
+                .map(|(_, _, o)| o.clone());
+            match (f, r) {
+                (Some(f), Some(r)) => {
+                    members.push(f);
+                    cur = r;
+                }
+                _ => break,
+            }
+        }
+        members
+    }
+
+    /// Run a SELECT/ASK and return its rows plus the auxiliary constructed graph.
+    fn run_constructed(
+        ds: &Arc<RdfDataset>,
+        query: &str,
+    ) -> (Vec<Vec<Option<TermValue>>>, Arc<RdfDataset>) {
+        let engine = NativeSparqlEngine::new();
+        let (res, aux) = engine
+            .query_with_constructed(
+                ds,
+                SparqlRequest {
+                    query,
+                    base_iri: None,
+                },
+            )
+            .expect("query");
+        match res {
+            SparqlResult::Solutions { rows, .. } => (rows, aux),
+            other => panic!("expected solutions, got {other:?}"),
+        }
+    }
+
+    /// Run a CONSTRUCT and return its output graph.
+    fn run_graph(ds: &Arc<RdfDataset>, query: &str) -> Arc<RdfDataset> {
+        let engine = NativeSparqlEngine::new();
+        match engine
+            .query(
+                ds,
+                SparqlRequest {
+                    query,
+                    base_iri: None,
+                },
+            )
+            .expect("query")
+        {
+            SparqlResult::Graph(g) => g,
+            other => panic!("expected a graph, got {other:?}"),
+        }
+    }
+
+    /// The single SELECT head cell as a comparable string (`<iri>` or `_:label`).
+    fn head_str(rows: &[Vec<Option<TermValue>>]) -> String {
+        match &rows[0][0] {
+            Some(TermValue::Iri(i)) => format!("<{i}>"),
+            Some(TermValue::Blank { label, .. }) => format!("_:{label}"),
+            other => panic!("expected a list head term, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn list_slice_surfaces_subrange_in_aux_graph() {
+        let ds = list_ds();
+        let q = format!(
+            "{PREFIX} SELECT ?s WHERE {{ ?q <http://ex/list> ?l . \
+             BIND(g:listSlice(?l, 1, 3) AS ?s) }}"
+        );
+        let (rows, aux) = run_constructed(&ds, &q);
+        let head = head_str(&rows);
+        assert!(head.starts_with("_:"), "head must be a fresh blank: {head}");
+        assert_eq!(
+            members_of(&aux, &head),
+            vec!["<http://ex/y>".to_owned(), "<http://ex/z>".to_owned()]
+        );
+        // A 2-member list is exactly 4 cell quads.
+        assert_eq!(aux.quad_count(), 4);
+    }
+
+    #[test]
+    fn list_slice_empty_range_is_nil() {
+        let ds = list_ds();
+        let q = format!(
+            "{PREFIX} SELECT ?s WHERE {{ ?q <http://ex/list> ?l . \
+             BIND(g:listSlice(?l, 2, 2) AS ?s) }}"
+        );
+        let (rows, aux) = run_constructed(&ds, &q);
+        assert_eq!(head_str(&rows), RDF_NIL_STR);
+        assert_eq!(aux.quad_count(), 0);
+    }
+
+    #[test]
+    fn list_slice_clamps_out_of_bounds_and_inverted_ranges() {
+        let ds = list_ds();
+        // end past the list end → clamps to the full tail [1, len).
+        let q = format!(
+            "{PREFIX} SELECT ?s WHERE {{ ?q <http://ex/list> ?l . \
+             BIND(g:listSlice(?l, 1, 99) AS ?s) }}"
+        );
+        let (rows, aux) = run_constructed(&ds, &q);
+        assert_eq!(
+            members_of(&aux, &head_str(&rows)),
+            vec!["<http://ex/y>".to_owned(), "<http://ex/z>".to_owned()]
+        );
+        // inverted range (start > end) → empty.
+        let q = format!(
+            "{PREFIX} SELECT ?s WHERE {{ ?q <http://ex/list> ?l . \
+             BIND(g:listSlice(?l, 2, 1) AS ?s) }}"
+        );
+        let (rows, _) = run_constructed(&ds, &q);
+        assert_eq!(head_str(&rows), RDF_NIL_STR);
+    }
+
+    #[test]
+    fn list_concat_appends_members() {
+        let ds = list_ds();
+        // concat the list with itself → [x, y, z, x, y, z].
+        let q = format!(
+            "{PREFIX} SELECT ?s WHERE {{ ?q <http://ex/list> ?l . \
+             BIND(g:listConcat(?l, ?l) AS ?s) }}"
+        );
+        let (rows, aux) = run_constructed(&ds, &q);
+        assert_eq!(
+            members_of(&aux, &head_str(&rows)),
+            vec![
+                "<http://ex/x>".to_owned(),
+                "<http://ex/y>".to_owned(),
+                "<http://ex/z>".to_owned(),
+                "<http://ex/x>".to_owned(),
+                "<http://ex/y>".to_owned(),
+                "<http://ex/z>".to_owned(),
+            ]
+        );
+    }
+
+    #[test]
+    fn list_concat_with_nil_is_identity_and_nil_nil_is_nil() {
+        let ds = list_ds();
+        let q = format!(
+            "{PREFIX} SELECT ?s WHERE {{ ?q <http://ex/list> ?l . \
+             BIND(g:listConcat(?l, <{}>) AS ?s) }}",
+            super::RDF_NIL
+        );
+        let (rows, aux) = run_constructed(&ds, &q);
+        assert_eq!(
+            members_of(&aux, &head_str(&rows)),
+            vec![
+                "<http://ex/x>".to_owned(),
+                "<http://ex/y>".to_owned(),
+                "<http://ex/z>".to_owned(),
+            ]
+        );
+        // nil ++ nil → nil (no cells).
+        let q = format!(
+            "{PREFIX} SELECT ?s WHERE {{ BIND(g:listConcat(<{nil}>, <{nil}>) AS ?s) }}",
+            nil = super::RDF_NIL
+        );
+        let (rows, aux) = run_constructed(&ds, &q);
+        assert_eq!(head_str(&rows), RDF_NIL_STR);
+        assert_eq!(aux.quad_count(), 0);
+    }
+
+    #[test]
+    fn list_slice_materializes_into_construct_output() {
+        let ds = list_ds();
+        let q = format!(
+            "{PREFIX} CONSTRUCT {{ <http://ex/out> <http://ex/has> ?s }} \
+             WHERE {{ ?q <http://ex/list> ?l . BIND(g:listSlice(?l, 0, 2) AS ?s) }}"
+        );
+        let graph = run_graph(&ds, &q);
+        // The head is the object of ex:out ex:has — find it, then walk the cells.
+        let ts = triples(&graph);
+        let head = ts
+            .iter()
+            .find(|(s, p, _)| s == "<http://ex/out>" && p == "<http://ex/has>")
+            .map(|(_, _, o)| o.clone())
+            .expect("the binding triple is present");
+        assert_eq!(
+            members_of(&graph, &head),
+            vec!["<http://ex/x>".to_owned(), "<http://ex/y>".to_owned()]
+        );
+        // binding triple (1) + two cells (4) = 5 quads.
+        assert_eq!(graph.quad_count(), 5);
     }
 }

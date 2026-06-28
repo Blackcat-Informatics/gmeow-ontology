@@ -130,6 +130,37 @@ impl NativeSparqlEngine {
             .map_err(|e| RdfDiagnostic::error("native-sparql-query-eval", e.to_string()))?;
         Ok(materialize(outcome, &ctx))
     }
+
+    /// Like [`SparqlEngine::query`], but additionally returns the auxiliary graph of
+    /// `rdf:List` cells invented during evaluation by value-constructing builtins
+    /// (`gmeow:listSlice`/`gmeow:listConcat`).
+    ///
+    /// The standard [`SparqlEngine::query`] returns only the dataset-independent
+    /// [`SparqlResult`], so a constructed list used in a `SELECT` surfaces just its
+    /// head term. This richer entry point also hands back the minted cells so an
+    /// in-process consumer can dereference the list. (For a `CONSTRUCT` query the
+    /// cells are already folded into the result graph; the auxiliary graph then
+    /// repeats them and is normally ignored.) The auxiliary graph is empty whenever
+    /// no constructing builtin ran.
+    ///
+    /// # Errors
+    ///
+    /// Propagates parse and evaluation errors as an [`RdfDiagnostic`].
+    pub fn query_with_constructed(
+        &self,
+        dataset: &Arc<RdfDataset>,
+        request: SparqlRequest<'_>,
+    ) -> Result<(SparqlResult, Arc<RdfDataset>), RdfDiagnostic> {
+        let prepared = self
+            .cache
+            .borrow_mut()
+            .prepare(request.query, request.base_iri)?;
+        let mut ctx = EvalCtx::new(dataset);
+        let outcome = evaluate_query(&prepared.query, &mut ctx)
+            .map_err(|e| RdfDiagnostic::error("native-sparql-query-eval", e.to_string()))?;
+        let constructed = ctx.constructed_dataset();
+        Ok((materialize(outcome, &ctx), constructed))
+    }
 }
 
 impl SparqlEngine for NativeSparqlEngine {

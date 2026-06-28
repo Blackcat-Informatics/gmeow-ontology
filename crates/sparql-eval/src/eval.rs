@@ -18,7 +18,7 @@
 use std::rc::Rc;
 use std::sync::Arc;
 
-use gmeow_rdf_core::{GraphMatch, RdfDataset, TermValue};
+use gmeow_rdf_core::{GraphMatch, RdfDataset, TermFactory, TermValue};
 use gmeow_sparql_algebra::{GraphPattern, Query};
 
 use crate::dataset_spec::ActiveDataset;
@@ -127,6 +127,14 @@ pub struct EvalCtx<'d> {
     /// the default engine path: a non-silent `SERVICE` then hard-fails. Tests and
     /// the conformance harness inject an in-memory source via [`EvalCtx::with_remote`].
     pub(crate) remote: Option<&'d dyn crate::remote::RemoteQuerySource>,
+    /// Quads invented during evaluation by value-constructing builtins
+    /// (`gmeow:listSlice`/`gmeow:listConcat` mint fresh `rdf:List` cells). A SPARQL
+    /// expression returns one term, so the new cells are buffered here and surface at
+    /// the result boundary: [`crate::construct::eval_construct`] unions them into the
+    /// CONSTRUCT output, and [`crate::engine::NativeSparqlEngine::query_with_constructed`]
+    /// exposes them as the auxiliary graph alongside a SELECT/ASK result. Empty
+    /// whenever no constructing builtin ran.
+    pub(crate) constructed: Vec<(TermValue, TermValue, TermValue)>,
 }
 
 impl<'d> EvalCtx<'d> {
@@ -166,7 +174,24 @@ impl<'d> EvalCtx<'d> {
             options: EvalOptions::default(),
             exists_inner_cache: DetHashMap::default(),
             remote: None,
+            constructed: Vec::new(),
         }
+    }
+
+    /// Freeze the quads invented during evaluation (see [`Self::constructed`]) into a
+    /// standalone dataset — the auxiliary graph surfaced alongside a SELECT/ASK
+    /// result. An empty buffer yields an empty (but valid) dataset.
+    pub(crate) fn constructed_dataset(&self) -> Arc<RdfDataset> {
+        let mut builder = gmeow_rdf_core::RdfDatasetBuilder::new();
+        for (s, p, o) in &self.constructed {
+            let s = builder.intern_value(s);
+            let p = builder.intern_value(p);
+            let o = builder.intern_value(o);
+            builder.push_quad(s, p, o, None);
+        }
+        builder
+            .freeze()
+            .expect("constructed list cells are positionally valid by construction")
     }
 
     /// Attach a `SERVICE` federation source for this evaluation. The borrow shares
