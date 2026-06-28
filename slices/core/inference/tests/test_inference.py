@@ -299,6 +299,13 @@ ex:selfAttack a gmeow:Attack ;
     gmeow:attackSource ex:claimX ;
     gmeow:attackTarget ex:claimX ;
     gmeow:attackKind gmeow:attackRebut .
+# component self-attack: an Argument must not attack its own conclusion
+ex:claimY a gmeow:StandpointClaim ; gmeow:observationMethod ex:methodReason .
+ex:selfArg a gmeow:Argument ; gmeow:argumentConclusion ex:claimY .
+ex:componentSelfAttack a gmeow:Attack ;
+    gmeow:attackSource ex:selfArg ;
+    gmeow:attackTarget ex:claimY ;
+    gmeow:attackKind gmeow:attackRebut .
 """
 )
 
@@ -315,6 +322,7 @@ def test_malformed_commitment_is_flagged() -> None:
     assert "assume what it proves" in blob  # premise == conclusion
     assert "irreflexive" in blob  # self-competition
     assert "attack itself" in blob  # self-attack: the no-self-attack constraint fires
+    assert "own component" in blob  # argument attacking its own conclusion is flagged
 
 
 def test_all_examples_parse() -> None:

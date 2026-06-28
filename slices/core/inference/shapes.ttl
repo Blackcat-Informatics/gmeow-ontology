@@ -204,12 +204,17 @@ gmeow:ArgumentShape
 gmeow:AttackShape
     a sh:NodeShape ;
     rdfs:label "Attack shape"@x-gmeow-english ;
-    skos:definition "Well-formedness of a typed gmeow:Attack: exactly one target (gmeow:attackTarget), exactly one kind (gmeow:attackKind), at least one source (gmeow:attackSource), and no self-attack (source != target — irreflexivity in SHACL, keeping the DL profile clean)."@x-gmeow-english ;
+    skos:definition "Well-formedness of a typed gmeow:Attack: exactly one target (gmeow:attackTarget) typed as PremiseUse/InferenceApplication/StandpointClaim, exactly one kind (gmeow:attackKind), exactly one source gmeow:Argument (gmeow:attackSource), kind/target agreement (undermine→PremiseUse, undercut→InferenceApplication, rebut→StandpointClaim), and no self-attack or argument-component attack — irreflexivity in SHACL, keeping the DL profile clean."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     sh:targetClass gmeow:Attack ;
     sh:property [
         sh:path gmeow:attackTarget ;
         sh:minCount 1 ; sh:maxCount 1 ;
+        sh:or (
+            [ sh:class gmeow:PremiseUse ]
+            [ sh:class gmeow:InferenceApplication ]
+            [ sh:class gmeow:StandpointClaim ]
+        ) ;
         sh:severity sh:Violation ;
         sh:message "An Attack must name exactly one target (gmeow:attackTarget) — a gmeow:PremiseUse, gmeow:InferenceApplication, or conclusion gmeow:StandpointClaim." ;
     ] ;
@@ -222,9 +227,33 @@ gmeow:AttackShape
     ] ;
     sh:property [
         sh:path gmeow:attackSource ;
-        sh:minCount 1 ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:Argument ;
         sh:severity sh:Violation ;
-        sh:message "An Attack must have at least one attacking structure (gmeow:attackSource)." ;
+        sh:message "An Attack must have exactly one attacking gmeow:Argument (gmeow:attackSource) — independent conflicts are separate Attack instances." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An Attack kind must agree with its target: undermine -> PremiseUse, undercut -> InferenceApplication, rebut -> StandpointClaim." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT $this WHERE {
+                $this gmeow:attackKind ?kind ;
+                      gmeow:attackTarget ?target .
+                FILTER (
+                    ?kind IN (gmeow:attackUndermine, gmeow:attackUndercut, gmeow:attackRebut)
+                )
+                OPTIONAL { ?target a gmeow:PremiseUse . BIND(true AS ?isPU) }
+                OPTIONAL { ?target a gmeow:InferenceApplication . BIND(true AS ?isIA) }
+                OPTIONAL { ?target a gmeow:StandpointClaim . BIND(true AS ?isSC) }
+                FILTER (
+                    (?kind = gmeow:attackUndermine && !BOUND(?isPU)) ||
+                    (?kind = gmeow:attackUndercut && !BOUND(?isIA)) ||
+                    (?kind = gmeow:attackRebut && !BOUND(?isSC))
+                )
+            }
+        """ ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -234,6 +263,22 @@ gmeow:AttackShape
             PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
             SELECT $this WHERE {
                 $this gmeow:attackSource ?x ; gmeow:attackTarget ?x .
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An Argument must not attack its own component (conclusion, premise-use, or inference-application) — conflict is irreflexive." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT $this WHERE {
+                $this gmeow:attackSource ?source ;
+                      gmeow:attackTarget ?target .
+                ?source a gmeow:Argument .
+                { ?source gmeow:argumentConclusion ?target . }
+                UNION { ?source gmeow:hasPremiseUse ?target . }
+                UNION { ?source gmeow:hasInferenceApplication ?target . }
             }
         """ ;
     ] .
@@ -253,9 +298,13 @@ gmeow:SupportShape
     ] ;
     sh:property [
         sh:path gmeow:supportSource ;
-        sh:minCount 1 ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:or (
+            [ sh:class gmeow:Argument ]
+            [ sh:class gmeow:StandpointClaim ]
+        ) ;
         sh:severity sh:Violation ;
-        sh:message "A Support must have at least one supporting structure (gmeow:supportSource)." ;
+        sh:message "A Support must have exactly one supporting structure (gmeow:supportSource) — independent sources are separate Support instances." ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;

@@ -842,11 +842,19 @@
         },
         "gmeow:attackSource": {
           "anyOf": [
-            {},
             {
-              "items": {},
-              "minItems": 1,
-              "type": "array"
+              "$ref": "#/$defs/Argument"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             }
           ]
         },
@@ -17732,16 +17740,7 @@
             }
           ]
         },
-        "gmeow:supportSource": {
-          "anyOf": [
-            {},
-            {
-              "items": {},
-              "minItems": 1,
-              "type": "array"
-            }
-          ]
-        },
+        "gmeow:supportSource": {},
         "gmeow:supportTarget": {
           "anyOf": [
             {

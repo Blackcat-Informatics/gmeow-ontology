@@ -77,9 +77,13 @@ ex:defeaterNeverQueued a gmeow:StandpointClaim ;
     gmeow:observationMethod gmeow:methodDirectObservation ;
     gmeow:claimModality gmeow:unequivocal .
 
+ex:neverQueuedArgument a gmeow:Argument ;
+    rdfs:label "Argument: the document was never sent to the print queue"@x-gmeow-english ;
+    gmeow:argumentConclusion ex:defeaterNeverQueued .
+
 ex:undercut a gmeow:Attack ;
     rdfs:label "Undercut: never-queued removes the failure->broken warrant"@x-gmeow-english ;
-    gmeow:attackSource ex:defeaterNeverQueued ;
+    gmeow:attackSource ex:neverQueuedArgument ;
     gmeow:attackTarget ex:inductiveStep ;          # the rule-application, not the premise or conclusion
     gmeow:attackKind gmeow:attackUndercut .
 

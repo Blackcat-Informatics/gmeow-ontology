@@ -81,9 +81,13 @@ ex:serverDownArgument a gmeow:Argument ;
     gmeow:hasInferenceApplication ex:downInferenceStep ;
     gmeow:argumentConclusion ex:conclServerDown .
 
+ex:firewallArgument a gmeow:Argument ;
+    rdfs:label "Argument: a firewall rule blocked the ping"@x-gmeow-english ;
+    gmeow:argumentConclusion ex:defeaterFirewall .
+
 ex:firewallUndercut a gmeow:Attack ;
     rdfs:label "Undercut: the firewall rule removes the ping-timeout => server-down warrant"@x-gmeow-english ;
-    gmeow:attackSource ex:defeaterFirewall ;
+    gmeow:attackSource ex:firewallArgument ;
     gmeow:attackTarget ex:downInferenceStep ;       # the rule-application (warrant)
     gmeow:attackKind gmeow:attackUndercut .
 
