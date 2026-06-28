@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for logic:SatisfiedByBackedByEvaluationShape: a gmeow:Goal with
+# a conclusive gmeow:satisfiedBy(goal, situation) edge but NO backing
+# logic:GoalEvaluation under any vantage (no evaluation has evaluatesGoal = goal,
+# evaluatedAgainst = situation, satisfactionStatus = logic:Satisfied,
+# goalEvaluationStatus = logic:GoalEvaluationCompleted). The sh:sparql constraint
+# therefore fires and validation MUST emit shacl.SPARQLConstraintComponent (and no
+# other finding). Bound by tests/example-conformance.ttl
+# (ex:ecSatisfiedByUnbacked). Lives under tests/ (NOT examples/) so the global
+# make validate gate does not reject it.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lgc/> .
+
+ex:goalReachOrbit a gmeow:Goal ;
+    rdfs:label "reach a stable orbit (fixture, unbacked)"@en ;
+    gmeow:satisfiedBy ex:situationFirstStableOrbit .

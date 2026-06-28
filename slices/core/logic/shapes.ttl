@@ -89,6 +89,217 @@ logic:FormalizationCandidateShape
         sh:message "A FormalizationCandidate must have exactly one logic:candidateSemanticRisk from the closed logic:SemanticRiskClass value set." ;
     ] .
 
+# =========================================================================== #
+# Canonical process model (W1) — Plan / GoalEvaluation / ActionSchema shapes
+# =========================================================================== #
+
+logic:PlanShape
+    a sh:NodeShape ;
+    rdfs:label "Plan well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for logic:Plan: a transaction program whose success criterion is a goal and whose success over nondeterministic action outcomes is quantified. Exactly one logic:planGoal (the gmeow:Goal the plan's steps are arranged to reach) and exactly one logic:planSuccessMode (the logic:PlanSuccessMode quantifying success over the action schemas' nondeterministic outcomes) are required; absence of either makes the plan's success criterion unstated and is a governance error."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:Plan ;
+    sh:property [
+        sh:path logic:planGoal ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:Goal ;
+        sh:severity sh:Violation ;
+        sh:message "A Plan must have exactly one logic:planGoal naming the gmeow:Goal that is its success criterion." ;
+    ] ;
+    sh:property [
+        sh:path logic:planSuccessMode ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:PlanSuccessMode ;
+        sh:severity sh:Violation ;
+        sh:message "A Plan must have exactly one logic:planSuccessMode from the closed logic:PlanSuccessMode value set quantifying success over nondeterministic outcomes." ;
+    ] .
+
+logic:GoalEvaluationShape
+    a sh:NodeShape ;
+    rdfs:label "GoalEvaluation well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for logic:GoalEvaluation: the reified, vantage-indexed record of whether a goal is met. The outcome is FACTORED into four independent closed-set axes, each required exactly once — logic:satisfactionStatus, logic:feasibilityStatus, logic:lifecycleStatus, and logic:goalEvaluationStatus — so a misspelt or missing axis value is a governance error rather than a silent default. At least one logic:evaluatesGoal anchors the record to the gmeow:Goal it judges. The three quantitative axes (logic:satisfactionDegree, logic:objectiveValue, logic:utility) are optional but single-valued: a goal may carry a degree without an objective or a utility, but never two conflicting values of one quantity."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:GoalEvaluation ;
+    sh:property [
+        sh:path logic:satisfactionStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:SatisfactionStatus ;
+        sh:severity sh:Violation ;
+        sh:message "A GoalEvaluation must carry exactly one logic:satisfactionStatus from the closed logic:SatisfactionStatus value set." ;
+    ] ;
+    sh:property [
+        sh:path logic:feasibilityStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:FeasibilityStatus ;
+        sh:severity sh:Violation ;
+        sh:message "A GoalEvaluation must carry exactly one logic:feasibilityStatus from the closed logic:FeasibilityStatus value set." ;
+    ] ;
+    sh:property [
+        sh:path logic:lifecycleStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:LifecycleStatus ;
+        sh:severity sh:Violation ;
+        sh:message "A GoalEvaluation must carry exactly one logic:lifecycleStatus from the closed logic:LifecycleStatus value set." ;
+    ] ;
+    sh:property [
+        sh:path logic:goalEvaluationStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:GoalEvaluationStatus ;
+        sh:severity sh:Violation ;
+        sh:message "A GoalEvaluation must carry exactly one logic:goalEvaluationStatus from the closed logic:GoalEvaluationStatus value set." ;
+    ] ;
+    sh:property [
+        sh:path logic:evaluatesGoal ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:Goal ;
+        sh:severity sh:Violation ;
+        sh:message "A GoalEvaluation must reference at least one gmeow:Goal it judges via logic:evaluatesGoal." ;
+    ] ;
+    sh:property [
+        sh:path logic:satisfactionDegree ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A GoalEvaluation may carry at most one logic:satisfactionDegree (the unit-interval extent the goal is met)." ;
+    ] ;
+    sh:property [
+        sh:path logic:objectiveValue ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A GoalEvaluation may carry at most one logic:objectiveValue (the measure an optimization goal extremizes)." ;
+    ] ;
+    sh:property [
+        sh:path logic:utility ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A GoalEvaluation may carry at most one logic:utility (the preference quantity for how desirable an outcome is)." ;
+    ] .
+
+logic:ActionSchemaShape
+    a sh:NodeShape ;
+    rdfs:label "ActionSchema well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for logic:ActionSchema: the reusable precondition/effect/invariant template. Per-facet cardinality keeps READ-ONLY actions honest rather than forcing vacuous facets — only logic:precondition (the situation gate the schema grounds) and logic:capability (the executional precondition on the actor) are required, because every action schema gates on a situation and demands some agent capability. logic:effect, logic:invariant, logic:observation, and logic:actionResource are optional and single-valued. logic:nondeterministicOutcome and logic:compensation are optional and MULTI-valued: an action may branch into several alternative outcomes, and compensation is outcome-indexed, so each branch may name the compensation that recovers from it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:ActionSchema ;
+    sh:property [
+        sh:path logic:precondition ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An ActionSchema must declare at least one logic:precondition (the situation gate on its elementary state transition)." ;
+    ] ;
+    sh:property [
+        sh:path logic:capability ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An ActionSchema must declare at least one logic:capability (the executional precondition on the actor)." ;
+    ] ;
+    sh:property [
+        sh:path logic:effect ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An ActionSchema may carry at most one logic:effect (the change it introduces, as transaction-layer ins/del)." ;
+    ] ;
+    sh:property [
+        sh:path logic:invariant ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An ActionSchema may carry at most one logic:invariant (what it preserves across execution)." ;
+    ] ;
+    sh:property [
+        sh:path logic:observation ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An ActionSchema may carry at most one logic:observation (what executing it reveals — the policy seam)." ;
+    ] ;
+    sh:property [
+        sh:path logic:actionResource ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An ActionSchema may carry at most one logic:actionResource (what it consumes or requires)." ;
+    ] .
+
+# logic:McpActionPolicyShape — the MCP-action governance PROFILE (a CONSTRAINT,
+# not ontology vocabulary). It does NOT auto-apply to every logic:ActionSchema:
+# it targets only the opt-in marker subtype logic:McpActionSchema, so a plain
+# action schema is never forced to carry the stricter compensation obligation.
+# An MCP-action schema opts in by typing itself logic:McpActionSchema (Task 6
+# wires the MCP triad individuals this way; the conformance fixtures below do the
+# same). Targeting the marker class — rather than a data-graph sh:targetNode — is
+# the engine-native opt-in: the native validator resolves sh:targetClass from
+# rdf:type in the data graph, and the merged ontology declares no instance of the
+# marker, so the global `make validate` gate never fires this profile.
+logic:McpActionPolicyShape
+    a sh:NodeShape ;
+    rdfs:label "MCP action-policy governance shape"@x-gmeow-english ;
+    skos:definition "The MCP-action governance profile: a sh:NodeShape (a CONSTRAINT, not ontology vocabulary) over the logic:McpActionSchema instances that gate an MCP tool action under explicit capability, precondition, and compensation (rollback = compensation). It targets ONLY the opt-in marker subtype logic:McpActionSchema, never every logic:ActionSchema, so a plain action schema is not forced to carry compensation. It requires at least one logic:capability (what the agent must be able to do), at least one logic:precondition (the situation gate before the tool runs), and at least one logic:compensation (the rollback that recovers from the realized outcome). Stricter than logic:ActionSchemaShape, which does not require compensation: an MCP tool that mutates external state must always declare how to roll back."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:McpActionSchema ;
+    sh:property [
+        sh:path logic:capability ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An MCP-action schema must declare at least one logic:capability gating the tool action on what the agent can do." ;
+    ] ;
+    sh:property [
+        sh:path logic:precondition ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An MCP-action schema must declare at least one logic:precondition (the situation gate before the tool runs)." ;
+    ] ;
+    sh:property [
+        sh:path logic:compensation ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An MCP-action schema must declare at least one logic:compensation — the rollback that recovers from the realized outcome." ;
+    ] .
+
+# Dual-authority consistency (VANTAGE-SCOPED, never a global satisfaction verdict).
+# A conclusive gmeow:satisfiedBy(goal, situation) edge is the projection of a
+# satisfied + completed logic:GoalEvaluation. This sh:sparql constraint flags a
+# satisfiedBy edge with NO backing logic:GoalEvaluation that evaluatesGoal = goal,
+# evaluatedAgainst = situation, satisfactionStatus = logic:Satisfied, and
+# goalEvaluationStatus = logic:GoalEvaluationCompleted.
+#
+# VANTAGE SCOPING: the backing evaluation carries its OWN vantage via
+# logic:evaluationEvaluator (aligned with gmeow:accordingTo). The constraint never
+# demands a single global verdict — one satisfied+completed evaluation under SOME
+# vantage discharges the obligation, and two contested (Principle 9) vantages each
+# contribute their own coexisting evaluation rather than collapsing into one elected
+# winner. The check only fires when NO vantage at all backs the conclusive edge.
+logic:SatisfiedByBackedByEvaluationShape
+    a sh:NodeShape ;
+    rdfs:label "satisfiedBy backed by a vantage-scoped GoalEvaluation shape"@x-gmeow-english ;
+    skos:definition "Vantage-scoped dual-authority check: a conclusive gmeow:satisfiedBy(goal, situation) edge must be backed by at least one logic:GoalEvaluation under SOME vantage whose logic:evaluatesGoal is the goal, logic:evaluatedAgainst is the situation, logic:satisfactionStatus is logic:Satisfied, and logic:goalEvaluationStatus is logic:GoalEvaluationCompleted. The evaluation carries its own evaluator (logic:evaluationEvaluator, aligned with gmeow:accordingTo), so the check is never a global satisfaction verdict — contested vantages each need only their own backing, and the constraint fires solely when no vantage backs the edge at all (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass gmeow:Goal ;
+    sh:severity sh:Violation ;
+    sh:sparql [
+        sh:message "A conclusive gmeow:satisfiedBy edge must be backed by a vantage-scoped logic:GoalEvaluation (evaluatesGoal = this goal, evaluatedAgainst = the situation, satisfactionStatus = logic:Satisfied, goalEvaluationStatus = logic:GoalEvaluationCompleted). No backing evaluation under any vantage was found." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/satisfiedBy> ?situation .
+                FILTER NOT EXISTS {
+                    ?eval <https://blackcatinformatics.ca/logic/evaluatesGoal> $this ;
+                          <https://blackcatinformatics.ca/logic/evaluatedAgainst> ?situation ;
+                          <https://blackcatinformatics.ca/logic/satisfactionStatus> <https://blackcatinformatics.ca/logic/Satisfied> ;
+                          <https://blackcatinformatics.ca/logic/goalEvaluationStatus> <https://blackcatinformatics.ca/logic/GoalEvaluationCompleted> .
+                }
+            }
+        """ ;
+    ] .
+
 logic:NonEntailmentObligationShape
     a sh:NodeShape ;
     rdfs:label "NonEntailmentObligation well-formedness shape"@x-gmeow-english ;
