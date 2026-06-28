@@ -1176,8 +1176,15 @@ fn validate_instance(
 /// `origin` is the data file's display path (recorded as each finding's physical
 /// location for SARIF). Returns the single canonical diagnostics report as a live
 /// `Report` pyclass — the CLI renders human/SARIF/JSON from it and derives the
-/// exit code from its error count. No reasoner runs (Tier-1 only).
+/// exit code from its error count.
+///
+/// `deep` is the opt-in Tier-2 switch: when true, after Tier-1 the native DL
+/// reasoner runs over the user's data merged with the bundle's axioms and folds its
+/// `logic:ReasoningResult` verdict into the same report (degrading to an advisory
+/// note, never a crash, if the semantic pass cannot run). Defaults to false, so the
+/// common path stays reasoner-free.
 #[pyfunction]
+#[pyo3(signature = (data_bytes, data_format, gts_bytes, namespace, origin, deep=false))]
 fn validate_data(
     py: Python<'_>,
     data_bytes: &[u8],
@@ -1185,8 +1192,9 @@ fn validate_data(
     gts_bytes: &[u8],
     namespace: &str,
     origin: &str,
+    deep: bool,
 ) -> PyResult<Py<PyAny>> {
-    let report = data_validate::run(data_bytes, data_format, gts_bytes, namespace, origin)
+    let report = data_validate::run(data_bytes, data_format, gts_bytes, namespace, origin, deep)
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }

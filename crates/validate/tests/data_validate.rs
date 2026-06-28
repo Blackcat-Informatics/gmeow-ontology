@@ -49,8 +49,15 @@ ex:e1 a gmeow:Event ;
 #[test]
 fn fail_fixture_yields_two_errors_one_warning_with_locations() {
     let gts = bundle_bytes();
-    let report = data_validate::run(FAIL_TTL.as_bytes(), "turtle", &gts, NS, "fixture-fail.ttl")
-        .expect("validate_data run");
+    let report = data_validate::run(
+        FAIL_TTL.as_bytes(),
+        "turtle",
+        &gts,
+        NS,
+        "fixture-fail.ttl",
+        false,
+    )
+    .expect("validate_data run");
 
     let errors: Vec<_> = report
         .findings
@@ -127,8 +134,8 @@ fn fail_fixture_yields_two_errors_one_warning_with_locations() {
 fn clean_fixture_passes() {
     let gts = bundle_bytes();
     let clean = "@prefix ex: <https://example.org/> .\nex:a ex:b ex:c .\n";
-    let report =
-        data_validate::run(clean.as_bytes(), "turtle", &gts, NS, "clean.ttl").expect("run clean");
+    let report = data_validate::run(clean.as_bytes(), "turtle", &gts, NS, "clean.ttl", false)
+        .expect("run clean");
     assert_eq!(report.error_count(), 0, "clean graph reported errors");
     assert_eq!(report.warning_count(), 0, "clean graph reported warnings");
 }
@@ -144,7 +151,8 @@ fn nquads_named_graph_is_flattened_and_validated() {
         "<https://example.org/p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ",
         "<https://blackcatinformatics.ca/gmeow/Honorific> <https://example.org/g> .\n",
     );
-    let report = data_validate::run(nq.as_bytes(), "nquads", &gts, NS, "g.nq").expect("run nq");
+    let report =
+        data_validate::run(nq.as_bytes(), "nquads", &gts, NS, "g.nq", false).expect("run nq");
     assert_eq!(
         report.error_count(),
         1,
@@ -158,15 +166,15 @@ fn json_ld_is_parsed_as_rdf() {
     let jsonld = r#"{"@context":{"gmeow":"https://blackcatinformatics.ca/gmeow/"},
         "@id":"https://example.org/p",
         "@type":["gmeow:PronounSet","gmeow:Honorific"]}"#;
-    let report =
-        data_validate::run(jsonld.as_bytes(), "json-ld", &gts, NS, "p.jsonld").expect("run jsonld");
+    let report = data_validate::run(jsonld.as_bytes(), "json-ld", &gts, NS, "p.jsonld", false)
+        .expect("run jsonld");
     assert_eq!(report.error_count(), 1, "JSON-LD was not validated as RDF");
 }
 
 #[test]
 fn unknown_format_hard_fails() {
     let gts = bundle_bytes();
-    let err = data_validate::run(b"{}", "application/json", &gts, NS, "x.json")
+    let err = data_validate::run(b"{}", "application/json", &gts, NS, "x.json", false)
         .expect_err("JSON instance is not an RDF format");
     assert!(err.contains("parse error") || err.contains("unsupported"));
 }
