@@ -125,7 +125,7 @@ fn fno_lowering_matches_emitter_modulo_expects_order() {
     let dsl_view = DslView::new(&dsl);
     let onto_view = DslView::new(&onto);
 
-    let lowered = lower_fno(&dsl_view, &onto_view).expect("lower fno");
+    let lowered = lower_fno(&dsl_view, &onto_view).expect("lower fno").catalog;
     let emitted = gmeow_slice::fno_emit::emit_fno(&root).expect("emit_fno");
     assert!(!lowered.is_empty(), "FnO catalog should be non-empty");
 

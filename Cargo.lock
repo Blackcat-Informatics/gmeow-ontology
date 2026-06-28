@@ -1812,6 +1812,7 @@ dependencies = [
  "gmeow-rdf",
  "gmeow-sparql-algebra",
  "insta",
+ "serde",
  "sha2",
 ]
 

@@ -15,6 +15,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::ingest::prefixes::ns_to_prefix;
 use crate::ingest::{DslTerm, DslView};
+use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
 
 pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
@@ -78,6 +79,7 @@ const GM_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
 const GM_LOSSY_DROP: &str = "https://blackcatinformatics.ca/gmeow/lossyDrop";
 const GM_EDOAL_TARGET: &str = "https://blackcatinformatics.ca/gmeow/edoalTarget";
 const GM_EDOAL_TARGET_KIND: &str = "https://blackcatinformatics.ca/gmeow/edoalTargetKind";
+const GM_MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/gmeow/morphismClass";
 
 // ── Model ────────────────────────────────────────────────────────────────────────
 
@@ -174,6 +176,65 @@ pub struct ProfileBinding {
     pub lossy_drops: Vec<String>,
     pub edoal_target: Option<String>,
     pub edoal_target_kind: Option<String>,
+    /// Optionally-authored `logic:MorphismClass` local name (`gmeow:morphismClass`).
+    /// Absent in the committed corpus (so byte-parity holds); when present it lets a
+    /// cell declare itself a `BridgeView` even though its EDOAL relation symbol is the
+    /// equivalence token `=`, which the overclaim gate then refuses (Principle 5). When
+    /// absent the class is DERIVED from the relation lattice ([`relation_lattice`]).
+    pub morphism_class: Option<MorphismClass>,
+}
+
+impl ProfileBinding {
+    /// The `(relation, morphism class, morphism kind)` lattice triple the overclaim gate
+    /// enforces: the relation + kind are derived from the EDOAL relation token; the class
+    /// is the authored `gmeow:morphismClass` when present, else the lattice default.
+    pub fn lattice(&self) -> (CorrespondenceRelation, MorphismClass, MorphismKind) {
+        let (relation, derived_class, kind) = relation_lattice(&self.relation);
+        (relation, self.morphism_class.unwrap_or(derived_class), kind)
+    }
+}
+
+/// Resolve a get-leg `relation` token (the EDOAL relation symbol an authored
+/// `ProfileBinding` carries) to the typed `logic:` correspondence lattice triple the
+/// overclaim gate enforces over: `(relation, morphism class, morphism kind)`.
+///
+/// The authored frontend tokens are the EDOAL relation symbols: `"="` is equivalence,
+/// `"<="`/`">="` are subsumption, `"%"` is disjointness, and anything else is a weaker
+/// `RelatedMatch`. The morphism class is the strongest rung the relation can lawfully
+/// claim (an honest under-approximation; composition can only weaken it), and the kind
+/// is an `InstitutionMorphism` — the authored projection cells are satisfaction-preserving
+/// down-projections, not commitment-shifting bridges (a bridge would be authored with an
+/// explicit bridge stereotype, which this frontend has no token for, so it can never
+/// silently masquerade as equivalence here).
+pub fn relation_lattice(relation: &str) -> (CorrespondenceRelation, MorphismClass, MorphismKind) {
+    let kind = MorphismKind::InstitutionMorphism;
+    match relation.trim() {
+        "=" => (
+            CorrespondenceRelation::Equiv,
+            MorphismClass::WellBehavedLens,
+            kind,
+        ),
+        "<=" => (
+            CorrespondenceRelation::SubsumedBy,
+            MorphismClass::LossyLens,
+            kind,
+        ),
+        ">=" => (
+            CorrespondenceRelation::Subsumes,
+            MorphismClass::LossyLens,
+            kind,
+        ),
+        "%" => (
+            CorrespondenceRelation::Disjoint,
+            MorphismClass::BridgeView,
+            kind,
+        ),
+        _ => (
+            CorrespondenceRelation::RelatedMatch,
+            MorphismClass::AffineCorrespondence,
+            kind,
+        ),
+    }
 }
 
 /// A projection mapping: a pattern + its per-profile bindings.
@@ -251,7 +312,10 @@ fn parse_pattern(view: &DslView, node: &DslTerm) -> Result<MappingPattern, Strin
     for f in view.objects_of_term(node, GM_FILTER) {
         filters.push(parse_expr(view, &f)?);
     }
-    filters.sort_by_key(render_expr);
+    // Sort by a TOTAL structural key (never fails). Legalization happens at render
+    // time, not here: an unsupported operator must not poison the deterministic order
+    // (and a filter is dropped as residue by its lowering caller, not silently here).
+    filters.sort_by_key(expr_sort_key);
 
     let mut raw_binds = Vec::new();
     for b in view.objects_of_term(node, GM_BIND) {
@@ -409,6 +473,21 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> Result<ProfileBinding, Strin
             lossy_drops.push(iri.to_owned());
         }
     }
+    // Optional authored morphism class (`gmeow:morphismClass`), as either the
+    // `logic:`-namespaced individual IRI or a bare local name. Absent in the committed
+    // corpus; when present an unknown value is a hard error (no silent fallback).
+    let morphism_class = match view
+        .object_iri_of_term(node, GM_MORPHISM_CLASS)
+        .or_else(|| view.object_literal_of_term(node, GM_MORPHISM_CLASS))
+    {
+        Some(value) => {
+            let local = value.rsplit(['#', '/', ':']).next().unwrap_or(&value);
+            Some(MorphismClass::from_local(local).ok_or_else(|| {
+                format!("profile binding has unknown gmeow:morphismClass {value}")
+            })?)
+        }
+        None => None,
+    };
     Ok(ProfileBinding {
         profile,
         to_predicate: view.object_iri_of_term(node, GM_TO_PREDICATE),
@@ -421,6 +500,7 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> Result<ProfileBinding, Strin
         lossy_drops,
         edoal_target: view.object_iri_of_term(node, GM_EDOAL_TARGET),
         edoal_target_kind: view.object_literal_of_term(node, GM_EDOAL_TARGET_KIND),
+        morphism_class,
     })
 }
 
@@ -564,36 +644,75 @@ fn infix_op(name: &str) -> Option<&'static str> {
     })
 }
 
-pub fn render_expr(expr: &Expr) -> String {
+/// Render one expression-algebra node to its legal SPARQL text.
+///
+/// Lowering is **legalization** (LOGIC-IR.md § IR commitments): a total function into
+/// `⟨ legal output ⊕ flagged residue ⟩`. An expression containing an operator the closed
+/// SPARQL algebra cannot express is NOT a legal output, so this returns `Err` carrying the
+/// unsupported construct rather than emitting a placeholder token (which would be illegal
+/// SPARQL). The lowering caller treats that `Err` as **residue**: it records the dropped
+/// construct in the correspondence's loss-ledger residue set and omits it from the legal
+/// output — never a malformed placeholder.
+pub fn render_expr(expr: &Expr) -> Result<String, String> {
     match expr {
-        Expr::Var(v) => format!("?{v}"),
-        Expr::ConstIri(iri) => curie(iri),
-        Expr::ConstLiteral(text) => sparql_string(text),
+        Expr::Var(v) => Ok(format!("?{v}")),
+        Expr::ConstIri(iri) => Ok(curie(iri)),
+        Expr::ConstLiteral(text) => Ok(sparql_string(text)),
         Expr::Op { op, args } => {
             let name = op_local(op);
-            let rendered: Vec<String> = args.iter().map(render_expr).collect();
+            let rendered: Vec<String> = args
+                .iter()
+                .map(render_expr)
+                .collect::<Result<Vec<_>, _>>()?;
             if name == "opRegex" {
-                return format!("regex({})", rendered.join(", "));
+                return Ok(format!("regex({})", rendered.join(", ")));
             }
             if name == "opNot" {
                 if rendered.len() != 1 {
-                    return format!("MALFORMED_opNot({})", rendered.join(", "));
+                    return Err(format!(
+                        "unsupported expression operator: opNot expects exactly 1 argument, \
+                         got {}",
+                        rendered.len()
+                    ));
                 }
-                return format!("(!{})", rendered[0]);
+                return Ok(format!("(!{})", rendered[0]));
             }
             if name == "opIn" {
                 if rendered.is_empty() {
-                    return "MALFORMED_opIn()".to_string();
+                    return Err(
+                        "unsupported expression operator: opIn requires at least 1 argument"
+                            .to_owned(),
+                    );
                 }
-                return format!("({} IN ({}))", rendered[0], rendered[1..].join(", "));
+                return Ok(format!(
+                    "({} IN ({}))",
+                    rendered[0],
+                    rendered[1..].join(", ")
+                ));
             }
             if let Some(sym) = infix_op(&name) {
-                return format!("({})", rendered.join(&format!(" {sym} ")));
+                return Ok(format!("({})", rendered.join(&format!(" {sym} "))));
             }
             if let Some(fn_name) = func_op(&name) {
-                return format!("{fn_name}({})", rendered.join(", "));
+                return Ok(format!("{fn_name}({})", rendered.join(", ")));
             }
-            format!("UNKNOWN_OP({})", rendered.join(", "))
+            Err(format!("unsupported expression operator: {name}"))
+        }
+    }
+}
+
+/// A TOTAL structural sort key for an expression — used ONLY for the deterministic
+/// filter order, never as output. Unlike [`render_expr`] it cannot fail, so an
+/// unsupported operator still sorts deterministically (its legalization-as-residue is
+/// handled at render time by the lowering caller).
+fn expr_sort_key(expr: &Expr) -> String {
+    match expr {
+        Expr::Var(v) => format!("var:{v}"),
+        Expr::ConstIri(iri) => format!("iri:{iri}"),
+        Expr::ConstLiteral(text) => format!("lit:{text}"),
+        Expr::Op { op, args } => {
+            let inner: Vec<String> = args.iter().map(expr_sort_key).collect();
+            format!("op:{}({})", op_local(op), inner.join(","))
         }
     }
 }

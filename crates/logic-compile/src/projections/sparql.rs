@@ -15,10 +15,12 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::ingest::prefixes::PREFIX_REGISTRY;
 use crate::ingest::{DslTerm, DslView};
+use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::get_leg::{
     curie, projections, render_expr, sparql_string, Atom, Item, MappingPattern, ProfileBinding,
     ProjectionCell, RDF_TYPE,
 };
+use crate::projections::{correspondence_result, ProjectionResult};
 
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
@@ -96,19 +98,29 @@ const PROFILES: &[&str] = &[
     "jams",
 ];
 
-/// Lower every profile's SPARQL projection query, keyed `<profile>.rq`. `dsl` is the
-/// merged mapping-DSL view; `onto` the merged ontology view (suppression vocabulary).
-pub fn lower_sparql(dsl: &DslView, onto: &DslView) -> Result<BTreeMap<String, String>, String> {
+/// The artifacts + per-correspondence loss ledger of the SPARQL-CONSTRUCT lowering.
+pub struct SparqlLowering {
+    /// `<profile>.rq` → SPARQL CONSTRUCT.
+    pub queries: BTreeMap<String, String>,
+    /// One [`ProjectionResult`] per correspondence (cell::profile binding) that drops
+    /// something — the per-correspondence preservation rows for the loss ledger.
+    pub ledger: Vec<ProjectionResult>,
+}
+
+/// Lower every profile's SPARQL projection query, keyed `<profile>.rq`, plus the
+/// per-correspondence loss ledger. `dsl` is the merged mapping-DSL view; `onto` the
+/// merged ontology view (suppression vocabulary).
+pub fn lower_sparql(dsl: &DslView, onto: &DslView) -> Result<SparqlLowering, String> {
     let cells = projections(dsl)?;
     let vocab = suppression_vocab(onto);
-    let mut out = BTreeMap::new();
+    let mut queries = BTreeMap::new();
+    let mut ledger: Vec<ProjectionResult> = Vec::new();
     for profile in PROFILES {
-        out.insert(
-            format!("{profile}.rq"),
-            emit_sparql(&cells, profile, &vocab)?,
-        );
+        let emitted = emit_sparql(&cells, profile, &vocab)?;
+        queries.insert(format!("{profile}.rq"), emitted.query);
+        ledger.extend(emitted.ledger);
     }
-    Ok(out)
+    Ok(SparqlLowering { queries, ledger })
 }
 
 // ── Suppression vocabulary ───────────────────────────────────────────────────────
@@ -181,34 +193,71 @@ fn subclass_closure(onto: &DslView, root: &str) -> BTreeSet<String> {
 
 // ── SPARQL emission ──────────────────────────────────────────────────────────────
 
+/// One profile's emitted query plus its per-correspondence loss ledger.
+struct EmittedQuery {
+    query: String,
+    ledger: Vec<ProjectionResult>,
+}
+
 fn emit_sparql(
     cells: &[ProjectionCell],
     profile: &str,
     vocab: &SuppressionVocab,
-) -> Result<String, String> {
+) -> Result<EmittedQuery, String> {
     let mut templates: Vec<String> = Vec::new();
     let mut branches: Vec<String> = Vec::new();
     let mut drops: Vec<String> = Vec::new();
     let mut seen_branches: BTreeSet<String> = BTreeSet::new();
+    let mut ledger: Vec<ProjectionResult> = Vec::new();
     for cell in cells {
         for b in &cell.bindings {
             if b.profile != profile {
                 continue;
             }
+            // Overclaim gate (Constitution Principle 5): a SPARQL CONSTRUCT down-projection
+            // is an equivalence-style assertion only when its relation is genuine
+            // equivalence. A bridge / caveated relation emitting the `=` token is a build
+            // failure, propagated as Err. (Corpus relations are `=`/`<=`; the `=` cells are
+            // genuine Equiv, so the gate passes for the committed corpus.)
+            let (rel, mclass, mkind) = b.lattice();
+            assert_relation_no_overclaim("sparql-construct", rel, mclass, mkind, &b.relation)
+                .map_err(|e| e.0)?;
+
             for tmpl in templates_of(cell, b)? {
                 if !templates.contains(&tmpl) {
                     templates.push(tmpl);
                 }
             }
             let branch = branch_of(cell, b, vocab)?;
-            if seen_branches.insert(branch.clone()) {
-                branches.push(branch);
+            if seen_branches.insert(branch.text.clone()) {
+                branches.push(branch.text);
             }
             for d in &b.lossy_drops {
                 if !drops.contains(d) {
                     drops.push(d.clone());
                 }
             }
+            // One preservation row per correspondence (cell::profile): the SoundUnder
+            // SPARQL down-projection always drops the put leg + world/standpoint scope,
+            // plus any profile losses and A1's rejected BIND/FILTER constructs — all
+            // attributed to the get leg that dropped them.
+            let mut residue: Vec<String> = Vec::new();
+            for d in &b.lossy_drops {
+                residue.push(format!("get-leg profile loss: {d}"));
+            }
+            for r in branch.residue {
+                residue.push(format!("get-leg: {r}"));
+            }
+            residue.push(
+                "get-leg: the put leg is not carried by the SPARQL CONSTRUCT down-projection"
+                    .to_owned(),
+            );
+            residue.push(
+                "get-leg: world/standpoint scope is not carried by the SPARQL down-projection"
+                    .to_owned(),
+            );
+            let key = format!("{}::{}", local_cell(&cell.iri), b.profile);
+            ledger.push(correspondence_result("sparql", &key, residue));
         }
     }
     if branches.is_empty() {
@@ -241,7 +290,17 @@ fn emit_sparql(
         "# Projection: GMEOW → pure {profile}. {GENERATED_BANNER}\n# Lossy and directional by design{drops_part}\n"
     );
     let prefixes = prefix_block(&body);
-    Ok(format!("{header}{prefixes}\n\n{body}"))
+    Ok(EmittedQuery {
+        query: format!("{header}{prefixes}\n\n{body}"),
+        ledger,
+    })
+}
+
+/// The local name of a cell IRI (after the last `#`/`/`) — the per-correspondence key
+/// stem for its ledger row.
+fn local_cell(iri: &str) -> String {
+    let cut = iri.rfind(['#', '/']).map(|i| i + 1).unwrap_or(0);
+    iri[cut..].to_owned()
 }
 
 fn class_var(p: &MappingPattern) -> String {
@@ -443,14 +502,24 @@ fn injected_guards(p: &MappingPattern, vocab: &SuppressionVocab) -> Vec<String> 
     guards
 }
 
+/// One emitted UNION branch plus the residue an unsupported construct left behind.
+struct Branch {
+    /// The legal SPARQL branch text.
+    text: String,
+    /// Residue: constructs (BIND/mint/FILTER expressions) this branch could not
+    /// legalize and therefore omitted, attributed to the get leg that dropped them.
+    residue: Vec<String>,
+}
+
 fn branch_of(
     cell: &ProjectionCell,
     b: &ProfileBinding,
     vocab: &SuppressionVocab,
-) -> Result<String, String> {
+) -> Result<Branch, String> {
     let p = &cell.pattern;
     let empty: BTreeMap<String, String> = BTreeMap::new();
     let mut lines = where_items(&p.atoms, "")?;
+    let mut residue: Vec<String> = Vec::new();
 
     if !b.value_class_map.is_empty() {
         let cv = class_var(p);
@@ -465,19 +534,21 @@ fn branch_of(
         }
         lines.push("}".to_owned());
     }
+    // BIND / mint legalization: an unsupported operator yields no legal SPARQL, so the
+    // construct is OMITTED and recorded as residue (⟨legal ⊕ residue⟩) — never a
+    // malformed placeholder. A var without its BIND is unbound, exactly the honest
+    // "this construct was dropped" signal the residue set documents.
     for mint in &p.mints {
-        lines.push(format!(
-            "BIND ( {} AS ?{} )",
-            render_expr(&mint.expr),
-            mint.var
-        ));
+        match render_expr(&mint.expr) {
+            Ok(expr) => lines.push(format!("BIND ( {expr} AS ?{} )", mint.var)),
+            Err(why) => residue.push(format!("mint ?{} dropped ({why})", mint.var)),
+        }
     }
     for bind in &p.binds {
-        lines.push(format!(
-            "BIND ( {} AS ?{} )",
-            render_expr(&bind.expr),
-            bind.var
-        ));
+        match render_expr(&bind.expr) {
+            Ok(expr) => lines.push(format!("BIND ( {expr} AS ?{} )", bind.var)),
+            Err(why) => residue.push(format!("bind ?{} dropped ({why})", bind.var)),
+        }
     }
     let mut authored_guards = BTreeSet::new();
     for atom in p.suppress_when.iter().chain(p.exclude_when.iter()) {
@@ -497,7 +568,10 @@ fn branch_of(
         ));
     }
     for flt in &p.filters {
-        lines.push(format!("FILTER( {} )", render_expr(flt)));
+        match render_expr(flt) {
+            Ok(expr) => lines.push(format!("FILTER( {expr} )")),
+            Err(why) => residue.push(format!("filter dropped ({why})")),
+        }
     }
 
     if let (Some(retag_lines), Some(bind_expr)) = language_retag(p) {
@@ -511,7 +585,10 @@ fn branch_of(
         .map(|ln| format!("        {ln}"))
         .collect::<Vec<_>>()
         .join("\n");
-    Ok(format!("{{\n{body}\n    }}"))
+    Ok(Branch {
+        text: format!("{{\n{body}\n    }}"),
+        residue,
+    })
 }
 
 fn language_retag(p: &MappingPattern) -> (Option<Vec<String>>, Option<String>) {

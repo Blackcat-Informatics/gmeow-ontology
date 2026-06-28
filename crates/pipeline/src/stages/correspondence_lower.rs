@@ -16,7 +16,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_logic_compile::ingest::DslView;
-use gmeow_logic_compile::projections::{edoal, fno, sparql, sssom};
+use gmeow_logic_compile::projections::{edoal, fno, sparql, sssom, ProjectionResult};
 use gmeow_rdf::dataset_view::{DatasetView, GraphMatch};
 use gmeow_rdf::{
     parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue,
@@ -37,6 +37,12 @@ pub struct CorrespondenceArtifacts {
     pub edoal: BTreeMap<String, String>,
     /// `<profile>.rq` → SPARQL CONSTRUCT.
     pub sparql: BTreeMap<String, String>,
+    /// The per-correspondence loss ledger aggregated across all four dialects — one
+    /// `ProjectionResult` per correspondence per dialect that drops something. The
+    /// mappings stage unions this with the logic projection rows and serializes the
+    /// final `generated/logic/projection-report.ttl` (the loss ledger is the residue
+    /// set, per LOGIC-CORRESPONDENCE.md).
+    pub ledger: Vec<ProjectionResult>,
 }
 
 /// Lower every alignment dialect from the sources under `root`.
@@ -47,16 +53,26 @@ pub fn lower_all(root: &Path) -> Result<CorrespondenceArtifacts, SliceError> {
     let onto_view = DslView::new(&onto);
     let (version, release_date) = read_self_metadata(root)?;
 
-    let sssom = sssom::lower_sssom(&dsl_view, &version, &release_date);
+    let sssom =
+        sssom::lower_sssom(&dsl_view, &version, &release_date).map_err(SliceError::Parse)?;
     let fno = fno::lower_fno(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
     let edoal = edoal::lower_edoal(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
     let sparql = sparql::lower_sparql(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
 
+    // Aggregate the per-correspondence ledger across all four dialects. Each dialect
+    // already attributes its residue to the dropping (get) leg.
+    let mut ledger: Vec<ProjectionResult> = Vec::new();
+    ledger.extend(sssom.ledger);
+    ledger.extend(fno.ledger);
+    ledger.extend(edoal.ledger);
+    ledger.extend(sparql.ledger);
+
     Ok(CorrespondenceArtifacts {
-        sssom,
-        fno,
-        edoal,
-        sparql,
+        sssom: sssom.sets,
+        fno: fno.catalog,
+        edoal: edoal.alignments,
+        sparql: sparql.queries,
+        ledger,
     })
 }
 

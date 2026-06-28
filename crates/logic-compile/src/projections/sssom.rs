@@ -20,6 +20,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::ingest::prefixes::{ns_to_prefix, registry_iri, sssom_id};
 use crate::ingest::DslView;
+use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
+use crate::projections::correspondence_gate::assert_relation_no_overclaim;
+use crate::projections::{correspondence_result, ProjectionResult};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
@@ -95,12 +98,98 @@ struct SssomSources {
     mapping_sets: BTreeMap<String, MappingSet>,
 }
 
+/// The artifacts + per-correspondence loss ledger of the SSSOM lowering.
+pub struct SssomLowering {
+    /// Bare file name (e.g. `gmeow-accessibility.sssom.tsv`) → TSV.
+    pub sets: BTreeMap<String, String>,
+    /// One [`ProjectionResult`] per `gmeow:TermEquivalence` correspondence — SSSOM
+    /// always drops the caveat/law/leg structure and world/standpoint scope, so every
+    /// cell contributes a preservation row.
+    pub ledger: Vec<ProjectionResult>,
+}
+
 /// Lower every `gmeow:TermEquivalence` in `view` to its SSSOM TSV, keyed by bare file
-/// name (e.g. `gmeow-accessibility.sssom.tsv`). `version`/`release_date` come from the
-/// caller's read of `metadata/gmeow-self.ttl`.
-pub fn lower_sssom(view: &DslView, version: &str, release_date: &str) -> BTreeMap<String, String> {
+/// name (e.g. `gmeow-accessibility.sssom.tsv`), plus the per-correspondence loss
+/// ledger. `version`/`release_date` come from the caller's read of
+/// `metadata/gmeow-self.ttl`.
+///
+/// # Errors
+///
+/// Returns the overclaim message if a cell emits an equivalence predicate
+/// (`exactMatch`/`equivalentClass`/`equivalentProperty`) that the SSSOM predicate
+/// lattice does not classify as a genuine `logic:Equiv` (Constitution Principle 5).
+pub fn lower_sssom(
+    view: &DslView,
+    version: &str,
+    release_date: &str,
+) -> Result<SssomLowering, String> {
     let sources = collect_sources(view);
-    render_sets(&sources, version, release_date)
+    let ledger = build_ledger(&sources)?;
+    let sets = render_sets(&sources, version, release_date);
+    Ok(SssomLowering { sets, ledger })
+}
+
+/// Map an SSSOM mapping predicate to the typed `logic:` correspondence relation it
+/// asserts. The predicate IS the relation for the 1:1 lattice band; this lets the
+/// overclaim gate refuse, e.g., a `relatedMatch`-classed predicate masquerading as an
+/// `exactMatch` token were the two ever to disagree.
+fn sssom_relation(predicate: &str) -> CorrespondenceRelation {
+    let local = predicate
+        .rsplit(['#', '/', ':'])
+        .next()
+        .unwrap_or(predicate);
+    match local {
+        "exactMatch" | "equivalentClass" | "equivalentProperty" | "sameAs" => {
+            CorrespondenceRelation::Equiv
+        }
+        "broadMatch" | "subClassOf" | "subPropertyOf" => CorrespondenceRelation::Subsumes,
+        "narrowMatch" => CorrespondenceRelation::SubsumedBy,
+        "closeMatch" => CorrespondenceRelation::Overlaps,
+        _ => CorrespondenceRelation::RelatedMatch,
+    }
+}
+
+/// Build one preservation row per `gmeow:TermEquivalence` correspondence, running the
+/// overclaim gate over each emitted predicate.
+fn build_ledger(sources: &SssomSources) -> Result<Vec<ProjectionResult>, String> {
+    let mut ledger: Vec<ProjectionResult> = Vec::new();
+    for cell in &sources.equivalences {
+        let relation = sssom_relation(&cell.predicate);
+        // The SSSOM 1:1 band is a satisfaction-preserving lens, never a bridge; the
+        // morphism class is the strongest rung the relation can lawfully claim.
+        let mclass = match relation {
+            CorrespondenceRelation::Equiv => MorphismClass::WellBehavedLens,
+            CorrespondenceRelation::Subsumes | CorrespondenceRelation::SubsumedBy => {
+                MorphismClass::LossyLens
+            }
+            CorrespondenceRelation::Overlaps => MorphismClass::AffineCorrespondence,
+            _ => MorphismClass::AffineCorrespondence,
+        };
+        assert_relation_no_overclaim(
+            "sssom",
+            relation,
+            mclass,
+            MorphismKind::InstitutionMorphism,
+            &cell.predicate,
+        )
+        .map_err(|e| e.0)?;
+
+        // SSSOM carries only subject/predicate/object + confidence + justification; the
+        // correspondence's caveat/law/leg structure and world/standpoint scope are
+        // dropped (the dialect structural drops, attributed to the get leg).
+        let residue = vec![
+            "get-leg: the caveat/law/leg structure of the correspondence is dropped \
+             (only subject/predicate/object, confidence, and justification survive)"
+                .to_owned(),
+            "get-leg: world/standpoint scope and the put leg are not carried by SSSOM".to_owned(),
+        ];
+        // A correspondence is the (subject, predicate, object) triple, not just the
+        // subject (one subject may align to several objects), so the per-correspondence
+        // key folds all three for a stable, collision-free target name.
+        let key = format!("{}|{}|{}", cell.subject, cell.predicate, cell.obj);
+        ledger.push(correspondence_result("sssom", &key, residue));
+    }
+    Ok(ledger)
 }
 
 /// Every IRI participating in an SSSOM equivalence (both subject and object position)
@@ -580,8 +669,8 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
         let ds = b.freeze().expect("freeze");
         let view = DslView::new(&ds);
 
-        let out = lower_sssom(&view, "0.1.0", "2026-06-03");
-        let tsv = out.get("demo.sssom.tsv").expect("one set emitted");
+        let out = lower_sssom(&view, "0.1.0", "2026-06-03").expect("lower sssom");
+        let tsv = out.sets.get("demo.sssom.tsv").expect("one set emitted");
         assert!(
             tsv.contains("# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/demo")
         );

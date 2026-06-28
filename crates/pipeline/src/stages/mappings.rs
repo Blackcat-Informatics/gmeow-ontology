@@ -27,6 +27,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
+use gmeow_logic_compile::projections::report::build_projection_report_from;
+use gmeow_logic_compile::projections::ProjectionResult;
 use gmeow_rdf::RdfSeverity;
 use gmeow_slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
 use gmeow_slice::{
@@ -36,6 +38,9 @@ use gmeow_slice::{
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::stages::compile_logic::{
+    LogicProjectionsChannel, LOGIC_PROJECTIONS_CHANNEL, PROJECTION_REPORT_PATH,
+};
 use crate::stages::correspondence_lower;
 
 /// Directory (logical-path prefix) of the SSSOM TSV sets.
@@ -57,10 +62,19 @@ pub const JSONLD_CONTEXT_PATH: &str = "generated/context.jsonld";
 /// Committed logical path of the first-class RDF list functions (#1009 §5).
 pub const LIST_FUNCTIONS_PATH: &str = "generated/projections/list-functions.fno.ttl";
 
+/// The mapping artifacts plus the per-correspondence loss ledger the SSSOM/FnO/EDOAL/
+/// SPARQL lowerings produced (the residue set the projection report serializes).
+pub struct CompiledMappings {
+    /// Every emitted artifact, by logical path.
+    pub artifacts: BTreeMap<String, Vec<u8>>,
+    /// The per-correspondence loss ledger across all four dialects.
+    pub ledger: Vec<ProjectionResult>,
+}
+
 /// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
 /// projections) plus the DSL surface-count summary from `root`, returning
 /// `{logical_path → bytes}`. The mappings stage is now complete.
-pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> {
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
     // Prefix-consistency gate (#1009 §2): no authored source may shadow a registry
@@ -102,6 +116,7 @@ pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
     for (filename, rq) in aligned.sparql {
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
     }
+    let ledger = aligned.ledger;
 
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical
     // to the Python template-coded emitters; no DSL input).
@@ -150,7 +165,27 @@ pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
         emit_list_functions().into_bytes(),
     );
 
-    Ok(artifacts)
+    Ok(CompiledMappings { artifacts, ledger })
+}
+
+/// Assemble the FINAL `generated/logic/projection-report.ttl` over the UNION of the
+/// logic projection rows (handed over from compile-logic via [`LogicProjectionsChannel`])
+/// and the correspondence-calculus loss ledger.  This is the ONE place the committed
+/// report is serialized; it funnels through the single `build_projection_report_from`
+/// routine, so the seven whole-program logic rows stay byte-identical — only the added
+/// correspondence rows differ.
+fn build_union_report(
+    channel: &LogicProjectionsChannel,
+    correspondence_ledger: &[ProjectionResult],
+) -> Result<Vec<u8>, PipelineError> {
+    let mut rows: Vec<ProjectionResult> = channel.projections.clone();
+    rows.extend(correspondence_ledger.iter().cloned());
+    let report =
+        build_projection_report_from(channel.header, &rows).map_err(|e| PipelineError::Stage {
+            stage: "stage-mappings".to_string(),
+            message: format!("projection-report assembly: {e}"),
+        })?;
+    Ok(report.into_bytes())
 }
 
 /// Compile mappings and fold their diagnostics into the native report.
@@ -161,7 +196,7 @@ pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
 pub fn compile_diagnostics_report(root: &Path) -> Report {
     let mut report = Report::new("mapping-compile");
     let artifacts = match compile_mappings(root) {
-        Ok(artifacts) => artifacts,
+        Ok(compiled) => compiled.artifacts,
         Err(err) => {
             add_dsl_error(&mut report, err.to_string());
             return report;
@@ -294,8 +329,28 @@ fn collect_files_recursive(
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `mappings` pipeline stage — complete: all five mapping families (SSSOM +
-/// FnO + EDOAL + SPARQL + standpoint projections) plus the DSL surface-count summary.
-pub struct MappingsStage;
+/// FnO + EDOAL + SPARQL + standpoint projections) plus the DSL surface-count summary,
+/// and the FINAL projection-report loss ledger (logic rows ∪ correspondence rows).
+pub struct MappingsStage {
+    consumes: Vec<String>,
+}
+
+impl MappingsStage {
+    /// Construct the stage. It consumes the compile-logic product to obtain the logic
+    /// projection rows + report-header counts it unions with the correspondence ledger
+    /// when assembling the final `generated/logic/projection-report.ttl`.
+    pub fn new() -> Self {
+        Self {
+            consumes: vec!["stage-compile-logic".to_string()],
+        }
+    }
+}
+
+impl Default for MappingsStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Stage for MappingsStage {
     fn id(&self) -> &str {
@@ -305,16 +360,16 @@ impl Stage for MappingsStage {
         StageKind::Transform
     }
     fn consumes(&self) -> &[String] {
-        // Reads dsl/mappings + slice mapping cells from the root (like statements
-        // reads dsl/statements). The slice DAG edge is reconciled at P6 wiring.
-        &[]
+        // Reads dsl/mappings + slice mapping cells from the root, AND the compile-logic
+        // product (the logic projection rows + header counts) so it can assemble the
+        // FINAL projection report over the union with the correspondence ledger.
+        &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v6: routes the list-functions catalog through the shared
-        // `gmeow_rdf::fno::to_quads` serializer (§19 one-path) — the committed
-        // artifact form becomes N-Triples like `functions.fno.ttl`. Bump busts
-        // the stage cache.
-        "mappings.v6-list-functions-fno"
+        // v7: assemble the final projection-report loss ledger here, over the union of
+        // the logic projection rows (from compile-logic) and the per-correspondence
+        // residue ledger. Bump busts the stage cache.
+        "mappings.v7-union-projection-report"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
@@ -329,7 +384,31 @@ impl Stage for MappingsStage {
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let artifacts = compile_mappings(input.root)?;
+        let compiled = compile_mappings(input.root)?;
+        let mut artifacts = compiled.artifacts;
+
+        // Assemble the FINAL committed projection report over the UNION of the logic
+        // projection rows (from compile-logic's in-memory channel) and the
+        // correspondence loss ledger. Serialized ONCE through the single routine, so
+        // the logic rows stay byte-identical and only correspondence rows are added.
+        let channel_bytes = input
+            .upstream
+            .get("stage-compile-logic")
+            .and_then(|p| p.artifact(LOGIC_PROJECTIONS_CHANNEL))
+            .ok_or_else(|| PipelineError::Stage {
+                stage: "stage-mappings".to_string(),
+                message: format!(
+                    "missing compile-logic projection channel ({LOGIC_PROJECTIONS_CHANNEL})"
+                ),
+            })?;
+        let channel: LogicProjectionsChannel =
+            serde_json::from_slice(channel_bytes).map_err(|e| PipelineError::Stage {
+                stage: "stage-mappings".to_string(),
+                message: format!("decode logic-projections channel: {e}"),
+            })?;
+        let report = build_union_report(&channel, &compiled.ledger)?;
+        artifacts.insert(PROJECTION_REPORT_PATH.to_string(), report);
+
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), artifacts),
         })
@@ -422,7 +501,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // committed-vs-local env/staleness drift and is the CI `check-generated`
         // gate, not asserted here.
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile");
+        let artifacts = compile_mappings(&root).expect("compile").artifacts;
         let mut overlap = 0usize;
         for (path, bytes) in &artifacts {
             if !path.ends_with(".sssom.tsv") {
@@ -446,7 +525,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // EDOAL `.edoal.ttl` and SPARQL `.rq` the stage emits MUST equal its
         // committed counterpart byte-for-byte (the emitters' parity contract).
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile");
+        let artifacts = compile_mappings(&root).expect("compile").artifacts;
         let mut edoal = 0usize;
         let mut sparql = 0usize;
         let mut failures: Vec<String> = Vec::new();
@@ -504,7 +583,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // and `dsl-stats.json` the stage emits MUST equal their committed counterparts
         // byte-for-byte (the emitters' parity contract).
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile");
+        let artifacts = compile_mappings(&root).expect("compile").artifacts;
         let mut standpoint = 0usize;
         let mut failures: Vec<String> = Vec::new();
 
@@ -551,7 +630,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // The emitted `observation-claim-view.rq` MUST equal its committed counterpart
         // byte-for-byte (the emitter's parity contract).
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile");
+        let artifacts = compile_mappings(&root).expect("compile").artifacts;
         let path = format!("{QUERIES_DIR}/{CLAIM_VIEW_FILE}");
         let bytes = artifacts.get(&path).expect("claim-view artifact");
         let committed =
@@ -560,11 +639,72 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
     }
 
     #[test]
+    fn projection_report_unions_logic_and_correspondence_rows() {
+        use crate::node::StageInput;
+        use crate::stages::compile_logic::CompileLogicStage;
+
+        let root = repo_root();
+        // Run the real compile-logic stage to get the logic-projections channel, then the
+        // real mappings stage to assemble the FINAL projection report over the union.
+        let compile = CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &BTreeMap::new(),
+            })
+            .expect("compile-logic");
+        let mut up: BTreeMap<String, StageProduct> = BTreeMap::new();
+        up.insert("stage-compile-logic".to_string(), compile.product);
+        let out = MappingsStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &up,
+            })
+            .expect("mappings");
+        let report = std::str::from_utf8(
+            out.product
+                .artifact(PROJECTION_REPORT_PATH)
+                .expect("report"),
+        )
+        .expect("utf8 report");
+
+        // The report carries the correspondence rows (the whole point of the union): at
+        // least one row per alignment dialect.
+        for dialect in ["sssom:", "fno:", "edoal:", "sparql:"] {
+            assert!(
+                report.contains(&format!("/target/{dialect}")),
+                "projection report missing {dialect} correspondence rows"
+            );
+        }
+
+        // Byte-stability invariant: drop every correspondence `ProjectionTarget` block
+        // (and its `hasProjection` link) and what remains must be byte-identical to the
+        // committed report — the logic rows are untouched; only correspondence rows are
+        // added.
+        let committed = std::fs::read_to_string(root.join(PROJECTION_REPORT_PATH))
+            .expect("committed projection report");
+        let is_correspondence = |line: &str| {
+            ["sssom:", "fno:", "edoal:", "sparql:"]
+                .iter()
+                .any(|d| line.contains(&format!("/target/{d}")))
+        };
+        let logic_only: String = report
+            .lines()
+            .filter(|l| !is_correspondence(l))
+            .map(|l| format!("{l}\n"))
+            .collect();
+        assert_eq!(
+            logic_only, committed,
+            "the logic projection rows must be byte-identical to the committed report; \
+             only correspondence rows may be added"
+        );
+    }
+
+    #[test]
     fn fno_is_well_formed_ntriples() {
         // Wiring check: `emit_fno` produces a non-empty FnO catalog that parses.
         // (Committed-byte/iso parity is the CI `check-generated` gate, env-matched.)
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile");
+        let artifacts = compile_mappings(&root).expect("compile").artifacts;
         let fno = artifacts.get(FNO_PATH).expect("fno artifact");
         let triples = triple_set(fno, "application/n-triples");
         assert!(
@@ -580,7 +720,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // set + JSON-LD context, and the Turtle parses with the importable node
         // carrying the generalized sh:declare surface.
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile");
+        let artifacts = compile_mappings(&root).expect("compile").artifacts;
 
         let core = artifacts
             .get(CORE_PREFIXES_PATH)
@@ -621,7 +761,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // `gmeow_rdf::fno::to_quads` serializer, §19 one-path), each typed via
         // fno:Output and fno:Function.
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile");
+        let artifacts = compile_mappings(&root).expect("compile").artifacts;
         let lf = artifacts
             .get(LIST_FUNCTIONS_PATH)
             .expect("list-functions artifact");

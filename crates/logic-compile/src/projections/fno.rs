@@ -23,6 +23,7 @@ use gmeow_rdf::fno::{
 use gmeow_rdf::{turtle, RdfQuad, RdfTerm};
 
 use crate::ingest::{DslTerm, DslView};
+use crate::projections::{correspondence_result, ProjectionResult};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
@@ -111,16 +112,42 @@ struct ProjectionCell {
 /// A malformed function declaration, an input predicate with no ontology `rdfs:range`
 /// (the fail-closed `fno:type` guard), or a param-IRI minting collision is a hard
 /// error — no degraded fallback.
-pub fn lower_fno(dsl: &DslView, onto: &DslView) -> Result<String, String> {
+/// The artifacts + per-correspondence loss ledger of the FnO lowering.
+pub struct FnoLowering {
+    /// The single FnO catalog N-Triples text.
+    pub catalog: String,
+    /// One [`ProjectionResult`] per `gmeow:ProjectionFunction` correspondence — FnO is
+    /// `ValidationOnly`: signatures are exact, but the relation, caveats, and standpoint
+    /// scope are dropped, so every function contributes a preservation row.
+    pub ledger: Vec<ProjectionResult>,
+}
+
+pub fn lower_fno(dsl: &DslView, onto: &DslView) -> Result<FnoLowering, String> {
     let functions = extract_functions(dsl)?;
     let cells = extract_cells(dsl)?;
-    let catalog = build_catalog(&functions, &cells, onto)?;
+    let catalog_model = build_catalog(&functions, &cells, onto)?;
     let tag_map = build_tag_map(onto);
-    let quads: Vec<RdfQuad> = fno::to_quads(&catalog)
+    let quads: Vec<RdfQuad> = fno::to_quads(&catalog_model)
         .into_iter()
         .map(|q| retag_quad(q, &tag_map))
         .collect();
-    Ok(quads.iter().map(turtle::emit_quad).collect())
+    let catalog: String = quads.iter().map(turtle::emit_quad).collect();
+
+    // One preservation row per function correspondence: FnO carries exact signatures but
+    // is not an entailment surface, so the relation, caveats, and standpoint scope are
+    // dropped (the dialect structural drops, attributed to the get leg).
+    let mut ledger: Vec<ProjectionResult> = Vec::new();
+    for func in &functions {
+        let residue = vec![
+            "get-leg: FnO is not an entailment surface — parameter/output signatures are \
+             exact, but the transform's semantics are validation-only"
+                .to_owned(),
+            "get-leg: the correspondence relation, caveats, and standpoint scope are dropped"
+                .to_owned(),
+        ];
+        ledger.push(correspondence_result("fno", &func.iri, residue));
+    }
+    Ok(FnoLowering { catalog, ledger })
 }
 
 /// The single shared `rdfs:range` lookup (the FnO `fno:type` derivation + the lint's
@@ -679,7 +706,9 @@ mod tests {
             None,
         )
         .expect("parse onto");
-        let nt = lower_fno(&DslView::new(&dsl), &DslView::new(&onto)).expect("lower");
+        let nt = lower_fno(&DslView::new(&dsl), &DslView::new(&onto))
+            .expect("lower")
+            .catalog;
         // The param-mapping for (fnX, schema-org, paramEventTime ↦ ?bdate) must appear.
         assert!(
             nt.contains("functionParameter> <https://blackcatinformatics.ca/gmeow/paramEventTime>"),

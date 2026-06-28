@@ -136,7 +136,9 @@ fn edoal_lowering_matches_committed_corpus() {
     let root = repo_root();
     let dsl = merge_dsl(&root);
     let onto = merge_ontology(&root);
-    let emitted = lower_edoal(&DslView::new(&dsl), &DslView::new(&onto)).expect("lower edoal");
+    let emitted = lower_edoal(&DslView::new(&dsl), &DslView::new(&onto))
+        .expect("lower edoal")
+        .alignments;
     assert!(
         emitted.len() >= 40,
         "expected ~45 EDOAL files, got {}",
@@ -187,7 +189,9 @@ fn sparql_lowering_matches_committed_corpus_modulo_order() {
     let root = repo_root();
     let dsl = merge_dsl(&root);
     let onto = merge_ontology(&root);
-    let emitted = lower_sparql(&DslView::new(&dsl), &DslView::new(&onto)).expect("lower sparql");
+    let emitted = lower_sparql(&DslView::new(&dsl), &DslView::new(&onto))
+        .expect("lower sparql")
+        .queries;
     assert!(
         emitted.len() >= 40,
         "expected ~45 .rq files, got {}",

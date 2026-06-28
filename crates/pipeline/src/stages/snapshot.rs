@@ -116,13 +116,15 @@ pub fn build_snapshot(
         .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing conformance-stage divergence Finding graph"))?;
 
-    // graph/projection-ledger ← the compiler's projection-report loss ledger (Turtle),
-    // converted to N-Quads for the named-graph fold.
+    // graph/projection-ledger ← the FINAL projection-report loss ledger (Turtle),
+    // converted to N-Quads for the named-graph fold. Assembled by stage-mappings over
+    // the UNION of the logic projection rows and the correspondence-calculus ledger
+    // (compile-logic no longer emits the committed file).
     let projection_ledger = {
         let report_ttl = upstream
-            .get("stage-compile-logic")
+            .get("stage-mappings")
             .and_then(|p| p.artifact(crate::stages::compile_logic::PROJECTION_REPORT_PATH))
-            .ok_or_else(|| stage_err("missing compile-logic projection-report loss ledger"))?;
+            .ok_or_else(|| stage_err("missing mappings projection-report loss ledger"))?;
         let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
         ingest_turtle(&store, report_ttl)?;
         store_to_nquads(&store)?
@@ -720,6 +722,9 @@ impl SnapshotStage {
                 // divergences as a gmeow:Finding N-Quads product folded here.
                 "stage-conformance".to_string(),
                 "stage-docs-render".to_string(),
+                // The mappings product carries the FINAL projection-report loss ledger
+                // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
+                "stage-mappings".to_string(),
                 // The SHACL→JSON-Schema export leaf (#700): its in-memory product
                 // carries THIS run's freshly-emitted gmeow.schema.json / .openapi.json
                 // bytes, which `build_archive_blobs` folds into the `schemas-archive`

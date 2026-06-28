@@ -124,7 +124,9 @@ fn sssom_lowering_matches_committed_corpus() {
     let view = DslView::new(&merged);
     let (version, release_date) = read_self_metadata(&root);
 
-    let emitted: BTreeMap<String, String> = lower_sssom(&view, &version, &release_date);
+    let emitted: BTreeMap<String, String> = lower_sssom(&view, &version, &release_date)
+        .expect("lower sssom")
+        .sets;
     assert!(
         emitted.len() >= 60,
         "expected ~66 SSSOM sets, lowered {}",

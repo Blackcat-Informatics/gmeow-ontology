@@ -19,9 +19,11 @@ use gmeow_rdf::{parse_dataset, NativeRdfFormat};
 
 use crate::ingest::prefixes::registry_pairs;
 use crate::ingest::DslView;
+use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::get_leg::{
     curie, local, projections, Atom, MappingPattern, ProfileBinding, ProjectionCell,
 };
+use crate::projections::{correspondence_result, ProjectionResult};
 
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
 
@@ -94,25 +96,41 @@ const PROFILES: &[&str] = &[
     "jams",
 ];
 
-/// Lower every profile's EDOAL alignment, keyed `<profile>.edoal.ttl`. `dsl` is the
-/// merged mapping-DSL view; `onto` the merged ontology view (the language-tag map).
-pub fn lower_edoal(dsl: &DslView, onto: &DslView) -> Result<BTreeMap<String, String>, String> {
+/// The artifacts + per-correspondence loss ledger of the EDOAL lowering.
+pub struct EdoalLowering {
+    /// `<profile>.edoal.ttl` → Turtle.
+    pub alignments: BTreeMap<String, String>,
+    /// One [`ProjectionResult`] per correspondence (cell::profile binding) that drops
+    /// something — the per-correspondence preservation rows for the loss ledger.
+    pub ledger: Vec<ProjectionResult>,
+}
+
+/// Lower every profile's EDOAL alignment, keyed `<profile>.edoal.ttl`, plus the
+/// per-correspondence loss ledger. `dsl` is the merged mapping-DSL view; `onto` the
+/// merged ontology view (the language-tag map).
+pub fn lower_edoal(dsl: &DslView, onto: &DslView) -> Result<EdoalLowering, String> {
     let cells = projections(dsl)?;
     let tag_map = build_tag_map(onto);
     let prefixes = registry_pairs();
-    let mut out = BTreeMap::new();
+    let mut alignments = BTreeMap::new();
+    let mut ledger: Vec<ProjectionResult> = Vec::new();
     for profile in PROFILES {
-        let nt = emit_edoal_nt(&cells, profile, &tag_map)?;
+        let emitted = emit_edoal_nt(&cells, profile, &tag_map)?;
         // Parse the freshly-built N-Triples into a wasm-clean dataset and render it
         // through the canonical-Turtle serializer (object order is content-derived, so
         // no oxigraph re-dump is needed to fix the blank order).
-        let dataset = parse_dataset(nt.as_bytes(), NativeRdfFormat::NTriples.media_type(), None)
-            .map_err(|e| format!("EDOAL NT parse error: {e}"))?;
+        let dataset = parse_dataset(
+            emitted.nt.as_bytes(),
+            NativeRdfFormat::NTriples.media_type(),
+            None,
+        )
+        .map_err(|e| format!("EDOAL NT parse error: {e}"))?;
         let body = gmeow_rdf::turtle_render::render(&dataset, &prefixes);
         let text = format!("{}\n", body.trim_end_matches('\n'));
-        out.insert(format!("{profile}.edoal.ttl"), text);
+        alignments.insert(format!("{profile}.edoal.ttl"), text);
+        ledger.extend(emitted.ledger);
     }
-    Ok(out)
+    Ok(EdoalLowering { alignments, ledger })
 }
 
 // ── Language-tag retag map ───────────────────────────────────────────────────────
@@ -239,12 +257,21 @@ fn nt_quote(text: &str) -> String {
 
 // ── EDOAL emission ────────────────────────────────────────────────────────────
 
+/// The N-Triples body of one profile's EDOAL alignment plus its per-correspondence
+/// loss ledger.
+#[derive(Debug)]
+struct EmittedEdoal {
+    nt: String,
+    ledger: Vec<ProjectionResult>,
+}
+
 fn emit_edoal_nt(
     cells: &[ProjectionCell],
     profile: &str,
     tag_map: &BTreeMap<String, String>,
-) -> Result<String, String> {
+) -> Result<EmittedEdoal, String> {
     let mut nt = Nt::new();
+    let mut ledger: Vec<ProjectionResult> = Vec::new();
     let align = format!("{ONTOLOGY_IRI}/projections/{profile}");
     let en = retag(EN_TAG, tag_map);
 
@@ -275,12 +302,37 @@ fn emit_edoal_nt(
             if b.profile != profile {
                 continue;
             }
+            // Overclaim gate (Constitution Principle 5): the EDOAL `align:relation`
+            // token `b.relation` is emitted verbatim in `make_cell`. A bridge / caveated
+            // relation emitting the equivalence token `=` is a build failure. (Corpus
+            // relations are `=`/`<=`; the `=` cells are genuine Equiv, so the gate
+            // passes for the committed corpus.)
+            let (rel, mclass, mkind) = b.lattice();
+            assert_relation_no_overclaim("edoal", rel, mclass, mkind, &b.relation)
+                .map_err(|e| e.0)?;
+
             for map_cell in edoal_cells(&mut nt, cell, b, &en)? {
                 nt.add_bnode_obj(&align, &format!("{ALIGN}map"), &map_cell);
             }
+
+            // One preservation row per correspondence (cell::profile) that drops
+            // something: EDOAL drops the SOL caveats, the put leg, and world/standpoint
+            // scope (the dialect structural drops), plus any authored profile losses —
+            // all attributed to the get leg.
+            let mut residue: Vec<String> = Vec::new();
+            for d in &b.lossy_drops {
+                residue.push(format!("get-leg profile loss: {d}"));
+            }
+            residue.push("get-leg: the put leg is not carried by EDOAL".to_owned());
+            residue.push("get-leg: world/standpoint scope is not carried by EDOAL".to_owned());
+            let key = format!("{}::{}", local(&cell.iri), b.profile);
+            ledger.push(correspondence_result("edoal", &key, residue));
         }
     }
-    Ok(nt.lines)
+    Ok(EmittedEdoal {
+        nt: nt.lines,
+        ledger,
+    })
 }
 
 fn edoal_kind(kind: &str) -> &'static str {
@@ -596,5 +648,56 @@ mod tests {
         assert_eq!(format_double(0.95), "0.95");
         assert_eq!(format_double(0.6), "0.6");
         assert_eq!(format_double(1.0), "1");
+    }
+
+    /// RED witness driving the overclaim gate THROUGH the real EDOAL lowering: a cell
+    /// authored as a `BridgeView` whose EDOAL relation symbol is the equivalence token
+    /// `=` must make the lowering return `Err` (Constitution Principle 5 — a bridge view
+    /// may never assert equivalence). This exercises the gate at the production call
+    /// site, not only the bare gate function.
+    #[test]
+    fn bridge_cell_emitting_equivalence_fails_the_lowering() {
+        use crate::ir::MorphismClass;
+
+        let gm = "https://blackcatinformatics.ca/gmeow/";
+        let bridge_cell = ProjectionCell {
+            iri: format!("{gm}cellBridge"),
+            label: "bridge".to_owned(),
+            pattern: MappingPattern {
+                anchor: "x".to_owned(),
+                value: None,
+                atoms: Vec::new(),
+                suppress_when: Vec::new(),
+                project_when: Vec::new(),
+                exclude_when: Vec::new(),
+                filters: Vec::new(),
+                binds: Vec::new(),
+                mints: Vec::new(),
+                edoal_source: Some(format!("{gm}Foo")),
+                edoal_source_kind: "class".to_owned(),
+                edoal_path: false,
+            },
+            bindings: vec![ProfileBinding {
+                profile: "schema-org".to_owned(),
+                to_predicate: None,
+                to_class: Some(format!("{gm}Bar")),
+                template_atoms: Vec::new(),
+                value_class_map: Vec::new(),
+                // The EDOAL relation symbol is the equivalence token `=` …
+                relation: "=".to_owned(),
+                transform: None,
+                confidence: None,
+                lossy_drops: Vec::new(),
+                edoal_target: None,
+                edoal_target_kind: Some("class".to_owned()),
+                // … but the correspondence is authored as a by-reference BridgeView.
+                morphism_class: Some(MorphismClass::BridgeView),
+            }],
+        };
+        let tag_map = BTreeMap::new();
+        let err = emit_edoal_nt(&[bridge_cell], "schema-org", &tag_map)
+            .expect_err("a bridge view emitting `=` must be rejected by the lowering");
+        assert!(err.contains("bridge"), "{err}");
+        assert!(err.contains("Principle 5"), "{err}");
     }
 }
