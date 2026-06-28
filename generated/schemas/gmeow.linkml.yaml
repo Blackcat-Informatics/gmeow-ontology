@@ -18,6 +18,9 @@ classes:
   AboutnessMode:
     class_uri: https://blackcatinformatics.ca/gmeow/AboutnessMode
     title: Aboutness Mode
+  AcceptanceStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/AcceptanceStatus
+    title: Acceptance Status
   AccessibilityAssertion:
     class_uri: https://blackcatinformatics.ca/gmeow/AccessibilityAssertion
     title: Accessibility Assertion
@@ -51,6 +54,15 @@ classes:
     slots:
     - addressHolder
     - tenuredContactPoint
+  AdequacyAssessment:
+    class_uri: https://blackcatinformatics.ca/gmeow/AdequacyAssessment
+    title: Adequacy Assessment
+    slots:
+    - adequacyUnderStandard
+    - meetsThreshold
+  AdequacyVerdict:
+    class_uri: https://blackcatinformatics.ca/gmeow/AdequacyVerdict
+    title: Adequacy Verdict
   AdoptiveParentChild:
     class_uri: https://blackcatinformatics.ca/gmeow/AdoptiveParentChild
     title: Adoptive Parent-Child
@@ -68,6 +80,7 @@ classes:
     - attendsTo
     - awareOfNotKnowing
     - believes
+    - claimsToKnowThat
     - curiousAbout
     - doubts
     - email
@@ -92,6 +105,7 @@ classes:
     - knowsAbout
     - knowsLanguage
     - knowsThat
+    - knowsThatIn
     - mailmapEntry
     - makesOffer
     - memberOf
@@ -102,6 +116,7 @@ classes:
     - slogan
     - supposes
     - suspendsJudgementOn
+    - takesAsKnown
     - telephone
     - understands
     - wondersWhether
@@ -187,6 +202,24 @@ classes:
     - findContextPlace
     - findContextStratigraphy
     - findContextTarget
+  Argument:
+    class_uri: https://blackcatinformatics.ca/gmeow/Argument
+    title: Argument
+    slots:
+    - argumentConclusion
+    - argumentInferenceStep
+    - attacksClaim
+    - hasInferenceApplication
+    - hasPremiseUse
+    - supportsClaim
+  ArgumentEvaluation:
+    class_uri: https://blackcatinformatics.ca/gmeow/ArgumentEvaluation
+    title: Argument Evaluation
+    slots:
+    - acceptanceStatus
+    - evaluatesArgument
+    - extensionMember
+    - underSemantics
   Article:
     class_uri: https://blackcatinformatics.ca/gmeow/Article
     title: Article
@@ -231,6 +264,19 @@ classes:
     is_a: BodyPart
     slots:
     - filename
+  Attack:
+    class_uri: https://blackcatinformatics.ca/gmeow/Attack
+    title: Attack
+    slots:
+    - attackKind
+    - attackSource
+    - attackTarget
+  AttackKind:
+    class_uri: https://blackcatinformatics.ca/gmeow/AttackKind
+    title: Attack Kind
+  AttackTarget:
+    class_uri: https://blackcatinformatics.ca/gmeow/AttackTarget
+    title: Attack Target
   Attestation:
     class_uri: https://blackcatinformatics.ca/gmeow/Attestation
     title: Attestation
@@ -937,9 +983,9 @@ classes:
   DayOfWeek:
     class_uri: https://blackcatinformatics.ca/gmeow/DayOfWeek
     title: Day Of Week
-  DefeaterKind:
-    class_uri: https://blackcatinformatics.ca/gmeow/DefeaterKind
-    title: Defeater Kind
+  Defeater:
+    class_uri: https://blackcatinformatics.ca/gmeow/Defeater
+    title: Defeater
   DegreeOfFreedom:
     class_uri: https://blackcatinformatics.ca/gmeow/DegreeOfFreedom
     title: Degree of Freedom
@@ -1212,6 +1258,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/EpistemicContext
     title: Epistemic Context
     is_a: Entity
+  EpistemicStandard:
+    class_uri: https://blackcatinformatics.ca/gmeow/EpistemicStandard
+    title: Epistemic Standard
   EtymologicalDerivation:
     class_uri: https://blackcatinformatics.ca/gmeow/EtymologicalDerivation
     title: Etymological Derivation
@@ -1657,6 +1706,12 @@ classes:
   IndexAlgorithm:
     class_uri: https://blackcatinformatics.ca/gmeow/IndexAlgorithm
     title: Index Algorithm
+  InferenceApplication:
+    class_uri: https://blackcatinformatics.ca/gmeow/InferenceApplication
+    title: Inference Application
+    slots:
+    - appliedRule
+    - appliedSubstitution
   InferenceCommitment:
     class_uri: https://blackcatinformatics.ca/gmeow/InferenceCommitment
     title: Inference Commitment
@@ -1664,7 +1719,6 @@ classes:
     - candidateHypothesis
     - conclusion
     - explanandum
-    - hasDefeater
     - inferenceModeOf
     - premise
     - warrant
@@ -1837,8 +1891,12 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/JustificationSubject
     title: Justification Subject
     slots:
+    - adequateUnder
+    - basesBeliefOn
     - defeatedBy
-    - justifiedBy
+    - hasAvailableEvidence
+    - hasDefeatStatus
+    - supportsUnder
   KeyScheme:
     class_uri: https://blackcatinformatics.ca/gmeow/KeyScheme
     title: Key Scheme
@@ -1848,6 +1906,21 @@ classes:
     is_a: Observation
     slots:
     - withinFamily
+  KnowledgeAttribution:
+    class_uri: https://blackcatinformatics.ca/gmeow/KnowledgeAttribution
+    title: Knowledge Attribution
+    slots:
+    - attributedKnower
+    - attributedProposition
+    - attributingAgent
+  KnowledgeClaim:
+    class_uri: https://blackcatinformatics.ca/gmeow/KnowledgeClaim
+    title: Knowledge Claim
+    slots:
+    - knowerAgent
+    - knownInWorld
+    - knownProposition
+    - underStandard
   KnowledgeLevel:
     class_uri: https://blackcatinformatics.ca/gmeow/KnowledgeLevel
     title: Knowledge Level
@@ -3012,6 +3085,11 @@ classes:
     - precedenceHigher
     - precedenceLower
     - precedenceScope
+  PremiseUse:
+    class_uri: https://blackcatinformatics.ca/gmeow/PremiseUse
+    title: Premise Use
+    slots:
+    - premiseUsed
   PrivacyNotice:
     class_uri: https://blackcatinformatics.ca/gmeow/PrivacyNotice
     title: Privacy Notice
@@ -3704,7 +3782,6 @@ classes:
     - claimTruthDirectedness
     - claimVeridicality
     - competesWith
-    - defeaterKind
     - explains
     - explanatoryScore
     - inferenceMode
@@ -3767,9 +3844,25 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Summary
     title: Summary
     is_a: InformationObject
+  Support:
+    class_uri: https://blackcatinformatics.ca/gmeow/Support
+    title: Support
+    slots:
+    - supportSource
+    - supportTarget
+  SupportAssessment:
+    class_uri: https://blackcatinformatics.ca/gmeow/SupportAssessment
+    title: Support Assessment
+    slots:
+    - supportGround
+    - supportStrength
+    - supportUnderStandard
   SupportPolarity:
     class_uri: https://blackcatinformatics.ca/gmeow/SupportPolarity
     title: Support Polarity
+  SupportSource:
+    class_uri: https://blackcatinformatics.ca/gmeow/SupportSource
+    title: Support Source
   SupportStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/SupportStatus
     title: Support Status
@@ -4174,6 +4267,12 @@ slots:
     range: string
     domain: CreativeWork
     multivalued: true
+  acceptanceStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/acceptanceStatus
+    title: acceptance status
+    range: AcceptanceStatus
+    domain: ArgumentEvaluation
+    multivalued: false
   accepts:
     slot_uri: https://blackcatinformatics.ca/gmeow/accepts
     title: accepts
@@ -4320,6 +4419,18 @@ slots:
     range: string
     domain: EmailAddress
     multivalued: false
+  adequacyUnderStandard:
+    slot_uri: https://blackcatinformatics.ca/gmeow/adequacyUnderStandard
+    title: adequacy under standard
+    range: EpistemicStandard
+    domain: AdequacyAssessment
+    multivalued: false
+  adequateUnder:
+    slot_uri: https://blackcatinformatics.ca/gmeow/adequateUnder
+    title: adequate under
+    range: AdequacyAssessment
+    domain: JustificationSubject
+    multivalued: true
   adjacentTo:
     slot_uri: https://blackcatinformatics.ca/gmeow/adjacentTo
     title: adjacent to
@@ -4481,6 +4592,18 @@ slots:
     title: answers
     range: Question
     multivalued: true
+  appliedRule:
+    slot_uri: https://blackcatinformatics.ca/gmeow/appliedRule
+    title: applied rule
+    range: uriorcurie
+    domain: InferenceApplication
+    multivalued: false
+  appliedSubstitution:
+    slot_uri: https://blackcatinformatics.ca/gmeow/appliedSubstitution
+    title: applied substitution
+    range: string
+    domain: InferenceApplication
+    multivalued: true
   appliesToSegment:
     slot_uri: https://blackcatinformatics.ca/gmeow/appliesToSegment
     title: applies to segment
@@ -4565,6 +4688,18 @@ slots:
     range: decimal
     domain: StandpointClaim
     multivalued: true
+  argumentConclusion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/argumentConclusion
+    title: argument conclusion
+    range: uriorcurie
+    domain: Argument
+    multivalued: false
+  argumentInferenceStep:
+    slot_uri: https://blackcatinformatics.ca/gmeow/argumentInferenceStep
+    title: argument inference step
+    range: InferenceCommitment
+    domain: Argument
+    multivalued: false
   arrangementOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/arrangementOf
     title: arrangement of
@@ -4693,10 +4828,29 @@ slots:
     title: at time
     range: datetime
     multivalued: true
+  attackKind:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attackKind
+    title: attack kind
+    range: AttackKind
+    domain: Attack
+    multivalued: false
+  attackSource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attackSource
+    title: attack source
+    range: uriorcurie
+    domain: Attack
+    multivalued: true
+  attackTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attackTarget
+    title: attack target
+    range: AttackTarget
+    domain: Attack
+    multivalued: false
   attacksClaim:
     slot_uri: https://blackcatinformatics.ca/gmeow/attacksClaim
     title: attacks claim
     range: ClaimToken
+    domain: Argument
     multivalued: true
   attendsTo:
     slot_uri: https://blackcatinformatics.ca/gmeow/attendsTo
@@ -4776,6 +4930,12 @@ slots:
     range: Agent
     domain: Attestation
     multivalued: false
+  attributedKnower:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attributedKnower
+    title: attributed knower
+    range: Agent
+    domain: KnowledgeAttribution
+    multivalued: false
   attributedLanguage:
     slot_uri: https://blackcatinformatics.ca/gmeow/attributedLanguage
     title: attributed language
@@ -4788,12 +4948,24 @@ slots:
     range: InformationObject
     domain: ScriptLanguageAttribution
     multivalued: true
+  attributedProposition:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attributedProposition
+    title: attributed proposition
+    range: Proposition
+    domain: KnowledgeAttribution
+    multivalued: false
   attributedScript:
     slot_uri: https://blackcatinformatics.ca/gmeow/attributedScript
     title: attributed script
     range: WritingSystem
     domain: ScriptLanguageAttribution
     multivalued: true
+  attributingAgent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attributingAgent
+    title: attributing agent
+    range: Agent
+    domain: KnowledgeAttribution
+    multivalued: false
   attributionTarget:
     slot_uri: https://blackcatinformatics.ca/gmeow/attributionTarget
     title: attribution target
@@ -4919,6 +5091,12 @@ slots:
     range: Agent
     domain: AwarenessTenure
     multivalued: false
+  basesBeliefOn:
+    slot_uri: https://blackcatinformatics.ca/gmeow/basesBeliefOn
+    title: bases belief on
+    range: JustificationGround
+    domain: JustificationSubject
+    multivalued: true
   bcc:
     slot_uri: https://blackcatinformatics.ca/gmeow/bcc
     title: bcc
@@ -5317,6 +5495,12 @@ slots:
     title: claimed media type
     range: string
     domain: Filename
+    multivalued: true
+  claimsToKnowThat:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimsToKnowThat
+    title: claims to know that
+    range: uriorcurie
+    domain: Agent
     multivalued: true
   cloneUrl:
     slot_uri: https://blackcatinformatics.ca/gmeow/cloneUrl
@@ -6042,14 +6226,8 @@ slots:
   defeatedBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/defeatedBy
     title: defeated by
-    range: JustificationStatus
+    range: Defeater
     domain: JustificationSubject
-    multivalued: true
-  defeaterKind:
-    slot_uri: https://blackcatinformatics.ca/gmeow/defeaterKind
-    title: defeater kind
-    range: DefeaterKind
-    domain: StandpointClaim
     multivalued: true
   degreeCount:
     slot_uri: https://blackcatinformatics.ca/gmeow/degreeCount
@@ -6567,6 +6745,12 @@ slots:
     range: ClaimToken
     domain: ClaimEvaluation
     multivalued: false
+  evaluatesArgument:
+    slot_uri: https://blackcatinformatics.ca/gmeow/evaluatesArgument
+    title: evaluates argument
+    range: Argument
+    domain: ArgumentEvaluation
+    multivalued: false
   evaluationVerdict:
     slot_uri: https://blackcatinformatics.ca/gmeow/evaluationVerdict
     title: evaluation verdict
@@ -6841,6 +7025,12 @@ slots:
     title: extended address
     range: string
     domain: PostalAddress
+    multivalued: true
+  extensionMember:
+    slot_uri: https://blackcatinformatics.ca/gmeow/extensionMember
+    title: extension member
+    range: Argument
+    domain: ArgumentEvaluation
     multivalued: true
   extent:
     slot_uri: https://blackcatinformatics.ca/gmeow/extent
@@ -7391,6 +7581,12 @@ slots:
     range: AuthorityLevel
     domain: Norm
     multivalued: true
+  hasAvailableEvidence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasAvailableEvidence
+    title: has available evidence
+    range: JustificationGround
+    domain: JustificationSubject
+    multivalued: true
   hasAxis:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasAxis
     title: has axis
@@ -7562,11 +7758,11 @@ slots:
     range: Agent
     domain: RightsStatement
     multivalued: true
-  hasDefeater:
-    slot_uri: https://blackcatinformatics.ca/gmeow/hasDefeater
-    title: has defeater
-    range: StandpointClaim
-    domain: InferenceCommitment
+  hasDefeatStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasDefeatStatus
+    title: has defeat status
+    range: JustificationStatus
+    domain: JustificationSubject
     multivalued: true
   hasDescendant:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasDescendant
@@ -7701,6 +7897,12 @@ slots:
     title: has illustrator
     range: Agent
     domain: CreativeWork
+    multivalued: true
+  hasInferenceApplication:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasInferenceApplication
+    title: has inference application
+    range: InferenceApplication
+    domain: Argument
     multivalued: true
   hasInferenceCommitment:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasInferenceCommitment
@@ -7975,6 +8177,12 @@ slots:
     title: has pose position
     range: SpatialCoordinates
     domain: Pose
+    multivalued: true
+  hasPremiseUse:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasPremiseUse
+    title: has premise use
+    range: PremiseUse
+    domain: Argument
     multivalued: true
   hasPrivacyNotice:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasPrivacyNotice
@@ -8896,12 +9104,6 @@ slots:
     range: Agent
     domain: JurisdictionTenure
     multivalued: false
-  justifiedBy:
-    slot_uri: https://blackcatinformatics.ca/gmeow/justifiedBy
-    title: justified by
-    range: JustificationGround
-    domain: JustificationSubject
-    multivalued: true
   keyAlgorithm:
     slot_uri: https://blackcatinformatics.ca/gmeow/keyAlgorithm
     title: key algorithm
@@ -8931,6 +9133,12 @@ slots:
     title: key scheme
     range: KeyScheme
     domain: CryptographicKey
+    multivalued: false
+  knowerAgent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/knowerAgent
+    title: knower agent
+    range: Agent
+    domain: KnowledgeClaim
     multivalued: false
   knowledgeProficiencyAgent:
     slot_uri: https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgent
@@ -8962,6 +9170,18 @@ slots:
     range: Entity
     domain: KnowledgeProficiency
     multivalued: false
+  knownInWorld:
+    slot_uri: https://blackcatinformatics.ca/gmeow/knownInWorld
+    title: known in world
+    range: EpistemicContext
+    domain: KnowledgeClaim
+    multivalued: false
+  knownProposition:
+    slot_uri: https://blackcatinformatics.ca/gmeow/knownProposition
+    title: known proposition
+    range: Proposition
+    domain: KnowledgeClaim
+    multivalued: false
   knowsAbout:
     slot_uri: https://blackcatinformatics.ca/gmeow/knowsAbout
     title: knows about
@@ -8977,6 +9197,12 @@ slots:
   knowsThat:
     slot_uri: https://blackcatinformatics.ca/gmeow/knowsThat
     title: knows that
+    range: uriorcurie
+    domain: Agent
+    multivalued: true
+  knowsThatIn:
+    slot_uri: https://blackcatinformatics.ca/gmeow/knowsThatIn
+    title: knows that in
     range: uriorcurie
     domain: Agent
     multivalued: true
@@ -9434,6 +9660,12 @@ slots:
     range: Event
     domain: Event
     multivalued: true
+  meetsThreshold:
+    slot_uri: https://blackcatinformatics.ca/gmeow/meetsThreshold
+    title: meets threshold
+    range: AdequacyVerdict
+    domain: AdequacyAssessment
+    multivalued: false
   memberOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/memberOf
     title: member of
@@ -10602,6 +10834,12 @@ slots:
     range: uriorcurie
     domain: InferenceCommitment
     multivalued: true
+  premiseUsed:
+    slot_uri: https://blackcatinformatics.ca/gmeow/premiseUsed
+    title: premise used
+    range: uriorcurie
+    domain: PremiseUse
+    multivalued: false
   prescribedConduct:
     slot_uri: https://blackcatinformatics.ca/gmeow/prescribedConduct
     title: prescribed conduct
@@ -12299,22 +12537,59 @@ slots:
     range: Entity
     domain: Entity
     multivalued: true
+  supportGround:
+    slot_uri: https://blackcatinformatics.ca/gmeow/supportGround
+    title: support ground
+    range: JustificationGround
+    domain: SupportAssessment
+    multivalued: false
   supportPolarity:
     slot_uri: https://blackcatinformatics.ca/gmeow/supportPolarity
     title: support polarity
     range: SupportPolarity
     domain: EvidenceSpan
     multivalued: false
+  supportSource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/supportSource
+    title: support source
+    range: SupportSource
+    domain: Support
+    multivalued: true
+  supportStrength:
+    slot_uri: https://blackcatinformatics.ca/gmeow/supportStrength
+    title: support strength
+    range: decimal
+    domain: SupportAssessment
+    multivalued: true
+  supportTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/supportTarget
+    title: support target
+    range: Argument
+    domain: Support
+    multivalued: false
+  supportUnderStandard:
+    slot_uri: https://blackcatinformatics.ca/gmeow/supportUnderStandard
+    title: support under standard
+    range: EpistemicStandard
+    domain: SupportAssessment
+    multivalued: false
   supportsClaim:
     slot_uri: https://blackcatinformatics.ca/gmeow/supportsClaim
     title: supports claim
     range: ClaimToken
+    domain: Argument
     multivalued: true
   supportsNotability:
     slot_uri: https://blackcatinformatics.ca/gmeow/supportsNotability
     title: supports notability
     range: boolean
     domain: CitationAct
+    multivalued: true
+  supportsUnder:
+    slot_uri: https://blackcatinformatics.ca/gmeow/supportsUnder
+    title: supports under
+    range: SupportAssessment
+    domain: JustificationSubject
     multivalued: true
   supposes:
     slot_uri: https://blackcatinformatics.ca/gmeow/supposes
@@ -12387,6 +12662,12 @@ slots:
     title: tagging tagger
     range: Agent
     domain: Tagging
+    multivalued: true
+  takesAsKnown:
+    slot_uri: https://blackcatinformatics.ca/gmeow/takesAsKnown
+    title: takes as known
+    range: uriorcurie
+    domain: Agent
     multivalued: true
   taskDueDate:
     slot_uri: https://blackcatinformatics.ca/gmeow/taskDueDate
@@ -12890,6 +13171,18 @@ slots:
     range: string
     domain: Geocode
     multivalued: false
+  underSemantics:
+    slot_uri: https://blackcatinformatics.ca/gmeow/underSemantics
+    title: under semantics
+    range: string
+    domain: ArgumentEvaluation
+    multivalued: false
+  underStandard:
+    slot_uri: https://blackcatinformatics.ca/gmeow/underStandard
+    title: under standard
+    range: EpistemicStandard
+    domain: KnowledgeClaim
+    multivalued: false
   understands:
     slot_uri: https://blackcatinformatics.ca/gmeow/understands
     title: understands
@@ -13290,6 +13583,18 @@ enums:
       aboutnessEnacts:
         meaning: https://blackcatinformatics.ca/gmeow/aboutnessEnacts
         title: enacts
+  AcceptanceStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AcceptanceStatus
+    permissible_values:
+      acceptanceIn:
+        meaning: https://blackcatinformatics.ca/gmeow/acceptanceIn
+        title: in
+      acceptanceOut:
+        meaning: https://blackcatinformatics.ca/gmeow/acceptanceOut
+        title: out
+      acceptanceUndecided:
+        meaning: https://blackcatinformatics.ca/gmeow/acceptanceUndecided
+        title: undecided
   AccessibilityFacetEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AccessibilityFacet
     permissible_values:
@@ -13338,6 +13643,18 @@ enums:
       accountStatusHistorical:
         meaning: https://blackcatinformatics.ca/gmeow/accountStatusHistorical
         title: historical
+  AdequacyVerdictEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AdequacyVerdict
+    permissible_values:
+      adequacyMet:
+        meaning: https://blackcatinformatics.ca/gmeow/adequacyMet
+        title: adequacy met
+      adequacyUndetermined:
+        meaning: https://blackcatinformatics.ca/gmeow/adequacyUndetermined
+        title: adequacy undetermined
+      adequacyUnmet:
+        meaning: https://blackcatinformatics.ca/gmeow/adequacyUnmet
+        title: adequacy unmet
   AestheticQualityEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AestheticQuality
     permissible_values:
@@ -13557,6 +13874,18 @@ enums:
       assetTypeStock:
         meaning: https://blackcatinformatics.ca/gmeow/assetTypeStock
         title: stock
+  AttackKindEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AttackKind
+    permissible_values:
+      attackRebut:
+        meaning: https://blackcatinformatics.ca/gmeow/attackRebut
+        title: rebut
+      attackUndercut:
+        meaning: https://blackcatinformatics.ca/gmeow/attackUndercut
+        title: undercut
+      attackUndermine:
+        meaning: https://blackcatinformatics.ca/gmeow/attackUndermine
+        title: undermine
   AttestationTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AttestationType
     permissible_values:
@@ -14805,15 +15134,6 @@ enums:
       dayWednesday:
         meaning: https://blackcatinformatics.ca/gmeow/dayWednesday
         title: Wednesday
-  DefeaterKindEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/DefeaterKind
-    permissible_values:
-      defeaterRebutting:
-        meaning: https://blackcatinformatics.ca/gmeow/defeaterRebutting
-        title: rebutting
-      defeaterUndercutting:
-        meaning: https://blackcatinformatics.ca/gmeow/defeaterUndercutting
-        title: undercutting
   DegreeOfFreedomEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/DegreeOfFreedom
     permissible_values:
@@ -15174,6 +15494,24 @@ enums:
       procedureIngestionRawRoot:
         meaning: https://blackcatinformatics.ca/gmeow/procedureIngestionRawRoot
         title: raw root data source
+  EpistemicStandardEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/EpistemicStandard
+    permissible_values:
+      standardLegalBeyondReasonableDoubt:
+        meaning: https://blackcatinformatics.ca/gmeow/standardLegalBeyondReasonableDoubt
+        title: beyond reasonable doubt
+      standardLegalClearAndConvincing:
+        meaning: https://blackcatinformatics.ca/gmeow/standardLegalClearAndConvincing
+        title: clear and convincing
+      standardLegalPreponderance:
+        meaning: https://blackcatinformatics.ca/gmeow/standardLegalPreponderance
+        title: preponderance of the evidence
+      standardOrdinary:
+        meaning: https://blackcatinformatics.ca/gmeow/standardOrdinary
+        title: ordinary
+      standardScientific:
+        meaning: https://blackcatinformatics.ca/gmeow/standardScientific
+        title: scientific
   EvaluationVerdictEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/EvaluationVerdict
     permissible_values:
@@ -16350,6 +16688,9 @@ enums:
       justificationStatusUndercut:
         meaning: https://blackcatinformatics.ca/gmeow/justificationStatusUndercut
         title: undercut
+      justificationStatusUndermined:
+        meaning: https://blackcatinformatics.ca/gmeow/justificationStatusUndermined
+        title: undermined
   KeySchemeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/KeyScheme
     permissible_values:

@@ -6,13 +6,14 @@
 # belief-revision pattern: Lillith inductively concluded "the server is down" from
 # "the ping timed out". On REFLECTION (a gmeow:Event typed gmeow:eventTypeReflection,
 # tied to the reflexive layer by a gmeow:MetacognitiveState whose gmeow:metaTarget
-# is her OWN gmeow:InferenceCommitment) she surfaces an UNDERCUTTING defeater — a
+# is her OWN gmeow:InferenceCommitment) she surfaces an UNDERCUTTING attack — a
 # firewall rule blocked the ping, removing the warrant. Revision does NOT delete:
 # the conclusion-claim is set gmeow:displayable false, the gmeow:InferenceTenure is
-# closed, and the gmeow:InferenceCommitment is retained as audit. The defeater is
-# installed via the inference slice's gmeow:hasDefeater (reused by reference); the
-# reflection → revision link is a documented bridge, never an axiom.
+# closed, and the gmeow:InferenceCommitment / gmeow:Argument are retained as audit.
+# The attack is installed via the inference slice's typed gmeow:Attack (reused by
+# reference); the reflection → revision link is a documented bridge, never an axiom.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/metacognition/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
@@ -58,17 +59,39 @@ ex:defeaterFirewall a gmeow:StandpointClaim ;
     gmeow:vantage ex:lillith ;
     gmeow:observedFeature ex:propFirewall ;
     gmeow:observationMethod gmeow:methodDirectObservation ;
-    gmeow:claimModality gmeow:unequivocal ;
-    gmeow:defeaterKind gmeow:defeaterUndercutting .
+    gmeow:claimModality gmeow:unequivocal .
 
-# --- The reified argument, retained as audit; the reflection installs the
-#     defeater on Lillith's own commitment via the inference slice's hasDefeater.
+# --- The reified argument, retained as audit; the reflection installs an
+#     undercutting gmeow:Attack on the rule-application of Lillith's own argument.
 ex:revisedCommitment a gmeow:InferenceCommitment ;
     rdfs:label "Inductive argument: ping-timeout therefore server-down (defeated on reflection)"@x-gmeow-english ;
     gmeow:inferenceModeOf gmeow:modeInduction ;
     gmeow:premise ex:premPingTimedOut ;
-    gmeow:conclusion ex:conclServerDown ;
-    gmeow:hasDefeater ex:defeaterFirewall .
+    gmeow:conclusion ex:conclServerDown .
+
+ex:pingUse a gmeow:PremiseUse ; gmeow:premiseUsed ex:premPingTimedOut .
+ex:downInferenceStep a gmeow:InferenceApplication ;
+    gmeow:appliedRule "inductive: ping-timeout => server-down"@x-gmeow-english ;
+    gmeow:appliedSubstitution "host := the server"@x-gmeow-english .
+
+ex:serverDownArgument a gmeow:Argument ;
+    rdfs:label "Argument: the server is down (defeated on reflection, retained as audit)"@x-gmeow-english ;
+    gmeow:argumentInferenceStep ex:revisedCommitment ;
+    gmeow:hasPremiseUse ex:pingUse ;
+    gmeow:hasInferenceApplication ex:downInferenceStep ;
+    gmeow:argumentConclusion ex:conclServerDown .
+
+ex:firewallUndercut a gmeow:Attack ;
+    rdfs:label "Undercut: the firewall rule removes the ping-timeout => server-down warrant"@x-gmeow-english ;
+    gmeow:attackSource ex:defeaterFirewall ;
+    gmeow:attackTarget ex:downInferenceStep ;       # the rule-application (warrant)
+    gmeow:attackKind gmeow:attackUndercut .
+
+ex:reflectionEvaluation a gmeow:ArgumentEvaluation ;
+    rdfs:label "Grounded evaluation after the reflective undercut: the argument is out"@x-gmeow-english ;
+    gmeow:evaluatesArgument ex:serverDownArgument ;
+    gmeow:underSemantics logic:GroundedArgumentation ;
+    gmeow:acceptanceStatus gmeow:acceptanceOut .
 
 # --- The tenure — opened then closed (never deleted, Principle 10).
 ex:serverDownTenure a gmeow:InferenceTenure ;

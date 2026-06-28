@@ -119,13 +119,13 @@ is the trust slice's `gmeow:TrustAssertion` directly. Promote to the standpoint-
 ## Reflection & belief revision
 
 `gmeow:eventTypeReflection` (`a gmeow:EventType`, the `gmeow:eventTypeDeception` pattern) types an
-event of an agent **reviewing its own reasoning**. A reflection may install a `gmeow:hasDefeater` on
-one of the agent's own `gmeow:InferenceCommitment` individuals (the `inference` slice), triggering
+event of an agent **reviewing its own reasoning**. A reflection may install a typed `gmeow:Attack` on
+one of the agent's own `gmeow:Argument` individuals (the `inference` slice), triggering
 **belief revision as suppression** (Principle 10): the defeated conclusion-claim is set
 `gmeow:displayable false` and the prior inference is **retained as audit**, never deleted. The
 [`reflection-revision.ttl`](examples/reflection-revision.ttl) example walks it: Lillith reflects on
-her own abductive inference, surfaces an undercutting defeater (a firewall blocked the ping), installs
-it via `gmeow:hasDefeater`, and suppresses the defeated conclusion — the reflection → revision link is
+her own inductive inference, surfaces an undercutting attack (a firewall blocked the ping), installs
+it via `gmeow:Attack`, and suppresses the defeated conclusion — the reflection → revision link is
 a documented bridge, never an axiom.
 
 The boundary with the `mentation` slice is documented (Principle 4): `gmeow:eventTypeReflection` types
@@ -135,7 +135,7 @@ the reviewable occurrent *kind*; a reflection that unfolds as a reasoning *proce
 ### gmeow:eventTypeReflection
 
 The reflection-act value individual. Type a reflection `gmeow:Event` with it; record revision by
-installing `gmeow:hasDefeater` on the agent's own inference and suppressing the defeated conclusion
+installing a typed `gmeow:Attack` on the agent's own argument and suppressing the defeated conclusion
 with `gmeow:displayable false`.
 
 ## Alignments (`mappings/equivalences.ttl`)
@@ -157,8 +157,8 @@ first-order quantities and the cross-slice bridges carry their alignments in the
 | `observations` | the Observation spine the metacognitive claim rides (`gmeow:vantage`, `gmeow:observedFeature`) |
 | `cognition` | `gmeow:CognitiveState` (the first-order sibling) and `gmeow:KnowledgeProficiency` (the Dunning–Kruger `gmeow:metaTarget`) |
 
-Bridges to `inquiry` (`gmeow:evokes`), `inference` (`gmeow:hasDefeater`, `gmeow:InferenceCommitment`),
-and `trust` (`gmeow:trustLevel`) are **reused by reference** and documented, not declared as
+Bridges to `inquiry` (`gmeow:evokes`), `inference` (`gmeow:Attack`, `gmeow:Argument`,
+`gmeow:InferenceCommitment`), and `trust` (`gmeow:trustLevel`) are **reused by reference** and documented, not declared as
 dependencies — the slice asserts no axioms into them (Principle 9).
 
 ## Verified by construction

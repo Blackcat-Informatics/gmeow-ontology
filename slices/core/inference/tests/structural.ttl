@@ -78,7 +78,7 @@ ASK {
     gmeow:attackUndermine a gmeow:AttackKind . gmeow:attackUndercut a gmeow:AttackKind . gmeow:attackRebut a gmeow:AttackKind .
     gmeow:acceptanceIn a gmeow:AcceptanceStatus . gmeow:acceptanceOut a gmeow:AcceptanceStatus . gmeow:acceptanceUndecided a gmeow:AcceptanceStatus .
 }""" ;
-    gmeow:saRationale "gmeow:InferenceMode, gmeow:AttackKind, and gmeow:AcceptanceStatus MUST be QualityValue vocabularies; the Peircean tetrad seeds (modeDeduction/modeInduction/modeAbduction/modeAnalogical), the three typed-attack kinds (undermine/undercut/rebut — subsuming the retired Pollock two-way DefeaterKind), and the Dung labelling seeds (in/out/undecided) MUST be present. These are open value vocabularies (no closure asserted)." .
+    gmeow:saRationale "gmeow:InferenceMode, gmeow:AttackKind, and gmeow:AcceptanceStatus MUST be QualityValue vocabularies; the Peircean tetrad seeds (modeDeduction/modeInduction/modeAbduction/modeAnalogical), the three typed-attack kinds (undermine/undercut/rebut — subsuming the older Pollock two-way rebutting/undercutting distinction), and the Dung labelling seeds (in/out/undecided) MUST be present. These are open value vocabularies (no closure asserted)." .
 
 # --- 4. Functional argument properties (MUST hold) ---------------------------
 ex:saInferenceFunctionalProperties a gmeow:StructuralAssertion ;
