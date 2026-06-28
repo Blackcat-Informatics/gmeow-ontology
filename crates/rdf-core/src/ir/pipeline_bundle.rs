@@ -121,24 +121,31 @@ impl std::error::Error for PipelineBundleError {}
 /// The pipeline carrier: the frozen hot graph plus its out-of-band material and a
 /// typed-handle lane.
 ///
-/// `#[non_exhaustive]` so later tasks grow the carrier additively; construct it
-/// through [`PipelineBundle::new`] and the builder methods. Generic over the
-/// typed-handle payload `H` — see the module docs for the kernel-boundary rationale.
-#[non_exhaustive]
+/// Construct through [`PipelineBundle::new`] and the builder methods; access fields
+/// through the narrow accessor methods. All handle-critical fields are PRIVATE so
+/// that downstream code cannot replace `dataset` after `pin_handle` or insert into
+/// `handles` directly, which would silently break the pin invariant. Generic over
+/// the typed-handle payload `H` — see the module docs for the kernel-boundary
+/// rationale.
 #[derive(Debug, Clone)]
 pub struct PipelineBundle<H> {
     /// The immutable, value-interned RDF 1.2 dataset — the hot graph.
-    pub dataset: Arc<RdfDataset>,
+    /// PRIVATE: replacing this after `pin_handle` would corrupt the pin invariant.
+    dataset: Arc<RdfDataset>,
     /// Structured non-triple companion material (typed sidecar resources, blobs by
     /// reference, segments, metadata, …).
-    pub lookaside: RdfLookaside,
+    /// PRIVATE: folded into `digest()`.
+    lookaside: RdfLookaside,
     /// The single owner of blob payload bytes (by-reference doctrine).
-    pub blobs: Arc<ContentStore>,
+    /// PRIVATE: folded into `digest()`.
+    blobs: Arc<ContentStore>,
     /// The provenance sidecar (units / artifacts / origin-sets / occurrences).
-    pub provenance: DatasetProvenance,
+    /// PRIVATE: folded into `digest()`.
+    provenance: DatasetProvenance,
     /// The typed-handle lane: backing-graph IRI → typed payload + pinned digest.
-    /// EXCLUDED from [`digest`](Self::digest).
-    pub handles: BTreeMap<HandleKey, HandleEntry<H>>,
+    /// PRIVATE: must only be mutated through `pin_handle` / `detach_handle` to
+    /// preserve the pin invariant. EXCLUDED from [`digest`](Self::digest).
+    handles: BTreeMap<HandleKey, HandleEntry<H>>,
 }
 
 impl<H> PipelineBundle<H> {
@@ -186,6 +193,23 @@ impl<H> PipelineBundle<H> {
     /// The typed handle for a backing graph IRI, if one is attached.
     pub fn handle(&self, graph: &str) -> Option<&HandleEntry<H>> {
         self.handles.get(graph)
+    }
+
+    /// Borrow the entire typed-handle map (read-only). The map is only mutated
+    /// through [`pin_handle`](Self::pin_handle) / [`detach_handle`](Self::detach_handle)
+    /// to preserve the pin invariant.
+    pub fn handles(&self) -> &BTreeMap<HandleKey, HandleEntry<H>> {
+        &self.handles
+    }
+
+    /// Replace the provenance sidecar in place.
+    ///
+    /// This is the controlled mutator for the provenance field; it does NOT affect
+    /// the [`digest`](Self::digest) correctness since the digest reads the provenance
+    /// through the public projection. Used by the pipeline scheduler to thread the
+    /// per-stage provenance into the produced carrier.
+    pub fn set_provenance(&mut self, provenance: DatasetProvenance) {
+        self.provenance = provenance;
     }
 
     /// Attach a typed handle for the named graph `graph`, pinning `payload` to the
@@ -253,18 +277,31 @@ impl<H> PipelineBundle<H> {
         hasher.update(canonicalize(&self.dataset).nquads.as_bytes());
         hasher.update([SEP_SECTION]);
 
-        // 2. Each lookaside resource's content_digest, collected + SORTED so the fold
-        //    is order-independent. A resource without a declared digest contributes
-        //    an empty marker so present-but-undigested resources still register.
-        let mut resource_digests: Vec<&str> = self
+        // 2. Each lookaside resource's identity + content_digest, collected + SORTED
+        //    so the fold is order-independent. The resource IDENTITY (name, falling
+        //    back to iri, then path) is included so two bundles with identical content
+        //    bytes but different resource names/paths produce distinct digests.
+        //    A resource without a declared digest contributes an empty content marker.
+        let mut resource_entries: Vec<(&str, &str)> = self
             .lookaside
             .resources
             .iter()
-            .map(|r| r.content_digest.as_deref().unwrap_or(""))
+            .map(|r| {
+                let identity = r
+                    .name
+                    .as_deref()
+                    .or(r.iri.as_deref())
+                    .or(r.path.as_deref())
+                    .unwrap_or("");
+                let digest = r.content_digest.as_deref().unwrap_or("");
+                (identity, digest)
+            })
             .collect();
-        resource_digests.sort_unstable();
-        for d in resource_digests {
-            hasher.update(d.as_bytes());
+        resource_entries.sort_unstable();
+        for (identity, digest) in resource_entries {
+            hasher.update(identity.as_bytes());
+            hasher.update([SEP_FIELD]);
+            hasher.update(digest.as_bytes());
             hasher.update([SEP_RECORD]);
         }
         hasher.update([SEP_SECTION]);
@@ -280,10 +317,14 @@ impl<H> PipelineBundle<H> {
         }
         hasher.update([SEP_SECTION]);
 
-        // 4. The PUBLIC provenance projection (unit names, kinds, artifact paths,
-        //    locations) — NEVER the runtime numeric ids (S0.5). The projection is
-        //    sorted by `public_projection`, so it is allocation-order-independent.
-        for (unit, kind, artifact, location) in self.provenance.public_projection() {
+        // 4. The PUBLIC provenance projection (quad index, unit names, kinds, artifact
+        //    paths, locations) — NEVER the runtime numeric ids (S0.5). The projection
+        //    is sorted by `public_projection`, so it is allocation-order-independent.
+        //    The quad index is included so occurrences over distinct quads but sharing
+        //    the same (unit, artifact, location) are preserved as distinct rows.
+        for (quad_idx, unit, kind, artifact, location) in self.provenance.public_projection() {
+            hasher.update(quad_idx.to_string().as_bytes());
+            hasher.update([SEP_FIELD]);
             hasher.update(unit.as_bytes());
             hasher.update([SEP_FIELD]);
             hasher.update(kind.as_bytes());
@@ -356,7 +397,7 @@ mod tests {
         assert_eq!(bundle.dataset().quad_count(), 2);
         assert!(bundle.lookaside().is_empty());
         assert!(bundle.blobs().is_empty());
-        assert!(bundle.handles.is_empty());
+        assert!(bundle.handles().is_empty());
     }
 
     #[test]
@@ -469,11 +510,17 @@ mod tests {
     fn digest_is_sensitive_to_a_lookaside_resource() {
         let base = empty_bundle();
         let base_digest = base.digest();
-        let mut with_resource = empty_bundle();
-        with_resource.lookaside.resources.push(
+        let mut with_lookaside = RdfLookaside::default();
+        with_lookaside.resources.push(
             RdfLookasideResource::new(RdfLookasideKind::Reasoning)
                 .with_name("closure")
                 .with_digest("deadbeef"),
+        );
+        let with_resource = PipelineBundle::<SyntheticHandle>::new(
+            dataset_with_named_graph(),
+            with_lookaside,
+            Arc::new(ContentStore::new()),
+            DatasetProvenance::new(),
         );
         assert_ne!(
             with_resource.digest(),

@@ -534,15 +534,22 @@ impl DatasetProvenance {
     /// occurrences recorded: re-allocating the same public provenance in a different
     /// internal order yields the identical projection (and so the identical digest).
     ///
-    /// The shape is `(unit_name, unit_kind, artifact_path, location)` per occurrence,
-    /// sorted and deduplicated. Two `DatasetProvenance`s with the same public
-    /// provenance — regardless of internal id numbering — produce equal projections.
+    /// The shape is `(quad_index, unit_name, unit_kind, artifact_path, location)` per
+    /// occurrence, sorted and deduplicated. The `quad_index` is the dense ordinal of
+    /// the asserted quad (`QuadHandle::index()`) — it is CONTENT-STABLE within one
+    /// frozen `RdfDataset` (derived from freeze-sort order, not insertion order) and is
+    /// included so that two occurrences identical in `(unit, artifact, location)` but
+    /// asserting DIFFERENT quads are preserved as distinct rows rather than collapsing.
+    ///
+    /// Two `DatasetProvenance`s with the same public provenance — regardless of
+    /// internal id numbering — produce equal projections.
     #[must_use]
-    pub fn public_projection(&self) -> Vec<(String, String, String, Option<String>)> {
-        let mut rows: Vec<(String, String, String, Option<String>)> = self
+    pub fn public_projection(&self) -> Vec<(usize, String, String, String, Option<String>)> {
+        let mut rows: Vec<(usize, String, String, String, Option<String>)> = self
             .occurrences
             .iter()
             .map(|occ| {
+                let quad_index = occ.quad.index();
                 let unit_name = self.units.name(occ.unit).to_owned();
                 // A unit always has a registered kind for a gate-valid provenance; an
                 // out-of-range id (forged, never minted by `register_unit`) projects as
@@ -553,7 +560,13 @@ impl DatasetProvenance {
                     .map(OriginKind::to_string)
                     .unwrap_or_else(|| "unknown-kind".to_owned());
                 let artifact_path = self.artifacts.path(occ.artifact).to_owned();
-                (unit_name, kind, artifact_path, occ.location.clone())
+                (
+                    quad_index,
+                    unit_name,
+                    kind,
+                    artifact_path,
+                    occ.location.clone(),
+                )
             })
             .collect();
         rows.sort();

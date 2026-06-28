@@ -3087,21 +3087,24 @@ mod logic_graph_golden_tests {
     /// `graph/provenance` fold. Three units (root / source / import) so every
     /// `OriginKind` branch is exercised; deliberately synthetic so the golden is
     /// stable and independent of the real ontology (whose unit set churns).
-    fn fixed_provenance_projection() -> Vec<(String, String, String, Option<String>)> {
+    fn fixed_provenance_projection() -> Vec<(usize, String, String, String, Option<String>)> {
         vec![
             (
+                0,
                 "imports/prov.ttl".to_string(),
                 "import".to_string(),
                 "imports/prov.ttl".to_string(),
                 None,
             ),
             (
+                1,
                 "ontology/gmeow.ttl".to_string(),
                 "root-ontology".to_string(),
                 "ontology/gmeow.ttl".to_string(),
                 None,
             ),
             (
+                2,
                 "slices/core/epistemics/module.ttl".to_string(),
                 "source".to_string(),
                 "slices/core/epistemics/module.ttl".to_string(),
@@ -3197,7 +3200,7 @@ mod logic_graph_golden_tests {
         gmeow_rdf::provenance::check_provenance(&prov, &expected)
             .expect("every authored quad must carry ≥1 stage-origin occurrence");
         // The public projection over the real ontology must carry NO runtime id.
-        for (name, kind, artifact, _loc) in prov.public_projection() {
+        for (_quad, name, kind, artifact, _loc) in prov.public_projection() {
             for field in [&name, &kind, &artifact] {
                 assert!(!field.contains("unit#"), "runtime UnitId leaked: {field}");
                 assert!(

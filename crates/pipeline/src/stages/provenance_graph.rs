@@ -128,15 +128,17 @@ fn lane_iri(slug: &str) -> String {
 ///
 /// The output is plain N-Triples (default graph); the snapshot's `add_named` routes
 /// every triple into [`GRAPH_PROVENANCE`] and re-canonicalizes — the SAME fold path
-/// every other named graph flows through (#1132 C6/C7/C8).
+/// every other named graph flows through (C6/C7/C8).
 #[must_use]
-pub fn project_provenance_graph(projection: &[(String, String, String, Option<String>)]) -> String {
+pub fn project_provenance_graph(
+    projection: &[(usize, String, String, String, Option<String>)],
+) -> String {
     // The distinct compilation units, by their PUBLIC `(name, kind)` — never a runtime
     // id. A unit may appear in many occurrence rows; collapse to one node.
     let mut units: BTreeSet<(String, String)> = BTreeSet::new();
     // The distinct `(unit_name, artifact_path)` carriage edges.
     let mut carries: BTreeSet<(String, String)> = BTreeSet::new();
-    for (unit_name, kind, artifact_path, _location) in projection {
+    for (_quad_index, unit_name, kind, artifact_path, _location) in projection {
         units.insert((unit_name.clone(), kind.clone()));
         carries.insert((unit_name.clone(), artifact_path.clone()));
     }
@@ -251,21 +253,24 @@ fn escape_literal(value: &str) -> String {
 mod tests {
     use super::*;
 
-    fn sample_projection() -> Vec<(String, String, String, Option<String>)> {
+    fn sample_projection() -> Vec<(usize, String, String, String, Option<String>)> {
         vec![
             (
+                0,
                 "ontology/gmeow.ttl".to_string(),
                 "root-ontology".to_string(),
                 "ontology/gmeow.ttl".to_string(),
                 None,
             ),
             (
+                1,
                 "slices/core/epistemics/module.ttl".to_string(),
                 "source".to_string(),
                 "slices/core/epistemics/module.ttl".to_string(),
                 None,
             ),
             (
+                2,
                 "imports/prov.ttl".to_string(),
                 "import".to_string(),
                 "imports/prov.ttl".to_string(),

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The per-stage content-addressed cache (#861 P2, #1132 C4-cache / 2b).
+//! The per-stage content-addressed cache (C4-cache).
 //!
 //! The cache key folds `stage.id ++ impl_version ++ sorted(upstream output
 //! digests) ++ source_file_digest[SourceLoad only]` into a [`content_digest`],
@@ -34,11 +34,12 @@
 //!   artifact paths, locations). Runtime `UnitId`/`ArtifactId`/`OriginSetId` are
 //!   NEVER persisted; on load we re-register units/artifacts/occurrences from the
 //!   persisted public rows so the reconstituted prov's `public_projection()` equals
-//!   the persisted one (and thus the bundle digest is preserved). Exact
-//!   occurrence→quad bindings are NOT reconstructed — by C9 the output-relevant
-//!   provenance is projected into the dataset (round-trips via the dataset bytes);
-//!   the sidecar is a runtime accumulator and only its public projection feeds the
-//!   digest.
+//!   the persisted one (and thus the bundle digest is preserved). Each occurrence's
+//!   asserted-quad ordinal IS restored from its persisted public row so the
+//!   reconstituted public projection — which carries that ordinal — matches exactly;
+//!   the full quad content is not rebound (the output-relevant provenance is also
+//!   projected into the dataset and round-trips via the dataset bytes). The sidecar
+//!   is a runtime accumulator and only its public projection feeds the digest.
 //! * **handles** — each `(graph_iri, HandleEntry)` persists its backing named-graph
 //!   canonical bytes plus a tag for the [`PipelineHandle`] arm. On load each handle
 //!   is re-derived from its backing graph and re-attached via `pin_handle`, so the
@@ -79,7 +80,7 @@ use crate::node::StageProduct;
 /// subdirectory and the [`CachedBundle`] manifest so a stale cache (e.g. the C4-spine
 /// byte-only stand-in, version-less or an older rev) is treated as a clean MISS, not
 /// mis-decoded. Bump on ANY change to the persisted shape (no migration path).
-pub const CACHE_VERSION: u32 = 2;
+pub const CACHE_VERSION: u32 = 3;
 
 /// The media type of the dataset's canonical byte projection. N-Quads is
 /// star-capable (carries the full RDF-1.2 statement layer) and `serialize_dataset` /
@@ -190,9 +191,13 @@ struct CachedBlobRecord {
     origin_segments: Option<Vec<String>>,
 }
 
-/// One public-projection provenance row `(unit_name, kind, artifact_path, location)`.
+/// One public-projection provenance row
+/// `(quad_index, unit_name, kind, artifact_path, location)`. `quad_index` is the
+/// asserted quad's frozen ordinal, preserved so the reconstituted projection
+/// carries the same per-occurrence quad identity (not collapsed to a placeholder).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct CachedProvRow {
+    quad_index: usize,
     unit: String,
     kind: String,
     artifact: String,
@@ -486,18 +491,21 @@ impl CachedBundle {
             .provenance()
             .public_projection()
             .into_iter()
-            .map(|(unit, kind, artifact, location)| CachedProvRow {
-                unit,
-                kind,
-                artifact,
-                location,
-            })
+            .map(
+                |(quad_index, unit, kind, artifact, location)| CachedProvRow {
+                    quad_index,
+                    unit,
+                    kind,
+                    artifact,
+                    location,
+                },
+            )
             .collect();
 
         // handles → backing-graph canonical bytes + arm tag, sorted by graph IRI
         // (BTreeMap iteration is already sorted, so the manifest is deterministic).
-        let mut handles = Vec::with_capacity(bundle.handles.len());
-        for (graph, entry) in &bundle.handles {
+        let mut handles = Vec::with_capacity(bundle.handles().len());
+        for (graph, entry) in bundle.handles() {
             let subgraph = bundle.dataset().project_named_graph(graph);
             let graph_nquads =
                 serialize_dataset(&subgraph, DATASET_MEDIA_TYPE, SerializeGraph::Dataset).map_err(
@@ -556,16 +564,22 @@ impl CachedBundle {
         }
 
         // provenance: re-register units/artifacts/occurrences so the reconstituted
-        // public projection equals the persisted one. Quad bindings are NOT
-        // reconstructed (only the public projection feeds the digest); each occurrence
-        // is bound to a placeholder quad handle, which never enters the projection.
+        // public projection equals the persisted one. Each occurrence is rebound to
+        // its persisted asserted-quad ordinal so the projection's per-occurrence quad
+        // identity round-trips (the public projection carries the quad index).
         let mut provenance = DatasetProvenance::new();
         for row in &self.provenance {
             let kind = origin_kind_from_str(&row.kind)?;
             let unit = provenance.register_unit(row.unit.clone(), kind);
             let artifact = provenance.register_artifact(row.artifact.clone());
+            let quad_ordinal = u32::try_from(row.quad_index).map_err(|_| {
+                PipelineError::Decode(format!(
+                    "cache: provenance quad ordinal {} exceeds u32",
+                    row.quad_index
+                ))
+            })?;
             provenance.record_occurrence(
-                QuadHandle::from_index(0),
+                QuadHandle::from_index(quad_ordinal),
                 unit,
                 artifact,
                 row.location.clone(),
@@ -878,7 +892,11 @@ mod tests {
         assert_eq!(recon.blobs(), original.blobs(), "blob store preserved");
 
         // handles: re-derived, present, and still pin-valid.
-        assert_eq!(recon.handles.len(), original.handles.len(), "handle count");
+        assert_eq!(
+            recon.handles().len(),
+            original.handles().len(),
+            "handle count"
+        );
         let entry = recon.handle(GRAPH_IRI).expect("handle re-attached");
         let PipelineHandle::Logic(reconstituted) = &entry.payload else {
             panic!("handle arm preserved (Logic)");

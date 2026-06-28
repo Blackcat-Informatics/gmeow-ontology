@@ -447,30 +447,54 @@ impl RdfDataset {
     /// Project the quads of one named graph into a fresh default-graph dataset.
     ///
     /// Only quads whose graph name is the IRI `graph` contribute, and their graph
-    /// label is dropped so the result is the named graph's content in isolation. The
-    /// RDF 1.2 statement side-tables are carried as a unit, matching the projection
-    /// used for typed-handle backing graph digests and cache persistence.
+    /// label is dropped so the result is the named graph's content in isolation.
+    ///
+    /// The RDF 1.2 statement side-tables (reifiers and annotations) are FILTERED to
+    /// only those whose reifier IRI appears as a subject in one of the projected
+    /// quads. This prevents side-table entries that belong exclusively to OTHER named
+    /// graphs from contaminating the per-graph digest (pin-invariant correctness: each
+    /// backing per-graph digest must be isolated to that graph's own content only).
     #[must_use]
     pub fn project_named_graph(&self, graph: &str) -> RdfDataset {
+        use std::collections::HashSet;
+
         let mut builder = super::builder::RdfDatasetBuilder::new();
+
+        // First pass: collect the subjects of every quad in the target named graph.
+        // The RDF 1.2 reifier side-table has NO graph dimension (reifier bindings are
+        // always `g: None`), so we use the set of quad subjects as the proxy for
+        // "this reifier was asserted in the context of this named graph".
+        let mut graph_subjects: HashSet<crate::RdfTerm> = HashSet::new();
+
         for quad in self.owned_quads() {
             let in_graph = matches!(
                 &quad.graph_name,
-                Some(RdfTerm::Iri(iri)) if iri == graph
+                Some(crate::RdfTerm::Iri(iri)) if iri == graph
             );
             if !in_graph {
                 continue;
             }
+            graph_subjects.insert(quad.subject.clone());
             let mut projected = quad;
             projected.graph_name = None;
             builder.push_owned_quad(&projected);
         }
+
+        // Second pass: carry only the reifiers whose reifier IRI appeared as a subject
+        // in the projected graph's quads (i.e. the reifier is "owned by" this graph).
         for reifier in self.owned_reifiers() {
-            builder.push_owned_reifier(&reifier);
+            if graph_subjects.contains(&reifier.reifier) {
+                builder.push_owned_reifier(&reifier);
+            }
         }
+
+        // Likewise filter the annotation side-table by reifier subject membership.
         for annotation in self.owned_annotations() {
-            builder.push_owned_annotation(&annotation);
+            if graph_subjects.contains(&annotation.reifier) {
+                builder.push_owned_annotation(&annotation);
+            }
         }
+
         Arc::try_unwrap(
             builder
                 .freeze()
