@@ -182,7 +182,12 @@ fn materialize(outcome: Outcome, ctx: &EvalCtx<'_>) -> SparqlResult {
     match outcome {
         Outcome::Solutions(seq) => {
             let (variables, rows) = crate::eval::materialize_solutions(&seq, ctx);
-            SparqlResult::Solutions { variables, rows }
+            let aux = ctx.constructed_dataset(&rows);
+            SparqlResult::Solutions {
+                variables,
+                rows,
+                aux,
+            }
         }
         Outcome::Graph(graph) => SparqlResult::Graph(graph),
         Outcome::Boolean(value) => SparqlResult::Boolean(value),
@@ -255,7 +260,9 @@ mod tests {
     fn select_returns_solutions() {
         let result = run("SELECT ?o WHERE { <http://ex/a> <http://ex/knows> ?o }");
         match result {
-            SparqlResult::Solutions { variables, rows } => {
+            SparqlResult::Solutions {
+                variables, rows, ..
+            } => {
                 assert_eq!(variables, vec!["o".to_owned()]);
                 assert_eq!(rows.len(), 1);
                 assert_eq!(rows[0][0], Some(TermValue::Iri("http://ex/b".to_owned())));

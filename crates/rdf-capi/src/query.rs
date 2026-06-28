@@ -67,7 +67,9 @@ pub unsafe extern "C" fn purrdf_query(
             ));
         }
         match run_query(dataset, query, base_iri)? {
-            SparqlResult::Solutions { variables, rows } => {
+            SparqlResult::Solutions {
+                variables, rows, ..
+            } => {
                 if out_rows.is_null() {
                     return Err(PurrdfError::new(
                         PurrdfStatus::NullPointer,

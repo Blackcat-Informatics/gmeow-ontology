@@ -178,7 +178,9 @@ fn query_rows(
         )
         .map_err(|e| format!("manifest query failed: {e}"))?;
     match result {
-        SparqlResult::Solutions { variables, rows } => Ok(rows
+        SparqlResult::Solutions {
+            variables, rows, ..
+        } => Ok(rows
             .into_iter()
             .map(|row| {
                 variables

@@ -144,6 +144,22 @@ pub(crate) fn eval_construct(
         }
     }
 
+    // Value-constructing builtins (`gmeow:listSlice`/`listConcat`) invent fresh
+    // `rdf:List` cells while the WHERE is evaluated. A SPARQL expression can only
+    // return the list head, so the cells are buffered on the context; fold them into
+    // the CONSTRUCT output here so a constructed list materializes as triples — but
+    // only the cells reachable from a surviving result row, so a list minted on a row
+    // pruned by FILTER/DISTINCT/LIMIT does not leak orphaned cells into the graph.
+    if !ctx.constructed.is_empty() {
+        let (_, rows) = crate::eval::materialize_solutions(&seq, ctx);
+        for (s, p, o) in ctx.reachable_constructed(&rows) {
+            let s = builder.intern_value(&s);
+            let p = builder.intern_value(&p);
+            let o = builder.intern_value(&o);
+            builder.push_quad(s, p, o, None);
+        }
+    }
+
     builder
         .freeze()
         .map_err(|d| EvalError::internal(format!("CONSTRUCT output failed to freeze: {d:?}")))

@@ -267,7 +267,12 @@ mod tests {
         Ok(match outcome {
             crate::eval::Outcome::Solutions(seq) => {
                 let (variables, rows) = materialize_solutions(&seq, &ctx);
-                SparqlResult::Solutions { variables, rows }
+                let aux = ctx.constructed_dataset(&rows);
+                SparqlResult::Solutions {
+                    variables,
+                    rows,
+                    aux,
+                }
             }
             crate::eval::Outcome::Boolean(b) => SparqlResult::Boolean(b),
             crate::eval::Outcome::Graph(g) => SparqlResult::Graph(g),

@@ -55,7 +55,9 @@ fn compare_eval(case: &SparqlTestCase, result: &SparqlResult) -> Result<(), Stri
         }
         (
             ExpectedResult::Srx(path) | ExpectedResult::Srj(path),
-            SparqlResult::Solutions { variables, rows },
+            SparqlResult::Solutions {
+                variables, rows, ..
+            },
         ) => {
             let expected = read_solutions(path, matches!(case.expected, ExpectedResult::Srj(_)))?;
             compare_solutions(variables, rows, &expected)

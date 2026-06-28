@@ -73,7 +73,9 @@ fn service_clause_federates_to_wikidata() {
         )
         .expect("federated query");
     match result {
-        SparqlResult::Solutions { variables, rows } => {
+        SparqlResult::Solutions {
+            variables, rows, ..
+        } => {
             assert!(variables.contains(&"x".to_owned()));
             assert_eq!(rows.len(), 1, "the SERVICE bag joins the single local row");
         }

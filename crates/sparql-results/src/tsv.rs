@@ -37,7 +37,9 @@ pub fn to_tsv(
     provenance: &ResultProvenance,
 ) -> Result<SerializeOutcome, Error> {
     let (variables, rows) = match result {
-        SparqlResult::Solutions { variables, rows } => (variables, rows),
+        SparqlResult::Solutions {
+            variables, rows, ..
+        } => (variables, rows),
         SparqlResult::Boolean(_) => {
             return Err(Error::Format(
                 "SPARQL Results TSV is defined only for SELECT variable bindings, not ASK"
@@ -152,6 +154,7 @@ mod tests {
                     Some(lit("Grace", XSD_STRING)),
                 ],
             ],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let expected = concat!(
             "?s\t?b\t?name\t?age\t?label\n",
@@ -174,6 +177,7 @@ mod tests {
                     direction: None,
                 }),
             ]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let text = tsv_text(&result, &ResultProvenance::default());
         assert!(
@@ -214,6 +218,7 @@ mod tests {
             rows: vec![vec![Some(TermValue::Iri(
                 "http://example.org/x".to_string(),
             ))]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let expected = concat!("?a\t?b\t?c\n", "<http://example.org/x>\t\t\n",);
         assert_eq!(tsv_text(&result, &ResultProvenance::default()), expected);
@@ -226,6 +231,7 @@ mod tests {
         let result = SparqlResult::Solutions {
             variables: vec!["a".to_string()],
             rows: vec![vec![Some(iri.clone()), Some(iri)]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let err = to_tsv(&result, &ResultProvenance::default())
             .expect_err("over-wide row must be rejected");
@@ -242,6 +248,7 @@ mod tests {
             rows: vec![vec![Some(TermValue::Iri(
                 "http://example.org/s".to_string(),
             ))]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         };
         let provenance = ResultProvenance {
             query_hash: Some("deadbeef".to_string()),

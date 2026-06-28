@@ -114,6 +114,11 @@ pub enum SparqlResult {
     Solutions {
         variables: Vec<String>,
         rows: Vec<Vec<Option<TermValue>>>,
+        /// Auxiliary quads invented during evaluation by value-constructing builtins
+        /// (`gmeow:listSlice`/`gmeow:listConcat` mint fresh `rdf:List` cells). Empty for
+        /// an ordinary SELECT. Carried so an in-process consumer can dereference a list
+        /// head returned in a solution cell; W3C tabular result formats ignore it.
+        aux: Arc<RdfDataset>,
     },
     Graph(Arc<RdfDataset>),
     Boolean(bool),

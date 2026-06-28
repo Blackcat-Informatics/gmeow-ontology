@@ -834,6 +834,24 @@ pub enum GmeowFn {
     /// standpoint-membership: true iff the reified statement `reifier` is held in
     /// `standpoint` (its vantage standpoint equals, or sharpens, the queried one).
     HeldIn,
+    /// `gmeow:listLength(list) -> xsd:integer` — the number of members of an
+    /// `rdf:List` (`rdf:nil` is length 0).
+    ListLength,
+    /// `gmeow:listGet(list, index) -> term` — the member at the zero-based `index`,
+    /// or a SPARQL error when the index is out of range.
+    ListGet,
+    /// `gmeow:listIndexOf(list, value) -> xsd:integer` — the zero-based index of the
+    /// first occurrence of `value`, or a SPARQL error when it is absent.
+    ListIndexOf,
+    /// `gmeow:listContains(list, value) -> xsd:boolean` — whether `value` is a member.
+    ListContains,
+    /// `gmeow:listSlice(list, start, end) -> rdf:List` — a fresh list of the members
+    /// in the half-open index range `[start, end)` (clamped; inverted/out-of-range
+    /// yields `rdf:nil`).
+    ListSlice,
+    /// `gmeow:listConcat(listA, listB) -> rdf:List` — a fresh list of `listA`'s
+    /// members followed by `listB`'s.
+    ListConcat,
 }
 
 impl GmeowFn {
@@ -843,6 +861,12 @@ impl GmeowFn {
     pub const fn local_name(self) -> &'static str {
         match self {
             GmeowFn::HeldIn => "heldIn",
+            GmeowFn::ListLength => "listLength",
+            GmeowFn::ListGet => "listGet",
+            GmeowFn::ListIndexOf => "listIndexOf",
+            GmeowFn::ListContains => "listContains",
+            GmeowFn::ListSlice => "listSlice",
+            GmeowFn::ListConcat => "listConcat",
         }
     }
 
@@ -852,6 +876,12 @@ impl GmeowFn {
     pub fn from_local_name(name: &str) -> Option<Self> {
         match name {
             "heldIn" => Some(GmeowFn::HeldIn),
+            "listLength" => Some(GmeowFn::ListLength),
+            "listGet" => Some(GmeowFn::ListGet),
+            "listIndexOf" => Some(GmeowFn::ListIndexOf),
+            "listContains" => Some(GmeowFn::ListContains),
+            "listSlice" => Some(GmeowFn::ListSlice),
+            "listConcat" => Some(GmeowFn::ListConcat),
             _ => None,
         }
     }
