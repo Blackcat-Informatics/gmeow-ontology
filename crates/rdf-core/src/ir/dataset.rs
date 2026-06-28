@@ -885,6 +885,67 @@ impl RdfDataset {
             .map(|i| &self.locations[i].1)
     }
 
+    /// Deterministically merge several datasets into one frozen dataset.
+    ///
+    /// Every input's quads, reifier bindings, and statement annotations are
+    /// preserved; locations follow their quads through the merge (the builder's
+    /// owned-quad bridge carries each `RdfLocation`). The result is canonical: it is
+    /// re-interned BY VALUE and re-frozen through [`RdfDatasetBuilder`], so quads
+    /// deduplicate and the frozen `(s, p, o, g)` order is reproducible regardless of
+    /// the order the inputs are supplied. Two merges that differ only in input order
+    /// (or in the dataset-local term/scope numbering of equivalent inputs) therefore
+    /// canonicalize byte-identically (verify with
+    /// [`canonicalize`](super::canon::canonicalize)).
+    ///
+    /// # Blank-node scope discipline (standardize-apart, C0.2)
+    ///
+    /// Each input dataset is merged under its OWN fresh [`BlankScope`] (the builder's
+    /// [`push_dataset`](RdfDatasetBuilder::push_dataset) claims scopes 1, 2, 3, … in
+    /// turn), so two same-label blank nodes that originate in DIFFERENT inputs stay
+    /// distinct — the native equivalent of the pipeline's per-source string-prefix
+    /// ingest. An input that already carries non-default scopes does not collide:
+    /// `push_dataset` re-interns its blanks through the owned-model boundary, where
+    /// each blank's label is its scope-qualified form, then re-scopes the whole input
+    /// under one fresh merge scope — so distinct source blanks remain distinct after
+    /// composition.
+    ///
+    /// Re-interning routes through the existing builder/freeze machinery — no arena
+    /// is hand-rolled here. The merge HARD-fails (`expect`) only if re-freezing a
+    /// union of already-valid datasets somehow fails structural validation, which
+    /// cannot happen for inputs that each froze successfully.
+    #[must_use]
+    pub fn union(datasets: &[&RdfDataset]) -> RdfDataset {
+        let mut builder = super::builder::RdfDatasetBuilder::new();
+        for ds in datasets {
+            builder.push_dataset(ds);
+        }
+        // `push_dataset` re-interns owned terms into a fresh builder, so the union is
+        // already standardized-apart; freeze re-sorts + dedups. Unwrap the `Arc` to
+        // an owned `RdfDataset` (the union owns its arena exclusively).
+        let frozen = builder
+            .freeze()
+            .expect("union of valid datasets re-freezes successfully");
+        std::sync::Arc::try_unwrap(frozen).unwrap_or_else(|arc| arc.clone_dataset())
+    }
+
+    /// Deep-clone a frozen dataset's tables into a fresh owned `RdfDataset`. The
+    /// fallback for [`union`](Self::union) when the freshly frozen `Arc` is somehow
+    /// shared (it is not, in practice — `freeze` returns a unique `Arc`). The lazy
+    /// `OnceLock` caches are intentionally NOT cloned; they rebuild on demand.
+    fn clone_dataset(&self) -> RdfDataset {
+        RdfDataset {
+            arena: self.arena.clone(),
+            terms: self.terms.clone(),
+            quads: self.quads.clone(),
+            reifiers: self.reifiers.clone(),
+            annotations: self.annotations.clone(),
+            locations: self.locations.clone(),
+            caps: self.caps,
+            value_index: OnceLock::new(),
+            indexes: QuadIndexes::default(),
+        }
+    }
+
     /// The capability flags, computed once at freeze.
     #[inline]
     pub fn capabilities(&self) -> RdfStoreCapabilities {
@@ -1482,6 +1543,157 @@ mod tests {
                 o,
                 g: Some(g)
             }
+        );
+    }
+
+    // ── union ──────────────────────────────────────────────────────────────
+
+    use crate::ir::canon::canonicalize;
+    use crate::RdfTextDirection;
+
+    /// Two independent datasets with the same predicate but different objects merge
+    /// to a dataset holding BOTH quads, and the merge is commutative up to RDF
+    /// isomorphism: `canon(union[a, b]) == canon(union[b, a])`.
+    #[test]
+    fn union_is_commutative_up_to_isomorphism() {
+        let a = {
+            let mut b = RdfDatasetBuilder::new();
+            let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "oa"));
+            b.push_quad(s, p, o, None);
+            b.freeze().expect("a")
+        };
+        let c = {
+            let mut b = RdfDatasetBuilder::new();
+            let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "oc"));
+            b.push_quad(s, p, o, None);
+            b.freeze().expect("c")
+        };
+
+        let ab = RdfDataset::union(&[&a, &c]);
+        let ba = RdfDataset::union(&[&c, &a]);
+        assert_eq!(ab.quad_count(), 2, "both quads survive the union");
+        assert_eq!(
+            canonicalize(&ab).nquads,
+            canonicalize(&ba).nquads,
+            "union is order-independent up to isomorphism"
+        );
+    }
+
+    /// A quad shared by two inputs collapses to one row in the union (set semantics).
+    #[test]
+    fn union_dedupes_shared_quads() {
+        let build = |obj: &str| {
+            let mut b = RdfDatasetBuilder::new();
+            let (s, p) = (iri(&mut b, "s"), iri(&mut b, "p"));
+            let shared = iri(&mut b, "shared");
+            let o = iri(&mut b, obj);
+            b.push_quad(s, p, shared, None); // identical in both inputs
+            b.push_quad(s, p, o, None); // input-specific
+            b.freeze().expect("ds")
+        };
+        let a = build("oa");
+        let c = build("oc");
+        let u = RdfDataset::union(&[&a, &c]);
+        // shared + oa + oc = 3 distinct rows.
+        assert_eq!(u.quad_count(), 3, "shared quad collapses, distinct survive");
+    }
+
+    /// Reifier bindings AND statement annotations survive the union and resolve.
+    #[test]
+    fn union_preserves_side_tables() {
+        let src = {
+            let mut b = RdfDatasetBuilder::new();
+            let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
+            let triple = b.intern_triple(s, p, o);
+            let r = iri(&mut b, "r");
+            let (ap, ao) = (iri(&mut b, "ap"), iri(&mut b, "ao"));
+            b.push_reifier(r, triple);
+            b.push_annotation(r, ap, ao);
+            b.freeze().expect("src")
+        };
+        let other = {
+            let mut b = RdfDatasetBuilder::new();
+            let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o2"));
+            b.push_quad(s, p, o, None);
+            b.freeze().expect("other")
+        };
+
+        let u = RdfDataset::union(&[&src, &other]);
+        assert_eq!(u.reifiers().count(), 1, "reifier binding survives union");
+        assert_eq!(u.annotations().count(), 1, "annotation survives union");
+
+        let reifier = u.owned_reifiers().next().expect("one reifier");
+        assert_eq!(reifier.reifier, RdfTerm::iri("http://example.org/r"));
+        assert_eq!(
+            reifier.statement.subject,
+            RdfTerm::iri("http://example.org/s")
+        );
+        let annotation = u.owned_annotations().next().expect("one annotation");
+        assert_eq!(annotation.predicate, "http://example.org/ap");
+    }
+
+    /// Blank-scope distinctness: two inputs each carrying a blank-headed structure
+    /// that shares the label `_:b0` must NOT collapse in the union — the native
+    /// equivalent of the snapshot `owl:AllDisjointClasses` blank-list case. We build
+    /// a two-quad blank-headed structure (`_:b0 a Disjoint; _:b0 members <x>`) in
+    /// each input under the SAME default-scoped label and assert the union keeps the
+    /// two blank heads distinct (4 quads, not 2).
+    #[test]
+    fn union_standardizes_apart_same_label_blanks() {
+        let build = |member: &str| {
+            let mut b = RdfDatasetBuilder::new();
+            let head = b.intern_blank("b0".to_string(), BlankScope::DEFAULT);
+            let rdf_type =
+                b.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_string());
+            let disjoint =
+                b.intern_iri("http://www.w3.org/2002/07/owl#AllDisjointClasses".to_string());
+            let members = b.intern_iri("http://www.w3.org/2002/07/owl#members".to_string());
+            let m = iri(&mut b, member);
+            b.push_quad(head, rdf_type, disjoint, None);
+            b.push_quad(head, members, m, None);
+            b.freeze().expect("ds")
+        };
+        let a = build("ClassA");
+        let c = build("ClassC");
+        let u = RdfDataset::union(&[&a, &c]);
+
+        // If the two `_:b0` heads collapsed, the `rdf:type owl:AllDisjointClasses`
+        // quad would dedup to ONE and the union would hold 3 quads. With
+        // standardize-apart the two heads are distinct, so all 4 quads survive.
+        assert_eq!(
+            u.quad_count(),
+            4,
+            "same-label blank heads from different inputs stay distinct"
+        );
+
+        // The two distinct blank heads carry distinct qualified labels.
+        let heads: std::collections::HashSet<String> = u
+            .owned_quads()
+            .filter_map(|q| match q.subject {
+                RdfTerm::BlankNode(label) => Some(label),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(heads.len(), 2, "two distinct blank heads after union");
+    }
+
+    /// A self-union of one dataset is the dataset itself, up to isomorphism: merging
+    /// a single input through `push_dataset` re-scopes its blanks but does not lose
+    /// or duplicate any statement.
+    #[test]
+    fn union_of_single_input_is_isomorphic_to_input() {
+        let ds = {
+            let mut b = RdfDatasetBuilder::new();
+            let (s, p) = (iri(&mut b, "s"), iri(&mut b, "p"));
+            let head = b.intern_blank("x".to_string(), BlankScope::DEFAULT);
+            b.push_quad(s, p, head, None);
+            b.freeze().expect("ds")
+        };
+        let u = RdfDataset::union(&[&ds]);
+        assert_eq!(
+            canonicalize(&ds).nquads,
+            canonicalize(&u).nquads,
+            "single-input union is isomorphic to the input"
         );
     }
 

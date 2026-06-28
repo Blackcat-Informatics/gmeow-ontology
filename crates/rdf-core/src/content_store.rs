@@ -43,6 +43,15 @@ impl ContentDigest {
         Self(buf)
     }
 
+    /// Wrap 32 raw digest bytes as a `ContentDigest` WITHOUT re-hashing.
+    ///
+    /// For callers that have already computed a SHA-256 digest themselves (e.g. a
+    /// multi-section content fold) and want to carry the result as a `ContentDigest`.
+    /// Unlike [`of`](Self::of), this does NOT hash — it adopts `raw` verbatim.
+    pub fn from_raw(raw: [u8; 32]) -> Self {
+        Self(raw)
+    }
+
     /// The 32 raw digest bytes.
     pub fn as_bytes(&self) -> &[u8; 32] {
         &self.0

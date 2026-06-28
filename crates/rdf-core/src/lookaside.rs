@@ -46,6 +46,13 @@ pub enum RdfLookasideKind {
     Shex,
     Docs,
     Logic,
+    /// Materialized reasoning output (inferred closures, entailments, reasoner
+    /// reports) that travels with the dataset as a typed sidecar — the lookaside
+    /// home for the reasoning lane the pipeline bundle carries.
+    Reasoning,
+    /// The Horn/relational-core projection of the logic layer (the
+    /// NNF→Skolem→Horn floor) carried as a typed sidecar alongside its source graph.
+    RelationalCore,
     Schema,
     Query,
     Mapping,
@@ -64,6 +71,8 @@ impl RdfLookasideKind {
             Self::Shex => "shex",
             Self::Docs => "docs",
             Self::Logic => "logic",
+            Self::Reasoning => "reasoning",
+            Self::RelationalCore => "relational-core",
             Self::Schema => "schema",
             Self::Query => "query",
             Self::Mapping => "mapping",
@@ -82,6 +91,10 @@ impl RdfLookasideKind {
             "shex" => Self::Shex,
             "doc" | "docs" | "documentation" | "ontology-docs" => Self::Docs,
             "logic" | "rule" | "rules" => Self::Logic,
+            "reasoning" | "reason" | "inferred" | "entailment" | "entailments" => Self::Reasoning,
+            "relational-core" | "relational_core" | "relationalcore" | "horn" => {
+                Self::RelationalCore
+            }
             "schema" | "schemas" | "json-schema" => Self::Schema,
             "query" | "queries" | "sparql" => Self::Query,
             "mapping" | "mappings" => Self::Mapping,
@@ -261,4 +274,49 @@ pub struct RdfSignatureRecord {
     pub key_id: Option<String>,
     pub status: String,
     pub has_cose: bool,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reasoning_and_relational_core_kinds_round_trip() {
+        assert_eq!(RdfLookasideKind::Reasoning.as_str(), "reasoning");
+        assert_eq!(RdfLookasideKind::RelationalCore.as_str(), "relational-core");
+        // `from_hint` resolves the canonical alias and a few synonyms.
+        assert_eq!(
+            RdfLookasideKind::from_hint("reasoning"),
+            RdfLookasideKind::Reasoning
+        );
+        assert_eq!(
+            RdfLookasideKind::from_hint("entailment"),
+            RdfLookasideKind::Reasoning
+        );
+        assert_eq!(
+            RdfLookasideKind::from_hint("relational-core"),
+            RdfLookasideKind::RelationalCore
+        );
+        assert_eq!(
+            RdfLookasideKind::from_hint("horn"),
+            RdfLookasideKind::RelationalCore
+        );
+        // An unknown hint still falls through to `Other`, preserving openness.
+        assert_eq!(
+            RdfLookasideKind::from_hint("not-a-kind"),
+            RdfLookasideKind::Other("not-a-kind".to_owned())
+        );
+    }
+
+    #[test]
+    fn resources_of_kind_filters_by_new_variants() {
+        let mut la = RdfLookaside::default();
+        la.resources
+            .push(RdfLookasideResource::new(RdfLookasideKind::Reasoning).with_name("closure"));
+        la.resources
+            .push(RdfLookasideResource::new(RdfLookasideKind::Logic).with_name("rules"));
+        let reasoning: Vec<_> = la.resources_of_kind(RdfLookasideKind::Reasoning).collect();
+        assert_eq!(reasoning.len(), 1);
+        assert_eq!(reasoning[0].name.as_deref(), Some("closure"));
+    }
 }

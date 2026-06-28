@@ -13,6 +13,9 @@
 
 pub mod builder;
 pub mod bundle;
+// The pipeline carrier (#1132 C1): the frozen hot graph + lookaside + blob store +
+// provenance + a typed-handle lane, generic over the kernel-opaque handle payload.
+pub mod pipeline_bundle;
 // Native full W3C RDFC-1.0 dataset canonicalization (#910): stable canonical blank
 // labels + canonical N-Quads, extended for the RDF-1.2 reifier/annotation overlay.
 // The canonicalization authority for the gmeow-rdf family — explicitly NOT oxigraph.
@@ -56,4 +59,5 @@ pub use import_graph::import_gts_graph;
 pub use import_sink::import_gts_events;
 pub use ingest::{DatasetSink, FrozenDatasetSource};
 pub use mutable::{MutableDataset, QuadValues};
+pub use pipeline_bundle::{HandleEntry, HandleKey, PipelineBundle, PipelineBundleError};
 pub use term::{BlankScope, TermId, TermValue};
