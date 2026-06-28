@@ -537,6 +537,54 @@ mod tests {
         assert!(err.to_string().contains("cyclic"));
     }
 
+    #[test]
+    fn torn_list_missing_rest_is_a_hard_data_error() {
+        // l0 -> first x, rest l1 ; l1 -> first y  (no rdf:rest on the 2nd cell).
+        let mut b = RdfDatasetBuilder::new();
+        let first = b.intern_iri(super::RDF_FIRST.to_owned());
+        let rest = b.intern_iri(super::RDF_REST.to_owned());
+        let nil = b.intern_iri(super::RDF_NIL.to_owned());
+        let l0 = b.intern_iri("http://ex/l0".to_owned());
+        let l1 = b.intern_iri("http://ex/l1".to_owned());
+        let x = b.intern_iri("http://ex/x".to_owned());
+        let y = b.intern_iri("http://ex/y".to_owned());
+        let z = b.intern_iri("http://ex/z".to_owned());
+        b.push_quad(l0, first, x, None);
+        b.push_quad(l0, rest, l1, None);
+        b.push_quad(l1, first, y, None);
+        // l1 has no rdf:rest — a torn list. Intern rdf:nil elsewhere so the walk starts.
+        b.push_quad(z, rest, nil, None);
+        let ds = b.freeze().expect("freeze");
+
+        let q = format!("{PREFIX} SELECT ?n WHERE {{ BIND(g:listLength(<http://ex/l0>) AS ?n) }}");
+        let err = eval_err(&ds, &q);
+        assert!(matches!(err, EvalError::Data(_)), "got {err:?}");
+        assert!(err.to_string().contains("missing rdf:rest"), "got {err}");
+    }
+
+    #[test]
+    fn torn_list_interior_missing_first_is_a_hard_data_error() {
+        // l0 -> first x, rest l1 ; l1 -> rest nil  (no rdf:first on the interior cell).
+        let mut b = RdfDatasetBuilder::new();
+        let first = b.intern_iri(super::RDF_FIRST.to_owned());
+        let rest = b.intern_iri(super::RDF_REST.to_owned());
+        let nil = b.intern_iri(super::RDF_NIL.to_owned());
+        let l0 = b.intern_iri("http://ex/l0".to_owned());
+        let l1 = b.intern_iri("http://ex/l1".to_owned());
+        let x = b.intern_iri("http://ex/x".to_owned());
+        b.push_quad(l0, first, x, None);
+        b.push_quad(l0, rest, l1, None);
+        // l1 has rdf:rest but no rdf:first — torn, and `members` is already non-empty
+        // (so this is a torn interior cell, not a non-list head).
+        b.push_quad(l1, rest, nil, None);
+        let ds = b.freeze().expect("freeze");
+
+        let q = format!("{PREFIX} SELECT ?n WHERE {{ BIND(g:listLength(<http://ex/l0>) AS ?n) }}");
+        let err = eval_err(&ds, &q);
+        assert!(matches!(err, EvalError::Data(_)), "got {err:?}");
+        assert!(err.to_string().contains("missing rdf:first"), "got {err}");
+    }
+
     // ── constructing functions: listSlice / listConcat ───────────────────────
 
     use gmeow_rdf_core::{SparqlEngine, SparqlRequest, SparqlResult, TermRef};
