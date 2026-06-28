@@ -3641,6 +3641,342 @@ logic:levelStrong
         logic:levelEmerging ,
         logic:levelNone .
 
+# ── The coarse knowledge ladder as a generated projection ───────────────────────
+# The cognition slice's gmeow:isAwareOf … gmeow:hasMastered ladder is a generated
+# coarse VIEW of the multidimensional logic:CognitiveAssessment: each ladder edge
+# instance is rule-materialized from assessments under a declared per-dimension
+# threshold profile (logic:LadderProjectionProfile). The factored assessment stays
+# the canonical record; the ladder is the readable ordinal projection. The shipped
+# projection rules are positive Horn, so they materialize under the engine's default
+# semantics and fold into gmeow.gts and the datalog/N3/Nemo program projections.
+# Normative in design/LOGIC-COGNITION.md §Projection to the coarse knowledge ladder.
+
+logic:LadderProjectionProfile
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Ladder Projection Profile"@x-gmeow-english ;
+    skos:definition "A declared per-dimension threshold profile governing the generated coarse projection of the multidimensional logic:CognitiveAssessment onto the gmeow:isAwareOf … gmeow:hasMastered knowledge ladder: a set of logic:DimensionThreshold rows (logic:hasThresholdRow), each binding a ladder edge to its source dimension and the minimum logic:AssessmentLevel an assessment must clear for the edge to be emitted. Making the thresholds an explicit profile keeps the ordinal chain a projection a consumer that needs one number can read, while the factored assessment stays canonical — the ladder never re-establishes mastery, understanding, knowledge and awareness as a single ordinal entailment chain in place of the independent dimensions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DimensionThreshold
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Dimension Threshold"@x-gmeow-english ;
+    skos:definition "One row of a logic:LadderProjectionProfile: a logic:projectsLadderEdge ladder property paired with the logic:sourceDimension it reads and the minimum logic:thresholdLevel an assessment on that dimension must clear (by the logic:levelAtOrAbove order) for the edge to be emitted. The gmeow:hasMastered rung is the only one with two rows — procedural competence and transfer — both of which must clear, so mastery of one narrow task no longer implies broad command of a subject."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:hasThresholdRow
+    a owl:ObjectProperty ;
+    rdfs:domain logic:LadderProjectionProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has threshold row"@x-gmeow-english ;
+    skos:definition "Relates a logic:LadderProjectionProfile to one of its logic:DimensionThreshold rows. Range logic:DimensionThreshold (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:projectsLadderEdge
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "projects ladder edge"@x-gmeow-english ;
+    skos:definition "The ladder property a logic:DimensionThreshold row emits when its dimension clears its threshold: gmeow:isAwareOf, gmeow:knowsAbout, gmeow:understands or gmeow:hasMastered. Range is left open (the gmeow: ladder properties), stated in prose to keep the OWL down-projection clean."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:sourceDimension
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "source dimension"@x-gmeow-english ;
+    skos:definition "The logic:AssessmentDimension a logic:DimensionThreshold row reads: the factored axis whose assessment level is tested against the row's logic:thresholdLevel. Range logic:AssessmentDimension (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:thresholdLevel
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "threshold level"@x-gmeow-english ;
+    skos:definition "The minimum logic:AssessmentLevel an assessment on a row's logic:sourceDimension must reach — by the logic:levelAtOrAbove order — for the row's logic:projectsLadderEdge to be emitted. Range logic:AssessmentLevel (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# The shipped default profile: the threshold each ladder rung clears.
+
+logic:defaultLadderProfile
+    a owl:NamedIndividual ,
+        logic:LadderProjectionProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "default ladder projection profile"@x-gmeow-english ;
+    skos:definition "The shipped default logic:LadderProjectionProfile the coarse-ladder projection rules read: awareness ≥ emerging emits gmeow:isAwareOf, declarative familiarity ≥ competent emits gmeow:knowsAbout, conceptual understanding ≥ competent emits gmeow:understands, and procedural competence ≥ strong together with transfer ≥ strong emit gmeow:hasMastered."@x-gmeow-english ;
+    logic:hasThresholdRow logic:ladderRowAwareness ,
+        logic:ladderRowDeclarative ,
+        logic:ladderRowConceptual ,
+        logic:ladderRowProceduralMastery ,
+        logic:ladderRowTransferMastery .
+
+logic:ladderRowAwareness
+    a owl:NamedIndividual ,
+        logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ladder row: awareness → is aware of"@x-gmeow-english ;
+    skos:definition "The default-profile row emitting gmeow:isAwareOf when the awareness dimension reaches logic:levelEmerging."@x-gmeow-english ;
+    logic:projectsLadderEdge gmeow:isAwareOf ;
+    logic:sourceDimension logic:dimensionAwareness ;
+    logic:thresholdLevel logic:levelEmerging .
+
+logic:ladderRowDeclarative
+    a owl:NamedIndividual ,
+        logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ladder row: declarative familiarity → knows about"@x-gmeow-english ;
+    skos:definition "The default-profile row emitting gmeow:knowsAbout when the declarative-familiarity dimension reaches logic:levelCompetent."@x-gmeow-english ;
+    logic:projectsLadderEdge gmeow:knowsAbout ;
+    logic:sourceDimension logic:dimensionDeclarativeFamiliarity ;
+    logic:thresholdLevel logic:levelCompetent .
+
+logic:ladderRowConceptual
+    a owl:NamedIndividual ,
+        logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ladder row: conceptual understanding → understands"@x-gmeow-english ;
+    skos:definition "The default-profile row emitting gmeow:understands when the conceptual-understanding dimension reaches logic:levelCompetent."@x-gmeow-english ;
+    logic:projectsLadderEdge gmeow:understands ;
+    logic:sourceDimension logic:dimensionConceptualUnderstanding ;
+    logic:thresholdLevel logic:levelCompetent .
+
+logic:ladderRowProceduralMastery
+    a owl:NamedIndividual ,
+        logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ladder row: procedural competence → has mastered"@x-gmeow-english ;
+    skos:definition "The procedural half of the default-profile gmeow:hasMastered rung: procedural competence must reach logic:levelStrong. Read together with logic:ladderRowTransferMastery — both must clear for gmeow:hasMastered."@x-gmeow-english ;
+    logic:projectsLadderEdge gmeow:hasMastered ;
+    logic:sourceDimension logic:dimensionProceduralCompetence ;
+    logic:thresholdLevel logic:levelStrong .
+
+logic:ladderRowTransferMastery
+    a owl:NamedIndividual ,
+        logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ladder row: transfer → has mastered"@x-gmeow-english ;
+    skos:definition "The transfer half of the default-profile gmeow:hasMastered rung: transfer must reach logic:levelStrong. Read together with logic:ladderRowProceduralMastery — both must clear for gmeow:hasMastered, so mastery of one narrow task never implies broad command."@x-gmeow-english ;
+    logic:projectsLadderEdge gmeow:hasMastered ;
+    logic:sourceDimension logic:dimensionTransfer ;
+    logic:thresholdLevel logic:levelStrong .
+
+# The four projection rules. The three single-dimension rungs read their dimension
+# and threshold from the profile row; the gmeow:hasMastered rung conjoins the two
+# rows (procedural AND transfer), so both halves must clear.
+
+logic:ruleProjectIsAwareOf
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "project ladder edge: is aware of"@x-gmeow-english ;
+    skos:definition "Emits gmeow:isAwareOf from an assessment whose dimension and level clear the gmeow:isAwareOf row of a logic:LadderProjectionProfile. Positive Horn; the threshold is read from the profile, not hard-coded."@x-gmeow-english ;
+    logic:provenance logic:ruleProjectIsAwareOf ;
+    logic:head [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:isAwareOf ;
+        rdf:object    "?subject"
+    ] ;
+    logic:body [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:projectsLadderEdge ;
+        rdf:object    gmeow:isAwareOf
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:sourceDimension ;
+        rdf:object    "?dim"
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:thresholdLevel ;
+        rdf:object    "?threshold"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentDimension ;
+        rdf:object    "?dim"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessedAgent ;
+        rdf:object    "?agent"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentSubject ;
+        rdf:object    "?subject"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentLevel ;
+        rdf:object    "?level"
+    ] , [
+        rdf:subject   "?level" ;
+        rdf:predicate logic:levelAtOrAbove ;
+        rdf:object    "?threshold"
+    ] .
+
+logic:ruleProjectKnowsAbout
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "project ladder edge: knows about"@x-gmeow-english ;
+    skos:definition "Emits gmeow:knowsAbout from an assessment whose dimension and level clear the gmeow:knowsAbout row of a logic:LadderProjectionProfile. Positive Horn; the threshold is read from the profile. The canonical source of a gmeow:knowsAbout edge — never gmeow:hasSkill."@x-gmeow-english ;
+    logic:provenance logic:ruleProjectKnowsAbout ;
+    logic:head [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:knowsAbout ;
+        rdf:object    "?subject"
+    ] ;
+    logic:body [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:projectsLadderEdge ;
+        rdf:object    gmeow:knowsAbout
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:sourceDimension ;
+        rdf:object    "?dim"
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:thresholdLevel ;
+        rdf:object    "?threshold"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentDimension ;
+        rdf:object    "?dim"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessedAgent ;
+        rdf:object    "?agent"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentSubject ;
+        rdf:object    "?subject"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentLevel ;
+        rdf:object    "?level"
+    ] , [
+        rdf:subject   "?level" ;
+        rdf:predicate logic:levelAtOrAbove ;
+        rdf:object    "?threshold"
+    ] .
+
+logic:ruleProjectUnderstands
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "project ladder edge: understands"@x-gmeow-english ;
+    skos:definition "Emits gmeow:understands from an assessment whose dimension and level clear the gmeow:understands row of a logic:LadderProjectionProfile. Positive Horn; the threshold is read from the profile."@x-gmeow-english ;
+    logic:provenance logic:ruleProjectUnderstands ;
+    logic:head [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:understands ;
+        rdf:object    "?subject"
+    ] ;
+    logic:body [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:projectsLadderEdge ;
+        rdf:object    gmeow:understands
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:sourceDimension ;
+        rdf:object    "?dim"
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:thresholdLevel ;
+        rdf:object    "?threshold"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentDimension ;
+        rdf:object    "?dim"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessedAgent ;
+        rdf:object    "?agent"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentSubject ;
+        rdf:object    "?subject"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentLevel ;
+        rdf:object    "?level"
+    ] , [
+        rdf:subject   "?level" ;
+        rdf:predicate logic:levelAtOrAbove ;
+        rdf:object    "?threshold"
+    ] .
+
+logic:ruleProjectHasMastered
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "project ladder edge: has mastered"@x-gmeow-english ;
+    skos:definition "Emits gmeow:hasMastered only when BOTH a procedural-competence assessment and a transfer assessment of the same agent on the same subject clear their gmeow:hasMastered rows. The two-row conjunction is why mastery of one narrow task no longer implies broad command — transfer must clear too. Positive Horn; thresholds read from the profile."@x-gmeow-english ;
+    logic:provenance logic:ruleProjectHasMastered ;
+    logic:head [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:hasMastered ;
+        rdf:object    "?subject"
+    ] ;
+    logic:body [
+        rdf:subject   "?rowProc" ;
+        rdf:predicate logic:projectsLadderEdge ;
+        rdf:object    gmeow:hasMastered
+    ] , [
+        rdf:subject   "?rowProc" ;
+        rdf:predicate logic:sourceDimension ;
+        rdf:object    logic:dimensionProceduralCompetence
+    ] , [
+        rdf:subject   "?rowProc" ;
+        rdf:predicate logic:thresholdLevel ;
+        rdf:object    "?thresholdProc"
+    ] , [
+        rdf:subject   "?assessProc" ;
+        rdf:predicate logic:assessmentDimension ;
+        rdf:object    logic:dimensionProceduralCompetence
+    ] , [
+        rdf:subject   "?assessProc" ;
+        rdf:predicate logic:assessedAgent ;
+        rdf:object    "?agent"
+    ] , [
+        rdf:subject   "?assessProc" ;
+        rdf:predicate logic:assessmentSubject ;
+        rdf:object    "?subject"
+    ] , [
+        rdf:subject   "?assessProc" ;
+        rdf:predicate logic:assessmentLevel ;
+        rdf:object    "?levelProc"
+    ] , [
+        rdf:subject   "?levelProc" ;
+        rdf:predicate logic:levelAtOrAbove ;
+        rdf:object    "?thresholdProc"
+    ] , [
+        rdf:subject   "?rowTransfer" ;
+        rdf:predicate logic:projectsLadderEdge ;
+        rdf:object    gmeow:hasMastered
+    ] , [
+        rdf:subject   "?rowTransfer" ;
+        rdf:predicate logic:sourceDimension ;
+        rdf:object    logic:dimensionTransfer
+    ] , [
+        rdf:subject   "?rowTransfer" ;
+        rdf:predicate logic:thresholdLevel ;
+        rdf:object    "?thresholdTransfer"
+    ] , [
+        rdf:subject   "?assessTransfer" ;
+        rdf:predicate logic:assessmentDimension ;
+        rdf:object    logic:dimensionTransfer
+    ] , [
+        rdf:subject   "?assessTransfer" ;
+        rdf:predicate logic:assessedAgent ;
+        rdf:object    "?agent"
+    ] , [
+        rdf:subject   "?assessTransfer" ;
+        rdf:predicate logic:assessmentSubject ;
+        rdf:object    "?subject"
+    ] , [
+        rdf:subject   "?assessTransfer" ;
+        rdf:predicate logic:assessmentLevel ;
+        rdf:object    "?levelTransfer"
+    ] , [
+        rdf:subject   "?levelTransfer" ;
+        rdf:predicate logic:levelAtOrAbove ;
+        rdf:object    "?thresholdTransfer"
+    ] .
+
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .
 
