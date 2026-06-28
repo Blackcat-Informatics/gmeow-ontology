@@ -87,6 +87,9 @@
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n9>, "default").
 <https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n34>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, "default").
+<https://blackcatinformatics.ca/logic/defeasibleStrength>(<https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout>, "moderate", "default").
+<https://blackcatinformatics.ca/logic/evidenceFor>(<https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout>, <https://blackcatinformatics.ca/gmeow/knowsAbout>, "default").
+<https://blackcatinformatics.ca/logic/evidenceProperty>(<https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout>, <https://blackcatinformatics.ca/gmeow/hasSkill>, "default").
 
 % === Rules ===
 #[name("https://blackcatinformatics.ca/logic/ruleProjectHasMastered")]

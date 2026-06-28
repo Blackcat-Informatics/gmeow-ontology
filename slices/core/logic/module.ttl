@@ -3977,6 +3977,68 @@ logic:ruleProjectHasMastered
         rdf:object    "?thresholdTransfer"
     ] .
 
+# ── Defeasible evidence: support that can come apart ────────────────────────────
+# A first-class, reified declaration that one relation is DEFEASIBLE (defeater-
+# blockable) evidence for another, never a strict entailment. The recast of
+# expertise's gmeow:hasSkill → gmeow:knowsAbout: possessing a skill (tacit can-do)
+# is defeasible evidence for knowing-about (propositional), the two coming apart
+# (tacit competence with no articulable knowledge, and vice versa). Because the
+# support is defeasible, the shipped reasoning NEVER materializes the supported
+# edge from the evidence: gmeow:knowsAbout's only shipped source is the
+# declarative-familiarity ladder projection, never gmeow:hasSkill. A consumer that
+# opts into defeasible reasoning can draw the supported edge under a declared
+# contract (demonstrated in the conformance corpus), defeated when the competence
+# is purely tacit.
+#
+# NON-ENTAILMENT GUARD: the predicate-global logic:NonEntailmentObligation
+# machinery cannot express "knowsAbout must not come FROM hasSkill", because
+# gmeow:knowsAbout IS a legitimate rule head (the declarative-familiarity ladder
+# projection) — a predicate-global obligation on it would resolve to
+# logic:ObligationViolated, a hard error. The precise, strictly-stronger guard is
+# the source-specific verification query that no gmeow:knowsAbout edge is derived
+# whose only support is gmeow:hasSkill, enforced under make verify.
+
+logic:DefeasibleEvidence
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Defeasible Evidence"@x-gmeow-english ;
+    skos:definition "A reified declaration that one relation or fact (logic:evidenceProperty) is DEFEASIBLE — defeater-blockable — evidence for another (logic:evidenceFor), carrying its logic:defeasibleStrength, and explicitly NOT a strict entailment. The support can come apart: the evidence may hold while the supported claim fails (and conversely), so the engine never materializes the supported edge from the evidence under the default reasoning — only a consumer opting into defeasible reasoning under a declared contract draws it, defeated when a declared defeater holds. The central recast of any 'X is evidence for Y, not X entails Y' relationship; its first instance is gmeow:hasSkill as defeasible evidence for gmeow:knowsAbout."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:evidenceProperty
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DefeasibleEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "evidence property"@x-gmeow-english ;
+    skos:definition "The evidential relation a logic:DefeasibleEvidence declares to bear defeasibly on another — the 'from' side (e.g. gmeow:hasSkill). Range is left open (a property or a claim), stated in prose; the object is used by punning, the gmeow:pairsWith convention."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:evidenceFor
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DefeasibleEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "evidence for"@x-gmeow-english ;
+    skos:definition "The relation or claim a logic:DefeasibleEvidence defeasibly supports — the 'to' side (e.g. gmeow:knowsAbout). Defeasible support, never strict entailment: the supported edge is not materialized from the evidence under the default reasoning. Range is left open (a property or a claim), stated in prose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:defeasibleStrength
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:DefeasibleEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "defeasible strength"@x-gmeow-english ;
+    skos:definition "A solver-layer measure of how strongly a logic:DefeasibleEvidence supports its logic:evidenceFor target before any defeater — a ranking annotation, never asserted as a reasoned axiom and never a probability. Range is left open (an ordinal label or a numeric weight), stated in prose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:skillEvidenceForKnowsAbout
+    a owl:NamedIndividual ,
+        logic:DefeasibleEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "skill is defeasible evidence for knowing about"@x-gmeow-english ;
+    skos:definition "The shipped declaration recasting expertise's former gmeow:hasSkill ⊑ gmeow:knowsAbout: possessing a skill in a subject is DEFEASIBLE evidence that the agent knows about it, not a strict subproperty entailment — tacit competence and propositional knowing-about come apart. The supported gmeow:knowsAbout edge is never materialized from gmeow:hasSkill under the default reasoning (its only shipped source is the declarative-familiarity ladder projection); a consumer opting into defeasible reasoning draws it, defeated when the competence is purely tacit."@x-gmeow-english ;
+    logic:evidenceProperty gmeow:hasSkill ;
+    logic:evidenceFor gmeow:knowsAbout ;
+    logic:defeasibleStrength "moderate" .
+
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .
 

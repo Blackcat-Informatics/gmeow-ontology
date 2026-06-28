@@ -19180,12 +19180,6 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
-<https://blackcatinformatics.ca/gmeow/hasSkill> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <https://blackcatinformatics.ca/gmeow/isAwareOf> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/hasSkill> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <https://blackcatinformatics.ca/gmeow/isAwareOf> >> ;
-   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-transitive> ;
-   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubPropertyOf-transitive> ;
-   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/honorificClassAcademic> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/QualityValue> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/honorificClassAcademic> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/QualityValue> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;

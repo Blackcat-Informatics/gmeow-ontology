@@ -87,6 +87,9 @@ body("https://blackcatinformatics.ca/logic/ruleProjectUnderstands", "c14n43", "d
 body("https://blackcatinformatics.ca/logic/ruleProjectUnderstands", "c14n9", "default").
 head("https://blackcatinformatics.ca/logic/ruleProjectUnderstands", "c14n34", "default").
 provenance("https://blackcatinformatics.ca/logic/ruleProjectUnderstands", "https://blackcatinformatics.ca/logic/ruleProjectUnderstands", "default").
+defeasibleStrength("https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout", 'moderate', "default").
+evidenceFor("https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout", "https://blackcatinformatics.ca/gmeow/knowsAbout", "default").
+evidenceProperty("https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout", "https://blackcatinformatics.ca/gmeow/hasSkill", "default").
 
 % === Rules ===
 hasMastered(?agent, ?subject, ?C) :-
