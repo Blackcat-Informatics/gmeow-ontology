@@ -498,7 +498,7 @@ impl CachedBundle {
         // (BTreeMap iteration is already sorted, so the manifest is deterministic).
         let mut handles = Vec::with_capacity(bundle.handles.len());
         for (graph, entry) in &bundle.handles {
-            let subgraph = project_named_graph(bundle.dataset(), graph);
+            let subgraph = bundle.dataset().project_named_graph(graph);
             let graph_nquads =
                 serialize_dataset(&subgraph, DATASET_MEDIA_TYPE, SerializeGraph::Dataset).map_err(
                     |e| {
@@ -607,36 +607,6 @@ impl CachedBundle {
 
 /// The pipeline bundle alias the cache reconstitutes (`PipelineBundle<PipelineHandle>`).
 type PipelineBundleAlias = gmeow_rdf::PipelineBundle<PipelineHandle>;
-
-/// Project one named graph of `dataset` into a fresh default-graph dataset whose
-/// canonical bytes are the handle's backing graph — mirrors the kernel
-/// `PipelineBundle::graph_digest` projection so the persisted bytes re-derive the
-/// same sub-dataset on load.
-fn project_named_graph(dataset: &gmeow_rdf::RdfDataset, graph: &str) -> gmeow_rdf::RdfDataset {
-    use gmeow_rdf::{RdfDatasetBuilder, RdfTerm};
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in dataset.owned_quads() {
-        let in_graph = matches!(&quad.graph_name, Some(RdfTerm::Iri(iri)) if iri == graph);
-        if !in_graph {
-            continue;
-        }
-        let mut projected = quad.clone();
-        projected.graph_name = None;
-        builder.push_owned_quad(&projected);
-    }
-    for reifier in dataset.owned_reifiers() {
-        builder.push_owned_reifier(&reifier);
-    }
-    for annotation in dataset.owned_annotations() {
-        builder.push_owned_annotation(&annotation);
-    }
-    Arc::try_unwrap(
-        builder
-            .freeze()
-            .expect("a sub-projection of a valid dataset is valid"),
-    )
-    .unwrap_or_else(|arc| gmeow_rdf::RdfDataset::union(&[&*arc]))
-}
 
 // ── On-disk content-addressed cache ──────────────────────────────────────────
 
