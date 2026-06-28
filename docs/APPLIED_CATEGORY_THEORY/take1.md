@@ -595,7 +595,7 @@ And OpenEHR is not one model but a **six-layer standard**; GMEOW subsumes each l
 |---|---|---|---|
 | Data (RM) | `DV_QUANTITY` in `blood_pressure.json` | `logic:` foundation; frame-relative quantity (P11) | correspondence / lens (§13.3) |
 | Constraints (AM/ADL) | `C_DV_QUANTITY` in `Blutdruck.opt` | `logic:` validation-shapes (full-FOL ⊃ ADL) | ADL → FOL lowering |
-| Process (PROC/TP-VML) | Task Plan / Work Plan | `logic:Plan` (W1 #1055) | correspondence; W2 by-reference target (§13.5) |
+| Process (PROC/TP-VML) | Task Plan / Work Plan | `logic:Plan` (W1) | correspondence; W2 by-reference target (§13.5) |
 | Decision logic (DLM) | input / tracked-state / rules | `logic:` derivation rules + observation-conditioned policies | rule projection |
 | Query (AQL) | DLM-variable ↔ EHR-path bindings | `logic:` query / SPARQL projection | query lowering |
 | Terminology | `DV_CODED_TEXT` (SNOMED/LOINC) | identity-by-reference (P5) | nested correspondence |
@@ -673,8 +673,8 @@ indices, the four axes, RDF-1.2 reifier identities, multi-vantage claims.
 ### 13.5 The process axis: openEHR PROC ↔ `logic:Plan` (W1 / W2 / W3)
 
 OpenEHR's Task-Planning (PROC 1.6.0) is a *process* model, and it is a subsumption target for
-the canonical process model of META-EPIC #1054 — `logic:Plan` (W1 #1055), the certified acyclic
-DAG profile (W2 #1056), and the dogfooded executor (W3 #1057). The two epics are the *same*
+the canonical process model META-EPIC — `logic:Plan` (W1), the certified acyclic DAG profile (W2),
+and the dogfooded executor (W3). The two epics are the *same*
 projection doctrine applied to two cores (alignment and process); they meet here, because W2
 *already* generates workflow surfaces "Airflow/CWL/WDL/Temporal added by reference
 (SSSOM/EDOAL/FnO)". **The correspondence calculus is W2's mechanism, and openEHR Task Planning is
@@ -691,10 +691,12 @@ one more by-reference projection target of `logic:Plan`.** The construct map is 
 | precondition / trigger | action-schema precondition + observation |
 
 **The prescriptive↔descriptive seam is a lens with a declared loss — and YAMATO names its
-poles.** PROC is explicit that the plan *guides but does not dictate* reality: the EHR records
-outcomes and "manual notifications close gaps." This is exactly the **YAMATO action(open,
-on-going) vs event(closed, unitary)** distinction — *arrive* (the prescriptive plan, an on-going
-action) vs *arrival* (the descriptive record, a closed unitary event) — and it is the
+poles, now formalized in `logic:`.** PROC is explicit that the plan *guides but does not dictate*
+reality: the EHR records outcomes and "manual notifications close gaps." This is exactly the
+**action(open, on-going) vs event(closed, unitary)** distinction — *arrive* (the prescriptive
+plan, an on-going action) vs *arrival* (the descriptive record, a closed unitary event) — typed
+canonically as a value (Principle 9) via `logic:occurrentBoundary` over `logic:Open` /
+`logic:Closed`, and it is the
 **plan ⟂ execution** de-conflation already specified in W1 ("path vs. intention vs. causation:
 connected, never identified") and in `slices/extensions/procedures`. As a correspondence it is a
 **lossy lens**: the descriptive record is a reality-perturbed realization of the prescriptive
@@ -704,12 +706,15 @@ mnemomorphism question: does it carry enough witness (plan reference + action-sc
 openEHR's Instruction-State-Machine linkage) to recover the plan? Where it does not, that gap is
 an honest loss-ledger entry, never a failure.
 
-Two further YAMATO process refinements (adopted canonically in `logic:`; by-reference bridge to
-YAMATO terms) sharpen the plan model: **causal parts vs temporal parts** (causal ⊆ temporal) — a
-plan's hand-off/callback edges are *causal* dependencies distinct from `gmeow:hasSubEvent`
-temporal nesting, which is what W3's typed `DataFlow` capture realizes; and **process ≠ event**
-(a plan prescribes over dissective, changeable processes; the record is unitary, immutable
-events), the change-asymmetry that keeps a revisable plan distinct from a completed occurrence.
+Two further YAMATO process refinements — now **formalized canonically in `logic:`** (Principle 17;
+by-reference bridge to YAMATO terms) — sharpen the plan model: **causal parts vs temporal parts**
+(`logic:causalPartOf` ⊆ `logic:temporalPartOf`, transitive) — a plan's hand-off/callback edges are
+*causal* dependencies, carried at the domain level by `gmeow:causalPartOf` distinct from the
+temporal nesting of `gmeow:hasSubEvent`, which is what W3's typed `DataFlow` capture realizes; and
+**process ≠ event** (a plan prescribes over dissective, changeable processes; the record is
+unitary, immutable events), the change-asymmetry — enforced by `logic:OccurrentChangeAsymmetry`
+over `logic:Closed` + `logic:Fluent` — that keeps a revisable plan distinct from a completed
+occurrence.
 
 ---
 
