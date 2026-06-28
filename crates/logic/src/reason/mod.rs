@@ -22,8 +22,9 @@ pub mod rl;
 pub use dl::{dl_consistency, DlVerdict, InconsistencyWitness, UnsatClass};
 pub use el::{el_closure, ElClosure, InferredAxiom};
 pub use ledger::{
-    build_ledger, compare_consistency, compare_subsumption, dl_gap_rows, DivergenceKind,
-    DivergenceLedger, LedgerRow,
+    build_ledger, compare_consistency, compare_external_corpus, compare_subsumption,
+    divergence_findings, dl_gap_rows, enforce, DivergenceKind, DivergenceLedger,
+    ExternalComparison, LedgerRow, LedgerVerdict,
 };
 pub use rl::{rl_closure, RlClosure, RlTriple};
 

@@ -1,0 +1,7 @@
+<http://example.org/Meg> <http://example.org/hasAge> "5"^^<http://www.w3.org/2001/XMLSchema#integer> <https://gmeow.example/w3c-owl2-el/new-feature-negativedatapropertyassertion-001/w> .
+<http://example.org/hasAge> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://gmeow.example/w3c-owl2-el/new-feature-negativedatapropertyassertion-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-el/new-feature-negativedatapropertyassertion-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NegativePropertyAssertion> <https://gmeow.example/w3c-owl2-el/new-feature-negativedatapropertyassertion-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#assertionProperty> <http://example.org/hasAge> <https://gmeow.example/w3c-owl2-el/new-feature-negativedatapropertyassertion-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#sourceIndividual> <http://example.org/Meg> <https://gmeow.example/w3c-owl2-el/new-feature-negativedatapropertyassertion-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#targetValue> "5"^^<http://www.w3.org/2001/XMLSchema#integer> <https://gmeow.example/w3c-owl2-el/new-feature-negativedatapropertyassertion-001/w> .

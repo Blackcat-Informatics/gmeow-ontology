@@ -1,0 +1,7 @@
+<http://example.org/a> <http://www.w3.org/2002/07/owl#differentFrom> <http://example.org/b> <https://gmeow.example/w3c-owl2-el/fs2rdf-different-individuals-2-annotation-ar/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-el/fs2rdf-different-individuals-2-annotation-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Axiom> <https://gmeow.example/w3c-owl2-el/fs2rdf-different-individuals-2-annotation-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2000/01/rdf-schema#comment> "I hereby annotate this" <https://gmeow.example/w3c-owl2-el/fs2rdf-different-individuals-2-annotation-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#annotatedProperty> <http://www.w3.org/2002/07/owl#differentFrom> <https://gmeow.example/w3c-owl2-el/fs2rdf-different-individuals-2-annotation-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#annotatedSource> <http://example.org/a> <https://gmeow.example/w3c-owl2-el/fs2rdf-different-individuals-2-annotation-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#annotatedTarget> <http://example.org/b> <https://gmeow.example/w3c-owl2-el/fs2rdf-different-individuals-2-annotation-ar/w> .

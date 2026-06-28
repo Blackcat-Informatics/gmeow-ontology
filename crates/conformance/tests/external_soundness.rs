@@ -22,8 +22,7 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 use gmeow_conformance::external::{
-    audit_vendorable, load_corpus_meta, outcome_from_szs, parse_entailment_manifest,
-    ExternalOutcome,
+    audit_vendorable, load_corpus_meta, outcome_from_szs, parse_test_manifest, ExternalOutcome,
 };
 use gmeow_conformance::paths::cases_root;
 
@@ -61,7 +60,7 @@ fn declared_outcome(case_dir: &Path) -> ExternalOutcome {
         // segment as the authority. `absolute` is lexical (no filesystem / no url dep).
         let abs = std::path::absolute(&manifest).expect("resolve manifest path");
         let base = format!("file://{}", abs.display());
-        let entries = parse_entailment_manifest(&text, Some(&base))
+        let entries = parse_test_manifest(&text, Some(&base))
             .unwrap_or_else(|e| panic!("{}: manifest parse: {e}", manifest.display()));
         // The case directory name selects the entry (falls back to the sole entry).
         let case_name = case_dir.file_name().and_then(|s| s.to_str()).unwrap_or("");
@@ -134,6 +133,15 @@ fn external_corpus_verdicts_match_their_third_party_source() {
             failures.push(format!("{}: license audit: {e}", corpus_dir.display()));
         }
 
+        // The `divergence` lane is the named honest-DlGap quarantine: the native
+        // engine deliberately disagrees with (or cannot decide) the W3C published
+        // verdict there, so `committed == declared` does NOT hold by construction.
+        // The dedicated divergence gate (`el_divergence_gate`) pins those cases
+        // exactly; this soundness check (committed == declared) must skip them.
+        if meta.lane == gmeow_conformance::external::Lane::Divergence {
+            continue;
+        }
+
         for case_dir in subdirs(&corpus_dir) {
             // A case dir has a profile.json; skip any non-case dir defensively.
             if !case_dir.join("profile.json").is_file() {
@@ -156,8 +164,9 @@ fn external_corpus_verdicts_match_their_third_party_source() {
     }
 
     assert!(
-        checked >= 5,
-        "expected ≥5 external cases (szs-mini ×3, w3c-mini ×2), found {checked}"
+        checked >= 24,
+        "expected ≥24 external cases (szs-mini ×3, w3c-mini ×2, w3c-owl2-el ×19; the \
+         w3c-owl2-el-divergence lane is excluded above), found {checked}"
     );
     assert!(
         failures.is_empty(),

@@ -24,12 +24,30 @@ Third-party components
     University of Espírito Santo), MIT License. The original copyright and
     permission notice are preserved within that file.
 
-External correctness corpora (conformance/logic/cases/external/, #752/#753)
+External correctness corpora (conformance/logic/cases/external/)
   These are reasoning correctness test corpora — NOT part of the published CC BY 4.0
   GMEOW vocabulary. Each corpus carries a corpus.json declaring its SPDX license; only
   IMPORT_OK-licensed corpora are vendored here (enforced by the native license policy
   in crates/conformance/src/license.rs). Restrictive/unknown-licensed suites are never
   committed — they may only be fetched live in the non-required Lane-B lane.
   - szs-mini, w3c-mini — self-authored by Blackcat Informatics® Inc., CC BY 4.0.
-    Tiny seed corpora establishing the external-corpus convention; the heavier
-    third-party suites (TPTP, W3C OWL/SHACL, FAIR OntoUML) land under X2–X5.
+    Tiny seed corpora establishing the external-corpus convention.
+  - w3c-owl2-el — W3C OWL 2 conformance test cases (ConsistencyTest /
+    InconsistencyTest, OWL 2 EL profile subset). Original suite maintained by
+    the W3C OWL Working Group and archived at:
+      https://www.w3.org/2009/11/owl-test/
+    Copyright 2009 W3C (Massachusetts Institute of Technology, ERCIM, Keio,
+    Beihang). Licensed under the W3C Software and Document License. A curated
+    Lane-A subset of 12 cases (those decidable by the native EL reasoner) is
+    vendored under conformance/logic/cases/external/w3c-owl2-el/.
+  - ORE 2015 Reasoner Competition Corpus — NOT vendored, fetched live only.
+    Zenodo DOI 10.5281/zenodo.18578 (Matentzoglu & Parsia, University of
+    Manchester). The corpus is licensed for reasoner-BENCHMARKING use ONLY and
+    NOT for redistribution: "the open access extends only to this purpose; all
+    individual ontologies retain their own license restrictions; removal on
+    request". So NO ORE ontology is committed to this repository. The
+    `make maint-external-corpora` Lane-B lane DOWNLOADS a bounded subset to a
+    gitignored scratch dir for benchmarking use (license-compliant) and grades
+    the native reasoner against it for consistency soundness; the per-ontology
+    divergences are written as a gmeow:Finding graph and never folded into the
+    committed bundle.

@@ -1,0 +1,8 @@
+{
+  "name": "w3c-owl2-el-divergence",
+  "spdx_license": "W3C",
+  "source_url": "https://www.w3.org/2009/11/owl-test/profile-EL.rdf",
+  "version_or_commit": "w3c-2009-11-archive",
+  "refresh_command": "curl -sSL https://www.w3.org/2009/11/owl-test/profile-EL.rdf -o .tmp/w3c-owl2/profile-EL.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --vendor-el .tmp/w3c-owl2/profile-EL.rdf conformance/logic/cases/external/w3c-owl2-el",
+  "lane": "divergence"
+}

@@ -951,6 +951,7 @@ fn ledger_row_to_dict(
         DivergenceKind::NativeOnly => "NativeOnly",
         DivergenceKind::OracleOnly => "OracleOnly",
         DivergenceKind::DlGap => "DlGap",
+        DivergenceKind::CorpusOnly => "CorpusOnly",
     };
     let d = PyDict::new(py);
     d.set_item("kind", kind)?;
@@ -1047,7 +1048,9 @@ fn build_divergence_ledger(
         .collect();
     let gap_rows = dl_gap_rows(&gap_losses);
 
-    let ledger = build_ledger(subsumption_rows, consistency_rows, gap_rows);
+    // The classic ELK/HermiT cross-check path involves no external corpus, so the
+    // corpus-divergence row group is empty here.
+    let ledger = build_ledger(subsumption_rows, consistency_rows, gap_rows, Vec::new());
 
     // The strict pass/fail DECISION is computed HERE, in Rust (#697 criterion 3) —
     // never in Python. The thin Python `classic_cross_check.enforce()` wrapper only
@@ -1065,6 +1068,7 @@ fn build_divergence_ledger(
     out.set_item("native_only", ledger.native_only)?;
     out.set_item("oracle_only", ledger.oracle_only)?;
     out.set_item("dl_gap", ledger.dl_gap)?;
+    out.set_item("corpus_only", ledger.corpus_only)?;
     out.set_item("passed", verdict.passed)?;
     out.set_item("reasons", verdict.reasons)?;
     Ok(out.into_any().unbind())

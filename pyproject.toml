@@ -200,4 +200,4 @@ skip = "uv.lock,Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/cov
 # references), vor (Crossref AccessIndicators applies_to value = "version of record"),
 # notin (the VS Code `notIn` language-configuration key in editors/vscode),
 # fof (the TPTP `fof(...)` first-order-formula keyword in the #753 SZS fixtures).
-ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intension,hendler,pease,vor,ans,notin,fof,ehr,sme"
+ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore"
