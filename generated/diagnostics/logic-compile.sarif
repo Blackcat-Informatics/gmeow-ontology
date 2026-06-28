@@ -345,6 +345,25 @@
             }
           ],
           "message": {
+            "text": "projection n3 drops: negation-as-failure guards are dropped; monotone log:implies cannot express a defeater, so a defeasible rule is over-approximated (CompleteOver) rather than emitting the guard as a positive antecedent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7b0f4f7ea57503f5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: contextual scope (standpoint, time, confidence) is dropped"
           },
           "partialFingerprints": {

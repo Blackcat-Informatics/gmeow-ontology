@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: cognition/completeness-vs-support
+# AC (ME12, design/LOGIC-COGNITION.md §Result fields are read jointly):
+# result fields are read JOINTLY — logic:InfoSupported with logic:Incomplete is
+# provisional, whereas logic:InfoSupported with logic:CompleteForFragment is
+# conclusive within that fragment.
+#
+# Rule (a) ex:isProvisional fires only when BOTH resultInformation=InfoSupported AND
+# resultCompleteness=Incomplete hold on the same result node.
+# Rule (b) ex:isConclusive fires only when BOTH resultInformation=InfoSupported AND
+# resultCompleteness=CompleteForFragment hold on the same result node.
+#
+# Because the two EDB individuals share the same InfoSupported information field but
+# differ on the completeness field, the joint reading isolates them: rrProvisional
+# gets isProvisional but NOT isConclusive, and rrConclusive gets isConclusive but NOT
+# isProvisional — demonstrating that single-field reading would conflate them while
+# joint reading correctly distinguishes them.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/cognition/completeness-vs-support/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+ex:ruleIsProvisional a logic:Rule ;
+    logic:provenance ex:ruleIsProvisional ;
+    logic:head [ rdf:subject "?r" ; rdf:predicate ex:isProvisional ; rdf:object "?r" ] ;
+    logic:body [ rdf:subject "?r" ; rdf:predicate logic:resultInformation ; rdf:object logic:InfoSupported ] ,
+               [ rdf:subject "?r" ; rdf:predicate logic:resultCompleteness ; rdf:object logic:Incomplete ] .
+
+ex:ruleIsConclusive a logic:Rule ;
+    logic:provenance ex:ruleIsConclusive ;
+    logic:head [ rdf:subject "?r" ; rdf:predicate ex:isConclusive ; rdf:object "?r" ] ;
+    logic:body [ rdf:subject "?r" ; rdf:predicate logic:resultInformation ; rdf:object logic:InfoSupported ] ,
+               [ rdf:subject "?r" ; rdf:predicate logic:resultCompleteness ; rdf:object logic:CompleteForFragment ] .

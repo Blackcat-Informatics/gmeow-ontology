@@ -22,5 +22,7 @@
 <https://example.org/profiles/stable-model/ruleOutSet> <https://blackcatinformatics.ca/logic/provenance> <https://example.org/profiles/stable-model/ruleOutSet> .
 
 # === Rules ===
-{ ?X <https://example.org/profiles/stable-model/candidate> ?X . ?X <https://example.org/profiles/stable-model/outSet> ?X . } log:implies { ?X <https://example.org/profiles/stable-model/inSet> ?X . } .
-{ ?X <https://example.org/profiles/stable-model/candidate> ?X . ?X <https://example.org/profiles/stable-model/inSet> ?X . } log:implies { ?X <https://example.org/profiles/stable-model/outSet> ?X . } .
+# negation-as-failure guard dropped (monotone N3 over-approximation): ~{ ?X <https://example.org/profiles/stable-model/outSet> ?X }
+{ ?X <https://example.org/profiles/stable-model/candidate> ?X . } log:implies { ?X <https://example.org/profiles/stable-model/inSet> ?X . } .
+# negation-as-failure guard dropped (monotone N3 over-approximation): ~{ ?X <https://example.org/profiles/stable-model/inSet> ?X }
+{ ?X <https://example.org/profiles/stable-model/candidate> ?X . } log:implies { ?X <https://example.org/profiles/stable-model/outSet> ?X . } .

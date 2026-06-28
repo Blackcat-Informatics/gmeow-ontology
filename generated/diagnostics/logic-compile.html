@@ -18,7 +18,7 @@
 </head>
 <body>
   <h1>logic-compile diagnostics</h1>
-  <p class="summary">0 error(s), 0 warning(s), 25 total finding(s)</p>
+  <p class="summary">0 error(s), 0 warning(s), 26 total finding(s)</p>
   <table>
     <thead><tr><th>Severity</th><th>Code</th><th>Message</th><th>Location</th></tr></thead>
     <tbody>
@@ -39,6 +39,7 @@
 <tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection gufo drops: the five gUFO temporary-situation reifiers (QualityValueAttributionSituation, TemporaryConstitution/Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by logic:Fluent + RDF-1.2 edge properties — not re-emitted by the down-projection</td><td>slices/core/logic/module.ttl</td></tr>
 <tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection n3 drops: N3 builtins used for arithmetic/string predicates where available</td><td>slices/core/logic/module.ttl</td></tr>
 <tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection n3 drops: modal context encoded as quoted graph arguments (may overgenerate)</td><td>slices/core/logic/module.ttl</td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection n3 drops: negation-as-failure guards are dropped; monotone log:implies cannot express a defeater, so a defeasible rule is over-approximated (CompleteOver) rather than emitting the guard as a positive antecedent</td><td>slices/core/logic/module.ttl</td></tr>
 <tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection owl-dl drops: contextual scope (standpoint, time, confidence) is dropped</td><td>slices/core/logic/module.ttl</td></tr>
 <tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection owl-dl drops: modal/world context is erased</td><td>slices/core/logic/module.ttl</td></tr>
 <tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection owl-dl drops: probabilistic profile not representable in OWL DL</td><td>slices/core/logic/module.ttl</td></tr>

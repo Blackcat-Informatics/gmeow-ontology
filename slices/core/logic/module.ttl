@@ -1,5 +1,6 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -3378,6 +3379,687 @@ logic:lawDischargeCondition
     rdfs:label "law discharge condition"@x-gmeow-english ;
     skos:definition "Relates a logic:LawClaim to the logic:DischargeCondition under which its logic:lawDischargeVerdict is conclusively checkable (for example logic:DischargeCertifiedFragment for a law proved within a certified complete fragment). Optional: a law carrying logic:ObligationUnknown with no condition is an authored-but-unverified claim. Reuses the foundation's discharge-condition value class. Domain logic:LawClaim, range logic:DischargeCondition."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# ── Cognitive assessment: the canonical multidimensional cognitive record ────────
+# A reified, vantage-indexed, multidimensional assessment of how good some reasoning
+# is or how capable a reasoner is. The single ordinal knowledge ladder of the
+# cognition slice is a generated coarse view of this; the factored assessment is the
+# canonical record. Normative in design/LOGIC-COGNITION.md.
+
+logic:CognitiveAssessment
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Cognitive Assessment"@x-gmeow-english ;
+    skos:definition "The canonical record of how good some reasoning is, or how capable a reasoner is: a reified, vantage-indexed node naming exactly one logic:AssessmentDimension and carrying its assessed agent (logic:assessedAgent), subject and granularity (logic:assessmentSubject with logic:subjectGranularity), task or context (logic:assessmentContext), scale and level (logic:assessmentScale with logic:assessmentLevel), evaluator and standpoint (logic:assessmentEvaluator, attributed via gmeow:accordingTo), evidence (logic:assessmentEvidence), method (logic:assessmentMethod), valid interval (carried by gmeow:duringInterval) and the strength with which the judgment itself is held (carried by logic:confidence). The dimensions vary independently, so a single ordinal familiarity-to-mastery scale collapses exactly the distinctions an assessment exists to draw; the construct keeps them factored. A self-assessment and an observer's assessment of the same agent are two coexisting records, never reconciled into one verdict, and because the node is reified an assessment is itself a subject another assessment can range over — an evaluation of the evaluator — with no new machinery. The convenient ordinal reading is the lossy coarse-ladder projection of this assessment, exactly as logic:AgencyAssessment projects the unary 'this holon is integral'; a reliability assessment is a logic:CognitiveAssessment on the reliability dimension over a series of runs, distinct from the single-run logic:ResultAssurance. Normative in design/LOGIC-COGNITION.md."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:AssessmentDimension
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Assessment Dimension"@x-gmeow-english ;
+    skos:definition "The value-vocabulary class of the factored axis a logic:CognitiveAssessment judges, named via logic:assessmentDimension. An OPEN value vocabulary (individuals, never subclasses): a new dimension is a new individual rather than a reshaping of the construct, the same orthogonal-factorization discipline the foundation applies to claim modality and contextual scope. The dimensions vary independently — an assessment on one says nothing about another — and an assessment names exactly one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:SubjectGranularity
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Subject Granularity"@x-gmeow-english ;
+    skos:definition "The value-vocabulary class of the grain of a logic:CognitiveAssessment's subject, named via logic:subjectGranularity: a single inference, a body of reasoning, a domain of competence, or the reasoner as a whole. An OPEN value vocabulary (individuals, never subclasses), since competence is judged at different grains and a new grain is a new individual."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:AssessmentLevel
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Assessment Level"@x-gmeow-english ;
+    skos:definition "The value-vocabulary class of an ordinal level on an assessment's scale, the object of logic:assessmentLevel and logic:thresholdLevel when the scale is ordinal. An OPEN, ordered value vocabulary (logic:levelNone ≺ logic:levelEmerging ≺ logic:levelCompetent ≺ logic:levelStrong), ordered by logic:levelAtOrAbove so that 'a level at or above a threshold' is well-defined for the coarse-ladder projection without a numeric comparison (which would force a procedural profile). An assessment whose scale is continuous carries a literal logic:assessmentLevel instead; the ordinal levels are the projection scale."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:assessedAgent
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CognitiveAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessed agent"@x-gmeow-english ;
+    skos:definition "The agent role of a logic:CognitiveAssessment: whose cognition is judged. Range gmeow:Agent (stated in prose, matching the module's convention). A well-formedness existence guard — every projection rule re-binds it, so a malformed assessment naming no agent receives no ladder edge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentSubject
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CognitiveAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment subject"@x-gmeow-english ;
+    skos:definition "The subject role of a logic:CognitiveAssessment: what the assessment is about — a single inference, a body of reasoning, a domain of competence, or the agent as a whole. Its grain is carried by logic:subjectGranularity. Range is left open (stated in prose), since the subject may be reasoning, a domain entity, or the reasoner itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:subjectGranularity
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CognitiveAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "subject granularity"@x-gmeow-english ;
+    skos:definition "Relates a logic:CognitiveAssessment to the logic:SubjectGranularity individual recording the grain of its logic:assessmentSubject (inference, body-of-reasoning, domain, or agent). Range logic:SubjectGranularity (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentContext
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CognitiveAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment context"@x-gmeow-english ;
+    skos:definition "The task or context a logic:CognitiveAssessment holds for, since competence is context-relative: the same agent may be competent on one task and not on another, so an assessment without a context underdetermines what it claims. Range is left open (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentDimension
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CognitiveAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment dimension"@x-gmeow-english ;
+    skos:definition "The single factored axis a logic:CognitiveAssessment judges: a logic:AssessmentDimension individual. An assessment names exactly one; the dimensions vary independently. Range logic:AssessmentDimension (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentScale
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CognitiveAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment scale"@x-gmeow-english ;
+    skos:definition "The named scale, ordinal or continuous, on which a logic:CognitiveAssessment's logic:assessmentLevel is read. Range is left open (stated in prose), since a scale may be the native ordinal logic:AssessmentLevel vocabulary or a foreign scale (Bloom's, SOLO, a Brier-scored continuous range)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentLevel
+    a rdf:Property ;
+    rdfs:domain logic:CognitiveAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment level"@x-gmeow-english ;
+    skos:definition "The value a logic:CognitiveAssessment takes on its logic:assessmentScale: an ordinal logic:AssessmentLevel individual when the scale is ordinal (the case the coarse-ladder projection reads), or a continuous literal otherwise (a Brier or logarithmic score on a continuous scale). Because the range spans both an individual and a literal it is a plain rdf:Property, not an owl:ObjectProperty (which could not carry the continuous literal) — the same open-range convention the module states in prose elsewhere."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentEvaluator
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CognitiveAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment evaluator"@x-gmeow-english ;
+    skos:definition "Who holds the judgment of a logic:CognitiveAssessment: the standpoint is attributed via gmeow:accordingTo, so a self-assessment (evaluator = assessed agent) and an observer's assessment coexist as two records rather than collapsing into one verdict. Range gmeow:Agent (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentEvidence
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CognitiveAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment evidence"@x-gmeow-english ;
+    skos:definition "The reasoning, observations, or recorded episode a logic:CognitiveAssessment rests on — the inference commitments it cites, the gmeow:ModelInvocation that produced the reasoning, the results it grades — so an assessment is auditable against the reasoning it judges rather than standing apart from it. Range is left open (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assessmentMethod
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CognitiveAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assessment method"@x-gmeow-english ;
+    skos:definition "How the judgment of a logic:CognitiveAssessment was reached — a test, a review, a scoring rule applied to a forecast series, an introspective report. Range is left open (stated in prose), so the method may be a named procedure or a free description."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:levelAtOrAbove
+    a owl:ObjectProperty ,
+        owl:TransitiveProperty ;
+    rdfs:domain logic:AssessmentLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "level at or above"@x-gmeow-english ;
+    rdfs:range logic:AssessmentLevel ;
+    skos:definition "Orders the ordinal assessment scale: relates a logic:AssessmentLevel to itself and to every level it surpasses (logic:levelStrong logic:levelAtOrAbove logic:levelCompetent). Reflexive-and-transitive on the levels, so the coarse-ladder projection can test 'the assessed level is at or above the threshold level' by a single body atom, with no numeric comparison (which would force a procedural profile). The full reflexive-transitive closure is asserted on the level individuals so the test needs no transitive computation in the rule engine."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# The eight factored dimensions of design §The factored dimensions, plus the
+# separately-introduced reliability dimension of design §Result assurance and
+# reasoner reliability are distinct — nine logic:AssessmentDimension individuals.
+
+logic:dimensionAwareness
+    a owl:NamedIndividual ,
+        logic:AssessmentDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "dimension: awareness"@x-gmeow-english ;
+    skos:definition "The awareness dimension: whether the agent registers the subject at all. The shallowest factored axis; the source of the gmeow:isAwareOf rung of the coarse knowledge ladder under a declared threshold."@x-gmeow-english .
+
+logic:dimensionDeclarativeFamiliarity
+    a owl:NamedIndividual ,
+        logic:AssessmentDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "dimension: declarative familiarity"@x-gmeow-english ;
+    skos:definition "The declarative-familiarity dimension: what the agent knows THAT — the facts it can state about the subject. The source of the gmeow:knowsAbout rung of the coarse knowledge ladder under a declared threshold."@x-gmeow-english .
+
+logic:dimensionConceptualUnderstanding
+    a owl:NamedIndividual ,
+        logic:AssessmentDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "dimension: conceptual understanding"@x-gmeow-english ;
+    skos:definition "The conceptual-understanding dimension: whether the agent grasps WHY — the structure behind the facts, beyond reciting them. The source of the gmeow:understands rung of the coarse knowledge ladder under a declared threshold."@x-gmeow-english .
+
+logic:dimensionProceduralCompetence
+    a owl:NamedIndividual ,
+        logic:AssessmentDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "dimension: procedural competence"@x-gmeow-english ;
+    skos:definition "The procedural-competence dimension: what the agent knows HOW to do — its working command of the subject. Read together with the transfer dimension, the source of the gmeow:hasMastered rung of the coarse knowledge ladder under a declared threshold."@x-gmeow-english .
+
+logic:dimensionTransfer
+    a owl:NamedIndividual ,
+        logic:AssessmentDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "dimension: transfer"@x-gmeow-english ;
+    skos:definition "The transfer dimension: whether competence in one context carries to another — the axis a single ordinal ladder most conspicuously hides, since fluency in a narrow task says nothing about generalization. Read together with procedural competence, the source of the gmeow:hasMastered rung of the coarse knowledge ladder under a declared threshold."@x-gmeow-english .
+
+logic:dimensionExplanatoryAbility
+    a owl:NamedIndividual ,
+        logic:AssessmentDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "dimension: explanatory ability"@x-gmeow-english ;
+    skos:definition "The explanatory-ability dimension: whether the agent can produce an account others can follow and check — the seam to the solver-layer gmeow:explanatoryScore and gmeow:systematicity measurements, which feed this dimension but are never asserted as reasoned axioms."@x-gmeow-english .
+
+logic:dimensionCalibration
+    a owl:NamedIndividual ,
+        logic:AssessmentDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "dimension: calibration"@x-gmeow-english ;
+    skos:definition "The calibration dimension: whether the agent's confidence matches its accuracy. Assessed against an explicit forecast protocol (a forecast/outcome series, a scoring rule, a reference class and observation window), kept apart from a single logic:confidence value and from the metacognition vocabulary's qualitative gmeow:CalibrationStatus."@x-gmeow-english .
+
+logic:dimensionMetacognition
+    a owl:NamedIndividual ,
+        logic:AssessmentDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "dimension: metacognition"@x-gmeow-english ;
+    skos:definition "The metacognition dimension: whether the agent models its own competence, including the limits of its own knowledge. Reads the metacognition vocabulary's second-order posture — gmeow:awareOfNotKnowing, gmeow:epistemicSelfTrust, and reflection that can defeat one's own inference — as its subject."@x-gmeow-english .
+
+logic:dimensionReliability
+    a owl:NamedIndividual ,
+        logic:AssessmentDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "dimension: reliability"@x-gmeow-english ;
+    skos:definition "The reliability dimension: how dependably an agent or engine reasons as a disposition, relative to a reference class (a task, domain, or distribution) and read from MANY results with their expected or observed outcomes — a metric over the series (accuracy, soundness-violation rate, recall, calibration, robustness) across a stated interval. Distinct from the single-run logic:ResultAssurance: a reliable reasoner may correctly return a contradiction verdict on contradictory input, and a completed internally-supported result may still be wrong, so reliability is never read from one result's assurance. The dimension design §Result assurance and reasoner reliability are distinct introduces alongside the eight factored dimensions."@x-gmeow-english .
+
+# Subject granularity — four grains at which competence is judged.
+
+logic:granularityInference
+    a owl:NamedIndividual ,
+        logic:SubjectGranularity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "granularity: inference"@x-gmeow-english ;
+    skos:definition "The finest grain of an assessment subject: a single inference — one logic:InferenceProcess or commitment being judged."@x-gmeow-english .
+
+logic:granularityBodyOfReasoning
+    a owl:NamedIndividual ,
+        logic:SubjectGranularity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "granularity: body of reasoning"@x-gmeow-english ;
+    skos:definition "An intermediate grain of an assessment subject: a connected body of reasoning — a derivation, a proof, an episode of inference — judged as a whole rather than one step."@x-gmeow-english .
+
+logic:granularityDomain
+    a owl:NamedIndividual ,
+        logic:SubjectGranularity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "granularity: domain"@x-gmeow-english ;
+    skos:definition "A broad grain of an assessment subject: a domain of competence — the agent's standing in a field rather than on any one episode."@x-gmeow-english .
+
+logic:granularityAgent
+    a owl:NamedIndividual ,
+        logic:SubjectGranularity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "granularity: agent"@x-gmeow-english ;
+    skos:definition "The coarsest grain of an assessment subject: the reasoner as a whole — the grain at which a reliability assessment of an agent or engine is made."@x-gmeow-english .
+
+# The ordinal projection scale — four levels, reflexive-transitively ordered by
+# logic:levelAtOrAbove so a threshold test is a single body atom.
+
+logic:levelNone
+    a owl:NamedIndividual ,
+        logic:AssessmentLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "level: none"@x-gmeow-english ;
+    skos:definition "The lowest ordinal assessment level: the dimension is not evidenced at all. Clears no ladder rung's threshold."@x-gmeow-english ;
+    logic:levelAtOrAbove logic:levelNone .
+
+logic:levelEmerging
+    a owl:NamedIndividual ,
+        logic:AssessmentLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "level: emerging"@x-gmeow-english ;
+    skos:definition "The second ordinal assessment level: the dimension is weakly evidenced. Surpasses logic:levelNone on the logic:levelAtOrAbove order."@x-gmeow-english ;
+    logic:levelAtOrAbove logic:levelEmerging ,
+        logic:levelNone .
+
+logic:levelCompetent
+    a owl:NamedIndividual ,
+        logic:AssessmentLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "level: competent"@x-gmeow-english ;
+    skos:definition "The third ordinal assessment level: the dimension is solidly evidenced. Surpasses logic:levelEmerging and logic:levelNone on the logic:levelAtOrAbove order."@x-gmeow-english ;
+    logic:levelAtOrAbove logic:levelCompetent ,
+        logic:levelEmerging ,
+        logic:levelNone .
+
+logic:levelStrong
+    a owl:NamedIndividual ,
+        logic:AssessmentLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "level: strong"@x-gmeow-english ;
+    skos:definition "The highest ordinal assessment level: the dimension is strongly evidenced. Surpasses every lower level on the logic:levelAtOrAbove order."@x-gmeow-english ;
+    logic:levelAtOrAbove logic:levelStrong ,
+        logic:levelCompetent ,
+        logic:levelEmerging ,
+        logic:levelNone .
+
+# ── The coarse knowledge ladder as a generated projection ───────────────────────
+# The cognition slice's gmeow:isAwareOf … gmeow:hasMastered ladder is a generated
+# coarse VIEW of the multidimensional logic:CognitiveAssessment: each ladder edge
+# instance is rule-materialized from assessments under a declared per-dimension
+# threshold profile (logic:LadderProjectionProfile). The factored assessment stays
+# the canonical record; the ladder is the readable ordinal projection. The shipped
+# projection rules are positive Horn, so they materialize under the engine's default
+# semantics and fold into gmeow.gts and the datalog/N3/Nemo program projections.
+# Normative in design/LOGIC-COGNITION.md §Projection to the coarse knowledge ladder.
+
+logic:LadderProjectionProfile
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Ladder Projection Profile"@x-gmeow-english ;
+    skos:definition "A declared per-dimension threshold profile governing the generated coarse projection of the multidimensional logic:CognitiveAssessment onto the gmeow:isAwareOf … gmeow:hasMastered knowledge ladder: a set of logic:DimensionThreshold rows (logic:hasThresholdRow), each binding a ladder edge to its source dimension and the minimum logic:AssessmentLevel an assessment must clear for the edge to be emitted. Making the thresholds an explicit profile keeps the ordinal chain a projection a consumer that needs one number can read, while the factored assessment stays canonical — the ladder never re-establishes mastery, understanding, knowledge and awareness as a single ordinal entailment chain in place of the independent dimensions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DimensionThreshold
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Dimension Threshold"@x-gmeow-english ;
+    skos:definition "One row of a logic:LadderProjectionProfile: a logic:projectsLadderEdge ladder property paired with the logic:sourceDimension it reads and the minimum logic:thresholdLevel an assessment on that dimension must clear (by the logic:levelAtOrAbove order) for the edge to be emitted. The gmeow:hasMastered rung is the only one with two rows — procedural competence and transfer — both of which must clear, so mastery of one narrow task no longer implies broad command of a subject."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:hasThresholdRow
+    a owl:ObjectProperty ;
+    rdfs:domain logic:LadderProjectionProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has threshold row"@x-gmeow-english ;
+    skos:definition "Relates a logic:LadderProjectionProfile to one of its logic:DimensionThreshold rows. Range logic:DimensionThreshold (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:projectsLadderEdge
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "projects ladder edge"@x-gmeow-english ;
+    skos:definition "The ladder property a logic:DimensionThreshold row emits when its dimension clears its threshold: gmeow:isAwareOf, gmeow:knowsAbout, gmeow:understands or gmeow:hasMastered. Range is left open (the gmeow: ladder properties), stated in prose to keep the OWL down-projection clean."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:sourceDimension
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "source dimension"@x-gmeow-english ;
+    skos:definition "The logic:AssessmentDimension a logic:DimensionThreshold row reads: the factored axis whose assessment level is tested against the row's logic:thresholdLevel. Range logic:AssessmentDimension (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:thresholdLevel
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "threshold level"@x-gmeow-english ;
+    skos:definition "The minimum logic:AssessmentLevel an assessment on a row's logic:sourceDimension must reach — by the logic:levelAtOrAbove order — for the row's logic:projectsLadderEdge to be emitted. Range logic:AssessmentLevel (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# The shipped default profile: the threshold each ladder rung clears.
+
+logic:defaultLadderProfile
+    a owl:NamedIndividual ,
+        logic:LadderProjectionProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "default ladder projection profile"@x-gmeow-english ;
+    skos:definition "The shipped default logic:LadderProjectionProfile the coarse-ladder projection rules read: awareness ≥ emerging emits gmeow:isAwareOf, declarative familiarity ≥ competent emits gmeow:knowsAbout, conceptual understanding ≥ competent emits gmeow:understands, and procedural competence ≥ strong together with transfer ≥ strong emit gmeow:hasMastered."@x-gmeow-english ;
+    logic:hasThresholdRow logic:ladderRowAwareness ,
+        logic:ladderRowDeclarative ,
+        logic:ladderRowConceptual ,
+        logic:ladderRowProceduralMastery ,
+        logic:ladderRowTransferMastery .
+
+logic:ladderRowAwareness
+    a owl:NamedIndividual ,
+        logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ladder row: awareness → is aware of"@x-gmeow-english ;
+    skos:definition "The default-profile row emitting gmeow:isAwareOf when the awareness dimension reaches logic:levelEmerging."@x-gmeow-english ;
+    logic:projectsLadderEdge gmeow:isAwareOf ;
+    logic:sourceDimension logic:dimensionAwareness ;
+    logic:thresholdLevel logic:levelEmerging .
+
+logic:ladderRowDeclarative
+    a owl:NamedIndividual ,
+        logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ladder row: declarative familiarity → knows about"@x-gmeow-english ;
+    skos:definition "The default-profile row emitting gmeow:knowsAbout when the declarative-familiarity dimension reaches logic:levelCompetent."@x-gmeow-english ;
+    logic:projectsLadderEdge gmeow:knowsAbout ;
+    logic:sourceDimension logic:dimensionDeclarativeFamiliarity ;
+    logic:thresholdLevel logic:levelCompetent .
+
+logic:ladderRowConceptual
+    a owl:NamedIndividual ,
+        logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ladder row: conceptual understanding → understands"@x-gmeow-english ;
+    skos:definition "The default-profile row emitting gmeow:understands when the conceptual-understanding dimension reaches logic:levelCompetent."@x-gmeow-english ;
+    logic:projectsLadderEdge gmeow:understands ;
+    logic:sourceDimension logic:dimensionConceptualUnderstanding ;
+    logic:thresholdLevel logic:levelCompetent .
+
+logic:ladderRowProceduralMastery
+    a owl:NamedIndividual ,
+        logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ladder row: procedural competence → has mastered"@x-gmeow-english ;
+    skos:definition "The procedural half of the default-profile gmeow:hasMastered rung: procedural competence must reach logic:levelStrong. Read together with logic:ladderRowTransferMastery — both must clear for gmeow:hasMastered."@x-gmeow-english ;
+    logic:projectsLadderEdge gmeow:hasMastered ;
+    logic:sourceDimension logic:dimensionProceduralCompetence ;
+    logic:thresholdLevel logic:levelStrong .
+
+logic:ladderRowTransferMastery
+    a owl:NamedIndividual ,
+        logic:DimensionThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ladder row: transfer → has mastered"@x-gmeow-english ;
+    skos:definition "The transfer half of the default-profile gmeow:hasMastered rung: transfer must reach logic:levelStrong. Read together with logic:ladderRowProceduralMastery — both must clear for gmeow:hasMastered, so mastery of one narrow task never implies broad command."@x-gmeow-english ;
+    logic:projectsLadderEdge gmeow:hasMastered ;
+    logic:sourceDimension logic:dimensionTransfer ;
+    logic:thresholdLevel logic:levelStrong .
+
+# The four projection rules. The three single-dimension rungs read their dimension
+# and threshold from the profile row; the gmeow:hasMastered rung conjoins the two
+# rows (procedural AND transfer), so both halves must clear.
+
+logic:ruleProjectIsAwareOf
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "project ladder edge: is aware of"@x-gmeow-english ;
+    skos:definition "Emits gmeow:isAwareOf from an assessment whose dimension and level clear the gmeow:isAwareOf row of a logic:LadderProjectionProfile. Positive Horn; the threshold is read from the profile, not hard-coded."@x-gmeow-english ;
+    logic:provenance logic:ruleProjectIsAwareOf ;
+    logic:head [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:isAwareOf ;
+        rdf:object    "?subject"
+    ] ;
+    logic:body [
+        rdf:subject   "?profile" ;
+        rdf:predicate logic:hasThresholdRow ;
+        rdf:object    "?row"
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:projectsLadderEdge ;
+        rdf:object    gmeow:isAwareOf
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:sourceDimension ;
+        rdf:object    "?dim"
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:thresholdLevel ;
+        rdf:object    "?threshold"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentDimension ;
+        rdf:object    "?dim"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessedAgent ;
+        rdf:object    "?agent"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentSubject ;
+        rdf:object    "?subject"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentLevel ;
+        rdf:object    "?level"
+    ] , [
+        rdf:subject   "?level" ;
+        rdf:predicate logic:levelAtOrAbove ;
+        rdf:object    "?threshold"
+    ] .
+
+logic:ruleProjectKnowsAbout
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "project ladder edge: knows about"@x-gmeow-english ;
+    skos:definition "Emits gmeow:knowsAbout from an assessment whose dimension and level clear the gmeow:knowsAbout row of a logic:LadderProjectionProfile. Positive Horn; the threshold is read from the profile. The canonical source of a gmeow:knowsAbout edge — never gmeow:hasSkill."@x-gmeow-english ;
+    logic:provenance logic:ruleProjectKnowsAbout ;
+    logic:head [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:knowsAbout ;
+        rdf:object    "?subject"
+    ] ;
+    logic:body [
+        rdf:subject   "?profile" ;
+        rdf:predicate logic:hasThresholdRow ;
+        rdf:object    "?row"
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:projectsLadderEdge ;
+        rdf:object    gmeow:knowsAbout
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:sourceDimension ;
+        rdf:object    "?dim"
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:thresholdLevel ;
+        rdf:object    "?threshold"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentDimension ;
+        rdf:object    "?dim"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessedAgent ;
+        rdf:object    "?agent"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentSubject ;
+        rdf:object    "?subject"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentLevel ;
+        rdf:object    "?level"
+    ] , [
+        rdf:subject   "?level" ;
+        rdf:predicate logic:levelAtOrAbove ;
+        rdf:object    "?threshold"
+    ] .
+
+logic:ruleProjectUnderstands
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "project ladder edge: understands"@x-gmeow-english ;
+    skos:definition "Emits gmeow:understands from an assessment whose dimension and level clear the gmeow:understands row of a logic:LadderProjectionProfile. Positive Horn; the threshold is read from the profile."@x-gmeow-english ;
+    logic:provenance logic:ruleProjectUnderstands ;
+    logic:head [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:understands ;
+        rdf:object    "?subject"
+    ] ;
+    logic:body [
+        rdf:subject   "?profile" ;
+        rdf:predicate logic:hasThresholdRow ;
+        rdf:object    "?row"
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:projectsLadderEdge ;
+        rdf:object    gmeow:understands
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:sourceDimension ;
+        rdf:object    "?dim"
+    ] , [
+        rdf:subject   "?row" ;
+        rdf:predicate logic:thresholdLevel ;
+        rdf:object    "?threshold"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentDimension ;
+        rdf:object    "?dim"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessedAgent ;
+        rdf:object    "?agent"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentSubject ;
+        rdf:object    "?subject"
+    ] , [
+        rdf:subject   "?assessment" ;
+        rdf:predicate logic:assessmentLevel ;
+        rdf:object    "?level"
+    ] , [
+        rdf:subject   "?level" ;
+        rdf:predicate logic:levelAtOrAbove ;
+        rdf:object    "?threshold"
+    ] .
+
+logic:ruleProjectHasMastered
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "project ladder edge: has mastered"@x-gmeow-english ;
+    skos:definition "Emits gmeow:hasMastered only when BOTH a procedural-competence assessment and a transfer assessment of the same agent on the same subject clear their gmeow:hasMastered rows, where both rows belong to the SAME logic:LadderProjectionProfile. The two-row conjunction is why mastery of one narrow task no longer implies broad command — transfer must clear too — and the shared-profile join is why a procedural threshold from one profile can never be mixed with a transfer threshold from another. Positive Horn; thresholds read from the profile."@x-gmeow-english ;
+    logic:provenance logic:ruleProjectHasMastered ;
+    logic:head [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:hasMastered ;
+        rdf:object    "?subject"
+    ] ;
+    logic:body [
+        rdf:subject   "?profile" ;
+        rdf:predicate logic:hasThresholdRow ;
+        rdf:object    "?rowProc"
+    ] , [
+        rdf:subject   "?profile" ;
+        rdf:predicate logic:hasThresholdRow ;
+        rdf:object    "?rowTransfer"
+    ] , [
+        rdf:subject   "?rowProc" ;
+        rdf:predicate logic:projectsLadderEdge ;
+        rdf:object    gmeow:hasMastered
+    ] , [
+        rdf:subject   "?rowProc" ;
+        rdf:predicate logic:sourceDimension ;
+        rdf:object    logic:dimensionProceduralCompetence
+    ] , [
+        rdf:subject   "?rowProc" ;
+        rdf:predicate logic:thresholdLevel ;
+        rdf:object    "?thresholdProc"
+    ] , [
+        rdf:subject   "?assessProc" ;
+        rdf:predicate logic:assessmentDimension ;
+        rdf:object    logic:dimensionProceduralCompetence
+    ] , [
+        rdf:subject   "?assessProc" ;
+        rdf:predicate logic:assessedAgent ;
+        rdf:object    "?agent"
+    ] , [
+        rdf:subject   "?assessProc" ;
+        rdf:predicate logic:assessmentSubject ;
+        rdf:object    "?subject"
+    ] , [
+        rdf:subject   "?assessProc" ;
+        rdf:predicate logic:assessmentLevel ;
+        rdf:object    "?levelProc"
+    ] , [
+        rdf:subject   "?levelProc" ;
+        rdf:predicate logic:levelAtOrAbove ;
+        rdf:object    "?thresholdProc"
+    ] , [
+        rdf:subject   "?rowTransfer" ;
+        rdf:predicate logic:projectsLadderEdge ;
+        rdf:object    gmeow:hasMastered
+    ] , [
+        rdf:subject   "?rowTransfer" ;
+        rdf:predicate logic:sourceDimension ;
+        rdf:object    logic:dimensionTransfer
+    ] , [
+        rdf:subject   "?rowTransfer" ;
+        rdf:predicate logic:thresholdLevel ;
+        rdf:object    "?thresholdTransfer"
+    ] , [
+        rdf:subject   "?assessTransfer" ;
+        rdf:predicate logic:assessmentDimension ;
+        rdf:object    logic:dimensionTransfer
+    ] , [
+        rdf:subject   "?assessTransfer" ;
+        rdf:predicate logic:assessedAgent ;
+        rdf:object    "?agent"
+    ] , [
+        rdf:subject   "?assessTransfer" ;
+        rdf:predicate logic:assessmentSubject ;
+        rdf:object    "?subject"
+    ] , [
+        rdf:subject   "?assessTransfer" ;
+        rdf:predicate logic:assessmentLevel ;
+        rdf:object    "?levelTransfer"
+    ] , [
+        rdf:subject   "?levelTransfer" ;
+        rdf:predicate logic:levelAtOrAbove ;
+        rdf:object    "?thresholdTransfer"
+    ] .
+
+# ── Defeasible evidence: support that can come apart ────────────────────────────
+# A first-class, reified declaration that one relation is DEFEASIBLE (defeater-
+# blockable) evidence for another, never a strict entailment. The recast of
+# expertise's gmeow:hasSkill → gmeow:knowsAbout: possessing a skill (tacit can-do)
+# is defeasible evidence for knowing-about (descriptive, fact-level familiarity),
+# the two coming apart (tacit competence with no articulable knowledge, and vice
+# versa). Because the
+# support is defeasible, the shipped reasoning NEVER materializes the supported
+# edge from the evidence: gmeow:knowsAbout's only shipped source is the
+# declarative-familiarity ladder projection, never gmeow:hasSkill. A consumer that
+# opts into defeasible reasoning can draw the supported edge under a declared
+# contract (demonstrated in the conformance corpus), defeated when the competence
+# is purely tacit.
+#
+# NON-ENTAILMENT GUARD: the predicate-global logic:NonEntailmentObligation
+# machinery cannot express "knowsAbout must not come FROM hasSkill", because
+# gmeow:knowsAbout IS a legitimate rule head (the declarative-familiarity ladder
+# projection) — a predicate-global obligation on it would resolve to
+# logic:ObligationViolated, a hard error. The precise, strictly-stronger guard is
+# the source-specific verification query that no gmeow:knowsAbout edge is derived
+# whose only support is gmeow:hasSkill, enforced under make verify.
+
+logic:DefeasibleEvidence
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Defeasible Evidence"@x-gmeow-english ;
+    skos:definition "A reified declaration that one relation or fact (logic:evidenceProperty) is DEFEASIBLE — defeater-blockable — evidence for another (logic:evidenceFor), carrying its logic:defeasibleStrength, and explicitly NOT a strict entailment. The support can come apart: the evidence may hold while the supported claim fails (and conversely), so the engine never materializes the supported edge from the evidence under the default reasoning — only a consumer opting into defeasible reasoning under a declared contract draws it, defeated when a declared defeater holds. The central recast of any 'X is evidence for Y, not X entails Y' relationship; its first instance is gmeow:hasSkill as defeasible evidence for gmeow:knowsAbout."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:evidenceProperty
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DefeasibleEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "evidence property"@x-gmeow-english ;
+    skos:definition "The evidential relation a logic:DefeasibleEvidence declares to bear defeasibly on another — the 'from' side (e.g. gmeow:hasSkill). Range is left open (a property or a claim), stated in prose; the object is used by punning, the gmeow:pairsWith convention."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:evidenceFor
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DefeasibleEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "evidence for"@x-gmeow-english ;
+    skos:definition "The relation or claim a logic:DefeasibleEvidence defeasibly supports — the 'to' side (e.g. gmeow:knowsAbout). Defeasible support, never strict entailment: the supported edge is not materialized from the evidence under the default reasoning. Range is left open (a property or a claim), stated in prose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:defeasibleStrength
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:DefeasibleEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "defeasible strength"@x-gmeow-english ;
+    skos:definition "A solver-layer measure of how strongly a logic:DefeasibleEvidence supports its logic:evidenceFor target before any defeater — a ranking annotation, never asserted as a reasoned axiom and never a probability. Range is left open (an ordinal label or a numeric weight), stated in prose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:skillEvidenceForKnowsAbout
+    a owl:NamedIndividual ,
+        logic:DefeasibleEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "skill is defeasible evidence for knowing about"@x-gmeow-english ;
+    skos:definition "The shipped declaration recasting expertise's former gmeow:hasSkill ⊑ gmeow:knowsAbout: possessing a skill in a subject is DEFEASIBLE evidence that the agent knows about it, not a strict subproperty entailment — tacit competence and descriptive, fact-level knowing-about come apart. The supported gmeow:knowsAbout edge is never materialized from gmeow:hasSkill under the default reasoning (its only shipped source is the declarative-familiarity ladder projection); a consumer opting into defeasible reasoning draws it, defeated when the competence is purely tacit."@x-gmeow-english ;
+    logic:evidenceProperty gmeow:hasSkill ;
+    logic:evidenceFor gmeow:knowsAbout ;
+    logic:defeasibleStrength "moderate" .
 
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .

@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: cognition/result-assurance-vs-reliability
+# AC (ME12, design/LOGIC-COGNITION.md §Result assurance and reasoner reliability are distinct):
+# a correctly-returned `both` result yields HIGH result assurance and does NOT lower
+# the reasoner's reliability — single-run assurance and series-reliability are distinct
+# constructs that coexist without interference.
+#
+# Rule (a) ex:assessesResultRun surfaces the single-run assurance link between a
+# ResultAssurance and the ReasoningResult it covers.
+# Rule (b) ex:reliabilityOf surfaces the series-reliability assessment link between a
+# CognitiveAssessment on the reliability dimension and the assessed agent.
+#
+# The materialized output must contain BOTH derived triples: the assurance over the
+# single `both` result AND the strong reliability assessment over the engine — proving
+# that a single-run result with InfoBoth does not degrade the engine's tracked
+# series-reliability.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/cognition/result-assurance-vs-reliability/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+ex:ruleAssessesResultRun a logic:Rule ;
+    logic:provenance ex:ruleAssessesResultRun ;
+    logic:head [ rdf:subject "?ra" ; rdf:predicate ex:assessesResultRun ; rdf:object "?rr" ] ;
+    logic:body [ rdf:subject "?ra" ; rdf:predicate logic:assuresResult ; rdf:object "?rr" ] .
+
+ex:ruleReliabilityOf a logic:Rule ;
+    logic:provenance ex:ruleReliabilityOf ;
+    logic:head [ rdf:subject "?assess" ; rdf:predicate ex:reliabilityOf ; rdf:object "?agent" ] ;
+    logic:body [ rdf:subject "?assess" ; rdf:predicate logic:assessedAgent ; rdf:object "?agent" ] ,
+               [ rdf:subject "?assess" ; rdf:predicate logic:assessmentDimension ; rdf:object logic:dimensionReliability ] .

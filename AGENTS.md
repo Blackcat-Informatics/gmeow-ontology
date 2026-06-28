@@ -284,7 +284,12 @@ shard under 1 s); and the `gmeow-validate`
 TBox via the native Nemo chase, ~50 s full-fold — engine-bound like
 `ontology_entailments`; the same merge→inconsistency path is covered on-gate by the
 fast tiny-TBox `gmeow-logic` unit `reason_all_with_data_*` plus the on-gate
-`deep_pass_failure_*`/`deep_false_*` validate tests).
+`deep_pass_failure_*`/`deep_false_*` validate tests); and the `gmeow-pipeline`
+`stages::yaml_ld::tests::dist_jsonld_roundtrips_through_oxigraph` test (parses the
+entire dist JSON-LD into oxigraph and serializes it back — an O(ontology size)
+round-trip at ~27 s that crosses the zero-headroom 25 s budget as the ontology
+grows, the same growth pattern as the docs live-renders; build/parse-bound, and the
+JSON-LD codec is exercised on-gate by the cheaper per-vocab round-trips).
 
 Nearly the whole `gmeow-docs` test cluster is **on-gate**: each test loads a shared
 `DocsModel` *and* the rendered site for every available language from the

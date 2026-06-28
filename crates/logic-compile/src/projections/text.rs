@@ -219,6 +219,7 @@ pub fn project_n3(program: &LogicProgram) -> ProjectionResult {
         let head_obj = n3_term(&head.obj, head.obj_is_literal);
 
         let mut body_parts: Vec<String> = Vec::new();
+        let mut dropped_naf: Vec<String> = Vec::new();
         for b in &rule.body {
             let bs = n3_term(&b.subject, false);
             let bp = if b.predicate == RDF_TYPE {
@@ -227,10 +228,25 @@ pub fn project_n3(program: &LogicProgram) -> ProjectionResult {
                 format!("<{}>", b.predicate)
             };
             let bo = n3_term(&b.obj, b.obj_is_literal);
+            if b.negated {
+                // Monotone log:implies has no negation-as-failure. Emitting the
+                // negated literal as a positive antecedent would invert the rule
+                // (it would fire only when the defeater holds), so the guard is
+                // dropped and the rule over-approximates — consistent with N3's
+                // declared CompleteOver preservation kind. The drop is recorded
+                // both inline here and in the projection's preservation ledger.
+                dropped_naf.push(format!("{bs} {bp} {bo}"));
+                continue;
+            }
             body_parts.push(format!("{bs} {bp} {bo}"));
         }
         for (a, b) in &rule.distinct_pairs {
             body_parts.push(format!("{a} log:notEqualTo {b}"));
+        }
+        for d in &dropped_naf {
+            lines.push(format!(
+                "# negation-as-failure guard dropped (monotone N3 over-approximation): ~{{ {d} }}"
+            ));
         }
         let body_str = if body_parts.is_empty() {
             "true .".to_owned()
