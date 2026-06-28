@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: occurrent/causal-temporal-lift
+# AC: YAMATO occurrent mereology (#1081) — causal part ⊑ temporal part.
+#
+# ex:A is a causal part of ex:B. The foundation rule causalPartOf ⊑ temporalPartOf
+# must lift this to temporalPartOf(A, B). The chase seeds only from input.nq world
+# facts; this program axiom mirrors the same causalPartOf assertion.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/occurrent/causal-temporal-lift/> .
+
+ex:A logic:causalPartOf ex:B .

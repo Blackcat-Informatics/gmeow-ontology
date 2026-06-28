@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: causal event mereology and the action/event boundary.
+# Two orthogonal facets of an occurrence:
+#   1. CAUSAL PART-OF — gmeow:causalPartOf relates a sub-event that genuinely
+#      CAUSALLY contributes to a larger whole (the ignition is a causal part of
+#      the launch). It is a specialization of the temporal gmeow:subEventOf
+#      (causal ⊆ temporal) and grounds in logic:causalPartOf. The whole-rooted
+#      inverse gmeow:hasCausalPart follows automatically.
+#   2. THE ACTION→EVENT BOUNDARY — logic:occurrentBoundary carries whether an
+#      occurrence is OPEN (on-going, an in-progress action/gmeow:Activity) or
+#      CLOSED (a completed unitary whole). We reuse the logic property directly;
+#      no parallel gmeow boundary property is minted.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/events/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- Causal mereology: the ignition causally contributes to the launch.
+#     Asserted part→whole; the gmeow:subEventOf closure and the
+#     logic:causalPartOf grounding both follow by inheritance, and the
+#     whole-rooted gmeow:hasCausalPart inverse is derived.
+ex:launch a gmeow:Event ;
+    rdfs:label "the rocket launch"@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeCreation ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:ignition a gmeow:Event ;
+    rdfs:label "first-stage ignition"@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeCreation ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:causalPartOf ex:launch .
+
+# --- The action→event seam carried with logic:occurrentBoundary.
+#     While the liftoff is on-going it is an OPEN action (a gmeow:Activity);
+#     once complete it is a CLOSED unitary event.
+ex:liftoffActivity a gmeow:Activity ;
+    rdfs:label "the liftoff, in progress"@x-gmeow-english ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    logic:occurrentBoundary logic:Open .
+
+ex:liftoffRecord a gmeow:Event ;
+    rdfs:label "the completed liftoff"@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeCreation ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    logic:occurrentBoundary logic:Closed .

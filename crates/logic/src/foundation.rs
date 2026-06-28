@@ -408,6 +408,45 @@ const STRATUM_1: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
+    // ── YAMATO occurrent mereology (#1081) ──────────────────────────────────────
+    // Inert on inputs without logic:causalPartOf — temporalPartOf has no other
+    // consumer in this program, so these only ever ADD causal/temporal-part facts.
+    //
+    // temporalPartOf(?X, ?Y) :- causalPartOf(?X, ?Y)   (causal part is a temporal part)
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("temporalPartOf")),
+            var("?Y"),
+        ),
+        body: &[pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("causalPartOf")),
+            var("?Y"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // causalPartOf(?X, ?Z) :- causalPartOf(?X, ?Y), causalPartOf(?Y, ?Z)
+    Rule {
+        head: pos(
+            var("?X"),
+            TermPat::Const(logic_iri!("causalPartOf")),
+            var("?Z"),
+        ),
+        body: &[
+            pos(
+                var("?X"),
+                TermPat::Const(logic_iri!("causalPartOf")),
+                var("?Y"),
+            ),
+            pos(
+                var("?Y"),
+                TermPat::Const(logic_iri!("causalPartOf")),
+                var("?Z"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
     // supplementationScoped(?X, ?X) :- underMereologyProfile(?X, ?M)
     // Arms the weak-supplementation rule only for wholes declared under a profile;
     // parthood is profiled, not universal (LOGIC-FOUNDATION.md §mereology+holons).
@@ -1172,6 +1211,60 @@ const STRATUM_3: &[Rule] = &[
 ];
 
 const STRATUM_4: &[Rule] = &[
+    // ── YAMATO occurrent constraints (#1081) ────────────────────────────────────
+    // Inert unless the input carries logic:occurrentBoundary facts.
+    //
+    // violation(?E, OccurrentChangeAsymmetry) :-
+    //     occurrentBoundary(?E, logic:Closed), bearsProperty(?E, ?F), ?F a logic:Fluent
+    // A completed/closed occurrent must not bear a time-varying Fluent.
+    Rule {
+        head: pos(
+            var("?E"),
+            TermPat::Const(logic_iri!("violation")),
+            TermPat::Const(logic_iri!("OccurrentChangeAsymmetry")),
+        ),
+        body: &[
+            pos(
+                var("?E"),
+                TermPat::Const(logic_iri!("occurrentBoundary")),
+                TermPat::Const(logic_iri!("Closed")),
+            ),
+            pos(
+                var("?E"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?F"),
+            ),
+            pos(
+                var("?F"),
+                TermPat::Const(RDF_TYPE),
+                TermPat::Const(logic_iri!("Fluent")),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // violation(?E, OccurrentBoundaryMismatch) :-
+    //     occurrentBoundary(?E, logic:Open), occurrentBoundary(?E, logic:Closed)
+    // An occurrent must not be both Open and Closed.
+    Rule {
+        head: pos(
+            var("?E"),
+            TermPat::Const(logic_iri!("violation")),
+            TermPat::Const(logic_iri!("OccurrentBoundaryMismatch")),
+        ),
+        body: &[
+            pos(
+                var("?E"),
+                TermPat::Const(logic_iri!("occurrentBoundary")),
+                TermPat::Const(logic_iri!("Open")),
+            ),
+            pos(
+                var("?E"),
+                TermPat::Const(logic_iri!("occurrentBoundary")),
+                TermPat::Const(logic_iri!("Closed")),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
     // violation(?C, FreeRole) :- antiRigidSortalClass(?C, ?C), NOT hasRigidAncestor(?C, ?C)
     Rule {
         head: pos(

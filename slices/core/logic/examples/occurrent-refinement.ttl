@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — the occurrent refinement (the YAMATO/Galton process-not-equal-event
+# distinction) carried as VALUES and relations, not as rigid subclasses.
+#
+# Three things are shown for a single rocket launch:
+#
+#   1. The action(open)/event(closed) boundary as a VALUE (logic:occurrentBoundary).
+#      The same occurrence is logic:Open while it unfolds (the launching, an on-going
+#      action over an open interval) and a separate logic:Closed record once whole
+#      (the launch, a completed unitary event over a closed interval). Boundedness is
+#      an indexed value (Principle 9), not a rigid kind.
+#
+#   2. Causal parthood among occurrents (logic:causalPartOf). The ignition causally
+#      contributes to the launch — every causal part is also a temporal part of the
+#      same whole, but causal parthood is transitive WITHOUT being a strict order,
+#      since causal feedback loops are legal among occurrents.
+#
+#   3. Constitution (logic:occurrentConstituent). The completed launch event is made
+#      of the burning process — the change-stuff it is constituted by. Constitution is
+#      NOT parthood: the process is not thereby asserted a temporal part of the event.
+#
+# A logic:Process MAY vary over its extent (it bears time-varying logic:Fluents); a
+# completed logic:Closed event cannot — that change-asymmetry is the
+# logic:OccurrentChangeAsymmetry constraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
+
+# --- 1. The action half: the launching, on-going over an open interval --------
+ex:theLaunching
+    a logic:Process ;
+    logic:occurrentBoundary logic:Open .
+
+# --- 1. The event half: the launch, a completed unitary whole -----------------
+ex:theLaunch
+    a logic:Event ;
+    logic:occurrentBoundary logic:Closed .
+
+# --- 2. Causal parthood: the ignition causally contributes to the launch ------
+ex:theIgnition
+    a logic:Process ;
+    logic:occurrentBoundary logic:Open ;
+    logic:causalPartOf ex:theLaunching .
+
+# --- 3. Constitution: the completed launch event is made of the burning --------
+ex:theBurning
+    a logic:Process ;
+    logic:occurrentBoundary logic:Open .
+
+ex:theLaunch
+    logic:occurrentConstituent ex:theBurning .

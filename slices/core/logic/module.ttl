@@ -166,6 +166,13 @@ logic:ClassicalTwoValued
     rdfs:label "Classical Two-Valued"@x-gmeow-english ;
     skos:definition "The two-valued truth algebra with only true and false. The degenerate truth algebra a ReasoningContract selects when neither gluts nor gaps are needed; equivalent to selecting the Belnap algebra with logic:ForbidGapAndGlut, offered as a direct value for the common classical case."@x-gmeow-english .
 
+logic:Closed
+    a owl:NamedIndividual ,
+        logic:OccurrentBoundary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Closed"@x-gmeow-english ;
+    skos:definition "The occurrent-boundary value for a completed unitary event: a perdurant whole over a closed temporal interval, finished and no longer able to change — the arrival, the run completed, the executed record. The event half of the YAMATO/Galton action(open)/event(closed) distinction; a Closed occurrent that bears a time-varying logic:Fluent is the logic:OccurrentChangeAsymmetry violation, since a completed whole cannot vary. Contrast logic:Open."@x-gmeow-english .
+
 logic:ClosedWorldClosure
     a owl:NamedIndividual ,
         logic:ClosureValue ;
@@ -421,7 +428,7 @@ logic:Event
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Event"@x-gmeow-english ;
-    skos:definition "A perdurant occurrence that happens in time and is composed of temporal parts: an action, a process, a happening that unfolds and is complete once it has occurred. Tokens it as an occurrence rather than an endurant; in the type-level world strata (risk, teleology, norms) the no-occurrence gate keeps reasoning over Event *types* without entailing any Event instance."@x-gmeow-english ;
+    skos:definition "A perdurant occurrence that happens in time and is composed of temporal parts: an action, a process, a happening that unfolds and is complete once it has occurred. Tokens it as an occurrence rather than an endurant; in the type-level world strata (risk, teleology, norms) the no-occurrence gate keeps reasoning over Event *types* without entailing any Event instance. Unitary: a proper temporal part of an event is not itself that event, and a completed (logic:Closed) event cannot vary — it bears no time-varying logic:Fluent (the change-asymmetry, logic:OccurrentChangeAsymmetry). An event is constituted by the process it is made of (logic:occurrentConstituent)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:EvolutionMode
@@ -785,6 +792,39 @@ logic:ObjectLevelFormula
     rdfs:label "Object-Level Formula"@x-gmeow-english ;
     skos:definition "An ordinary first-order formula over the domain of discourse: the object-level node kind. Its quantifiers range over individuals in the domain, some of which may be reified predicates or types, so the object level stays first-order even where it expresses what reads as quantification over predicates or types."@x-gmeow-english .
 
+logic:OccurrentBoundary
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Occurrent Boundary"@x-gmeow-english ;
+    skos:definition "The closed class of perdurant boundary values: the two-valued result a perdurant receives via logic:occurrentBoundary. Its named individuals are logic:Open (an on-going action over an open interval — the arriving) and logic:Closed (a completed unitary event over a closed interval — the arrival). The set is closed, so a misspelt value names no declared boundary and is rejected rather than silently accepted, mirroring logic:EmergenceVerdict and logic:ConstraintVerdict. The carrier of the YAMATO/Galton action(open)/event(closed) distinction as a value, not a subclass (Principle 9)."@x-gmeow-english .
+
+logic:OccurrentBoundaryMismatch
+    a owl:NamedIndividual ,
+        logic:OccurrentConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Occurrent Boundary Mismatch"@x-gmeow-english ;
+    skos:definition "The boundary-exclusivity axiom as an occurrent constraint: a perdurant must not be both on-going and completed — it must not carry both logic:occurrentBoundary logic:Open and logic:occurrentBoundary logic:Closed. The two halves of the action(open)/event(closed) distinction are mutually exclusive at a single standpoint; an occurrent bearing both is the logic:violation, entailed by the foundation lowering rather than asserted by hand."@x-gmeow-english .
+
+logic:OccurrentChangeAsymmetry
+    a owl:NamedIndividual ,
+        logic:OccurrentConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Occurrent Change Asymmetry"@x-gmeow-english ;
+    skos:definition "The change-asymmetry axiom as an occurrent constraint: a completed unitary occurrent (logic:occurrentBoundary logic:Closed) must not vary — it must bear no time-varying logic:Fluent. Processes and on-going actions may change; an event, once whole, cannot (the YAMATO/Galton process-not-equal-event refinement, restoring the UFO-B four-dimensional account). A Closed occurrent that bears a logic:Fluent is the logic:violation, entailed by the foundation lowering rather than asserted by hand."@x-gmeow-english .
+
+logic:OccurrentConstraint
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Occurrent Constraint"@x-gmeow-english ;
+    skos:definition "A named occurrent well-formedness axiom a perdurant can violate — the family of constraints governing the process/event change-asymmetry and the action(open)/event(closed) boundary. Distinct from logic:Discipline (the closed set of OntoUML structural anti-patterns) and from logic:MereologyConstraint (profiled-mereology axioms): occurrent constraints govern the four-dimensional semantics of perdurants. Its named individuals are the labels a logic:violation fact may point at; the set is closed so a misspelt label names no declared constraint and is rejected rather than silently accepted."@x-gmeow-english .
+
+logic:Open
+    a owl:NamedIndividual ,
+        logic:OccurrentBoundary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Open"@x-gmeow-english ;
+    skos:definition "The occurrent-boundary value for an on-going action: a perdurant unfolding over an open temporal interval, not yet a completed whole — the arriving, the running, the prescribed-but-unexecuted plan. The action half of the YAMATO/Galton action(open)/event(closed) distinction; an occurrent that varies (bears a logic:Fluent) is properly Open, since only the unfinished can still change. Contrast logic:Closed."@x-gmeow-english .
+
 logic:OpenWorldClosure
     a owl:NamedIndividual ,
         logic:ClosureValue ;
@@ -923,7 +963,7 @@ logic:Process
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Process"@x-gmeow-english ;
-    skos:definition "A perdurant with internal dynamics: an occurrent composed of sub-processes and phases that unfold over its temporal extent — a manufacturing run, a negotiation, a fermentation. A logic:Perdurant richer than a punctual event (stated in prose, not as a subclass edge); part of the native four-dimensional treatment that restores the UFO-B account gUFO scales back (criticism 3)."@x-gmeow-english ;
+    skos:definition "A perdurant with internal dynamics: an occurrent composed of sub-processes and phases that unfold over its temporal extent — a manufacturing run, a negotiation, a fermentation. A logic:Perdurant richer than a punctual event (stated in prose, not as a subclass edge); part of the native four-dimensional treatment that restores the UFO-B account gUFO scales back (criticism 3). Dissective: any temporal part of a process is itself that same process, and a process MAY vary over its extent (it bears time-varying logic:Fluents) — the change-bearing half of the process-not-equal-event asymmetry."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:ProjectionTarget
@@ -1521,6 +1561,14 @@ logic:builtinStringConcat
     skos:definition "The native string-concatenation builtin: derives a string by joining its arguments, e.g. fullName = firstName + \" \" + lastName. A derivational builtin (Principle 12, in-logic): the lightweight string derivation a foundation needs, NOT heavy domain text processing, which stays external by reference. Gated to logic:ProceduralPrologProfile; execution is seamed to the engine."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+logic:causalPartOf
+    a owl:ObjectProperty ,
+        logic:transitiveProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "causal part of"@x-gmeow-english ;
+    skos:definition "Causal parthood among perdurants: relates a sub-occurrent that causally contributes to a larger occurrent — the ignition is a causal part of the launch, the infection a causal part of the illness. A specialization of logic:temporalPartOf (stated in prose, not as an rdfs:subPropertyOf edge, matching how the foundation parthood relations are authored): every causal part is also a temporal part of the same whole, but NOT conversely — a merely temporally-nested sub-occurrent need carry no causal contribution (causal subset-of temporal, the YAMATO/Galton occurrent-mereology refinement). Transitive (a causal part of a causal part causally contributes to the whole) but deliberately NOT asymmetric or irreflexive, since causal feedback loops are legal among occurrents — contrast logic:properPartOf, the strict-order endurant parthood. Distinct from the temporal-only nesting carried at the domain level by gmeow:subEventOf."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:closedUnder
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1836,6 +1884,23 @@ logic:negationOperator
     rdfs:label "negation operator"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to a logic:NegationOperator its programs may use. Set-valued on the contract: a program may legitimately use explicit (strong) negation and negation-as-failure together, so this records the permitted operator set, not a single chosen operator. Domain logic:ReasoningContract, range logic:NegationOperator (stated in prose, matching the module's convention)."@x-gmeow-english .
 
+logic:occurrentBoundary
+    a owl:ObjectProperty ;
+    rdfs:range logic:OccurrentBoundary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "occurrent boundary"@x-gmeow-english ;
+    skos:definition "Relates a perdurant to its boundary value — logic:Open (an on-going action, an open temporal interval: the arriving) or logic:Closed (a completed unitary event, a closed interval: the arrival). The action(open)/event(closed) typing of the YAMATO/Galton refinement, carried as a VALUE rather than a subclass (Principle 9): the same occurrence is open while it unfolds and closed once whole, so boundedness is an indexed value, not a rigid kind. The formal name for the prescriptive-to-descriptive seam — an open action is the doing, the closed event its done record. An occurrent bearing both logic:Open and logic:Closed is the logic:OccurrentBoundaryMismatch violation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:occurrentConstituent
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Event ;
+    rdfs:range logic:Process ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "occurrent constituent"@x-gmeow-english ;
+    skos:definition "Relates a unitary occurrent to a process that constitutes it: the change-stuff an event is made of — a marathon is constituted by the running, a fermentation-event by the fermenting. The constitutive reading of the YAMATO/Galton dictum that events are made of processes: distinct from temporal parthood (logic:temporalPartOf) and from causal parthood (logic:causalPartOf), and carries NO parthood-subsumption rule, so an event's constituting process is not thereby asserted a temporal part of it — constitution, not parthood. The bridge from the unitary, completed logic:Event to the dissective logic:Process whose unfolding it bounds."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:orderedType
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -2089,7 +2154,7 @@ logic:violation
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "violation"@x-gmeow-english ;
-    skos:definition "Relates an offending entity to the constraint it violates — a logic:Discipline (an OntoUML structural anti-pattern) or a logic:MereologyConstraint (a profiled-mereology axiom such as logic:WeakSupplementation): the derived diagnostic the foundation lowering materializes, the logic: analogue of a reasoning_lint message. A logic:violation fact is never asserted by hand; it is entailed by the lowering rules over the stereotype, subsumption, mediation and parthood facts, so its presence is a machine-checkable proof that the entity breaks the named constraint."@x-gmeow-english .
+    skos:definition "Relates an offending entity to the constraint it violates — a logic:Discipline (an OntoUML structural anti-pattern), a logic:MereologyConstraint (a profiled-mereology axiom such as logic:WeakSupplementation), or a logic:OccurrentConstraint (an occurrent well-formedness axiom such as logic:OccurrentChangeAsymmetry): the derived diagnostic the foundation lowering materializes, the logic: analogue of a reasoning_lint message. A logic:violation fact is never asserted by hand; it is entailed by the lowering rules over the stereotype, subsumption, mediation and parthood facts, so its presence is a machine-checkable proof that the entity breaks the named constraint."@x-gmeow-english .
 
 logic:weight
     a owl:DatatypeProperty ;

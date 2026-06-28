@@ -1,0 +1,6 @@
+<https://example.org/occurrent/causal-transitive/A> <https://blackcatinformatics.ca/logic/causalPartOf> <https://example.org/occurrent/causal-transitive/B> <https://example.org/occurrent/causal-transitive/schema> .
+<https://example.org/occurrent/causal-transitive/A> <https://blackcatinformatics.ca/logic/causalPartOf> <https://example.org/occurrent/causal-transitive/C> <https://example.org/occurrent/causal-transitive/schema> .
+<https://example.org/occurrent/causal-transitive/A> <https://blackcatinformatics.ca/logic/temporalPartOf> <https://example.org/occurrent/causal-transitive/B> <https://example.org/occurrent/causal-transitive/schema> .
+<https://example.org/occurrent/causal-transitive/A> <https://blackcatinformatics.ca/logic/temporalPartOf> <https://example.org/occurrent/causal-transitive/C> <https://example.org/occurrent/causal-transitive/schema> .
+<https://example.org/occurrent/causal-transitive/B> <https://blackcatinformatics.ca/logic/causalPartOf> <https://example.org/occurrent/causal-transitive/C> <https://example.org/occurrent/causal-transitive/schema> .
+<https://example.org/occurrent/causal-transitive/B> <https://blackcatinformatics.ca/logic/temporalPartOf> <https://example.org/occurrent/causal-transitive/C> <https://example.org/occurrent/causal-transitive/schema> .

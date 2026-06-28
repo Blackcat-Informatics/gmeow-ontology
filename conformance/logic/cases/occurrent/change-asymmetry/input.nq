@@ -1,0 +1,3 @@
+<https://example.org/occurrent/change-asymmetry/E> <https://blackcatinformatics.ca/logic/occurrentBoundary> <https://blackcatinformatics.ca/logic/Closed> <https://example.org/occurrent/change-asymmetry/schema> .
+<https://example.org/occurrent/change-asymmetry/E> <https://blackcatinformatics.ca/logic/bearsProperty> <https://example.org/occurrent/change-asymmetry/F> <https://example.org/occurrent/change-asymmetry/schema> .
+<https://example.org/occurrent/change-asymmetry/F> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Fluent> <https://example.org/occurrent/change-asymmetry/schema> .

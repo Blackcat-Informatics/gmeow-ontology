@@ -716,3 +716,52 @@ ASK {
     ?banned a ?t .
 }""" ;
     gmeow:saRationale "No primary*/preferred* selector for observations or activities MUST NOT exist -- co-equality (Principle 9). Mirrors test_no_primary_preferred_observation_term." .
+
+# --- 52. causalPartOf is transitive (MUST) ------------------------------------
+ex:saCausalPartOfTransitive a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:causalPartOf a owl:TransitiveProperty . }""" ;
+    gmeow:saRationale "gmeow:causalPartOf MUST be owl:TransitiveProperty -- causal contribution chains through nested occurrences (causal feedback loops are legal, so it is deliberately NOT asymmetric or irreflexive)." .
+
+# --- 53. causalPartOf subPropertyOf subEventOf (causal subset-of temporal, MUST) ---
+ex:saCausalPartOfSubEventOf a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:causalPartOf rdfs:subPropertyOf gmeow:subEventOf . }""" ;
+    gmeow:saRationale "gmeow:causalPartOf MUST be rdfs:subPropertyOf gmeow:subEventOf -- every causal part is also a temporal sub-event of the same whole (causal subset-of temporal); the converse does not hold." .
+
+# --- 54. causalPartOf grounds in logic:causalPartOf (foundation grounding, MUST) ---
+ex:saCausalPartOfGroundsLogic a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:causalPartOf rdfs:subPropertyOf logic:causalPartOf . }""" ;
+    gmeow:saRationale "gmeow:causalPartOf MUST be rdfs:subPropertyOf logic:causalPartOf -- the domain-level term grounds in the foundational logic layer so the foundation rules lift it to logic:temporalPartOf." .
+
+# --- 55. hasCausalPart is the inverse of causalPartOf (MUST) -------------------
+ex:saHasCausalPartInverse a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { gmeow:hasCausalPart owl:inverseOf gmeow:causalPartOf } UNION
+    { gmeow:causalPartOf owl:inverseOf gmeow:hasCausalPart }
+}""" ;
+    gmeow:saRationale "gmeow:hasCausalPart MUST be the owl:inverseOf gmeow:causalPartOf (in either direction) -- the whole-rooted causal-decomposition view of the part-rooted relation." .
+
+# --- 56. causalPartOf is orthogonal to the temporal Allen during (MUST-NOT) ----
+ex:saCausalPartOfNotDuring a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:causalPartOf rdfs:subPropertyOf gmeow:during . }""" ;
+    gmeow:saRationale "gmeow:causalPartOf MUST NOT be rdfs:subPropertyOf gmeow:during -- causal mereology is orthogonal to the TEMPORAL Allen DURING relation, which only orders extents and implies nothing causal." .
