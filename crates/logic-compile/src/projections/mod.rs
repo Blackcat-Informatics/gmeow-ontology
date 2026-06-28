@@ -234,6 +234,9 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
             vec![
                 "modal context encoded as quoted graph arguments (may overgenerate)",
                 "N3 builtins used for arithmetic/string predicates where available",
+                "negation-as-failure guards are dropped; monotone log:implies cannot \
+                 express a defeater, so a defeasible rule is over-approximated \
+                 (CompleteOver) rather than emitting the guard as a positive antecedent",
             ],
         ),
         "gufo" => (
