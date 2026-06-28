@@ -3056,6 +3056,329 @@ logic:lostReifies
     skos:definition "Points from a logic:ProjectionLoss to the RDF-1.2 triple term whose reifier (and any annotations) the projection dropped, so a consumer can recover which statement lost its reification layer. The object is a quoted triple term; its range is intentionally left open (stated in prose) to keep the OWL down-projection DL-clean."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# ── The Correspondence calculus (the ninth node kind's spine) ─────────────────────
+# Cross-ontology alignment as a first-class, law-bearing logic: object. A
+# logic:Correspondence (declared above as the ninth logic:NodeKind) wraps a logic:Lens —
+# its executable get/put core — in a meta-formula envelope: a typed
+# logic:CorrespondenceRelation on an ordered lattice, an algebraic logic:MorphismClass on
+# the ordered law-spine, the separated quantitative axes (logic:confidence,
+# logic:evidenceStrength, logic:weight, logic:probability) plus logic:Determinacy, the
+# claimed logic:LawClaim constraints (whose discharge reuses the logic:DischargeVerdict /
+# logic:DischargeCondition vocabulary of the foundation), and a standpoint index. SSSOM,
+# EDOAL, FnO, SPARQL CONSTRUCT and the OWL-alignment axioms are generated lowerings of this
+# one object, never second sources (design/LOGIC-CORRESPONDENCE.md).
+
+logic:Lens
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Lens"@x-gmeow-english ;
+    skos:definition "The executable asymmetric core a logic:Correspondence wraps: a get / put leg pair between a rich source S and a derived view V, with get : S → V the down-projection and put : V × S → S the up-projection. GMEOW is always the source S and the external vocabulary the view V, so down-projection (GMEOW → external) is the get leg and up-projection (external → GMEOW) is the put leg. The view is the smaller, derived thing; put folds a possibly-fresh view back into the rich source, and the ingest-with-no-prior-state case (S empty) is exactly where a witness must travel in the view — the mnemomorphism a logic:Correspondence records with logic:mnemomorphic. Both legs are logic:TransactionProgram bodies over the path semantics of the transaction layer and logic:PathShape — no new pattern language is introduced. Distinguished from logic:Correspondence, which wraps this lens with the relation, the quantitative axes, the law claims and the standpoint envelope (design/LOGIC-CORRESPONDENCE.md, the orientation-convention section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:CorrespondenceRelation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Correspondence Relation"@x-gmeow-english ;
+    skos:definition "The typed, closed value class of a logic:Correspondence's relation, on an ordered lattice rather than a free string: logic:Equiv ⊐ { logic:Subsumes, logic:SubsumedBy } ⊐ logic:Overlaps ⊐ logic:RelatedMatch, with logic:Disjoint the negative pole. From one authored relation the compiler derives the SSSOM predicate, the EDOAL relation symbol and the OWL-alignment-axiom strength, so the generated alignment artifacts cannot drift apart. The set is closed, so a misspelt relation names no declared value and is rejected (design/LOGIC-CORRESPONDENCE.md, the relation-lattice section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Equiv
+    a owl:NamedIndividual ,
+        logic:CorrespondenceRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "equivalent"@x-gmeow-english ;
+    skos:definition "The top of the correspondence-relation lattice: the source pattern and the view pattern denote one and the same extension. Lowers to sssom:exactMatch and (when the logic:MorphismClass and logic:LawClaim set support it) owl:equivalentClass; the strongest claim, never licensed for a commitment-shifting bridge."@x-gmeow-english .
+
+logic:Subsumes
+    a owl:NamedIndividual ,
+        logic:CorrespondenceRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "subsumes"@x-gmeow-english ;
+    skos:definition "The source pattern is broader than the view: every view instance is a source instance but not conversely. Lowers to sssom:broadMatch and an owl:subClassOf with the view as the subclass. One of the two mid-lattice directional relations under logic:Equiv."@x-gmeow-english .
+
+logic:SubsumedBy
+    a owl:NamedIndividual ,
+        logic:CorrespondenceRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "subsumed by"@x-gmeow-english ;
+    skos:definition "The source pattern is narrower than the view: every source instance is a view instance but not conversely. Lowers to sssom:narrowMatch and an owl:subClassOf with the source as the subclass. The converse direction of logic:Subsumes, the second mid-lattice relation under logic:Equiv."@x-gmeow-english .
+
+logic:Overlaps
+    a owl:NamedIndividual ,
+        logic:CorrespondenceRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "overlaps"@x-gmeow-english ;
+    skos:definition "Source and view share instances without either subsuming the other: a partial, caveated alignment. Lowers to sssom:closeMatch (an OWL equivalence is unsupported and the overclaim gate refuses one). Below the directional band, above logic:RelatedMatch. Distinct from the mereological relation logic:overlaps (shared parts of one whole); this is a relation between two aligned patterns."@x-gmeow-english .
+
+logic:RelatedMatch
+    a owl:NamedIndividual ,
+        logic:CorrespondenceRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "related match"@x-gmeow-english ;
+    skos:definition "The weakest positive relation: source and view are associated (curatorially relevant) but neither equivalent, subsuming nor reliably overlapping. Lowers to sssom:relatedMatch only; no logical alignment axiom is emitted. The floor of the positive lattice, above only the negative pole logic:Disjoint."@x-gmeow-english .
+
+logic:Disjoint
+    a owl:NamedIndividual ,
+        logic:CorrespondenceRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "disjoint match"@x-gmeow-english ;
+    skos:definition "The negative pole of the correspondence-relation lattice: source and view share no instances, an asserted non-alignment. Lowers to owl:disjointWith. Distinct from the mereological relation logic:disjoint (two entities sharing no part); this records that two aligned patterns are deliberately kept apart."@x-gmeow-english .
+
+logic:MorphismClass
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Morphism Class"@x-gmeow-english ;
+    skos:definition "The ordered law-spine of a logic:Correspondence: how much invertibility it may lawfully claim, where each rung caps the laws the correspondence may assert. From strongest to floor the seven rungs are logic:Isomorphism, logic:SectionRetraction, logic:WellBehavedLens, logic:LossyLens, logic:Prism, logic:AffineCorrespondence and logic:BridgeView. The spine fuses the profunctor-optic lattice with the categorical subobject notion; composition can only weaken the rung, never strengthen it, and a logic:mnemomorphic witness is what lets a correspondence climb it. The set is closed, so a misspelt class names no declared rung and is rejected (design/LOGIC-CORRESPONDENCE.md, the ordered-law-spine section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Isomorphism
+    a owl:NamedIndividual ,
+        logic:MorphismClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Isomorphism"@x-gmeow-english ;
+    skos:definition "The top rung: an iso, get ∘ put = id and put ∘ get = id, a full round-trip in both directions. The only rung that licenses a confidence-1.0 equivalence. Caps: both round-trip laws claimable."@x-gmeow-english .
+
+logic:SectionRetraction
+    a owl:NamedIndividual ,
+        logic:MorphismClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Section / Retraction"@x-gmeow-english ;
+    skos:definition "Perfect subsumption: a split mono with put ∘ get = id_S and get ∘ put idempotent on V ⊕ complement. The source embeds losslessly into the view, the augmentation being S ∖ im(get) carried in the in-band complement. Caps: the section law (lossless source recovery), but not full bidirectional iso."@x-gmeow-english .
+
+logic:WellBehavedLens
+    a owl:NamedIndividual ,
+        logic:MorphismClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Well-Behaved Lens"@x-gmeow-english ;
+    skos:definition "An asymmetric lens: a structured-to-flat downcast with sound update. Caps: logic:GetPut and logic:PutGet claimable (logic:PutPut optional). The workhorse rung for a faithful but non-embedding projection."@x-gmeow-english .
+
+logic:LossyLens
+    a owl:NamedIndividual ,
+        logic:MorphismClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Lossy Lens"@x-gmeow-english ;
+    skos:definition "A lens with non-injective get: one direction is faithful but the inverse needs a witness, a co-authored put-with-claim, or declared defaults. Most schema.org / FOAF downcasts live here. Caps: a single faithful direction; the put leg may not claim recovery without a logic:mnemomorphic witness."@x-gmeow-english .
+
+logic:Prism
+    a owl:NamedIndividual ,
+        logic:MorphismClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Prism"@x-gmeow-english ;
+    skos:definition "A partial map S → V + S that matches and builds only on the in-focus case of a sum or optional: the optic for 'this correspondence applies when the source is of a particular variant, otherwise it passes through.' Caps: match / build laws on the in-focus case only. Paired with logic:AffineCorrespondence as the partial-alignment band below logic:LossyLens."@x-gmeow-english .
+
+logic:AffineCorrespondence
+    a owl:NamedIndividual ,
+        logic:MorphismClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Affine Correspondence"@x-gmeow-english ;
+    skos:definition "A co-projection onto a shared component: the 'similar but not quite' alignment, where source and view agree on a common part but neither embeds in the other. The companion of logic:Prism in the partial-alignment band — a Prism focuses an optional variant, an affine correspondence focuses a shared sub-structure. The correct rung for a logic:Vague logic:Determinacy target, NOT a low-confidence logic:Equiv. Caps: laws on the shared component only."@x-gmeow-english .
+
+logic:BridgeView
+    a owl:NamedIndividual ,
+        logic:MorphismClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Bridge View"@x-gmeow-english ;
+    skos:definition "The floor rung: a commitment-shifting comorphism with NO satisfaction-preservation claim — the alignment to BFO, DOLCE, SUMO or YAMATO. A bridge view carries logic:morphismKind logic:CommitmentShiftingBridge, and the loss ledger refuses to emit owl:equivalentClass for it. Caps: no preservation law; the alignment is a by-reference bridge, never an identity."@x-gmeow-english .
+
+logic:MorphismKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Morphism Kind"@x-gmeow-english ;
+    skos:definition "The closed two-value qualifier, orthogonal to the logic:MorphismClass rung, recording the institution-theoretic split between a satisfaction-preserving morphism (logic:InstitutionMorphism) and a commitment-shifting bridge (logic:CommitmentShiftingBridge). This is the distinction the foundation already draws between a truth-preserving down-projection and a by-reference bridge; the loss ledger refuses owl:equivalentClass for the bridge kind. The set is closed, so a misspelt kind names no declared value and is rejected (design/LOGIC-CORRESPONDENCE.md, the ordered-law-spine section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:InstitutionMorphism
+    a owl:NamedIndividual ,
+        logic:MorphismKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Institution Morphism"@x-gmeow-english ;
+    skos:definition "A satisfaction-preserving morphism between theories presented as institutions: truth in the source maps to truth in the view, so logical alignment axioms (up to owl:equivalentClass when the rung allows) are licensed. The morphism kind of a faithful down-projection."@x-gmeow-english .
+
+logic:CommitmentShiftingBridge
+    a owl:NamedIndividual ,
+        logic:MorphismKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Commitment-Shifting Bridge"@x-gmeow-english ;
+    skos:definition "A bridge that shifts ontological commitment rather than preserving satisfaction: the kind borne by a logic:BridgeView alignment to a top-level ontology (BFO, DOLCE, SUMO, YAMATO). The loss ledger refuses to emit owl:equivalentClass for it; the bridge is adopted by reference (Principle 5), never as an identity collapse."@x-gmeow-english .
+
+logic:Determinacy
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Determinacy"@x-gmeow-english ;
+    skos:definition "The closed two-value axis recording whether the TARGET RELATIONSHIP a logic:Correspondence asserts is ontically crisp (logic:Crisp) or vague (logic:Vague). It is separate from logic:confidence: 'similar but not quite' is logic:Vague determinacy with a logic:AffineCorrespondence class, NOT a low-confidence logic:Equiv. Conflating the two destroys the distinction between an uncertain sharp claim and a confident fuzzy one. The set is closed, so a misspelt value names no declared determinacy and is rejected (design/LOGIC-CORRESPONDENCE.md, the quantitative-and-contextual-axes section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Crisp
+    a owl:NamedIndividual ,
+        logic:Determinacy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "crisp"@x-gmeow-english ;
+    skos:definition "The target relationship is ontically sharp: the alignment either holds or does not, with no borderline cases. The determinacy of an equivalence or a clean subsumption."@x-gmeow-english .
+
+logic:Vague
+    a owl:NamedIndividual ,
+        logic:Determinacy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "vague"@x-gmeow-english ;
+    skos:definition "The target relationship is ontically fuzzy: it holds to a degree or only on a shared component, with genuine borderline cases. Paired with a logic:AffineCorrespondence class for the 'similar but not quite' alignment — vagueness in the world, not uncertainty in the curator."@x-gmeow-english .
+
+logic:CorrespondenceLaw
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Correspondence Law"@x-gmeow-english ;
+    skos:definition "The closed value class of the lens laws a logic:Correspondence can claim through a logic:LawClaim: logic:GetPut, logic:PutGet, logic:PutPut and logic:SectionLaw. Which laws are claimable is capped by the correspondence's logic:MorphismClass rung, and each claim carries a logic:DischargeVerdict. The set is closed, so a misspelt law names no declared value and is rejected (design/LOGIC-CORRESPONDENCE.md, the ninth-node-kind section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:GetPut
+    a owl:NamedIndividual ,
+        logic:CorrespondenceLaw ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "GetPut"@x-gmeow-english ;
+    skos:definition "The lens law put(get(s), s) = s: getting a view from a source and immediately putting it back leaves the source unchanged. Claimable from the logic:WellBehavedLens rung upward; the acquisition-stability law."@x-gmeow-english .
+
+logic:PutGet
+    a owl:NamedIndividual ,
+        logic:CorrespondenceLaw ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "PutGet"@x-gmeow-english ;
+    skos:definition "The lens law get(put(v, s)) = v: putting a view into a source and reading it back yields exactly that view. Claimable from the logic:WellBehavedLens rung upward; the update-faithfulness law."@x-gmeow-english .
+
+logic:PutPut
+    a owl:NamedIndividual ,
+        logic:CorrespondenceLaw ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "PutPut"@x-gmeow-english ;
+    skos:definition "The very-well-behaved lens law put(v2, put(v1, s)) = put(v2, s): a later put overwrites an earlier one with no residue. Optional even at the logic:WellBehavedLens rung; claimed only by correspondences whose put leg is genuinely history-free."@x-gmeow-english .
+
+logic:SectionLaw
+    a owl:NamedIndividual ,
+        logic:CorrespondenceLaw ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Section Law"@x-gmeow-english ;
+    skos:definition "The perfect-subsumption law put ∘ get = id_S: the source is recovered exactly from its view because the in-band complement retained everything the retraction needs (a logic:mnemomorphic witness). Claimable only at the logic:SectionRetraction rung or above; the CI-checkable form of 'GMEOW perfectly subsumes this vocabulary.'"@x-gmeow-english .
+
+logic:LawClaim
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Law Claim"@x-gmeow-english ;
+    skos:definition "A claim that a logic:Correspondence satisfies a particular logic:CorrespondenceLaw (named by logic:lawClaimed), together with the discharge state of that claim: a logic:DischargeVerdict via logic:lawDischargeVerdict and, when applicable, the logic:DischargeCondition under which it was checked via logic:lawDischargeCondition. It reuses the foundation's executable discharge vocabulary rather than a parallel status enum: a law proved within a certified fragment is logic:ObligationDischarged under logic:DischargeCertifiedFragment; a refuted law is logic:ObligationViolated with its countermodel; an authored-but-unchecked or inconclusive law is logic:ObligationUnknown, carried forward. The overclaim gate fires when a correspondence claims a law its lowered legs do not satisfy (design/LOGIC-CORRESPONDENCE.md, the preservation-is-the-lens-law-framework section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Dialect
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Dialect"@x-gmeow-english ;
+    skos:definition "A named sub-language of the canonical logic: IR, in the MLIR sense of a dialect with its own node verifiers and progressive lowering (not an LLVM-style substrate). The one F1 dialect is logic:RelationalCore, the logical-to-physical lowering waist between the full IR and the native execution engine."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RelationalCore
+    a owl:NamedIndividual ,
+        logic:Dialect ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Relational Core"@x-gmeow-english ;
+    skos:definition "The logical-to-physical lowering waist of the correspondence calculus: a first-class Datalog±-with-stratified-negation sub-language (with aggregation and existentials — the chase) between the full-FOL logic: IR and the native execution engine. Every execution strategy, the incremental layer and the semiring annotation that carries the quantitative axes target this one dialect, so a get leg compiles to a join plan and a put / chase to a semi-naive fixpoint with existentials over the same core (design/LOGIC-CORRESPONDENCE.md and design/LOGIC-IR.md, the IR-commitments section)."@x-gmeow-english .
+
+logic:hasLens
+    a owl:ObjectProperty ;
+    rdfs:range logic:Lens ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has lens"@x-gmeow-english ;
+    skos:definition "Relates a logic:Correspondence to the logic:Lens that is its executable get / put core. Single-valued: each correspondence wraps exactly one lens, around which it adds the relation, axes, law claims and standpoint envelope. Range logic:Lens (domain stated in prose, matching the module's convention)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:getLeg
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Lens ;
+    rdfs:range logic:TransactionProgram ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "get leg"@x-gmeow-english ;
+    skos:definition "Relates a logic:Lens to the logic:TransactionProgram that realizes its get leg — the down-projection get : S → V from the GMEOW source to the external view. Reuses the transaction layer's path semantics and logic:PathShape; no new pattern language. Domain logic:Lens, range logic:TransactionProgram."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:putLeg
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Lens ;
+    rdfs:range logic:TransactionProgram ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "put leg"@x-gmeow-english ;
+    skos:definition "Relates a logic:Lens to the logic:TransactionProgram that realizes its put leg — the up-projection put : V × S → S folding a view back into the rich GMEOW source. A lawful put comes only from a logic:mnemomorphic witness or a co-authored put-with-claim; naive backward execution of the get leg is a candidate preimage, never a lawful put. Domain logic:Lens, range logic:TransactionProgram."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:correspondenceRelation
+    a owl:ObjectProperty ;
+    rdfs:range logic:CorrespondenceRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "correspondence relation"@x-gmeow-english ;
+    skos:definition "Relates a logic:Correspondence to its logic:CorrespondenceRelation on the ordered lattice (equiv ⊐ subsumes / subsumedBy ⊐ overlaps ⊐ relatedMatch, disjoint the negative pole). The single authored relation from which the SSSOM predicate, EDOAL symbol and OWL-alignment strength are derived. Range logic:CorrespondenceRelation (domain stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:morphismClass
+    a owl:ObjectProperty ;
+    rdfs:range logic:MorphismClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "morphism class"@x-gmeow-english ;
+    skos:definition "Relates a logic:Correspondence to its rung on the ordered law-spine (logic:MorphismClass), which caps the logic:CorrespondenceLaw values it may claim. Composition can only weaken this rung. Range logic:MorphismClass (domain stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:morphismKind
+    a owl:ObjectProperty ;
+    rdfs:range logic:MorphismKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "morphism kind"@x-gmeow-english ;
+    skos:definition "Relates a logic:Correspondence to its logic:MorphismKind — the satisfaction-preserving / commitment-shifting split orthogonal to the rung. A logic:CommitmentShiftingBridge value makes the loss ledger refuse owl:equivalentClass. Range logic:MorphismKind (domain stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:hasDeterminacy
+    a owl:ObjectProperty ;
+    rdfs:range logic:Determinacy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has determinacy"@x-gmeow-english ;
+    skos:definition "Relates a logic:Correspondence to its logic:Determinacy — whether the target relationship is ontically logic:Crisp or logic:Vague. Kept separate from logic:confidence so a vague-but-confident alignment is not mis-recorded as a low-confidence equivalence. Range logic:Determinacy (domain stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:mnemomorphic
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "mnemomorphic"@x-gmeow-english ;
+    skos:definition "Whether a logic:Correspondence's forward get leg retains a source witness — factoring through the graph of the correspondence so that put is obtained by projecting along the retained witness rather than synthesizing a plausible source. The bit is orthogonal to the logic:MorphismClass rung but is what lets a correspondence climb it: a retained witness is what discharges put ∘ get = id (the logic:SectionLaw), the dividing line between recoverable subsumption and reconstructed approximation. True or false (default false); a false value bars any section / retraction claim. Range xsd:boolean (domain left open, like logic:loadBearing)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:hasLawClaim
+    a owl:ObjectProperty ;
+    rdfs:range logic:LawClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has law claim"@x-gmeow-english ;
+    skos:definition "Relates a logic:Correspondence to a logic:LawClaim it makes — a claimed logic:CorrespondenceLaw with its discharge state. Multi-valued: a correspondence may claim several laws, each capped by its logic:MorphismClass rung. Range logic:LawClaim (domain stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:lawClaimed
+    a owl:ObjectProperty ;
+    rdfs:domain logic:LawClaim ;
+    rdfs:range logic:CorrespondenceLaw ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "law claimed"@x-gmeow-english ;
+    skos:definition "Relates a logic:LawClaim to the logic:CorrespondenceLaw it asserts (logic:GetPut, logic:PutGet, logic:PutPut or logic:SectionLaw). Domain logic:LawClaim, range logic:CorrespondenceLaw."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:lawDischargeVerdict
+    a owl:ObjectProperty ;
+    rdfs:domain logic:LawClaim ;
+    rdfs:range logic:DischargeVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "law discharge verdict"@x-gmeow-english ;
+    skos:definition "Relates a logic:LawClaim to the logic:DischargeVerdict its check returned — logic:ObligationDischarged, logic:ObligationUnknown or logic:ObligationViolated. Reuses the foundation's discharge-verdict value class (the law-claim analogue of logic:obligationDischargeVerdict, which is domain-locked to logic:NonEntailmentObligation): an unchecked or inconclusive law is logic:ObligationUnknown, never silently passed. Domain logic:LawClaim, range logic:DischargeVerdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:lawDischargeCondition
+    a owl:ObjectProperty ;
+    rdfs:domain logic:LawClaim ;
+    rdfs:range logic:DischargeCondition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "law discharge condition"@x-gmeow-english ;
+    skos:definition "Relates a logic:LawClaim to the logic:DischargeCondition under which its logic:lawDischargeVerdict is conclusively checkable (for example logic:DischargeCertifiedFragment for a law proved within a certified complete fragment). Optional: a law carrying logic:ObligationUnknown with no condition is an authored-but-unverified claim. Reuses the foundation's discharge-condition value class. Domain logic:LawClaim, range logic:DischargeCondition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .
 

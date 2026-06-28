@@ -950,3 +950,296 @@ fn path_shape_accepts_namespace_scope_on_wildcard() {
     )
     .expect("namespace_scope on a wildcard step must be accepted");
 }
+
+// ── The correspondence calculus (#1088) ──────────────────────────────────────
+
+/// Build a minimal valid correspondence with the given IRI and law claims.
+fn corr(iri: &str, law_claims: Vec<LawClaimIr>) -> Correspondence {
+    Correspondence::new(
+        iri,
+        CorrespondenceRelation::Equiv,
+        MorphismClass::Isomorphism,
+        MorphismKind::InstitutionMorphism,
+        false,
+        None,
+        None,
+        None,
+        law_claims,
+        None,
+        None,
+        None,
+        None,
+        None,
+    )
+    .unwrap()
+}
+
+/// Assert a Rust facet enum's `as_str` set exactly matches the `logic:<Class>`
+/// individuals in `module.ttl`, and that every member round-trips through `from_local`.
+fn assert_facet_matches_ttl(rust: &[&str], type_local: &str) {
+    let from_rust: std::collections::BTreeSet<&str> = rust.iter().copied().collect();
+    let from_ttl = individuals_of_type(&module_ttl_text(), type_local);
+    let from_ttl_refs: std::collections::BTreeSet<&str> =
+        from_ttl.iter().map(String::as_str).collect();
+    assert_eq!(
+        from_rust, from_ttl_refs,
+        "{type_local} enum must match the logic:{type_local} individuals in module.ttl"
+    );
+}
+
+#[test]
+fn correspondence_relation_values_match_module_ttl() {
+    let rust = [
+        CorrespondenceRelation::Equiv,
+        CorrespondenceRelation::Subsumes,
+        CorrespondenceRelation::SubsumedBy,
+        CorrespondenceRelation::Overlaps,
+        CorrespondenceRelation::RelatedMatch,
+        CorrespondenceRelation::Disjoint,
+    ];
+    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
+    assert_facet_matches_ttl(&names, "CorrespondenceRelation");
+    for r in &rust {
+        assert_eq!(CorrespondenceRelation::from_local(r.as_str()), Some(*r));
+    }
+}
+
+#[test]
+fn morphism_class_values_match_module_ttl() {
+    let rust = [
+        MorphismClass::Isomorphism,
+        MorphismClass::SectionRetraction,
+        MorphismClass::WellBehavedLens,
+        MorphismClass::LossyLens,
+        MorphismClass::Prism,
+        MorphismClass::AffineCorrespondence,
+        MorphismClass::BridgeView,
+    ];
+    assert_eq!(rust.len(), 7, "the law-spine has seven rungs");
+    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
+    assert_facet_matches_ttl(&names, "MorphismClass");
+    for r in &rust {
+        assert_eq!(MorphismClass::from_local(r.as_str()), Some(*r));
+    }
+    // The derived Ord is the spine order (strongest first): Isomorphism is the top,
+    // BridgeView the floor.
+    assert!(MorphismClass::Isomorphism < MorphismClass::BridgeView);
+    assert!(MorphismClass::Prism < MorphismClass::AffineCorrespondence);
+}
+
+#[test]
+fn morphism_kind_values_match_module_ttl() {
+    let rust = [
+        MorphismKind::InstitutionMorphism,
+        MorphismKind::CommitmentShiftingBridge,
+    ];
+    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
+    assert_facet_matches_ttl(&names, "MorphismKind");
+    for r in &rust {
+        assert_eq!(MorphismKind::from_local(r.as_str()), Some(*r));
+    }
+}
+
+#[test]
+fn determinacy_values_match_module_ttl() {
+    let rust = [Determinacy::Crisp, Determinacy::Vague];
+    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
+    assert_facet_matches_ttl(&names, "Determinacy");
+    for r in &rust {
+        assert_eq!(Determinacy::from_local(r.as_str()), Some(*r));
+    }
+}
+
+#[test]
+fn correspondence_law_values_match_module_ttl() {
+    let rust = [
+        CorrespondenceLaw::GetPut,
+        CorrespondenceLaw::PutGet,
+        CorrespondenceLaw::PutPut,
+        CorrespondenceLaw::SectionLaw,
+    ];
+    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
+    assert_facet_matches_ttl(&names, "CorrespondenceLaw");
+    for r in &rust {
+        assert_eq!(CorrespondenceLaw::from_local(r.as_str()), Some(*r));
+    }
+}
+
+#[test]
+fn discharge_verdict_values_match_module_ttl() {
+    // Reused from the foundation's non-entailment machinery; the IR enum mirrors it.
+    let rust = [
+        DischargeVerdict::ObligationDischarged,
+        DischargeVerdict::ObligationUnknown,
+        DischargeVerdict::ObligationViolated,
+    ];
+    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
+    assert_facet_matches_ttl(&names, "DischargeVerdict");
+    for r in &rust {
+        assert_eq!(DischargeVerdict::from_local(r.as_str()), Some(*r));
+    }
+}
+
+#[test]
+fn discharge_condition_values_match_module_ttl() {
+    let rust = [
+        DischargeCondition::DischargeCertifiedFragment,
+        DischargeCondition::DischargeFiniteClosure,
+        DischargeCondition::DischargeSyntacticReachability,
+        DischargeCondition::DischargeConservativeExtension,
+        DischargeCondition::DischargeBoundedCorpus,
+    ];
+    let names: Vec<&str> = rust.iter().map(|r| r.as_str()).collect();
+    assert_facet_matches_ttl(&names, "DischargeCondition");
+    for r in &rust {
+        assert_eq!(DischargeCondition::from_local(r.as_str()), Some(*r));
+    }
+}
+
+#[test]
+fn correspondences_sort_canonically() {
+    let prog = LogicProgram::new(vec![], vec![], vec![], None).with_correspondences(vec![
+        corr(&format!("{LOGIC}z"), vec![]),
+        corr(&format!("{LOGIC}a"), vec![]),
+    ]);
+    let iris: Vec<&str> = prog
+        .correspondences
+        .iter()
+        .map(|c| c.iri.as_str())
+        .collect();
+    assert_eq!(iris, vec![format!("{LOGIC}a"), format!("{LOGIC}z")]);
+}
+
+#[test]
+fn canonical_key_is_unchanged_for_correspondence_free_program() {
+    // Corpus safety: attaching no correspondences must not alter the historical key.
+    let ax = axiom(&format!("{LOGIC}x"), &kind_pred(), &format!("{LOGIC}y"));
+    let base = LogicProgram::new(vec![ax.clone()], vec![], vec![], None);
+    let attached = LogicProgram::new(vec![ax], vec![], vec![], None).with_correspondences(vec![]);
+    assert_eq!(base.canonical_key(), attached.canonical_key());
+    assert!(!base.canonical_key().contains("CORRESPONDENCES"));
+}
+
+#[test]
+fn canonical_key_appends_correspondences_when_present() {
+    let prog = LogicProgram::new(vec![], vec![], vec![], None)
+        .with_correspondences(vec![corr(&format!("{LOGIC}c"), vec![])]);
+    assert!(prog.canonical_key().contains("CORRESPONDENCES"));
+}
+
+#[test]
+fn correspondence_content_key_is_law_claim_order_independent() {
+    let claims_ab = vec![
+        LawClaimIr {
+            law: CorrespondenceLaw::GetPut,
+            verdict: DischargeVerdict::ObligationDischarged,
+            condition: Some(DischargeCondition::DischargeCertifiedFragment),
+        },
+        LawClaimIr {
+            law: CorrespondenceLaw::PutGet,
+            verdict: DischargeVerdict::ObligationUnknown,
+            condition: None,
+        },
+    ];
+    let mut claims_ba = claims_ab.clone();
+    claims_ba.reverse();
+    let prog_ab = LogicProgram::new(vec![], vec![], vec![], None)
+        .with_correspondences(vec![corr(&format!("{LOGIC}c"), claims_ab)]);
+    let prog_ba = LogicProgram::new(vec![], vec![], vec![], None)
+        .with_correspondences(vec![corr(&format!("{LOGIC}c"), claims_ba)]);
+    assert_eq!(prog_ab.canonical_key(), prog_ba.canonical_key());
+}
+
+#[test]
+fn correspondence_dedups_duplicate_law_claims() {
+    let claim = LawClaimIr {
+        law: CorrespondenceLaw::SectionLaw,
+        verdict: DischargeVerdict::ObligationDischarged,
+        condition: Some(DischargeCondition::DischargeFiniteClosure),
+    };
+    let c = corr(&format!("{LOGIC}c"), vec![claim, claim, claim]);
+    assert_eq!(c.law_claims.len(), 1, "identical law claims are deduped");
+}
+
+#[test]
+fn correspondence_axes_signed_zero_normalized() {
+    // -0.0 and 0.0 confidence must produce the same content key (determinism).
+    let mk = |conf: f64| {
+        Correspondence::new(
+            format!("{LOGIC}c"),
+            CorrespondenceRelation::Equiv,
+            MorphismClass::Isomorphism,
+            MorphismKind::InstitutionMorphism,
+            false,
+            None,
+            None,
+            None,
+            vec![],
+            Some(conf),
+            None,
+            None,
+            None,
+            None,
+        )
+        .unwrap()
+    };
+    let pos = LogicProgram::new(vec![], vec![], vec![], None).with_correspondences(vec![mk(0.0)]);
+    let neg = LogicProgram::new(vec![], vec![], vec![], None).with_correspondences(vec![mk(-0.0)]);
+    assert_eq!(pos.canonical_key(), neg.canonical_key());
+}
+
+#[test]
+fn correspondence_new_rejects_empty_iri() {
+    let err = corr_err("", None);
+    assert!(err.contains("non-empty IRI"), "got: {err}");
+}
+
+#[test]
+fn correspondence_new_rejects_empty_optional_leg() {
+    // Some("") must never be constructible (it collides with None in the content key).
+    let err = corr_err(&format!("{LOGIC}c"), Some(String::new()));
+    assert!(err.contains("non-empty IRI"), "got: {err}");
+}
+
+#[test]
+fn correspondence_new_rejects_out_of_range_confidence() {
+    let err = Correspondence::new(
+        format!("{LOGIC}c"),
+        CorrespondenceRelation::Equiv,
+        MorphismClass::Isomorphism,
+        MorphismKind::InstitutionMorphism,
+        false,
+        None,
+        None,
+        None,
+        vec![],
+        Some(1.5),
+        None,
+        None,
+        None,
+        None,
+    )
+    .unwrap_err();
+    assert!(err.contains("[0, 1]"), "got: {err}");
+}
+
+/// Build a correspondence with an optional `get_leg`, returning the construction error.
+fn corr_err(iri: &str, get_leg: Option<String>) -> String {
+    Correspondence::new(
+        iri,
+        CorrespondenceRelation::Equiv,
+        MorphismClass::Isomorphism,
+        MorphismKind::InstitutionMorphism,
+        false,
+        None,
+        get_leg,
+        None,
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        None,
+    )
+    .unwrap_err()
+}

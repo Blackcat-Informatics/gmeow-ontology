@@ -50,10 +50,12 @@ governs what may be done with it:
   invoke;
 - **validation shape** — a closed-world data-shape condition (the SHACL-shaped subset);
 - **correspondence** — a law-bearing, possibly-lossy, possibly-bidirectional alignment between a
-  source pattern and a target pattern (the **ninth** kind), carrying its morphism class on an ordered
-  law-spine, its claimed laws with discharge status, the separated quantitative axes, FOL/SOL caveats,
-  and standpoint indexing. Its `get`/`put` legs are transaction programs; its caveat/relation envelope
-  is meta-level and stays meta. It is the single kind cross-ontology alignment compiles into, and from
+  source pattern and a target pattern (the **ninth** kind), wrapping a `logic:Lens` (its executable
+  `get`/`put` core) and carrying its morphism class on the seven-rung ordered law-spine, its claimed
+  laws with discharge verdict (reusing the foundation's `logic:DischargeVerdict` /
+  `logic:DischargeCondition` vocabulary), the separated quantitative axes, FOL/SOL caveats, and
+  standpoint indexing. Its `get`/`put` legs are transaction programs; its caveat/relation envelope is
+  meta-level and stays meta. It is the single kind cross-ontology alignment compiles into, and from
   which SSSOM/EDOAL/FnO/SPARQL/up-lift are generated lowerings. Fully specified in
   [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md).
 

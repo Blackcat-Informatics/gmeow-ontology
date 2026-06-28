@@ -172,8 +172,9 @@ Correspondence corpus category, each a decidable check over the content-addresse
 (graph-isomorphism, not semantic-equivalence search):
 
 - **Law gate** — a correspondence may not claim a law (GetPut / PutGet / PutPut / the section law) it
-  fails; a `proved-in-certified-fragment` discharge status is permitted only when the conformance
-  witness passes, otherwise the claim degrades to `declared-unverified` or `unknown`.
+  fails; an `ObligationDischarged` verdict under `logic:DischargeCertifiedFragment` is permitted only
+  when the conformance witness passes, otherwise the claim degrades to `ObligationUnknown` (an
+  unverified or inconclusive law), and a failed witness is `ObligationViolated`.
 - **Overclaim gate** — a claimed rung must be satisfiable by the lowered legs: a bridge view may not
   emit `owl:equivalentClass`; a caveated overlap may not emit `sssom exactMatch`. Overclaiming is a
   build failure, treated identically to dropping a fact silently (the preservation-overclaim rule
