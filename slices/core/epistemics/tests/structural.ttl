@@ -338,3 +338,64 @@ ASK {
     gmeow:justificationStatusRebutted a gmeow:JustificationStatus .
 }""" ;
     gmeow:saRationale "The defeat-status vocabulary gains gmeow:justificationStatusUndermined so all three typed-attack kinds (undermine / undercut / rebut) have a defeat-status twin (Principle 9)." .
+
+# --- 24. Locally-factive knowledge: KnowledgeClaim/Attribution relators (MUST) -
+ex:saKnowledgeRelators a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:KnowledgeClaim a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:KnowledgeAttribution a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
+    gmeow:knownInWorld a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:EpistemicContext .
+    gmeow:underStandard a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:EpistemicStandard .
+}""" ;
+    gmeow:saRationale "The locally-factive knowing relation is reified as gmeow:KnowledgeClaim (logic:Kind subClassOf logic:Relator) carrying gmeow:knownInWorld -> gmeow:EpistemicContext and gmeow:underStandard -> gmeow:EpistemicStandard, with the non-factive gmeow:KnowledgeAttribution alongside it — both CLAIM relators, deliberately NOT mental moments." .
+
+# --- 25. KnowledgeClaim is NOT a MentalMoment (the attitude stays Doxastic) ----
+ex:saKnowledgeClaimNotMentalMoment a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:KnowledgeClaim rdfs:subClassOf gmeow:MentalMoment . }""" ;
+    gmeow:saRationale "Principle 15: gmeow:KnowledgeClaim is the reified knowing RELATION (a claim apparatus), not the believing ATTITUDE — the attitude is gmeow:DoxasticState (the gmeow:MentalMoment). KnowledgeClaim MUST NOT be rdfs:subClassOf gmeow:MentalMoment." .
+
+# --- 26. Factive/attribution predicates are flat, open-range siblings (MUST) ---
+ex:saKnowledgePredicatesAgentDomain a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:knowsThatIn     a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+    gmeow:claimsToKnowThat a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+    gmeow:takesAsKnown    a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+}""" ;
+    gmeow:saRationale "The flat knowledge predicates (locally-factive gmeow:knowsThatIn, non-factive gmeow:claimsToKnowThat / gmeow:takesAsKnown) MUST be owl:ObjectProperties with rdfs:domain gmeow:Agent — the flat spine of the knowledge layer." .
+
+# --- 27. Knowledge predicates: NOT on the doxastic spine, open-range (MUST-NOT) -
+ex:saKnowledgePredicatesNotFactivePollution a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    {
+        VALUES ?p { gmeow:knowsThatIn gmeow:claimsToKnowThat gmeow:takesAsKnown }
+        VALUES ?super { gmeow:knowsThat gmeow:believes gmeow:knowsThatIn }
+        ?p rdfs:subPropertyOf ?super .
+    } UNION {
+        VALUES ?p { gmeow:knowsThatIn gmeow:claimsToKnowThat gmeow:takesAsKnown }
+        ?p rdfs:range ?r .
+    } UNION {
+        VALUES ?p { gmeow:knowsThatIn gmeow:claimsToKnowThat gmeow:takesAsKnown }
+        ?p a owl:FunctionalProperty .
+    }
+}""" ;
+    gmeow:saRationale "The keystone non-factive spine must stay clean: gmeow:knowsThatIn (locally factive), gmeow:claimsToKnowThat, and gmeow:takesAsKnown (non-factive) MUST NOT be rdfs:subPropertyOf gmeow:knowsThat / gmeow:believes / gmeow:knowsThatIn (a subproperty edge would pollute the spine with factivity), MUST NOT declare an rdfs:range (open-range, Principle 13), and MUST NOT be functional (Principle 9). Factivity rides the world-local gmeow:KnowledgeClaim and is recorded by prose, never an asserted truth bit (saNoTruthBit)." .

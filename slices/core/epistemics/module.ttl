@@ -210,6 +210,25 @@ gmeow:JustificationSubject
     gmeow:howToUse "Let instances be typed as gmeow:DoxasticState or gmeow:StandpointClaim; the explicit subClassOf axioms make them gmeow:JustificationSubjects for downstream schemas."@x-gmeow-english ;
     gmeow:useWhen "Use as the domain of the justification and defeat edges when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english .
 
+gmeow:KnowledgeAttribution
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Knowledge Attribution"@x-gmeow-english ;
+    rdfs:subClassOf logic:Relator ;
+    skos:definition "A reified, NON-FACTIVE attribution of knowledge — 'X takes themselves (or Y) to know that P' — a claim ABOUT an attitude, never collapsed into the locally-factive gmeow:KnowledgeClaim. Relates an attributing agent (gmeow:attributingAgent), the agent credited with the knowing (gmeow:attributedKnower, which may equal the attributer for self-attribution), and the proposition attributed as known (gmeow:attributedProposition). Carries NO world and NO standard and entails no truth: 'they take themselves to know' is a separate claim, never the factive relation (design/LOGIC-FOUNDATION.md). The flat surface is gmeow:claimsToKnowThat."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:KnowledgeClaim
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Knowledge Claim"@x-gmeow-english ;
+    rdfs:subClassOf logic:Relator ;
+    skos:definition "The reified, LOCALLY-FACTIVE knowing relation — that an agent (gmeow:knowerAgent) knows a proposition (gmeow:knownProposition) IN a belief-world (gmeow:knownInWorld -> gmeow:EpistemicContext) under an epistemic standard (gmeow:underStandard -> gmeow:EpistemicStandard). The promotion target of the flat gmeow:knowsThatIn. Knowledge is locally factive: knowing P in world W entails that P holds IN W, never globally across all worlds — an agent can know contested facts in its own world without the model claiming them everywhere. This is a CLAIM apparatus (a logic:Relator, like gmeow:ClaimToken / inference gmeow:InferenceCommitment), deliberately NOT a kernel:MentalMoment — the believing ATTITUDE remains gmeow:DoxasticState (the mental moment); the KnowledgeClaim reifies the knowing relation, not the attitude."@x-gmeow-english ;
+    skos:scopeNote "Local factivity (knowing P in W ⇒ P holds in W) is recorded by PROSE reference (Principle 5), never as an asserted axiom here: there is NO gmeow:isTrue, no factivity OWL axiom, and no asserted logic: triple — the world-indexed rule that makes factivity honest stays central in the logic slice over the typed, world-relative hold predicate (logic:doxasticallyAccessible / the context algebra), never a global truth bit. This keeps the no-truth-bit invariant and the clean DL/EL profile (the standpoint-slice Belnap-correspondence precedent)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:Proposition
     a logic:Kind ,
         owl:Class ;
@@ -302,6 +321,36 @@ gmeow:attacksClaim
     gmeow:howToUse "Point the attacking structure at the gmeow:ClaimToken; leave the domain open until the argumentation layer supplies gmeow:Argument, then narrow there, not here."@x-gmeow-english ;
     gmeow:useWhen "Use to record that some structure attacks a claim token — the attack pole of bipolar argumentation, ClaimToken-end only for now."@x-gmeow-english .
 
+gmeow:attributedKnower
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:KnowledgeAttribution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "attributed knower"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent credited with knowing in a gmeow:KnowledgeAttribution — may equal gmeow:attributingAgent for self-attribution. Functional: one attribution credits one knower."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:attributedProposition
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:KnowledgeAttribution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "attributed proposition"@x-gmeow-english ;
+    rdfs:range gmeow:Proposition ;
+    skos:definition "The proposition attributed as known in a gmeow:KnowledgeAttribution. Functional: one attribution is about one proposition. NON-FACTIVE: no truth is entailed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:attributingAgent
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:KnowledgeAttribution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "attributing agent"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent making a gmeow:KnowledgeAttribution — who attributes the knowing. Functional: one attribution has one attributer."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 gmeow:basesBeliefOn
     a owl:ObjectProperty ;
     rdfs:domain gmeow:JustificationSubject ;
@@ -342,6 +391,19 @@ gmeow:claimOfBelief
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set exactly once per DoxasticStandpointClaim, pointing to the DoxasticState whose agent, proposition, and claimModality match the claim's vantage, observedFeature, and modality."@x-gmeow-english ;
     gmeow:useWhen "Use to bind a DoxasticStandpointClaim to the reified DoxasticState whose belief it reports."@x-gmeow-english .
+
+gmeow:claimsToKnowThat
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "claims to know that"@x-gmeow-english ;
+    skos:definition "An agent CLAIMS to know a proposition — a reported, NON-FACTIVE knowledge-attribution attitude ('they take themselves to know'), never collapsed into the locally-factive gmeow:knowsThatIn / gmeow:KnowledgeClaim. Entails neither truth nor a world. NOT a subproperty of gmeow:knowsThat / gmeow:believes / gmeow:knowsThatIn. Range OPEN. Non-functional. The reified tier is gmeow:KnowledgeAttribution."@x-gmeow-english ;
+    skos:example "ex:alice gmeow:claimsToKnowThat ex:earthIsRound ."@x-gmeow-english ;
+    skos:scopeNote "claimsToKnowThat carries no world, no standard, and no factivity; it is a reported attitude, the analogue of a third-party 'X says they know'. It MUST NOT be a subproperty of any factive or doxastic-spine property."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as factive or as belief — it is a reported claim to know, never the locally-factive gmeow:knowsThatIn nor the non-factive belief gmeow:knowsThat; use gmeow:KnowledgeAttribution to reify the (attributer, knower, proposition) when it must be first-class."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the agent at the proposition it claims to know; reify with gmeow:KnowledgeAttribution when the attributing agent differs from the knower or the attribution itself is a fact of interest."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that an agent claims (takes itself) to know a proposition — a non-factive reported attitude, kept strictly separate from the locally-factive knowledge relation."@x-gmeow-english .
 
 gmeow:credence
     a owl:DatatypeProperty ;
@@ -539,6 +601,36 @@ gmeow:justificationStatusUndermined
     skos:definition "An undermining justification-defeat marker — a premise the target relies on has been attacked. Aligns with gmeow:attackUndermine in the inference slice (the premise-directed third typed-attack kind). A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:knowerAgent
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:KnowledgeClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "knower agent"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent who knows in a reified gmeow:KnowledgeClaim. Functional: one knowledge claim, one knower."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:knownInWorld
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:KnowledgeClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "known in world"@x-gmeow-english ;
+    rdfs:range gmeow:EpistemicContext ;
+    skos:definition "The belief-world a gmeow:KnowledgeClaim is locally factive IN — the gmeow:EpistemicContext relative to which the known proposition holds. Functional: one knowledge claim, one world. Local factivity is world-relative: knowing P in this world entails P holds in this world, never globally (recorded by prose, never an asserted truth bit)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:knownProposition
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:KnowledgeClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "known proposition"@x-gmeow-english ;
+    rdfs:range gmeow:Proposition ;
+    skos:definition "The proposition known in a reified gmeow:KnowledgeClaim. Functional: one knowledge claim, one proposition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 gmeow:knowsThat
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
@@ -552,6 +644,19 @@ gmeow:knowsThat
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the agent at the proposition or reified statement; carry truth-per-frame on gmeow:standpointModality / gmeow:accordingTo of the holding statement, factor justification via gmeow:hasAvailableEvidence / gmeow:basesBeliefOn / gmeow:supportsUnder / gmeow:adequateUnder / gmeow:defeatedBy declared in this module, and rely only on the safe entailment knowsThat ⊑ believes — never on a global truth bit."@x-gmeow-english ;
     gmeow:useWhen "Use to record justified, standpoint-true belief held from a vantage — the keystone knowledge-that attitude; asserting it materialises gmeow:believes (knowledge entails belief), so reach for it only when the holding is justified, not merely held."@x-gmeow-english .
+
+gmeow:knowsThatIn
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "knows that in"@x-gmeow-english ;
+    skos:definition "An agent knows that a proposition holds IN a belief-world — the flat, LOCALLY-FACTIVE knowledge surface (the 80% case): knowing P in world W entails P holds IN W, never globally. The reified promotion target carrying the world and the standard is gmeow:KnowledgeClaim. DISTINCT from the non-factive gmeow:knowsThat (a vantage-indexed claim with no world): knowsThatIn is locally factive and world-indexed. Range OPEN, like gmeow:knowsThat. Non-functional."@x-gmeow-english ;
+    skos:example "ex:ada gmeow:knowsThatIn ex:earthOrbitsSun ."@x-gmeow-english ;
+    skos:scopeNote "knowsThatIn is NOT rdfs:subPropertyOf gmeow:knowsThat or gmeow:believes — a subproperty edge would pollute the non-factive doxastic spine with factivity; the two are SIBLINGS. Local factivity (knowing P in W ⇒ P holds in W) is recorded by PROSE reference (Principle 5), never asserted: no gmeow:isTrue, no factivity OWL axiom, no asserted logic: triple — the world-indexed rule stays central in the logic slice over the world-relative hold predicate, keeping factivity honest in a paraconsistent setting and the DL profile clean."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as a GLOBAL truth verdict — factivity is world-LOCAL (relative to the gmeow:EpistemicContext), never across all worlds; for the non-factive vantage-indexed claim use gmeow:knowsThat, and for a merely reported 'they take themselves to know' use gmeow:claimsToKnowThat / gmeow:KnowledgeAttribution. Never make it a subproperty of the doxastic spine."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the agent at the proposition for the flat case; promote to a reified gmeow:KnowledgeClaim when the belief-world (gmeow:knownInWorld -> gmeow:EpistemicContext) and the gmeow:EpistemicStandard must be first-class. Keep it strictly separate from gmeow:knowsThat / gmeow:believes."@x-gmeow-english ;
+    gmeow:useWhen "Use to record locally-factive knowledge — that an agent knows P holds in a particular belief-world — distinct from the non-factive gmeow:knowsThat; the world and standard ride the reified gmeow:KnowledgeClaim."@x-gmeow-english .
 
 gmeow:meetsThreshold
     a owl:FunctionalProperty ,
@@ -673,6 +778,19 @@ gmeow:suspendsJudgementOn
     gmeow:howToUse "Point the agent at the proposition or reified statement to assert the withholding explicitly; keep it distinct from doubt and from silence, and let it coexist with other agents' attitudes on the same proposition (it is non-functional)."@x-gmeow-english ;
     gmeow:useWhen "Use to record an explicit agnostic stance — the agent has considered the proposition and withholds, neither believing nor disbelieving it — so suspension is distinguishable from mere silence (no recorded attitude)."@x-gmeow-english .
 
+gmeow:takesAsKnown
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "takes as known"@x-gmeow-english ;
+    skos:definition "An agent treats a proposition AS KNOWN for the purposes of reasoning or action — a working stance, the doxastic analogue of gmeow:accepts: it entails NEITHER truth NOR the locally-factive gmeow:KnowledgeClaim, and is deliberately not a subproperty of gmeow:knowsThat / gmeow:knowsThatIn / gmeow:believes. Range OPEN. Non-functional."@x-gmeow-english ;
+    skos:example "ex:alice gmeow:takesAsKnown ex:earthIsRound ."@x-gmeow-english ;
+    skos:scopeNote "takesAsKnown is the 'assume as known for the argument' stance — pragmatic, non-factive, carrying no world or standard; it MUST NOT be a subproperty of any factive or doxastic-spine property (the gmeow:accepts precedent)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as genuine knowledge or belief — it is a working stance (take P as known for reasoning), never the locally-factive gmeow:knowsThatIn nor a held belief; for a genuine knowledge claim use gmeow:knowsThatIn."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the agent at the proposition it treats as known for a line of reasoning or a policy default; keep it strictly separate from the factive knowledge relation so the projection layer never promotes it."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that an agent takes a proposition as known for reasoning or action WITHOUT thereby knowing or believing it — the knowledge analogue of pragmatic acceptance."@x-gmeow-english .
+
 gmeow:tenureOfDoxasticState
     a owl:FunctionalProperty ,
         owl:ObjectProperty ;
@@ -687,6 +805,16 @@ gmeow:tenureOfDoxasticState
     gmeow:howToUse "Set exactly once per DoxasticTenure, pairing it with duringInterval."@x-gmeow-english ;
     gmeow:useWhen "Use to bind a DoxasticTenure to the DoxasticState it time-scopes."@x-gmeow-english .
 
+gmeow:underStandard
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:KnowledgeClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "under standard"@x-gmeow-english ;
+    rdfs:range gmeow:EpistemicStandard ;
+    skos:definition "The epistemic standard a reified gmeow:KnowledgeClaim is held to — the gmeow:EpistemicStandard (ordinary / scientific / legal) under which the knowing counts. Functional: one knowledge claim, one standard."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 <https://blackcatinformatics.ca/gmeow/slices/epistemics>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
@@ -695,12 +823,13 @@ gmeow:tenureOfDoxasticState
 DOCTRINE.
   * Keystone: gmeow:knowsThat rdfs:subPropertyOf gmeow:believes — knowledge is justified, standpoint-true belief held from a vantage, and there is NO factive knows. Asserting knowsThat materialises believes; the reverse never holds; neither commits global truth. The reasoner never promotes justified-true-belief to knowledge — that verdict (and its Gettier defeaters) is solver work (Principle 12).
   * No truth bit: there is no isTrue, no truth datatype, no factivity axiom anywhere. Truth-per-frame rides the standpoint modality (gmeow:standpointModality on a flattened statement, gmeow:claimModality on a reified StandpointClaim), reused from the standpoint slice, never re-minted (Principle 6).
+  * Locally-factive knowledge (design/LOGIC-FOUNDATION.md): the non-factive gmeow:knowsThat has a SIBLING gmeow:knowsThatIn — knowing P in a belief-world W entails P holds IN W, never globally. The reified gmeow:KnowledgeClaim carries the world (gmeow:knownInWorld -> gmeow:EpistemicContext) and the standard (gmeow:underStandard -> gmeow:EpistemicStandard); it is a CLAIM apparatus (logic:Relator), deliberately NOT a kernel:MentalMoment (the attitude stays gmeow:DoxasticState). Local factivity is recorded by PROSE only — no gmeow:isTrue, no factivity axiom, no asserted logic: triple; the world-indexed rule stays central in the logic slice. NON-FACTIVE knowledge-attribution ('they take themselves to know') is kept strictly separate: gmeow:claimsToKnowThat / gmeow:takesAsKnown (flat) and gmeow:KnowledgeAttribution (reified), none a subproperty of the factive or doxastic spine.
   * Flat-first (Principle 4 / Principle 13): the believes / doubts / suspendsJudgementOn / accepts / knowsThat spine is the cheap 80% surface with an OPEN range (point at any reified statement or claim). The reified tier (DoxasticState, credence, doxasticClaim, DoxasticTenure) and the mental-moment grounding live in this module as the promotion target when credence, temporal scope, or standpoint modality must be first-class.
   * Factored justification (five components, design/LOGIC-FOUNDATION.md): available-evidence (gmeow:hasAvailableEvidence), basing (gmeow:basesBeliefOn — available != used), support-under-a-standard (gmeow:supportsUnder -> gmeow:SupportAssessment), adequacy (gmeow:adequateUnder -> gmeow:AdequacyAssessment, meeting a gmeow:EpistemicStandard threshold), and defeat — split into the structural defeater (gmeow:defeatedBy -> gmeow:Defeater) and the solver-set verdict flag (gmeow:hasDefeatStatus -> gmeow:JustificationStatus). All are solver judgements (Principle 12); full inferential argumentation lives in the inference slice.
   * believes is documented — never axiomatised — as riding gmeow:accordingTo on the statement (an owl:ObjectProperty cannot subproperty an owl:AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). The bridge is realised in the projection layer.
   * Acceptance is not belief: gmeow:accepts is pragmatic (a premise taken on for argument) and entails neither belief nor truth (Principle 1)."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "GMEOW Epistemics Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Epistemics Module — propositional epistemic relations: an agent's attitudes toward propositions/claims (belief, doubt, suspension, pragmatic acceptance, and non-factive knowledge-that)."@x-gmeow-english ;
+    skos:definition "The GMEOW Epistemics Module — propositional epistemic relations: an agent's attitudes toward propositions/claims (belief, doubt, suspension, pragmatic acceptance, non-factive knowledge-that, and locally-factive knowledge-in-a-world), with factored justification and non-factive knowledge-attribution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .

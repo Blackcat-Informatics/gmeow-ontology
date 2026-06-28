@@ -150,6 +150,29 @@ solver's adjudicated verdict (`gmeow:justificationStatusGettier` / `...Defeated`
 `...Undercut` / `...Rebutted`, aligned with the inference slice's `gmeow:AttackKind`). Full argument
 graphs and inference-making acts live in the inference slice.
 
+### Locally-factive knowledge
+
+The keystone `gmeow:knowsThat` is deliberately **non-factive** — a vantage-indexed claim entailing only
+`believes`. Alongside it sits a **sibling** (never a subproperty), `gmeow:knowsThatIn`, which is
+**locally factive**: knowing *P* in a belief-world *W* entails that *P* holds *in W*, never globally
+across all worlds. This keeps factivity honest in a paraconsistent, world-indexed setting — an agent
+can know contested facts in its own world without the model claiming them everywhere.
+
+The reified promotion `gmeow:KnowledgeClaim` carries the four roles — `gmeow:knowerAgent`,
+`gmeow:knownProposition`, `gmeow:knownInWorld` (→ `gmeow:EpistemicContext`), and `gmeow:underStandard`
+(→ `gmeow:EpistemicStandard`). It is a **claim apparatus** (a `logic:Relator`, like `gmeow:ClaimToken`),
+deliberately **not** a `kernel:MentalMoment` — the believing *attitude* stays `gmeow:DoxasticState`.
+Local factivity is recorded by **prose only**: there is no `gmeow:isTrue`, no factivity axiom, and no
+asserted `logic:` triple — the world-indexed rule lives in the logic slice over a world-relative hold
+predicate, so the no-truth-bit invariant and the clean DL/EL profile both hold.
+
+**Non-factive knowledge-attribution** is kept strictly separate. "They take themselves to know" is a
+claim *about an attitude*, never the factive relation: `gmeow:claimsToKnowThat` and `gmeow:takesAsKnown`
+(the knowledge analogue of `gmeow:accepts`) are flat, open-range, and never subproperties of the
+doxastic or factive spine; `gmeow:KnowledgeAttribution` reifies (`gmeow:attributingAgent`,
+`gmeow:attributedKnower`, `gmeow:attributedProposition`). Worked example:
+[`examples/locally-factive-knowledge.ttl`](./examples/locally-factive-knowledge.ttl).
+
 ### `revise_belief` — suppression, not deletion
 
 Revising a belief closes the prior `gmeow:DoxasticTenure` by setting `gmeow:endedAtTime` on its

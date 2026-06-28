@@ -249,3 +249,71 @@ gmeow:AdequacyAssessmentShape
         sh:severity sh:Violation ;
         sh:message "An AdequacyAssessment must carry exactly one gmeow:AdequacyVerdict (gmeow:meetsThreshold)." ;
     ] .
+
+# =========================================================================== #
+# Locally-factive knowledge (gmeow:KnowledgeClaim) and non-factive
+# knowledge-attribution (gmeow:KnowledgeAttribution) reified constructs.
+# =========================================================================== #
+
+gmeow:KnowledgeClaimShape
+    a sh:NodeShape ;
+    rdfs:label "KnowledgeClaim well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for gmeow:KnowledgeClaim: exactly one knower, one known proposition, one belief-world, and one epistemic standard — the four roles of the locally-factive knowing relation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    sh:targetClass gmeow:KnowledgeClaim ;
+    sh:property [
+        sh:path gmeow:knowerAgent ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:Agent ;
+        sh:severity sh:Violation ;
+        sh:message "A KnowledgeClaim must have exactly one knower (gmeow:knowerAgent, range gmeow:Agent)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:knownProposition ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:Proposition ;
+        sh:severity sh:Violation ;
+        sh:message "A KnowledgeClaim must know exactly one proposition (gmeow:knownProposition, range gmeow:Proposition)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:knownInWorld ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:EpistemicContext ;
+        sh:severity sh:Violation ;
+        sh:message "A KnowledgeClaim must name exactly one belief-world (gmeow:knownInWorld, range gmeow:EpistemicContext) — factivity is world-local." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:underStandard ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:EpistemicStandard ;
+        sh:severity sh:Violation ;
+        sh:message "A KnowledgeClaim must name exactly one gmeow:EpistemicStandard (gmeow:underStandard)." ;
+    ] .
+
+gmeow:KnowledgeAttributionShape
+    a sh:NodeShape ;
+    rdfs:label "KnowledgeAttribution well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for gmeow:KnowledgeAttribution: exactly one attributing agent, one attributed knower, and one attributed proposition — the non-factive 'X takes Y to know P'."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    sh:targetClass gmeow:KnowledgeAttribution ;
+    sh:property [
+        sh:path gmeow:attributingAgent ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:Agent ;
+        sh:severity sh:Violation ;
+        sh:message "A KnowledgeAttribution must have exactly one attributing agent (gmeow:attributingAgent)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:attributedKnower ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:Agent ;
+        sh:severity sh:Violation ;
+        sh:message "A KnowledgeAttribution must credit exactly one knower (gmeow:attributedKnower)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:attributedProposition ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:Proposition ;
+        sh:severity sh:Violation ;
+        sh:message "A KnowledgeAttribution must attribute exactly one proposition (gmeow:attributedProposition)." ;
+    ] .
