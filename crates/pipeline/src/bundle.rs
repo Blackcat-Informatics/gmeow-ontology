@@ -205,12 +205,12 @@ pub fn bundle_artifact<'b>(
     logical_path: &str,
 ) -> Option<&'b [u8]> {
     let resource = bundle
-        .lookaside
+        .lookaside()
         .resources_of_kind(ARTIFACT_KIND)
         .find(|r| r.name.as_deref() == Some(logical_path))?;
     let hex = resource.content_digest.as_deref()?;
     let digest = gmeow_rdf::ContentDigest::from_hex(hex)?;
-    bundle.blobs.get(&digest).map(Vec::as_slice)
+    bundle.blobs().get(&digest).map(Vec::as_slice)
 }
 
 /// Reconstruct the full `(logical_path → bytes)` map of a bundle's byte-artifact
@@ -220,7 +220,7 @@ pub fn bundle_artifact<'b>(
 /// Grep `byte-artifact lane`.
 pub fn bundle_artifacts(bundle: &PipelineBundle<PipelineHandle>) -> BTreeMap<String, Vec<u8>> {
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    for resource in bundle.lookaside.resources_of_kind(ARTIFACT_KIND) {
+    for resource in bundle.lookaside().resources_of_kind(ARTIFACT_KIND) {
         let (Some(name), Some(hex)) =
             (resource.name.as_deref(), resource.content_digest.as_deref())
         else {
@@ -229,7 +229,7 @@ pub fn bundle_artifacts(bundle: &PipelineBundle<PipelineHandle>) -> BTreeMap<Str
         let Some(digest) = gmeow_rdf::ContentDigest::from_hex(hex) else {
             continue;
         };
-        if let Some(bytes) = bundle.blobs.get(&digest) {
+        if let Some(bytes) = bundle.blobs().get(&digest) {
             out.insert(name.to_owned(), bytes.clone());
         }
     }
@@ -245,7 +245,7 @@ pub fn set_bundle_provenance(
     bundle: &mut Arc<PipelineBundle<PipelineHandle>>,
     provenance: DatasetProvenance,
 ) {
-    Arc::make_mut(bundle).provenance = provenance;
+    Arc::make_mut(bundle).set_provenance(provenance);
 }
 
 /// A fresh empty frozen dataset — the backing graph for artifact-only bundles.
