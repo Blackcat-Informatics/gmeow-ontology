@@ -71,28 +71,47 @@ pub fn build_snapshot(
     blobs: Vec<BlobRow>,
     report_blobs: Vec<BlobRow>,
 ) -> Result<Vec<u8>, PipelineError> {
+    let carrier = assemble_carrier(root, upstream)?;
+    serialize_snapshot(&carrier, blobs, report_blobs)
+}
+
+/// Assemble the FULL snapshot carrier: every named graph parsed into ONE native
+/// `RdfDataset` and unioned once. The carried logic / relational-core / correspondence
+/// / reasoning graphs ride in from the upstream producers' carriers (no re-derivation);
+/// the snapshot-owned graphs (authored default, statement layer, imports, metadata,
+/// alignments, slice-analysis, verify, documentation, diagnostics, conformance,
+/// projection-ledger, provenance) are parsed and re-rooted here. This carrier is the
+/// single internal transport — it is BOTH serialized to gts and carried as the snapshot
+/// product's bundle, so the snapshot is assembled ONCE.
+fn assemble_carrier(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
     // ── the authored default graph (ontology + slice modules; NO imports) ──────
     let authored = load_authored_default(root)?;
     let authored_canon = canonicalize_nq(&authored, "base")?;
+    // Reject quoted triples in the authored default graph (it carries none); the
+    // default graph is NOT re-rooted.
+    reject_quoted_triples(&parse_nq(authored_canon.as_bytes())?, "<default>")?;
+    let base = parse_dataset(authored_canon.as_bytes(), "application/n-quads", None)
+        .map_err(|e| stage_err(&format!("base parse: {e}")))?;
 
-    // ── the named-graph sources ────────────────────────────────────────────────
+    // ── the snapshot-owned named-graph sources ─────────────────────────────────
     let imports = load_imports(root)?;
     let metadata = load_metadata(root)?;
     let alignments = load_alignments(root)?;
+    let slice_analysis = build_slice_analysis(root, &authored)?;
     let rdf12 = upstream
         .get("stage-statements")
         .and_then(|p| p.artifact(RDF12_PATH))
         .ok_or_else(|| stage_err("missing statements RDF 1.2 artifact"))?
         .to_vec();
-    let slice_analysis = build_slice_analysis(root, &authored)?;
     let documentation = upstream
         .get("stage-docs-render")
         .and_then(|p| p.artifact(crate::stages::docs_render::DOCS_GRAPH_PATH))
         .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing docs-render documentation graph"))?;
-    // graph/diagnostics ← the union of the SHACL diagnostics and the logic-compile
-    // diagnostics (both target the same DIAGNOSTICS_GRAPH IRI with content-addressed
-    // finding IRIs, so concatenating their N-Quads is a deterministic quad-set union).
+    // graph/diagnostics ← SHACL diagnostics ∪ logic-compile diagnostics.
     let mut diagnostics = upstream
         .get("stage-validate")
         .and_then(|p| p.artifact(crate::stages::validate::SHACL_RDF_PATH))
@@ -106,20 +125,11 @@ pub fn build_snapshot(
         diagnostics.push(b'\n');
     }
     diagnostics.extend_from_slice(compile_diagnostics);
-
-    // graph/conformance ← the external-corpus reasoning-divergence Findings the
-    // conformance stage graded over the committed corpus. May be empty when every
-    // committed case agrees with its published expected verdict.
     let conformance = upstream
         .get("stage-conformance")
         .and_then(|p| p.artifact(crate::stages::conformance::CONFORMANCE_NQ_PATH))
         .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing conformance-stage divergence Finding graph"))?;
-
-    // graph/projection-ledger ← the FINAL projection-report loss ledger (Turtle),
-    // converted to N-Quads for the named-graph fold via the native codec (no `Store`).
-    // Assembled by stage-mappings over the UNION of the logic projection rows and the
-    // correspondence-calculus ledger (compile-logic no longer emits the committed file).
     let projection_ledger = {
         let report_ttl = upstream
             .get("stage-mappings")
@@ -127,138 +137,97 @@ pub fn build_snapshot(
             .ok_or_else(|| stage_err("missing mappings projection-report loss ledger"))?;
         turtle_to_nquads(report_ttl)?
     };
-
-    // Pass 1: build WITHOUT the verify graph, then run native verify over the
-    // default graph ∪ imports (the closed-world integrity constraints query that
-    // union; the verify graph itself is never an input — #695). The verify EDB is
-    // assembled by parsing each side natively and merging via the standardize-apart
-    // `RdfDataset::union` (no oxigraph `Store`): the authored default graph is already
-    // canonical N-Quads, the imports are Turtle.
+    // graph/verify ← native attestation over the authored ∪ imports EDB (the verify
+    // graph is never its own input — #695).
     let verify_attestation = {
-        let authored_ds = parse_dataset(authored_canon.as_bytes(), "application/n-quads", None)
-            .map_err(|e| stage_err(&format!("verify authored parse: {e}")))?;
         let imports_ds = parse_dataset(&imports, "text/turtle", None)
             .map_err(|e| stage_err(&format!("verify imports parse: {e}")))?;
-        let edb = gmeow_rdf::RdfDataset::union(&[authored_ds.as_ref(), imports_ds.as_ref()]);
+        let edb = gmeow_rdf::RdfDataset::union(&[base.as_ref(), imports_ds.as_ref()]);
         run_verify_attestation(root, &edb)?
     };
+    // graph/provenance ← the gated public provenance projection (S0.5).
+    let provenance_nt = build_provenance_projection(root)?;
 
-    // ── the builder: route every source into its named graph ────────────────────
-    let mut builder = SnapshotBuilder::new();
-    // default ← the canonicalized authored ontology only.
-    let base_quads = parse_nq(authored_canon.as_bytes())?;
-    reject_quoted_triples(&base_quads, "<default>")?;
-    builder.add_quads(&base_quads, None, Some("base"));
-    // RDF 1.2 statement layer: base quads → graph/statements; reifies/annot global.
-    builder
-        .add_rdf12(
-            &parse_rdf(&rdf12, "text/turtle")?,
-            Some(GRAPH_STATEMENTS),
-            Some("stmt"),
-        )
-        .map_err(|e| stage_err(&format!("rdf12 ingest: {e}")))?;
-    // graph/alignments ← SSSOM alignment axioms (canonicalized).
-    add_named(&mut builder, &alignments, GRAPH_ALIGNMENTS, "align")?;
-    // graph/imports ← vendored import closure.
-    add_named(&mut builder, &imports, GRAPH_IMPORTS, "imports")?;
-    // graph/metadata ← self-description.
-    add_named(&mut builder, &metadata, GRAPH_METADATA, "metadata")?;
-    // graph/slice-analysis ← computed ownership/dependency graph.
-    add_named(
-        &mut builder,
-        &slice_analysis,
-        GRAPH_SLICE_ANALYSIS,
-        "slice-analysis",
-    )?;
-    // graph/verify ← the two-pass attestation.
-    add_named(&mut builder, &verify_attestation, GRAPH_VERIFY, "verify")?;
-    // graph/documentation ← the docs projection (N-Quads, already in its graph).
-    add_named(&mut builder, &documentation, GRAPH_DOCUMENTATION, "doc")?;
-    // graph/diagnostics ← the DAG-native SHACL + logic-compile diagnostics union.
-    add_named(&mut builder, &diagnostics, GRAPH_DIAGNOSTICS, "diagnostics")?;
-    // graph/conformance ← the external-corpus divergence Findings. Folded only when
-    // non-empty: an all-agree committed corpus has no divergences, and folding an
-    // empty graph would add a phantom named-graph row (skip, like an empty source).
-    if !conformance.is_empty() {
-        add_named(&mut builder, &conformance, GRAPH_CONFORMANCE, "conformance")?;
-    }
-    // graph/projection-ledger ← the compiler's projection-report loss ledger.
-    add_named(
-        &mut builder,
-        &projection_ledger,
-        GRAPH_PROJECTION_LEDGER,
-        "projledger",
-    )?;
-    // graph/logic + graph/relational-core + graph/correspondence ride stage-compile-logic's
-    // carrier; graph/reasoning rides stage-reason's. Fold each named graph DIRECTLY from the
-    // producing carrier's dataset via the native ingestion — no artifact re-fetch, no
-    // projection re-derivation. The projection was transformed once, upstream; the carrier
-    // is the single internal transport for it.
+    // ── the carried graphs ride in from the producers' carriers ────────────────
     let compile = upstream
         .get("stage-compile-logic")
         .ok_or_else(|| stage_err("missing stage-compile-logic product"))?;
     let reason = upstream
         .get("stage-reason")
         .ok_or_else(|| stage_err("missing stage-reason product for the Reasoning handle"))?;
-    // `project_named_graph` returns the subgraph in the DEFAULT graph (name stripped),
-    // so each is re-rooted back into its named graph before folding — otherwise the
-    // logic/relational-core/correspondence/reasoning quads would leak into the authored
-    // default graph and the reasoner would over-infer over them.
     let logic_iri = crate::stages::compile_logic::GRAPH_LOGIC;
     let rc_iri = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE;
     let corr_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
     let reasoning_iri = gmeow_logic::result_rdf::GRAPH_REASONING;
-    let logic_graph = rooted_in_graph(
-        &compile.bundle().dataset().project_named_graph(logic_iri),
-        logic_iri,
-    )?;
-    let relational_core_graph = rooted_in_graph(
-        &compile.bundle().dataset().project_named_graph(rc_iri),
-        rc_iri,
-    )?;
-    let correspondence_graph = rooted_in_graph(
-        &compile.bundle().dataset().project_named_graph(corr_iri),
-        corr_iri,
-    )?;
-    let reasoning_graph = rooted_in_graph(
-        &reason.bundle().dataset().project_named_graph(reasoning_iri),
-        reasoning_iri,
-    )?;
-    for graph in [
-        &logic_graph,
-        &relational_core_graph,
-        &correspondence_graph,
-        &reasoning_graph,
-    ] {
-        builder
-            .add_dataset(graph.as_ref())
-            .map_err(|e| stage_err(&format!("fold carrier graph into snapshot: {e}")))?;
-    }
-    // graph/provenance ← the dogfooded occurrence-based provenance projection
-    // (#1132 C9), folded as its own queryable named graph so a repo-free consumer reads
-    // the full compilation-unit + per-lane carrier manifest (public IRIs + OriginKind +
-    // logic:loadBearing) WITHOUT re-running the build. The per-quad attribution sidecar
-    // is built + gated here (an UNATTRIBUTED authored quad HARD-fails); only its PUBLIC
-    // projection (`public_projection` — NO runtime UnitId/ArtifactId/OriginSetId, S0.5)
-    // reaches the graph.
-    let provenance_nt = build_provenance_projection(root)?;
-    add_named(
-        &mut builder,
-        provenance_nt.as_bytes(),
-        crate::stages::provenance_graph::GRAPH_PROVENANCE,
-        "provenance",
-    )?;
 
-    // Fold a deterministic tar archive of the JSON-LD-star + YAML-LD-star
-    // serializations into the bundle (#699). The serializer reads THIS builder's
-    // snapshot graph, so we do a temporary in-memory emit/read rather than reading
-    // the committed file from disk or creating a DAG cycle.
+    // ── route every snapshot-owned source into its named graph, then union all ──
+    let mut datasets: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = vec![
+        base,
+        parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
+        parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
+        parse_into_graph(&metadata, "application/n-quads", GRAPH_METADATA)?,
+        parse_into_graph(&alignments, "application/n-quads", GRAPH_ALIGNMENTS)?,
+        parse_into_graph(&slice_analysis, "application/n-quads", GRAPH_SLICE_ANALYSIS)?,
+        parse_into_graph(&verify_attestation, "application/n-quads", GRAPH_VERIFY)?,
+        parse_into_graph(&documentation, "application/n-quads", GRAPH_DOCUMENTATION)?,
+        parse_into_graph(&diagnostics, "application/n-quads", GRAPH_DIAGNOSTICS)?,
+        parse_into_graph(
+            &projection_ledger,
+            "application/n-quads",
+            GRAPH_PROJECTION_LEDGER,
+        )?,
+        parse_into_graph(
+            provenance_nt.as_bytes(),
+            "application/n-triples",
+            crate::stages::provenance_graph::GRAPH_PROVENANCE,
+        )?,
+        rooted_in_graph(
+            &compile.bundle().dataset().project_named_graph(logic_iri),
+            logic_iri,
+        )?,
+        rooted_in_graph(
+            &compile.bundle().dataset().project_named_graph(rc_iri),
+            rc_iri,
+        )?,
+        rooted_in_graph(
+            &compile.bundle().dataset().project_named_graph(corr_iri),
+            corr_iri,
+        )?,
+        rooted_in_graph(
+            &reason.bundle().dataset().project_named_graph(reasoning_iri),
+            reasoning_iri,
+        )?,
+    ];
+    // graph/conformance is folded only when non-empty (an all-agree corpus has none).
+    if !conformance.is_empty() {
+        datasets.push(parse_into_graph(
+            &conformance,
+            "application/n-quads",
+            GRAPH_CONFORMANCE,
+        )?);
+    }
+    let refs: Vec<&gmeow_rdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
+    Ok(std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&refs)))
+}
+
+/// Serialize the fully-assembled carrier to the `dist`-profile `gmeow.gts` bytes: fold
+/// the carrier into the snapshot frame (native ingestion), staple the JSON-LD-star /
+/// OKF / caller blobs, and emit. The SOLE serialization of the snapshot.
+fn serialize_snapshot(
+    carrier: &gmeow_rdf::RdfDataset,
+    blobs: Vec<BlobRow>,
+    report_blobs: Vec<BlobRow>,
+) -> Result<Vec<u8>, PipelineError> {
+    let mut builder = SnapshotBuilder::new();
+    builder
+        .add_dataset(carrier)
+        .map_err(|e| stage_err(&format!("fold carrier into snapshot: {e}")))?;
+    // The JSON-LD-star + OKF archive blobs read THIS builder's snapshot graph.
     let yaml_ld_blob = build_yaml_ld_blob_from_builder(&builder)?;
     let okf_blob = build_okf_blob_from_builder(&builder)?;
     let mut blobs = blobs;
     blobs.push(yaml_ld_blob);
     blobs.push(okf_blob);
-
     emit_gts(
         &builder,
         "dist",
@@ -271,6 +240,18 @@ pub fn build_snapshot(
         gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
     )
     .map_err(|e| stage_err(&format!("emit_gts: {e}")))
+}
+
+/// Parse `bytes` natively and re-root every quad into `graph_iri` (see
+/// [`rooted_in_graph`]).
+fn parse_into_graph(
+    bytes: &[u8],
+    media_type: &str,
+    graph_iri: &str,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    let parsed = parse_dataset(bytes, media_type, None)
+        .map_err(|e| stage_err(&format!("parse <{graph_iri}>: {e}")))?;
+    rooted_in_graph(&parsed, graph_iri)
 }
 
 /// Read this run's freshly-composed `gmeow.gts` snapshot bytes from the
@@ -1750,6 +1731,10 @@ fn query_stem(name: &str) -> &str {
 
 // ── small helpers ───────────────────────────────────────────────────────────────
 
+/// Canonicalize N-Quads bytes and route them into `graph_name` on `builder` — the
+/// oxigraph-ingestion path the byte-golden tests use to author fixture snapshots.
+/// Production assembly now goes through the native carrier ([`assemble_carrier`]).
+#[cfg(test)]
 fn add_named(
     builder: &mut SnapshotBuilder,
     nq_bytes: &[u8],
