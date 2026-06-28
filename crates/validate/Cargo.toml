@@ -39,6 +39,10 @@ jsonschema = { version = "0.46", default-features = false }
 serde_yaml = "0.9"
 # SHA-256 for content-addressed validation cache keys (parity with Python hashlib).
 sha2 = "0.10"
+# Data parallelism: the per-example SHACL pass (the dominant cost of `validate`) is
+# embarrassingly parallel across the ~100 slice examples, and the three DSL SHACL
+# phases are independent — both fan out over rayon against the shared read-only store.
+rayon = "1"
 # Blocking HTTP client for the maintainer-only Wikidata live existence lane.
 ureq = "3"
 # SHACL engine: the Rust-native validation orchestration reuses parsed shapes

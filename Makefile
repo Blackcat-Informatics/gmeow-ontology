@@ -12,6 +12,12 @@ TARGET ?= foaf
 MESSAGE ?= "chore: regenerate checked-in artifacts"
 GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
 NPROC ?= $(shell nproc 2>/dev/null || echo 4)
+# check-generated reproduces every committed artifact through the gmeow-pipeline DAG;
+# its stages mix CPU work with artifact IO, so oversubscribing jobs past the core
+# count overlaps the IO and measurably cuts wall-time (≈25% on a 2-core runner),
+# keeping the ontology-generated CI lane under the 5-minute target. Bounded in
+# practice by the DAG width per level.
+CHECK_GENERATED_JOBS ?= $(shell echo $$(( $(NPROC) * 2 )))
 CARGO_TARGET_DIR ?= target
 SIGN_KEY ?=
 PUBLIC_KEY ?= keys/gmeow-release-key.asc
@@ -56,7 +62,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 
 .PHONY: help \
 	install fmt lint \
-	native-py validate validate-gts reason verify test test-fast rust-build rust-test check \
+	native-py native-py-wheel native-py-install validate validate-gts reason verify test test-fast rust-build rust-test check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene wasm wasm-pkg wasm-pkg-test \
@@ -136,7 +142,12 @@ diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow
 	./target/debug/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
 check: native-py ## Run the full Docker-free local quality gate.
-	$(MAKE) -j$(NPROC) $(CHECK_TARGETS)
+	# check-generated is one of CHECK_TARGETS, so it already runs as one of the
+	# -j$(NPROC) outer jobs here; cap its inner pipeline pool to the outer count
+	# (a command-line assignment overrides the CHECK_GENERATED_JOBS ?= NPROC*2
+	# default) so the nested pools don't oversubscribe a small box. The standalone
+	# `make check-generated` CI lane keeps the wider NPROC*2 IO-overlap pool.
+	$(MAKE) -j$(NPROC) CHECK_GENERATED_JOBS=$(NPROC) $(CHECK_TARGETS)
 	$(MAKE) test-fast
 	$(MAKE) compliance-report
 	@echo "all checks passed (Docker-free, Java-free)"
@@ -147,7 +158,7 @@ regenerate: native-py ## Rebuild all checked-in generated artifacts from canonic
 	$(GMEOW_DEV) regenerate -j $(NPROC)
 
 check-generated: native-py ## Drift + orphan check for all registered generators.
-	$(GMEOW_DEV) check-generated -j $(NPROC)
+	$(GMEOW_DEV) check-generated -j $(CHECK_GENERATED_JOBS)
 
 commit: regenerate ## Regenerate artifacts, stage generator-owned outputs, and commit.
 	@REGENERATED_PATHS=$$(uv run python -c "from gmeow_tools.load_generators import load_all; load_all(); from gmeow_tools.generator import all_regenerated_paths; print(' '.join(all_regenerated_paths()))"); \
@@ -556,6 +567,42 @@ native-py: $(NATIVE_PY_STAMP)
 $(NATIVE_PY_STAMP): $(NATIVE_PY_INPUTS)
 	VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
 	@touch $@
+
+native-py-wheel: ## Build the unified gmeow_native wheel into dist/wheels (CI prebuild-once).
+	rm -rf dist/wheels
+	# Build from crates/native/ so maturin resolves `python-source = "python"`
+	# (the legacy gmeow_* import shims) relative to that pyproject, not the repo root.
+	# `--compatibility linux` skips auditwheel repair (no system-lib bundling): the
+	# prebuild job and every consumer run on the same ubuntu-latest image, so a plain
+	# linux wheel is correct and avoids the repair step. Debug (no --release) matches
+	# the per-job `maturin develop` it replaces and keeps the Nemo build fast/light.
+	cd crates/native && VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin build --compatibility linux -o "$(CURDIR)/dist/wheels"
+
+native-py-install: ## Install the prebuilt unified wheel from dist/wheels (CI consumers); hard-fail if absent/ambiguous.
+	set -eu; \
+	shopt -s nullglob; \
+	wheels=(dist/wheels/*.whl); \
+	if [ $${#wheels[@]} -ne 1 ]; then \
+		echo "native-py-install: expected exactly one wheel in dist/wheels, found $${#wheels[@]} — no fallback to maturin develop" >&2; \
+		exit 1; \
+	fi; \
+	VIRTUAL_ENV="$(CURDIR)/.venv" uv pip install --no-deps --force-reinstall "$${wheels[0]}"; \
+	site="$$(VIRTUAL_ENV="$(CURDIR)/.venv" uv run python -c 'import sysconfig; print(sysconfig.get_path("purelib"))')"; \
+	if [ -z "$$site" ]; then echo "native-py-install: could not resolve site-packages" >&2; exit 1; fi; \
+	for pkg in gmeow_diagnostics gmeow_docs gmeow_logic gmeow_rdf gmeow_shacl gmeow_slice gmeow_validate; do \
+		rm -rf "$$site/$$pkg"; \
+		cp -r "crates/native/python/$$pkg" "$$site/$$pkg"; \
+	done
+	# The wheel ships only the `gmeow_native` cdylib; the tiny pure-Python legacy
+	# import shims (gmeow_logic → gmeow_native.logic, etc.) live in
+	# crates/native/python/ and `maturin develop` exposes them editable. Here the repo
+	# is checked out, so copy the sibling shim packages into site-packages alongside
+	# the installed cdylib so `import gmeow_logic` (and friends) resolves.
+	@mkdir -p $(dir $(NATIVE_PY_STAMP))
+	@touch $(NATIVE_PY_STAMP)
+	# Mark the native-ext stamp satisfied so downstream gates (`validate`,
+	# `check-generated`, ...) that depend on `native-py` do NOT re-run `maturin
+	# develop` — the unified extension is already installed from the prebuilt wheel.
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)
 	@mkdir -p $(dir $@)

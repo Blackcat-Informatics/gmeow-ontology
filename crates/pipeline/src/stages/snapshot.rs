@@ -24,6 +24,7 @@ use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
 use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
 use oxigraph::model::Quad;
 use oxigraph::store::Store;
+use rayon::prelude::*;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
@@ -508,14 +509,22 @@ fn build_docs_archive(root: &Path) -> Result<BlobRow, PipelineError> {
         .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translations = gmeow_docs::Translations::from_catalog(&catalog);
 
-    let mut members: Vec<(String, Vec<u8>)> = Vec::new();
-    for lang in gmeow_docs::available_languages(&translations) {
-        let site = gmeow_docs::render_site_lang(&model, &lang);
-        let prefix = translations.internal_tag(&lang);
-        for (path, bytes) in site.files {
-            members.push((format!("{prefix}/{path}"), bytes));
-        }
-    }
+    // Render each language's full site in parallel: the per-language renders are
+    // independent pure functions of the shared read-only model, and this is the
+    // dominant cost of the snapshot stage (which sits on the build DAG's serial
+    // critical path). Results are collected then sorted by member path, so the
+    // archive is byte-identical regardless of completion order.
+    let langs = gmeow_docs::available_languages(&translations);
+    let mut members: Vec<(String, Vec<u8>)> = langs
+        .par_iter()
+        .flat_map_iter(|lang| {
+            let site = gmeow_docs::render_site_lang(&model, lang);
+            let prefix = translations.internal_tag(lang);
+            site.files
+                .into_iter()
+                .map(move |(path, bytes)| (format!("{prefix}/{path}"), bytes))
+        })
+        .collect();
     members.sort_by(|a, b| a.0.cmp(&b.0));
     archive_blob(REP_ONTOLOGY_DOCS, &members)
 }
