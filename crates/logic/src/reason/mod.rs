@@ -34,7 +34,7 @@ use crate::encode::{
 use crate::nemo_engine::{run_chase, ChaseRow};
 use crate::result::{ReasoningResult, ResultProvenance};
 use crate::store::WorldStore;
-use gmeow_rdf::RdfDataset;
+use gmeow_rdf::{RdfDataset, RdfDatasetBuilder};
 
 /// The content-addressed identity of the native EL/DL/RL reasoning contract —
 /// the `contract_hash` every native-reason result is produced under.
@@ -109,6 +109,32 @@ pub(crate) fn reason_closure(
 pub fn reason_all(edb: &RdfDataset) -> Result<ReasoningResult, String> {
     let (inferred, verdict) = reason_closure(edb)?;
     Ok(typed_result(inferred, &verdict))
+}
+
+/// Reason over a user-supplied data graph MERGED with the bundle's axioms, returning
+/// the same shared typed [`ReasoningResult`] as [`reason_all`].
+///
+/// The merge is the cross-dataset re-intern
+/// ([`RdfDatasetBuilder::push_dataset`](gmeow_rdf::RdfDatasetBuilder::push_dataset)),
+/// so it carries the FULL RDF 1.2 statement layer of both inputs — the user's
+/// reifier bindings and annotations are not dropped. The chase then runs over the
+/// single merged dataset, so an inconsistency entailed only by the user's data
+/// against the bundled TBox surfaces as `information=both` with its contradiction
+/// witnesses, exactly as a same-graph inconsistency would.
+///
+/// # Errors
+///
+/// Returns `Err(String)` if the merged dataset fails the freeze-time structural
+/// contract, or if the chase fails to parse/validate/evaluate/decode.
+pub fn reason_all_with_data(
+    bundle: &RdfDataset,
+    user: &RdfDataset,
+) -> Result<ReasoningResult, String> {
+    let mut builder = RdfDatasetBuilder::new();
+    builder.push_dataset(bundle);
+    builder.push_dataset(user);
+    let merged = builder.freeze().map_err(|e| e.to_string())?;
+    reason_all(&merged)
 }
 
 /// Fold a `(closure, DlVerdict)` pair into the typed [`ReasoningResult`] under the
@@ -288,6 +314,43 @@ mod tests {
                 .any(|w| w.individual == X),
             "x must be a contradiction witness: {:?}",
             result.provenance.contradiction_witnesses
+        );
+    }
+
+    #[test]
+    fn reason_all_with_data_merges_user_abox_into_bundle_tbox() {
+        // The contradiction is entailed only ACROSS the two inputs: the disjointness
+        // TBox lives in `bundle`, the offending individual `x : A` in `user`. Neither
+        // alone is inconsistent; the merge must feed both to the chase.
+        let bundle = dataset(vec![
+            quad(A, SUBCLASS, B),
+            quad(A, SUBCLASS, C),
+            quad(B, DISJOINT, C),
+        ]);
+        let user = dataset(vec![quad(X, TYPE, A)]);
+
+        // The user ABox on its own (no TBox) is consistent.
+        let user_only = reason_all(user.as_ref()).expect("reason_all over user-only");
+        assert!(
+            user_only.is_consistent(),
+            "x : A with no disjointness axioms is consistent"
+        );
+
+        // Merged with the bundle TBox, x is forced into owl:Nothing.
+        let merged = reason_all_with_data(bundle.as_ref(), user.as_ref())
+            .expect("reason_all_with_data should succeed");
+        assert!(
+            !merged.is_consistent(),
+            "user data merged with the bundle TBox entails an inconsistency"
+        );
+        assert!(
+            merged
+                .provenance
+                .contradiction_witnesses
+                .iter()
+                .any(|w| w.individual == X),
+            "x must be a contradiction witness in the merged run: {:?}",
+            merged.provenance.contradiction_witnesses
         );
     }
 }
