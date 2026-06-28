@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Declarative structural assertions for the logic slice -- the slice-resident
-# test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants of the typed
-# context algebra. Each assertion runs as a SPARQL ASK over the logic module
-# graph (gmeow:scopeModule) under the native Rust slicetest harness
-# (crates/slicetest).
+# test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants. Each assertion
+# runs as a SPARQL ASK over the logic module graph (gmeow:scopeModule) under the
+# native Rust slicetest harness (crates/slicetest). Sections 1-6 cover the typed
+# context algebra; sections 7-11 cover the occurrent-refinement terms (the
+# YAMATO/Galton process-not-equal-event distinction).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
@@ -101,7 +102,66 @@ ASK {
 }""" ;
     gmeow:saRationale "No reified modal-possibility class MUST exist -- the sandbox operator (logic:HypotheticalExecution) is DISTINCT from modal possibility, which stays computed as the standard translation over the appropriate typed accessibility relation (logic:epistemicallyPossible / logic:doxasticallyAccessible) rather than reified. Conflating sandbox execution with modal possibility is the error this guards against." .
 
-# --- 7. CognitiveAssessment construct + projection + defeasible-evidence vocabulary (MUST) ---
+# === Occurrent-refinement terms (YAMATO/Galton process-not-equal-event) =======
+
+# --- 7. causalPartOf is a transitive object property (MUST hold) --------------
+ex:saCausalPartOfTransitiveObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:causalPartOf a owl:ObjectProperty , logic:transitiveProperty .
+}""" ;
+    gmeow:saRationale "Causal parthood among occurrents is transitive: a causal part of a causal part causally contributes to the whole. logic:causalPartOf MUST be an owl:ObjectProperty also typed logic:transitiveProperty." .
+
+# --- 8. causalPartOf is NOT asymmetric (MUST-NOT hold) ------------------------
+ex:saCausalPartOfNotAsymmetric a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    logic:causalPartOf a logic:asymmetricProperty .
+}""" ;
+    gmeow:saRationale "Causal feedback loops are legal among occurrents, so causal parthood is deliberately NOT a strict order: logic:causalPartOf MUST NOT be typed logic:asymmetricProperty (contrast logic:properPartOf, the strict-order endurant parthood)." .
+
+# --- 9. OccurrentBoundary has exactly the two members Open and Closed (MUST) --
+ex:saOccurrentBoundaryMembers a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    logic:Open   a logic:OccurrentBoundary .
+    logic:Closed a logic:OccurrentBoundary .
+}""" ;
+    gmeow:saRationale "The two-valued occurrent boundary: logic:Open (the on-going action) and logic:Closed (the completed event) MUST both be named individuals typed logic:OccurrentBoundary — the action(open)/event(closed) distinction carried as a closed value set." .
+
+# --- 10. OccurrentConstraint members exist (MUST hold) ------------------------
+ex:saOccurrentConstraintMembers a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    logic:OccurrentChangeAsymmetry  a logic:OccurrentConstraint .
+    logic:OccurrentBoundaryMismatch a logic:OccurrentConstraint .
+}""" ;
+    gmeow:saRationale "The named occurrent well-formedness axioms a logic:violation may point at: logic:OccurrentChangeAsymmetry (a completed event cannot vary) and logic:OccurrentBoundaryMismatch (an occurrent cannot be both open and closed) MUST both be typed logic:OccurrentConstraint." .
+
+# --- 11. occurrentConstituent: Event → Process (constitution, MUST hold) ------
+ex:saOccurrentConstituentDomainRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    logic:occurrentConstituent a owl:ObjectProperty ;
+        rdfs:domain logic:Event ;
+        rdfs:range logic:Process .
+}""" ;
+    gmeow:saRationale "The constitutive reading of 'events are made of processes': logic:occurrentConstituent MUST be an owl:ObjectProperty with rdfs:domain logic:Event and rdfs:range logic:Process — the bridge from the unitary, completed event to the dissective process whose unfolding it bounds." .
+
+# --- 12. CognitiveAssessment construct + projection + defeasible-evidence vocabulary (MUST) ---
 ex:saCognitiveAssessmentVocabulary a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -120,7 +180,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The canonical multidimensional logic:CognitiveAssessment construct, its value-vocabulary classes (AssessmentDimension / SubjectGranularity / AssessmentLevel), the ladder-projection profile machinery (LadderProjectionProfile / DimensionThreshold with the shipped logic:defaultLadderProfile), and the defeasible-evidence construct (DefeasibleEvidence with the shipped logic:skillEvidenceForKnowsAbout) MUST all be present -- they are the asserted-TBox spine of the cognitive-assessment layer (design/LOGIC-COGNITION.md)." .
 
-# --- 8. The nine factored assessment dimensions exist (MUST) ------------------
+# --- 13. The nine factored assessment dimensions exist (MUST) -----------------
 ex:saAssessmentDimensionsExist a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
