@@ -219,28 +219,39 @@ def _lang_remap(
     ``retag_graph`` / ``retag_graph_to_internal`` rewrite a literal's language tag
     as a function of that tag alone (subject/predicate/lexical are untouched). To
     keep the decision in Rust while mutating literals in place — leaving every
-    blank node and structural triple untouched — the distinct languages are sent
-    through a synthetic one-triple-per-language probe graph, the native pass is
-    run, and the result is read back as ``{old_lang: new_lang}`` for the tags the
-    authority actually changed.
+    blank node and structural triple untouched — the distinct languages are batched
+    into a SINGLE probe graph (one triple per distinct language, with a
+    position-indexed subject IRI so subjects are unambiguous regardless of tag
+    content), the native pass is run ONCE, and the results are read back as
+    ``{old_lang: new_lang}`` for the tags the authority actually changed.
+
+    Position-index subjects (``<_PROBE_SUBJECT/0>``, ``<_PROBE_SUBJECT/1>``, …) are
+    used rather than per-tag IRIs so that BCP-47 tags containing characters that
+    are invalid or percent-encoded in IRIs (e.g. ``x-gmeow-english``, ``zh-Hans``)
+    never produce ambiguous or invalid subject IRIs.
     """
     distinct = sorted({lang for lang in languages if lang})
     if not distinct:
         return {}
-    # One probe triple per distinct old language: the native pass rewrites each
-    # one independently of the others (per-tag function), so reading the image of
-    # the single probe literal back yields the exact ``old -> new`` retag the
-    # authority chose. Only tags it actually changed are recorded.
-    remap: dict[str, str] = {}
-    probe_s = URIRef(_PROBE_SUBJECT)
+
+    # Build a single N-Triples payload with one probe triple per distinct tag.
+    # Subject IRI encodes the position index so it is unambiguous after the pass.
+    lines: list[str] = []
+    for i, old in enumerate(distinct):
+        subject_iri = f"{_PROBE_SUBJECT}/{i}"
+        lines.append(f'<{subject_iri}> <{_PROBE_PREDICATE}> "probe"@{old} .\n')
+    payload = "".join(lines)
+
+    out = Graph()
+    out.parse(
+        data=native_pass(payload.encode(), "ntriples", *args),  # type: ignore[operator]
+        format="ntriples",
+    )
+
     probe_p = URIRef(_PROBE_PREDICATE)
-    for old in distinct:
-        single = f'<{_PROBE_SUBJECT}> <{_PROBE_PREDICATE}> "probe"@{old} .\n'
-        out = Graph()
-        out.parse(
-            data=native_pass(single.encode(), "ntriples", *args),  # type: ignore[operator]
-            format="ntriples",
-        )
+    remap: dict[str, str] = {}
+    for i, old in enumerate(distinct):
+        probe_s = URIRef(f"{_PROBE_SUBJECT}/{i}")
         for obj in out.objects(probe_s, probe_p):
             if isinstance(obj, Literal) and obj.language and obj.language != old:
                 remap[old] = obj.language
