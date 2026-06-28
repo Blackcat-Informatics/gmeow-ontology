@@ -271,10 +271,11 @@ gmeow:stage-mappings
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "mappings"@x-gmeow-english ;
-    skos:definition "Compile the mapping-DSL into SSSOM, EDOAL, FnO, and SPARQL alignment artifacts."@x-gmeow-english ;
+    skos:definition "Compile the mapping-DSL into SSSOM, EDOAL, FnO, and SPARQL alignment artifacts, and assemble the FINAL projection-report loss ledger over the union of the logic projection rows (consumed from the compile-logic stage) and the per-correspondence residue ledger the four alignment lowerings produce."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindTransform ;
     gmeow:stageImpl "mappings" ;
+    gmeow:dataflowConsumes gmeow:stage-compile-logic ;
     gmeow:carriesEngineLock false .
 
 gmeow:stage-reason
@@ -354,6 +355,7 @@ gmeow:stage-snapshot
         gmeow:stage-docs-render ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-gts-compose ,
+        gmeow:stage-mappings ,
         gmeow:stage-reason ,
         gmeow:stage-statements ,
         gmeow:stage-validate ;

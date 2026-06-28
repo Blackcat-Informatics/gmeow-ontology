@@ -17,9 +17,21 @@
 //! claims `ExactPreservation` but dropped content.  [`report::build_projection_report`]
 //! aggregates the loss ledger.
 
+// The correspondence overclaim gate (relation/morphism vs emitted predicate; P5).
+pub mod correspondence_gate;
+// The EDOAL correspondence lowering (get leg + relation lattice → EDOAL alignment).
+pub mod edoal;
+// The FnO correspondence lowering (get-leg transform functions → FnO catalog).
+pub mod fno;
+// The shared get leg both EDOAL and SPARQL lower from (spec-drift gone by construction).
+pub mod get_leg;
 pub mod paths;
 pub mod rdf;
 pub mod report;
+// The SPARQL-CONSTRUCT correspondence lowering (get leg → executable CONSTRUCT).
+pub mod sparql;
+// The SSSOM correspondence lowering (1:1 lattice band → SSSOM TSV).
+pub mod sssom;
 pub mod text;
 
 use super::ir::{LogicAxiom, LogicModality, LogicProgram, PreservationKind};
@@ -58,6 +70,16 @@ pub struct CompiledArtifacts {
     /// depth-bounded Datalog rule scheme, and the `"property-path"` ledger row.
     /// Empty when the program declares no path shapes — never absent.
     pub path_projections: Vec<PathProjection>,
+    /// The whole-program + path-shape projection rows (the seven standard targets plus
+    /// the per-shape `property-path:<iri>` rows) that fed [`report`](Self::report).
+    /// Surfaced so a downstream assembler (the pipeline) can union them with the
+    /// correspondence-calculus loss ledger and serialize the FINAL projection report
+    /// over the union through the one routine — the committed report's logic rows stay
+    /// byte-identical.
+    pub logic_projections: Vec<ProjectionResult>,
+    /// The three header counts of [`report`](Self::report) — surfaced for the same
+    /// reason as [`logic_projections`](Self::logic_projections).
+    pub report_header: report::ReportHeader,
 }
 
 /// One preservation-ledger row (the per-target metadata the conformance runner
@@ -125,6 +147,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         .collect();
     owned.extend(path_results);
 
+    let report_header = report::ReportHeader::of_program(program);
     let report = report::build_projection_report(program, &owned).map_err(|e| e.to_string())?;
 
     // Preservation ledger: per-target (kind, complexity, structural drops).  The
@@ -157,6 +180,8 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         nemo_rules,
         preservation_ledger,
         path_projections,
+        logic_projections: owned,
+        report_header,
     })
 }
 
@@ -175,7 +200,7 @@ pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#ty
 
 /// The result of running a single projection back-end (the `ProjectionResult`
 /// value; RDF content is re-parsed from `content` for isomorphism checks).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ProjectionResult {
     /// Short target name (`"owl-dl"`, `"datalog"`, …).
     pub target: String,
@@ -191,6 +216,56 @@ pub struct ProjectionResult {
     pub lossy_drops: Vec<String>,
     /// Concrete items skipped during this run.
     pub actual_drops: Vec<String>,
+}
+
+/// Build the **one preservation row per correspondence** the canonical doc requires
+/// (`LOGIC-CORRESPONDENCE.md` line ~78): the loss ledger attributes a dropped
+/// construct to the leg that dropped it.  `dialect` selects the pinned preservation +
+/// the dialect-level structural drops (the get/put-leg/caveat/standpoint losses
+/// from [`target_meta`]); `key` is the stable per-correspondence target name
+/// (`<dialect>:<correspondence-iri-or-cell::profile>`); `residue` is the concrete,
+/// per-correspondence flagged set (profile losses + A1's rejected constructs),
+/// each note already attributed to its leg.  The static drops live in `lossy_drops`,
+/// the concrete per-correspondence drops in `actual_drops` — the report serializes
+/// both as `gmeow:lossyDrop`.
+pub(crate) fn correspondence_result(
+    dialect: &str,
+    key: &str,
+    residue: Vec<String>,
+) -> ProjectionResult {
+    use sha2::{Digest, Sha256};
+
+    let (kind, complexity, structural) = target_meta(dialect_target(dialect));
+    // The per-correspondence key embeds full IRIs + separators (`|`, `::`, spaces) that
+    // are illegal in an IRI, so the target NAME (which the report uses as the IRI's local
+    // segment) is `<dialect>:<sha256(key)[:16]>` — a stable, collision-free, IRI-legal
+    // identity. The human-readable key is preserved as the first residue note so nothing
+    // is lost.
+    let digest = Sha256::digest(format!("{dialect}\u{1f}{key}").as_bytes());
+    let short: String = digest.iter().take(8).map(|b| format!("{b:02x}")).collect();
+    let mut actual_drops = Vec::with_capacity(residue.len() + 1);
+    actual_drops.push(format!("correspondence: {key}"));
+    actual_drops.extend(residue);
+    ProjectionResult {
+        target: format!("{dialect}:{short}"),
+        // The legal output is the dialect artifact itself (written elsewhere); the row
+        // is a preservation/residue record, not a serialization, so content is empty.
+        content: String::new(),
+        is_rdf: false,
+        preservation: kind,
+        complexity: complexity.to_owned(),
+        lossy_drops: structural.into_iter().map(str::to_owned).collect(),
+        actual_drops,
+    }
+}
+
+/// Map a correspondence dialect name to its [`target_meta`] key (SPARQL's metadata
+/// lives under `"sparql-construct"`; the others are 1:1).
+fn dialect_target(dialect: &str) -> &str {
+    match dialect {
+        "sparql" | "sparql-construct" => "sparql-construct",
+        other => other,
+    }
 }
 
 /// Per-target metadata: `(preservationKind, complexityClass, structural drops)`.
@@ -291,6 +366,42 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                 "modal/world context and contextual scope are not carried by a path surface",
             ],
         ),
+        // ── Correspondence-calculus alignment lowerings ──────────────────────────
+        "sssom" => (
+            PreservationKind::SoundUnder,
+            "N/A (1:1 lattice band)",
+            vec![
+                "the caveat/law/leg structure of the correspondence is dropped; only \
+                 subject/predicate/object, confidence, and justification survive",
+                "world/standpoint scope and the put leg are not carried",
+            ],
+        ),
+        "fno" => (
+            PreservationKind::ValidationOnly,
+            "N/A (transform signatures)",
+            vec![
+                "FnO is not an entailment surface: parameter/output signatures are exact, \
+                 but the transform's semantics are validation-only",
+                "the correspondence relation, caveats, and standpoint scope are dropped",
+            ],
+        ),
+        "edoal" => (
+            PreservationKind::SoundUnder,
+            "N/A (alignment)",
+            vec![
+                "the SOL caveats, the put leg, and world/standpoint scope are dropped",
+                "EDOAL carries the get leg + relation + measure only",
+            ],
+        ),
+        "sparql-construct" => (
+            PreservationKind::SoundUnder,
+            "terminating/PTIME-data",
+            vec![
+                "the faithful executable down-projection; per-profile losses are made \
+                 explicit in the query header (`# Lossy and directional by design; drops:`)",
+                "world/standpoint scope and the put leg are not carried",
+            ],
+        ),
         other => panic!("unknown projection target: {other}"),
     }
 }
@@ -300,7 +411,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 8] = [
+const LEDGER_TARGETS: [&str; 12] = [
     "owl-dl",
     "owl-el",
     "datalog",
@@ -309,6 +420,12 @@ const LEDGER_TARGETS: [&str; 8] = [
     "canonical-rdf12",
     "nemo",
     "property-path",
+    // The correspondence-calculus alignment lowerings: each carries its own
+    // preservation judgment in the same loss ledger as OWL/Datalog/gUFO.
+    "sssom",
+    "fno",
+    "edoal",
+    "sparql-construct",
 ];
 
 /// One row of the preservation loss ledger as a public, owned value: a projection

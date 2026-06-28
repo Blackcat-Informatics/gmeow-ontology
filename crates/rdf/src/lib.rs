@@ -33,7 +33,7 @@
 pub use gmeow_rdf_core::gts_write;
 pub use gmeow_rdf_core::{
     backend, bundle, content_store, dataset_view, diagnostic, fno, ir, lookaside, loss, model,
-    provenance, sssom, store, turtle,
+    provenance, sssom, store, turtle, turtle_render,
 };
 
 #[cfg(feature = "gts")]

@@ -20,7 +20,7 @@ use std::path::Path;
 use gmeow_rdf::oxigraph::{
     flat_oxigraph_quads_from_dataset_scoped, store_from_dataset, GraphPolicy,
 };
-use gmeow_rdf::{parse_dataset, serialize_dataset, NativeRdfFormat, SerializeGraph};
+use gmeow_rdf::{parse_dataset, NativeRdfFormat};
 use oxigraph::store::Store;
 
 use crate::error::SliceError;
@@ -86,19 +86,4 @@ pub(crate) fn turtle_bytes_into_store(
     context: &str,
 ) -> Result<(), SliceError> {
     rdf_bytes_into_store(store, bytes, NativeRdfFormat::Turtle.media_type(), context)
-}
-
-/// Serialize an oxigraph store to N-Triples text via the native codecs, going
-/// store → IR → text (no `oxigraph::io`). Used by the EDOAL re-dump that must
-/// reproduce the historical `store.dump(NT)` blank-node normalisation.
-pub(crate) fn store_to_ntriples(store: &Store, context: &str) -> Result<String, SliceError> {
-    let dataset = gmeow_rdf::oxigraph::dataset_from_store(store)
-        .map_err(|e| SliceError::Parse(format!("store → IR for {context}: {e}")))?;
-    let bytes = serialize_dataset(
-        &dataset,
-        NativeRdfFormat::NTriples.media_type(),
-        SerializeGraph::DefaultGraph,
-    )
-    .map_err(|e| SliceError::Parse(format!("serialize {context}: {e}")))?;
-    String::from_utf8(bytes).map_err(|e| SliceError::Parse(format!("non-utf8 {context}: {e}")))
 }

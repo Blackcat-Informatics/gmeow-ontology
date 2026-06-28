@@ -20,8 +20,7 @@ use oxigraph::model::{GraphNameRef, NamedNode, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 
 use crate::error::SliceError;
-use crate::fno_emit::collect_ontology_store;
-use crate::mapping_emit::{registry_iri, PREFIX_REGISTRY};
+use crate::mapping_support::{collect_ontology_store, registry_iri, PREFIX_REGISTRY};
 use crate::projection_lint::ProjectionDiagnostic;
 
 // ── Predicate / class constants (ported from the retired Python linter) ────────

@@ -5,8 +5,8 @@
 //!
 //! **Requirement #912 / S6 — Requirement 11 evidence.**
 //!
-//! Issue #912 requirement 11 states: "Plan cache / DSL→native-plan path so the
-//! static `sparql_emit`-generated set compiles once."
+//! The requirement states: "Plan cache / DSL→native-plan path so the static
+//! generated query corpus compiles once."
 //!
 //! This test proves the [`PlanCache`] mechanism over the real generated query
 //! corpus (`generated/queries/*.rq`):
@@ -20,9 +20,9 @@
 //!    `Arc::ptr_eq(&first[i], &second[i])` — i.e. every query is returned from
 //!    the cache without re-parsing ("compiles once").
 //!
-//! Wiring the cache into production `sparql_emit` consumers (crates/slice,
-//! crates/pipeline mappings) lands with the S13 #918 cutover; this test proves
-//! the cache mechanism itself over the real generated set within S6's reach.
+//! Wiring the cache into the production consumers of the generated query corpus
+//! (crates/slice, crates/pipeline mappings) lands with the later cutover; this test
+//! proves the cache mechanism itself over the real generated set.
 
 use std::fs;
 use std::sync::Arc;

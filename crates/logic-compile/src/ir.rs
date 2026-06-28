@@ -200,7 +200,9 @@ impl fmt::Display for NodeKind {
 }
 
 /// The seven `logic:PreservationKind` named individuals.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum PreservationKind {
     /// `logic:ExactPreservation`.
     Exact,
