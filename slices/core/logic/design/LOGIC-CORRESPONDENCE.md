@@ -63,10 +63,15 @@ node kind, defined *in terms of* the existing kinds rather than as a specializat
   (`ins`/`del`, hypothetical execution, supersession-not-erasure). The leg body reuses the existing
   pattern/expression algebra and `logic:PathShape` ([`LOGIC-PATHS.md`](LOGIC-PATHS.md)) — no new
   pattern language is introduced;
-- a set of **law constraints** — the laws the correspondence claims (GetPut, PutGet, PutPut, the
-  section law), each a constraint node whose **status reuses the `NonEntailmentObligation` discharge
-  vocabulary** ([`LOGIC-FOUNDATION.md`](LOGIC-FOUNDATION.md)): `proved-in-certified-fragment` /
-  `declared-unverified` / `refuted-with-witness` / `unknown-not-discharged`.
+- a set of **law constraints** — the laws the correspondence claims (`logic:GetPut`, `logic:PutGet`,
+  `logic:PutPut`, `logic:SectionLaw`), each a `logic:LawClaim` whose **status reuses the foundation's
+  executable discharge vocabulary** ([`LOGIC-FOUNDATION.md`](LOGIC-FOUNDATION.md), § Typed
+  formalization governance): a `logic:DischargeVerdict` (`logic:ObligationDischarged` /
+  `logic:ObligationUnknown` / `logic:ObligationViolated`) and, when applicable, the
+  `logic:DischargeCondition` under which it was checked. A law proved in a certified fragment is
+  `ObligationDischarged` under `logic:DischargeCertifiedFragment`; a refuted law is
+  `ObligationViolated` with its countermodel; an authored-but-unchecked or inconclusive law is
+  `ObligationUnknown`, carried forward, never silently passed.
 
 A correspondence is a *new top-level kind*, not a meta-formula with an attached transaction-program,
 because content-addressed identity and the preservation judgment must attach to the correspondence **as
@@ -93,9 +98,11 @@ projection doctrine exists to avoid — see [`LOGIC.md`](LOGIC.md)).
 ## Orientation convention
 
 A correspondence is an asymmetric lens between a rich **source** `S` and a derived **view** `V`, with
-`get : S → V` and `put : V × S → S`. **GMEOW is the source `S`; the external vocabulary is the view
-`V`.** Therefore down-projection (GMEOW → external) is `get`, and up-projection (external → GMEOW) is
-`put`. The view is the smaller, derived thing; `put` folds a (possibly fresh) view back into the rich
+`get : S → V` and `put : V × S → S`. This executable `get`/`put` core is the **`logic:Lens`** a
+`logic:Correspondence` wraps; the correspondence adds the relation, the quantitative axes, the law
+claims and the standpoint envelope around it. **GMEOW is the source `S`; the external vocabulary is the
+view `V`.** Therefore down-projection (GMEOW → external) is `get`, and up-projection (external → GMEOW)
+is `put`. The view is the smaller, derived thing; `put` folds a (possibly fresh) view back into the rich
 source. The ingest-with-no-prior-state case (`S` empty) is exactly where the view alone is insufficient
 and a **witness must travel in the view** — the mnemomorphism, below.
 
@@ -111,16 +118,20 @@ with the categorical subobject notion):
 | **Section / retraction** | split mono (`put∘get = id_S`; `get∘put` idempotent on `V ⊕ complement`) | source embeds losslessly; augmentation = `S ∖ im(get)`, in the complement | **perfect subsumption** |
 | **Well-behaved lens** | asymmetric lens | GetPut + PutGet (PutPut optional) | structured→flat downcast with sound update |
 | **Lossy lens** | lens, non-injective `get` | one direction faithful; inverse needs witness/claim/defaults | most schema.org/FOAF downcasts |
-| **Prism / affine** | partial map `S → V + S` | match/build on the in-focus case only | "similar but not quite"; co-projection onto a shared component |
+| **Prism** | partial map `S → V + S` on a sum/optional | match/build on the in-focus variant only | applies on one variant, passes through otherwise |
+| **Affine correspondence** | co-projection onto a shared component | laws on the shared component only | "similar but not quite"; vague-determinacy targets |
 | **Bridge view** | commitment-shifting comorphism | *no* satisfaction-preservation claim | BFO / DOLCE / SUMO / YAMATO |
+
+The two partial-alignment rungs are distinct: a **prism** focuses an optional/sum variant (match-or-pass-through), an **affine correspondence** focuses a sub-structure source and view share. Both sit below the lossy lens and above the bridge view.
 
 Two cross-cutting qualifiers:
 
-- **`morphismKind ∈ {institutionMorphism, bridgeView}`** — the institution-theoretic split between a
-  satisfaction-preserving morphism and a commitment-shifting bridge. This is the distinction the
-  foundation already draws between gUFO (a truth-preserving down-projection of UFO⁺) and
-  BFO/DOLCE/SUMO/YAMATO (bridge views). The loss ledger **refuses** to emit `owl:equivalentClass` for
-  a bridge.
+- **`logic:morphismKind ∈ {logic:InstitutionMorphism, logic:CommitmentShiftingBridge}`** — the
+  institution-theoretic split between a satisfaction-preserving morphism and a commitment-shifting
+  bridge (the value is named `logic:CommitmentShiftingBridge` to keep it distinct from the
+  `logic:BridgeView` rung it typically accompanies). This is the distinction the foundation already
+  draws between gUFO (a truth-preserving down-projection of UFO⁺) and BFO/DOLCE/SUMO/YAMATO (bridge
+  views). The loss ledger **refuses** to emit `owl:equivalentClass` for a bridge.
 - **`mnemomorphic? ∈ {yes, no}`** — whether the forward leg retains a source witness. Orthogonal to
   the rung; it is the property that lets a correspondence *climb* the spine, because a retained witness
   is what discharges `put∘get = id`.
@@ -193,13 +204,14 @@ dress, and the calculus reuses it verbatim:
 | `get∘put = id` on the preserved fragment | `ExactPreservation` + the round-trip faithfulness gate |
 | under-approximation `α(γ(a)) ⊑ a` | `logic:SoundUnderApproximation` |
 | over-approximation `c ≤ γ(α(c))` | `logic:CompleteOverApproximation` |
-| law claimed but not machine-verified | `NonEntailmentObligation` discharge status |
+| law claimed but not machine-verified | `logic:LawClaim` + the `logic:DischargeVerdict` / `logic:DischargeCondition` vocabulary |
 | polarities co-holding | "preservation polarities are not mutually exclusive" |
 | round-trip is a decidable check | content-addressed canonical-IR identity (graph-iso) |
 
-`logic:LawClaim.status` reuses these exact individuals. The **overclaim gate** fires for alignment:
-marking a caveated overlap as `sssom exactMatch`, or a bridge view as `institutionMorphism`, is a build
-failure — strictly stronger than the old `projection_lint` warning. The three former cross-layer
+`logic:LawClaim` reuses these exact individuals via `logic:lawDischargeVerdict` /
+`logic:lawDischargeCondition`. The **overclaim gate** fires for alignment: marking a caveated overlap as
+`sssom exactMatch`, or a bridge view as `logic:InstitutionMorphism`, is a build failure — strictly
+stronger than the old `projection_lint` warning. The three former cross-layer
 invariants collapse into this: `fno-type` becomes the FnO back-end's soundness check; `spec-drift`
 *disappears* because EDOAL and SPARQL now lower from the same `get` leg.
 
