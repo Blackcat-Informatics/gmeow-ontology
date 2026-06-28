@@ -200,7 +200,7 @@ ASK {
 
 # === Teleology layer (goal expressions, evaluation, plans, decomposition) ======
 
-# --- 12. Teleology reified-node classes exist as TBox classes (MUST) ----------
+# --- 14. Teleology reified-node classes exist as TBox classes (MUST) ----------
 ex:saTeleologyNodeClasses a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -216,7 +216,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The teleology reified-node classes MUST exist as owl:Class with gmeow:graphBoxRole gmeow:boxTBox: logic:GoalExpression (the typed IR goal-structure term), logic:GoalEvaluation (the reified vantage-indexed evaluation), logic:Plan (the transaction program with a goal-expression success criterion), and the two decomposition grouping nodes logic:AndDecomposition / logic:OrDecomposition." .
 
-# --- 13. GoalExpression exists as the structural-identity IR term (MUST) -------
+# --- 15. GoalExpression exists as the structural-identity IR term (MUST) -------
 ex:saGoalExpressionStructuralIdentity a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -230,7 +230,7 @@ ASK {
 }""" ;
     gmeow:saRationale "logic:GoalExpression MUST be an owl:Class whose definition documents its STRUCTURAL identity (two expressions with the same node kind, operands, and bound situation type are the same term). Structural identity is an IR/engine property not expressible as a single triple, so the assertion pins the documented intent rather than the equality relation itself." .
 
-# --- 14. ActionSchema is punned as both class and node-kind individual (MUST) --
+# --- 16. ActionSchema is punned as both class and node-kind individual (MUST) --
 ex:saActionSchemaPunned a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -243,7 +243,7 @@ ASK {
 }""" ;
     gmeow:saRationale "logic:ActionSchema MUST be punned (OWL 2 DL metamodelling): simultaneously an owl:Class (whose instances are reusable action schemas), an owl:NamedIndividual, and a logic:NodeKind, carrying gmeow:graphBoxRole gmeow:boxTBox. The IR node-kind and the class of reusable schemas are one IRI." .
 
-# --- 15. The eight action-theory facets are object properties (MUST) ----------
+# --- 17. The eight action-theory facets are object properties (MUST) ----------
 ex:saActionTheoryFacets a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -261,7 +261,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The eight action-theory facets MUST all exist as owl:ObjectProperty: precondition, effect, invariant, capability, nondeterministicOutcome, observation, compensation, actionResource — the structure of a logic:ActionSchema that means–end reasoning reads." .
 
-# --- 16. Goal / occurrence link properties exist (MUST) -----------------------
+# --- 18. Goal / occurrence link properties exist (MUST) -----------------------
 ex:saGoalOccurrenceLinks a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -274,7 +274,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The goal/occurrence link properties MUST exist as owl:ObjectProperty: logic:hasGoalCondition (gmeow:Goal -> logic:GoalExpression), logic:planGoal (logic:Plan -> gmeow:Goal), and logic:instantiatesSchema (gmeow:Event -> logic:ActionSchema)." .
 
-# --- 17. The four goal-decomposition relations exist (MUST) -------------------
+# --- 19. The four goal-decomposition relations exist (MUST) -------------------
 ex:saGoalDecompositionRelations a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -288,7 +288,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The four goal-decomposition relations MUST exist as owl:ObjectProperty: refinesGoal, contributesTo, necessaryFor, sufficientFor — the satisfaction-dependency structure typed apart from the generic mereology spine." .
 
-# --- 18. The six goal-conflict relations exist (MUST) -------------------------
+# --- 20. The six goal-conflict relations exist (MUST) -------------------------
 ex:saGoalConflictRelations a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -304,7 +304,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The six goal-conflict relations MUST exist as owl:ObjectProperty: contradictoryGoal, contraryGoal, preventsGoal, competesForResource, temporallyIncompatible, deonticallyIncompatible — conflicts between independently-meaningful goals, each weaker than the constitutive gmeow:counterGoal." .
 
-# --- 19. No conflict relation subProperties counterGoal or properPartOf (MUST-NOT)
+# --- 21. No conflict relation subProperties counterGoal or properPartOf (MUST-NOT)
 ex:saConflictRelationsNotSubproperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
@@ -322,7 +322,7 @@ ASK {
 }""" ;
     gmeow:saRationale "No logic: goal-conflict relation MUST be rdfs:subPropertyOf gmeow:counterGoal (the strongest, constitutive opposition) or gmeow:properPartOf (structural part-hood) — the six are ordinary relations between independently-meaningful goals, weaker than counterGoal and orthogonal to mereology; a subproperty edge would manufacture exactly the conflation this guards against." .
 
-# --- 20. The four factored GoalEvaluation status classes exist (MUST) --------
+# --- 22. The four factored GoalEvaluation status classes exist (MUST) --------
 ex:saGoalEvaluationStatusClasses a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -341,7 +341,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The four factored goal-evaluation status value classes MUST exist as boxTBox owl:Class with representative members: logic:SatisfactionStatus, logic:FeasibilityStatus, logic:LifecycleStatus, and logic:GoalEvaluationStatus — independent axes of a logic:GoalEvaluation rather than one collapsed label." .
 
-# --- 21. GoalEvaluationStatus is DISTINCT from EvaluationStatus (MUST) --------
+# --- 23. GoalEvaluationStatus is DISTINCT from EvaluationStatus (MUST) --------
 ex:saGoalEvaluationStatusDistinct a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -354,7 +354,7 @@ ASK {
 }""" ;
     gmeow:saRationale "logic:GoalEvaluationStatus (the goal-judgment conclusiveness axis) MUST be a DISTINCT owl:Class from logic:EvaluationStatus (the engine-computation axis of a logic:ReasoningResult) — two orthogonal axes that must never be conflated into one value set." .
 
-# --- 22. GoalEvaluation axis + quantity + link properties exist (MUST) --------
+# --- 24. GoalEvaluation axis + quantity + link properties exist (MUST) --------
 ex:saGoalEvaluationProperties a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -376,7 +376,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The goal-evaluation axis selectors (satisfactionStatus, feasibilityStatus, lifecycleStatus, goalEvaluationStatus), links (evaluatesGoal, evaluatedAgainst, evaluationCriterion, evaluationEvaluator), and quantities MUST exist — the three unit-interval quantities (satisfactionDegree, objectiveValue, utility) as owl:DatatypeProperty matching the logic:confidence/logic:weight idiom, the rest as owl:ObjectProperty." .
 
-# --- 23. Plan success quantification exists as a closed value set (MUST) ------
+# --- 25. Plan success quantification exists as a closed value set (MUST) ------
 ex:saPlanSuccessMode a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -392,7 +392,7 @@ ASK {
 }""" ;
     gmeow:saRationale "Plan success MUST be quantified over nondeterministic outcomes as a closed value set: logic:PlanSuccessMode (boxTBox class) with its three members logic:WeakPlanSuccess (some path), logic:StrongPlanSuccess (every path), logic:StrongCyclicPlanSuccess (every fair execution), plus the selector logic:planSuccessMode (logic:Plan -> logic:PlanSuccessMode)." .
 
-# --- 24. Transaction-layer new classes + supersededBy property exist (MUST) ---
+# --- 26. Transaction-layer new classes + supersededBy property exist (MUST) ---
 ex:saTransactionLayerClassesExist a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -408,7 +408,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The transaction-layer additions MUST exist with their correct rdf:type: the five new classes (SerialConjunction, the three concurrency value-set classes, SerializationAnomaly) as owl:Class, and the supersession-provenance counterpart logic:supersededBy as owl:ObjectProperty (the fourth provenance link that makes every del a supersession)." .
 
-# --- 25. Serial-conjunction combinator carries its two operands (MUST) --------
+# --- 27. Serial-conjunction combinator carries its two operands (MUST) --------
 ex:saSerialConjunctionOperands a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -422,7 +422,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The serial-conjunction program combinator (a boxTBox class) MUST carry its binary operands logic:leftOperand and logic:rightOperand as object properties -- it is a program operator typed apart from logical conjunction." .
 
-# --- 26. Plan-to-path link exists (MUST) -------------------------------------
+# --- 28. Plan-to-path link exists (MUST) -------------------------------------
 ex:saPlanExecutedAlongPath a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -435,7 +435,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The four-link chain intention -> plan -> action -> transaction-path MUST be completed by logic:executedAlongPath relating a logic:Plan to the logic:Path it ran along -- the one link existing terms did not supply; it connects but does not subsume the two." .
 
-# --- 27. The three concurrency value-set classes are pairwise distinct IRIs (MUST) ---
+# --- 29. The three concurrency value-set classes are pairwise distinct IRIs (MUST) ---
 ex:saConcurrencyConcernsAreDistinct a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -451,7 +451,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The three concurrency concerns MUST be three distinct, separately-declared owl:Class IRIs that are never conflated: a criterion is a history property, a level is a guarantee strength, a protocol is a mechanism." .
 
-# --- 28. The three concurrency value sets enumerate the right members (MUST) --
+# --- 30. The three concurrency value sets enumerate the right members (MUST) --
 ex:saConcurrencyValueSetMembers a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -472,7 +472,7 @@ ASK {
 }""" ;
     gmeow:saRationale "Each of the three closed concurrency value sets MUST enumerate exactly its declared members: the two serializability criteria, the six isolation levels (through opacity), and the four concurrency-control protocols." .
 
-# --- 29. SerializationAnomaly is NOT a contradiction witness (MUST) -----------
+# --- 31. SerializationAnomaly is NOT a contradiction witness (MUST) -----------
 # There is no canonical contradiction-WITNESS CLASS in the module: the witness is
 # carried by the property logic:contradictionWitness and the verdict value
 # logic:InfoBoth. So the not-a-contradiction intent is pinned in TEXT: the class
@@ -559,7 +559,7 @@ ASK {
     gmeow:saRationale "logic:GoalEvaluationUndetermined MUST be a logic:GoalEvaluationStatus member: the value the teleology evaluator emits for a maintenance/avoidance/deadline goal whose bounding window is still open and for a deontic evaluation with no accessible ideal world — never silently read as Satisfied or as a vacuous obligation." .
 
 
-# --- 30. Transaction-layer branching, concurrent, iterative, and fallback combinators exist (MUST) ---
+# --- 32. Transaction-layer branching, concurrent, iterative, and fallback combinators exist (MUST) ---
 ex:saTransactionCombinatorsFull a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -575,7 +575,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The four missing transaction-layer program combinators MUST exist: logic:Choice (guarded branching), logic:ConcurrentComposition (interleaved-path composition, distinct from the concurrency correctness concerns), logic:Iteration (loop with body + condition), and logic:Fallback (try primary, on failure alternate). Each is a boxTBox owl:Class mirroring logic:SerialConjunction. logic:iterationBody and logic:iterationCondition are the two dedicated properties of logic:Iteration (binary left/right operands do not fit a loop); the other three combinators reuse logic:leftOperand and logic:rightOperand." .
 
-# --- 31. Transaction-layer combinators carry correct boxTBox graphBoxRole (MUST) ---
+# --- 33. Transaction-layer combinators carry correct boxTBox graphBoxRole (MUST) ---
 ex:saCombinatorBoxRole a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -590,7 +590,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The four new program combinators (Choice, ConcurrentComposition, Iteration, Fallback) MUST carry gmeow:graphBoxRole gmeow:boxTBox — they are program-combinator classes in the TBox, typed apart from formula connectives, mirroring the boxTBox role of logic:SerialConjunction." .
 
-# --- 32. ConcurrentComposition is distinct from the concurrency correctness concerns (MUST-NOT) ---
+# --- 34. ConcurrentComposition is distinct from the concurrency correctness concerns (MUST-NOT) ---
 ex:saConcurrentCompositionDistinct a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
