@@ -584,8 +584,8 @@ mod tests {
         query: &str,
     ) -> (Vec<Vec<Option<TermValue>>>, Arc<RdfDataset>) {
         let engine = NativeSparqlEngine::new();
-        let (res, aux) = engine
-            .query_with_constructed(
+        let res = engine
+            .query(
                 ds,
                 SparqlRequest {
                     query,
@@ -594,7 +594,7 @@ mod tests {
             )
             .expect("query");
         match res {
-            SparqlResult::Solutions { rows, .. } => (rows, aux),
+            SparqlResult::Solutions { rows, aux, .. } => (rows, aux),
             other => panic!("expected solutions, got {other:?}"),
         }
     }

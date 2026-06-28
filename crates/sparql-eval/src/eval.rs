@@ -131,9 +131,8 @@ pub struct EvalCtx<'d> {
     /// (`gmeow:listSlice`/`gmeow:listConcat` mint fresh `rdf:List` cells). A SPARQL
     /// expression returns one term, so the new cells are buffered here and surface at
     /// the result boundary: [`crate::construct::eval_construct`] unions them into the
-    /// CONSTRUCT output, and [`crate::engine::NativeSparqlEngine::query_with_constructed`]
-    /// exposes them as the auxiliary graph alongside a SELECT/ASK result. Empty
-    /// whenever no constructing builtin ran.
+    /// CONSTRUCT output, and the native `query` egress folds them into
+    /// `SparqlResult::Solutions::aux`. Empty whenever no constructing builtin ran.
     pub(crate) constructed: Vec<(TermValue, TermValue, TermValue)>,
 }
 

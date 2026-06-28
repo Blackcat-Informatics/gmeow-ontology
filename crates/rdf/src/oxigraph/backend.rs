@@ -86,7 +86,11 @@ fn materialize_results(results: QueryResults<'_>) -> Result<SparqlResult, RdfDia
                         .collect(),
                 );
             }
-            Ok(SparqlResult::Solutions { variables, rows })
+            Ok(SparqlResult::Solutions {
+                variables,
+                rows,
+                aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
+            })
         }
         QueryResults::Graph(triples) => {
             let mut builder = RdfDatasetBuilder::new();
@@ -224,7 +228,10 @@ mod tests {
                 },
             )
             .expect("select");
-        let SparqlResult::Solutions { variables, rows } = results else {
+        let SparqlResult::Solutions {
+            variables, rows, ..
+        } = results
+        else {
             panic!("expected solutions");
         };
         assert_eq!(variables, vec!["o"]);

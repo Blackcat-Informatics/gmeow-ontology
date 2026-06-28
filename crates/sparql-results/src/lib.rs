@@ -96,7 +96,7 @@ pub fn serialize(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf_core::TermValue;
+    use gmeow_rdf_core::{RdfDatasetBuilder, TermValue};
 
     fn select_one() -> SparqlResult {
         SparqlResult::Solutions {
@@ -104,6 +104,7 @@ mod tests {
             rows: vec![vec![Some(TermValue::Iri(
                 "http://example.org/s".to_string(),
             ))]],
+            aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
         }
     }
 

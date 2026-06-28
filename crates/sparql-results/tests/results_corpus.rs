@@ -108,6 +108,7 @@ fn books() -> SparqlResult {
                 Some(integer("5")),
             ],
         ],
+        aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
     }
 }
 
@@ -366,6 +367,7 @@ fn edge_cases() -> SparqlResult {
                 Some(dir_lang("hello", "en", RdfTextDirection::Ltr)),
             ],
         ],
+        aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
     }
 }
 

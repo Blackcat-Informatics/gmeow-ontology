@@ -73,10 +73,12 @@ fn assert_parity(query: &str, ox: &SparqlResult, native: &SparqlResult) {
             SparqlResult::Solutions {
                 variables: ox_vars,
                 rows: ox_rows,
+                ..
             },
             SparqlResult::Solutions {
                 variables: nat_vars,
                 rows: nat_rows,
+                ..
             },
         ) => {
             assert_eq!(ox_vars, nat_vars, "{query}: variable list differs");
