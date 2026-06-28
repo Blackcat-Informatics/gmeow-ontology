@@ -6,11 +6,13 @@ type("https://example.org/cognition/calibration-forecast-series/ruleIsSeriesCali
 body("https://example.org/cognition/calibration-forecast-series/ruleIsSeriesCalibration", "c14n0", "default").
 body("https://example.org/cognition/calibration-forecast-series/ruleIsSeriesCalibration", "c14n1", "default").
 body("https://example.org/cognition/calibration-forecast-series/ruleIsSeriesCalibration", "c14n2", "default").
+body("https://example.org/cognition/calibration-forecast-series/ruleIsSeriesCalibration", "c14n4", "default").
 head("https://example.org/cognition/calibration-forecast-series/ruleIsSeriesCalibration", "c14n3", "default").
 provenance("https://example.org/cognition/calibration-forecast-series/ruleIsSeriesCalibration", "https://example.org/cognition/calibration-forecast-series/ruleIsSeriesCalibration", "default").
 
 % === Rules ===
-isSeriesCalibration(?a, ?a, ?C) :-
+isSeriesCalibration(?a, ?series, ?C) :-
     assessmentDimension(?a, "https://blackcatinformatics.ca/logic/dimensionCalibration", ?C),
     assessmentEvidence(?a, ?series, ?C),
-    assessmentMethod(?a, ?rule, ?C).
+    assessmentMethod(?a, ?rule, ?C),
+    hasReferenceClass(?series, ?refClass, ?C).

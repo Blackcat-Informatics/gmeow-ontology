@@ -22,4 +22,5 @@
 
 # === Rules ===
 { ?X <https://example.org/profiles/stratified-naf/spouseOf> ?Y . } log:implies { ?X <https://example.org/profiles/stratified-naf/married> ?X . } .
-{ ?X <https://example.org/profiles/stratified-naf/married> ?X . ?X <https://example.org/profiles/stratified-naf/person> ?X . } log:implies { ?X <https://example.org/profiles/stratified-naf/single> ?X . } .
+# negation-as-failure guard dropped (monotone N3 over-approximation): ~{ ?X <https://example.org/profiles/stratified-naf/married> ?X }
+{ ?X <https://example.org/profiles/stratified-naf/person> ?X . } log:implies { ?X <https://example.org/profiles/stratified-naf/single> ?X . } .

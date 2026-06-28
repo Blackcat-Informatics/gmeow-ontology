@@ -4,7 +4,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/logic/projection-report> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionReport> .
-<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/axiomCount> "6"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/axiomCount> "7"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/ruleCount> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/profileCount> "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/canonical-rdf12> .
@@ -52,6 +52,7 @@
 <https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/logic/complexityClass> "semi-decidable" .
 <https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/gmeow/lossyDrop> "N3 builtins used for arithmetic/string predicates where available" .
 <https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/gmeow/lossyDrop> "modal context encoded as quoted graph arguments (may overgenerate)" .
+<https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/gmeow/lossyDrop> "negation-as-failure guards are dropped; monotone log:implies cannot express a defeater, so a defeasible rule is over-approximated (CompleteOver) rather than emitting the guard as a positive antecedent" .
 <https://blackcatinformatics.ca/logic/target/nemo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/nemo> <http://www.w3.org/2000/01/rdf-schema#label> "nemo" .
 <https://blackcatinformatics.ca/logic/target/nemo> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .

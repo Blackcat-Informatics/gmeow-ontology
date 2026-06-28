@@ -16,4 +16,5 @@
 <https://blackcatinformatics.ca/logic/ruleSkillDefeasiblyKnowsAbout> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleSkillDefeasiblyKnowsAbout> .
 
 # === Rules ===
-{ ?agent <https://blackcatinformatics.ca/gmeow/competenceIsPurelyTacit> ?skill . ?agent <https://blackcatinformatics.ca/gmeow/hasSkill> ?skill . } log:implies { ?agent <https://blackcatinformatics.ca/gmeow/knowsAbout> ?skill . } .
+# negation-as-failure guard dropped (monotone N3 over-approximation): ~{ ?agent <https://blackcatinformatics.ca/gmeow/competenceIsPurelyTacit> ?skill }
+{ ?agent <https://blackcatinformatics.ca/gmeow/hasSkill> ?skill . } log:implies { ?agent <https://blackcatinformatics.ca/gmeow/knowsAbout> ?skill . } .

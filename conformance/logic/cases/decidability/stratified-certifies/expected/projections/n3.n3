@@ -26,6 +26,7 @@
 <https://example.org/decidability/stratified-certifies/ruleReachableStep> <https://blackcatinformatics.ca/logic/provenance> <https://example.org/decidability/stratified-certifies/ruleReachableStep> .
 
 # === Rules ===
-{ ?X <https://example.org/decidability/stratified-certifies/node> ?X . ?X <https://example.org/decidability/stratified-certifies/reachable> ?X . } log:implies { ?X <https://example.org/decidability/stratified-certifies/isolated> ?X . } .
+# negation-as-failure guard dropped (monotone N3 over-approximation): ~{ ?X <https://example.org/decidability/stratified-certifies/reachable> ?X }
+{ ?X <https://example.org/decidability/stratified-certifies/node> ?X . } log:implies { ?X <https://example.org/decidability/stratified-certifies/isolated> ?X . } .
 { ?X <https://example.org/decidability/stratified-certifies/edge> ?Y . } log:implies { ?X <https://example.org/decidability/stratified-certifies/reachable> ?Y . } .
 { ?X <https://example.org/decidability/stratified-certifies/edge> ?Y . ?Y <https://example.org/decidability/stratified-certifies/reachable> ?Z . } log:implies { ?X <https://example.org/decidability/stratified-certifies/reachable> ?Z . } .
