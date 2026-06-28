@@ -11,6 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 
 use gmeow_diagnostics::{Finding, Report, Severity};
 use regex::Regex;
@@ -70,6 +71,13 @@ const DOCKER_PATTERNS: &[&str] = &[
     r"\bjava\s+-(?:jar|cp)\b",
     r"\b(?:javac|gradlew?)\b",
 ];
+
+static DOCKER_REGEXES: LazyLock<Vec<Regex>> = LazyLock::new(|| {
+    DOCKER_PATTERNS
+        .iter()
+        .map(|pattern| Regex::new(&format!("(?i){pattern}")).expect("static regex"))
+        .collect()
+});
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct RepoStaticReport {
@@ -345,8 +353,10 @@ fn check_classic_cross_check_workflow(root: &Path, report: &mut RepoStaticReport
         };
         for (name, job) in jobs {
             let job_name = name.as_str().unwrap_or("<non-string>");
-            let text = recursive_yaml_text(job);
-            if !text.contains("label") {
+            let gated = yaml_get(job, "if")
+                .map(recursive_yaml_text)
+                .is_some_and(|text| text.contains("label"));
+            if !gated {
                 report.error(format!(
                     "classic-cross-check pull_request job {job_name:?} must gate on a label"
                 ));
@@ -497,8 +507,7 @@ fn recursive_yaml_text(value: &Yaml) -> String {
 
 fn forbidden_hits(text: &str) -> BTreeSet<String> {
     let mut hits = BTreeSet::new();
-    for pattern in DOCKER_PATTERNS {
-        let re = Regex::new(&format!("(?i){pattern}")).expect("static regex");
+    for (pattern, re) in DOCKER_PATTERNS.iter().zip(DOCKER_REGEXES.iter()) {
         if re.is_match(text) {
             hits.insert((*pattern).to_owned());
         }
@@ -591,8 +600,8 @@ fn python_identifiers(code: &str) -> BTreeSet<String> {
 }
 
 fn python_assigned_names(code: &str) -> BTreeSet<String> {
-    let re =
-        Regex::new(r"(?m)^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?::[^=\n]+)?=").expect("static regex");
+    let re = Regex::new(r"(?m)^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?::[^=!+\-*/%^&<>\n]+)?=\s*[^=\n]")
+        .expect("static regex");
     re.captures_iter(code)
         .map(|cap| cap[1].to_owned())
         .collect()
@@ -771,6 +780,21 @@ mod tests {
     }
 
     #[test]
+    fn python_assignment_scanner_ignores_comparisons() {
+        let names = python_assigned_names(
+            "if gts_app == other:\n    pass\nif gts_app != other:\n    pass\nother = 1\n",
+        );
+        assert!(!names.contains(GTS_APP));
+        assert!(names.contains("other"));
+    }
+
+    #[test]
+    fn python_assignment_scanner_keeps_annotated_assignment() {
+        let names = python_assigned_names("gts_app: typer.Typer = typer.Typer()\n");
+        assert!(names.contains(GTS_APP));
+    }
+
+    #[test]
     fn minimal_repo_passes() {
         let temp = tempfile::tempdir().unwrap();
         write_minimal_repo(temp.path());
@@ -835,6 +859,21 @@ mod tests {
             .errors
             .iter()
             .any(|e| e.contains("required CI job") && e.contains("docker")));
+    }
+
+    #[test]
+    fn classic_cross_check_pull_request_gate_must_use_job_if() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write(
+            &temp.path().join(".github/workflows/classic-cross-check.yml"),
+            "on:\n  pull_request:\njobs:\n  oracle:\n    steps:\n      - name: Print labels\n        run: make maint-classic-cross-check\n",
+        );
+        let report = check_repo_static(temp.path());
+        assert!(report
+            .errors
+            .iter()
+            .any(|e| e.contains("pull_request job") && e.contains("label")));
     }
 
     #[test]
