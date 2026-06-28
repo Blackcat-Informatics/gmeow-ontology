@@ -97,7 +97,8 @@ logic:ArgumentationSemantics
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Argumentation Semantics"@x-gmeow-english ;
     skos:definition "The facet value class of the argumentation facet: how conflicts among defeasible arguments are resolved. Single-valued on a ReasoningContract. Its individuals range from no argumentation through the grounded and preferred Dung semantics to a policy-specific resolution."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:Argument , gmeow:Attack , gmeow:Support .
 
 logic:Aspect
     a owl:Class ;
@@ -846,7 +847,8 @@ logic:GroundedArgumentation
         logic:ArgumentationSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Grounded Argumentation"@x-gmeow-english ;
-    skos:definition "The grounded Dung argumentation semantics: the unique, sceptical, least fixed point of the characteristic function — an argument is accepted only when every attack on it is defeated by an accepted argument. The argumentation-facet value that resolves conflict deterministically; contrast logic:PreferredArgumentation, which admits multiple maximal admissible sets."@x-gmeow-english .
+    skos:definition "The grounded Dung argumentation semantics: the unique, sceptical, least fixed point of the characteristic function — an argument is accepted only when every attack on it is defeated by an accepted argument. The argumentation-facet value that resolves conflict deterministically; contrast logic:PreferredArgumentation, which admits multiple maximal admissible sets."@x-gmeow-english ;
+    logic:formalizes gmeow:ArgumentEvaluation .
 
 logic:Holarchy
     a owl:Class ;
@@ -1027,7 +1029,8 @@ logic:NoArgumentation
         logic:ArgumentationSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "No Argumentation"@x-gmeow-english ;
-    skos:definition "The argumentation-facet value selecting no argumentation layer: conflicts are not resolved by an argumentation semantics. The default for contracts whose conflict resolution is handled by the model semantics or revision policy alone, contrasted with the grounded, preferred, and policy-specific argumentation values."@x-gmeow-english .
+    skos:definition "The argumentation-facet value selecting no argumentation layer: conflicts are not resolved by an argumentation semantics. The default for contracts whose conflict resolution is handled by the model semantics or revision policy alone, contrasted with the grounded, preferred, and policy-specific argumentation values."@x-gmeow-english ;
+    logic:formalizes gmeow:ArgumentEvaluation .
 
 logic:NoUncertainty
     a owl:NamedIndividual ,
@@ -1178,7 +1181,8 @@ logic:PolicySpecificArgumentation
         logic:ArgumentationSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Policy-Specific Argumentation"@x-gmeow-english ;
-    skos:definition "The argumentation-facet value selecting a domain- or policy-specific conflict-resolution semantics rather than a standard Dung semantics — e.g. a declared preference or priority ordering proper to a normative or legal register. Contrast logic:GroundedArgumentation and logic:PreferredArgumentation, the standard abstract-argumentation semantics."@x-gmeow-english .
+    skos:definition "The argumentation-facet value selecting a domain- or policy-specific conflict-resolution semantics rather than a standard Dung semantics — e.g. a declared preference or priority ordering proper to a normative or legal register. Contrast logic:GroundedArgumentation and logic:PreferredArgumentation, the standard abstract-argumentation semantics."@x-gmeow-english ;
+    logic:formalizes gmeow:ArgumentEvaluation .
 
 logic:PositiveHornProfile
     a owl:NamedIndividual ,
@@ -1198,7 +1202,8 @@ logic:PreferredArgumentation
         logic:ArgumentationSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Preferred Argumentation"@x-gmeow-english ;
-    skos:definition "The preferred Dung argumentation semantics: acceptance over the maximal (with respect to set inclusion) admissible sets of arguments. The credulous counterpart of logic:GroundedArgumentation — a framework may have several preferred extensions, so it admits genuine choice where the grounded semantics is uniquely sceptical."@x-gmeow-english .
+    skos:definition "The preferred Dung argumentation semantics: acceptance over the maximal (with respect to set inclusion) admissible sets of arguments. The credulous counterpart of logic:GroundedArgumentation — a framework may have several preferred extensions, so it admits genuine choice where the grounded semantics is uniquely sceptical."@x-gmeow-english ;
+    logic:formalizes gmeow:ArgumentEvaluation .
 
 logic:PreservationKind
     a owl:Class ;
@@ -3059,28 +3064,32 @@ logic:InfoSupported
         logic:InformationState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Information Supported"@x-gmeow-english ;
-    skos:definition "The logic:InformationState value when there is a proof and no counterproof. Wire value `supported`. Provisional when the evaluation is not conclusive (logic:Incomplete); conclusive within the fragment otherwise."@x-gmeow-english .
+    skos:definition "The logic:InformationState value when there is a proof and no counterproof. Wire value `supported`. Provisional when the evaluation is not conclusive (logic:Incomplete); conclusive within the fragment otherwise."@x-gmeow-english ;
+    logic:formalizes gmeow:supportSupported .
 
 logic:InfoOpposed
     a owl:NamedIndividual ,
         logic:InformationState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Information Opposed"@x-gmeow-english ;
-    skos:definition "The logic:InformationState value when there is a counterproof and no proof — the FDE/paraconsistent evidence for the explicit negation. Wire value `opposed`."@x-gmeow-english .
+    skos:definition "The logic:InformationState value when there is a counterproof and no proof — the FDE/paraconsistent evidence for the explicit negation. Wire value `opposed`."@x-gmeow-english ;
+    logic:formalizes gmeow:supportOpposed .
 
 logic:InfoBoth
     a owl:NamedIndividual ,
         logic:InformationState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Information Both"@x-gmeow-english ;
-    skos:definition "The logic:InformationState value when a proof AND a counterproof exist — a witnessed contradiction (glut) within one context, carried with its logic:contradictionWitness graph. Wire value `both`. A correct `both` is HIGH-assurance about a contradictory input, not a defect, and is local to its world — never globalized to owl:Nothing."@x-gmeow-english .
+    skos:definition "The logic:InformationState value when a proof AND a counterproof exist — a witnessed contradiction (glut) within one context, carried with its logic:contradictionWitness graph. Wire value `both`. A correct `both` is HIGH-assurance about a contradictory input, not a defect, and is local to its world — never globalized to owl:Nothing."@x-gmeow-english ;
+    logic:formalizes gmeow:supportBoth .
 
 logic:InfoNeither
     a owl:NamedIndividual ,
         logic:InformationState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Information Neither"@x-gmeow-english ;
-    skos:definition "The logic:InformationState value when neither proof nor counterproof exists, established by a CONCLUSIVE evaluation (a completed run or a complete-for-the-fragment answer) — a real four-valued verdict. Wire value `neither`. NEVER interchangeable with logic:InfoUndetermined (no verdict reached) or logic:InfoNotEvaluated (the engine could not look)."@x-gmeow-english .
+    skos:definition "The logic:InformationState value when neither proof nor counterproof exists, established by a CONCLUSIVE evaluation (a completed run or a complete-for-the-fragment answer) — a real four-valued verdict. Wire value `neither`. NEVER interchangeable with logic:InfoUndetermined (no verdict reached) or logic:InfoNotEvaluated (the engine could not look)."@x-gmeow-english ;
+    logic:formalizes gmeow:supportNeither .
 
 logic:InfoUndetermined
     a owl:NamedIndividual ,
@@ -5244,6 +5253,11 @@ logic:Variadic
     rdfs:label "Variadic"@x-gmeow-english ;
     skos:definition "The residue shape tag for an atomic predication whose argument arity is not the binary Horn shape: it carries a logic:SequenceMarker or a non-binary (unary or n-ary) argument list — the generalization beyond the fixed arity-three triple. Disclosed when a Horn-fragment target carries such a formula as flagged unsupported residue."@x-gmeow-english .
 
+logic:formalizes
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "formalizes"@x-gmeow-english ;
+    skos:definition "A bridge annotation from a logic: foundational term to the gmeow: domain concept it formalizes: the central reasoning vocabulary (argumentation semantics, Belnap information states) names the domain construct that mirrors it, so the domain term's documentation can surface the formalization without the domain slice ever asserting a logic: triple. Subject is a logic: term, object a gmeow: term, both stated in prose; an annotation property, never a reasoned axiom, so it carries no DL or EL profile weight."@x-gmeow-english .
 vann:preferredNamespacePrefix
     a owl:AnnotationProperty .
 

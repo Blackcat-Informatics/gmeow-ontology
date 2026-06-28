@@ -4,7 +4,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/logic/projection-report> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionReport> .
-<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/axiomCount> "93"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/axiomCount> "104"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/ruleCount> "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/profileCount> "6"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/canonical-rdf12> .
@@ -8470,6 +8470,15 @@
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:defeasibleStrength on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:evidenceFor on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:evidenceProperty on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ArgumentationSemantics> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/GroundedArgumentation> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/InfoBoth> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/InfoNeither> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/InfoOpposed> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/InfoSupported> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/NoArgumentation> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/PolicySpecificArgumentation> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/PreferredArgumentation> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent" .
@@ -8543,6 +8552,15 @@
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:defeasibleStrength on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:evidenceFor on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:evidenceProperty on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ArgumentationSemantics> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/GroundedArgumentation> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/InfoBoth> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/InfoNeither> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/InfoOpposed> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/InfoSupported> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/NoArgumentation> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/PolicySpecificArgumentation> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/PreferredArgumentation> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent" .
@@ -8602,6 +8620,15 @@
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:defeasibleStrength on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:evidenceFor on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:evidenceProperty on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ArgumentationSemantics> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/GroundedArgumentation> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/InfoBoth> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/InfoNeither> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/InfoOpposed> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/InfoSupported> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/NoArgumentation> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/PolicySpecificArgumentation> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/PreferredArgumentation> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent" .
