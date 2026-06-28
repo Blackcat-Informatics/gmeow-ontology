@@ -270,7 +270,7 @@ mod tests {
                 SparqlResult::Solutions {
                     variables,
                     rows,
-                    aux: RdfDatasetBuilder::new().freeze().expect("empty aux"),
+                    aux: ctx.constructed_dataset(),
                 }
             }
             crate::eval::Outcome::Boolean(b) => SparqlResult::Boolean(b),

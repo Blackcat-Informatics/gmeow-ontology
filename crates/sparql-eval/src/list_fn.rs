@@ -262,18 +262,37 @@ fn typed(lexical: &str, datatype: &str) -> TermValue {
 
 /// Walk an `rdf:List` from `head`, returning its member values in order.
 ///
+/// Reads from the active dataset first, then from the per-query constructed buffer,
+/// so a list freshly minted by `listSlice`/`listConcat` is readable by another list
+/// function within the same query (e.g. `g:listLength(g:listSlice(?l, 1, 3))`).
+///
 /// * `Ok(Some(members))` — a well-formed list (an empty list, i.e. `rdf:nil`, gives
 ///   `[]`).
 /// * `Ok(None)` — `head` is not a list node we can read: it is `rdf:nil`-free, not
-///   interned in the active dataset, or has no `rdf:first` (a SPARQL error — the
-///   function yields unbound).
-/// * `Err(EvalError::Data)` — a cyclic or torn list (a cell revisited, or an
-///   interior cell missing `rdf:first`/`rdf:rest`): malformed input, a hard fail.
+///   interned in the active dataset nor minted in this query, or has no `rdf:first`
+///   (a SPARQL error — the function yields unbound).
+/// * `Err(EvalError::Data)` — a cyclic, torn, or multi-edge list (a cell revisited,
+///   an interior cell missing `rdf:first`/`rdf:rest`, or a cell carrying two of
+///   either edge): malformed input, a hard fail.
 fn walk(ctx: &EvalCtx<'_>, head: &TermValue) -> Result<Option<Vec<TermValue>>, EvalError> {
     // The empty list is `rdf:nil`, whether or not it happens to be interned.
     if is_nil(head) {
         return Ok(Some(Vec::new()));
     }
+    if let Some(members) = walk_dataset(ctx, head)? {
+        return Ok(Some(members));
+    }
+    // Not a dataset list — it may be a list minted earlier in THIS query, whose cells
+    // live only in the per-query constructed buffer (value-constructing functions used
+    // nested, e.g. `g:listLength(g:listConcat(?a, ?b))`).
+    match walk_constructed(ctx, head) {
+        Some(result) => result.map(Some),
+        None => Ok(None),
+    }
+}
+
+/// Walk a list interned in the active dataset (the common case).
+fn walk_dataset(ctx: &EvalCtx<'_>, head: &TermValue) -> Result<Option<Vec<TermValue>>, EvalError> {
     // The list nodes and edges must exist in the active dataset to be walkable.
     let (Some(first_id), Some(rest_id), Some(nil_id)) = (
         ctx.dataset.term_id_by_value(&iri(RDF_FIRST)),
@@ -301,10 +320,20 @@ fn walk(ctx: &EvalCtx<'_>, head: &TermValue) -> Result<Option<Vec<TermValue>>, E
             ));
         }
 
+        // A well-formed cell has exactly one `rdf:first` and one `rdf:rest`. Two of
+        // either makes the cell ambiguous: take no arbitrary, iteration-order-dependent
+        // branch — hard-fail (the malformed-input contract).
         let mut first_obj: Option<TermId> = None;
+        let mut first_count = 0usize;
         scope.for_each_quad(ctx.dataset, Some(cur), Some(first_id), None, |q| {
             first_obj = Some(q.o);
+            first_count += 1;
         });
+        if first_count > 1 {
+            return Err(EvalError::data(
+                "rdf:List cell with multiple rdf:first edges",
+            ));
+        }
         let Some(fo) = first_obj else {
             // No `rdf:first`: the head is simply not a list (SPARQL error); an
             // interior cell without `rdf:first` is a torn list (hard fail).
@@ -316,14 +345,91 @@ fn walk(ctx: &EvalCtx<'_>, head: &TermValue) -> Result<Option<Vec<TermValue>>, E
         members.push(term_id_to_value(ctx.dataset, fo));
 
         let mut rest_obj: Option<TermId> = None;
+        let mut rest_count = 0usize;
         scope.for_each_quad(ctx.dataset, Some(cur), Some(rest_id), None, |q| {
             rest_obj = Some(q.o);
+            rest_count += 1;
         });
+        if rest_count > 1 {
+            return Err(EvalError::data(
+                "rdf:List cell with multiple rdf:rest edges",
+            ));
+        }
         let Some(ro) = rest_obj else {
             return Err(EvalError::data("rdf:List cell missing rdf:rest"));
         };
         cur = ro;
     }
+}
+
+/// Walk a list whose cells live only in the per-query constructed buffer
+/// (`ctx.constructed`) — a list minted by `listSlice`/`listConcat` and read again
+/// within the same query. Returns `None` when `head` is not a constructed-list head
+/// (the caller then treats it as a non-list / unbound); otherwise the same
+/// well-formed / malformed contract as [`walk_dataset`].
+fn walk_constructed(
+    ctx: &EvalCtx<'_>,
+    head: &TermValue,
+) -> Option<Result<Vec<TermValue>, EvalError>> {
+    let first = iri(RDF_FIRST);
+    let rest = iri(RDF_REST);
+    let mut members: Vec<TermValue> = Vec::new();
+    let mut cur = head.clone();
+    let mut at_head = true;
+    loop {
+        if is_nil(&cur) {
+            return Some(Ok(members));
+        }
+        // Our own mints are finite and acyclic; more members than buffered cells means
+        // a cycle (defensive — bounds the walk without needing `Hash` on `TermValue`).
+        if members.len() > ctx.constructed.len() {
+            return Some(Err(EvalError::data(
+                "cyclic rdf:List (a cell is reachable from itself)",
+            )));
+        }
+        let fo = match single_constructed_edge(ctx, &cur, &first) {
+            Err(e) => return Some(Err(e)),
+            Ok(Some(o)) => o,
+            Ok(None) => {
+                // No `rdf:first`: at the head, `head` is simply not a constructed list
+                // (fall through to unbound); mid-list it is a torn cell (hard fail).
+                if at_head {
+                    return None;
+                }
+                return Some(Err(EvalError::data("rdf:List cell missing rdf:first")));
+            }
+        };
+        members.push(fo);
+        let ro = match single_constructed_edge(ctx, &cur, &rest) {
+            Err(e) => return Some(Err(e)),
+            Ok(Some(o)) => o,
+            Ok(None) => return Some(Err(EvalError::data("rdf:List cell missing rdf:rest"))),
+        };
+        cur = ro;
+        at_head = false;
+    }
+}
+
+/// The unique object of `(subject, predicate, ?)` in the per-query constructed
+/// buffer: `Ok(None)` if absent, `Ok(Some)` if exactly one, `Err` if more than one
+/// (a multi-edge malformed cell — same hard-fail as the dataset walk).
+fn single_constructed_edge(
+    ctx: &EvalCtx<'_>,
+    subject: &TermValue,
+    predicate: &TermValue,
+) -> Result<Option<TermValue>, EvalError> {
+    let mut found: Option<&TermValue> = None;
+    let mut count = 0usize;
+    for (s, p, o) in &ctx.constructed {
+        if s == subject && p == predicate {
+            found = Some(o);
+            count += 1;
+        }
+    }
+    if count > 1 {
+        return Err(EvalError::data("rdf:List cell with multiple edges"));
+    }
+    Ok(found.cloned())
 }
 
 /// An IRI value.
@@ -627,6 +733,50 @@ mod tests {
         let err = eval_err(&ds, &q);
         assert!(matches!(err, EvalError::Data(_)), "got {err:?}");
         assert!(err.to_string().contains("missing rdf:first"), "got {err}");
+    }
+
+    #[test]
+    fn multi_edge_dataset_cell_is_a_hard_data_error() {
+        // A cell carrying two rdf:first quads is ambiguous — hard-fail rather than
+        // pick an iteration-order-dependent branch.
+        let mut b = RdfDatasetBuilder::new();
+        let first = b.intern_iri(super::RDF_FIRST.to_owned());
+        let rest = b.intern_iri(super::RDF_REST.to_owned());
+        let nil = b.intern_iri(super::RDF_NIL.to_owned());
+        let l0 = b.intern_iri("http://ex/l0".to_owned());
+        let x = b.intern_iri("http://ex/x".to_owned());
+        let y = b.intern_iri("http://ex/y".to_owned());
+        b.push_quad(l0, first, x, None);
+        b.push_quad(l0, first, y, None); // a second rdf:first — malformed
+        b.push_quad(l0, rest, nil, None);
+        let ds = b.freeze().expect("freeze");
+
+        let q = format!("{PREFIX} SELECT ?n WHERE {{ BIND(g:listLength(<http://ex/l0>) AS ?n) }}");
+        let err = eval_err(&ds, &q);
+        assert!(matches!(err, EvalError::Data(_)), "got {err:?}");
+        assert!(err.to_string().contains("multiple rdf:first"), "got {err}");
+    }
+
+    #[test]
+    fn constructed_list_is_readable_within_the_same_query() {
+        // A list minted by listSlice/listConcat must be walkable by another list
+        // function in the SAME query: its cells live only in the per-query buffer, so
+        // walk() consults the constructed buffer as well as the dataset.
+        let ds = list_ds();
+
+        // listLength(listSlice((x y z), 1, 3)) = |(y z)| = 2
+        let q_len = format!(
+            "{PREFIX} SELECT ?n WHERE {{ ?q <http://ex/list> ?l . \
+             BIND(g:listLength(g:listSlice(?l, 1, 3)) AS ?n) }}"
+        );
+        assert_eq!(rows(&ds, &q_len), vec![vec!["2".to_owned()]]);
+
+        // listGet(listConcat(L, L), 3) = first member of the second copy = x
+        let q_get = format!(
+            "{PREFIX} SELECT ?x WHERE {{ ?q <http://ex/list> ?l . \
+             BIND(g:listGet(g:listConcat(?l, ?l), 3) AS ?x) }}"
+        );
+        assert_eq!(rows(&ds, &q_get), vec![vec!["<http://ex/x>".to_owned()]]);
     }
 
     // ── constructing functions: listSlice / listConcat ───────────────────────
