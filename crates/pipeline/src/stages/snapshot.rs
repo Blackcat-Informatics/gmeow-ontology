@@ -23,7 +23,6 @@ use gmeow_rdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder};
 use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
 use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
 use oxigraph::model::Quad;
-use oxigraph::store::Store;
 use rayon::prelude::*;
 
 use crate::error::PipelineError;
@@ -117,31 +116,28 @@ pub fn build_snapshot(
         .ok_or_else(|| stage_err("missing conformance-stage divergence Finding graph"))?;
 
     // graph/projection-ledger ← the compiler's projection-report loss ledger (Turtle),
-    // converted to N-Quads for the named-graph fold.
+    // converted to N-Quads for the named-graph fold via the native codec (no `Store`).
     let projection_ledger = {
         let report_ttl = upstream
             .get("stage-compile-logic")
             .and_then(|p| p.artifact(crate::stages::compile_logic::PROJECTION_REPORT_PATH))
             .ok_or_else(|| stage_err("missing compile-logic projection-report loss ledger"))?;
-        let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
-        ingest_turtle(&store, report_ttl)?;
-        store_to_nquads(&store)?
+        turtle_to_nquads(report_ttl)?
     };
 
     // Pass 1: build WITHOUT the verify graph, then run native verify over the
     // default graph ∪ imports (the closed-world integrity constraints query that
-    // union; the verify graph itself is never an input — #695).
+    // union; the verify graph itself is never an input — #695). The verify EDB is
+    // assembled by parsing each side natively and merging via the standardize-apart
+    // `RdfDataset::union` (no oxigraph `Store`): the authored default graph is already
+    // canonical N-Quads, the imports are Turtle.
     let verify_attestation = {
-        let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
-        ingest_nq(&store, authored_canon.as_bytes())?;
-        ingest_turtle(&store, &imports)?;
-        let quads = store
-            .iter()
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| stage_err(&format!("verify input store iteration: {e}")))?;
-        let dataset = gmeow_rdf::dataset_from_oxigraph_quads(&quads)
-            .map_err(|e| stage_err(&format!("verify input dataset freeze: {e}")))?;
-        run_verify_attestation(root, dataset.as_ref())?
+        let authored_ds = parse_dataset(authored_canon.as_bytes(), "application/n-quads", None)
+            .map_err(|e| stage_err(&format!("verify authored parse: {e}")))?;
+        let imports_ds = parse_dataset(&imports, "text/turtle", None)
+            .map_err(|e| stage_err(&format!("verify imports parse: {e}")))?;
+        let edb = gmeow_rdf::RdfDataset::union(&[authored_ds.as_ref(), imports_ds.as_ref()]);
+        run_verify_attestation(root, &edb)?
     };
 
     // ── the builder: route every source into its named graph ────────────────────
@@ -891,12 +887,6 @@ const LOCALIZABLE_PREDICATES: &[&str] = &[
 /// N-Quads. This is `load_merged_graph(include_imports=False)` followed by
 /// `merge_terms(graph, po_paths)` — the committed default graph is multilingual.
 fn load_authored_default(root: &Path) -> Result<Vec<u8>, PipelineError> {
-    let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
-    // Per-file blank-node scoping: oxigraph reuses blank labels (`_:b0`, …) across
-    // separate parse calls into ONE store, which COLLAPSES structurally-distinct
-    // blank-node axioms (e.g. two `owl:AllDisjointClasses` lists) that the Python
-    // build keeps distinct (rdflib skolemizes per-parse). Renaming each file's
-    // blanks with a file-unique prefix before union preserves that distinctness.
     let onto = root.join("ontology").join("gmeow.ttl");
     // The root ontology is REQUIRED — the authored default graph is meaningless
     // without it. A missing `ontology/gmeow.ttl` HARD-fails rather than silently
@@ -907,24 +897,40 @@ fn load_authored_default(root: &Path) -> Result<Vec<u8>, PipelineError> {
             onto.display()
         )));
     }
-    let mut scope = 0usize;
-    ingest_turtle_scoped(&store, &std::fs::read(&onto)?, scope)?;
-    scope += 1;
+    // Root ontology + every slice `module.ttl`, each parsed into its OWN dataset so
+    // its blank labels live in an independent scope, then merged via the native
+    // standardize-apart `RdfDataset::union`. This REPLACES the per-file `f{scope}_`
+    // string-prefixing (`ingest_turtle_scoped`) and the oxigraph `Store` accumulation:
+    // the union's per-input `BlankScope` keeps structurally-distinct blank-node axioms
+    // (two `owl:AllDisjointClasses` lists) disjoint, the very distinctness the build
+    // relies on. Imports are EXCLUDED — they ride `graph/imports` (`load_imports`).
+    let mut sources: Vec<Vec<u8>> = Vec::new();
+    sources.push(std::fs::read(&onto)?);
     for module in crate::stages::source_load::module_files(root)? {
-        ingest_turtle_scoped(&store, &std::fs::read(&module)?, scope)?;
-        scope += 1;
+        sources.push(std::fs::read(&module)?);
     }
-    merge_translations(root, &store)?;
-    add_guide_blobs(root, &store)?;
-    store_to_nquads(&store)
+    let base = union_turtle_datasets(&sources)?;
+
+    // The merged default graph as a flat oxigraph quad list (the union's standardized
+    // blank labels), onto which the multilingual translations and per-slice guideBlob
+    // anchors are folded natively — both add IRI-subject triples, so re-folding the
+    // augmented list through `dataset_from_oxigraph_quads` is loss-free.
+    let mut quads = flat_oxigraph_quads_from_dataset(&base)
+        .map_err(|e| stage_err(&format!("base default graph → quads: {e}")))?;
+    merge_translations(root, &mut quads)?;
+    add_guide_blobs(root, &mut quads)?;
+
+    let dataset = gmeow_rdf::dataset_from_oxigraph_quads(&quads)
+        .map_err(|e| stage_err(&format!("authored default graph freeze: {e}")))?;
+    dataset_to_nquads(&dataset)
 }
 
 /// Add the per-slice `gmeow:guideBlob` triple `_doc_blobs` injects into the
 /// default graph: for every slice carrying a `docs.md`, link the slice IRI to the
 /// `blake3:<hex>` content digest of that guide. The guide itself rides the bundle
 /// as a content-addressed blob; this triple is its in-graph anchor.
-fn add_guide_blobs(root: &Path, store: &Store) -> Result<(), PipelineError> {
-    use oxigraph::model::{Literal, NamedNode, Quad};
+fn add_guide_blobs(root: &Path, quads: &mut Vec<Quad>) -> Result<(), PipelineError> {
+    use oxigraph::model::{Literal, NamedNode};
 
     let guide_blob = NamedNode::new(format!("{GMEOW_NS}guideBlob")).unwrap();
     let catalog = gmeow_slice::SliceCatalog::discover(&root.join("slices"))
@@ -938,26 +944,27 @@ fn add_guide_blobs(root: &Path, store: &Store) -> Result<(), PipelineError> {
         let digest = format!("blake3:{}", blake3::hash(&guide.content).to_hex());
         let subject = NamedNode::new(&record.manifest.slice_iri)
             .map_err(|e| stage_err(&format!("slice IRI {}: {e}", record.manifest.slice_iri)))?;
-        let quad = Quad::new(
+        quads.push(Quad::new(
             subject,
             guide_blob.clone(),
             Literal::new_simple_literal(digest),
             oxigraph::model::GraphName::DefaultGraph,
-        );
-        store
-            .insert(&quad)
-            .map_err(|e| stage_err(&format!("guideBlob insert: {e}")))?;
+        ));
     }
     Ok(())
 }
 
-/// Merge the slice `.po` translations into `store`, mirroring `merge_terms`: for
-/// every base-graph localizable literal `(iri, predicate)`, add a translated
-/// literal `(iri, predicate, "msgstr"@<internal-tag>)` for each language that
-/// translates it. The translation index + the BCP-47 → `x-gmeow-*` tag map come
+/// Merge the slice `.po` translations into the default-graph quad list, mirroring
+/// `merge_terms`: for every base-graph localizable literal `(iri, predicate)`, add a
+/// translated literal `(iri, predicate, "msgstr"@<internal-tag>)` for each language
+/// that translates it. The translation index + the BCP-47 → `x-gmeow-*` tag map come
 /// from the native `gmeow_docs::Translations` (the same catalog the docs render).
-fn merge_translations(root: &Path, store: &Store) -> Result<(), PipelineError> {
-    use oxigraph::model::{Literal, NamedNode, Quad, Term};
+///
+/// The scan is over the pre-translation base quads (a snapshot taken before any
+/// additions), so a translated literal is never itself re-scanned — matching the
+/// original `quads_for_pattern` view of the base store.
+fn merge_translations(root: &Path, quads: &mut Vec<Quad>) -> Result<(), PipelineError> {
+    use oxigraph::model::{Literal, NamedNode, NamedOrBlankNode, Term};
 
     let catalog = gmeow_slice::SliceCatalog::discover(&root.join("slices"))
         .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
@@ -966,40 +973,40 @@ fn merge_translations(root: &Path, store: &Store) -> Result<(), PipelineError> {
     if langs.is_empty() {
         return Ok(());
     }
+    let localizable: std::collections::BTreeSet<&str> =
+        LOCALIZABLE_PREDICATES.iter().copied().collect();
 
-    // The base-graph localizable literals: `(subject_iri, predicate_iri)` whose
-    // object is a literal (the allowed-keys set of merge_terms).
+    // The base-graph localizable literals: `(subject_iri, predicate_iri)` whose object
+    // is a literal (the allowed-keys set of merge_terms). Scanned over the base quads
+    // only; additions are appended afterwards.
     let mut additions: Vec<Quad> = Vec::new();
-    for pred in LOCALIZABLE_PREDICATES {
-        let predicate = NamedNode::new(*pred).map_err(|e| stage_err(&format!("predicate: {e}")))?;
-        for quad in store.quads_for_pattern(None, Some((&predicate).into()), None, None) {
-            let quad = quad.map_err(|e| stage_err(&format!("scan: {e}")))?;
-            let oxigraph::model::NamedOrBlankNode::NamedNode(subject) = &quad.subject else {
-                continue;
-            };
-            if !matches!(&quad.object, Term::Literal(_)) {
-                continue;
-            }
-            for lang in &langs {
-                if let Some(msgstr) = translations.lookup(subject.as_str(), pred, lang) {
-                    let tag = translations.internal_tag(lang);
-                    let literal = Literal::new_language_tagged_literal(msgstr, &tag)
-                        .map_err(|e| stage_err(&format!("lang literal {tag}: {e}")))?;
-                    additions.push(Quad::new(
-                        subject.clone(),
-                        predicate.clone(),
-                        literal,
-                        oxigraph::model::GraphName::DefaultGraph,
-                    ));
-                }
+    for quad in quads.iter() {
+        let pred = quad.predicate.as_str();
+        if !localizable.contains(pred) {
+            continue;
+        }
+        let NamedOrBlankNode::NamedNode(subject) = &quad.subject else {
+            continue;
+        };
+        if !matches!(&quad.object, Term::Literal(_)) {
+            continue;
+        }
+        let predicate = NamedNode::new(pred).map_err(|e| stage_err(&format!("predicate: {e}")))?;
+        for lang in &langs {
+            if let Some(msgstr) = translations.lookup(subject.as_str(), pred, lang) {
+                let tag = translations.internal_tag(lang);
+                let literal = Literal::new_language_tagged_literal(msgstr, &tag)
+                    .map_err(|e| stage_err(&format!("lang literal {tag}: {e}")))?;
+                additions.push(Quad::new(
+                    subject.clone(),
+                    predicate.clone(),
+                    literal,
+                    oxigraph::model::GraphName::DefaultGraph,
+                ));
             }
         }
     }
-    for quad in additions {
-        store
-            .insert(&quad)
-            .map_err(|e| stage_err(&format!("translation insert: {e}")))?;
-    }
+    quads.extend(additions);
     Ok(())
 }
 
@@ -1007,7 +1014,6 @@ fn merge_translations(root: &Path, store: &Store) -> Result<(), PipelineError> {
 
 fn load_imports(root: &Path) -> Result<Vec<u8>, PipelineError> {
     let dir = root.join("imports");
-    let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
     let mut files: Vec<std::path::PathBuf> = Vec::new();
     for entry in std::fs::read_dir(&dir)? {
         let path = entry?.path();
@@ -1016,19 +1022,17 @@ fn load_imports(root: &Path) -> Result<Vec<u8>, PipelineError> {
         }
     }
     files.sort();
-    for path in files {
-        ingest_turtle(&store, &std::fs::read(&path)?)?;
-    }
-    store_to_nquads(&store)
+    // Each import file is its own blank scope; merge via the standardize-apart union
+    // (the native replacement for the per-file Store accumulation).
+    let sources: Vec<Vec<u8>> = files.iter().map(std::fs::read).collect::<Result<_, _>>()?;
+    dataset_to_nquads(&union_turtle_datasets(&sources)?)
 }
 
 // ── metadata (graph/metadata) ───────────────────────────────────────────────────
 
 fn load_metadata(root: &Path) -> Result<Vec<u8>, PipelineError> {
     let path = root.join("metadata").join("gmeow-self.ttl");
-    let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
-    ingest_turtle(&store, &std::fs::read(&path)?)?;
-    store_to_nquads(&store)
+    turtle_to_nquads(&std::fs::read(&path)?)
 }
 
 // ── slice-analysis (graph/slice-analysis) ───────────────────────────────────────
@@ -1090,11 +1094,9 @@ fn build_slice_analysis(root: &Path, authored_nq: &[u8]) -> Result<Vec<u8>, Pipe
     )
     .map_err(|e| stage_err(&format!("slice-analysis emit: {e}")))?;
 
-    // The emitter returns a Turtle body; normalize through a store to N-Quads so
-    // the builder ingests it the same way as every other named-graph source.
-    let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
-    ingest_turtle(&store, graph.turtle_body.as_bytes())?;
-    store_to_nquads(&store)
+    // The emitter returns a Turtle body; normalize to N-Quads natively so the builder
+    // ingests it the same way as every other named-graph source.
+    turtle_to_nquads(graph.turtle_body.as_bytes())
 }
 
 fn tier_priority(tier: Option<&gmeow_slice::SliceTier>) -> u8 {
@@ -1108,21 +1110,15 @@ fn tier_priority(tier: Option<&gmeow_slice::SliceTier>) -> u8 {
 
 /// The authored ontology `owl:versionInfo` (a hard requirement — never defaulted).
 fn ontology_version(authored_nq: &[u8]) -> Result<String, PipelineError> {
-    let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
-    ingest_nq(&store, authored_nq)?;
-    let onto = oxigraph::model::NamedNode::new(GMEOW_NS.trim_end_matches('/'))
-        .map_err(|e| stage_err(&format!("ontology IRI: {e}")))?;
-    let version_info =
-        oxigraph::model::NamedNode::new("http://www.w3.org/2002/07/owl#versionInfo").unwrap();
-    for quad in store.quads_for_pattern(
-        Some((&onto).into()),
-        Some((&version_info).into()),
-        None,
-        None,
-    ) {
-        let quad = quad.map_err(|e| stage_err(&format!("version lookup: {e}")))?;
-        if let oxigraph::model::Term::Literal(l) = &quad.object {
-            return Ok(l.value().to_string());
+    let onto = GMEOW_NS.trim_end_matches('/');
+    let version_info = "http://www.w3.org/2002/07/owl#versionInfo";
+    for quad in parse_nq(authored_nq)? {
+        if let oxigraph::model::NamedOrBlankNode::NamedNode(subject) = &quad.subject {
+            if subject.as_str() == onto && quad.predicate.as_str() == version_info {
+                if let oxigraph::model::Term::Literal(l) = &quad.object {
+                    return Ok(l.value().to_string());
+                }
+            }
         }
     }
     Err(stage_err(&format!(
@@ -1148,7 +1144,7 @@ fn load_alignments(root: &Path) -> Result<Vec<u8>, PipelineError> {
     }
     files.sort();
 
-    let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
+    let mut quads: Vec<Quad> = Vec::new();
     for path in files {
         let text = std::fs::read_to_string(&path)?;
         for (s, p, o) in alignment_rows(&text)? {
@@ -1158,18 +1154,17 @@ fn load_alignments(root: &Path) -> Result<Vec<u8>, PipelineError> {
                 .map_err(|e| stage_err(&format!("alignment predicate {p}: {e}")))?;
             let object = oxigraph::model::NamedNode::new(&o)
                 .map_err(|e| stage_err(&format!("alignment object {o}: {e}")))?;
-            let quad = Quad::new(
+            quads.push(Quad::new(
                 subject,
                 predicate,
                 object,
                 oxigraph::model::GraphName::DefaultGraph,
-            );
-            store
-                .insert(&quad)
-                .map_err(|e| stage_err(&format!("alignment insert: {e}")))?;
+            ));
         }
     }
-    store_to_nquads(&store)
+    let dataset = gmeow_rdf::dataset_from_oxigraph_quads(&quads)
+        .map_err(|e| stage_err(&format!("alignment graph freeze: {e}")))?;
+    dataset_to_nquads(&dataset)
 }
 
 /// Parse one SSSOM TSV into `(subject_iri, predicate_iri, object_iri)` rows,
@@ -1284,9 +1279,7 @@ fn run_verify_attestation(
     }
 
     let attestation = emit_verify_attestation(&query_paths, &failed);
-    let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
-    ingest_turtle(&store, attestation.as_bytes())?;
-    store_to_nquads(&store)
+    turtle_to_nquads(attestation.as_bytes())
 }
 
 /// Sorted `(repo_relative_name, path)` for every verify query (core + slice).
@@ -1479,67 +1472,59 @@ fn parse_rdf(bytes: &[u8], media_type: &str) -> Result<Vec<Quad>, PipelineError>
     flat_oxigraph_quads_from_dataset(&dataset).map_err(|e| stage_err(&format!("IR → quads: {e}")))
 }
 
-fn ingest_turtle(store: &Store, bytes: &[u8]) -> Result<(), PipelineError> {
-    for quad in parse_rdf(bytes, "text/turtle")? {
-        store
-            .insert(&quad)
-            .map_err(|e| stage_err(&format!("insert: {e}")))?;
-    }
-    Ok(())
+/// Parse one Turtle source's bytes into a frozen [`RdfDataset`] via the native
+/// codec. The IR fold standardizes blank labels per-dataset, so each parse is an
+/// independent blank-node scope — [`RdfDataset::union`] keeps those scopes disjoint.
+fn parse_turtle_dataset(
+    bytes: &[u8],
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    parse_dataset(bytes, "text/turtle", None).map_err(|e| stage_err(&format!("parse: {e}")))
 }
 
-/// Parse one Turtle file's bytes and insert it with every blank-node label
-/// prefixed `f{scope}_…`, so blanks from distinct files never collide in the
-/// shared store (the per-parse skolemization the Python build relies on).
-fn ingest_turtle_scoped(store: &Store, bytes: &[u8], scope: usize) -> Result<(), PipelineError> {
-    use oxigraph::model::{BlankNode, GraphName, NamedOrBlankNode, Quad, Term};
-
-    let prefix = format!("f{scope}_");
-    let rename_subject = |s: &NamedOrBlankNode| -> Result<NamedOrBlankNode, PipelineError> {
-        Ok(match s {
-            NamedOrBlankNode::BlankNode(b) => BlankNode::new(format!("{prefix}{}", b.as_str()))
-                .map_err(|e| stage_err(&format!("blank rename: {e}")))?
-                .into(),
-            other => other.clone(),
-        })
-    };
-    let rename_object = |o: &Term| -> Result<Term, PipelineError> {
-        Ok(match o {
-            Term::BlankNode(b) => Term::BlankNode(
-                BlankNode::new(format!("{prefix}{}", b.as_str()))
-                    .map_err(|e| stage_err(&format!("blank rename: {e}")))?,
-            ),
-            other => other.clone(),
-        })
-    };
-    for quad in parse_rdf(bytes, "text/turtle")? {
-        let renamed = Quad::new(
-            rename_subject(&quad.subject)?,
-            quad.predicate.clone(),
-            rename_object(&quad.object)?,
-            GraphName::DefaultGraph,
-        );
-        store
-            .insert(&renamed)
-            .map_err(|e| stage_err(&format!("insert: {e}")))?;
-    }
-    Ok(())
+/// Serialize a frozen [`RdfDataset`] to N-Quads, the same byte form every named-graph
+/// source flows through before [`add_named`] re-canonicalizes it. Replaces the old
+/// `dataset_from_store` + serialize round-trip (no oxigraph `Store`).
+///
+/// CRITICAL: the typed-literal lexical forms are canonicalized to the XSD canonical
+/// mapping (`0.90` → `0.9`, `1.0` → `1`, `+00:00` → `Z`), matching exactly what
+/// inserting into an oxigraph `Store` did in the old `store_to_nquads` path. The native
+/// codecs PRESERVE raw lexical forms, so without this normalize the committed
+/// Store-normalized bundle (and every artifact re-derived from it) would drift. The
+/// canonicalization runs on the flat quad list so quoted-triple objects recurse.
+fn dataset_to_nquads(dataset: &gmeow_rdf::RdfDataset) -> Result<Vec<u8>, PipelineError> {
+    let quads = flat_oxigraph_quads_from_dataset(dataset)
+        .map_err(|e| stage_err(&format!("dataset → quads: {e}")))?;
+    let canon = gmeow_rdf::oxigraph::canonicalize_quad_literals(&quads)
+        .map_err(|e| stage_err(&format!("literal canonicalize: {e}")))?;
+    let normalized = gmeow_rdf::dataset_from_oxigraph_quads(&canon)
+        .map_err(|e| stage_err(&format!("literal-canonical freeze: {e}")))?;
+    serialize_dataset(
+        normalized.as_ref(),
+        "application/n-quads",
+        SerializeGraph::Dataset,
+    )
+    .map_err(|e| stage_err(&format!("serialize: {e}")))
 }
 
-fn ingest_nq(store: &Store, bytes: &[u8]) -> Result<(), PipelineError> {
-    for quad in parse_nq(bytes)? {
-        store
-            .insert(&quad)
-            .map_err(|e| stage_err(&format!("insert: {e}")))?;
-    }
-    Ok(())
+/// Parse a single Turtle source and serialize it straight to N-Quads (no `Store`).
+/// The native equivalent of the old `Store::new()+ingest_turtle+store_to_nquads`
+/// trio for single-file named-graph sources (metadata, slice-analysis).
+fn turtle_to_nquads(bytes: &[u8]) -> Result<Vec<u8>, PipelineError> {
+    dataset_to_nquads(parse_turtle_dataset(bytes)?.as_ref())
 }
 
-fn store_to_nquads(store: &Store) -> Result<Vec<u8>, PipelineError> {
-    let dataset = gmeow_rdf::oxigraph::dataset_from_store(store)
-        .map_err(|e| stage_err(&format!("store → IR: {e}")))?;
-    serialize_dataset(&dataset, "application/n-quads", SerializeGraph::Dataset)
-        .map_err(|e| stage_err(&format!("serialize: {e}")))
+/// The standardize-apart union of several Turtle sources into ONE default-graph
+/// dataset. Each source is parsed independently (its own blank scope) and merged via
+/// [`RdfDataset::union`], whose per-input `BlankScope` keeps structurally-distinct
+/// blank-node axioms (e.g. two `owl:AllDisjointClasses` lists) disjoint — the native
+/// replacement for the removed `ingest_turtle_scoped` string-prefix scoping.
+fn union_turtle_datasets(sources: &[Vec<u8>]) -> Result<gmeow_rdf::RdfDataset, PipelineError> {
+    let owned: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = sources
+        .iter()
+        .map(|bytes| parse_turtle_dataset(bytes))
+        .collect::<Result<_, _>>()?;
+    let refs: Vec<&gmeow_rdf::RdfDataset> = owned.iter().map(AsRef::as_ref).collect();
+    Ok(gmeow_rdf::RdfDataset::union(&refs))
 }
 
 fn sorted_dirs(dir: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
@@ -2044,6 +2029,160 @@ mod conformance_fold_tests {
         assert!(
             !folded_graph_names(&gts).contains(GRAPH_CONFORMANCE),
             "an all-agree corpus must not fold a phantom graph/conformance"
+        );
+    }
+}
+
+#[cfg(test)]
+mod native_assembly_tests {
+    use super::*;
+
+    /// Count the `owl:AllDisjointClasses` typed subjects (blank nodes) and the
+    /// `owl:members` list-head triples in a canonical N-Quads blob.
+    fn disjoint_shape(canon: &str) -> (usize, usize) {
+        let all_disjoint = canon
+            .lines()
+            .filter(|l| {
+                l.contains("<http://www.w3.org/2002/07/owl#AllDisjointClasses>")
+                    && l.contains("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>")
+            })
+            .count();
+        let members = canon
+            .lines()
+            .filter(|l| l.contains("<http://www.w3.org/2002/07/owl#members>"))
+            .count();
+        (all_disjoint, members)
+    }
+
+    /// Two distinct `owl:AllDisjointClasses` axioms authored in SEPARATE files MUST
+    /// survive the native `RdfDataset::union` standardize-apart as TWO distinct blank
+    /// lists — never collapsing into one. This is exactly why the removed
+    /// `ingest_turtle_scoped` string-prefixed per-file blanks; the union's per-input
+    /// `BlankScope` is its native replacement. Each file independently mints `_:b0`
+    /// (the codecs restart blank counters per parse), so without standardize-apart the
+    /// two axioms would merge into a single subject and one of the lists would vanish.
+    #[test]
+    fn two_all_disjoint_lists_survive_union_distinctly() {
+        // Two files, each with ONE owl:AllDisjointClasses over a DIFFERENT class set,
+        // both anonymous (blank-node subject + blank-node list cells).
+        let file_a = br#"@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix ex:  <https://example.org/> .
+[] a owl:AllDisjointClasses ; owl:members ( ex:A ex:B ex:C ) .
+"#;
+        let file_b = br#"@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix ex:  <https://example.org/> .
+[] a owl:AllDisjointClasses ; owl:members ( ex:D ex:E ) .
+"#;
+
+        let union = union_turtle_datasets(&[file_a.to_vec(), file_b.to_vec()])
+            .expect("union two disjoint files");
+        let nq = dataset_to_nquads(&union).expect("union → n-quads");
+        let canon = canonicalize_nq(&nq, "base").expect("canonicalize union");
+
+        let (subjects, members) = disjoint_shape(&canon);
+        assert_eq!(
+            subjects, 2,
+            "the union must keep TWO distinct AllDisjointClasses subjects (one per file); \
+             a collapse would leave only 1.\nCanonical:\n{canon}"
+        );
+        assert_eq!(
+            members, 2,
+            "each AllDisjointClasses must keep its own owl:members list head"
+        );
+
+        // The two list contents (3-element and 2-element) must both be present — a
+        // collapse would lose one set entirely. Count rdf:first cells: 3 + 2 = 5.
+        let first_cells = canon
+            .lines()
+            .filter(|l| l.contains("<http://www.w3.org/1999/02/22-rdf-syntax-ns#first>"))
+            .count();
+        assert_eq!(
+            first_cells, 5,
+            "both lists (3 + 2 members) must survive distinctly; got {first_cells} rdf:first cells"
+        );
+
+        // Contrast: parsing BOTH files into ONE dataset WITHOUT standardize-apart
+        // would let the two `_:b0` subjects collide. We can't easily force that here,
+        // but the union path above is the production assembly — its 2-subject result
+        // is the proof the native union preserves per-file distinctness.
+    }
+
+    /// The projection-ledger named graph built natively (`turtle_to_nquads`) is
+    /// graph-isomorphic to the legacy oxigraph-`Store` conversion of the SAME Turtle
+    /// report. Both paths canonicalize to byte-identical N-Quads (no blank-label drift,
+    /// no literal-form drift), so the C3 native swap is a faithful replacement.
+    #[test]
+    fn projection_ledger_matches_oxigraph_conversion() {
+        // A representative projection-report fragment: typed loss-ledger entries with
+        // a blank-node structural-drop list (exercises blank canonicalization).
+        let report_ttl = br#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+gmeow:projection/okf
+    a gmeow:ProjectionLedgerEntry ;
+    rdfs:label "OKF projection" ;
+    gmeow:preservationKind gmeow:Lossy ;
+    gmeow:droppedCount "3"^^xsd:integer ;
+    gmeow:structuralDrop [ gmeow:dropKind gmeow:StatementLayer ] .
+"#;
+
+        // Native path: the C3 helper.
+        let native = turtle_to_nquads(report_ttl).expect("native turtle → n-quads");
+        let native_canon = canonicalize_nq(&native, "projledger").expect("canon native");
+
+        // Legacy path: parse via the native codec, route through an oxigraph Store,
+        // serialize back (the exact `Store::new()+ingest_turtle+store_to_nquads` the
+        // C3 swap removed).
+        let store = oxigraph::store::Store::new().expect("store");
+        for quad in parse_rdf(report_ttl, "text/turtle").expect("parse report") {
+            store.insert(&quad).expect("insert");
+        }
+        let store_ds = gmeow_rdf::oxigraph::dataset_from_store(&store).expect("store → ds");
+        let legacy = serialize_dataset(&store_ds, "application/n-quads", SerializeGraph::Dataset)
+            .expect("serialize store");
+        let legacy_canon = canonicalize_nq(&legacy, "projledger").expect("canon legacy");
+
+        assert_eq!(
+            native_canon, legacy_canon,
+            "the native projection-ledger N-Quads must be graph-isomorphic to the \
+             oxigraph-Store conversion (canonical byte-equality)"
+        );
+    }
+
+    /// `load_authored_default` over the real repo tree produces a non-empty
+    /// multilingual default graph (the union path + native translation/guideBlob fold),
+    /// and the guideBlob anchors land on real slice IRIs.
+    #[test]
+    fn authored_default_assembles_natively() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap();
+        let nq = load_authored_default(&root).expect("authored default graph");
+        let text = String::from_utf8(nq).expect("utf-8 n-quads");
+        assert!(
+            !text.trim().is_empty(),
+            "the default graph must be non-empty"
+        );
+        // The root ontology declaration must be present (the ontology IRI has no
+        // trailing slash — `…/gmeow`, distinct from the `…/gmeow/` namespace prefix).
+        assert!(
+            text.contains("<https://blackcatinformatics.ca/gmeow>"),
+            "the authored default graph must carry the root ontology subject"
+        );
+        // At least one guideBlob anchor (per-slice docs.md digest) must be folded.
+        assert!(
+            text.contains("<https://blackcatinformatics.ca/gmeow/guideBlob>")
+                && text.contains("blake3:"),
+            "the native guideBlob fold must inject blake3 digest anchors"
+        );
+        // Determinism: a second assembly is byte-identical.
+        let again = load_authored_default(&root).expect("authored default graph (2)");
+        assert_eq!(
+            text.as_bytes(),
+            again.as_slice(),
+            "the native authored assembly must be byte-deterministic"
         );
     }
 }
