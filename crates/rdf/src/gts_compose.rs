@@ -666,6 +666,33 @@ mod tests {
     }
 
     #[test]
+    fn add_dataset_statement_layer_matches_add_rdf12() {
+        // A reifier with the canonical `rdf:reifies <<( s p o )>>` shape plus annotation
+        // properties on the reifier subject — the exact statement-layer pattern.
+        let ttl = concat!(
+            "<https://e/claim> ",
+            "<http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
+            "<<( <https://e/s> <https://e/p> <https://e/o> )>> ;\n",
+            "  <https://e/accordingTo> <https://e/who> ;\n",
+            "  <https://e/confidence> \"0.9\"^^<http://www.w3.org/2001/XMLSchema#decimal> .\n",
+            "<https://e/s> <https://e/p> <https://e/o> .\n",
+        );
+        // Native carrier ingestion (the statement layer folded into side-tables by parse).
+        let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse dataset");
+        let mut native = SnapshotBuilder::default();
+        native.add_dataset(&ds).expect("add_dataset");
+        // The existing add_rdf12 path (oxigraph quads + annotation inference).
+        let quads = parse_quads_lenient(ttl.as_bytes(), NativeRdfFormat::Turtle).expect("parse");
+        let mut rdf12 = SnapshotBuilder::default();
+        rdf12.add_rdf12(&quads, None, None).expect("add_rdf12");
+        assert_eq!(
+            canonical(&native.snapshot_payload()),
+            canonical(&rdf12.snapshot_payload()),
+            "native statement-layer ingestion must match add_rdf12 (reifier + annotations)"
+        );
+    }
+
+    #[test]
     fn content_sort_is_iris_first_then_value() {
         let b = ingest(
             "<https://e/s> <https://e/p> \"z\" .\n<https://e/s> <https://e/p> <https://e/a> .\n",
