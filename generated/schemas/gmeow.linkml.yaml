@@ -13898,6 +13898,9 @@ enums:
       attestationTypeC2PA:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeC2PA
         title: C2PA manifest
+      attestationTypeCoherenceCertificate:
+        meaning: https://blackcatinformatics.ca/gmeow/attestationTypeCoherenceCertificate
+        title: coherence certificate
       attestationTypeConformanceVerdict:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeConformanceVerdict
         title: conformance verdict

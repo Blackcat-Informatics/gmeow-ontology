@@ -3214,6 +3214,138 @@ logic:resultAssumption
     rdfs:label "result assumption"@x-gmeow-english ;
     skos:definition "A declared closure/identity/revision/witness-policy assumption a logic:ReasoningResult rests on (e.g. closed-world, unique-name, entrenchment-revision, skolem-witness) — MULTI-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
 
+# ── Semantics-aware validator findings + the scoped coherence certificate ───────
+# Two halves. First, logic:FindingCategory: an ORTHOGONAL axis to a finding's
+# severity that records what KIND of finding it is — because not all findings are
+# failures. A witnessed, disclosed contradiction under a glut-admitting contract is
+# a logic:FindingPermittedEpistemicConflict, coherent rather than a defect. Second,
+# the contract-scoped coherence outcome: a logic:CoherenceCertificate (only from a
+# CONCLUSIVE check) or the strictly weaker logic:CoherenceCheckAttestation (from a
+# bounded/incomplete check). Coherence means "no forbidden integrity violation and
+# no undisclosed contradiction under the governing contract", NEVER "contradiction-
+# free". Authored canonically in crates/logic + crates/diagnostics (Rust); this is a
+# lossy documentation projection (Principle 17). Normative in
+# design/LOGIC-CONFORMANCE.md, §The coherence certificate.
+
+logic:FindingCategory
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finding Category"@x-gmeow-english ;
+    skos:definition "The closed value class of a validator finding's KIND — an axis orthogonal to its severity, because not all findings are failures. Its individuals are logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness, logic:FindingPermittedEpistemicConflict, logic:FindingUnsupportedSemanticFeature, logic:FindingIncompleteCheck, logic:FindingProjectionLoss and logic:FindingPolicyWarning. The set is closed; a misspelt value names no declared kind and is rejected. The load-bearing case is logic:FindingPermittedEpistemicConflict: a disclosed, witnessed contradiction permitted by a glut-admitting contract is coherent and does NOT fail the gate (design/LOGIC-CONFORMANCE.md, §The coherence certificate)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FindingDataShapeViolation
+    a owl:NamedIndividual ,
+        logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finding Data-Shape Violation"@x-gmeow-english ;
+    skos:definition "The logic:FindingCategory for a closed-world data-shape constraint breach — a SHACL shape an instance failed. A failure. Wire value `data-shape-violation`."@x-gmeow-english .
+
+logic:FindingModelingDisciplineViolation
+    a owl:NamedIndividual ,
+        logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finding Modeling-Discipline Violation"@x-gmeow-english ;
+    skos:definition "The logic:FindingCategory for an ontology modeling-discipline breach — a structural/gUFO-tier rule the vocabulary itself violates, or an unsatisfiable class surfaced by reasoning. A failure. Wire value `modeling-discipline-violation`."@x-gmeow-english .
+
+logic:FindingContradictionWitness
+    a owl:NamedIndividual ,
+        logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finding Contradiction Witness"@x-gmeow-english ;
+    skos:definition "The logic:FindingCategory for a within-world contradiction (a logic:InfoBoth glut) that the governing contract FORBIDS — an unpermitted, integrity-violating inconsistency. A failure. Distinguished from logic:FindingPermittedEpistemicConflict purely by the contract's logic:contradictionPolicy. Wire value `contradiction-witness`."@x-gmeow-english .
+
+logic:FindingPermittedEpistemicConflict
+    a owl:NamedIndividual ,
+        logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finding Permitted Epistemic Conflict"@x-gmeow-english ;
+    skos:definition "The logic:FindingCategory for a disclosed, witnessed contradiction that a glut-admitting contract PERMITS — exactly the behaviour the paraconsistent contract anticipates. NOT a failure: it is coherent, surfaced for transparency, and does NOT block a logic:CoherenceCertificate. The load-bearing case for the principle that not all findings are failures. Wire value `permitted-epistemic-conflict`."@x-gmeow-english .
+
+logic:FindingUnsupportedSemanticFeature
+    a owl:NamedIndividual ,
+        logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finding Unsupported Semantic Feature"@x-gmeow-english ;
+    skos:definition "The logic:FindingCategory for a construct the engine has no defined procedure for under the governing contract — a logic:EvaluationUnsupported outcome on a feature outside the certified fragment. A disclosure, not a defect of the data. Wire value `unsupported-semantic-feature`."@x-gmeow-english .
+
+logic:FindingIncompleteCheck
+    a owl:NamedIndividual ,
+        logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finding Incomplete Check"@x-gmeow-english ;
+    skos:definition "The logic:FindingCategory for a check that did not run to completion — a logic:BudgetExhausted or logic:Incomplete evaluation. Records that the search was bounded; it is the reason a bounded run yields a logic:CoherenceCheckAttestation rather than a logic:CoherenceCertificate. Not a failure of the data. Wire value `incomplete-check`."@x-gmeow-english .
+
+logic:FindingProjectionLoss
+    a owl:NamedIndividual ,
+        logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finding Projection Loss"@x-gmeow-english ;
+    skos:definition "The logic:FindingCategory for a construct a lowering could not carry exactly — a warning that an answer was produced through a projection whose preservation claim drops or approximates some constructs (the loss ledger). Not a failure; a fidelity disclosure. Wire value `projection-loss`."@x-gmeow-english .
+
+logic:FindingPolicyWarning
+    a owl:NamedIndividual ,
+        logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finding Policy Warning"@x-gmeow-english ;
+    skos:definition "The logic:FindingCategory for a trust/policy advisory — an untrusted signer, a missing-but-not-required attestation, a soft governance note. Advisory, not a hard failure. Wire value `policy-warning`."@x-gmeow-english .
+
+logic:CoherenceCertificate
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Coherence Certificate"@x-gmeow-english ;
+    skos:definition "The contract-scoped assertion, issued ONLY from a CONCLUSIVE check (the summarized logic:ReasoningResult has logic:EvaluationCompleted, or logic:CompleteForFragment), that over the certified fragment the inspection was COMPLETE and found no forbidden integrity violation and no undisclosed contradiction. Scoped by contract (logic:contractHash on the linked result), fragment (logic:certifiedFragment), budget (logic:consumedBudget) and bundle (logic:bundleHash, logic:axiomHash). Coherence means 'every contradiction present is permitted under the contract and disclosed, or has been reported as a violation' — NEVER 'this bundle contains no contradiction'. A complete check is the only thing entitled to the word certify; a bounded check yields a logic:CoherenceCheckAttestation instead. Carries logic:permittedConflictWitness for disclosed gluts and logic:forbiddenViolationWitness (necessarily empty for an issued certificate). Authored canonically in crates/logic (Rust); a lossy documentation projection (Principle 17). Normative in design/LOGIC-CONFORMANCE.md, §The coherence certificate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:CoherenceCheckAttestation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Coherence Check Attestation"@x-gmeow-english ;
+    skos:definition "The strictly weaker outcome a BOUNDED or INCOMPLETE coherence check issues (the summarized logic:ReasoningResult has logic:BudgetExhausted, or logic:Incomplete / logic:CompletenessUnknown): it records only that no forbidden integrity violation and no undisclosed contradiction was found WITHIN the completed search. A budget-exhausted run produces an attestation, NEVER a logic:CoherenceCertificate, because it cannot rule out a contradiction it never reached. Honest evidence, not a certification of coherence. Carries the same scoped payload (logic:summarizesResult, logic:bundleHash, logic:contradictionPolicy, logic:checkIssuedAt). Authored canonically in crates/logic (Rust); a lossy documentation projection (Principle 17). Normative in design/LOGIC-CONFORMANCE.md, §The coherence certificate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:summarizesResult
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "summarizes result"@x-gmeow-english ;
+    skos:definition "Relates a coherence outcome (logic:CoherenceCertificate or logic:CoherenceCheckAttestation) to the single logic:ReasoningResult whose completion status, contract (logic:contractHash), certified fragment (logic:certifiedFragment), consumed budget (logic:consumedBudget), assumptions (logic:resultAssumption) and preservation losses it certifies over. The completeness gate (certificate vs attestation) reads this result's logic:resultEvaluation and logic:resultCompleteness. Single-valued. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation, range logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+
+logic:bundleHash
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bundle hash"@x-gmeow-english ;
+    skos:definition "The content-addressed identity (a blake3 digest) of the exact bundle a coherence outcome was checked over. The outcome is invalid for any bundle whose canonical hash differs. Single-valued. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."@x-gmeow-english .
+
+logic:axiomHash
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "axiom hash"@x-gmeow-english ;
+    skos:definition "A content-addressed digest of an axiom set inside the checked bundle, pinning exactly which axioms the coherence outcome ranged over — MULTI-valued, one per certified fragment component. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."@x-gmeow-english .
+
+logic:contradictionPolicy
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "contradiction policy"@x-gmeow-english ;
+    skos:definition "Relates a coherence outcome to the logic:AdmissibleValuationPolicy that decides, for the governing contract, whether a within-world glut is a forbidden violation (logic:ForbidGlut, logic:ForbidGapAndGlut) or a permitted disclosed conflict (logic:AdmitAllFour, logic:ForbidGap). The pivot that classifies each contradiction witness. Single-valued. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation, range logic:AdmissibleValuationPolicy (stated in prose)."@x-gmeow-english .
+
+logic:checkIssuedAt
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "check issued at"@x-gmeow-english ;
+    skos:definition "The xsd:dateTime a coherence outcome was issued. INJECTED, never sampled in the deterministic fold core, so re-running with the same inputs and timestamp is byte-identical. Single-valued. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."@x-gmeow-english .
+
+logic:permittedConflictWitness
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "permitted conflict witness"@x-gmeow-english ;
+    skos:definition "Relates a coherence outcome to a disclosed, witnessed contradiction the contract PERMITS (a logic:FindingPermittedEpistemicConflict) — MULTI-valued. Present permitted witnesses do NOT block a logic:CoherenceCertificate; they are surfaced for transparency. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."@x-gmeow-english .
+
+logic:forbiddenViolationWitness
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "forbidden violation witness"@x-gmeow-english ;
+    skos:definition "Relates a coherence outcome to a within-world contradiction the contract FORBIDS (a logic:FindingContradictionWitness) — MULTI-valued. A NON-EMPTY set blocks issuance: a logic:CoherenceCertificate is issued only when this set is empty. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."@x-gmeow-english .
+
 # ── The typed logic:ResultShape surface ─────────────────────────────────────────
 # A schema-level type contract on a SPARQL SELECT result set: the declared columns
 # (variable + term-kind + optional datatype + binding requiredness) and the row-set
