@@ -269,7 +269,7 @@ impl Stage for ParquetStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let graph = read_fold_upstream(input.upstream)?;
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_parquet(&graph)?),
+            product: StageProduct::from_artifacts(self.id(), render_parquet(graph.as_ref())?),
         })
     }
 }

@@ -625,7 +625,7 @@ impl Stage for OkfStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let graph = read_fold_upstream(input.upstream)?;
-        let (title, version, terms) = collect_term_surface(&graph)?;
+        let (title, version, terms) = collect_term_surface(graph.as_ref())?;
         let artifacts = render_okf(&title, &version, &terms)?;
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), artifacts),

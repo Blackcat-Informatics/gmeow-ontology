@@ -792,11 +792,10 @@ impl Stage for LpgStage {
         "lpg.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        // Read THIS run's fold from the stage-snapshot upstream product.
-        let gts = crate::stages::snapshot::snapshot_bytes(input.upstream)?;
-        let bundle = gmeow_rdf::import_gts_events(&gts)
-            .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))?;
-        let (nodes, edges) = build_lpg(bundle.dataset.as_ref())?;
+        // Consume THIS run's shared parse-once event-import view of the snapshot fold
+        // (#1132 C5) — no re-parse of the gmeow.gts bytes.
+        let events = crate::stages::snapshot::snapshot_events(input.upstream)?;
+        let (nodes, edges) = build_lpg(events.dataset.as_ref())?;
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), render_all(&nodes, &edges)),
         })

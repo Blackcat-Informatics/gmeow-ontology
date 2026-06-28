@@ -2484,16 +2484,15 @@ pub(crate) fn read_fold(root: &std::path::Path) -> Result<Graph, PipelineError> 
         .map_err(|e| PipelineError::Parse(format!("read gmeow.gts: {e}")))
 }
 
-/// Read THIS run's fold from the `stage-snapshot` upstream product. The runtime
-/// path every fold-reading export leaf uses (single-pass): the snapshot bytes are
-/// fold-isomorphic to the committed file (proven by `fold_parity`), so the
-/// imported fold is identical — only the byte source changes.
+/// Borrow THIS run's shared model view of the snapshot fold (#1132 C5). The runtime
+/// path every fold-reading export leaf (export / parquet / okf) uses: the
+/// `stage-snapshot` product carries the parse-once `gts::read_graph` view, so the
+/// leaves share ONE parse instead of each re-parsing the gmeow.gts bytes. On a cache
+/// hit the view is re-parsed from the (byte-identical) lane bytes — same result.
 pub(crate) fn read_fold_upstream(
     upstream: &std::collections::BTreeMap<String, StageProduct>,
-) -> Result<Graph, PipelineError> {
-    let gts = crate::stages::snapshot::snapshot_bytes(upstream)?;
-    gmeow_rdf::gts::read_graph(&gts, true)
-        .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))
+) -> Result<std::sync::Arc<Graph>, PipelineError> {
+    crate::stages::snapshot::snapshot_graph(upstream)
 }
 
 /// The `stage-export-export` export-leaf stage.
@@ -2532,7 +2531,7 @@ impl Stage for ExportStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let graph = read_fold_upstream(input.upstream)?;
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_all(&graph)?),
+            product: StageProduct::from_artifacts(self.id(), render_all(graph.as_ref())?),
         })
     }
 }

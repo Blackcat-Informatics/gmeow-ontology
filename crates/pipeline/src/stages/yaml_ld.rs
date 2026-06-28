@@ -91,11 +91,12 @@ impl Stage for YamlLdStage {
         "yaml_ld.jsonld_star.v2-yaml-ld"
     }
     fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let gts = crate::stages::snapshot::snapshot_bytes(_input.upstream)?;
-        let graph = gmeow_rdf::gts::read_graph(&gts, true)
-            .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))?;
-        let json = serialize_graph(&graph)?;
-        let yaml = serialize_graph_yaml(&graph, None)?;
+        // The shared parse-once model view of THIS run's snapshot fold (#1132 C5) —
+        // no re-parse of the gmeow.gts bytes.
+        let graph = crate::stages::snapshot::snapshot_graph(_input.upstream)?;
+        let graph = graph.as_ref();
+        let json = serialize_graph(graph)?;
+        let yaml = serialize_graph_yaml(graph, None)?;
         let preservation = preservation_ledger();
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(JSON_LD_PATH.to_string(), json.into_bytes());

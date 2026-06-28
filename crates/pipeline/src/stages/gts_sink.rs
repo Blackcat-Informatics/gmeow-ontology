@@ -63,9 +63,22 @@ impl Stage for GtsSinkStage {
         let gts = snapshot_bytes(input.upstream)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(GTS_PATH.to_string(), gts);
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        let product = StageProduct::from_artifacts(self.id(), artifacts);
+        // Forward the snapshot's parse-once shared views (#1132 C5) onto the sink
+        // product. The sink re-emits the snapshot bytes VERBATIM, so the snapshot's
+        // parsed views ARE the parse of the sink's bytes — `stage-export-schemas`
+        // (which consumes the sink, the narrow-waist exit) thus shares the same parse
+        // instead of re-parsing. When the snapshot was cache-served (no views), the
+        // schemas leaf falls back to parsing the sink's lane bytes (byte-identical).
+        let product = match input
+            .upstream
+            .get("stage-snapshot")
+            .and_then(|p| p.snapshot_views())
+        {
+            Some(views) => product.with_snapshot_views(views.clone()),
+            None => product,
+        };
+        Ok(StageOutput { product })
     }
 }
 

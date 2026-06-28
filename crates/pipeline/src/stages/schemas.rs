@@ -834,13 +834,15 @@ impl Stage for SchemasStage {
             .upstream
             .get(SINK_STAGE)
             .ok_or_else(|| schema_error(format!("missing upstream product {SINK_STAGE}")))?;
-        let gts = sink
-            .artifact(GTS_PATH)
-            .ok_or_else(|| schema_error(format!("{SINK_STAGE} did not emit {GTS_PATH}")))?;
-        let graph = gmeow_rdf::gts::read_graph(gts, true)
-            .map_err(|e| schema_error(format!("could not read upstream GTS graph: {e}")))?;
+        // Consume the shared parse-once model view (#1132 C5) the sink forwarded from
+        // the snapshot (over its verbatim-re-emitted bytes) instead of re-parsing the
+        // gmeow.gts bytes. Falls back to parsing the sink's lane bytes on a cache hit.
+        let graph = crate::stages::snapshot::graph_view_of(sink, GTS_PATH)?;
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_schemas_from_graph(&graph)?),
+            product: StageProduct::from_artifacts(
+                self.id(),
+                render_schemas_from_graph(graph.as_ref())?,
+            ),
         })
     }
 }
