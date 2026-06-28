@@ -193,17 +193,33 @@ primarily as a **source of selected foundational refinements adopted canonically
 (Principle 17), with YAMATO's own terms bridged `skos:closeMatch` by reference. This is the
 *bridge-view-as-refinement-source* case.
 
-The adopted refinements (tracked as terms, not yet built):
+The adopted refinements — the **process / event** set is now formalized in `logic:`, while the
+**quality / quantity** set remains tracked-as-terms pending a consumer:
 
 - **Quality / quantity** (a foundational refinement, tracked as a term): a **persistent
   `Quality` identity** (one enduring quality whose dated values change); the **generic-quality →
   quality-role ladder** (`length` playing a `height` role — Principle 11 stated in role terms);
   and **unit-independent true quantity** (the unit belongs to the *measurement*, not the quantity).
-- **Process / event** (a foundational refinement, tracked as a term): **process ≠
-  event** (the change-asymmetry); **action(open, on-going) vs event(closed, unitary)**
-  (*arrive* vs *arrival*); **causal vs temporal parts** (causal ⊆ temporal); and the
-  research-grade **object-as-interface-of-internal/external-processes** (adopted only where a
-  consumer earns it).
+- **Process / event** (now formalized canonically in `logic:`, Principle 17, grounded at the
+  domain level):
+  - **process ≠ event** — the change-asymmetry, enforced by the native foundation rule
+    `logic:OccurrentChangeAsymmetry`: a `logic:Closed` occurrent (a completed unitary event) must
+    bear no time-varying `logic:Fluent`, whereas a process may.
+  - **action(open, on-going) vs event(closed, unitary)** (*arrive* vs *arrival*) — typed as a
+    **value, not a subclass** (Principle 9) via `logic:occurrentBoundary` over the closed value
+    vocabulary `logic:OccurrentBoundary` { `logic:Open` (the on-going action), `logic:Closed`
+    (the completed unitary event) }; an occurrent that is both is the
+    `logic:OccurrentBoundaryMismatch` violation.
+  - **causal vs temporal parts** (causal ⊆ temporal) — `logic:causalPartOf` is a transitive
+    specialization of `logic:temporalPartOf`, surfaced at the domain level as
+    `gmeow:causalPartOf` / `gmeow:hasCausalPart` (⊑ `gmeow:subEventOf` + `logic:causalPartOf`).
+  - **events made of processes** — `logic:occurrentConstituent` (range `logic:Process`), the
+    constitutive relation deliberately kept distinct from both temporal and causal parthood.
+  - The research-grade **object-as-interface-of-internal/external-processes** remains a
+    *documented bridge note, adopted only where a consumer earns it* — it is **not** minted, since
+    no consumer yet earns it. Canonical illustration: a river or a waterfall — an endurant identity
+    that is the interface of a constitutive internal process (the flowing water), persisting while
+    its process churns beneath it.
 
 **Bridge mechanics — reference-only.** YAMATO ships as a Hozo model / PDF, with no clean,
 vendorable OWL namespace, so it is **REFERENCE_ONLY** (like DOLCE/DUL above): its terms are

@@ -1,0 +1,2 @@
+<https://example.org/occurrent/causal-temporal-lift/A> <https://blackcatinformatics.ca/logic/causalPartOf> <https://example.org/occurrent/causal-temporal-lift/B> <https://example.org/occurrent/causal-temporal-lift/schema> .
+<https://example.org/occurrent/causal-temporal-lift/A> <https://blackcatinformatics.ca/logic/temporalPartOf> <https://example.org/occurrent/causal-temporal-lift/B> <https://example.org/occurrent/causal-temporal-lift/schema> .

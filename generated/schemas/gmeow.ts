@@ -4160,6 +4160,7 @@ export interface EvaluationVerdict {
 export interface Event {
     after?: Event[],
     before?: Event[],
+    causalPartOf?: Event[],
     coincidesWith?: Event[],
     complies?: Norm[],
     contains?: Event[],
@@ -4183,6 +4184,7 @@ export interface Event {
     eventType?: EventType[],
     finishedBy?: Event[],
     finishes?: Event[],
+    hasCausalPart?: Event[],
     hasDuration?: Duration[],
     hasParticipant?: Agent[],
     hasSubEvent?: Event[],

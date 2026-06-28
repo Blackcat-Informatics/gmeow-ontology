@@ -1230,6 +1230,7 @@ classes:
     slots:
     - after
     - before
+    - causalPartOf
     - coincidesWith
     - complies
     - contains
@@ -1253,6 +1254,7 @@ classes:
     - eventType
     - finishedBy
     - finishes
+    - hasCausalPart
     - hasDuration
     - hasParticipant
     - hasSubEvent
@@ -5136,6 +5138,12 @@ slots:
     range: CausalModality
     domain: CausalLink
     multivalued: false
+  causalPartOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/causalPartOf
+    title: causal part of
+    range: Event
+    domain: Event
+    multivalued: true
   cc:
     slot_uri: https://blackcatinformatics.ca/gmeow/cc
     title: cc
@@ -7430,6 +7438,12 @@ slots:
     title: has carrier
     range: PhysicalObject
     domain: Item
+    multivalued: true
+  hasCausalPart:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasCausalPart
+    title: has causal part
+    range: Event
+    domain: Event
     multivalued: true
   hasCelestialCoordinates:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasCelestialCoordinates

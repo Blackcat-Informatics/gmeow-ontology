@@ -3217,6 +3217,7 @@ class Event(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Event"
     after: list[Event] | None = Field(default=None)
     before: list[Event] | None = Field(default=None)
+    causalPartOf: list[Event] | None = Field(default=None)
     coincidesWith: list[Event] | None = Field(default=None)
     complies: list[Norm] | None = Field(default=None)
     contains: list[Event] | None = Field(default=None)
@@ -3240,6 +3241,7 @@ class Event(ConfiguredBaseModel):
     eventType: list[EventType] | None = Field(default=None)
     finishedBy: list[Event] | None = Field(default=None)
     finishes: list[Event] | None = Field(default=None)
+    hasCausalPart: list[Event] | None = Field(default=None)
     hasDuration: list[Duration] | None = Field(default=None)
     hasParticipant: list[Agent] | None = Field(default=None)
     hasSubEvent: list[Event] | None = Field(default=None)

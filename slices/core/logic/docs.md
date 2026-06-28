@@ -268,6 +268,18 @@ declarative semantics.
 — the `logic:` property-characteristic markers that allow `properPartOf` to carry the transitive
 ∧ asymmetric ∧ irreflexive strict-partial-order combination that OWL 2 DL globally forbids.
 
+**Occurrent refinements (the YAMATO process/event axis).** `causalPartOf` — a transitive
+specialization of the mereology relation `temporalPartOf` (causal ⊆ temporal), so a causal
+dependency is always a temporal part but not conversely. `occurrentBoundary` over the closed value
+vocabulary `OccurrentBoundary` { `Open`, `Closed` } types an occurrent as an on-going action
+(*arrive*) or a completed unitary event (*arrival*) — a **value, not a subclass** (Principle 9).
+`occurrentConstituent` (range `Process`) is the constitutive "events are made of processes"
+relation, deliberately kept distinct from both temporal and causal parthood. The
+`OccurrentConstraint` violation family records the entailed diagnostics: `OccurrentChangeAsymmetry`
+(a `Closed` occurrent must bear no time-varying `Fluent` — the process≠event change-asymmetry) and
+`OccurrentBoundaryMismatch` (an occurrent must not be both `Open` and `Closed`), both enforced by
+the native foundation rules.
+
 All terms are documented individually in [`module.ttl`](./module.ttl) and the design set above.
 
 ### gmeow:sharpens

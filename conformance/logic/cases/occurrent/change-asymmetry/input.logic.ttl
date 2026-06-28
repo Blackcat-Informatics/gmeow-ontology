@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: occurrent/change-asymmetry
+# AC: YAMATO occurrent constraint (#1081) — OccurrentChangeAsymmetry.
+#
+# ex:E is a Closed (completed) occurrent that bears ex:F, a logic:Fluent (a
+# time-varying property). A completed occurrent must not bear a Fluent, so the
+# violation rule must derive violation(E, OccurrentChangeAsymmetry). The chase
+# seeds only from input.nq world facts; this program mirrors the Fluent typing.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/occurrent/change-asymmetry/> .
+
+ex:F a logic:Fluent .

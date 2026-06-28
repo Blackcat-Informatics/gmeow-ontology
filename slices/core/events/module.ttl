@@ -31,7 +31,7 @@ gmeow:Event
     gmeow:avoidWhen "Avoid typing an endurant as an Event (a person/document/place is a gmeow:Entity, not an occurrence), avoid minting an event-kind SUBCLASS (the kind is a gmeow:eventType value, Principle 9), and reach for gmeow:Activity when the occurrence is an agent-driven provenance act with inputs and outputs."@x-gmeow-english ;
     gmeow:ruleSeverity "advisory" ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the occurrence gmeow:Event, give it one or more gmeow:eventType values, anchor it in time (gmeow:eventTime / gmeow:eventInterval, or fuzzy gmeow:earliestStart + gmeow:latestEnd + gmeow:temporalPrecision), place it with gmeow:eventLocation, and add participants flat via gmeow:hasParticipant or reified as gmeow:Participation; carry a non-default frame on gmeow:eventTemporalFrame (Principle 11)."@x-gmeow-english ;
+    gmeow:howToUse "Type the occurrence gmeow:Event, give it one or more gmeow:eventType values, anchor it in time (gmeow:eventTime / gmeow:eventInterval, or fuzzy gmeow:earliestStart + gmeow:latestEnd + gmeow:temporalPrecision), place it with gmeow:eventLocation, and add participants flat via gmeow:hasParticipant or reified as gmeow:Participation; carry a non-default frame on gmeow:eventTemporalFrame (Principle 11).  Carry the action(open)/event(closed) boundary with logic:occurrentBoundary — logic:Open while the occurrence is on-going (an in-progress gmeow:Activity), logic:Closed once it is a completed unitary whole."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:eventTemporalFrame ;
     gmeow:useWhen "Use as the universal occurrent whenever something HAPPENS — a wedding, a release, a survey, a battle — that bears participants, a time, a location, or sub-events; the single anchor for the four orthogonal event axes (type ⟂ role ⟂ temporal ⟂ location)."@x-gmeow-english .
 
@@ -237,6 +237,23 @@ gmeow:before
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:before between two gmeow:Event occurrences; transitivity derives the sound closure. Read gmeow:after as its inverse; the full Allen composition table is left to the solver (P12), not OWL."@x-gmeow-english ;
     gmeow:useWhen "Use to qualitatively order two events when one ends strictly before the other begins, with a gap between them — the Allen BEFORE link, useful when exact dates are unknown but the ordering is."@x-gmeow-english .
+
+gmeow:causalPartOf
+    a owl:ObjectProperty ,
+        owl:TransitiveProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    rdfs:label "causal part of"@x-gmeow-english ;
+    rdfs:range gmeow:Event ;
+    rdfs:subPropertyOf gmeow:subEventOf ,
+        logic:causalPartOf ;
+    owl:inverseOf gmeow:hasCausalPart ;
+    skos:definition "Relates an event that causally contributes to a larger event it is part of — the ignition is a causal part of the launch, the misfire a causal part of the accident. The domain-level grounding of logic:causalPartOf and a specialization of gmeow:subEventOf: every causal part is also a temporal sub-event of the same whole, but NOT conversely — a merely temporally-nested sub-event (a coffee break during a conference) carries no causal contribution (causal subset-of temporal). Transitive, but deliberately NOT asymmetric or irreflexive, since causal feedback loops between occurrences are legal."@x-gmeow-english ;
+    skos:example "ex:ignition gmeow:causalPartOf ex:launch ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for mere temporal nesting with no causal contribution (use gmeow:subEventOf), and avoid confusing it with the TEMPORAL Allen relations gmeow:during / gmeow:contains, which only order extents and imply nothing causal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:causalPartOf from the contributing sub-event to the whole; the gmeow:subEventOf closure and the logic:causalPartOf grounding both follow by inheritance, and the foundation lifts it to logic:temporalPartOf. Read gmeow:hasCausalPart as its inverse."@x-gmeow-english ;
+    gmeow:useWhen "Use when a sub-event genuinely CAUSALLY contributes to the occurrence of a larger event — distinct from a sub-event merely temporally inside it; the causal half of event mereology."@x-gmeow-english .
 
 gmeow:coincidesWith
     a owl:ObjectProperty ,
@@ -1008,6 +1025,22 @@ gmeow:generatedObservation
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:generatedObservation from the activity to each observation; the gmeow:generatedObservation ∘ gmeow:vantage chain then associates the activity with each observation's vantage."@x-gmeow-english ;
     gmeow:useWhen "Use to link a gmeow:ObservationalActivity to a gmeow:Observation it produced as a first-class output — a survey to its findings, an audit to its verdicts."@x-gmeow-english .
+
+gmeow:hasCausalPart
+    a owl:ObjectProperty ,
+        owl:TransitiveProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    rdfs:label "has causal part"@x-gmeow-english ;
+    rdfs:range gmeow:Event ;
+    rdfs:subPropertyOf gmeow:hasSubEvent ;
+    owl:inverseOf gmeow:causalPartOf ;
+    skos:definition "Relates an event to a constituent sub-event that causally contributes to it; the transitive inverse of gmeow:causalPartOf and a specialization of gmeow:hasSubEvent. Whole-rooted causal decomposition: a launch HAS causal part the ignition. Distinct from the temporal-only gmeow:contains."@x-gmeow-english ;
+    skos:example "ex:launch gmeow:hasCausalPart ex:ignition ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it directly when gmeow:causalPartOf reads more naturally (prefer the part-to-whole direction and let the inverse follow), and avoid confusing it with the temporal gmeow:contains."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Prefer asserting gmeow:causalPartOf and read gmeow:hasCausalPart as its transitive inverse; reach for it explicitly only in whole-rooted causal projections."@x-gmeow-english ;
+    gmeow:useWhen "Use when traversing or projecting from a whole event to its causally-contributing sub-events."@x-gmeow-english .
 
 gmeow:hasDuration
     a owl:ObjectProperty ;

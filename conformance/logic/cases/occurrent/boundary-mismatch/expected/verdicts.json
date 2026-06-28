@@ -1,0 +1,6 @@
+{
+  "https://example.org/occurrent/boundary-mismatch/schema": {
+    "quads": 3,
+    "status": "consistent"
+  }
+}

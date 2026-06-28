@@ -109,6 +109,26 @@ universal `partOf`/`hasPart` spine, kept out of all cardinality axioms to preser
 OWL 2 DL regularity. Mereological, not temporal: containment in time is
 `gmeow:during`/`gmeow:contains`.
 
+### gmeow:causalPartOf · gmeow:hasCausalPart
+
+The *causal* sub-mereology of events — a hand-off, callback, or dependency edge where one
+sub-occurrence brings about another, distinct from the plain part-of nesting of
+`gmeow:hasSubEvent`. Each is a transitive specialization of both `gmeow:subEventOf` (a causal part
+*is* a sub-event) and the foundational `logic:causalPartOf`, which is itself a specialization of
+`logic:temporalPartOf` (causal ⊆ temporal). This is the domain-level dogfood of the YAMATO
+process refinement: a workflow's data-flow edges are causal parts, not merely co-located
+sub-events.
+
+### Action vs event boundary (the open/closed dogfood)
+
+The *arrive* vs *arrival* distinction — an on-going action vs a completed unitary event — is
+recorded on an occurrence as a **value, not a subclass** (Principle 9) via the foundational
+`logic:occurrentBoundary` over `logic:Open` (action, on-going) / `logic:Closed` (event, completed
+unitary). A prescriptive plan step is `logic:Open`; the descriptive record of its completion is
+`logic:Closed`, and a `logic:Closed` occurrence is constrained to bear no time-varying fluent (the
+process≠event change-asymmetry). This keeps the planned-vs-actual seam — already visible in
+`gmeow:EventSeries` and the observation linkage — typed without proliferating event subclasses.
+
 ### gmeow:before · gmeow:after · gmeow:coincidesWith (the event-level Allen family)
 
 Thirteen qualitative event-event temporal relations (`meets`/`metBy`,

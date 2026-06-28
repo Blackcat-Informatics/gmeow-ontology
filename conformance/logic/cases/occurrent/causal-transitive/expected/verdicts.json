@@ -1,0 +1,6 @@
+{
+  "https://example.org/occurrent/causal-transitive/schema": {
+    "quads": 6,
+    "status": "consistent"
+  }
+}
