@@ -9,6 +9,17 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::wrap_pyfunction;
 
+fn music_error(err: String) -> PyErr {
+    if err.starts_with("failed to read ")
+        || err.starts_with("failed to write ")
+        || err.starts_with("failed to create ")
+    {
+        pyo3::exceptions::PyOSError::new_err(err)
+    } else {
+        pyo3::exceptions::PyValueError::new_err(err)
+    }
+}
+
 #[pyfunction]
 pub fn list_formats() -> Vec<&'static str> {
     crate::list_formats()
@@ -23,7 +34,7 @@ pub fn render_file(source: &str, to: &str, out: &str) -> PyResult<Vec<String>> {
                 .map(|path| path.display().to_string())
                 .collect()
         })
-        .map_err(pyo3::exceptions::PyValueError::new_err)
+        .map_err(music_error)
 }
 
 #[pyfunction(name = "import_file")]
@@ -35,7 +46,7 @@ pub fn import_file_py(source: &str, out: &str) -> PyResult<Vec<String>> {
                 .map(|path| path.display().to_string())
                 .collect()
         })
-        .map_err(pyo3::exceptions::PyValueError::new_err)
+        .map_err(music_error)
 }
 
 #[pyfunction]

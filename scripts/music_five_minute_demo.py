@@ -5,6 +5,7 @@
 
 Run from the repository root:
 
+    make native-py
     uv run python scripts/music_five_minute_demo.py
 
 Outputs are written to ``dist/music-demo/``.

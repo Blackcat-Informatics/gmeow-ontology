@@ -10,7 +10,7 @@
 pub mod py;
 
 use std::cmp::Ordering;
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
@@ -118,6 +118,73 @@ impl PartialOrd for Fraction {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
+}
+
+fn fraction_from_i128(numerator: i128, denominator: i128) -> Option<Fraction> {
+    if numerator < i128::from(i64::MIN)
+        || numerator > i128::from(i64::MAX)
+        || denominator < i128::from(i64::MIN)
+        || denominator > i128::from(i64::MAX)
+    {
+        return None;
+    }
+    Fraction::new(numerator as i64, denominator as i64).ok()
+}
+
+fn fraction_add(left: Fraction, right: Fraction) -> Option<Fraction> {
+    fraction_from_i128(
+        i128::from(left.numerator) * i128::from(right.denominator)
+            + i128::from(right.numerator) * i128::from(left.denominator),
+        i128::from(left.denominator) * i128::from(right.denominator),
+    )
+}
+
+fn fraction_sub(left: Fraction, right: Fraction) -> Option<Fraction> {
+    fraction_from_i128(
+        i128::from(left.numerator) * i128::from(right.denominator)
+            - i128::from(right.numerator) * i128::from(left.denominator),
+        i128::from(left.denominator) * i128::from(right.denominator),
+    )
+}
+
+fn positive_gap(start: Fraction, cursor: Fraction) -> Option<Fraction> {
+    if start > cursor {
+        fraction_sub(start, cursor).filter(|gap| gap.to_f64() > 0.0)
+    } else {
+        None
+    }
+}
+
+fn sorted_positive_events(voice: &Voice) -> Vec<&ToneEvent> {
+    let mut events = voice
+        .events
+        .iter()
+        .filter(|event| event.duration.to_f64() > 0.0)
+        .collect::<Vec<_>>();
+    events.sort_by_key(|event| event.onset);
+    events
+}
+
+fn timeline_tokens(
+    voice: &Voice,
+    mut event_token: impl FnMut(&ToneEvent) -> String,
+    mut rest_token: impl FnMut(Fraction) -> String,
+) -> Vec<String> {
+    let mut tokens = Vec::new();
+    let mut cursor = Fraction::from_i64(0);
+    for event in sorted_positive_events(voice) {
+        if let Some(gap) = positive_gap(event.onset, cursor) {
+            tokens.push(rest_token(gap));
+            cursor = event.onset;
+        }
+        tokens.push(event_token(event));
+        if let Some(end) = fraction_add(event.onset, event.duration) {
+            if end > cursor {
+                cursor = end;
+            }
+        }
+    }
+    tokens
 }
 
 /// Frame-relative pitch.
@@ -641,7 +708,7 @@ pub fn piece_to_turtle(piece: &Piece) -> String {
                     &typed_literal("true", XSD_BOOLEAN),
                 );
             } else if let Some(pitch) = &event.pitch {
-                let pitch_iri = format!("urn:gmeow:pitch:{}", format_decimal(pitch.cents));
+                let pitch_iri = format!("{event_iri}#pitch");
                 turtle_line(
                     &mut out,
                     &pitch_iri,
@@ -720,7 +787,7 @@ pub fn piece_to_gts_bytes(piece: &Piece) -> Result<Vec<u8>, String> {
     )
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Object {
     Iri(String),
     Bnode(String),
@@ -734,7 +801,11 @@ struct Triple {
     object: Object,
 }
 
-type TripleIndex = HashMap<String, HashMap<String, Vec<Object>>>;
+#[derive(Debug, Default)]
+struct TripleIndex {
+    by_subject: HashMap<String, HashMap<String, Vec<Object>>>,
+    by_predicate_object: HashMap<(String, Object), Vec<String>>,
+}
 
 fn term_id(term: &Term) -> Option<String> {
     match term.kind {
@@ -772,9 +843,15 @@ fn triples_from_gts(bytes: &[u8]) -> Vec<Triple> {
 }
 
 fn index_triples(triples: Vec<Triple>) -> TripleIndex {
-    let mut index: TripleIndex = HashMap::new();
+    let mut index = TripleIndex::default();
     for triple in triples {
         index
+            .by_predicate_object
+            .entry((triple.predicate.clone(), triple.object.clone()))
+            .or_default()
+            .push(triple.subject.clone());
+        index
+            .by_subject
             .entry(triple.subject)
             .or_default()
             .entry(triple.predicate)
@@ -785,7 +862,22 @@ fn index_triples(triples: Vec<Triple>) -> TripleIndex {
 }
 
 fn objects<'a>(index: &'a TripleIndex, subject: &str, predicate: &str) -> Option<&'a [Object]> {
-    index.get(subject)?.get(predicate).map(Vec::as_slice)
+    index
+        .by_subject
+        .get(subject)?
+        .get(predicate)
+        .map(Vec::as_slice)
+}
+
+fn subjects_with_object<'a>(
+    index: &'a TripleIndex,
+    predicate: &str,
+    object: &Object,
+) -> Option<&'a [String]> {
+    index
+        .by_predicate_object
+        .get(&(predicate.to_string(), object.clone()))
+        .map(Vec::as_slice)
 }
 
 fn has_type(index: &TripleIndex, subject: &str, class: &str) -> bool {
@@ -887,6 +979,7 @@ pub fn piece_from_gts_bytes(bytes: &[u8]) -> Result<Piece, String> {
     let musical_expression = gm("MusicalExpression");
     let musical_work = gm("MusicalWork");
     let mut pieces = index
+        .by_subject
         .iter()
         .filter_map(|(subject, predicates)| {
             let has_music_type = predicates.get(RDF_TYPE).is_some_and(|objects| {
@@ -920,17 +1013,13 @@ pub fn piece_from_gts_bytes(bytes: &[u8]) -> Result<Piece, String> {
         };
         let segment_of = gm("segmentOf");
         let tone_event = gm("ToneEvent");
-        let mut event_iris = index
-            .iter()
-            .filter_map(|(subject, predicates)| {
-                let in_voice = predicates.get(&segment_of).is_some_and(|objects| {
-                    objects
-                        .iter()
-                        .any(|object| matches!(object, Object::Iri(value) if value == &voice_iri))
-                });
-                (in_voice && has_type(&index, subject, &tone_event)).then(|| subject.clone())
-            })
-            .collect::<BTreeSet<_>>();
+        let mut event_iris =
+            subjects_with_object(&index, &segment_of, &Object::Iri(voice_iri.clone()))
+                .unwrap_or_default()
+                .iter()
+                .filter(|subject| has_type(&index, subject, &tone_event))
+                .cloned()
+                .collect::<BTreeSet<_>>();
         for event_iri in std::mem::take(&mut event_iris) {
             let Some(span_iri) = first_iri(&index, &event_iri, &gm("segmentSpan")) else {
                 continue;
@@ -1035,6 +1124,36 @@ fn note_type(duration: Fraction, beat_unit: Fraction) -> &'static str {
         .unwrap_or("quarter")
 }
 
+fn write_musicxml_note(
+    out: &mut String,
+    pitch: Option<&PitchValue>,
+    is_rest: bool,
+    duration: Fraction,
+    beat_unit: Fraction,
+) {
+    out.push_str("      <note>\n");
+    if is_rest || pitch.is_none() {
+        out.push_str("        <rest/>\n");
+    } else if let Some(pitch) = pitch {
+        let (step, alter, octave) = pitch_elements(pitch);
+        out.push_str("        <pitch>\n");
+        let _ = writeln!(out, "          <step>{step}</step>");
+        if alter.abs() > 0.001 {
+            let _ = writeln!(out, "          <alter>{alter:.2}</alter>");
+        }
+        let _ = writeln!(out, "          <octave>{octave}</octave>");
+        out.push_str("        </pitch>\n");
+    }
+    let duration_units = (duration.div(beat_unit) * 48.0).round().max(1.0) as i64;
+    let _ = writeln!(out, "        <duration>{duration_units}</duration>");
+    let _ = writeln!(
+        out,
+        "        <type>{}</type>",
+        note_type(duration, beat_unit)
+    );
+    out.push_str("      </note>\n");
+}
+
 fn render_musicxml(piece: &Piece, _profile: &NotationProfile) -> String {
     let mut out = String::new();
     out.push_str("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -1074,32 +1193,24 @@ fn render_musicxml(piece: &Piece, _profile: &NotationProfile) -> String {
         );
         out.push_str("        <clef><sign>G</sign><line>2</line></clef>\n");
         out.push_str("      </attributes>\n");
-        for event in voice
-            .events
-            .iter()
-            .filter(|event| event.duration.to_f64() > 0.0)
-        {
-            out.push_str("      <note>\n");
-            if event.is_unpitched || event.pitch.is_none() {
-                out.push_str("        <rest/>\n");
-            } else if let Some(pitch) = &event.pitch {
-                let (step, alter, octave) = pitch_elements(pitch);
-                out.push_str("        <pitch>\n");
-                let _ = writeln!(out, "          <step>{step}</step>");
-                if alter.abs() > 0.001 {
-                    let _ = writeln!(out, "          <alter>{alter:.2}</alter>");
-                }
-                let _ = writeln!(out, "          <octave>{octave}</octave>");
-                out.push_str("        </pitch>\n");
+        let mut cursor = Fraction::from_i64(0);
+        for event in sorted_positive_events(voice) {
+            if let Some(gap) = positive_gap(event.onset, cursor) {
+                write_musicxml_note(&mut out, None, true, gap, beat_unit);
+                cursor = event.onset;
             }
-            let duration = (event.duration.div(beat_unit) * 48.0).round().max(1.0) as i64;
-            let _ = writeln!(out, "        <duration>{duration}</duration>");
-            let _ = writeln!(
-                out,
-                "        <type>{}</type>",
-                note_type(event.duration, beat_unit)
+            write_musicxml_note(
+                &mut out,
+                event.pitch.as_ref(),
+                event.is_unpitched,
+                event.duration,
+                beat_unit,
             );
-            out.push_str("      </note>\n");
+            if let Some(end) = fraction_add(event.onset, event.duration) {
+                if end > cursor {
+                    cursor = end;
+                }
+            }
         }
         out.push_str("    </measure>\n");
         out.push_str("  </part>\n");
@@ -1176,17 +1287,17 @@ fn render_lilypond(piece: &Piece, profile: &NotationProfile) -> String {
     );
     out.push_str("{\n  \\clef treble\n  ");
     if let Some(voice) = voice {
-        let tokens = voice
-            .events
-            .iter()
-            .map(|event| {
+        let tokens = timeline_tokens(
+            voice,
+            |event| {
                 let head = match (event.is_unpitched, event.pitch.as_ref()) {
                     (true, _) | (_, None) => "r".to_string(),
                     (false, Some(pitch)) => lily_pitch(pitch),
                 };
                 format!("{head}{}", lily_duration(event.duration, beat_unit))
-            })
-            .collect::<Vec<_>>();
+            },
+            |gap| format!("r{}", lily_duration(gap, beat_unit)),
+        );
         out.push_str(&tokens.join(" "));
     } else {
         out.push_str("r1");
@@ -1261,14 +1372,17 @@ fn render_abc(piece: &Piece, profile: &NotationProfile) -> String {
     let _ = writeln!(out, "% profile: {}", profile.projection_function);
     if let Some(voice) = piece.voices.first() {
         let beat_unit = voice.beat_unit();
-        let mut tokens = Vec::new();
-        for event in &voice.events {
-            let head = match (event.is_unpitched, event.pitch.as_ref()) {
-                (true, _) | (_, None) => "z".to_string(),
-                (false, Some(pitch)) => abc_pitch(pitch),
-            };
-            tokens.push(format!("{head}{}", abc_duration(event.duration, beat_unit)));
-        }
+        let tokens = timeline_tokens(
+            voice,
+            |event| {
+                let head = match (event.is_unpitched, event.pitch.as_ref()) {
+                    (true, _) | (_, None) => "z".to_string(),
+                    (false, Some(pitch)) => abc_pitch(pitch),
+                };
+                format!("{head}{}", abc_duration(event.duration, beat_unit))
+            },
+            |gap| format!("z{}", abc_duration(gap, beat_unit)),
+        );
         if tokens.is_empty() {
             out.push_str("z |\n");
         } else {
@@ -1369,14 +1483,11 @@ fn render_scl(piece: &Piece, profile: &NotationProfile) -> String {
     let _ = writeln!(out, "! {title}");
     out.push_str("! Generated by gmeow music render --to scl\n");
     let _ = writeln!(out, "! Projection profile: {}", profile.projection_function);
-    let _ = writeln!(out, "{}", degrees.len().saturating_sub(1));
+    let pitch_rows = degrees.into_iter().skip(1).collect::<Vec<_>>();
+    let _ = writeln!(out, "{}", pitch_rows.len());
     let _ = writeln!(out, "{title}");
-    for cents in degrees {
-        if cents.abs() < 0.000_001 {
-            out.push_str("0.\n");
-        } else {
-            let _ = writeln!(out, "{cents:.6}");
-        }
+    for cents in pitch_rows {
+        let _ = writeln!(out, "{cents:.6}");
     }
     out
 }
@@ -1385,7 +1496,7 @@ fn render_mei(piece: &Piece, profile: &NotationProfile) -> String {
     format!(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mei><music><body><mdiv><score><scoreDef/><section><!-- {} --><staff n=\"1\"><layer>{}</layer></staff></section></score></mdiv></body></music></mei>\n",
         profile.projection_function,
-        piece.title.as_deref().unwrap_or("Untitled")
+        escape_xml(piece.title.as_deref().unwrap_or("Untitled"))
     )
 }
 
@@ -1403,12 +1514,18 @@ fn render_kern(piece: &Piece, profile: &NotationProfile) -> String {
         profile.projection_function
     );
     if let Some(voice) = piece.voices.first() {
-        for event in &voice.events {
-            if event.is_unpitched || event.pitch.is_none() {
-                out.push_str("r\n");
-            } else {
-                out.push_str("4c\n");
-            }
+        for token in timeline_tokens(
+            voice,
+            |event| {
+                if event.is_unpitched || event.pitch.is_none() {
+                    "r".to_string()
+                } else {
+                    "4c".to_string()
+                }
+            },
+            |_gap| "r".to_string(),
+        ) {
+            let _ = writeln!(out, "{token}");
         }
     }
     out.push_str("*-\n");
@@ -1466,6 +1583,33 @@ fn musicxml_pitch(note: roxmltree::Node<'_, '_>) -> Option<PitchValue> {
     ))
 }
 
+fn musicxml_duration(note: roxmltree::Node<'_, '_>, divisions: f64) -> Result<Fraction, String> {
+    let duration_divs = child_text(note, "duration")
+        .and_then(|value| value.parse::<f64>().ok())
+        .unwrap_or(divisions);
+    Fraction::from_f64(duration_divs / divisions.max(1.0), 64)
+}
+
+fn musicxml_part_label(doc: &roxmltree::Document<'_>, part_id: &str, fallback: &str) -> String {
+    doc.descendants()
+        .find(|node| {
+            node.is_element()
+                && node.tag_name().name() == "score-part"
+                && node.attribute("id") == Some(part_id)
+        })
+        .and_then(|score_part| child_text(score_part, "part-name"))
+        .unwrap_or(fallback)
+        .to_string()
+}
+
+fn musicxml_voice_id(note: roxmltree::Node<'_, '_>) -> String {
+    child_text(note, "voice")
+        .map(str::trim)
+        .filter(|voice| !voice.is_empty())
+        .unwrap_or("1")
+        .to_string()
+}
+
 pub fn piece_from_musicxml_text(text: &str) -> Result<Piece, String> {
     let doc = roxmltree::Document::parse(text).map_err(|e| format!("MusicXML parse error: {e}"))?;
     let title = doc
@@ -1474,45 +1618,99 @@ pub fn piece_from_musicxml_text(text: &str) -> Result<Piece, String> {
         .and_then(|node| node.text())
         .unwrap_or("Imported piece")
         .to_string();
-    let divisions = doc
+    let mut voices = Vec::new();
+    for (part_idx, part) in doc
         .descendants()
-        .find(|node| node.is_element() && node.tag_name().name() == "divisions")
-        .and_then(|node| node.text())
-        .and_then(|value| value.parse::<f64>().ok())
-        .unwrap_or(1.0);
-    let mut offset = Fraction::from_i64(0);
-    let mut events = Vec::new();
-    for note in doc
-        .descendants()
-        .filter(|node| node.is_element() && node.tag_name().name() == "note")
+        .filter(|node| node.is_element() && node.tag_name().name() == "part")
+        .enumerate()
     {
-        let duration_divs = child_text(note, "duration")
-            .and_then(|value| value.parse::<f64>().ok())
-            .unwrap_or(divisions);
-        let quarters = duration_divs / divisions;
-        let duration = Fraction::from_f64(quarters, 64)?;
-        let is_rest = note
+        let part_id = part
+            .attribute("id")
+            .map(str::to_string)
+            .unwrap_or_else(|| format!("P{}", part_idx + 1));
+        let part_label = musicxml_part_label(&doc, &part_id, &part_id);
+        let mut divisions = 1.0_f64;
+        let mut cursor = Fraction::from_i64(0);
+        let mut last_note_onset = cursor;
+        let mut by_voice: BTreeMap<String, Vec<ToneEvent>> = BTreeMap::new();
+
+        for measure in part
             .children()
-            .any(|child| child.is_element() && child.tag_name().name() == "rest");
-        events.push(ToneEvent {
-            onset: offset,
-            duration,
-            pitch: if is_rest { None } else { musicxml_pitch(note) },
-            is_unpitched: is_rest,
-            dynamics: None,
-            articulation: None,
-            timbre: None,
-        });
-        offset = Fraction::new(
-            offset.numerator * duration.denominator + duration.numerator * offset.denominator,
-            offset.denominator * duration.denominator,
-        )?;
+            .filter(|node| node.is_element() && node.tag_name().name() == "measure")
+        {
+            for child in measure.children().filter(|node| node.is_element()) {
+                match child.tag_name().name() {
+                    "attributes" => {
+                        if let Some(next_divisions) =
+                            child_text(child, "divisions").and_then(|value| value.parse().ok())
+                        {
+                            divisions = next_divisions;
+                        }
+                    }
+                    "backup" => {
+                        let duration = musicxml_duration(child, divisions)?;
+                        cursor =
+                            fraction_sub(cursor, duration).unwrap_or_else(|| Fraction::from_i64(0));
+                    }
+                    "forward" => {
+                        let duration = musicxml_duration(child, divisions)?;
+                        cursor = fraction_add(cursor, duration)
+                            .ok_or_else(|| "MusicXML forward overflowed timeline".to_string())?;
+                    }
+                    "note" => {
+                        let duration = musicxml_duration(child, divisions)?;
+                        let is_rest = child.children().any(|note_child| {
+                            note_child.is_element() && note_child.tag_name().name() == "rest"
+                        });
+                        let is_chord = child.children().any(|note_child| {
+                            note_child.is_element() && note_child.tag_name().name() == "chord"
+                        });
+                        let onset = if is_chord { last_note_onset } else { cursor };
+                        let voice_id = musicxml_voice_id(child);
+                        by_voice.entry(voice_id).or_default().push(ToneEvent {
+                            onset,
+                            duration,
+                            pitch: if is_rest { None } else { musicxml_pitch(child) },
+                            is_unpitched: is_rest,
+                            dynamics: None,
+                            articulation: None,
+                            timbre: None,
+                        });
+                        if !is_chord {
+                            cursor = fraction_add(cursor, duration).ok_or_else(|| {
+                                "MusicXML note duration overflowed timeline".to_string()
+                            })?;
+                            last_note_onset = onset;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        for (voice_id, mut events) in by_voice {
+            events.sort_by_key(|event| event.onset);
+            voices.push(Voice {
+                iri: format!("urn:gmeow:voice:{}:{voice_id}", part_idx + 1),
+                label: Some(format!("{part_label} voice {voice_id}")),
+                tuning: Some(TuningSystem {
+                    iri: gm("tuningSystem12EDO"),
+                    label: "12-EDO".to_string(),
+                    division_count: Some(12),
+                    degrees_cents: None,
+                }),
+                time_frame: Some(TimeFrame {
+                    iri: format!("urn:gmeow:timeframe:{}", part_idx + 1),
+                    label: "4/4".to_string(),
+                    beats_per_measure: Some(4),
+                    beat_unit: Some(4),
+                }),
+                events,
+            });
+        }
     }
-    Ok(Piece {
-        iri: "urn:gmeow:piece:imported".to_string(),
-        title: Some(title),
-        composer: None,
-        voices: vec![Voice {
+    if voices.is_empty() {
+        voices.push(Voice {
             iri: "urn:gmeow:voice:1".to_string(),
             label: Some("imported voice".to_string()),
             tuning: Some(TuningSystem {
@@ -1527,8 +1725,14 @@ pub fn piece_from_musicxml_text(text: &str) -> Result<Piece, String> {
                 beats_per_measure: Some(4),
                 beat_unit: Some(4),
             }),
-            events,
-        }],
+            events: Vec::new(),
+        });
+    }
+    Ok(Piece {
+        iri: "urn:gmeow:piece:imported".to_string(),
+        title: Some(title),
+        composer: None,
+        voices,
     })
 }
 
@@ -1833,6 +2037,36 @@ mod tests {
     }
 
     #[test]
+    fn gts_round_trip_keeps_same_cents_pitch_labels_event_scoped() {
+        let mut piece = fixture_piece();
+        piece.voices[0].events.truncate(2);
+        piece.voices[0].events[0].pitch = Some(PitchValue {
+            cents: 0.0,
+            spelled_name: Some("C natural".to_string()),
+        });
+        piece.voices[0].events[1].pitch = Some(PitchValue {
+            cents: 0.0,
+            spelled_name: Some("B sharp".to_string()),
+        });
+
+        let bytes = piece_to_gts_bytes(&piece).expect("gts");
+        let round = piece_from_gts_bytes(&bytes).expect("read");
+        let labels = round.voices[0]
+            .events
+            .iter()
+            .map(|event| {
+                event
+                    .pitch
+                    .as_ref()
+                    .and_then(|pitch| pitch.spelled_name.as_deref())
+                    .unwrap_or("")
+                    .to_string()
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(labels, vec!["C natural", "B sharp"]);
+    }
+
+    #[test]
     fn renderers_emit_expected_notation_surfaces() {
         let piece = fixture_piece();
         let musicxml = match render_piece(&piece, "musicxml").unwrap() {
@@ -1863,6 +2097,64 @@ mod tests {
         };
         assert!(scl.contains("Projection profile"));
         assert!(scl.contains("\n12\n"));
+        assert!(!scl.lines().any(|line| line == "0."));
+
+        let mut escaped_title_piece = fixture_piece();
+        escaped_title_piece.title = Some("A&B <C> \"D\"".to_string());
+        let mei = match render_piece(&escaped_title_piece, "mei").unwrap() {
+            Rendered::Text(text) => text,
+            Rendered::Binary(_) => panic!("mei is text"),
+        };
+        assert!(mei.contains("A&amp;B &lt;C&gt; &quot;D&quot;"));
+    }
+
+    #[test]
+    fn renderers_preserve_onset_gaps_with_rests() {
+        let mut piece = fixture_piece();
+        piece.voices[0].events = vec![
+            ToneEvent {
+                onset: Fraction::from_i64(0),
+                duration: Fraction::new(1, 4).expect("quarter"),
+                pitch: Some(PitchValue::from_midi_number(60.0)),
+                is_unpitched: false,
+                dynamics: None,
+                articulation: None,
+                timbre: None,
+            },
+            ToneEvent {
+                onset: Fraction::new(1, 2).expect("half"),
+                duration: Fraction::new(1, 4).expect("quarter"),
+                pitch: Some(PitchValue::from_midi_number(62.0)),
+                is_unpitched: false,
+                dynamics: None,
+                articulation: None,
+                timbre: None,
+            },
+        ];
+
+        let musicxml = match render_piece(&piece, "musicxml").unwrap() {
+            Rendered::Text(text) => text,
+            Rendered::Binary(_) => panic!("musicxml is text"),
+        };
+        assert!(musicxml.contains("<rest/>"));
+
+        let lilypond = match render_piece(&piece, "lilypond").unwrap() {
+            Rendered::Text(text) => text,
+            Rendered::Binary(_) => panic!("lilypond is text"),
+        };
+        assert!(lilypond.contains("r4"));
+
+        let abc = match render_piece(&piece, "abc").unwrap() {
+            Rendered::Text(text) => text,
+            Rendered::Binary(_) => panic!("abc is text"),
+        };
+        assert!(abc.contains(" z"));
+
+        let kern = match render_piece(&piece, "kern").unwrap() {
+            Rendered::Text(text) => text,
+            Rendered::Binary(_) => panic!("kern is text"),
+        };
+        assert!(kern.lines().any(|line| line == "r"));
     }
 
     #[test]
@@ -1911,17 +2203,22 @@ mod tests {
   <work><work-title>Imported</work-title></work>
   <part-list><score-part id="P1"><part-name>P1</part-name></score-part></part-list>
   <part id="P1"><measure number="1"><attributes><divisions>48</divisions></attributes>
-    <note><pitch><step>C</step><octave>4</octave></pitch><duration>48</duration></note>
-    <note><pitch><step>D</step><octave>4</octave></pitch><duration>48</duration></note>
-    <note><pitch><step>E</step><octave>4</octave></pitch><duration>96</duration></note>
+    <note><voice>1</voice><pitch><step>C</step><octave>4</octave></pitch><duration>96</duration></note>
+    <backup><duration>96</duration></backup>
+    <note><voice>2</voice><pitch><step>E</step><octave>4</octave></pitch><duration>48</duration></note>
+    <note><voice>2</voice><pitch><step>G</step><octave>4</octave></pitch><duration>48</duration></note>
   </measure></part>
 </score-partwise>"#,
         )
         .expect("import");
         assert_eq!(piece.title.as_deref(), Some("Imported"));
-        assert_eq!(piece.voices[0].events.len(), 3);
-        assert_eq!(piece.voices[0].events[1].onset, Fraction::from_i64(1));
-        assert!((piece.voices[0].events[2].pitch.as_ref().unwrap().cents - 400.0).abs() < 0.001);
+        assert_eq!(piece.voices.len(), 2);
+        assert_eq!(piece.voices[0].events.len(), 1);
+        assert_eq!(piece.voices[0].events[0].duration, Fraction::from_i64(2));
+        assert_eq!(piece.voices[1].events.len(), 2);
+        assert_eq!(piece.voices[1].events[0].onset, Fraction::from_i64(0));
+        assert_eq!(piece.voices[1].events[1].onset, Fraction::from_i64(1));
+        assert!((piece.voices[1].events[0].pitch.as_ref().unwrap().cents - 400.0).abs() < 0.001);
     }
 
     #[test]

@@ -174,13 +174,6 @@ fn object_iri(term: &Term) -> Option<&str> {
     }
 }
 
-fn object_literal(term: &Term) -> Option<&str> {
-    match term {
-        Term::Literal(literal) => Some(literal.value()),
-        _ => None,
-    }
-}
-
 #[test]
 fn work_shapes_do_not_require_notated_realization() {
     let shapes = read_ttl(&repo_root().join("shapes").join("gmeow-shapes.ttl"));
@@ -191,7 +184,6 @@ fn work_shapes_do_not_require_notated_realization() {
     let sh_property = "http://www.w3.org/ns/shacl#property";
     let sh_path = "http://www.w3.org/ns/shacl#path";
     let sh_has_value = "http://www.w3.org/ns/shacl#hasValue";
-    let sh_min_count = "http://www.w3.org/ns/shacl#minCount";
     let work = "https://blackcatinformatics.ca/gmeow/Work";
     let realization_mode = "https://blackcatinformatics.ca/gmeow/realizationMode";
     let realization_mode_notated = "https://blackcatinformatics.ca/gmeow/realizationModeNotated";
@@ -225,12 +217,8 @@ fn work_shapes_do_not_require_notated_realization() {
             }
             quads.iter().any(|quad| {
                 quad.subject.to_string() == **property
-                    && ((quad.predicate.as_str() == sh_has_value
-                        && object_iri(&quad.object) == Some(realization_mode_notated))
-                        || (quad.predicate.as_str() == sh_min_count
-                            && object_literal(&quad.object)
-                                .and_then(|value| value.parse::<i64>().ok())
-                                .is_some_and(|min| min >= 1)))
+                    && quad.predicate.as_str() == sh_has_value
+                    && object_iri(&quad.object) == Some(realization_mode_notated)
             })
         })
         .cloned()

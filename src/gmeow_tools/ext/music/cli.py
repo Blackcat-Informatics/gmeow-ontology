@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, Any, cast
+from typing import Annotated, Any, NoReturn, cast
 
 import typer
 from gmeow_native import music as _native_music
@@ -20,6 +20,23 @@ _music = cast(Any, _native_music)
 _ALL_FORMATS: list[str] = sorted(cast(list[str], _music.list_formats()))
 
 
+def _raise_music_runtime_error(message: str) -> NoReturn:
+    typer.echo(f"Error: {message}", err=True)
+    raise typer.Exit(1)
+
+
+def _raise_music_value_error(exc: ValueError) -> NoReturn:
+    message = str(exc)
+    if message.startswith(
+        (
+            "unsupported format:",
+            "MusicXML import only supports",
+        )
+    ):
+        raise typer.BadParameter(message) from exc
+    _raise_music_runtime_error(message)
+
+
 @app.command()
 def render(
     source: Annotated[Path, typer.Argument(help="Source .gts music-package file.")],
@@ -30,7 +47,9 @@ def render(
     try:
         written = _music.render_file(str(source), to.lower(), str(out))
     except ValueError as exc:
-        raise typer.BadParameter(str(exc)) from exc
+        _raise_music_value_error(exc)
+    except OSError as exc:
+        _raise_music_runtime_error(str(exc))
     for path in written:
         typer.echo(f"wrote {path}")
 
@@ -44,6 +63,8 @@ def import_(
     try:
         written = _music.import_file(str(source), str(out))
     except ValueError as exc:
-        raise typer.BadParameter(str(exc)) from exc
+        _raise_music_value_error(exc)
+    except OSError as exc:
+        _raise_music_runtime_error(str(exc))
     for path in written:
         typer.echo(f"wrote {path}")
