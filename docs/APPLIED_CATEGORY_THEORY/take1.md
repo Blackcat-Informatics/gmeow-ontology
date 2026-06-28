@@ -306,7 +306,7 @@ single `gmeow:confidence` destroys the distinctions:
 
 Every correspondence is **standpoint-indexed** (`logic:accordingTo`). The same pair may be
 `iso` under one standpoint and `affine` under another, coexisting and contested. An *unindexed*
-correspondence holds in `UnspecifiedStandpoint` — **unspecified, not universal** — which kills
+correspondence holds in `gmeow:unspecifiedStandpoint` — **unspecified, not universal** — which kills
 the silent-universality bug where a curated alignment is applied where it was never validated.
 
 ---

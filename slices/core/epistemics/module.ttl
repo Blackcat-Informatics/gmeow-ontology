@@ -106,6 +106,19 @@ gmeow:DoxasticTenure
     gmeow:howToUse "Mint one DoxasticTenure per DoxasticState adoption interval; point it at the DoxasticState via tenureOfDoxasticState and at a TimeInterval via duringInterval. On revision, close the interval with endedAtTime and set displayable false on the tenure; mint a new DoxasticState and tenure for the revised belief."@x-gmeow-english ;
     gmeow:useWhen "Use when the adoption, revision, or retraction of a belief over time is itself the fact of interest — the heavy form for belief-revision history."@x-gmeow-english .
 
+gmeow:EpistemicContext
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Epistemic Context"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ;
+    skos:definition "A doxastic context — the belief-world relative to which an agent's knowledge or belief is held true, the context the typed accessibility relation logic:doxasticallyAccessible ranges over. DISTINCT from gmeow:DoxasticState: the DoxasticState is the intrinsic believing mental moment that inheres in an agent (the believing itself), whereas an EpistemicContext is where the believed propositions hold — the world the belief reaches. One of the distinct typed contexts of the logic context algebra; the logic: accessibility machinery stays central in the logic slice and is referenced here in prose only, with no asserted logic: triples."@x-gmeow-english ;
+    skos:example "ex:alicesBeliefWorld a gmeow:EpistemicContext ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the believing attitude itself — that is gmeow:DoxasticState (the mental moment); the EpistemicContext is the belief-world the attitude reaches. Avoid treating an unindexed claim as holding in any particular EpistemicContext (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint an EpistemicContext when an agent's belief-world needs to be a first-class context — the contexts logic:doxasticallyAccessible relates; link the believing gmeow:DoxasticState to its content and let the typed accessibility relation, not the bare logic:accessibleFrom, carry any cross-context reasoning."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the doxastic context (belief-world) an agent's knowledge or belief is held true relative to — the typed context of the context algebra that logic:doxasticallyAccessible ranges over, distinct from the gmeow:DoxasticState mental moment."@x-gmeow-english .
+
 gmeow:EvidenceSpan
     rdfs:subClassOf gmeow:JustificationGround .
 

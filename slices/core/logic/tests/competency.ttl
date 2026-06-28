@@ -129,3 +129,34 @@ ex:rowCatNonEntailmentObligation a gmeow:ExpectedRow ;
 
 ex:rowCatTypicality a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryTypicality ] .
+
+# ── Keystone invariant: the bare superproperty yields no cross-type inference ─────
+#
+# The typed accessibility relations are sub-relations of logic:accessibleFrom in
+# PROSE ONLY: none is asserted rdfs:subPropertyOf it, because that edge would let an
+# inference walk the bare superproperty across contexts of different types and
+# conclude something the typed semantics forbid (believed → true, in-fiction →
+# actual, ideal → is). A structural MUST-NOT guards the asserted graph; this
+# question hardens the same invariant under FULL RDFS CLOSURE (reasoningRdfs runs
+# rdfs5 subPropertyOf transitivity over the merged ontology), so even a *transitive*
+# subproperty chain — which an asserted-graph check would miss — would surface here
+# as a non-empty row and fail. The expected answer is the empty set: after RDFS
+# materialization, no typed relation is a subproperty of logic:accessibleFrom.
+#
+# Scope: this is a schema-closure sentinel for the subproperty mechanism, the only
+# RDFS-level route to cross-type folding. The harness's RDFS lane materializes the
+# merged TBox and takes no instance ABox, so instance-level modal evaluation (e.g. a
+# necessity walk over accessibleFrom) is not exercised here; that machinery lives in
+# the native engine and is kept apart from the typed relations by construction.
+ex:cqKeystoneNoCrossTypeSuperproperty a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?typed WHERE { VALUES ?typed { logic:epistemicallyPossible logic:doxasticallyAccessible logic:deonticallyIdeal logic:temporallySucceeds logic:counterfactuallyCloser gmeow:sharpens } ?typed rdfs:subPropertyOf logic:accessibleFrom }" ;
+    gmeow:cqReasoning gmeow:reasoningRdfs ;
+    gmeow:cqRationale "All six typed accessibility relations — the five logic: kernel relations plus gmeow:sharpens — MUST NOT be rdfs:subPropertyOf logic:accessibleFrom even after RDFS closure (rdfs5 transitivity); the bare superproperty licenses no cross-type entailment, so this query returns the empty set. gmeow:sharpens is included because an asserted or inferred gmeow:sharpens rdfs:subPropertyOf logic:accessibleFrom would reopen the cross-type path for standpoint contexts." ;
+    gmeow:cqResultShape ex:cqKeystoneNoCrossTypeSuperpropertyShape ;
+    gmeow:cqExpectRowCount 0 .
+
+ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "typed" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 .

@@ -591,6 +591,17 @@ accessibility relation**.
 | `logic:ReferenceFrame` | a frame of measurement or canon | frame-relative-to |
 | `logic:NarrativeFrame` | an in-universe representational canon | depicts / in-frame |
 
+> **Realization mapping.** The conceptual `logic:`-prefixed context names in the table above are
+> realized as declared terms distributed across slices per the Hybrid placement doctrine:
+> `logic:PossibleWorld` and `logic:Path` are declared in the logic slice; `logic:Standpoint` is
+> realized as the existing `gmeow:Standpoint`, `logic:Scenario` as `gmeow:Scenario`, and
+> `logic:State` as `gmeow:State` in the standpoint slice; `logic:EpistemicContext` is realized as
+> `gmeow:EpistemicContext` in the epistemics slice; `logic:ReferenceFrame` is realized as the
+> existing `gmeow:ReferenceFrame` in the places slice; and `logic:NarrativeFrame` is realized as
+> the existing `gmeow:NarrativeReferenceFrame` in the narrative extension. The `logic:` accessibility
+> machinery (the five typed relations) remains central in this slice, referenced from domain slices
+> in prose only.
+
 Deontic and counterfactual reasoning are *uses* of these contexts rather than separate context types:
 a deontic claim is truth in the **deontically-ideal** accessible contexts of an issuer; a
 counterfactual claim is truth in the **counterfactually-closer** accessible contexts under a declared
@@ -602,7 +613,9 @@ translation over the *appropriate* relation, never over a blurred union of all o
 ### The generic superproperty yields no cross-type inference
 
 There is a generic `logic:accessibleFrom` superproperty of which every typed relation above is a
-subproperty — but it exists for *uniform traversal and provenance*, never for inference:
+subproperty **in prose only** — none is asserted `rdfs:subPropertyOf` it, because such an edge would
+re-enable exactly the cross-type entailment forbidden here. It exists for *uniform traversal and
+provenance*, never for inference:
 
 > The generic accessibility superproperty licenses **no cross-type entailment by itself.** An
 > inference may follow a *named, typed* accessibility relation; it may **not** conclude anything by
@@ -617,7 +630,7 @@ and "ideal" from leaking into "is."
 
 The most consequential rule of the algebra concerns the *absence* of an index:
 
-> A statement asserted with **no context index** holds in an `logic:UnspecifiedStandpoint`. It is
+> A statement asserted with **no context index** holds in an `gmeow:unspecifiedStandpoint`. It is
 > **unspecified — not universal.** It is not implicitly true in every context, in any particular
 > context, or at the top of the `sharpens` poset. Only an **explicit universal assertion** (a
 > statement indexed to `gmeow:universalStandpoint`, or one that explicitly quantifies over all
@@ -625,7 +638,7 @@ The most consequential rule of the algebra concerns the *absence* of an index:
 
 Treating an unindexed statement as universally true is the world-semantics analogue of the closed-world
 collapse: it manufactures a claim the author never made. The default is silence about *where* a
-statement holds, and silence is the `UnspecifiedStandpoint`, which licenses no propagation. Universality
+statement holds, and silence is the `gmeow:unspecifiedStandpoint`, which licenses no propagation. Universality
 is a thing one says, not a thing one omits.
 
 ### Three strata of context reasoning

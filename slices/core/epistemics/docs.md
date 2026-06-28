@@ -116,6 +116,7 @@ spine to a `gmeow:DoxasticState`.
 | Term | Role |
 |---|---|
 | `gmeow:DoxasticState` | The agent's intrinsic believing mode — a `kernel:MentalMoment`. |
+| `gmeow:EpistemicContext` | A doxastic context (belief-world) — where the believed propositions hold, the context `logic:doxasticallyAccessible` ranges over. DISTINCT from `gmeow:DoxasticState`: the DoxasticState is the believing mental moment that inheres in the agent; the EpistemicContext is the belief-world the attitude reaches. |
 | `gmeow:epistemicAgent` | The believer (functional, domain `DoxasticState`, range `Agent`). |
 | `gmeow:doxasticContent` | The believed `gmeow:Proposition` (functional). |
 | `gmeow:doxasticClaim` | Links to a `standpoint:StandpointClaim` carrying the qualitative `claimModality`. |
