@@ -9,13 +9,24 @@
 # N3 projection of the canonical logic: program.
 
 # === Axioms ===
+<https://blackcatinformatics.ca/logic/ArgumentationSemantics> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/Argument> .
+<https://blackcatinformatics.ca/logic/ArgumentationSemantics> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/Attack> .
+<https://blackcatinformatics.ca/logic/ArgumentationSemantics> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/Support> .
 <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability> .
 <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationDischargeVerdict> <https://blackcatinformatics.ca/logic/ObligationDischarged> .
 <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> 'https://blackcatinformatics.ca/gmeow/counterpartOf' .
+<https://blackcatinformatics.ca/logic/GroundedArgumentation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> .
+<https://blackcatinformatics.ca/logic/InfoBoth> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/supportBoth> .
+<https://blackcatinformatics.ca/logic/InfoNeither> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/supportNeither> .
+<https://blackcatinformatics.ca/logic/InfoOpposed> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/supportOpposed> .
+<https://blackcatinformatics.ca/logic/InfoSupported> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/supportSupported> .
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeFiniteClosure> .
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability> .
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeVerdict> <https://blackcatinformatics.ca/logic/ObligationDischarged> .
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim' .
+<https://blackcatinformatics.ca/logic/NoArgumentation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> .
+<https://blackcatinformatics.ca/logic/PolicySpecificArgumentation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> .
+<https://blackcatinformatics.ca/logic/PreferredArgumentation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> .
 <https://blackcatinformatics.ca/logic/defaultLadderProfile> <https://blackcatinformatics.ca/logic/hasThresholdRow> <https://blackcatinformatics.ca/logic/ladderRowAwareness> .
 <https://blackcatinformatics.ca/logic/defaultLadderProfile> <https://blackcatinformatics.ca/logic/hasThresholdRow> <https://blackcatinformatics.ca/logic/ladderRowConceptual> .
 <https://blackcatinformatics.ca/logic/defaultLadderProfile> <https://blackcatinformatics.ca/logic/hasThresholdRow> <https://blackcatinformatics.ca/logic/ladderRowDeclarative> .

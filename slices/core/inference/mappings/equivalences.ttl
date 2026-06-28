@@ -21,8 +21,8 @@ gmeow:mapsetInference a gmeow:MappingSet ;
     gmeow:setComment """Inference / Peirce's tetrad alignments.
         PROV-O: an occurrent gmeow:InferenceProcess is a prov:Activity; gmeow:inferredFrom realises prov:wasDerivedFrom (the conclusion is derived from its premises); a conclusion gmeow:StandpointClaim is a prov:Entity (aligned in the deception/observations sets).
         CRMinf: gmeow:InferenceProcess aligns to I5_Inference_Making (the inference-making event); the endurant gmeow:InferenceCommitment aligns to I1_Argumentation (the structured argument); gmeow:StandpointModality reuses I6_Belief_Value (aligned in the deception set).
-        Wikidata: the four gmeow:InferenceMode values map to the reasoning concepts deductive (Q484284) / inductive (Q484511) / abductive (Q308495) reasoning and analogy (Q185816); gmeow:InferenceProcess relates to 'inference' (Q408386); the defeasibility machinery (gmeow:hasDefeater) relates to 'defeasible reasoning' (Q840067).
-        BY PROSE ONLY (no stable resolvable RDF namespace suitable for SSSOM rows): Peirce's original tetrad (CP 2.619ff); Toulmin's warrant/backing/rebuttal model (gmeow:warrant, gmeow:hasDefeater); Gentner's Structure-Mapping Engine / systematicity principle (gmeow:Analogy, gmeow:systematicity); Pollock's rebutting/undercutting defeater distinction (gmeow:DefeaterKind); AIF (Argument Interchange Format), referenced for the solver-layer acceptability function but, as in the deception set, lacking a stable SSSOM-suitable namespace.""" .
+        Wikidata: the four gmeow:InferenceMode values map to the reasoning concepts deductive (Q484284) / inductive (Q484511) / abductive (Q308495) reasoning and analogy (Q185816); gmeow:InferenceProcess relates to 'inference' (Q408386); the defeasibility machinery (gmeow:Attack) relates to 'defeasible reasoning' (Q840067).
+        BY PROSE ONLY (no stable resolvable RDF namespace suitable for SSSOM rows): Peirce's original tetrad (CP 2.619ff); Toulmin's warrant/backing/rebuttal model (gmeow:warrant, gmeow:Attack); Gentner's Structure-Mapping Engine / systematicity principle (gmeow:Analogy, gmeow:systematicity); Pollock's rebutting/undercutting defeater distinction, now the three-way typed gmeow:AttackKind (undermine/undercut/rebut); AIF / ASPIC+ / Dung abstract argumentation (gmeow:Argument, gmeow:Attack, gmeow:Support, gmeow:ArgumentEvaluation), referenced for the solver-layer acceptability function but lacking a stable SSSOM-suitable namespace.""" .
 
 # PROV-O — the reasoning episode is an activity; derivation links premises to conclusion.
 gmeow:eqInference001 a gmeow:TermEquivalence ;
@@ -110,10 +110,10 @@ gmeow:eqInference009 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-inference.sssom.tsv" .
 
 gmeow:eqInference010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasDefeater ;
+    gmeow:alignSubject gmeow:Attack ;
     gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject wd:Q840067 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "Wikidata 'defeasible reasoning' (Q840067) — reasoning that is rationally compelling but not deductively valid; gmeow:hasDefeater is the structural hook for the defeaters that make inductive/abductive/analogical inference defeasible" ;
+    gmeow:comment "Wikidata 'defeasible reasoning' (Q840067) — reasoning that is rationally compelling but not deductively valid; gmeow:Attack is the typed structural conflict (undermine/undercut/rebut) that makes inductive/abductive/analogical inference defeasible" ;
     gmeow:sssomFile "gmeow-inference.sssom.tsv" .

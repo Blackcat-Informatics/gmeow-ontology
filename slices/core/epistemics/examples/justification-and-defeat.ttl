@@ -5,11 +5,13 @@
 #
 # Three cases:
 #   1. Justified belief: Ada believes it is noon because a working wall clock
-#      reads 12:00. The DoxasticState is justifiedBy the EvidenceSpan of the
-#      clock reading, and the DoxasticStandpointClaim reports that held state.
+#      reads 12:00. The DoxasticState factors its justification five ways —
+#      available-evidence + basing (the clock reading), support-under-a-standard
+#      and adequacy (under the ordinary standard) — and the DoxasticStandpointClaim
+#      reports that held state.
 #   2. Gettier-defeated belief: Ada believes it is noon because a stopped clock
 #      happens to show 12:00. The evidence is the same kind (a clock-face
-#      reading), but a solver flags the state defeatedBy
+#      reading), but a solver flags the state gmeow:hasDefeatStatus
 #      gmeow:justificationStatusGettier because the justification is misleading —
 #      the belief is true only by accident.
 #   3. Lie: Bob privately believes it is noon (held DoxasticState/Claim), but
@@ -43,7 +45,7 @@ ex:wallClockReading a gmeow:EvidenceSpan ;
 ex:stoppedClock a gmeow:PhysicalObject ;
     rdfs:label "the stopped clock"@x-gmeow-english .
 
-ex:stoppedClockReading a gmeow:EvidenceSpan ;
+ex:stoppedClockReading a gmeow:EvidenceSpan , gmeow:Defeater ;
     rdfs:label "stopped-clock reading: 12:00"@x-gmeow-english ;
     gmeow:selectorTextQuote "12:00"@x-gmeow-english .
 
@@ -54,7 +56,21 @@ ex:adaJustifiedBelief a gmeow:DoxasticState ;
     gmeow:doxasticContent ex:timeNoon ;
     gmeow:credence "0.95"^^xsd:decimal ;
     gmeow:doxasticClaim ex:adaJustifiedClaim ;
-    gmeow:justifiedBy ex:wallClockReading .
+    gmeow:hasAvailableEvidence ex:wallClockReading ;   # the accessible evidence
+    gmeow:basesBeliefOn ex:wallClockReading ;          # and the ground actually used (available = used here)
+    gmeow:supportsUnder ex:adaSupport ;                # how strongly, under a named standard
+    gmeow:adequateUnder ex:adaAdequacy .               # whether it meets that standard's bar
+
+ex:adaSupport a gmeow:SupportAssessment ;
+    rdfs:label "The wall-clock reading strongly supports 'it is noon' under the ordinary standard"@x-gmeow-english ;
+    gmeow:supportGround ex:wallClockReading ;
+    gmeow:supportUnderStandard gmeow:standardOrdinary ;
+    gmeow:supportStrength "0.9"^^xsd:decimal .
+
+ex:adaAdequacy a gmeow:AdequacyAssessment ;
+    rdfs:label "The support meets the ordinary standard's threshold"@x-gmeow-english ;
+    gmeow:adequacyUnderStandard gmeow:standardOrdinary ;
+    gmeow:meetsThreshold gmeow:adequacyMet .
 
 ex:adaJustifiedClaim a gmeow:DoxasticStandpointClaim ;
     rdfs:label "Ada's justified standpoint claim that it is noon"@x-gmeow-english ;
@@ -74,8 +90,10 @@ ex:adaGettierBelief a gmeow:DoxasticState ;
     gmeow:doxasticContent ex:timeNoon ;
     gmeow:credence "0.95"^^xsd:decimal ;
     gmeow:doxasticClaim ex:adaGettierClaim ;
-    gmeow:justifiedBy ex:stoppedClockReading ;
-    gmeow:defeatedBy gmeow:justificationStatusGettier .
+    gmeow:hasAvailableEvidence ex:stoppedClockReading ;
+    gmeow:basesBeliefOn ex:stoppedClockReading ;
+    gmeow:defeatedBy ex:stoppedClockReading ;                  # the structural defeater (an EvidenceSpan ⊑ Defeater)
+    gmeow:hasDefeatStatus gmeow:justificationStatusGettier .   # the solver-set verdict flag
 
 ex:adaGettierClaim a gmeow:DoxasticStandpointClaim ;
     rdfs:label "Ada's Gettier-defeated standpoint claim that it is noon"@x-gmeow-english ;

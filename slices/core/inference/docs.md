@@ -15,17 +15,17 @@ reasoning. Strength rides the existing `logic:` axes; modality reuses the existi
 
 ## The endurant/occurrent split
 
-The issue body first proposed a single `gmeow:Inference` that was *both* a `gufo:Relator` (an
-endurant) and a `gmeow:MentalProcess` (an occurrent). That double-types a class across gUFO's master
-endurant/occurrent split — the very distinction the mentation program exists to keep clean — so
-the design was corrected into two classes joined by a bridge:
+Inference is not a single class. Modelling it as one relation that was *both* a `gufo:Relator` (an
+endurant) and a `gmeow:MentalProcess` (an occurrent) would double-type a class across gUFO's master
+endurant/occurrent split — the very distinction the mentation program exists to keep clean — so the
+design splits it into two classes joined by a bridge:
 
 - **`gmeow:InferenceProcess`** `⊑ gmeow:MentalProcess` — the **occurrent** reasoning episode (a
   perdurant): the reasoning as it unfolds in time, borne by one `gmeow:experiencer`, carrying
   `gmeow:mentalProcessType gmeow:processReasoning`, and `gmeow:producesMentalMoment` the belief it
   creates. This is the reparenting hook the mentation slice reserves.
 - **`gmeow:InferenceCommitment`** `⊑ gufo:Relator` — the **endurant** structured argument relation
-  (premises × conclusion × warrant × defeaters), the reified Toulmin/Peircean commitment.
+  (premises × conclusion × warrant), the reified Toulmin/Peircean commitment.
 - **`gmeow:hasInferenceCommitment`** bridges the process to the commitment it instantiates.
 
 `gufo:Relator` is reached only via `rdfs:subClassOf`; the sole gUFO master metaclass on
@@ -39,7 +39,7 @@ Flat-first, reify on demand (Principle 4):
 1. **Flat spine** (the 80% case) — hang `gmeow:inferenceMode` and `gmeow:inferredFrom` directly on the
    conclusion `gmeow:StandpointClaim`. No reification.
 2. **Reified commitment** — a `gmeow:InferenceCommitment` when the argument structure (premises,
-   conclusion, warrant, defeaters) matters.
+   conclusion, warrant) matters.
 3. **Occurrent process** — a `gmeow:InferenceProcess` when the reasoning episode joins the agent's
    mental timeline (the mentation spine).
 
@@ -67,8 +67,9 @@ The occurrent reasoning episode (`gufo:EventType ⊑ gmeow:MentalProcess`). Carr
 ### gmeow:InferenceCommitment
 
 The endurant argument relation (`gufo:Kind ⊑ gufo:Relator`). Mediates `gmeow:premise` (≥1),
-`gmeow:conclusion` (exactly 1, a claim), `gmeow:warrant`, `gmeow:inferenceModeOf`, and
-`gmeow:hasDefeater`. Retained as audit when its conclusion is suppressed.
+`gmeow:conclusion` (exactly 1, a claim), `gmeow:warrant`, and `gmeow:inferenceModeOf`. The
+argumentation layer wraps it in a `gmeow:Argument` to bear typed conflict and support. Retained as
+audit when its conclusion is suppressed.
 
 ### gmeow:Analogy
 
@@ -86,17 +87,45 @@ A single mapped element-pair within an Analogy (`gufo:Kind ⊑ gufo:Relator`):
 The Peircean mode value vocabulary (`gufo:AbstractIndividualType ⊑ gufo:QualityValue`):
 `gmeow:modeDeduction`, `gmeow:modeInduction`, `gmeow:modeAbduction`, `gmeow:modeAnalogical`.
 
-### gmeow:DefeaterKind
-
-The Pollock defeater value vocabulary (`gufo:AbstractIndividualType ⊑ gufo:QualityValue`):
-`gmeow:defeaterRebutting` (attacks the conclusion) and `gmeow:defeaterUndercutting` (attacks the
-inferential link).
-
 ### gmeow:InferenceTenure
 
 The time-scoped fact (`gufo:SituationType ⊑ gmeow:TimeScopedRelation`) that a commitment's conclusion
-was held over an interval — opened on acceptance, closed when a defeater fires (`gmeow:tenureOf` names
+was held over an interval — opened on acceptance, closed when the solver evaluates the corresponding
+`gmeow:Argument` as `gmeow:acceptanceOut` via a `gmeow:ArgumentEvaluation` (`gmeow:tenureOf` names
 the commitment; `gmeow:duringInterval` carries the period).
+
+## The argumentation layer (Dung / ASPIC+)
+
+A reasoning step rarely stands alone — arguments support and attack one another, and which survive is
+decided under a *named acceptability semantics*. The `gmeow:Argument` is the attackable framework node
+(`gufo:Kind ⊑ gufo:Relator`) that wraps at most one Toulmin step (`gmeow:argumentInferenceStep` →
+`gmeow:InferenceCommitment`); it rests on the premises it actually **uses** (`gmeow:hasPremiseUse` →
+`gmeow:PremiseUse`, *available ≠ used*) via the rule it applies (`gmeow:hasInferenceApplication` →
+`gmeow:InferenceApplication`, rule + substitution), and concludes (`gmeow:argumentConclusion`).
+
+**Typed attacks name what they attack.** A `gmeow:Attack` carries a `gmeow:attackSource`, a
+`gmeow:attackTarget` (a `gmeow:AttackTarget` — the named union of `gmeow:PremiseUse`,
+`gmeow:InferenceApplication`, or conclusion `gmeow:StandpointClaim`), and a `gmeow:attackKind`:
+
+- `gmeow:attackUndermine` — attacks a **premise** (the `gmeow:PremiseUse`);
+- `gmeow:attackUndercut` — attacks the **warrant** (the `gmeow:InferenceApplication`): grants the
+  premises but denies they support the conclusion;
+- `gmeow:attackRebut` — attacks the **conclusion** directly, arguing for its contrary.
+
+These three (`gmeow:AttackKind`, `gufo:AbstractIndividualType ⊑ gufo:QualityValue`) subsume the older
+Pollock two-way rebutting/undercutting; *undermine* is the premise-directed third. Self-attack is
+forbidden in SHACL, not OWL (the `gmeow:competesWith` discipline — keeps the DL profile clean).
+
+**Support accrues.** Each `gmeow:Support` (`gmeow:supportSource` → `gmeow:supportTarget`) is its own
+instance, so several independent supports for one conclusion *combine* rather than counting once.
+
+**Acceptability is computed, never asserted.** A `gmeow:ArgumentEvaluation` records the solver verdict:
+`gmeow:evaluatesArgument`, the named `gmeow:underSemantics` (a `logic:ArgumentationSemantics` —
+`logic:GroundedArgumentation` / `logic:PreferredArgumentation` / `logic:NoArgumentation` /
+`logic:PolicySpecificArgumentation`), an `gmeow:acceptanceStatus` (`gmeow:acceptanceIn` /
+`gmeow:acceptanceOut` / `gmeow:acceptanceUndecided` — the Dung labelling), and its
+`gmeow:extensionMember`s. There is **no `accepted`/`isBest` bit** (Principle 12); under a credulous
+(preferred) semantics several evaluations of one argument coexist, one per extension.
 
 ## Abduction — inference to the best explanation
 
@@ -109,12 +138,13 @@ are suppressed (`gmeow:displayable false`), never erased. Rivals are linked by t
 
 ## Belief revision is suppression
 
-A fired defeater (`gmeow:hasDefeater`, kinded by `gmeow:defeaterKind`) sets the conclusion-claim
-`gmeow:displayable false` and **closes** the `gmeow:InferenceTenure` (an end on its interval); the
-`gmeow:InferenceCommitment` is retained as audit (Principle 10). The whole episode — how the agent
-believed, and why it stopped — stays queryable. This is the headline demonstration for the
-agent-memory consumer (Principle 15): an LLM stating *how* it reached a claim and revising belief
-without deleting history.
+When the solver evaluates a `gmeow:Argument` as `gmeow:acceptanceOut` via a
+`gmeow:ArgumentEvaluation` — a verdict to which a `gmeow:Attack` contributes — suppression follows:
+the conclusion-claim is marked `gmeow:displayable false` and the `gmeow:InferenceTenure` is
+**closed** (an end on its interval); the `gmeow:InferenceCommitment` and its `gmeow:Argument` are
+retained as audit (Principle 10). The whole episode — how the agent believed, and why it stopped —
+stays queryable. This is the headline demonstration for the agent-memory consumer (Principle 15): an
+LLM stating *how* it reached a claim and revising belief without deleting history.
 
 ## Alignment
 
@@ -122,5 +152,6 @@ By reference only (Principle 5; see `mappings/equivalences.ttl`): PROV-O (`Infer
 `prov:Activity`, `inferredFrom` ⟶ `prov:wasDerivedFrom`); CRMinf (`InferenceProcess` ⟶
 `I5_Inference_Making`, `InferenceCommitment` ⟶ `I1_Argumentation`, `StandpointModality` ⟶
 `I6_Belief_Value`); Wikidata for the four modes (curl-verified). Peirce's original tetrad, Toulmin's
-warrant model, Gentner's Structure-Mapping Engine, and Pollock's defeater distinction are referenced
-in prose (no stable SSSOM-suitable namespace).
+warrant model, Gentner's Structure-Mapping Engine, Pollock's defeater distinction (now the typed
+`gmeow:AttackKind`), and AIF / ASPIC+ / Dung abstract argumentation (`gmeow:Argument`, `gmeow:Attack`,
+`gmeow:Support`, `gmeow:ArgumentEvaluation`) are referenced in prose (no stable SSSOM-suitable namespace).
