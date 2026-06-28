@@ -96,6 +96,7 @@ def validate_data(
     gts_bytes: bytes,
     namespace: str,
     origin: str,
+    deep: bool = False,
 ) -> Any: ...
 def check_sameas_ban(
     paths: list[str],

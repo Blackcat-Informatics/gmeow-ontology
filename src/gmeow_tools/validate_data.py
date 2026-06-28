@@ -47,14 +47,19 @@ def validate_rdf(
     gts_bytes: bytes,
     namespace: str,
     origin: str,
+    deep: bool = False,
 ) -> Report:
     """Validate *data_bytes* (RDF in *fmt*) against the shapes in *gts_bytes*.
 
     Returns the native diagnostics :class:`Report`. *origin* is the data file's
-    display path, recorded as each finding's physical location. Raises
-    :class:`ValueError` from the native engine on a parse failure or a bundle
-    missing its shape surface.
+    display path, recorded as each finding's physical location. When *deep* is set,
+    the native engine additionally runs the opt-in Tier-2 semantic pass (reason over
+    the data merged with the bundle's axioms); it degrades to an advisory note rather
+    than failing if that pass cannot run. Raises :class:`ValueError` from the native
+    engine on a parse failure or a bundle missing its shape surface.
     """
     import gmeow_validate
 
-    return gmeow_validate.validate_data(data_bytes, fmt, gts_bytes, namespace, origin)
+    return gmeow_validate.validate_data(
+        data_bytes, fmt, gts_bytes, namespace, origin, deep
+    )
