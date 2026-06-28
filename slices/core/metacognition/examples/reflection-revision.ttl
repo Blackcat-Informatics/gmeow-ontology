@@ -72,7 +72,7 @@ ex:revisedCommitment a gmeow:InferenceCommitment ;
 ex:pingUse a gmeow:PremiseUse ; gmeow:premiseUsed ex:premPingTimedOut .
 ex:downInferenceStep a gmeow:InferenceApplication ;
     gmeow:appliedRule "inductive: ping-timeout => server-down"@x-gmeow-english ;
-    gmeow:appliedSubstitution "host := the server"@x-gmeow-english .
+    gmeow:appliedSubstitution "host := the server" .
 
 ex:serverDownArgument a gmeow:Argument ;
     rdfs:label "Argument: the server is down (defeated on reflection, retained as audit)"@x-gmeow-english ;

@@ -52,7 +52,7 @@ ex:useBirdsFly a gmeow:PremiseUse ; gmeow:premiseUsed ex:premBirdsFly .
 ex:useTweetyBird a gmeow:PremiseUse ; gmeow:premiseUsed ex:premTweetyBird .
 ex:stepDefaultFlight a gmeow:InferenceApplication ;
     gmeow:appliedRule "defeasible default: bird(x) => flies(x)"@x-gmeow-english ;
-    gmeow:appliedSubstitution "x := Tweety"@x-gmeow-english .
+    gmeow:appliedSubstitution "x := Tweety" .
 
 ex:argTweetyFlies a gmeow:Argument ;
     rdfs:label "Argument A: Tweety flies"@x-gmeow-english ;
@@ -86,7 +86,7 @@ ex:usePenguinsNoFly a gmeow:PremiseUse ; gmeow:premiseUsed ex:premPenguinsNoFly 
 ex:useTweetyPenguin a gmeow:PremiseUse ; gmeow:premiseUsed ex:premTweetyPenguin .
 ex:stepPenguinException a gmeow:InferenceApplication ;
     gmeow:appliedRule "specific rule: penguin(x) => not flies(x)"@x-gmeow-english ;
-    gmeow:appliedSubstitution "x := Tweety"@x-gmeow-english .
+    gmeow:appliedSubstitution "x := Tweety" .
 
 ex:argTweetyNoFly a gmeow:Argument ;
     rdfs:label "Argument B: Tweety does not fly"@x-gmeow-english ;

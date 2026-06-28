@@ -187,6 +187,18 @@ gmeow:ArgumentShape
         sh:maxCount 1 ;
         sh:severity sh:Violation ;
         sh:message "An Argument wraps at most one Toulmin step (gmeow:argumentInferenceStep) — a multi-step chain is a chain of Arguments linked by gmeow:Support." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:hasPremiseUse ;
+        sh:class gmeow:PremiseUse ;
+        sh:severity sh:Violation ;
+        sh:message "If present, a premise use (gmeow:hasPremiseUse) must be a gmeow:PremiseUse." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:hasInferenceApplication ;
+        sh:class gmeow:InferenceApplication ;
+        sh:severity sh:Violation ;
+        sh:message "If present, an inference application (gmeow:hasInferenceApplication) must be a gmeow:InferenceApplication." ;
     ] .
 
 gmeow:AttackShape
@@ -308,4 +320,10 @@ gmeow:InferenceApplicationShape
         sh:minCount 1 ; sh:maxCount 1 ;
         sh:severity sh:Violation ;
         sh:message "An InferenceApplication must apply exactly one rule (gmeow:appliedRule)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:appliedSubstitution ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:appliedSubstitution must be an xsd:string." ;
     ] .

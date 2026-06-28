@@ -60,7 +60,7 @@ ex:premiseUseDidNotPrint a gmeow:PremiseUse ;
 ex:inductiveStep a gmeow:InferenceApplication ;
     rdfs:label "Inductive generalisation: failure-to-print => broken"@x-gmeow-english ;
     gmeow:appliedRule "inductive generalisation from a single failure"@x-gmeow-english ;
-    gmeow:appliedSubstitution "device := printer; symptom := did-not-print"@x-gmeow-english .
+    gmeow:appliedSubstitution "device := printer; symptom := did-not-print" .
 
 ex:brokenArgument a gmeow:Argument ;
     rdfs:label "Argument: the printer is broken (defeated, retained as audit)"@x-gmeow-english ;
