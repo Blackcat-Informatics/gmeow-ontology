@@ -65,19 +65,26 @@ pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<RdfDataset, 
     let mut datasets: Vec<Arc<gmeow_rdf::PipelineBundle<crate::bundle::PipelineHandle>>> =
         vec![base];
 
-    // The RDF 1.2 statement layer — REQUIRED and non-empty when present.
-    if let Some(statements) = upstream.get("stage-statements") {
-        let bundle = statements.bundle().clone();
-        if bundle.dataset().quad_count() == 0 {
-            return Err(PipelineError::Stage {
-                stage: "stage-gts-compose".to_string(),
-                message:
-                    "stage-statements product carries an empty RDF 1.2 statement-layer dataset"
-                        .to_string(),
-            });
-        }
-        datasets.push(bundle);
+    // The RDF 1.2 statement layer — REQUIRED and non-empty. A declared upstream of
+    // this stage; its absence is a HARD failure, never a silent skip that would
+    // compose a statement-layer-less dataset (no-optionality).
+    let statements = upstream
+        .get("stage-statements")
+        .ok_or_else(|| PipelineError::Stage {
+            stage: "stage-gts-compose".to_string(),
+            message: "missing stage-statements product (the RDF 1.2 statement layer is required)"
+                .to_string(),
+        })?
+        .bundle()
+        .clone();
+    if statements.dataset().quad_count() == 0 {
+        return Err(PipelineError::Stage {
+            stage: "stage-gts-compose".to_string(),
+            message: "stage-statements product carries an empty RDF 1.2 statement-layer dataset"
+                .to_string(),
+        });
     }
+    datasets.push(statements);
 
     // Mappings + reasoned closure fold in via their carried datasets. Each looped
     // contributor's DEFAULT graph is its ontology contribution (the mappings axioms /
