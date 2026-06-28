@@ -948,7 +948,7 @@ impl ReasoningResult {
         // The shared unsupported-set → polarity rule (One-Path): `{exact}` when the
         // fragment is fully covered, `{sound-under}` carrying the uncovered
         // constructs otherwise.
-        let preservation = PreservationClaim::for_unsupported(verdict.coverage.unsupported.clone());
+        let preservation = PreservationClaim::for_unsupported(&verdict.coverage.unsupported);
         let unsupported = !preservation.unsupported_constructs.is_empty();
         // The native DL path runs to its end; an unsupported construct does not stop
         // the run, it bounds the fragment the answer is complete for.
