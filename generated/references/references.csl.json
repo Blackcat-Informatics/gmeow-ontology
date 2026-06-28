@@ -3644,12 +3644,6 @@
     "type": "webpage"
   },
   {
-    "URL": "https://nowhere.example/x",
-    "id": "x-2993b3ad",
-    "title": "nowhere.example/x",
-    "type": "webpage"
-  },
-  {
     "URL": "https://old.example.com/profile",
     "id": "profile-eeb312b2",
     "title": "old.example.com/profile",

@@ -647,4 +647,125 @@ mod tests {
         .expect_err("conflicting rdf:reifies must hard-fail at parse");
         assert!(err.contains("conflicting rdf:reifies binding"), "{err}");
     }
+
+    #[test]
+    fn default_and_named_graphs_round_trip() {
+        let quads = parse_quads_lenient(
+            concat!(
+                "<https://e/default> <https://e/p> <https://e/o> .\n",
+                "<https://e/named> <https://e/p> \"v\"@en <https://e/g> .\n",
+            )
+            .as_bytes(),
+            NativeRdfFormat::NQuads,
+        )
+        .expect("parse");
+        let mut builder = SnapshotBuilder::default();
+        builder.add_quads(&quads, None, None);
+        let bytes = emit_gts(
+            &builder,
+            "dist",
+            Some(vec!["identity".to_string()]),
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit");
+        let graph = gmeow_gts::reader::read(&bytes, true, None);
+        let nquads = gmeow_gts::nquads::to_nquads(&graph);
+        assert!(nquads.contains("<https://e/default> <https://e/p> <https://e/o> ."));
+        assert!(nquads.contains("<https://e/named> <https://e/p> \"v\"@en <https://e/g> ."));
+    }
+
+    #[test]
+    fn blobs_are_additive_and_do_not_change_the_graph() {
+        let builder = ingest("<https://e/s> <https://e/p> <https://e/o> .\n");
+        let base = emit_gts(
+            &builder,
+            "dist",
+            Some(vec!["identity".to_string()]),
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit base");
+        let with_blobs = emit_gts(
+            &builder,
+            "dist",
+            Some(vec!["identity".to_string()]),
+            vec![BlobRow {
+                data: b"# docs\n".to_vec(),
+                media_type: "text/markdown".to_string(),
+                rep: "gmeow:doc/guide".to_string(),
+            }],
+            vec![BlobRow {
+                data: b"{\"ok\":true}".to_vec(),
+                media_type: "application/json".to_string(),
+                rep: "gmeow:report/findings".to_string(),
+            }],
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit blobs");
+        let base_graph = gmeow_gts::reader::read(&base, true, None);
+        let blob_graph = gmeow_gts::reader::read(&with_blobs, true, None);
+        assert_eq!(
+            gmeow_gts::nquads::to_nquads(&base_graph),
+            gmeow_gts::nquads::to_nquads(&blob_graph)
+        );
+        let reps: std::collections::BTreeSet<String> = blob_graph
+            .blob_meta
+            .iter()
+            .filter_map(|(_, meta)| match meta {
+                ciborium::value::Value::Map(items) => items.iter().find_map(|(key, value)| {
+                    if matches!(key, ciborium::value::Value::Text(k) if k == "rep") {
+                        if let ciborium::value::Value::Text(rep) = value {
+                            return Some(rep.clone());
+                        }
+                    }
+                    None
+                }),
+                _ => None,
+            })
+            .collect();
+        assert!(reps.contains("gmeow:doc/guide"));
+        assert!(reps.contains("gmeow:report/findings"));
+    }
+
+    #[test]
+    fn rsyncable_threshold_only_rewrites_default_zstd() {
+        assert_eq!(
+            choose_transform(&["zstd".to_string()], 10, 1),
+            vec!["zstd-rsyncable".to_string()]
+        );
+        assert_eq!(
+            choose_transform(&["identity".to_string()], 10, 1),
+            vec!["identity".to_string()]
+        );
+    }
+
+    #[test]
+    fn partial_signing_configuration_is_rejected() {
+        let builder = ingest("<https://e/s> <https://e/p> <https://e/o> .\n");
+        let err = emit_gts(
+            &builder,
+            "dist",
+            None,
+            Vec::new(),
+            Vec::new(),
+            None,
+            Some("kid".to_string()),
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect_err("partial signing must hard-fail");
+        assert!(err.contains("all three or none"), "{err}");
+    }
 }
