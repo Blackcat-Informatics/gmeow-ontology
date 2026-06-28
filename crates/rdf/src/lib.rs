@@ -38,6 +38,8 @@ pub use gmeow_rdf_core::{
 
 #[cfg(feature = "gts")]
 pub mod gts;
+#[cfg(feature = "gts")]
+pub mod gts_view;
 // The native RDF text codecs (#909 / EPIC #906 S3): the codec-only `GtsCodecBackend`
 // over the `gmeow-gts` Turtle/TriG/NT/NQ/RDF-XML codecs, oxigraph-free. Rides the
 // always-on `gts` feature so every Rust consumer parses/serializes RDF text natively.
@@ -74,6 +76,8 @@ pub mod py_store;
 pub mod py_gts;
 #[cfg(feature = "python")]
 pub mod py_gts_dataset;
+#[cfg(feature = "python")]
+pub mod py_gts_view;
 // The native SSSOM codec surface for `gmeow_rdf` (parse + validate + RDF
 // serialize), replacing the `sssom` PyPI package (#848). Python-only, like `py`.
 #[cfg(feature = "python")]

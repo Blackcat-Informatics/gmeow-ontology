@@ -79,6 +79,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // The native RDF → GTS producer surface (snapshot author + compile_gts) and
     // the `PyRdfDataset` Arc handle (#819 Task 8 / C7).
     crate::py_gts::register(m)?;
+    // The native GTS fold-view and database export surface.
+    crate::py_gts_view::register(m)?;
     // The native SSSOM codec surface (parse + validate + RDF serialize) that
     // replaces the external `sssom` package on the mapping-compile path (#848).
     crate::py_sssom::register(m)?;
