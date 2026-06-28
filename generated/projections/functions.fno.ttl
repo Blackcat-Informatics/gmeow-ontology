@@ -10,9 +10,9 @@
 <https://blackcatinformatics.ca/gmeow/fnApplyTransformation> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnApplyTransformation_expects_0 .
 _:l_https___blackcatinformatics_ca_gmeow_fnApplyTransformation_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramTransformationParameter> .
 _:l_https___blackcatinformatics_ca_gmeow_fnApplyTransformation_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnApplyTransformation_expects_1 .
-_:l_https___blackcatinformatics_ca_gmeow_fnApplyTransformation_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramTransformationType> .
+_:l_https___blackcatinformatics_ca_gmeow_fnApplyTransformation_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramTransformationSource> .
 _:l_https___blackcatinformatics_ca_gmeow_fnApplyTransformation_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnApplyTransformation_expects_2 .
-_:l_https___blackcatinformatics_ca_gmeow_fnApplyTransformation_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramTransformationSource> .
+_:l_https___blackcatinformatics_ca_gmeow_fnApplyTransformation_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramTransformationType> .
 _:l_https___blackcatinformatics_ca_gmeow_fnApplyTransformation_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
 <https://blackcatinformatics.ca/gmeow/outApplyTransformation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Output> .
 <https://blackcatinformatics.ca/gmeow/outApplyTransformation> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/projectedTransformedSegment> .
@@ -38,7 +38,7 @@ _:l_https___blackcatinformatics_ca_gmeow_fnArgumentAcceptability_returns_0 <http
 <https://blackcatinformatics.ca/gmeow/fnBirthEventToDate> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProjectionFunction> .
 <https://blackcatinformatics.ca/gmeow/fnBirthEventToDate> <http://www.w3.org/2000/01/rdf-schema#label> "Birth life-event → schema:birthDate"@en .
 <https://blackcatinformatics.ca/gmeow/fnBirthEventToDate> <http://www.w3.org/2004/02/skos/core#definition> "Extracts a person's birth date by traversing the reified event model: an event with gmeow:eventType gmeow:eventTypeBirth, whose principal Participation (gmeow:participationRole gmeow:roleParticipantPrincipal, gmeow:participationParticipant ?person) and gmeow:eventTime yield ?person schema:birthDate. GMEOW models birth as an event (with place, sources, confidence, participant roles); this downcasts the event's instant to the flat schema:birthDate / vCard BDAY field."@en .
-<https://blackcatinformatics.ca/gmeow/fnBirthEventToDate> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
+<https://blackcatinformatics.ca/gmeow/fnBirthEventToDate> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
 <https://blackcatinformatics.ca/gmeow/fnBirthEventToDate> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnBirthEventToDate_expects_0 .
 _:l_https___blackcatinformatics_ca_gmeow_fnBirthEventToDate_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramEventTime> .
 _:l_https___blackcatinformatics_ca_gmeow_fnBirthEventToDate_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
@@ -56,9 +56,9 @@ _:l_https___blackcatinformatics_ca_gmeow_fnBirthEventToDate_returns_0 <http://ww
 <https://blackcatinformatics.ca/gmeow/fnCoarsenToGranularity> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_0 .
 _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramCoarsenTo> .
 _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_1 .
-_:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLongitude> .
+_:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLatitude> .
 _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_2 .
-_:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLatitude> .
+_:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLongitude> .
 _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularity_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
 <https://blackcatinformatics.ca/gmeow/outCoarsenToGranularity> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Output> .
 <https://blackcatinformatics.ca/gmeow/outCoarsenToGranularity> <https://w3id.org/function/ontology#predicate> <http://www.opengis.net/ont/geosparql#asWKT> .
@@ -88,13 +88,13 @@ _:l_https___blackcatinformatics_ca_gmeow_fnCoarsenToGranularityGeoJson_returns_0
 <https://blackcatinformatics.ca/gmeow/fnComposeAddress> <http://www.w3.org/2004/02/skos/core#definition> "Concatenates the decomposed address components (street, locality, region, postal code, country) into one single-line label string — emitted as vcard:label by the vCard projection. Lossy: formatting convention varies by locale."@en .
 <https://blackcatinformatics.ca/gmeow/fnComposeAddress> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
 <https://blackcatinformatics.ca/gmeow/fnComposeAddress> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_0 .
-_:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramCountryCode> .
+_:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramAddressLocality> .
 _:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_1 .
-_:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramPostalCode> .
+_:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramAddressRegion> .
 _:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_2 .
-_:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramAddressRegion> .
+_:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramCountryCode> .
 _:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_3 .
-_:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramAddressLocality> .
+_:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramPostalCode> .
 _:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_4 .
 _:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramStreetAddress> .
 _:l_https___blackcatinformatics_ca_gmeow_fnComposeAddress_expects_4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
@@ -226,9 +226,9 @@ _:l_https___blackcatinformatics_ca_gmeow_fnImplicatesInContext_returns_0 <http:/
 <https://blackcatinformatics.ca/gmeow/fnLatLongToGeoUri> <http://www.w3.org/2004/02/skos/core#definition> "Composes separate decimal latitude and longitude into a geo: URI (RFC 5870, e.g. geo:53.544972,-113.924398). The URI identifies a geographic point independent of any particular serialization format (WKT, GeoJSON, vCard GEO, …). Used as the minted node IRI for vCard Geo projections and as a canonical, dereferenceable location identifier."@en .
 <https://blackcatinformatics.ca/gmeow/fnLatLongToGeoUri> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
 <https://blackcatinformatics.ca/gmeow/fnLatLongToGeoUri> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnLatLongToGeoUri_expects_0 .
-_:l_https___blackcatinformatics_ca_gmeow_fnLatLongToGeoUri_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLongitude> .
+_:l_https___blackcatinformatics_ca_gmeow_fnLatLongToGeoUri_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLatitude> .
 _:l_https___blackcatinformatics_ca_gmeow_fnLatLongToGeoUri_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnLatLongToGeoUri_expects_1 .
-_:l_https___blackcatinformatics_ca_gmeow_fnLatLongToGeoUri_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLatitude> .
+_:l_https___blackcatinformatics_ca_gmeow_fnLatLongToGeoUri_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLongitude> .
 _:l_https___blackcatinformatics_ca_gmeow_fnLatLongToGeoUri_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
 <https://blackcatinformatics.ca/gmeow/outLatLongToGeoUri> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Output> .
 <https://blackcatinformatics.ca/gmeow/outLatLongToGeoUri> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/projectedGeoUri> .
@@ -242,9 +242,9 @@ _:l_https___blackcatinformatics_ca_gmeow_fnLatLongToGeoUri_returns_0 <http://www
 <https://blackcatinformatics.ca/gmeow/fnLatLongToWktPoint> <http://www.w3.org/2004/02/skos/core#definition> "Combines separate decimal latitude and longitude into a GeoSPARQL WKT POINT literal (POINT(lon lat), lon first per WKT), typed geo:wktLiteral."@en .
 <https://blackcatinformatics.ca/gmeow/fnLatLongToWktPoint> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
 <https://blackcatinformatics.ca/gmeow/fnLatLongToWktPoint> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnLatLongToWktPoint_expects_0 .
-_:l_https___blackcatinformatics_ca_gmeow_fnLatLongToWktPoint_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLongitude> .
+_:l_https___blackcatinformatics_ca_gmeow_fnLatLongToWktPoint_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLatitude> .
 _:l_https___blackcatinformatics_ca_gmeow_fnLatLongToWktPoint_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnLatLongToWktPoint_expects_1 .
-_:l_https___blackcatinformatics_ca_gmeow_fnLatLongToWktPoint_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLatitude> .
+_:l_https___blackcatinformatics_ca_gmeow_fnLatLongToWktPoint_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLongitude> .
 _:l_https___blackcatinformatics_ca_gmeow_fnLatLongToWktPoint_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
 <https://blackcatinformatics.ca/gmeow/outLatLongToWktPoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Output> .
 <https://blackcatinformatics.ca/gmeow/outLatLongToWktPoint> <https://w3id.org/function/ontology#predicate> <http://www.opengis.net/ont/geosparql#asWKT> .
@@ -270,7 +270,7 @@ _:l_https___blackcatinformatics_ca_gmeow_fnMaximViolationType_returns_0 <http://
 <https://blackcatinformatics.ca/gmeow/fnMembershipToJobTitle> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProjectionFunction> .
 <https://blackcatinformatics.ca/gmeow/fnMembershipToJobTitle> <http://www.w3.org/2000/01/rdf-schema#label> "Membership + Role → schema:jobTitle"@en .
 <https://blackcatinformatics.ca/gmeow/fnMembershipToJobTitle> <http://www.w3.org/2004/02/skos/core#definition> "Extracts a job title by traversing the reified relator: a gmeow:Membership (gmeow:membershipMember ?person, gmeow:hasRole ?role) yields ?person schema:jobTitle = the role's label. GMEOW models a job as a role played in a membership; this downcasts the role label to the flat schema:jobTitle / vCard TITLE field."@en .
-<https://blackcatinformatics.ca/gmeow/fnMembershipToJobTitle> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
+<https://blackcatinformatics.ca/gmeow/fnMembershipToJobTitle> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/resume.rq> .
 <https://blackcatinformatics.ca/gmeow/fnMembershipToJobTitle> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnMembershipToJobTitle_expects_0 .
 _:l_https___blackcatinformatics_ca_gmeow_fnMembershipToJobTitle_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramHasRole> .
 _:l_https___blackcatinformatics_ca_gmeow_fnMembershipToJobTitle_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
@@ -284,7 +284,7 @@ _:l_https___blackcatinformatics_ca_gmeow_fnMembershipToJobTitle_returns_0 <http:
 <https://blackcatinformatics.ca/gmeow/fnNicknameName> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProjectionFunction> .
 <https://blackcatinformatics.ca/gmeow/fnNicknameName> <http://www.w3.org/2000/01/rdf-schema#label> "nickname-purpose PersonName → foaf:nick"@en .
 <https://blackcatinformatics.ca/gmeow/fnNicknameName> <http://www.w3.org/2004/02/skos/core#definition> "Returns the gmeow:fullName of a PersonName whose gmeow:namePurpose is gmeow:namePurposeNickname, for emission as foaf:nick / vcard:nickname / schema:alternateName. The nickname is a structured name in GMEOW; this downcasts it to the flat nick field."@en .
-<https://blackcatinformatics.ca/gmeow/fnNicknameName> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
+<https://blackcatinformatics.ca/gmeow/fnNicknameName> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/foaf.rq> .
 <https://blackcatinformatics.ca/gmeow/fnNicknameName> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnNicknameName_expects_0 .
 _:l_https___blackcatinformatics_ca_gmeow_fnNicknameName_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramHasName> .
 _:l_https___blackcatinformatics_ca_gmeow_fnNicknameName_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
@@ -342,7 +342,7 @@ _:l_https___blackcatinformatics_ca_gmeow_fnParticipantToAttendee_returns_0 <http
 <https://blackcatinformatics.ca/gmeow/fnParticipationToEventRole> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProjectionFunction> .
 <https://blackcatinformatics.ca/gmeow/fnParticipationToEventRole> <http://www.w3.org/2000/01/rdf-schema#label> "Participation → schema event-role edge"@en .
 <https://blackcatinformatics.ca/gmeow/fnParticipationToEventRole> <http://www.w3.org/2004/02/skos/core#definition> "Downcasts a reified gmeow:Participation to a flat schema.org event-role edge: the event gains schema:attendee / schema:performer / schema:organizer pointing at the participant, keyed by the participation's gmeow:ParticipantRole. The Participation's period, confidence, evidence and standpoint, and the open role space beyond the three schema roles, are dropped — the flat edge is lossy by design."@en .
-<https://blackcatinformatics.ca/gmeow/fnParticipationToEventRole> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+<https://blackcatinformatics.ca/gmeow/fnParticipationToEventRole> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> .
 <https://blackcatinformatics.ca/gmeow/fnParticipationToEventRole> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnParticipationToEventRole_expects_0 .
 _:l_https___blackcatinformatics_ca_gmeow_fnParticipationToEventRole_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramParticipationParticipant> .
 _:l_https___blackcatinformatics_ca_gmeow_fnParticipationToEventRole_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
@@ -356,7 +356,7 @@ _:l_https___blackcatinformatics_ca_gmeow_fnParticipationToEventRole_returns_0 <h
 <https://blackcatinformatics.ca/gmeow/fnPlaceTypeToClass> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProjectionFunction> .
 <https://blackcatinformatics.ca/gmeow/fnPlaceTypeToClass> <http://www.w3.org/2000/01/rdf-schema#label> "place-type value → target class"@en .
 <https://blackcatinformatics.ca/gmeow/fnPlaceTypeToClass> <http://www.w3.org/2004/02/skos/core#definition> "Maps a gmeow:placeType value individual (e.g. placeTypeCountry) to the target vocabulary class to assert via rdf:type (e.g. schema:Country). The conditional retyping; place types without a target class are dropped."@en .
-<https://blackcatinformatics.ca/gmeow/fnPlaceTypeToClass> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+<https://blackcatinformatics.ca/gmeow/fnPlaceTypeToClass> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/bot.rq> .
 <https://blackcatinformatics.ca/gmeow/fnPlaceTypeToClass> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnPlaceTypeToClass_expects_0 .
 _:l_https___blackcatinformatics_ca_gmeow_fnPlaceTypeToClass_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramPlaceType> .
 _:l_https___blackcatinformatics_ca_gmeow_fnPlaceTypeToClass_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
@@ -372,9 +372,9 @@ _:l_https___blackcatinformatics_ca_gmeow_fnPlaceTypeToClass_returns_0 <http://ww
 <https://blackcatinformatics.ca/gmeow/fnPosePositionToWktPoint> <http://www.w3.org/2004/02/skos/core#definition> "Projects the translational component of a gmeow:Pose (reached via gmeow:hasPosePosition as SpatialCoordinates) to a GeoSPARQL WKT POINT literal. The orientation component is dropped because GeoSPARQL 1.0/1.1 has no native pose model; heading/bearing may be projected separately to a future GeoPose JSON profile."@en .
 <https://blackcatinformatics.ca/gmeow/fnPosePositionToWktPoint> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
 <https://blackcatinformatics.ca/gmeow/fnPosePositionToWktPoint> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnPosePositionToWktPoint_expects_0 .
-_:l_https___blackcatinformatics_ca_gmeow_fnPosePositionToWktPoint_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLongitude> .
+_:l_https___blackcatinformatics_ca_gmeow_fnPosePositionToWktPoint_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLatitude> .
 _:l_https___blackcatinformatics_ca_gmeow_fnPosePositionToWktPoint_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnPosePositionToWktPoint_expects_1 .
-_:l_https___blackcatinformatics_ca_gmeow_fnPosePositionToWktPoint_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLatitude> .
+_:l_https___blackcatinformatics_ca_gmeow_fnPosePositionToWktPoint_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramLongitude> .
 _:l_https___blackcatinformatics_ca_gmeow_fnPosePositionToWktPoint_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
 <https://blackcatinformatics.ca/gmeow/outPosePositionToWktPoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Output> .
 <https://blackcatinformatics.ca/gmeow/outPosePositionToWktPoint> <https://w3id.org/function/ontology#predicate> <http://www.opengis.net/ont/geosparql#asWKT> .
@@ -670,13 +670,13 @@ _:l_https___blackcatinformatics_ca_gmeow_fnProjectToTablature_returns_0 <http://
 <https://blackcatinformatics.ca/gmeow/fnPronounSetToText> <http://www.w3.org/2004/02/skos/core#definition> "Renders a gmeow:PronounSet's full five-form declension as a single slash-joined string (subject/object/possessive-determiner/possessive/reflexive, e.g. 'she/her/her/hers/herself', 'xe/xem/xyr/xyrs/xemself') for emission as the vCard 4 PRONOUNS property (RFC 9554, free text), carried on the GMEOW-minted vcardx:pronouns extension term because the W3C vCard RDF ontology never minted a predicate for it. Because PRONOUNS is free text it carries the whole declension LOSSLESSLY — no form is dropped, and a consumer can reconstruct the full set. The only non-representable parts are the non-specifying values (pronounAny / pronounAsk / pronounNameOnly, which carry no forms) and any period / standpoint on the assertion."@en .
 <https://blackcatinformatics.ca/gmeow/fnPronounSetToText> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
 <https://blackcatinformatics.ca/gmeow/fnPronounSetToText> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_0 .
-_:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramPronounReflexive> .
+_:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramPronounObject> .
 _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_1 .
 _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramPronounPossessive> .
 _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_2 .
 _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramPronounPossessiveDeterminer> .
 _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_3 .
-_:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramPronounObject> .
+_:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramPronounReflexive> .
 _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_4 .
 _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramPronounSubject> .
 _:l_https___blackcatinformatics_ca_gmeow_fnPronounSetToText_expects_4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
@@ -732,7 +732,7 @@ _:l_https___blackcatinformatics_ca_gmeow_fnRetagWkt_returns_0 <http://www.w3.org
 <https://blackcatinformatics.ca/gmeow/fnSelectDisplayName> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProjectionFunction> .
 <https://blackcatinformatics.ca/gmeow/fnSelectDisplayName> <http://www.w3.org/2000/01/rdf-schema#label> "select displayable full name"@en .
 <https://blackcatinformatics.ca/gmeow/fnSelectDisplayName> <http://www.w3.org/2004/02/skos/core#definition> "Returns an appellation's gmeow:fullName ONLY when gmeow:displayable is not false (deadnames and superseded names are suppressed). Co-equal: every displayable name is emitted; none is privileged as 'primary' — locale-relative selection is left to the consumer."@en .
-<https://blackcatinformatics.ca/gmeow/fnSelectDisplayName> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
+<https://blackcatinformatics.ca/gmeow/fnSelectDisplayName> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/foaf.rq> .
 <https://blackcatinformatics.ca/gmeow/fnSelectDisplayName> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnSelectDisplayName_expects_0 .
 _:l_https___blackcatinformatics_ca_gmeow_fnSelectDisplayName_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramHasAppellation> .
 _:l_https___blackcatinformatics_ca_gmeow_fnSelectDisplayName_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
@@ -746,7 +746,7 @@ _:l_https___blackcatinformatics_ca_gmeow_fnSelectDisplayName_returns_0 <http://w
 <https://blackcatinformatics.ca/gmeow/fnSelectDisplayableGender> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProjectionFunction> .
 <https://blackcatinformatics.ca/gmeow/fnSelectDisplayableGender> <http://www.w3.org/2000/01/rdf-schema#label> "select displayable gender identity → gender label"@en .
 <https://blackcatinformatics.ca/gmeow/fnSelectDisplayableGender> <http://www.w3.org/2004/02/skos/core#definition> "Returns the rdfs:label of a person's displayable gmeow:GenderIdentity value for emission as schema:gender / foaf:gender. A gmeow:displayable false facet is NEVER emitted — the same suppression contract as a deadname. Lossy and directional: schema.org/FOAF conflate sex and gender, and orientation + sex-assigned-at-birth have no target term, so they are dropped."@en .
-<https://blackcatinformatics.ca/gmeow/fnSelectDisplayableGender> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+<https://blackcatinformatics.ca/gmeow/fnSelectDisplayableGender> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/foaf.rq> .
 <https://blackcatinformatics.ca/gmeow/fnSelectDisplayableGender> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnSelectDisplayableGender_expects_0 .
 _:l_https___blackcatinformatics_ca_gmeow_fnSelectDisplayableGender_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramHasGenderIdentity> .
 _:l_https___blackcatinformatics_ca_gmeow_fnSelectDisplayableGender_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
@@ -790,9 +790,9 @@ _:l_https___blackcatinformatics_ca_gmeow_fnSelectExonym_returns_0 <http://www.w3
 <https://blackcatinformatics.ca/gmeow/fnSpellPitch> <http://www.w3.org/2004/02/skos/core#definition> "Renders a frame-relative PitchValue as a note name / symbol in a given PitchSpellingSystem (e.g. C♯4, Sa, +7). Enharmonic peers are co-equal outputs (Principle 9)."@en .
 <https://blackcatinformatics.ca/gmeow/fnSpellPitch> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
 <https://blackcatinformatics.ca/gmeow/fnSpellPitch> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnSpellPitch_expects_0 .
-_:l_https___blackcatinformatics_ca_gmeow_fnSpellPitch_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramSpellingSystem> .
+_:l_https___blackcatinformatics_ca_gmeow_fnSpellPitch_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramHasTuningFrame> .
 _:l_https___blackcatinformatics_ca_gmeow_fnSpellPitch_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnSpellPitch_expects_1 .
-_:l_https___blackcatinformatics_ca_gmeow_fnSpellPitch_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramHasTuningFrame> .
+_:l_https___blackcatinformatics_ca_gmeow_fnSpellPitch_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramSpellingSystem> .
 _:l_https___blackcatinformatics_ca_gmeow_fnSpellPitch_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
 <https://blackcatinformatics.ca/gmeow/outSpellPitch> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Output> .
 <https://blackcatinformatics.ca/gmeow/outSpellPitch> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/projectedPitchName> .
@@ -806,9 +806,9 @@ _:l_https___blackcatinformatics_ca_gmeow_fnSpellPitch_returns_0 <http://www.w3.o
 <https://blackcatinformatics.ca/gmeow/fnStandpointDivergence> <http://www.w3.org/2004/02/skos/core#definition> "Computes the divergence between a held standpoint and a projected standpoint as a human-readable text. Lossy: the full semantic content of each standpoint is collapsed to a single divergence description."@en .
 <https://blackcatinformatics.ca/gmeow/fnStandpointDivergence> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
 <https://blackcatinformatics.ca/gmeow/fnStandpointDivergence> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnStandpointDivergence_expects_0 .
-_:l_https___blackcatinformatics_ca_gmeow_fnStandpointDivergence_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramProjectedStandpoint> .
+_:l_https___blackcatinformatics_ca_gmeow_fnStandpointDivergence_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramHeldStandpoint> .
 _:l_https___blackcatinformatics_ca_gmeow_fnStandpointDivergence_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnStandpointDivergence_expects_1 .
-_:l_https___blackcatinformatics_ca_gmeow_fnStandpointDivergence_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramHeldStandpoint> .
+_:l_https___blackcatinformatics_ca_gmeow_fnStandpointDivergence_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramProjectedStandpoint> .
 _:l_https___blackcatinformatics_ca_gmeow_fnStandpointDivergence_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
 <https://blackcatinformatics.ca/gmeow/outStandpointDivergence> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Output> .
 <https://blackcatinformatics.ca/gmeow/outStandpointDivergence> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/projectedDivergence> .
@@ -856,9 +856,9 @@ _:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_1 <http:/
 _:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_2 .
 _:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramTaggingInterval> .
 _:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_3 .
-_:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramWasAttributedTo> .
+_:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramTaggingTagger> .
 _:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_4 .
-_:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramTaggingTagger> .
+_:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramWasAttributedTo> .
 _:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_expects_4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
 <https://blackcatinformatics.ca/gmeow/outTaggingToAnnotation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Output> .
 <https://blackcatinformatics.ca/gmeow/outTaggingToAnnotation> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/projectedAnnotation> .
@@ -870,7 +870,7 @@ _:l_https___blackcatinformatics_ca_gmeow_fnTaggingToAnnotation_returns_0 <http:/
 <https://blackcatinformatics.ca/gmeow/fnWebPageToUrl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProjectionFunction> .
 <https://blackcatinformatics.ca/gmeow/fnWebPageToUrl> <http://www.w3.org/2000/01/rdf-schema#label> "hasWebPage → schema:url"@en .
 <https://blackcatinformatics.ca/gmeow/fnWebPageToUrl> <http://www.w3.org/2004/02/skos/core#definition> "Projects an entity's structured web presence: gmeow:hasWebPage points to a first-class gmeow:WebPage whose IRI is its URL, emitted as schema:url / foaf:homepage on the entity. Downcasts the structured page resource to the flat URL field."@en .
-<https://blackcatinformatics.ca/gmeow/fnWebPageToUrl> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
+<https://blackcatinformatics.ca/gmeow/fnWebPageToUrl> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/foaf.rq> .
 <https://blackcatinformatics.ca/gmeow/fnWebPageToUrl> <https://w3id.org/function/ontology#expects> _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_expects_0 .
 _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/paramHasWebPage> .
 _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_expects_0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
@@ -884,14 +884,14 @@ _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_returns_0 <http://www.w3
 <https://blackcatinformatics.ca/gmeow/paramTransformationParameter> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/transformationParameter> .
 <https://blackcatinformatics.ca/gmeow/paramTransformationParameter> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/Entity> .
 <https://blackcatinformatics.ca/gmeow/paramTransformationParameter> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-<https://blackcatinformatics.ca/gmeow/paramTransformationType> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
-<https://blackcatinformatics.ca/gmeow/paramTransformationType> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/transformationType> .
-<https://blackcatinformatics.ca/gmeow/paramTransformationType> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/TransformationType> .
-<https://blackcatinformatics.ca/gmeow/paramTransformationType> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramTransformationSource> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramTransformationSource> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/transformationSource> .
 <https://blackcatinformatics.ca/gmeow/paramTransformationSource> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/MusicalSegment> .
 <https://blackcatinformatics.ca/gmeow/paramTransformationSource> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<https://blackcatinformatics.ca/gmeow/paramTransformationType> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
+<https://blackcatinformatics.ca/gmeow/paramTransformationType> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/transformationType> .
+<https://blackcatinformatics.ca/gmeow/paramTransformationType> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/TransformationType> .
+<https://blackcatinformatics.ca/gmeow/paramTransformationType> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramArgumentAcceptability> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramArgumentAcceptability> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/argumentAcceptability> .
 <https://blackcatinformatics.ca/gmeow/paramArgumentAcceptability> <https://w3id.org/function/ontology#type> <http://www.w3.org/2001/XMLSchema#decimal> .
@@ -904,18 +904,26 @@ _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_returns_0 <http://www.w3
 <https://blackcatinformatics.ca/gmeow/paramCoarsenTo> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/coarsenTo> .
 <https://blackcatinformatics.ca/gmeow/paramCoarsenTo> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/GranularityLevel> .
 <https://blackcatinformatics.ca/gmeow/paramCoarsenTo> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-<https://blackcatinformatics.ca/gmeow/paramLongitude> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
-<https://blackcatinformatics.ca/gmeow/paramLongitude> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/longitude> .
-<https://blackcatinformatics.ca/gmeow/paramLongitude> <https://w3id.org/function/ontology#type> <http://www.w3.org/2001/XMLSchema#decimal> .
-<https://blackcatinformatics.ca/gmeow/paramLongitude> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramLatitude> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramLatitude> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/latitude> .
 <https://blackcatinformatics.ca/gmeow/paramLatitude> <https://w3id.org/function/ontology#type> <http://www.w3.org/2001/XMLSchema#decimal> .
 <https://blackcatinformatics.ca/gmeow/paramLatitude> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<https://blackcatinformatics.ca/gmeow/paramLongitude> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
+<https://blackcatinformatics.ca/gmeow/paramLongitude> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/longitude> .
+<https://blackcatinformatics.ca/gmeow/paramLongitude> <https://w3id.org/function/ontology#type> <http://www.w3.org/2001/XMLSchema#decimal> .
+<https://blackcatinformatics.ca/gmeow/paramLongitude> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramAsGeoJSON> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramAsGeoJSON> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/asGeoJSON> .
 <https://blackcatinformatics.ca/gmeow/paramAsGeoJSON> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
 <https://blackcatinformatics.ca/gmeow/paramAsGeoJSON> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<https://blackcatinformatics.ca/gmeow/paramAddressLocality> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
+<https://blackcatinformatics.ca/gmeow/paramAddressLocality> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/addressLocality> .
+<https://blackcatinformatics.ca/gmeow/paramAddressLocality> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
+<https://blackcatinformatics.ca/gmeow/paramAddressLocality> <https://w3id.org/function/ontology#required> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<https://blackcatinformatics.ca/gmeow/paramAddressRegion> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
+<https://blackcatinformatics.ca/gmeow/paramAddressRegion> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/addressRegion> .
+<https://blackcatinformatics.ca/gmeow/paramAddressRegion> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
+<https://blackcatinformatics.ca/gmeow/paramAddressRegion> <https://w3id.org/function/ontology#required> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramCountryCode> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramCountryCode> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/countryCode> .
 <https://blackcatinformatics.ca/gmeow/paramCountryCode> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
@@ -924,14 +932,6 @@ _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_returns_0 <http://www.w3
 <https://blackcatinformatics.ca/gmeow/paramPostalCode> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/postalCode> .
 <https://blackcatinformatics.ca/gmeow/paramPostalCode> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
 <https://blackcatinformatics.ca/gmeow/paramPostalCode> <https://w3id.org/function/ontology#required> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-<https://blackcatinformatics.ca/gmeow/paramAddressRegion> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
-<https://blackcatinformatics.ca/gmeow/paramAddressRegion> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/addressRegion> .
-<https://blackcatinformatics.ca/gmeow/paramAddressRegion> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
-<https://blackcatinformatics.ca/gmeow/paramAddressRegion> <https://w3id.org/function/ontology#required> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-<https://blackcatinformatics.ca/gmeow/paramAddressLocality> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
-<https://blackcatinformatics.ca/gmeow/paramAddressLocality> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/addressLocality> .
-<https://blackcatinformatics.ca/gmeow/paramAddressLocality> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
-<https://blackcatinformatics.ca/gmeow/paramAddressLocality> <https://w3id.org/function/ontology#required> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramStreetAddress> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramStreetAddress> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/streetAddress> .
 <https://blackcatinformatics.ca/gmeow/paramStreetAddress> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
@@ -1028,10 +1028,10 @@ _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_returns_0 <http://www.w3
 <https://blackcatinformatics.ca/gmeow/paramConfigurationInstrumentType> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/configurationInstrumentType> .
 <https://blackcatinformatics.ca/gmeow/paramConfigurationInstrumentType> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/InstrumentType> .
 <https://blackcatinformatics.ca/gmeow/paramConfigurationInstrumentType> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-<https://blackcatinformatics.ca/gmeow/paramPronounReflexive> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
-<https://blackcatinformatics.ca/gmeow/paramPronounReflexive> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/pronounReflexive> .
-<https://blackcatinformatics.ca/gmeow/paramPronounReflexive> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
-<https://blackcatinformatics.ca/gmeow/paramPronounReflexive> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<https://blackcatinformatics.ca/gmeow/paramPronounObject> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
+<https://blackcatinformatics.ca/gmeow/paramPronounObject> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/pronounObject> .
+<https://blackcatinformatics.ca/gmeow/paramPronounObject> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
+<https://blackcatinformatics.ca/gmeow/paramPronounObject> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramPronounPossessive> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramPronounPossessive> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/pronounPossessive> .
 <https://blackcatinformatics.ca/gmeow/paramPronounPossessive> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
@@ -1040,10 +1040,10 @@ _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_returns_0 <http://www.w3
 <https://blackcatinformatics.ca/gmeow/paramPronounPossessiveDeterminer> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/pronounPossessiveDeterminer> .
 <https://blackcatinformatics.ca/gmeow/paramPronounPossessiveDeterminer> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
 <https://blackcatinformatics.ca/gmeow/paramPronounPossessiveDeterminer> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-<https://blackcatinformatics.ca/gmeow/paramPronounObject> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
-<https://blackcatinformatics.ca/gmeow/paramPronounObject> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/pronounObject> .
-<https://blackcatinformatics.ca/gmeow/paramPronounObject> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
-<https://blackcatinformatics.ca/gmeow/paramPronounObject> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<https://blackcatinformatics.ca/gmeow/paramPronounReflexive> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
+<https://blackcatinformatics.ca/gmeow/paramPronounReflexive> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/pronounReflexive> .
+<https://blackcatinformatics.ca/gmeow/paramPronounReflexive> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
+<https://blackcatinformatics.ca/gmeow/paramPronounReflexive> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramPronounSubject> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramPronounSubject> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/pronounSubject> .
 <https://blackcatinformatics.ca/gmeow/paramPronounSubject> <https://w3id.org/function/ontology#type> <http://www.w3.org/2000/01/rdf-schema#Literal> .
@@ -1068,14 +1068,14 @@ _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_returns_0 <http://www.w3
 <https://blackcatinformatics.ca/gmeow/paramHasPlaceName> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/hasPlaceName> .
 <https://blackcatinformatics.ca/gmeow/paramHasPlaceName> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/PlaceName> .
 <https://blackcatinformatics.ca/gmeow/paramHasPlaceName> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-<https://blackcatinformatics.ca/gmeow/paramProjectedStandpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
-<https://blackcatinformatics.ca/gmeow/paramProjectedStandpoint> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/projectedStandpoint> .
-<https://blackcatinformatics.ca/gmeow/paramProjectedStandpoint> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> .
-<https://blackcatinformatics.ca/gmeow/paramProjectedStandpoint> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramHeldStandpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramHeldStandpoint> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/heldStandpoint> .
 <https://blackcatinformatics.ca/gmeow/paramHeldStandpoint> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> .
 <https://blackcatinformatics.ca/gmeow/paramHeldStandpoint> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<https://blackcatinformatics.ca/gmeow/paramProjectedStandpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
+<https://blackcatinformatics.ca/gmeow/paramProjectedStandpoint> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/projectedStandpoint> .
+<https://blackcatinformatics.ca/gmeow/paramProjectedStandpoint> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> .
+<https://blackcatinformatics.ca/gmeow/paramProjectedStandpoint> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramSubOrganizationOf> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramSubOrganizationOf> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/subOrganizationOf> .
 <https://blackcatinformatics.ca/gmeow/paramSubOrganizationOf> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/Organization> .
@@ -1096,24 +1096,24 @@ _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_returns_0 <http://www.w3
 <https://blackcatinformatics.ca/gmeow/paramTaggingInterval> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/taggingInterval> .
 <https://blackcatinformatics.ca/gmeow/paramTaggingInterval> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/TimeInterval> .
 <https://blackcatinformatics.ca/gmeow/paramTaggingInterval> <https://w3id.org/function/ontology#required> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-<https://blackcatinformatics.ca/gmeow/paramWasAttributedTo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
-<https://blackcatinformatics.ca/gmeow/paramWasAttributedTo> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/wasAttributedTo> .
-<https://blackcatinformatics.ca/gmeow/paramWasAttributedTo> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/Agent> .
-<https://blackcatinformatics.ca/gmeow/paramWasAttributedTo> <https://w3id.org/function/ontology#required> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramTaggingTagger> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramTaggingTagger> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/taggingTagger> .
 <https://blackcatinformatics.ca/gmeow/paramTaggingTagger> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/Agent> .
 <https://blackcatinformatics.ca/gmeow/paramTaggingTagger> <https://w3id.org/function/ontology#required> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
+<https://blackcatinformatics.ca/gmeow/paramWasAttributedTo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
+<https://blackcatinformatics.ca/gmeow/paramWasAttributedTo> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/wasAttributedTo> .
+<https://blackcatinformatics.ca/gmeow/paramWasAttributedTo> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/Agent> .
+<https://blackcatinformatics.ca/gmeow/paramWasAttributedTo> <https://w3id.org/function/ontology#required> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
 <https://blackcatinformatics.ca/gmeow/paramHasWebPage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Parameter> .
 <https://blackcatinformatics.ca/gmeow/paramHasWebPage> <https://w3id.org/function/ontology#predicate> <https://blackcatinformatics.ca/gmeow/hasWebPage> .
 <https://blackcatinformatics.ca/gmeow/paramHasWebPage> <https://w3id.org/function/ontology#type> <https://blackcatinformatics.ca/gmeow/WebPage> .
 <https://blackcatinformatics.ca/gmeow/paramHasWebPage> <https://w3id.org/function/ontology#required> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-<https://blackcatinformatics.ca/gmeow/implVcard> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Implementation> .
-<https://blackcatinformatics.ca/gmeow/implVcard> <http://purl.org/dc/terms/format> "application/sparql-query" .
-<https://blackcatinformatics.ca/gmeow/implVcard> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
 <https://blackcatinformatics.ca/gmeow/implSchemaOrg> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Implementation> .
 <https://blackcatinformatics.ca/gmeow/implSchemaOrg> <http://purl.org/dc/terms/format> "application/sparql-query" .
 <https://blackcatinformatics.ca/gmeow/implSchemaOrg> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+<https://blackcatinformatics.ca/gmeow/implVcard> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Implementation> .
+<https://blackcatinformatics.ca/gmeow/implVcard> <http://purl.org/dc/terms/format> "application/sparql-query" .
+<https://blackcatinformatics.ca/gmeow/implVcard> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
 <https://blackcatinformatics.ca/gmeow/implGeosparql> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Implementation> .
 <https://blackcatinformatics.ca/gmeow/implGeosparql> <http://purl.org/dc/terms/format> "application/sparql-query" .
 <https://blackcatinformatics.ca/gmeow/implGeosparql> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
@@ -1135,20 +1135,6 @@ _:l_https___blackcatinformatics_ca_gmeow_fnWebPageToUrl_returns_0 <http://www.w3
 <https://blackcatinformatics.ca/gmeow/implWebAnnotation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Implementation> .
 <https://blackcatinformatics.ca/gmeow/implWebAnnotation> <http://purl.org/dc/terms/format> "application/sparql-query" .
 <https://blackcatinformatics.ca/gmeow/implWebAnnotation> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://blackcatinformatics.ca/gmeow/queries/projections/web-annotation.rq> .
-_:n_mapping_fnBirthEventToDate_vcard <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
-_:n_mapping_fnBirthEventToDate_vcard <http://www.w3.org/2000/01/rdf-schema#label> "fnBirthEventToDate → vcard (FnO mapping)"@en .
-_:n_mapping_fnBirthEventToDate_vcard <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnBirthEventToDate> .
-_:n_mapping_fnBirthEventToDate_vcard <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implVcard> .
-_:n_param_fnBirthEventToDate_vcard_paramEventTime_bdate <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
-_:n_param_fnBirthEventToDate_vcard_paramEventTime_bdate <http://www.w3.org/2000/01/rdf-schema#label> "paramEventTime ↦ ?bdate"@en .
-_:n_param_fnBirthEventToDate_vcard_paramEventTime_bdate <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramEventTime> .
-_:n_param_fnBirthEventToDate_vcard_paramEventTime_bdate <https://w3id.org/function/vocabulary/mapping#implementationProperty> "bdate" .
-_:n_mapping_fnBirthEventToDate_vcard <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnBirthEventToDate_vcard_paramEventTime_bdate .
-_:n_return_fnBirthEventToDate_vcard_bdate <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
-_:n_return_fnBirthEventToDate_vcard_bdate <http://www.w3.org/2000/01/rdf-schema#label> "fnBirthEventToDate output ↦ ?bdate"@en .
-_:n_return_fnBirthEventToDate_vcard_bdate <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outBirthEventToDate> .
-_:n_return_fnBirthEventToDate_vcard_bdate <https://w3id.org/function/vocabulary/mapping#implementationProperty> "bdate" .
-_:n_mapping_fnBirthEventToDate_vcard <https://w3id.org/function/ontology#returnMapping> _:n_return_fnBirthEventToDate_vcard_bdate .
 _:n_mapping_fnBirthEventToDate_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
 _:n_mapping_fnBirthEventToDate_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnBirthEventToDate → schema-org (FnO mapping)"@en .
 _:n_mapping_fnBirthEventToDate_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnBirthEventToDate> .
@@ -1163,6 +1149,20 @@ _:n_return_fnBirthEventToDate_schema_org_bdate <http://www.w3.org/2000/01/rdf-sc
 _:n_return_fnBirthEventToDate_schema_org_bdate <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outBirthEventToDate> .
 _:n_return_fnBirthEventToDate_schema_org_bdate <https://w3id.org/function/vocabulary/mapping#implementationProperty> "bdate" .
 _:n_mapping_fnBirthEventToDate_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnBirthEventToDate_schema_org_bdate .
+_:n_mapping_fnBirthEventToDate_vcard <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
+_:n_mapping_fnBirthEventToDate_vcard <http://www.w3.org/2000/01/rdf-schema#label> "fnBirthEventToDate → vcard (FnO mapping)"@en .
+_:n_mapping_fnBirthEventToDate_vcard <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnBirthEventToDate> .
+_:n_mapping_fnBirthEventToDate_vcard <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implVcard> .
+_:n_param_fnBirthEventToDate_vcard_paramEventTime_bdate <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
+_:n_param_fnBirthEventToDate_vcard_paramEventTime_bdate <http://www.w3.org/2000/01/rdf-schema#label> "paramEventTime ↦ ?bdate"@en .
+_:n_param_fnBirthEventToDate_vcard_paramEventTime_bdate <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramEventTime> .
+_:n_param_fnBirthEventToDate_vcard_paramEventTime_bdate <https://w3id.org/function/vocabulary/mapping#implementationProperty> "bdate" .
+_:n_mapping_fnBirthEventToDate_vcard <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnBirthEventToDate_vcard_paramEventTime_bdate .
+_:n_return_fnBirthEventToDate_vcard_bdate <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
+_:n_return_fnBirthEventToDate_vcard_bdate <http://www.w3.org/2000/01/rdf-schema#label> "fnBirthEventToDate output ↦ ?bdate"@en .
+_:n_return_fnBirthEventToDate_vcard_bdate <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outBirthEventToDate> .
+_:n_return_fnBirthEventToDate_vcard_bdate <https://w3id.org/function/vocabulary/mapping#implementationProperty> "bdate" .
+_:n_mapping_fnBirthEventToDate_vcard <https://w3id.org/function/ontology#returnMapping> _:n_return_fnBirthEventToDate_vcard_bdate .
 _:n_mapping_fnCoarsenToGranularity_geosparql <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
 _:n_mapping_fnCoarsenToGranularity_geosparql <http://www.w3.org/2000/01/rdf-schema#label> "fnCoarsenToGranularity → geosparql (FnO mapping)"@en .
 _:n_mapping_fnCoarsenToGranularity_geosparql <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnCoarsenToGranularity> .
@@ -1368,34 +1368,6 @@ _:n_return_fnLatLongToWktPoint_geosparql_pointWkt <http://www.w3.org/2000/01/rdf
 _:n_return_fnLatLongToWktPoint_geosparql_pointWkt <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outLatLongToWktPoint> .
 _:n_return_fnLatLongToWktPoint_geosparql_pointWkt <https://w3id.org/function/vocabulary/mapping#implementationProperty> "pointWkt" .
 _:n_mapping_fnLatLongToWktPoint_geosparql <https://w3id.org/function/ontology#returnMapping> _:n_return_fnLatLongToWktPoint_geosparql_pointWkt .
-_:n_mapping_fnMembershipToJobTitle_vcard <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
-_:n_mapping_fnMembershipToJobTitle_vcard <http://www.w3.org/2000/01/rdf-schema#label> "fnMembershipToJobTitle → vcard (FnO mapping)"@en .
-_:n_mapping_fnMembershipToJobTitle_vcard <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnMembershipToJobTitle> .
-_:n_mapping_fnMembershipToJobTitle_vcard <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implVcard> .
-_:n_param_fnMembershipToJobTitle_vcard_paramHasRole_r <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
-_:n_param_fnMembershipToJobTitle_vcard_paramHasRole_r <http://www.w3.org/2000/01/rdf-schema#label> "paramHasRole ↦ ?r"@en .
-_:n_param_fnMembershipToJobTitle_vcard_paramHasRole_r <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasRole> .
-_:n_param_fnMembershipToJobTitle_vcard_paramHasRole_r <https://w3id.org/function/vocabulary/mapping#implementationProperty> "r" .
-_:n_mapping_fnMembershipToJobTitle_vcard <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnMembershipToJobTitle_vcard_paramHasRole_r .
-_:n_return_fnMembershipToJobTitle_vcard_title <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
-_:n_return_fnMembershipToJobTitle_vcard_title <http://www.w3.org/2000/01/rdf-schema#label> "fnMembershipToJobTitle output ↦ ?title"@en .
-_:n_return_fnMembershipToJobTitle_vcard_title <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outMembershipToJobTitle> .
-_:n_return_fnMembershipToJobTitle_vcard_title <https://w3id.org/function/vocabulary/mapping#implementationProperty> "title" .
-_:n_mapping_fnMembershipToJobTitle_vcard <https://w3id.org/function/ontology#returnMapping> _:n_return_fnMembershipToJobTitle_vcard_title .
-_:n_mapping_fnMembershipToJobTitle_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
-_:n_mapping_fnMembershipToJobTitle_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnMembershipToJobTitle → schema-org (FnO mapping)"@en .
-_:n_mapping_fnMembershipToJobTitle_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnMembershipToJobTitle> .
-_:n_mapping_fnMembershipToJobTitle_schema_org <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implSchemaOrg> .
-_:n_param_fnMembershipToJobTitle_schema_org_paramHasRole_role <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
-_:n_param_fnMembershipToJobTitle_schema_org_paramHasRole_role <http://www.w3.org/2000/01/rdf-schema#label> "paramHasRole ↦ ?role"@en .
-_:n_param_fnMembershipToJobTitle_schema_org_paramHasRole_role <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasRole> .
-_:n_param_fnMembershipToJobTitle_schema_org_paramHasRole_role <https://w3id.org/function/vocabulary/mapping#implementationProperty> "role" .
-_:n_mapping_fnMembershipToJobTitle_schema_org <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnMembershipToJobTitle_schema_org_paramHasRole_role .
-_:n_return_fnMembershipToJobTitle_schema_org_title <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
-_:n_return_fnMembershipToJobTitle_schema_org_title <http://www.w3.org/2000/01/rdf-schema#label> "fnMembershipToJobTitle output ↦ ?title"@en .
-_:n_return_fnMembershipToJobTitle_schema_org_title <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outMembershipToJobTitle> .
-_:n_return_fnMembershipToJobTitle_schema_org_title <https://w3id.org/function/vocabulary/mapping#implementationProperty> "title" .
-_:n_mapping_fnMembershipToJobTitle_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnMembershipToJobTitle_schema_org_title .
 _:n_mapping_fnMembershipToJobTitle_resume <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
 _:n_mapping_fnMembershipToJobTitle_resume <http://www.w3.org/2000/01/rdf-schema#label> "fnMembershipToJobTitle → resume (FnO mapping)"@en .
 _:n_mapping_fnMembershipToJobTitle_resume <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnMembershipToJobTitle> .
@@ -1410,34 +1382,34 @@ _:n_return_fnMembershipToJobTitle_resume_title <http://www.w3.org/2000/01/rdf-sc
 _:n_return_fnMembershipToJobTitle_resume_title <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outMembershipToJobTitle> .
 _:n_return_fnMembershipToJobTitle_resume_title <https://w3id.org/function/vocabulary/mapping#implementationProperty> "title" .
 _:n_mapping_fnMembershipToJobTitle_resume <https://w3id.org/function/ontology#returnMapping> _:n_return_fnMembershipToJobTitle_resume_title .
-_:n_mapping_fnNicknameName_vcard <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
-_:n_mapping_fnNicknameName_vcard <http://www.w3.org/2000/01/rdf-schema#label> "fnNicknameName → vcard (FnO mapping)"@en .
-_:n_mapping_fnNicknameName_vcard <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnNicknameName> .
-_:n_mapping_fnNicknameName_vcard <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implVcard> .
-_:n_param_fnNicknameName_vcard_paramHasName_nn <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
-_:n_param_fnNicknameName_vcard_paramHasName_nn <http://www.w3.org/2000/01/rdf-schema#label> "paramHasName ↦ ?nn"@en .
-_:n_param_fnNicknameName_vcard_paramHasName_nn <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasName> .
-_:n_param_fnNicknameName_vcard_paramHasName_nn <https://w3id.org/function/vocabulary/mapping#implementationProperty> "nn" .
-_:n_mapping_fnNicknameName_vcard <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnNicknameName_vcard_paramHasName_nn .
-_:n_return_fnNicknameName_vcard_nick <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
-_:n_return_fnNicknameName_vcard_nick <http://www.w3.org/2000/01/rdf-schema#label> "fnNicknameName output ↦ ?nick"@en .
-_:n_return_fnNicknameName_vcard_nick <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outNicknameName> .
-_:n_return_fnNicknameName_vcard_nick <https://w3id.org/function/vocabulary/mapping#implementationProperty> "nick" .
-_:n_mapping_fnNicknameName_vcard <https://w3id.org/function/ontology#returnMapping> _:n_return_fnNicknameName_vcard_nick .
-_:n_mapping_fnNicknameName_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
-_:n_mapping_fnNicknameName_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnNicknameName → schema-org (FnO mapping)"@en .
-_:n_mapping_fnNicknameName_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnNicknameName> .
-_:n_mapping_fnNicknameName_schema_org <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implSchemaOrg> .
-_:n_param_fnNicknameName_schema_org_paramHasName_nname <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
-_:n_param_fnNicknameName_schema_org_paramHasName_nname <http://www.w3.org/2000/01/rdf-schema#label> "paramHasName ↦ ?nname"@en .
-_:n_param_fnNicknameName_schema_org_paramHasName_nname <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasName> .
-_:n_param_fnNicknameName_schema_org_paramHasName_nname <https://w3id.org/function/vocabulary/mapping#implementationProperty> "nname" .
-_:n_mapping_fnNicknameName_schema_org <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnNicknameName_schema_org_paramHasName_nname .
-_:n_return_fnNicknameName_schema_org_nick <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
-_:n_return_fnNicknameName_schema_org_nick <http://www.w3.org/2000/01/rdf-schema#label> "fnNicknameName output ↦ ?nick"@en .
-_:n_return_fnNicknameName_schema_org_nick <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outNicknameName> .
-_:n_return_fnNicknameName_schema_org_nick <https://w3id.org/function/vocabulary/mapping#implementationProperty> "nick" .
-_:n_mapping_fnNicknameName_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnNicknameName_schema_org_nick .
+_:n_mapping_fnMembershipToJobTitle_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
+_:n_mapping_fnMembershipToJobTitle_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnMembershipToJobTitle → schema-org (FnO mapping)"@en .
+_:n_mapping_fnMembershipToJobTitle_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnMembershipToJobTitle> .
+_:n_mapping_fnMembershipToJobTitle_schema_org <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implSchemaOrg> .
+_:n_param_fnMembershipToJobTitle_schema_org_paramHasRole_role <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
+_:n_param_fnMembershipToJobTitle_schema_org_paramHasRole_role <http://www.w3.org/2000/01/rdf-schema#label> "paramHasRole ↦ ?role"@en .
+_:n_param_fnMembershipToJobTitle_schema_org_paramHasRole_role <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasRole> .
+_:n_param_fnMembershipToJobTitle_schema_org_paramHasRole_role <https://w3id.org/function/vocabulary/mapping#implementationProperty> "role" .
+_:n_mapping_fnMembershipToJobTitle_schema_org <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnMembershipToJobTitle_schema_org_paramHasRole_role .
+_:n_return_fnMembershipToJobTitle_schema_org_title <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
+_:n_return_fnMembershipToJobTitle_schema_org_title <http://www.w3.org/2000/01/rdf-schema#label> "fnMembershipToJobTitle output ↦ ?title"@en .
+_:n_return_fnMembershipToJobTitle_schema_org_title <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outMembershipToJobTitle> .
+_:n_return_fnMembershipToJobTitle_schema_org_title <https://w3id.org/function/vocabulary/mapping#implementationProperty> "title" .
+_:n_mapping_fnMembershipToJobTitle_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnMembershipToJobTitle_schema_org_title .
+_:n_mapping_fnMembershipToJobTitle_vcard <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
+_:n_mapping_fnMembershipToJobTitle_vcard <http://www.w3.org/2000/01/rdf-schema#label> "fnMembershipToJobTitle → vcard (FnO mapping)"@en .
+_:n_mapping_fnMembershipToJobTitle_vcard <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnMembershipToJobTitle> .
+_:n_mapping_fnMembershipToJobTitle_vcard <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implVcard> .
+_:n_param_fnMembershipToJobTitle_vcard_paramHasRole_r <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
+_:n_param_fnMembershipToJobTitle_vcard_paramHasRole_r <http://www.w3.org/2000/01/rdf-schema#label> "paramHasRole ↦ ?r"@en .
+_:n_param_fnMembershipToJobTitle_vcard_paramHasRole_r <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasRole> .
+_:n_param_fnMembershipToJobTitle_vcard_paramHasRole_r <https://w3id.org/function/vocabulary/mapping#implementationProperty> "r" .
+_:n_mapping_fnMembershipToJobTitle_vcard <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnMembershipToJobTitle_vcard_paramHasRole_r .
+_:n_return_fnMembershipToJobTitle_vcard_title <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
+_:n_return_fnMembershipToJobTitle_vcard_title <http://www.w3.org/2000/01/rdf-schema#label> "fnMembershipToJobTitle output ↦ ?title"@en .
+_:n_return_fnMembershipToJobTitle_vcard_title <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outMembershipToJobTitle> .
+_:n_return_fnMembershipToJobTitle_vcard_title <https://w3id.org/function/vocabulary/mapping#implementationProperty> "title" .
+_:n_mapping_fnMembershipToJobTitle_vcard <https://w3id.org/function/ontology#returnMapping> _:n_return_fnMembershipToJobTitle_vcard_title .
 _:n_mapping_fnNicknameName_foaf <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
 _:n_mapping_fnNicknameName_foaf <http://www.w3.org/2000/01/rdf-schema#label> "fnNicknameName → foaf (FnO mapping)"@en .
 _:n_mapping_fnNicknameName_foaf <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnNicknameName> .
@@ -1452,6 +1424,34 @@ _:n_return_fnNicknameName_foaf_nick <http://www.w3.org/2000/01/rdf-schema#label>
 _:n_return_fnNicknameName_foaf_nick <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outNicknameName> .
 _:n_return_fnNicknameName_foaf_nick <https://w3id.org/function/vocabulary/mapping#implementationProperty> "nick" .
 _:n_mapping_fnNicknameName_foaf <https://w3id.org/function/ontology#returnMapping> _:n_return_fnNicknameName_foaf_nick .
+_:n_mapping_fnNicknameName_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
+_:n_mapping_fnNicknameName_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnNicknameName → schema-org (FnO mapping)"@en .
+_:n_mapping_fnNicknameName_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnNicknameName> .
+_:n_mapping_fnNicknameName_schema_org <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implSchemaOrg> .
+_:n_param_fnNicknameName_schema_org_paramHasName_nname <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
+_:n_param_fnNicknameName_schema_org_paramHasName_nname <http://www.w3.org/2000/01/rdf-schema#label> "paramHasName ↦ ?nname"@en .
+_:n_param_fnNicknameName_schema_org_paramHasName_nname <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasName> .
+_:n_param_fnNicknameName_schema_org_paramHasName_nname <https://w3id.org/function/vocabulary/mapping#implementationProperty> "nname" .
+_:n_mapping_fnNicknameName_schema_org <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnNicknameName_schema_org_paramHasName_nname .
+_:n_return_fnNicknameName_schema_org_nick <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
+_:n_return_fnNicknameName_schema_org_nick <http://www.w3.org/2000/01/rdf-schema#label> "fnNicknameName output ↦ ?nick"@en .
+_:n_return_fnNicknameName_schema_org_nick <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outNicknameName> .
+_:n_return_fnNicknameName_schema_org_nick <https://w3id.org/function/vocabulary/mapping#implementationProperty> "nick" .
+_:n_mapping_fnNicknameName_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnNicknameName_schema_org_nick .
+_:n_mapping_fnNicknameName_vcard <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
+_:n_mapping_fnNicknameName_vcard <http://www.w3.org/2000/01/rdf-schema#label> "fnNicknameName → vcard (FnO mapping)"@en .
+_:n_mapping_fnNicknameName_vcard <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnNicknameName> .
+_:n_mapping_fnNicknameName_vcard <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implVcard> .
+_:n_param_fnNicknameName_vcard_paramHasName_nn <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
+_:n_param_fnNicknameName_vcard_paramHasName_nn <http://www.w3.org/2000/01/rdf-schema#label> "paramHasName ↦ ?nn"@en .
+_:n_param_fnNicknameName_vcard_paramHasName_nn <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasName> .
+_:n_param_fnNicknameName_vcard_paramHasName_nn <https://w3id.org/function/vocabulary/mapping#implementationProperty> "nn" .
+_:n_mapping_fnNicknameName_vcard <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnNicknameName_vcard_paramHasName_nn .
+_:n_return_fnNicknameName_vcard_nick <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
+_:n_return_fnNicknameName_vcard_nick <http://www.w3.org/2000/01/rdf-schema#label> "fnNicknameName output ↦ ?nick"@en .
+_:n_return_fnNicknameName_vcard_nick <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outNicknameName> .
+_:n_return_fnNicknameName_vcard_nick <https://w3id.org/function/vocabulary/mapping#implementationProperty> "nick" .
+_:n_mapping_fnNicknameName_vcard <https://w3id.org/function/ontology#returnMapping> _:n_return_fnNicknameName_vcard_nick .
 _:n_mapping_fnOrganizationTypeToClass_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
 _:n_mapping_fnOrganizationTypeToClass_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnOrganizationTypeToClass → schema-org (FnO mapping)"@en .
 _:n_mapping_fnOrganizationTypeToClass_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnOrganizationTypeToClass> .
@@ -1480,6 +1480,20 @@ _:n_return_fnParticipantToAttendee_ical_att <http://www.w3.org/2000/01/rdf-schem
 _:n_return_fnParticipantToAttendee_ical_att <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outParticipantToAttendee> .
 _:n_return_fnParticipantToAttendee_ical_att <https://w3id.org/function/vocabulary/mapping#implementationProperty> "att" .
 _:n_mapping_fnParticipantToAttendee_ical <https://w3id.org/function/ontology#returnMapping> _:n_return_fnParticipantToAttendee_ical_att .
+_:n_mapping_fnParticipationToEventRole_ical <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
+_:n_mapping_fnParticipationToEventRole_ical <http://www.w3.org/2000/01/rdf-schema#label> "fnParticipationToEventRole → ical (FnO mapping)"@en .
+_:n_mapping_fnParticipationToEventRole_ical <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnParticipationToEventRole> .
+_:n_mapping_fnParticipationToEventRole_ical <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implIcal> .
+_:n_param_fnParticipationToEventRole_ical_paramParticipationParticipant_att <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
+_:n_param_fnParticipationToEventRole_ical_paramParticipationParticipant_att <http://www.w3.org/2000/01/rdf-schema#label> "paramParticipationParticipant ↦ ?att"@en .
+_:n_param_fnParticipationToEventRole_ical_paramParticipationParticipant_att <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramParticipationParticipant> .
+_:n_param_fnParticipationToEventRole_ical_paramParticipationParticipant_att <https://w3id.org/function/vocabulary/mapping#implementationProperty> "att" .
+_:n_mapping_fnParticipationToEventRole_ical <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnParticipationToEventRole_ical_paramParticipationParticipant_att .
+_:n_return_fnParticipationToEventRole_ical_att <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
+_:n_return_fnParticipationToEventRole_ical_att <http://www.w3.org/2000/01/rdf-schema#label> "fnParticipationToEventRole output ↦ ?att"@en .
+_:n_return_fnParticipationToEventRole_ical_att <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outParticipationToEventRole> .
+_:n_return_fnParticipationToEventRole_ical_att <https://w3id.org/function/vocabulary/mapping#implementationProperty> "att" .
+_:n_mapping_fnParticipationToEventRole_ical <https://w3id.org/function/ontology#returnMapping> _:n_return_fnParticipationToEventRole_ical_att .
 _:n_mapping_fnParticipationToEventRole_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
 _:n_mapping_fnParticipationToEventRole_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnParticipationToEventRole → schema-org (FnO mapping)"@en .
 _:n_mapping_fnParticipationToEventRole_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnParticipationToEventRole> .
@@ -1514,34 +1528,6 @@ _:n_return_fnParticipationToEventRole_schema_org_performer <http://www.w3.org/20
 _:n_return_fnParticipationToEventRole_schema_org_performer <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outParticipationToEventRole> .
 _:n_return_fnParticipationToEventRole_schema_org_performer <https://w3id.org/function/vocabulary/mapping#implementationProperty> "performer" .
 _:n_mapping_fnParticipationToEventRole_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnParticipationToEventRole_schema_org_performer .
-_:n_mapping_fnParticipationToEventRole_ical <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
-_:n_mapping_fnParticipationToEventRole_ical <http://www.w3.org/2000/01/rdf-schema#label> "fnParticipationToEventRole → ical (FnO mapping)"@en .
-_:n_mapping_fnParticipationToEventRole_ical <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnParticipationToEventRole> .
-_:n_mapping_fnParticipationToEventRole_ical <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implIcal> .
-_:n_param_fnParticipationToEventRole_ical_paramParticipationParticipant_att <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
-_:n_param_fnParticipationToEventRole_ical_paramParticipationParticipant_att <http://www.w3.org/2000/01/rdf-schema#label> "paramParticipationParticipant ↦ ?att"@en .
-_:n_param_fnParticipationToEventRole_ical_paramParticipationParticipant_att <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramParticipationParticipant> .
-_:n_param_fnParticipationToEventRole_ical_paramParticipationParticipant_att <https://w3id.org/function/vocabulary/mapping#implementationProperty> "att" .
-_:n_mapping_fnParticipationToEventRole_ical <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnParticipationToEventRole_ical_paramParticipationParticipant_att .
-_:n_return_fnParticipationToEventRole_ical_att <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
-_:n_return_fnParticipationToEventRole_ical_att <http://www.w3.org/2000/01/rdf-schema#label> "fnParticipationToEventRole output ↦ ?att"@en .
-_:n_return_fnParticipationToEventRole_ical_att <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outParticipationToEventRole> .
-_:n_return_fnParticipationToEventRole_ical_att <https://w3id.org/function/vocabulary/mapping#implementationProperty> "att" .
-_:n_mapping_fnParticipationToEventRole_ical <https://w3id.org/function/ontology#returnMapping> _:n_return_fnParticipationToEventRole_ical_att .
-_:n_mapping_fnPlaceTypeToClass_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
-_:n_mapping_fnPlaceTypeToClass_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnPlaceTypeToClass → schema-org (FnO mapping)"@en .
-_:n_mapping_fnPlaceTypeToClass_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnPlaceTypeToClass> .
-_:n_mapping_fnPlaceTypeToClass_schema_org <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implSchemaOrg> .
-_:n_param_fnPlaceTypeToClass_schema_org_paramPlaceType_pt <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
-_:n_param_fnPlaceTypeToClass_schema_org_paramPlaceType_pt <http://www.w3.org/2000/01/rdf-schema#label> "paramPlaceType ↦ ?pt"@en .
-_:n_param_fnPlaceTypeToClass_schema_org_paramPlaceType_pt <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramPlaceType> .
-_:n_param_fnPlaceTypeToClass_schema_org_paramPlaceType_pt <https://w3id.org/function/vocabulary/mapping#implementationProperty> "pt" .
-_:n_mapping_fnPlaceTypeToClass_schema_org <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnPlaceTypeToClass_schema_org_paramPlaceType_pt .
-_:n_return_fnPlaceTypeToClass_schema_org_pt <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
-_:n_return_fnPlaceTypeToClass_schema_org_pt <http://www.w3.org/2000/01/rdf-schema#label> "fnPlaceTypeToClass output ↦ ?pt"@en .
-_:n_return_fnPlaceTypeToClass_schema_org_pt <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outPlaceTypeToClass> .
-_:n_return_fnPlaceTypeToClass_schema_org_pt <https://w3id.org/function/vocabulary/mapping#implementationProperty> "pt" .
-_:n_mapping_fnPlaceTypeToClass_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnPlaceTypeToClass_schema_org_pt .
 _:n_mapping_fnPlaceTypeToClass_bot <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
 _:n_mapping_fnPlaceTypeToClass_bot <http://www.w3.org/2000/01/rdf-schema#label> "fnPlaceTypeToClass → bot (FnO mapping)"@en .
 _:n_mapping_fnPlaceTypeToClass_bot <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnPlaceTypeToClass> .
@@ -1556,6 +1542,20 @@ _:n_return_fnPlaceTypeToClass_bot_pt <http://www.w3.org/2000/01/rdf-schema#label
 _:n_return_fnPlaceTypeToClass_bot_pt <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outPlaceTypeToClass> .
 _:n_return_fnPlaceTypeToClass_bot_pt <https://w3id.org/function/vocabulary/mapping#implementationProperty> "pt" .
 _:n_mapping_fnPlaceTypeToClass_bot <https://w3id.org/function/ontology#returnMapping> _:n_return_fnPlaceTypeToClass_bot_pt .
+_:n_mapping_fnPlaceTypeToClass_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
+_:n_mapping_fnPlaceTypeToClass_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnPlaceTypeToClass → schema-org (FnO mapping)"@en .
+_:n_mapping_fnPlaceTypeToClass_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnPlaceTypeToClass> .
+_:n_mapping_fnPlaceTypeToClass_schema_org <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implSchemaOrg> .
+_:n_param_fnPlaceTypeToClass_schema_org_paramPlaceType_pt <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
+_:n_param_fnPlaceTypeToClass_schema_org_paramPlaceType_pt <http://www.w3.org/2000/01/rdf-schema#label> "paramPlaceType ↦ ?pt"@en .
+_:n_param_fnPlaceTypeToClass_schema_org_paramPlaceType_pt <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramPlaceType> .
+_:n_param_fnPlaceTypeToClass_schema_org_paramPlaceType_pt <https://w3id.org/function/vocabulary/mapping#implementationProperty> "pt" .
+_:n_mapping_fnPlaceTypeToClass_schema_org <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnPlaceTypeToClass_schema_org_paramPlaceType_pt .
+_:n_return_fnPlaceTypeToClass_schema_org_pt <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
+_:n_return_fnPlaceTypeToClass_schema_org_pt <http://www.w3.org/2000/01/rdf-schema#label> "fnPlaceTypeToClass output ↦ ?pt"@en .
+_:n_return_fnPlaceTypeToClass_schema_org_pt <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outPlaceTypeToClass> .
+_:n_return_fnPlaceTypeToClass_schema_org_pt <https://w3id.org/function/vocabulary/mapping#implementationProperty> "pt" .
+_:n_mapping_fnPlaceTypeToClass_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnPlaceTypeToClass_schema_org_pt .
 _:n_mapping_fnPosePositionToWktPoint_geosparql <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
 _:n_mapping_fnPosePositionToWktPoint_geosparql <http://www.w3.org/2000/01/rdf-schema#label> "fnPosePositionToWktPoint → geosparql (FnO mapping)"@en .
 _:n_mapping_fnPosePositionToWktPoint_geosparql <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnPosePositionToWktPoint> .
@@ -1670,20 +1670,20 @@ _:n_return_fnRetagWkt_geosparql_wktTagged_centroid <http://www.w3.org/2000/01/rd
 _:n_return_fnRetagWkt_geosparql_wktTagged_centroid <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outRetagWkt> .
 _:n_return_fnRetagWkt_geosparql_wktTagged_centroid <https://w3id.org/function/vocabulary/mapping#implementationProperty> "wktTagged_centroid" .
 _:n_mapping_fnRetagWkt_geosparql <https://w3id.org/function/ontology#returnMapping> _:n_return_fnRetagWkt_geosparql_wktTagged_centroid .
-_:n_mapping_fnSelectDisplayName_vcard <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
-_:n_mapping_fnSelectDisplayName_vcard <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayName → vcard (FnO mapping)"@en .
-_:n_mapping_fnSelectDisplayName_vcard <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnSelectDisplayName> .
-_:n_mapping_fnSelectDisplayName_vcard <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implVcard> .
-_:n_param_fnSelectDisplayName_vcard_paramHasAppellation_app <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
-_:n_param_fnSelectDisplayName_vcard_paramHasAppellation_app <http://www.w3.org/2000/01/rdf-schema#label> "paramHasAppellation ↦ ?app"@en .
-_:n_param_fnSelectDisplayName_vcard_paramHasAppellation_app <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasAppellation> .
-_:n_param_fnSelectDisplayName_vcard_paramHasAppellation_app <https://w3id.org/function/vocabulary/mapping#implementationProperty> "app" .
-_:n_mapping_fnSelectDisplayName_vcard <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnSelectDisplayName_vcard_paramHasAppellation_app .
-_:n_return_fnSelectDisplayName_vcard_dispName <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
-_:n_return_fnSelectDisplayName_vcard_dispName <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayName output ↦ ?dispName"@en .
-_:n_return_fnSelectDisplayName_vcard_dispName <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outSelectDisplayName> .
-_:n_return_fnSelectDisplayName_vcard_dispName <https://w3id.org/function/vocabulary/mapping#implementationProperty> "dispName" .
-_:n_mapping_fnSelectDisplayName_vcard <https://w3id.org/function/ontology#returnMapping> _:n_return_fnSelectDisplayName_vcard_dispName .
+_:n_mapping_fnSelectDisplayName_foaf <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
+_:n_mapping_fnSelectDisplayName_foaf <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayName → foaf (FnO mapping)"@en .
+_:n_mapping_fnSelectDisplayName_foaf <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnSelectDisplayName> .
+_:n_mapping_fnSelectDisplayName_foaf <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implFoaf> .
+_:n_param_fnSelectDisplayName_foaf_paramHasAppellation_app <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
+_:n_param_fnSelectDisplayName_foaf_paramHasAppellation_app <http://www.w3.org/2000/01/rdf-schema#label> "paramHasAppellation ↦ ?app"@en .
+_:n_param_fnSelectDisplayName_foaf_paramHasAppellation_app <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasAppellation> .
+_:n_param_fnSelectDisplayName_foaf_paramHasAppellation_app <https://w3id.org/function/vocabulary/mapping#implementationProperty> "app" .
+_:n_mapping_fnSelectDisplayName_foaf <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnSelectDisplayName_foaf_paramHasAppellation_app .
+_:n_return_fnSelectDisplayName_foaf_dispName <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
+_:n_return_fnSelectDisplayName_foaf_dispName <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayName output ↦ ?dispName"@en .
+_:n_return_fnSelectDisplayName_foaf_dispName <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outSelectDisplayName> .
+_:n_return_fnSelectDisplayName_foaf_dispName <https://w3id.org/function/vocabulary/mapping#implementationProperty> "dispName" .
+_:n_mapping_fnSelectDisplayName_foaf <https://w3id.org/function/ontology#returnMapping> _:n_return_fnSelectDisplayName_foaf_dispName .
 _:n_mapping_fnSelectDisplayName_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
 _:n_mapping_fnSelectDisplayName_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayName → schema-org (FnO mapping)"@en .
 _:n_mapping_fnSelectDisplayName_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnSelectDisplayName> .
@@ -1703,34 +1703,20 @@ _:n_return_fnSelectDisplayName_schema_org_name <http://www.w3.org/2000/01/rdf-sc
 _:n_return_fnSelectDisplayName_schema_org_name <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outSelectDisplayName> .
 _:n_return_fnSelectDisplayName_schema_org_name <https://w3id.org/function/vocabulary/mapping#implementationProperty> "name" .
 _:n_mapping_fnSelectDisplayName_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnSelectDisplayName_schema_org_name .
-_:n_mapping_fnSelectDisplayName_foaf <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
-_:n_mapping_fnSelectDisplayName_foaf <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayName → foaf (FnO mapping)"@en .
-_:n_mapping_fnSelectDisplayName_foaf <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnSelectDisplayName> .
-_:n_mapping_fnSelectDisplayName_foaf <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implFoaf> .
-_:n_param_fnSelectDisplayName_foaf_paramHasAppellation_app <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
-_:n_param_fnSelectDisplayName_foaf_paramHasAppellation_app <http://www.w3.org/2000/01/rdf-schema#label> "paramHasAppellation ↦ ?app"@en .
-_:n_param_fnSelectDisplayName_foaf_paramHasAppellation_app <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasAppellation> .
-_:n_param_fnSelectDisplayName_foaf_paramHasAppellation_app <https://w3id.org/function/vocabulary/mapping#implementationProperty> "app" .
-_:n_mapping_fnSelectDisplayName_foaf <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnSelectDisplayName_foaf_paramHasAppellation_app .
-_:n_return_fnSelectDisplayName_foaf_dispName <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
-_:n_return_fnSelectDisplayName_foaf_dispName <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayName output ↦ ?dispName"@en .
-_:n_return_fnSelectDisplayName_foaf_dispName <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outSelectDisplayName> .
-_:n_return_fnSelectDisplayName_foaf_dispName <https://w3id.org/function/vocabulary/mapping#implementationProperty> "dispName" .
-_:n_mapping_fnSelectDisplayName_foaf <https://w3id.org/function/ontology#returnMapping> _:n_return_fnSelectDisplayName_foaf_dispName .
-_:n_mapping_fnSelectDisplayableGender_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
-_:n_mapping_fnSelectDisplayableGender_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayableGender → schema-org (FnO mapping)"@en .
-_:n_mapping_fnSelectDisplayableGender_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnSelectDisplayableGender> .
-_:n_mapping_fnSelectDisplayableGender_schema_org <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implSchemaOrg> .
-_:n_param_fnSelectDisplayableGender_schema_org_paramHasGenderIdentity_gi <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
-_:n_param_fnSelectDisplayableGender_schema_org_paramHasGenderIdentity_gi <http://www.w3.org/2000/01/rdf-schema#label> "paramHasGenderIdentity ↦ ?gi"@en .
-_:n_param_fnSelectDisplayableGender_schema_org_paramHasGenderIdentity_gi <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasGenderIdentity> .
-_:n_param_fnSelectDisplayableGender_schema_org_paramHasGenderIdentity_gi <https://w3id.org/function/vocabulary/mapping#implementationProperty> "gi" .
-_:n_mapping_fnSelectDisplayableGender_schema_org <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnSelectDisplayableGender_schema_org_paramHasGenderIdentity_gi .
-_:n_return_fnSelectDisplayableGender_schema_org_genderLabel <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
-_:n_return_fnSelectDisplayableGender_schema_org_genderLabel <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayableGender output ↦ ?genderLabel"@en .
-_:n_return_fnSelectDisplayableGender_schema_org_genderLabel <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outSelectDisplayableGender> .
-_:n_return_fnSelectDisplayableGender_schema_org_genderLabel <https://w3id.org/function/vocabulary/mapping#implementationProperty> "genderLabel" .
-_:n_mapping_fnSelectDisplayableGender_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnSelectDisplayableGender_schema_org_genderLabel .
+_:n_mapping_fnSelectDisplayName_vcard <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
+_:n_mapping_fnSelectDisplayName_vcard <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayName → vcard (FnO mapping)"@en .
+_:n_mapping_fnSelectDisplayName_vcard <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnSelectDisplayName> .
+_:n_mapping_fnSelectDisplayName_vcard <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implVcard> .
+_:n_param_fnSelectDisplayName_vcard_paramHasAppellation_app <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
+_:n_param_fnSelectDisplayName_vcard_paramHasAppellation_app <http://www.w3.org/2000/01/rdf-schema#label> "paramHasAppellation ↦ ?app"@en .
+_:n_param_fnSelectDisplayName_vcard_paramHasAppellation_app <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasAppellation> .
+_:n_param_fnSelectDisplayName_vcard_paramHasAppellation_app <https://w3id.org/function/vocabulary/mapping#implementationProperty> "app" .
+_:n_mapping_fnSelectDisplayName_vcard <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnSelectDisplayName_vcard_paramHasAppellation_app .
+_:n_return_fnSelectDisplayName_vcard_dispName <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
+_:n_return_fnSelectDisplayName_vcard_dispName <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayName output ↦ ?dispName"@en .
+_:n_return_fnSelectDisplayName_vcard_dispName <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outSelectDisplayName> .
+_:n_return_fnSelectDisplayName_vcard_dispName <https://w3id.org/function/vocabulary/mapping#implementationProperty> "dispName" .
+_:n_mapping_fnSelectDisplayName_vcard <https://w3id.org/function/ontology#returnMapping> _:n_return_fnSelectDisplayName_vcard_dispName .
 _:n_mapping_fnSelectDisplayableGender_foaf <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
 _:n_mapping_fnSelectDisplayableGender_foaf <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayableGender → foaf (FnO mapping)"@en .
 _:n_mapping_fnSelectDisplayableGender_foaf <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnSelectDisplayableGender> .
@@ -1745,6 +1731,20 @@ _:n_return_fnSelectDisplayableGender_foaf_genderLabel <http://www.w3.org/2000/01
 _:n_return_fnSelectDisplayableGender_foaf_genderLabel <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outSelectDisplayableGender> .
 _:n_return_fnSelectDisplayableGender_foaf_genderLabel <https://w3id.org/function/vocabulary/mapping#implementationProperty> "genderLabel" .
 _:n_mapping_fnSelectDisplayableGender_foaf <https://w3id.org/function/ontology#returnMapping> _:n_return_fnSelectDisplayableGender_foaf_genderLabel .
+_:n_mapping_fnSelectDisplayableGender_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
+_:n_mapping_fnSelectDisplayableGender_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayableGender → schema-org (FnO mapping)"@en .
+_:n_mapping_fnSelectDisplayableGender_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnSelectDisplayableGender> .
+_:n_mapping_fnSelectDisplayableGender_schema_org <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implSchemaOrg> .
+_:n_param_fnSelectDisplayableGender_schema_org_paramHasGenderIdentity_gi <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
+_:n_param_fnSelectDisplayableGender_schema_org_paramHasGenderIdentity_gi <http://www.w3.org/2000/01/rdf-schema#label> "paramHasGenderIdentity ↦ ?gi"@en .
+_:n_param_fnSelectDisplayableGender_schema_org_paramHasGenderIdentity_gi <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasGenderIdentity> .
+_:n_param_fnSelectDisplayableGender_schema_org_paramHasGenderIdentity_gi <https://w3id.org/function/vocabulary/mapping#implementationProperty> "gi" .
+_:n_mapping_fnSelectDisplayableGender_schema_org <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnSelectDisplayableGender_schema_org_paramHasGenderIdentity_gi .
+_:n_return_fnSelectDisplayableGender_schema_org_genderLabel <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
+_:n_return_fnSelectDisplayableGender_schema_org_genderLabel <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectDisplayableGender output ↦ ?genderLabel"@en .
+_:n_return_fnSelectDisplayableGender_schema_org_genderLabel <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outSelectDisplayableGender> .
+_:n_return_fnSelectDisplayableGender_schema_org_genderLabel <https://w3id.org/function/vocabulary/mapping#implementationProperty> "genderLabel" .
+_:n_mapping_fnSelectDisplayableGender_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnSelectDisplayableGender_schema_org_genderLabel .
 _:n_mapping_fnSelectEndonym_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
 _:n_mapping_fnSelectEndonym_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnSelectEndonym → schema-org (FnO mapping)"@en .
 _:n_mapping_fnSelectEndonym_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnSelectEndonym> .
@@ -1830,34 +1830,6 @@ _:n_return_fnTaggingToAnnotation_web_annotation_tagging <http://www.w3.org/2000/
 _:n_return_fnTaggingToAnnotation_web_annotation_tagging <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outTaggingToAnnotation> .
 _:n_return_fnTaggingToAnnotation_web_annotation_tagging <https://w3id.org/function/vocabulary/mapping#implementationProperty> "tagging" .
 _:n_mapping_fnTaggingToAnnotation_web_annotation <https://w3id.org/function/ontology#returnMapping> _:n_return_fnTaggingToAnnotation_web_annotation_tagging .
-_:n_mapping_fnWebPageToUrl_vcard <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
-_:n_mapping_fnWebPageToUrl_vcard <http://www.w3.org/2000/01/rdf-schema#label> "fnWebPageToUrl → vcard (FnO mapping)"@en .
-_:n_mapping_fnWebPageToUrl_vcard <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnWebPageToUrl> .
-_:n_mapping_fnWebPageToUrl_vcard <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implVcard> .
-_:n_param_fnWebPageToUrl_vcard_paramHasWebPage_wp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
-_:n_param_fnWebPageToUrl_vcard_paramHasWebPage_wp <http://www.w3.org/2000/01/rdf-schema#label> "paramHasWebPage ↦ ?wp"@en .
-_:n_param_fnWebPageToUrl_vcard_paramHasWebPage_wp <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasWebPage> .
-_:n_param_fnWebPageToUrl_vcard_paramHasWebPage_wp <https://w3id.org/function/vocabulary/mapping#implementationProperty> "wp" .
-_:n_mapping_fnWebPageToUrl_vcard <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnWebPageToUrl_vcard_paramHasWebPage_wp .
-_:n_return_fnWebPageToUrl_vcard_wp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
-_:n_return_fnWebPageToUrl_vcard_wp <http://www.w3.org/2000/01/rdf-schema#label> "fnWebPageToUrl output ↦ ?wp"@en .
-_:n_return_fnWebPageToUrl_vcard_wp <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outWebPageToUrl> .
-_:n_return_fnWebPageToUrl_vcard_wp <https://w3id.org/function/vocabulary/mapping#implementationProperty> "wp" .
-_:n_mapping_fnWebPageToUrl_vcard <https://w3id.org/function/ontology#returnMapping> _:n_return_fnWebPageToUrl_vcard_wp .
-_:n_mapping_fnWebPageToUrl_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
-_:n_mapping_fnWebPageToUrl_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnWebPageToUrl → schema-org (FnO mapping)"@en .
-_:n_mapping_fnWebPageToUrl_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnWebPageToUrl> .
-_:n_mapping_fnWebPageToUrl_schema_org <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implSchemaOrg> .
-_:n_param_fnWebPageToUrl_schema_org_paramHasWebPage_wp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
-_:n_param_fnWebPageToUrl_schema_org_paramHasWebPage_wp <http://www.w3.org/2000/01/rdf-schema#label> "paramHasWebPage ↦ ?wp"@en .
-_:n_param_fnWebPageToUrl_schema_org_paramHasWebPage_wp <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasWebPage> .
-_:n_param_fnWebPageToUrl_schema_org_paramHasWebPage_wp <https://w3id.org/function/vocabulary/mapping#implementationProperty> "wp" .
-_:n_mapping_fnWebPageToUrl_schema_org <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnWebPageToUrl_schema_org_paramHasWebPage_wp .
-_:n_return_fnWebPageToUrl_schema_org_wp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
-_:n_return_fnWebPageToUrl_schema_org_wp <http://www.w3.org/2000/01/rdf-schema#label> "fnWebPageToUrl output ↦ ?wp"@en .
-_:n_return_fnWebPageToUrl_schema_org_wp <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outWebPageToUrl> .
-_:n_return_fnWebPageToUrl_schema_org_wp <https://w3id.org/function/vocabulary/mapping#implementationProperty> "wp" .
-_:n_mapping_fnWebPageToUrl_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnWebPageToUrl_schema_org_wp .
 _:n_mapping_fnWebPageToUrl_foaf <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
 _:n_mapping_fnWebPageToUrl_foaf <http://www.w3.org/2000/01/rdf-schema#label> "fnWebPageToUrl → foaf (FnO mapping)"@en .
 _:n_mapping_fnWebPageToUrl_foaf <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnWebPageToUrl> .
@@ -1872,3 +1844,31 @@ _:n_return_fnWebPageToUrl_foaf_wp <http://www.w3.org/2000/01/rdf-schema#label> "
 _:n_return_fnWebPageToUrl_foaf_wp <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outWebPageToUrl> .
 _:n_return_fnWebPageToUrl_foaf_wp <https://w3id.org/function/vocabulary/mapping#implementationProperty> "wp" .
 _:n_mapping_fnWebPageToUrl_foaf <https://w3id.org/function/ontology#returnMapping> _:n_return_fnWebPageToUrl_foaf_wp .
+_:n_mapping_fnWebPageToUrl_schema_org <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
+_:n_mapping_fnWebPageToUrl_schema_org <http://www.w3.org/2000/01/rdf-schema#label> "fnWebPageToUrl → schema-org (FnO mapping)"@en .
+_:n_mapping_fnWebPageToUrl_schema_org <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnWebPageToUrl> .
+_:n_mapping_fnWebPageToUrl_schema_org <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implSchemaOrg> .
+_:n_param_fnWebPageToUrl_schema_org_paramHasWebPage_wp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
+_:n_param_fnWebPageToUrl_schema_org_paramHasWebPage_wp <http://www.w3.org/2000/01/rdf-schema#label> "paramHasWebPage ↦ ?wp"@en .
+_:n_param_fnWebPageToUrl_schema_org_paramHasWebPage_wp <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasWebPage> .
+_:n_param_fnWebPageToUrl_schema_org_paramHasWebPage_wp <https://w3id.org/function/vocabulary/mapping#implementationProperty> "wp" .
+_:n_mapping_fnWebPageToUrl_schema_org <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnWebPageToUrl_schema_org_paramHasWebPage_wp .
+_:n_return_fnWebPageToUrl_schema_org_wp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
+_:n_return_fnWebPageToUrl_schema_org_wp <http://www.w3.org/2000/01/rdf-schema#label> "fnWebPageToUrl output ↦ ?wp"@en .
+_:n_return_fnWebPageToUrl_schema_org_wp <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outWebPageToUrl> .
+_:n_return_fnWebPageToUrl_schema_org_wp <https://w3id.org/function/vocabulary/mapping#implementationProperty> "wp" .
+_:n_mapping_fnWebPageToUrl_schema_org <https://w3id.org/function/ontology#returnMapping> _:n_return_fnWebPageToUrl_schema_org_wp .
+_:n_mapping_fnWebPageToUrl_vcard <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/ontology#Mapping> .
+_:n_mapping_fnWebPageToUrl_vcard <http://www.w3.org/2000/01/rdf-schema#label> "fnWebPageToUrl → vcard (FnO mapping)"@en .
+_:n_mapping_fnWebPageToUrl_vcard <https://w3id.org/function/ontology#function> <https://blackcatinformatics.ca/gmeow/fnWebPageToUrl> .
+_:n_mapping_fnWebPageToUrl_vcard <https://w3id.org/function/ontology#implementation> <https://blackcatinformatics.ca/gmeow/implVcard> .
+_:n_param_fnWebPageToUrl_vcard_paramHasWebPage_wp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#PropertyParameterMapping> .
+_:n_param_fnWebPageToUrl_vcard_paramHasWebPage_wp <http://www.w3.org/2000/01/rdf-schema#label> "paramHasWebPage ↦ ?wp"@en .
+_:n_param_fnWebPageToUrl_vcard_paramHasWebPage_wp <https://w3id.org/function/vocabulary/mapping#functionParameter> <https://blackcatinformatics.ca/gmeow/paramHasWebPage> .
+_:n_param_fnWebPageToUrl_vcard_paramHasWebPage_wp <https://w3id.org/function/vocabulary/mapping#implementationProperty> "wp" .
+_:n_mapping_fnWebPageToUrl_vcard <https://w3id.org/function/ontology#parameterMapping> _:n_param_fnWebPageToUrl_vcard_paramHasWebPage_wp .
+_:n_return_fnWebPageToUrl_vcard_wp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/function/vocabulary/mapping#DefaultReturnMapping> .
+_:n_return_fnWebPageToUrl_vcard_wp <http://www.w3.org/2000/01/rdf-schema#label> "fnWebPageToUrl output ↦ ?wp"@en .
+_:n_return_fnWebPageToUrl_vcard_wp <https://w3id.org/function/vocabulary/mapping#functionOutput> <https://blackcatinformatics.ca/gmeow/outWebPageToUrl> .
+_:n_return_fnWebPageToUrl_vcard_wp <https://w3id.org/function/vocabulary/mapping#implementationProperty> "wp" .
+_:n_mapping_fnWebPageToUrl_vcard <https://w3id.org/function/ontology#returnMapping> _:n_return_fnWebPageToUrl_vcard_wp .

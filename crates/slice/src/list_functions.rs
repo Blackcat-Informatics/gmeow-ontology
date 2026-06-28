@@ -241,7 +241,7 @@ pub fn emit_list_functions() -> String {
         std::collections::BTreeMap::from([("x-gmeow-english".to_owned(), "en".to_owned())]);
     let quads: Vec<gmeow_rdf::RdfQuad> = gmeow_rdf::fno::to_quads(&cat)
         .into_iter()
-        .map(|q| crate::fno_emit::retag_quad(q, &tag_map))
+        .map(|q| crate::mapping_support::retag_quad(q, &tag_map))
         .collect();
     quads.iter().map(gmeow_rdf::turtle::emit_quad).collect()
 }

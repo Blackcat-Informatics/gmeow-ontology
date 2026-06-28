@@ -24,7 +24,7 @@ use std::path::Path;
 use oxigraph::model::NamedNode;
 
 use crate::error::SliceError;
-use crate::sparql_emit::{collect_dsl_store, object_literal, subjects_of_type};
+use crate::mapping_support::{collect_dsl_store, object_literal, subjects_of_type};
 
 // gmeow class IRIs the stats counts (full IRIs derived from the Python `GM.<name>`).
 const GM_TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
@@ -36,10 +36,10 @@ const GM_SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 /// Emit the DSL surface-count summary as committed JSON text.
 ///
 /// All inputs are sourced natively from `root` (the shared mapping-DSL tree + the
-/// slice mapping artifacts — the same merged store [`emit_sparql_sets`] parses).
+/// slice mapping artifacts — the same merged store [`collect_dsl_store`] parses).
 /// The text is byte-identical to the historical Python DSL stats emitter.
 ///
-/// [`emit_sparql_sets`]: crate::sparql_emit::emit_sparql_sets
+/// [`collect_dsl_store`]: crate::mapping_support::collect_dsl_store
 ///
 /// # Errors
 ///

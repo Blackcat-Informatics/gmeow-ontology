@@ -1,58 +1,46 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native cross-layer consistency lint for the projection stack (#854).
+//! Native cross-layer consistency lint for the projection stack.
 //!
 //! The alignment stack represents the same mappings four ways — SSSOM (1:1 term
 //! links), EDOAL (complex cells), FnO (the transform functions), and SPARQL
-//! CONSTRUCT (the executors) — plus the ontology. Each can drift independently. This
-//! is the SUBSUME/ENHANCE move that pulls the three Python `projection_lint`
-//! invariants (`gmeow_tools.projection_lint`, pure rdflib) into the native slice
-//! framework so their problems can surface as canonical diagnostics
-//! (`mapping-compile.fno-type` / `.fno-ref` / `.spec-drift`) folded into the dev-gate
-//! report (the SARIF/JSON/HTML + `gmeow.gts` projections, #809/#654).
+//! CONSTRUCT (the executors) — plus the ontology. The EDOAL and SPARQL dialects now
+//! lower from one shared get-leg model, so the historical CONSTRUCT↔EDOAL↔SSSOM
+//! drift is gone by construction; the two remaining cross-layer invariants surface
+//! as canonical diagnostics (`mapping-compile.fno-type` / `.fno-ref`) folded into the
+//! dev-gate report (the SARIF/JSON/HTML + `gmeow.gts` projections).
 //!
-//! The three checks (mirroring the retired Python, message wording preserved):
+//! The two checks (mirroring the retired Python, message wording preserved):
 //!
 //! * [`fno_type_mismatches`] — an `fno:Parameter`/`fno:Output` whose `fno:predicate`
 //!   is a GMEOW property with a declared `rdfs:range` must declare an `fno:type` equal
 //!   to that range.
 //! * [`fno_reference_integrity`] — every FnO function an EDOAL cell invokes via
 //!   `edoal:transformation` must be a defined `fno:Function`.
-//! * [`projection_spec_drift`] — for each profile, every target-vocabulary term a
-//!   CONSTRUCT executor emits must be declared in the spec (an EDOAL cell or an SSSOM
-//!   alignment), and no EDOAL cell may be dead (declare a term the executor never
-//!   emits).
 //!
 //! ## Inputs — the committed `generated/` tree
 //!
 //! The lint reads the **committed** rendered artifacts under `root`
-//! (`generated/projections/*.{fno.ttl,edoal.ttl}`, `generated/queries/*.rq`), exactly
-//! the default-arg behaviour of the Python trio (`PROJECTIONS_DIR` /
-//! `PROJECTION_QUERY_DIR`). FnO/EDOAL/SPARQL emission is itself native, but only the
-//! FnO + SSSOM emitters have PyO3 bindings, so re-emitting the `.rq` queries in-memory
-//! is not yet possible; reading the committed tree is the correct semantic anyway —
-//! the finding is over the *shipped* surface (`gmeow.gts`). The ontology
-//! `rdfs:range`s come from the shared [`fno_emit::collect_ontology_store`] (one source
-//! of truth with the emitter), and the SSSOM `aligned` set from the DSL-derived
-//! [`mapping_emit::alignment_terms`] (byte-parity with the committed `*.sssom.tsv`).
+//! (`generated/projections/*.{fno.ttl,edoal.ttl}`). The finding is over the *shipped*
+//! surface (`gmeow.gts`). The ontology `rdfs:range`s come from the shared
+//! [`crate::mapping_support::collect_ontology_store`] (one source of truth with the
+//! correspondence lowerings).
 //!
 //! ## Why this lives in `gmeow-slice`
 //!
-//! `gmeow-slice` is the one crate that owns the FnO/SSSOM/EDOAL emitters and the
-//! ontology-merge machinery the lint reuses; `gmeow-rdf-core` is oxigraph-free (#885)
-//! and cannot host an oxigraph-parsing, ontology-reading consistency check.
+//! `gmeow-slice` is the one crate that owns the ontology-merge machinery the lint
+//! reuses; `gmeow-rdf-core` is oxigraph-free and cannot host an oxigraph-parsing,
+//! ontology-reading consistency check.
 
 use std::collections::BTreeSet;
 use std::path::Path;
 
 use oxigraph::model::{GraphNameRef, NamedNode, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
-use regex::Regex;
 
 use crate::error::SliceError;
-use crate::fno_emit::{collect_ontology_store, predicate_ranges};
-use crate::mapping_emit::{alignment_terms, PREFIX_REGISTRY};
+use crate::mapping_support::{collect_ontology_store, predicate_ranges};
 
 // ── Namespace constants ───────────────────────────────────────────────────────
 
@@ -66,79 +54,12 @@ const FNO_PREDICATE: &str = "https://w3id.org/function/ontology#predicate";
 const FNO_TYPE: &str = "https://w3id.org/function/ontology#type";
 
 const ALIGN_CELL: &str = "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#Cell";
-const ALIGN_ENTITY2: &str = "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#entity2";
 const EDOAL_TRANSFORMATION: &str = "http://ns.inria.org/edoal/1.0/#transformation";
-const EDOAL_URI: &str = "http://ns.inria.org/edoal/1.0/#uri";
 
 /// The FnO catalog files (projection transforms + the language conversion catalog),
 /// mirroring `projection_lint._FNO_FILES`.
 const FNO_FUNCTIONS_FILE: &str = "functions.fno.ttl";
 const FNO_TRANSFORMS_FILE: &str = "transforms.fno.ttl";
-
-/// Each projection profile and the target-vocabulary prefixes it emits — a verbatim
-/// port of the Python `projection_lint._PROFILE_TARGETS`. The `spec-drift` check is
-/// scoped to exactly these profiles + prefixes; the `_STRUCTURAL_OUTPUTS` allowlist
-/// below is tuned against the terms these emit.
-const PROFILE_TARGETS: &[(&str, &[&str])] = &[
-    ("schema-org", &["schema"]),
-    // vcardx: the RFC-9554 extension namespace (PRONOUNS) — checked alongside vcard:
-    // so the new vcardx:* output stays under CONSTRUCT↔EDOAL↔SSSOM drift.
-    ("vcard", &["vcard", "vcardx"]),
-    ("foaf", &["foaf", "wgs84"]),
-    ("geosparql", &["geo"]),
-    ("ical", &["ical"]),
-    ("owl-time", &["time"]),
-    ("bot", &["bot"]),
-    // Rights module (#21): the structural ODRL policy + CC REL licence projections.
-    ("odrl", &["odrl"]),
-    ("cc", &["cc"]),
-    ("dcterms", &["dcterms"]),
-    ("oai_dc", &["dc"]),
-    ("spdx", &["spdx"]),
-    ("sosa", &["sosa", "geo"]),
-    // Image super-ontology (#22)
-    ("iiif", &["iiif", "oa"]),
-    ("exif", &["exif"]),
-    // Transpiler coverage profiles (#34 phases 2-3)
-    ("org", &["org"]),
-    ("bibo", &["bibo"]),
-    // bibframe's minted identifier nodes carry their value via rdf:value.
-    ("bibframe", &["bibframe", "rdf"]),
-    ("gedcom", &["gedcom"]),
-    ("sioc", &["sioc"]),
-];
-
-/// Target terms a compose/decompose transform legitimately MINTS — intermediate
-/// nodes, linking properties, composed literals and datatypes. Outputs of declared
-/// FnO transforms (no standalone EDOAL/SSSOM cell). A verbatim port of the Python
-/// `projection_lint._STRUCTURAL_OUTPUTS`.
-const STRUCTURAL_OUTPUTS: &[&str] = &[
-    "http://www.w3.org/2006/time#inXSDDateTime",
-    "https://schema.org/reviewRating",
-    "https://schema.org/DataDownload",
-    "https://schema.org/mainEntityOfPage",
-    "https://schema.org/Quotation",
-    "https://schema.org/DataFeedItem",
-    "https://schema.org/dataFeedElement",
-    "https://schema.org/CommunicateAction",
-    "https://schema.org/potentialAction",
-    "https://schema.org/target",
-    "http://id.loc.gov/ontologies/bibframe/Doi",
-    "http://id.loc.gov/ontologies/bibframe/Identifier",
-    "http://www.w3.org/1999/02/22-rdf-syntax-ns#value",
-    "http://rdfs.org/sioc/ns#container_of",
-    "http://www.w3.org/2000/10/swap/pim/gedcom#spouseIn",
-    "http://www.w3.org/2006/vcard/ns#hasName",
-    "http://www.w3.org/2006/vcard/ns#Name",
-    "http://www.w3.org/2006/vcard/ns#hasAddress",
-    "http://www.w3.org/2006/vcard/ns#label",
-    "http://www.w3.org/2006/vcard/ns#hasGeo",
-    "http://www.w3.org/2006/vcard/ns#Geo",
-    "http://www.w3.org/2006/vcard/ns#latitude",
-    "http://www.w3.org/2006/vcard/ns#longitude",
-    "http://www.opengis.net/ont/geosparql#wktLiteral",
-    "http://www.opengis.net/ont/geosparql#geoJSONLiteral",
-];
 
 // ── Diagnostic carrier ───────────────────────────────────────────────────────
 
@@ -150,8 +71,8 @@ const STRUCTURAL_OUTPUTS: &[&str] = &[
 pub struct ProjectionDiagnostic {
     /// Severity token: `"ERROR"`, `"WARNING"`, or `"INFO"`.
     pub severity: String,
-    /// The drift family: `fno-type`, `fno-ref`, or `spec-drift`. The Python finding
-    /// leg maps this to the canonical code `mapping-compile.<check>`.
+    /// The drift family: `fno-type` or `fno-ref`. The finding leg maps this to the
+    /// canonical code `mapping-compile.<check>`.
     pub check: String,
     /// A stable per-check code (same value as `check`); carried for dict parity with
     /// the SSSOM validator's `code` slot.
@@ -162,8 +83,7 @@ pub struct ProjectionDiagnostic {
     /// undefined function IRI, or the drifting target term), or `None`.
     pub instance: Option<String>,
     /// For alignment-direction findings, the SSSOM row CURIEs that the finding is
-    /// about. These are `None` for projection-stack findings (`fno-type`, `fno-ref`,
-    /// `spec-drift`).
+    /// about. These are `None` for projection-stack findings (`fno-type`, `fno-ref`).
     pub subject_id: Option<String>,
     pub predicate_id: Option<String>,
     pub object_id: Option<String>,
@@ -206,23 +126,21 @@ impl ProjectionDiagnostic {
 /// [`ProjectionDiagnostic`].
 ///
 /// An empty result means the projection stack and SSSOM alignments are internally
-/// consistent. Projection checks run first (`fno-type` → `fno-ref` → `spec-drift`),
-/// then alignment checks (`inverse-direction`, `domain-range`, `property-character`,
+/// consistent. Projection checks run first (`fno-type` → `fno-ref`), then alignment
+/// checks (`inverse-direction`, `domain-range`, `property-character`,
 /// `equivalence-collapse`, `dc-refinement`, `dc-hand-authored`). The combined list is
 /// sorted deterministically by severity → check → instance.
 ///
 /// # Errors
 ///
 /// Returns [`SliceError`] on any missing/unparsable required source (a committed
-/// artifact, the ontology, an SSSOM source) or a `_PROFILE_TARGETS` prefix absent
-/// from the curated [`PREFIX_REGISTRY`] — no degraded fallback (CONSTITUTION /
+/// artifact, the ontology, an SSSOM source) — no degraded fallback (CONSTITUTION /
 /// no-compromises).
 pub fn lint_projection(
     root: &Path,
     allow_network: bool,
 ) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
     let projections = root.join("generated").join("projections");
-    let queries = root.join("generated").join("queries");
 
     let onto = collect_ontology_store(root)?;
     let fno = fno_catalog_store(root, &projections)?;
@@ -230,7 +148,6 @@ pub fn lint_projection(
     let mut out: Vec<ProjectionDiagnostic> = Vec::new();
     out.extend(fno_type_mismatches(&onto, &fno)?);
     out.extend(fno_reference_integrity(&fno, &projections)?);
-    out.extend(projection_spec_drift(root, &projections, &queries)?);
     out.extend(crate::alignment_lint::lint_alignment_directions(
         root,
         allow_network,
@@ -305,8 +222,8 @@ fn fno_reference_integrity(
                         continue;
                     };
                     let iri = nn.as_str();
-                    // Last path segment — split on `/` OR `#`, matching the sibling
-                    // `fno_emit::local` helper. A future-proofing superset of the retired
+                    // Last path segment — split on `/` OR `#`, matching the FnO IRI
+                    // local-name convention. A future-proofing superset of the retired
                     // Python `/`-only split: no behaviour change on any current FnO IRI
                     // (all `…/fn…`), but a `#fn…` function IRI is extracted correctly.
                     let local = iri.rsplit(['/', '#']).next().unwrap_or(iri);
@@ -322,113 +239,6 @@ fn fno_reference_integrity(
         }
     }
     Ok(problems)
-}
-
-// ── Check 3: CONSTRUCT ↔ EDOAL ↔ SSSOM drift ───────────────────────────────────
-
-/// CONSTRUCT↔EDOAL↔SSSOM inconsistencies, per profile (mirrors
-/// `projection_lint.projection_spec_drift`).
-fn projection_spec_drift(
-    root: &Path,
-    projections: &Path,
-    queries: &Path,
-) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
-    // An SSSOM row may place the external term in subject OR object position, so the
-    // `aligned` set carries both endpoints of every equivalence.
-    let aligned = alignment_terms(root)?;
-
-    let mut problems: Vec<ProjectionDiagnostic> = Vec::new();
-    for (profile, prefixes) in PROFILE_TARGETS {
-        let namespaces = prefix_namespaces(prefixes)?;
-
-        let query_text = std::fs::read_to_string(queries.join(format!("{profile}.rq")))
-            .map_err(SliceError::Io)?;
-        let emitted = target_terms_in_query(&query_text, prefixes)?;
-
-        let edoal = edoal_targets(
-            &projections.join(format!("{profile}.edoal.ttl")),
-            &namespaces,
-        )?;
-
-        // declared = EDOAL cells ∪ SSSOM-aligned-in-namespace ∪ structural mints.
-        let mut declared: BTreeSet<String> = edoal.clone();
-        for term in &aligned {
-            if starts_with_any(term, &namespaces) {
-                declared.insert(term.clone());
-            }
-        }
-        for term in STRUCTURAL_OUTPUTS {
-            declared.insert((*term).to_owned());
-        }
-
-        // emitted − declared (sorted): an executor output with no spec cell.
-        for term in emitted.difference(&declared) {
-            problems.push(ProjectionDiagnostic::error(
-                "spec-drift",
-                format!(
-                    "{profile}: {term} emitted by the executor but declared in \
-                     neither EDOAL nor SSSOM"
-                ),
-                Some(term.clone()),
-            ));
-        }
-        // edoal − emitted (sorted): a dead EDOAL cell.
-        for term in edoal.difference(&emitted) {
-            problems.push(ProjectionDiagnostic::error(
-                "spec-drift",
-                format!(
-                    "{profile}: {term} declared in EDOAL but never emitted by the \
-                     {profile}.rq executor (dead cell)"
-                ),
-                Some(term.clone()),
-            ));
-        }
-    }
-    Ok(problems)
-}
-
-/// Target-vocabulary IRIs mentioned in a CONSTRUCT query (comments stripped), mirroring
-/// `projection_lint._target_terms_in_query`'s `\b(prefix):([A-Za-z][\w-]*)` scan.
-fn target_terms_in_query(text: &str, prefixes: &[&str]) -> Result<BTreeSet<String>, SliceError> {
-    let pattern = format!(r"\b({}):([A-Za-z][\w-]*)", prefixes.join("|"));
-    let re = Regex::new(&pattern)
-        .map_err(|e| SliceError::Parse(format!("CURIE scan regex build failed: {e}")))?;
-    let map = prefix_map();
-    let mut out: BTreeSet<String> = BTreeSet::new();
-    for line in text.lines() {
-        let body = line.split('#').next().unwrap_or(line);
-        for caps in re.captures_iter(body) {
-            let prefix = &caps[1];
-            let local = &caps[2];
-            let Some(ns) = map.iter().find(|(p, _)| *p == prefix).map(|(_, ns)| *ns) else {
-                // A profile-declared prefix not in the registry is a hard error
-                // caught by prefix_namespaces above; a match here for an unmapped
-                // prefix is impossible because the alternation only contains
-                // profile prefixes, which are validated. Defensive skip.
-                continue;
-            };
-            out.insert(format!("{ns}{local}"));
-        }
-    }
-    Ok(out)
-}
-
-/// Target-vocabulary IRIs an EDOAL file declares (its cells' `entity2`/`edoal:uri`),
-/// mirroring `projection_lint._edoal_targets`.
-fn edoal_targets(path: &Path, namespaces: &[String]) -> Result<BTreeSet<String>, SliceError> {
-    let store = parse_ttl(path)?;
-    let mut out: BTreeSet<String> = BTreeSet::new();
-    for cell in subject_terms_of_type(&store, ALIGN_CELL)? {
-        let Some(entity2) = first_object_of_term(&store, &cell, ALIGN_ENTITY2)? else {
-            continue;
-        };
-        if let Some(uri) = first_object_iri_of_term(&store, &entity2, EDOAL_URI)? {
-            if starts_with_any(&uri, namespaces) {
-                out.insert(uri);
-            }
-        }
-    }
-    Ok(out)
 }
 
 // ── Source loading ─────────────────────────────────────────────────────────────
@@ -471,37 +281,6 @@ fn edoal_files(projections: &Path) -> Result<Vec<std::path::PathBuf>, SliceError
     Ok(out)
 }
 
-// ── Prefix resolution ──────────────────────────────────────────────────────────
-
-/// The curated prefix → namespace map (the static [`PREFIX_REGISTRY`], the
-/// `config.PREFIXES` authority the Python lint reads).
-fn prefix_map() -> &'static [(&'static str, &'static str)] {
-    PREFIX_REGISTRY
-}
-
-/// The namespace IRIs for a profile's prefixes — hard-fails if any prefix is absent
-/// from the curated registry (the `PREFIXES[p]` KeyError, made explicit).
-fn prefix_namespaces(prefixes: &[&str]) -> Result<Vec<String>, SliceError> {
-    let map = prefix_map();
-    prefixes
-        .iter()
-        .map(|p| {
-            map.iter()
-                .find(|(name, _)| name == p)
-                .map(|(_, ns)| (*ns).to_owned())
-                .ok_or_else(|| {
-                    SliceError::Parse(format!(
-                        "projection-lint: profile prefix `{p}` is not in the curated PREFIX_REGISTRY"
-                    ))
-                })
-        })
-        .collect()
-}
-
-fn starts_with_any(term: &str, namespaces: &[String]) -> bool {
-    namespaces.iter().any(|ns| term.starts_with(ns))
-}
-
 /// Format a sorted IRI list as Python's `sorted(...)` list repr (`['a', 'b']`), so the
 /// `fno-type` message is byte-identical to the retired Python lint.
 fn py_list_repr(items: &[String]) -> String {
@@ -515,9 +294,9 @@ fn py_list_repr(items: &[String]) -> String {
 
 // ── oxigraph store helpers ─────────────────────────────────────────────────────
 //
-// The same trivial parse/query boilerplate each sibling emitter repeats
-// (fno_emit / mapping_emit / sparql_emit); kept local so the lint reads its own
-// committed-tree stores without widening the emitters' query surface.
+// The same trivial parse/query boilerplate the shared `mapping_support` helpers use;
+// kept local so the lint reads its own committed-tree stores without widening the
+// shared support surface.
 
 fn new_store() -> Result<Store, SliceError> {
     Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))
@@ -592,8 +371,8 @@ fn term_subject(term: &Term) -> Option<NamedOrBlankNode> {
 }
 
 /// Every subject (named OR blank) of `?s a <type_iri>`, as a [`Term`]. EDOAL
-/// `align:Cell` nodes are minted as stable blank nodes (`edoal_emit::_stable_bnode`),
-/// so the cell scan must carry blank-node subjects — unlike the FnO
+/// `align:Cell` nodes are minted as stable blank nodes by the EDOAL correspondence
+/// lowering, so the cell scan must carry blank-node subjects — unlike the FnO
 /// `fno:Parameter`/`Function` IRIs that [`subjects_of_type`] handles.
 fn subject_terms_of_type(store: &Store, type_iri: &str) -> Result<Vec<Term>, SliceError> {
     let rdf_type = NamedNode::new(RDF_TYPE)
@@ -635,47 +414,9 @@ fn objects_of_term(store: &Store, subject: &Term, pred: &str) -> Result<Vec<Term
     Ok(out)
 }
 
-fn first_object_of_term(
-    store: &Store,
-    subject: &Term,
-    pred: &str,
-) -> Result<Option<Term>, SliceError> {
-    Ok(objects_of_term(store, subject, pred)?.into_iter().next())
-}
-
-fn first_object_iri_of_term(
-    store: &Store,
-    subject: &Term,
-    pred: &str,
-) -> Result<Option<String>, SliceError> {
-    match first_object_of_term(store, subject, pred)? {
-        Some(Term::NamedNode(nn)) => Ok(Some(nn.as_str().to_owned())),
-        _ => Ok(None),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    /// Every `_PROFILE_TARGETS` prefix MUST resolve in the curated registry — the
-    /// load-bearing parity point for byte-faithful `spec-drift` (the Python
-    /// `PREFIXES[p]` lookup). A drifted/renamed prefix is a hard error.
-    #[test]
-    fn every_profile_prefix_resolves_in_registry() {
-        for (profile, prefixes) in PROFILE_TARGETS {
-            for p in *prefixes {
-                assert!(
-                    PREFIX_REGISTRY.iter().any(|(name, _)| name == p),
-                    "profile {profile}: prefix `{p}` missing from PREFIX_REGISTRY"
-                );
-            }
-        }
-        // And the resolver agrees.
-        for (_, prefixes) in PROFILE_TARGETS {
-            assert!(prefix_namespaces(prefixes).is_ok());
-        }
-    }
 
     /// A param whose `fno:type` disagrees with its predicate's ontology `rdfs:range`
     /// is flagged; an agreeing one is clean.
@@ -794,78 +535,6 @@ mod tests {
             "expected the #-separated undefined ref flagged"
         );
         assert!(probs[0].message.contains("fnGamma"));
-    }
-
-    /// The CURIE scan honors word boundaries and comment stripping, and resolves to
-    /// full namespace IRIs.
-    #[test]
-    fn curie_scan_matches_python_semantics() {
-        let text = "CONSTRUCT { ?s schema:name ?n }  # schema:ignored in comment\n\
-                    WHERE { ?s xschema:nope ?x ; vcardx:pronouns ?p }\n";
-        let terms = target_terms_in_query(text, &["schema", "vcardx"]).unwrap();
-        assert!(terms.contains("https://schema.org/name"));
-        // vcardx resolves via the registry (RFC-9554 extension namespace).
-        assert!(terms.iter().any(|t| t.ends_with("pronouns")));
-        // comment-stripped + word-boundary: schema:ignored / xschema:nope excluded.
-        assert!(!terms.contains("https://schema.org/ignored"));
-        assert!(!terms.iter().any(|t| t.ends_with("nope")));
-    }
-
-    /// A `spec-drift`: an EDOAL cell declaring a term the executor never emits is a
-    /// dead cell; an emitted term with no spec cell is undeclared.
-    #[test]
-    fn spec_drift_dead_cell_and_undeclared() {
-        let tmp = tempfile::tempdir().unwrap();
-        let root = tmp.path();
-        let proj = root.join("generated").join("projections");
-        let queries = root.join("generated").join("queries");
-        std::fs::create_dir_all(&proj).unwrap();
-        std::fs::create_dir_all(&queries).unwrap();
-
-        // schema-org profile: EDOAL declares schema:deadTerm; the .rq emits
-        // schema:liveTerm. With no SSSOM alignment, each side drifts.
-        write_ttl(
-            &proj.join("schema-org.edoal.ttl"),
-            "@prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .\n\
-             @prefix edoal: <http://ns.inria.org/edoal/1.0/#> .\n\
-             [] a align:Cell ; align:entity2 [ edoal:uri <https://schema.org/deadTerm> ] .\n",
-        );
-        std::fs::write(
-            queries.join("schema-org.rq"),
-            "CONSTRUCT { ?s schema:liveTerm ?o } WHERE { ?s ?p ?o }\n",
-        )
-        .unwrap();
-        // Every other profile needs an (empty) .rq + .edoal.ttl so the loop reads them.
-        for (profile, _) in PROFILE_TARGETS {
-            if *profile == "schema-org" {
-                continue;
-            }
-            std::fs::write(
-                queries.join(format!("{profile}.rq")),
-                "CONSTRUCT {} WHERE {}\n",
-            )
-            .unwrap();
-            write_ttl(
-                &proj.join(format!("{profile}.edoal.ttl")),
-                "@prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .\n",
-            );
-        }
-        // Minimal SSSOM source set so alignment_terms() succeeds (empty alignment).
-        std::fs::create_dir_all(root.join("dsl").join("mappings")).unwrap();
-
-        let probs = projection_spec_drift(root, &proj, &queries).unwrap();
-        let msgs: Vec<&str> = probs.iter().map(|p| p.message.as_str()).collect();
-        assert!(
-            msgs.iter()
-                .any(|m| m.contains("deadTerm") && m.contains("dead cell")),
-            "expected dead-cell drift, got {msgs:?}"
-        );
-        assert!(
-            msgs.iter()
-                .any(|m| m.contains("liveTerm") && m.contains("neither EDOAL nor SSSOM")),
-            "expected undeclared-emission drift, got {msgs:?}"
-        );
-        assert!(probs.iter().all(|p| p.check == "spec-drift"));
     }
 
     // ── helpers ────────────────────────────────────────────────────────────────

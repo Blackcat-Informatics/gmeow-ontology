@@ -5,18 +5,14 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
 CONSTRUCT {
-    ?scheme a skos:ConceptScheme .
     ?tag a skos:Concept .
     ?tag skos:prefLabel ?label .
     ?tag skos:broader ?broader .
     ?tag skos:inScheme ?scheme .
+    ?scheme a skos:ConceptScheme .
 }
 WHERE {
     {
-        ?scheme a gmeow:TagScheme .
-        FILTER NOT EXISTS { ?scheme gmeow:displayable false . }
-    }
-    UNION {
         ?tag a gmeow:Tag .
         OPTIONAL {
             ?tag rdfs:label ?label .
@@ -28,5 +24,9 @@ WHERE {
             ?tag gmeow:tagInScheme ?scheme .
         }
         FILTER NOT EXISTS { ?tag gmeow:displayable false . }
+    }
+    UNION {
+        ?scheme a gmeow:TagScheme .
+        FILTER NOT EXISTS { ?scheme gmeow:displayable false . }
     }
 }

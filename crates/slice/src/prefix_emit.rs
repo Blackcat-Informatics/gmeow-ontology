@@ -3,7 +3,7 @@
 
 //! Prefix-set projections (#1009 §2): the importable named prefix set
 //! (`gmeow:CorePrefixes`) and the JSON-LD `@context` document — both *projections*
-//! of the single prefix authority [`crate::mapping_emit::PREFIX_REGISTRY`].
+//! of the single prefix authority [`crate::mapping_support::PREFIX_REGISTRY`].
 //!
 //! The article's §2 win is "generalize `sh:declare`": instead of every SHACL
 //! shape / `.rq` author redeclaring the same prefixes, publish ONE named set,
@@ -19,7 +19,7 @@
 //! `PREFIX_REGISTRY`, so it is deterministic by construction (no blank-node
 //! canonicalization, no wall-clock content).
 
-use crate::mapping_emit::PREFIX_REGISTRY;
+use crate::mapping_support::PREFIX_REGISTRY;
 
 /// IRI of the importable named prefix set.
 pub const CORE_PREFIXES_IRI: &str = "https://blackcatinformatics.ca/gmeow/CorePrefixes";

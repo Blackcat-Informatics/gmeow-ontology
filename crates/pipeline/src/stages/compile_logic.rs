@@ -32,7 +32,9 @@ use std::path::{Path, PathBuf};
 
 use gmeow_diagnostics::{Finding, Location, Severity};
 use gmeow_logic_compile::frontend::parse_logic_str;
-use gmeow_logic_compile::projections::compile_program;
+use gmeow_logic_compile::projections::report::ReportHeader;
+use gmeow_logic_compile::projections::{compile_program, ProjectionResult};
+use serde::{Deserialize, Serialize};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
@@ -56,7 +58,30 @@ pub const CANONICAL_RDF12_PATH: &str = "generated/logic/gmeow.logic.rdf12.ttl";
 /// Committed Nemo (`.rls`) projection.
 pub const RULES_PATH: &str = "generated/logic/gmeow.rls";
 /// Committed projection-report loss ledger (preservation kinds + lossy drops).
+///
+/// NOTE: the COMMITTED file at this path is now assembled by `stage-mappings`, which
+/// unions the logic projection rows (handed over via [`LOGIC_PROJECTIONS_CHANNEL`]) with
+/// the correspondence-calculus loss ledger and serializes the report ONCE. `stage-snapshot`
+/// reads it from the mappings product.
 pub const PROJECTION_REPORT_PATH: &str = "generated/logic/projection-report.ttl";
+
+/// In-memory dataflow channel (the `pipeline/` prefix is never written to disk): the
+/// JSON-encoded logic projection rows + report-header counts compile-logic hands to
+/// the mappings stage so the latter can assemble the FINAL projection report over the
+/// union of the logic rows and the correspondence ledger.
+pub const LOGIC_PROJECTIONS_CHANNEL: &str = "pipeline/logic-projections.json";
+
+/// The payload of [`LOGIC_PROJECTIONS_CHANNEL`]: the logic program's projection rows
+/// (the seven whole-program targets + the per-shape `property-path:<iri>` rows) and the
+/// three report-header counts, so the mappings stage can re-serialize the report over
+/// the union without re-running the logic compiler.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogicProjectionsChannel {
+    /// The report-header counts (`axiomCount`/`ruleCount`/`profileCount`).
+    pub header: ReportHeader,
+    /// The logic projection rows that fed the compiler's own (diagnostics-only) report.
+    pub projections: Vec<ProjectionResult>,
+}
 
 /// Committed JSON projection of the compile diagnostics report.
 pub const DIAG_JSON_PATH: &str = "generated/diagnostics/logic-compile.json";
@@ -134,7 +159,21 @@ impl Stage for CompileLogicStage {
             arts.canonical_rdf12.into_bytes(),
         );
         artifacts.insert(RULES_PATH.to_string(), arts.nemo.into_bytes());
-        artifacts.insert(PROJECTION_REPORT_PATH.to_string(), arts.report.into_bytes());
+
+        // The COMMITTED projection report is no longer emitted here: the loss ledger
+        // must carry BOTH the logic projection rows AND the correspondence-calculus
+        // rows, and the correspondences are reconstructed only in the mappings stage.
+        // Hand the logic rows + header counts to mappings over the in-memory channel;
+        // mappings assembles + emits the final `PROJECTION_REPORT_PATH`.
+        let channel = LogicProjectionsChannel {
+            header: arts.report_header,
+            projections: arts.logic_projections.clone(),
+        };
+        artifacts.insert(
+            LOGIC_PROJECTIONS_CHANNEL.to_string(),
+            serde_json::to_vec(&channel)
+                .map_err(|e| stage_err(format!("encode logic-projections channel: {e}")))?,
+        );
 
         // The compile diagnostics: the front-end parse findings (already coded
         // `logic-compile.<code>` by the shared bridge) plus one note finding per
@@ -221,7 +260,9 @@ mod tests {
             GUFO_PATH,
             CANONICAL_RDF12_PATH,
             RULES_PATH,
-            PROJECTION_REPORT_PATH,
+            // The in-memory channel that hands the logic projection rows + header
+            // counts to stage-mappings (which assembles the committed report).
+            LOGIC_PROJECTIONS_CHANNEL,
             DIAG_JSON_PATH,
             DIAG_SARIF_PATH,
             DIAG_HTML_PATH,
@@ -229,6 +270,11 @@ mod tests {
         ] {
             assert!(arts.contains_key(path), "missing artifact {path}");
         }
+        // The committed projection report is now produced by stage-mappings, NOT here.
+        assert!(
+            !arts.contains_key(PROJECTION_REPORT_PATH),
+            "compile-logic must no longer emit the committed projection report"
+        );
         // The loss ledger reaches SARIF as note-level lossy-drop findings.
         let sarif: serde_json::Value =
             serde_json::from_slice(&arts[DIAG_SARIF_PATH]).expect("SARIF is JSON");
@@ -241,8 +287,17 @@ mod tests {
                 .any(|r| r["ruleId"] == "logic-compile.lossy-drop"),
             "expected at least one logic-compile.lossy-drop finding in SARIF"
         );
-        // The projection report is the loss ledger, not empty.
-        let report = std::str::from_utf8(&arts[PROJECTION_REPORT_PATH]).unwrap();
-        assert!(report.contains("ProjectionReport"), "report missing type");
+        // The logic-projections channel carries the rows + header counts the mappings
+        // stage unions with the correspondence ledger to build the committed report.
+        let channel: LogicProjectionsChannel =
+            serde_json::from_slice(&arts[LOGIC_PROJECTIONS_CHANNEL]).expect("channel is JSON");
+        assert!(
+            !channel.projections.is_empty(),
+            "logic projection rows must be handed over to mappings"
+        );
+        assert!(
+            channel.header.axiom_count > 0,
+            "report header axiom count must be populated"
+        );
     }
 }
