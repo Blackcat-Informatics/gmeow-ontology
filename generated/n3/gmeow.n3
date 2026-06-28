@@ -16,5 +16,15 @@
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability> .
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeVerdict> <https://blackcatinformatics.ca/logic/ObligationDischarged> .
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim' .
+<https://blackcatinformatics.ca/logic/levelCompetent> <https://blackcatinformatics.ca/logic/levelAtOrAbove> <https://blackcatinformatics.ca/logic/levelCompetent> .
+<https://blackcatinformatics.ca/logic/levelCompetent> <https://blackcatinformatics.ca/logic/levelAtOrAbove> <https://blackcatinformatics.ca/logic/levelEmerging> .
+<https://blackcatinformatics.ca/logic/levelCompetent> <https://blackcatinformatics.ca/logic/levelAtOrAbove> <https://blackcatinformatics.ca/logic/levelNone> .
+<https://blackcatinformatics.ca/logic/levelEmerging> <https://blackcatinformatics.ca/logic/levelAtOrAbove> <https://blackcatinformatics.ca/logic/levelEmerging> .
+<https://blackcatinformatics.ca/logic/levelEmerging> <https://blackcatinformatics.ca/logic/levelAtOrAbove> <https://blackcatinformatics.ca/logic/levelNone> .
+<https://blackcatinformatics.ca/logic/levelNone> <https://blackcatinformatics.ca/logic/levelAtOrAbove> <https://blackcatinformatics.ca/logic/levelNone> .
+<https://blackcatinformatics.ca/logic/levelStrong> <https://blackcatinformatics.ca/logic/levelAtOrAbove> <https://blackcatinformatics.ca/logic/levelCompetent> .
+<https://blackcatinformatics.ca/logic/levelStrong> <https://blackcatinformatics.ca/logic/levelAtOrAbove> <https://blackcatinformatics.ca/logic/levelEmerging> .
+<https://blackcatinformatics.ca/logic/levelStrong> <https://blackcatinformatics.ca/logic/levelAtOrAbove> <https://blackcatinformatics.ca/logic/levelNone> .
+<https://blackcatinformatics.ca/logic/levelStrong> <https://blackcatinformatics.ca/logic/levelAtOrAbove> <https://blackcatinformatics.ca/logic/levelStrong> .
 
 # === Rules ===
