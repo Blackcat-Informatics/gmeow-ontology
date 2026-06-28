@@ -1,0 +1,6 @@
+{
+  "https://example.org/cognition/calibration-forecast-series/world": {
+    "quads": 7,
+    "status": "consistent"
+  }
+}

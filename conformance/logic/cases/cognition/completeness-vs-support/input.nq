@@ -1,0 +1,4 @@
+<https://example.org/cognition/completeness-vs-support/rrProvisional> <https://blackcatinformatics.ca/logic/resultInformation> <https://blackcatinformatics.ca/logic/InfoSupported> <https://example.org/cognition/completeness-vs-support/world> .
+<https://example.org/cognition/completeness-vs-support/rrProvisional> <https://blackcatinformatics.ca/logic/resultCompleteness> <https://blackcatinformatics.ca/logic/Incomplete> <https://example.org/cognition/completeness-vs-support/world> .
+<https://example.org/cognition/completeness-vs-support/rrConclusive> <https://blackcatinformatics.ca/logic/resultInformation> <https://blackcatinformatics.ca/logic/InfoSupported> <https://example.org/cognition/completeness-vs-support/world> .
+<https://example.org/cognition/completeness-vs-support/rrConclusive> <https://blackcatinformatics.ca/logic/resultCompleteness> <https://blackcatinformatics.ca/logic/CompleteForFragment> <https://example.org/cognition/completeness-vs-support/world> .

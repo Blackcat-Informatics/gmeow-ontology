@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: cognition/calibration-forecast-series
+# AC (ME12, design/LOGIC-COGNITION.md §Calibration assessment names an explicit series):
+# a calibration assessment names an explicit forecast/outcome series with a scoring
+# rule and reference class, kept APART from a single confidence value.
+#
+# Rule ex:isSeriesCalibration fires ONLY when a CognitiveAssessment has BOTH
+# logic:assessmentEvidence (the series) AND logic:assessmentMethod (the scoring rule)
+# in addition to being dimensioned on logic:dimensionCalibration.
+#
+# A bare logic:confidence value on loneConfidence carries none of those series
+# attributes, so loneConfidence does NOT satisfy the rule body — proving that the
+# series-based framing is distinct from a single numeric confidence expression.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/cognition/calibration-forecast-series/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+ex:ruleIsSeriesCalibration a logic:Rule ;
+    logic:provenance ex:ruleIsSeriesCalibration ;
+    logic:head [ rdf:subject "?a" ; rdf:predicate ex:isSeriesCalibration ; rdf:object "?a" ] ;
+    logic:body [ rdf:subject "?a" ; rdf:predicate logic:assessmentDimension ; rdf:object logic:dimensionCalibration ] ,
+               [ rdf:subject "?a" ; rdf:predicate logic:assessmentEvidence ; rdf:object "?series" ] ,
+               [ rdf:subject "?a" ; rdf:predicate logic:assessmentMethod ; rdf:object "?rule" ] .
