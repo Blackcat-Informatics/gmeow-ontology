@@ -66,12 +66,7 @@ impl PyGtsFoldView {
     }
 
     fn term_tuple(&self, tid: usize) -> PyResult<PyTermRow> {
-        let term = self
-            .inner
-            .graph()
-            .terms
-            .get(tid)
-            .ok_or_else(|| PyValueError::new_err(format!("term id out of range: {tid}")))?;
+        let term = self.term_ref(tid)?;
         Ok((
             term_kind_int(term.kind),
             term.value.clone(),
@@ -82,39 +77,48 @@ impl PyGtsFoldView {
         ))
     }
 
-    fn is_iri(&self, tid: usize) -> bool {
-        self.inner.is_iri(tid)
+    fn is_iri(&self, tid: usize) -> PyResult<bool> {
+        self.ensure_tid(tid)?;
+        Ok(self.inner.is_iri(tid))
     }
 
-    fn is_bnode(&self, tid: usize) -> bool {
-        self.inner.is_bnode(tid)
+    fn is_bnode(&self, tid: usize) -> PyResult<bool> {
+        self.ensure_tid(tid)?;
+        Ok(self.inner.is_bnode(tid))
     }
 
-    fn is_literal(&self, tid: usize) -> bool {
-        self.inner.is_literal(tid)
+    fn is_literal(&self, tid: usize) -> PyResult<bool> {
+        self.ensure_tid(tid)?;
+        Ok(self.inner.is_literal(tid))
     }
 
-    fn iri(&self, tid: usize) -> Option<String> {
-        self.inner.iri(tid).map(str::to_string)
+    fn iri(&self, tid: usize) -> PyResult<Option<String>> {
+        self.ensure_tid(tid)?;
+        Ok(self.inner.iri(tid).map(str::to_string))
     }
 
-    fn lex(&self, tid: usize) -> String {
-        self.inner.lex(tid).to_string()
+    fn lex(&self, tid: usize) -> PyResult<String> {
+        self.ensure_tid(tid)?;
+        Ok(self.inner.lex(tid).to_string())
     }
 
-    fn lang(&self, tid: usize) -> Option<String> {
-        self.inner.lang(tid).map(str::to_string)
+    fn lang(&self, tid: usize) -> PyResult<Option<String>> {
+        self.ensure_tid(tid)?;
+        Ok(self.inner.lang(tid).map(str::to_string))
     }
 
-    fn datatype(&self, tid: usize) -> String {
-        self.inner.datatype(tid)
+    fn datatype(&self, tid: usize) -> PyResult<String> {
+        self.ensure_tid(tid)?;
+        Ok(self.inner.datatype(tid))
     }
 
-    fn nq_token(&self, tid: usize) -> String {
-        self.inner.nq_token(tid)
+    fn nq_token(&self, tid: usize) -> PyResult<String> {
+        self.ensure_tid(tid)?;
+        Ok(self.inner.nq_token(tid))
     }
 
     fn python_value<'py>(&self, py: Python<'py>, tid: usize) -> PyResult<Py<PyAny>> {
+        self.ensure_tid(tid)?;
         match self.inner.public_value(tid) {
             PublicValue::Iri(value) | PublicValue::Blank(value) | PublicValue::String(value) => {
                 Ok(value.into_pyobject(py)?.unbind().into())
@@ -232,7 +236,26 @@ impl PyGtsFoldView {
     }
 
     fn relational_rows<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        relational_rows_dict(py, self.inner.relational_rows())
+        relational_rows_dict(
+            py,
+            self.inner
+                .relational_rows()
+                .map_err(PyValueError::new_err)?,
+        )
+    }
+}
+
+impl PyGtsFoldView {
+    fn term_ref(&self, tid: usize) -> PyResult<&Term> {
+        self.inner
+            .graph()
+            .terms
+            .get(tid)
+            .ok_or_else(|| PyValueError::new_err(format!("term id out of range: {tid}")))
+    }
+
+    fn ensure_tid(&self, tid: usize) -> PyResult<()> {
+        self.term_ref(tid).map(|_| ())
     }
 }
 
@@ -242,7 +265,10 @@ fn gts_relational_rows_from_bytes<'py>(
     data: &[u8],
 ) -> PyResult<Bound<'py, PyDict>> {
     let graph = gmeow_gts::reader::read(data, true, None);
-    relational_rows_dict(py, crate::gts_view::relational_rows(&graph))
+    relational_rows_dict(
+        py,
+        crate::gts_view::relational_rows(&graph).map_err(PyValueError::new_err)?,
+    )
 }
 
 #[pyfunction]
@@ -288,6 +314,11 @@ fn graph_from_parts(
     reifiers: Vec<(usize, (usize, usize, usize))>,
     annotations: Vec<(usize, usize, usize)>,
 ) -> PyResult<Graph> {
+    let term_count = terms.len();
+    validate_terms(&terms, term_count)?;
+    validate_quads(&quads, term_count)?;
+    validate_reifiers(&reifiers, term_count)?;
+    validate_annotations(&annotations, term_count)?;
     Ok(Graph {
         terms: terms
             .into_iter()
@@ -319,6 +350,65 @@ fn term_kind(kind: u8) -> PyResult<TermKind> {
             "unknown GTS term kind: {kind}"
         ))),
     }
+}
+
+fn validate_terms(terms: &[PyTermRow], term_count: usize) -> PyResult<()> {
+    for (idx, (_, _value, datatype, _lang, _direction, reifier)) in terms.iter().enumerate() {
+        validate_optional_term_id(*datatype, term_count, &format!("terms[{idx}].datatype"))?;
+        validate_optional_term_id(*reifier, term_count, &format!("terms[{idx}].reifier"))?;
+    }
+    Ok(())
+}
+
+fn validate_quads(
+    quads: &[(usize, usize, usize, Option<usize>)],
+    term_count: usize,
+) -> PyResult<()> {
+    for (idx, (s, p, o, g)) in quads.iter().enumerate() {
+        validate_term_id(*s, term_count, &format!("quads[{idx}].s"))?;
+        validate_term_id(*p, term_count, &format!("quads[{idx}].p"))?;
+        validate_term_id(*o, term_count, &format!("quads[{idx}].o"))?;
+        validate_optional_term_id(*g, term_count, &format!("quads[{idx}].g"))?;
+    }
+    Ok(())
+}
+
+fn validate_reifiers(
+    reifiers: &[(usize, (usize, usize, usize))],
+    term_count: usize,
+) -> PyResult<()> {
+    for (idx, (r, (s, p, o))) in reifiers.iter().enumerate() {
+        validate_term_id(*r, term_count, &format!("reifiers[{idx}].reifier"))?;
+        validate_term_id(*s, term_count, &format!("reifiers[{idx}].s"))?;
+        validate_term_id(*p, term_count, &format!("reifiers[{idx}].p"))?;
+        validate_term_id(*o, term_count, &format!("reifiers[{idx}].o"))?;
+    }
+    Ok(())
+}
+
+fn validate_annotations(annotations: &[(usize, usize, usize)], term_count: usize) -> PyResult<()> {
+    for (idx, (r, p, v)) in annotations.iter().enumerate() {
+        validate_term_id(*r, term_count, &format!("annotations[{idx}].reifier"))?;
+        validate_term_id(*p, term_count, &format!("annotations[{idx}].predicate"))?;
+        validate_term_id(*v, term_count, &format!("annotations[{idx}].value"))?;
+    }
+    Ok(())
+}
+
+fn validate_optional_term_id(tid: Option<usize>, term_count: usize, label: &str) -> PyResult<()> {
+    if let Some(tid) = tid {
+        validate_term_id(tid, term_count, label)?;
+    }
+    Ok(())
+}
+
+fn validate_term_id(tid: usize, term_count: usize, label: &str) -> PyResult<()> {
+    if tid < term_count {
+        return Ok(());
+    }
+    Err(PyValueError::new_err(format!(
+        "{label} term id out of range: {tid} >= {term_count}"
+    )))
 }
 
 fn term_kind_int(kind: TermKind) -> u8 {

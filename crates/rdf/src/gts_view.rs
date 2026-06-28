@@ -65,9 +65,16 @@ pub struct RelationalRows {
 pub struct GtsFoldView {
     graph: Graph,
     iri_index: BTreeMap<String, usize>,
-    spo: BTreeMap<String, BTreeMap<usize, Vec<(usize, usize)>>>,
-    po: BTreeMap<String, BTreeMap<(usize, usize), Vec<usize>>>,
+    spo: BTreeMap<ScopeKey, BTreeMap<usize, Vec<(usize, usize)>>>,
+    po: BTreeMap<ScopeKey, BTreeMap<(usize, usize), Vec<usize>>>,
     tag_map: BTreeMap<String, String>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+enum ScopeKey {
+    Default,
+    All,
+    Named(usize),
 }
 
 impl GtsFoldView {
@@ -138,24 +145,20 @@ impl GtsFoldView {
             TermKind::Literal => {
                 let lex = self.lex(tid).to_string();
                 let datatype = self.datatype(tid);
-                if datatype == format!("{XSD}integer") {
+                let xsd_type = datatype.strip_prefix(XSD);
+                if xsd_type == Some("integer") {
                     return lex
                         .parse::<i64>()
                         .map(PublicValue::Integer)
                         .unwrap_or(PublicValue::String(lex));
                 }
-                if matches!(
-                    datatype.as_str(),
-                    "http://www.w3.org/2001/XMLSchema#decimal"
-                        | "http://www.w3.org/2001/XMLSchema#double"
-                        | "http://www.w3.org/2001/XMLSchema#float"
-                ) {
+                if matches!(xsd_type, Some("decimal" | "double" | "float")) {
                     return lex
                         .parse::<f64>()
                         .map(PublicValue::Float)
                         .unwrap_or(PublicValue::String(lex));
                 }
-                if datatype == format!("{XSD}boolean") {
+                if xsd_type == Some("boolean") {
                     return PublicValue::Boolean(matches!(
                         lex.to_ascii_lowercase().as_str(),
                         "true" | "1"
@@ -184,17 +187,20 @@ impl GtsFoldView {
     }
 
     pub fn quads(&self, scope: Option<&str>) -> Vec<Quad> {
-        let key = scope_key(scope);
-        if key == ALL_SCOPE {
+        let Some(key) = self.scope_key(scope) else {
+            return Vec::new();
+        };
+        if key == ScopeKey::All {
             return self.graph.quads.clone();
         }
+        let graph_scope = graph_term_for_scope(key);
         self.spo
-            .get(key)
+            .get(&key)
             .map(|subjects| {
                 let mut rows = Vec::new();
                 for (&s, pairs) in subjects {
                     for &(p, o) in pairs {
-                        rows.push((s, p, o, graph_term_for_scope(&self.graph, key)));
+                        rows.push((s, p, o, graph_scope));
                     }
                 }
                 rows
@@ -208,10 +214,13 @@ impl GtsFoldView {
         else {
             return Vec::new();
         };
+        let Some(key) = self.scope_key(scope) else {
+            return Vec::new();
+        };
         let mut out = BTreeSet::new();
         if let Some(subjects) = self
             .po
-            .get(scope_key(scope))
+            .get(&key)
             .and_then(|idx| idx.get(&(type_tid, class_tid)))
         {
             out.extend(subjects.iter().copied());
@@ -223,12 +232,11 @@ impl GtsFoldView {
         let Some(p_tid) = self.tid_of_iri(p_iri) else {
             return Vec::new();
         };
+        let Some(key) = self.scope_key(scope) else {
+            return Vec::new();
+        };
         let mut out = BTreeSet::new();
-        if let Some(rows) = self
-            .spo
-            .get(scope_key(scope))
-            .and_then(|idx| idx.get(&s_tid))
-        {
+        if let Some(rows) = self.spo.get(&key).and_then(|idx| idx.get(&s_tid)) {
             for &(p, o) in rows {
                 if p == p_tid {
                     out.insert(o);
@@ -241,16 +249,15 @@ impl GtsFoldView {
     pub fn value(&self, s_tid: usize, p_iri: &str, scope: Option<&str>) -> Option<usize> {
         self.objects(s_tid, p_iri, scope)
             .into_iter()
-            .min_by(|&a, &b| self.nq_token(a).cmp(&self.nq_token(b)))
+            .min_by_key(|&tid| self.nq_token(tid))
     }
 
     pub fn predicate_objects(&self, s_tid: usize, scope: Option<&str>) -> Vec<(usize, usize)> {
+        let Some(key) = self.scope_key(scope) else {
+            return Vec::new();
+        };
         let mut out = BTreeSet::new();
-        if let Some(rows) = self
-            .spo
-            .get(scope_key(scope))
-            .and_then(|idx| idx.get(&s_tid))
-        {
+        if let Some(rows) = self.spo.get(&key).and_then(|idx| idx.get(&s_tid)) {
             out.extend(rows.iter().copied());
         }
         out.into_iter().collect()
@@ -260,8 +267,11 @@ impl GtsFoldView {
         let Some(p_tid) = self.tid_of_iri(p_iri) else {
             return false;
         };
+        let Some(key) = self.scope_key(scope) else {
+            return false;
+        };
         self.spo
-            .get(scope_key(scope))
+            .get(&key)
             .and_then(|idx| idx.get(&s_tid))
             .is_some_and(|rows| rows.contains(&(p_tid, o_tid)))
     }
@@ -337,11 +347,9 @@ impl GtsFoldView {
         if candidates.is_empty() {
             return (String::new(), None);
         }
-        candidates.sort_by_key(|&tid| {
-            (
-                self.lang(tid).unwrap_or("").to_string(),
-                self.lex(tid).to_string(),
-            )
+        candidates.sort_by(|&a, &b| {
+            (self.lang(a).unwrap_or(""), self.lex(a))
+                .cmp(&(self.lang(b).unwrap_or(""), self.lex(b)))
         });
         let mut ranked = candidates.clone();
         ranked.sort_by_key(|&tid| rank_language(self.lang(tid).unwrap_or("")));
@@ -392,7 +400,7 @@ impl GtsFoldView {
         self.filter_literals(&candidates, requested)
     }
 
-    pub fn relational_rows(&self) -> RelationalRows {
+    pub fn relational_rows(&self) -> Result<RelationalRows, String> {
         relational_rows(&self.graph)
     }
 
@@ -408,13 +416,10 @@ impl GtsFoldView {
 
     fn build_quad_indexes(&mut self) {
         for &(s, p, o, g) in &self.graph.quads {
-            let scope = match g {
-                Some(gid) => self.graph.terms[gid].value.clone().unwrap_or_default(),
-                None => DEFAULT_SCOPE.to_string(),
-            };
-            for key in [scope, ALL_SCOPE.to_string()] {
+            let scope = g.map(ScopeKey::Named).unwrap_or(ScopeKey::Default);
+            for key in [scope, ScopeKey::All] {
                 self.spo
-                    .entry(key.clone())
+                    .entry(key)
                     .or_default()
                     .entry(s)
                     .or_default()
@@ -541,12 +546,26 @@ impl GtsFoldView {
         }
         None
     }
+
+    fn scope_key(&self, scope: Option<&str>) -> Option<ScopeKey> {
+        match scope {
+            Some(ALL_SCOPE) => Some(ScopeKey::All),
+            Some(scope) => self.tid_of_iri(scope).map(ScopeKey::Named),
+            None => Some(ScopeKey::Default),
+        }
+    }
 }
 
 type LitRow = (String, Option<String>, String);
 
-pub fn relational_rows(graph: &Graph) -> RelationalRows {
-    RelationalRows {
+pub fn relational_rows(graph: &Graph) -> Result<RelationalRows, String> {
+    let blobs = graph
+        .blobs
+        .iter()
+        .map(|(digest, entry)| decoded_blob(entry).map(|bytes| (digest.clone(), bytes)))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(RelationalRows {
         terms: graph
             .terms
             .iter()
@@ -569,16 +588,8 @@ pub fn relational_rows(graph: &Graph) -> RelationalRows {
             .map(|&(r, (s, p, o))| (r, s, p, o))
             .collect(),
         annotations: graph.annotations.clone(),
-        blobs: graph
-            .blobs
-            .iter()
-            .filter_map(|(digest, entry)| {
-                decoded_blob(entry)
-                    .ok()
-                    .map(|bytes| (digest.clone(), bytes))
-            })
-            .collect(),
-    }
+        blobs,
+    })
 }
 
 fn decoded_blob(entry: &BlobEntry) -> Result<Vec<u8>, String> {
@@ -587,22 +598,11 @@ fn decoded_blob(entry: &BlobEntry) -> Result<Vec<u8>, String> {
         .map_err(|err| format!("cannot decode blob: {err:?}"))
 }
 
-fn scope_key(scope: Option<&str>) -> &str {
+fn graph_term_for_scope(scope: ScopeKey) -> Option<usize> {
     match scope {
-        Some(ALL_SCOPE) => ALL_SCOPE,
-        Some(scope) => scope,
-        None => DEFAULT_SCOPE,
+        ScopeKey::Named(tid) => Some(tid),
+        ScopeKey::Default | ScopeKey::All => None,
     }
-}
-
-fn graph_term_for_scope(graph: &Graph, scope: &str) -> Option<usize> {
-    if scope == DEFAULT_SCOPE || scope == ALL_SCOPE {
-        return None;
-    }
-    graph
-        .terms
-        .iter()
-        .position(|term| term.kind == TermKind::Iri && term.value.as_deref() == Some(scope))
 }
 
 fn term_kind_int(kind: TermKind) -> u8 {
@@ -894,7 +894,7 @@ mod tests {
     #[test]
     fn relational_rows_keep_dictionary_ids() {
         let view = test_view();
-        let rows = view.relational_rows();
+        let rows = view.relational_rows().expect("relational rows");
         assert_eq!(rows.terms.len(), view.graph().terms.len());
         assert_eq!(rows.quads.len(), view.graph().quads.len());
         assert_eq!(rows.reifiers, vec![(16, 0, 1, 2)]);
