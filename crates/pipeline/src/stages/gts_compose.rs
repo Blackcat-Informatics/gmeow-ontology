@@ -20,9 +20,6 @@ use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
 use crate::stages::source_load::dataset_to_sorted_nquads;
 
-/// Logical path of the composed dataset (N-Quads, in-memory dataflow).
-pub const COMPOSED_PATH: &str = "pipeline/composed.nq";
-
 /// Compose the upstream products into one frozen dataset by [`RdfDataset::union`]
 /// over the four producing stages' `bundle.dataset` handles — the base graph
 /// (`source_load`), the RDF 1.2 statement layer (`statements`), the alignment
@@ -128,10 +125,12 @@ fn default_graph_only(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, PipelineE
     })
 }
 
-/// [`compose`] projected to the deterministic sorted N-Quads byte form (the
-/// `composed.nq` dataflow lane). The reason stage uses this to seed the reasoner's
-/// input; `gts_compose`'s stage impl uses it for the COMPOSED_PATH byte lane that
-/// downstream `snapshot` reads until C3.
+/// [`compose`] projected to the deterministic sorted N-Quads byte form. The reason
+/// stage uses this to seed the reasoner's input EDB (its `dataset_from_bytes`). This
+/// is the SOLE consumer of the composed value's byte projection: the composed dataset
+/// itself rides the stage product's `bundle.dataset()` carrier (#1132 C2/C11), so there
+/// is no `composed.nq` artifact byte lane — `snapshot` and every other consumer take the
+/// carried dataset, not a re-parsed byte artifact.
 pub fn compose_nquads(upstream: &BTreeMap<String, StageProduct>) -> Result<Vec<u8>, PipelineError> {
     let composed = compose(upstream)?;
     dataset_to_sorted_nquads(&composed)
@@ -183,14 +182,17 @@ impl Stage for GtsComposeStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         // Assemble the composed dataset natively by unioning the upstream stages'
         // carried datasets (#1132 C2). The stage's product carries the composed
-        // DATASET as its bundle's frozen dataset AND the deterministic COMPOSED_PATH
-        // N-Quads byte lane (projected from the union) for the pre-C3 byte readers.
+        // DATASET as its bundle's frozen dataset — the SOLE carrier. The old
+        // `pipeline/composed.nq` byte-transport artifact (#1132 C11) is retired: every
+        // consumer reads the carried dataset, and `reason` re-projects the byte EDB it
+        // needs through `compose_nquads` itself, so the artifact had no reader.
         let composed = compose(input.upstream)?;
-        let composed_nq = dataset_to_sorted_nquads(&composed)?;
-        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(COMPOSED_PATH.to_string(), composed_nq);
         Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(self.id(), Arc::new(composed), artifacts),
+            product: StageProduct::from_artifacts_over(
+                self.id(),
+                Arc::new(composed),
+                BTreeMap::new(),
+            ),
         })
     }
 }
