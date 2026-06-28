@@ -37,8 +37,11 @@
 
 use std::collections::BTreeSet;
 
-use gmeow_logic_compile::compat::ContradictionPolicy;
 use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
+
+// Re-export so consumers (e.g. the validator) reach the contradiction policy
+// through the coherence module rather than depending on logic-compile directly.
+pub use gmeow_logic_compile::compat::ContradictionPolicy;
 
 use crate::result::{
     Assumption, BudgetUsage, CompletenessStatus, ContradictionWitness, EngineId, EvaluationStatus,

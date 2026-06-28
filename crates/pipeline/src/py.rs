@@ -304,7 +304,7 @@ fn fold_release_bundle_native(
     signer_secret_armor: String,
     public_key_armor: String,
 ) -> PyResult<Py<PyAny>> {
-    use crate::stages::release::{fold_release_bundle, EvidenceInput};
+    use crate::stages::release::{build_coherence_evidence, fold_release_bundle, EvidenceInput};
 
     // Load the Ed25519 signing material from the armored secret key in Rust
     // (no key handling in Python beyond reading the file bytes).
@@ -332,6 +332,11 @@ fn fold_release_bundle_native(
     let snapshot = snapshot_bytes.to_vec();
     let bytes = py
         .detach(move || {
+            // Auto-include the scoped coherence certificate as one more signed
+            // evidence artifact over the SAME snapshot being folded + signed, so it
+            // rides the existing Ed25519 bundle signature (no new signing step).
+            let mut inputs = inputs;
+            inputs.push(build_coherence_evidence(&snapshot, &issued_at)?);
             fold_release_bundle(
                 &snapshot,
                 inputs,

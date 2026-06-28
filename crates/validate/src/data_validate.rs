@@ -180,7 +180,12 @@ fn deep_consistency_findings(
     let user = data_dataset(data_bytes, data_format)?;
     let result = gmeow_logic::reason::reason_all_with_data(bundle.dataset.as_ref(), user.as_ref())
         .map_err(|e| format!("native reasoning failed: {e}"))?;
-    crate::validate_all::fold_reasoning_result(&result, report);
+    // Classical native DL semantics over the merged data (see fold_reasoning_result).
+    crate::validate_all::fold_reasoning_result(
+        &result,
+        gmeow_logic::certificate::ContradictionPolicy::DEFAULT,
+        report,
+    );
     Ok(())
 }
 
