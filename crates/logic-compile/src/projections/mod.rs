@@ -17,6 +17,8 @@
 //! claims `ExactPreservation` but dropped content.  [`report::build_projection_report`]
 //! aggregates the loss ledger.
 
+// The FnO correspondence lowering (get-leg transform functions → FnO catalog).
+pub mod fno;
 pub mod paths;
 pub mod rdf;
 pub mod report;

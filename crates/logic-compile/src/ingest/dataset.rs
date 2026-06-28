@@ -214,6 +214,18 @@ impl<'a> DslView<'a> {
         }
     }
 
+    /// Every `(subject, object)` pair of `?s <pred> ?o` in the default graph, in
+    /// dataset order.
+    pub fn quads_with_predicate(&self, pred: &str) -> Vec<(DslTerm, DslTerm)> {
+        let Some(p) = self.iri_id(pred) else {
+            return Vec::new();
+        };
+        self.ds
+            .quads_for_pattern(None, Some(p), None, GraphMatch::Default)
+            .map(|q| (self.term_of(q.s), self.term_of(q.o)))
+            .collect()
+    }
+
     /// The `rdf:type` IRIs of a (named or blank) term.
     pub fn types_of_term(&self, subject: &DslTerm) -> Vec<String> {
         self.objects_of_term(subject, RDF_TYPE)
