@@ -875,8 +875,18 @@ fn walk_expression(e: &gmeow_sparql_algebra::Expression, out: &mut BTreeSet<Name
             }
         }
         E::FunctionCall(func, args) => {
-            if let gmeow_sparql_algebra::Function::Custom(n) = func {
-                insert_oxiri(n, out);
+            match func {
+                // An IRI-named external function references the slice defining it.
+                gmeow_sparql_algebra::Function::Custom(n) => insert_oxiri(n, out),
+                // A gmeow extension function (e.g. gmeow:heldIn) depends on the slice
+                // that declares its vocabulary term — reconstruct its IRI from the
+                // closed local-name so the dependency edge is not lost.
+                gmeow_sparql_algebra::Function::Gmeow(g) => {
+                    if let Ok(nn) = NamedNode::new(format!("{GMEOW_NS}{}", g.local_name())) {
+                        out.insert(nn);
+                    }
+                }
+                _ => {}
             }
             for x in args {
                 walk_expression(x, out);

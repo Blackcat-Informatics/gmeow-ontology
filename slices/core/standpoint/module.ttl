@@ -6,6 +6,7 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix fno: <https://w3id.org/function/ontology#> .
 
 gmeow:Standpoint
     a logic:Kind ,
@@ -706,6 +707,17 @@ gmeow:decomposesToAxis
     gmeow:docsConcern gmeow:concernStandpoints ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxTBox .
+
+gmeow:heldIn
+    a fno:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "held in"@x-gmeow-english ;
+    skos:definition "A boolean SPARQL extension function, gmeow:heldIn(reifier, standpoint): true iff the reified statement's gmeow:accordingTo vantage is the given standpoint, or a standpoint that gmeow:sharpens it — so a claim held in a sharper frame counts as held in the broader one. A direct, non-transitive membership test over the already-reasoned graph: the gmeow:sharpens closure is materialised upstream by the reasoner, never recomputed by the query, so the native logic solver stays the sole reasoning authority."@x-gmeow-english ;
+    skos:example "FILTER( gmeow:heldIn(?r, gmeow:universalStandpoint) )"@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a reasoning primitive — it does NOT compute the gmeow:sharpens transitive closure; if the closure is not materialised in the queried graph it will under-report, so reason first, then query."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Bind a reifier with `?r rdf:reifies <<( ?s ?p ?o )>>`, then call gmeow:heldIn(?r, <standpoint>) in a FILTER; combine with GRAPH <world> to scope a single world while testing standpoint membership."@x-gmeow-english ;
+    gmeow:useWhen "Use to scope a SPARQL query to the claims held in a standpoint (or any sharper standpoint) — the query-surface counterpart of the gmeow:accordingTo / gmeow:sharpens standpoint poset."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/standpoint>
     a owl:Ontology ;

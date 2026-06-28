@@ -24,8 +24,8 @@
 
 use std::cmp::Ordering;
 
-use gmeow_rdf_core::{BlankScope, TermValue};
-use gmeow_sparql_algebra::{Expression, Function, GraphPattern, Variable};
+use gmeow_rdf_core::{BlankScope, DatasetView, GraphMatch, TermValue};
+use gmeow_sparql_algebra::{Expression, Function, GmeowFn, GraphPattern, Variable};
 use gmeow_xsd::{
     effective_boolean_value, numeric_abs, numeric_add, numeric_ceil, numeric_div, numeric_floor,
     numeric_mul, numeric_round, numeric_sub, numeric_unary_minus, numeric_unary_plus, parse_by_iri,
@@ -1220,12 +1220,87 @@ fn eval_function(
             Ok(Some(string_term(ctx, uuid_str)))
         }
 
+        // ---- gmeow extension functions (CLOSED, exhaustive) ----------------
+        Function::Gmeow(GmeowFn::HeldIn) => eval_held_in(&vals, ctx),
+
         // ---- permanent hard errors (never a wrong answer) -----------------
         Function::Custom(iri) => Err(EvalError::unsupported(format!(
             "custom SPARQL function <{}>",
             iri.as_str()
         ))),
     }
+}
+
+/// The canonical gmeow vocabulary IRIs the `gmeow:heldIn` evaluator reads.
+const GMEOW_ACCORDING_TO: &str = "https://blackcatinformatics.ca/gmeow/accordingTo";
+const GMEOW_SHARPENS: &str = "https://blackcatinformatics.ca/gmeow/sharpens";
+
+/// `gmeow:heldIn(reifier, standpoint) -> xsd:boolean` — DIRECT, non-transitive
+/// standpoint membership over the already-reasoned dataset.
+///
+/// Per CONSTITUTION Principle 17 the native logic solver is the sole reasoning
+/// authority: this does NOT walk/compute the `gmeow:sharpens` transitive closure —
+/// it relies on the closure being materialized upstream as direct edges. It returns
+/// true iff some vantage standpoint `T` of the reifier (the objects of the reifier's
+/// `gmeow:accordingTo` annotations) either equals the queried standpoint or has a
+/// direct `(T, gmeow:sharpens, standpoint)` quad (T is more specific than the
+/// queried standpoint, so a claim held in T counts as held in the broader one).
+///
+/// Three-valued: an unbound argument yields `Ok(None)` (a SPARQL error). An argument
+/// absent from the dataset is a well-formed negative answer — `Ok(Some(false))`, not
+/// `None`. Missing `gmeow:accordingTo`/`gmeow:sharpens` interning simply yields no
+/// matches (→ false), which is correct.
+fn eval_held_in(
+    vals: &[Option<TermValue>],
+    ctx: &mut EvalCtx<'_>,
+) -> Result<Option<SolutionTerm>, EvalError> {
+    // Strict in both args: an unbound/error argument is a SPARQL error (None).
+    let (Some(reifier_val), Some(standpoint_val)) = (arg(vals, 0), arg(vals, 1)) else {
+        return Ok(None);
+    };
+
+    // A term absent from the dataset cannot participate in any quad/annotation, so the
+    // function is a clean, well-formed FALSE (not an error).
+    let (Some(reifier_id), Some(standpoint_id)) = (
+        ctx.dataset.term_id_by_value(reifier_val),
+        ctx.dataset.term_id_by_value(standpoint_val),
+    ) else {
+        return Ok(Some(bool_term(ctx, false)));
+    };
+
+    let according_to_id = ctx
+        .dataset
+        .term_id_by_value(&TermValue::Iri(GMEOW_ACCORDING_TO.to_owned()));
+    let sharpens_id = ctx
+        .dataset
+        .term_id_by_value(&TermValue::Iri(GMEOW_SHARPENS.to_owned()));
+
+    // The reifier's vantage standpoint(s): annotation objects under `gmeow:accordingTo`.
+    // If `gmeow:accordingTo` was never interned, there are no vantage standpoints.
+    let held = according_to_id.is_some_and(|atid| {
+        ctx.dataset
+            .annotations_of(reifier_id)
+            .filter(|(pred, _)| *pred == atid)
+            .map(|(_, vantage)| vantage)
+            .any(|vantage| {
+                // Held directly in the queried standpoint, …
+                vantage == standpoint_id
+                    // … or in a standpoint that sharpens (is more specific than) it.
+                    || sharpens_id.is_some_and(|spid| {
+                        ctx.dataset
+                            .quads_for_pattern(
+                                Some(vantage),
+                                Some(spid),
+                                Some(standpoint_id),
+                                GraphMatch::Default,
+                            )
+                            .next()
+                            .is_some()
+                    })
+            })
+    });
+
+    Ok(Some(bool_term(ctx, held)))
 }
 
 /// The value at argument index `i`, if it was bound (not unbound/error).
@@ -2623,6 +2698,93 @@ mod tests {
             ctx.exists_inner_cache.len(),
             1,
             "uncorrelated EXISTS must still populate the memo cache"
+        );
+    }
+
+    // ── gmeow:heldIn extension function ───────────────────────────────────────
+
+    /// Build a dataset with a reifier `R` of a reified statement, annotated
+    /// `R gmeow:accordingTo T1`, plus a direct `T1 gmeow:sharpens T2` edge.
+    /// `T3` is an unrelated standpoint.
+    fn held_in_ds() -> Arc<RdfDataset> {
+        use gmeow_rdf_core::RdfLiteral;
+        let mut b = RdfDatasetBuilder::new();
+        let reifier = b.intern_iri("http://ex/r".to_owned());
+        let s = b.intern_iri("http://ex/s".to_owned());
+        let p = b.intern_iri("http://ex/p".to_owned());
+        let o = b.intern_literal(RdfLiteral::simple("v"));
+        let t1 = b.intern_iri("http://ex/T1".to_owned());
+        let t2 = b.intern_iri("http://ex/T2".to_owned());
+        let _t3 = b.intern_iri("http://ex/T3".to_owned());
+        let according_to = b.intern_iri(GMEOW_ACCORDING_TO.to_owned());
+        let sharpens = b.intern_iri(GMEOW_SHARPENS.to_owned());
+        // The reified triple-term `<<( s p o )>>` and its reifier binding.
+        let triple = b.intern_triple(s, p, o);
+        b.push_reifier(reifier, triple);
+        // The vantage standpoint annotation (annotation side-table).
+        b.push_annotation(reifier, according_to, t1);
+        // The direct, already-materialized sharpens edge (quads table): T1 ⊑ T2.
+        b.push_quad(t1, sharpens, t2, None);
+        b.freeze().expect("freeze")
+    }
+
+    /// Evaluate `gmeow:heldIn(arg0, arg1)` over `ds` and return the EBV
+    /// (`None` ⇒ SPARQL error / unbound).
+    fn held_in(ds: &RdfDataset, arg0: Expression, arg1: Expression) -> Option<bool> {
+        let expr = Expression::FunctionCall(Function::Gmeow(GmeowFn::HeldIn), vec![arg0, arg1]);
+        ebv(ds, &expr)
+    }
+
+    #[test]
+    fn held_in_true_for_equal_standpoint() {
+        let ds = held_in_ds();
+        assert_eq!(
+            held_in(&ds, iri("http://ex/r"), iri("http://ex/T1")),
+            Some(true),
+            "held directly in its own vantage standpoint"
+        );
+    }
+
+    #[test]
+    fn held_in_true_via_direct_sharpens_edge() {
+        let ds = held_in_ds();
+        // T1 sharpens T2, so a claim held in T1 counts as held in the broader T2.
+        assert_eq!(
+            held_in(&ds, iri("http://ex/r"), iri("http://ex/T2")),
+            Some(true),
+            "held in a standpoint that sharpens the queried one"
+        );
+    }
+
+    #[test]
+    fn held_in_false_for_unrelated_standpoint() {
+        let ds = held_in_ds();
+        assert_eq!(
+            held_in(&ds, iri("http://ex/r"), iri("http://ex/T3")),
+            Some(false),
+            "not held in an unrelated standpoint"
+        );
+    }
+
+    #[test]
+    fn held_in_false_for_absent_standpoint() {
+        let ds = held_in_ds();
+        // A standpoint term not in the dataset is a clean negative, not an error.
+        assert_eq!(
+            held_in(&ds, iri("http://ex/r"), iri("http://ex/absent")),
+            Some(false),
+        );
+    }
+
+    #[test]
+    fn held_in_none_for_unbound_arg() {
+        let ds = held_in_ds();
+        // An unbound variable argument is a SPARQL error (None), three-valued.
+        let unbound = Expression::Variable(Variable::new("nope"));
+        assert_eq!(
+            held_in(&ds, unbound, iri("http://ex/T1")),
+            None,
+            "unbound argument ⇒ SPARQL error (None)"
         );
     }
 }

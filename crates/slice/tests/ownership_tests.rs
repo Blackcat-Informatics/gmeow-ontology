@@ -540,14 +540,15 @@ fn declared_but_unowned_term() {
 #[test]
 fn group_aggregate_iri_reaches_dependency_walk() {
     // G4-B regression guard: the previous Group arm in walk_graph_pattern only
-    // walked `inner` and silently dropped the `aggregates` field.  A custom
-    // function IRI referenced ONLY inside an aggregate expression therefore
-    // vanished from the dependency set, creating an invisible build-dep gap.
+    // walked `inner` and silently dropped the `aggregates` field.  A gmeow
+    // extension-function IRI referenced ONLY inside an aggregate expression
+    // therefore vanished from the dependency set, creating an invisible build-dep gap.
     //
-    // This test places `gmeow:termAggFn` EXCLUSIVELY in the aggregated
-    // expression of a GROUP query (`SUM(gmeow:termAggFn(?x))`).  After the fix
-    // the dependency edge must carry `termAggFn` as evidence; before the fix it
-    // would not, and the query edge might not even appear.
+    // This test places `gmeow:heldIn` EXCLUSIVELY in the aggregated expression of a
+    // GROUP query (`SUM(gmeow:heldIn(?x))`).  After the fix the dependency edge must
+    // carry `heldIn` as evidence; before the fix it would not, and the query edge
+    // might not even appear. (A gmeow: IRI in call position must be a real gmeow
+    // extension function; the walker reconstructs its IRI from the closed set.)
     let tmp = TempDir::new().unwrap();
     let root = tmp.path();
 
@@ -564,7 +565,7 @@ fn group_aggregate_iri_reaches_dependency_walk() {
             "@prefix gmeow: <{NS}> .\n\
              @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
              @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
-             gmeow:termAggFn a owl:ObjectProperty ; rdfs:isDefinedBy gmeow:sliceA .\n"
+             gmeow:heldIn a owl:ObjectProperty ; rdfs:isDefinedBy gmeow:sliceA .\n"
         ),
     );
 
@@ -581,7 +582,7 @@ fn group_aggregate_iri_reaches_dependency_walk() {
         "slices/grpB/sliceB/queries/competency/agg.rq",
         &format!(
             "PREFIX gmeow: <{NS}>\n\
-             SELECT ?t (SUM(gmeow:termAggFn(?x)) AS ?total) WHERE {{\n\
+             SELECT ?t (SUM(gmeow:heldIn(?x)) AS ?total) WHERE {{\n\
              ?x a ?t .\n\
              }} GROUP BY ?t\n"
         ),
@@ -604,9 +605,10 @@ fn group_aggregate_iri_reaches_dependency_walk() {
     // The IRI used only inside the aggregate expression must be evidence.
     let referenced: Vec<&NamedNode> = edge.evidence.iter().map(|e| &e.referenced_term).collect();
     assert!(
-        referenced.contains(&&nn("termAggFn")),
-        "termAggFn (referenced only inside a Group aggregate expression) must appear in evidence; \
-         walk_graph_pattern dropped Group aggregates before the G4-B fix"
+        referenced.contains(&&nn("heldIn")),
+        "heldIn (a gmeow extension function referenced only inside a Group aggregate \
+         expression) must appear in evidence; walk_graph_pattern dropped Group aggregates \
+         before the G4-B fix, and the walker must extract gmeow extension-function IRIs"
     );
 }
 
@@ -681,16 +683,18 @@ fn describe_target_iri_reaches_dependency_walk() {
 
 #[test]
 fn order_by_function_iri_reaches_dependency_walk() {
-    // G13: a custom function IRI used only in an ORDER BY key was dropped because
-    // the OrderBy arm matched `..` and never walked `expression`.
+    // G13: a function IRI used only in an ORDER BY key was dropped because the
+    // OrderBy arm matched `..` and never walked `expression`. The IRI is the gmeow
+    // extension function gmeow:heldIn (a gmeow: IRI in call position must be a real
+    // gmeow extension function; the walker reconstructs its IRI from the closed set).
     let ev = query_edge_evidence(
         &format!(
-            "PREFIX gmeow: <{NS}>\nSELECT ?x WHERE {{ ?x gmeow:p ?v }} ORDER BY DESC(gmeow:sortFn(?v))\n"
+            "PREFIX gmeow: <{NS}>\nSELECT ?x WHERE {{ ?x gmeow:p ?v }} ORDER BY DESC(gmeow:heldIn(?v))\n"
         ),
-        "sortFn",
+        "heldIn",
     );
     assert!(
-        ev.contains(&nn("sortFn")),
+        ev.contains(&nn("heldIn")),
         "ORDER BY function IRI must be dependency evidence; got {ev:?}"
     );
 }
