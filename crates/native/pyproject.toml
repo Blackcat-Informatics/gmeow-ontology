@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 # Maturin build configuration for the single unified `gmeow_native` PyO3
-# extension (#630). One cdylib folds in all five engine crates so the
+# extension (#630). One cdylib folds in the engine crates so the
 # diagnostics Report/Finding pyclasses are a single shared type.
 #
 # Run: uvx maturin develop (from crates/native/) or: make native-py (repo root).
@@ -19,7 +19,7 @@ build-backend = "maturin"
 [project]
 name = "gmeow-native"
 version = "0.1.0"
-description = "GMEOW unified PyO3 extension: rdf + diagnostics + shacl + validate + logic in one cdylib (#630)"
+description = "GMEOW unified PyO3 extension: Rust engines in one cdylib (#630)"
 requires-python = ">=3.13"
 license = { text = "AGPL-3.0-only" }
 authors = [{ name = "Blackcat Informatics® Inc." }]

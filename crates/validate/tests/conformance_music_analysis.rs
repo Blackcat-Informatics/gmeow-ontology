@@ -30,6 +30,9 @@
 
 mod conformance_support;
 use conformance_support::*;
+use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
+use gmeow_rdf::parse_dataset;
+use oxigraph::model::Term;
 use rstest::rstest;
 
 /// Turtle prefix block shared by all music analysis conformance tests.
@@ -84,4 +87,156 @@ ex:FakeSubGenre rdfs:subClassOf gmeow:Genre .
 )]
 fn music_analysis(#[case] case: Case) {
     case.run();
+}
+
+fn nt_iri(local: &str) -> String {
+    format!("<https://blackcatinformatics.ca/gmeow/{local}>")
+}
+
+fn nt_term(value: &str) -> String {
+    if value.starts_with("http") {
+        format!("<{value}>")
+    } else {
+        nt_iri(value)
+    }
+}
+
+fn nt_triple(subject: &str, predicate: &str, object: &str) -> String {
+    format!(
+        "{} {} {} .",
+        nt_term(subject),
+        nt_term(predicate),
+        nt_term(object)
+    )
+}
+
+#[test]
+fn music_foundation_tbox_assertions_are_rust_covered() {
+    let nt = base_ontology_nt();
+    let subclass_genre = format!(
+        " <http://www.w3.org/2000/01/rdf-schema#subClassOf> {} .",
+        nt_iri("Genre")
+    );
+    let offenders = nt
+        .lines()
+        .filter(|line| line.contains(&subclass_genre) && !line.starts_with(&nt_iri("Genre")))
+        .collect::<Vec<_>>();
+    assert!(
+        offenders.is_empty(),
+        "Genre must not be subclassed; found: {offenders:?}"
+    );
+
+    for role in ["rolePerformer", "roleConductor", "roleProducer"] {
+        assert!(
+            nt.contains(&nt_triple(
+                role,
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+                "ContributionRole"
+            )),
+            "{role} missing ContributionRole"
+        );
+        assert!(
+            nt.contains(&nt_triple(
+                role,
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+                "ParticipantRole"
+            )),
+            "{role} missing ParticipantRole"
+        );
+    }
+
+    for property in ["derivationSource", "derivationProduct", "realizationMode"] {
+        assert!(
+            nt.contains(&nt_triple(
+                property,
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+                "http://www.w3.org/2002/07/owl#FunctionalProperty"
+            )),
+            "{property} must be functional"
+        );
+    }
+    for property in ["derivationType", "hasGenre"] {
+        assert!(
+            !nt.contains(&nt_triple(
+                property,
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+                "http://www.w3.org/2002/07/owl#FunctionalProperty"
+            )),
+            "{property} must not be functional"
+        );
+    }
+}
+
+fn object_iri(term: &Term) -> Option<&str> {
+    match term {
+        Term::NamedNode(node) => Some(node.as_str()),
+        _ => None,
+    }
+}
+
+fn object_literal(term: &Term) -> Option<&str> {
+    match term {
+        Term::Literal(literal) => Some(literal.value()),
+        _ => None,
+    }
+}
+
+#[test]
+fn work_shapes_do_not_require_notated_realization() {
+    let shapes = read_ttl(&repo_root().join("shapes").join("gmeow-shapes.ttl"));
+    let dataset =
+        parse_dataset(shapes.as_bytes(), "text/turtle", None).expect("parse gmeow shapes");
+    let quads = flat_oxigraph_quads_from_dataset(&dataset).expect("flat quads");
+    let sh_target_class = "http://www.w3.org/ns/shacl#targetClass";
+    let sh_property = "http://www.w3.org/ns/shacl#property";
+    let sh_path = "http://www.w3.org/ns/shacl#path";
+    let sh_has_value = "http://www.w3.org/ns/shacl#hasValue";
+    let sh_min_count = "http://www.w3.org/ns/shacl#minCount";
+    let work = "https://blackcatinformatics.ca/gmeow/Work";
+    let realization_mode = "https://blackcatinformatics.ca/gmeow/realizationMode";
+    let realization_mode_notated = "https://blackcatinformatics.ca/gmeow/realizationModeNotated";
+
+    let work_shapes = quads
+        .iter()
+        .filter(|quad| {
+            quad.predicate.as_str() == sh_target_class && object_iri(&quad.object) == Some(work)
+        })
+        .map(|quad| quad.subject.to_string())
+        .collect::<std::collections::BTreeSet<_>>();
+    let work_shape_properties = quads
+        .iter()
+        .filter(|quad| {
+            quad.predicate.as_str() == sh_property
+                && work_shapes.contains(&quad.subject.to_string())
+        })
+        .map(|quad| quad.object.to_string())
+        .collect::<std::collections::BTreeSet<_>>();
+
+    let offending = work_shape_properties
+        .iter()
+        .filter(|property| {
+            let path_is_realization_mode = quads.iter().any(|quad| {
+                quad.subject.to_string() == **property
+                    && quad.predicate.as_str() == sh_path
+                    && object_iri(&quad.object) == Some(realization_mode)
+            });
+            if !path_is_realization_mode {
+                return false;
+            }
+            quads.iter().any(|quad| {
+                quad.subject.to_string() == **property
+                    && ((quad.predicate.as_str() == sh_has_value
+                        && object_iri(&quad.object) == Some(realization_mode_notated))
+                        || (quad.predicate.as_str() == sh_min_count
+                            && object_literal(&quad.object)
+                                .and_then(|value| value.parse::<i64>().ok())
+                                .is_some_and(|min| min >= 1)))
+            })
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+    assert!(
+        offending.is_empty(),
+        "SHACL Work shapes must not require notated realization: {offending:?}"
+    );
 }

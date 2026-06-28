@@ -83,6 +83,6 @@ The corpus is gated by `queries/competency/music.rq` (15 competency questions wi
 
 ## Consumers
 
-- The **GTS `music-package`** single-file format (`src/gmeow_tools/ext/music/`).
+- The **GTS `music-package`** single-file format (`crates/music/` plus the `gmeow-music` CLI surface).
 - The **MCP analysis-claims** recall/revise surface.
 - The **19-case stress corpus** itself, as the Principle 15 consumer proof for the entire music design.

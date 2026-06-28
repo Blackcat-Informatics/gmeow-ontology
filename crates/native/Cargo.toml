@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# The single unified PyO3 extension. Folding all five engine crates into ONE
+# The single unified PyO3 extension. Folding the engine crates into ONE
 # cdylib makes the diagnostics `Report`/`Finding` pyclasses a single shared type
 # across the whole extension: a `Report` built by the validate orchestration is
 # accepted by every diagnostics method, closing the cross-cdylib
@@ -10,7 +10,7 @@
 
 [package]
 name = "gmeow-native"
-description = "GMEOW unified PyO3 extension: rdf + diagnostics + shacl + validate + logic folded into one cdylib (#630)"
+description = "GMEOW unified PyO3 extension: Rust engines folded into one cdylib (#630)"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
@@ -23,7 +23,7 @@ name = "gmeow_native"
 path = "src/lib.rs"
 
 [dependencies]
-# The five engine crates. `gmeow-rdf` needs its `python` feature so its `register`
+# Engine crates. `gmeow-rdf` needs its `python` feature so its `register`
 # fn (and the py_store oxigraph surface) is compiled in; the other crates already
 # carry pyo3 unconditionally.
 gmeow-rdf = { path = "../rdf", features = ["python", "gts", "oxigraph"] }
@@ -43,4 +43,7 @@ gmeow-pipeline = { path = "../pipeline", features = ["python"] }
 # `gmeow-foundation-corpus` needs its `python` feature so its `register` fn (the
 # `import_foundation` surface) is compiled in — the 9th submodule (#944).
 gmeow-foundation-corpus = { path = "../foundation-corpus", features = ["python"] }
+# `gmeow-music` owns the music-package model, GTS I/O, renderers, importer, and
+# manifest catalog; the Python CLI is only a surface over this submodule.
+gmeow-music = { path = "../music", features = ["python"] }
 pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
