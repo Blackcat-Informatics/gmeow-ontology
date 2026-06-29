@@ -219,18 +219,40 @@ pub(crate) fn dataset_from_gts_graph(graph: &GtsGraph) -> Result<Arc<RdfDataset>
 
     let mut rows: Vec<FoldRow> = Vec::with_capacity(graph.quads.len() + graph.reifiers.len());
 
-    // Synthetic `rdf:reifies` rows reconstructed from the GTS reifier table, so the
-    // shared fold re-binds them identically to the oxigraph path (pass 1). A
-    // self-reifier sentinel — a `Triple` term whose `reifier` is its OWN id — is the
-    // binding of an inline quoted-triple term used as a quad object, NOT a statement-
-    // layer reifier; it carries no `<reifier> rdf:reifies <<…>>` row (the N-Quads
-    // serializer skips it identically) and is resolved when its parent quad interns the
-    // object. Emitting a synthetic row for it would make a quoted triple the subject of
-    // `rdf:reifies`, which the IR rejects.
-    for &(reifier_id, (s, p, o)) in &graph.reifiers {
-        if graph.terms.get(reifier_id).is_some_and(|term| {
+    // The GTS reifier table as `reifier-gts-id -> (s, p, o)`, excluding self-reifier
+    // sentinels (a `Triple` term whose `reifier` is its OWN id — an inline quoted
+    // triple used as a quad object, NOT a statement-layer reifier; resolved when its
+    // parent quad interns the object).
+    let mut reifier_map: std::collections::HashMap<usize, (usize, usize, usize)> =
+        std::collections::HashMap::new();
+    for &(reifier_id, spo) in &graph.reifiers {
+        let is_self_sentinel = graph.terms.get(reifier_id).is_some_and(|term| {
             term.kind == GtsTermKind::Triple && term.reifier == Some(reifier_id)
-        }) {
+        });
+        if !is_self_sentinel {
+            reifier_map.insert(reifier_id, spo);
+        }
+    }
+
+    // The gmeow-gts Turtle codec lowers `[] rdf:reifies << s p o >>` with an extra
+    // intermediate: a base quad `X rdf:reifies R` plus a reifier-table entry binding R
+    // to `<< s p o >>`. The DOCUMENT reifier is X (it carries the annotations), not R.
+    // Detect those indirected R's so X — not R — becomes the reifier and X's other
+    // triples fold as annotations (without this, anonymous-reifier annotations silently
+    // become base quads and the fold round-trips with a spurious nesting level).
+    let mut indirected: std::collections::HashSet<usize> = std::collections::HashSet::new();
+    for &(_s, p, o, _g) in &graph.quads {
+        if interner.iri_string(p).ok().as_deref() == Some(RDF_REIFIES)
+            && reifier_map.contains_key(&o)
+        {
+            indirected.insert(o);
+        }
+    }
+
+    // Synthetic `rdf:reifies` rows for the DIRECT reifiers (those NOT indirected via an
+    // `X rdf:reifies R` quad); the shared fold re-binds them in pass 1.
+    for (&reifier_id, &(s, p, o)) in &reifier_map {
+        if indirected.contains(&reifier_id) {
             continue;
         }
         let subject = interner.intern(&mut builder, reifier_id)?;
@@ -249,8 +271,32 @@ pub(crate) fn dataset_from_gts_graph(graph: &GtsGraph) -> Result<Arc<RdfDataset>
 
     // Base quad rows (annotations are still plain quads here; pass 2 reclassifies them).
     for &(s, p, o, g) in &graph.quads {
-        let subject = interner.intern(&mut builder, s)?;
         let predicate_iri = interner.iri_string(p)?;
+        // Collapse the codec's intermediate: `X rdf:reifies R` (R bound to `<< s p o >>`)
+        // becomes `X rdf:reifies << s p o >>`, so X is the reifier and the intermediate
+        // R is dropped.
+        if predicate_iri == RDF_REIFIES {
+            if let Some(&(ts, tp, to)) = reifier_map.get(&o) {
+                let subject = interner.intern(&mut builder, s)?;
+                let predicate = interner.intern(&mut builder, p)?;
+                let ts = interner.intern(&mut builder, ts)?;
+                let tp = interner.intern(&mut builder, tp)?;
+                let to = interner.intern(&mut builder, to)?;
+                rows.push(FoldRow {
+                    subject,
+                    predicate_iri,
+                    predicate,
+                    object: FoldNode::Triple {
+                        s: ts,
+                        p: tp,
+                        o: to,
+                    },
+                    graph: None,
+                });
+                continue;
+            }
+        }
+        let subject = interner.intern(&mut builder, s)?;
         let predicate = interner.intern(&mut builder, p)?;
         let object = interner.intern_node(&mut builder, o)?;
         let graph = match g {
@@ -445,6 +491,29 @@ mod tests {
         assert_eq!(ds.quad_count(), 0, "reifier rows are not base quads");
         assert_eq!(ds.reifiers().count(), 1);
         assert_eq!(ds.annotations().count(), 1);
+    }
+
+    #[test]
+    fn folds_anonymous_turtle_reifier_with_annotation() {
+        // An ANONYMOUS reifier (`[]`) with an annotation — the shape the reasoning
+        // closure uses. The `[]` reifier and its annotation must stay one blank.
+        let ttl = concat!(
+            "[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
+            "<< <https://e/s> <https://e/p> <https://e/o> >> ; ",
+            "<https://e/confidence> \"0.9\" .\n",
+        );
+        let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+        assert_eq!(ds.reifiers().count(), 1, "one reifier binding");
+        assert_eq!(
+            ds.annotations().count(),
+            1,
+            "the anonymous reifier's annotation must fold (not become a base quad)"
+        );
+        assert_eq!(
+            ds.quad_count(),
+            0,
+            "no base quads for a pure reified statement"
+        );
     }
 
     #[test]

@@ -601,7 +601,14 @@ impl RdfDatasetBuilder {
     /// Bind a reifier resource to a triple term (C0.4). Several reifiers MAY bind
     /// one triple term; an identical `(reifier, triple)` binding pushed twice
     /// collapses to one.
+    ///
+    /// Interns `rdf:reifies` into the term table so the side-table is always
+    /// projectable as virtual `reifier rdf:reifies <<…>>` quads
+    /// ([`RdfDataset::reifier_quads`]) — without it, a dataset rebuilt purely from
+    /// `push_owned_reifier` (e.g. a named-graph projection) would carry reifiers the
+    /// renderer / pattern-matcher cannot see, because the predicate id is absent.
     pub fn push_reifier(&mut self, reifier: TermId, triple: TermId) {
+        let _ = self.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies".to_string());
         let binding = (reifier, triple);
         store_once(&mut self.reifiers, &mut self.reifier_index, binding);
     }
