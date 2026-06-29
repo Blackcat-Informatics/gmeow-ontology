@@ -5207,6 +5207,63 @@ logic:SerializationAnomaly
     skos:definition "A HISTORY-LEVEL finding: a pattern of conflicting operations, read-from edges, and happens-before arcs in a transaction history that admits no equivalent serial execution under the declared policy. Lost updates, write skew, and read/write anomalies are findings of this kind. It is DISTINCT from a contradiction witness (logic:contradictionWitness, which asserts ⊥ within a single state) and must NOT be modelled as one: the final state after a non-serializable schedule may be perfectly logically consistent while the schedule still has no equivalent serial execution, so a serialization anomaly is a property of the history, never a logical contradiction inside a state. It is surfaced as a finding with its dependency cycle or violated isolation level described; a non-serializable schedule is never silently linearized."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# --- Concurrent history: the derived conflict graph + anomaly surface ----------
+# The transaction history of a concurrent composition (logic:ConcurrentComposition)
+# and the conflict-edge / criterion / finding vocabulary the native concurrent
+# evaluator DERIVES from an interleaved run and the serialization-anomaly engine
+# classifies. A history is a property bearer kept APART from the program that gives
+# rise to it (the composition) and from the executional-entailment verdict (the
+# outcome). Normative in design/LOGIC-TRANSACTION.md §Concurrent transactions.
+
+logic:ConcurrentHistory
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Concurrent History"@x-gmeow-english ;
+    skos:definition "The transaction history of a concurrent composition: the node that carries the logic:precedes conflict edges whose cycle structure logic:SerializationAnomaly classifies. The native concurrent evaluator DERIVES it from the interleaved execution of a logic:ConcurrentComposition's two legs (it may also be authored directly as a conflict graph). It is a HISTORY-LEVEL property bearer, kept DISTINCT from the logic:ConcurrentComposition PROGRAM that gives rise to it and from the logic:TransactionOutcome VERDICT of running that program — a history records which conflicting operations were ordered against which, not whether a path exists. Its serializability is judged against the logic:serializabilityCriterion it carries (default logic:ConflictSerializability); a cyclic conflict graph is surfaced as a logic:SerializationAnomaly finding, never silently linearized and never a logical contradiction within a state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:precedes
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "precedes"@x-gmeow-english ;
+    skos:definition "A conflict (precedence) edge in a logic:ConcurrentHistory: 'from precedes to' orders the conflicting operation of transaction 'from' before that of transaction 'to' in the witnessed schedule. Two operations conflict when they touch the same item and at least one writes it; the edge direction records which came first in the interleaving. Domain and range are transaction-program nodes (stated in prose). A CYCLE over logic:precedes is a serialization anomaly (logic:SerializationAnomaly) — between two transactions it requires edges in BOTH directions, the write-skew / lost-update shape — and is NEVER a logical contradiction (logic:contradictionWitness): it is a property of the history, not of any single state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:serializabilityCriterion
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "serializability criterion"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConcurrentHistory to the logic:SerializabilityCriterion its schedule is classified against — logic:ConflictSerializability (the default when none is stated) or logic:ViewSerializability. Domain logic:ConcurrentHistory, range logic:SerializabilityCriterion (stated in prose). This is the history-property dimension only: it is kept SEPARATE from logic:IsolationLevel (a declared guarantee strength) and logic:ConcurrencyControlProtocol (an implementation mechanism), the two other concurrency concerns the layer never conflates. The criterion a detected anomaly violates is recorded on the finding through logic:violatedCriterion."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:concurrentComposedFrom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "concurrent composed from"@x-gmeow-english ;
+    skos:definition "Relates a DERIVED logic:ConcurrentHistory to each of the two transaction-program operands (the logic:leftOperand and logic:rightOperand of the logic:ConcurrentComposition) whose interleaved elementary steps produced its conflict edges. Domain logic:ConcurrentHistory, range a transaction-program node (stated in prose); multi-valued (one link per operand). It is the audit trail from the history back to the authored sub-programs that gave rise to it, kept distinct from logic:precedes (an edge BETWEEN the transactions within the history) — this link points OUT to the programs, not between operations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:derivedHistory
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "derived history"@x-gmeow-english ;
+    skos:definition "Relates a logic:TransactionOutcome of a logic:ConcurrentComposition run to the logic:ConcurrentHistory the native evaluator derived from the interleaved execution of its two legs. Domain logic:TransactionOutcome, range logic:ConcurrentHistory (stated in prose). It SEPARATES the executional-entailment verdict (the outcome — does a path exist) from the derived concurrency surface (the history — how the conflicting operations were ordered and whether that ordering is serializable): a concurrent run records BOTH, linked by this property, so neither the verdict nor the serializability finding is conflated with the other."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:violatedCriterion
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "violated criterion"@x-gmeow-english ;
+    skos:definition "Relates a logic:SerializationAnomaly finding to the logic:SerializabilityCriterion it violates — the criterion (logic:ConflictSerializability or logic:ViewSerializability) under which the history admits no equivalent serial execution. Domain logic:SerializationAnomaly, range logic:SerializabilityCriterion (stated in prose). It names WHICH history property the anomaly breaches; it does not assert a logical contradiction (the schedule's final state may be perfectly consistent), keeping the finding a property of the history rather than of any state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:anomalyCycle
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "anomaly cycle"@x-gmeow-english ;
+    skos:definition "The detected dependency cycle of a logic:SerializationAnomaly, rendered as the canonical sequence of transaction IRIs joined by ' -> ' (rotated to start at the lexicographically smallest member and closed back to it, so the same history always yields the same description). Domain logic:SerializationAnomaly, range xsd:string (stated in prose). It is a human-readable DESCRIPTION of the history-level finding — the conflict-graph cycle that has no equivalent serial order — never a claim of ⊥ within a state; a non-serializable schedule is surfaced with its cycle described here, never silently linearized."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # ── The full first-order formula AST surface (TBox + RBox) ────────────────────
 # The reified vocabulary the typed full-FOL formula core serializes into: a
 # logic:Formula tree of quantifiers (logic:forall / logic:exists), connectives

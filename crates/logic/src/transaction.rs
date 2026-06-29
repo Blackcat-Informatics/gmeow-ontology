@@ -33,9 +33,16 @@
 //!   hold, execute the alternate (right).
 //! - **`logic:Iteration`** — while `logic:iterationCondition` holds, execute
 //!   `logic:iterationBody`; a step bound keeps it terminating.
-//! - **`logic:ConcurrentComposition`** — a HARD ERROR here: concurrent
-//!   serializability/isolation/protocol evaluation is a separate concern, not part of the
-//!   sequential transaction-path core.
+//! - **`logic:ConcurrentComposition` (φ ∥ ψ)** — both sub-programs execute and their
+//!   elementary steps are interleaved over a shared support; the engine DERIVES a
+//!   `logic:ConcurrentHistory` (its `logic:precedes` conflict edges) from the two legs'
+//!   read/write footprints under a deterministic index-order interleaving and reuses
+//!   [`crate::teleology::detect_serialization_anomaly`] to classify it. A cyclic conflict
+//!   graph surfaces as a `logic:SerializationAnomaly` finding — a HISTORY-LEVEL result,
+//!   never a contradiction witness and never silently linearized. The serializability
+//!   *criterion* (a history property), *isolation level* (a guarantee strength), and
+//!   *concurrency-control protocol* (a mechanism) stay three separately-declared concerns;
+//!   this evaluator decides conflict-serializability only.
 //!
 //! # No-optionality
 //!
@@ -90,6 +97,9 @@ const TRANSITION_TO_STATE: &str = "transitionToState";
 const SITUATION_OBTAINS: &str = "situationObtains";
 const PRECONDITION: &str = "precondition";
 const EFFECT: &str = "effect";
+// Effect-footprint local names (the situations an elementary step writes).
+const INS: &str = "ins";
+const DEL: &str = "del";
 
 // Execution-commitment facet local names (the hypothetical/sandbox operator).
 const EXECUTED_UNDER_CONTRACT: &str = "executedUnderContract";
@@ -118,9 +128,6 @@ pub(crate) const TRANSACTION_RULE_IRI: &str =
 // ── The transaction-program IR ──────────────────────────────────────────────────
 
 /// A transaction-program IR node parsed from the RDF of one world.
-///
-/// `logic:ConcurrentComposition` is deliberately NOT a variant — [`parse_program`]
-/// hard-fails on it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum TransactionProgram {
     /// A primitive elementary step: a program node carrying
@@ -152,6 +159,29 @@ pub(crate) enum TransactionProgram {
         condition: String,
         body: Box<TransactionProgram>,
     },
+    /// `logic:ConcurrentComposition` (φ ∥ ψ): `left` and `right` advance together, their
+    /// elementary steps interleaved over a shared support; the derived conflict graph
+    /// (`logic:ConcurrentHistory`) is classified for serialization anomalies.
+    Concurrent {
+        node: String,
+        left: Box<TransactionProgram>,
+        right: Box<TransactionProgram>,
+    },
+}
+
+impl TransactionProgram {
+    /// The RDF node this program was parsed from — the transaction-program identity used
+    /// to name conflict edges and the audit trail back to the authored sub-programs.
+    fn node(&self) -> &str {
+        match self {
+            Self::Primitive { node, .. }
+            | Self::Serial { node, .. }
+            | Self::Choice { node, .. }
+            | Self::Fallback { node, .. }
+            | Self::Iteration { node, .. }
+            | Self::Concurrent { node, .. } => node,
+        }
+    }
 }
 
 // ── The execution outcome ───────────────────────────────────────────────────────
@@ -260,8 +290,7 @@ fn require_one(facts: &WorldFacts, node: &str, prop: &str) -> Result<String, Str
 ///
 /// Dispatch is on the node's `rdf:type`: a recognized combinator class, else a primitive
 /// (a node carrying `logic:instantiatesSchema`).  A node with no recognized program type,
-/// more than one combinator type, a `ConcurrentComposition` type, or a malformed operand
-/// set is a HARD ERROR.
+/// more than one combinator type, or a malformed operand set is a HARD ERROR.
 ///
 /// # Errors
 ///
@@ -330,10 +359,15 @@ pub(crate) fn parse_program(
                 body: Box::new(parse_program(facts, &body, depth + 1)?),
             })
         }
-        Some(CONCURRENT_COMPOSITION) => Err(format!(
-            "logic:ConcurrentComposition {node:?} is not evaluable by the transaction-program \
-             engine; concurrent serializability/isolation/protocol evaluation is a separate concern"
-        )),
+        Some(CONCURRENT_COMPOSITION) => {
+            let left = require_one(facts, node, LEFT_OPERAND)?;
+            let right = require_one(facts, node, RIGHT_OPERAND)?;
+            Ok(TransactionProgram::Concurrent {
+                node: node.to_owned(),
+                left: Box::new(parse_program(facts, &left, depth + 1)?),
+                right: Box::new(parse_program(facts, &right, depth + 1)?),
+            })
+        }
         Some(other) => Err(format!(
             "transaction-program node {node:?} has unhandled combinator type {other:?}"
         )),
@@ -494,7 +528,56 @@ pub(crate) fn plan_path(
                 sits_end: cur_sits,
             })
         }
+        TransactionProgram::Concurrent { left, right, .. } => {
+            // Both legs advance over the shared start; the verdict is "both legs find a
+            // path from here". The conflict graph + serialization classification are
+            // DERIVED at materialization ([`emit_concurrent_history`]), so `plan_path`
+            // stays a pure path computation and never produces a single merged linear
+            // chain that would silently linearize the schedule (forbidden by the design).
+            let l = plan_path(facts, left, state, sits, root, counter)?;
+            if !l.succeeded() {
+                return Ok(ExecOutcome::failure());
+            }
+            let r = plan_path(facts, right, state, sits, root, counter)?;
+            if !r.succeeded() {
+                return Ok(ExecOutcome::failure());
+            }
+            // A merged outcome for the verdict and for any ENCLOSING combinator only: the
+            // union of both legs' end supports and an index-interleaved step list. It is
+            // NOT presented as an authoritative serial path — the load-bearing concurrency
+            // result is the derived `logic:ConcurrentHistory`, not this merged support.
+            let mut path = vec![state.to_owned()];
+            path.extend(l.path.into_iter().skip(1));
+            path.extend(r.path.into_iter().skip(1));
+            let steps = interleave_steps(l.steps, r.steps);
+            let mut sits_end = l.sits_end;
+            sits_end.extend(r.sits_end);
+            Ok(ExecOutcome {
+                path,
+                steps,
+                sits_end,
+            })
+        }
     }
+}
+
+/// Index-order interleaving of two legs' elementary steps (left wins ties at equal index):
+/// `left[0], right[0], left[1], right[1], …`. This is the single deterministic schedule the
+/// conflict-edge derivation reads its operation order from.
+fn interleave_steps(left: Vec<PlannedStep>, right: Vec<PlannedStep>) -> Vec<PlannedStep> {
+    let mut out = Vec::with_capacity(left.len() + right.len());
+    let n = left.len().max(right.len());
+    let mut left_iter = left.into_iter();
+    let mut right_iter = right.into_iter();
+    for _ in 0..n {
+        if let Some(s) = left_iter.next() {
+            out.push(s);
+        }
+        if let Some(s) = right_iter.next() {
+            out.push(s);
+        }
+    }
+    out
 }
 
 // ── Root discovery ──────────────────────────────────────────────────────────────
@@ -508,8 +591,8 @@ pub(crate) fn plan_path(
 /// Requirement (2) is what makes the engine evaluate exactly the programs an author
 /// declared runnable: a combinator node without a start is structural data (a
 /// sub-program fragment or a bare vocabulary declaration), not a transaction to execute.
-/// (`ConcurrentComposition` roots that ARE marked executable are included so the parser
-/// hard-fails on them rather than silently skipping.)  Sorted, deduped.
+/// (`ConcurrentComposition` roots marked executable are included so the engine executes
+/// their interleaving and derives the concurrent history.)  Sorted, deduped.
 pub(crate) fn program_roots(facts: &WorldFacts) -> Vec<String> {
     let mut typed: BTreeSet<String> = BTreeSet::new();
     for class in COMBINATOR_CLASSES {
@@ -702,6 +785,13 @@ fn canonical_program(program: &TransactionProgram) -> String {
                 encode(out, body);
                 out.push(')');
             }
+            TransactionProgram::Concurrent { node, left, right } => {
+                out.push_str("(concurrent ");
+                field(out, node);
+                encode(out, left);
+                encode(out, right);
+                out.push(')');
+            }
         }
     }
     let mut out = String::new();
@@ -721,6 +811,15 @@ const TEMPORALLY_SUCCEEDS: &str = "temporallySucceeds";
 const EXECUTED_ALONG_PATH: &str = "executedAlongPath";
 const PATH_CLASS: &str = "Path";
 const EXECUTED_HYPOTHETICALLY_AS: &str = "executedHypotheticallyAs";
+// Concurrent-history surface local names (the derived conflict graph + its links).
+const CONCURRENT_HISTORY: &str = "ConcurrentHistory";
+const PRECEDES: &str = "precedes";
+const SERIALIZABILITY_CRITERION_PROP: &str = "serializabilityCriterion";
+const DERIVED_HISTORY: &str = "derivedHistory";
+const CONCURRENT_COMPOSED_FROM: &str = "concurrentComposedFrom";
+/// The default history criterion when a `logic:ConcurrentHistory` declares none — the
+/// engine decides conflict-serializability (mirrors `teleology::DEFAULT_SERIALIZABILITY_CRITERION`).
+const CONFLICT_SERIALIZABILITY: &str = "ConflictSerializability";
 
 /// The `xsd:boolean` N3 literal form.
 fn xsd_bool(v: bool) -> String {
@@ -753,15 +852,17 @@ fn xsd_bool(v: bool) -> String {
 ///
 /// Propagates any STRUCTURAL fault from [`parse_program`] / [`plan_path`] / [`root_start`] /
 /// [`root_execution_mode`] (a malformed program, a primitive schema with no effect, a
-/// `ConcurrentComposition` root, a non-terminating program, or a malformed execution-mode
-/// declaration) as a hard error.
+/// non-terminating program, or a malformed execution-mode declaration) as a hard error.
+///
+/// A `logic:ConcurrentComposition` root additionally emits a DERIVED `logic:ConcurrentHistory`
+/// (its conflict edges + serializability classification) — see [`emit_concurrent_history`].
 pub(crate) fn emit_transaction_outcome(
     facts: &WorldFacts,
     world: &str,
     root: &str,
 ) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
     use crate::provenance::mint_derivation_id;
-    use crate::teleology::{effect_quads, n3, triple_reifier, TeleologyQuad};
+    use crate::teleology::{n3, triple_reifier, TeleologyQuad};
 
     let (start, sits) = root_start(facts, root)?;
     let program = parse_program(facts, root, 0)?;
@@ -835,63 +936,366 @@ pub(crate) fn emit_transaction_outcome(
     }
 
     if outcome.succeeded() && mode == ExecutionMode::Committed {
-        // The executed path: temporallySucceeds edges + a minted logic:Path linked by the
-        // reused logic:executedAlongPath (oldest → newest; the start may be the only state).
-        let path_iri = format!(
-            "{LOGIC_NAMESPACE}path/{}",
-            sha1_hex(&format!("{root}\n{start}\n{world}\npath"))
-        );
-        emit(&path_iri, RDF_TYPE.to_owned(), n3(&logic(PATH_CLASS)));
-        emit(&outcome_iri, logic(EXECUTED_ALONG_PATH), n3(&path_iri));
-        for pair in outcome.path.windows(2) {
-            // temporallySucceeds(successor, predecessor): "b succeeds a".
-            emit(&pair[1], logic(TEMPORALLY_SUCCEEDS), n3(&pair[0]));
-        }
-        // Per-step substrate. Each runtime step is materialized as a first-class
-        // logic:TransactionStep (the declared contract): typed, instantiating its action
-        // schema, carrying the path edge from→to. Its provenance is grounded PER STEP on
-        // the schema's own `logic:effect` triple — NOT the root program-type triple — so
-        // every step's situationObtains + supersession quartet is attributed to the effect
-        // that actually produced it. This is byte-isomorphic to the authored-step family
-        // (emit_effect_application), differing only in the rule IRI.
-        for step in &outcome.steps {
-            let effect = facts.object(&step.schema, &logic(EFFECT)).ok_or_else(|| {
-                format!(
-                    "logic:ActionSchema {:?} names no logic:effect node",
-                    step.schema
-                )
-            })?;
-            let step_source = triple_reifier(&step.schema, &logic(EFFECT), effect)?;
-            let step_deriv = mint_derivation_id(TRANSACTION_RULE_IRI, &[step_source.as_str()]);
-            // Scope the borrow of `out` so it ends before the `effect_quads` extend below.
-            {
-                let mut push_step = |predicate: String, object: String| {
-                    out.push(TeleologyQuad {
-                        graph: world.to_owned(),
-                        subject: step.attribution.clone(),
-                        predicate,
-                        object,
-                        rule_iri: TRANSACTION_RULE_IRI.to_owned(),
-                        source_quad_ids: vec![step_source.clone()],
-                        derivation_id: step_deriv.clone(),
-                    });
-                };
-                push_step(RDF_TYPE.to_owned(), n3(&logic(TRANSACTION_STEP)));
-                push_step(logic(INSTANTIATES_SCHEMA), n3(&step.schema));
-                push_step(logic(TRANSITION_FROM_STATE), n3(&step.from_state));
-                push_step(logic(TRANSITION_TO_STATE), n3(&step.to_state));
-            }
-            out.extend(effect_quads(
+        // `emit` (the verdict closure) is no longer used past here, so its borrow of `out`
+        // has ended (NLL) and the helpers below may extend `out`.
+        if let TransactionProgram::Concurrent { left, right, .. } = &program {
+            // A concurrent root materializes EACH leg's path faithfully (no merged linear
+            // chain) plus the DERIVED concurrent history + serialization classification.
+            out.extend(emit_concurrent_history(
+                facts,
                 world,
-                &step.support,
-                &step.from_state,
-                &step.to_state,
-                &step.attribution,
-                &step_source,
-                &step_deriv,
-                TRANSACTION_RULE_IRI,
-            ));
+                &outcome_iri,
+                root,
+                &start,
+                &sits,
+                left,
+                right,
+                &source,
+                &deriv,
+            )?);
+        } else {
+            // The executed path: temporallySucceeds edges + a minted logic:Path linked by the
+            // reused logic:executedAlongPath, plus the per-step supersession substrate.
+            let path_iri = format!(
+                "{LOGIC_NAMESPACE}path/{}",
+                sha1_hex(&format!("{root}\n{start}\n{world}\npath"))
+            );
+            out.extend(emit_committed_run(
+                facts,
+                world,
+                &outcome_iri,
+                &path_iri,
+                &outcome.path,
+                &outcome.steps,
+                &source,
+                &deriv,
+            )?);
         }
+    }
+    Ok(out)
+}
+
+/// Emit the committed effect substrate of ONE executed run: a `logic:Path` (typed and
+/// linked from `link_subject` by `logic:executedAlongPath`), the `logic:temporallySucceeds`
+/// edges over `path` (oldest → newest), and per elementary `step` the first-class
+/// `logic:TransactionStep` record + its situation-level supersession via
+/// [`crate::teleology::effect_quads`].
+///
+/// Shared by the sequential outcome block and the concurrent per-leg emission so a
+/// concurrent run materializes each leg's real path WITHOUT a merged cross-leg linear chain
+/// (which would silently linearize the schedule). Path/edge quads carry the run's grounding
+/// (`source`/`deriv`); each step's substrate is grounded PER STEP on the schema's own
+/// `logic:effect` triple.
+///
+/// # Errors
+///
+/// Hard-fails if a step's action schema names no `logic:effect` node.
+#[allow(clippy::too_many_arguments)]
+fn emit_committed_run(
+    facts: &WorldFacts,
+    world: &str,
+    link_subject: &str,
+    path_iri: &str,
+    path: &[String],
+    steps: &[PlannedStep],
+    source: &str,
+    deriv: &str,
+) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+    use crate::provenance::mint_derivation_id;
+    use crate::teleology::{effect_quads, n3, triple_reifier, TeleologyQuad};
+
+    let mut out: Vec<TeleologyQuad> = Vec::new();
+    let mk = |subject: &str, predicate: String, object: String| TeleologyQuad {
+        graph: world.to_owned(),
+        subject: subject.to_owned(),
+        predicate,
+        object,
+        rule_iri: TRANSACTION_RULE_IRI.to_owned(),
+        source_quad_ids: vec![source.to_owned()],
+        derivation_id: deriv.to_owned(),
+    };
+    out.push(mk(path_iri, RDF_TYPE.to_owned(), n3(&logic(PATH_CLASS))));
+    out.push(mk(link_subject, logic(EXECUTED_ALONG_PATH), n3(path_iri)));
+    for pair in path.windows(2) {
+        // temporallySucceeds(successor, predecessor): "b succeeds a".
+        out.push(mk(&pair[1], logic(TEMPORALLY_SUCCEEDS), n3(&pair[0])));
+    }
+    for step in steps {
+        let effect = facts.object(&step.schema, &logic(EFFECT)).ok_or_else(|| {
+            format!(
+                "logic:ActionSchema {:?} names no logic:effect node",
+                step.schema
+            )
+        })?;
+        let step_source = triple_reifier(&step.schema, &logic(EFFECT), effect)?;
+        let step_deriv = mint_derivation_id(TRANSACTION_RULE_IRI, &[step_source.as_str()]);
+        for (predicate, object) in [
+            (RDF_TYPE.to_owned(), n3(&logic(TRANSACTION_STEP))),
+            (logic(INSTANTIATES_SCHEMA), n3(&step.schema)),
+            (logic(TRANSITION_FROM_STATE), n3(&step.from_state)),
+            (logic(TRANSITION_TO_STATE), n3(&step.to_state)),
+        ] {
+            out.push(TeleologyQuad {
+                graph: world.to_owned(),
+                subject: step.attribution.clone(),
+                predicate,
+                object,
+                rule_iri: TRANSACTION_RULE_IRI.to_owned(),
+                source_quad_ids: vec![step_source.clone()],
+                derivation_id: step_deriv.clone(),
+            });
+        }
+        out.extend(effect_quads(
+            world,
+            &step.support,
+            &step.from_state,
+            &step.to_state,
+            &step.attribution,
+            &step_source,
+            &step_deriv,
+            TRANSACTION_RULE_IRI,
+        ));
+    }
+    Ok(out)
+}
+
+/// The (read, write) situation footprint of one elementary step: `read` is the schema's
+/// `logic:precondition` situations (what the step depended on), `write` is the effect's
+/// `logic:ins ∪ logic:del` situations (what the step changed). The write set is read from
+/// the effect node — NOT from `step.support.retired`, which omits pure inserts and dels of
+/// not-yet-present situations and would under-count write-write / read-write conflicts.
+///
+/// # Errors
+///
+/// Hard-fails if the step's action schema names no `logic:effect` node.
+fn step_footprint(
+    facts: &WorldFacts,
+    step: &PlannedStep,
+) -> Result<(BTreeSet<String>, BTreeSet<String>), String> {
+    let read: BTreeSet<String> = facts
+        .objects(&step.schema, &logic(PRECONDITION))
+        .into_iter()
+        .map(ToOwned::to_owned)
+        .collect();
+    let effect = facts.object(&step.schema, &logic(EFFECT)).ok_or_else(|| {
+        format!(
+            "logic:ActionSchema {:?} names no logic:effect node",
+            step.schema
+        )
+    })?;
+    let mut write: BTreeSet<String> = BTreeSet::new();
+    for s in facts.objects(effect, &logic(INS)) {
+        write.insert(s.to_owned());
+    }
+    for s in facts.objects(effect, &logic(DEL)) {
+        write.insert(s.to_owned());
+    }
+    Ok((read, write))
+}
+
+/// Derive the conflict (precedence) edges between the two legs of a concurrent composition
+/// from their executed step sequences, under the deterministic index-order interleaving
+/// (`left[i]` at schedule position `2i`, `right[j]` at `2j+1` — left wins ties).
+///
+/// Two steps CONFLICT when their footprints share a situation that at least one of them
+/// WRITES (read-write, write-read, or write-write). The edge points from the earlier to the
+/// later transaction in that interleaving: `i <= j` orders the left step first (left
+/// precedes right), `i > j` orders the right step first (right precedes left). Conflicts at
+/// different situations may therefore point in OPPOSITE directions — the two-transaction
+/// cycle (write-skew / lost-update) [`crate::teleology::detect_serialization_anomaly`]
+/// classifies as a serialization anomaly. Result is sorted + deduped.
+///
+/// # Errors
+///
+/// Propagates a [`step_footprint`] hard-fail (a schema with no effect node).
+fn derive_conflict_edges(
+    facts: &WorldFacts,
+    left_tx: &str,
+    left: &[PlannedStep],
+    right_tx: &str,
+    right: &[PlannedStep],
+) -> Result<Vec<crate::teleology::ConflictEdge>, String> {
+    use crate::teleology::ConflictEdge;
+    let left_fp: Vec<(BTreeSet<String>, BTreeSet<String>)> = left
+        .iter()
+        .map(|s| step_footprint(facts, s))
+        .collect::<Result<_, _>>()?;
+    let right_fp: Vec<(BTreeSet<String>, BTreeSet<String>)> = right
+        .iter()
+        .map(|s| step_footprint(facts, s))
+        .collect::<Result<_, _>>()?;
+    let mut edges: Vec<ConflictEdge> = Vec::new();
+    for (i, (lr, lw)) in left_fp.iter().enumerate() {
+        for (j, (rr, rw)) in right_fp.iter().enumerate() {
+            // A conflict: a shared situation that at least one side writes.
+            let conflict = lw.iter().any(|s| rr.contains(s) || rw.contains(s))
+                || rw.iter().any(|s| lr.contains(s));
+            if !conflict {
+                continue;
+            }
+            if i <= j {
+                edges.push(ConflictEdge {
+                    from: left_tx.to_owned(),
+                    to: right_tx.to_owned(),
+                });
+            } else {
+                edges.push(ConflictEdge {
+                    from: right_tx.to_owned(),
+                    to: left_tx.to_owned(),
+                });
+            }
+        }
+    }
+    edges.sort();
+    edges.dedup();
+    Ok(edges)
+}
+
+/// Emit the DERIVED `logic:ConcurrentHistory` of a succeeded concurrent composition: each
+/// leg's committed path substrate (via [`emit_committed_run`], so neither leg is collapsed
+/// into a bogus merged chain), the history node + its `logic:derivedHistory` link from the
+/// outcome, the `logic:concurrentComposedFrom` audit edges to the two operands, the derived
+/// `logic:precedes` conflict edges + the `logic:serializabilityCriterion`, and — when the
+/// conflict graph cycles — the `logic:SerializationAnomaly` finding via the reused
+/// [`crate::teleology::emit_serialization_anomaly`].
+///
+/// Re-executes each leg with a fresh [`StepCounter`] to capture the per-leg outcomes; the
+/// caller's `outcome.succeeded()` already established both legs succeed. A serializable
+/// (acyclic) history emits no anomaly — there is nothing to record.
+///
+/// # Errors
+///
+/// Propagates a structural fault from [`plan_path`] / [`emit_committed_run`] /
+/// [`derive_conflict_edges`] / [`crate::teleology::emit_serialization_anomaly`].
+#[allow(clippy::too_many_arguments)]
+fn emit_concurrent_history(
+    facts: &WorldFacts,
+    world: &str,
+    outcome_iri: &str,
+    root: &str,
+    start: &str,
+    sits: &BTreeSet<String>,
+    left: &TransactionProgram,
+    right: &TransactionProgram,
+    source: &str,
+    deriv: &str,
+) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+    use crate::teleology::{
+        detect_serialization_anomaly, emit_serialization_anomaly, mint_anomaly_finding_iri, n3,
+        SerializationVerdict, TeleologyQuad,
+    };
+
+    // Re-run each leg independently from the shared start (fresh counter — the verdict run
+    // already proved termination); capture per-leg outcomes for substrate + footprints.
+    let mut counter = StepCounter::new();
+    let l = plan_path(facts, left, start, sits, root, &mut counter)?;
+    let r = plan_path(facts, right, start, sits, root, &mut counter)?;
+    if !l.succeeded() || !r.succeeded() {
+        // Defensive: the caller only invokes this on a succeeded outcome.
+        return Ok(Vec::new());
+    }
+
+    let left_tx = left.node();
+    let right_tx = right.node();
+
+    let mut out: Vec<TeleologyQuad> = Vec::new();
+
+    // Each leg's path materializes faithfully (its own start→… chain), linked from the
+    // outcome by logic:executedAlongPath — two paths, never one linearized merge.
+    let left_path_iri = format!(
+        "{LOGIC_NAMESPACE}path/{}",
+        sha1_hex(&format!("{root}\n{start}\n{world}\n{left_tx}\npath"))
+    );
+    out.extend(emit_committed_run(
+        facts,
+        world,
+        outcome_iri,
+        &left_path_iri,
+        &l.path,
+        &l.steps,
+        source,
+        deriv,
+    )?);
+    let right_path_iri = format!(
+        "{LOGIC_NAMESPACE}path/{}",
+        sha1_hex(&format!("{root}\n{start}\n{world}\n{right_tx}\npath"))
+    );
+    out.extend(emit_committed_run(
+        facts,
+        world,
+        outcome_iri,
+        &right_path_iri,
+        &r.path,
+        &r.steps,
+        source,
+        deriv,
+    )?);
+
+    // The derived history node + its links, content-addressed by (root, start, world).
+    let history_iri = format!(
+        "{LOGIC_NAMESPACE}history/{}",
+        sha1_hex(&format!("{root}\n{start}\n{world}"))
+    );
+    let criterion = logic(CONFLICT_SERIALIZABILITY);
+    {
+        let mut push = |subject: &str, predicate: String, object: String| {
+            out.push(TeleologyQuad {
+                graph: world.to_owned(),
+                subject: subject.to_owned(),
+                predicate,
+                object,
+                rule_iri: TRANSACTION_RULE_IRI.to_owned(),
+                source_quad_ids: vec![source.to_owned()],
+                derivation_id: deriv.to_owned(),
+            });
+        };
+        push(
+            &history_iri,
+            RDF_TYPE.to_owned(),
+            n3(&logic(CONCURRENT_HISTORY)),
+        );
+        push(outcome_iri, logic(DERIVED_HISTORY), n3(&history_iri));
+        push(&history_iri, logic(CONCURRENT_COMPOSED_FROM), n3(left_tx));
+        push(&history_iri, logic(CONCURRENT_COMPOSED_FROM), n3(right_tx));
+        push(
+            &history_iri,
+            logic(SERIALIZABILITY_CRITERION_PROP),
+            n3(&criterion),
+        );
+    }
+
+    // The DERIVED conflict edges (the novel content: a conflict graph from execution, not an
+    // authored one) — emitted so the anomaly finding's reifiers resolve in the explanation
+    // index, and so a consumer can inspect the precedence structure.
+    let edges = derive_conflict_edges(facts, left_tx, &l.steps, right_tx, &r.steps)?;
+    {
+        let mut push = |subject: &str, predicate: String, object: String| {
+            out.push(TeleologyQuad {
+                graph: world.to_owned(),
+                subject: subject.to_owned(),
+                predicate,
+                object,
+                rule_iri: TRANSACTION_RULE_IRI.to_owned(),
+                source_quad_ids: vec![source.to_owned()],
+                derivation_id: deriv.to_owned(),
+            });
+        };
+        for e in &edges {
+            push(&e.from, logic(PRECEDES), n3(&e.to));
+        }
+    }
+
+    // Classify the derived history; a cycle is surfaced as a SerializationAnomaly finding
+    // (reusing the shipped emitter), NEVER a contradiction witness and never linearized.
+    if let SerializationVerdict::Anomaly(cycle) = detect_serialization_anomaly(&edges) {
+        let finding_iri = mint_anomaly_finding_iri(&history_iri, &cycle);
+        out.extend(emit_serialization_anomaly(
+            world,
+            &finding_iri,
+            &cycle,
+            &criterion,
+            &edges,
+        )?);
     }
     Ok(out)
 }
@@ -904,6 +1308,7 @@ fn program_type_iri(program: &TransactionProgram) -> String {
         TransactionProgram::Choice { .. } => logic(CHOICE),
         TransactionProgram::Fallback { .. } => logic(FALLBACK),
         TransactionProgram::Iteration { .. } => logic(ITERATION),
+        TransactionProgram::Concurrent { .. } => logic(CONCURRENT_COMPOSITION),
         // A bare primitive is never a root (roots are combinator-typed), but be total.
         TransactionProgram::Primitive { .. } => logic(INSTANTIATES_SCHEMA),
     }
