@@ -43,6 +43,7 @@ pub mod stages;
 pub mod transcode;
 pub mod transform;
 pub mod up_projection;
+pub mod up_projection_gates;
 
 #[cfg(feature = "python")]
 pub mod mcp;
