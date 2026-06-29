@@ -282,6 +282,92 @@ impl SnapshotBuilder {
         Ok(())
     }
 
+    /// Ingest a native [`RdfDataset`](crate::RdfDataset) carrier DIRECTLY — interning
+    /// its quads and its folded RDF-1.2 reifier/annotation side-tables — without the
+    /// oxigraph quad round-trip. This is how the in-memory carrier is serialized at the
+    /// single exit: the dataset is already canonical (frozen, blank-nodes standardized
+    /// apart by union), so every named graph and the statement layer fold in as-is. The
+    /// reifier/annotation side-tables map straight onto `reifies`/`annot` — there is no
+    /// `rdf:reifies` re-materialization (the native parse already folded them).
+    ///
+    /// # Errors
+    /// A conflicting reifier rebind (one reifier id bound to two different statements).
+    pub fn add_dataset(&mut self, dataset: &crate::RdfDataset) -> Result<(), String> {
+        for quad in dataset.owned_quads() {
+            // FAIL CLOSED (no-optionality): a carrier quad whose subject/object/graph is
+            // not directly representable in the snapshot frame (a quoted-triple term, or
+            // a non-IRI/blank graph name) is NOT silently dropped — that would make the
+            // emitted `gmeow.gts` diverge from the canonical carrier. Quoted triples are
+            // representable ONLY via the reifier/annotation tables (handled below), so a
+            // Triple term in plain-quad position is genuine loss and aborts the emit.
+            let sid = self.intern_required_native_term(&quad.subject, "quad subject")?;
+            let pid = self.intern_iri(&quad.predicate);
+            let oid = self.intern_required_native_term(&quad.object, "quad object")?;
+            let gid = match &quad.graph_name {
+                None => None,
+                Some(graph) => Some(self.intern_required_native_term(graph, "quad graph name")?),
+            };
+            self.quads.push((sid, pid, oid, gid));
+        }
+        for reifier in dataset.owned_reifiers() {
+            let rid = self.intern_required_native_term(&reifier.reifier, "reifier term")?;
+            let qs =
+                self.intern_required_native_term(&reifier.statement.subject, "reified subject")?;
+            let qp = self.intern_iri(&reifier.statement.predicate);
+            let qo =
+                self.intern_required_native_term(&reifier.statement.object, "reified object")?;
+            self.bind_reifier(rid, (qs, qp, qo))?;
+        }
+        for annot in dataset.owned_annotations() {
+            let rid = self.intern_required_native_term(&annot.reifier, "annotation reifier")?;
+            let pid = self.intern_iri(&annot.predicate);
+            let oid = self.intern_required_native_term(&annot.object, "annotation object")?;
+            self.annot.push((rid, pid, oid));
+        }
+        Ok(())
+    }
+
+    /// Intern a native term that MUST be representable in the snapshot frame, or fail
+    /// closed. `position` names the slot for the diagnostic. A quoted-triple term has no
+    /// direct term row (it rides the reifier/annotation tables), so it is an error here.
+    fn intern_required_native_term(
+        &mut self,
+        term: &crate::RdfTerm,
+        position: &str,
+    ) -> Result<usize, String> {
+        self.intern_native_term(term).ok_or_else(|| {
+            format!(
+                "carrier {position} is not directly representable in the gts snapshot frame \
+                 (quoted-triple terms must ride the reifier/annotation tables): {term:?}"
+            )
+        })
+    }
+
+    /// Intern a native term in subject/object/graph position (triple-terms are NOT
+    /// interned — the RDF-1.2 layer rides the reifies/annot tables). Mirrors
+    /// [`Self::intern_ox_term`]'s literal normalization (a language tag implies no
+    /// datatype; `xsd:string` is implied and stored without a datatype) so native and
+    /// oxigraph ingestion intern byte-identical term rows. Blank nodes carry no ingest
+    /// scope: a frozen carrier dataset has already standardized them apart.
+    fn intern_native_term(&mut self, term: &crate::RdfTerm) -> Option<usize> {
+        match term {
+            crate::RdfTerm::Iri(iri) => Some(self.intern_iri(iri)),
+            crate::RdfTerm::BlankNode(label) => Some(self.intern_bnode(label, None)),
+            crate::RdfTerm::Literal(literal) => {
+                if let Some(lang) = &literal.language {
+                    Some(self.intern_literal(&literal.lexical_form, None, Some(lang)))
+                } else {
+                    let datatype = match literal.datatype.as_deref() {
+                        Some(dt) if dt == XSD_STRING => None,
+                        other => other,
+                    };
+                    Some(self.intern_literal(&literal.lexical_form, datatype, None))
+                }
+            }
+            crate::RdfTerm::Triple(_) => None,
+        }
+    }
+
     /// Re-id every term by content and sort every row (`_Builder._canonical_tables`).
     ///
     /// Returns the canonical `(wire_terms, quads, reifies, annot)` ready for the
@@ -562,6 +648,58 @@ mod tests {
         let mut b = SnapshotBuilder::default();
         b.add_quads(&quads, None, None);
         b
+    }
+
+    #[test]
+    fn add_dataset_matches_oxigraph_ingestion_for_plain_graphs() {
+        let nq = concat!(
+            "<https://e/s> <https://e/p> <https://e/o> .\n",
+            "<https://e/s> <https://e/p2> \"lit\" .\n",
+            "<https://e/s> <https://e/p3> \"tagged\"@en .\n",
+            "<https://e/s2> <https://e/p> ",
+            "\"x\"^^<http://www.w3.org/2001/XMLSchema#string> .\n",
+            "<https://e/s> <https://e/p> <https://e/o2> <https://e/g> .\n",
+        );
+        // Native carrier ingestion (the single-exit path).
+        let ds = parse_dataset(nq.as_bytes(), "application/n-quads", None).expect("parse dataset");
+        let mut native = SnapshotBuilder::default();
+        native.add_dataset(&ds).expect("add_dataset");
+        // The existing oxigraph ingestion.
+        let oxi = ingest(nq);
+        // No blank nodes ⇒ the canonical snapshot payload is byte-identical both ways,
+        // so the native carrier serializes to the same snapshot frame.
+        assert_eq!(
+            canonical(&native.snapshot_payload()),
+            canonical(&oxi.snapshot_payload()),
+            "native carrier ingestion canonicalizes identically to oxigraph ingestion"
+        );
+    }
+
+    #[test]
+    fn add_dataset_statement_layer_matches_add_rdf12() {
+        // A reifier with the canonical `rdf:reifies <<( s p o )>>` shape plus annotation
+        // properties on the reifier subject — the exact statement-layer pattern.
+        let ttl = concat!(
+            "<https://e/claim> ",
+            "<http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
+            "<<( <https://e/s> <https://e/p> <https://e/o> )>> ;\n",
+            "  <https://e/accordingTo> <https://e/who> ;\n",
+            "  <https://e/confidence> \"0.9\"^^<http://www.w3.org/2001/XMLSchema#decimal> .\n",
+            "<https://e/s> <https://e/p> <https://e/o> .\n",
+        );
+        // Native carrier ingestion (the statement layer folded into side-tables by parse).
+        let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse dataset");
+        let mut native = SnapshotBuilder::default();
+        native.add_dataset(&ds).expect("add_dataset");
+        // The existing add_rdf12 path (oxigraph quads + annotation inference).
+        let quads = parse_quads_lenient(ttl.as_bytes(), NativeRdfFormat::Turtle).expect("parse");
+        let mut rdf12 = SnapshotBuilder::default();
+        rdf12.add_rdf12(&quads, None, None).expect("add_rdf12");
+        assert_eq!(
+            canonical(&native.snapshot_payload()),
+            canonical(&rdf12.snapshot_payload()),
+            "native statement-layer ingestion must match add_rdf12 (reifier + annotations)"
+        );
     }
 
     #[test]

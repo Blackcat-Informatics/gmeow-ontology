@@ -27,9 +27,9 @@ use serde_json::{json, Value};
 use gmeow_gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
-use gmeow_gts::model::Graph;
 
 use crate::stages::export::{self, FoldView, Term};
+use crate::stages::fold_arena;
 
 const LANGUAGE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Language";
 const LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/gmeow/languageTag";
@@ -40,7 +40,11 @@ const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
 /// A loaded, bundle-backed view over the GMEOW snapshot for the MCP consumer.
 #[pyclass(name = "McpView", skip_from_py_object)]
 pub struct McpView {
-    graph: Graph,
+    /// THIS server's view of the bundled snapshot as the native carrier dataset
+    /// (#1132): the MCP server is a gts ARCHIVE CONSUMER — it imports `gmeow.gts` to
+    /// the carrier representation ONCE and serves every surface off the shared export
+    /// `FoldView`, exactly as the in-pipeline export leaf does.
+    dataset: Arc<gmeow_rdf::RdfDataset>,
     /// Ontology title / version — language-independent (`fold_meta` reads the
     /// header via a token-minimal `value`, not a language selector), so they are
     /// resolved once at construction.
@@ -60,18 +64,18 @@ pub struct McpView {
 
 impl McpView {
     fn from_snapshot(snapshot: &[u8]) -> Result<Self, String> {
-        let graph = gmeow_rdf::gts::read_graph(snapshot, true)
+        let bundle = gmeow_rdf::import_gts_events(snapshot)
             .map_err(|e| format!("read snapshot gmeow.gts: {e}"))?;
-        Self::from_graph(graph)
+        Self::from_dataset(bundle.dataset)
     }
 
-    fn from_graph(graph: Graph) -> Result<Self, String> {
+    fn from_dataset(dataset: Arc<gmeow_rdf::RdfDataset>) -> Result<Self, String> {
         let (title, version) = {
-            let view = FoldView::new(&graph);
+            let view = FoldView::new(dataset.as_ref());
             export::fold_meta(&view).map_err(|e| e.to_string())?
         };
         Ok(Self {
-            graph,
+            dataset,
             title,
             version,
             cache: Mutex::new(HashMap::new()),
@@ -160,7 +164,7 @@ impl McpView {
     /// cached (language-independent).
     fn doc_urls(&self) -> Arc<HashMap<String, String>> {
         Arc::clone(self.doc_urls.get_or_init(|| {
-            let view = FoldView::new(&self.graph);
+            let view = FoldView::new(self.dataset.as_ref());
             Arc::new(export::doc_url_map(&view))
         }))
     }
@@ -172,7 +176,7 @@ impl McpView {
         let terms = {
             let mut cache = self.cache.lock().expect("McpView term cache poisoned");
             Arc::clone(cache.entry(key).or_insert_with(|| {
-                let view = FoldView::with_requested(&self.graph, requested);
+                let view = FoldView::with_requested(self.dataset.as_ref(), requested);
                 Arc::new(export::collect_terms(&view))
             }))
         };
@@ -259,16 +263,17 @@ impl McpServer {
         root: Option<PathBuf>,
         mode: McpMode,
     ) -> Result<Self, String> {
-        let graph = gmeow_rdf::gts::read_graph(snapshot, true)
+        let bundle = gmeow_rdf::import_gts_events(snapshot)
             .map_err(|e| format!("read snapshot gmeow.gts: {e}"))?;
-        let tag_map = language_tag_map(&graph);
+        let dataset = bundle.dataset;
+        let tag_map = language_tag_map(dataset.as_ref());
         let mut available: BTreeSet<String> =
             tag_map.values().map(|v| v.to_ascii_lowercase()).collect();
         available.insert("en".to_string());
         let startup_requested =
             resolve_lang(env::var("GMEOW_LANG").ok().as_deref(), &tag_map, &available)?;
         Ok(Self {
-            view: McpView::from_graph(graph)?,
+            view: McpView::from_dataset(dataset)?,
             mode,
             root,
             tag_map,
@@ -713,8 +718,8 @@ impl McpServer {
 
 impl McpView {
     fn graph_dataset(&self) -> Result<Arc<gmeow_rdf::RdfDataset>, String> {
-        let bytes = gmeow_gts::nquads::to_nquads(&self.graph);
-        gmeow_rdf::dataset_from_bytes(bytes.as_bytes(), gmeow_rdf::NativeRdfFormat::NQuads)
+        // The carrier IS the dataset — no gts round-trip (GTS is exit-only).
+        Ok(Arc::clone(&self.dataset))
     }
 }
 
@@ -732,13 +737,15 @@ pub fn run_dev_mcp(snapshot: &[u8], root: String) -> PyResult<()> {
     server.run_stdio().map_err(PyValueError::new_err)
 }
 
-fn language_tag_map(graph: &Graph) -> BTreeMap<String, String> {
+fn language_tag_map(dataset: &gmeow_rdf::RdfDataset) -> BTreeMap<String, String> {
+    let graph = fold_arena::Graph::from_dataset(dataset);
+    let graph = &graph;
     let iri_index: HashMap<&str, usize> = graph
         .terms
         .iter()
         .enumerate()
         .filter_map(|(idx, term)| {
-            (term.kind == gmeow_gts::model::TermKind::Iri)
+            (term.kind == fold_arena::TermKind::Iri)
                 .then(|| term.value.as_deref().map(|value| (value, idx)))
                 .flatten()
         })

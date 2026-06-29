@@ -1880,6 +1880,8 @@ dependencies = [
  "gmeow-shacl",
  "gmeow-slice",
  "gmeow-validate",
+ "gmeow-xsd",
+ "insta",
  "jsonschema",
  "oxigraph",
  "parquet",

@@ -459,11 +459,19 @@ impl Stage for StatementsStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let (owl, rdf12) = compile_statements(input.root)?;
+        // Carry the RDF 1.2 statement layer as the bundle's frozen dataset (the
+        // contribution `gts_compose` unions over the base graph). Parsing the rdf12
+        // Turtle folds the statement layer — `rdf:reifies` triple-term objects become
+        // reifier bindings and the reifiers' other triples become annotations — so
+        // the side-tables ride in the dataset, not flattened into base quads. The
+        // OWL_PATH / RDF12_PATH byte lanes are kept for the pre-C3 byte readers.
+        let dataset = gmeow_rdf::parse_dataset(rdf12.as_bytes(), "text/turtle", None)
+            .map_err(|e| PipelineError::Parse(format!("RDF 1.2 statement-layer parse: {e}")))?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(OWL_PATH.to_string(), owl.into_bytes());
         artifacts.insert(RDF12_PATH.to_string(), rdf12.into_bytes());
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
+            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
         })
     }
 }

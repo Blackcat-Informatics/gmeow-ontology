@@ -197,20 +197,30 @@ pub fn full_spec() -> PipelineSpec {
         &[],
     ));
 
-    // ── the single Sink: re-emits the snapshot bytes (the disk-write target) ──
+    // ── the single Sink: the terminal gts ARCHIVE writer (#1132 Stage C). It
+    //    serializes the assembled carrier (read off `stage-snapshot`'s bundle — no
+    //    re-assembly) and folds the by-reference blob archives gathered from the
+    //    in-memory JSON-Schema / axiom / reasoning / SHACL-report products. ──
     stages.push(st(
         SINK_STAGE,
         StageKind::Sink,
         "gts_sink",
-        &["stage-snapshot"],
+        &[
+            "stage-compile-logic",
+            "stage-export-json-schema",
+            "stage-reason",
+            "stage-snapshot",
+            "stage-validate",
+        ],
     ));
 
-    // ── the schemas tail: depends on the exact GTS bytes the Sink emits ──
+    // ── the schemas tail: a fold-reading export leaf over the carrier dataset
+    //    (#1132) — reads `stage-snapshot`'s bundle directly, never the gts bytes. ──
     stages.push(st(
         SCHEMAS_STAGE,
         StageKind::ExportLeaf,
         "schemas",
-        &[SINK_STAGE],
+        &["stage-snapshot"],
     ));
 
     PipelineSpec {
@@ -241,85 +251,31 @@ fn st(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSpec
 pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, PipelineError> {
     let spec = full_spec();
 
-    // Split the DAG at the schemas tail: phase 1 is everything up to (and
-    // including) the sink; phase 2 is the schemas leaf, which projects the
-    // in-memory sink product.
-    let (pre, tail): (Vec<StageSpec>, Vec<StageSpec>) = spec
-        .stages
-        .iter()
-        .cloned()
-        .partition(|s| s.id != SCHEMAS_STAGE);
-    let pre_spec = PipelineSpec {
-        id: spec.id.clone(),
-        stages: pre,
-    };
-
-    // ── Phase 1: validate + bind + run everything up to the sink. ──
-    let pre_graph = pre_spec.validate()?;
+    // Single-pass (#1132 Stage C): the schemas leaf is now a normal carrier-reading
+    // export leaf (it consumes `stage-snapshot`, not the sink bytes), so the WHOLE DAG —
+    // the terminal gts sink and the schemas tail included — runs in ONE scheduler pass.
+    // No producer/serialization re-derivation, no SINK_STAGE-only sub-run.
+    let graph = spec.validate()?;
     let registry = default_registry();
-    let pre_bound = bind(&pre_spec, &pre_graph, &registry)?;
-    // A full single-pass build runs over a FRESH ephemeral cache (never the
-    // persistent `generated/.pipeline-cache/`): the persistent cache keys stages
-    // by `impl_version`, so a stage whose Rust impl changed without a version bump
-    // could be served a stale pre-change product — a false-parity / false-drift
-    // source for the cutover gate. Per-level memoization within this run still
-    // applies; only cross-invocation reuse is dropped.
+    let bound = bind(&spec, &graph, &registry)?;
+    // A full single-pass build runs over a FRESH ephemeral cache (never the persistent
+    // `generated/.pipeline-cache/`): the persistent cache keys stages by `impl_version`,
+    // so a stage whose Rust impl changed without a version bump could be served a stale
+    // pre-change product — a false-parity / false-drift source for the cutover gate.
+    // Per-level memoization within this run still applies; only cross-invocation reuse
+    // is dropped.
     let mut ctx = RunContext::open_ephemeral(root, jobs)?;
-    let pre_result = run(&pre_graph, &pre_bound, &mut ctx)?;
+    let result = run(&graph, &bound, &mut ctx)?;
+    let products: BTreeMap<String, StageProduct> = result.products;
 
-    let mut products: BTreeMap<String, StageProduct> = pre_result.products;
-
-    // ── Phase-1 artifact write: in regenerate mode, write the fresh fold and
-    //    every other phase-1 artifact before the schemas tail reconciles. Schemas
-    //    itself consumes the sink product in memory. ──
     let mut findings: Vec<Finding> = Vec::new();
     let mut drifted: Vec<String> = Vec::new();
     let mut produced = 0usize;
     let mut reproduced = 0usize;
 
-    if mode == RunMode::Regenerate {
-        for product in products.values() {
-            for path in product.artifacts.keys() {
-                // `pipeline/`-prefixed artifacts are the in-memory dataflow
-                // (composed.nq / base-graph.nq / documentation.nq) the stages
-                // exchange — never committed to disk (mirrors the Check path).
-                if path.starts_with("pipeline/") {
-                    continue;
-                }
-                write_artifact(root, path, &product.artifacts[path])?;
-            }
-        }
-    }
-
-    // ── Phase 2: run the schemas tail against the sink product produced in phase 1. ──
-    if let Some(sink) = products.get(SINK_STAGE).cloned() {
-        let tail_spec = PipelineSpec {
-            id: spec.id.clone(),
-            stages: tail,
-        };
-        // Bind only the schemas stage; run it directly over the sink product.
-        let registry = default_registry();
-        for s in &tail_spec.stages {
-            let stage =
-                registry
-                    .get(&s.impl_key)
-                    .ok_or_else(|| PipelineError::UnknownStageImpl {
-                        stage: s.id.clone(),
-                        impl_key: s.impl_key.clone(),
-                    })?;
-            let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-            upstream.insert(SINK_STAGE.to_string(), sink.clone());
-            let out = stage.run(crate::node::StageInput {
-                root,
-                upstream: &upstream,
-            })?;
-            products.insert(s.id.clone(), out.product);
-        }
-    }
-
     // ── Reconcile every produced artifact against committed / write it. ──
     for product in products.values() {
-        for (path, bytes) in &product.artifacts {
+        for (path, bytes) in &product.artifacts() {
             // Internal in-memory dataflow artifacts (under the `pipeline/` logical
             // prefix: base-graph.nq, composed.nq, documentation.nq) are NOT
             // committed outputs — they exist only to pass between stages. Skip.
@@ -328,10 +284,17 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
             }
             produced += 1;
 
-            // The `gmeow.gts` bundle is compared by the FOLD (per-named-graph quad
-            // set + reifier/annotation counts) elsewhere — CBOR has encoding skew
-            // (#595). Count it produced; the fold gate is `tests/full_parity.rs`.
+            // The `gmeow.gts` bundle: in Regenerate mode WRITE the freshly-assembled
+            // bundle to disk (the terminal's sole output — without this a stale
+            // `merge=ours` bundle survives an `integrate-main` + regenerate, the exact
+            // trap CLAUDE.md warns about). In Check mode it is compared by the FOLD
+            // (per-named-graph quad set + reifier/annotation counts) elsewhere — CBOR
+            // has encoding skew (#595) — so it is only counted here; the fold gate is
+            // `tests/full_parity.rs`.
             if path == GTS_PATH {
+                if mode == RunMode::Regenerate {
+                    write_artifact(root, path, bytes)?;
+                }
                 reproduced += 1;
                 continue;
             }

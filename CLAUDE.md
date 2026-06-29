@@ -2,6 +2,8 @@
 
 Refer to [AGENTS.md](./AGENTS.md) in the project root for the canonical tech stack, workflow guidelines, and the strict ontological principles defined in [CONSTITUTION.md](./CONSTITUTION.md).
 
+The regeneration pipeline is governed by [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md) — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout. It is canonical for any work touching `crates/pipeline` or any artifact under `generated/`: every such artifact must be a projection of `gmeow.gts`.
+
 ## Standing constraints (non-negotiable)
 
 [`.goals`](./.goals) and [`CONSTITUTION.md`](./CONSTITUTION.md) are **normative and override everything else** here.

@@ -65,7 +65,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	native-py native-py-wheel native-py-install validate validate-gts reason verify test test-fast rust-build rust-test check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene wasm wasm-pkg wasm-pkg-test \
+	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene carrier-purity wasm wasm-pkg wasm-pkg-test \
 	capi-build capi-header capi-check capi-install \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
@@ -291,7 +291,7 @@ lint-alignment: ## Lint SSSOM mappings for inverse and domain/range mismatches.
 doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 	$(GMEOW_DEV) doc-lint
 
-rust-gate: rust-build ## Warm Rust once, then run clippy, nextest, the 25s budget gate, and doctests serially.
+rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-purity gate, clippy, nextest, the 25s budget gate, and doctests serially.
 	cargo clippy --all-targets -- -D warnings
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile ci $(NEXTEST_PARTITION_ARG)
@@ -300,6 +300,21 @@ rust-gate: rust-build ## Warm Rust once, then run clippy, nextest, the 25s budge
 
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings
+
+carrier-purity: rust-build ## Prove the pipeline inter-stage carrier/transport path uses no oxigraph Store accumulation (#1132 C11).
+	@# STRUCTURAL gate: the composed value rides the native RdfDataset/PipelineBundle
+	@# carrier (RdfDataset::union), and `snapshot`'s named-graph assembly + the SOLE
+	@# `emit_gts` byte emitter create no oxigraph `Store` to accumulate/union/round-trip
+	@# the carried RDF. The test scans the carrier modules' PRODUCTION source for a
+	@# reintroduced `Store::new()` / `store_from_dataset` / `dataset_from_store` and FAILS
+	@# if one returns. The carrier's typed-literal value-space canonicalization is now
+	@# NATIVE (gmeow_xsd::parse_by_iri + XsdValue::canonical_lexical), so there is NO
+	@# sanctioned-exception residual — the former `canonicalize_quad_literals` transient
+	@# `Store` is gone. Excludes source-file parsing / the DAG loader (ingestion, not
+	@# transport). The bundled negative-arm unit test proves the detector flags a
+	@# reintroduced accumulation.
+	cargo nextest run -p gmeow-pipeline --test carrier_purity
+	@echo "OK: pipeline carrier/transport path is oxigraph-Store-free (native gmeow_xsd literal canon, no sanctioned residual)"
 
 rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 	cargo build -p gmeow-rdf-core
@@ -608,7 +623,13 @@ maint-external-corpora: ## Grade the native reasoner against the full Lane-B ext
 native-py: $(NATIVE_PY_STAMP)
 
 $(NATIVE_PY_STAMP): $(NATIVE_PY_INPUTS)
-	VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
+	# Build --release: the native reasoner (Nemo chase + RDFC-1.0 canonicalization +
+	# Turtle serialization) is pure CPU and dominates every gate that runs the
+	# pipeline. MEASURED 2026-06-28: a release ext cuts `make regenerate` 353s → 81s
+	# (4.4x) with byte-identical output. The `[profile.release]` overrides in
+	# Cargo.toml already cap Nemo's build RAM (opt-2/256-units, measured 7.37 GB —
+	# within the 16 GB wheel-runner budget), so the cutover is safe.
+	VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin develop --release --manifest-path crates/native/Cargo.toml
 	@touch $@
 
 native-py-wheel: ## Build the unified gmeow_native wheel into dist/wheels (CI prebuild-once).
@@ -617,9 +638,11 @@ native-py-wheel: ## Build the unified gmeow_native wheel into dist/wheels (CI pr
 	# (the legacy gmeow_* import shims) relative to that pyproject, not the repo root.
 	# `--compatibility linux` skips auditwheel repair (no system-lib bundling): the
 	# prebuild job and every consumer run on the same ubuntu-latest image, so a plain
-	# linux wheel is correct and avoids the repair step. Debug (no --release) matches
-	# the per-job `maturin develop` it replaces and keeps the Nemo build fast/light.
-	cd crates/native && VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin build --compatibility linux -o "$(CURDIR)/dist/wheels"
+	# linux wheel is correct and avoids the repair step. --release matches the
+	# `maturin develop --release` in `native-py`: the optimized reasoner cuts every
+	# pipeline gate (regenerate/check-generated/validate) ~4.4x; Nemo's release build
+	# RAM is capped to 7.37 GB by the `[profile.release]` overrides in Cargo.toml.
+	cd crates/native && VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin build --release --compatibility linux -o "$(CURDIR)/dist/wheels"
 
 native-py-install: ## Install the prebuilt unified wheel from dist/wheels (CI consumers); hard-fail if absent/ambiguous.
 	set -eu; \

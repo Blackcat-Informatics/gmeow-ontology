@@ -48,7 +48,7 @@ oxigraph = ["gts", "dep:oxigraph", "dep:gmeow-rdf-events"]
 # `rdf-codecs` now rides the always-on `gts` feature (#909), so `python` no longer
 # names it here; it keeps only the JSON-LD-star (`yaml-ld`) codec the compat
 # `Graph.serialize/parse` route uses.
-python = ["dep:pyo3", "dep:gmeow-xsd", "gts", "oxigraph", "gmeow-gts/yaml-ld"]
+python = ["dep:pyo3", "gts", "oxigraph", "gmeow-gts/yaml-ld"]
 
 [dependencies]
 # The ring-fenced, oxigraph-free kernel (#885 / purrdf P2b): owns the IR, value
@@ -57,7 +57,11 @@ python = ["dep:pyo3", "dep:gmeow-xsd", "gts", "oxigraph", "gmeow-gts/yaml-ld"]
 # gmeow-rdf always re-exports its always-on modules — with default features off
 # so the `gts`-only modules stay behind gmeow-rdf's own `gts` feature.
 gmeow-rdf-core = { path = "../rdf-core", default-features = false }
-gmeow-xsd = { path = "../xsd", optional = true }
+# The native, zero-dependency XSD value space (#906): non-optional, so gmeow-rdf's
+# always-on native codec path can reach W3C-canonical literal canonicalization
+# without any feature gate (#1132 carrier-purity — `.goals` forbids optional
+# components). The python-gated py_store value comparator also uses it.
+gmeow-xsd = { path = "../xsd" }
 ciborium = { version = "0.2", optional = true }
 gmeow-gts = { version = "0.9.9", optional = true, features = ["duckdb"] }
 gmeow-rdf-events = { path = "../rdf-events", optional = true }

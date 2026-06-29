@@ -18,15 +18,15 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_gts::model::Graph;
+use gmeow_rdf::RdfDataset;
 use serde::Serialize;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
 use crate::stages::export::{FoldView, DEFAULT_SCOPE};
 
-const GTS_PATH: &str = "generated/dist/gmeow.gts";
-const SINK_STAGE: &str = "stage-gts-sink";
+/// The carrier producer this leaf reads (GTS is exit-only; no gts re-parse).
+const SNAPSHOT_STAGE: &str = "stage-snapshot";
 
 /// The committed logical paths of the four schema artifacts owned by this stage.
 pub const LINKML_PATH: &str = "generated/schemas/gmeow.linkml.yaml";
@@ -220,8 +220,8 @@ fn range_for(iri: &str, class_names: &BTreeSet<String>) -> String {
     "string".to_string()
 }
 
-fn emit_linkml_model(graph: &Graph) -> LinkmlSchema {
-    let view = FoldView::new(graph);
+fn emit_linkml_model(dataset: &RdfDataset) -> LinkmlSchema {
+    let view = FoldView::new(dataset);
     let mut schema = LinkmlSchema {
         id: "https://blackcatinformatics.ca/gmeow/linkml".into(),
         name: "gmeow".into(),
@@ -785,10 +785,10 @@ fn render_graphql(schema: &LinkmlSchema) -> Vec<u8> {
     finish_text(out)
 }
 
-pub(crate) fn render_schemas_from_graph(
-    graph: &Graph,
+pub(crate) fn render_schemas_from_dataset(
+    dataset: &RdfDataset,
 ) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
-    let schema = emit_linkml_model(graph);
+    let schema = emit_linkml_model(dataset);
     let mut artifacts = BTreeMap::new();
     artifacts.insert(LINKML_PATH.to_string(), render_linkml_yaml(&schema)?);
     artifacts.insert(PYDANTIC_PATH.to_string(), render_pydantic(&schema));
@@ -805,7 +805,7 @@ pub struct SchemasStage {
 impl SchemasStage {
     pub fn new() -> Self {
         Self {
-            consumes: vec![SINK_STAGE.to_string()],
+            consumes: vec![SNAPSHOT_STAGE.to_string()],
         }
     }
 }
@@ -830,17 +830,14 @@ impl Stage for SchemasStage {
         "schemas.v3-native"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let sink = input
-            .upstream
-            .get(SINK_STAGE)
-            .ok_or_else(|| schema_error(format!("missing upstream product {SINK_STAGE}")))?;
-        let gts = sink
-            .artifact(GTS_PATH)
-            .ok_or_else(|| schema_error(format!("{SINK_STAGE} did not emit {GTS_PATH}")))?;
-        let graph = gmeow_rdf::gts::read_graph(gts, true)
-            .map_err(|e| schema_error(format!("could not read upstream GTS graph: {e}")))?;
+        // Read THIS run's carrier dataset directly off the snapshot product's bundle
+        // (#1132) — GTS is exit-only, never re-parsed by an export leaf.
+        let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_schemas_from_graph(&graph)?),
+            product: StageProduct::from_artifacts(
+                self.id(),
+                render_schemas_from_dataset(dataset.as_ref())?,
+            ),
         })
     }
 }
@@ -857,17 +854,20 @@ mod tests {
             .unwrap()
     }
 
-    fn committed_graph() -> Graph {
+    fn committed_dataset() -> std::sync::Arc<RdfDataset> {
         let root = repo_root();
-        let gts = std::fs::read(root.join(GTS_PATH)).expect("read committed gmeow.gts");
-        gmeow_rdf::gts::read_graph(&gts, true).expect("read committed graph")
+        let gts =
+            std::fs::read(root.join("generated/dist/gmeow.gts")).expect("read committed gmeow.gts");
+        gmeow_rdf::import_gts_events(&gts)
+            .expect("import committed gmeow.gts")
+            .dataset
     }
 
     #[test]
     fn native_schema_stage_emits_all_artifacts_deterministically() {
-        let graph = committed_graph();
-        let first = render_schemas_from_graph(&graph).expect("render schemas");
-        let second = render_schemas_from_graph(&graph).expect("render schemas again");
+        let dataset = committed_dataset();
+        let first = render_schemas_from_dataset(dataset.as_ref()).expect("render schemas");
+        let second = render_schemas_from_dataset(dataset.as_ref()).expect("render schemas again");
         assert_eq!(first, second, "native schema output is non-deterministic");
         for path in SCHEMA_PATHS {
             assert!(first.contains_key(path), "missing {path}");
@@ -877,8 +877,8 @@ mod tests {
 
     #[test]
     fn native_schema_preserves_known_slot_semantics() {
-        let graph = committed_graph();
-        let schema = emit_linkml_model(&graph);
+        let dataset = committed_dataset();
+        let schema = emit_linkml_model(dataset.as_ref());
         let pixel_width = schema.slots.get("pixelWidth").expect("pixelWidth slot");
         assert_eq!(pixel_width.range, "integer");
         assert_eq!(pixel_width.minimum_value, Some(0));
@@ -897,8 +897,8 @@ mod tests {
 
     #[test]
     fn pydantic_classes_inherit_declared_parent_classes() {
-        let graph = committed_graph();
-        let schema = emit_linkml_model(&graph);
+        let dataset = committed_dataset();
+        let schema = emit_linkml_model(dataset.as_ref());
         let (child_name, child_def) = schema
             .classes
             .iter()

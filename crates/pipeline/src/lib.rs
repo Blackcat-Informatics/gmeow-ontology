@@ -28,6 +28,7 @@
 //! source of truth), and every bound stage's `kind` / `consumes` agree with its
 //! RDF declaration.
 
+pub mod bundle;
 pub mod cache;
 pub mod error;
 pub mod graph;
@@ -48,6 +49,7 @@ pub mod mcp;
 #[cfg(feature = "python")]
 pub mod py;
 
+pub use bundle::{bundle_artifact, bundle_artifacts, PipelineHandle};
 pub use cache::PipelineCache;
 pub use error::PipelineError;
 pub use graph::StageGraph;

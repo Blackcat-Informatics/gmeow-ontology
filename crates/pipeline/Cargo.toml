@@ -28,9 +28,22 @@ python = ["dep:pyo3"]
 # The RDF 1.2 kernel: stages exchange an in-memory dataset / bundle and stamp
 # provenance through this crate; the content store backs the pipeline cache.
 gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts"] }
-# The export leaf reads the folded gts Graph model directly and reuses the
-# gmeow-gts N-Quads/TriG serializers (the lossless dataset forms) + the columnar
-# blob model for the parquet leaf (#861 P4). Same pin as gmeow-rdf links.
+# The native, zero-dependency XSD value space (#906): the snapshot carrier
+# canonicalizes typed-literal lexical forms (`415.0`→`415.0`, `0.90`→`0.9`,
+# `+00:00`→`Z`) to the W3C-canonical mapping via `gmeow_xsd::parse_by_iri` +
+# `XsdValue::canonical_lexical`, replacing the transient-oxigraph-`Store` literal
+# normalizer (#1132 carrier-purity). DIRECT + NON-optional: the snapshot carrier
+# path is always on, so this must not be feature-gated.
+gmeow-xsd = { path = "../xsd" }
+# The gts ARCHIVE BOUNDARY only (#1132): GTS is exit-only — never an internal
+# pipeline transport. Every internal export leaf (export / yaml_ld / parquet /
+# schemas / okf / transcode) now reads the native `RdfDataset` carrier off the
+# snapshot product's bundle, NOT a gts `Graph`. This dep is scoped by discipline to
+# the three archive-boundary surfaces that legitimately read/write the gts package:
+# `release.rs` (sign + verify a release `gmeow.gts`), `py.rs::fold_release_bundle_native`
+# (Ed25519 release signing), and `mcp.rs` (the McpView memory server, a separate
+# system consuming the bundled snapshot). Same pin as gmeow-rdf links. Do NOT
+# reintroduce it into an export leaf — the carrier is the single internal transport.
 gmeow-gts = "0.9.9"
 # The `reason` stage wires the native EL/DL reasoner + artifact builders directly
 # (gmeow_logic::reason::reason_all + reason::artifacts) — no Python, no PyO3.
@@ -100,6 +113,10 @@ ciborium = "0.2"
 
 [dev-dependencies]
 tempfile = "3"
+# Byte goldens for the per-graph `graph/logic` fold (#1132 C6): a deterministic
+# snapshot of the canonical RDF-1.2 named-graph carriage, regression-pinned
+# independent of the full gmeow.gts.
+insta = { version = "1.48", features = ["json"] }
 # The release-as-evidence fold tests build a deterministic Ed25519 signing key +
 # a synthetic OpenPGP public-key armor; same dalek the snapshot signer uses.
 ed25519-dalek = "2"
