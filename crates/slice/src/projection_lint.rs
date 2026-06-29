@@ -36,15 +36,12 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use oxigraph::model::{GraphNameRef, NamedNode, NamedOrBlankNode, Term};
-use oxigraph::store::Store;
-
 use crate::error::SliceError;
 use crate::mapping_support::{collect_ontology_store, predicate_ranges};
+use crate::rdf_query::{Dataset, DatasetAccumulator, Object, Subject};
 
 // ── Namespace constants ───────────────────────────────────────────────────────
 
-const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 
 const FNO_PARAMETER: &str = "https://w3id.org/function/ontology#Parameter";
@@ -161,19 +158,20 @@ pub fn lint_projection(
 
 /// FnO param/output `fno:type`s that disagree with their predicate's `rdfs:range`
 /// (mirrors `projection_lint.fno_type_mismatches`).
-fn fno_type_mismatches(onto: &Store, fno: &Store) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
+fn fno_type_mismatches(
+    onto: &Dataset,
+    fno: &Dataset,
+) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
     let mut params: BTreeSet<String> = BTreeSet::new();
     params.extend(subjects_of_type(fno, FNO_PARAMETER)?);
     params.extend(subjects_of_type(fno, FNO_OUTPUT)?);
 
     let mut problems: Vec<ProjectionDiagnostic> = Vec::new();
     for param in &params {
-        let subject = NamedNode::new(param)
-            .map_err(|e| SliceError::Parse(format!("invalid FnO node IRI {param}: {e}")))?;
-        let Some(predicate) = first_object_iri(fno, &subject, FNO_PREDICATE)? else {
+        let Some(predicate) = fno.first_object_iri(param, FNO_PREDICATE)? else {
             continue; // not a URIRef predicate — skip (mirrors the isinstance guard)
         };
-        let Some(ftype) = first_object_iri(fno, &subject, FNO_TYPE)? else {
+        let Some(ftype) = fno.first_object_iri(param, FNO_TYPE)? else {
             continue; // no fno:type declared — skip
         };
         // The ontology range set; an external/projected predicate has none → skip.
@@ -202,7 +200,7 @@ fn fno_type_mismatches(onto: &Store, fno: &Store) -> Result<Vec<ProjectionDiagno
 /// EDOAL `edoal:transformation` references to undefined FnO functions (mirrors
 /// `projection_lint.fno_reference_integrity`).
 fn fno_reference_integrity(
-    fno: &Store,
+    fno: &Dataset,
     projections: &Path,
 ) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
     let defined: BTreeSet<String> = subjects_of_type(fno, FNO_FUNCTION)?.into_iter().collect();
@@ -215,13 +213,16 @@ fn fno_reference_integrity(
             .unwrap_or_default()
             .to_owned();
         let store = parse_ttl(&path)?;
-        for cell in subject_terms_of_type(&store, ALIGN_CELL)? {
-            for trans in objects_of_term(&store, &cell, EDOAL_TRANSFORMATION)? {
-                for refr in objects_of_term(&store, &trans, RDFS_SEE_ALSO)? {
-                    let Term::NamedNode(nn) = &refr else {
+        for cell in store.subject_terms_of_type(ALIGN_CELL)? {
+            for trans in store.objects_of_subject(&cell, EDOAL_TRANSFORMATION)? {
+                let Some(trans) = object_as_subject(&trans) else {
+                    continue;
+                };
+                for refr in store.objects_of_subject(&trans, RDFS_SEE_ALSO)? {
+                    let Object::Named(iri) = &refr else {
                         continue;
                     };
-                    let iri = nn.as_str();
+                    let iri = iri.as_str();
                     // Last path segment — split on `/` OR `#`, matching the FnO IRI
                     // local-name convention. A future-proofing superset of the retired
                     // Python `/`-only split: no behaviour change on any current FnO IRI
@@ -243,13 +244,13 @@ fn fno_reference_integrity(
 
 // ── Source loading ─────────────────────────────────────────────────────────────
 
-/// The merged FnO catalog store: `functions.fno.ttl` + `transforms.fno.ttl`. The
+/// The merged FnO catalog dataset: `functions.fno.ttl` + `transforms.fno.ttl`. The
 /// transforms catalog is hand-authored in the DSL tree, so it falls back to
 /// `dsl/mappings/transforms.fno.ttl` when absent from `projections` (mirrors
 /// `projection_lint._fno_graph`'s fallback + `_run_invariants`' staging copy).
-fn fno_catalog_store(root: &Path, projections: &Path) -> Result<Store, SliceError> {
-    let store = new_store()?;
-    load_ttl_into(&store, &projections.join(FNO_FUNCTIONS_FILE))?;
+fn fno_catalog_store(root: &Path, projections: &Path) -> Result<Dataset, SliceError> {
+    let mut acc = DatasetAccumulator::new();
+    add_ttl(&mut acc, &projections.join(FNO_FUNCTIONS_FILE))?;
 
     let transforms = projections.join(FNO_TRANSFORMS_FILE);
     let transforms = if transforms.is_file() {
@@ -257,8 +258,8 @@ fn fno_catalog_store(root: &Path, projections: &Path) -> Result<Store, SliceErro
     } else {
         root.join("dsl").join("mappings").join(FNO_TRANSFORMS_FILE)
     };
-    load_ttl_into(&store, &transforms)?;
-    Ok(store)
+    add_ttl(&mut acc, &transforms)?;
+    acc.freeze()
 }
 
 /// Every `*.edoal.ttl` under `projections`, sorted by path (mirrors the Python
@@ -292,126 +293,38 @@ fn py_list_repr(items: &[String]) -> String {
     format!("[{inner}]")
 }
 
-// ── oxigraph store helpers ─────────────────────────────────────────────────────
+// ── Native dataset helpers ─────────────────────────────────────────────────────
 //
 // The same trivial parse/query boilerplate the shared `mapping_support` helpers use;
-// kept local so the lint reads its own committed-tree stores without widening the
+// kept local so the lint reads its own committed-tree datasets without widening the
 // shared support surface.
 
-fn new_store() -> Result<Store, SliceError> {
-    Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))
-}
-
-fn parse_ttl(path: &Path) -> Result<Store, SliceError> {
-    let store = new_store()?;
-    load_ttl_into(&store, path)?;
-    Ok(store)
-}
-
-/// Parse one committed Turtle artifact into `store` (lenient, so GMEOW's `@x-gmeow-*`
-/// language tags parse — mirrors the emitters' `load_into_store`).
-fn load_ttl_into(store: &Store, path: &Path) -> Result<(), SliceError> {
+fn parse_ttl(path: &Path) -> Result<Dataset, SliceError> {
     let bytes = std::fs::read(path).map_err(SliceError::Io)?;
-    crate::rdf_text::turtle_bytes_into_store(store, &bytes, &path.display().to_string())
+    Dataset::parse_turtle(&bytes, &path.display().to_string())
+}
+
+/// Parse one committed Turtle artifact into `acc` under a fresh blank scope (lenient,
+/// so GMEOW's `@x-gmeow-*` language tags parse).
+fn add_ttl(acc: &mut DatasetAccumulator, path: &Path) -> Result<(), SliceError> {
+    let bytes = std::fs::read(path).map_err(SliceError::Io)?;
+    acc.add_turtle(&bytes, &path.display().to_string())
 }
 
 /// Every named-node subject of `?s a <type_iri>`.
-fn subjects_of_type(store: &Store, type_iri: &str) -> Result<Vec<String>, SliceError> {
-    let rdf_type = NamedNode::new(RDF_TYPE)
-        .map_err(|e| SliceError::Parse(format!("invalid rdf:type IRI: {e}")))?;
-    let class = NamedNode::new(type_iri)
-        .map_err(|e| SliceError::Parse(format!("invalid type IRI {type_iri}: {e}")))?;
-    let mut subjects = Vec::new();
-    for quad in store.quads_for_pattern(
-        None,
-        Some(rdf_type.as_ref()),
-        Some(class.as_ref().into()),
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        let quad = quad.map_err(|e| SliceError::Parse(e.to_string()))?;
-        if let NamedOrBlankNode::NamedNode(nn) = &quad.subject {
-            subjects.push(nn.as_str().to_owned());
-        }
-    }
-    Ok(subjects)
+fn subjects_of_type(store: &Dataset, type_iri: &str) -> Result<Vec<String>, SliceError> {
+    store.subjects_of_type(type_iri)
 }
 
-/// The first IRI object of `<subject> <pred> ?o`, or `None` when the first object is
-/// not a NamedNode (mirrors rdflib's `graph.value(...)` restricted to a URIRef).
-fn first_object_iri(
-    store: &Store,
-    subject: &NamedNode,
-    pred: &str,
-) -> Result<Option<String>, SliceError> {
-    let predicate = NamedNode::new(pred)
-        .map_err(|e| SliceError::Parse(format!("invalid predicate IRI {pred}: {e}")))?;
-    match store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(predicate.as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .next()
-    {
-        Some(quad) => match quad.map_err(|e| SliceError::Parse(e.to_string()))?.object {
-            Term::NamedNode(nn) => Ok(Some(nn.as_str().to_owned())),
-            _ => Ok(None),
-        },
-        None => Ok(None),
-    }
-}
-
-fn term_subject(term: &Term) -> Option<NamedOrBlankNode> {
-    match term {
-        Term::NamedNode(nn) => Some(NamedOrBlankNode::NamedNode(nn.clone())),
-        Term::BlankNode(bn) => Some(NamedOrBlankNode::BlankNode(bn.clone())),
+/// Coerce an object term back to a subject for the next transformation hop (a
+/// named-node or blank-node object can stand in subject position; a literal/triple
+/// cannot).
+fn object_as_subject(o: &Object) -> Option<Subject> {
+    match o {
+        Object::Named(iri) => Some(Subject::Named(iri.clone())),
+        Object::Blank(label) => Some(Subject::Blank(label.clone())),
         _ => None,
     }
-}
-
-/// Every subject (named OR blank) of `?s a <type_iri>`, as a [`Term`]. EDOAL
-/// `align:Cell` nodes are minted as stable blank nodes by the EDOAL correspondence
-/// lowering, so the cell scan must carry blank-node subjects — unlike the FnO
-/// `fno:Parameter`/`Function` IRIs that [`subjects_of_type`] handles.
-fn subject_terms_of_type(store: &Store, type_iri: &str) -> Result<Vec<Term>, SliceError> {
-    let rdf_type = NamedNode::new(RDF_TYPE)
-        .map_err(|e| SliceError::Parse(format!("invalid rdf:type IRI: {e}")))?;
-    let class = NamedNode::new(type_iri)
-        .map_err(|e| SliceError::Parse(format!("invalid type IRI {type_iri}: {e}")))?;
-    let mut out = Vec::new();
-    for quad in store.quads_for_pattern(
-        None,
-        Some(rdf_type.as_ref()),
-        Some(class.as_ref().into()),
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        let quad = quad.map_err(|e| SliceError::Parse(e.to_string()))?;
-        match quad.subject {
-            NamedOrBlankNode::NamedNode(nn) => out.push(Term::NamedNode(nn)),
-            NamedOrBlankNode::BlankNode(bn) => out.push(Term::BlankNode(bn)),
-        }
-    }
-    Ok(out)
-}
-
-/// All object terms of `<subject> <pred> ?o` (subject may be a blank node).
-fn objects_of_term(store: &Store, subject: &Term, pred: &str) -> Result<Vec<Term>, SliceError> {
-    let Some(subj) = term_subject(subject) else {
-        return Ok(Vec::new());
-    };
-    let predicate = NamedNode::new(pred)
-        .map_err(|e| SliceError::Parse(format!("invalid predicate IRI {pred}: {e}")))?;
-    let mut out = Vec::new();
-    for quad in store.quads_for_pattern(
-        Some(subj.as_ref()),
-        Some(predicate.as_ref()),
-        None,
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        out.push(quad.map_err(|e| SliceError::Parse(e.to_string()))?.object);
-    }
-    Ok(out)
 }
 
 #[cfg(test)]
@@ -539,8 +452,8 @@ mod tests {
 
     // ── helpers ────────────────────────────────────────────────────────────────
 
-    fn store_from_turtle(ttl: &str) -> Store {
-        crate::rdf_text::turtle_bytes_to_store(ttl.as_bytes(), "test fixture").unwrap()
+    fn store_from_turtle(ttl: &str) -> Dataset {
+        Dataset::parse_turtle(ttl.as_bytes(), "test fixture").unwrap()
     }
 
     fn write_ttl(path: &Path, ttl: &str) {

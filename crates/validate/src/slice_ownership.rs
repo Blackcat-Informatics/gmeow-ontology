@@ -150,7 +150,7 @@ fn finding(severity: Severity, code: &str, message: String, logical: Option<Stri
 mod tests {
     use super::*;
     use gmeow_slice::EdgeKind;
-    use oxigraph::model::NamedNode;
+    use gmeow_slice::NamedNode;
     use std::collections::HashMap;
 
     fn nn(iri: &str) -> NamedNode {

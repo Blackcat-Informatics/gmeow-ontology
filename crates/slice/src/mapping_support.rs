@@ -26,16 +26,14 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use gmeow_rdf::{RdfQuad, RdfTerm};
-use oxigraph::model::{GraphNameRef, NamedNode, NamedOrBlankNode, Term};
-use oxigraph::store::Store;
 
 use crate::artifact::ArtifactRole;
 use crate::catalog::SliceCatalog;
 use crate::error::SliceError;
+use crate::rdf_query::{Dataset, DatasetAccumulator};
 
 // ── Namespace constants ───────────────────────────────────────────────────────
 
-const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 
 /// The generated-banner comment shared by every generated artifact.
@@ -243,17 +241,17 @@ pub(crate) fn registry_iri(prefix: &str) -> Option<&'static str> {
 
 // ── Merged-store collection ──────────────────────────────────────────────────────
 
-/// Build the merged DSL store: the shared `dsl/mappings/**/*.ttl` tree + the slice
+/// Build the merged DSL dataset: the shared `dsl/mappings/**/*.ttl` tree + the slice
 /// `mappings/*.ttl` artifacts (the `load_dsl` source set, sorted-path insertion).
-pub(crate) fn collect_dsl_store(root: &Path) -> Result<Store, SliceError> {
-    let store = new_store()?;
+pub(crate) fn collect_dsl_store(root: &Path) -> Result<Dataset, SliceError> {
+    let mut acc = DatasetAccumulator::new();
     let dsl_dir = root.join("dsl").join("mappings");
     let mut dsl_files: Vec<std::path::PathBuf> = Vec::new();
     collect_ttl_files(&dsl_dir, &mut dsl_files)?;
     dsl_files.sort();
     for path in &dsl_files {
         let bytes = std::fs::read(path).map_err(SliceError::Io)?;
-        load_into_store(&store, &bytes, path)?;
+        acc.add_turtle(&bytes, &path.display().to_string())?;
     }
     let slices_dir = root.join("slices");
     if slices_dir.is_dir() {
@@ -269,21 +267,21 @@ pub(crate) fn collect_dsl_store(root: &Path) -> Result<Store, SliceError> {
         }
         slice_mappings.sort_by(|a, b| a.0.cmp(&b.0));
         for (path, bytes) in &slice_mappings {
-            load_into_store(&store, bytes, path)?;
+            acc.add_turtle(bytes, &path.display().to_string())?;
         }
     }
-    Ok(store)
+    acc.freeze()
 }
 
-/// Build the merged ontology store: `ontology/gmeow.ttl` + every slice
+/// Build the merged ontology dataset: `ontology/gmeow.ttl` + every slice
 /// [`ArtifactRole::Module`] artifact (the `load_merged_graph(include_imports=False)`
 /// source set).
-pub(crate) fn collect_ontology_store(root: &Path) -> Result<Store, SliceError> {
-    let store = new_store()?;
+pub(crate) fn collect_ontology_store(root: &Path) -> Result<Dataset, SliceError> {
+    let mut acc = DatasetAccumulator::new();
     let ontology_file = root.join("ontology").join("gmeow.ttl");
     if ontology_file.is_file() {
         let bytes = std::fs::read(&ontology_file).map_err(SliceError::Io)?;
-        load_into_store(&store, &bytes, &ontology_file)?;
+        acc.add_turtle(&bytes, &ontology_file.display().to_string())?;
     }
     let slices_dir = root.join("slices");
     if slices_dir.is_dir() {
@@ -299,14 +297,10 @@ pub(crate) fn collect_ontology_store(root: &Path) -> Result<Store, SliceError> {
         }
         modules.sort_by(|a, b| a.0.cmp(&b.0));
         for (path, bytes) in &modules {
-            load_into_store(&store, bytes, path)?;
+            acc.add_turtle(bytes, &path.display().to_string())?;
         }
     }
-    Ok(store)
-}
-
-fn new_store() -> Result<Store, SliceError> {
-    Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))
+    acc.freeze()
 }
 
 fn collect_ttl_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), SliceError> {
@@ -324,10 +318,6 @@ fn collect_ttl_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<()
         }
     }
     Ok(())
-}
-
-fn load_into_store(store: &Store, bytes: &[u8], path: &Path) -> Result<(), SliceError> {
-    crate::rdf_text::turtle_bytes_into_store(store, bytes, &path.display().to_string())
 }
 
 // ── SPARQL PREFIX block ──────────────────────────────────────────────────────────
@@ -389,97 +379,29 @@ fn has_prefix_token(text: &str, prefix: &str) -> bool {
     false
 }
 
-// ── Store / term helpers ─────────────────────────────────────────────────────────
+// ── Dataset / term helpers ─────────────────────────────────────────────────────
 
-pub(crate) fn subjects_of_type(store: &Store, type_iri: &str) -> Result<Vec<String>, SliceError> {
-    let rdf_type = NamedNode::new(RDF_TYPE)
-        .map_err(|e| SliceError::Parse(format!("invalid rdf:type IRI: {e}")))?;
-    let class = NamedNode::new(type_iri)
-        .map_err(|e| SliceError::Parse(format!("invalid type IRI {type_iri}: {e}")))?;
-    let mut subjects = Vec::new();
-    for quad in store.quads_for_pattern(
-        None,
-        Some(rdf_type.as_ref()),
-        Some(class.as_ref().into()),
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        let quad = quad.map_err(|e| SliceError::Parse(e.to_string()))?;
-        if let NamedOrBlankNode::NamedNode(nn) = &quad.subject {
-            subjects.push(nn.as_str().to_owned());
-        }
-    }
-    Ok(subjects)
+pub(crate) fn subjects_of_type(store: &Dataset, type_iri: &str) -> Result<Vec<String>, SliceError> {
+    store.subjects_of_type(type_iri)
 }
 
 pub(crate) fn object_literal(
-    store: &Store,
-    subject: &NamedNode,
+    store: &Dataset,
+    subject: &str,
     pred: &str,
 ) -> Result<Option<String>, SliceError> {
-    match first_object(store, subject, pred)? {
-        Some(Term::Literal(lit)) => Ok(Some(lit.value().to_owned())),
-        _ => Ok(None),
-    }
+    store.object_literal(subject, pred)
 }
 
-fn first_object(
-    store: &Store,
-    subject: &NamedNode,
-    pred: &str,
-) -> Result<Option<Term>, SliceError> {
-    let predicate = NamedNode::new(pred)
-        .map_err(|e| SliceError::Parse(format!("invalid predicate IRI {pred}: {e}")))?;
-    match store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(predicate.as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .next()
-    {
-        Some(quad) => Ok(Some(
-            quad.map_err(|e| SliceError::Parse(e.to_string()))?.object,
-        )),
-        None => Ok(None),
-    }
-}
-
-/// All object terms of `subject pred ?o` in the default graph.
-fn objects_of(store: &Store, subject: &NamedNode, pred: &str) -> Result<Vec<Term>, SliceError> {
-    let predicate = NamedNode::new(pred)
-        .map_err(|e| SliceError::Parse(format!("invalid predicate IRI {pred}: {e}")))?;
-    let mut out = Vec::new();
-    for quad in store.quads_for_pattern(
-        Some(subject.as_ref().into()),
-        Some(predicate.as_ref()),
-        None,
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        out.push(quad.map_err(|e| SliceError::Parse(e.to_string()))?.object);
-    }
-    Ok(out)
-}
-
-/// All IRI objects of `subject pred ?o`, in store-iteration order.
-fn object_iris(store: &Store, subject: &NamedNode, pred: &str) -> Result<Vec<String>, SliceError> {
-    let mut out = Vec::new();
-    for obj in objects_of(store, subject, pred)? {
-        if let Term::NamedNode(nn) = obj {
-            out.push(nn.as_str().to_owned());
-        }
-    }
-    Ok(out)
-}
-
-/// Every `rdfs:range` IRI of a predicate in the ontology store, in store-iteration
-/// order (mirrors `set(onto.objects(predicate, RDFS.range))` restricted to URIRef
-/// objects). The single shared range lookup for both the FnO derivation and the
-/// projection lint's `fno-type` check.
-pub(crate) fn predicate_ranges(store: &Store, predicate: &str) -> Result<Vec<String>, SliceError> {
-    let node = NamedNode::new(predicate)
-        .map_err(|e| SliceError::Parse(format!("invalid predicate IRI {predicate}: {e}")))?;
-    object_iris(store, &node, RDFS_RANGE)
+/// Every `rdfs:range` IRI of a predicate in the ontology dataset, in dataset order
+/// (mirrors `set(onto.objects(predicate, RDFS.range))` restricted to URIRef objects).
+/// The single shared range lookup for both the FnO derivation and the projection
+/// lint's `fno-type` check.
+pub(crate) fn predicate_ranges(
+    store: &Dataset,
+    predicate: &str,
+) -> Result<Vec<String>, SliceError> {
+    store.object_iris(predicate, RDFS_RANGE)
 }
 
 // ── Language-tag retag ───────────────────────────────────────────────────────────

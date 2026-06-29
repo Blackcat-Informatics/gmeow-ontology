@@ -22,8 +22,9 @@ path = "src/lib.rs"
 python = ["dep:pyo3"]
 
 [dependencies]
-gmeow-rdf = { path = "../rdf", features = ["oxigraph"] }
-oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+# Oxigraph-free (EPIC #906): the slice catalog/emitters/linters parse via the native
+# `gts` text codecs (`parse_dataset`) into the `RdfDataset` IR and query it directly.
+gmeow-rdf = { path = "../rdf", features = ["gts"] }
 # Native SPARQL parser (purrdf S5, #911) — competency/verify queries are PARSED
 # (RFC §10), never text-searched, to extract referenced term IRIs. Replaces the
 # oxigraph-family SPARQL parser; RDF-1.2 quoted triple terms are first-class.

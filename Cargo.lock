@@ -1977,7 +1977,6 @@ dependencies = [
  "gmeow-sparql-algebra",
  "hex",
  "insta",
- "oxigraph",
  "petgraph",
  "pyo3",
  "regex",
