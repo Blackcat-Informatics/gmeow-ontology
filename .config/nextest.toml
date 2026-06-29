@@ -28,12 +28,25 @@
 #     on-gate deep_pass_failure_* / deep_false_* validate tests.
 #   - gmeow-pipeline fold_parity binary:
 #     32.231 s locally; this is the full real-repo terminal sink vs committed
-#     `generated/dist/gmeow.gts` fold-isomorphism oracle. The focused terminal sink
-#     unit test and the snapshot-bound end-to-end executor test are back on-gate.
+#     `generated/dist/gmeow.gts` fold-isomorphism oracle.
+#   - gmeow-rdf-capi c_smoke binary:
+#     82.854 s in CI shard 1; it cold-builds the `libpurrdf` cdylib and compiles /
+#     links / runs the real C program. Header/linkage coverage stays on the dedicated
+#     C-API CI lane and maint-heavy.
+#   - gmeow-pipeline end_to_end binary:
+#     82.351 s in CI shard 1; it runs the real production spine through
+#     `stage-snapshot`, which is full-DAG / ontology-size work. Focused per-stage
+#     and carrier tests keep the failure modes covered on-gate.
+#   - gmeow-pipeline gts_sink blob-input serialization test:
+#     25.8 s in CI shard 3; it exercises the terminal carrier serialization and
+#     import round-trip, which is codec/I-O-bound and has no remaining headroom.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
     | (package(gmeow-pipeline) & binary(fold_parity))
+    | (package(gmeow-rdf-capi) & binary(c_smoke))
+    | (package(gmeow-pipeline) & binary(end_to_end))
+    | (package(gmeow-pipeline) & test(/stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -91,7 +104,8 @@ test-group = 'engine'
 [[profile.default.overrides]]
 # gmeow-pipeline's executor / parity tests exercise full-DAG paths. Keep them
 # serialized with engine work so full-DAG reasoning does not contend with
-# concurrent chases; correctness failures stay visible in the default/ci profile.
+# concurrent chases. The over-budget full-fold / end-to-end binaries are
+# off-gated via `default-filter`, but this override still applies in maint-heavy.
 filter = 'package(gmeow-pipeline) & binary(/fold_parity|end_to_end|dag_dogfood/)'
 test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
@@ -121,9 +135,11 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 
 [[profile.default.overrides]]
 # Full-carrier round-trip tests decode the committed `gmeow.gts` and re-emit /
-# extract it back through the native gmeow-gts codecs (#909). These tests are
-# on-gate; keep a longer runaway cliff because they are codec / I-O-bound and
-# not protected by the `engine` memory group.
+# extract it back through the native gmeow-gts codecs (#909). The exact
+# blob-input `gts_sink` terminal serialization test is off-gated via
+# `default-filter`; the remaining carrier tests are on-gate. Keep a longer
+# runaway cliff because they are codec / I-O-bound and not protected by the
+# `engine` memory group.
 filter = 'package(gmeow-pipeline) & test(/gts_sink|stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site|stages::carrier::native_assembly_tests::authored_default_assembles_natively/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 

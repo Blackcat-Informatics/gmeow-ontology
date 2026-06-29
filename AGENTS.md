@@ -270,18 +270,22 @@ locally in `make maint-rust-heavy`; the consumer `gmeow validate --deep` AC1
 reasons over user data merged with the whole bundled TBox via the native Nemo
 chase; the same merge->inconsistency path is covered on-gate by the fast
 tiny-TBox `gmeow-logic` unit `reason_all_with_data_*` plus the on-gate
-`deep_pass_failure_*`/`deep_false_*` validate tests), and the `gmeow-pipeline`
+`deep_pass_failure_*`/`deep_false_*` validate tests); the `gmeow-pipeline`
 `fold_parity` binary (32.231 s locally; the full real-repo terminal sink vs
-committed `generated/dist/gmeow.gts` fold-isomorphism oracle). The formerly
-off-gate pipeline correctness failures are back in the default/ci profile: the
-focused terminal sink unit test covers GTS archive emission, and the
-snapshot-bound end-to-end executor test still runs the real production spine
-through `stage-snapshot` under the 25 s policy. Former off-gate groups such as
+committed `generated/dist/gmeow.gts` fold-isomorphism oracle);
+`gmeow-rdf-capi::c_smoke` (82.854 s in CI shard 1; it cold-builds the
+`libpurrdf` cdylib and compiles/links/runs the real C program, with header and
+linkage coverage retained by the dedicated C-API CI lane and `maint-heavy`);
+`gmeow-pipeline::end_to_end` (82.351 s in CI shard 1; it runs the real
+production spine through `stage-snapshot`, so focused per-stage and carrier
+tests keep the failure modes covered on-gate); and
+`gmeow-pipeline::stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs`
+(25.8 s in CI shard 3; it exercises terminal carrier serialization and import
+round-trip work with no remaining CI headroom). Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
 correspondence parity, mapping parity, carrier/docs archive tests, scoreboards
-acceptance, JSON-LD round-trips, product routing, slice/slicetest parity,
-`gmeow-rdf-capi::c_smoke`, and docs live-render guards are in the default/ci
-profile.
+acceptance, JSON-LD round-trips, product routing, slice/slicetest parity, and
+docs live-render guards are in the default/ci profile.
 
 Nearly the whole `gmeow-docs` test cluster is **on-gate**: each test loads a shared
 `DocsModel` *and* the rendered site for every available language from the
