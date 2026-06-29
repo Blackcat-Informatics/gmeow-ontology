@@ -96,55 +96,51 @@ pub fn certify_acyclic<'a, I>(edges: I) -> DagCertification
 where
     I: IntoIterator<Item = (&'a str, &'a str)>,
 {
-    // De-dup + sort edges for determinism.
-    let edge_set: BTreeSet<(String, String)> = edges
-        .into_iter()
-        .map(|(from, to)| (from.to_string(), to.to_string()))
-        .collect();
+    // De-dup + sort edges for determinism. The edges borrow `&'a str` slices, so the
+    // whole validation runs on borrowed data — no `String` is allocated on the happy
+    // (acyclic) path; allocation happens only when a self-loop or cycle witness is built.
+    let edge_set: BTreeSet<(&'a str, &'a str)> = edges.into_iter().collect();
 
     // A self-loop is the minimal cycle; `tarjan_scc` reports a self-looping node
     // as a SIZE-1 component, so the SCC pass below would miss it — detect it here
     // first. `edge_set` is sorted, so the smallest offending node is returned.
-    for (from, to) in &edge_set {
+    for &(from, to) in &edge_set {
         if from == to {
-            return DagCertification::SelfLoop(from.clone());
+            return DagCertification::SelfLoop(from.to_string());
         }
     }
 
     // Build a producer → consumer DiGraph with deterministic (sorted) node
     // insertion so the SCC decomposition is reproducible.
-    let mut node_set: BTreeSet<&str> = BTreeSet::new();
-    for (from, to) in &edge_set {
-        node_set.insert(from.as_str());
-        node_set.insert(to.as_str());
+    let mut node_set: BTreeSet<&'a str> = BTreeSet::new();
+    for &(from, to) in &edge_set {
+        node_set.insert(from);
+        node_set.insert(to);
     }
-    let mut graph: DiGraph<&str, ()> = DiGraph::new();
-    let mut index: BTreeMap<&str, NodeIndex> = BTreeMap::new();
-    for node in &node_set {
+    let mut graph: DiGraph<&'a str, ()> = DiGraph::new();
+    let mut index: BTreeMap<&'a str, NodeIndex> = BTreeMap::new();
+    for &node in &node_set {
         let idx = graph.add_node(node);
         index.insert(node, idx);
     }
-    for (from, to) in &edge_set {
-        graph.add_edge(index[from.as_str()], index[to.as_str()], ());
+    for &(from, to) in &edge_set {
+        graph.add_edge(index[from], index[to], ());
     }
 
     // Any SCC with more than one member is a cycle. Collect every such cycle
     // (each sorted) and return the lexicographically-smallest, so a graph with
     // several cycles still yields one deterministic witness.
-    let mut cycles: Vec<Vec<String>> = Vec::new();
+    let mut cycles: Vec<Vec<&'a str>> = Vec::new();
     for component in petgraph::algo::tarjan_scc(&graph) {
         if component.len() > 1 {
-            let mut members: Vec<String> = component
-                .into_iter()
-                .map(|n| graph[n].to_string())
-                .collect();
-            members.sort();
+            let mut members: Vec<&'a str> = component.into_iter().map(|n| graph[n]).collect();
+            members.sort_unstable();
             cycles.push(members);
         }
     }
-    cycles.sort();
+    cycles.sort_unstable();
     match cycles.into_iter().next() {
-        Some(members) => DagCertification::Cycle(members),
+        Some(members) => DagCertification::Cycle(members.into_iter().map(str::to_string).collect()),
         None => DagCertification::Certified,
     }
 }
