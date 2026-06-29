@@ -1,0 +1,22 @@
+{
+  "per_composition": [],
+  "per_correspondence": [
+    {
+      "correspondence": "https://gmeow.example/corr/amnesic",
+      "law": {
+        "status": "pass"
+      },
+      "mnemomorphism": {
+        "reason": "the cell is not declared mnemomorphic",
+        "status": "not_applicable"
+      },
+      "overclaim": {
+        "status": "pass"
+      },
+      "round_trip": {
+        "reason": "logic:LossyLens makes no full round-trip claim",
+        "status": "not_applicable"
+      }
+    }
+  ]
+}

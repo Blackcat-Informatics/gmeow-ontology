@@ -1083,6 +1083,113 @@ impl fmt::Display for CorrespondenceRelation {
     }
 }
 
+/// The realized body of a correspondence leg (`logic:getLeg` / `logic:putLeg`): the
+/// `logic:TransactionProgram` a leg IRI resolves to, expressed in the canonical `logic:`
+/// composite-path vocabulary (`gm:SeqPath` / `gm:InversePath` / `gm:AltPath`).
+///
+/// This is the canonical structured form; the SPARQL property-path string
+/// ([`super::projections::paths::leg_path_canonical`]) is its **projection** (Principle 17),
+/// used only as the content-addressed key the round-trip gate compares. Identity is the
+/// projected canonical text, so two bodies are "the same leg" iff their normalized path
+/// expressions are graph-isomorphic — never a hash of surrounding metadata.
+///
+/// A lawful `put` leg is the structural [`LegPath::invert`] of its `get` leg: that is what
+/// makes `put ∘ get = id` a *decidable* canonical-IR identity (the spec's graph-iso check)
+/// rather than a data-execution round-trip (the F3 executor, off this path).
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum LegPath {
+    /// A single forward predicate step (`gm:SeqPath` member / bare predicate IRI).
+    Step(String),
+    /// The structural reverse of a sub-path (`gm:InversePath`): `^p`.
+    Inverse(Box<LegPath>),
+    /// Left-to-right sequential composition (`gm:SeqPath`): `a / b / …`.
+    Seq(Vec<LegPath>),
+    /// Alternation (`gm:AltPath`): `a | b | …`.
+    Alt(Vec<LegPath>),
+}
+
+impl LegPath {
+    /// The structural reverse of this path — the lawful inverse leg. `reverse` is an
+    /// involution: `reverse(^x) = x`, `reverse(a/b/c) = ^c / ^b / ^a`, and `reverse` of an
+    /// alternation reverses each branch. A lawful `put` leg equals `get.invert()`, so the
+    /// round-trip gate verifies `put == get.invert()` over the normalized canonical form.
+    pub fn invert(&self) -> LegPath {
+        match self {
+            LegPath::Step(_) => LegPath::Inverse(Box::new(self.clone())),
+            // reverse(^x) = x — never accumulate a double inverse.
+            LegPath::Inverse(inner) => (**inner).clone(),
+            LegPath::Seq(parts) => LegPath::Seq(parts.iter().rev().map(LegPath::invert).collect()),
+            LegPath::Alt(parts) => LegPath::Alt(parts.iter().map(LegPath::invert).collect()),
+        }
+    }
+
+    /// The canonical normal form: cancel double inverses (`^^x → x`), flatten nested
+    /// `Seq`/`Alt`, and drop singleton `Seq`/`Alt`. Two paths with the same normal form are
+    /// the same leg — the decidable identity the round-trip / mnemomorphism gates compare.
+    pub fn normalize(&self) -> LegPath {
+        match self {
+            LegPath::Step(p) => LegPath::Step(p.clone()),
+            LegPath::Inverse(inner) => match inner.normalize() {
+                // ^^x → x
+                LegPath::Inverse(x) => *x,
+                other => LegPath::Inverse(Box::new(other)),
+            },
+            LegPath::Seq(parts) => {
+                let mut flat = Vec::new();
+                for p in parts {
+                    match p.normalize() {
+                        LegPath::Seq(inner) => flat.extend(inner),
+                        other => flat.push(other),
+                    }
+                }
+                if flat.len() == 1 {
+                    flat.pop().expect("len checked")
+                } else {
+                    LegPath::Seq(flat)
+                }
+            }
+            LegPath::Alt(parts) => {
+                let mut flat = Vec::new();
+                for p in parts {
+                    match p.normalize() {
+                        LegPath::Alt(inner) => flat.extend(inner),
+                        other => flat.push(other),
+                    }
+                }
+                if flat.len() == 1 {
+                    flat.pop().expect("len checked")
+                } else {
+                    LegPath::Alt(flat)
+                }
+            }
+        }
+    }
+}
+
+/// A resolvable `logic:TransactionProgram` node: a leg IRI bound to its realized
+/// [`LegPath`] body. The registry the `logic:getLeg` / `logic:putLeg` IRIs on a
+/// [`Correspondence`] resolve through, so the round-trip gate can compose the actual leg
+/// bodies rather than compare opaque IRIs.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TransactionProgramIr {
+    /// IRI of the leg program individual (what a `logic:getLeg` / `logic:putLeg` names).
+    pub iri: String,
+    /// The realized leg path.
+    pub body: LegPath,
+}
+
+impl TransactionProgramIr {
+    /// The content key: the IRI bound to the canonical (normalized, projected) path text.
+    /// Two leg programs are the same iff they share this key.
+    pub fn content_key(&self) -> String {
+        format!(
+            "{}={}",
+            self.iri,
+            crate::projections::paths::leg_path_canonical(&self.body)
+        )
+    }
+}
+
 /// The `logic:MorphismClass` ordered law-spine — the seven rungs capping how much
 /// invertibility a correspondence may lawfully claim, strongest first.  The derived
 /// `Ord` is the spine order; composition can only weaken the rung, never strengthen it.
@@ -1121,6 +1228,18 @@ impl MorphismClass {
     /// The full IRI (`LOGIC_NAMESPACE + local_name`).
     pub fn iri(&self) -> String {
         format!("{LOGIC_NAMESPACE}{}", self.as_str())
+    }
+
+    /// Whether the rung is injective enough to carry a full round-trip / section claim:
+    /// the top three rungs (iso, section/retraction, well-behaved lens). Matched
+    /// EXPLICITLY rather than via the derived `Ord` (`<= WellBehavedLens`) so a future
+    /// reordering of the spine variants cannot silently change injectivity classification —
+    /// the load-bearing predicate every correspondence gate keys on.
+    pub fn is_injective_rung(self) -> bool {
+        matches!(
+            self,
+            Self::Isomorphism | Self::SectionRetraction | Self::WellBehavedLens
+        )
     }
 
     /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
@@ -1993,6 +2112,11 @@ pub struct LogicProgram {
     /// Attached via [`LogicProgram::with_correspondences`]; empty for the
     /// historical correspondence-free corpus, so the canonical key is unchanged there.
     pub correspondences: Vec<Correspondence>,
+    /// Leg-program bodies (`logic:TransactionProgram`) a correspondence's `logic:getLeg` /
+    /// `logic:putLeg` IRI resolves to, in canonical (IRI) order. Attached via
+    /// [`LogicProgram::with_transaction_programs`]; empty for the historical leg-body-free
+    /// corpus, so the canonical key is unchanged there.
+    pub transaction_programs: Vec<TransactionProgramIr>,
     /// Full first-order [`Formula`] nodes that exceed the Horn+NAF sub-fragment, in
     /// canonical (sort-key) order. Attached via [`LogicProgram::with_formulas`]; empty
     /// for the historical Horn-only corpus, so the canonical key is byte-unchanged there.
@@ -2024,9 +2148,23 @@ impl LogicProgram {
             contracts,
             path_shapes: Vec::new(),
             correspondences: Vec::new(),
+            transaction_programs: Vec::new(),
             formulas: Vec::new(),
             source_iri,
         }
+    }
+
+    /// Attach the leg-program registry (`logic:TransactionProgram` bodies the get/put leg
+    /// IRIs resolve to), canonicalizing into IRI order. Append-only: the byte-pinned
+    /// canonical key of a leg-body-free program is unchanged.
+    pub fn with_transaction_programs(
+        mut self,
+        transaction_programs: Vec<TransactionProgramIr>,
+    ) -> Self {
+        let mut transaction_programs = transaction_programs;
+        transaction_programs.sort_by(|a, b| a.iri.cmp(&b.iri));
+        self.transaction_programs = transaction_programs;
+        self
     }
 
     /// Attach the program's `logic:PathShape` individuals, canonicalizing
@@ -2135,6 +2273,17 @@ impl LogicProgram {
                 .join("\n");
             key.push_str("\nFORMULAS\n");
             key.push_str(&forms);
+        }
+        // Append-only at the FIXED tail: a leg-body-free program keeps its exact key.
+        if !self.transaction_programs.is_empty() {
+            let legs = self
+                .transaction_programs
+                .iter()
+                .map(TransactionProgramIr::content_key)
+                .collect::<Vec<_>>()
+                .join("\n");
+            key.push_str("\nTRANSACTIONPROGRAMS\n");
+            key.push_str(&legs);
         }
         key
     }
