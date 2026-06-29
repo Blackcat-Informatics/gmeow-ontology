@@ -1737,8 +1737,9 @@ name = "gmeow-foundation-corpus"
 version = "0.1.0"
 dependencies = [
  "gmeow-rdf",
+ "gmeow-rdf-core",
  "gmeow-shacl",
- "oxigraph",
+ "gmeow-sparql-eval",
  "pyo3",
  "serde",
  "serde_json",
@@ -1992,9 +1993,10 @@ dependencies = [
  "datatest-stable",
  "gmeow-logic-compile",
  "gmeow-rdf",
+ "gmeow-rdf-core",
  "gmeow-shacl",
+ "gmeow-sparql-eval",
  "gmeow-validate",
- "oxigraph",
 ]
 
 [[package]]

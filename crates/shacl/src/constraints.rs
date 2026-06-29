@@ -1281,20 +1281,38 @@ fn language_matches_any(value: &Term, tags: &[String]) -> bool {
 
 /// Parse a numeric value (xsd:integer, xsd:decimal, xsd:double) as `f64`.
 fn numeric_value(term: &Term) -> Option<f64> {
+    const XSD_NS: &str = "http://www.w3.org/2001/XMLSchema#";
     let Term::Literal(lit) = term else {
         return None;
     };
-    let dt = lit.datatype().as_str();
+    // The full XSD numeric lattice: the primitives plus EVERY derived integer
+    // datatype. The set must match the rest of the engine (see
+    // `instance.rs::numeric_or_bool_scalar`); the previous list omitted the
+    // derived/unsigned integers (e.g. `xsd:nonNegativeInteger`), so a faithful
+    // `"1"^^xsd:nonNegativeInteger` value read as non-numeric and spuriously
+    // violated every `sh:minInclusive`/`sh:maxInclusive` facet. (The omission was
+    // masked while data round-tripped through oxigraph's NT serializer, which
+    // value-space-normalized such literals to `xsd:integer`; the oxigraph-free
+    // path, #906, is the faithful one and exposes the gap.)
+    let local = lit.datatype().as_str().strip_prefix(XSD_NS)?;
     if matches!(
-        dt,
-        "http://www.w3.org/2001/XMLSchema#integer"
-            | "http://www.w3.org/2001/XMLSchema#decimal"
-            | "http://www.w3.org/2001/XMLSchema#double"
-            | "http://www.w3.org/2001/XMLSchema#float"
-            | "http://www.w3.org/2001/XMLSchema#long"
-            | "http://www.w3.org/2001/XMLSchema#int"
-            | "http://www.w3.org/2001/XMLSchema#short"
-            | "http://www.w3.org/2001/XMLSchema#byte"
+        local,
+        "integer"
+            | "decimal"
+            | "double"
+            | "float"
+            | "long"
+            | "int"
+            | "short"
+            | "byte"
+            | "nonNegativeInteger"
+            | "positiveInteger"
+            | "nonPositiveInteger"
+            | "negativeInteger"
+            | "unsignedLong"
+            | "unsignedInt"
+            | "unsignedShort"
+            | "unsignedByte"
     ) {
         lit.value().trim().parse::<f64>().ok()
     } else {
@@ -1381,6 +1399,50 @@ mod tests {
             value,
             NamedNode::new_unchecked(format!("{XSD}{dt}")),
         ))
+    }
+
+    #[test]
+    fn numeric_value_covers_all_derived_integer_datatypes() {
+        // Regression (#906): `numeric_value` must read EVERY xsd numeric-derived
+        // datatype, not just the primitives. The omission of the derived/unsigned
+        // integers (e.g. xsd:nonNegativeInteger) made a faithful
+        // `"1"^^xsd:nonNegativeInteger` value read as non-numeric and spuriously
+        // violate sh:minInclusive/sh:maxInclusive — masked only while data
+        // round-tripped through oxigraph's value-space-normalizing NT serializer.
+        for dt in [
+            "integer",
+            "decimal",
+            "double",
+            "float",
+            "long",
+            "int",
+            "short",
+            "byte",
+            "nonNegativeInteger",
+            "positiveInteger",
+            "nonPositiveInteger",
+            "negativeInteger",
+            "unsignedLong",
+            "unsignedInt",
+            "unsignedShort",
+            "unsignedByte",
+        ] {
+            // nonPositive/negative datatypes accept a non-positive lexical; use "0"
+            // for those, "1" otherwise — both must parse to a numeric value.
+            let lexical = if dt.contains("nonPositive") || dt.starts_with("negative") {
+                "0"
+            } else {
+                "1"
+            };
+            assert!(
+                numeric_value(&xsd_lit(lexical, dt)).is_some(),
+                "xsd:{dt} must be read as numeric"
+            );
+        }
+        // A non-numeric typed literal stays non-numeric.
+        assert!(numeric_value(&xsd_lit("x", "string")).is_none());
+        // A plain IRI is never numeric.
+        assert!(numeric_value(&ex("thing")).is_none());
     }
 
     fn shape_with(id: &str, constraints: Vec<Constraint>) -> Shape {
