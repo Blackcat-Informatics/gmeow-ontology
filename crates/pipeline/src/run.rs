@@ -294,6 +294,46 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
             if path == GTS_PATH {
                 if mode == RunMode::Regenerate {
                     write_artifact(root, path, bytes)?;
+                } else {
+                    // Superset gate (PIPELINE_SPINE §7): every committed path under
+                    // `generated/` must be byte-reconstructible from the emitted
+                    // bundle — RDF as a named-graph fold, opaque as an inline blob.
+                    // Reconstruct from THESE bytes (re-imported), so the gate proves
+                    // the shipped bundle is a superset, not the in-memory carrier.
+                    let report = crate::stages::superset::check_superset(root, bytes)?;
+                    for path in report.missing {
+                        drifted.push(path.clone());
+                        findings.push(
+                            Finding::new(
+                                Severity::Error,
+                                "pipeline.superset.missing",
+                                format!("{path} has no carrier representative in gmeow.gts"),
+                            )
+                            .with_tool("gmeow-pipeline"),
+                        );
+                    }
+                    for path in report.mismatch {
+                        drifted.push(path.clone());
+                        findings.push(
+                            Finding::new(
+                                Severity::Error,
+                                "pipeline.superset.mismatch",
+                                format!("{path} differs from its gmeow.gts reconstruction"),
+                            )
+                            .with_tool("gmeow-pipeline"),
+                        );
+                    }
+                    for rep in report.orphan {
+                        drifted.push(rep.clone());
+                        findings.push(
+                            Finding::new(
+                                Severity::Error,
+                                "pipeline.superset.orphan",
+                                format!("{rep} is carried in gmeow.gts but maps to no committed generated/ path"),
+                            )
+                            .with_tool("gmeow-pipeline"),
+                        );
+                    }
                 }
                 reproduced += 1;
                 continue;

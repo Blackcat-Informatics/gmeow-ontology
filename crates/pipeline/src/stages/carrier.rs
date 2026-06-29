@@ -269,6 +269,17 @@ fn assemble_carrier(
             GRAPH_CONFORMANCE,
         )?);
     }
+    // graph/projections/<name>.edoal ← each committed EDOAL projection, one named
+    // graph per file. EDOAL renders through the canonical-Turtle serializer, so the
+    // fold of its named graph reproduces the committed bytes exactly (superset law).
+    let mappings = upstream
+        .get("stage-mappings")
+        .ok_or_else(|| stage_err("missing stage-mappings product for projection graphs"))?;
+    for (path, bytes) in mappings.artifacts() {
+        if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(&path) {
+            datasets.push(parse_into_graph(&bytes, "text/turtle", &iri)?);
+        }
+    }
     let refs: Vec<&gmeow_rdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
     Ok(std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&refs)))
 }
@@ -1050,7 +1061,7 @@ fn build_provenance_projection(root: &Path) -> Result<String, PipelineError> {
 /// [`RdfDataset::project_named_graph`](gmeow_rdf::RdfDataset::project_named_graph) —
 /// which strips the graph name to the default graph — folds back into ITS named graph,
 /// never the authored default graph.
-fn rooted_in_graph(
+pub(crate) fn rooted_in_graph(
     src: &gmeow_rdf::RdfDataset,
     graph_iri: &str,
 ) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
