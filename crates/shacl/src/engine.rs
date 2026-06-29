@@ -262,9 +262,6 @@ pub fn validate_dataset(data: &RdfDataset, shapes: &Shapes) -> Result<Validation
     // paths run the native SPARQL engine over the same `Arc<RdfDataset>`.
     let reference = IrDataGraph::new(dataset);
     let report = validate_with(&reference, shapes);
-    // The per-validation SHACL-SPARQL result cache is scoped to this dataset; clear
-    // it so a later validation over a DIFFERENT dataset never reads stale rows.
-    crate::sparql::clear_sparql_cache();
     Ok(report)
 }
 
