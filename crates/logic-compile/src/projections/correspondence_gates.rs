@@ -98,9 +98,10 @@ pub struct CorrespondenceGateReport {
 }
 
 /// Whether the rung is injective enough to carry a full round-trip / section claim
-/// (the top three rungs, `Ord` strongest-first).
+/// (the top three rungs). Delegates to [`MorphismClass::is_injective_rung`], the single
+/// source of truth — an explicit `matches!`, never the fragile derived-`Ord` comparison.
 fn is_injective_rung(class: MorphismClass) -> bool {
-    class <= MorphismClass::WellBehavedLens
+    class.is_injective_rung()
 }
 
 /// The Round-trip witness: an iso/section cell must carry the derived inverse `put` leg.
@@ -263,6 +264,9 @@ fn composition_gate(
         };
     };
     // Join = the WEAKER rung (max under the strongest-first Ord): composition weakens.
+    // NOTE: this is a LEGITIMATE lattice-join use of the spine `Ord` — the rung order IS
+    // the weakening lattice. It is NOT a rung-membership test; those use the explicit
+    // `is_injective_rung` predicate. Do not "fix" this `max`/`<` into a `matches!`.
     let join = l.morphism_class.max(r.morphism_class);
     let verdict = match composite {
         Some(comp_iri) => match lookup(comp_iri) {

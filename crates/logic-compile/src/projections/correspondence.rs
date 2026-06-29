@@ -620,10 +620,9 @@ fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> Result<Correspondence, 
     let put_leg = idx.iri_obj(corr_iri, &p_put_leg());
     let according_to = idx.iri_obj(corr_iri, &p_according_to());
 
-    // Law claims (re-read by their per-correspondence node IRIs, sorted by node IRI so
-    // re-derivation is order-stable; the Correspondence ctor re-canonicalizes).
-    let mut claim_nodes = idx.iri_objs(corr_iri, &p_has_law_claim());
-    claim_nodes.sort();
+    // Law claims (re-read by their per-correspondence node IRIs; `iri_objs` already returns
+    // them sorted + deduped, so re-derivation is order-stable; the ctor re-canonicalizes).
+    let claim_nodes = idx.iri_objs(corr_iri, &p_has_law_claim());
     let mut law_claims = Vec::new();
     for claim_iri in claim_nodes {
         let law = idx
@@ -730,13 +729,14 @@ pub fn extract_correspondences(
     let idx = SpIndex::from_dataset(dataset);
     let mut ok = Vec::new();
     let mut errors = Vec::new();
+    // `subjects_of_type` yields the correspondence IRIs already sorted, and each parsed
+    // cell keeps that IRI, so `ok` is built in IRI order — no trailing re-sort needed.
     for corr_iri in idx.subjects_of_type(&class_correspondence()) {
         match read_correspondence(&idx, &corr_iri) {
             Ok(c) => ok.push(c),
             Err(msg) => errors.push((corr_iri, msg)),
         }
     }
-    ok.sort_by(|a, b| a.iri.cmp(&b.iri));
     (ok, errors)
 }
 

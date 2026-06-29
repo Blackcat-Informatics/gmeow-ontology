@@ -44,7 +44,7 @@ use sha2::{Digest, Sha256};
 
 use crate::ir::{
     Correspondence, CorrespondenceLaw, DischargeCondition, DischargeVerdict, LawClaimIr,
-    MorphismClass, PreservationKind,
+    PreservationKind,
 };
 
 use super::correspondence::CorrespondenceProgram;
@@ -108,10 +108,11 @@ pub fn derived_put_iri(get_leg: &str, c: &Correspondence) -> String {
 }
 
 /// Whether the cell is injective enough for a witness retraction — `mnemomorphic` on an
-/// `Isomorphism` / `SectionRetraction` / `WellBehavedLens` rung. The derived `Ord` on
-/// [`MorphismClass`] is strongest-first, so `≤ WellBehavedLens` is exactly the top three.
+/// `Isomorphism` / `SectionRetraction` / `WellBehavedLens` rung. Rung membership is the
+/// explicit [`MorphismClass::is_injective_rung`] predicate, never the fragile derived-`Ord`
+/// `≤ WellBehavedLens` comparison (a spine reorder must not silently reclassify recovery).
 fn is_recoverable(c: &Correspondence) -> bool {
-    c.mnemomorphic && c.morphism_class <= MorphismClass::WellBehavedLens
+    c.mnemomorphic && c.morphism_class.is_injective_rung()
 }
 
 /// Derive the lawful `put` leg for one correspondence (which must carry a `get` leg and no

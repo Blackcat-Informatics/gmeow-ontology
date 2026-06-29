@@ -1123,6 +1123,18 @@ impl MorphismClass {
         format!("{LOGIC_NAMESPACE}{}", self.as_str())
     }
 
+    /// Whether the rung is injective enough to carry a full round-trip / section claim:
+    /// the top three rungs (iso, section/retraction, well-behaved lens). Matched
+    /// EXPLICITLY rather than via the derived `Ord` (`<= WellBehavedLens`) so a future
+    /// reordering of the spine variants cannot silently change injectivity classification —
+    /// the load-bearing predicate every correspondence gate keys on.
+    pub fn is_injective_rung(self) -> bool {
+        matches!(
+            self,
+            Self::Isomorphism | Self::SectionRetraction | Self::WellBehavedLens
+        )
+    }
+
     /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
     pub fn from_local(name: &str) -> Option<Self> {
         Some(match name {
