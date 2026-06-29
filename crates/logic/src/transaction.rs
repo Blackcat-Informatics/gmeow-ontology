@@ -91,6 +91,12 @@ const SITUATION_OBTAINS: &str = "situationObtains";
 const PRECONDITION: &str = "precondition";
 const EFFECT: &str = "effect";
 
+// Execution-commitment facet local names (the hypothetical/sandbox operator).
+const EXECUTED_UNDER_CONTRACT: &str = "executedUnderContract";
+const EXECUTION_MODE: &str = "executionMode";
+const COMMITTED_EXECUTION: &str = "CommittedExecution";
+const HYPOTHETICAL_EXECUTION: &str = "HypotheticalExecution";
+
 // ── Determinism / termination bounds ────────────────────────────────────────────
 
 /// The recursion-depth ceiling for parsing a program's operand graph — a malformed
@@ -544,6 +550,74 @@ pub(crate) fn root_start(
     Ok((start, sits))
 }
 
+// ── Execution-commitment facet: the hypothetical/sandbox operator ─────────────────
+
+/// The execution-commitment mode a transaction run is evaluated under — the value of the
+/// `logic:ExecutionMode` facet, reached from a program root through its governing
+/// `logic:ReasoningContract` (`logic:executedUnderContract` → `logic:executionMode`).
+///
+/// Orthogonal to the program structure: [`plan_path`] computes the **verdict** identically
+/// under both modes — the path-existence question is the same whether or not the effects are
+/// kept. Only emission differs (see [`emit_transaction_outcome`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ExecutionMode {
+    /// `logic:CommittedExecution` — the effect substrate (path, steps, supersession) is
+    /// materialized; the default.
+    Committed,
+    /// `logic:HypotheticalExecution` — the sandbox operator: the verdict is recorded and a
+    /// content-addressed witness is emitted, but the effect substrate is discarded.
+    Hypothetical,
+}
+
+/// The execution mode a program `root` runs under.
+///
+/// Resolves `root --logic:executedUnderContract--> contract --logic:executionMode--> value`.
+/// Absence of either link resolves to the constitutionally-named default
+/// [`ExecutionMode::Committed`] (`logic:CommittedExecution` is documented as the default), so an
+/// unannotated program commits exactly as before — this is a named default, NOT optionality.
+///
+/// # Errors
+///
+/// A MALFORMED declaration is a HARD ERROR: a root naming more than one governing contract, a
+/// contract carrying more than one `logic:executionMode` value, or an `executionMode` value that
+/// is neither `logic:CommittedExecution` nor `logic:HypotheticalExecution`.
+pub(crate) fn root_execution_mode(facts: &WorldFacts, root: &str) -> Result<ExecutionMode, String> {
+    let contracts = facts.objects(root, &logic(EXECUTED_UNDER_CONTRACT));
+    let contract = match contracts.len() {
+        0 => return Ok(ExecutionMode::Committed),
+        1 => contracts[0].to_owned(),
+        n => {
+            return Err(format!(
+                "transaction-program node {root:?} has {n} logic:executedUnderContract links (at most one governing contract allowed)"
+            ))
+        }
+    };
+    let modes = facts.objects(&contract, &logic(EXECUTION_MODE));
+    match modes.len() {
+        0 => Ok(ExecutionMode::Committed),
+        1 => {
+            let value = modes[0];
+            if value == logic(COMMITTED_EXECUTION) {
+                Ok(ExecutionMode::Committed)
+            } else if value == logic(HYPOTHETICAL_EXECUTION) {
+                Ok(ExecutionMode::Hypothetical)
+            } else {
+                Err(format!(
+                    "logic:ReasoningContract {contract:?} names an unknown logic:executionMode {value:?} (expected logic:CommittedExecution or logic:HypotheticalExecution)"
+                ))
+            }
+        }
+        n => Err(format!(
+            "logic:ReasoningContract {contract:?} has {n} logic:executionMode values (exactly one required)"
+        )),
+    }
+}
+
+/// BLAKE3 digest (32 raw bytes) of a string, for content-addressing a hypothetical run.
+fn blake3_32(s: &str) -> [u8; 32] {
+    *blake3::hash(s.as_bytes()).as_bytes()
+}
+
 // ── Materialization: the executional-entailment outcome surface ──────────────────
 
 // Outcome-surface vocabulary local names (declared in slices/core/logic/module.ttl).
@@ -555,6 +629,7 @@ const TRANSACTION_SUCCEEDS: &str = "transactionSucceeds";
 const TEMPORALLY_SUCCEEDS: &str = "temporallySucceeds";
 const EXECUTED_ALONG_PATH: &str = "executedAlongPath";
 const PATH_CLASS: &str = "Path";
+const EXECUTED_HYPOTHETICALLY_AS: &str = "executedHypotheticallyAs";
 
 /// The `xsd:boolean` N3 literal form.
 fn xsd_bool(v: bool) -> String {
@@ -566,20 +641,29 @@ fn xsd_bool(v: bool) -> String {
 ///
 /// For each root: parse, execute from the declared start state, then emit a
 /// `logic:TransactionOutcome` carrying `logic:outcomeOfProgram`, `logic:transactionStart`,
-/// and `logic:transactionSucceeds` (`true` iff the executed path is non-empty).  On
-/// success it also emits the executed path (`logic:temporallySucceeds` edges + a minted
-/// `logic:Path` linked by the reused `logic:executedAlongPath`) and, per elementary step, the
-/// situation-level supersession substrate via [`crate::teleology::effect_quads`].  On
-/// failure ONLY the outcome node is emitted — the start state is untouched.
+/// and `logic:transactionSucceeds` (`true` iff the executed path is non-empty) — emitted in
+/// BOTH execution modes.  Under `logic:CommittedExecution` (the default) a successful run also
+/// emits the executed path (`logic:temporallySucceeds` edges + a minted `logic:Path` linked by
+/// the reused `logic:executedAlongPath`) and, per elementary step, the situation-level
+/// supersession substrate via [`crate::teleology::effect_quads`].  On failure ONLY the outcome
+/// node is emitted — the start state is untouched.
+///
+/// Under `logic:HypotheticalExecution` (the sandbox operator, [`root_execution_mode`]) that
+/// effect substrate is the discarded effect: it is SUPPRESSED, and only a content-addressed
+/// witness (`logic:executedHypotheticallyAs`) is emitted alongside the verdict.  Hypothetical
+/// success is, at the emission layer, isomorphic to committed failure — verdict present,
+/// substrate absent, start state untouched — so suppression-never-erasure (Principle 10) holds
+/// for the same reason it already holds for failure: nothing is asserted, so nothing is erased.
 ///
 /// Pure over `facts` (no store mutation).  Every quad is stamped with
 /// [`TRANSACTION_RULE_IRI`]; provenance reuses the shared content-addressed minters.
 ///
 /// # Errors
 ///
-/// Propagates any STRUCTURAL fault from [`parse_program`] / [`plan_path`] / [`root_start`]
-/// (a malformed program, a primitive schema with no effect, a `ConcurrentComposition`
-/// root, or a non-terminating program) as a hard error.
+/// Propagates any STRUCTURAL fault from [`parse_program`] / [`plan_path`] / [`root_start`] /
+/// [`root_execution_mode`] (a malformed program, a primitive schema with no effect, a
+/// `ConcurrentComposition` root, a non-terminating program, or a malformed execution-mode
+/// declaration) as a hard error.
 pub(crate) fn emit_transaction_outcome(
     facts: &WorldFacts,
     world: &str,
@@ -590,6 +674,9 @@ pub(crate) fn emit_transaction_outcome(
 
     let (start, sits) = root_start(facts, root)?;
     let program = parse_program(facts, root, 0)?;
+    // The execution-commitment mode is read from the program's governing contract; the
+    // verdict (plan_path) is computed identically under both modes — only emission differs.
+    let mode = root_execution_mode(facts, root)?;
     let mut counter = StepCounter::new();
     let outcome = plan_path(facts, &program, &start, &sits, root, &mut counter)?;
 
@@ -629,7 +716,26 @@ pub(crate) fn emit_transaction_outcome(
         xsd_bool(outcome.succeeded()),
     );
 
-    if outcome.succeeded() {
+    // Hypothetical (sandbox) run: emit the content-addressed witness — the sole standing trace
+    // of a run whose effect substrate is deliberately never emitted (suppression-never-erasure
+    // for free). The verdict above is observable in BOTH modes; the substrate below is the
+    // committed effect that the sandbox operator discards.
+    if mode == ExecutionMode::Hypothetical {
+        let key =
+            crate::versioning::hypothetical_run_key(&crate::versioning::HypotheticalRunKeyInputs {
+                start_state_hash: blake3_32(&sits.iter().cloned().collect::<Vec<_>>().join("\n")),
+                program_hash: blake3_32(&format!("{program:?}")),
+                world: world.to_owned(),
+                solver_version: crate::counterfactual::SOLVER_VERSION.to_owned(),
+            });
+        emit(
+            &outcome_iri,
+            logic(EXECUTED_HYPOTHETICALLY_AS),
+            format!("\"{key}\""),
+        );
+    }
+
+    if outcome.succeeded() && mode == ExecutionMode::Committed {
         // The executed path: temporallySucceeds edges + a minted logic:Path linked by the
         // reused logic:executedAlongPath (oldest → newest; the start may be the only state).
         let path_iri = format!(
