@@ -547,11 +547,11 @@ pub(crate) fn plan_path(
             // NOT presented as an authoritative serial path — the load-bearing concurrency
             // result is the derived `logic:ConcurrentHistory`, not this merged support.
             let mut path = vec![state.to_owned()];
-            for s in l.path.iter().skip(1).chain(r.path.iter().skip(1)) {
-                path.push(s.clone());
-            }
-            let steps = interleave_steps(&l.steps, &r.steps);
-            let sits_end: BTreeSet<String> = l.sits_end.union(&r.sits_end).cloned().collect();
+            path.extend(l.path.into_iter().skip(1));
+            path.extend(r.path.into_iter().skip(1));
+            let steps = interleave_steps(l.steps, r.steps);
+            let mut sits_end = l.sits_end;
+            sits_end.extend(r.sits_end);
             Ok(ExecOutcome {
                 path,
                 steps,
@@ -564,15 +564,17 @@ pub(crate) fn plan_path(
 /// Index-order interleaving of two legs' elementary steps (left wins ties at equal index):
 /// `left[0], right[0], left[1], right[1], …`. This is the single deterministic schedule the
 /// conflict-edge derivation reads its operation order from.
-fn interleave_steps(left: &[PlannedStep], right: &[PlannedStep]) -> Vec<PlannedStep> {
+fn interleave_steps(left: Vec<PlannedStep>, right: Vec<PlannedStep>) -> Vec<PlannedStep> {
     let mut out = Vec::with_capacity(left.len() + right.len());
     let n = left.len().max(right.len());
-    for i in 0..n {
-        if let Some(s) = left.get(i) {
-            out.push(s.clone());
+    let mut left_iter = left.into_iter();
+    let mut right_iter = right.into_iter();
+    for _ in 0..n {
+        if let Some(s) = left_iter.next() {
+            out.push(s);
         }
-        if let Some(s) = right.get(i) {
-            out.push(s.clone());
+        if let Some(s) = right_iter.next() {
+            out.push(s);
         }
     }
     out
