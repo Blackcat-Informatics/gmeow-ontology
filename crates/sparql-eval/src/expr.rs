@@ -1281,18 +1281,105 @@ fn eval_function(
 /// Evaluate an XSD constructor cast: parse the source literal's lexical form against
 /// the `target` datatype (an IRI source casts to `xsd:string`), returning the
 /// target-typed literal in canonical form, or `None` on a type/lexical error.
+///
+/// Numeric→numeric casts are value-space, not lexical-space (SPARQL 1.1 §17.1 / the
+/// XPath casting rules): `xsd:decimal("5.355e1"^^xsd:double)` is the decimal value
+/// `53.55`, NOT a re-parse of the scientific-notation lexical (which is not a valid
+/// `xsd:decimal` lexical). The direct lexical parse handles same-representation casts
+/// (and string/boolean/temporal targets); when it fails, a numeric source is cast by
+/// VALUE through [`cast_numeric_value`].
 fn eval_xsd_cast(
     ctx: &mut EvalCtx<'_>,
     target: XsdDatatype,
     source: Option<&TermValue>,
 ) -> Option<SolutionTerm> {
-    let lexical = match source? {
+    let source = source?;
+    let lexical = match source {
         TermValue::Literal { lexical_form, .. } => lexical_form.clone(),
         TermValue::Iri(iri) if target == XsdDatatype::String => iri.clone(),
         _ => return None,
     };
-    let value = parse(&lexical, target).ok()?;
+    if let Ok(value) = parse(&lexical, target) {
+        return Some(xsd_to_term(ctx, &value));
+    }
+    // The lexical is not directly valid for `target`. If both source and target are
+    // numeric, convert by value (e.g. a `double`/`float` scientific-notation lexical
+    // into the equivalent `decimal`/`integer`), matching the spec's casting tower.
+    let value = cast_numeric_value(&xsd_of(source)?, target)?;
     Some(xsd_to_term(ctx, &value))
+}
+
+/// Cast a numeric [`XsdValue`] to a numeric `target` datatype **by value** (the
+/// SPARQL §17.1 numeric casting rules): the source's numeric value is re-expressed in
+/// the target's value space. Returns `None` when the source is non-numeric, the target
+/// is non-numeric, or the value is out of the target's range (e.g. a non-integral
+/// double cast to integer truncates toward zero, as XPath `xs:integer` mandates).
+fn cast_numeric_value(source: &XsdValue, target: XsdDatatype) -> Option<XsdValue> {
+    use gmeow_xsd::parse as xsd_parse;
+    // The source's exact numeric value, as the widest faithful form available.
+    let as_f64 = match source {
+        XsdValue::Integer { value, .. } => *value as f64,
+        XsdValue::Decimal(d) => d.to_f64(),
+        XsdValue::Float(f) => f64::from(*f),
+        XsdValue::Double(d) => *d,
+        _ => return None,
+    };
+    match target {
+        XsdDatatype::Double => Some(XsdValue::Double(as_f64)),
+        XsdDatatype::Float => Some(XsdValue::Float(as_f64 as f32)),
+        XsdDatatype::Decimal => {
+            // A non-finite double has no decimal value (a SPARQL expression error).
+            if !as_f64.is_finite() {
+                return None;
+            }
+            // Re-express the value as a plain (exponent-free) decimal lexical the
+            // decimal parser accepts, bounded to the 18-digit scale it allows.
+            xsd_parse(&format_plain_decimal(as_f64), XsdDatatype::Decimal).ok()
+        }
+        // An integer target truncates toward zero (XPath `xs:integer(double)`), within
+        // the i128 range the integer value space supports.
+        XsdDatatype::Integer
+        | XsdDatatype::Long
+        | XsdDatatype::Int
+        | XsdDatatype::Short
+        | XsdDatatype::Byte
+        | XsdDatatype::UnsignedLong
+        | XsdDatatype::UnsignedInt
+        | XsdDatatype::UnsignedShort
+        | XsdDatatype::UnsignedByte
+        | XsdDatatype::NonNegativeInteger
+        | XsdDatatype::PositiveInteger
+        | XsdDatatype::NonPositiveInteger
+        | XsdDatatype::NegativeInteger => {
+            let truncated = as_f64.trunc();
+            if !truncated.is_finite() {
+                return None;
+            }
+            // Re-parse the integral lexical against the exact integer target so its
+            // range constraints (e.g. `nonNegativeInteger >= 0`) are enforced.
+            xsd_parse(&format!("{truncated:.0}"), target).ok()
+        }
+        _ => None,
+    }
+}
+
+/// Format a finite `f64` as a plain, exponent-free decimal lexical with at most 18
+/// fractional digits (the `xsd:decimal` scale bound), trimming trailing fractional
+/// zeros. Used by the numeric value-space cast into `xsd:decimal`.
+fn format_plain_decimal(value: f64) -> String {
+    // `{:.18}` never emits scientific notation and caps the fraction at the decimal
+    // scale bound; trim trailing zeros (and a bare trailing point) for a clean lexical.
+    let raw = format!("{value:.18}");
+    let trimmed = if raw.contains('.') {
+        raw.trim_end_matches('0').trim_end_matches('.')
+    } else {
+        raw.as_str()
+    };
+    if trimmed.is_empty() || trimmed == "-" {
+        "0".to_owned()
+    } else {
+        trimmed.to_owned()
+    }
 }
 
 /// The canonical gmeow vocabulary IRIs the `gmeow:heldIn` evaluator reads.

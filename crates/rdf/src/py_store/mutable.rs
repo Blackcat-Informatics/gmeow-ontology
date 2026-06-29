@@ -322,10 +322,7 @@ fn rdf_term_to_value(term: &RdfTerm) -> TermValue {
 fn rdf_term_to_value_scoped(term: &RdfTerm, scope: BlankScope) -> TermValue {
     match term {
         RdfTerm::Iri(iri) => TermValue::Iri(iri.clone()),
-        RdfTerm::BlankNode(label) => TermValue::Blank {
-            label: label.clone(),
-            scope,
-        },
+        RdfTerm::BlankNode(label) => blank_value_scoped(label, scope),
         RdfTerm::Literal(lit) => TermValue::Literal {
             lexical_form: lit.lexical_form.clone(),
             datatype: match (&lit.datatype, &lit.language) {
@@ -341,6 +338,46 @@ fn rdf_term_to_value_scoped(term: &RdfTerm, scope: BlankScope) -> TermValue {
             p: Box::new(TermValue::Iri(t.predicate.clone())),
             o: Box::new(rdf_term_to_value_scoped(&t.object, scope)),
         },
+    }
+}
+
+/// Build the `TermValue::Blank` for a surfaced blank-node `label`.
+///
+/// Under a non-default `scope` (the per-load isolation path), the bare label is
+/// tagged with that scope verbatim. Under the DEFAULT scope (a blank node arriving
+/// FROM Python), the label may already carry the `.s{n}` scope suffix
+/// [`BlankScope::qualify_label`] emitted on the way OUT; decode it back to its
+/// `(label, scope)` so a round-tripped blank matches the stored node.
+fn blank_value_scoped(label: &str, scope: BlankScope) -> TermValue {
+    if scope == BlankScope::DEFAULT {
+        blank_value_from_external_label(label)
+    } else {
+        TermValue::Blank {
+            label: label.to_owned(),
+            scope,
+        }
+    }
+}
+
+/// Decode a surfaced blank label, reversing [`BlankScope::qualify_label`]: a label of
+/// the form `"{inner}.s{n}"` (non-empty `inner`, `n > 0`) decodes to
+/// `Blank{inner, scope: n}`; any other label is a DEFAULT-scope blank verbatim.
+fn blank_value_from_external_label(label: &str) -> TermValue {
+    if let Some((inner, raw_scope)) = label.rsplit_once(".s") {
+        if !inner.is_empty() {
+            if let Ok(scope) = raw_scope.parse::<u32>() {
+                if scope > 0 {
+                    return TermValue::Blank {
+                        label: inner.to_owned(),
+                        scope: BlankScope(scope),
+                    };
+                }
+            }
+        }
+    }
+    TermValue::Blank {
+        label: label.to_owned(),
+        scope: BlankScope::DEFAULT,
     }
 }
 
