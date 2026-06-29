@@ -1118,6 +1118,11 @@ class GeometryTypeEnum(str, Enum):
     geometryTypePolygon = "geometryTypePolygon"
 
 
+class GoalEnum(str, Enum):
+    goalCanonicalIngestion = "goalCanonicalIngestion"
+    goalShippableBundle = "goalShippableBundle"
+
+
 class GovernanceModelEnum(str, Enum):
     governanceBDFL = "governanceBDFL"
     governanceCorporate = "governanceCorporate"

@@ -55,7 +55,7 @@ gmeow-sparql-algebra = { path = "../sparql-algebra" }
 # (Ed25519 release signing), and `mcp.rs` (the McpView memory server, a separate
 # system consuming the bundled snapshot). Same pin as gmeow-rdf links. Do NOT
 # reintroduce it into an export leaf — the carrier is the single internal transport.
-gmeow-gts = "0.9.9"
+gmeow-gts = "0.9.10"
 # The `reason` stage wires the native EL/DL reasoner + artifact builders directly
 # (gmeow_logic::reason::reason_all + reason::artifacts) — no Python, no PyO3.
 gmeow-logic = { path = "../logic" }
@@ -85,10 +85,10 @@ gmeow-docs = { path = "../docs" }
 # OpenAPI natively (gmeow_shacl::shape_union::load_shapes + json_schema::compile),
 # replacing the Python LinkML JSON-Schema/OpenAPI generators (#700).
 gmeow-shacl = { path = "../shacl" }
-# Stage DAG: cycle detection (tarjan_scc) + topological levelling. `petgraph` is
-# a published registry crate (no `path`), so it is an external boundary, not a
-# first-party layering edge — the crate-layering gate (#820 S0) is unaffected.
-petgraph = { version = "0.8", default-features = false }
+# Stage DAG cycle detection is delegated to the shared DAG-workflow certifier in
+# gmeow-logic (gmeow_logic::dag_profile); the topological levelling here is a
+# plain Kahn pass over BTreeMap/BTreeSet, so crates/pipeline no longer depends on
+# petgraph directly — the one acyclicity authority lives in gmeow-logic.
 # Level-parallel scheduling: independent stages within a topological level run
 # concurrently; only Reason stages serialize under the process-wide ENGINE_LOCK.
 rayon = "1"
