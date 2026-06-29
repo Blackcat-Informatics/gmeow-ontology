@@ -1,0 +1,63 @@
+{
+  "per_composition": [
+    {
+      "composed_class": "LossyLens",
+      "composition": {
+        "status": "pass"
+      },
+      "left": "https://gmeow.example/corr/cIso",
+      "right": "https://gmeow.example/corr/cLossy"
+    }
+  ],
+  "per_correspondence": [
+    {
+      "correspondence": "https://gmeow.example/corr/cComposite",
+      "law": {
+        "status": "pass"
+      },
+      "mnemomorphism": {
+        "reason": "the cell is not declared mnemomorphic",
+        "status": "not_applicable"
+      },
+      "overclaim": {
+        "status": "pass"
+      },
+      "round_trip": {
+        "reason": "logic:LossyLens makes no full round-trip claim",
+        "status": "not_applicable"
+      }
+    },
+    {
+      "correspondence": "https://gmeow.example/corr/cIso",
+      "law": {
+        "status": "pass"
+      },
+      "mnemomorphism": {
+        "status": "pass"
+      },
+      "overclaim": {
+        "status": "pass"
+      },
+      "round_trip": {
+        "status": "pass"
+      }
+    },
+    {
+      "correspondence": "https://gmeow.example/corr/cLossy",
+      "law": {
+        "status": "pass"
+      },
+      "mnemomorphism": {
+        "reason": "the cell is not declared mnemomorphic",
+        "status": "not_applicable"
+      },
+      "overclaim": {
+        "status": "pass"
+      },
+      "round_trip": {
+        "reason": "logic:LossyLens makes no full round-trip claim",
+        "status": "not_applicable"
+      }
+    }
+  ]
+}
