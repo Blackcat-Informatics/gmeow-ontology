@@ -1088,7 +1088,9 @@ fn value_mapped_pairs(projection_ttls: &[String]) -> Result<ValueRuleMap, String
         .collect())
 }
 
-fn edoalpath_pairs(projection_ttls: &[String]) -> Result<(TargetSetMap, TargetSetMap), String> {
+pub(crate) fn edoalpath_pairs(
+    projection_ttls: &[String],
+) -> Result<(TargetSetMap, TargetSetMap), String> {
     let mut direct: TargetSetMap = BTreeMap::new();
     let mut inverse: TargetSetMap = BTreeMap::new();
     for ttl in projection_ttls {
@@ -1791,7 +1793,7 @@ fn projection_namespaces() -> &'static [&'static str] {
     })
 }
 
-fn canon_qname(iri: &str) -> String {
+pub(crate) fn canon_qname(iri: &str) -> String {
     static SORTED_PREFIXES: OnceLock<Vec<(&'static str, &'static str)>> = OnceLock::new();
     let prefixes = SORTED_PREFIXES.get_or_init(|| {
         let mut prefixes = PREFIXES.to_vec();
@@ -1806,7 +1808,7 @@ fn canon_qname(iri: &str) -> String {
     iri.to_owned()
 }
 
-fn prefix(term: &str) -> &str {
+pub(crate) fn prefix(term: &str) -> &str {
     term.split_once(':').map_or("", |(pfx, _)| pfx)
 }
 
