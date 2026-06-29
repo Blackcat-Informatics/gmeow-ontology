@@ -17,6 +17,7 @@ pub mod artifacts;
 pub mod dl;
 pub mod el;
 pub mod ledger;
+pub mod perf_ledger;
 pub mod rl;
 
 pub use dl::{dl_consistency, DlVerdict, InconsistencyWitness, UnsatClass};
