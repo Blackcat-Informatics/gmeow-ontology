@@ -446,6 +446,45 @@ mod tests {
     use super::*;
 
     #[test]
+    fn rdfstar_closure_folds_byte_identically() {
+        // The reasoning closure is RDF-1.2 with thousands of ANONYMOUS reifiers (#1155).
+        // With the parse (anon-reifier collapse), `rdf:reifies` interning, render
+        // (side-table emission) and content-stable Triple-signature fixes, a per-file
+        // carrier fold must reproduce the canonical bytes exactly.
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap();
+        let committed =
+            std::fs::read(root.join("generated/logic/inferred-closure.rdf12.ttl")).unwrap();
+        let prefixes = rdf_prefixes();
+        // canonical_turtle must be idempotent on RDF-1.2 reifiers.
+        let c1 = gmeow_rdf::turtle_normalize::canonical_turtle(&committed, &prefixes).unwrap();
+        let c2 = gmeow_rdf::turtle_normalize::canonical_turtle(c1.as_bytes(), &prefixes).unwrap();
+        assert_eq!(
+            c1, c2,
+            "canonical_turtle must be idempotent on the RDF-1.2 closure"
+        );
+        // Full carrier fold: attach in a named graph, project (keeping reifiers by
+        // reified-statement subject), render — must reproduce the canonical bytes.
+        let ds = gmeow_rdf::parse_dataset(c1.as_bytes(), "text/turtle", None).unwrap();
+        assert!(
+            ds.annotations().count() > 0,
+            "anonymous-reifier annotations must fold (not become base quads)"
+        );
+        let iri =
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/logic/inferred-closure.rdf12.ttl";
+        let rooted = crate::stages::carrier::rooted_in_graph(&ds, iri).unwrap();
+        let folded =
+            gmeow_rdf::turtle_normalize::render(&rooted.project_named_graph_full(iri), &prefixes);
+        assert_eq!(
+            folded, c1,
+            "the RDF-star carrier fold must reproduce the canonical bytes"
+        );
+    }
+
+    #[test]
     fn excluded_holds_exactly_the_two_terminal_bundles() {
         assert_eq!(EXCLUDED.len(), 2);
         assert!(EXCLUDED.contains(&"generated/dist/gmeow.gts"));

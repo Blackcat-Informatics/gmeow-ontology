@@ -76,7 +76,17 @@ impl<'a> Renderer<'a> {
         // what makes the render idempotent regardless of how the parser interned terms.
         let mut raw: HashMap<TermId, BTreeMap<TermId, Vec<TermId>>> = HashMap::new();
         let mut object_refs: HashMap<TermId, usize> = HashMap::new();
-        for q in dataset.quads() {
+        // The base quads PLUS the RDF 1.2 reifier / annotation side-tables, exposed as
+        // virtual quads (`reifier rdf:reifies << s p o >>` and `reifier annP annO`).
+        // The side-tables live OUTSIDE `quads`, so without this the renderer silently
+        // drops every reified statement that carries annotations — a data-loss round
+        // trip (`rdf:reifies []`). Folding them in lets a reifier render as an ordinary
+        // subject and the quoted triple as `<< s p o >>` (TermRef::Triple).
+        for q in dataset
+            .quads()
+            .chain(dataset.reifier_quads())
+            .chain(dataset.annotation_quads())
+        {
             raw.entry(q.s)
                 .or_default()
                 .entry(q.p)
@@ -648,13 +658,7 @@ fn blank_signatures(
     by_subject: &HashMap<TermId, Props>,
     shared: &[TermId],
 ) -> HashMap<TermId, u64> {
-    let ground = |id: TermId| -> u64 {
-        match dataset.resolve(id) {
-            TermRef::Iri(iri) => fnv(0xcbf2_9ce4_8422_2325, iri.as_bytes()),
-            TermRef::Literal { lexical, .. } => fnv(0x1000_0001, lexical.as_bytes()),
-            _ => 0, // blank/triple: not grounded
-        }
-    };
+    let ground = |id: TermId| -> u64 { ground_sig(dataset, id, 0) };
     let shared_set: BTreeSet<TermId> = shared.iter().copied().collect();
     let mut sig: HashMap<TermId, u64> = shared.iter().map(|&b| (b, 1)).collect();
     for round in 0..2 {
@@ -688,6 +692,25 @@ fn fnv(mut hash: u64, bytes: &[u8]) -> u64 {
         hash = hash.wrapping_mul(0x100_0000_01b3);
     }
     hash
+}
+
+/// A grounded content hash for the blank-signature fold: IRIs/literals by their
+/// lexical content, an RDF-1.2 quoted triple by its `(s, p, o)` content (so reifier
+/// blanks that reify DIFFERENT statements get distinct signatures — without this they
+/// tie and the `_:bN` labeling falls back to interning order), and a blank as 0 (its
+/// own signature carries it). Depth-capped against pathological nested triple terms.
+fn ground_sig(dataset: &RdfDataset, id: TermId, depth: usize) -> u64 {
+    match dataset.resolve(id) {
+        TermRef::Iri(iri) => fnv(0xcbf2_9ce4_8422_2325, iri.as_bytes()),
+        TermRef::Literal { lexical, .. } => fnv(0x1000_0001, lexical.as_bytes()),
+        TermRef::Triple { s, p, o } if depth < 8 => {
+            let s = ground_sig(dataset, s, depth + 1);
+            let p = ground_sig(dataset, p, depth + 1);
+            let o = ground_sig(dataset, o, depth + 1);
+            0x3000_0001u64 ^ s.wrapping_mul(0x100_0000_01b3) ^ p.rotate_left(11) ^ o.rotate_left(23)
+        }
+        _ => 0, // blank, or a triple deeper than the cap: carried by its own signature
+    }
 }
 
 // ── lexical helpers ──────────────────────────────────────────────────────────
@@ -793,6 +816,37 @@ fn is_turtle_double(v: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn renders_rdf12_reifier_flat() {
+        use crate::ir::builder::RdfDatasetBuilder;
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri("https://ex/s".to_string());
+        let p = b.intern_iri("https://ex/p".to_string());
+        let o = b.intern_iri("https://ex/o".to_string());
+        let r = b.intern_iri("https://ex/r".to_string());
+        let conf = b.intern_iri("https://ex/conf".to_string());
+        b.push_quad(s, p, o, None);
+        let tt = b.intern_triple(s, p, o);
+        b.push_reifier(r, tt);
+        b.push_annotation(r, conf, o);
+        let ds = b.freeze().unwrap();
+        let out = render(&ds, &[("rdf".to_string(), super::RDF.to_string())]);
+        // The reifier renders FLAT — the quoted triple inline, the annotation alongside
+        // — never nested into an intermediate `[ rdf:reifies … ]` blank (#1155).
+        assert!(
+            out.contains("rdf:reifies << <https://ex/s> <https://ex/p> <https://ex/o> >>"),
+            "reifier must render the quoted triple flat, got:\n{out}"
+        );
+        assert!(
+            out.contains("<https://ex/conf> <https://ex/o>"),
+            "the annotation must render on the reifier, got:\n{out}"
+        );
+        assert!(
+            !out.contains("reifies [\n") && !out.contains("reifies [ "),
+            "reifier must NOT nest into a blank, got:\n{out}"
+        );
+    }
 
     #[test]
     fn pn_local_accepts_plain_names() {
