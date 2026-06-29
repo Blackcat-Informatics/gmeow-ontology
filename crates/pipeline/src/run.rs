@@ -106,7 +106,12 @@ pub fn full_spec() -> PipelineSpec {
             "stage-reason",
             StageKind::Reason,
             "reason",
-            &["stage-mappings", "stage-source-load", "stage-statements"],
+            &[
+                "stage-compile-logic",
+                "stage-mappings",
+                "stage-source-load",
+                "stage-statements",
+            ],
         ),
         st(
             "stage-gts-compose",
@@ -161,7 +166,6 @@ pub fn full_spec() -> PipelineSpec {
     // ── fold-reading export leaves (consume THIS run's snapshot) ──
     for (id, impl_key) in [
         ("stage-export-lpg", "lpg"),
-        ("stage-export-logic", "logic"),
         ("stage-export-yaml-ld", "yaml_ld"),
         ("stage-export-metadata", "metadata"),
         ("stage-export-export", "export"),
