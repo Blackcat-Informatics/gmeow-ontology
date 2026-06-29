@@ -278,8 +278,10 @@ jobs:
   # `maturin develop` (nightly toolchain + rust-cache + native compile), which cuts
   # the per-job setup from minutes to seconds so each lane lands under the 5-minute
   # target. This job builds ONLY the wheel (no gates), so it stays well under 5 min.
-  # The wheel is a plain linux wheel (same ubuntu-latest image across jobs), debug —
-  # matching the `maturin develop` it replaces.
+  # The wheel is a plain linux wheel (same ubuntu-latest image across jobs), --release —
+  # matching the `maturin develop --release` it replaces: the optimized reasoner cuts
+  # every pipeline gate (regenerate/check-generated/validate) ~4.4x, and Nemo's
+  # release build RAM is capped to 7.37 GB by the `[profile.release]` overrides.
   native-build:
     runs-on: ubuntu-latest
     steps:
