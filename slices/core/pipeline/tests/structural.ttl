@@ -38,7 +38,7 @@ ASK {
     gmeow:pipeline-build
         logic:planGoal           gmeow:goalShippableBundle ;
         logic:planSuccessMode    logic:StrongPlanSuccess ;
-        logic:executedUnderContract logic:DagWorkflowProfile .
+        logic:executedUnderContract logic:DagWorkflowContract .
     gmeow:goalShippableBundle a gmeow:Goal .
 }""" ;
     gmeow:saRationale "The pipeline MUST be a projection of the one canonical process model, not a parallel one: gmeow:dataflowConsumes/dataflowProduces specialize the canonical logic:dataflowConsumes/dataflowProduces, and the build plan gmeow:pipeline-build carries its logic:planGoal (the shippable bundle), logic:planSuccessMode (StrongPlanSuccess — the deterministic build reaches the goal every run, satisfying logic:PlanShape), and runs logic:executedUnderContract the DAG-workflow profile under which its acyclic dataflow closure is certified." .

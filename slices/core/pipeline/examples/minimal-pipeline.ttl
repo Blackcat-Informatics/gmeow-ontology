@@ -19,7 +19,7 @@ ex:goalMinimalBundle a gmeow:Goal .
 ex:minimalBuild a gmeow:Pipeline ;
     logic:planGoal ex:goalMinimalBundle ;
     logic:planSuccessMode logic:StrongPlanSuccess ;
-    logic:executedUnderContract logic:DagWorkflowProfile ;
+    logic:executedUnderContract logic:DagWorkflowContract ;
     gmeow:hasStage ex:load , ex:reason , ex:sink .
 
 ex:load a gmeow:PipelineStage ;
