@@ -17,7 +17,9 @@
 //! `constraints`, `path`, `report`, `model`) are PyO3-free so the rlib links
 //! into the future Rust compiler without any Python dependency.
 
-use oxigraph::store::Store;
+use std::sync::Arc;
+
+use gmeow_rdf::RdfDataset;
 use pyo3::prelude::*;
 use pyo3::types::{PyAny, PyCapsule, PyCapsuleMethods, PyDict, PyList};
 
@@ -80,34 +82,21 @@ fn validate(py: Python<'_>, shapes_ttl: &str, data_nt: &str) -> PyResult<Py<PyAn
 ///
 /// Construct from a Turtle shapes graph with `PyShapes(shapes_ttl)`, then call
 /// `validate_nt(data_nt)` for each data graph. The Rust orchestration path in
-/// `gmeow-validate` borrows the parsed shapes via [`Self::validate_against_store`].
+/// `gmeow-validate` borrows the parsed shapes via [`Self::validate_against_dataset`].
 #[pyclass(name = "Shapes")]
 pub struct PyShapes {
     inner: crate::shapes::Shapes,
 }
 
 impl PyShapes {
-    /// Validate a borrowed oxigraph store against these parsed shapes.
+    /// Validate a borrowed native [`RdfDataset`] against these parsed shapes.
     ///
     /// This is the Rust-side primitive used by `gmeow-validate::PyValidationStore`
     /// so the data store does not have to be re-serialized to N-Triples.
-    pub fn validate_against_store(&self, data: &Store) -> ValidationReport {
-        validate_store_via_bridge(data, &self.inner)
+    pub fn validate_against_dataset(&self, data: &RdfDataset) -> ValidationReport {
+        engine::validate_dataset(data, &self.inner)
+            .expect("validation over a frozen dataset is infallible")
     }
-}
-
-/// Validate an oxigraph [`Store`] against parsed shapes by bridging it into the
-/// native IR, then running the now-native engine.
-///
-/// TRANSITIONAL: capsule still carries an oxigraph Store until py_store goes native
-/// (#906). This `dataset_from_store` bridge is the ONLY remaining oxigraph use in
-/// the SHACL engine; the final rdf pass flips the capsule to `Arc<RdfDataset>` and
-/// removes this bridge (and the crate's `oxigraph` feature on `gmeow-rdf`) together.
-fn validate_store_via_bridge(data: &Store, shapes: &crate::shapes::Shapes) -> ValidationReport {
-    let dataset = gmeow_rdf::oxigraph::dataset_from_store(data)
-        .expect("oxigraph store folds into the native IR");
-    engine::validate_dataset(dataset.as_ref(), shapes)
-        .expect("validation over a frozen dataset is infallible")
 }
 
 #[pymethods]
@@ -130,12 +119,12 @@ impl PyShapes {
         Ok(PyValidationReport::new(report))
     }
 
-    /// Validate a borrowed oxigraph store against these parsed shapes.
+    /// Validate a borrowed native dataset against these parsed shapes.
     ///
     /// `data` must be an object (typically `gmeow_validate.ValidationStore`) that
-    /// exposes an internal `_store_capsule()` method returning a capsule borrowing
-    /// its oxigraph store. This avoids serialising the store to N-Triples for each
-    /// validation phase (#634).
+    /// exposes an internal `_store_capsule()` method returning a capsule borrowing a
+    /// frozen `Arc<RdfDataset>` snapshot. This avoids serialising the store to
+    /// N-Triples for each validation phase (#634).
     ///
     /// # Errors
     ///
@@ -145,14 +134,16 @@ impl PyShapes {
         let capsule = data.call_method0("_store_capsule")?;
         let capsule = capsule.cast::<PyCapsule>()?;
         let ptr = capsule
-            .pointer_checked(Some(c"gmeow-validation-store"))
+            .pointer_checked(Some(c"gmeow-validation-dataset"))
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
         let addr = unsafe { *ptr.cast::<usize>().as_ptr() };
-        let store = unsafe { &*(addr as *const Store) };
-        Ok(PyValidationReport::new(validate_store_via_bridge(
-            store,
-            &self.inner,
-        )))
+        // SAFETY: the capsule's value is the address of an `Arc<RdfDataset>` the
+        // producer keeps alive (and at a stable address) for the capsule's lifetime.
+        // We borrow it to validate; the producer's `Arc` owns the dataset.
+        let dataset = unsafe { &*(addr as *const Arc<RdfDataset>) };
+        Ok(PyValidationReport::new(
+            self.validate_against_dataset(dataset.as_ref()),
+        ))
     }
 }
 

@@ -279,61 +279,16 @@ impl PyValidateOptions {
     }
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// TRANSITIONAL oxigraph `Store` construction for the PyO3 `ValidationStore` (#906).
-//
-// These four helpers are the SOLE remaining oxigraph users in `gmeow-validate`: they
-// build the oxigraph `Store` that `PyValidationStore` hands to `gmeow_shacl` via the
-// `_store_capsule`. The engine modules (lint/gufo/coverage/constitution/statement/the
-// DSL merge/the data path) are all native. The final rdf pass flips the capsule to
-// `Arc<RdfDataset>` and deletes this whole block.
-// ───────────────────────────────────────────────────────────────────────────────
-
-/// Parse every Turtle file in `paths` into one oxigraph `Store` (lenient parsing).
-fn build_store(paths: &[PathBuf]) -> Result<oxigraph::store::Store, String> {
-    use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset_scoped;
-    use gmeow_rdf::parse_dataset;
-    let store = oxigraph::store::Store::new().map_err(|e| format!("store creation failed: {e}"))?;
-    for path in paths {
-        let bytes =
-            std::fs::read(path).map_err(|e| format!("failed to read {}: {e}", path.display()))?;
-        let path_str = path.display().to_string();
-        let dataset = parse_dataset(&bytes, "text/turtle", None)
-            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
-        // Scope blank labels per source file so several Turtle documents merged into one
-        // store keep their anonymous blanks disjoint (the native codecs restart the
-        // blank counter per parse and `store.insert` does not rename them) (#909).
-        let quads = flat_oxigraph_quads_from_dataset_scoped(&dataset, &path_str)
-            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
-        for quad in quads {
-            store
-                .insert(&quad)
-                .map_err(|e| format!("store insert failed for {path_str}: {e}"))?;
-        }
-    }
-    Ok(store)
-}
-
-/// Build an oxigraph `Store` from a GTS byte bundle (read + flatten named graphs).
-fn build_store_from_gts(bytes: &[u8]) -> Result<oxigraph::store::Store, String> {
-    let graph = store::read_gts_graph(bytes)?;
-    gmeow_rdf::gts::flattened_oxigraph_store_from_graph(&graph).map_err(|e| e.to_string())
-}
-
-/// A reusable oxigraph store built once from canonical source paths.
+/// A reusable native dataset built once from canonical source paths.
 ///
-/// Python hands the source paths once; the store can then be validated against
-/// parsed SHACL shapes across multiple phases without re-parsing the sources
-/// (#634).
-///
-/// TRANSITIONAL: oxigraph Store + `_store_capsule` until the rdf `py_store` goes
-/// native (#906). This is the sole remaining oxigraph user in `gmeow-validate`: it
-/// hands the raw oxigraph `Store` pointer to `gmeow_shacl` via the capsule. The final
-/// rdf pass flips the capsule to `Arc<RdfDataset>` and removes this class together
-/// with the transitional `build_store*` helpers above.
+/// Python hands the source paths once; the frozen `Arc<RdfDataset>` can then be
+/// validated against parsed SHACL shapes across multiple phases without re-parsing
+/// the sources (#634). The dataset is handed to `gmeow_shacl` by reference through
+/// the `_store_capsule` (EPIC #906: the capsule carries a native `Arc<RdfDataset>`,
+/// not an oxigraph `Store`).
 #[pyclass(name = "ValidationStore")]
 struct PyValidationStore {
-    store: oxigraph::store::Store,
+    dataset: std::sync::Arc<gmeow_rdf::RdfDataset>,
     #[allow(dead_code)]
     source_paths: Vec<String>,
 }
@@ -348,58 +303,60 @@ impl PyValidationStore {
             ));
         }
         let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
-        let store = build_store(&paths).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let dataset =
+            store::dataset_from_paths(&paths).map_err(pyo3::exceptions::PyValueError::new_err)?;
         Ok(Self {
-            store,
+            dataset,
             source_paths,
         })
     }
 
-    /// Build a store from a GTS byte bundle instead of from Turtle source paths.
+    /// Build a dataset from a GTS byte bundle instead of from Turtle source paths.
     #[staticmethod]
     fn from_gts_bytes(gts_bytes: Vec<u8>) -> PyResult<Self> {
-        let store =
-            build_store_from_gts(&gts_bytes).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let dataset =
+            store::dataset_from_gts(&gts_bytes).map_err(pyo3::exceptions::PyValueError::new_err)?;
         Ok(Self {
-            store,
+            dataset,
             source_paths: Vec::new(),
         })
     }
 
-    /// Internal protocol: a capsule exposing the wrapped oxigraph store by
-    /// address.
+    /// Internal protocol: a capsule exposing a frozen `Arc<RdfDataset>` snapshot of
+    /// this store by address.
     ///
-    /// The capsule is consumed by `gmeow_shacl.Shapes.validate_store` so the
-    /// SHACL engine can validate the store directly without an N-Triples
-    /// round-trip. Do not call this directly from Python.
+    /// The capsule is consumed by `gmeow_shacl.Shapes.validate_store` so the SHACL
+    /// engine can validate the dataset directly without an N-Triples round-trip. Do
+    /// not call this directly from Python.
     ///
-    /// The capsule's destructor owns a strong reference to `self`, so the store
-    /// is kept alive for the capsule's entire lifetime — the borrow is *enforced*
-    /// rather than merely assumed, closing the use-after-free a stray Python
-    /// reference to the capsule would otherwise open.
+    /// The capsule's destructor owns a clone of the `Arc<RdfDataset>` (boxed so its
+    /// address is stable), so the dataset is kept alive for the capsule's entire
+    /// lifetime — the borrow is *enforced* rather than merely assumed, closing the
+    /// use-after-free a stray Python reference to the capsule would otherwise open.
     fn _store_capsule<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyCapsule>> {
         let py = slf.py();
-        let addr = &slf.borrow().store as *const oxigraph::store::Store as usize;
-        // Strong ref to the Python store; dropped (under the GIL) only when the
-        // capsule itself is collected, so `self.store` cannot dangle beneath it.
-        let keepalive: Py<Self> = slf.clone().unbind();
-        // SAFETY: the capsule's value is the address of `self.store`, whose
-        // storage is stable for the lifetime of the pyclass instance that
-        // `keepalive` pins. The consumer reads only the value, never the context.
+        let arc = std::sync::Arc::clone(&slf.borrow().dataset);
+        let boxed: Box<std::sync::Arc<gmeow_rdf::RdfDataset>> = Box::new(arc);
+        let addr = (&*boxed as *const std::sync::Arc<gmeow_rdf::RdfDataset>) as usize;
+        let keepalive = boxed;
+        // SAFETY: `addr` is the address of the boxed `Arc<RdfDataset>` owned by
+        // `keepalive`, moved into the destructor; it stays live and at a stable
+        // address for the capsule's entire lifetime. The consumer reads the
+        // `Arc<RdfDataset>` at that address.
         PyCapsule::new_with_value_and_destructor(
             py,
             addr,
-            c"gmeow-validation-store",
+            c"gmeow-validation-dataset",
             move |_addr, _ctx| drop(keepalive),
         )
     }
 
-    /// Validate this store against a parsed SHACL shapes model.
+    /// Validate this dataset against a parsed SHACL shapes model.
     ///
     /// Convenience wrapper that delegates to
     /// `gmeow_shacl.Shapes.validate_store(self)` so the two classes can live in
     /// their respective extension modules while still sharing the underlying
-    /// oxigraph store directly.
+    /// native dataset directly.
     fn validate(slf: &Bound<'_, Self>, shapes: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
         let report = shapes.call_method1("validate_store", (slf,))?;
         Ok(report.unbind())

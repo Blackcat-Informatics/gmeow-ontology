@@ -27,7 +27,6 @@
 //! All CBOR encoding, canonicalization, frame-id chaining, and signing is
 //! delegated to `gmeow-gts` — never hand-rolled.
 
-use oxigraph::model::Quad;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyList};
@@ -36,10 +35,10 @@ use crate::bundle::{RdfBundle, UnitMetadata};
 // The byte-emitting compose core now lives in the pyo3-free `gts_compose` module
 // (#861 P6); this surface is the thin pyo3 wrapper that delegates to it.
 use crate::gts_compose::{emit_gts, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD};
-use crate::ir::{RdfDataset, RdfDatasetBuilder};
+use crate::ir::RdfDataset;
 use crate::provenance::{DatasetProvenance, OriginKind};
 use crate::py_store::{parse_quads, PyRdfFormat};
-use crate::NativeRdfFormat;
+use crate::{flat_dataset_from_quads, NativeRdfFormat, RdfQuad};
 
 /// The `rep`-label prefix every S3 slice-artifact blob carries (#820 S3). A blob
 /// authored from the slice catalog rides ahead of the snapshot with
@@ -63,75 +62,11 @@ struct SliceArtifactRow {
     content: Vec<u8>,
 }
 
-/// Intern an oxigraph subject/blank node into the IR builder.
-fn intern_ir_subject(
-    b: &mut RdfDatasetBuilder,
-    s: &oxigraph::model::NamedOrBlankNode,
-) -> crate::ir::TermId {
-    use crate::ir::BlankScope;
-    use oxigraph::model::NamedOrBlankNode;
-    match s {
-        NamedOrBlankNode::NamedNode(n) => b.intern_iri(n.as_str().to_string()),
-        NamedOrBlankNode::BlankNode(bn) => {
-            b.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT)
-        }
-    }
-}
-
-/// Intern an oxigraph object term into the IR builder (recursive for triple terms).
-fn intern_ir_object(b: &mut RdfDatasetBuilder, o: &oxigraph::model::Term) -> crate::ir::TermId {
-    use crate::{RdfLiteral, RdfTextDirection};
-    use oxigraph::model::{BaseDirection, Term as OxTerm};
-    match o {
-        OxTerm::NamedNode(n) => b.intern_iri(n.as_str().to_string()),
-        OxTerm::BlankNode(bn) => {
-            use crate::ir::BlankScope;
-            b.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT)
-        }
-        OxTerm::Literal(l) => {
-            let direction = l.direction().map(|d| match d {
-                BaseDirection::Ltr => RdfTextDirection::Ltr,
-                BaseDirection::Rtl => RdfTextDirection::Rtl,
-            });
-            b.intern_literal(RdfLiteral {
-                lexical_form: l.value().to_string(),
-                datatype: Some(l.datatype().as_str().to_string()),
-                language: l.language().map(str::to_string),
-                direction,
-            })
-        }
-        OxTerm::Triple(t) => {
-            let s = intern_ir_subject(b, &t.subject);
-            let p = b.intern_iri(t.predicate.as_str().to_string());
-            let inner_o = intern_ir_object(b, &t.object);
-            b.intern_triple(s, p, inner_o)
-        }
-    }
-}
-
-/// Build a frozen [`RdfDataset`] from a flat oxigraph quad list. Used so the
-/// production [`RdfBundle`] carries the actual hot graph (not a placeholder) while
-/// it gates the artifact index.
-fn dataset_from_ox_quads(quads: &[Quad]) -> Result<std::sync::Arc<RdfDataset>, String> {
-    use crate::ir::BlankScope;
-    use oxigraph::model::GraphName;
-
-    let mut b = RdfDatasetBuilder::new();
-    for q in quads {
-        let s = intern_ir_subject(&mut b, &q.subject);
-        let p = b.intern_iri(q.predicate.as_str().to_string());
-        let o = intern_ir_object(&mut b, &q.object);
-        let g = match &q.graph_name {
-            GraphName::DefaultGraph => None,
-            GraphName::NamedNode(n) => Some(b.intern_iri(n.as_str().to_string())),
-            GraphName::BlankNode(bn) => {
-                Some(b.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT))
-            }
-        };
-        b.push_quad(s, p, o, g);
-    }
-    b.freeze()
-        .map_err(|e| format!("bundle dataset freeze failed: {e}"))
+/// Build a frozen [`RdfDataset`] from a flat native quad list (verbatim, no RDF 1.2
+/// statement-layer fold). Used so the production [`RdfBundle`] carries the actual hot
+/// graph (not a placeholder) while it gates the artifact index.
+fn dataset_from_quads(quads: &[RdfQuad]) -> Result<std::sync::Arc<RdfDataset>, String> {
+    flat_dataset_from_quads(quads)
 }
 
 /// Assemble the self-describing S3 [`RdfBundle`] from the slice-artifact rows and
@@ -145,12 +80,12 @@ fn dataset_from_ox_quads(quads: &[Quad]) -> Result<std::sync::Arc<RdfDataset>, S
 /// assuming one-segment == one-slice. The blob rows ride the SAME channel
 /// `doc_blobs` use; the bundle's `dataset` carries the real hot graph.
 fn assemble_slice_bundle(
-    base_quads: &[Quad],
+    base_quads: &[RdfQuad],
     rows: &[SliceArtifactRow],
 ) -> Result<Vec<BlobRow>, String> {
     const SNAPSHOT_SEGMENT: usize = 0;
 
-    let dataset = dataset_from_ox_quads(base_quads)?;
+    let dataset = dataset_from_quads(base_quads)?;
     let provenance = DatasetProvenance::new();
     let mut bundle = RdfBundle::new(dataset, provenance);
 
@@ -277,11 +212,11 @@ fn secret_array(secret: Option<&Bound<'_, PyBytes>>) -> PyResult<Option<[u8; 32]
     }
 }
 
-/// Parse RDF bytes leniently into oxigraph quads. The lenient parser accepts
+/// Parse RDF bytes leniently into native quads. The lenient parser accepts
 /// private-use language tags (`@x-gmeow-*`) that the strict `gmeow_rdf.Literal`
 /// constructor would reject — the producer therefore lowers rdflib sources to
 /// N-Quads/Turtle bytes and parses HERE, never building `Quad` objects.
-fn parse_rdf(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<Vec<Quad>> {
+fn parse_rdf(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<Vec<RdfQuad>> {
     parse_quads(data.as_bytes(), rdf_format(format))
         .map_err(|e| PyValueError::new_err(format!("parse error: {e}")))
 }
