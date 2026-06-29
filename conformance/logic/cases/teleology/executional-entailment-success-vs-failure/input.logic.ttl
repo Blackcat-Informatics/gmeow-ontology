@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/executional-entailment-success-vs-failure.
+#
+# Two transaction-program roots in one world: a succeeding logic:Choice (guard holds, left runs) records logic:transactionSucceeds true with its executed path, and a failing logic:Fallback (both legs' preconditions unmet) records logic:transactionSucceeds false with NO path or substrate — failure leaves the start state untouched. Proves the success-vs-failure executional-entailment contract.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/executional-entailment-success-vs-failure/> .
+
+ex:GoalExpression a logic:GoalExpression .

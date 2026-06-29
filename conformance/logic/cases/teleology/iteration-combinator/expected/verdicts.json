@@ -1,6 +1,6 @@
 {
   "https://example.org/teleology/iteration-combinator/world": {
-    "quads": 3,
+    "quads": 25,
     "status": "consistent"
   }
 }
