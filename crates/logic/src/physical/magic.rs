@@ -477,6 +477,14 @@ fn project_answers(facts: &[crate::rule_ir::Fact], goal: &QAtom, goal_pred: &str
 /// is a declared gap ([`NativeOutcome::Unsupported`]); the caller routes such requests to
 /// an oracle (no-optionality).
 ///
+/// # Budget precondition
+///
+/// This engine governs only `budget.max_answers` (a sound post-fixpoint truncation); it
+/// has no step governor. A `budget.max_steps` request is a routing decision the dispatch
+/// layer must resolve BEFORE calling here (it demotes such queries to the step-honouring
+/// fallback). Reaching this function with `max_steps` set is therefore a caller-contract
+/// violation, asserted below rather than silently ignored.
+///
 /// # Errors
 ///
 /// Returns `Err` for an evaluator failure (e.g. an unbound head variable or a
@@ -487,6 +495,15 @@ pub(crate) fn resolve_native(
     program: &QProgram,
     budget: &Budget,
 ) -> Result<NativeOutcome<AnswerSet>, String> {
+    // Contract: step-budgeted queries are demoted by the router before reaching the
+    // native engine, which cannot honour `max_steps`. Fail loudly if that invariant is
+    // ever broken by a direct caller instead of returning a budget-blind answer.
+    debug_assert!(
+        budget.max_steps.is_none(),
+        "resolve_native must not receive a max_steps budget; the dispatch router demotes \
+         step-budgeted queries to the step-honouring fallback",
+    );
+
     // (0) Gate cut / arithmetic (reuse the structural detectors the dispatch gate uses).
     if profile_gate::has_cut(program) {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
