@@ -103,16 +103,31 @@ pub fn content_digest(fields: &[&[u8]]) -> String {
     s
 }
 
-/// The per-stage cache key: stage id + impl version + the sorted upstream output
-/// digests (Merkle composition). `source_file_digest` is folded only for
-/// `SourceLoad` stages (their inputs are files, not upstream products).
+/// The build fingerprint folded into every [`stage_key`]: a content hash of the whole
+/// workspace Rust source + `Cargo.lock` + the `rustc` version, computed by `build.rs`.
+/// Any code, dependency, or toolchain change changes it, so the persistent per-stage
+/// cache invalidates fail-closed — there is no `impl_version` to forget to bump.
+pub const BUILD_FINGERPRINT: &str = env!("GMEOW_BUILD_FINGERPRINT");
+
+/// The per-stage cache key: build fingerprint + stage id + impl version + the sorted
+/// upstream output digests (Merkle composition). `source_file_digest` is folded only
+/// for `SourceLoad` stages (their inputs are files, not upstream products).
+///
+/// Folding [`BUILD_FINGERPRINT`] makes the key capture the producing CODE, not just
+/// its declared `impl_version`: a stage whose Rust impl changed (here or in any
+/// workspace crate it calls, e.g. `gmeow-logic`) gets a fresh key and recomputes,
+/// so a persistent cache can never serve a stale pre-change product.
 pub fn stage_key(
     stage_id: &str,
     impl_version: &str,
     upstream_digests_sorted: &[String],
     source_file_digest: Option<&str>,
 ) -> String {
-    let mut fields: Vec<&[u8]> = vec![stage_id.as_bytes(), impl_version.as_bytes()];
+    let mut fields: Vec<&[u8]> = vec![
+        BUILD_FINGERPRINT.as_bytes(),
+        stage_id.as_bytes(),
+        impl_version.as_bytes(),
+    ];
     for d in upstream_digests_sorted {
         fields.push(d.as_bytes());
     }
