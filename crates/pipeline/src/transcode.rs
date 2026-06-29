@@ -100,7 +100,7 @@ impl Codec {
     /// The canonical kebab-case name for this codec.
     ///
     /// Each name is the exact string accepted by [`Codec::from_cli_str`] and
-    /// recognized by [`canonical_codec_name`] in the loss ledger.
+    /// recognized by `canonical_codec_name` in the loss ledger.
     pub fn name(self) -> &'static str {
         match self {
             Self::Turtle => "turtle",

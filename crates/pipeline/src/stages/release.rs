@@ -157,7 +157,7 @@ pub fn fold_release_bundle(
 const COHERENCE_REP: &str = "coherence";
 
 /// Build the scoped coherence-certificate evidence over `snapshot_bytes` — reason
-/// over the bundle, build the [`CoherenceOutcome`], and emit it as N-Quads typed
+/// over the bundle, build the [`gmeow_logic::certificate::CoherenceOutcome`], and emit it as N-Quads typed
 /// `logic:CoherenceCertificate` / `logic:CoherenceCheckAttestation`. The result is
 /// folded as one more signed evidence artifact, so the certificate rides the
 /// bundle's Ed25519 signature (Principle 18) — there is NO new signing step and no

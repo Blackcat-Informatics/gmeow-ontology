@@ -23,8 +23,9 @@ use gmeow_rdf::{
     flat_dataset_from_quads, flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
     RdfDataset, SerializeGraph,
 };
-use gmeow_shacl::engine::validate_graphs;
+use gmeow_shacl::engine::{parse_shapes, validate_dataset};
 use gmeow_shacl::report::{Severity, ValidationReport};
+use gmeow_shacl::shapes::Shapes;
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
 
@@ -201,6 +202,16 @@ fn collect_module_ttls(dir: &Path, paths: &mut Vec<PathBuf>) {
 /// Cached via [`OnceLock`] so disk I/O happens at most once per test process.
 pub fn base_ontology_nt() -> &'static str {
     static CACHE: OnceLock<String> = OnceLock::new();
+    CACHE.get_or_init(|| dataset_default_graph_to_nt(base_ontology_dataset()))
+}
+
+/// Merged ontology as a frozen native dataset (flattened to the default graph).
+///
+/// The native twin of [`base_ontology_nt`]. The conformance tests use it directly
+/// so `validate_with_ontology` does not serialize the full ontology to N-Triples
+/// and immediately parse it back for every case.
+pub fn base_ontology_dataset() -> &'static Arc<RdfDataset> {
+    static CACHE: OnceLock<Arc<RdfDataset>> = OnceLock::new();
     CACHE.get_or_init(|| {
         let root = repo_root();
         let slices_dir = root.join("slices");
@@ -209,7 +220,7 @@ pub fn base_ontology_nt() -> &'static str {
         module_paths.sort();
 
         // Accumulate every module's flat quads (graph component re-homed to the
-        // default graph) into one dataset, then serialize as N-Triples.
+        // default graph) into one frozen native dataset.
         let mut merged: Vec<gmeow_rdf::RdfQuad> = Vec::new();
         for path in &module_paths {
             let ttl = std::fs::read_to_string(path)
@@ -231,18 +242,37 @@ pub fn base_ontology_nt() -> &'static str {
             }
         }
 
-        let dataset = flat_dataset_from_quads(&merged).expect("merged flat dataset must freeze");
-        dataset_default_graph_to_nt(&dataset)
+        flat_dataset_from_quads(&merged).expect("merged flat dataset must freeze")
     })
 }
 
-/// Validate `base_ontology_nt() + "\n" + fixture_nt` against `whole_shapes_ttl()`.
+/// Parsed SHACL shape model for the whole conformance corpus.
+///
+/// `gmeow_shacl::engine::validate_graphs` parses shapes on every call. These
+/// tests repeatedly validate small fixture graphs against the same shape model,
+/// so cache the parsed `Shapes` inside each test process.
+pub fn whole_shapes() -> &'static Shapes {
+    static CACHE: OnceLock<Shapes> = OnceLock::new();
+    CACHE.get_or_init(|| parse_shapes(whole_shapes_ttl()).expect("whole SHACL shapes parse"))
+}
+
+/// Parse N-Triples into a frozen native dataset (flattened to the default graph).
+fn nt_to_dataset(nt: &str) -> Arc<RdfDataset> {
+    let dataset = parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        .unwrap_or_else(|e| panic!("N-Triples parse failed: {e}"));
+    flatten_to_default_graph(&dataset)
+}
+
+/// Validate `base_ontology + fixture_nt` against `whole_shapes()`.
 ///
 /// Use this variant when the fixture triples rely on class/property declarations
 /// from the merged ontology to pass SHACL class-constraint checks.
 pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
-    let combined = format!("{}\n{}", base_ontology_nt(), fixture_nt);
-    validate_graphs(&combined, whole_shapes_ttl()).expect("validate_graphs must not error")
+    let mut merged: Vec<gmeow_rdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
+    let fixture = nt_to_dataset(fixture_nt);
+    merged.extend(flat_rdf_quads_from_dataset(&fixture));
+    let dataset = flat_dataset_from_quads(&merged).expect("merged dataset must freeze");
+    validate_dataset(&dataset, whole_shapes()).expect("native SHACL validation must succeed")
 }
 
 // ── Fixture helpers ───────────────────────────────────────────────────────────
@@ -342,7 +372,8 @@ pub fn ok(report: &ValidationReport) -> bool {
 
 /// Run validation of `data_nt` (N-Triples) against the whole shapes corpus.
 pub fn validate(data_nt: &str) -> ValidationReport {
-    validate_graphs(data_nt, whole_shapes_ttl()).expect("validate_graphs must not error")
+    let dataset = nt_to_dataset(data_nt);
+    validate_dataset(&dataset, whole_shapes()).expect("native SHACL validation must succeed")
 }
 
 // ── Parameterized case harness (#1051) ──────────────────────────────────────────

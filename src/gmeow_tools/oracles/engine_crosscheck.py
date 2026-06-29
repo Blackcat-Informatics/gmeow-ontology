@@ -437,6 +437,16 @@ def build_report(results: list[CrosscheckResult]) -> DiagnosticsReport:
     return report
 
 
+def write_artifacts(report: DiagnosticsReport, *, output_dir: Path = DIST_DIR) -> None:
+    """Write the engine cross-check diagnostics artifacts."""
+    from gmeow_tools import diagnostics
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    diagnostics.write_report_artifacts(
+        report, output_dir=output_dir, stem=ENGINE_CROSSCHECK_STEM
+    )
+
+
 def run(
     *,
     output_dir: Path = DIST_DIR,
@@ -448,15 +458,9 @@ def run(
     artifacts are a gate output (under ``output_dir``), NOT a committed
     drift-gated generator — mirrors :func:`classic_cross_check.run`.
     """
-    from gmeow_tools import diagnostics
-
     results = crosscheck_all()
     report = build_report(results)
-
-    output_dir.mkdir(parents=True, exist_ok=True)
-    diagnostics.write_report_artifacts(
-        report, output_dir=output_dir, stem=ENGINE_CROSSCHECK_STEM
-    )
+    write_artifacts(report, output_dir=output_dir)
 
     passed = not any(not r.agree and not r.skipped for r in results)
     return passed, results, report

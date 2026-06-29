@@ -27,7 +27,7 @@
 //!
 //! The chase machinery is the shared [`crate::nemo_engine::run_chase`] Nemo
 //! engine — the same one [`crate::reason::el`]/[`crate::reason::dl`] and
-//! [`crate::py::materialize`] drive. Only the encoding and the (fixed,
+//! `gmeow_logic.materialize` drive. Only the encoding and the (fixed,
 //! ontology-independent) RL rule set differ.
 //!
 //! # Rule families implemented

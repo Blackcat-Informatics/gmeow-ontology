@@ -11,7 +11,8 @@
 //!
 //! # Value conventions (lock-step with `json_schema.rs`)
 //!
-//! * **IRI / node ref** — `{"@id": "<compacted-iri>"}` (via [`json_schema::compact_iri`]).
+//! * **IRI / node ref** — `{"@id": "<compacted-iri>"}` (via
+//!   [`crate::json_schema::compact_iri`]).
 //! * **`rdf:type`** — folded into the node's `@type` (a CURIE string, or an array
 //!   of CURIE strings when there are several).
 //! * **Typed literal** — `{"@value": "<lexical>", "@type": "<compacted-datatype>"}`.

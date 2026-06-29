@@ -5,7 +5,7 @@
 //!
 //! Replaces rdflib's `longturtle` as the on-disk normalizer (`gmeow normalize`).
 //! The IR ([`RdfDataset`]) — not oxigraph — is the representation that is read,
-//! ordered, and rendered; the native [`parse_dataset`](crate::parse_dataset) codec
+//! ordered, and rendered; the native [`parse_dataset`] codec
 //! appears only as the text *parser* at the ingest edge. Every triple is interned
 //! into the IR verbatim
 //! (RDF-star triple terms stay triple-term objects, NOT split into reifier

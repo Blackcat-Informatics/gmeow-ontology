@@ -26,7 +26,7 @@ use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use gmeow_slice::catalog::SliceCatalog;
-use gmeow_slice::ownership::OwnershipAnalyzer;
+use gmeow_slice::ownership::{DependencyEdge, OwnershipAnalyzer, OwnershipReport};
 use gmeow_slice::{product_unit_key, Phase, ToolchainContext};
 
 use crate::advisory::Advisory;
@@ -35,6 +35,7 @@ use crate::findings::finding_from_shacl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig};
 use crate::signature;
+use crate::slice_ownership;
 use crate::store;
 
 /// One per-phase timing record.
@@ -328,6 +329,40 @@ impl ValidationRun {
         // Initialize the content-addressed cache if a project root was supplied.
         let cache = options.project_root.as_ref().map(ValidationCache::new);
 
+        // Phase 5: slice ownership defects. The full slice-ownership feedback
+        // surface still reports dependency observations as warnings; the validate
+        // gate folds only ownership defects, preserving the old gating surface
+        // while avoiding a second ownership-analysis pass in Python.
+        //
+        // The ownership/catalog pass is needed only for the cached real-repo
+        // gate: it supplies both those ownership-defect errors and the semantic
+        // merged-SHACL source key. No-cache harnesses may pass a minimal
+        // `slices_dir` solely to collect test DSL files, so they keep the
+        // pre-existing shapes-only cache-key behavior instead of requiring a full
+        // slice manifest catalog.
+        let slice_analysis = if cache.is_some() {
+            if let Some(slices_dir) = &options.slices_dir {
+                Some(timed(
+                    &mut timings,
+                    "slice-ownership",
+                    options,
+                    None,
+                    || slice_catalog_and_ownership(slices_dir),
+                )?)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+        if let Some((_, ownership)) = &slice_analysis {
+            shacl_findings.extend(
+                slice_ownership::ownership_findings(ownership)
+                    .into_iter()
+                    .filter(|finding| finding.severity == Severity::Error),
+            );
+        }
+
         // Phase 8: merged SHACL validation against the shared store.
         //
         // The whole-ontology merged-SHACL source key is the S6a semantic Merkle
@@ -345,13 +380,12 @@ impl ValidationRun {
                     graph.segment_heads.iter().map(|h| h.as_slice()).collect();
                 heads.sort();
                 ValidationCache::cache_key(&heads)
-            } else if let Some(slices_dir) = &options.slices_dir {
-                // Build the catalog + S4 dependency edges + toolchain context, then
-                // compute the merged-SHACL Merkle root over ALL slice IRIs (the
-                // merged-SHACL validates the whole composition). A catalog-build
-                // failure when slices_dir IS present is a HARD failure — never a
-                // silent fall-back to the byte-sensitive files key.
-                merged_shacl_merkle_root(slices_dir)?
+            } else if let Some((catalog, ownership)) = &slice_analysis {
+                // Reuse the Phase 5 catalog + S4 dependency edges so validate does
+                // not run the ownership analyzer twice. A catalog/ownership failure
+                // when slices_dir IS present is a HARD failure — never a silent
+                // fall-back to the byte-sensitive files key.
+                merged_shacl_merkle_root_from_parts(catalog, &ownership.edges)?
             } else {
                 let source_paths_buf: Vec<PathBuf> =
                     source_paths.iter().map(PathBuf::from).collect();
@@ -967,14 +1001,27 @@ pub fn merged_shacl_source_key(slices_dir: &str) -> Result<String, String> {
 }
 
 fn merged_shacl_merkle_root(slices_dir: &str) -> Result<String, String> {
+    let (catalog, ownership) = slice_catalog_and_ownership(slices_dir)?;
+    merged_shacl_merkle_root_from_parts(&catalog, &ownership.edges)
+}
+
+fn slice_catalog_and_ownership(
+    slices_dir: &str,
+) -> Result<(SliceCatalog, OwnershipReport), String> {
     let catalog = SliceCatalog::discover(Path::new(slices_dir))
         .map_err(|e| format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"))?;
     // S4 dependency edges (the same edges the ownership/dependency analyzer
     // produces) drive the Merkle dependency composition.
-    let edges = OwnershipAnalyzer::new(&catalog)
+    let ownership = OwnershipAnalyzer::new(&catalog)
         .analyze()
-        .map_err(|e| format!("merged-SHACL Merkle key: ownership analysis failed: {e}"))?
-        .edges;
+        .map_err(|e| format!("merged-SHACL Merkle key: ownership analysis failed: {e}"))?;
+    Ok((catalog, ownership))
+}
+
+fn merged_shacl_merkle_root_from_parts(
+    catalog: &SliceCatalog,
+    edges: &[DependencyEdge],
+) -> Result<String, String> {
     let toolchain = merged_shacl_toolchain();
     // Seeds = every slice IRI; the product closes over deps but the union of all
     // slices already covers the whole composition.
@@ -983,8 +1030,8 @@ fn merged_shacl_merkle_root(slices_dir: &str) -> Result<String, String> {
         .iter()
         .map(|r| r.manifest.slice_iri.clone())
         .collect();
-    let product = gmeow_slice::product_unit(&catalog, &edges, &seeds);
-    let key = product_unit_key(Phase::Shacl, &catalog, &edges, &product, &toolchain)
+    let product = gmeow_slice::product_unit(catalog, edges, &seeds);
+    let key = product_unit_key(Phase::Shacl, catalog, edges, &product, &toolchain)
         .map_err(|e| format!("merged-SHACL Merkle key: product key computation failed: {e}"))?;
     Ok(key.root)
 }
@@ -1119,6 +1166,27 @@ fn check_examples(
     // rayon workers with no shared mutable state.
     let examples = find_example_files(slices_dir)?;
 
+    // Fast path: if every example's SHACL result is already cached, skip the
+    // parallel re-validation entirely (main's example-shacl cache).
+    if let Some(cache) = cache {
+        let mut cached_findings: Vec<Finding> = Vec::new();
+        let mut all_hit = true;
+        for (_, path) in &examples {
+            let example_key = example_shacl_key(cache, base_key, path)?;
+            let Some(cached) = cache.read_cached_result("example-shacl", &example_key) else {
+                all_hit = false;
+                break;
+            };
+            cached_findings.extend(cached.findings);
+        }
+        if all_hit {
+            return Ok((
+                cached_findings,
+                Some(format!("cache-hit:{};cache-miss:0", examples.len())),
+            ));
+        }
+    }
+
     let base_quads: Vec<gmeow_rdf::RdfQuad> = dataset.owned_quads().collect();
 
     let results: Vec<CachedPhaseResult> = examples
@@ -1167,6 +1235,21 @@ fn check_examples(
 /// `base ∪ example` native dataset.
 ///
 /// `base_quads` are the shared ontology's owned quads (re-interned per example); the
+/// The per-example SHACL cache key: the base graph key combined with the example
+/// file's content key, so an example re-validates only when the base graph OR the
+/// example file changes.
+fn example_shacl_key(
+    cache: &ValidationCache,
+    base_key: &str,
+    path: &Path,
+) -> Result<String, String> {
+    let file_key = cache.files_cache_key(std::slice::from_ref(&path.to_path_buf()))?;
+    Ok(ValidationCache::cache_key(&[
+        base_key.as_bytes(),
+        file_key.as_bytes(),
+    ]))
+}
+
 /// example file is parsed under its own blank scope and merged in, then the union is
 /// frozen and validated with the native SHACL engine.
 fn run_example_shacl(

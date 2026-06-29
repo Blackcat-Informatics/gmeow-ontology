@@ -149,15 +149,15 @@ impl PyShapes {
 
 /// A SHACL validation report.
 ///
-/// Wraps the Rust [`ValidationReport`] and exposes `conforms`, the list of
-/// result dicts, and a canonical N-Triples serialization.
+/// Wraps the Rust [`crate::report::ValidationReport`] and exposes `conforms`,
+/// the list of result dicts, and a canonical N-Triples serialization.
 #[pyclass(name = "ValidationReport")]
 pub struct PyValidationReport {
     inner: crate::report::ValidationReport,
 }
 
 impl PyValidationReport {
-    /// Construct from a Rust [`ValidationReport`].
+    /// Construct from a Rust [`crate::report::ValidationReport`].
     pub fn new(inner: crate::report::ValidationReport) -> Self {
         Self { inner }
     }

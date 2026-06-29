@@ -1966,6 +1966,7 @@ dependencies = [
  "insta",
  "petgraph",
  "pyo3",
+ "rayon",
  "regex",
  "serde",
  "sha2",

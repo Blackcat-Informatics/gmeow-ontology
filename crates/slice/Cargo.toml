@@ -45,6 +45,7 @@ hex = "0.4"
 # in the workspace lockfile, used by gmeow-validate/gmeow-shacl), so the S0.9
 # layering gate is unaffected.
 regex = "1"
+rayon = "1"
 serde = { version = "1", features = ["derive"] }
 # Lightweight HTTP client for the optional network fetch path of the alignment-
 # direction linter (--network / GMEOW_RUN_NETWORK=1). Default features include

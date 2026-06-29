@@ -12,6 +12,7 @@ repository.workspace = true
 # routed only through these traits must stay permissive, so the seam itself is
 # `MIT OR Apache-2.0`, owned by neither side.
 license = "MIT OR Apache-2.0"
+readme = "README.md"
 keywords = ["rdf", "rdf-12", "events", "ingestion", "protocol"]
 
 [lib]
