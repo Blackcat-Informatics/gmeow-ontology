@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Unit tests. P1: DAG validation (cycle / completeness / sink / engine-lock),
-//! registry binding agreement, the dogfooded-DAG Turtle round-trip. P2: the
-//! self-verifying cache, provenance stamping, and scheduler determinism.
+//! Unit tests. P1: DAG validation (cycle / completeness / sink), registry
+//! binding agreement (kind / consumes / resources), the dogfooded-DAG Turtle
+//! round-trip. P2: the self-verifying cache, provenance stamping, and scheduler
+//! determinism.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -11,10 +12,21 @@ use std::sync::Arc;
 use crate::cache::{stage_key, PipelineCache};
 use crate::error::PipelineError;
 use crate::loader::{bind, PipelineSpec, StageSpec};
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct, ENGINE_RESOURCE};
 use crate::provenance::register_stage_unit;
 use crate::registry::StageRegistry;
 use crate::scheduler::{run, RunContext};
+
+/// The resources a stage of `kind` declares: the reasoning stage requires the
+/// exclusive engine resource, every other kind requires none. Mirrors the real
+/// stage impls so bind's resource-agreement holds in fixtures.
+fn resources_for(kind: StageKind) -> Vec<String> {
+    if kind == StageKind::Reason {
+        vec![ENGINE_RESOURCE.to_string()]
+    } else {
+        Vec::new()
+    }
+}
 
 fn spec(id: &str, kind: StageKind, consumes: &[&str]) -> StageSpec {
     StageSpec {
@@ -22,7 +34,7 @@ fn spec(id: &str, kind: StageKind, consumes: &[&str]) -> StageSpec {
         kind,
         impl_key: format!("impl:{id}"),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
-        engine_lock: kind.carries_engine_lock(),
+        resources: resources_for(kind),
         formats: Vec::new(),
     }
 }
@@ -115,50 +127,13 @@ fn multiple_sinks_are_rejected() {
     }
 }
 
-#[test]
-fn engine_lock_must_equal_kind_derivation() {
-    let mut s = diamond();
-    // Lie: a Transform claims it carries the engine lock.
-    s.stages[1].engine_lock = true;
-    match s.validate() {
-        Err(PipelineError::EngineLockMismatch {
-            stage,
-            rdf,
-            derived,
-        }) => {
-            assert_eq!(stage, "a");
-            assert!(rdf);
-            assert!(!derived);
-        }
-        other => panic!("expected engine-lock mismatch, got {other:?}"),
-    }
-}
-
-#[test]
-fn reason_stage_engine_lock_is_consistent() {
-    // A Reason stage with engine_lock=true validates; with false it fails.
-    let mut s = PipelineSpec {
-        id: "p".to_string(),
-        stages: vec![
-            spec("source", StageKind::SourceLoad, &[]),
-            spec("r", StageKind::Reason, &["source"]),
-            spec("sink", StageKind::Sink, &["r"]),
-        ],
-    };
-    assert!(s.validate().is_ok());
-    s.stages[1].engine_lock = false;
-    assert!(matches!(
-        s.validate(),
-        Err(PipelineError::EngineLockMismatch { .. })
-    ));
-}
-
 // ── Binding agreement ────────────────────────────────────────────────────────
 
 struct FakeStage {
     id: String,
     kind: StageKind,
     consumes: Vec<String>,
+    resources: Vec<String>,
 }
 
 impl Stage for FakeStage {
@@ -170,6 +145,9 @@ impl Stage for FakeStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn resources(&self) -> &[String] {
+        &self.resources
     }
     fn impl_version(&self) -> &str {
         "v1"
@@ -186,6 +164,7 @@ fn fake(id: &str, kind: StageKind, consumes: &[&str]) -> Arc<dyn Stage> {
         id: id.to_string(),
         kind,
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
+        resources: resources_for(kind),
     })
 }
 
@@ -237,6 +216,49 @@ fn bind_rejects_consumes_disagreement() {
 }
 
 #[test]
+fn bind_rejects_resource_disagreement() {
+    // A Reason spec declares the engine resource, but its Rust impl forgets it —
+    // bind HARD-fails, because a divergence would break the scheduler's
+    // serialization (single source of truth).
+    let s = PipelineSpec {
+        id: "p".to_string(),
+        stages: vec![
+            spec("source", StageKind::SourceLoad, &[]),
+            spec("r", StageKind::Reason, &["source"]),
+            spec("sink", StageKind::Sink, &["r"]),
+        ],
+    };
+    let g = s.validate().unwrap();
+    let mut reg = StageRegistry::new();
+    reg.register(
+        "impl:source".to_string(),
+        fake("source", StageKind::SourceLoad, &[]),
+    );
+    // The reason impl declares NO resources, disagreeing with the spec.
+    reg.register(
+        "impl:r".to_string(),
+        Arc::new(FakeStage {
+            id: "r".to_string(),
+            kind: StageKind::Reason,
+            consumes: vec!["source".to_string()],
+            resources: Vec::new(),
+        }) as Arc<dyn Stage>,
+    );
+    reg.register(
+        "impl:sink".to_string(),
+        fake("sink", StageKind::Sink, &["r"]),
+    );
+    match bind(&s, &g, &reg).map(|v| v.len()) {
+        Err(PipelineError::ResourceMismatch { stage, rdf, rust }) => {
+            assert_eq!(stage, "r");
+            assert_eq!(rdf, vec![ENGINE_RESOURCE.to_string()]);
+            assert!(rust.is_empty());
+        }
+        other => panic!("expected resource mismatch, got {other:?}"),
+    }
+}
+
+#[test]
 fn bind_rejects_unknown_impl() {
     let s = diamond();
     let g = s.validate().unwrap();
@@ -257,21 +279,19 @@ gmeow:pipeline-test a gmeow:Pipeline ;
 
 gmeow:stageSource a gmeow:PipelineStage ;
     gmeow:stageKind gmeow:kindSourceLoad ;
-    gmeow:stageImpl "source_load" ;
-    gmeow:carriesEngineLock false .
+    gmeow:stageImpl "source_load" .
 
 gmeow:stageReason a gmeow:PipelineStage ;
     gmeow:stageKind gmeow:kindReason ;
     gmeow:stageImpl "reason" ;
     gmeow:dataflowConsumes gmeow:stageSource ;
-    gmeow:carriesEngineLock true .
+    gmeow:requiresResource gmeow:engineResource .
 
 gmeow:stageSink a gmeow:PipelineStage ;
     gmeow:stageKind gmeow:kindSink ;
     gmeow:stageImpl "gts_sink" ;
     gmeow:dataflowConsumes gmeow:stageReason ;
-    gmeow:producesFormat "gts" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "gts" .
 "#;
 
 #[test]
@@ -283,7 +303,7 @@ fn turtle_dag_round_trips_and_validates() {
     let reason = spec.stage("stageReason").expect("reason stage");
     assert_eq!(reason.kind, StageKind::Reason);
     assert_eq!(reason.impl_key, "reason");
-    assert!(reason.engine_lock);
+    assert_eq!(reason.resources, vec![ENGINE_RESOURCE.to_string()]);
     assert_eq!(reason.consumes, vec!["stageSource"]);
 
     let sink = spec.stage("stageSink").expect("sink stage");
@@ -382,6 +402,7 @@ struct ComputeStage {
     id: String,
     kind: StageKind,
     consumes: Vec<String>,
+    resources: Vec<String>,
     runs: Arc<AtomicUsize>,
 }
 
@@ -394,6 +415,9 @@ impl Stage for ComputeStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn resources(&self) -> &[String] {
+        &self.resources
     }
     fn impl_version(&self) -> &str {
         "v1"
@@ -422,6 +446,7 @@ fn compute_registry(spec: &PipelineSpec, runs: &Arc<AtomicUsize>) -> StageRegist
                 id: s.id.clone(),
                 kind: s.kind,
                 consumes: s.consumes.clone(),
+                resources: s.resources.clone(),
                 runs: Arc::clone(runs),
             }) as Arc<dyn Stage>,
         );
@@ -429,7 +454,8 @@ fn compute_registry(spec: &PipelineSpec, runs: &Arc<AtomicUsize>) -> StageRegist
     r
 }
 
-/// A diamond with a Reason node, exercising ENGINE_LOCK + parallel levels.
+/// A diamond with a Reason node, exercising engine-resource serialization +
+/// parallel levels.
 fn reason_diamond() -> PipelineSpec {
     PipelineSpec {
         id: "p".to_string(),

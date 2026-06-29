@@ -16,6 +16,7 @@ use std::path::{Path, PathBuf};
 
 use gmeow_pipeline::{
     bind, default_registry, run, PipelineCache, PipelineSpec, RunContext, StageKind, StageSpec,
+    ENGINE_RESOURCE,
 };
 
 fn repo_root() -> PathBuf {
@@ -32,7 +33,12 @@ fn spec(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSp
         kind,
         impl_key: impl_key.to_string(),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
-        engine_lock: kind.carries_engine_lock(),
+        // Mirror ReasonStage::resources() so bind's resource-agreement holds.
+        resources: if kind == StageKind::Reason {
+            vec![ENGINE_RESOURCE.to_string()]
+        } else {
+            Vec::new()
+        },
         formats: Vec::new(),
     }
 }

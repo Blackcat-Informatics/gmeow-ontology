@@ -17,16 +17,15 @@
 //! * [`loader`] — parse the dogfooded DAG, validate it, bind stages to impls.
 //! * [`registry`] — the `STAGE_REGISTRY` (`gmeow:stageImpl` → Rust [`Stage`]).
 //! * [`cache`] — content-addressed, self-verifying per-stage cache (P2).
-//! * [`scheduler`] — level-parallel execution + the `Reason` engine lock (P2).
+//! * [`scheduler`] — level-parallel execution + per-resource serialization (P2).
 //! * [`provenance`] — per-stage `OriginKind` / `UnitId` stamping (P2).
 //! * [`stages`] — the concrete production stages (P3–P5).
 //! * [`py`] — the PyO3 `run_pipeline` surface (P6, `python` feature).
 //!
 //! Invariants the [`loader`] proves before any stage runs (no-optionality): the
 //! DAG is acyclic and complete, there is exactly one `Sink` (the gts narrow
-//! waist), `gmeow:carriesEngineLock` equals the kind-derived value (single
-//! source of truth), and every bound stage's `kind` / `consumes` agree with its
-//! RDF declaration.
+//! waist), and every bound stage's `kind` / `consumes` / `resources` agree with
+//! its RDF declaration (single source of truth).
 
 pub mod bundle;
 pub mod cache;
@@ -56,10 +55,10 @@ pub use cache::PipelineCache;
 pub use error::PipelineError;
 pub use graph::StageGraph;
 pub use loader::{bind, PipelineSpec, StageSpec};
-pub use node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+pub use node::{Stage, StageInput, StageKind, StageOutput, StageProduct, ENGINE_RESOURCE};
 pub use registry::{default_registry, StageRegistry};
 pub use run::{full_spec, run_full, RunMode, RunReport};
-pub use scheduler::{run, RunContext, RunResult, ENGINE_LOCK};
+pub use scheduler::{run, RunContext, RunResult};
 
 #[cfg(feature = "python")]
 pub use py::register;

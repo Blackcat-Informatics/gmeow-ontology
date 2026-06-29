@@ -2569,6 +2569,10 @@ class RepositoryTypeEnum(str, Enum):
     repoTypeSVN = "repoTypeSVN"
 
 
+class ResourceEnum(str, Enum):
+    engineResource = "engineResource"
+
+
 class RightsActionEnum(str, Enum):
     actionAcceptTracking = "actionAcceptTracking"
     actionAggregate = "actionAggregate"
@@ -6628,10 +6632,10 @@ class Pipeline(SocialObject):
 class PipelineStage(SocialObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/PipelineStage"
     is_a: ClassVar[str] = "SocialObject"
-    carriesEngineLock: list[bool] | None = Field(default=None)
     dataflowConsumes: list[PipelineStage] | None = Field(default=None)
     dataflowProduces: list[PipelineStage] | None = Field(default=None)
     producesFormat: list[str] | None = Field(default=None)
+    requiresResource: list[Resource] | None = Field(default=None)
     stageImpl: list[str] | None = Field(default=None)
     stageKind: list[StageKind] | None = Field(default=None)
 
@@ -7123,6 +7127,12 @@ class Repository(InformationObject):
 
 class RepositoryType(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/RepositoryType"
+    pass
+
+
+class Resource(SocialObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Resource"
+    is_a: ClassVar[str] = "SocialObject"
     pass
 
 

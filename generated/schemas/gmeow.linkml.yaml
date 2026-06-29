@@ -2920,10 +2920,10 @@ classes:
     title: Pipeline Stage
     is_a: SocialObject
     slots:
-    - carriesEngineLock
     - dataflowConsumes
     - dataflowProduces
     - producesFormat
+    - requiresResource
     - stageImpl
     - stageKind
   PitchAnchor:
@@ -3367,6 +3367,10 @@ classes:
   RepositoryType:
     class_uri: https://blackcatinformatics.ca/gmeow/RepositoryType
     title: Repository Type
+  Resource:
+    class_uri: https://blackcatinformatics.ca/gmeow/Resource
+    title: Resource
+    is_a: SocialObject
   RetrievalEvent:
     class_uri: https://blackcatinformatics.ca/gmeow/RetrievalEvent
     title: Retrieval Event
@@ -5292,12 +5296,6 @@ slots:
     title: carrier type
     range: PhysicalCarrierType
     domain: PhysicalObject
-    multivalued: true
-  carriesEngineLock:
-    slot_uri: https://blackcatinformatics.ca/gmeow/carriesEngineLock
-    title: carries engine lock
-    range: boolean
-    domain: PipelineStage
     multivalued: true
   cascadeFirstLink:
     slot_uri: https://blackcatinformatics.ca/gmeow/cascadeFirstLink
@@ -11532,6 +11530,12 @@ slots:
     range: boolean
     domain: ReferenceFrame
     multivalued: false
+  requiresResource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/requiresResource
+    title: requires resource
+    range: Resource
+    domain: PipelineStage
+    multivalued: true
   resentDate:
     slot_uri: https://blackcatinformatics.ca/gmeow/resentDate
     title: resent date
@@ -19884,6 +19888,12 @@ enums:
       repoTypeSVN:
         meaning: https://blackcatinformatics.ca/gmeow/repoTypeSVN
         title: subversion
+  ResourceEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Resource
+    permissible_values:
+      engineResource:
+        meaning: https://blackcatinformatics.ca/gmeow/engineResource
+        title: reasoning engine
   RightsActionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/RightsAction
     permissible_values:

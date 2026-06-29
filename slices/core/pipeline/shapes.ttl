@@ -8,17 +8,18 @@
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
 # =========================================================================== #
-# Build-DAG well-formedness: every stage carries exactly one kind, exactly one #
-# stageImpl, and exactly one carriesEngineLock flag, and every pipeline holds   #
-# at least one stage — closed-world cardinality the executor relies on before   #
-# scheduling (the acyclicity / single-Sink / engine-lock-derived invariants are #
-# enforced in the Rust loader, which can read across the whole graph).          #
+# Build-DAG well-formedness: every stage carries exactly one kind and exactly  #
+# one stageImpl, every gmeow:requiresResource target is a gmeow:Resource, and   #
+# every pipeline holds at least one stage — closed-world cardinality the        #
+# executor relies on before scheduling (the acyclicity / single-Sink / resource #
+# -agreement invariants are enforced in the Rust loader, which reads across the #
+# whole graph).                                                                 #
 # =========================================================================== #
 
 gmeow:PipelineStageShape
     a sh:NodeShape ;
     rdfs:label "Pipeline stage well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:PipelineStage: exactly one gmeow:stageKind (a gmeow:StageKind), exactly one xsd:string gmeow:stageImpl, and exactly one xsd:boolean gmeow:carriesEngineLock, so the gmeow-pipeline loader can bind and schedule every stage without holes."@x-gmeow-english ;
+    skos:definition "SHACL constraints for gmeow:PipelineStage: exactly one gmeow:stageKind (a gmeow:StageKind), exactly one xsd:string gmeow:stageImpl, and every gmeow:requiresResource target a gmeow:Resource, so the gmeow-pipeline loader can bind and schedule every stage without holes."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     sh:targetClass gmeow:PipelineStage ;
     sh:property [
@@ -38,12 +39,10 @@ gmeow:PipelineStageShape
         sh:message "A PipelineStage must carry exactly one xsd:string gmeow:stageImpl (the STAGE_REGISTRY key)." ;
     ] ;
     sh:property [
-        sh:path gmeow:carriesEngineLock ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:boolean ;
+        sh:path gmeow:requiresResource ;
+        sh:class gmeow:Resource ;
         sh:severity sh:Violation ;
-        sh:message "A PipelineStage must carry exactly one xsd:boolean gmeow:carriesEngineLock (derived from the kind)." ;
+        sh:message "Every gmeow:requiresResource target must be a gmeow:Resource." ;
     ] ;
     sh:property [
         sh:path gmeow:dataflowConsumes ;

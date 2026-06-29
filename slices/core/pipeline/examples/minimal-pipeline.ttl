@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Worked example — a minimal three-stage pipeline showing the spine shape the
-# gmeow-pipeline loader validates: a source load, a reasoning stage (the only
-# kind that carries the engine lock), and the single Sink (the gts narrow
-# waist). carriesEngineLock is DERIVED from the kind — true only on the Reason
-# stage — and the loader HARD-fails if an asserted value disagrees.
+# gmeow-pipeline loader validates: a source load, a reasoning stage (which
+# requires the exclusive gmeow:engineResource), and the single Sink (the gts
+# narrow waist). A stage that gmeow:requiresResource the engine serializes
+# against any other stage competing for it; the Rust impl's resources() must
+# agree with this declaration or the loader HARD-fails.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -24,18 +25,16 @@ ex:minimalBuild a gmeow:Pipeline ;
 
 ex:load a gmeow:PipelineStage ;
     gmeow:stageKind gmeow:kindSourceLoad ;
-    gmeow:stageImpl "source_load" ;
-    gmeow:carriesEngineLock false .
+    gmeow:stageImpl "source_load" .
 
 ex:reason a gmeow:PipelineStage ;
     gmeow:stageKind gmeow:kindReason ;
     gmeow:stageImpl "reason" ;
     gmeow:dataflowConsumes ex:load ;
-    gmeow:carriesEngineLock true .
+    gmeow:requiresResource gmeow:engineResource .
 
 ex:sink a gmeow:PipelineStage ;
     gmeow:stageKind gmeow:kindSink ;
     gmeow:stageImpl "gts_sink" ;
     gmeow:dataflowConsumes ex:reason ;
-    gmeow:producesFormat "gts" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "gts" .

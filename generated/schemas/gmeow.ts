@@ -2545,6 +2545,10 @@ export enum RepositoryTypeEnum {
     repoTypeSVN = "repoTypeSVN",
 }
 
+export enum ResourceEnum {
+    engineResource = "engineResource",
+}
+
 export enum RightsActionEnum {
     actionAcceptTracking = "actionAcceptTracking",
     actionAggregate = "actionAggregate",
@@ -5584,10 +5588,10 @@ export interface Pipeline extends SocialObject {
 }
 
 export interface PipelineStage extends SocialObject {
-    carriesEngineLock?: boolean[],
     dataflowConsumes?: PipelineStage[],
     dataflowProduces?: PipelineStage[],
     producesFormat?: string[],
+    requiresResource?: Resource[],
     stageImpl?: string[],
     stageKind?: StageKind[],
 }
@@ -5951,6 +5955,9 @@ export interface Repository extends InformationObject {
 }
 
 export interface RepositoryType {
+}
+
+export interface Resource extends SocialObject {
 }
 
 export interface RetrievalEvent extends Activity {

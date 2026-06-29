@@ -31,13 +31,17 @@ pub enum PipelineError {
     InvalidDag(String),
     /// A `gmeow:stageImpl` key has no entry in the `STAGE_REGISTRY`.
     UnknownStageImpl { stage: String, impl_key: String },
-    /// The RDF `gmeow:carriesEngineLock` flag disagrees with the stage kind.
-    /// `carriesEngineLock` is DERIVED (`== kind is Reason`), never independent —
-    /// RDF and Rust cannot disagree (single source of truth, ETHOS one-path).
-    EngineLockMismatch {
+    /// The registry stage's `resources()` disagrees with the RDF
+    /// `gmeow:requiresResource` declaration (Rust/RDF resource agreement). A stage
+    /// and its executable twin cannot claim different shared resources — that would
+    /// break the scheduler's serialization (single source of truth, ETHOS one-path).
+    ResourceMismatch {
+        /// The stage whose declarations disagree.
         stage: String,
-        rdf: bool,
-        derived: bool,
+        /// The resource IRIs declared in RDF (`requiresResource`), sorted.
+        rdf: Vec<String>,
+        /// The resource IRIs the Rust impl declares via `resources()`, sorted.
+        rust: Vec<String>,
     },
     /// The registry stage's `consumes()` disagrees with the RDF
     /// `dataflowConsumes` declaration (Rust/RDF consumes agreement).
@@ -79,14 +83,9 @@ impl std::fmt::Display for PipelineError {
                 f,
                 "stage {stage} binds gmeow:stageImpl \"{impl_key}\" which is not in the STAGE_REGISTRY"
             ),
-            PipelineError::EngineLockMismatch {
-                stage,
-                rdf,
-                derived,
-            } => write!(
+            PipelineError::ResourceMismatch { stage, rdf, rust } => write!(
                 f,
-                "stage {stage}: gmeow:carriesEngineLock={rdf} disagrees with the kind-derived value {derived} \
-                 (carriesEngineLock must equal `kind is Reason`)"
+                "stage {stage}: RDF gmeow:requiresResource {rdf:?} disagrees with the Rust impl resources() {rust:?}"
             ),
             PipelineError::ConsumesMismatch { stage, rdf, rust } => write!(
                 f,

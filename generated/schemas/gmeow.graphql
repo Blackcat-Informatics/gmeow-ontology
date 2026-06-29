@@ -2545,6 +2545,10 @@ enum RepositoryTypeEnum {
   repoTypeSVN
 }
 
+enum ResourceEnum {
+  engineResource
+}
+
 enum RightsActionEnum {
   actionAcceptTracking
   actionAggregate
@@ -6482,10 +6486,10 @@ type Pipeline {
 type PipelineStage {
   id: String
   iri: String
-  carriesEngineLock: [Boolean!]
   dataflowConsumes: [PipelineStage!]
   dataflowProduces: [PipelineStage!]
   producesFormat: [String!]
+  requiresResource: [Resource!]
   stageImpl: [String!]
   stageKind: [StageKind!]
 }
@@ -6989,6 +6993,11 @@ type Repository {
 }
 
 type RepositoryType {
+  id: String
+  iri: String
+}
+
+type Resource {
   id: String
   iri: String
 }

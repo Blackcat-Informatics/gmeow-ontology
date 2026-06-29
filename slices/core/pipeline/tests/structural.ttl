@@ -56,9 +56,9 @@ ASK {
     gmeow:dataflowConsumes a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ; rdfs:range gmeow:PipelineStage .
     gmeow:dataflowProduces a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ; rdfs:range gmeow:PipelineStage .
     gmeow:stageKind        a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ; rdfs:range gmeow:StageKind .
-    gmeow:carriesEngineLock a owl:DatatypeProperty ; rdfs:domain gmeow:PipelineStage ; rdfs:range xsd:boolean .
+    gmeow:requiresResource a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ; rdfs:range gmeow:Resource .
 }""" ;
-    gmeow:saRationale "The pipeline edges MUST hold their shapes: gmeow:hasStage (Pipeline→Stage), the gmeow:dataflowConsumes/dataflowProduces dataflow (Stage→Stage), gmeow:stageKind (Stage→StageKind), and the gmeow:carriesEngineLock boolean flag." .
+    gmeow:saRationale "The pipeline edges MUST hold their shapes: gmeow:hasStage (Pipeline→Stage), the gmeow:dataflowConsumes/dataflowProduces dataflow (Stage→Stage), gmeow:stageKind (Stage→StageKind), and gmeow:requiresResource (Stage→Resource)." .
 
 # --- 3. The seeded StageKind value vocabulary (MUST hold) --------------------
 ex:saStageKindSeeds a gmeow:StructuralAssertion ;

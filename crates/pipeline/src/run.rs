@@ -29,7 +29,7 @@ use gmeow_diagnostics::{Finding, Severity};
 
 use crate::error::PipelineError;
 use crate::loader::{bind, PipelineSpec, StageSpec};
-use crate::node::{StageKind, StageProduct};
+use crate::node::{StageKind, StageProduct, ENGINE_RESOURCE};
 use crate::registry::default_registry;
 use crate::scheduler::{run, RunContext};
 
@@ -102,7 +102,7 @@ pub fn full_spec() -> PipelineSpec {
             "mappings",
             &["stage-compile-logic"],
         ),
-        st(
+        st_engine(
             "stage-reason",
             StageKind::Reason,
             "reason",
@@ -239,9 +239,17 @@ fn st(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSpec
         kind,
         impl_key: impl_key.to_string(),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
-        engine_lock: kind.carries_engine_lock(),
+        resources: Vec::new(),
         formats: Vec::new(),
     }
+}
+
+/// Like [`st`] but for a stage that requires the exclusive reasoning engine — the
+/// resource-conflict serialization that replaces the former engine-lock flag.
+fn st_engine(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, kind, impl_key, consumes);
+    s.resources = vec![ENGINE_RESOURCE.to_string()];
+    s
 }
 
 /// Run the FULL dogfooded build single-pass and either write every produced

@@ -64,7 +64,7 @@ Tier-2 uplift backlog.
 | notes | extension | extensions | 2 | 6 | 15 | 0 | 1 | - | full |
 | observations | core | core | 6 | 11 | 19 | 0 | 1 | 30/30 | full |
 | organization | core | core | 4 | 12 | 39 | 0 | 1 | 51/51 | full |
-| pipeline | core | core | 2 | 3 | 7 | 0 | 1 | 0/10 | full |
+| pipeline | core | core | 2 | 4 | 7 | 0 | 1 | 0/11 | full |
 | places | core | core | 7 | 46 | 140 | 0 | 1 | 186/186 | full |
 | procedures | extension | extensions | 3 | 9 | 26 | 0 | 1 | - | full |
 | profiles | core | core | 3 | 1 | 4 | 0 | 1 | 4/5 | full |
@@ -84,4 +84,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 12 | 0 | 1 | 18/18 | full |
 
-**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1207/1790 core class/property terms (#471).
+**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1207/1791 core class/property terms (#471).

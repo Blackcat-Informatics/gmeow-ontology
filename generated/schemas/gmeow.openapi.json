@@ -15008,25 +15008,6 @@
               }
             ]
           },
-          "gmeow:carriesEngineLock": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "properties": {
-                  "@type": {
-                    "type": "string"
-                  },
-                  "@value": {}
-                },
-                "required": [
-                  "@value"
-                ],
-                "type": "object"
-              }
-            ]
-          },
           "gmeow:dataflowConsumes": {
             "anyOf": [
               {
@@ -15070,6 +15051,37 @@
               }
             ]
           },
+          "gmeow:requiresResource": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:Resource has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:Resource has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
           "gmeow:stageImpl": {
             "anyOf": [
               {
@@ -15103,7 +15115,6 @@
           }
         },
         "required": [
-          "gmeow:carriesEngineLock",
           "gmeow:stageImpl",
           "gmeow:stageKind"
         ],
