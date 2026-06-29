@@ -83,8 +83,13 @@ pub struct CoherencePayload {
     pub evaluation: EvaluationStatus,
     /// The policy that classified each glut as permitted or forbidden.
     pub contradiction_policy: ContradictionPolicy,
-    /// Constructs the lowering could not carry exactly (the loss ledger).
+    /// Intentional serialization/projection losses from the static loss ledger
+    /// (genuine `gts → projection-codec` losses, NOT DL-reasoner constructs).
     pub projection_losses: BTreeSet<String>,
+    /// DL constructs the native reasoner could not decide — sourced from
+    /// `ReasoningResult::preservation.unsupported_constructs`. Distinct from
+    /// `projection_losses` (which are serialization losses, not reasoning gaps).
+    pub unsupported_constructs: BTreeSet<String>,
     /// Disclosed contradictions the contract PERMITS (do not block a certificate).
     pub permitted_conflicts: Vec<ContradictionWitness>,
     /// Contradictions the contract FORBIDS (a non-empty set refutes coherence).
@@ -136,6 +141,7 @@ impl CoherenceOutcome {
         axiom_hashes: impl IntoIterator<Item = impl Into<String>>,
         contradiction_policy: ContradictionPolicy,
         issued_at: impl Into<String>,
+        projection_loss_codes: BTreeSet<String>,
     ) -> Result<Self, String> {
         // Partition the witnesses purely on the policy: a glut is permitted iff the
         // valuation admits a glut, otherwise it is a forbidden violation.
@@ -163,7 +169,8 @@ impl CoherenceOutcome {
             completeness: result.completeness,
             evaluation: result.evaluation,
             contradiction_policy,
-            projection_losses: result.preservation.unsupported_constructs.clone(),
+            projection_losses: projection_loss_codes,
+            unsupported_constructs: result.preservation.unsupported_constructs.clone(),
             permitted_conflicts,
             forbidden_violations,
             issued_at: issued_at.into(),
@@ -373,6 +380,13 @@ impl CoherenceOutcome {
                 &subject,
                 &format!("{LOGIC_NAMESPACE}projectionLoss"),
                 &format!("\"{}\"", nq_escape(loss)),
+            );
+        }
+        for construct in &payload.unsupported_constructs {
+            triple(
+                &subject,
+                &format!("{LOGIC_NAMESPACE}unsupportedConstruct"),
+                &format!("\"{}\"", nq_escape(construct)),
             );
         }
         // Disclosed permitted conflicts (sorted by their clash individual) point at
@@ -636,6 +650,7 @@ mod tests {
             ["blake3:axioms"],
             ContradictionPolicy::ForbidGapAndGlut,
             "2026-06-28T00:00:00Z",
+            BTreeSet::new(),
         )
         .unwrap();
         assert!(outcome.issues_certificate());
@@ -658,6 +673,7 @@ mod tests {
             Vec::<String>::new(),
             ContradictionPolicy::ForbidGapAndGlut,
             "2026-06-28T00:00:00Z",
+            BTreeSet::new(),
         )
         .unwrap();
         assert!(
@@ -683,6 +699,7 @@ mod tests {
             Vec::<String>::new(),
             ContradictionPolicy::ForbidGapAndGlut,
             "2026-06-28T00:00:00Z",
+            BTreeSet::new(),
         )
         .unwrap();
         assert!(!outcome.issues_certificate());
@@ -707,6 +724,7 @@ mod tests {
             Vec::<String>::new(),
             ContradictionPolicy::ForbidGapAndGlut,
             "2026-06-28T00:00:00Z",
+            BTreeSet::new(),
         )
         .unwrap();
         assert!(outcome.issues_certificate());
@@ -722,6 +740,7 @@ mod tests {
             Vec::<String>::new(),
             ContradictionPolicy::ForbidGap, // admits a glut
             "2026-06-28T00:00:00Z",
+            BTreeSet::new(),
         )
         .unwrap();
         assert!(
@@ -742,6 +761,7 @@ mod tests {
             Vec::<String>::new(),
             ContradictionPolicy::ForbidGapAndGlut, // forbids a glut
             "2026-06-28T00:00:00Z",
+            BTreeSet::new(),
         )
         .unwrap();
         assert!(outcome.is_refused());
@@ -768,6 +788,7 @@ mod tests {
             Vec::<String>::new(),
             ContradictionPolicy::ForbidGapAndGlut, // forbids a glut
             "2026-06-28T00:00:00Z",
+            BTreeSet::new(),
         )
         .unwrap();
         assert!(matches!(outcome, CoherenceOutcome::Attestation(_)));
@@ -787,6 +808,7 @@ mod tests {
             ["blake3:axioms"],
             ContradictionPolicy::ForbidGap,
             "2026-06-28T00:00:00Z",
+            BTreeSet::new(),
         )
         .unwrap();
         let graph = "https://blackcatinformatics.ca/gmeow/graph/attestations";
@@ -807,5 +829,126 @@ mod tests {
                 "line not in graph: {line}"
             );
         }
+    }
+
+    /// The `projection_losses` payload field comes from the CALLER-SUPPLIED loss
+    /// codes (genuine ledger codes from `pair_loss_ledger`), NOT from the DL
+    /// reasoner's `unsupported_constructs`. The two must never be conflated.
+    #[test]
+    fn projection_losses_sourced_from_ledger_codes_not_unsupported_constructs() {
+        let mut result = consistent_result(
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+        );
+        // Inject a fake DL construct into preservation.unsupported_constructs.
+        result
+            .preservation
+            .unsupported_constructs
+            .insert("owl:someSpecialConstruct".to_owned());
+
+        // The caller provides genuine ledger codes (what pair_loss_ledger returns).
+        let ledger_codes: BTreeSet<String> = [
+            "named-graph-dropped".to_owned(),
+            "owl-dl-projection".to_owned(),
+        ]
+        .into_iter()
+        .collect();
+
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &result,
+            "blake3:bundle",
+            Vec::<String>::new(),
+            ContradictionPolicy::ForbidGapAndGlut,
+            "2026-06-28T00:00:00Z",
+            ledger_codes.clone(),
+        )
+        .unwrap();
+
+        let payload = outcome.payload();
+
+        // projection_losses must be exactly the caller-supplied ledger codes.
+        assert_eq!(
+            payload.projection_losses, ledger_codes,
+            "projection_losses must equal the supplied ledger codes"
+        );
+        // projection_losses must NOT contain the DL unsupported construct.
+        assert!(
+            !payload
+                .projection_losses
+                .contains("owl:someSpecialConstruct"),
+            "projection_losses must not be sourced from unsupported_constructs"
+        );
+        // unsupported_constructs must still carry the DL construct.
+        assert!(
+            payload
+                .unsupported_constructs
+                .contains("owl:someSpecialConstruct"),
+            "unsupported_constructs must preserve the DL reasoner constructs"
+        );
+        // The two fields must not overlap in this scenario.
+        assert!(
+            payload
+                .projection_losses
+                .is_disjoint(&payload.unsupported_constructs),
+            "projection_losses and unsupported_constructs must be disjoint here"
+        );
+    }
+
+    /// The N-Quads projection emits `logic:unsupportedConstruct` for DL constructs
+    /// the reasoner could not decide, and `logic:projectionLoss` for ledger codes —
+    /// the two properties are distinct and carry the right values.
+    #[test]
+    fn nquads_emits_unsupported_construct_and_projection_loss_as_separate_properties() {
+        let mut result = consistent_result(
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+        );
+        result
+            .preservation
+            .unsupported_constructs
+            .insert("owl:NominalClass".to_owned());
+
+        let ledger_codes: BTreeSet<String> =
+            ["named-graph-dropped".to_owned()].into_iter().collect();
+
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &result,
+            "blake3:bundle",
+            Vec::<String>::new(),
+            ContradictionPolicy::ForbidGapAndGlut,
+            "2026-06-28T00:00:00Z",
+            ledger_codes,
+        )
+        .unwrap();
+
+        let graph = "https://blackcatinformatics.ca/gmeow/graph/attestations";
+        let nquads = outcome.to_nquads(graph);
+
+        // logic:projectionLoss carries the ledger code, not the DL construct.
+        assert!(
+            nquads.contains(
+                "<https://blackcatinformatics.ca/logic/projectionLoss> \"named-graph-dropped\""
+            ),
+            "projectionLoss must contain the ledger code: {nquads}"
+        );
+        assert!(
+            !nquads.contains(
+                "<https://blackcatinformatics.ca/logic/projectionLoss> \"owl:NominalClass\""
+            ),
+            "projectionLoss must NOT contain the DL construct: {nquads}"
+        );
+        // logic:unsupportedConstruct carries the DL construct.
+        assert!(
+            nquads.contains(
+                "<https://blackcatinformatics.ca/logic/unsupportedConstruct> \"owl:NominalClass\""
+            ),
+            "unsupportedConstruct must contain the DL construct: {nquads}"
+        );
+        assert!(
+            !nquads.contains(
+                "<https://blackcatinformatics.ca/logic/unsupportedConstruct> \"named-graph-dropped\""
+            ),
+            "unsupportedConstruct must NOT contain the ledger code: {nquads}"
+        );
     }
 }
