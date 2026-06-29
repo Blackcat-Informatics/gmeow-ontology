@@ -377,6 +377,14 @@ gmeow:attestationTypeC2PA
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
+gmeow:attestationTypeCoherenceCertificate
+    a gmeow:AttestationType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "coherence certificate"@x-gmeow-english ;
+    skos:definition "An attestation recording a scoped coherence outcome over the bundle — a logic:CoherenceCertificate from a conclusive check, or the weaker logic:CoherenceCheckAttestation from a bounded one. It vouches that, under a named reasoning contract and certified fragment, the inspection found no forbidden integrity violation and no undisclosed contradiction; permitted, disclosed contradictions under a glut-admitting contract are coherent and do not defeat it. Distinct from a conformance verdict in that it certifies contradiction-handling under a contract, not pass/fail against an external test corpus."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
 gmeow:attestationTypeConformanceVerdict
     a gmeow:AttestationType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;

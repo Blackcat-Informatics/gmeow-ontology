@@ -3,22 +3,12 @@
 #
 # Conformance case: teleology/choice-combinator.
 #
-# A logic:Choice program combinator (guarded branching) is declared over two
-# sub-programs: the left operand (serveRequest) is selected when a guard
-# situation (requestPresent) holds; the right operand (idleLoop) is selected
-# when it does not. This pins the structural vocabulary — a logic:Choice is a
-# PROGRAM combinator typed APART from a conditional formula connective, using
-# logic:leftOperand / logic:rightOperand (shared with logic:SerialConjunction)
-# and logic:guardSituation (shared with logic:ConditionalGoal on the goal side).
-#
-# The engine echoes back the asserted structural facts. The case verifies that
-# the combinator's structural axioms (type, operands, guard) are well-formed as
-# authored input the engine can round-trip.
+# A logic:Choice is EXECUTED under executional entailment: its logic:guardSituation (requestPresent) holds at the start state, so control dispatches to the LEFT operand (serveRequest), which runs and asserts requestServed. The engine records a logic:TransactionOutcome (logic:transactionSucceeds true) with the executed path. The dual guard-false dispatch is the choice-guard-false case. Proves guard-true dispatch — a PROGRAM operator, not a conditional formula connective.
 #
 # CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
-# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
-# the projections need (no asserted teleology triples here — the world facts live
-# in input.nq, exactly as the foundation conformance cases keep theirs).
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://example.org/teleology/choice-combinator/> .

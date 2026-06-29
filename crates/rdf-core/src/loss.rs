@@ -151,7 +151,7 @@ const SYNTAX_CODECS: &[&str] = &[
 
 /// Projection codecs: lossy targets that select a semantic subset of the
 /// source graph (decidable fragments, rule languages, foundational profiles).
-const PROJECTION_CODECS: &[&str] = &[
+pub const PROJECTION_CODECS: &[&str] = &[
     "owl-dl",
     "owl-el",
     "datalog",

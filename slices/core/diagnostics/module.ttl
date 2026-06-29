@@ -39,6 +39,19 @@ gmeow:Finding
     gmeow:howToUse "Project one Finding per Rust gmeow_diagnostics::Finding: bind gmeow:findingSeverity, gmeow:findingCode, gmeow:findingMessage, the producing tool via gmeow:vantage (and gmeow:findingTool for the flat name), and gmeow:findingLocation at the reified statement, hanging the GTS wire coordinates on the location node."@x-gmeow-english ;
     gmeow:useWhen "Use to record a diagnostic as a first-class, queryable RDF claim — when a validation/lint/reasoning verdict should ride in the graph (e.g. embedded in a .gts feedback bundle) so it can be joined against the ontology it describes."@x-gmeow-english .
 
+gmeow:findingCategory
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding category"@x-gmeow-english ;
+    rdfs:range logic:FindingCategory ;
+    skos:definition "The KIND of a finding — a logic:FindingCategory individual, an axis ORTHOGONAL to gmeow:findingSeverity, because not all findings are failures. Severity grades how loud; category names what kind: a data-shape violation, a modeling-discipline violation, a forbidden contradiction witness, a permitted (disclosed, coherent) epistemic conflict, an unsupported semantic feature, an incomplete check, a projection loss, or a policy warning. The gmeow: RDF projection of the Rust gmeow_diagnostics::FindingCategory; absent when a finding falls outside the taxonomy."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingCategory logic:FindingPermittedEpistemicConflict ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with gmeow:findingSeverity (a permitted epistemic conflict is category logic:FindingPermittedEpistemicConflict yet non-error severity) or with the rule code; the category is the orthogonal KIND, not the grade or the rule identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project the Rust finding's category as one logic:FindingCategory individual; consumers read it beside gmeow:findingSeverity to tell a disclosed, coherent conflict from a failing contradiction."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the KIND of a finding so a consumer can separate genuine failures from coherent-but-noteworthy findings — chiefly a permitted, disclosed contradiction under a glut-admitting reasoning contract."@x-gmeow-english .
+
 gmeow:findingCode
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Finding ;

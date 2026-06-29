@@ -9,7 +9,7 @@
 //! true, [`ValidationRun::run`](crate::validate_all::ValidationRun::run) aborts
 //! before the ontology validation phases.
 
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_diagnostics::{Finding, FindingCategory, Severity};
 use gmeow_gts::policy::TrustPolicy;
 use gmeow_gts::verify::{verify_file_with_options, VerifyOptions};
 
@@ -178,6 +178,14 @@ pub fn verify_gts_bundle(
             .with_tool("gts-verify"),
         );
     }
+
+    // Tag every signature/trust finding as a policy advisory — these are
+    // governance checks (signing requirements, trust anchors, key resolution)
+    // orthogonal to ontology content correctness.
+    let findings: Vec<Finding> = findings
+        .into_iter()
+        .map(|f| f.with_category(FindingCategory::PolicyWarning))
+        .collect();
 
     // The gmeow_gts `ok` flag encodes cryptographic short-circuit rules, but
     // deployment-trust errors (e.g. an untrusted signer when one is required)
@@ -534,5 +542,37 @@ mod tests {
     fn missing_key_file_returns_error() {
         let result = read_armored_key("/nonexistent/key.asc");
         assert!(result.is_err());
+    }
+
+    /// Every finding emitted by `verify_gts_bundle` must carry the
+    /// `PolicyWarning` category — signature/trust checks are governance
+    /// policy, orthogonal to ontology content correctness.
+    #[test]
+    fn every_signature_finding_carries_policy_warning_category() {
+        use gmeow_diagnostics::FindingCategory;
+
+        // An unsigned bundle with required signatures: produces at least one finding.
+        let config = SignatureConfig {
+            require_signatures: true,
+            require_trusted_signer: false,
+            trusted_signers: vec![],
+            trusted_key: None,
+        };
+        let bytes = minimal_unsigned_gts_bytes();
+        let (findings, _hard) = verify_gts_bundle(&bytes, &config).expect("verification must run");
+
+        assert!(
+            !findings.is_empty(),
+            "an unsigned bundle with required signatures must emit at least one finding"
+        );
+        for finding in &findings {
+            assert_eq!(
+                finding.category,
+                Some(FindingCategory::PolicyWarning),
+                "finding '{}' must carry PolicyWarning; got {:?}",
+                finding.code,
+                finding.category
+            );
+        }
     }
 }
