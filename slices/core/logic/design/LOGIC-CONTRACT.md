@@ -196,7 +196,7 @@ is the single source of truth, and the `logic:CompatibilityRule` individuals in 
 | `RuleProbabilisticRequiresModel` | `logic:ProbabilisticMeasure` without a declared `logic:ProbabilityModel` | graph-dependent; enforced in the front-end, where the source graph is available (no `RULES` table entry) |
 
 Because the feature model is *computed* rather than enumerated, its correctness is something to be
-**proved over the whole facet space, not spot-checked**. Three layers now guard it (#766 ME1):
+**proved over the whole facet space, not spot-checked**. Three layers guard it:
 
 1. **Exhaustive oracle sweep** (`compat.rs` tests) — enumerates the full cross-product of the
    rule-participating facet value domains and checks every contract's verdict against an
