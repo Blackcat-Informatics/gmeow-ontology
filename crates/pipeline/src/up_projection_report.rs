@@ -108,7 +108,9 @@ pub fn render_audit_markdown(ledger: &AuditLedger) -> String {
         lines.push(String::new());
     }
 
-    let mut out = lines.join("\n");
+    // Exactly one trailing newline (the repo's end-of-file convention), so re-running the
+    // renderer is idempotent and never leaves a double-newline for the EOF hook to trim.
+    let mut out = lines.join("\n").trim_end().to_owned();
     out.push('\n');
     out
 }
