@@ -1,14 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `reason` stage (#861 P3): native EL/DL reasoned closure + artifacts.
+//! The `reason` stage: native EL/DL reasoned closure + artifacts — the SOLE
+//! reasoning pass.
 //!
-//! This is pure WIRING of the existing Rust reasoner — no port. It unions the
-//! upstream transforms (base graph + statement layer + mappings) into an oxigraph
-//! dataset, runs `gmeow_logic::reason::reason_all`, and serializes the three
-//! committed artifacts via the `gmeow_logic::reason::artifacts` builders — the
-//! exact functions `reason_native_artifacts` calls. Reasoning serializes under
-//! the pipeline `ENGINE_LOCK` (this is the sole `Reason`-kind stage).
+//! It reasons ONCE over the object-level EDB
+//! ([`crate::stages::carrier::assemble_object_level_edb`]: ontology + imports +
+//! statements + alignments + logic/relational-core/correspondence, WITHOUT the
+//! meta/report graphs), canonicalizes it (RDFC-1.0) for transport-independent Skolem
+//! witnesses, runs `gmeow_logic::reason::reason_all`, and serializes the three
+//! committed artifacts via the `gmeow_logic::reason::artifacts` builders. The single
+//! result also backs the bundle's `graph/reasoning` projection (dual carriage), so
+//! the closure shipped in `gmeow.gts` and the committed files agree by construction —
+//! there is no separate full-fold export leaf. Reasoning serializes under the pipeline
+//! `ENGINE_LOCK` (this is the sole `Reason`-kind stage).
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -25,22 +30,17 @@ use crate::bundle::{bundle_from_artifacts_over, PipelineHandle};
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
 
-/// INTERNAL logical path of the reasoned closure this stage folds into the
-/// composed dataset (`pipeline/`-prefixed, so it is in-memory dataflow only and is
-/// NOT reconciled as a committed artifact — `run_full` skips the `pipeline/`
-/// prefix). The COMMITTED `generated/logic/inferred-closure.rdf12.ttl` is owned by
-/// the `stage-export-logic` leaf, which reasons over the FULL snapshot fold; this
-/// stage reasons over the EARLY composed subset purely to seed the reasoned-closure
-/// material `docs-render` consumes via `composed.nq`. Emitting it under a committed
-/// path would collide with the leaf and drift the parity gate (small-subset closure
-/// ≠ full-fold closure).
-pub const CLOSURE_PATH: &str = "pipeline/reason-closure.rdf12.ttl";
-/// INTERNAL logical path of the per-axiom proof-skeleton explanations (see
-/// [`CLOSURE_PATH`]; the committed counterpart is owned by `stage-export-logic`).
-pub const EXPLANATIONS_PATH: &str = "pipeline/reason-explanations.rdf12.ttl";
-/// INTERNAL logical path of the native DL/EL crosscheck ledger (see
-/// [`CLOSURE_PATH`]; the committed counterpart is owned by `stage-export-logic`).
-pub const LEDGER_PATH: &str = "pipeline/reason-dl-el-crosscheck-report.ttl";
+/// COMMITTED logical path of the native told-vs-inferred closure (RDF 1.2). This is
+/// the SOLE reasoning pass: it reasons once over the object-level EDB
+/// ([`crate::stages::carrier::assemble_object_level_edb`]) and owns the committed
+/// closure directly — there is no separate full-fold export leaf. The same result
+/// also backs the `graph/reasoning` projection folded into the bundle (dual carriage),
+/// so the closure shipped in `gmeow.gts` and the committed file agree by construction.
+pub const CLOSURE_PATH: &str = "generated/logic/inferred-closure.rdf12.ttl";
+/// COMMITTED logical path of the per-axiom proof-skeleton explanations (RDF 1.2).
+pub const EXPLANATIONS_PATH: &str = "generated/logic/reasoning-explanations.rdf12.ttl";
+/// COMMITTED logical path of the report-only native DL/EL crosscheck ledger.
+pub const LEDGER_PATH: &str = "generated/logic/dl-el-crosscheck-report.ttl";
 
 /// The reasoned artifacts a single `reason_all` produces: the three committed-style
 /// Turtle blobs plus the typed [`ReasoningResult`] itself (the C7 typed handle's
@@ -57,12 +57,36 @@ pub struct ReasonArtifacts {
 }
 
 /// Reason over a composed dataset (N-Quads bytes) and return the three artifacts plus
-/// the typed [`ReasoningResult`]. Mirrors `reason_native_artifacts` in non-merge mode
-/// (the regenerate path).
+/// the typed [`ReasoningResult`]. Parses then delegates to [`reason_over_dataset`].
 pub fn reason_artifacts(composed_nquads: &[u8]) -> Result<ReasonArtifacts, PipelineError> {
     let edb = gmeow_rdf::dataset_from_bytes(composed_nquads, NativeRdfFormat::NQuads)
         .map_err(|e| PipelineError::Parse(format!("reason input parse: {e}")))?;
-    let result = reason_all(edb.as_ref()).map_err(|e| PipelineError::Stage {
+    reason_over_dataset(edb.as_ref())
+}
+
+/// Reason over an in-memory EDB and return the three artifacts plus the typed
+/// [`ReasoningResult`]. Canonicalizes the EDB (RDFC-1.0) BEFORE reasoning so the
+/// content-addressed Skolem witnesses are transport-independent (carrier vs a
+/// re-imported `gmeow.gts` yield byte-identical artifacts), then mirrors
+/// `reason_native_artifacts` in non-merge mode (the regenerate path).
+pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, PipelineError> {
+    let canon_quads = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(edb).map_err(|e| {
+        PipelineError::Stage {
+            stage: "stage-reason".to_string(),
+            message: format!("flatten EDB for canonicalization: {e}"),
+        }
+    })?;
+    let canon_quads =
+        gmeow_rdf::canonicalize_quads(canon_quads).map_err(|e| PipelineError::Stage {
+            stage: "stage-reason".to_string(),
+            message: format!("RDFC-1.0 canonicalize EDB: {e}"),
+        })?;
+    let canon =
+        gmeow_rdf::dataset_from_oxigraph_quads(&canon_quads).map_err(|e| PipelineError::Stage {
+            stage: "stage-reason".to_string(),
+            message: format!("re-fold canonical quads: {e}"),
+        })?;
+    let result = reason_all(canon.as_ref()).map_err(|e| PipelineError::Stage {
         stage: "stage-reason".to_string(),
         message: format!("native reasoning failed: {e}"),
     })?;
@@ -123,12 +147,14 @@ pub struct ReasonStage {
 }
 
 impl ReasonStage {
-    /// Construct the stage. It reasons over the union of the upstream transforms
-    /// (base graph + statement layer + mappings); the slice DAG's stage-reason
-    /// dataflowConsumes is reconciled to this set when the full pipeline is wired.
+    /// Construct the stage. It reasons over the object-level EDB assembled from the
+    /// compile-logic / mappings / source-load / statements producers (plus the on-disk
+    /// authored / imports / alignments sources); the slice DAG's `stage-reason`
+    /// `dataflowConsumes` mirrors this set.
     pub fn new() -> Self {
         Self {
             consumes: vec![
+                "stage-compile-logic".to_string(),
                 "stage-mappings".to_string(),
                 "stage-source-load".to_string(),
                 "stage-statements".to_string(),
@@ -157,9 +183,15 @@ impl Stage for ReasonStage {
         "reason.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        // Union the upstream transforms into the dataset the reasoner consumes.
-        let composed = crate::stages::gts_compose::compose_nquads(input.upstream)?;
-        let reasoned = reason_artifacts(&composed)?;
+        // Reason ONCE over the object-level EDB (ontology + imports + statements +
+        // alignments + logic/relational-core/correspondence), assembled in the SAME
+        // graph layout the bundle carries but WITHOUT the meta/report graphs — they
+        // assert no axioms, so excluding them is closure-isomorphic and makes the
+        // Skolem witnesses a function of the ontology alone. This pass owns the
+        // committed closure AND backs the bundle's `graph/reasoning`; there is no
+        // second full-fold export leaf.
+        let edb = crate::stages::carrier::assemble_object_level_edb(input.root, input.upstream)?;
+        let reasoned = reason_over_dataset(edb.as_ref())?;
         // The CLOSURE is the reason stage's contribution to `gts_compose`'s union and
         // stays the dataset's DEFAULT graph. The EXPLANATIONS and LEDGER are diagnostic
         // REPORTS (proof skeletons / DL·EL crosscheck), NOT ontology facts; they stay
