@@ -5,12 +5,12 @@
 //!
 //! The vendored W3C `rdf-canon` test suite (`tests/fixtures/rdfc/`, see
 //! `SOURCE.md`) is the acceptance gate for the native canonicalizer. Each
-//! `testNNN-in.nq` input is parsed (with the oxttl dev-dependency parser — the only
-//! oxigraph touch, and it is test-only; production `gmeow-rdf-core` stays
-//! oxigraph-free), bridged into the IR, canonicalized by
-//! [`gmeow_rdf::canonical_nquads`], and its canonical N-Quads compared to the
-//! expected `testNNN-rdfc10.nq`. Inputs WITHOUT an expected output are **negative**
-//! (poison / complexity-limit) tests that must abort rather than canonicalize.
+//! `testNNN-in.nq` input is parsed with the native [`gmeow_rdf::parse_dataset`] codec
+//! (oxigraph-free, EPIC #906), flattened, canonicalized by
+//! [`gmeow_rdf::canonical_flat_nquads_with`], and its canonical N-Quads compared to
+//! the expected `testNNN-rdfc10.nq`. Inputs WITHOUT an expected output are
+//! **negative** (poison / complexity-limit) tests that must abort rather than
+//! canonicalize.
 //!
 //! The suite includes the hard automorphism vectors (test053–test058 etc.) whose
 //! blank-node symmetries can only be resolved by RDFC-1.0's n-degree permutation
@@ -33,14 +33,14 @@
 //! - A cheap [`w3c_inventory`] test guards against fixture loss (incl. the carved
 //!   heavy stems) without running any canonicalization.
 
-#![cfg(feature = "oxigraph")]
+#![cfg(feature = "gts")]
 
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
-use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::model::Quad;
-
-use gmeow_rdf::{canonical_nquads_with, CanonHash};
+use gmeow_rdf::{
+    canonical_flat_nquads_with, parse_dataset, CanonHash, NativeRdfFormat, RdfDataset,
+};
 
 /// Tests that specify `rdfc:hashAlgorithm "SHA384"` in the W3C manifest (the rest
 /// use the SHA-256 default). As of the vendored suite this is exactly `test075`
@@ -88,11 +88,9 @@ fn fixtures_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/rdfc")
 }
 
-fn parse_nquads(text: &str) -> Vec<Quad> {
-    RdfParser::from_format(RdfFormat::NQuads)
-        .for_reader(text.as_bytes())
-        .map(|q| q.expect("valid W3C fixture quad"))
-        .collect()
+fn parse_nquads(text: &str) -> Arc<RdfDataset> {
+    parse_dataset(text.as_bytes(), NativeRdfFormat::NQuads.media_type(), None)
+        .expect("parse W3C fixture N-Quads")
 }
 
 /// Compare canonical N-Quads as sorted non-empty line sets (robust to trailing
@@ -155,7 +153,7 @@ fn run_w3c_fixtures(scope: &str, include: &dyn Fn(&str) -> bool) {
 
         if expected_path.exists() {
             let outcome = std::panic::catch_unwind(|| {
-                canonical_nquads_with(quads.iter(), hash_for(&stem)).expect("canonicalize")
+                canonical_flat_nquads_with(&quads, hash_for(&stem)).expect("canonicalize")
             });
             match outcome {
                 Ok(actual) => {
@@ -174,7 +172,7 @@ fn run_w3c_fixtures(scope: &str, include: &dyn Fn(&str) -> bool) {
             // Negative (poison) test: canonicalization must abort (the poison call
             // budget trips on the pathological blank graph).
             let outcome = std::panic::catch_unwind(|| {
-                canonical_nquads_with(quads.iter(), hash_for(&stem)).expect("canonicalize")
+                canonical_flat_nquads_with(&quads, hash_for(&stem)).expect("canonicalize")
             });
             match outcome {
                 Ok(_) => failures.push(format!(

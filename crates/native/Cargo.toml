@@ -24,9 +24,9 @@ path = "src/lib.rs"
 
 [dependencies]
 # Engine crates. `gmeow-rdf` needs its `python` feature so its `register`
-# fn (and the py_store oxigraph surface) is compiled in; the other crates already
+# fn (and the native py_store surface) is compiled in; the other crates already
 # carry pyo3 unconditionally.
-gmeow-rdf = { path = "../rdf", features = ["python", "gts", "oxigraph"] }
+gmeow-rdf = { path = "../rdf", features = ["python", "gts"] }
 gmeow-diagnostics = { path = "../diagnostics" }
 # `gmeow-docs` ships the typed documentation model + its register fn (#853);
 # it consumes the pure-Rust slice catalog (no `python` feature needed).

@@ -3,13 +3,13 @@
 
 [package]
 name = "gmeow-rdf"
-description = "GMEOW RDF 1.2 kernel: PyO3-free model, diagnostics, store traits, and GTS/oxigraph adapters"
+description = "GMEOW RDF 1.2 kernel: PyO3-free model, diagnostics, store traits, and native GTS/text-codec adapters"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 readme = "README.md"
-keywords = ["rdf", "rdf-12", "gts", "oxigraph", "diagnostics"]
+keywords = ["rdf", "rdf-12", "gts", "knowledge-graph", "diagnostics"]
 
 [lib]
 # rlib-only: this crate no longer ships a standalone PyO3 extension. Under the
@@ -28,12 +28,7 @@ default = ["gts"]
 # WASM-clean oxttl/oxrdfxml/oxrdf/oxsdatatypes subset — no oxigraph Store — so the
 # `--no-default-features --features gts` build parses/serializes RDF text with no
 # Store dependency.
-gts = ["dep:ciborium", "dep:gmeow-gts", "gmeow-gts/rdf-codecs", "dep:gmeow-rdf-events", "dep:ed25519-dalek", "gmeow-rdf-core/gts"]
-# The oxigraph Store adapter now folds parsed quads through the native `gts`-side
-# statement-layer helper (`native_codecs::fold_statement_layer`, #909), so it
-# requires `gts`. This is a one-directional dep (oxigraph→gts); `gts` itself stays
-# oxigraph-free per the #885 ring-fence.
-oxigraph = ["gts", "dep:oxigraph", "dep:gmeow-rdf-events", "dep:gmeow-sparql-eval"]
+gts = ["dep:ciborium", "dep:gmeow-gts", "gmeow-gts/rdf-codecs", "dep:gmeow-rdf-events", "dep:ed25519-dalek", "dep:gmeow-sparql-eval", "gmeow-rdf-core/gts"]
 # `python` builds the `gmeow_rdf` PyO3 extension (the native statement codec).
 # It is OFF by default so the kernel rlib stays PyO3-free for its Rust consumers
 # (gmeow-logic / gmeow-shacl / gmeow-validate); only maturin enables it. This is
@@ -48,7 +43,7 @@ oxigraph = ["gts", "dep:oxigraph", "dep:gmeow-rdf-events", "dep:gmeow-sparql-eva
 # `rdf-codecs` now rides the always-on `gts` feature (#909), so `python` no longer
 # names it here; it keeps only the JSON-LD-star (`yaml-ld`) codec the compat
 # `Graph.serialize/parse` route uses.
-python = ["dep:pyo3", "gts", "oxigraph", "gmeow-gts/yaml-ld"]
+python = ["dep:pyo3", "gts", "gmeow-gts/yaml-ld"]
 
 [dependencies]
 # The ring-fenced, oxigraph-free kernel (#885 / purrdf P2b): owns the IR, value
@@ -65,28 +60,25 @@ gmeow-xsd = { path = "../xsd" }
 ciborium = { version = "0.2", optional = true }
 gmeow-gts = { version = "0.9.10", optional = true, features = ["duckdb"] }
 gmeow-rdf-events = { path = "../rdf-events", optional = true }
-oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"], optional = true }
 # pyo3 is pulled ONLY by the `python` feature (maturin). Same version/abi3 as the
 # sibling extension crates (validate/shacl/logic/diagnostics).
 pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"], optional = true }
 # The snapshot signing path constructs a SigningKey from the 32 raw Ed25519 bytes
 # the Python `gts.Signer` carries; same major as gmeow-gts links. python-only.
 ed25519-dalek = { version = "2", optional = true }
-# The native SPARQL evaluator (purrdf S6, #912). Pulled ONLY by the `oxigraph`
-# feature: it is the sanity-check engine for the maintainer-only golden-capture
-# binary (`src/bin/capture_sparql_goldens.rs`, EPIC #906 Task 2), which freezes
-# the oxigraph oracle's outputs as committed goldens. The native engine's own crate
-# stays oxigraph-free; this is a one-directional dev/maint dep (capture→native).
+# The native SPARQL evaluator (purrdf S6, #912) — now the SOLE SPARQL authority
+# (EPIC #906 removed oxigraph). Pulled by `gts`: it is the engine the maintainer-only
+# golden-capture binary (`src/bin/capture_sparql_goldens.rs`) runs to freeze the
+# conformance goldens (native-vs-native regression gate).
 gmeow-sparql-eval = { path = "../sparql-eval", optional = true }
 
-# Maintainer-only golden-capture binary (EPIC #906 Task 2). Freezes the oxigraph
-# SPARQL oracle over the corpus as committed goldens under
-# crates/sparql-conformance/tests/goldens/. Requires the oxigraph oracle present;
-# `oxigraph` already implies `gts`.
+# Maintainer-only golden-capture binary (EPIC #906 Task 2/8). Freezes the native
+# SPARQL engine over the corpus as committed goldens under
+# crates/sparql-conformance/tests/goldens/. Rides the always-on `gts` feature.
 [[bin]]
 name = "capture_sparql_goldens"
 path = "src/bin/capture_sparql_goldens.rs"
-required-features = ["oxigraph"]
+required-features = ["gts"]
 
 [dev-dependencies]
 # Rich colored line-diffs on assert_eq! failure (#871). Drop-in: a shadowing
@@ -94,9 +86,6 @@ required-features = ["oxigraph"]
 pretty_assertions = "1"
 ciborium = "0.2"
 gmeow-gts = "0.9.10"
-# Same oxigraph build the kernel links (rdf-12, no extra codecs) so proptest
-# round-trips drive the identical engine the production codecs use.
-oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 proptest = "1"
 # Acceleration-program baselines (#630/#819 C1 Task 7); light feature set matching
 # the sibling crates (logic/shacl/validate): criterion's plotters/rayon defaults are

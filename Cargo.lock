@@ -995,20 +995,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dashmap"
-version = "6.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6361d5c062261c78a176addb82d4c821ae42bed6089de0e12603cd25de2059c"
-dependencies = [
- "cfg-if",
- "crossbeam-utils",
- "hashbrown 0.14.5",
- "lock_api",
- "once_cell",
- "parking_lot_core",
-]
-
-[[package]]
 name = "dashu"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1823,10 +1809,11 @@ dependencies = [
  "gmeow-diagnostics",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-rdf",
+ "gmeow-rdf-core",
  "insta",
  "lsp-server",
  "lsp-types 0.97.0",
- "oxigraph",
  "serde",
  "serde_json",
  "url",
@@ -1908,7 +1895,6 @@ dependencies = [
  "gmeow-rdf-events",
  "gmeow-sparql-eval",
  "gmeow-xsd",
- "oxigraph",
  "pretty_assertions",
  "proptest",
  "pyo3",
@@ -1964,7 +1950,6 @@ dependencies = [
  "gmeow-slice",
  "gmeow-sparql-algebra",
  "gmeow-sparql-eval",
- "oxigraph",
  "proptest",
  "pyo3",
  "regex",
@@ -2070,7 +2055,6 @@ dependencies = [
  "gmeow-slice",
  "insta",
  "jsonschema",
- "oxigraph",
  "pyo3",
  "rayon",
  "regex",
@@ -2985,8 +2969,8 @@ dependencies = [
  "num",
  "orx-imp-vec",
  "oxiri",
- "oxrdf 0.2.4",
- "oxrdfio 0.1.8",
+ "oxrdf",
+ "oxrdfio",
  "petgraph",
  "petgraph-graphml",
  "rand 0.8.6",
@@ -2995,7 +2979,7 @@ dependencies = [
  "serde",
  "serde_json",
  "similar-string",
- "spargebra 0.3.5",
+ "spargebra",
  "strum 0.27.2",
  "strum_macros 0.27.2",
  "thiserror 2.0.18",
@@ -3383,28 +3367,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a80800c0488c3a21695ea981a54918fbb37abf04f4d0720c453632255e2ff0e"
 
 [[package]]
-name = "oxigraph"
-version = "0.5.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4ee83ce0422e6dce39a325810a9c66af71577a0a6fb5d887764bf3ae6304667"
-dependencies = [
- "dashmap 6.2.1",
- "getrandom 0.3.4",
- "libc",
- "oxiri",
- "oxrdf 0.3.3",
- "oxrdfio 0.2.5",
- "oxsdatatypes",
- "rand 0.9.4",
- "rustc-hash",
- "siphasher",
- "sparesults",
- "spareval",
- "spargebra 0.4.6",
- "thiserror 2.0.18",
-]
-
-[[package]]
 name = "oxilangtag"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3427,20 +3389,7 @@ checksum = "13a1a66dc569350f3f4e5eff8a8e1a72b0c9e6ad395bb5805493cb7a2fda185f"
 dependencies = [
  "json-event-parser",
  "oxiri",
- "oxrdf 0.2.4",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "oxjsonld"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6e1380a504a8571763f13b8bcad629ff90d0300d47d8a519f3c6c599625840e"
-dependencies = [
- "json-event-parser",
- "oxiri",
- "oxrdf 0.3.3",
- "ryu-js",
+ "oxrdf",
  "thiserror 2.0.18",
 ]
 
@@ -3457,43 +3406,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "oxrdf"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0afd5c28e4a399c57ee2bc3accd40c7b671fdc7b6537499f14e95b265af7d7e0"
-dependencies = [
- "hex",
- "oxilangtag",
- "oxiri",
- "oxsdatatypes",
- "rand 0.9.4",
- "sha2",
- "thiserror 2.0.18",
-]
-
-[[package]]
 name = "oxrdfio"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14d33dd87769786a0bb7de342865e33bf0c6e9872fa76f1ede23e944fdc77898"
 dependencies = [
- "oxjsonld 0.1.0",
- "oxrdf 0.2.4",
- "oxrdfxml 0.1.7",
- "oxttl 0.1.8",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "oxrdfio"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "696223589ecbcab06b1a5df9b527dc25b0c656160cca38752fdb3878a5d3dd03"
-dependencies = [
- "oxjsonld 0.2.5",
- "oxrdf 0.3.3",
- "oxrdfxml 0.2.3",
- "oxttl 0.2.3",
+ "oxjsonld",
+ "oxrdf",
+ "oxrdfxml",
+ "oxttl",
  "thiserror 2.0.18",
 ]
 
@@ -3505,20 +3426,7 @@ checksum = "d8d4bf9c5331127f01efbd1245d90fd75b7c546a97cb3e95461121ce1ad5b1c8"
 dependencies = [
  "oxilangtag",
  "oxiri",
- "oxrdf 0.2.4",
- "quick-xml 0.37.5",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "oxrdfxml"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd5516ae083d09bc57ec65ed5ee97701481725de6ffaa83d968ab42a96157ba1"
-dependencies = [
- "oxilangtag",
- "oxiri",
- "oxrdf 0.3.3",
+ "oxrdf",
  "quick-xml 0.37.5",
  "thiserror 2.0.18",
 ]
@@ -3541,20 +3449,7 @@ dependencies = [
  "memchr",
  "oxilangtag",
  "oxiri",
- "oxrdf 0.2.4",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "oxttl"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f03fd471bd54c23d76631c0a2677aa4bb308d905f6e491ee35dcb0732b7c5c6c"
-dependencies = [
- "memchr",
- "oxilangtag",
- "oxiri",
- "oxrdf 0.3.3",
+ "oxrdf",
  "thiserror 2.0.18",
 ]
 
@@ -4305,12 +4200,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustc-hash"
-version = "2.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94300abf3f1ae2e2b8ffb7b58043de3d399c73fa6f4b73826402a5c457614dbe"
-
-[[package]]
 name = "rustc_version"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4390,12 +4279,6 @@ name = "ryu"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9774ba4a74de5f7b1c1451ed6cd5285a32eddb5cccb8cc655a4e50009e06477f"
-
-[[package]]
-name = "ryu-js"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd29631678d6fb0903b69223673e122c32e9ae559d0960a38d574695ebc0ea15"
 
 [[package]]
 name = "same-file"
@@ -4785,42 +4668,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sparesults"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e13362decdcbeb3fefadff1631238c835c112027221e83d217cc5779f5a81c2"
-dependencies = [
- "json-event-parser",
- "memchr",
- "oxrdf 0.3.3",
- "quick-xml 0.37.5",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "spareval"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8eab80b96dc836e4cf8fda72daa67ccc0244dc5303be5d4566e8fd04adbdde5"
-dependencies = [
- "hex",
- "json-event-parser",
- "md-5",
- "oxiri",
- "oxrdf 0.3.3",
- "oxsdatatypes",
- "rand 0.9.4",
- "regex",
- "rustc-hash",
- "sha1 0.10.6",
- "sha2",
- "sparesults",
- "spargebra 0.4.6",
- "sparopt",
- "thiserror 2.0.18",
-]
-
-[[package]]
 name = "spargebra"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4828,35 +4675,10 @@ checksum = "8907e262be4b4b363218f4688f5654d423a958aa4b8d7c7a7f898be591fa474e"
 dependencies = [
  "oxilangtag",
  "oxiri",
- "oxrdf 0.2.4",
+ "oxrdf",
  "peg",
  "rand 0.8.6",
  "thiserror 2.0.18",
-]
-
-[[package]]
-name = "spargebra"
-version = "0.4.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46715eb957d1fe960cbbc0b713da8f78e2cb19df315b48fb09c9467a1c84f656"
-dependencies = [
- "oxilangtag",
- "oxiri",
- "oxrdf 0.3.3",
- "peg",
- "rand 0.9.4",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "sparopt"
-version = "0.3.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aed7a854b8ea67618f8ce69aabb0e904d7704226060e9d5a2930eb3136c3fa3b"
-dependencies = [
- "oxrdf 0.3.3",
- "rand 0.9.4",
- "spargebra 0.4.6",
 ]
 
 [[package]]
@@ -5403,7 +5225,7 @@ dependencies = [
  "async-trait",
  "auto_impl",
  "bytes",
- "dashmap 5.5.3",
+ "dashmap",
  "futures",
  "httparse",
  "lsp-types 0.94.1",

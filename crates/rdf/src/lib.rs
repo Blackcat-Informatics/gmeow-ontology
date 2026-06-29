@@ -3,25 +3,24 @@
 
 //! `gmeow-rdf` -- PyO3-free RDF 1.2 kernel for the GMEOW Rust workspace.
 //!
-//! The crate is the narrow waist between transport/runtime stores (GTS,
-//! oxigraph, and future logic stores) and consumers such as SHACL, validate, and
-//! LOGIC. It models RDF 1.2 terms directly, preserves source/location context
-//! where adapters can provide it, and keeps reporting structured but SARIF-free.
+//! The crate is the narrow waist between transport/runtime stores (GTS and future
+//! logic stores) and consumers such as SHACL, validate, and LOGIC. It models RDF 1.2
+//! terms directly, preserves source/location context where adapters can provide it,
+//! and keeps reporting structured but SARIF-free.
 //!
 //! # Crate boundary (#885 / purrdf P2b)
 //!
 //! The oxigraph-free, PyO3-free kernel — the immutable IR, the owned value model,
 //! diagnostics, dataset capability flags, the loss ledger, provenance, the FnO and
-//! SSSOM codecs, the content store, and the oxigraph-free GTS reader path — now
-//! lives in the ring-fenced sibling crate [`gmeow_rdf_core`]. `gmeow-rdf`
-//! **re-exports** every one of those modules at its own root so that both the
-//! public `gmeow_rdf::…` API and the crate's own internal `crate::…` paths keep
-//! resolving unchanged. What remains *here* is exactly the surface that depends on
-//! oxigraph or PyO3 (the [`oxigraph`]/[`statements`]/[`turtle_normalize`]
-//! adapters, the [`gts_compose`] author, the `flattened_*` GTS helpers in
-//! [`gts`], and the `python`-gated PyO3 bindings) — none of which may enter the
-//! core's dependency tree. That ring-fence is the acceptance gate of #885: nothing
-//! reachable from `gmeow-rdf-core` pulls oxigraph.
+//! SSSOM codecs, the content store, and the GTS reader path — lives in the
+//! ring-fenced sibling crate [`gmeow_rdf_core`]. `gmeow-rdf` **re-exports** every one
+//! of those modules at its own root so that both the public `gmeow_rdf::…` API and
+//! the crate's own internal `crate::…` paths keep resolving unchanged. What remains
+//! *here* is the native text/statement/normalize surface ([`native_codecs`],
+//! [`native_quads`], [`statements`], [`turtle_normalize`]), the [`gts_compose`]
+//! author, the `flattened_dataset_from_bytes` GTS helper in [`gts`], and the
+//! `python`-gated PyO3 bindings. EPIC #906 removed the last oxigraph adapters, so the
+//! entire crate is now oxigraph-free.
 
 // ---------------------------------------------------------------------------
 // Re-exported kernel modules (live in `gmeow-rdf-core`). The re-export keeps the
@@ -52,20 +51,12 @@ pub mod native_codecs;
 pub mod native_quads;
 // The pyo3-free GTS snapshot compose core (#861 P6): SnapshotBuilder + emit_gts +
 // BlobRow, lifted out of the python-gated py_gts surface so gmeow-pipeline can
-// author a full multi-named-graph snapshot without pulling pyo3. It ingests a flat
-// oxigraph quad list (RDF 1.1 base graph) and parses RDF bytes via oxigraph, so it
-// now needs the `oxigraph` feature explicitly — `gts` no longer implies it (#885).
-// The public native RDFC-1.0 canonicalization API (#910): replaces `oxrdf`'s
-// `Dataset::canonicalize` across the workspace. The engine is the oxigraph-free
-// kernel (`gmeow_rdf_core::ir::canon`); this is the oxigraph-facing adapter.
-#[cfg(feature = "oxigraph")]
-pub mod canon;
-#[cfg(feature = "oxigraph")]
+// author a full multi-named-graph snapshot without pulling pyo3. Oxigraph-free
+// (EPIC #906); rides the always-on `gts` feature.
+#[cfg(feature = "gts")]
 pub mod dataset_io;
 #[cfg(feature = "gts")]
 pub mod gts_compose;
-#[cfg(feature = "oxigraph")]
-pub mod oxigraph;
 // PyO3 bindings — the only module that imports pyo3, built only under the
 // `python` feature (maturin). Keeps the kernel rlib PyO3-free for Rust consumers.
 #[cfg(feature = "python")]
@@ -91,23 +82,21 @@ pub mod py_sssom;
 // native flat-quad stream), so it rides the always-on `gts` feature (EPIC #906).
 #[cfg(feature = "gts")]
 pub mod statements;
-// Shared corpus-classification helpers (EPIC #906 Task 2): one definition for the
-// differential parity sweep (tests/sparql_eval_parity.rs) and the golden-capture
-// binary (src/bin/capture_sparql_goldens.rs).
-#[cfg(feature = "oxigraph")]
+// Shared corpus-classification helpers (EPIC #906 Task 2): the pure corpus
+// enumeration / classification helpers the native golden-capture binary
+// (src/bin/capture_sparql_goldens.rs) uses. Oxigraph-free.
+#[cfg(feature = "gts")]
 pub mod capture_support;
 // Canonical, review-friendly Turtle serializer over the IR (#819 Task 9): the
-// native replacement for rdflib `longturtle` in `gmeow normalize`.
-#[cfg(feature = "oxigraph")]
+// native replacement for rdflib `longturtle` in `gmeow normalize`. Oxigraph-free.
+#[cfg(feature = "gts")]
 pub mod turtle_normalize;
 
 // Mirror the kernel's root-level re-exports so `gmeow_rdf::RdfTerm`,
 // `gmeow_rdf::RdfDiagnostic`, … keep resolving exactly as before. The two
 // `gts`-gated IR import helpers are re-exported under the matching gate.
-#[cfg(feature = "oxigraph")]
-pub use canon::{canonical_nquads, canonical_nquads_with, canonicalize_quads, canonicalize_store};
-#[cfg(feature = "oxigraph")]
-pub use dataset_io::{dataset_from_bytes, dataset_from_oxigraph_quads};
+#[cfg(feature = "gts")]
+pub use dataset_io::dataset_from_bytes;
 pub use gmeow_rdf_core::{
     canonicalize, canonicalize_with, check_provenance, dataset_diff, datasets_isomorphic,
     emit_annotation, emit_quad, emit_reifier, emit_resource, emit_term, fno_to_ntriples,
@@ -139,10 +128,9 @@ pub use native_codecs::{
 };
 #[cfg(feature = "gts")]
 pub use native_quads::{
-    canonical_flat_nquads, dataset_from_quads, flat_dataset_from_quads, flat_rdf_quads_from_dataset,
+    canonical_flat_nquads, canonical_flat_nquads_with, dataset_from_quads, flat_dataset_from_quads,
+    flat_rdf_quads_from_dataset,
 };
-#[cfg(feature = "oxigraph")]
-pub use oxigraph::backend::OxigraphBackend;
 
 // Shared USTAR (tar) codec: byte-deterministic writer + reader used by both the
 // snapshot stage (writer) and the validate path (reader). Unconditional — no
