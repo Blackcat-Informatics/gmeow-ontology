@@ -202,10 +202,9 @@ const CORPUS_MIN_TOTAL: usize = 141;
 //
 // The original whole-corpus green guard was `CORPUS_MIN_GREEN = 113` (observed 115).
 // It is now expressed as per-shard floors (the gated subset) plus
-// [`OFF_GATE_HEAVY_MIN_GREEN`]: `39 + 32 + 29 + 29` (= 129) `+ 5` = a **134**
-// whole-corpus floor (observed total 138 on 2026-06-27). The re-gated anti-join adds a
-// green to shard 1 and leaves the off-gate-heavy subset at 5. Same one-below-each drift
-// margin the per-shard floors use; expressed shard-locally.
+// [`OFF_GATE_HEAVY_MIN_GREEN`]: `39 + 32 + 29 + 29` (= 129) `+ 6` = a **135**
+// whole-corpus floor (observed total 143). Same one-below-each drift margin the per-shard
+// floors use; expressed shard-locally.
 
 /// How many independent shard tests the gated corpus parity sweep is split across.
 const NUM_SHARDS: usize = 4;
@@ -214,13 +213,14 @@ const NUM_SHARDS: usize = 4;
 /// Sharding is by a STABLE hash of each query's repo-relative path (not its position
 /// in the sorted corpus), so a given file stays in the same shard as the corpus
 /// grows — which keeps these per-shard minimums valid when queries are added.
-/// Observed gated greens on 2026-06-27: `[40, 33, 30, 30]` (sum 133); floors set one
-/// below each for drift margin. Shard 1 gained a green when the `class-without-stereotype`
-/// anti-join was re-gated (its inner index is now built once and reused). With
-/// [`OFF_GATE_HEAVY_MIN_GREEN`] (5) the whole-corpus green floor is 134 (observed total
-/// 138). Raising scope (fixing a DEFERRED construct) MUST raise the affected shard's floor
-/// and this comment; moving a query into [`OFF_GATE_HEAVY`] lowers the affected shard's
-/// observed green (re-measure and reset).
+/// Observed gated greens `[42, 33, 30, 32]` (sum 137); floors set one below each (with extra
+/// margin where the corpus has since grown) for drift. Shard 1 observed dropped 34 → 33 when
+/// the `axis-not-disjoint` anti-join was carved into [`OFF_GATE_HEAVY`] (its ~9 s native eval
+/// tipped the shard past budget as the ontology grew); the floor 32 still holds. With
+/// [`OFF_GATE_HEAVY_MIN_GREEN`] (6) the whole-corpus green floor is 135 (observed total 143).
+/// Raising scope (fixing a DEFERRED construct) MUST raise the affected shard's floor and this
+/// comment; moving a query into [`OFF_GATE_HEAVY`] lowers the affected shard's observed green
+/// (re-measure and reset).
 const CORPUS_MIN_GREEN_PER_SHARD: [usize; NUM_SHARDS] = [39, 32, 29, 29];
 
 /// Stable FNV-1a hash of a query's repo-relative path → shard id. Stable across
@@ -318,6 +318,13 @@ fn corpus_inventory_floor() {
 /// conservatively — the CONSTRUCT projections previously tripped CI under contention — until
 /// their gated CI behavior is confirmed.
 ///
+/// `queries/verify/axis-not-disjoint.rq` joined the carve-out as the ontology grew: it is a
+/// `FILTER NOT EXISTS` disjointness check over the (now larger) axis/class population, and
+/// its native eval climbed to ~9 s solo — the dominant term in shard 1's aggregate, which
+/// tipped that shard past the zero-headroom 25 s budget under CI ~3-5× contention even though
+/// it ran ~24 s locally. Like the others it keeps full parity coverage on the off-gate-heavy
+/// maint lane; remove it once native anti-join planning scales it back under budget.
+///
 /// Paths are repo-relative (the same key as [`shard_of`]).
 const OFF_GATE_HEAVY: &[&str] = &[
     "generated/queries/ontolex.rq",
@@ -325,13 +332,15 @@ const OFF_GATE_HEAVY: &[&str] = &[
     "generated/queries/schema-org.rq",
     "generated/queries/vcard.rq",
     "generated/queries/foaf.rq",
+    "queries/verify/axis-not-disjoint.rq",
 ];
 
 /// Green floor for the off-gate-heavy subset. Equal to the number of in-scope
-/// (parity-matched) entries in [`OFF_GATE_HEAVY`]; observed 5 on 2026-06-27 — the four
-/// CONSTRUCT projections plus `missing-definitions` (the anti-join was re-gated once its
-/// inner index became reusable, so it left this carve-out).
-const OFF_GATE_HEAVY_MIN_GREEN: usize = 5;
+/// (parity-matched) entries in [`OFF_GATE_HEAVY`]; observed 6 — the four CONSTRUCT
+/// projections, `missing-definitions`, and the `axis-not-disjoint` anti-join carved out as
+/// the ontology grew (the `class-without-stereotype` anti-join was re-gated once its inner
+/// index became reusable, so it left this carve-out).
+const OFF_GATE_HEAVY_MIN_GREEN: usize = 6;
 
 /// True if `rel_path` (repo-relative, using `/` separators) is an off-gate-heavy query.
 fn is_off_gate_heavy(rel_path: &str) -> bool {
