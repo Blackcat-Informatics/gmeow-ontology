@@ -59,6 +59,7 @@ pub mod remote;
 pub mod remote_http;
 pub mod scratch;
 pub mod solution;
+mod substitute;
 mod template;
 pub mod update;
 

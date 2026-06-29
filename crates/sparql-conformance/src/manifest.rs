@@ -174,6 +174,7 @@ fn query_rows(
             SparqlRequest {
                 query,
                 base_iri: Some(BASE),
+                substitutions: &[],
             },
         )
         .map_err(|e| format!("manifest query failed: {e}"))?;

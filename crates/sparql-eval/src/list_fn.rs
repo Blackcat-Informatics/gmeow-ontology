@@ -842,6 +842,7 @@ mod tests {
                 SparqlRequest {
                     query,
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .expect("query");
@@ -860,6 +861,7 @@ mod tests {
                 SparqlRequest {
                     query,
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .expect("query")
