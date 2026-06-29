@@ -6,21 +6,21 @@ Every count below is a **correspondence-gate verdict**, not a heuristic bucket c
 
 ## Headline: 479/591 target terms liftable (81%)
 
-- **proved-lawful** (round-trip / mnemomorphism gate PASS): 0
+- **proved** (round-trip / mnemomorphism gate PASS): 0
 - **claimed** (alignment-asserted, `ObligationUnknown` — not discharged): 479
-- gate-excluded (a liftable bucket whose correspondence tripped a gate): 0
-- unsupported (no lift rule — `hard-mint` / `down-only` / `GAP`): 112
+- **red_excluded** (a liftable bucket whose correspondence tripped a gate): 0
+- **unsupported** (no lift rule — `hard-mint` / `down-only` / `GAP`): 112
 
 | tier | count | meaning |
 |---|---|---|
 | proved | 0 | round-trip verified over real forward + reverse legs |
 | claimed | 479 | liftable, asserted by the alignment relation, not proved by inversion |
-| gate-excluded | 0 | reverse rule does not invert the forward rule (or overclaims) |
+| red_excluded | 0 | reverse rule does not invert the forward rule (or overclaims) |
 | unsupported | 112 | no liftable cell in either layer |
 
 ## Per-vocabulary (gate-derived)
 
-| vocab | liftable/total | proved | claimed | excluded | unsupported |
+| vocab | liftable/total | proved | claimed | red_excluded | unsupported |
 |---|---|---|---|---|---|
 | schema | 248/333 | 0 | 248 | 0 | 85 |
 | foaf | 33/37 | 0 | 33 | 0 | 4 |
