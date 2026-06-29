@@ -204,7 +204,20 @@ impl Stage for CompileLogicStage {
         artifacts.insert(OWL_EL_PATH.to_string(), arts.owl_el.into_bytes());
         artifacts.insert(DATALOG_PATH.to_string(), arts.datalog.into_bytes());
         artifacts.insert(N3_PATH.to_string(), arts.n3.into_bytes());
-        artifacts.insert(GUFO_PATH.to_string(), arts.gufo.into_bytes());
+        // gUFO rides as an RDF-fanout named graph: emit EXACTLY the canonical fold
+        // (shared prefix authority, no banner) so the superset gate reconstructs it.
+        artifacts.insert(
+            GUFO_PATH.to_string(),
+            gmeow_rdf::turtle_normalize::canonical_turtle(
+                arts.gufo.as_bytes(),
+                &crate::stages::superset::rdf_prefixes(),
+            )
+            .map(String::into_bytes)
+            .map_err(|e| PipelineError::Stage {
+                stage: "stage-compile-logic".to_string(),
+                message: format!("canonicalize gufo.ttl: {e}"),
+            })?,
+        );
         // Keep the canonical RDF-1.2 projection: it is BOTH a committed artifact AND
         // the backing graph the typed Logic handle (#1132 C6) pins to.
         let canonical_rdf12 = arts.canonical_rdf12;

@@ -293,7 +293,7 @@ fn assemble_carrier(
     // recomputed from THIS run's source. Each producing stage emits the committed file
     // as the canonical fold of these triples, so the superset gate reconstructs them
     // byte-for-byte (PIPELINE_SPINE §5; RDF travels as RDF, never a blob).
-    for (path, bytes) in rdf_fanout_members(root)? {
+    for (path, bytes) in rdf_fanout_members(root, upstream)? {
         let iri = crate::stages::superset::rdf_fanout_graph_iri(&path)
             .ok_or_else(|| stage_err(&format!("non-RDF path in rdf_fanout_members: {path}")))?;
         let media_type = if path.ends_with(".nt") {
@@ -312,7 +312,10 @@ fn assemble_carrier(
 /// Every remaining RDF `generated/` file (committed-path → bytes) that rides as an
 /// RDF-fanout named graph, recomputed from THIS run's source. Each is the canonical
 /// fold the producing stage also emits as its committed file. Grows class-by-class.
-fn rdf_fanout_members(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+fn rdf_fanout_members(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     // profiles — `owl:Ontology` import closures, emitted as canonical Turtle.
     for (name, ttl) in crate::stages::profiles::render_profiles(root)? {
@@ -325,6 +328,20 @@ fn rdf_fanout_members(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeline
             out.insert(path, bytes);
         }
     }
+    // evals scores.ttl — the meta-claim Assessments (opaque MD/JSON ride the blob).
+    for (path, bytes) in crate::stages::evals::render_evals(root)? {
+        if is_rdf_member(&path) {
+            out.insert(path, bytes);
+        }
+    }
+    // gufo.ttl — the gUFO bridge projection, from the sink-consumed compile-logic
+    // product (already emitted canonically).
+    let gufo = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::GUFO_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing generated/foundation/gufo.ttl in stage-compile-logic"))?;
+    out.insert(crate::stages::compile_logic::GUFO_PATH.to_string(), gufo);
     Ok(out)
 }
 

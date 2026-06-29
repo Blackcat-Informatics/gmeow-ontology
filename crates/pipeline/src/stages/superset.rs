@@ -109,6 +109,8 @@ fn graph_rep_for_path(path: &str) -> Option<GraphRep> {
 pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
     path.starts_with("generated/profiles/")
         || path.starts_with("generated/research-objects/")
+        || path == "generated/evals/scores.ttl"
+        || path == "generated/foundation/gufo.ttl"
         // The non-EDOAL RDF projections; EDOAL keeps its dedicated graph/projections/.
         || path == "generated/projections/core-prefixes.ttl"
         || path == "generated/projections/functions.fno.ttl"
