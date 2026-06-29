@@ -107,7 +107,12 @@ fn graph_rep_for_path(path: &str) -> Option<GraphRep> {
 /// authority. Classes are added here as their producing stage starts emitting the
 /// committed file as the canonical fold of its attached graph.
 pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
-    path.starts_with("generated/profiles/") || path.starts_with("generated/research-objects/")
+    path.starts_with("generated/profiles/")
+        || path.starts_with("generated/research-objects/")
+        // The non-EDOAL RDF projections; EDOAL keeps its dedicated graph/projections/.
+        || path == "generated/projections/core-prefixes.ttl"
+        || path == "generated/projections/functions.fno.ttl"
+        || path == "generated/projections/list-functions.fno.ttl"
 }
 
 /// The named graph IRI for any RDF committed file under `generated/` (other than the
