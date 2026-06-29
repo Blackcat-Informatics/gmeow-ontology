@@ -559,3 +559,182 @@ fn program_roots_requires_executable_start_marker() {
         "no executable root without a start marker"
     );
 }
+
+// ── The hypothetical/sandbox operator: test without committing ────────────────────
+
+/// Annotate a transaction world so `root_local` runs under `logic:HypotheticalExecution`,
+/// via `executedUnderContract` → a contract carrying `executionMode HypotheticalExecution`.
+fn hypo_annotated(world: String, root_local: &str) -> String {
+    format!(
+        "{world}{}{}",
+        q(
+            &e(root_local),
+            &l("executedUnderContract"),
+            &e("hypoContract")
+        ),
+        q(
+            &e("hypoContract"),
+            &l("executionMode"),
+            &l("HypotheticalExecution")
+        ),
+    )
+}
+
+#[test]
+fn hypothetical_run_records_verdict_but_discards_committed_path() {
+    // A SUCCEEDING program run under HypotheticalExecution: the verdict is observable, but
+    // none of the committed-path effect substrate is emitted — "test without committing".
+    let quads = outcome_quads(&hypo_annotated(choice_world(true), "ch"), "ch");
+
+    // (1) The verdict is present and TRUE — the program WOULD succeed.
+    let succeeds = quads
+        .iter()
+        .find(|q| q.predicate.ends_with("transactionSucceeds"))
+        .expect("a hypothetical run still records its verdict");
+    assert!(
+        succeeds.object.starts_with("\"true\""),
+        "{:?}",
+        succeeds.object
+    );
+
+    // (2) The committed-path EFFECT substrate is ABSENT (discarded, not erased).
+    assert!(
+        !quads
+            .iter()
+            .any(|q| q.predicate.ends_with("temporallySucceeds")),
+        "hypothetical: no committed path edges"
+    );
+    assert!(
+        !quads
+            .iter()
+            .any(|q| q.predicate.ends_with("executedAlongPath")),
+        "hypothetical: no committed path link"
+    );
+    assert!(
+        !quads
+            .iter()
+            .any(|q| q.predicate.ends_with("situationObtains")),
+        "hypothetical: no committed effect substrate"
+    );
+    assert!(
+        !quads.iter().any(|q| q.object == l("TransactionStep")),
+        "hypothetical: no committed step nodes"
+    );
+
+    // (3) The discarded run leaves a content-addressed witness (makes the run observable).
+    let witness = quads
+        .iter()
+        .find(|q| q.predicate.ends_with("executedHypotheticallyAs"))
+        .expect("hypothetical: the run's content address is recorded as provenance");
+    assert!(
+        witness.object.starts_with('"'),
+        "witness is a string literal: {:?}",
+        witness.object
+    );
+}
+
+#[test]
+fn verdict_is_identical_committed_vs_hypothetical_only_substrate_differs() {
+    // The heart of "test without committing": the verdict is mode-invariant; only emission differs.
+    let committed = outcome_quads(&choice_world(true), "ch");
+    let hypo = outcome_quads(&hypo_annotated(choice_world(true), "ch"), "ch");
+
+    let verdict = |qs: &[crate::teleology::TeleologyQuad]| {
+        qs.iter()
+            .find(|q| q.predicate.ends_with("transactionSucceeds"))
+            .expect("verdict present")
+            .object
+            .clone()
+    };
+    assert_eq!(
+        verdict(&committed),
+        verdict(&hypo),
+        "the verdict must not depend on the execution mode"
+    );
+
+    // Committed emits the path substrate; hypothetical does not.
+    assert!(committed
+        .iter()
+        .any(|q| q.predicate.ends_with("temporallySucceeds")));
+    assert!(!hypo
+        .iter()
+        .any(|q| q.predicate.ends_with("temporallySucceeds")));
+
+    // The witness is exclusive to the hypothetical run.
+    assert!(!committed
+        .iter()
+        .any(|q| q.predicate.ends_with("executedHypotheticallyAs")));
+    assert!(hypo
+        .iter()
+        .any(|q| q.predicate.ends_with("executedHypotheticallyAs")));
+}
+
+#[test]
+fn root_execution_mode_defaults_to_committed_when_unannotated() {
+    let facts = facts_of(&choice_world(true));
+    assert_eq!(
+        root_execution_mode(&facts, &format!("{W}#ch")).unwrap(),
+        ExecutionMode::Committed,
+        "absence of a governing contract resolves to the default committed execution"
+    );
+}
+
+#[test]
+fn root_execution_mode_reads_explicit_committed_and_hypothetical() {
+    let nq_committed = format!(
+        "{}{}{}",
+        choice_world(true),
+        q(&e("ch"), &l("executedUnderContract"), &e("k")),
+        q(&e("k"), &l("executionMode"), &l("CommittedExecution")),
+    );
+    assert_eq!(
+        root_execution_mode(&facts_of(&nq_committed), &format!("{W}#ch")).unwrap(),
+        ExecutionMode::Committed
+    );
+
+    assert_eq!(
+        root_execution_mode(
+            &facts_of(&hypo_annotated(choice_world(true), "ch")),
+            &format!("{W}#ch")
+        )
+        .unwrap(),
+        ExecutionMode::Hypothetical
+    );
+}
+
+#[test]
+fn root_execution_mode_hard_fails_on_two_contracts() {
+    let nq = format!(
+        "{}{}{}",
+        choice_world(true),
+        q(&e("ch"), &l("executedUnderContract"), &e("k1")),
+        q(&e("ch"), &l("executedUnderContract"), &e("k2")),
+    );
+    let err = root_execution_mode(&facts_of(&nq), &format!("{W}#ch")).unwrap_err();
+    assert!(err.contains("executedUnderContract"), "{err}");
+}
+
+#[test]
+fn root_execution_mode_hard_fails_on_two_execution_modes() {
+    let nq = format!(
+        "{}{}{}{}",
+        choice_world(true),
+        q(&e("ch"), &l("executedUnderContract"), &e("k")),
+        q(&e("k"), &l("executionMode"), &l("CommittedExecution")),
+        q(&e("k"), &l("executionMode"), &l("HypotheticalExecution")),
+    );
+    let err = root_execution_mode(&facts_of(&nq), &format!("{W}#ch")).unwrap_err();
+    assert!(err.contains("executionMode"), "{err}");
+}
+
+#[test]
+fn root_execution_mode_hard_fails_on_unknown_value() {
+    let nq = format!(
+        "{}{}{}",
+        choice_world(true),
+        q(&e("ch"), &l("executedUnderContract"), &e("k")),
+        q(&e("k"), &l("executionMode"), &e("BogusMode")),
+    );
+    let err = root_execution_mode(&facts_of(&nq), &format!("{W}#ch")).unwrap_err();
+    assert!(err.contains("unknown logic:executionMode"), "{err}");
+}
