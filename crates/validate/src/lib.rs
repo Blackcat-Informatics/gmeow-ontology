@@ -5,7 +5,7 @@
 //!
 //! As of EPIC #575 / issue #579 this crate carries the two lowest-risk lints —
 //! per-file Turtle syntax checking ([`store::parse_file`]) and the Principle 5
-//! `owl:sameAs`-to-external-entity ban ([`store::scan_quads`] consumers) —
+//! `owl:sameAs`-to-external-entity ban (store-scan consumers) —
 //! routing `src/gmeow_tools/validate.py` through the Rust path and proving the
 //! Rust↔Python validation seam end-to-end.
 //!

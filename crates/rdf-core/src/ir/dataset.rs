@@ -4,13 +4,15 @@
 //! The frozen, immutable `RdfDataset` and its infallible, zero-allocation
 //! iteration surface (#819 C1).
 //!
-//! A `RdfDataset` is produced only by [`RdfDatasetBuilder::freeze`] after structural
-//! validation has passed, so every consumer observes a dataset with valid ID
-//! references, positionally well-formed quads, no triple-term cycles, deduplicated
-//! quads/annotations, and capability flags computed once. Iteration does **not**
-//! return `Result` and performs no heap allocations or term-string clones:
-//! diagnostics belong to ingestion (the builder), not to reads of an already-frozen
-//! dataset (see `docs/design/819-rdf-ir-dataflow.md`, *Iteration surface*).
+//! A `RdfDataset` is produced only by
+//! [`RdfDatasetBuilder::freeze`](super::builder::RdfDatasetBuilder::freeze)
+//! after structural validation has passed, so every consumer observes a dataset
+//! with valid ID references, positionally well-formed quads, no triple-term
+//! cycles, deduplicated quads/annotations, and capability flags computed once.
+//! Iteration does **not** return `Result` and performs no heap allocations or
+//! term-string clones: diagnostics belong to ingestion (the builder), not to
+//! reads of an already-frozen dataset (see `docs/design/819-rdf-ir-dataflow.md`,
+//! *Iteration surface*).
 //!
 //! Two iteration views are offered:
 //! - [`RdfDataset::quads`] yields [`QuadIds`] — a `Copy`, ID-native row for
@@ -18,8 +20,6 @@
 //! - [`RdfDataset::quad_refs`] yields [`QuadRef`] — a borrowed, resolved view
 //!   (`&str` lexical content, no allocation) for consumers that need values.
 //!
-//! [`super::builder::RdfDatasetBuilder`]: super::builder::RdfDatasetBuilder
-
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -783,7 +783,7 @@ impl RdfDataset {
     /// guarantees a single build even under concurrent first access. The index is
     /// keyed by a canonical value hash with `Vec<TermId>` collision buckets and
     /// stores **no** term strings, so building it is allocation-light. Keying on
-    /// [`TermValue`] (not [`TermRef`](crate::ir::TermRef)) is the correctness rule: a
+    /// [`TermValue`] (not [`TermRef`]) is the correctness rule: a
     /// `TermRef`'s datatype/triple ids are local to whichever dataset minted them.
     #[must_use]
     pub fn term_id_by_value(&self, value: &TermValue) -> Option<TermId> {
@@ -1023,20 +1023,22 @@ impl RdfDataset {
     /// Every input's quads, reifier bindings, and statement annotations are
     /// preserved; locations follow their quads through the merge (the builder's
     /// owned-quad bridge carries each `RdfLocation`). The result is canonical: it is
-    /// re-interned BY VALUE and re-frozen through [`RdfDatasetBuilder`], so quads
-    /// deduplicate and the frozen `(s, p, o, g)` order is reproducible regardless of
-    /// the order the inputs are supplied. Two merges that differ only in input order
-    /// (or in the dataset-local term/scope numbering of equivalent inputs) therefore
-    /// canonicalize byte-identically (verify with
+    /// re-interned BY VALUE and re-frozen through
+    /// [`RdfDatasetBuilder`](super::builder::RdfDatasetBuilder), so quads
+    /// deduplicate and the frozen `(s, p, o, g)` order is reproducible regardless
+    /// of the order the inputs are supplied. Two merges that differ only in input
+    /// order (or in the dataset-local term/scope numbering of equivalent inputs)
+    /// therefore canonicalize byte-identically (verify with
     /// [`canonicalize`](super::canon::canonicalize)).
     ///
     /// # Blank-node scope discipline (standardize-apart, C0.2)
     ///
     /// Each input dataset is merged under its OWN fresh [`BlankScope`] (the builder's
-    /// [`push_dataset`](RdfDatasetBuilder::push_dataset) claims scopes 1, 2, 3, … in
-    /// turn), so two same-label blank nodes that originate in DIFFERENT inputs stay
-    /// distinct — the native equivalent of the pipeline's per-source string-prefix
-    /// ingest. An input that already carries non-default scopes does not collide:
+    /// [`push_dataset`](super::builder::RdfDatasetBuilder::push_dataset) claims
+    /// scopes 1, 2, 3, … in turn), so two same-label blank nodes that originate in
+    /// DIFFERENT inputs stay distinct — the native equivalent of the pipeline's
+    /// per-source string-prefix ingest. An input that already carries non-default
+    /// scopes does not collide:
     /// `push_dataset` re-interns its blanks through the owned-model boundary, where
     /// each blank's label is its scope-qualified form, then re-scopes the whole input
     /// under one fresh merge scope — so distinct source blanks remain distinct after

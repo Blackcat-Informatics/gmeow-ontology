@@ -5,7 +5,7 @@
 //!
 //! GMEOW's doctrine is "one canonical source, everything else a generated or
 //! checked projection". T2 (#783) minted a declarative test-DSL
-//! ([`dsl/tests/vocabulary.ttl`]) and authored each slice's tests AS ontology
+//! (`dsl/tests/vocabulary.ttl`) and authored each slice's tests AS ontology
 //! data under `slices/<group>/<name>/tests/*.ttl`: a competency question is a
 //! SPARQL ASK/SELECT plus an expected outcome; a structural assertion is a
 //! MUST / MUST-NOT triple pattern over the module; an example-conformance

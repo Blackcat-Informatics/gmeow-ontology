@@ -90,6 +90,14 @@ def reason_native(gts_bytes: bytes) -> dict[str, Any]:
     """
     ...
 
+def reason_native_with_artifacts(gts_bytes: bytes, merge: bool = ...) -> dict[str, Any]:
+    """Reason over a GTS bundle and emit artifacts from the same native chase.
+
+    Returns the same diagnostic keys as :func:`reason_native`, plus an
+    ``artifacts`` dict with the same string keys as :func:`reason_native_artifacts`.
+    """
+    ...
+
 def reason_native_artifacts(gts_bytes: bytes, merge: bool = ...) -> dict[str, str]:
     """Reason a GTS bundle ONCE and emit the 3 native RDF 1.2 artifacts (#666).
 

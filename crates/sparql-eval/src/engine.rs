@@ -106,11 +106,12 @@ impl NativeSparqlEngine {
         self
     }
 
-    /// Like [`SparqlEngine::query`], but with a [`RemoteQuerySource`] injected so
+    /// Like [`SparqlEngine::query`], but with a
+    /// [`RemoteQuerySource`](crate::remote::RemoteQuerySource) injected so
     /// `SERVICE` clauses resolve through it. Without this, the default
     /// [`SparqlEngine::query`] path has no source and a non-silent `SERVICE`
-    /// hard-fails. This is the public entry the conformance harness and federated
-    /// callers use.
+    /// hard-fails. This is the public entry the conformance harness and
+    /// federated callers use.
     ///
     /// # Errors
     ///

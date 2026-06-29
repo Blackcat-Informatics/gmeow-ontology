@@ -120,10 +120,12 @@ def emit_legacy_cli(report_obj: DiagnosticsReport, err_console: Console) -> None
     suggestion/help lines); Python only passes the rendered text through to the
     console — no per-severity logic lives here.
     """
-    for warning in list(report_obj.warnings):
-        err_console.print(f"[yellow]warning[/yellow] {warning}")
-    for error in list(report_obj.errors):
-        err_console.print(f"[red]error[/red] {error}")
+    warnings = list(report_obj.warnings)
+    if warnings:
+        err_console.print("\n".join(f"[yellow]warning[/yellow] {w}" for w in warnings))
+    errors = list(report_obj.errors)
+    if errors:
+        err_console.print("\n".join(f"[red]error[/red] {e}" for e in errors))
     advisory = report_obj.render_advisory_text()
     if advisory:
         err_console.print(advisory, markup=False, highlight=False)

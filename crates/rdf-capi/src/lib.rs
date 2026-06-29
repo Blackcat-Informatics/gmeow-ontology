@@ -12,7 +12,7 @@
 //!
 //! ## ABI contract (every entry point)
 //! - **No unwinding across the boundary.** Every `extern "C"` function body runs
-//!   inside [`std::panic::catch_unwind`] via the [`ffi_try!`] / [`ffi_guard!`]
+//!   inside [`std::panic::catch_unwind`] via the `ffi_try!` / `ffi_guard!`
 //!   macros. A caught panic becomes [`status::PurrdfStatus::Panic`].
 //! - **`int32` status + out-params.** Fallible functions return a
 //!   [`status::PurrdfStatus`] as `i32` and write results through out-pointers;

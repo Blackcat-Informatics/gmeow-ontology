@@ -3,7 +3,7 @@
 
 //! The dogfooded `graph/provenance` projection (#1132 C9).
 //!
-//! The pipeline's occurrence-based provenance sidecar ([`DatasetProvenance`]) is
+//! The pipeline's occurrence-based provenance sidecar ([`gmeow_rdf::provenance::DatasetProvenance`]) is
 //! projected — THROUGH THE PUBLIC-IRI BOUNDARY (`public_projection`) — into a
 //! net-new named graph the bundle carries, so a repo-free consumer reads the full
 //! compilation-unit + per-lane carrier manifest WITHOUT re-running the build:
@@ -21,7 +21,7 @@
 //! `OriginSetId`. Every node is built from the PUBLIC strings (`unit name`,
 //! `artifact path`, `kind`) the projection exposes, or a fixed lane label — so the
 //! emitted bytes never contain `unit#N` / `artifact#N` / `origin-set#N`. The
-//! [`tests`] module proves this on the real ontology.
+//! this module's tests prove this on the real ontology.
 //!
 //! ## Determinism
 //!

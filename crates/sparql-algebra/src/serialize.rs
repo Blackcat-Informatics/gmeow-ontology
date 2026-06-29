@@ -12,7 +12,8 @@
 //! # Design
 //!
 //! * Pure `core::fmt::Write` into a `String` — **wasm-clean**, no std-only deps,
-//!   reusing the existing [`PropertyPathExpression`] `Display` for paths.
+//!   reusing the existing [`crate::algebra::PropertyPathExpression`] `Display`
+//!   for paths.
 //! * **Round-trips** with the parser: `parse(serialize(p))` reproduces `p` for
 //!   every [`GraphPattern`]/[`Expression`] variant the parser emits. Expressions
 //!   are conservatively fully parenthesized — over-parenthesization is a no-op on
@@ -22,8 +23,9 @@
 //!   shape the parser produces for an inline subquery.
 //!
 //! The GMEOW predicate-wildcard path extension (`<any>`) is emit-only (no parse),
-//! exactly as documented on [`PropertyPathExpression`]'s `Display`; a path
-//! carrying it does not round-trip, which is the established contract.
+//! exactly as documented on [`crate::algebra::PropertyPathExpression`]'s
+//! `Display`; a path carrying it does not round-trip, which is the established
+//! contract.
 
 use core::fmt::Write as _;
 

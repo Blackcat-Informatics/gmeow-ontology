@@ -14,7 +14,7 @@
 //! # Algorithm
 //!
 //! Σ starts as the seed IRIs. Source triples are grouped into "axioms" by their named
-//! subject; each `(s, p, o)` with a [`NamedNode`] subject is classified by predicate
+//! subject; each `(s, p, o)` with a [`oxigraph::model::NamedNode`] subject is classified by predicate
 //! and notion (Bot or Top). A *kept* triple is non-local; keeping it adds the named
 //! entities named in the rule's "add" list to Σ and re-iterates to a fixpoint.
 //!
