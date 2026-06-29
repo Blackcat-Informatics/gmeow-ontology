@@ -13,8 +13,6 @@
 //! uses [`SparqlRequest::substitutions`] (the native replacement for oxigraph's
 //! `PreparedSparqlQuery::substitute_variable`, EPIC #906 GAP-A).
 
-use std::cell::RefCell;
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use gmeow_rdf::ir::RdfDataset;
@@ -90,24 +88,34 @@ pub fn eval_sparql_constraint(
     severity: Severity,
     message: Option<String>,
 ) -> Result<Vec<ValidationResult>, String> {
-    // Evaluate the constraint query ONCE per validation (unsubstituted, so `$this`
-    // is a free projected variable bound to every matching node), cache the
-    // `$this → rows` grouping, then serve each focus node from the cache. This is
-    // behavior-equivalent to per-focus `$this`-substitution — substitution merely
-    // pre-binds `$this`, and a query that projects `$this` yields the SAME (path,
-    // value) cells per node — but evaluates the query once instead of once per focus
-    // node, the per-focus blowup the oxigraph path avoided with a prepared query.
-    let focus_key = render_term_value(&focus.to_term_value());
-    let rows = with_constraint_cache(dataset, select, |grouped| {
-        grouped.get(&focus_key).cloned().unwrap_or_default()
-    })?;
+    // Pre-bind `$this` to THIS focus node (GAP-A substitution — the native
+    // replacement for oxigraph's per-focus `PreparedSparqlQuery::substitute_variable`).
+    // This MUST be per-focus substitution, not an unsubstituted run grouped by a free
+    // `$this`: a constraint whose `$this` appears only inside a `FILTER NOT EXISTS`/
+    // negation has no positive binding for `$this` when run unsubstituted, so the
+    // unsubstituted query returns no rows and silently drops the violation. The parse
+    // is memoized by the thread-local engine's plan cache, so per-focus evaluation
+    // re-runs the plan, not the parse.
+    let subs = [("this".to_owned(), focus.to_term_value())];
+    let (variables, rows) =
+        run_select(dataset, select, &subs).map_err(|e| format!("SPARQLConstraint {e}"))?;
+    let path_index = column_index(&variables, "path");
+    let value_index = column_index(&variables, "value");
 
     let mut out: Vec<ValidationResult> = Vec::with_capacity(rows.len());
-    for (result_path, value) in rows {
+    for row in &rows {
+        let result_path = path_index
+            .and_then(|i| row.get(i))
+            .and_then(Option::as_ref)
+            .map(term_value_to_native);
+        let value = value_index
+            .and_then(|i| row.get(i))
+            .and_then(Option::as_ref)
+            .map(term_value_to_native);
         out.push(ValidationResult {
             focus_node: focus.clone(),
-            result_path: result_path.as_ref().map(term_value_to_native),
-            value: value.as_ref().map(term_value_to_native),
+            result_path,
+            value,
             source_constraint_component: component.clone(),
             source_shape: source_shape.clone(),
             severity,
@@ -119,76 +127,6 @@ pub fn eval_sparql_constraint(
         });
     }
     Ok(out)
-}
-
-/// One cached constraint solution: the optional `?path` and `?value` cells.
-type ConstraintRow = (Option<TermValue>, Option<TermValue>);
-
-thread_local! {
-    /// Per-validation cache of unsubstituted `sh:sparql` constraint results, keyed by
-    /// query text, grouping rows by the rendered `$this` binding. Cleared at the end
-    /// of each validation by [`clear_sparql_cache`] so a later validation over a
-    /// DIFFERENT dataset never reads stale rows.
-    static CONSTRAINT_CACHE: RefCell<HashMap<String, HashMap<String, Vec<ConstraintRow>>>> =
-        RefCell::new(HashMap::new());
-}
-
-/// Clear the per-validation SHACL-SPARQL constraint result cache.
-pub fn clear_sparql_cache() {
-    CONSTRAINT_CACHE.with(|c| c.borrow_mut().clear());
-}
-
-/// Evaluate `select` unsubstituted (once, memoized) and run `f` against the
-/// `$this`-grouped result rows.
-///
-/// The cache key combines the dataset's identity (`Arc::as_ptr`) with the query text
-/// so a different data graph never serves stale rows even before
-/// [`clear_sparql_cache`] runs.
-fn with_constraint_cache<R>(
-    dataset: &Arc<RdfDataset>,
-    select: &str,
-    f: impl FnOnce(&HashMap<String, Vec<ConstraintRow>>) -> R,
-) -> Result<R, String> {
-    let key = format!("{:p}\u{0}{select}", Arc::as_ptr(dataset));
-    // Populate the cache for this query if absent. The borrow is dropped before the
-    // (potentially re-entrant) evaluation to avoid a double mutable borrow.
-    let needs_eval = CONSTRAINT_CACHE.with(|c| !c.borrow().contains_key(&key));
-    if needs_eval {
-        let (variables, rows) =
-            run_select(dataset, select, &[]).map_err(|e| format!("SPARQLConstraint {e}"))?;
-        let this_index = column_index(&variables, "this");
-        let path_index = column_index(&variables, "path");
-        let value_index = column_index(&variables, "value");
-
-        let mut grouped: HashMap<String, Vec<ConstraintRow>> = HashMap::new();
-        for row in &rows {
-            // A constraint row with no `$this` binding cannot be attributed to a focus
-            // node; SHACL-SPARQL requires `$this`, so skip a (malformed) free row.
-            let Some(this) = this_index.and_then(|i| row.get(i)).and_then(Option::as_ref) else {
-                continue;
-            };
-            let group_key = render_term_value(this);
-            let path = path_index
-                .and_then(|i| row.get(i))
-                .and_then(Option::as_ref)
-                .cloned();
-            let value = value_index
-                .and_then(|i| row.get(i))
-                .and_then(Option::as_ref)
-                .cloned();
-            grouped.entry(group_key).or_default().push((path, value));
-        }
-        CONSTRAINT_CACHE.with(|c| {
-            c.borrow_mut().insert(key.clone(), grouped);
-        });
-    }
-    Ok(CONSTRAINT_CACHE.with(|c| f(&c.borrow()[&key])))
-}
-
-/// A stable string key for a [`TermValue`], used to group constraint rows by their
-/// `$this` binding (matches the engine's focus-node identity).
-fn render_term_value(value: &TermValue) -> String {
-    term_value_to_native(value).to_string()
 }
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
