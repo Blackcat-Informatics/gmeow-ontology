@@ -92,6 +92,10 @@ pub struct Profile {
     pub expect_unsupported: bool,
     /// The verdict-production mode (#753, default [`VerdictMode::Materialization`]).
     pub verdict_mode: VerdictMode,
+    /// Declared correspondence compositions to gate (`(left, right, optional composite)`):
+    /// each is a 2- or 3-element array of correspondence IRIs in `profile.json`'s
+    /// `"compositions"`. Empty when the case declares none. Fed to the Composition gate.
+    pub compositions: Vec<(String, String, Option<String>)>,
 }
 
 impl Profile {
@@ -166,6 +170,7 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
     let expect_unsupported = obj.get("expect_unsupported").and_then(Value::as_bool) == Some(true);
 
     let verdict_mode = parse_verdict_mode(case_id, obj)?;
+    let compositions = parse_compositions(case_id, obj)?;
 
     Ok(Profile {
         semantic_profile,
@@ -177,7 +182,47 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
         certify,
         expect_unsupported,
         verdict_mode,
+        compositions,
     })
+}
+
+/// Parse the optional `compositions` array: each element is a 2- or 3-string array
+/// `[left, right]` or `[left, right, composite]` of correspondence IRIs. Hard-fail (no
+/// silent coercion) on any non-array element, wrong length, or non-string member.
+fn parse_compositions(
+    case_id: &str,
+    obj: &Map<String, Value>,
+) -> Result<Vec<(String, String, Option<String>)>, String> {
+    let raw = match obj.get("compositions") {
+        None => return Ok(Vec::new()),
+        Some(v) => v.as_array().ok_or_else(|| {
+            format!("case {case_id}: profile.json compositions must be a JSON array")
+        })?,
+    };
+    let mut out = Vec::with_capacity(raw.len());
+    for (i, entry) in raw.iter().enumerate() {
+        let arr = entry.as_array().ok_or_else(|| {
+            format!("case {case_id}: profile.json compositions[{i}] must be an array")
+        })?;
+        if arr.len() != 2 && arr.len() != 3 {
+            return Err(format!(
+                "case {case_id}: profile.json compositions[{i}] must have 2 or 3 elements \
+                 ([left, right] or [left, right, composite]), got {}",
+                arr.len()
+            ));
+        }
+        let s = |j: usize| -> Result<String, String> {
+            arr[j].as_str().map(String::from).ok_or_else(|| {
+                format!("case {case_id}: profile.json compositions[{i}][{j}] must be a string IRI")
+            })
+        };
+        out.push((
+            s(0)?,
+            s(1)?,
+            if arr.len() == 3 { Some(s(2)?) } else { None },
+        ));
+    }
+    Ok(out)
 }
 
 /// Parse the optional `verdict_mode` field (#753).

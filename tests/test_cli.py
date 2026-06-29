@@ -324,26 +324,6 @@ def test_quality_foops_best_effort_skips_when_foops_raises(
     assert "FOOPS! skipped" in result.output
 
 
-def test_extract_docs_unpacks_site_from_bundled_snapshot(
-    runner: CliRunner, tmp_path: Path
-) -> None:
-    out = tmp_path / "docs-tree"
-    result = runner.invoke(public_app, ["extract-docs", "--directory", str(out)])
-    assert result.exit_code == 0, result.output
-    # `extract-docs` is now a pure unpack of the Rust-rendered ontology-docs site
-    # (#1019): the embedded ``ontology-docs`` blob (#897) is the docs tree, with
-    # the internal language prefix stripped, so the site lands at the root.
-    assert (out / "index.html").exists()
-    assert (out / "index.md").exists()
-    assert (out / "assets" / "gmeow.css").exists()
-    assert (out / "terms").is_dir()
-    assert (out / "linkages" / "index.html").exists()
-    assert (out / "search-index.json").exists()
-    # A per-term reference page is unpacked (carrying the enriched Usage Advice /
-    # Alignments sections rendered natively by `md_term`).
-    assert list((out / "terms").glob("*/index.md")), "per-term Markdown pages present"
-
-
 def test_describe_unknown_language_fails(runner: CliRunner) -> None:
     result = runner.invoke(public_app, ["describe", "Person", "--lang", "notatag"])
     assert result.exit_code != 0

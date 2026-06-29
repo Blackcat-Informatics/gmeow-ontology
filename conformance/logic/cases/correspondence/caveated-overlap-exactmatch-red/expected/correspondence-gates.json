@@ -1,0 +1,23 @@
+{
+  "per_composition": [],
+  "per_correspondence": [
+    {
+      "correspondence": "https://gmeow.example/corr/affineEquiv",
+      "law": {
+        "status": "pass"
+      },
+      "mnemomorphism": {
+        "reason": "the cell is not declared mnemomorphic",
+        "status": "not_applicable"
+      },
+      "overclaim": {
+        "reason": "declares logic:Equiv but its rung is logic:AffineCorrespondence (non-injective / partial / co-projection); equivalence overclaims the lowered legs — the sound relation is logic:Overlaps (skos:relatedMatch)",
+        "status": "red"
+      },
+      "round_trip": {
+        "reason": "logic:AffineCorrespondence makes no full round-trip claim",
+        "status": "not_applicable"
+      }
+    }
+  ]
+}

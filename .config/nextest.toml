@@ -186,16 +186,14 @@ test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# Full-snapshot round-trip tests decode the ~9.3 MB committed `gmeow.gts` and
-# re-emit / extract it back through the native gmeow-gts codecs. The carrier
-# archive test also renders and packs the embedded ontology-docs site, and the
-# native-assembly test assembles the whole authored bundle from the real tree.
-# Under CI load these can tip past the 120s default terminate cliff. They are
-# codec / assembly / I-O-bound — NOT engine-bound — so they stay OUTSIDE the
-# `engine` memory group (no OOM risk) but need a longer terminate cliff:
-# `gts_sink` re-emits the whole snapshot, the carrier docs-archive test
-# renders/packs the embedded site, and `authored_default_assembles_natively`
-# materializes the full native bundle.
+# Full-carrier round-trip tests decode the ~9.3 MB committed `gmeow.gts` and
+# re-emit / extract it back through the native gmeow-gts codecs (#909). Carrier
+# archive / native-assembly tests also render and pack the embedded ontology-docs
+# site and assemble the whole ontology natively. Under CI load these can tip past
+# the 120s default terminate cliff. They are codec / I-O-bound — NOT engine-bound —
+# so they stay OUTSIDE the `engine` memory group (no OOM risk) but need a longer
+# terminate cliff: `gts_sink` re-emits the whole snapshot and the carrier
+# docs-archive / native-assembly tests render/pack the embedded site and fold.
 filter = 'package(gmeow-pipeline) & test(/gts_sink|stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site|stages::carrier::native_assembly_tests::authored_default_assembles_natively/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 

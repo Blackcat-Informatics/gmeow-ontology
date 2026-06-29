@@ -1,0 +1,66 @@
+{
+  "per_composition": [
+    {
+      "composed_class": "AffineCorrespondence",
+      "composed_law_status": "ObligationUnknown",
+      "composition": {
+        "reason": "composite rung logic:WellBehavedLens is STRONGER than the lattice-join logic:AffineCorrespondence of its parts (logic:LossyLens ∘ logic:AffineCorrespondence); composition may only weaken the rung, never strengthen it",
+        "status": "red"
+      },
+      "left": "https://gmeow.example/corr/sLossy",
+      "right": "https://gmeow.example/corr/sAffine"
+    }
+  ],
+  "per_correspondence": [
+    {
+      "correspondence": "https://gmeow.example/corr/sAffine",
+      "law": {
+        "status": "pass"
+      },
+      "mnemomorphism": {
+        "reason": "the cell is not declared mnemomorphic",
+        "status": "not_applicable"
+      },
+      "overclaim": {
+        "status": "pass"
+      },
+      "round_trip": {
+        "reason": "logic:AffineCorrespondence makes no full round-trip claim",
+        "status": "not_applicable"
+      }
+    },
+    {
+      "correspondence": "https://gmeow.example/corr/sComposite",
+      "law": {
+        "status": "pass"
+      },
+      "mnemomorphism": {
+        "status": "pass"
+      },
+      "overclaim": {
+        "status": "pass"
+      },
+      "round_trip": {
+        "reason": "logic:WellBehavedLens makes no full round-trip claim",
+        "status": "not_applicable"
+      }
+    },
+    {
+      "correspondence": "https://gmeow.example/corr/sLossy",
+      "law": {
+        "status": "pass"
+      },
+      "mnemomorphism": {
+        "reason": "the cell is not declared mnemomorphic",
+        "status": "not_applicable"
+      },
+      "overclaim": {
+        "status": "pass"
+      },
+      "round_trip": {
+        "reason": "logic:LossyLens makes no full round-trip claim",
+        "status": "not_applicable"
+      }
+    }
+  ]
+}
