@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Stratified semi-naive bottom-up evaluator with index selection (#1090, F3).
+//! Stratified semi-naive bottom-up evaluator with index selection.
 //!
 //! This is the forward leg of the native execution core.  It evaluates an
 //! [`EvalRule`] program over a [`crate::store::WorldStore`] world-by-world,
@@ -13,7 +13,7 @@
 //! `least_model_of_reduct` is the Gelfond-Lifschitz reduct least model: NAF is
 //! evaluated against a FIXED reference store, and the positive semi-naive join
 //! scans the whole predicate bucket of a ternary [`FactStore`] and post-filters by
-//! the semi-naive delta.  The native core ([#1090]) replaces that full-scan with
+//! the semi-naive delta.  The native core replaces that full-scan with
 //! **index selection** over the columnar [`RelationStore`]: each positive body atom
 //! computes a [`Bound`] from the partial solution and scans ONLY the matching rows.
 //!
@@ -98,7 +98,7 @@ pub(crate) enum NativeOutcome<T> {
     Unsupported(UnsupportedKind),
 }
 
-// ── Index-selected semi-naive join (the F3 substance) ────────────────────────────
+// ── Index-selected semi-naive join ────────────────────────────────────────────────
 
 /// Compute the [`Bound`] for `atom`'s `(subject, object)` columns under `sol`.
 ///

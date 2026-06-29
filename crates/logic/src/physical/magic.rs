@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Magic-sets (demand) transformation + the backward `resolve_native` evaluator
-//! (#1090, F3).
+//! Magic-sets (demand) transformation + the backward `resolve_native` evaluator.
 //!
 //! # Why magic-sets
 //!
