@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use gmeow_diagnostics::{Finding, Location, Severity};
-use oxigraph::model::Term;
+use gmeow_shacl::term::Term;
 
 use crate::dsl;
 use crate::findings::finding_from_shacl;
@@ -36,7 +36,7 @@ pub fn validate_dsl(
     let merge = dsl::merge_with_provenance(paths)?;
     let data_store = store::build_store_from_nt(&merge.data_nt)?;
     let shapes = gmeow_shacl::engine::parse_shapes(shapes_ttl)?;
-    let report = gmeow_shacl::engine::validate(&data_store, &shapes);
+    let report = crate::store::shacl_validate_store(&data_store, &shapes);
     let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
     Ok(dsl_findings(&report, &focus_to_file, label))
 }

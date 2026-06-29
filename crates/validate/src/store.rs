@@ -29,6 +29,23 @@ use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
 
 use crate::model::owl;
 
+/// Validate an oxigraph [`Store`] against parsed SHACL [`Shapes`] over the native
+/// IR engine, bridging the store into a frozen [`RdfDataset`] first.
+///
+/// TRANSITIONAL: the validate crate's data graph is still an oxigraph `Store` (the
+/// rdf `py_store` is not yet native — a later #906 pass migrates it). The SHACL
+/// engine is now fully native, so this seam folds the store into the IR
+/// (`dataset_from_store`) and runs the native `validate_dataset`. When the store
+/// goes native this whole bridge collapses to a direct dataset call.
+pub fn shacl_validate_store(
+    store: &Store,
+    shapes: &gmeow_shacl::shapes::Shapes,
+) -> gmeow_shacl::report::ValidationReport {
+    let dataset = dataset_from_store(store).expect("oxigraph data store folds into the native IR");
+    gmeow_shacl::engine::validate_dataset(dataset.as_ref(), shapes)
+        .expect("validation over a frozen dataset is infallible")
+}
+
 /// Parse a single Turtle file, returning either its quads or a syntax-error
 /// string.
 ///

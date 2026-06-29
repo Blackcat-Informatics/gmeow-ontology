@@ -22,6 +22,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyAny, PyCapsule, PyCapsuleMethods, PyDict, PyList};
 
 use crate::engine;
+use crate::report::ValidationReport;
 
 /// Validate a data graph (N-Triples) against a shapes graph (Turtle).
 ///
@@ -90,9 +91,23 @@ impl PyShapes {
     ///
     /// This is the Rust-side primitive used by `gmeow-validate::PyValidationStore`
     /// so the data store does not have to be re-serialized to N-Triples.
-    pub fn validate_against_store(&self, data: &Store) -> crate::report::ValidationReport {
-        engine::validate(data, &self.inner)
+    pub fn validate_against_store(&self, data: &Store) -> ValidationReport {
+        validate_store_via_bridge(data, &self.inner)
     }
+}
+
+/// Validate an oxigraph [`Store`] against parsed shapes by bridging it into the
+/// native IR, then running the now-native engine.
+///
+/// TRANSITIONAL: capsule still carries an oxigraph Store until py_store goes native
+/// (#906). This `dataset_from_store` bridge is the ONLY remaining oxigraph use in
+/// the SHACL engine; the final rdf pass flips the capsule to `Arc<RdfDataset>` and
+/// removes this bridge (and the crate's `oxigraph` feature on `gmeow-rdf`) together.
+fn validate_store_via_bridge(data: &Store, shapes: &crate::shapes::Shapes) -> ValidationReport {
+    let dataset = gmeow_rdf::oxigraph::dataset_from_store(data)
+        .expect("oxigraph store folds into the native IR");
+    engine::validate_dataset(dataset.as_ref(), shapes)
+        .expect("validation over a frozen dataset is infallible")
 }
 
 #[pymethods]
@@ -107,13 +122,12 @@ impl PyShapes {
     /// Validate an N-Triples data graph against these parsed shapes.
     fn validate_nt(&self, data_nt: String) -> PyResult<PyValidationReport> {
         // Native codec ingest (#909): lenient on private-use language tags, every
-        // malformed line reported in one pass.
-        let data = crate::text_ingest::parse_ntriples_to_store(&data_nt)
+        // malformed line reported in one pass. The engine runs over the frozen IR.
+        let data = crate::text_ingest::parse_ntriples_to_dataset(&data_nt)
             .map_err(|errors| pyo3::exceptions::PyValueError::new_err(errors.join("\n")))?;
-        Ok(PyValidationReport::new(engine::validate(
-            &data,
-            &self.inner,
-        )))
+        let report = engine::validate_dataset(data.as_ref(), &self.inner)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(PyValidationReport::new(report))
     }
 
     /// Validate a borrowed oxigraph store against these parsed shapes.
@@ -135,7 +149,7 @@ impl PyShapes {
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
         let addr = unsafe { *ptr.cast::<usize>().as_ptr() };
         let store = unsafe { &*(addr as *const Store) };
-        Ok(PyValidationReport::new(engine::validate(
+        Ok(PyValidationReport::new(validate_store_via_bridge(
             store,
             &self.inner,
         )))

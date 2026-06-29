@@ -362,7 +362,7 @@ impl ValidationRun {
         };
         let start = Instant::now();
         let (result, meta) = run_cached(cache.as_ref(), "merged-shacl", &merged_shacl_key, || {
-            let report = gmeow_shacl::engine::validate(&store, &shapes);
+            let report = crate::store::shacl_validate_store(&store, &shapes);
             Ok(shacl_findings_from_report(&report, None))
         })?;
         if options.timings {
@@ -1206,7 +1206,7 @@ fn run_example_shacl(
         }
     };
     let _overlay = OverlayGuard::insert(store, example_quads.iter());
-    let report = gmeow_shacl::engine::validate(store, shapes);
+    let report = crate::store::shacl_validate_store(store, shapes);
     Ok(shacl_findings_from_report(&report, Some(name))) // _overlay drops here, removing the overlay
 }
 
@@ -1942,7 +1942,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
     #[test]
     fn shacl_violation_is_categorized_data_shape_violation() {
         use gmeow_shacl::report::{ValidationReport, ValidationResult};
-        use oxigraph::model::{Literal, NamedNode, Term};
+        use gmeow_shacl::term::{Literal, NamedNode, Term};
 
         let result = ValidationResult {
             focus_node: Term::NamedNode(NamedNode::new_unchecked("https://example.org/FocusA")),

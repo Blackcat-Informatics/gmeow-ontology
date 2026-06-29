@@ -25,42 +25,45 @@
 
 use std::collections::BTreeMap;
 
-use oxigraph::model::{GraphNameRef, NamedOrBlankNodeRef, Term};
-use oxigraph::store::Store;
+use gmeow_rdf::ir::RdfDataset;
 use serde_json::{json, Map, Value};
 
+use crate::data::{GraphFilter, IrDataGraph, ShaclDataGraph};
 use crate::json_schema::{compact_iri, PREFIXES};
 use crate::model::rdf;
+use crate::term::Term;
 
 const XSD_NS: &str = "http://www.w3.org/2001/XMLSchema#";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
 
-/// Project the default graph of `store` into a JSON-LD `@graph` document.
-pub fn project_graph(store: &Store) -> Value {
+/// Project the default graph of `dataset` into a JSON-LD `@graph` document.
+pub fn project_graph(dataset: &std::sync::Arc<RdfDataset>) -> Value {
+    let data = IrDataGraph::new(std::sync::Arc::clone(dataset));
+    project_graph_data(&data)
+}
+
+/// Project the default graph of a [`ShaclDataGraph`] into a JSON-LD `@graph` document.
+fn project_graph_data<G: ShaclDataGraph>(data: &G) -> Value {
     // Collect distinct named-node / blank-node subjects of the default graph.
     let mut subjects: Vec<Term> = Vec::new();
     let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
-    // Scope to the DEFAULT graph only: a `None` graph filter would match named
-    // graphs too, leaking named-graph subjects into the projected `@graph`.
-    for quad in store
-        .quads_for_pattern(None, None, None, Some(GraphNameRef::DefaultGraph))
-        .flatten()
-    {
-        let subj: Term = quad.subject.into();
-        // Only IRI / blank-node subjects become @graph nodes (literals never are).
-        if matches!(subj, Term::NamedNode(_) | Term::BlankNode(_)) {
-            let key = subj.to_string();
+    // Scope to the DEFAULT graph only: an AnyGraph filter would match named graphs
+    // too, leaking named-graph subjects into the projected `@graph`.
+    for quad in data.quads_for_pattern(None, None, None, GraphFilter::DefaultGraph) {
+        // Only IRI / blank-node subjects become @graph nodes (always true here).
+        if quad.subject.is_subject() {
+            let key = quad.subject.to_string();
             if seen.insert(key) {
-                subjects.push(subj);
+                subjects.push(quad.subject);
             }
         }
     }
-    subjects.sort_by_key(|t| t.to_string());
+    subjects.sort_by_key(Term::to_string);
 
     let mut nodes: Vec<Value> = Vec::with_capacity(subjects.len());
     for subj in &subjects {
-        nodes.push(project_subject(store, subj));
+        nodes.push(project_subject_data(data, subj));
     }
 
     json!({
@@ -70,26 +73,24 @@ pub fn project_graph(store: &Store) -> Value {
 }
 
 /// Project a single subject term into a JSON-LD node object.
-pub fn project_subject(store: &Store, subject: &Term) -> Value {
-    let subj_sub = match subject {
-        Term::NamedNode(n) => NamedOrBlankNodeRef::NamedNode(n.as_ref()),
-        Term::BlankNode(b) => NamedOrBlankNodeRef::BlankNode(b.as_ref()),
-        _ => {
-            // Literals (and quoted triples) are never node subjects.
-            return Value::Object(Map::new());
-        }
-    };
+pub fn project_subject(dataset: &std::sync::Arc<RdfDataset>, subject: &Term) -> Value {
+    let data = IrDataGraph::new(std::sync::Arc::clone(dataset));
+    project_subject_data(&data, subject)
+}
+
+fn project_subject_data<G: ShaclDataGraph>(data: &G, subject: &Term) -> Value {
+    if !subject.is_subject() {
+        // Literals (and quoted triples) are never node subjects.
+        return Value::Object(Map::new());
+    }
 
     // Gather predicate → [objects], grouping by compacted predicate key.
     let mut by_pred: BTreeMap<String, Vec<Term>> = BTreeMap::new();
     let mut types: Vec<String> = Vec::new();
 
-    for quad in store
-        .quads_for_pattern(Some(subj_sub), None, None, Some(GraphNameRef::DefaultGraph))
-        .flatten()
-    {
+    for quad in data.quads_for_pattern(Some(subject), None, None, GraphFilter::DefaultGraph) {
         let pred = quad.predicate;
-        if pred.as_str() == rdf::TYPE.as_str() {
+        if pred.as_str() == rdf::TYPE {
             if let Term::NamedNode(n) = &quad.object {
                 types.push(compact_iri(n.as_str()));
             }
@@ -106,7 +107,7 @@ pub fn project_subject(store: &Store, subject: &Term) -> Value {
     // @id
     let id = match subject {
         Term::NamedNode(n) => compact_iri(n.as_str()),
-        Term::BlankNode(b) => format!("_:{}", b.as_str()),
+        Term::BlankNode(b) => format!("_:{b}"),
         _ => String::new(),
     };
     obj.insert("@id".to_owned(), Value::String(id));
@@ -209,8 +210,8 @@ fn context_object() -> Value {
 mod tests {
     use super::*;
 
-    fn load(ttl: &str) -> Store {
-        crate::text_ingest::parse_turtle_to_store(ttl).expect("Turtle parse")
+    fn load(ttl: &str) -> std::sync::Arc<RdfDataset> {
+        crate::text_ingest::parse_turtle_to_dataset(ttl).expect("Turtle parse")
     }
 
     const PREFIXES_TTL: &str = r#"
@@ -302,22 +303,21 @@ mod tests {
 
     #[test]
     fn test_named_graph_data_is_excluded() {
-        use oxigraph::model::{GraphName, Literal, NamedNode, Quad};
         // alice lives in the default graph; bob lives ONLY in a named graph.
-        let store = load(&format!(
+        // A TriG document expresses both; the native codec preserves the named
+        // graph, and the projector must scope to the default graph only.
+        let trig = format!(
             r#"{PREFIXES_TTL}
             gmeow:alice a gmeow:Person ; gmeow:name "Alice" .
+            gmeow:graph_other {{
+                gmeow:bob gmeow:name "Bob" .
+            }}
         "#
-        ));
-        let named = NamedNode::new("https://blackcatinformatics.ca/gmeow/graph/other").unwrap();
-        store
-            .insert(&Quad::new(
-                NamedNode::new("https://blackcatinformatics.ca/gmeow/bob").unwrap(),
-                NamedNode::new("https://blackcatinformatics.ca/gmeow/name").unwrap(),
-                Literal::new_simple_literal("Bob"),
-                GraphName::NamedNode(named),
-            ))
-            .unwrap();
+        );
+        let store = std::sync::Arc::new(
+            gmeow_rdf::parse_dataset(trig.as_bytes(), "application/trig", None)
+                .expect("TriG parse"),
+        );
         let doc = project_graph(&store);
         let graph = doc["@graph"].as_array().expect("@graph array");
         // Only the default-graph subject is projected — no named-graph leak.
