@@ -1,8 +1,0 @@
-{
-  "reasoning_contract": {"preset": "StratifiedNAFProfile"},
-  "world_types": ["goal-directed"],
-  "mode": "native",
-  "expected_decidability_class": "terminating/PTIME-data",
-  "certify": true,
-  "teleology_lowering": true
-}
