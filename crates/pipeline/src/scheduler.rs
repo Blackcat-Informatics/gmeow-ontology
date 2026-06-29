@@ -285,11 +285,34 @@ fn exec_stage(
 
     // Cache key = build fingerprint ++ id ++ impl_version ++ sorted(upstream digests)
     // ++ the content digest of any RAW source files the stage declares via `input_files`
-    // (export
-    // leaves that read non-fold sources — references.ttl, the eval corpus, the
+    // (export leaves that read non-fold sources — references.ttl, the eval corpus, the
     // slice manifests — declare them there so a source change busts the cache;
     // cache soundness for stages that legitimately consume nothing, #861/#863).
-    let mut up_digests: Vec<String> = upstream.values().map(|p| p.digest.clone()).collect();
+    //
+    // ARTIFACT-LEVEL granularity: for a producer the stage declares typed dataflow
+    // entities over (`consumed_entities`), fold ONLY those named graphs' canonical
+    // digests rather than the producer's whole-bundle digest — so a change to a graph
+    // the stage does not read no longer busts its key. A producer NOT declared narrows
+    // to nothing: it stays a whole-product dependency (the sound default). Narrowing
+    // can only ever REMOVE inputs from the key for graphs the stage provably ignores;
+    // the loader's DataFlow agreement is what guarantees the declaration is honest.
+    let entities: BTreeMap<&str, &[String]> = stage
+        .consumed_entities()
+        .iter()
+        .map(|(producer, ents)| (producer.as_str(), ents.as_slice()))
+        .collect();
+    let mut up_digests: Vec<String> = Vec::new();
+    for (dep, product) in &upstream {
+        match entities.get(dep.as_str()) {
+            Some(ents) if !ents.is_empty() => {
+                // Fold each consumed named graph's canonical content digest.
+                for graph in *ents {
+                    up_digests.push(product.bundle().graph_digest(graph).to_hex());
+                }
+            }
+            _ => up_digests.push(product.digest.clone()),
+        }
+    }
     up_digests.sort();
     let source_digest = input_files_digest(stage, root)?;
     let key = stage_key(

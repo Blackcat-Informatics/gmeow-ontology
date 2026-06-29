@@ -68,6 +68,26 @@ gmeow:Resource
     skos:example "gmeow:engineResource a gmeow:Resource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+gmeow:BuildDataFlow
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Build Data Flow"@x-gmeow-english ;
+    rdfs:subClassOf logic:DataFlowEdge ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:buildFlowFrom ;
+            owl:someValuesFrom gmeow:PipelineStage ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:buildFlowTo ;
+            owl:someValuesFrom gmeow:PipelineStage ;
+        ] ;
+    skos:definition "A reified typed dataflow edge of the build graph — a specialization of the canonical logic:DataFlowEdge. It mediates a producer stage (logic:flowFrom) and a consumer stage (logic:flowTo) and names, through gmeow:flowEntity, the specific named-graph artifacts that flow on the edge. Where the bare gmeow:dataflowConsumes edge says only that a consumer depends on a producer's WHOLE product, a gmeow:BuildDataFlow refines that to the exact graphs the consumer reads, so the executor can key the consumer's cache on only those graphs' content digests — artifact-level incremental rebuild: a change to a graph the consumer does not read no longer re-runs it. A Relator mediating two distinct stage relata, satisfying the relator-mediation discipline."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-dataflow-reason-compile-logic a gmeow:BuildDataFlow ; logic:flowFrom gmeow:stage-compile-logic ; logic:flowTo gmeow:stage-reason ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # =========================================================================== #
 # Properties.                                                                 #
 # =========================================================================== #
@@ -146,6 +166,37 @@ gmeow:requiresResource
     skos:example "gmeow:stage-reason gmeow:requiresResource gmeow:engineResource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:buildFlowFrom
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf logic:flowFrom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "build flow from"@x-gmeow-english ;
+    rdfs:domain gmeow:BuildDataFlow ;
+    rdfs:range gmeow:PipelineStage ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to its producer stage — the source mediation leg, a specialization of the canonical logic:flowFrom. Paired with gmeow:buildFlowTo, the two ends that make the edge a well-formed relator."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:buildFlowFrom gmeow:stage-compile-logic ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:buildFlowTo
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf logic:flowTo ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "build flow to"@x-gmeow-english ;
+    rdfs:domain gmeow:BuildDataFlow ;
+    rdfs:range gmeow:PipelineStage ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to its consumer stage — the target mediation leg, a specialization of the canonical logic:flowTo. Paired with gmeow:buildFlowFrom."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:buildFlowTo gmeow:stage-reason ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:flowEntity
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "flow entity"@x-gmeow-english ;
+    rdfs:domain gmeow:BuildDataFlow ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to a named graph (a flowing entity / artifact) it carries from the producer stage to the consumer stage. Multi-valued — an edge may carry several graphs. The consumer's cache key folds ONLY the content digests of the graphs named here, so a change to any other graph in the producer's product does not re-run the consumer (artifact-level incremental rebuild). The range is the IRI of a named graph in the producer's dataset, not a stage."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowEntity <https://blackcatinformatics.ca/gmeow/graph/logic> ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # =========================================================================== #
 # StageKind value vocabulary (individuals).                                   #
 # =========================================================================== #
@@ -211,6 +262,32 @@ gmeow:engineResource
     gmeow:graphBoxRole gmeow:boxABox .
 
 # =========================================================================== #
+# Typed dataflow edges (reified gmeow:BuildDataFlow) — artifact-level deps.    #
+#                                                                             #
+# Where a consumer reads only SPECIFIC named graphs of a producer's product,  #
+# a reified edge records exactly which, so the executor keys that consumer's   #
+# cache on those graphs' digests alone (artifact-level incremental rebuild).   #
+# Gathered on the plan through logic:planFlowEdge.                             #
+# =========================================================================== #
+
+# stage-reason reads ONLY the logic / relational-core / correspondence named graphs
+# of stage-compile-logic's product (the object-level EDB), never its diagnostics or
+# the eight projection serializations — so a change to those alone skips the
+# (expensive) reasoner.
+gmeow:pipeline-dataflow-reason-compile-logic
+    a gmeow:BuildDataFlow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "dataflow: compile-logic → reason"@x-gmeow-english ;
+    skos:definition "The typed dataflow edge from gmeow:stage-compile-logic to gmeow:stage-reason: the reasoner reads only the logic, relational-core, and correspondence named graphs of the compile-logic product. Records the artifact-level dependency so the reasoner's cache key folds those three graphs' digests rather than the whole compile-logic product."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:buildFlowFrom gmeow:stage-compile-logic ;
+    gmeow:buildFlowTo gmeow:stage-reason ;
+    gmeow:flowEntity
+        <https://blackcatinformatics.ca/gmeow/graph/correspondence> ,
+        <https://blackcatinformatics.ca/gmeow/graph/logic> ,
+        <https://blackcatinformatics.ca/gmeow/graph/relational-core> .
+
+# =========================================================================== #
 # The canonical build DAG (gmeow:pipeline-build) — dogfooded as data.         #
 #                                                                             #
 # This IS the project's build graph: the gmeow-pipeline executor reads it     #
@@ -240,6 +317,7 @@ gmeow:pipeline-build
     logic:planGoal gmeow:goalShippableBundle ;
     logic:planSuccessMode logic:StrongPlanSuccess ;
     logic:executedUnderContract logic:DagWorkflowContract ;
+    logic:planFlowEdge gmeow:pipeline-dataflow-reason-compile-logic ;
     gmeow:hasStage
         gmeow:stage-source-load ,
         gmeow:stage-statements ,

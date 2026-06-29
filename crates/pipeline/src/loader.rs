@@ -8,10 +8,10 @@
 //! individuals in `slices/core/pipeline/` — and read back here, so the build is
 //! a first-class ontological citizen (MAXIMAL DOGFOODING). [`PipelineSpec`] is
 //! the parsed-but-unbound shape; [`PipelineSpec::validate`] proves the structure
-//! (acyclic, complete, exactly one sink, engine-lock derived); [`bind`] resolves
-//! each `gmeow:stageImpl` against the [`StageRegistry`] and proves the Rust impl
-//! agrees with the RDF declaration (kind + consumes). Every check HARD-fails
-//! before any stage runs.
+//! (acyclic, complete, exactly one sink); [`bind`] resolves each `gmeow:stageImpl`
+//! against the [`StageRegistry`] and proves the Rust impl agrees with the RDF
+//! declaration (kind + consumes + resources + typed dataflow). Every check
+//! HARD-fails before any stage runs.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
@@ -26,6 +26,12 @@ use crate::registry::StageRegistry;
 use crate::stages::source_load::turtle_bytes_into_store;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// A stage's typed dataflow: for each upstream producer it narrows to specific
+/// named-graph entities, a `(producer-local-name, sorted entity IRIs)` pair; the
+/// whole list sorted by producer. Empty = every consumed producer is a whole-product
+/// dependency.
+pub type DataFlowEntities = Vec<(String, Vec<String>)>;
 
 /// One `gmeow:PipelineStage` individual, parsed but not yet bound to its impl.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -42,6 +48,12 @@ pub struct StageSpec {
     /// exclusively while running, sorted, deduplicated. Validated against the Rust
     /// impl's `resources()` at bind time (Rust/RDF agreement).
     pub resources: Vec<String>,
+    /// Reified `gmeow:BuildDataFlow` typed dataflow: for each upstream producer this
+    /// stage reads only SPECIFIC named-graph entities from, the `(producer-local-name,
+    /// sorted entity IRIs)`, the list sorted by producer. Empty = every consumed
+    /// producer is a whole-product dependency (the sound default). Validated against the
+    /// Rust impl's `consumed_entities()` at bind time (Rust/RDF agreement).
+    pub dataflow_entities: DataFlowEntities,
     /// `gmeow:producesFormat` — output format tags, sorted (export leaves).
     pub formats: Vec<String>,
 }
@@ -132,6 +144,15 @@ impl PipelineSpec {
         }
         stages.sort_by(|a, b| a.id.cmp(&b.id));
 
+        // Attach the reified gmeow:DataFlow typed-dataflow edges to their consumer
+        // stages (the artifact-level dependency declarations).
+        let mut by_consumer = parse_dataflow_edges(store)?;
+        for s in &mut stages {
+            if let Some(entities) = by_consumer.remove(&s.id) {
+                s.dataflow_entities = entities;
+            }
+        }
+
         Ok(PipelineSpec {
             id: local_name(&pipeline_iri),
             stages,
@@ -198,8 +219,98 @@ fn parse_stage(store: &Store, stage_iri: &str) -> Result<StageSpec, PipelineErro
         impl_key,
         consumes,
         resources,
+        // Filled in by from_store from the reified gmeow:DataFlow edges.
+        dataflow_entities: Vec::new(),
         formats,
     })
+}
+
+/// Parse the reified `gmeow:BuildDataFlow` typed-dataflow edges into a
+/// `consumer-local-name → sorted [(producer-local-name, sorted entity IRIs)]` map.
+///
+/// Each `gmeow:BuildDataFlow` individual (a specialization of the canonical
+/// `logic:DataFlowEdge`) carries `gmeow:buildFlowFrom` (the producer stage, a
+/// `logic:flowFrom` leg), `gmeow:buildFlowTo` (the consumer stage, a `logic:flowTo`
+/// leg), and one or more `gmeow:flowEntity` (the named-graph IRIs that flow on this
+/// edge — kept whole, they are graphs not stages). Edges sharing a (consumer,
+/// producer) pair are merged.
+fn parse_dataflow_edges(
+    store: &Store,
+) -> Result<BTreeMap<String, DataFlowEntities>, PipelineError> {
+    // consumer -> producer -> entity set
+    let mut acc: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
+    let dataflow_class = iri(GMEOW, "BuildDataFlow");
+    let rdf_type = oxigraph::model::NamedNode::new(RDF_TYPE)
+        .map_err(|e| PipelineError::Parse(format!("invalid rdf:type IRI: {e}")))?;
+    let class = oxigraph::model::NamedNode::new(&dataflow_class)
+        .map_err(|e| PipelineError::Parse(format!("invalid BuildDataFlow class IRI: {e}")))?;
+    let mut edges: BTreeSet<String> = BTreeSet::new();
+    for quad in store.quads_for_pattern(
+        None,
+        Some(rdf_type.as_ref()),
+        Some(class.as_ref().into()),
+        None,
+    ) {
+        let quad = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
+        if let oxigraph::model::NamedOrBlankNode::NamedNode(nn) = &quad.subject {
+            edges.insert(nn.as_str().to_string());
+        }
+    }
+    for edge in &edges {
+        let producer = objects(store, edge, &iri(GMEOW, "buildFlowFrom"))?
+            .into_iter()
+            .find_map(|t| match t {
+                Term::NamedNode(nn) => Some(local_name(nn.as_str())),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                PipelineError::Parse(format!(
+                    "gmeow:BuildDataFlow {edge} has no gmeow:buildFlowFrom"
+                ))
+            })?;
+        let consumer = objects(store, edge, &iri(GMEOW, "buildFlowTo"))?
+            .into_iter()
+            .find_map(|t| match t {
+                Term::NamedNode(nn) => Some(local_name(nn.as_str())),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                PipelineError::Parse(format!(
+                    "gmeow:BuildDataFlow {edge} has no gmeow:buildFlowTo"
+                ))
+            })?;
+        let entity_terms = objects(store, edge, &iri(GMEOW, "flowEntity"))?;
+        let entities: BTreeSet<String> = entity_terms
+            .into_iter()
+            .filter_map(|t| match t {
+                Term::NamedNode(nn) => Some(nn.as_str().to_string()),
+                _ => None,
+            })
+            .collect();
+        if entities.is_empty() {
+            return Err(PipelineError::Parse(format!(
+                "gmeow:BuildDataFlow {edge} declares no gmeow:flowEntity (a typed dataflow edge must name at least one entity graph)"
+            )));
+        }
+        acc.entry(consumer)
+            .or_default()
+            .entry(producer)
+            .or_default()
+            .extend(entities);
+    }
+    // Materialize to sorted Vecs (by producer; entities sorted).
+    let out = acc
+        .into_iter()
+        .map(|(consumer, producers)| {
+            let mut rows: Vec<(String, Vec<String>)> = producers
+                .into_iter()
+                .map(|(p, ents)| (p, ents.into_iter().collect()))
+                .collect();
+            rows.sort();
+            (consumer, rows)
+        })
+        .collect();
+    Ok(out)
 }
 
 /// Resolve every stage's `gmeow:stageImpl` against the registry and prove the
@@ -252,6 +363,29 @@ pub fn bind(
                 stage: s.id.clone(),
                 rdf: s.resources.clone(),
                 rust: rust_res,
+            });
+        }
+
+        // Typed-dataflow (artifact-level) agreement: the executable twin must declare
+        // exactly the entity narrowing the RDF gmeow:DataFlow edges declare, or the
+        // cache could narrow on a different entity set than the stage reads (stale
+        // hazard). Normalize both sides (sorted by producer, entities sorted+deduped).
+        let mut rust_entities: Vec<(String, Vec<String>)> = stage
+            .consumed_entities()
+            .iter()
+            .map(|(producer, ents)| {
+                let mut e = ents.clone();
+                e.sort();
+                e.dedup();
+                (producer.clone(), e)
+            })
+            .collect();
+        rust_entities.sort();
+        if rust_entities != s.dataflow_entities {
+            return Err(PipelineError::DataFlowMismatch {
+                stage: s.id.clone(),
+                rdf: s.dataflow_entities.clone(),
+                rust: rust_entities,
             });
         }
 

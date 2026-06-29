@@ -146,6 +146,7 @@ fn reason_dataset(
 pub struct ReasonStage {
     consumes: Vec<String>,
     resources: Vec<String>,
+    entities: Vec<(String, Vec<String>)>,
 }
 
 impl ReasonStage {
@@ -155,6 +156,13 @@ impl ReasonStage {
     /// `dataflowConsumes` mirrors this set. It requires the exclusive
     /// [`ENGINE_RESOURCE`] (the sole resource-bearing build stage), so the scheduler
     /// serializes it against any stage competing for the reasoning engine.
+    ///
+    /// Typed dataflow (artifact-level): from `stage-compile-logic` it reads ONLY the
+    /// `logic`, `relational-core`, and `correspondence` named graphs (see
+    /// [`crate::stages::carrier::assemble_object_level_edb`]) — never that product's
+    /// other graphs or byte artifacts (diagnostics, the eight projection
+    /// serializations). Declaring those three entities lets a change to compile-logic's
+    /// diagnostics or projection bytes alone skip re-running the (expensive) reasoner.
     pub fn new() -> Self {
         Self {
             consumes: vec![
@@ -164,6 +172,14 @@ impl ReasonStage {
                 "stage-statements".to_string(),
             ],
             resources: vec![ENGINE_RESOURCE.to_string()],
+            entities: vec![(
+                "stage-compile-logic".to_string(),
+                vec![
+                    crate::stages::compile_logic::GRAPH_CORRESPONDENCE.to_string(),
+                    crate::stages::compile_logic::GRAPH_LOGIC.to_string(),
+                    crate::stages::compile_logic::GRAPH_RELATIONAL_CORE.to_string(),
+                ],
+            )],
         }
     }
 }
@@ -186,6 +202,9 @@ impl Stage for ReasonStage {
     }
     fn resources(&self) -> &[String] {
         &self.resources
+    }
+    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
+        &self.entities
     }
     fn impl_version(&self) -> &str {
         "reason.v1"

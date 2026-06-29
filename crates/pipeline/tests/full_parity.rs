@@ -315,6 +315,7 @@ fn is_pipeline_self_triple(s: &str, p: &str, o: &str) -> bool {
                         | "PipelineStage"
                         | "StageKind"
                         | "Resource"
+                        | "BuildDataFlow"
                         | "hasStage"
                         | "dataflowConsumes"
                         | "dataflowProduces"
@@ -323,6 +324,9 @@ fn is_pipeline_self_triple(s: &str, p: &str, o: &str) -> bool {
                         | "producesFormat"
                         | "requiresResource"
                         | "engineResource"
+                        | "flowEntity"
+                        | "buildFlowFrom"
+                        | "buildFlowTo"
                 )
         })
     };

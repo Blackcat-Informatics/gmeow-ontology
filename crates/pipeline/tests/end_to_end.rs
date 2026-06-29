@@ -26,6 +26,10 @@ fn repo_root() -> PathBuf {
 }
 
 fn spec(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    use gmeow_pipeline::stages::compile_logic::{
+        GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE,
+    };
+    let is_reason = kind == StageKind::Reason;
     StageSpec {
         id: id.to_string(),
         kind,
@@ -33,8 +37,22 @@ fn spec(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSp
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
         // The reason stage requires the exclusive engine resource; mirror the Rust
         // ReasonStage::resources() so bind's resource-agreement holds.
-        resources: if kind == StageKind::Reason {
+        resources: if is_reason {
             vec![ENGINE_RESOURCE.to_string()]
+        } else {
+            Vec::new()
+        },
+        // The reason stage reads only the logic/relational-core/correspondence graphs
+        // from compile-logic; mirror ReasonStage::consumed_entities() for bind.
+        dataflow_entities: if is_reason {
+            vec![(
+                "stage-compile-logic".to_string(),
+                vec![
+                    GRAPH_CORRESPONDENCE.to_string(),
+                    GRAPH_LOGIC.to_string(),
+                    GRAPH_RELATIONAL_CORE.to_string(),
+                ],
+            )]
         } else {
             Vec::new()
         },
