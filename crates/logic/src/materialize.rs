@@ -564,13 +564,27 @@ pub fn materialize_routed(
         }
         _ => {
             // PositiveHorn / declared StratifiedNAF / Probabilistic / Procedural / None.
-            // Empty rules (projection-only) and genuinely stratified sets run on Nemo
-            // (`preservation` is exact); a declared set that FAILS stratification has a
-            // non-empty unsupported set and is echoed asserted-only.
-            if preservation.unsupported_constructs.is_empty() {
-                None
-            } else {
+            // A declared set that FAILS stratification has a non-empty unsupported set and
+            // is echoed asserted-only. Otherwise the stratifiable Datalog± fragment is the
+            // native physical core's competence: TRY it first (native is authoritative for
+            // what it decides) and fall through to the Nemo fallback ONLY for a declared
+            // native gap (`NativeOutcome::Unsupported`). `preservation` is exact for this
+            // arm, so the native and Nemo paths disclose the same judgment.
+            if !preservation.unsupported_constructs.is_empty() {
                 Some(echo_edb_only(input)?)
+            } else {
+                let store = crate::store::WorldStore::new();
+                store.load_nquads(input).map_err(MaterializeError::Parse)?;
+                let eval_rules =
+                    crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
+                match crate::physical::materialize_native(&store, &eval_rules)
+                    .map_err(MaterializeError::Chase)?
+                {
+                    crate::physical::NativeOutcome::Decided(rows) => Some(rows),
+                    // A declared native gap (e.g. non-stratifiable after parse) falls
+                    // through to the demoted Nemo fallback / conformance oracle.
+                    crate::physical::NativeOutcome::Unsupported(_) => None,
+                }
             }
         }
     };
@@ -1045,6 +1059,56 @@ mod tests {
             m.preservation.polarities.contains(&PreservationKind::Exact),
             "a faithful chase is exact, got {:?}",
             m.preservation.polarities
+        );
+    }
+
+    /// Native-first forward wiring: a stratifiable Datalog± program
+    /// under the default `_ =>` routing arm is materialized by the native physical core
+    /// (`crate::physical::materialize_native`), NOT Nemo. The native engine is
+    /// authoritative for the closure, so the derived transitive `subClassOf` edge
+    /// `Dog ⊑ Animal` (from `Dog ⊑ Mammal`, `Mammal ⊑ Animal`) must be present in the
+    /// result. This pins that the native path is taken and produces the closure.
+    #[test]
+    fn materialize_routed_forward_uses_native_closure() {
+        let m = materialize_routed(
+            TRANSITIVITY_RULES,
+            CHAIN_NQUADS,
+            None,
+            None,
+            None,
+            Some("PositiveHornProfile"),
+        )
+        .expect("routed materialize must not fail");
+
+        let sub_class_of = "https://blackcatinformatics.ca/logic/subClassOf";
+        let want_subj = "http://example.org/Dog";
+        let want_obj = "http://example.org/Animal";
+        let derived: Vec<(String, String, String)> = m
+            .quads
+            .iter()
+            .map(|q| {
+                (
+                    q.subject.to_string(),
+                    q.predicate.as_str().to_owned(),
+                    q.object.to_string(),
+                )
+            })
+            .collect();
+        assert!(
+            derived.iter().any(|(s, p, o)| p == sub_class_of
+                && s == &format!("<{want_subj}>")
+                && o == &format!("<{want_obj}>")),
+            "native closure must derive Dog ⊑ Animal: {derived:?}"
+        );
+        // The two asserted EDB edges plus the one derived edge: closure is non-trivial.
+        let sco_edges: Vec<_> = derived
+            .iter()
+            .filter(|(_, p, _)| p == sub_class_of)
+            .collect();
+        assert_eq!(
+            sco_edges.len(),
+            3,
+            "expected 2 asserted + 1 derived subClassOf edges: {sco_edges:?}"
         );
     }
 }

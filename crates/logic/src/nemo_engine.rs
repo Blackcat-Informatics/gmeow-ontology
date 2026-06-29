@@ -3,6 +3,17 @@
 
 //! Nemo reasoner bridge — native targets only.
 //!
+//! # Role: not-yet-native fallback + conformance oracle
+//!
+//! The native physical engine (`crate::physical`) is the primary forward
+//! materialization path. This Nemo bridge is now the not-yet-native fallback and the
+//! conformance oracle for the forward fragments the native core does not yet decide:
+//! `materialize_routed` routes a stratifiable Datalog± program to the native engine
+//! first and only delegates here when the native core declares the program a gap
+//! (`NativeOutcome::Unsupported`). The code is retained — not deleted — precisely so it
+//! can keep checking the native engine for equivalence before the native core absorbs
+//! the remaining fragments.
+//!
 //! This module provides the surface that links the Nemo crate into
 //! `gmeow-logic`.  Rule materialization is driven by [`run_chase`], which
 //! owns a per-thread tokio `current_thread` runtime and calls the async Nemo
