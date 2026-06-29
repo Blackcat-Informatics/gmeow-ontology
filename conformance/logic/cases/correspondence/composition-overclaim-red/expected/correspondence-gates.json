@@ -2,6 +2,7 @@
   "per_composition": [
     {
       "composed_class": "AffineCorrespondence",
+      "composed_law_status": "ObligationUnknown",
       "composition": {
         "reason": "composite rung logic:WellBehavedLens is STRONGER than the lattice-join logic:AffineCorrespondence of its parts (logic:LossyLens ∘ logic:AffineCorrespondence); composition may only weaken the rung, never strengthen it",
         "status": "red"
