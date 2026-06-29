@@ -212,13 +212,6 @@ pub struct FileBaseline {
 }
 
 impl FileBaseline {
-    pub fn liftable(&self) -> usize {
-        self.per_term
-            .values()
-            .filter(|bucket| matches!(bucket.as_str(), "clean" | "liftable-with-claim"))
-            .count()
-    }
-
     pub fn total(&self) -> usize {
         self.per_term.len()
     }
@@ -233,10 +226,6 @@ pub struct AuditReport {
 }
 
 impl AuditReport {
-    pub fn liftable(&self) -> usize {
-        self.files.iter().map(FileBaseline::liftable).sum()
-    }
-
     pub fn total(&self) -> usize {
         self.files.iter().map(FileBaseline::total).sum()
     }
@@ -1041,7 +1030,9 @@ fn value_mapped_pairs(projection_ttls: &[String]) -> Result<ValueRuleMap, String
         .collect())
 }
 
-fn edoalpath_pairs(projection_ttls: &[String]) -> Result<(TargetSetMap, TargetSetMap), String> {
+pub(crate) fn edoalpath_pairs(
+    projection_ttls: &[String],
+) -> Result<(TargetSetMap, TargetSetMap), String> {
     let mut direct: TargetSetMap = BTreeMap::new();
     let mut inverse: TargetSetMap = BTreeMap::new();
     for ttl in projection_ttls {
@@ -1558,6 +1549,20 @@ fn value(quads: &[RdfQuad], subject: &RdfTerm, pred: &str) -> Option<RdfTerm> {
     objects(quads, subject, pred).into_iter().next()
 }
 
+/// Parse a Turtle document and re-serialize it as N-Triples — the Rust-native TTL→NT
+/// conversion the gate-derived audit uses so corpus reading never re-enters Python (rdflib).
+pub(crate) fn ttl_to_nt(ttl: &str) -> Result<String, String> {
+    let dataset = gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+        .map_err(|e| format!("TTL parse failed: {e}"))?;
+    let bytes = gmeow_rdf::serialize_dataset(
+        &dataset,
+        "application/n-triples",
+        gmeow_rdf::SerializeGraph::Dataset,
+    )
+    .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
+    String::from_utf8(bytes).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
+}
+
 /// The first object that is an IRI, returned as its IRI string.
 fn value_named(quads: &[RdfQuad], subject: &RdfTerm, pred: &str) -> Option<String> {
     value(quads, subject, pred).and_then(|term| match term {
@@ -1653,7 +1658,7 @@ fn projection_namespaces() -> &'static [&'static str] {
     })
 }
 
-fn canon_qname(iri: &str) -> String {
+pub(crate) fn canon_qname(iri: &str) -> String {
     static SORTED_PREFIXES: OnceLock<Vec<(&'static str, &'static str)>> = OnceLock::new();
     let prefixes = SORTED_PREFIXES.get_or_init(|| {
         let mut prefixes = PREFIXES.to_vec();
@@ -1668,7 +1673,7 @@ fn canon_qname(iri: &str) -> String {
     iri.to_owned()
 }
 
-fn prefix(term: &str) -> &str {
+pub(crate) fn prefix(term: &str) -> &str {
     term.split_once(':').map_or("", |(pfx, _)| pfx)
 }
 

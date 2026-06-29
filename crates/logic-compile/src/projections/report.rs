@@ -76,6 +76,12 @@ pub struct ReportHeader {
     /// SSSOM-heuristic "liftable" headline — `count(round-trip/mnemomorphism PASS) /
     /// count(correspondences)` — carried in the canonical loss ledger.
     pub lawful_uplift_count: usize,
+    /// `logic:claimedUpliftCount` — the number of correspondences whose up-lift is
+    /// LIFTABLE but only CLAIMED (asserted by the alignment relation, `ObligationUnknown`),
+    /// not proved by inversion. Carried alongside `lawful_uplift_count` so the canonical
+    /// loss ledger discloses the full proved/claimed split (maximal information flow), not
+    /// only the proved numerator. Emitted only when non-zero.
+    pub claimed_uplift_count: usize,
 }
 
 impl ReportHeader {
@@ -90,6 +96,7 @@ impl ReportHeader {
             formula_count: program.formulas.len(),
             correspondence_count: program.correspondences.len(),
             lawful_uplift_count: 0,
+            claimed_uplift_count: 0,
         }
     }
 
@@ -97,6 +104,13 @@ impl ReportHeader {
     /// correspondence gate verdicts). The denominator is [`Self::correspondence_count`].
     pub fn with_lawful_uplift(mut self, lawful: usize) -> Self {
         self.lawful_uplift_count = lawful;
+        self
+    }
+
+    /// Set the claimed (asserted-but-not-proved) up-lift count carried alongside the lawful
+    /// numerator, so the loss ledger discloses the full proved/claimed split.
+    pub fn with_claimed_uplift(mut self, claimed: usize) -> Self {
+        self.claimed_uplift_count = claimed;
         self
     }
 }
@@ -172,6 +186,16 @@ pub fn build_projection_report_from(
             &logic("lawfulUpliftCount"),
             int_literal(header.lawful_uplift_count),
         );
+        // The claimed tier (asserted-but-not-proved up-lifts) — emitted only when non-zero so
+        // a claim-free report stays byte-identical, while the proved/claimed split is never
+        // collapsed when present.
+        if header.claimed_uplift_count > 0 {
+            g.add_lit(
+                &report_iri,
+                &logic("claimedUpliftCount"),
+                int_literal(header.claimed_uplift_count),
+            );
+        }
     }
 
     // Targets in sorted order (the Python `sorted(projections, key=target)`).
@@ -250,6 +274,7 @@ mod tests {
             formula_count: 0,
             correspondence_count,
             lawful_uplift_count,
+            claimed_uplift_count: 0,
         }
     }
 

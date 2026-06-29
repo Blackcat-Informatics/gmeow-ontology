@@ -501,7 +501,16 @@ pub fn emit_gts(
     // often and lives in git, so a higher level pays off (smaller blob + smaller
     // git delta), while rsyncable keeps chunk boundaries stable. Other profiles are
     // not committed artifacts and keep the Fastest default.
-    let zstd_level: Option<i32> = if profile == "dist" {
+    //
+    // A `zstd_level` is meaningful only for a zstd-family frame; the writer hard-fails
+    // a level paired with a non-zstd transform. Gate the level on the actual chain (not
+    // just the `dist` profile name) so a caller may still emit a `dist`-profile snapshot
+    // under `gzip`/`identity` — the production bundle passes `zstd-rsyncable`, so it
+    // keeps level 12.
+    let chain_is_zstd = base_chain
+        .iter()
+        .any(|t| t == "zstd" || t == "zstd-rsyncable");
+    let zstd_level: Option<i32> = if profile == "dist" && chain_is_zstd {
         Some(DIST_ZSTD_LEVEL)
     } else {
         None
