@@ -281,6 +281,12 @@ fn assemble_carrier(
     for (path, bytes) in mappings.artifacts() {
         if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(&path) {
             datasets.push(parse_into_graph(&bytes, "text/turtle", &iri)?);
+        } else if crate::stages::superset::is_rdf_fanout_class(&path) {
+            // The non-EDOAL RDF projections (core-prefixes / functions.fno /
+            // list-functions), now emitted canonically by the mappings stage.
+            if let Some(iri) = crate::stages::superset::rdf_fanout_graph_iri(&path) {
+                datasets.push(parse_into_graph(&bytes, "text/turtle", &iri)?);
+            }
         }
     }
     // graph/fanout/<path> ← every other RDF generated/ file, one named graph per file,
