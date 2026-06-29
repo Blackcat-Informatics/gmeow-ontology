@@ -38,8 +38,10 @@ pub struct StageSpec {
     pub impl_key: String,
     /// `gmeow:dataflowConsumes` — upstream stage ids, sorted, deduplicated.
     pub consumes: Vec<String>,
-    /// `gmeow:carriesEngineLock` — validated to equal `kind.carries_engine_lock()`.
-    pub engine_lock: bool,
+    /// `gmeow:requiresResource` — the IRIs of shared resources the stage holds
+    /// exclusively while running, sorted, deduplicated. Validated against the Rust
+    /// impl's `resources()` at bind time (Rust/RDF agreement).
+    pub resources: Vec<String>,
     /// `gmeow:producesFormat` — output format tags, sorted (export leaves).
     pub formats: Vec<String>,
 }
@@ -61,22 +63,10 @@ impl PipelineSpec {
 
     /// Validate the DAG structure and return the levelled execution plan.
     ///
-    /// HARD-fails on: a dangling `dataflowConsumes`, a cycle, no `Sink`, more
-    /// than one `Sink`, or any stage whose `carriesEngineLock` disagrees with
-    /// the kind-derived value (single source of truth, #861).
+    /// HARD-fails on: a dangling `dataflowConsumes`, a cycle, no `Sink`, or more
+    /// than one `Sink`. (Rust/RDF resource agreement is proven at `bind` time,
+    /// once the executable twin is resolved.)
     pub fn validate(&self) -> Result<StageGraph, PipelineError> {
-        // ── Engine-lock single source of truth. ──
-        for s in &self.stages {
-            let derived = s.kind.carries_engine_lock();
-            if s.engine_lock != derived {
-                return Err(PipelineError::EngineLockMismatch {
-                    stage: s.id.clone(),
-                    rdf: s.engine_lock,
-                    derived,
-                });
-            }
-        }
-
         // ── Exactly one Sink (the gts narrow waist). ──
         let sinks: Vec<&str> = self
             .stages
@@ -171,13 +161,17 @@ fn parse_stage(store: &Store, stage_iri: &str) -> Result<StageSpec, PipelineErro
         .find_map(literal_string)
         .ok_or_else(|| PipelineError::Parse(format!("stage {id} has no gmeow:stageImpl")))?;
 
-    // gmeow:carriesEngineLock (exactly one boolean).
-    let engine_lock = objects(store, stage_iri, &iri(GMEOW, "carriesEngineLock"))?
+    // gmeow:requiresResource (zero or more resource IRIs, kept whole — resources
+    // are not stages, so they are not reduced to local names).
+    let mut resources: Vec<String> = objects(store, stage_iri, &iri(GMEOW, "requiresResource"))?
         .into_iter()
-        .find_map(literal_bool)
-        .ok_or_else(|| {
-            PipelineError::Parse(format!("stage {id} has no gmeow:carriesEngineLock"))
-        })?;
+        .filter_map(|t| match t {
+            Term::NamedNode(nn) => Some(nn.as_str().to_string()),
+            _ => None,
+        })
+        .collect();
+    resources.sort();
+    resources.dedup();
 
     // gmeow:dataflowConsumes (zero or more stage IRIs → local names).
     let mut consumes: Vec<String> = objects(store, stage_iri, &iri(GMEOW, "dataflowConsumes"))?
@@ -203,7 +197,7 @@ fn parse_stage(store: &Store, stage_iri: &str) -> Result<StageSpec, PipelineErro
         kind,
         impl_key,
         consumes,
-        engine_lock,
+        resources,
         formats,
     })
 }
@@ -244,6 +238,20 @@ pub fn bind(
                 stage: s.id.clone(),
                 rdf: s.consumes.clone(),
                 rust,
+            });
+        }
+
+        // Resource agreement (both sides sorted+deduped): the executable twin must
+        // declare exactly the shared resources the RDF does, or the scheduler's
+        // serialization would diverge from the authored model.
+        let mut rust_res: Vec<String> = stage.resources().to_vec();
+        rust_res.sort();
+        rust_res.dedup();
+        if rust_res != s.resources {
+            return Err(PipelineError::ResourceMismatch {
+                stage: s.id.clone(),
+                rdf: s.resources.clone(),
+                rust: rust_res,
             });
         }
 
@@ -307,17 +315,6 @@ fn single_subject_of_type(store: &Store, class_iri: &str) -> Result<Option<Strin
 fn literal_string(term: Term) -> Option<String> {
     match term {
         Term::Literal(l) => Some(l.value().to_string()),
-        _ => None,
-    }
-}
-
-fn literal_bool(term: Term) -> Option<bool> {
-    match term {
-        Term::Literal(l) => match l.value() {
-            "true" | "1" => Some(true),
-            "false" | "0" => Some(false),
-            _ => None,
-        },
         _ => None,
     }
 }

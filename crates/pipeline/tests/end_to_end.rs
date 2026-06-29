@@ -5,14 +5,16 @@
 //! spine — source_load → (statements, mappings) → reason → gts_compose →
 //! validate/docs_render → gts_sink — over the real repo, binding every stage
 //! against the default registry and serializing `gmeow.gts`. This exercises the
-//! whole machinery (DAG validate → bind → level-parallel schedule → ENGINE_LOCK on reason →
-//! content-addressed cache → one Sink) on production data, not synthetics. (GTS
-//! readability + scheduler determinism are pinned by the crate's unit tests.)
+//! whole machinery (DAG validate → bind → level-parallel schedule → engine-resource
+//! serialization on reason → content-addressed cache → one Sink) on production data,
+//! not synthetics. (GTS readability + scheduler determinism are pinned by the
+//! crate's unit tests.)
 
 use std::path::{Path, PathBuf};
 
 use gmeow_pipeline::{
     bind, default_registry, run, PipelineCache, PipelineSpec, RunContext, StageKind, StageSpec,
+    ENGINE_RESOURCE,
 };
 
 fn repo_root() -> PathBuf {
@@ -29,7 +31,13 @@ fn spec(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSp
         kind,
         impl_key: impl_key.to_string(),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
-        engine_lock: kind.carries_engine_lock(),
+        // The reason stage requires the exclusive engine resource; mirror the Rust
+        // ReasonStage::resources() so bind's resource-agreement holds.
+        resources: if kind == StageKind::Reason {
+            vec![ENGINE_RESOURCE.to_string()]
+        } else {
+            Vec::new()
+        },
         formats: Vec::new(),
     }
 }

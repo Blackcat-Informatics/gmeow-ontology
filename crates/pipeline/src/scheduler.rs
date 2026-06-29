@@ -4,15 +4,17 @@
 //! The level-parallel scheduler + the [`RunContext`] (#861 P2).
 //!
 //! Stages run by topological level (from [`crate::graph::StageGraph`]); within a
-//! level, independent stages run in parallel (rayon), except `Reason` stages,
-//! which serialize under the process-wide [`ENGINE_LOCK`] because the underlying
-//! Nemo/Scryer engines hold their own global locks. Each stage's product is
+//! level, independent stages run in parallel (rayon). A stage that declares a
+//! shared resource (`gmeow:requiresResource`, e.g. the reasoning stage's
+//! [`crate::node::ENGINE_RESOURCE`]) holds it exclusively while it runs, so two
+//! stages competing for the same resource serialize — the declarative
+//! replacement for a hardcoded engine mutex. Each stage's product is
 //! content-addressed and memoized in the [`PipelineCache`]; the final result is
 //! keyed by stage id (a `BTreeMap`) and folded into one order-independent
 //! `combined_digest`, so a run is byte-identical regardless of completion order
 //! — the determinism the P2 tests pin.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex};
 
@@ -26,10 +28,28 @@ use crate::graph::StageGraph;
 use crate::node::{Stage, StageInput, StageProduct};
 use crate::provenance::register_stage_unit;
 
-/// Serializes execution of every `Reason` stage. Mirrors the `CHASE_LOCK` in
-/// `gmeow-logic` (the Nemo/Scryer engines are not concurrency-safe). A permit,
-/// not data — results are returned, never stored behind the lock.
-pub static ENGINE_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
+/// The process-wide registry of per-resource mutexes. A stage that declares a
+/// `gmeow:requiresResource` acquires that resource's permit before running, so two
+/// stages competing for the same resource serialize. A permit, not data — results
+/// are returned, never stored behind the lock. The engine resource
+/// ([`crate::node::ENGINE_RESOURCE`]) mirrors the `CHASE_LOCK` in `gmeow-logic`
+/// (the Nemo/Scryer engines are not concurrency-safe); any other shared resource a
+/// stage declares serializes the same way, with no new special case.
+static RESOURCE_LOCKS: LazyLock<Mutex<HashMap<String, Arc<Mutex<()>>>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
+
+/// The permit mutex for `resource`, created on first request. The registry mutex is
+/// held only to look up / insert the `Arc`, never across a stage's execution.
+fn resource_lock(resource: &str) -> Arc<Mutex<()>> {
+    let mut registry = RESOURCE_LOCKS
+        .lock()
+        .expect("resource-lock registry poisoned");
+    Arc::clone(
+        registry
+            .entry(resource.to_string())
+            .or_insert_with(|| Arc::new(Mutex::new(()))),
+    )
+}
 
 /// The shared state of one pipeline run: the repo root, the parallelism budget,
 /// the content-addressed cache, and the provenance sidecar stages stamp into.
@@ -160,10 +180,10 @@ pub fn run(
     let mut level_walls: Vec<(usize, u128, String)> = Vec::new();
 
     for (level_idx, level) in graph.levels.iter().enumerate() {
-        // Parallel phase: every stage in the level runs concurrently; Reason
-        // stages serialize internally under the ENGINE_LOCK. `products` and
-        // `cache` are read-only here — siblings in one level never depend on
-        // each other, so no stage can hit another's same-level cache write.
+        // Parallel phase: every stage in the level runs concurrently; stages that
+        // declare a shared resource serialize internally on that resource's permit.
+        // `products` and `cache` are read-only here — siblings in one level never
+        // depend on each other, so no stage can hit another's same-level cache write.
         let root: &Path = &ctx.root;
         let cache = &ctx.cache;
         let runs: Vec<StageRun> = pool.install(|| {
@@ -295,15 +315,23 @@ fn exec_stage(
         root,
         upstream: &upstream,
     };
-    let out = if stage.kind().carries_engine_lock() {
-        let _guard = ENGINE_LOCK.lock().map_err(|e| PipelineError::Stage {
+    // Acquire the stage's declared resources exclusively, in sorted IRI order
+    // (deadlock-free: every stage takes a common subset of locks in the same
+    // order), holding them across `run`. Two stages requiring the same resource
+    // serialize — the resource-conflict replacement for the former engine lock.
+    let mut resources: Vec<&str> = stage.resources().iter().map(String::as_str).collect();
+    resources.sort_unstable();
+    resources.dedup();
+    let locks: Vec<Arc<Mutex<()>>> = resources.iter().map(|r| resource_lock(r)).collect();
+    let mut _guards = Vec::with_capacity(locks.len());
+    for (lock, resource) in locks.iter().zip(&resources) {
+        _guards.push(lock.lock().map_err(|e| PipelineError::Stage {
             stage: stage.id().to_string(),
-            message: format!("ENGINE_LOCK poisoned: {e}"),
-        })?;
-        stage.run(input)?
-    } else {
-        stage.run(input)?
-    };
+            message: format!("resource lock {resource} poisoned: {e}"),
+        })?);
+    }
+    let out = stage.run(input)?;
+    drop(_guards);
 
     Ok(StageRun {
         id: stage.id().to_string(),

@@ -7,9 +7,10 @@
 //!
 //! A stage is re-cut for in-memory dataflow: it consumes the products of its
 //! upstream stages (live handles, not re-parsed files) and emits one product.
-//! The kind selects the scheduler's treatment — only [`StageKind::Reason`] runs
-//! under the process-wide engine lock; everything else is parallel within its
-//! topological level.
+//! Each resource a stage [`Stage::resources`] declares is held exclusively while
+//! it runs — two stages competing for the same resource serialize; everything
+//! else is parallel within its topological level. The reasoning stage requires
+//! [`ENGINE_RESOURCE`] (the Nemo/Scryer engines are not concurrency-safe).
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -27,10 +28,15 @@ use crate::error::PipelineError;
 /// The GMEOW namespace prefix that every pipeline term lives under.
 pub(crate) const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
-/// The kind of a pipeline stage. The kind drives scheduling and, crucially,
-/// *derives* whether the stage carries the engine lock — the RDF
-/// `gmeow:carriesEngineLock` flag is validated against this, never trusted
-/// independently (single source of truth, #861).
+/// The `gmeow:engineResource` IRI: the process-wide reasoning engine, declared as
+/// an exclusive [`Stage::resources`] requirement by the sole `Reason` stage. The
+/// scheduler serializes any two stages requiring the same resource (the
+/// declarative replacement for a hardcoded engine mutex).
+pub const ENGINE_RESOURCE: &str = "https://blackcatinformatics.ca/gmeow/engineResource";
+
+/// The kind of a pipeline stage. The kind drives scheduling treatment; serialization
+/// is no longer kind-derived — a stage declares the shared resources it competes for
+/// through [`Stage::resources`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum StageKind {
     /// Parse authored sources (statement-dsl, slices, imports) into a dataset.
@@ -90,13 +96,6 @@ impl StageKind {
             "kindSink" => StageKind::Sink,
             _ => return None,
         })
-    }
-
-    /// Whether a stage of this kind must run under the process-wide engine lock.
-    /// This is the SINGLE source of truth for the lock; the RDF
-    /// `gmeow:carriesEngineLock` flag is validated to equal this (#861).
-    pub fn carries_engine_lock(self) -> bool {
-        matches!(self, StageKind::Reason)
     }
 }
 
@@ -221,14 +220,23 @@ pub struct StageOutput {
 
 /// A pipeline stage: one node in the build DAG. The Rust impl is the executable
 /// twin of a `gmeow:PipelineStage` individual; the loader binds them by
-/// `gmeow:stageImpl` and HARD-fails if their `kind` / `consumes` disagree.
+/// `gmeow:stageImpl` and HARD-fails if their `kind` / `consumes` / `resources`
+/// disagree.
 pub trait Stage: Send + Sync {
     /// The stable stage id — matches the `gmeow:PipelineStage` individual.
     fn id(&self) -> &str;
-    /// The stage kind (drives scheduling + the engine-lock derivation).
+    /// The stage kind (drives scheduling treatment).
     fn kind(&self) -> StageKind;
     /// The ids of the upstream stages this stage consumes, sorted.
     fn consumes(&self) -> &[String];
+    /// The IRIs of the shared resources this stage must hold exclusively while it
+    /// runs (`gmeow:requiresResource`), sorted. Two stages declaring the same
+    /// resource serialize; the default is none (parallel-eligible). The reasoning
+    /// stage declares [`ENGINE_RESOURCE`]. The loader HARD-fails if this disagrees
+    /// with the RDF `gmeow:requiresResource` declaration.
+    fn resources(&self) -> &[String] {
+        &[]
+    }
     /// A version string folded into the cache key; bump to invalidate this
     /// stage's cached products when its logic changes.
     fn impl_version(&self) -> &str;
