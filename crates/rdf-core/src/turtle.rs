@@ -143,7 +143,7 @@ pub fn emit_quad(quad: &RdfQuad) -> String {
 /// for every reifier, so anonymising is what keeps them apart).
 ///
 /// When `annotations` is empty the reifier's annotations are emitted as
-/// *standalone* triples elsewhere (e.g. [`asserted_turtle`]), which reference
+/// *standalone* triples elsewhere (e.g. `asserted_turtle`), which reference
 /// the reifier by its blank-node label. Emitting `[]` here would mint a new
 /// anonymous node disconnected from those triples, silently severing the
 /// reifier↔annotation link — so the blank node is emitted by its label instead.

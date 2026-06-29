@@ -3,8 +3,8 @@
 
 //! PyO3 Python bindings for `gmeow-docs`.
 //!
-//! Task 1 (#853) exposes [`model_json`]: serialize the typed
-//! [`DocsModel`](crate::model::DocsModel) built from the slice catalog under
+//! Task 1 (#853) exposes `model_json`: serialize the typed
+//! [`DocsModel`] built from the slice catalog under
 //! `<root>/slices` to a deterministic JSON string.
 //!
 //! Task 3 (#853) adds [`DocSet`]: the rust-first static-site renderer surface

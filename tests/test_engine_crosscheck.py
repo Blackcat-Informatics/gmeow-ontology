@@ -36,6 +36,7 @@ from gmeow_tools.oracles.engine_crosscheck import (
     crosscheck_all,
     crosscheck_query,
     run,
+    write_artifacts,
 )
 
 _WIDGET = URIRef("https://example.org/Widget")
@@ -170,14 +171,16 @@ def test_build_report_all_agree_is_ok() -> None:
 
 
 def test_run_writes_artifacts_and_passes_on_the_real_surface(
+    crosscheck_results: list[CrosscheckResult],
     tmp_path: Path,
 ) -> None:
     """``run`` cross-checks the committed queries and writes JSON/SARIF/HTML (#667)."""
-    passed, results, _report = run(output_dir=tmp_path)
+    report = build_report(crosscheck_results)
+    write_artifacts(report, output_dir=tmp_path)
 
-    assert passed, "engine cross-check unexpectedly diverged: " + "\n".join(
+    assert report.ok, "engine cross-check unexpectedly diverged: " + "\n".join(
         f"  [{r.form}] {r.name}: {r.detail}"
-        for r in results
+        for r in crosscheck_results
         if not r.agree and not r.skipped
     )
     for kind in ("json", "sarif", "html"):
@@ -189,3 +192,22 @@ def test_run_writes_artifacts_and_passes_on_the_real_surface(
         )["version"]
         == "2.1.0"
     )
+
+
+def test_run_uses_the_shared_artifact_writer(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """``run`` still orchestrates cross-checking, reporting, and artifact output."""
+    synthetic = [CrosscheckResult("audit/a.rq", "SELECT", agree=True)]
+    monkeypatch.setattr(
+        "gmeow_tools.oracles.engine_crosscheck.crosscheck_all",
+        lambda: synthetic,
+    )
+
+    passed, results, report = run(output_dir=tmp_path)
+
+    assert passed
+    assert results == synthetic
+    assert report.ok
+    assert (tmp_path / f"{ENGINE_CROSSCHECK_STEM}.json").exists()

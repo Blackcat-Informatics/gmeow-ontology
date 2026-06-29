@@ -15,7 +15,7 @@
 //! XML). The git-ignored crate `.zip` is intentionally NOT produced here.
 //!
 //! The eight `.ttl` outputs require a faithful re-implementation of rdflib's
-//! recursive Turtle serializer ([`turtle`] below): subjects ordered by
+//! recursive Turtle serializer (`turtle` below): subjects ordered by
 //! `(is_bnode, ref_count, iri)`, predicates `a`/`rdfs:label`-first then sorted,
 //! objects sorted, literals canonicalized exactly as rdflib's `_literal_n3`
 //! (notably xsd:dateTime `Z` → `+00:00`). The `dcat.ttl` additionally runs the
