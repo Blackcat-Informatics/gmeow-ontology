@@ -423,10 +423,7 @@ fn rdf_term_to_value(term: &RdfTerm) -> TermValue {
 fn rdf_term_to_value_scoped(term: &RdfTerm, scope: BlankScope) -> TermValue {
     match term {
         RdfTerm::Iri(iri) => TermValue::Iri(iri.clone()),
-        RdfTerm::BlankNode(label) => TermValue::Blank {
-            label: label.clone(),
-            scope,
-        },
+        RdfTerm::BlankNode(label) => blank_value_scoped(label, scope),
         RdfTerm::Literal(lit) => TermValue::Literal {
             lexical_form: lit.lexical_form.clone(),
             datatype: match (&lit.datatype, &lit.language) {
@@ -442,6 +439,47 @@ fn rdf_term_to_value_scoped(term: &RdfTerm, scope: BlankScope) -> TermValue {
             p: Box::new(TermValue::Iri(t.predicate.clone())),
             o: Box::new(rdf_term_to_value_scoped(&t.object, scope)),
         },
+    }
+}
+
+/// Build the `TermValue::Blank` for a surfaced blank-node `label`.
+///
+/// Under a non-default `scope` (the per-load isolation path), the bare label is
+/// tagged with that scope verbatim. Under the DEFAULT scope (a blank node arriving
+/// FROM Python — `add`/`remove`/`contains`/a substitution/pattern), the label may
+/// already carry the `.s{n}` scope suffix [`BlankScope::qualify_label`] emitted on
+/// the way OUT; decode it back to its `(label, scope)` so a round-tripped blank
+/// matches the stored node (the inverse of `qualify_label`).
+fn blank_value_scoped(label: &str, scope: BlankScope) -> TermValue {
+    if scope == BlankScope::DEFAULT {
+        blank_value_from_external_label(label)
+    } else {
+        TermValue::Blank {
+            label: label.to_owned(),
+            scope,
+        }
+    }
+}
+
+/// Decode a surfaced blank label, reversing [`BlankScope::qualify_label`]: a label of
+/// the form `"{inner}.s{n}"` (with non-empty `inner` and `n > 0`) decodes to
+/// `Blank{inner, scope: n}`; any other label is a DEFAULT-scope blank verbatim.
+fn blank_value_from_external_label(label: &str) -> TermValue {
+    if let Some((inner, raw_scope)) = label.rsplit_once(".s") {
+        if !inner.is_empty() {
+            if let Ok(scope) = raw_scope.parse::<u32>() {
+                if scope > 0 {
+                    return TermValue::Blank {
+                        label: inner.to_owned(),
+                        scope: BlankScope(scope),
+                    };
+                }
+            }
+        }
+    }
+    TermValue::Blank {
+        label: label.to_owned(),
+        scope: BlankScope::DEFAULT,
     }
 }
 
@@ -573,5 +611,76 @@ mod tests {
             panic!("expected a literal");
         };
         assert_eq!(lit.datatype, None, "plain literal stays datatype-less");
+    }
+
+    // ── capsule boundary (EPIC #906) ─────────────────────────────────────────────
+    //
+    // These tests pin the `_store_capsule` contract WITHOUT a Python interpreter:
+    // they exercise the same snapshot → `Box<Arc<RdfDataset>>` → raw-address →
+    // borrow lifecycle the capsule producer/consumer use across the FFI boundary.
+    // The capsule's `#[pymethods]` are thin wrappers over exactly this logic.
+
+    /// Build a [`MutableDataset`] seeded with `n` distinct default-graph triples.
+    fn mutable_with(n: usize) -> MutableDataset {
+        let mut m = empty_mutable().expect("empty");
+        for i in 0..n {
+            m.insert(rdf_quad_to_values(&RdfQuad::new(
+                iri(&format!("https://e/s{i}")),
+                "https://e/p",
+                iri("https://e/o"),
+            )));
+        }
+        m
+    }
+
+    /// Freeze the snapshot exactly as `_store_capsule` does (a frozen `Arc`), box it
+    /// for a stable address, read the pointee back by raw address, and assert the
+    /// boxed Arc round-trips. Dropping the box drops exactly ONE strong ref — no
+    /// double-free (the destructor closure owns the single `keepalive` box).
+    #[test]
+    fn capsule_snapshot_round_trips_by_address_without_double_free() {
+        let store = mutable_with(2);
+        let snapshot: Arc<RdfDataset> = store.freeze().expect("freeze");
+        assert_eq!(Arc::strong_count(&snapshot), 1);
+
+        // Mirror `_store_capsule`: box the Arc so its address is stable, hand out the
+        // address, then read the Arc back through the raw pointer (as the consumer
+        // does after `pointer_checked`).
+        let boxed: Box<Arc<RdfDataset>> = Box::new(snapshot);
+        let addr = (&*boxed as *const Arc<RdfDataset>) as usize;
+        // SAFETY: `addr` is the live address of the Arc owned by `boxed` (test-local).
+        let borrowed: &Arc<RdfDataset> = unsafe { &*(addr as *const Arc<RdfDataset>) };
+        assert_eq!(borrowed.quad_count(), 2);
+        // The consumer may clone the Arc to extend its lifetime; that is a second
+        // strong ref over the SAME dataset, dropped before the box is.
+        let consumer_clone = Arc::clone(borrowed);
+        assert_eq!(Arc::strong_count(borrowed), 2);
+        drop(consumer_clone);
+        assert_eq!(Arc::strong_count(borrowed), 1);
+        // The capsule destructor drops the box exactly once → one strong ref freed.
+        drop(boxed);
+    }
+
+    /// Snapshot-vs-mutation aliasing: a consumer holding the frozen snapshot Arc must
+    /// see a STABLE dataset after the producing store mutates (the capsule hands out
+    /// an immutable frozen snapshot, not a live view).
+    #[test]
+    fn capsule_snapshot_is_unaffected_by_later_store_mutation() {
+        let mut store = mutable_with(1);
+        let snapshot: Arc<RdfDataset> = store.freeze().expect("freeze");
+        assert_eq!(snapshot.quad_count(), 1);
+
+        // The store mutates AFTER the snapshot was taken (a later `Store.add`).
+        store.insert(rdf_quad_to_values(&RdfQuad::new(
+            iri("https://e/s-new"),
+            "https://e/p",
+            iri("https://e/o"),
+        )));
+        let after = store.freeze().expect("freeze again");
+
+        // The earlier snapshot the consumer holds is UNCHANGED…
+        assert_eq!(snapshot.quad_count(), 1, "held snapshot must stay stable");
+        // …while a fresh snapshot reflects the mutation.
+        assert_eq!(after.quad_count(), 2, "fresh snapshot sees the new quad");
     }
 }
