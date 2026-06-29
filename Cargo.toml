@@ -105,6 +105,14 @@ debug = false
 # Strip the residual symbol tables from the linked test binaries / bins too (panic
 # backtraces lose function names — acceptable, we never debug here).
 strip = "symbols"
+# opt-level 1, with debug-assertions/overflow-checks kept ON: this suite is brutally
+# compute-bound, and opt-0's no-inlining/no-regalloc makes the test RUN pathologically
+# slow. MEASURED 2026-06-29 over the full 3479-test gated suite: run 83s → 9s (~9x) at
+# opt-1, faster even COLD (compile 50s→105s but total 133s→114s) and ~74s/cycle in the
+# warm dev loop. opt-2 buys nothing more (9s→8s) for +15s compile, so opt-1 is the
+# sweet spot. nemo stays RAM-safe at opt-1 / dev's default 256 codegen-units (built
+# clean in the measurement). debug-assertions stay on, so test coverage is unchanged.
+opt-level = 1
 
 # Workspace-wide thin-LTO (#828 item 3). `lto` is profile-global — it cannot be
 # scoped away from nemo the way codegen-units is — so enabling it was gated on a
