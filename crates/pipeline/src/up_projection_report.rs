@@ -6,7 +6,7 @@
 //! evaluation live in [`crate::up_projection_gates`]; this module never re-derives a count.
 //!
 //! The headline is the gate-verdict ledger `(proved + claimed) / total`, with the
-//! proved-lawful / claimed split disclosed beneath and the gate-excluded / unsupported residue
+//! proved / claimed split disclosed beneath and the red_excluded / unsupported residue
 //! surfaced (never hidden — "count, don't abort" must not conceal a RED).
 
 use crate::up_projection_gates::AuditLedger;
@@ -39,10 +39,10 @@ pub fn render_audit_markdown(ledger: &AuditLedger) -> String {
         "## Headline: {liftable}/{total} target terms liftable ({pct}%)\n"
     ));
     lines.push(format!(
-        "- **proved-lawful** (round-trip / mnemomorphism gate PASS): {}\n\
+        "- **proved** (round-trip / mnemomorphism gate PASS): {}\n\
          - **claimed** (alignment-asserted, `ObligationUnknown` — not discharged): {}\n\
-         - gate-excluded (a liftable bucket whose correspondence tripped a gate): {}\n\
-         - unsupported (no lift rule — `hard-mint` / `down-only` / `GAP`): {}\n",
+         - **red_excluded** (a liftable bucket whose correspondence tripped a gate): {}\n\
+         - **unsupported** (no lift rule — `hard-mint` / `down-only` / `GAP`): {}\n",
         t.proved, t.claimed, t.red_excluded, t.unsupported
     ));
 
@@ -58,7 +58,7 @@ pub fn render_audit_markdown(ledger: &AuditLedger) -> String {
         t.claimed
     ));
     lines.push(format!(
-        "| gate-excluded | {} | reverse rule does not invert the forward rule (or overclaims) |",
+        "| red_excluded | {} | reverse rule does not invert the forward rule (or overclaims) |",
         t.red_excluded
     ));
     lines.push(format!(
@@ -69,7 +69,9 @@ pub fn render_audit_markdown(ledger: &AuditLedger) -> String {
 
     // Per-vocabulary breakdown (gate-derived).
     lines.push("## Per-vocabulary (gate-derived)\n".to_owned());
-    lines.push("| vocab | liftable/total | proved | claimed | excluded | unsupported |".to_owned());
+    lines.push(
+        "| vocab | liftable/total | proved | claimed | red_excluded | unsupported |".to_owned(),
+    );
     lines.push("|---|---|---|---|---|---|".to_owned());
     let mut vocabs: Vec<(&String, &crate::up_projection_gates::TierCounts)> =
         ledger.per_vocab.iter().collect();
@@ -146,9 +148,9 @@ mod tests {
         let md = render_audit_markdown(&ledger);
         // headline numerator = proved + claimed = 7 of 11 total.
         assert!(md.contains("Headline: 7/11 target terms liftable (63%)"));
-        assert!(md.contains("proved-lawful"));
+        assert!(md.contains("proved"));
         assert!(md.contains("claimed"));
-        assert!(md.contains("gate-excluded"));
+        assert!(md.contains("red_excluded"));
         assert!(md.contains("Coverage gaps (1 distinct terms)"));
         // No process-flow references (a '#' immediately followed by a digit) leak
         // into the committed doc — Markdown headers use '# ' (hash then space).
