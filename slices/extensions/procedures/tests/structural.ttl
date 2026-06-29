@@ -304,3 +304,15 @@ ASK {
     gmeow:dataFlowEntity a owl:ObjectProperty .
 }""" ;
     gmeow:saRationale "gmeow:dataFlowSource, gmeow:dataFlowTarget, and gmeow:dataFlowEntity MUST all be owl:ObjectProperty — they constitute the internal structure of the DataFlow relator. Mirrors test_data_flow_has_source_target_entity." .
+
+# --- 15. The canonical procedure example carries its logic:Plan success criterion (MUST) ---
+ex:saProcedureExamplePlanGoal a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:procedureIngestionCanonical logic:planGoal gmeow:goalCanonicalIngestion ;
+        logic:planSuccessMode logic:StrongPlanSuccess .
+}""" ;
+    gmeow:saRationale "Re-seating gmeow:Procedure under logic:Plan means the worked example gmeow:procedureIngestionCanonical MUST carry its plan success criterion — logic:planGoal gmeow:goalCanonicalIngestion and logic:planSuccessMode logic:StrongPlanSuccess (every execution reaches the ingested state) — so the procedure-as-plan projection contract is pinned and cannot silently drift back to a goal-less spec." .
