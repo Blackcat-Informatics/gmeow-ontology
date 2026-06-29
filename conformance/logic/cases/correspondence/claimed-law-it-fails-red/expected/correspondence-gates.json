@@ -1,0 +1,23 @@
+{
+  "per_composition": [],
+  "per_correspondence": [
+    {
+      "correspondence": "https://gmeow.example/corr/liar",
+      "law": {
+        "reason": "claims logic:SectionLaw as ObligationDischarged but the round-trip witness does not pass (the put leg is not the derived inverse); the claim must degrade to ObligationUnknown",
+        "status": "red"
+      },
+      "mnemomorphism": {
+        "reason": "declared mnemomorphic but the witness does not recover the source: put leg body is `<https://gmeow.example/corr/wrongStep>`, not the derived inverse `^<https://gmeow.example/corr/liarStep>` of the get leg; put ∘ get ≠ id",
+        "status": "red"
+      },
+      "overclaim": {
+        "status": "pass"
+      },
+      "round_trip": {
+        "reason": "logic:SectionRetraction claims a full round-trip but put leg body is `<https://gmeow.example/corr/wrongStep>`, not the derived inverse `^<https://gmeow.example/corr/liarStep>` of the get leg; put ∘ get ≠ id",
+        "status": "red"
+      }
+    }
+  ]
+}

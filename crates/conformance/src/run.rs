@@ -105,6 +105,10 @@ pub struct CaseOutputs {
     /// non-stratifiable EDB-echo path. Distinct from the compile-time projection
     /// ledger in `projections.ledger`.
     pub preservation: serde_json::Value,
+    /// The five-gate correspondence report (F4), evaluated with the case's declared
+    /// compositions. `Some` iff the program authors `logic:Correspondence` individuals;
+    /// `None` (no golden gated) for every correspondence-free case.
+    pub correspondence_gates: Option<serde_json::Value>,
 }
 
 /// The four RDF projection targets compared by graph-isomorphism.
@@ -278,6 +282,25 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         path_projections: path_projections_out,
     };
 
+    // ── Correspondence gates (F4) ─────────────────────────────────────────────
+    // Re-evaluate the five gates over the DERIVED correspondence program (every put-less
+    // cell's put minted by compile_program) with the case's declared compositions, and
+    // serialize the report as the `correspondence-gates.json` golden. `None` when the
+    // program authors no correspondences (so a correspondence-free case gates nothing new).
+    let correspondence_gates = match &arts.correspondence_program {
+        Some(derived) => {
+            let report = gmeow_logic_compile::projections::correspondence_gates::evaluate_gates(
+                derived,
+                &profile.compositions,
+            );
+            Some(
+                serde_json::to_value(&report)
+                    .map_err(|e| prefix(format!("serialize correspondence gates: {e}")))?,
+            )
+        }
+        None => None,
+    };
+
     Ok(CaseOutputs {
         case_id,
         materialized_nquads,
@@ -289,6 +312,7 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         incomplete,
         answers,
         preservation: serialize::preservation_to_json(&mat_preservation),
+        correspondence_gates,
     })
 }
 
@@ -340,6 +364,8 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
         // `{unsupported}` (the legalization floor), never a false `{exact}` that would
         // hide the refusal from a consumer reading `CaseOutputs.preservation`.
         preservation: serialize::preservation_to_json(&PreservationClaim::unsupported()),
+        // No program was compiled, so no correspondence gates ran.
+        correspondence_gates: None,
     }
 }
 
