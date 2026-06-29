@@ -22,6 +22,8 @@ pub mod correspondence;
 pub mod correspondence_gate;
 // The lawful put leg derived from the same node as get (F4 mnemomorphism up-lift).
 pub mod put_derivation;
+// The five correspondence conformance gates (Law/Overclaim/Round-trip/Mnemomorphism/Composition).
+pub mod correspondence_gates;
 // The EDOAL correspondence lowering (get leg + relation lattice → EDOAL alignment).
 pub mod edoal;
 // The FnO correspondence lowering (get-leg transform functions → FnO catalog).
@@ -38,7 +40,10 @@ pub mod sssom;
 pub mod text;
 
 use super::ir::{LogicAxiom, LogicModality, LogicProgram, PreservationKind};
+use correspondence::CorrespondenceProgram;
+use correspondence_gates::CorrespondenceGateReport;
 use paths::PathProjection;
+use put_derivation::DerivedPutOutcome;
 
 /// All artifacts produced from one [`LogicProgram`] — the unit the
 /// `LogicGenerator` (and the PyO3 `compile_logic`) writes to disk.
@@ -83,6 +88,19 @@ pub struct CompiledArtifacts {
     /// The three header counts of [`report`](Self::report) — surfaced for the same
     /// reason as [`logic_projections`](Self::logic_projections).
     pub report_header: report::ReportHeader,
+    /// The five-gate verdict report over the program's correspondences (F4) — `None` when
+    /// the program declares no correspondences (so a correspondence-free compile is
+    /// byte-unchanged). The per-correspondence gates are evaluated with no compositions;
+    /// the conformance runner re-evaluates with the case's declared compositions.
+    pub correspondence_gates: Option<CorrespondenceGateReport>,
+    /// The per-correspondence put-derivation outcomes (the derived legs / mint-with-claim
+    /// / unsupported residue) — the source of the up-lift loss-ledger rows and the derived
+    /// liftability statistic. Empty when no put leg was derived.
+    pub correspondence_outcomes: Vec<DerivedPutOutcome>,
+    /// The derived correspondence program (every put-less cell's `put` minted) — surfaced
+    /// so the conformance runner re-runs the gates with the case's compositions without
+    /// rebuilding. `None` when the program declares no correspondences.
+    pub correspondence_program: Option<CorrespondenceProgram>,
 }
 
 /// One preservation-ledger row (the per-target metadata the conformance runner
@@ -193,6 +211,27 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     // The rule section of the nemo projection — the reasoning-engine surface.
     let nemo_rules = text::extract_nemo_rules_section(&nemo.content)?;
 
+    // Correspondence calculus (F4): derive the lawful put leg for every put-less cell and
+    // evaluate the five gates. Gated on a non-empty correspondence set so a
+    // correspondence-free compile is byte-identical (the gates produce no artifacts). The
+    // gate report is RECORDED here (compile_program stays total); the hard-fail
+    // `assert_gates` is thrown only by the pipeline stage. The per-correspondence gates run
+    // with no compositions — the conformance runner re-evaluates with the case's declared
+    // compositions over `correspondence_program`.
+    let (correspondence_gates, correspondence_outcomes, correspondence_program) =
+        if program.correspondences.is_empty() {
+            (None, Vec::new(), None)
+        } else {
+            let assembled = CorrespondenceProgram::new(
+                program.correspondences.clone(),
+                Vec::new(),
+                PreservationKind::SoundUnder,
+            );
+            let (derived, outcomes) = assembled.with_derived_puts()?;
+            let report = correspondence_gates::evaluate_gates(&derived, &[]);
+            (Some(report), outcomes, Some(derived))
+        };
+
     Ok(CompiledArtifacts {
         owl_dl: owl_dl.content,
         owl_el: owl_el.content,
@@ -207,6 +246,9 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         path_projections,
         logic_projections: owned,
         report_header,
+        correspondence_gates,
+        correspondence_outcomes,
+        correspondence_program,
     })
 }
 
