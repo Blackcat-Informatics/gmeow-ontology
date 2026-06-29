@@ -2193,6 +2193,13 @@ logic:planFlowEdge
     skos:definition "Relates a logic:Plan to a reified flow edge (logic:ControlFlowEdge or logic:DataFlowEdge) that constitutes its FLOW-GRAPH — the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC over, each edge mediating a source (logic:flowFrom) and a target (logic:flowTo) process node. MULTI-valued: a plan gathers all the control-flow and dataflow edges of its process graph. The canonical-plan counterpart of the build pipeline's gmeow:hasStage stage-membership — where a pipeline gathers gmeow:PipelineStage members whose gmeow:dataflowConsumes edges form its graph, a logic:Plan gathers its reified flow edges directly — so a plan's flow graph is reachable from the plan rather than left as free-standing edges. A plan whose planFlowEdge closure is acyclic is certified logic:CompleteForFragment under logic:DagWorkflowResource; a cyclic closure resolves to the `unsupported` verdict (logic:EvaluationUnsupported) with the offending members disclosed by logic:dagCycleWitness, never silently truncated. Domain logic:Plan, range logic:ControlFlowEdge or logic:DataFlowEdge (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:planBody
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "plan body"@x-gmeow-english ;
+    skos:definition "Relates a logic:Plan to the ROOT transaction-program combinator node (logic:SerialConjunction, logic:Choice, logic:ConcurrentComposition, logic:Fallback, or logic:Iteration) of its program TREE — the structured-program form an interpreter walks, distinct from logic:planFlowEdge, which gathers the binary-edge FLOW-GRAPH form the Tarjan acyclicity certifier runs over. Single-valued: a plan has one program root, from which the whole combinator tree is reachable through logic:leftOperand / logic:rightOperand / logic:iterationBody / logic:iterationCondition. A plan whose program tree carries a logic:Iteration loop is OUTSIDE the certified acyclic DAG fragment by construction — the loop is legitimate canonical program structure, not a well-formedness defect — so such a plan does NOT run logic:executedUnderContract the DAG-workflow profile. Domain logic:Plan, range a transaction-program combinator node (stated in prose, matching the module's domain/range convention)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:planCertification
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -5147,6 +5154,153 @@ logic:dagCycleWitness
     rdfs:label "DAG cycle witness"@x-gmeow-english ;
     skos:definition "Relates an `unsupported` DAG-workflow verdict to a disclosed offending edge or cycle member — the back-edge or logic:Iteration that places a plan outside the certified acyclic fragment — MULTI-valued (a graph may carry several cycles). Mirrors the witness-disclosure discipline of logic:forbiddenViolationWitness: the certifier never silently truncates a cyclic plan, it surfaces exactly which edges break acyclicity while the plan stays valid under a non-DAG contract. Domain a reasoning result or coherence outcome carrying the `unsupported` evaluation status, range a flow edge or process node (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# The well-founded materializer's intra-engine phase plan — dogfooded as data. #
+#                                                                             #
+# This logic:Plan is the AUTHORED MODEL of the phase sequence the native       #
+# well-founded-semantics evaluator runs per world in                          #
+# crates/logic/src/wellfounded.rs (materialize()). It is the canonical-process #
+# model applied ONE SCALE DOWN from the build pipeline (gmeow:pipeline-build): #
+# where the pipeline is the inter-stage DAG, this plan is the intra-engine     #
+# pass sequence of a single reasoning step. BOUNDARY (Principle 12,            #
+# non-negotiable): this is authored SOURCE the parity test                     #
+# crates/pipeline/tests/wellfounded_plan_parity.rs checks the Rust runtime     #
+# against (gmeow_logic::WELL_FOUNDED_PHASES) — the reasoner NEVER parses this   #
+# RDF at scheduling or runtime; the native loop is the runtime, the plan is    #
+# its declared twin.                                                           #
+#                                                                             #
+# materialize() runs exactly three phases per world:                          #
+#   1. wfMaterializeEdb   — seed the per-world EDB (world_edb_facts +          #
+#                           echo_asserted + seed FactStore).                   #
+#   2. wfResolveFixpoint  — the alternating fixpoint (van Gelder): the ITERATED #
+#                           phase — loop { U = lmr(K); K2 = lmr(U); break when  #
+#                           K2.key_set() == K.key_set() }. Modelled as a        #
+#                           logic:Iteration whose logic:iterationCondition is   #
+#                           the situation "the double-reduct fixpoint is not    #
+#                           yet reached" (K2 != K).                             #
+#   3. wfConstructModel   — final reduct against the well-founded model W,      #
+#                           hard-fail on a partial model, emit derived rows.    #
+#                                                                             #
+# The phase order is the SerialConjunction (materialize ; (resolve ;          #
+# construct)), reachable from the plan through logic:planBody. Because the     #
+# middle phase is a logic:Iteration (a loop), this plan is OUTSIDE the         #
+# certified acyclic DAG fragment BY CONSTRUCTION — that is correct and         #
+# expected, so (unlike gmeow:pipeline-build) it does NOT run                    #
+# logic:executedUnderContract logic:DagWorkflowContract.                       #
+# =========================================================================== #
+
+# Shared action-theory facets the three phase ActionSchemas carry to satisfy
+# logic:ActionSchemaShape (logic:precondition + logic:capability are REQUIRED).
+logic:wfWorldSeeded
+    a logic:Situation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "well-founded world seeded"@x-gmeow-english ;
+    skos:definition "The situation gate the well-founded materializer's phase action schemas ground on: the per-world store is selected and its asserted EDB facts are reachable (the sorted worlds list of crates/logic/src/wellfounded.rs materialize()). The shared logic:precondition of the three intra-engine phase schemas — the elementary phase transition applies only once a world is in scope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:wfReductEngineCapability
+    a logic:GenericDependence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "well-founded reduct-engine capability"@x-gmeow-english ;
+    skos:definition "The executional precondition on the actor the well-founded materializer's phase action schemas carry as their logic:capability: the least-model-of-reduct engine (crate::rule_ir::least_model_of_reduct) is available to evaluate a reduct against a reference fact set. The generic ability the native engine must hold to run any of the three phases — distinct from logic:wfWorldSeeded, which is a precondition on the world state, not on the engine."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# The loop condition of the alternating-fixpoint phase: the double-reduct
+# fixpoint is NOT YET reached (K2.key_set() != K.key_set()). The logic:Iteration
+# runs its body while this situation obtains; when it ceases (K2 == K) the loop
+# terminates and W = K is the well-founded model.
+logic:wfFixpointNotReached
+    a logic:Situation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "well-founded fixpoint not reached"@x-gmeow-english ;
+    skos:definition "The loop-guard situation of the alternating-fixpoint phase: the double-reduct step has not yet converged — the new under-estimate K2 differs from the previous K by fact-key set (K2.key_set() != K.key_set() in crates/logic/src/wellfounded.rs). The logic:iterationCondition of logic:wfResolveLoop: the loop body re-runs while this obtains, and the iteration terminates when it ceases (K2 == K), at which point W = K is the well-founded model's set of true atoms."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# Phase 1 — seed the per-world EDB.
+logic:wfMaterializeEdb
+    a logic:ActionSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "well-founded materialize EDB"@x-gmeow-english ;
+    skos:definition "Phase 1 of the well-founded materializer (crates/logic/src/wellfounded.rs materialize()): seed the per-world EDB — collect world_edb_facts, echo the asserted rows, and load them (sorted-key order) into the seed FactStore that the alternating fixpoint starts from. The first elementary phase transition of the intra-engine plan; its successor is the alternating-fixpoint resolution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition logic:wfWorldSeeded ;
+    logic:capability logic:wfReductEngineCapability .
+
+# Phase 2 — the alternating fixpoint (the ITERATED phase).
+logic:wfResolveFixpoint
+    a logic:ActionSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "well-founded resolve fixpoint"@x-gmeow-english ;
+    skos:definition "Phase 2 of the well-founded materializer (crates/logic/src/wellfounded.rs materialize()): the alternating fixpoint of van Gelder — the double-reduct step U = least_model_of_reduct(reference = K) then K2 = least_model_of_reduct(reference = U), repeated until K2 and K have the same fact-key set. The body of the logic:Iteration logic:wfResolveLoop; the loop runs while logic:wfFixpointNotReached obtains and converges on W = K, the well-founded model's set of true atoms. The single ITERATED phase of the plan — why the plan is outside the acyclic DAG fragment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition logic:wfWorldSeeded ;
+    logic:capability logic:wfReductEngineCapability .
+
+# Phase 3 — final reduct + emit.
+logic:wfConstructModel
+    a logic:ActionSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "well-founded construct model"@x-gmeow-english ;
+    skos:definition "Phase 3 of the well-founded materializer (crates/logic/src/wellfounded.rs materialize()): the final reduct against the converged well-founded model W — least_model_of_reduct(reference = W), a HARD FAIL if the result's fact-key set differs from W (an undefined/partial model, unsupported in v1), then emit the derived non-EDB rows stamped with the world graph. The last elementary phase transition of the intra-engine plan."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition logic:wfWorldSeeded ;
+    logic:capability logic:wfReductEngineCapability .
+
+# The combinator tree (program form an interpreter walks).
+#   wfResolveLoop      = Iteration(body = wfResolveFixpoint,
+#                                  condition = wfFixpointNotReached)
+#   wfResolveThenBuild = SerialConjunction(left = wfResolveLoop,
+#                                          right = wfConstructModel)
+#   wfPhaseSequence    = SerialConjunction(left = wfMaterializeEdb,
+#                                          right = wfResolveThenBuild)
+# Phase order, left-first: materialize ; (resolve* ; construct).
+logic:wfResolveLoop
+    a logic:Iteration ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "well-founded resolve loop"@x-gmeow-english ;
+    skos:definition "The logic:Iteration combinator wrapping the alternating-fixpoint phase of the well-founded materializer: its logic:iterationBody is logic:wfResolveFixpoint (the double-reduct step) and its logic:iterationCondition is logic:wfFixpointNotReached (K2 != K). The loop is the program-level twin of the `loop { … break when K2.key_set() == K.key_set() }` of crates/logic/src/wellfounded.rs — the back-edge that places logic:wellFoundedMaterializerPlan outside the certified acyclic DAG fragment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:iterationBody logic:wfResolveFixpoint ;
+    logic:iterationCondition logic:wfFixpointNotReached .
+
+logic:wfResolveThenBuild
+    a logic:SerialConjunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "well-founded resolve then build"@x-gmeow-english ;
+    skos:definition "The inner logic:SerialConjunction of the well-founded materializer's phase plan: do the alternating-fixpoint loop (logic:leftOperand logic:wfResolveLoop), THEN construct the final model (logic:rightOperand logic:wfConstructModel). The suffix program of the plan's outer serial conjunction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:leftOperand logic:wfResolveLoop ;
+    logic:rightOperand logic:wfConstructModel .
+
+logic:wfPhaseSequence
+    a logic:SerialConjunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "well-founded phase sequence"@x-gmeow-english ;
+    skos:definition "The ROOT logic:SerialConjunction of the well-founded materializer's phase plan: do the EDB-seeding phase (logic:leftOperand logic:wfMaterializeEdb), THEN the resolve-then-build suffix (logic:rightOperand logic:wfResolveThenBuild). Walked left-first, the combinator tree yields the execution order materialize ; resolve* ; construct — the program twin of crates/logic/src/wellfounded.rs materialize() and of gmeow_logic::WELL_FOUNDED_PHASES. The program root logic:wellFoundedMaterializerPlan reaches it through logic:planBody."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:leftOperand logic:wfMaterializeEdb ;
+    logic:rightOperand logic:wfResolveThenBuild .
+
+# The plan's success criterion: the converged well-founded model emitted.
+logic:goalWellFoundedModel
+    a gmeow:Goal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "well-founded model goal"@x-gmeow-english ;
+    skos:definition "The success criterion of the well-founded materializer's phase plan: the total (two-valued) well-founded model of the rules over every world is computed and its derived non-EDB rows emitted. The gmeow:Goal logic:wellFoundedMaterializerPlan is arranged to reach; a partial model is a hard failure, never a partial success."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# The plan: the authored twin of crates/logic/src/wellfounded.rs materialize().
+logic:wellFoundedMaterializerPlan
+    a logic:Plan ,
+        gmeow:SocialObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "well-founded materializer plan"@x-gmeow-english ;
+    skos:definition "The AUTHORED MODEL of the intra-engine phase sequence the native well-founded-semantics evaluator runs per world (crates/logic/src/wellfounded.rs materialize()): the canonical process model applied one scale down from the build pipeline (gmeow:pipeline-build) — an intra-engine pass sequence rather than an inter-stage DAG. Its logic:planBody is the root combinator logic:wfPhaseSequence, whose left-first walk yields the three phases materialize (logic:wfMaterializeEdb) ; resolve* (the logic:Iteration logic:wfResolveLoop over logic:wfResolveFixpoint, gated by logic:wfFixpointNotReached) ; construct (logic:wfConstructModel) — matching gmeow_logic::WELL_FOUNDED_PHASES. Because the middle phase is a logic:Iteration (a loop), this plan is OUTSIDE the certified acyclic DAG fragment by construction; that is correct and expected, so it does NOT run logic:executedUnderContract logic:DagWorkflowContract. Principle 12 BOUNDARY: this plan is authored SOURCE the parity gate crates/pipeline/tests/wellfounded_plan_parity.rs checks the Rust runtime against — the reasoner NEVER parses this RDF at scheduling or runtime; the native loop is the runtime, the plan is its declared twin. As a logic:Plan it asserts its own gmeow:SocialObject sort directly, the prose grounding of logic:Plan licensing no DL inference of it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:planBody logic:wfPhaseSequence ;
+    logic:planGoal logic:goalWellFoundedModel ;
+    logic:planSuccessMode logic:StrongPlanSuccess .
 
 # --- Transaction outcome: the executional-entailment verdict surface ----------
 # The recorded result of EXECUTING a transaction program (the combinators above)
