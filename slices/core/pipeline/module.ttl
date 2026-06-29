@@ -34,7 +34,7 @@ gmeow:Pipeline
     rdfs:label "Pipeline"@x-gmeow-english ;
     rdfs:subClassOf logic:Plan ,
         gmeow:SocialObject ;
-    skos:definition "A directed acyclic graph of build stages — the project's own build, authored as data. A Pipeline IS a logic:Plan: the canonical process model of the build, whose steps (gmeow:PipelineStage members, gathered through gmeow:hasStage) invoke typed units of work and whose success criterion is the shippable bundle. It is the dogfooded consumer of the DAG-workflow profile (logic:DagWorkflowProfile) — its gmeow:dataflowConsumes edges specialize the canonical logic:dataflowConsumes, and their acyclic closure is certified under logic:DagWorkflowResource, so the build is statically schedulable and complete-for-fragment. The gmeow-pipeline executor reads it back, validates the graph (acyclic, complete, exactly one Sink, engine-lock derived), and runs every stage single-pass over an in-memory RDF dataset. logic:Plan grounds in prose as a gmeow:SocialObject, so the Pipeline also asserts that sort directly: it exists by the project's own convention, a description, not a physical thing."@x-gmeow-english ;
+    skos:definition "A directed acyclic graph of build stages — the project's own build, authored as data. A Pipeline IS a logic:Plan: the canonical process model of the build, whose steps (gmeow:PipelineStage members, gathered through gmeow:hasStage) invoke typed units of work and whose success criterion is the shippable bundle. It is the dogfooded consumer of the DAG-workflow profile (logic:DagWorkflowContract) — its gmeow:dataflowConsumes edges specialize the canonical logic:dataflowConsumes, and their acyclic closure is certified under logic:DagWorkflowResource, so the build is statically schedulable and complete-for-fragment. The gmeow-pipeline executor reads it back, validates the graph (acyclic, complete, exactly one Sink, engine-lock derived), and runs every stage single-pass over an in-memory RDF dataset. logic:Plan grounds in prose as a gmeow:SocialObject, so the Pipeline also asserts that sort directly: it exists by the project's own convention, a description, not a physical thing."@x-gmeow-english ;
     skos:example "gmeow:pipeline-build a gmeow:Pipeline ; gmeow:hasStage gmeow:stage-source-load ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -217,7 +217,7 @@ gmeow:pipeline-build
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:planGoal gmeow:goalShippableBundle ;
     logic:planSuccessMode logic:StrongPlanSuccess ;
-    logic:executedUnderContract logic:DagWorkflowProfile ;
+    logic:executedUnderContract logic:DagWorkflowContract ;
     gmeow:hasStage
         gmeow:stage-source-load ,
         gmeow:stage-statements ,

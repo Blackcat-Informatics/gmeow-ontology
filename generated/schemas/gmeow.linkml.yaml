@@ -16311,6 +16311,15 @@ enums:
       geometryTypePolygon:
         meaning: https://blackcatinformatics.ca/gmeow/geometryTypePolygon
         title: polygon
+  GoalEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Goal
+    permissible_values:
+      goalCanonicalIngestion:
+        meaning: https://blackcatinformatics.ca/gmeow/goalCanonicalIngestion
+        title: canonical ingestion goal
+      goalShippableBundle:
+        meaning: https://blackcatinformatics.ca/gmeow/goalShippableBundle
+        title: shippable bundle goal
   GovernanceModelEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GovernanceModel
     permissible_values:

@@ -733,7 +733,7 @@ ASK {
 }""" ;
     gmeow:saRationale "All four logic:AdmissibleValuationPolicy individuals MUST exist: logic:contradictionPolicy ranges over them, and the glut-admitting pair (AdmitAllFour, ForbidGap) versus the glut-forbidding pair (ForbidGlut, ForbidGapAndGlut) is exactly what classifies a witnessed glut as a permitted conflict or a forbidden violation. The Rust gmeow_logic_compile::compat::ContradictionPolicy enum mirrors these four and is wildcard-free so a new valuation is a compile error." .
 
-# --- 40. The DAG-workflow profile is a Resource facet value + preset (MUST) ---
+# --- 40. The DAG-workflow facet value + its requesting contract (MUST) --------
 ex:saDagWorkflowProfileExists a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -741,11 +741,11 @@ ex:saDagWorkflowProfileExists a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     logic:DagWorkflowResource a logic:ResourcePolicy .
-    logic:DagWorkflowProfile  a logic:ReasoningPreset .
-    logic:DagWorkflowProfile  logic:expandsToFacet logic:DagWorkflowResource .
+    logic:DagWorkflowContract a logic:ReasoningContract .
+    logic:DagWorkflowContract logic:resourcePolicy logic:DagWorkflowResource .
     logic:dagCycleWitness     a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "DAG-workflow MUST be modelled as a Resource-facet VALUE (logic:DagWorkflowResource, a logic:ResourcePolicy individual, sibling of logic:CertifiedFragmentResource) plus a preset (logic:DagWorkflowProfile, a logic:ReasoningPreset that expands to it) — the contract-not-profile doctrine (design/LOGIC-CONTRACT.md). The Rust certifier maps the resource policy to logic:CompleteForFragment on an acyclic plan and to the `unsupported` verdict (carrying logic:dagCycleWitness) on a cyclic one." .
+    gmeow:saRationale "DAG-workflow MUST be modelled as a Resource-facet VALUE (logic:DagWorkflowResource, a logic:ResourcePolicy individual, sibling of logic:CertifiedFragmentResource) requested by a named logic:ReasoningContract (logic:DagWorkflowContract via logic:resourcePolicy) — the contract-not-profile doctrine (design/LOGIC-CONTRACT.md): the resource discipline is a facet a contract requests, NOT a logic:ReasoningPreset (those are the model-semantics presets). The Rust certifier maps the resource policy to logic:CompleteForFragment on an acyclic plan and to the `unsupported` verdict (carrying logic:dagCycleWitness) on a cyclic one." .
 
 # --- 41. DAG-workflow is NOT a standalone class (MUST-NOT, contract-not-profile) ---
 ex:saNoDagWorkflowClass a gmeow:StructuralAssertion ;
@@ -758,9 +758,9 @@ ASK {
     UNION
     { logic:DagWorkflowResource a owl:Class . }
     UNION
-    { logic:DagWorkflowProfile a owl:Class . }
+    { logic:DagWorkflowContract a owl:Class . }
 }""" ;
-    gmeow:saRationale "There MUST be no logic:DagWorkflow class, and neither the resource value nor the preset may be an owl:Class — collapsing the orthogonal Resource facet into a standalone class is exactly the profile-not-contract mistake the reasoning-contract doctrine forbids (design/LOGIC-CONTRACT.md, 'Why a contract, not a profile')." .
+    gmeow:saRationale "There MUST be no logic:DagWorkflow class, and neither the resource value nor the requesting contract may be an owl:Class — collapsing the orthogonal Resource facet into a standalone class is exactly the profile-not-contract mistake the reasoning-contract doctrine forbids (design/LOGIC-CONTRACT.md, 'Why a contract, not a profile')." .
 
 # --- 42. The canonical dataflow / control-flow edge family exists (MUST) ------
 ex:saCanonicalFlowEdgesExist a gmeow:StructuralAssertion ;
