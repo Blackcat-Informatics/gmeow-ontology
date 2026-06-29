@@ -41,6 +41,30 @@ use crate::gufo::{self, GufoConfig};
 use crate::store;
 use crate::validate_all::{build_report, shacl_findings_from_report};
 
+/// Typed error for the Tier-2 deep pass, distinguishing failure modes that
+/// require different treatment at the graceful-degradation boundary.
+///
+/// - [`DeepPassError::ContractResolution`]: the bundle carries a declared
+///   `logic:ReasoningContract` whose `logic:admissibleValuation` is garbled or
+///   otherwise unresolvable. This is **invalid input** — the gate must HARD-FAIL
+///   (no-optionality discipline). The caller emits a `Severity::Error` finding
+///   and the finding code `validate.deep.contract-invalid`.
+///
+/// - [`DeepPassError::Unavailable`]: the semantic pass could not run for an
+///   infrastructure reason (GTS read error, data parse error, reasoning engine
+///   failure). The caller emits a `Severity::Note` advisory
+///   (`validate.deep.unavailable`) and leaves the Tier-1 result intact (graceful
+///   degradation).
+#[derive(Debug)]
+enum DeepPassError {
+    /// The declared contradiction-policy contract is garbled; this is INVALID
+    /// INPUT and must cause a hard-fail `Severity::Error` finding.
+    ContractResolution(String),
+    /// The deep pass could not run for an infrastructure / availability reason;
+    /// this degrades gracefully to a `Severity::Note` advisory.
+    Unavailable(String),
+}
+
 /// The blob `rep` label under which the snapshot stage folds the full SHACL shape
 /// surface (`shapes-archive`). MUST match the writer in the pipeline snapshot
 /// stage and the Python `bundle` reader.
@@ -115,14 +139,22 @@ pub fn run(
     Ok(report)
 }
 
-/// Run the opt-in Tier-2 deep pass, folding either its verdict findings or — on any
-/// failure — a single `validate.deep.unavailable` advisory note into `report`.
+/// Run the opt-in Tier-2 deep pass, folding either its verdict findings or — on
+/// failure — an appropriate diagnostic into `report`.
 ///
-/// This is the graceful-degradation boundary: a Tier-2 failure NEVER propagates, so
-/// the complete Tier-1 result and its exit code are always preserved. (In the shipped
-/// consumer wheel the reasoner co-ships with the validator in one native extension,
-/// so a literally absent reasoner is not a runtime state; this branch covers
-/// reasoning parse/read/run failures, which equally satisfy the never-crash contract.)
+/// This is the graceful-degradation boundary for infrastructure failures, but NOT
+/// for invalid input:
+///
+/// - [`DeepPassError::Unavailable`]: the semantic pass could not run (GTS read
+///   error, data parse error, reasoning engine failure). Folded as a single
+///   `validate.deep.unavailable` `Severity::Note` advisory; the complete Tier-1
+///   result and its exit code are preserved.
+///
+/// - [`DeepPassError::ContractResolution`]: the bundle's declared
+///   `logic:ReasoningContract` carries a garbled `logic:admissibleValuation`.
+///   This is INVALID INPUT (no-optionality discipline): folded as a
+///   `validate.deep.contract-invalid` `Severity::Error` finding that FAILS the
+///   gate. It must NOT be downgraded to an advisory note.
 fn run_deep_pass(
     gts_bytes: &[u8],
     data_bytes: &[u8],
@@ -131,26 +163,50 @@ fn run_deep_pass(
     report: &mut Report,
 ) {
     let start = report.findings.len();
-    if let Err(e) = deep_consistency_findings(gts_bytes, data_bytes, data_format, report) {
-        let mut finding = Finding::new(
-            Severity::Note,
-            "validate.deep.unavailable",
-            format!("deep semantic pass skipped: {e}"),
-        )
-        .with_tool("validate");
-        finding.add_location(Location {
-            path: Some(origin.to_owned()),
-            ..Location::default()
-        });
-        report.add_finding(finding);
-        return;
-    }
-    for finding in &mut report.findings[start..] {
-        if finding.locations.is_empty() {
+    match deep_consistency_findings(gts_bytes, data_bytes, data_format, report) {
+        Ok(()) => {
+            for finding in &mut report.findings[start..] {
+                if finding.locations.is_empty() {
+                    finding.add_location(Location {
+                        path: Some(origin.to_owned()),
+                        ..Location::default()
+                    });
+                }
+            }
+        }
+        Err(DeepPassError::ContractResolution(msg)) => {
+            // HARD FAIL: a garbled declared contract policy is invalid input;
+            // it must NOT be silently downgraded to an advisory note.
+            let mut finding = Finding::new(
+                Severity::Error,
+                "validate.deep.contract-invalid",
+                format!(
+                    "deep semantic pass: bundle carries a garbled \
+                     logic:admissibleValuation that cannot be resolved as a \
+                     contradiction policy — the gate is hard-failed: {msg}"
+                ),
+            )
+            .with_tool("validate");
             finding.add_location(Location {
                 path: Some(origin.to_owned()),
                 ..Location::default()
             });
+            report.add_finding(finding);
+        }
+        Err(DeepPassError::Unavailable(msg)) => {
+            // Graceful degradation: infrastructure/availability failure; preserve
+            // the complete Tier-1 result and fold one advisory note.
+            let mut finding = Finding::new(
+                Severity::Note,
+                "validate.deep.unavailable",
+                format!("deep semantic pass skipped: {msg}"),
+            )
+            .with_tool("validate");
+            finding.add_location(Location {
+                path: Some(origin.to_owned()),
+                ..Location::default()
+            });
+            report.add_finding(finding);
         }
     }
 }
@@ -166,30 +222,39 @@ fn run_deep_pass(
 ///
 /// # Errors
 ///
-/// Returns `Err` if the bundle cannot be read, the user data cannot be parsed into a
-/// reasoning dataset, or the native reasoning run fails. The caller turns any such
-/// error into an advisory note (graceful degradation).
+/// Returns [`DeepPassError::Unavailable`] if the bundle cannot be read, the user
+/// data cannot be parsed into a reasoning dataset, or the native reasoning run
+/// fails — all infrastructure failures that degrade gracefully.
+///
+/// Returns [`DeepPassError::ContractResolution`] if the bundle's declared
+/// `logic:ReasoningContract` carries a garbled `logic:admissibleValuation` that
+/// cannot be resolved to a [`ContradictionPolicy`]. This is INVALID INPUT and
+/// must HARD-FAIL the gate; the caller emits a `Severity::Error` finding.
 fn deep_consistency_findings(
     gts_bytes: &[u8],
     data_bytes: &[u8],
     data_format: &str,
     report: &mut Report,
-) -> Result<(), String> {
-    let bundle =
-        gmeow_rdf::import_gts_events(gts_bytes).map_err(|e| format!("GTS read error: {e}"))?;
-    let user = data_dataset(data_bytes, data_format)?;
+) -> Result<(), DeepPassError> {
+    let bundle = gmeow_rdf::import_gts_events(gts_bytes)
+        .map_err(|e| DeepPassError::Unavailable(format!("GTS read error: {e}")))?;
+    let user = data_dataset(data_bytes, data_format).map_err(DeepPassError::Unavailable)?;
     let result = gmeow_logic::reason::reason_all_with_data(bundle.dataset.as_ref(), user.as_ref())
-        .map_err(|e| format!("native reasoning failed: {e}"))?;
+        .map_err(|e| DeepPassError::Unavailable(format!("native reasoning failed: {e}")))?;
     // The governing contradiction policy is READ from the bundle's declared
     // logic:ReasoningContract (logic:admissibleValuation), not pinned: no contract /
     // no valuation ⇒ conservative classical DEFAULT (a glut IS owl:Nothing); multiple
     // conflicting valuations ⇒ the MOST CONSERVATIVE governs; a garbled valuation
     // HARD-FAILS rather than silently relaxing the gate. The policy is read off the
     // bundle (the authority for the contract), not the user-supplied data graph.
+    //
+    // NOTE: this is the ONLY error that maps to ContractResolution (not Unavailable)
+    // — a garbled contract is invalid INPUT, not an infrastructure failure, and must
+    // produce a Severity::Error finding rather than being silently downgraded.
     let policy = gmeow_logic::certificate::ContradictionPolicy::resolve_from_dataset(
         bundle.dataset.as_ref(),
     )
-    .map_err(|e| format!("contract resolution failed: {e}"))?;
+    .map_err(|e| DeepPassError::ContractResolution(format!("contract resolution failed: {e}")))?;
     crate::validate_all::fold_reasoning_result(&result, policy, report);
     Ok(())
 }
@@ -388,6 +453,90 @@ mod tests {
             .findings
             .iter()
             .any(|f| f.code == "validate.deep.inconsistent"));
+    }
+
+    /// Build canonical GTS bytes from an arbitrary Turtle string for use in
+    /// deep-pass tests. Mirrors the same helper in `validate_all` tests.
+    fn gts_bytes_from_turtle(ttl: &str) -> Vec<u8> {
+        let dataset = gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+            .expect("parse test turtle");
+        gmeow_rdf::gts_write::to_gts(
+            &dataset,
+            &gmeow_rdf::RdfLookaside::default(),
+            "gmeow-validate-data-deep-test",
+        )
+        .expect("encode GTS bytes")
+    }
+
+    /// Regression guard for the hard-fail discipline: a bundle whose declared
+    /// `logic:ReasoningContract` carries a GARBLED `logic:admissibleValuation`
+    /// (here `logic:Nonsense`, an unrecognised local name) must produce a
+    /// `Severity::Error` finding with code `validate.deep.contract-invalid`, NOT
+    /// a `validate.deep.unavailable` advisory Note. The gate must FAIL.
+    ///
+    /// This test catches the defect where `run_deep_pass` was collapsing both
+    /// failure modes (invalid input and infrastructure unavailability) into a
+    /// single non-failing advisory, silently passing a bundle with invalid data.
+    #[test]
+    fn deep_pass_garbled_contract_produces_error_not_advisory() {
+        let garbled_bundle = gts_bytes_from_turtle(
+            "\
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+logic:c rdf:type logic:ReasoningContract ;
+    logic:admissibleValuation logic:Nonsense .
+",
+        );
+
+        let mut report = Report::new("validate");
+        run_deep_pass(
+            &garbled_bundle,
+            b"<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/T> .\n",
+            "n-triples",
+            "fixture.nt",
+            &mut report,
+        );
+
+        // Must NOT fold an advisory note — that is the defect this test guards against.
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.code == "validate.deep.unavailable"),
+            "a garbled contract must NOT produce an advisory note (validate.deep.unavailable); \
+             it is invalid INPUT, not an availability failure: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+
+        // Must fold a hard-fail Error finding.
+        let contract_error: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.code == "validate.deep.contract-invalid")
+            .collect();
+        assert_eq!(
+            contract_error.len(),
+            1,
+            "exactly one validate.deep.contract-invalid error must be emitted: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+        assert_eq!(
+            contract_error[0].severity,
+            Severity::Error,
+            "a garbled contract policy must be a hard-fail Error finding"
+        );
+        assert_eq!(
+            contract_error[0]
+                .locations
+                .first()
+                .and_then(|l| l.path.as_deref()),
+            Some("fixture.nt"),
+            "the contract-invalid finding must carry the origin path"
+        );
+        assert!(
+            !report.ok(),
+            "a garbled contract policy must fail the gate (report.ok() must be false)"
+        );
     }
 
     #[test]
