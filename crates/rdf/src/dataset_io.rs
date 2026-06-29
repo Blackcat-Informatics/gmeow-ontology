@@ -3,7 +3,7 @@
 
 //! RDF text/bytes ingress into the frozen [`RdfDataset`] IR.
 //!
-//! The text codec is now the oxigraph-free native [`parse_dataset`](crate::parse_dataset)
+//! The text codec is now the oxigraph-free native [`parse_dataset`]
 //! path (#909 / EPIC #906 S3); the read model handed to GMEOW consumers is the
 //! concrete IR. This module is deliberately PyO3-free so logic, SHACL, and pipeline
 //! stages can route parsed inputs through the same `RdfDataset` path as the Python

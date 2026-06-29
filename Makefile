@@ -62,7 +62,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 
 .PHONY: help \
 	install fmt lint \
-	native-py native-py-wheel native-py-install validate validate-gts reason verify test test-fast rust-build rust-test check \
+	native-py native-py-wheel native-py-install validate validate-gts reason verify test test-fast rust-build rust-test rust-docs check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene carrier-purity wasm wasm-pkg wasm-pkg-test \
@@ -124,6 +124,9 @@ rust-test: rust-build ## Run the Rust workspace tests and doctests.
 	cargo nextest run --profile ci $(NEXTEST_PARTITION_ARG)
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc
+
+rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc links.
+	RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links -D rustdoc::redundant_explicit_links -A rustdoc::private_intra_doc_links" cargo doc --workspace --no-deps
 
 lsp-build: $(RUST_READY_STAMP) ## Build the gmeow-lsp binary (debug profile).
 	cargo build -p gmeow-lsp
