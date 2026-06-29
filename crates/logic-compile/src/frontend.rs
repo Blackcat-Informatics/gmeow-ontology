@@ -43,8 +43,9 @@ use super::graphutil::{
     RDF_TYPE,
 };
 use super::ir::{
-    ComplexityClass, ContextualScope, Formula, LogicAxiom, LogicModality, LogicProgram, LogicRule,
-    PathBase, PathShapeIr, ReasoningContract, SemanticProfileId, Term, LOGIC_NAMESPACE,
+    ComplexityClass, ContextualScope, Correspondence, Formula, LogicAxiom, LogicModality,
+    LogicProgram, LogicRule, PathBase, PathShapeIr, ReasoningContract, SemanticProfileId, Term,
+    LOGIC_NAMESPACE,
 };
 
 fn logic_iri(local: &str) -> String {
@@ -1219,6 +1220,30 @@ fn parse_term(store: &RdfDataset, carrier: &Subject) -> Option<Term> {
     None
 }
 
+/// Read every authored `logic:Correspondence` individual into the IR — the input the
+/// five conformance gates run on. Fail-soft like the other extractors: a malformed cell
+/// emits a `MALFORMED_CORRESPONDENCE` warning and is skipped, never silently dropped (the
+/// hard-fail discipline belongs to the cache re-derivation, not the authoring front-end).
+///
+/// A correspondence-free source yields an empty vector, and `with_correspondences(vec![])`
+/// is a no-op in `LogicProgram::canonical_key` (the segment is append-only) — so adding
+/// this stage to every parse leaves every existing artifact byte-identical.
+fn extract_correspondences(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<Correspondence> {
+    let (correspondences, errors) =
+        crate::projections::correspondence::extract_correspondences(store);
+    for (iri, message) in errors {
+        diagnostics.push(Diagnostic::warning(
+            "MALFORMED_CORRESPONDENCE",
+            message,
+            Some(iri),
+        ));
+    }
+    correspondences
+}
+
 /// Parse a `logic:` RDF source already loaded into a wasm-clean [`RdfDataset`]
 /// (default graph) into a [`LogicProgram`] + diagnostics.
 pub fn parse_logic_dataset(
@@ -1258,10 +1283,12 @@ pub fn parse_logic_dataset(
     let contracts = extract_contracts(store, &mut diagnostics);
     let rules = extract_rules(store, &mut diagnostics);
     let path_shapes = extract_path_shapes(store, &mut diagnostics);
+    let correspondences = extract_correspondences(store, &mut diagnostics);
     let formulas = extract_formulas(store, &mut diagnostics);
 
     let program = LogicProgram::new(all_axioms, rules, contracts, source_iri)
         .with_path_shapes(path_shapes)
+        .with_correspondences(correspondences)
         .with_formulas(formulas);
     Ok((program, diagnostics))
 }

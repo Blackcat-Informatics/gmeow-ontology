@@ -501,51 +501,60 @@ pub fn project_correspondence(program: &CorrespondenceProgram) -> String {
 // Reverse: graph → CorrespondenceProgram (the cache-hit re-derivation)
 // --------------------------------------------------------------------------- //
 
-/// Re-derive a [`CorrespondenceProgram`] from its backing `graph/correspondence`
-/// N-Triples — the inverse of [`project_correspondence`], used by the cache on a hit.
-///
-/// HARD-fails on a malformed graph (no-optionality): a backing graph that no longer
-/// re-derives is a corrupt cache, never a silently-dropped handle.
-pub fn parse_correspondence(
-    dataset: &gmeow_rdf::RdfDataset,
-) -> Result<CorrespondenceProgram, String> {
-    use gmeow_rdf::RdfTerm;
+/// A `(subject, predicate) → objects` index over a dataset's IRI-subject quads. Shared by
+/// the program-wrapper cache re-derivation ([`parse_correspondence`]) and the
+/// bare-individual frontend extractor ([`extract_correspondences`]) so a single reader
+/// ([`read_correspondence`]) serves both — built once, reverse-lookups are cheap.
+struct SpIndex {
+    by_sp: BTreeMap<(String, String), Vec<gmeow_rdf::RdfTerm>>,
+}
 
-    // Index (subject, predicate) once so every reverse-lookup is cheap even on a
-    // large graph/correspondence projection.
-    let mut by_sp: BTreeMap<(String, String), Vec<RdfTerm>> = BTreeMap::new();
-    for quad in dataset.owned_quads() {
-        let RdfTerm::Iri(subject) = &quad.subject else {
-            continue;
-        };
-        by_sp
-            .entry((subject.clone(), quad.predicate.clone()))
-            .or_default()
-            .push(quad.object.clone());
+impl SpIndex {
+    fn from_dataset(dataset: &gmeow_rdf::RdfDataset) -> Self {
+        use gmeow_rdf::RdfTerm;
+        let mut by_sp: BTreeMap<(String, String), Vec<RdfTerm>> = BTreeMap::new();
+        for quad in dataset.owned_quads() {
+            let RdfTerm::Iri(subject) = &quad.subject else {
+                continue;
+            };
+            by_sp
+                .entry((subject.clone(), quad.predicate.clone()))
+                .or_default()
+                .push(quad.object.clone());
+        }
+        Self { by_sp }
     }
 
-    let iri_obj = |s: &str, p: &str| -> Option<String> {
-        by_sp
+    fn iri_obj(&self, s: &str, p: &str) -> Option<String> {
+        use gmeow_rdf::RdfTerm;
+        self.by_sp
             .get(&(s.to_owned(), p.to_owned()))?
             .iter()
             .find_map(|o| match o {
                 RdfTerm::Iri(i) => Some(i.clone()),
                 _ => None,
             })
-    };
-    let lit_obj = |s: &str, p: &str| -> Option<String> {
-        by_sp
+    }
+
+    fn lit_obj(&self, s: &str, p: &str) -> Option<String> {
+        use gmeow_rdf::RdfTerm;
+        self.by_sp
             .get(&(s.to_owned(), p.to_owned()))?
             .iter()
             .find_map(|o| match o {
                 RdfTerm::Literal(lit) => Some(lit.lexical_form.clone()),
                 _ => None,
             })
-    };
-    let decimal_obj =
-        |s: &str, p: &str| -> Option<f64> { lit_obj(s, p).and_then(|v| v.parse().ok()) };
-    let iri_objs = |s: &str, p: &str| -> Vec<String> {
-        let mut out: Vec<String> = by_sp
+    }
+
+    fn decimal_obj(&self, s: &str, p: &str) -> Option<f64> {
+        self.lit_obj(s, p).and_then(|v| v.parse().ok())
+    }
+
+    fn iri_objs(&self, s: &str, p: &str) -> Vec<String> {
+        use gmeow_rdf::RdfTerm;
+        let mut out: Vec<String> = self
+            .by_sp
             .get(&(s.to_owned(), p.to_owned()))
             .into_iter()
             .flat_map(|objects| objects.iter())
@@ -557,13 +566,134 @@ pub fn parse_correspondence(
         out.sort();
         out.dedup();
         out
-    };
+    }
 
-    let local =
-        |iri: &str| -> String { iri.strip_prefix(LOGIC_NAMESPACE).unwrap_or(iri).to_owned() };
+    /// Subjects carrying an `rdf:type <type_iri>` triple, sorted + deduped. Finds bare
+    /// `logic:Correspondence` individuals independent of any program wrapper.
+    fn subjects_of_type(&self, type_iri: &str) -> Vec<String> {
+        use gmeow_rdf::RdfTerm;
+        let mut out: Vec<String> = self
+            .by_sp
+            .iter()
+            .filter(|((_, p), _)| p == RDF_TYPE)
+            .filter(|(_, objs)| {
+                objs.iter()
+                    .any(|o| matches!(o, RdfTerm::Iri(i) if i == type_iri))
+            })
+            .map(|((s, _), _)| s.clone())
+            .collect();
+        out.sort();
+        out.dedup();
+        out
+    }
+}
+
+/// Strip the `logic:` namespace prefix to a local name (for enum `from_local` lookups).
+fn strip_logic(iri: &str) -> String {
+    iri.strip_prefix(LOGIC_NAMESPACE).unwrap_or(iri).to_owned()
+}
+
+/// Read ONE [`Correspondence`] node by its IRI from the shared index. The single reader
+/// behind both the cache re-derivation and the frontend extractor; returns a hard error
+/// (the caller decides whether to propagate it or downgrade it to a diagnostic).
+fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> Result<Correspondence, String> {
+    let relation = idx
+        .iri_obj(corr_iri, &p_relation())
+        .and_then(|i| CorrespondenceRelation::from_local(&strip_logic(&i)))
+        .ok_or_else(|| format!("correspondence <{corr_iri}> has no/unknown relation"))?;
+    let morphism_class = idx
+        .iri_obj(corr_iri, &p_morphism_class())
+        .and_then(|i| crate::ir::MorphismClass::from_local(&strip_logic(&i)))
+        .ok_or_else(|| format!("correspondence <{corr_iri}> has no/unknown morphismClass"))?;
+    let morphism_kind = idx
+        .iri_obj(corr_iri, &p_morphism_kind())
+        .and_then(|i| MorphismKind::from_local(&strip_logic(&i)))
+        .ok_or_else(|| format!("correspondence <{corr_iri}> has no/unknown morphismKind"))?;
+    let mnemomorphic = idx
+        .lit_obj(corr_iri, &p_mnemomorphic())
+        .map(|v| v == "true")
+        .unwrap_or(false);
+    let determinacy = idx
+        .iri_obj(corr_iri, &p_determinacy())
+        .and_then(|i| crate::ir::Determinacy::from_local(&strip_logic(&i)));
+    let get_leg = idx.iri_obj(corr_iri, &p_get_leg());
+    let put_leg = idx.iri_obj(corr_iri, &p_put_leg());
+    let according_to = idx.iri_obj(corr_iri, &p_according_to());
+
+    // Law claims (re-read by their per-correspondence node IRIs, sorted by node IRI so
+    // re-derivation is order-stable; the Correspondence ctor re-canonicalizes).
+    let mut claim_nodes = idx.iri_objs(corr_iri, &p_has_law_claim());
+    claim_nodes.sort();
+    let mut law_claims = Vec::new();
+    for claim_iri in claim_nodes {
+        let law = idx
+            .iri_obj(&claim_iri, &p_law_claimed())
+            .and_then(|i| crate::ir::CorrespondenceLaw::from_local(&strip_logic(&i)))
+            .ok_or_else(|| format!("law-claim <{claim_iri}> has no/unknown lawClaimed"))?;
+        let verdict = idx
+            .iri_obj(&claim_iri, &p_law_verdict())
+            .and_then(|i| crate::ir::DischargeVerdict::from_local(&strip_logic(&i)))
+            .ok_or_else(|| format!("law-claim <{claim_iri}> has no/unknown verdict"))?;
+        let condition = idx
+            .iri_obj(&claim_iri, &p_law_condition())
+            .and_then(|i| crate::ir::DischargeCondition::from_local(&strip_logic(&i)));
+        law_claims.push(crate::ir::LawClaimIr {
+            law,
+            verdict,
+            condition,
+        });
+    }
+
+    Correspondence::new(
+        corr_iri.to_owned(),
+        relation,
+        morphism_class,
+        morphism_kind,
+        mnemomorphic,
+        determinacy,
+        get_leg,
+        put_leg,
+        law_claims,
+        idx.decimal_obj(corr_iri, &p_confidence()),
+        idx.decimal_obj(corr_iri, &p_evidence_strength()),
+        idx.decimal_obj(corr_iri, &p_weight()),
+        idx.decimal_obj(corr_iri, &p_probability()),
+        according_to,
+    )
+}
+
+/// Read the caveats attached to one correspondence. Each `hasCaveat` object carries an
+/// `rdfs:comment`; HARD-fail if the text is absent (a caveat without text is corrupt,
+/// never a silently-empty comment — no-optionality).
+fn read_caveats(idx: &SpIndex, corr_iri: &str) -> Result<Vec<CorrespondenceCaveat>, String> {
+    let mut caveats = Vec::new();
+    for caveat_iri in idx.iri_objs(corr_iri, &p_has_caveat()) {
+        let text = idx.lit_obj(&caveat_iri, RDFS_COMMENT).ok_or_else(|| {
+            format!(
+                "caveat <{caveat_iri}> on correspondence <{corr_iri}> has no rdfs:comment text; \
+                 a corrupt graph must not silently produce an empty caveat"
+            )
+        })?;
+        caveats.push(CorrespondenceCaveat {
+            iri: caveat_iri,
+            text,
+        });
+    }
+    Ok(caveats)
+}
+
+/// Re-derive a [`CorrespondenceProgram`] from its backing `graph/correspondence`
+/// N-Triples — the inverse of [`project_correspondence`], used by the cache on a hit.
+///
+/// HARD-fails on a malformed graph (no-optionality): a backing graph that no longer
+/// re-derives is a corrupt cache, never a silently-dropped handle.
+pub fn parse_correspondence(
+    dataset: &gmeow_rdf::RdfDataset,
+) -> Result<CorrespondenceProgram, String> {
+    let idx = SpIndex::from_dataset(dataset);
 
     let prog = program_iri();
-    let preservation = match iri_obj(&prog, &p_has_preservation()) {
+    let preservation = match idx.iri_obj(&prog, &p_has_preservation()) {
         Some(iri) => preservation_from_iri(&iri)
             .ok_or_else(|| format!("unknown preservation kind <{iri}>"))?,
         None => return Err("graph/correspondence carries no hasPreservation".to_owned()),
@@ -572,81 +702,10 @@ pub fn parse_correspondence(
     // Each hasCorrespondence object is a Correspondence subject.
     let mut correspondences = Vec::new();
     let mut caveats: Vec<(String, CorrespondenceCaveat)> = Vec::new();
-    for corr_iri in iri_objs(&prog, &p_has_correspondence()) {
-        let relation = iri_obj(&corr_iri, &p_relation())
-            .and_then(|i| CorrespondenceRelation::from_local(&local(&i)))
-            .ok_or_else(|| format!("correspondence <{corr_iri}> has no/unknown relation"))?;
-        let morphism_class = iri_obj(&corr_iri, &p_morphism_class())
-            .and_then(|i| crate::ir::MorphismClass::from_local(&local(&i)))
-            .ok_or_else(|| format!("correspondence <{corr_iri}> has no/unknown morphismClass"))?;
-        let morphism_kind = iri_obj(&corr_iri, &p_morphism_kind())
-            .and_then(|i| MorphismKind::from_local(&local(&i)))
-            .ok_or_else(|| format!("correspondence <{corr_iri}> has no/unknown morphismKind"))?;
-        let mnemomorphic = lit_obj(&corr_iri, &p_mnemomorphic())
-            .map(|v| v == "true")
-            .unwrap_or(false);
-        let determinacy = iri_obj(&corr_iri, &p_determinacy())
-            .and_then(|i| crate::ir::Determinacy::from_local(&local(&i)));
-        let get_leg = iri_obj(&corr_iri, &p_get_leg());
-        let put_leg = iri_obj(&corr_iri, &p_put_leg());
-        let according_to = iri_obj(&corr_iri, &p_according_to());
-
-        // Law claims (re-read by their per-correspondence node IRIs, sorted by node IRI
-        // so re-derivation is order-stable; the Correspondence ctor re-canonicalizes).
-        let mut claim_nodes = iri_objs(&corr_iri, &p_has_law_claim());
-        claim_nodes.sort();
-        let mut law_claims = Vec::new();
-        for claim_iri in claim_nodes {
-            let law = iri_obj(&claim_iri, &p_law_claimed())
-                .and_then(|i| crate::ir::CorrespondenceLaw::from_local(&local(&i)))
-                .ok_or_else(|| format!("law-claim <{claim_iri}> has no/unknown lawClaimed"))?;
-            let verdict = iri_obj(&claim_iri, &p_law_verdict())
-                .and_then(|i| crate::ir::DischargeVerdict::from_local(&local(&i)))
-                .ok_or_else(|| format!("law-claim <{claim_iri}> has no/unknown verdict"))?;
-            let condition = iri_obj(&claim_iri, &p_law_condition())
-                .and_then(|i| crate::ir::DischargeCondition::from_local(&local(&i)));
-            law_claims.push(crate::ir::LawClaimIr {
-                law,
-                verdict,
-                condition,
-            });
-        }
-
-        let correspondence = Correspondence::new(
-            corr_iri.clone(),
-            relation,
-            morphism_class,
-            morphism_kind,
-            mnemomorphic,
-            determinacy,
-            get_leg,
-            put_leg,
-            law_claims,
-            decimal_obj(&corr_iri, &p_confidence()),
-            decimal_obj(&corr_iri, &p_evidence_strength()),
-            decimal_obj(&corr_iri, &p_weight()),
-            decimal_obj(&corr_iri, &p_probability()),
-            according_to,
-        )?;
-        correspondences.push(correspondence);
-
-        // Caveats: each hasCaveat object carries an rdfs:comment.
-        // HARD-FAIL if the text is absent — a caveat without text is a corrupt graph,
-        // never a silently-empty comment (no-optionality).
-        for caveat_iri in iri_objs(&corr_iri, &p_has_caveat()) {
-            let text = lit_obj(&caveat_iri, RDFS_COMMENT).ok_or_else(|| {
-                format!(
-                    "caveat <{caveat_iri}> on correspondence <{corr_iri}> has no rdfs:comment \
-                     text; a corrupt graph must not silently produce an empty caveat"
-                )
-            })?;
-            caveats.push((
-                corr_iri.clone(),
-                CorrespondenceCaveat {
-                    iri: caveat_iri,
-                    text,
-                },
-            ));
+    for corr_iri in idx.iri_objs(&prog, &p_has_correspondence()) {
+        correspondences.push(read_correspondence(&idx, &corr_iri)?);
+        for caveat in read_caveats(&idx, &corr_iri)? {
+            caveats.push((corr_iri.clone(), caveat));
         }
     }
 
@@ -655,6 +714,30 @@ pub fn parse_correspondence(
         caveats,
         preservation,
     ))
+}
+
+/// Extract every authored `logic:Correspondence` individual from a dataset — the
+/// frontend's gate input — independent of any program wrapper (a conformance
+/// `input.logic.ttl` authors the bare individuals the same shape
+/// [`project_correspondence`] emits). Returns the well-formed correspondences (sorted by
+/// IRI, canonicalized by the ctor) plus a per-node `(iri, message)` for each malformed
+/// one: the caller surfaces those as diagnostics so no node is silently dropped, while a
+/// single malformed cell never poisons the rest (the frontend is fail-soft, unlike the
+/// hard-fail cache re-derivation in [`parse_correspondence`]).
+pub fn extract_correspondences(
+    dataset: &gmeow_rdf::RdfDataset,
+) -> (Vec<Correspondence>, Vec<(String, String)>) {
+    let idx = SpIndex::from_dataset(dataset);
+    let mut ok = Vec::new();
+    let mut errors = Vec::new();
+    for corr_iri in idx.subjects_of_type(&class_correspondence()) {
+        match read_correspondence(&idx, &corr_iri) {
+            Ok(c) => ok.push(c),
+            Err(msg) => errors.push((corr_iri, msg)),
+        }
+    }
+    ok.sort_by(|a, b| a.iri.cmp(&b.iri));
+    (ok, errors)
 }
 
 /// Inverse of [`PreservationKind::as_str`] for the kinds this lane uses.
