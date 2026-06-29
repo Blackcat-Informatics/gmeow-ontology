@@ -60,8 +60,9 @@ enum GraphForm {
     Turtle,
     /// N-Triples of the projected graph (no graph label).
     NTriples,
-    /// N-Quads of the graph re-rooted into its IRI (graph label restamped).
-    NQuads,
+    /// N-Quads of the graph re-rooted into the embedded graph label (the `.nq`
+    /// 4th-column IRI, which differs from the fanout container IRI). RDFC-canonical.
+    NQuads(&'static str),
 }
 
 /// A committed path carried as the fold of one named graph: the backing graph IRI
@@ -94,12 +95,19 @@ fn graph_rep_for_path(path: &str) -> Option<GraphRep> {
     let form = if path.ends_with(".nt") {
         GraphForm::NTriples
     } else if path.ends_with(".nq") {
-        GraphForm::NQuads
+        // The diagnostics `.nq` carry the shared `graph/diagnostics` 4th-column label;
+        // reconstruction restamps to it (not the per-file fanout container).
+        GraphForm::NQuads(GRAPH_DIAGNOSTICS_IRI)
     } else {
         GraphForm::Turtle
     };
     Some(GraphRep { iri, form })
 }
+
+/// The embedded graph label of the committed diagnostics `.nq` files (mirrors
+/// `carrier::GRAPH_DIAGNOSTICS`).
+pub(crate) const GRAPH_DIAGNOSTICS_IRI: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 
 /// Whether a committed RDF `generated/` path is carried as an RDF-fanout named graph
 /// (vs. an older dedicated rep). Both the gate (claiming the rep) and the carrier
@@ -118,6 +126,8 @@ pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
         || path == "generated/logic/projection-report.ttl"
         || path == "generated/logic/gmeow.relational-core.nt"
         || path == "generated/logic/gmeow.correspondence.nt"
+        || path == "generated/diagnostics/shacl.nq"
+        || path == "generated/diagnostics/logic-compile.nq"
         // The non-EDOAL RDF projections; EDOAL keeps its dedicated graph/projections/.
         || path == "generated/projections/core-prefixes.ttl"
         || path == "generated/projections/functions.fno.ttl"
@@ -294,17 +304,11 @@ fn reconstruct_graph(dataset: &RdfDataset, rep: &GraphRep) -> Option<Vec<u8>> {
             Some(gmeow_rdf::turtle_normalize::render(&projected, &rdf_prefixes()).into_bytes())
         }
         GraphForm::NTriples => canonical_ntriples(&projected).ok(),
-        GraphForm::NQuads => {
-            // `project_named_graph` drops the graph label; restamp it so the N-Quads
-            // 4th column matches the committed file, then serialize.
-            let rooted = crate::stages::carrier::rooted_in_graph(&projected, &rep.iri).ok()?;
-            gmeow_rdf::serialize_dataset_to_format(
-                &rooted,
-                gmeow_rdf::NativeRdfFormat::NQuads,
-                None,
-            )
-            .ok()
-            .map(|outcome| outcome.bytes)
+        GraphForm::NQuads(label) => {
+            // `project_named_graph` drops the graph label; restamp to the embedded
+            // label so the RDFC-canonical N-Quads 4th column matches the committed file.
+            let rooted = crate::stages::carrier::rooted_in_graph(&projected, label).ok()?;
+            canonical_ntriples(&rooted).ok()
         }
     }
 }
@@ -317,10 +321,11 @@ pub(crate) fn rdf_prefixes() -> Vec<(String, String)> {
     gmeow_logic_compile::ingest::prefixes::registry_pairs()
 }
 
-/// The RDFC-1.0 canonical N-Triples document for a default-graph `dataset` (blank
-/// labels canonicalized, lines bytewise-sorted). Shared by the gate (folding a `.nt`
-/// graph) and the producing stage (emitting the committed `.nt`), so `file == fold`
-/// holds by construction — idempotent even with blank nodes.
+/// The RDFC-1.0 canonical N-Quads document for `dataset` (blank labels canonicalized,
+/// lines bytewise-sorted). A default-graph dataset folds to N-Triples lines; a
+/// graph-labelled dataset folds to N-Quads lines. Shared by the gate (folding a
+/// `.nt`/`.nq` graph) and the producing stage (emitting the committed file), so
+/// `file == fold` holds by construction — idempotent even with blank nodes.
 pub(crate) fn canonical_ntriples(dataset: &RdfDataset) -> Result<Vec<u8>, String> {
     let quads = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(dataset)
         .map_err(|e| format!("flatten for canonicalization: {e}"))?;

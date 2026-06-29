@@ -358,6 +358,14 @@ fn rdf_fanout_members(
             "stage-compile-logic",
             crate::stages::compile_logic::CORRESPONDENCE_PATH,
         ),
+        // diagnostics `.nq` — one named graph per file (validate SHACL ∪ compile-logic),
+        // each re-rooted into its own fanout container; the gate restamps back to the
+        // shared `graph/diagnostics` label on fold.
+        ("stage-validate", crate::stages::validate::SHACL_RDF_PATH),
+        (
+            "stage-compile-logic",
+            crate::stages::compile_logic::DIAG_RDF_PATH,
+        ),
     ] {
         let bytes = upstream
             .get(stage)
