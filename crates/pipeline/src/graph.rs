@@ -83,11 +83,12 @@ impl StageGraph {
         //    consumer(stage); the certifier maps a cyclic verdict to the
         //    offending witness, which we render as the existing InvalidDag
         //    diagnostics so callers (and `dag_dogfood`) see identical messages. ──
-        let edges: Vec<(&str, &str)> = consumes
+        // Pass the producer→consumer edge iterator straight to the certifier (it takes
+        // any `IntoIterator`), avoiding an intermediate `Vec` allocation per validation.
+        let edges = consumes
             .iter()
-            .flat_map(|(stage, deps)| deps.iter().map(move |dep| (dep.as_str(), stage.as_str())))
-            .collect();
-        match certify_acyclic(edges.iter().copied()) {
+            .flat_map(|(stage, deps)| deps.iter().map(move |dep| (dep.as_str(), stage.as_str())));
+        match certify_acyclic(edges) {
             DagCertification::Certified => {}
             DagCertification::SelfLoop(stage) => {
                 return Err(PipelineError::InvalidDag(format!(
