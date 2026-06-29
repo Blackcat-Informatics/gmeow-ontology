@@ -190,8 +190,38 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         }
     }
 
-    let report_header = report::ReportHeader::of_program(program);
-    let report = report::build_projection_report(program, &owned).map_err(|e| e.to_string())?;
+    // Correspondence calculus (F4): derive the lawful put leg for every put-less cell and
+    // evaluate the five gates BEFORE the report, so the derived liftability statistic
+    // (`lawfulUpliftCount / correspondenceCount` over the gate verdicts) folds into the
+    // report header. Gated on a non-empty correspondence set so a correspondence-free
+    // compile is byte-identical (no gates, no header counts). The gate report is RECORDED
+    // here (compile_program stays total); the hard-fail `assert_gates` is thrown only by
+    // the pipeline stage. The per-correspondence gates run with no compositions — the
+    // conformance runner re-evaluates with the case's declared compositions over
+    // `correspondence_program`.
+    let (correspondence_gates, correspondence_outcomes, correspondence_program) =
+        if program.correspondences.is_empty() {
+            (None, Vec::new(), None)
+        } else {
+            let assembled = CorrespondenceProgram::new(
+                program.correspondences.clone(),
+                Vec::new(),
+                PreservationKind::SoundUnder,
+            );
+            let (derived, outcomes) = assembled.with_derived_puts()?;
+            let report = correspondence_gates::evaluate_gates(&derived, &[]);
+            (Some(report), outcomes, Some(derived))
+        };
+
+    let report_header = {
+        let base = report::ReportHeader::of_program(program);
+        match &correspondence_gates {
+            Some(gates) => base.with_lawful_uplift(correspondence_gates::liftability(gates).lawful),
+            None => base,
+        }
+    };
+    let report =
+        report::build_projection_report_from(report_header, &owned).map_err(|e| e.to_string())?;
 
     // Preservation ledger: per-target (kind, complexity, structural drops).  The
     // runner compares only the structural `lossy_drops` (not `actual_drops`), so
@@ -210,27 +240,6 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
 
     // The rule section of the nemo projection — the reasoning-engine surface.
     let nemo_rules = text::extract_nemo_rules_section(&nemo.content)?;
-
-    // Correspondence calculus (F4): derive the lawful put leg for every put-less cell and
-    // evaluate the five gates. Gated on a non-empty correspondence set so a
-    // correspondence-free compile is byte-identical (the gates produce no artifacts). The
-    // gate report is RECORDED here (compile_program stays total); the hard-fail
-    // `assert_gates` is thrown only by the pipeline stage. The per-correspondence gates run
-    // with no compositions — the conformance runner re-evaluates with the case's declared
-    // compositions over `correspondence_program`.
-    let (correspondence_gates, correspondence_outcomes, correspondence_program) =
-        if program.correspondences.is_empty() {
-            (None, Vec::new(), None)
-        } else {
-            let assembled = CorrespondenceProgram::new(
-                program.correspondences.clone(),
-                Vec::new(),
-                PreservationKind::SoundUnder,
-            );
-            let (derived, outcomes) = assembled.with_derived_puts()?;
-            let report = correspondence_gates::evaluate_gates(&derived, &[]);
-            (Some(report), outcomes, Some(derived))
-        };
 
     Ok(CompiledArtifacts {
         owl_dl: owl_dl.content,
