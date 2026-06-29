@@ -1284,11 +1284,17 @@ pub fn parse_logic_dataset(
     let rules = extract_rules(store, &mut diagnostics);
     let path_shapes = extract_path_shapes(store, &mut diagnostics);
     let correspondences = extract_correspondences(store, &mut diagnostics);
+    // Resolve each leg IRI to its `gm:path` body so the round-trip gate can compose the
+    // actual leg paths (not IRI strings). Leg-body-free corpora yield an empty registry and
+    // leave the canonical key byte-identical (the segment is append-only).
+    let transaction_programs =
+        crate::projections::correspondence::extract_leg_programs(store, &correspondences);
     let formulas = extract_formulas(store, &mut diagnostics);
 
     let program = LogicProgram::new(all_axioms, rules, contracts, source_iri)
         .with_path_shapes(path_shapes)
         .with_correspondences(correspondences)
+        .with_transaction_programs(transaction_programs)
         .with_formulas(formulas);
     Ok((program, diagnostics))
 }

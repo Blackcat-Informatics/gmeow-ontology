@@ -624,6 +624,11 @@ impl SpIndex {
         out.dedup();
         out
     }
+
+    /// The `rdf:type` IRIs asserted on a node (used to recognise `gm:*Path` leg-body nodes).
+    fn types_of(&self, s: &str) -> Vec<String> {
+        self.iri_objs(s, RDF_TYPE)
+    }
 }
 
 /// Strip the `logic:` namespace prefix to a local name (for enum `from_local` lookups).
@@ -776,6 +781,101 @@ pub fn extract_correspondences(
         }
     }
     (ok, errors)
+}
+
+const GM_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
+fn gm(local: &str) -> String {
+    format!("{GM_NAMESPACE}{local}")
+}
+
+/// Recursively parse a `gm:` leg-path node into a [`LegPath`]. The supported forms (the
+/// canonical `logic:` composite-path vocabulary the transaction layer already uses) are:
+///
+/// * a bare predicate IRI (no `gm:*Path` type) → [`LegPath::Step`];
+/// * `gm:InversePath` with `gm:pathStep` → [`LegPath::Inverse`];
+/// * `gm:SeqPath` with `gm:pathSteps` (a `gm:pathNext`-linked chain of named nodes) →
+///   [`LegPath::Seq`];
+/// * `gm:AltPath` with `gm:pathAlts` (likewise) → [`LegPath::Alt`].
+///
+/// Returns `None` for a malformed node so a single bad leg never poisons the rest (the
+/// front-end is fail-soft); the round-trip gate then REDs the unverifiable claim.
+fn parse_leg_path(idx: &SpIndex, node: &str, depth: u32) -> Option<LegPath> {
+    if depth > 64 {
+        return None; // bounded against a cyclic leg-body graph (CWE-674)
+    }
+    let types = idx.types_of(node);
+    if types.iter().any(|t| t == &gm("InversePath")) {
+        let step = idx.iri_obj(node, &gm("pathStep"))?;
+        return Some(LegPath::Inverse(Box::new(parse_leg_path(
+            idx,
+            &step,
+            depth + 1,
+        )?)));
+    }
+    if types.iter().any(|t| t == &gm("SeqPath")) {
+        let members = leg_path_members(idx, node, &gm("pathSteps"), depth)?;
+        return Some(LegPath::Seq(members));
+    }
+    if types.iter().any(|t| t == &gm("AltPath")) {
+        let members = leg_path_members(idx, node, &gm("pathAlts"), depth)?;
+        return Some(LegPath::Alt(members));
+    }
+    // No path-combinator type: a bare predicate step.
+    Some(LegPath::Step(node.to_owned()))
+}
+
+/// Parse the ordered member list of a `gm:SeqPath` / `gm:AltPath`, threaded by `gm:pathNext`
+/// over named nodes (each member carries `gm:pathItem <node>`). A list shape is required to
+/// be non-empty and acyclic within the depth bound.
+fn leg_path_members(
+    idx: &SpIndex,
+    node: &str,
+    head_pred: &str,
+    depth: u32,
+) -> Option<Vec<LegPath>> {
+    let mut out = Vec::new();
+    let mut cursor = idx.iri_obj(node, head_pred);
+    let mut steps = 0u32;
+    while let Some(cell) = cursor {
+        steps += 1;
+        if steps > 256 {
+            return None; // bounded list length
+        }
+        let item = idx.iri_obj(&cell, &gm("pathItem"))?;
+        out.push(parse_leg_path(idx, &item, depth + 1)?);
+        cursor = idx.iri_obj(&cell, &gm("pathNext"));
+    }
+    if out.is_empty() {
+        None
+    } else {
+        Some(out)
+    }
+}
+
+/// Extract the leg-program registry: for every `logic:getLeg` / `logic:putLeg` IRI the
+/// `dataset`'s correspondences reference, parse the leg's `gm:path` body into a
+/// [`TransactionProgramIr`]. A leg with no `gm:path` body is omitted (the round-trip gate
+/// REDs an unverifiable claim rather than passing it vacuously). Deduped + sorted by IRI.
+pub fn extract_leg_programs(
+    dataset: &gmeow_rdf::RdfDataset,
+    correspondences: &[Correspondence],
+) -> Vec<TransactionProgramIr> {
+    let idx = SpIndex::from_dataset(dataset);
+    let mut leg_iris: Vec<String> = correspondences
+        .iter()
+        .flat_map(|c| c.get_leg.iter().chain(c.put_leg.iter()).cloned())
+        .collect();
+    leg_iris.sort();
+    leg_iris.dedup();
+    let mut out = Vec::new();
+    for leg in leg_iris {
+        if let Some(path_node) = idx.iri_obj(&leg, &gm("path")) {
+            if let Some(body) = parse_leg_path(&idx, &path_node, 0) {
+                out.push(TransactionProgramIr { iri: leg, body });
+            }
+        }
+    }
+    out
 }
 
 /// Inverse of [`PreservationKind::as_str`] for the kinds this lane uses.

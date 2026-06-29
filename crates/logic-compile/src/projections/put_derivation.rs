@@ -32,19 +32,19 @@
 //!
 //! # Decidability without an execution engine (F3 is off this path)
 //!
-//! The round-trip law `put ∘ get = id_S` is a **decidable content-addressed identity**,
-//! not a data-execution check: the derived `put_leg` IRI is the formal inverse-along-the-witness
-//! mint `<get_leg>/put#<sha8(get-side identity)>`. The identity hashes only the fields
-//! that are INPUTS to the derivation (`iri`, relation, morphism class/kind, the
-//! `mnemomorphic` bit, the `get_leg`) — never the `put_leg` or the section `LawClaim`,
-//! which are its OUTPUTS — so the conformance Round-trip gate recomputes the same mint
-//! from the stored cell and compares strings. No leg is run on data.
+//! The round-trip law `put ∘ get = id_S` is decided **structurally over the leg bodies**,
+//! not by running a leg on data: the lawful `put` body is the structural inverse
+//! [`crate::ir::LegPath::invert`] of the resolved `get` body, and the conformance Round-trip
+//! gate verifies `put == get.invert()` over the normalized canonical path form (a graph-iso
+//! over the canonical IR, `LOGIC-CONFORMANCE.md`). No leg is run on data, so the F3 executor
+//! stays off this path — yet a `put` whose *body* is the wrong path genuinely fails (it is
+//! NOT a string compare of mint IRIs; the leg IRI is only the leg's content-addressed name).
 
 use sha2::{Digest, Sha256};
 
 use crate::ir::{
     Correspondence, CorrespondenceLaw, DischargeCondition, DischargeVerdict, LawClaimIr,
-    PreservationKind,
+    PreservationKind, TransactionProgramIr,
 };
 
 use super::correspondence::CorrespondenceProgram;
@@ -86,12 +86,12 @@ pub enum PutDerivation {
     },
 }
 
-/// The content-addressed `put` leg IRI for a correspondence: `<get_leg>/put#<sha8>` where
-/// the hash folds ONLY the get-side identity that the derivation reads — the IRI, the
-/// relation, the morphism class/kind, the `mnemomorphic` bit, and the `get_leg`. These
-/// are invariant under the derivation itself (which only adds the `put_leg` and the
-/// section `LawClaim`), so the Round-trip gate recomputes the identical mint from a
-/// stored cell and the check `put ∘ get = id` reduces to a string compare.
+/// The content-addressed `put` leg IRI (the leg's NAME) for a correspondence:
+/// `<get_leg>/put#<sha8>` where the hash folds ONLY the get-side identity the derivation
+/// reads — the IRI, relation, morphism class/kind, the `mnemomorphic` bit, and the `get_leg`.
+/// This is a stable *name* for the minted leg; it is NOT what the round-trip gate checks.
+/// The gate composes the leg BODIES (`put == get.invert()` over canonical path form), so a
+/// matching mint IRI never substitutes for a matching body.
 pub fn derived_put_iri(get_leg: &str, c: &Correspondence) -> String {
     let key = format!(
         "{}\u{1f}{}\u{1f}{}\u{1f}{}\u{1f}{}\u{1f}{}",
@@ -225,6 +225,10 @@ impl CorrespondenceProgram {
 
         let mut rebuilt = Vec::with_capacity(correspondences.len());
         let mut outcomes = Vec::new();
+        // The leg registry grows as we mint puts: a derived put leg is registered with its
+        // BODY — the structural inverse of the resolved get body — so the round-trip gate
+        // can later compose `put == get.invert()` over real path bodies, not IRI strings.
+        let mut legs = leg_programs;
 
         for c in correspondences {
             if c.put_leg.is_some() || c.get_leg.is_none() {
@@ -237,6 +241,22 @@ impl CorrespondenceProgram {
                 PutDerivation::Derived(dp) => {
                     let mut law_claims = c.law_claims.clone();
                     law_claims.push(dp.section_claim);
+                    // Register the derived put leg's body (the inverse of the get body), when
+                    // the get leg resolves to a body. A bodyless get leg mints the put IRI but
+                    // no body, so the round-trip gate REDs an unverifiable claim rather than
+                    // passing it vacuously.
+                    if let Some(get_iri) = c.get_leg.as_deref() {
+                        if let Some(get_body) = legs
+                            .iter()
+                            .find(|p| p.iri == get_iri)
+                            .map(|p| p.body.clone())
+                        {
+                            legs.push(TransactionProgramIr {
+                                iri: dp.put_leg.clone(),
+                                body: get_body.invert(),
+                            });
+                        }
+                    }
                     rebuilt.push(Correspondence::new(
                         c.iri.clone(),
                         c.relation,
@@ -266,8 +286,7 @@ impl CorrespondenceProgram {
         }
 
         Ok((
-            CorrespondenceProgram::new(rebuilt, caveats, preservation)
-                .with_leg_programs(leg_programs),
+            CorrespondenceProgram::new(rebuilt, caveats, preservation).with_leg_programs(legs),
             outcomes,
         ))
     }

@@ -207,7 +207,8 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
                 program.correspondences.clone(),
                 Vec::new(),
                 PreservationKind::SoundUnder,
-            );
+            )
+            .with_leg_programs(program.transaction_programs.clone());
             let (derived, outcomes) = assembled.with_derived_puts()?;
             let report = correspondence_gates::evaluate_gates(&derived, &[]);
             (Some(report), outcomes, Some(derived))

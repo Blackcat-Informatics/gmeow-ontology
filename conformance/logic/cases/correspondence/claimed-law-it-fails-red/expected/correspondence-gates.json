@@ -8,14 +8,14 @@
         "status": "red"
       },
       "mnemomorphism": {
-        "reason": "declared mnemomorphic but carries no derived recovery put leg; the witness does not recover the source",
+        "reason": "declared mnemomorphic but the witness does not recover the source: put leg body is `<https://gmeow.example/corr/wrongStep>`, not the derived inverse `^<https://gmeow.example/corr/liarStep>` of the get leg; put ∘ get ≠ id",
         "status": "red"
       },
       "overclaim": {
         "status": "pass"
       },
       "round_trip": {
-        "reason": "logic:SectionRetraction claims a full round-trip but its put leg is not the derived inverse (expected <https://gmeow.example/corr/liarGet/put#90a080743db7071c>); put ∘ get ≠ id",
+        "reason": "logic:SectionRetraction claims a full round-trip but put leg body is `<https://gmeow.example/corr/wrongStep>`, not the derived inverse `^<https://gmeow.example/corr/liarStep>` of the get leg; put ∘ get ≠ id",
         "status": "red"
       }
     }
