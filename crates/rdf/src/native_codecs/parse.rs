@@ -213,7 +213,27 @@ fn with_base_prefix(text: &str, base_iri: Option<&str>) -> String {
 /// re-binds reifiers and pass 2 reclassifies the reifier subjects' other triples as
 /// annotations. Term interning is shared across all rows, so identical terms collapse
 /// to one id exactly as on the oxigraph path.
-pub(crate) fn dataset_from_gts_graph(graph: &GtsGraph) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
+pub fn dataset_from_gts_graph(graph: &GtsGraph) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
+    dataset_from_gts_graph_impl(graph, false)
+}
+
+/// Like [`dataset_from_gts_graph`], but folds **every** named graph into the default
+/// graph (drops each base quad's graph component) — the oxigraph-free twin of
+/// `store_from_dataset(.., GraphPolicy::FlattenToDefaultGraph)`. This is the load
+/// path the EPIC #906 Task-4 native conformance gate replays against the frozen
+/// oxigraph goldens (which were captured over a flattened store). The statement
+/// layer (`rdf:reifies` reifiers + annotations) has no graph dimension, so only the
+/// base-quad graph component changes.
+pub fn flattened_dataset_from_gts_graph(
+    graph: &GtsGraph,
+) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
+    dataset_from_gts_graph_impl(graph, true)
+}
+
+fn dataset_from_gts_graph_impl(
+    graph: &GtsGraph,
+    flatten_to_default_graph: bool,
+) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
     let mut builder = RdfDatasetBuilder::new();
     let interner = GtsInterner { graph };
 
@@ -254,6 +274,7 @@ pub(crate) fn dataset_from_gts_graph(graph: &GtsGraph) -> Result<Arc<RdfDataset>
         let predicate = interner.intern(&mut builder, p)?;
         let object = interner.intern_node(&mut builder, o)?;
         let graph = match g {
+            Some(_) if flatten_to_default_graph => None,
             Some(g) => Some(interner.intern(&mut builder, g)?),
             None => None,
         };
