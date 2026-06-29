@@ -120,6 +120,29 @@ execute* from here without committing. The two may share construction machinery,
 typed operators with separate meanings, and conflating them would let an execution sandbox masquerade
 as a statement about what is possible.
 
+### How the sandbox operator is realized
+
+A program reaches its execution mode through `executedUnderContract`, which links a transaction-program
+root to the `ReasoningContract` whose `executionMode` it runs under; absence of that link resolves to
+the default `CommittedExecution`, so an unannotated run commits exactly as before. The interpreter that
+computes the verdict is the same in both modes — the path-existence question "would this program
+succeed?" is decided identically whether or not the effects are kept. **The mode changes only what is
+emitted.** A committed run materializes the full effect substrate: the executed path, the per-step
+records, and the supersession of state. A hypothetical run emits the verdict and a single
+content-addressed witness (`executedHypotheticallyAs`) and **suppresses the effect substrate entirely.**
+
+This is why **suppression-never-erasure holds for free**: the discarded effects are never asserted in
+the first place, so nothing is erased — hypothetical success is, at the emission layer, isomorphic to
+committed failure (verdict present, substrate absent, start state untouched). The witness keeps the
+discarded run observable: it records that the run occurred and what it ranged over, so a sandbox test
+leaves an audit trace without leaving an effect.
+
+The "shared construction machinery" between this operator and modal possibility is precisely the
+**content-addressed keying** that gives each isolated run a stable identity — *not* the query-dispatch
+substrate of the counterfactual machinery. Reusing the dispatch would couple the deliberately
+effect-free transaction interpreter to a store and blur the operators; reusing only the keying keeps
+them separate typed operators that happen to address their isolated runs the same way.
+
 ## Concurrent transactions
 
 Concurrent Transaction Logic extends the path model to **interleaved** execution of more than one
