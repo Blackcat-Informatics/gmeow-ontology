@@ -1,11 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Query classification and fast-path / Scryer dispatch.
+//! Query classification and native / fast-path / Scryer dispatch.
 //!
-//! # Two-path architecture
+//! # Primary path + fallback router
 //!
-//! `dispatch_query` routes a `QProgram` to one of two engines:
+//! `dispatch_query` resolves a `QProgram` native-first, falling back to the legacy
+//! two-path router only for a declared native gap:
+//!
+//! - **Native physical core** (the primary path): `crate::physical::resolve_native`
+//!   magic-transforms the query and evaluates it bottom-up over the columnar
+//!   `RelationStore`. It is authoritative for the binary positive query fragment it
+//!   decides; a `NativeOutcome::Unsupported` (cut / arithmetic / non-binary / demand-
+//!   breaks-stratification) is a declared gap that falls through to the router below.
 //!
 //! - **Fast path** (`Dispatch::Fast`): the goal contains only EDB atoms (no rule in the
 //!   program defines any goal predicate). Resolved directly via a single SPARQL
@@ -14,6 +21,10 @@
 //! - **Scryer path** (`Dispatch::Scryer`): the goal hits at least one IDB predicate
 //!   (a predicate defined as a rule head). Delegated to `scryer_engine::run_scryer`
 //!   with `:- table` directives for the cyclic IDB predicates.
+//!
+//! The fast-path / Scryer router is the not-yet-native fallback and conformance oracle
+//! for the fragments the native core does not yet decide; `classify_goal` is ONLY the
+//! fallback router.
 //!
 //! # Cut gate
 //!
@@ -298,8 +309,10 @@ fn term_to_sparql(t: &QTerm) -> String {
 /// Steps:
 /// 1. `profile_gate::check_cut_profile(program, profile)?` — hard-fail if cut is
 ///    present under a non-procedural profile.
-/// 2. Compute `cyclic_predicates(program)` for `:- table` directives.
-/// 3. Dispatch: `classify_goal(program) == Fast` → `fast_path`; else → `run_scryer`.
+/// 2. Native physical core first (`crate::physical::resolve_native`): return its answer
+///    when it decides; fall through on a declared gap.
+/// 3. Fallback router: compute `cyclic_predicates(program)` for `:- table`, then
+///    `classify_goal(program) == Fast` → `fast_path`; else → `run_scryer`.
 ///
 /// # Errors
 ///
@@ -316,10 +329,19 @@ pub fn dispatch_query(
     profile_gate::check_cut_profile(program, profile)?;
     profile_gate::check_builtin_profile(program, profile)?;
 
-    // (2) Cyclic IDB predicates for tabling.
+    // (2) Native physical core first — the primary backward path. The magic-sets engine
+    // (`crate::physical::resolve_native`) answers the binary positive query fragment by
+    // bottom-up demand evaluation; it is authoritative for what it decides. A declared
+    // gap (`NativeOutcome::Unsupported` — cut / arithmetic / non-binary / demand-breaks-
+    // stratification) falls through to the demoted fast-path / Scryer fallback below.
+    match crate::physical::resolve_native(foreign, world, program, budget)? {
+        crate::physical::NativeOutcome::Decided(answer) => return Ok(answer),
+        crate::physical::NativeOutcome::Unsupported(_) => {}
+    }
+
+    // (3) Fallback: cyclic IDB predicates for tabling, then the legacy router.
     let table_preds = cyclic_predicates(program);
 
-    // (3) Dispatch.
     match classify_goal(program) {
         Dispatch::Fast => fast_path(store, world, program, budget),
         Dispatch::Scryer => {
@@ -655,6 +677,111 @@ mod tests {
         assert!(
             xs.contains(&format!("<{BASE}z>").as_str()),
             "missing z: {xs:?}"
+        );
+    }
+
+    // ── Native-first backward wiring ─────────────────────────────────────────────
+
+    /// An IDB (recursive) program is resolved by the native physical core
+    /// (`crate::physical::resolve_native`) — the primary backward path — not Scryer.
+    /// The native magic-sets engine decides the binary positive fragment, so the
+    /// transitive-ancestor answers come back native-authoritative. We assert the full
+    /// answer set (a→b, a→c, a→d) to pin that the native path actually answered.
+    #[test]
+    fn dispatch_query_idb_resolved_by_native() {
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("parentOf"), &p("b"));
+        store.insert_quad(W, &p("b"), &p("parentOf"), &p("c"));
+        store.insert_quad(W, &p("c"), &p("parentOf"), &p("d"));
+        let world_nn = NamedNode::new(W).unwrap();
+
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:ancestor(X, Y) :- ex:parentOf(X, Y).\n\
+             ex:ancestor(X, Y) :- ex:parentOf(X, Z), ex:ancestor(Z, Y).\n\
+             ?- ex:ancestor(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let budget = Budget::default();
+
+        // The native core MUST decide this binary positive query directly.
+        let native = crate::physical::resolve_native(
+            &WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap(),
+            &world_nn,
+            &prog,
+            &budget,
+        )
+        .unwrap();
+        assert!(
+            matches!(native, crate::physical::NativeOutcome::Decided(_)),
+            "native core must decide an IDB binary positive query: {native:?}"
+        );
+
+        // dispatch_query routes through the native core and returns the same answers.
+        let foreign = WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap();
+        let ans =
+            dispatch_query(&foreign, &store, &world_nn, &prog, HORN_PROFILE, &budget).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        let ys: BTreeSet<String> = ans.bindings.iter().map(|b| b["Y"].clone()).collect();
+        let want: BTreeSet<String> = ["b", "c", "d"]
+            .into_iter()
+            .map(|x| format!("<{BASE}{x}>"))
+            .collect();
+        assert_eq!(ys, want, "native-resolved transitive ancestors: {ys:?}");
+    }
+
+    /// A declared native gap falls through to the demoted fallback router. A cut under
+    /// the procedural profile is `NativeOutcome::Unsupported(Cut)` for the native core,
+    /// so `dispatch_query` must fall through to Scryer (the procedural cut engine) and
+    /// still answer — the fallback is exercised, not bypassed.
+    #[test]
+    fn dispatch_query_cut_falls_back_to_scryer() {
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("parentOf"), &p("b"));
+        store.insert_quad(W, &p("a"), &p("parentOf"), &p("c"));
+        let world_nn = NamedNode::new(W).unwrap();
+
+        // first/2: a cut prunes after the first parentOf solution (procedural semantics).
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:first(X, Y) :- ex:parentOf(X, Y), !.\n\
+             ?- ex:first(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let budget = Budget::default();
+
+        // The native core declares cut a gap.
+        let native = crate::physical::resolve_native(
+            &WorldStoreForeign::from_world(&store, W, PROCEDURAL_PROFILE).unwrap(),
+            &world_nn,
+            &prog,
+            &budget,
+        )
+        .unwrap();
+        assert!(
+            matches!(
+                native,
+                crate::physical::NativeOutcome::Unsupported(crate::physical::UnsupportedKind::Cut)
+            ),
+            "cut must be a declared native gap: {native:?}"
+        );
+
+        // dispatch_query falls through to Scryer (the procedural cut engine) and answers.
+        let foreign = WorldStoreForeign::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
+        let ans = dispatch_query(
+            &foreign,
+            &store,
+            &world_nn,
+            &prog,
+            PROCEDURAL_PROFILE,
+            &budget,
+        )
+        .unwrap();
+        // The cut keeps exactly one answer (the first parentOf binding).
+        assert_eq!(
+            ans.bindings.len(),
+            1,
+            "cut must prune to one answer via the Scryer fallback: {ans:?}"
         );
     }
 

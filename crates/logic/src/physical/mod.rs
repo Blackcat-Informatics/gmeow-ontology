@@ -27,14 +27,13 @@ mod store;
 pub(crate) use store::{extract_edb, Bound, RelationStore};
 
 // The forward native evaluator (#1090, F3): the stratified semi-naive core, its
-// `RelationStore`-seeded backward entry, and the declared-gap outcome. Consumed by the
-// native-first routing landing on a later rung; until then the re-export is
-// crate-internally unused, so allow it here.
+// `RelationStore`-seeded backward entry, and the declared-gap outcome. `materialize_native`
+// + `NativeOutcome` are the primary forward path consumed by `materialize::materialize_routed`;
+// `evaluate`/`UnsupportedKind` are consumed by the backward `magic` leg.
 #[allow(unused_imports)]
 pub(crate) use seminaive::{evaluate, materialize_native, NativeOutcome, UnsupportedKind};
 
 // The backward native evaluator (#1090, F3): magic-sets demand transformation +
-// `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. Consumed
-// by the native-first routing landing on a later rung; allow the unused re-export here.
-#[allow(unused_imports)]
+// `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary
+// backward path consumed by `dispatch::dispatch_query`.
 pub(crate) use magic::resolve_native;

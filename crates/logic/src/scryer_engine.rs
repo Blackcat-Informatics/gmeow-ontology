@@ -3,6 +3,18 @@
 
 //! Embedded Scryer Prolog engine — backward goal resolution over the materialized EDB.
 //!
+//! # Role: not-yet-native fallback + conformance oracle
+//!
+//! The native physical engine (`crate::physical`) is the primary backward resolution
+//! path. This embedded Scryer engine (and the SPARQL fast path beside it) is now the
+//! not-yet-native fallback and the conformance oracle for the backward fragments the
+//! native core does not yet decide: `dispatch_query` resolves a query through
+//! `crate::physical::resolve_native` first and only delegates here when the native core
+//! declares the query a gap (`NativeOutcome::Unsupported` — cut / arithmetic /
+//! non-binary / demand-breaks-stratification). The code is retained — not deleted — so
+//! it can keep checking the native engine for equivalence before the native core
+//! absorbs the remaining fragments.
+//!
 //! # Facts-as-DB strategy
 //!
 //! Scryer 0.10 exposes no way to register an in-process Rust closure as a Prolog
