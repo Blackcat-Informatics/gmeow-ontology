@@ -32,8 +32,9 @@ gmeow:Pipeline
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Pipeline"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:SocialObject ;
-    skos:definition "A directed acyclic graph of build stages — the project's own build, authored as data. A Pipeline gathers its gmeow:PipelineStage members through gmeow:hasStage; the gmeow-pipeline executor reads it back, validates the graph (acyclic, complete, exactly one Sink, engine-lock derived), and runs every stage single-pass over an in-memory RDF dataset. Existing by the project's own convention, it is a gmeow:SocialObject (a description), not a physical thing."@x-gmeow-english ;
+    rdfs:subClassOf logic:Plan ,
+        gmeow:SocialObject ;
+    skos:definition "A directed acyclic graph of build stages — the project's own build, authored as data. A Pipeline IS a logic:Plan: the canonical process model of the build, whose steps (gmeow:PipelineStage members, gathered through gmeow:hasStage) invoke typed units of work and whose success criterion is the shippable bundle. It is the dogfooded consumer of the DAG-workflow profile (logic:DagWorkflowProfile) — its gmeow:dataflowConsumes edges specialize the canonical logic:dataflowConsumes, and their acyclic closure is certified under logic:DagWorkflowResource, so the build is statically schedulable and complete-for-fragment. The gmeow-pipeline executor reads it back, validates the graph (acyclic, complete, exactly one Sink, engine-lock derived), and runs every stage single-pass over an in-memory RDF dataset. logic:Plan grounds in prose as a gmeow:SocialObject, so the Pipeline also asserts that sort directly: it exists by the project's own convention, a description, not a physical thing."@x-gmeow-english ;
     skos:example "gmeow:pipeline-build a gmeow:Pipeline ; gmeow:hasStage gmeow:stage-source-load ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -73,17 +74,19 @@ gmeow:hasStage
 
 gmeow:dataflowConsumes
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf logic:dataflowConsumes ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow consumes"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
     rdfs:range gmeow:PipelineStage ;
-    skos:definition "Relates a stage to an upstream stage whose product it reads. The edge direction is consumer → producer; the executor inverts it to schedule producers first. The transitive closure of gmeow:dataflowConsumes must be acyclic — the loader HARD-fails on a cycle. The Rust Stage's consumes() must agree with this declaration exactly (Rust/RDF agreement)."@x-gmeow-english ;
+    skos:definition "Relates a stage to an upstream stage whose product it reads. A specialization of the canonical logic:dataflowConsumes (consumer → producer) — so the build pipeline's dataflow is the same edge the DAG-workflow certifier reads, not a parallel one. The executor inverts it to schedule producers first. The transitive closure of gmeow:dataflowConsumes must be acyclic — the loader HARD-fails on a cycle (the logic:DagWorkflowResource certification). The Rust Stage's consumes() must agree with this declaration exactly (Rust/RDF agreement)."@x-gmeow-english ;
     skos:example "gmeow:stage-reason gmeow:dataflowConsumes gmeow:stage-statements ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:dataflowProduces
     a owl:ObjectProperty ;
     owl:inverseOf gmeow:dataflowConsumes ;
+    rdfs:subPropertyOf logic:dataflowProduces ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow produces"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
@@ -196,12 +199,25 @@ gmeow:kindSink
 # {docs-render + export leaves} → gts-sink (the one serialization).            #
 # =========================================================================== #
 
+# The build plan's success criterion: a shippable gmeow.gts bundle carrying every
+# committed artifact. As a logic:Plan, gmeow:pipeline-build declares this goal and
+# its success mode, satisfying logic:PlanShape (the dogfooded process model).
+gmeow:goalShippableBundle
+    a gmeow:Goal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "shippable bundle goal"@x-gmeow-english ;
+    skos:definition "The success criterion of the build plan: a shippable generated/dist/gmeow.gts that carries every committed artifact reconstructibly (the superset law of the pipeline spine). The gmeow:Goal gmeow:pipeline-build is arranged to reach."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:pipeline-build
     a gmeow:Pipeline ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "GMEOW build pipeline"@x-gmeow-english ;
-    skos:definition "The canonical GMEOW build: the directed acyclic graph of stages the gmeow-pipeline executor runs to produce gmeow.gts and every committed artifact in one pass. The authoritative build graph, replacing the retired Python generator registry."@x-gmeow-english ;
+    skos:definition "The canonical GMEOW build: the directed acyclic graph of stages the gmeow-pipeline executor runs to produce gmeow.gts and every committed artifact in one pass. The authoritative build graph, replacing the retired Python generator registry. As a logic:Plan it carries logic:planGoal (the shippable bundle) and logic:planSuccessMode logic:StrongPlanSuccess (the deterministic build reaches the goal on every execution), and runs logic:executedUnderContract the DAG-workflow profile, under which its acyclic dataflow closure is certified complete-for-fragment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
+    logic:planGoal gmeow:goalShippableBundle ;
+    logic:planSuccessMode logic:StrongPlanSuccess ;
+    logic:executedUnderContract logic:DagWorkflowProfile ;
     gmeow:hasStage
         gmeow:stage-source-load ,
         gmeow:stage-statements ,
