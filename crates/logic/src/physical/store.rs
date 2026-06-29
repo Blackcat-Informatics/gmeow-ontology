@@ -28,6 +28,7 @@
 //! [`extract_edb`] is the SOLE place the forward and backward engine paths cross from
 //! the oxigraph blackboard ([`crate::seam::ScryerForeign`]) into the columnar form.
 
+use std::cmp::Ordering;
 use std::collections::{BTreeSet, HashMap, HashSet};
 
 use oxigraph::model::{NamedNode, Term};
@@ -125,22 +126,24 @@ impl Relation {
             Bound::Both(s, o) => {
                 let by_s = self.rows_for_subject(s);
                 let by_o = self.rows_for_object(o);
-                // Scan the smaller bucket and filter on the other position's surface.
-                // Both buckets are insertion-ordered, so the surviving subsequence is
-                // exactly what a full scan would yield in the same relative order.
-                if by_s.len() <= by_o.len() {
-                    by_s.iter()
-                        .map(|&i| &self.rows[i])
-                        .filter(|(_, obj)| obj.to_string() == o)
-                        .cloned()
-                        .collect()
-                } else {
-                    by_o.iter()
-                        .map(|&i| &self.rows[i])
-                        .filter(|(subj, _)| subj.to_string() == s)
-                        .cloned()
-                        .collect()
+                // Both buckets hold row indices in ascending (insertion) order, so the
+                // rows satisfying BOTH bounds are exactly their sorted intersection: a
+                // two-pointer merge, with no per-row surface re-stringification. The
+                // result keeps insertion order, matching a full scan's relative order.
+                let mut out = Vec::new();
+                let (mut i, mut j) = (0usize, 0usize);
+                while i < by_s.len() && j < by_o.len() {
+                    match by_s[i].cmp(&by_o[j]) {
+                        Ordering::Less => i += 1,
+                        Ordering::Greater => j += 1,
+                        Ordering::Equal => {
+                            out.push(self.rows[by_s[i]].clone());
+                            i += 1;
+                            j += 1;
+                        }
+                    }
                 }
+                out
             }
         }
     }
