@@ -343,16 +343,29 @@ fn rdf_fanout_members(
         .ok_or_else(|| stage_err("missing generated/foundation/gufo.ttl in stage-compile-logic"))?;
     out.insert(crate::stages::compile_logic::GUFO_PATH.to_string(), gufo);
 
-    // projection-report loss ledger (mappings) — Turtle, no RDF-star.
-    let report = upstream
-        .get("stage-mappings")
-        .and_then(|p| p.artifact(crate::stages::compile_logic::PROJECTION_REPORT_PATH))
-        .map(<[u8]>::to_vec)
-        .ok_or_else(|| stage_err("missing projection-report.ttl in stage-mappings"))?;
-    out.insert(
-        crate::stages::compile_logic::PROJECTION_REPORT_PATH.to_string(),
-        report,
-    );
+    // projection-report loss ledger (mappings) + the relational-core / correspondence
+    // N-Triples programs (compile-logic), each emitted canonically by its stage.
+    for (stage, path) in [
+        (
+            "stage-mappings",
+            crate::stages::compile_logic::PROJECTION_REPORT_PATH,
+        ),
+        (
+            "stage-compile-logic",
+            crate::stages::compile_logic::RELATIONAL_CORE_PATH,
+        ),
+        (
+            "stage-compile-logic",
+            crate::stages::compile_logic::CORRESPONDENCE_PATH,
+        ),
+    ] {
+        let bytes = upstream
+            .get(stage)
+            .and_then(|p| p.artifact(path))
+            .map(<[u8]>::to_vec)
+            .ok_or_else(|| stage_err(&format!("missing {path} in {stage} for RDF fanout")))?;
+        out.insert(path.to_string(), bytes);
+    }
     Ok(out)
 }
 

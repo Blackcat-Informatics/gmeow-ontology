@@ -116,6 +116,8 @@ pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
         // side-tables do not separate cleanly under a per-file fold, so they ride a
         // dedicated reifier-preserving path (below), not the generic fanout.
         || path == "generated/logic/projection-report.ttl"
+        || path == "generated/logic/gmeow.relational-core.nt"
+        || path == "generated/logic/gmeow.correspondence.nt"
         // The non-EDOAL RDF projections; EDOAL keeps its dedicated graph/projections/.
         || path == "generated/projections/core-prefixes.ttl"
         || path == "generated/projections/functions.fno.ttl"
@@ -291,13 +293,7 @@ fn reconstruct_graph(dataset: &RdfDataset, rep: &GraphRep) -> Option<Vec<u8>> {
         GraphForm::Turtle => {
             Some(gmeow_rdf::turtle_normalize::render(&projected, &rdf_prefixes()).into_bytes())
         }
-        GraphForm::NTriples => gmeow_rdf::serialize_dataset_to_format(
-            &projected,
-            gmeow_rdf::NativeRdfFormat::NTriples,
-            None,
-        )
-        .ok()
-        .map(|outcome| outcome.bytes),
+        GraphForm::NTriples => canonical_ntriples(&projected).ok(),
         GraphForm::NQuads => {
             // `project_named_graph` drops the graph label; restamp it so the N-Quads
             // 4th column matches the committed file, then serialize.
@@ -319,6 +315,18 @@ fn reconstruct_graph(dataset: &RdfDataset, rep: &GraphRep) -> Option<Vec<u8>> {
 /// by construction (identical prefix selection on both legs).
 pub(crate) fn rdf_prefixes() -> Vec<(String, String)> {
     gmeow_logic_compile::ingest::prefixes::registry_pairs()
+}
+
+/// The RDFC-1.0 canonical N-Triples document for a default-graph `dataset` (blank
+/// labels canonicalized, lines bytewise-sorted). Shared by the gate (folding a `.nt`
+/// graph) and the producing stage (emitting the committed `.nt`), so `file == fold`
+/// holds by construction — idempotent even with blank nodes.
+pub(crate) fn canonical_ntriples(dataset: &RdfDataset) -> Result<Vec<u8>, String> {
+    let quads = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(dataset)
+        .map_err(|e| format!("flatten for canonicalization: {e}"))?;
+    gmeow_rdf::canonical_nquads(&quads)
+        .map(String::into_bytes)
+        .map_err(|e| format!("RDFC-1.0 canonicalize: {e}"))
 }
 
 /// Match a committed path against the unpacked archive-blob member keys: first by

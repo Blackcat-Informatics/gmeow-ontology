@@ -153,6 +153,17 @@ fn stage_err(message: impl Into<String>) -> PipelineError {
     }
 }
 
+/// Re-serialize an N-Triples projection as the RDFC-1.0 canonical N-Triples document
+/// (blank labels canonicalized, lines bytewise-sorted) so the committed file IS the
+/// fold the superset gate reconstructs. RDFC is idempotent, so the round-trip is
+/// byte-stable even for the blank-node-bearing relational-core program.
+pub(crate) fn canon_fanout_nt(nt: &str) -> Result<Vec<u8>, PipelineError> {
+    let ds = parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| stage_err(format!("parse N-Triples projection: {e}")))?;
+    crate::stages::superset::canonical_ntriples(&ds)
+        .map_err(|e| stage_err(format!("canonicalize N-Triples projection: {e}")))
+}
+
 /// The `stage-compile-logic` pipeline stage.
 pub struct CompileLogicStage;
 
@@ -252,7 +263,7 @@ impl Stage for CompileLogicStage {
         let relational_core_nt = project_relational_core(&relational_core);
         artifacts.insert(
             RELATIONAL_CORE_PATH.to_string(),
-            relational_core_nt.clone().into_bytes(),
+            canon_fanout_nt(&relational_core_nt)?,
         );
 
         // The correspondence carrier lane (#1132 C10): the §14 affine-triangle worked
@@ -266,7 +277,7 @@ impl Stage for CompileLogicStage {
         let correspondence_nt = project_correspondence(&correspondence);
         artifacts.insert(
             CORRESPONDENCE_PATH.to_string(),
-            correspondence_nt.clone().into_bytes(),
+            canon_fanout_nt(&correspondence_nt)?,
         );
 
         // The compile diagnostics: the front-end parse findings (already coded
