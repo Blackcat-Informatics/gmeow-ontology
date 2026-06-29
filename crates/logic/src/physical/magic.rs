@@ -291,8 +291,6 @@ fn magic_transform(rules: &[EvalRule], goal: &EvalAtom, goal_adorn: Adorn) -> Ma
     // Fixpoint: expanding a demand (pred, adorn) over every rule whose head is `pred`
     // discovers the adorned IDB body atoms it demands.
     let mut frontier: Vec<(String, Adorn)> = vec![(goal.predicate.as_str().to_owned(), goal_adorn)];
-    let mut seen: BTreeSet<(String, &'static str)> = BTreeSet::new();
-    seen.insert((goal.predicate.as_str().to_owned(), goal_adorn.code()));
 
     while let Some((head_pred, head_adorn)) = frontier.pop() {
         for r in rules
@@ -305,8 +303,9 @@ fn magic_transform(rules: &[EvalRule], goal: &EvalAtom, goal_adorn: Adorn) -> Ma
                 if idb.contains(atom.predicate.as_str()) {
                     let a = adorn_atom(atom, &bound);
                     let demand = (atom.predicate.as_str().to_owned(), a.code());
-                    if seen.insert(demand.clone()) {
-                        demands.insert(demand);
+                    // `demands` doubles as the visited-set: insert returns true only the
+                    // first time a demand is seen, so each frontier node expands once.
+                    if demands.insert(demand) {
                         frontier.push((atom.predicate.as_str().to_owned(), a));
                     }
                 }
