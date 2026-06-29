@@ -279,11 +279,58 @@ impl PyValidateOptions {
     }
 }
 
+// ───────────────────────────────────────────────────────────────────────────────
+// TRANSITIONAL oxigraph `Store` construction for the PyO3 `ValidationStore` (#906).
+//
+// These four helpers are the SOLE remaining oxigraph users in `gmeow-validate`: they
+// build the oxigraph `Store` that `PyValidationStore` hands to `gmeow_shacl` via the
+// `_store_capsule`. The engine modules (lint/gufo/coverage/constitution/statement/the
+// DSL merge/the data path) are all native. The final rdf pass flips the capsule to
+// `Arc<RdfDataset>` and deletes this whole block.
+// ───────────────────────────────────────────────────────────────────────────────
+
+/// Parse every Turtle file in `paths` into one oxigraph `Store` (lenient parsing).
+fn build_store(paths: &[PathBuf]) -> Result<oxigraph::store::Store, String> {
+    use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset_scoped;
+    use gmeow_rdf::parse_dataset;
+    let store = oxigraph::store::Store::new().map_err(|e| format!("store creation failed: {e}"))?;
+    for path in paths {
+        let bytes =
+            std::fs::read(path).map_err(|e| format!("failed to read {}: {e}", path.display()))?;
+        let path_str = path.display().to_string();
+        let dataset = parse_dataset(&bytes, "text/turtle", None)
+            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
+        // Scope blank labels per source file so several Turtle documents merged into one
+        // store keep their anonymous blanks disjoint (the native codecs restart the
+        // blank counter per parse and `store.insert` does not rename them) (#909).
+        let quads = flat_oxigraph_quads_from_dataset_scoped(&dataset, &path_str)
+            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
+        for quad in quads {
+            store
+                .insert(&quad)
+                .map_err(|e| format!("store insert failed for {path_str}: {e}"))?;
+        }
+    }
+    Ok(store)
+}
+
+/// Build an oxigraph `Store` from a GTS byte bundle (read + flatten named graphs).
+fn build_store_from_gts(bytes: &[u8]) -> Result<oxigraph::store::Store, String> {
+    let graph = store::read_gts_graph(bytes)?;
+    gmeow_rdf::gts::flattened_oxigraph_store_from_graph(&graph).map_err(|e| e.to_string())
+}
+
 /// A reusable oxigraph store built once from canonical source paths.
 ///
 /// Python hands the source paths once; the store can then be validated against
 /// parsed SHACL shapes across multiple phases without re-parsing the sources
 /// (#634).
+///
+/// TRANSITIONAL: oxigraph Store + `_store_capsule` until the rdf `py_store` goes
+/// native (#906). This is the sole remaining oxigraph user in `gmeow-validate`: it
+/// hands the raw oxigraph `Store` pointer to `gmeow_shacl` via the capsule. The final
+/// rdf pass flips the capsule to `Arc<RdfDataset>` and removes this class together
+/// with the transitional `build_store*` helpers above.
 #[pyclass(name = "ValidationStore")]
 struct PyValidationStore {
     store: oxigraph::store::Store,
@@ -301,7 +348,7 @@ impl PyValidationStore {
             ));
         }
         let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
-        let store = store::build_store(&paths).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let store = build_store(&paths).map_err(pyo3::exceptions::PyValueError::new_err)?;
         Ok(Self {
             store,
             source_paths,
@@ -311,8 +358,8 @@ impl PyValidationStore {
     /// Build a store from a GTS byte bundle instead of from Turtle source paths.
     #[staticmethod]
     fn from_gts_bytes(gts_bytes: Vec<u8>) -> PyResult<Self> {
-        let store = store::build_store_from_gts(&gts_bytes)
-            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let store =
+            build_store_from_gts(&gts_bytes).map_err(pyo3::exceptions::PyValueError::new_err)?;
         Ok(Self {
             store,
             source_paths: Vec::new(),
@@ -359,20 +406,22 @@ impl PyValidationStore {
     }
 }
 
-/// Build the merged store from `source_paths`, mapping a parse failure to a
-/// Python `ValueError` (a hard failure that must surface — the validation path
-/// has no rdflib fallback, #579).
-fn build_store_or_err(source_paths: &[String]) -> PyResult<oxigraph::store::Store> {
+/// Build the merged native dataset from `source_paths`, mapping a parse failure to a
+/// Python `ValueError` (a hard failure that must surface — the validation path has no
+/// rdflib fallback, #579).
+fn build_dataset_or_err(
+    source_paths: &[String],
+) -> PyResult<std::sync::Arc<gmeow_rdf::RdfDataset>> {
     let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
-    store::build_store(&paths).map_err(pyo3::exceptions::PyValueError::new_err)
+    store::dataset_from_paths(&paths).map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
-/// Build the store from an N-Triples string (the rdflib-free data seam, #579),
-/// mapping a parse failure to a Python `ValueError`. The reasoning checks accept
-/// graphs as N-Triples now (test shims build a synthetic graph and serialize it),
-/// so this is their ingestion primitive.
-fn build_store_from_nt_or_err(data_nt: &str) -> PyResult<oxigraph::store::Store> {
-    store::build_store_from_nt(data_nt).map_err(pyo3::exceptions::PyValueError::new_err)
+/// Build the native dataset from an N-Triples string (the rdflib-free data seam,
+/// #579), mapping a parse failure to a Python `ValueError`. The reasoning checks
+/// accept graphs as N-Triples now (test shims build a synthetic graph and serialize
+/// it), so this is their ingestion primitive.
+fn build_dataset_from_nt_or_err(data_nt: &str) -> PyResult<std::sync::Arc<gmeow_rdf::RdfDataset>> {
+    store::dataset_from_nt(data_nt).map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
 /// Structural lint over the merged sources (mirrors `validate.structural_lint`).
@@ -387,8 +436,8 @@ fn structural_lint(
             "structural_lint: paths to lint must not be empty",
         ));
     }
-    let store = build_store_or_err(&source_paths)?;
-    let report = lint::structural_lint(&store, &cfg.to_engine());
+    let dataset = build_dataset_or_err(&source_paths)?;
+    let report = lint::structural_lint_dataset(&dataset, &cfg.to_engine());
     lint_report_dict(py, report)
 }
 
@@ -404,8 +453,8 @@ fn term_naming_lint(
             "term_naming_lint: paths to lint must not be empty",
         ));
     }
-    let store = build_store_or_err(&source_paths)?;
-    let report = lint::term_naming_lint(&store, &cfg.to_engine());
+    let dataset = build_dataset_or_err(&source_paths)?;
+    let report = lint::term_naming_lint_dataset(&dataset, &cfg.to_engine());
     lint_report_dict(py, report)
 }
 
@@ -423,10 +472,11 @@ fn typed_terms(
             "typed_terms: paths to scan must not be empty",
         ));
     }
-    let store = build_store_or_err(&source_paths)?;
-    let pairs: Vec<(String, String)> = lint::collect_typed_terms(&store, &cfg.to_engine())
-        .into_iter()
-        .collect();
+    let dataset = build_dataset_or_err(&source_paths)?;
+    let pairs: Vec<(String, String)> =
+        lint::collect_typed_terms_dataset(&dataset, &cfg.to_engine())
+            .into_iter()
+            .collect();
     Ok(PyList::new(py, &pairs)?.into_any().unbind())
 }
 
@@ -443,8 +493,8 @@ fn declared_terms(
             "declared_terms: paths to scan must not be empty",
         ));
     }
-    let store = build_store_or_err(&source_paths)?;
-    let terms = lint::declared_terms(&store, &cfg.to_engine());
+    let dataset = build_dataset_or_err(&source_paths)?;
+    let terms = lint::declared_terms_dataset(&dataset, &cfg.to_engine());
     Ok(PyList::new(py, &terms)?.into_any().unbind())
 }
 
@@ -461,7 +511,7 @@ fn check_syntax(py: Python<'_>, paths: Vec<String>) -> PyResult<Py<PyAny>> {
     }
     let mut errors: Vec<String> = Vec::new();
     for path in &paths {
-        if let Err(exc) = store::parse_file(std::path::Path::new(path)) {
+        if let Err(exc) = store::parse_file_dataset(std::path::Path::new(path)) {
             errors.push(format!("syntax error in {path}: {exc}"));
         }
     }
@@ -492,14 +542,14 @@ fn check_sameas_ban(
 
     let mut errors: Vec<String> = Vec::new();
     for path in &paths {
-        let quads = match store::parse_file(std::path::Path::new(path)) {
-            Ok(q) => q,
+        let dataset = match store::parse_file_dataset(std::path::Path::new(path)) {
+            Ok(ds) => ds,
             Err(exc) => {
                 errors.push(format!("failed to parse {path}: {exc}"));
                 continue;
             }
         };
-        for (subject_text, obj) in store::sameas_violations(&quads, &namespace, &allowlist) {
+        for (subject_text, obj) in store::sameas_violations(&dataset, &namespace, &allowlist) {
             errors.push(format!(
                 "{path}: banned owl:sameAs to external entity \
                  {subject_text} owl:sameAs {obj} (Principle 5); \
@@ -517,8 +567,8 @@ fn errors_dict(py: Python<'_>, errors: Vec<String>) -> PyResult<Py<PyAny>> {
     report_dict(py, errors, Vec::new())
 }
 
-/// A gUFO anti-pattern check: `(store, cfg) -> structured findings`.
-type GufoCheck = fn(&oxigraph::store::Store, &GufoConfig) -> Vec<gmeow_diagnostics::model::Finding>;
+/// A gUFO anti-pattern check: `(dataset, cfg) -> structured findings`.
+type GufoCheck = fn(&gmeow_rdf::RdfDataset, &GufoConfig) -> Vec<gmeow_diagnostics::model::Finding>;
 
 /// Run one gUFO check over the merged sources (the production `validate_all`
 /// path passes file paths directly — no rdflib graph, #579).
@@ -528,11 +578,14 @@ fn run_reasoning_paths(
     source_paths: Vec<String>,
     namespace: String,
 ) -> PyResult<Py<PyAny>> {
-    let store = build_store_or_err(&source_paths)?;
+    let dataset = build_dataset_or_err(&source_paths)?;
     let cfg = GufoConfig { namespace };
     errors_dict(
         py,
-        check(&store, &cfg).into_iter().map(|f| f.message).collect(),
+        check(&dataset, &cfg)
+            .into_iter()
+            .map(|f| f.message)
+            .collect(),
     )
 }
 
@@ -545,11 +598,14 @@ fn run_reasoning_nt(
     data_nt: &str,
     namespace: String,
 ) -> PyResult<Py<PyAny>> {
-    let store = build_store_from_nt_or_err(data_nt)?;
+    let dataset = build_dataset_from_nt_or_err(data_nt)?;
     let cfg = GufoConfig { namespace };
     errors_dict(
         py,
-        check(&store, &cfg).into_iter().map(|f| f.message).collect(),
+        check(&dataset, &cfg)
+            .into_iter()
+            .map(|f| f.message)
+            .collect(),
     )
 }
 
@@ -875,8 +931,11 @@ fn dsl_merge_with_provenance(
     let paths: Vec<PathBuf> = dsl_paths.iter().map(PathBuf::from).collect();
     let merge =
         dsl::merge_with_provenance(&paths).map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let data_nt = merge
+        .data_ntriples()
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
     let pairs = PyList::new(py, &merge.focus_to_file)?;
-    Ok((merge.data_nt, pairs.into_any().unbind()))
+    Ok((data_nt, pairs.into_any().unbind()))
 }
 
 /// Native validation orchestration entrypoint (#634).
@@ -944,40 +1003,31 @@ fn validate_all_native(
     Ok(out.into_any().unbind())
 }
 
-/// Load a Turtle string into `store` (lenient parsing, matching the rest of the
-/// validation path), mapping a parse failure to a Python `ValueError`.
-fn insert_turtle(store: &oxigraph::store::Store, ttl: &str) -> PyResult<()> {
-    use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
-    use gmeow_rdf::parse_dataset;
-    let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None)
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("Turtle parse error: {e}")))?;
-    let quads = flat_oxigraph_quads_from_dataset(&dataset)
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-    for triple in quads {
-        store
-            .insert(&triple)
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-    }
-    Ok(())
+/// Parse a Turtle string into a frozen native dataset (lenient parsing, matching the
+/// rest of the validation path), mapping a parse failure to a Python `ValueError`.
+fn dataset_from_turtle(ttl: &str) -> PyResult<std::sync::Arc<gmeow_rdf::RdfDataset>> {
+    gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("Turtle parse error: {e}")))
 }
 
-/// Load an N-Triples string into `store` (lenient parsing), mapping a parse
-/// failure to a Python `ValueError`.
-fn insert_ntriples(store: &oxigraph::store::Store, data_nt: &str) -> PyResult<()> {
-    use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
-    use gmeow_rdf::parse_dataset;
-    let dataset =
-        parse_dataset(data_nt.as_bytes(), "application/n-triples", None).map_err(|e| {
-            pyo3::exceptions::PyValueError::new_err(format!("N-Triples parse error: {e}"))
-        })?;
-    let quads = flat_oxigraph_quads_from_dataset(&dataset)
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-    for triple in quads {
-        store
-            .insert(&triple)
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-    }
-    Ok(())
+/// Merge a Turtle document and an N-Triples document into ONE frozen native dataset
+/// (their default-graph union), each under a fresh blank scope. The Turtle parse error
+/// maps to a `ValueError`, as does the N-Triples one — both are hard failures (#579).
+fn dataset_from_turtle_and_nt(
+    ttl: &str,
+    data_nt: &str,
+) -> PyResult<std::sync::Arc<gmeow_rdf::RdfDataset>> {
+    let turtle = gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("Turtle parse error: {e}")))?;
+    let nt = gmeow_rdf::parse_dataset(data_nt.as_bytes(), "application/n-triples", None).map_err(
+        |e| pyo3::exceptions::PyValueError::new_err(format!("N-Triples parse error: {e}")),
+    )?;
+    let mut builder = gmeow_rdf::RdfDatasetBuilder::new();
+    builder.push_dataset(&turtle);
+    builder.push_dataset(&nt);
+    builder
+        .freeze()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
 }
 
 /// The statement-metadata invariants over the emitted OWL downcast + ontology
@@ -996,13 +1046,10 @@ fn check_statement_invariants(
     statement_owl_ttl: &str,
     ontology_nt: &str,
 ) -> PyResult<Py<PyAny>> {
-    let store = oxigraph::store::Store::new()
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-    insert_turtle(&store, statement_owl_ttl)?;
-    insert_ntriples(&store, ontology_nt)?;
+    let dataset = dataset_from_turtle_and_nt(statement_owl_ttl, ontology_nt)?;
 
     let mut report = gmeow_diagnostics::Report::new("statement");
-    for finding in statement::check_statement_invariants(&store) {
+    for finding in statement::check_statement_invariants_dataset(&dataset) {
         report.add_finding(finding);
     }
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
@@ -1021,15 +1068,11 @@ fn check_statement_lossless(
     authored_owl_ttl: &str,
     normalized_owl_ttl: &str,
 ) -> PyResult<Py<PyAny>> {
-    let authored = oxigraph::store::Store::new()
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-    insert_turtle(&authored, authored_owl_ttl)?;
-    let normalized = oxigraph::store::Store::new()
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-    insert_turtle(&normalized, normalized_owl_ttl)?;
+    let authored = dataset_from_turtle(authored_owl_ttl)?;
+    let normalized = dataset_from_turtle(normalized_owl_ttl)?;
 
     let mut report = gmeow_diagnostics::Report::new("statement-compile");
-    for finding in statement::check_statement_lossless(&authored, &normalized) {
+    for finding in statement::check_statement_lossless_dataset(&authored, &normalized) {
         report.add_finding(finding);
     }
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
@@ -1044,12 +1087,10 @@ fn check_statement_lossless(
 /// Python (they introspect the filesystem / Typer app / generator registry).
 #[pyfunction]
 fn constitution_enforcement_report(py: Python<'_>, manifest_ttl: &str) -> PyResult<Py<PyAny>> {
-    let store = oxigraph::store::Store::new()
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-    insert_turtle(&store, manifest_ttl)?;
+    let dataset = dataset_from_turtle(manifest_ttl)?;
 
     let mut report = gmeow_diagnostics::Report::new("constitution");
-    for finding in constitution::check_enforcement_coverage(&store) {
+    for finding in constitution::check_enforcement_coverage(&dataset) {
         report.add_finding(finding);
     }
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
