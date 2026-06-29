@@ -3,13 +3,12 @@
 
 //! SHACL property path evaluation.
 //!
-//! Evaluates a [`Path`] against an oxigraph [`Store`], returning the set of
-//! value nodes reachable from a given focus node.
-
-use oxigraph::model::Term;
+//! Evaluates a [`Path`] against a [`ShaclDataGraph`], returning the set of value
+//! nodes reachable from a given focus node.
 
 use crate::data::{GraphFilter, ShaclDataGraph};
 use crate::shapes::Path;
+use crate::term::Term;
 
 /// Evaluate a SHACL property path from `focus`, returning all reachable value
 /// nodes in the default graph.
@@ -69,7 +68,7 @@ fn eval_inner<G: ShaclDataGraph>(store: &G, focus: &Term, path: &Path) -> Vec<Te
                         GraphFilter::DefaultGraph,
                     )
                     .into_iter()
-                    .map(|q| Term::from(q.subject))
+                    .map(|q| q.subject)
                     .collect()
             }
             // General inverse: eval inner with focus as "target", swap roles.
@@ -82,7 +81,7 @@ fn eval_inner<G: ShaclDataGraph>(store: &G, focus: &Term, path: &Path) -> Vec<Te
                     let mut subjects: Vec<Term> = store
                         .quads_for_pattern(None, None, None, GraphFilter::DefaultGraph)
                         .into_iter()
-                        .map(|q| Term::from(q.subject))
+                        .map(|q| q.subject)
                         .collect();
                     let mut seen = std::collections::HashSet::new();
                     subjects.retain(|t| seen.insert(t.clone()));
@@ -105,12 +104,18 @@ fn eval_inner<G: ShaclDataGraph>(store: &G, focus: &Term, path: &Path) -> Vec<Te
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use oxigraph::model::NamedNode;
-    use oxigraph::store::Store;
+    use std::sync::Arc;
 
-    fn load_store(ttl: &str) -> Store {
-        crate::text_ingest::parse_turtle_to_store(ttl).expect("turtle parse")
+    use gmeow_rdf::ir::RdfDataset;
+
+    use super::*;
+    use crate::data::IrDataGraph;
+    use crate::term::{Literal, NamedNode};
+
+    fn load_data(ttl: &str) -> IrDataGraph {
+        let dataset: Arc<RdfDataset> =
+            crate::text_ingest::parse_turtle_to_dataset(ttl).expect("turtle parse");
+        IrDataGraph::new(dataset)
     }
 
     const DATA: &str = r#"
@@ -126,11 +131,11 @@ mod tests {
 
     #[test]
     fn predicate_path_returns_objects() {
-        let store = load_store(DATA);
+        let data = load_data(DATA);
         let focus = nn("http://example.org/ns#a");
         let path = Path::Predicate(NamedNode::new_unchecked("http://example.org/ns#p"));
-        let mut result = eval(&store, &focus, &path);
-        result.sort_by_key(|a| a.to_string());
+        let mut result = eval(&data, &focus, &path);
+        result.sort_by_key(Term::to_string);
         assert_eq!(result.len(), 2);
         assert!(result.contains(&nn("http://example.org/ns#b")));
         assert!(result.contains(&nn("http://example.org/ns#c")));
@@ -138,34 +143,30 @@ mod tests {
 
     #[test]
     fn inverse_path_returns_subjects() {
-        let store = load_store(DATA);
+        let data = load_data(DATA);
         let focus = nn("http://example.org/ns#a");
         let path = Path::Inverse(Box::new(Path::Predicate(NamedNode::new_unchecked(
             "http://example.org/ns#q",
         ))));
-        let result = eval(&store, &focus, &path);
+        let result = eval(&data, &focus, &path);
         assert_eq!(result.len(), 1);
         assert_eq!(result[0], nn("http://example.org/ns#d"));
     }
 
     #[test]
     fn literal_focus_returns_empty() {
-        use oxigraph::model::Literal;
-        let store = load_store(DATA);
+        let data = load_data(DATA);
         let focus = Term::Literal(Literal::new_simple_literal("hello"));
         let path = Path::Predicate(NamedNode::new_unchecked("http://example.org/ns#p"));
-        assert!(eval(&store, &focus, &path).is_empty());
+        assert!(eval(&data, &focus, &path).is_empty());
     }
 
     #[test]
     fn predicate_path_deduplicates() {
-        // If the store somehow has two identical quads (it won't, but test dedup logic)
-        // by making two different predicates both point to the same object: only one path
-        // but we can verify dedup doesn't break normal output either.
-        let store = load_store(DATA);
+        let data = load_data(DATA);
         let focus = nn("http://example.org/ns#a");
         let path = Path::Predicate(NamedNode::new_unchecked("http://example.org/ns#p"));
-        let result = eval(&store, &focus, &path);
+        let result = eval(&data, &focus, &path);
         // Should be exactly 2 distinct values
         assert_eq!(result.len(), 2);
     }

@@ -27,6 +27,10 @@ oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 # and would panic at eval. Use SparqlParser to parse and match Query::Select.
 # Replaces the oxigraph-family SPARQL parser.
 gmeow-sparql-algebra = { path = "../sparql-algebra" }
+# Native SPARQL engine (crates/sparql-eval): the single SparqlEngine impl over the
+# frozen IR. Replaces oxigraph's SPARQL 1.1 engine for SHACL-AF sh:sparql /
+# sh:SPARQLTarget evaluation (EPIC #906).
+gmeow-sparql-eval = { path = "../sparql-eval" }
 # sh:pattern regex constraint.
 regex = "1"
 # JSON Schema / OpenAPI emitter (#700). NO `preserve_order` feature: we rely on

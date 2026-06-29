@@ -1963,6 +1963,7 @@ dependencies = [
  "gmeow-rdf",
  "gmeow-slice",
  "gmeow-sparql-algebra",
+ "gmeow-sparql-eval",
  "oxigraph",
  "proptest",
  "pyo3",

@@ -110,7 +110,7 @@ pub fn run(
 
     let shapes = gmeow_shacl::engine::parse_shapes(&shapes_ttl)
         .map_err(|e| format!("bundled SHACL shapes failed to parse: {e}"))?;
-    let shacl_report = gmeow_shacl::engine::validate(&store, &shapes);
+    let shacl_report = crate::store::shacl_validate_store(&store, &shapes);
     let shacl_findings = shacl_findings_from_report(&shacl_report, Some(origin));
 
     let cfg = GufoConfig {
