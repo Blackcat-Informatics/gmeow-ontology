@@ -16,12 +16,12 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
+use std::sync::Arc;
+
 use gmeow_diagnostics::{Finding, FindingCategory, Location, Report, Severity};
 use gmeow_gts::model::Graph;
 use gmeow_logic::certificate::ContradictionPolicy;
-use gmeow_rdf::{pair_loss_ledger, PROJECTION_CODECS};
-use oxigraph::model::Quad;
-use oxigraph::store::Store;
+use gmeow_rdf::{pair_loss_ledger, RdfDataset, RdfDatasetBuilder, PROJECTION_CODECS};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -35,7 +35,7 @@ use crate::findings::finding_from_shacl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig};
 use crate::signature;
-use crate::store::{self, parse_file};
+use crate::store;
 
 /// One per-phase timing record.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -123,8 +123,8 @@ struct PhaseResult {
 /// *derived* from it ([`ValidationRun::errors`] / [`ValidationRun::warnings`]),
 /// never separately stored, so there is no dual-truth.
 pub struct ValidationRun {
-    /// The shared ontology store built from `source_paths`.
-    pub store: Store,
+    /// The shared ontology dataset built from `source_paths` (or the GTS bundle).
+    pub dataset: Arc<RdfDataset>,
     /// The parsed normal SHACL shapes model.
     pub shapes: gmeow_shacl::shapes::Shapes,
     /// Per-phase timing records (populated when requested).
@@ -182,35 +182,42 @@ impl ValidationRun {
             );
         }
 
-        // Parse GTS bytes once outside the timed store-build phase; the timing
-        // should measure only oxigraph construction from the parsed graph.
+        // Read the GTS segment-heads graph once (for the cache key) outside the timed
+        // store-build phase; the timing should measure only dataset construction.
         let gts_graph: Option<Graph> = if let Some(bytes) = &options.gts_bytes {
             Some(store::read_gts_graph(bytes)?)
         } else {
             None
         };
 
-        // Parse every source Turtle file exactly once before the timed
-        // store-build phase (#822). The parsed quad lists are reused by:
-        //   • the `build-store` timed phase (fold into oxigraph Store),
+        // Parse every source Turtle file exactly once before the timed store-build
+        // phase (#822). The per-file frozen datasets are reused by:
+        //   • the `build-store` timed phase (merge into the shared dataset),
         //   • Phase 1: syntax check (report Err entries),
         //   • Phase 2: sameAs ban (scan Ok entries).
-        // This eliminates the ~3× redundant parse that existed when each phase
-        // called `parse_file` independently.
-        let parsed_sources: Vec<(PathBuf, Result<Vec<Quad>, String>)> =
+        // This eliminates the ~3× redundant parse that existed when each phase parsed
+        // the file independently.
+        let parsed_sources: Vec<(PathBuf, Result<Arc<RdfDataset>, String>)> =
             if options.gts_bytes.is_none() {
-                let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
-                store::parse_all_files(paths)
+                source_paths
+                    .iter()
+                    .map(|p| {
+                        let path = PathBuf::from(p);
+                        let res = store::parse_file_dataset(&path);
+                        (path, res)
+                    })
+                    .collect()
             } else {
                 Vec::new()
             };
 
-        // Build the shared store once.
-        let store = timed(&mut timings, "build-store", options, None, || {
-            if let Some(graph) = &gts_graph {
-                store::build_store_from_graph(graph)
+        // Build the shared dataset once: from the GTS bundle (flattened) or by merging
+        // the per-file parsed datasets under fresh blank scopes.
+        let dataset = timed(&mut timings, "build-store", options, None, || {
+            if let Some(bytes) = &options.gts_bytes {
+                store::dataset_from_gts(bytes)
             } else {
-                store::build_store_from_parsed(&parsed_sources)
+                merge_parsed_sources(&parsed_sources)
             }
         })?;
 
@@ -235,7 +242,7 @@ impl ValidationRun {
 
         if signature_hard_failures {
             return Ok(Self {
-                store,
+                dataset,
                 shapes,
                 timings,
                 report: build_report(Vec::new(), Vec::new(), signature_findings),
@@ -269,7 +276,7 @@ impl ValidationRun {
         // Python short-circuits if syntax or sameAs failed — no merged graph work.
         if !errors.is_empty() {
             return Ok(Self {
-                store,
+                dataset,
                 shapes,
                 timings,
                 report: build_report(errors, warnings, shacl_findings),
@@ -280,7 +287,7 @@ impl ValidationRun {
 
         // Phase 3: structural lint.
         let result = timed(&mut timings, "structural-lint", options, None, || {
-            let report = lint::structural_lint(&store, lint_config);
+            let report = lint::structural_lint_dataset(&dataset, lint_config);
             PhaseResult {
                 errors: report.errors,
                 warnings: report.warnings,
@@ -291,7 +298,7 @@ impl ValidationRun {
 
         // Phase 4: term-naming lint.
         let result = timed(&mut timings, "term-naming-lint", options, None, || {
-            let report = lint::term_naming_lint(&store, lint_config);
+            let report = lint::term_naming_lint_dataset(&dataset, lint_config);
             PhaseResult {
                 errors: report.errors,
                 warnings: report.warnings,
@@ -302,7 +309,7 @@ impl ValidationRun {
 
         // Phase 6: declared-term collection for Python's guide-anchor lint.
         let declared_terms = timed(&mut timings, "declared-terms", options, None, || {
-            lint::declared_terms(&store, lint_config)
+            lint::declared_terms_dataset(&dataset, lint_config)
         });
 
         // Phase 7: reasoning/gUFO invariants.
@@ -311,7 +318,7 @@ impl ValidationRun {
                 namespace: lint_config.namespace.clone(),
             };
             PhaseResult {
-                errors: gufo::reasoning_invariants(&store, &cfg),
+                errors: gufo::reasoning_invariants(&dataset, &cfg),
                 warnings: Vec::new(),
             }
         });
@@ -362,7 +369,7 @@ impl ValidationRun {
         };
         let start = Instant::now();
         let (result, meta) = run_cached(cache.as_ref(), "merged-shacl", &merged_shacl_key, || {
-            let report = crate::store::shacl_validate_store(&store, &shapes);
+            let report = store::shacl_validate_dataset(&dataset, &shapes);
             Ok(shacl_findings_from_report(&report, None))
         })?;
         if options.timings {
@@ -382,10 +389,10 @@ impl ValidationRun {
             errors.extend(result.errors);
             warnings.extend(result.warnings);
 
-            // Phase 10: per-example SHACL via scoped overlay.
+            // Phase 10: per-example SHACL via per-example base ∪ example dataset.
             let start = Instant::now();
             let (result, meta) = check_examples(
-                &store,
+                &dataset,
                 &shapes,
                 slices_dir,
                 cache.as_ref(),
@@ -531,7 +538,7 @@ impl ValidationRun {
         }
 
         Ok(Self {
-            store,
+            dataset,
             shapes,
             timings,
             report,
@@ -982,18 +989,36 @@ fn merged_shacl_merkle_root(slices_dir: &str) -> Result<String, String> {
     Ok(key.root)
 }
 
+/// The per-file parse result: each source file parsed once into a frozen native
+/// dataset (or its parse error), in `source_paths` order.
+type ParsedSource = (PathBuf, Result<Arc<RdfDataset>, String>);
+
+/// Merge every successfully-parsed per-file dataset into ONE frozen shared dataset,
+/// each under a fresh blank scope (C0.2), matching [`store::dataset_from_paths`]. A
+/// parse failure propagates with the same `"syntax error in {path}: {msg}"` format the
+/// per-file parse produced, preserving the `build-store` error contract (#822).
+fn merge_parsed_sources(parsed: &[ParsedSource]) -> Result<Arc<RdfDataset>, String> {
+    let mut builder = RdfDatasetBuilder::new();
+    for (path, result) in parsed {
+        let ds = result
+            .as_ref()
+            .map_err(|e| format!("syntax error in {}: {e}", path.display()))?;
+        builder.push_dataset(ds);
+    }
+    builder
+        .freeze()
+        .map_err(|e| format!("dataset freeze failed: {e}"))
+}
+
 /// Phase 1: report syntax errors from the already-parsed per-file results.
 ///
-/// The quad lists were produced by [`store::parse_all_files`] before the
-/// `build-store` phase.  Any `Err` entry is a file that failed to parse;
-/// `build-store` (`build_store_from_parsed`) will have already returned `Err`
-/// for that case (propagated via `?`), so in practice this function only runs
-/// when all files parsed successfully and always returns an empty error list.
-/// It is kept as a separate timed phase so the phase label and timing structure
+/// The datasets were produced before the `build-store` phase. Any `Err` entry is a
+/// file that failed to parse; `build-store` (`merge_parsed_sources`) will have already
+/// returned `Err` for that case (propagated via `?`), so in practice this function
+/// only runs when all files parsed successfully and always returns an empty error
+/// list. It is kept as a separate timed phase so the phase label and timing structure
 /// remain identical to the original (#822).
-fn check_syntax_from_parsed(
-    parsed: &[(PathBuf, Result<Vec<Quad>, String>)],
-) -> Result<PhaseResult, String> {
+fn check_syntax_from_parsed(parsed: &[ParsedSource]) -> Result<PhaseResult, String> {
     let mut result = PhaseResult::default();
     for (path, parse_result) in parsed {
         if let Err(exc) = parse_result {
@@ -1005,20 +1030,19 @@ fn check_syntax_from_parsed(
     Ok(result)
 }
 
-/// Phase 2: scan already-parsed quad lists for banned `owl:sameAs` links.
+/// Phase 2: scan each already-parsed dataset for banned `owl:sameAs` links.
 ///
-/// Operates on the pre-parsed results from [`store::parse_all_files`].  Files
-/// that failed to parse are skipped — they already produced an error in Phase 1
+/// Files that failed to parse are skipped — they already produced an error in Phase 1
 /// (and caused `build-store` to fail before reaching this phase in practice).
 fn check_sameas_ban_from_parsed(
-    parsed: &[(PathBuf, Result<Vec<Quad>, String>)],
+    parsed: &[ParsedSource],
     namespace: &str,
     allowlist: &[(String, String)],
 ) -> Result<PhaseResult, String> {
     let mut result = PhaseResult::default();
     for (path, parse_result) in parsed {
-        let quads = match parse_result {
-            Ok(q) => q,
+        let ds = match parse_result {
+            Ok(ds) => ds,
             Err(exc) => {
                 result
                     .errors
@@ -1026,7 +1050,7 @@ fn check_sameas_ban_from_parsed(
                 continue;
             }
         };
-        for (subject_text, obj) in store::sameas_violations(quads, namespace, allowlist) {
+        for (subject_text, obj) in store::sameas_violations(ds, namespace, allowlist) {
             result.errors.push(format!(
                 "{}: banned owl:sameAs to external entity \
                  {subject_text} owl:sameAs {obj} (Principle 5); \
@@ -1073,31 +1097,10 @@ fn check_example_coverage(slices_dir: &str) -> Result<PhaseResult, String> {
 /// the return shape of [`run_cached`].
 type CachedPhaseResult = Result<(Vec<Finding>, Option<String>), String>;
 
-/// Upper bound on rayon workers used for per-example SHACL validation. Each worker
-/// holds one full copy of the base ontology store, so this caps the resident-store
-/// RAM (and the per-worker build cost) on many-core machines while still saturating
-/// the few-core CI runners that gate this lane.
-const EXAMPLE_VALIDATION_MAX_WORKERS: usize = 8;
-
-/// Build one independent in-memory store from the base ontology quad snapshot.
-///
-/// Used as the per-worker `map_init` state for parallel example validation. A fresh
-/// store (not a `Store::clone`, which shares `Arc<Content>`) is required so each
-/// worker can overlay and restore examples without affecting any other worker.
-fn build_overlay_store(base_quads: &[Quad]) -> Store {
-    let store = Store::new().expect("in-memory store creation is infallible");
-    for quad in base_quads {
-        store
-            .insert(quad)
-            .expect("inserting a base quad into an in-memory store is infallible");
-    }
-    store
-}
-
-/// Phase 10: validate every slice example against the ontology, in parallel, via a
-/// non-mutating `base ∪ overlay` view per example.
+/// Phase 10: validate every slice example against the ontology, in parallel, over a
+/// fresh `base ∪ example` native dataset per example.
 fn check_examples(
-    store: &Store,
+    dataset: &RdfDataset,
     shapes: &gmeow_shacl::shapes::Shapes,
     slices_dir: &str,
     cache: Option<&ValidationCache>,
@@ -1108,53 +1111,33 @@ fn check_examples(
     // `validate` — so validate them in parallel.
     //
     // The SHACL shapes include SHACL-SPARQL targets, which need a queryable
-    // `base ∪ example` store; cloning an oxigraph `Store` shares its `Arc<Content>`
-    // (a clone is NOT isolated), so a real per-validation store must be built. To
-    // avoid rebuilding the whole base PER EXAMPLE (which dominates on few-core CI),
-    // snapshot the base quads ONCE and give each rayon WORKER its own independent
-    // store via `map_init` (≈ worker-count builds, not one per example). Each worker
-    // overlays an example onto its store, validates with the fast native `Store`
-    // backend, and restores — exactly the original per-example semantics, now sharded
-    // across workers. Worker count is capped so the number of full-store copies (and
-    // their RAM) stays bounded on many-core machines while still scaling on CI.
+    // `base ∪ example` graph. We snapshot the base ontology's owned quads ONCE
+    // (`base_quads`, shared read-only across workers), and for each example freeze a
+    // FRESH dataset that re-interns the base quads plus the example's quads under its
+    // own blank scope. Freezing is per-example but reuses the already-decoded base
+    // quad vector, so the parse cost is paid once; the validation is sharded across
+    // rayon workers with no shared mutable state.
     let examples = find_example_files(slices_dir)?;
 
-    let base_quads: Vec<Quad> = store
-        .iter()
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(|e| format!("snapshot base store for parallel example validation: {e}"))?;
+    let base_quads: Vec<gmeow_rdf::RdfQuad> = dataset.owned_quads().collect();
 
-    let worker_cap = std::thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or(4)
-        .clamp(1, EXAMPLE_VALIDATION_MAX_WORKERS);
-    let pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(worker_cap)
-        .build()
-        .map_err(|e| format!("build example-validation thread pool: {e}"))?;
-
-    let results: Vec<CachedPhaseResult> = pool.install(|| {
-        examples
-            .par_iter()
-            .map_init(
-                || build_overlay_store(&base_quads),
-                |worker_store, (name, path)| -> CachedPhaseResult {
-                    let example_key = if let Some(cache) = cache {
-                        let file_key = cache.files_cache_key(std::slice::from_ref(path))?;
-                        ValidationCache::cache_key(&[base_key.as_bytes(), file_key.as_bytes()])
-                    } else {
-                        ValidationCache::cache_key(&[
-                            base_key.as_bytes(),
-                            path.to_string_lossy().as_bytes(),
-                        ])
-                    };
-                    run_cached(cache, "example-shacl", &example_key, || {
-                        run_example_shacl(worker_store, shapes, path, name)
-                    })
-                },
-            )
-            .collect()
-    });
+    let results: Vec<CachedPhaseResult> = examples
+        .par_iter()
+        .map(|(name, path)| -> CachedPhaseResult {
+            let example_key = if let Some(cache) = cache {
+                let file_key = cache.files_cache_key(std::slice::from_ref(path))?;
+                ValidationCache::cache_key(&[base_key.as_bytes(), file_key.as_bytes()])
+            } else {
+                ValidationCache::cache_key(&[
+                    base_key.as_bytes(),
+                    path.to_string_lossy().as_bytes(),
+                ])
+            };
+            run_cached(cache, "example-shacl", &example_key, || {
+                run_example_shacl(&base_quads, shapes, path, name)
+            })
+        })
+        .collect();
 
     // Sequential, in-order fold: accumulate findings and hit/miss counts, and
     // propagate the FIRST error by index (deterministic regardless of which thread
@@ -1180,22 +1163,20 @@ fn check_examples(
     Ok((findings, metadata))
 }
 
-/// Validate one example file against the ontology + shapes via a scoped overlay on
-/// this worker's private store.
+/// Validate one example file against the ontology + shapes over a fresh
+/// `base ∪ example` native dataset.
 ///
-/// `store` is the calling rayon worker's OWN independent store (built by
-/// [`build_overlay_store`]); the example quads are overlaid and removed via
-/// [`OverlayGuard`] so the worker's base is restored for its next example. Because
-/// the store is per-worker, the mutation is thread-safe and uses the fast native
-/// `Store` SHACL/SPARQL backend.
+/// `base_quads` are the shared ontology's owned quads (re-interned per example); the
+/// example file is parsed under its own blank scope and merged in, then the union is
+/// frozen and validated with the native SHACL engine.
 fn run_example_shacl(
-    store: &Store,
+    base_quads: &[gmeow_rdf::RdfQuad],
     shapes: &gmeow_shacl::shapes::Shapes,
     path: &Path,
     name: &str,
 ) -> Result<Vec<Finding>, String> {
-    let example_quads = match parse_file(path) {
-        Ok(q) => q,
+    let example_ds = match store::parse_file_dataset(path) {
+        Ok(ds) => ds,
         Err(e) => {
             return Ok(vec![Finding::new(
                 Severity::Error,
@@ -1205,77 +1186,16 @@ fn run_example_shacl(
             .with_tool("validate")]);
         }
     };
-    let _overlay = OverlayGuard::insert(store, example_quads.iter());
-    let report = crate::store::shacl_validate_store(store, shapes);
-    Ok(shacl_findings_from_report(&report, Some(name))) // _overlay drops here, removing the overlay
-}
-
-/// Insert only quads that are not already present in `store` and return the
-/// inserted set so it can be removed later.
-pub fn scoped_overlay_insert<'a>(
-    store: &Store,
-    quads: impl Iterator<Item = &'a oxigraph::model::Quad>,
-) -> Vec<oxigraph::model::Quad> {
-    let mut inserted: Vec<oxigraph::model::Quad> = Vec::new();
-    for quad in quads {
-        if !store_contains_quad(store, quad) {
-            // Store insert is fallible in principle; in-memory inserts are not.
-            store.insert(quad).expect("in-memory store insert");
-            inserted.push(quad.clone());
-        }
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in base_quads {
+        builder.push_owned_quad(quad);
     }
-    inserted
-}
-
-/// Remove exactly the quads that were inserted by [`scoped_overlay_insert`].
-pub fn scoped_overlay_remove(store: &Store, quads: &[oxigraph::model::Quad]) {
-    for quad in quads {
-        store.remove(quad).expect("in-memory store remove");
-    }
-}
-
-/// RAII guard: removes an inserted overlay set on scope exit, including panic unwind.
-///
-/// The merged store is shared across cells in the same test file; a leaked overlay
-/// would contaminate later cells. Wrapping the insert in this guard makes removal
-/// unconditional — it runs on normal return *and* on panic unwind — so the store
-/// is always restored to its pre-overlay state by the time the guard drops.
-pub struct OverlayGuard<'a> {
-    store: &'a Store,
-    quads: Vec<oxigraph::model::Quad>,
-}
-
-impl<'a> OverlayGuard<'a> {
-    /// Insert `quads` not already present and hold them for unconditional removal on drop.
-    pub fn insert<'q>(
-        store: &'a Store,
-        quads: impl Iterator<Item = &'q oxigraph::model::Quad>,
-    ) -> Self {
-        let inserted = scoped_overlay_insert(store, quads);
-        Self {
-            store,
-            quads: inserted,
-        }
-    }
-}
-
-impl Drop for OverlayGuard<'_> {
-    fn drop(&mut self) {
-        scoped_overlay_remove(self.store, &self.quads);
-    }
-}
-
-/// Check whether `store` already contains `quad`.
-fn store_contains_quad(store: &Store, quad: &oxigraph::model::Quad) -> bool {
-    store
-        .quads_for_pattern(
-            Some(quad.subject.as_ref()),
-            Some(quad.predicate.as_ref()),
-            Some(quad.object.as_ref()),
-            Some(quad.graph_name.as_ref()),
-        )
-        .next()
-        .is_some()
+    builder.push_dataset(&example_ds);
+    let merged = builder
+        .freeze()
+        .map_err(|e| format!("example {name}: base ∪ example freeze failed: {e}"))?;
+    let report = store::shacl_validate_dataset(&merged, shapes);
+    Ok(shacl_findings_from_report(&report, Some(name)))
 }
 
 /// Phase 11/12/13: validate a merged set of DSL Turtle sources against dedicated
@@ -1433,15 +1353,7 @@ mod tests {
     use super::*;
     use std::collections::{BTreeSet, HashSet};
 
-    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-    use gmeow_rdf::parse_dataset;
-
-    use crate::store::dump_store_to_ntriples;
-
-    fn store_from(ttl: &str) -> Store {
-        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
-        store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).unwrap()
-    }
+    use gmeow_rdf::{parse_dataset, DatasetView, GraphMatch};
 
     fn write_tmp(name: &str, contents: &str) -> PathBuf {
         let path = std::env::temp_dir().join(name);
@@ -1449,45 +1361,43 @@ mod tests {
         path
     }
 
+    /// The per-example `base ∪ example` merge dedups shared base quads and adds the
+    /// example-only quads, leaving the base unaffected (each example merges into a
+    /// fresh dataset; there is no shared mutable store to leak into).
     #[test]
-    fn scoped_overlay_does_not_leak_example_quads() {
-        let base_ttl = "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n";
-        let store = store_from(base_ttl);
-        assert_eq!(store.len().unwrap(), 1);
+    fn example_merge_unions_base_and_example() {
+        let base = parse_dataset(
+            b"@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
+            "text/turtle",
+            None,
+        )
+        .unwrap();
+        let base_quads: Vec<gmeow_rdf::RdfQuad> = base.owned_quads().collect();
 
+        // An example carrying one duplicate of the base quad plus one new quad.
         let example_path = write_tmp(
-            "gmeow_validate_overlay_example.ttl",
-            "@prefix ex: <https://example.org/> .\nex:c ex:p ex:d .\n",
-        );
-        let quads = parse_file(&example_path).unwrap();
-        std::fs::remove_file(&example_path).ok();
-
-        let inserted = scoped_overlay_insert(&store, quads.iter());
-        assert_eq!(inserted.len(), 1, "example-only quad must be inserted");
-        assert_eq!(store.len().unwrap(), 2, "overlay quad must be visible");
-
-        scoped_overlay_remove(&store, &inserted);
-        assert_eq!(store.len().unwrap(), 1, "base store must be restored");
-    }
-
-    #[test]
-    fn scoped_overlay_skips_already_present_quads() {
-        let base_ttl = "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n";
-        let store = store_from(base_ttl);
-
-        let example_path = write_tmp(
-            "gmeow_validate_overlay_dup_example.ttl",
+            "gmeow_validate_example_merge.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\nex:c ex:p ex:d .\n",
         );
-        let quads = parse_file(&example_path).unwrap();
+        let example = store::parse_file_dataset(&example_path).unwrap();
         std::fs::remove_file(&example_path).ok();
 
-        let inserted = scoped_overlay_insert(&store, quads.iter());
-        assert_eq!(inserted.len(), 1, "only the new quad must be inserted");
-        assert_eq!(store.len().unwrap(), 2);
-
-        scoped_overlay_remove(&store, &inserted);
-        assert_eq!(store.len().unwrap(), 1);
+        let mut builder = RdfDatasetBuilder::new();
+        for q in &base_quads {
+            builder.push_owned_quad(q);
+        }
+        builder.push_dataset(&example);
+        let merged = builder.freeze().unwrap();
+        // The duplicate base quad collapses; the example-only quad is added → 2 total.
+        assert_eq!(merged.quad_count(), 2, "duplicate base quad must dedup");
+        // The base dataset is unchanged by the merge.
+        assert_eq!(base.quad_count(), 1, "base dataset must be untouched");
+        assert_eq!(
+            merged
+                .quads_for_pattern(None, None, None, GraphMatch::Default)
+                .count(),
+            2
+        );
     }
 
     fn minimal_gts_bytes() -> Vec<u8> {
@@ -1820,12 +1730,19 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         );
         // The canonical report is always present, even on a clean run.
         assert!(run.report.normalized().ok());
-        assert_eq!(run.store.len().unwrap(), 1);
+        assert_eq!(run.dataset.quad_count(), 1);
 
-        let nt = dump_store_to_ntriples(&run.store).expect("store must serialize to N-Triples");
-        assert!(nt.contains("<https://example.org/a>"));
-        assert!(nt.contains("<https://example.org/p>"));
-        assert!(nt.contains("<https://example.org/b>"));
+        // The single triple (s,p,o) is present in the shared dataset.
+        let ds = &run.dataset;
+        let s = ds.term_id_by_value(&gmeow_rdf::TermValue::iri("https://example.org/a"));
+        let p = ds.term_id_by_value(&gmeow_rdf::TermValue::iri("https://example.org/p"));
+        let o = ds.term_id_by_value(&gmeow_rdf::TermValue::iri("https://example.org/b"));
+        assert!(
+            ds.quads_for_pattern(s, p, o, GraphMatch::Any)
+                .next()
+                .is_some(),
+            "the (a,p,b) triple must be present in the shared dataset"
+        );
     }
 
     /// The demonstrator advisory appears on every normal-completion run as a Note

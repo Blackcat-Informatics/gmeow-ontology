@@ -6,9 +6,11 @@
 //! Ported byte-exact from `src/gmeow_tools/reasoning_lint.py`. The six OntoUML
 //! anti-pattern checks (`exactly_one_stereotype`, `identity_overlap`,
 //! `anti_rigidity_discipline`, `relator_mediation`, `coequal_facet_orthogonality`,
-//! `frame_declaration_completeness`) run over an oxigraph [`Store`] built from the
-//! merged ontology sources. The aggregator [`reasoning_invariants`] runs all six
-//! and flattens their errors in the same order the Python does.
+//! `frame_declaration_completeness`) run over a native [`gmeow_rdf::RdfDataset`]
+//! built from the merged ontology sources, querying through the indexed
+//! [`gmeow_rdf::DatasetView::quads_for_pattern`]. The aggregator
+//! [`reasoning_invariants`] runs all six and flattens their errors in the same
+//! order the Python does.
 //!
 //! The hard parts reproduced exactly:
 //!
@@ -16,14 +18,17 @@
 //!   ([`proper_ancestors`], mirroring rdflib `transitive_objects` minus self),
 //! * the `owl:AllDisjointClasses` / `owl:members` RDF-Collection walk
 //!   ([`all_disjoint_member_sets`], a manual `rdf:first`/`rdf:rest`/`rdf:nil`
-//!   linked-list traversal since oxigraph has no Collection helper),
+//!   linked-list traversal over term ids since the IR has no Collection helper),
 //! * the subPropertyOf/equivalentProperty property-bridge reachability DFS in
 //!   [`coequal_facet_orthogonality`].
+//!
+//! Graph handling: the legacy pipeline flattened named graphs into the default
+//! graph, so these read across all graphs with [`gmeow_rdf::GraphMatch::Any`].
 //!
 //! Determinism: wherever the Python sorts (by `str`), this sorts the same way;
 //! wherever the Python relied on graph-iteration order, the emitted output is
 //! per-class (driven by the sorted [`gmeow_classes`]) or a counted aggregate, so
-//! oxigraph's quad order never leaks into a diagnostic.
+//! the dataset's quad order never leaks into a diagnostic.
 //!
 //! Engine-core separation: this module imports no pyo3. The [`crate::py`]
 //! bindings adapt [`reasoning_invariants`] to Python.
@@ -31,10 +36,15 @@
 use std::collections::{BTreeSet, HashSet, VecDeque};
 
 use gmeow_diagnostics::model::{Finding, Location, Severity};
-use oxigraph::model::{NamedNode, NamedOrBlankNode, Term};
-use oxigraph::store::Store;
+use gmeow_rdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
 use crate::model::{owl, rdf, rdfs};
+
+/// Resolve an IRI value to its dataset-local [`TermId`], if interned.
+#[inline]
+fn iri_id(ds: &RdfDataset, iri: &str) -> Option<TermId> {
+    ds.term_id_by_value(&TermValue::iri(iri))
+}
 
 /// The OntoUML anti-pattern catalogue URL, cited in messages so failures
 /// self-document (mirrors `_CATALOGUE`).
@@ -173,14 +183,13 @@ fn local(iri: &str, cfg: &GufoConfig) -> String {
 
 /// The GMEOW-namespaced `owl:Class` vocabulary terms, sorted by IRI for stable
 /// output (mirrors `_gmeow_classes`).
-fn gmeow_classes(store: &Store, cfg: &GufoConfig) -> Vec<String> {
+fn gmeow_classes(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<String> {
     let mut classes: BTreeSet<String> = BTreeSet::new();
-    for quad in store
-        .quads_for_pattern(None, Some(rdf::TYPE), Some(owl::CLASS.into()), None)
-        .flatten()
-    {
-        if let NamedOrBlankNode::NamedNode(n) = &quad.subject {
-            let iri = n.as_str();
+    let (Some(type_id), Some(class_id)) = (iri_id(ds, rdf::TYPE), iri_id(ds, owl::CLASS)) else {
+        return Vec::new();
+    };
+    for q in ds.quads_for_pattern(None, Some(type_id), Some(class_id), GraphMatch::Any) {
+        if let TermRef::Iri(iri) = ds.resolve(q.s) {
             if is_gmeow_class_iri(iri, cfg) {
                 classes.insert(iri.to_owned());
             }
@@ -195,25 +204,22 @@ fn gmeow_classes(store: &Store, cfg: &GufoConfig) -> Vec<String> {
 /// A BFS over the `subClassOf` edges, named-node objects only, reflexive closure
 /// minus the start node — exactly what rdflib `transitive_objects` yields before
 /// the Python comprehension drops `a == cls`.
-fn proper_ancestors(store: &Store, cls: &str) -> HashSet<String> {
+fn proper_ancestors(ds: &RdfDataset, cls: &str) -> HashSet<String> {
     let mut seen: HashSet<String> = HashSet::new();
     let mut queue: VecDeque<String> = VecDeque::new();
     queue.push_back(cls.to_owned());
     let mut visited: HashSet<String> = HashSet::new();
     visited.insert(cls.to_owned());
+    let Some(subclass_id) = iri_id(ds, rdfs::SUB_CLASS_OF) else {
+        return seen;
+    };
     while let Some(node) = queue.pop_front() {
-        let subject = NamedNode::new_unchecked(&node);
-        for quad in store
-            .quads_for_pattern(
-                Some((&subject).into()),
-                Some(rdfs::SUB_CLASS_OF),
-                None,
-                None,
-            )
-            .flatten()
-        {
-            if let Term::NamedNode(parent) = &quad.object {
-                let p = parent.as_str().to_owned();
+        let Some(subject_id) = iri_id(ds, &node) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(Some(subject_id), Some(subclass_id), None, GraphMatch::Any) {
+            if let TermRef::Iri(parent) = ds.resolve(q.o) {
+                let p = parent.to_owned();
                 if visited.insert(p.clone()) {
                     queue.push_back(p.clone());
                 }
@@ -228,15 +234,13 @@ fn proper_ancestors(store: &Store, cls: &str) -> HashSet<String> {
 
 /// The gUFO meta-classes `cls` is punned as, via `rdf:type` (mirrors
 /// `_stereotypes`). Only IRIs in `meta` are kept.
-fn stereotypes(store: &Store, cls: &str, meta: &HashSet<String>) -> HashSet<String> {
-    let subject = NamedNode::new_unchecked(cls);
+fn stereotypes(ds: &RdfDataset, cls: &str, meta: &HashSet<String>) -> HashSet<String> {
     let mut out: HashSet<String> = HashSet::new();
-    for quad in store
-        .quads_for_pattern(Some((&subject).into()), Some(rdf::TYPE), None, None)
-        .flatten()
-    {
-        if let Term::NamedNode(t) = &quad.object {
-            let t = t.as_str();
+    let (Some(subject_id), Some(type_id)) = (iri_id(ds, cls), iri_id(ds, rdf::TYPE)) else {
+        return out;
+    };
+    for q in ds.quads_for_pattern(Some(subject_id), Some(type_id), None, GraphMatch::Any) {
+        if let TermRef::Iri(t) = ds.resolve(q.o) {
             if meta.contains(t) {
                 out.insert(t.to_owned());
             }
@@ -246,18 +250,20 @@ fn stereotypes(store: &Store, cls: &str, meta: &HashSet<String>) -> HashSet<Stri
 }
 
 /// Whether `cls` has `rdf:type cls_type` (a direct type probe).
-fn has_type(store: &Store, cls: &str, cls_type: &str) -> bool {
-    let subject = NamedNode::new_unchecked(cls);
-    let object = NamedNode::new_unchecked(cls_type);
-    store
-        .quads_for_pattern(
-            Some((&subject).into()),
-            Some(rdf::TYPE),
-            Some((&object).into()),
-            None,
-        )
-        .next()
-        .is_some()
+fn has_type(ds: &RdfDataset, cls: &str, cls_type: &str) -> bool {
+    let (Some(subject_id), Some(type_id), Some(object_id)) =
+        (iri_id(ds, cls), iri_id(ds, rdf::TYPE), iri_id(ds, cls_type))
+    else {
+        return false;
+    };
+    ds.quads_for_pattern(
+        Some(subject_id),
+        Some(type_id),
+        Some(object_id),
+        GraphMatch::Any,
+    )
+    .next()
+    .is_some()
 }
 
 /// Join `_local`-rendered IRIs with ", " in the given order.
@@ -270,11 +276,11 @@ fn join_local(iris: &[String], cfg: &GufoConfig) -> String {
 
 /// **exactly_one_stereotype** — every GMEOW class must be punned with exactly
 /// one gUFO meta-class.
-pub fn exactly_one_stereotype(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
+pub fn exactly_one_stereotype(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     let meta = meta_classes();
     let mut problems: Vec<Finding> = Vec::new();
-    for cls in gmeow_classes(store, cfg) {
-        let st = stereotypes(store, &cls, &meta);
+    for cls in gmeow_classes(ds, cfg) {
+        let st = stereotypes(ds, &cls, &meta);
         if st.is_empty() {
             let message = format!(
                 "{} carries no stereotype — pun it with exactly one of \
@@ -311,7 +317,7 @@ pub fn exactly_one_stereotype(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
 
 /// **identity_overlap (MixIden)** — a sortal inherits identity from exactly one
 /// Kind; no Kind ⊑ Kind.
-pub fn identity_overlap(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
+pub fn identity_overlap(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     let meta = meta_classes();
     // A Kind in either namespace (gufo:Kind or the canonical logic:Kind, #694).
     let kinds: [String; 2] = dual("Kind");
@@ -319,13 +325,13 @@ pub fn identity_overlap(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
     let rigid = rigid_sortals();
     let anti_rigid = anti_rigid_sortals();
     let mut problems: Vec<Finding> = Vec::new();
-    for cls in gmeow_classes(store, cfg) {
-        let st = stereotypes(store, &cls, &meta);
-        let ancestors = proper_ancestors(store, &cls);
+    for cls in gmeow_classes(ds, cfg) {
+        let st = stereotypes(ds, &cls, &meta);
+        let ancestors = proper_ancestors(ds, &cls);
         // kind_ancestors: ancestors that are themselves a Kind, sorted by str.
         let mut kind_ancestors: Vec<String> = ancestors
             .iter()
-            .filter(|a| kinds.iter().any(|k| has_type(store, a, k)))
+            .filter(|a| kinds.iter().any(|k| has_type(ds, a, k)))
             .cloned()
             .collect();
         kind_ancestors.sort();
@@ -377,20 +383,20 @@ pub fn identity_overlap(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
 
 /// **anti_rigidity_discipline (MixRig / FreeRole)** — anti-rigid sortals need a
 /// rigid super; rigid types avoid anti-rigid ancestors.
-pub fn anti_rigidity_discipline(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
+pub fn anti_rigidity_discipline(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     let meta = meta_classes();
     let rigid = rigid_sortals();
     let anti_rigid = anti_rigid_sortals();
     let anti_rigid_t = anti_rigid_types();
     let mut problems: Vec<Finding> = Vec::new();
-    for cls in gmeow_classes(store, cfg) {
-        let st = stereotypes(store, &cls, &meta);
-        let ancestors = proper_ancestors(store, &cls);
+    for cls in gmeow_classes(ds, cfg) {
+        let st = stereotypes(ds, &cls, &meta);
+        let ancestors = proper_ancestors(ds, &cls);
 
         // Accumulate every ancestor's meta-class stereotypes.
         let mut ancestor_stereotypes: HashSet<String> = HashSet::new();
         for ancestor in &ancestors {
-            for s in stereotypes(store, ancestor, &meta) {
+            for s in stereotypes(ds, ancestor, &meta) {
                 ancestor_stereotypes.insert(s);
             }
         }
@@ -418,7 +424,7 @@ pub fn anti_rigidity_discipline(store: &Store, cfg: &GufoConfig) -> Vec<Finding>
             // Name the offending ancestor class(es) and their anti-rigid stereotype.
             let mut bad_ancestors: Vec<String> = Vec::new();
             for ancestor in &ancestors {
-                let bad: Vec<String> = stereotypes(store, ancestor, &meta)
+                let bad: Vec<String> = stereotypes(ds, ancestor, &meta)
                     .into_iter()
                     .filter(|s| anti_rigid_t.contains(s))
                     .collect();
@@ -452,26 +458,21 @@ pub fn anti_rigidity_discipline(store: &Store, cfg: &GufoConfig) -> Vec<Finding>
 
 /// **relator_mediation (RelComp)** — every concrete `gufo:Relator` mediates at
 /// least two relata.
-pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
+pub fn relator_mediation(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     // A Relator base in either namespace (gufo:Relator or canonical logic:Relator).
     let relators: [String; 2] = dual("Relator");
     let time_interval = cfg.time_interval();
 
     // The GMEOW object properties (graph iteration order; output is count-only).
     let mut gmeow_object_properties: Vec<String> = Vec::new();
-    for quad in store
-        .quads_for_pattern(
-            None,
-            Some(rdf::TYPE),
-            Some(owl::OBJECT_PROPERTY.into()),
-            None,
-        )
-        .flatten()
+    if let (Some(type_id), Some(obj_prop_id)) =
+        (iri_id(ds, rdf::TYPE), iri_id(ds, owl::OBJECT_PROPERTY))
     {
-        if let NamedOrBlankNode::NamedNode(n) = &quad.subject {
-            let iri = n.as_str();
-            if iri.starts_with(&cfg.namespace) {
-                gmeow_object_properties.push(iri.to_owned());
+        for q in ds.quads_for_pattern(None, Some(type_id), Some(obj_prop_id), GraphMatch::Any) {
+            if let TermRef::Iri(iri) = ds.resolve(q.s) {
+                if iri.starts_with(&cfg.namespace) {
+                    gmeow_object_properties.push(iri.to_owned());
+                }
             }
         }
     }
@@ -487,20 +488,20 @@ pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
     let prop_infos: Vec<PropInfo> = gmeow_object_properties
         .iter()
         .map(|iri| PropInfo {
-            domains: object_iris(store, iri, rdfs::DOMAIN),
-            ranges: object_iris(store, iri, rdfs::RANGE),
-            functional: is_functional(store, iri),
+            domains: object_iris(ds, iri, rdfs::DOMAIN),
+            ranges: object_iris(ds, iri, rdfs::RANGE),
+            functional: is_functional(ds, iri),
         })
         .collect();
 
     let mut problems: Vec<Finding> = Vec::new();
-    for cls in gmeow_classes(store, cfg) {
-        let ancestors = proper_ancestors(store, &cls);
+    for cls in gmeow_classes(ds, cfg) {
+        let ancestors = proper_ancestors(ds, &cls);
         if !relators.iter().any(|r| ancestors.contains(r)) {
             continue;
         }
         // Concrete iff no GMEOW class specializes it.
-        let has_gmeow_subclass = gmeow_subclasses(store, &cls)
+        let has_gmeow_subclass = gmeow_subclasses(ds, &cls)
             .iter()
             .any(|sub| sub != &cls && sub.starts_with(&cfg.namespace));
         if has_gmeow_subclass {
@@ -556,140 +557,121 @@ pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
 
 /// Subjects of `(?, rdfs:subClassOf, cls)` (named-node subjects only) — the
 /// classes that directly specialize `cls`.
-fn gmeow_subclasses(store: &Store, cls: &str) -> HashSet<String> {
-    let object = NamedNode::new_unchecked(cls);
+fn gmeow_subclasses(ds: &RdfDataset, cls: &str) -> HashSet<String> {
     let mut out: HashSet<String> = HashSet::new();
-    for quad in store
-        .quads_for_pattern(None, Some(rdfs::SUB_CLASS_OF), Some((&object).into()), None)
-        .flatten()
-    {
-        if let NamedOrBlankNode::NamedNode(n) = &quad.subject {
-            out.insert(n.as_str().to_owned());
+    let (Some(subclass_id), Some(object_id)) = (iri_id(ds, rdfs::SUB_CLASS_OF), iri_id(ds, cls))
+    else {
+        return out;
+    };
+    for q in ds.quads_for_pattern(None, Some(subclass_id), Some(object_id), GraphMatch::Any) {
+        if let TermRef::Iri(n) = ds.resolve(q.s) {
+            out.insert(n.to_owned());
         }
     }
     out
 }
 
-/// Named-node object IRIs of `(subject_iri, predicate, ?)`.
-fn object_iris(
-    store: &Store,
-    subject_iri: &str,
-    predicate: oxigraph::model::NamedNodeRef,
-) -> HashSet<String> {
-    let subject = NamedNode::new_unchecked(subject_iri);
+/// Named-node object IRIs of `(subject_iri, predicate_iri, ?)`.
+fn object_iris(ds: &RdfDataset, subject_iri: &str, predicate_iri: &str) -> HashSet<String> {
     let mut out: HashSet<String> = HashSet::new();
-    for quad in store
-        .quads_for_pattern(Some((&subject).into()), Some(predicate), None, None)
-        .flatten()
-    {
-        if let Term::NamedNode(n) = &quad.object {
-            out.insert(n.as_str().to_owned());
+    let (Some(subject_id), Some(predicate_id)) =
+        (iri_id(ds, subject_iri), iri_id(ds, predicate_iri))
+    else {
+        return out;
+    };
+    for q in ds.quads_for_pattern(Some(subject_id), Some(predicate_id), None, GraphMatch::Any) {
+        if let TermRef::Iri(n) = ds.resolve(q.o) {
+            out.insert(n.to_owned());
         }
     }
     out
 }
 
 /// Whether `prop` is declared an `owl:FunctionalProperty`.
-fn is_functional(store: &Store, prop: &str) -> bool {
-    has_type(store, prop, owl::FUNCTIONAL_PROPERTY.as_str())
+fn is_functional(ds: &RdfDataset, prop: &str) -> bool {
+    has_type(ds, prop, owl::FUNCTIONAL_PROPERTY)
 }
 
 /// Every `owl:AllDisjointClasses` axiom's member set (mirrors
 /// `_all_disjoint_member_sets`). Walks the `owl:members` RDF Collection by hand.
-fn all_disjoint_member_sets(store: &Store) -> Vec<HashSet<String>> {
+fn all_disjoint_member_sets(ds: &RdfDataset) -> Vec<HashSet<String>> {
     let mut sets: Vec<HashSet<String>> = Vec::new();
-    for quad in store
-        .quads_for_pattern(
-            None,
-            Some(rdf::TYPE),
-            Some(owl::ALL_DISJOINT_CLASSES.into()),
-            None,
-        )
-        .flatten()
-    {
-        let node = &quad.subject;
-        for members_quad in store
-            .quads_for_pattern(Some(node.as_ref()), Some(owl::MEMBERS), None, None)
-            .flatten()
-        {
-            if let Term::NamedNode(_) | Term::BlankNode(_) = &members_quad.object {
-                let head: NamedOrBlankNode = match &members_quad.object {
-                    Term::NamedNode(n) => n.clone().into(),
-                    Term::BlankNode(b) => b.clone().into(),
-                    _ => continue,
-                };
-                sets.push(collection_members(store, &head));
+    let (Some(type_id), Some(adc_id), Some(members_id)) = (
+        iri_id(ds, rdf::TYPE),
+        iri_id(ds, owl::ALL_DISJOINT_CLASSES),
+        iri_id(ds, owl::MEMBERS),
+    ) else {
+        return sets;
+    };
+    for q in ds.quads_for_pattern(None, Some(type_id), Some(adc_id), GraphMatch::Any) {
+        let node = q.s;
+        for members_q in ds.quads_for_pattern(Some(node), Some(members_id), None, GraphMatch::Any) {
+            // The collection head is a named or blank node; a literal/triple head is
+            // skipped (matching the legacy `NamedNode | BlankNode` guard).
+            if matches!(
+                ds.resolve(members_q.o),
+                TermRef::Iri(_) | TermRef::Blank { .. }
+            ) {
+                sets.push(collection_members(ds, members_q.o));
             }
         }
     }
     sets
 }
 
-/// Walk an RDF Collection (`rdf:first`/`rdf:rest`/`rdf:nil` linked list) from
-/// `head`, returning the IRI members (`isinstance(m, URIRef)` in the Python).
+/// Walk an RDF Collection (`rdf:first`/`rdf:rest`/`rdf:nil` linked list) from the
+/// `head` term id, returning the IRI members (`isinstance(m, URIRef)` in the Python).
 ///
 /// rdflib's `Collection` follows `rdf:rest` cells; this mirrors that, guarding
-/// against a malformed cyclic list by tracking visited cells.
-fn collection_members(store: &Store, head: &NamedOrBlankNode) -> HashSet<String> {
-    let rdf_nil = owl_nil();
+/// against a malformed cyclic list by tracking visited cells (by term id).
+fn collection_members(ds: &RdfDataset, head: TermId) -> HashSet<String> {
+    let rdf_nil = iri_id(ds, rdf::NIL);
+    let (Some(first_id), Some(rest_id)) = (iri_id(ds, rdf::FIRST), iri_id(ds, rdf::REST)) else {
+        return HashSet::new();
+    };
     let mut out: HashSet<String> = HashSet::new();
-    let mut visited: HashSet<String> = HashSet::new();
-    let mut cell: Option<NamedOrBlankNode> = Some(head.clone());
+    let mut visited: HashSet<TermId> = HashSet::new();
+    let mut cell: Option<TermId> = Some(head);
     while let Some(node) = cell {
-        let key = match &node {
-            NamedOrBlankNode::NamedNode(n) => n.as_str().to_owned(),
-            NamedOrBlankNode::BlankNode(b) => format!("_:{}", b.as_str()),
-        };
-        if node == rdf_nil || !visited.insert(key) {
+        if Some(node) == rdf_nil || !visited.insert(node) {
             break;
         }
         // rdf:first → a member (IRI only kept).
-        if let Some(first) = store
-            .quads_for_pattern(Some(node.as_ref()), Some(rdf::FIRST), None, None)
-            .flatten()
+        if let Some(first) = ds
+            .quads_for_pattern(Some(node), Some(first_id), None, GraphMatch::Any)
             .next()
         {
-            if let Term::NamedNode(m) = &first.object {
-                out.insert(m.as_str().to_owned());
+            if let TermRef::Iri(m) = ds.resolve(first.o) {
+                out.insert(m.to_owned());
             }
         }
-        // rdf:rest → the next cell.
-        cell = store
-            .quads_for_pattern(Some(node.as_ref()), Some(rdf::REST), None, None)
-            .flatten()
+        // rdf:rest → the next cell (named or blank node only).
+        cell = ds
+            .quads_for_pattern(Some(node), Some(rest_id), None, GraphMatch::Any)
             .next()
-            .and_then(|q| match q.object {
-                Term::NamedNode(n) => Some(NamedOrBlankNode::NamedNode(n)),
-                Term::BlankNode(b) => Some(NamedOrBlankNode::BlankNode(b)),
-                _ => None,
-            });
+            .filter(|q| matches!(ds.resolve(q.o), TermRef::Iri(_) | TermRef::Blank { .. }))
+            .map(|q| q.o);
     }
     out
 }
 
-/// `rdf:nil` as a [`NamedOrBlankNode`].
-fn owl_nil() -> NamedOrBlankNode {
-    NamedOrBlankNode::NamedNode(NamedNode::new_unchecked(rdf::NIL.as_str()))
-}
-
 /// **coequal_facet_orthogonality (P9 #281)** — co-equal facet axes stay
 /// orthogonal.
-pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
+pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     let coequal = format!("{}coequalFacet", cfg.namespace);
-    let coequal_node = NamedNode::new_unchecked(&coequal);
 
     // axes = sorted subjects of (?, coequalFacet, "true").
     let mut axes_set: BTreeSet<String> = BTreeSet::new();
-    for quad in store
-        .quads_for_pattern(None, Some(coequal_node.as_ref()), None, None)
-        .flatten()
-    {
-        let is_true = matches!(&quad.object, Term::Literal(l) if l.value() == "true");
-        if !is_true {
-            continue;
-        }
-        if let NamedOrBlankNode::NamedNode(n) = &quad.subject {
-            axes_set.insert(n.as_str().to_owned());
+    if let Some(coequal_id) = iri_id(ds, &coequal) {
+        for q in ds.quads_for_pattern(None, Some(coequal_id), None, GraphMatch::Any) {
+            let is_true =
+                matches!(ds.resolve(q.o), TermRef::Literal { lexical, .. } if lexical == "true");
+            if !is_true {
+                continue;
+            }
+            if let TermRef::Iri(n) = ds.resolve(q.s) {
+                axes_set.insert(n.to_owned());
+            }
         }
     }
     let axes: Vec<String> = axes_set.into_iter().collect();
@@ -701,8 +683,7 @@ pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<Findi
     // ranges: axis -> its single range (only populated when exactly one range).
     let mut ranges: Vec<(String, String)> = Vec::new();
     for axis in &axes {
-        let mut axis_ranges: Vec<String> =
-            object_iris(store, axis, rdfs::RANGE).into_iter().collect();
+        let mut axis_ranges: Vec<String> = object_iris(ds, axis, rdfs::RANGE).into_iter().collect();
         axis_ranges.sort();
         if axis_ranges.len() != 1 {
             let message = format!(
@@ -720,7 +701,7 @@ pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<Findi
             continue;
         }
         ranges.push((axis.clone(), axis_ranges[0].clone()));
-        if is_functional(store, axis) {
+        if is_functional(ds, axis) {
             let message = format!(
                 "co-equal facet {} is owl:FunctionalProperty — a locked single \
                  value contradicts co-equality (P9) and invites sameAs collapse (P5)",
@@ -765,7 +746,7 @@ pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<Findi
 
     // Bridge check over the transitive closure: subPropertyOf is directed,
     // equivalentProperty is symmetric.
-    let bridged = bridged_pairs(store, &axes);
+    let bridged = bridged_pairs(ds, &axes);
     for (a, b) in bridged {
         let message = format!(
             "co-equal facets {} and {} are bridged by a \
@@ -784,7 +765,7 @@ pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<Findi
     }
 
     // Jointly: every axis range must sit inside one owl:AllDisjointClasses axiom.
-    let member_sets = all_disjoint_member_sets(store);
+    let member_sets = all_disjoint_member_sets(ds);
     let range_set: HashSet<String> = ranges.iter().map(|(_, r)| r.clone()).collect();
     if range_set.len() > 1 && !member_sets.iter().any(|s| range_set.is_subset(s)) {
         let mut names: Vec<String> = range_set.iter().map(|r| local(r, cfg)).collect();
@@ -808,31 +789,27 @@ pub fn coequal_facet_orthogonality(store: &Store, cfg: &GufoConfig) -> Vec<Findi
 /// The bridged axis pairs `(a, b)` for `a` before `b` in the sorted `axes`,
 /// where `b` is reachable from `a` or `a` from `b` over the
 /// subPropertyOf/equivalentProperty adjacency (mirrors the Python double loop).
-fn bridged_pairs(store: &Store, axes: &[String]) -> Vec<(String, String)> {
+fn bridged_pairs(ds: &RdfDataset, axes: &[String]) -> Vec<(String, String)> {
     // adjacency: directed subPropertyOf + symmetric equivalentProperty.
     use std::collections::HashMap;
     let mut adjacency: HashMap<String, HashSet<String>> = HashMap::new();
-    for quad in store
-        .quads_for_pattern(None, Some(rdfs::SUB_PROPERTY_OF), None, None)
-        .flatten()
-    {
-        if let (NamedOrBlankNode::NamedNode(s), Term::NamedNode(o)) = (&quad.subject, &quad.object)
-        {
-            adjacency
-                .entry(s.as_str().to_owned())
-                .or_default()
-                .insert(o.as_str().to_owned());
+    if let Some(subprop_id) = iri_id(ds, rdfs::SUB_PROPERTY_OF) {
+        for q in ds.quads_for_pattern(None, Some(subprop_id), None, GraphMatch::Any) {
+            if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
+                adjacency
+                    .entry(s.to_owned())
+                    .or_default()
+                    .insert(o.to_owned());
+            }
         }
     }
-    for quad in store
-        .quads_for_pattern(None, Some(owl::EQUIVALENT_PROPERTY), None, None)
-        .flatten()
-    {
-        if let (NamedOrBlankNode::NamedNode(s), Term::NamedNode(o)) = (&quad.subject, &quad.object)
-        {
-            let (s, o) = (s.as_str().to_owned(), o.as_str().to_owned());
-            adjacency.entry(s.clone()).or_default().insert(o.clone());
-            adjacency.entry(o).or_default().insert(s);
+    if let Some(equiv_id) = iri_id(ds, owl::EQUIVALENT_PROPERTY) {
+        for q in ds.quads_for_pattern(None, Some(equiv_id), None, GraphMatch::Any) {
+            if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
+                let (s, o) = (s.to_owned(), o.to_owned());
+                adjacency.entry(s.clone()).or_default().insert(o.clone());
+                adjacency.entry(o).or_default().insert(s);
+            }
         }
     }
 
@@ -868,13 +845,13 @@ fn bridged_pairs(store: &Store, axes: &[String]) -> Vec<(String, String)> {
 
 /// **frame_declaration_completeness (P11 #283)** — frame-pointing property
 /// carrier classes declare `gmeow:requiresFrame`.
-pub fn frame_declaration_completeness(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
+pub fn frame_declaration_completeness(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     let has_frame = format!("{}hasReferenceFrame", cfg.namespace);
     let requires = format!("{}requiresFrame", cfg.namespace);
-    let requires_node = NamedNode::new_unchecked(&requires);
+    let requires_id = iri_id(ds, &requires);
 
     // props = sorted transitive_subjects(subPropertyOf, has_frame) minus has_frame.
-    let mut props: Vec<String> = transitive_subjects(store, rdfs::SUB_PROPERTY_OF, &has_frame)
+    let mut props: Vec<String> = transitive_subjects(ds, rdfs::SUB_PROPERTY_OF, &has_frame)
         .into_iter()
         .filter(|p| p != &has_frame)
         .collect();
@@ -882,21 +859,17 @@ pub fn frame_declaration_completeness(store: &Store, cfg: &GufoConfig) -> Vec<Fi
 
     let mut problems: Vec<Finding> = Vec::new();
     for prop in &props {
-        let mut domains: Vec<String> = object_iris(store, prop, rdfs::DOMAIN).into_iter().collect();
+        let mut domains: Vec<String> = object_iris(ds, prop, rdfs::DOMAIN).into_iter().collect();
         domains.sort();
         for domain in &domains {
             // (domain, requires, prop) not in graph.
-            let subject = NamedNode::new_unchecked(domain);
-            let object = NamedNode::new_unchecked(prop);
-            let present = store
-                .quads_for_pattern(
-                    Some((&subject).into()),
-                    Some(requires_node.as_ref()),
-                    Some((&object).into()),
-                    None,
-                )
-                .next()
-                .is_some();
+            let present = match (requires_id, iri_id(ds, domain), iri_id(ds, prop)) {
+                (Some(p_id), Some(s_id), Some(o_id)) => ds
+                    .quads_for_pattern(Some(s_id), Some(p_id), Some(o_id), GraphMatch::Any)
+                    .next()
+                    .is_some(),
+                _ => false,
+            };
             if !present {
                 let message = format!(
                     "{} carries the frame-pointing property {} but declares no \
@@ -919,23 +892,21 @@ pub fn frame_declaration_completeness(store: &Store, cfg: &GufoConfig) -> Vec<Fi
 
 /// Reverse transitive closure: every subject reaching `target` over `predicate`
 /// (mirrors rdflib `transitive_subjects`, reflexive — includes `target`).
-fn transitive_subjects(
-    store: &Store,
-    predicate: oxigraph::model::NamedNodeRef,
-    target: &str,
-) -> HashSet<String> {
+fn transitive_subjects(ds: &RdfDataset, predicate_iri: &str, target: &str) -> HashSet<String> {
     let mut seen: HashSet<String> = HashSet::new();
     let mut queue: VecDeque<String> = VecDeque::new();
     seen.insert(target.to_owned());
     queue.push_back(target.to_owned());
+    let Some(predicate_id) = iri_id(ds, predicate_iri) else {
+        return seen;
+    };
     while let Some(node) = queue.pop_front() {
-        let object = NamedNode::new_unchecked(&node);
-        for quad in store
-            .quads_for_pattern(None, Some(predicate), Some((&object).into()), None)
-            .flatten()
-        {
-            if let NamedOrBlankNode::NamedNode(s) = &quad.subject {
-                let s = s.as_str().to_owned();
+        let Some(object_id) = iri_id(ds, &node) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(predicate_id), Some(object_id), GraphMatch::Any) {
+            if let TermRef::Iri(s) = ds.resolve(q.s) {
+                let s = s.to_owned();
                 if seen.insert(s.clone()) {
                     queue.push_back(s);
                 }
@@ -947,14 +918,14 @@ fn transitive_subjects(
 
 /// Run every UFO anti-pattern check; an empty list means the graph is clean.
 /// The six checks run in the same order, their findings flattened.
-pub fn reasoning_findings(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
+pub fn reasoning_findings(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     let mut out: Vec<Finding> = Vec::new();
-    out.extend(exactly_one_stereotype(store, cfg));
-    out.extend(identity_overlap(store, cfg));
-    out.extend(anti_rigidity_discipline(store, cfg));
-    out.extend(relator_mediation(store, cfg));
-    out.extend(coequal_facet_orthogonality(store, cfg));
-    out.extend(frame_declaration_completeness(store, cfg));
+    out.extend(exactly_one_stereotype(ds, cfg));
+    out.extend(identity_overlap(ds, cfg));
+    out.extend(anti_rigidity_discipline(ds, cfg));
+    out.extend(relator_mediation(ds, cfg));
+    out.extend(coequal_facet_orthogonality(ds, cfg));
+    out.extend(frame_declaration_completeness(ds, cfg));
     out
 }
 
@@ -964,8 +935,8 @@ pub fn reasoning_findings(store: &Store, cfg: &GufoConfig) -> Vec<Finding> {
 ///
 /// This is a pure projection of [`reasoning_findings`] to preserve the string
 /// interface for all existing callers (Python bindings, reasoning-parity tests).
-pub fn reasoning_invariants(store: &Store, cfg: &GufoConfig) -> Vec<String> {
-    reasoning_findings(store, cfg)
+pub fn reasoning_invariants(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<String> {
+    reasoning_findings(ds, cfg)
         .into_iter()
         .map(|f| f.message)
         .collect()
@@ -974,8 +945,8 @@ pub fn reasoning_invariants(store: &Store, cfg: &GufoConfig) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
     use gmeow_rdf::parse_dataset;
+    use std::sync::Arc;
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -985,9 +956,8 @@ mod tests {
         }
     }
 
-    fn store_from(ttl: &str) -> Store {
-        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
-        store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).unwrap()
+    fn store_from(ttl: &str) -> Arc<RdfDataset> {
+        parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap()
     }
 
     const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\

@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
-use oxigraph::model::{NamedOrBlankNode, Term};
+use gmeow_rdf::{DatasetView, GraphMatch, TermRef, TermValue};
 use serde::Serialize;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -939,27 +939,27 @@ pub fn collect_wikidata_ids(mappings_dir: &Path) -> Result<Vec<String>, String> 
 
 fn collect_ontology_terms(root: &Path) -> Result<OntologyTerms, String> {
     let paths = slice_module_files(root)?;
-    let store = store::build_store(&paths)?;
+    let ds = store::dataset_from_paths(&paths)?;
     let mut terms = OntologyTerms::default();
-    for quad in store
-        .quads_for_pattern(None, Some(rdf::TYPE), None, None)
-        .flatten()
-    {
-        let NamedOrBlankNode::NamedNode(subject) = &quad.subject else {
+    let Some(type_id) = ds.term_id_by_value(&TermValue::iri(rdf::TYPE)) else {
+        return Ok(terms);
+    };
+    for q in ds.quads_for_pattern(None, Some(type_id), None, GraphMatch::Any) {
+        let TermRef::Iri(subject) = ds.resolve(q.s) else {
             continue;
         };
-        let Term::NamedNode(object) = &quad.object else {
+        let TermRef::Iri(object) = ds.resolve(q.o) else {
             continue;
         };
-        let iri = subject.as_str().to_owned();
-        match object.as_str() {
-            value if value == owl::CLASS.as_str() => {
+        let iri = subject.to_owned();
+        match object {
+            value if value == owl::CLASS => {
                 terms.classes.insert(iri);
             }
-            value if value == owl::OBJECT_PROPERTY.as_str() => {
+            value if value == owl::OBJECT_PROPERTY => {
                 terms.properties.insert(iri);
             }
-            value if value == owl::DATATYPE_PROPERTY.as_str() => {
+            value if value == owl::DATATYPE_PROPERTY => {
                 terms.properties.insert(iri);
             }
             value if value == OWL_NAMED_INDIVIDUAL => {

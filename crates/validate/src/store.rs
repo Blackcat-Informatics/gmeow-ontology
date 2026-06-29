@@ -1,257 +1,155 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! PyO3-free Turtle parsing for the validation lints.
+//! PyO3-free RDF ingestion for the validation lints (native `RdfDataset` IR, #906).
 //!
-//! The syntax check and the `owl:sameAs` ban scan overlapping source files. Both
-//! only need parse success plus a per-quad scan, so this module parses each
-//! Turtle file with the native gmeow-rdf codecs (#909) rather than building
-//! short-lived rdflib graphs or driving the oxigraph `io` parser directly. The parsed IR is
-//! flattened back into the source-faithful oxigraph quad stream so the existing
-//! `Quad`/`Store`-shaped callers are unchanged.
+//! Every validation engine (coverage, lint, gUFO, statement, constitution, the DSL
+//! SHACL merge, the data-graph path) reads a frozen [`gmeow_rdf::RdfDataset`]: the
+//! sources are parsed once with the native gmeow-rdf codecs ([`parse_dataset`]),
+//! merged under per-file blank scopes via [`gmeow_rdf::RdfDatasetBuilder`], and
+//! queried through the indexed [`gmeow_rdf::DatasetView::quads_for_pattern`]. The
+//! SHACL engine is itself native ([`shacl_validate_dataset`]).
+//!
+//! This module is fully oxigraph-free (#906): every helper returns or queries the
+//! native [`gmeow_rdf::RdfDataset`]. The transitional oxigraph `Store` construction
+//! that still backs the PyO3 `ValidationStore`/`_store_capsule` lives entirely in
+//! [`crate::py`]; the final rdf pass removes it when the rdf `py_store` goes native.
 //!
 //! Parsing is **lenient by construction**: the native codecs accept the GMEOW
-//! ontology's private-use `@x-gmeow-*` language tags whose subtag exceeds
-//! BCP-47's 8-char limit (e.g. `@x-gmeow-afrikaans`). The strict oxigraph `io`
-//! parser used to reject the whole file on these
-//! (`imports/languages-reference.ttl`); the native path keeps the file
-//! syntax-checkable while still surfacing every real Turtle syntax error (#597).
+//! ontology's private-use `@x-gmeow-*` language tags whose subtag exceeds BCP-47's
+//! 8-char limit (e.g. `@x-gmeow-afrikaans`), while still surfacing every real Turtle
+//! syntax error (#597).
 
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
-use oxigraph::model::{NamedOrBlankNode, Quad, Term};
-use oxigraph::store::Store;
-
-use gmeow_rdf::oxigraph::{
-    dataset_from_store, flat_oxigraph_quads_from_dataset_scoped, store_from_dataset, GraphPolicy,
-};
-use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
+use gmeow_rdf::{parse_dataset, RdfDataset, RdfDatasetBuilder};
 
 use crate::model::owl;
 
-/// Validate an oxigraph [`Store`] against parsed SHACL [`Shapes`] over the native
-/// IR engine, bridging the store into a frozen [`RdfDataset`] first.
+/// Validate a native [`RdfDataset`] against parsed SHACL [`Shapes`] over the native
+/// IR engine.
 ///
-/// TRANSITIONAL: the validate crate's data graph is still an oxigraph `Store` (the
-/// rdf `py_store` is not yet native — a later #906 pass migrates it). The SHACL
-/// engine is now fully native, so this seam folds the store into the IR
-/// (`dataset_from_store`) and runs the native `validate_dataset`. When the store
-/// goes native this whole bridge collapses to a direct dataset call.
-pub fn shacl_validate_store(
-    store: &Store,
+/// The SHACL engine is fully native (it takes an `RdfDataset` directly), so this is a
+/// thin wrapper that surfaces the validation report and treats engine failure as
+/// infallible for a frozen, validated dataset.
+pub fn shacl_validate_dataset(
+    dataset: &RdfDataset,
     shapes: &gmeow_shacl::shapes::Shapes,
 ) -> gmeow_shacl::report::ValidationReport {
-    let dataset = dataset_from_store(store).expect("oxigraph data store folds into the native IR");
-    gmeow_shacl::engine::validate_dataset(dataset.as_ref(), shapes)
+    gmeow_shacl::engine::validate_dataset(dataset, shapes)
         .expect("validation over a frozen dataset is infallible")
 }
 
-/// Parse a single Turtle file, returning either its quads or a syntax-error
-/// string.
+/// Parse a single Turtle file into a frozen native [`RdfDataset`].
 ///
-/// The error string is the `Display` form of the underlying parse error,
-/// matching what oxigraph's `parse()` raises as an exception. The
-/// caller decides how to frame it (`syntax error in {path}: {err}` etc.).
+/// Lenient parsing (accepts GMEOW's private-use `@x-gmeow-*` language tags). The
+/// returned dataset is uniquely owned (fresh off the native parser).
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if the file cannot be read or the Turtle fails to
-/// parse.
-pub fn parse_file(path: &Path) -> Result<Vec<Quad>, String> {
+/// Returns `Err(message)` if the file cannot be read or the Turtle fails to parse.
+pub fn parse_file_dataset(path: &Path) -> Result<Arc<RdfDataset>, String> {
     let bytes = std::fs::read(path).map_err(|e| e.to_string())?;
-    let dataset = parse_dataset(&bytes, "text/turtle", None).map_err(|e| e.to_string())?;
-    // Scope blank labels by the source path so this file's quads stay disjoint from
-    // other files' when `build_store_from_parsed` merges them into one store (#909).
-    flat_oxigraph_quads_from_dataset_scoped(&dataset, &path.display().to_string())
-        .map_err(|e| e.to_string())
+    parse_dataset(&bytes, "text/turtle", None).map_err(|e| e.to_string())
 }
 
-/// Parse every Turtle file in `paths` into one oxigraph [`Store`].
+/// Build one merged frozen [`RdfDataset`] from every Turtle source in `paths`.
 ///
-/// Lenient parsing (matching [`parse_file`]): a malformed file aborts with an
-/// error naming the file, but the private-use `@x-gmeow-*` language tags are
-/// accepted. This is the multi-file ingestion primitive future lint ports build
-/// on; the current syntax/sameAs lints scan files individually via [`parse_file`]
-/// so they can attribute every diagnostic to its source file.
+/// Each file is parsed under a fresh blank scope ([`RdfDatasetBuilder::push_dataset`])
+/// so anonymous blanks across files stay disjoint (C0.2 — the native twin of the old
+/// per-source blank-prefix scoping). Quads dedup at freeze (C0.5), matching the old
+/// `Store::insert` set semantics. A malformed file aborts with an error naming the
+/// file.
 ///
 /// # Errors
 ///
 /// Returns `Err(message)` if any file fails to read or parse.
-pub fn build_store(paths: &[PathBuf]) -> Result<Store, String> {
-    load_sources_into_store(paths)
-}
-
-/// Alias for [`build_store`] used by the validation orchestration.
-///
-/// Loads every Turtle source in `paths` into a single oxigraph [`Store`] using
-/// lenient parsing. See [`build_store`] for details.
-pub fn load_sources_into_store(paths: &[PathBuf]) -> Result<Store, String> {
-    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
+pub fn dataset_from_paths(paths: &[PathBuf]) -> Result<Arc<RdfDataset>, String> {
+    let mut builder = RdfDatasetBuilder::new();
     for path in paths {
-        let bytes =
-            std::fs::read(path).map_err(|e| format!("failed to read {}: {e}", path.display()))?;
         let path_str = path.display().to_string();
+        let bytes = std::fs::read(path).map_err(|e| format!("failed to read {path_str}: {e}"))?;
         let dataset = parse_dataset(&bytes, "text/turtle", None)
             .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
-        // Scope blank labels per source file so several Turtle documents merged into one
-        // store keep their anonymous blanks disjoint (the native codecs restart the
-        // blank counter per parse and `store.insert` does not rename them) (#909).
-        let quads = flat_oxigraph_quads_from_dataset_scoped(&dataset, &path_str)
-            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
-        for quad in quads {
-            store
-                .insert(&quad)
-                .map_err(|e| format!("store insert failed for {path_str}: {e}"))?;
-        }
+        builder.push_dataset(&dataset);
     }
-    Ok(store)
+    builder
+        .freeze()
+        .map_err(|e| format!("dataset freeze failed: {e}"))
 }
 
-/// Build a [`gmeow_rdf::DatasetProvenance`] from per-file parsed quad lists.
+/// Build a frozen native [`RdfDataset`] from an N-Triples document, flattening any
+/// graph slot to the default graph (N-Triples is graphless).
 ///
-/// Accepts a slice of `(PathBuf, Result<Vec<Quad>, String>)` — the same element
-/// type that a parse-once loop produces — and builds one [`DatasetProvenance`]
-/// where:
-///
-/// - Each **successfully parsed file** is registered as a
-///   [`gmeow_rdf::OriginKind::Source`] unit and its path string as its sole
-///   artifact.
-/// - Each quad in that file produces one
-///   [`gmeow_rdf::AssertionOccurrence`] keyed to the file's
-///   `(UnitId, ArtifactId)` pair.
-///
-/// The oxigraph `Quad` type carries no stable dense id; we assign provisional
-/// quad handles sequentially in the order quads are recorded. A caller that also
-/// builds an `RdfDataset` can reconcile the handles against the dataset's frozen
-/// quad table after the fact.
-///
-/// Parse failures in `parsed` are skipped (the failed file contributes no
-/// occurrences); the caller handles them separately when building the store.
-///
-/// This path **does not** import or depend on `gmeow-slice`: units are generic
-/// opaque names keyed by file path, and all unit kinds are
-/// [`gmeow_rdf::OriginKind::Source`]. The slice layer annotates units with slice
-/// IRIs in a higher-level pass.
-pub fn build_provenance_from_parsed(
-    parsed: &[(PathBuf, Result<Vec<Quad>, String>)],
-) -> gmeow_rdf::DatasetProvenance {
-    use gmeow_rdf::ir::QuadHandle;
-    use gmeow_rdf::{DatasetProvenance, OriginKind};
-
-    let mut prov = DatasetProvenance::new();
-    let mut handle_counter: u32 = 0;
-
-    for (path, result) in parsed {
-        let quads = match result {
-            Ok(q) => q,
-            Err(_) => continue, // Parse failure — skip; caller handles separately.
-        };
-
-        let path_str = path.to_string_lossy().into_owned();
-        let unit = prov.register_unit(path_str.clone(), OriginKind::Source);
-        let artifact = prov.register_artifact(path_str);
-
-        for _ in quads {
-            let handle = QuadHandle::from_index(handle_counter);
-            handle_counter = handle_counter
-                .checked_add(1)
-                .expect("quad handle counter overflow");
-            prov.record_occurrence(handle, unit, artifact, None);
-        }
-    }
-
-    prov
-}
-
-/// Parse every source file in `paths` exactly once, returning the per-file
-/// results in the same order as `paths`.
-///
-/// This is the parse-once primitive for the validation orchestration: the
-/// caller passes the results to the syntax check, the `owl:sameAs` ban, and
-/// the store-build phase so each file is read and parsed only once instead of
-/// once per phase (#822).
+/// Lenient parsing (private-use `@x-gmeow-*` language tags) — the data seam for the
+/// rdflib-free validation path (#579).
 ///
 /// # Errors
 ///
-/// This function does not fail; parse failures are captured as `Err` entries in
-/// the returned `Vec` so the caller can produce per-file diagnostics.
-pub fn parse_all_files(paths: Vec<PathBuf>) -> Vec<(PathBuf, Result<Vec<Quad>, String>)> {
-    paths
-        .into_iter()
-        .map(|p| {
-            let res = parse_file(&p);
-            (p, res)
-        })
-        .collect()
+/// Returns `Err(message)` if the N-Triples fails to parse.
+pub fn dataset_from_nt(data_nt: &str) -> Result<Arc<RdfDataset>, String> {
+    parse_dataset(data_nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| format!("N-Triples parse error: {e}"))
 }
 
-/// Build an oxigraph [`Store`] from already-parsed quad lists.
+/// Build a frozen native [`RdfDataset`] from a GTS byte bundle, flattening every named
+/// graph into the default graph (so the lints/shapes see the whole graph).
 ///
-/// Accepts the output of [`parse_all_files`] and folds every successful
-/// per-file quad list into a single [`Store`].  A parse failure propagates
-/// immediately with the same `"syntax error in {path}: {msg}"` format that
-/// [`load_sources_into_store`] uses, preserving identical error messages for
-/// the `build-store` phase (#822).
+/// Routes through the oxigraph-free [`gmeow_rdf::gts::flattened_dataset_from_bytes`]:
+/// `read_all_segments` → the native statement-layer fold → `freeze` with every quad
+/// re-homed to the default graph. A non-empty diagnostic list is a hard failure.
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if any entry in `parsed` is an `Err`, or if a store
-/// insert fails.
-pub fn build_store_from_parsed(
-    parsed: &[(PathBuf, Result<Vec<Quad>, String>)],
-) -> Result<Store, String> {
-    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
-    for (path, result) in parsed {
-        let quads = result
-            .as_ref()
-            .map_err(|e| format!("syntax error in {}: {e}", path.display()))?;
-        for quad in quads {
-            store
-                .insert(quad)
-                .map_err(|e| format!("store insert failed for {}: {e}", path.display()))?;
-        }
-    }
-    Ok(store)
+/// Returns `Err(message)` if the GTS fold reports any diagnostics or the projected
+/// quads cannot be folded into the IR.
+pub fn dataset_from_gts(bytes: &[u8]) -> Result<Arc<RdfDataset>, String> {
+    gmeow_rdf::gts::flattened_dataset_from_bytes(bytes).map_err(|e| e.to_string())
 }
 
-/// Render a subject term the way the legacy Python `_ox_term_display` did:
-/// NamedNode → its value; BlankNode → `_:b`.
+/// Render a resolved subject term the way the legacy `_ox_term_display` did:
+/// IRI → its value; blank → `_:b`.
 ///
-/// A triple subject is exactly an IRI or a blank node ([`NamedOrBlankNode`]);
-/// the legacy Python `str(term)` fallback was unreachable, so there is no
-/// catch-all here.
-pub fn subject_display(subject: &NamedOrBlankNode) -> String {
+/// A triple subject is exactly an IRI or a blank node in well-formed RDF; a
+/// literal/triple subject stringifies defensively (never reached on the validation
+/// path).
+pub fn subject_display(subject: gmeow_rdf::TermRef<'_>) -> String {
+    use gmeow_rdf::TermRef;
     match subject {
-        NamedOrBlankNode::NamedNode(n) => n.as_str().to_owned(),
-        NamedOrBlankNode::BlankNode(b) => format!("_:{}", b.as_str()),
+        TermRef::Iri(iri) => iri.to_owned(),
+        TermRef::Blank { label, .. } => format!("_:{label}"),
+        TermRef::Literal { lexical, .. } => lexical.to_owned(),
+        TermRef::Triple { .. } => "<<triple>>".to_owned(),
     }
 }
 
-/// Scan `quads` for Principle 5 `owl:sameAs`-to-external-entity violations.
+/// Scan a frozen native [`RdfDataset`] for Principle 5 `owl:sameAs`-to-external-entity
+/// violations, in document (dataset) order.
 ///
-/// A violation is every `owl:sameAs` triple whose object is a NamedNode that
-/// does NOT start with `namespace`, unless `(subject_display, object)` is in
-/// `allowlist`. Returns the `(subject_display, object)` pair for each violation,
-/// in document order — the caller frames the user-facing message so the file
-/// path can be interpolated exactly as the Python lint does.
+/// A violation is every `owl:sameAs` triple whose object is an IRI that does NOT start
+/// with `namespace`, unless `(subject_display, object)` is in `allowlist`. Returns the
+/// `(subject_display, object)` pair for each violation — the caller frames the
+/// user-facing message so the file path can be interpolated exactly as before.
 pub fn sameas_violations(
-    quads: &[Quad],
+    dataset: &RdfDataset,
     namespace: &str,
     allowlist: &[(String, String)],
 ) -> Vec<(String, String)> {
+    use gmeow_rdf::{DatasetView, GraphMatch, TermRef, TermValue};
+
+    let Some(sameas_id) = dataset.term_id_by_value(&TermValue::iri(owl::SAME_AS)) else {
+        return Vec::new();
+    };
     let mut out: Vec<(String, String)> = Vec::new();
-    for quad in quads {
-        if quad.predicate.as_ref() != owl::SAME_AS {
+    for quad in dataset.quads_for_pattern(None, Some(sameas_id), None, GraphMatch::Any) {
+        let TermRef::Iri(obj) = dataset.resolve(quad.o) else {
             continue;
-        }
-        let obj = match &quad.object {
-            Term::NamedNode(n) => n.as_str(),
-            _ => continue,
         };
         if obj.starts_with(namespace) {
             continue;
         }
-        let subject_text = subject_display(&quad.subject);
+        let subject_text = subject_display(dataset.resolve(quad.s));
         if allowlist
             .iter()
             .any(|(s, o)| s == &subject_text && o == obj)
@@ -261,24 +159,6 @@ pub fn sameas_violations(
         out.push((subject_text, obj.to_owned()));
     }
     out
-}
-
-/// Build an oxigraph [`Store`] from an N-Triples document.
-///
-/// The validation-path SHACL data and the reasoning test shims pass graphs as
-/// N-Triples strings (the rdflib-free seam, #579) rather than as rdflib graphs.
-/// N-Triples is a strict subset of the Turtle family, so the same lenient parser
-/// [`build_store`] uses ingests it directly. Parsing is lenient for the same
-/// reason (private-use `@x-gmeow-*` language tags).
-///
-/// # Errors
-///
-/// Returns `Err(message)` if the N-Triples fails to parse.
-pub fn build_store_from_nt(data_nt: &str) -> Result<Store, String> {
-    let dataset = parse_dataset(data_nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| format!("N-Triples parse error: {e}"))?;
-    store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph)
-        .map_err(|e| format!("store insert failed: {e}"))
 }
 
 /// Parse GTS bytes into a [`gmeow_gts::model::Graph`].
@@ -295,68 +175,6 @@ pub fn read_gts_graph(bytes: &[u8]) -> Result<gmeow_gts::model::Graph, String> {
     gmeow_rdf::gts::read_all_segments(bytes).map_err(|e| e.to_string())
 }
 
-/// Build an oxigraph [`Store`] from a parsed GTS [`Graph`].
-///
-/// Convenience wrapper around [`gmeow_rdf::gts::flattened_oxigraph_store_from_graph`]
-/// that converts diagnostics to plain strings for the validation API. See
-/// [`build_store_from_gts`] for the folding, lenient parsing, and named-graph
-/// flattening semantics.
-///
-/// # Errors
-///
-/// Returns `Err(message)` if the projected N-Quads fail to parse.
-pub fn build_store_from_graph(graph: &gmeow_gts::model::Graph) -> Result<Store, String> {
-    gmeow_rdf::gts::flattened_oxigraph_store_from_graph(graph).map_err(|e| e.to_string())
-}
-
-/// Build an oxigraph [`Store`] from a GTS byte bundle.
-///
-/// Convenience over [`read_gts_graph`] followed by [`build_store_from_graph`].
-/// See those functions for the folding, lenient parsing, and named-graph
-/// flattening semantics.
-///
-/// # Errors
-///
-/// Returns `Err(message)` if the GTS fold reports any diagnostics or if the
-/// projected N-Quads fail to parse.
-pub fn build_store_from_gts(bytes: &[u8]) -> Result<Store, String> {
-    let graph = read_gts_graph(bytes)?;
-    build_store_from_graph(&graph)
-}
-
-/// Serialize a [`Store`]'s default graph to N-Triples text.
-///
-/// Folds the store back into the gmeow-rdf IR ([`dataset_from_store`]) and emits
-/// it through the native codec (#909) — no oxigraph `io` serializer. This is the
-/// rdflib-free replacement for `rdflib.Graph.serialize(format="nt")` on the
-/// validation path (#579): `merge_to_ntriples` builds the store from the Turtle
-/// sources and dumps it so the SHACL data graph never touches rdflib.
-///
-/// The `DefaultGraph` selection collapses the store to its default graph, so
-/// every emitted row is graphless and the output is exactly N-Triples. We request
-/// the `application/n-quads` codec (not `application/n-triples`) deliberately: the
-/// N-Quads writer is byte-lenient on language tags (it writes the lexical tag
-/// verbatim), matching the legacy oxigraph N-Triples serializer, whereas the
-/// native N-Triples writer re-validates tags through oxrdf and would reject the
-/// GMEOW ontology's private-use `@x-gmeow-*` tags (>8-char subtags). With a
-/// default-graph-only store the two formats are byte-identical apart from that
-/// validation, so this preserves the legacy output while staying serializable.
-///
-/// # Errors
-///
-/// Returns `Err(message)` if the store cannot be folded into the IR or the native
-/// serializer fails.
-pub fn dump_store_to_ntriples(store: &Store) -> Result<String, String> {
-    let dataset = dataset_from_store(store).map_err(|e| e.to_string())?;
-    let bytes = serialize_dataset(
-        &dataset,
-        "application/n-quads",
-        SerializeGraph::DefaultGraph,
-    )
-    .map_err(|e| e.to_string())?;
-    String::from_utf8(bytes).map_err(|e| e.to_string())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -367,30 +185,32 @@ mod tests {
         path
     }
 
+    use gmeow_rdf::{DatasetView, GraphMatch};
+
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
     #[test]
-    fn parse_file_rejects_bad_turtle() {
+    fn parse_file_dataset_rejects_bad_turtle() {
         let path = write_tmp("gmeow_validate_store_bad.ttl", "this is not turtle <<< @@@");
-        let result = parse_file(&path);
+        let result = parse_file_dataset(&path);
         std::fs::remove_file(&path).ok();
         assert!(result.is_err(), "malformed Turtle must parse-error");
     }
 
     #[test]
-    fn parse_file_accepts_good_turtle() {
+    fn parse_file_dataset_accepts_good_turtle() {
         let path = write_tmp(
             "gmeow_validate_store_good.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
         );
-        let result = parse_file(&path);
+        let result = parse_file_dataset(&path);
         std::fs::remove_file(&path).ok();
-        let quads = result.expect("well-formed Turtle must parse");
-        assert_eq!(quads.len(), 1);
+        let ds = result.expect("well-formed Turtle must parse");
+        assert_eq!(ds.quad_count(), 1);
     }
 
     #[test]
-    fn build_store_loads_multiple_files() {
+    fn dataset_from_paths_loads_multiple_files() {
         let a = write_tmp(
             "gmeow_validate_store_multi_a.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
@@ -399,73 +219,45 @@ mod tests {
             "gmeow_validate_store_multi_b.ttl",
             "@prefix ex: <https://example.org/> .\nex:c ex:p ex:d .\n",
         );
-        let store = build_store(&[a.clone(), b.clone()]).expect("both files must load");
+        let ds = dataset_from_paths(&[a.clone(), b.clone()]).expect("both files must load");
         std::fs::remove_file(&a).ok();
         std::fs::remove_file(&b).ok();
-        assert_eq!(store.len().unwrap(), 2);
+        assert_eq!(ds.quad_count(), 2);
     }
 
     #[test]
-    fn parse_all_files_and_build_store_from_parsed() {
-        let a = write_tmp(
-            "gmeow_validate_store_parsed_a.ttl",
-            "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
-        );
-        let b = write_tmp(
-            "gmeow_validate_store_parsed_b.ttl",
-            "@prefix ex: <https://example.org/> .\nex:c ex:p ex:d .\n",
-        );
-        let paths = vec![a.clone(), b.clone()];
-        let parsed = parse_all_files(paths);
-        std::fs::remove_file(&a).ok();
-        std::fs::remove_file(&b).ok();
-
-        assert_eq!(parsed.len(), 2);
-        assert!(parsed[0].1.is_ok(), "first file must parse");
-        assert!(parsed[1].1.is_ok(), "second file must parse");
-
-        let store = build_store_from_parsed(&parsed).expect("store must build from parsed quads");
-        assert_eq!(store.len().unwrap(), 2);
-    }
-
-    #[test]
-    fn build_store_from_parsed_propagates_parse_error() {
+    fn dataset_from_paths_propagates_parse_error() {
         let good = write_tmp(
             "gmeow_validate_parsed_err_good.ttl",
             "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
         );
-        // Capture the path string before writing (we'll feed a pre-built Err).
-        let bad_path = std::env::temp_dir().join("gmeow_validate_parsed_err_bad.ttl");
-        let parsed: Vec<(PathBuf, Result<Vec<Quad>, String>)> = vec![
-            (good.clone(), parse_file(&good)),
-            (bad_path.clone(), Err("parse failed".to_owned())),
-        ];
+        let bad = write_tmp(
+            "gmeow_validate_parsed_err_bad.ttl",
+            "this is not turtle @@@ <<<",
+        );
+        let result = dataset_from_paths(&[good.clone(), bad.clone()]);
         std::fs::remove_file(&good).ok();
-
-        let result = build_store_from_parsed(&parsed);
-        assert!(result.is_err(), "Err entry must propagate");
+        std::fs::remove_file(&bad).ok();
+        assert!(result.is_err(), "a malformed file must propagate");
         let msg = result.err().unwrap();
         assert!(
-            msg.contains("syntax error in"),
-            "error must use 'syntax error in' format; got: {msg}"
-        );
-        assert!(
-            msg.contains("gmeow_validate_parsed_err_bad.ttl"),
-            "error must name the bad file; got: {msg}"
+            msg.contains("syntax error in") && msg.contains("gmeow_validate_parsed_err_bad.ttl"),
+            "error must use 'syntax error in' format naming the bad file; got: {msg}"
         );
     }
 
     #[test]
     fn sameas_flags_external_object() {
-        let path = write_tmp(
-            "gmeow_validate_store_sameas_ext.ttl",
+        let ds = parse_dataset(
             "@prefix ex: <https://example.org/> .\n\
              @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
-             ex:a owl:sameAs ex:b .\n",
-        );
-        let quads = parse_file(&path).unwrap();
-        std::fs::remove_file(&path).ok();
-        let violations = sameas_violations(&quads, NS, &[]);
+             ex:a owl:sameAs ex:b .\n"
+                .as_bytes(),
+            "text/turtle",
+            None,
+        )
+        .unwrap();
+        let violations = sameas_violations(&ds, NS, &[]);
         assert_eq!(
             violations,
             vec![(
@@ -477,95 +269,85 @@ mod tests {
 
     #[test]
     fn sameas_skips_internal_and_allowlisted() {
-        let path = write_tmp(
-            "gmeow_validate_store_sameas_skip.ttl",
-            &format!(
+        let ds = parse_dataset(
+            format!(
                 "@prefix gmeow: <{NS}> .\n\
                  @prefix ex: <https://example.org/> .\n\
                  @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
                  gmeow:A owl:sameAs gmeow:B .\n\
                  ex:a owl:sameAs ex:b .\n"
-            ),
-        );
-        let quads = parse_file(&path).unwrap();
-        std::fs::remove_file(&path).ok();
+            )
+            .as_bytes(),
+            "text/turtle",
+            None,
+        )
+        .unwrap();
         let allowlist = vec![(
             "https://example.org/a".to_owned(),
             "https://example.org/b".to_owned(),
         )];
-        assert!(sameas_violations(&quads, NS, &allowlist).is_empty());
+        assert!(sameas_violations(&ds, NS, &allowlist).is_empty());
     }
 
     #[test]
-    fn nt_round_trips_through_store() {
+    fn dataset_from_nt_loads_and_rejects_malformed() {
         let nt = "<https://example.org/a> <https://example.org/p> <https://example.org/b> .\n";
-        let store = build_store_from_nt(nt).expect("valid N-Triples must load");
-        assert_eq!(store.len().unwrap(), 1);
-        let dumped =
-            dump_store_to_ntriples(&store).expect("in-memory store serialization must succeed");
-        // oxigraph emits the same single triple (whitespace-normalized).
-        assert!(dumped.contains("<https://example.org/a>"));
-        assert!(dumped.contains("<https://example.org/p>"));
-        assert!(dumped.contains("<https://example.org/b>"));
-        // Re-ingesting the dump yields the identical triple count.
-        let store2 = build_store_from_nt(&dumped).expect("dump must re-load");
-        assert_eq!(store2.len().unwrap(), 1);
+        let ds = dataset_from_nt(nt).expect("valid N-Triples must load");
+        assert_eq!(ds.quad_count(), 1);
+        assert!(dataset_from_nt("this is not n-triples @@@").is_err());
     }
 
     #[test]
-    fn nt_rejects_malformed() {
-        assert!(build_store_from_nt("this is not n-triples @@@").is_err());
-    }
-
-    #[test]
-    fn gts_loads_single_triple() {
+    fn dataset_from_gts_loads_single_triple_in_default_graph() {
         use gmeow_gts::model::{Term, TermKind};
         use gmeow_gts::writer::Writer;
 
         let mut graph = gmeow_gts::model::Graph::default();
+        for iri in [
+            "https://example.org/s",
+            "https://example.org/p",
+            "https://example.org/o",
+        ] {
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: Some(iri.to_owned()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            });
+        }
+        // Named graph slot to verify the flatten.
         graph.terms.push(Term {
             kind: TermKind::Iri,
-            value: Some("https://example.org/a".to_string()),
+            value: Some("https://blackcatinformatics.ca/gmeow/graph/metadata".to_owned()),
             datatype: None,
             lang: None,
             direction: None,
             reifier: None,
         });
-        graph.terms.push(Term {
-            kind: TermKind::Iri,
-            value: Some("https://example.org/p".to_string()),
-            datatype: None,
-            lang: None,
-            direction: None,
-            reifier: None,
-        });
-        graph.terms.push(Term {
-            kind: TermKind::Iri,
-            value: Some("https://example.org/b".to_string()),
-            datatype: None,
-            lang: None,
-            direction: None,
-            reifier: None,
-        });
-        graph.quads.push((0, 1, 2, None));
+        graph.quads.push((0, 1, 2, Some(3)));
 
         let writer = Writer::deterministic(&graph, "gmeow-validate-test")
             .expect("deterministic GTS writer must succeed");
-        let bytes = writer.to_bytes();
-
-        let store = build_store_from_gts(&bytes).expect("GTS bytes must load into store");
-        assert_eq!(store.len().unwrap(), 1);
+        let ds = dataset_from_gts(&writer.to_bytes()).expect("GTS bytes must fold into dataset");
+        assert_eq!(ds.quad_count(), 1);
+        // The named-graph quad is flattened to the default graph.
+        assert_eq!(
+            ds.quads_for_pattern(None, None, None, GraphMatch::Default)
+                .count(),
+            1
+        );
     }
 
     #[test]
-    fn gts_accepts_private_lang_tag_and_flattens_named_graph() {
+    fn dataset_from_gts_accepts_private_lang_tag_and_flattens_named_graph() {
         use gmeow_gts::model::{Term, TermKind};
         use gmeow_gts::writer::Writer;
 
-        // A literal with a private-use `@x-gmeow-*` tag (BCP-47 subtag > 8 chars,
-        // which the strict oxigraph adapter rejects) in a NAMED graph. The lenient
-        // round-trip must accept the tag and collapse the named graph into the
-        // default graph (#644).
+        // A literal with a private-use `@x-gmeow-*` tag (BCP-47 subtag > 8 chars)
+        // in a NAMED graph. The lenient native fold must accept the tag and collapse
+        // the named graph into the default graph (#644).
         let mut graph = gmeow_gts::model::Graph::default();
         for value in ["https://example.org/s", "https://example.org/p"] {
             graph.terms.push(Term {
@@ -598,36 +380,37 @@ mod tests {
 
         let writer = Writer::deterministic(&graph, "gmeow-validate-test")
             .expect("deterministic GTS writer must succeed");
-        let store = build_store_from_gts(&writer.to_bytes())
+        let ds = dataset_from_gts(&writer.to_bytes())
             .expect("private lang tag in a named graph must load leniently");
 
-        assert_eq!(store.len().unwrap(), 1);
-        // Flattened: the triple must be visible in the default graph.
-        let nt = dump_store_to_ntriples(&store).expect("default-graph dump");
-        assert!(nt.contains("x-gmeow-afrikaans"), "lang tag preserved: {nt}");
-        assert!(nt.contains("<https://example.org/s>"));
+        assert_eq!(ds.quad_count(), 1);
+        // Flattened: the triple is in the default graph and the lang tag survives.
+        let q = ds
+            .quads_for_pattern(None, None, None, GraphMatch::Default)
+            .next()
+            .expect("one default-graph quad");
+        match ds.resolve(q.o) {
+            gmeow_rdf::TermRef::Literal { language, .. } => {
+                assert_eq!(language, Some("x-gmeow-afrikaans"), "lang tag preserved");
+            }
+            other => panic!("object must be a literal, got {other:?}"),
+        }
     }
 
     #[test]
-    fn build_store_from_gts_rejects_malformed_bytes() {
-        // Clearly non-GTS bytes must trigger a fold diagnostic and return Err,
-        // not a silent empty store. This exercises the fail-fast contract.
-        let result = build_store_from_gts(b"this is not a valid gts file");
+    fn dataset_from_gts_rejects_malformed_bytes() {
+        // Clearly non-GTS bytes must trigger a fold diagnostic and return Err, not a
+        // silent empty dataset. This exercises the fail-fast contract.
+        let result = dataset_from_gts(b"this is not a valid gts file");
         assert!(
             result.is_err(),
-            "malformed GTS bytes must return Err, not a silent empty store"
+            "malformed GTS bytes must return Err, not a silent empty dataset"
         );
-        let msg = result.err().unwrap();
-        assert!(
-            msg.contains("diagnostic"),
-            "error message must mention diagnostics; got: {msg}"
-        );
-
         // Also verify raw garbage bytes (not even ASCII text).
-        let result2 = build_store_from_gts(&[0u8, 1, 2, 3, 0xFF, 0xFE]);
+        let result2 = dataset_from_gts(&[0u8, 1, 2, 3, 0xFF, 0xFE]);
         assert!(
             result2.is_err(),
-            "binary garbage bytes must return Err, not a silent empty store"
+            "binary garbage bytes must return Err, not a silent empty dataset"
         );
     }
 
@@ -688,49 +471,5 @@ mod tests {
             !graph.segment_heads.is_empty(),
             "read_gts_graph must populate segment_heads"
         );
-    }
-
-    #[test]
-    fn build_store_from_graph_flattens_quads() {
-        use gmeow_gts::model::{Term, TermKind};
-        use gmeow_gts::writer::Writer;
-        use oxigraph::model::{GraphNameRef, NamedNode, Quad};
-
-        let s = "https://example.org/s";
-        let p = "https://example.org/p";
-        let o = "https://example.org/o";
-
-        let mut graph = gmeow_gts::model::Graph::default();
-        for iri in [s, p, o] {
-            graph.terms.push(Term {
-                kind: TermKind::Iri,
-                value: Some(iri.to_owned()),
-                datatype: None,
-                lang: None,
-                direction: None,
-                reifier: None,
-            });
-        }
-        graph.quads.push((0, 1, 2, None));
-
-        let writer = Writer::deterministic(&graph, "gmeow-validate-test")
-            .expect("deterministic GTS writer must succeed");
-        let graph = read_gts_graph(&writer.to_bytes()).expect("valid GTS bytes must parse");
-
-        let store = build_store_from_graph(&graph).expect("graph must load into store");
-        let quads = store
-            .iter()
-            .collect::<Result<Vec<_>, _>>()
-            .expect("store iteration must succeed");
-
-        assert_eq!(quads.len(), 1, "expected one flattened quad");
-
-        let expected = Quad::new(
-            NamedNode::new(s).unwrap(),
-            NamedNode::new(p).unwrap(),
-            NamedNode::new(o).unwrap(),
-            GraphNameRef::DefaultGraph,
-        );
-        assert!(quads.contains(&expected), "expected triple not in store");
     }
 }

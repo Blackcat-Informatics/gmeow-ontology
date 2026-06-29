@@ -35,7 +35,6 @@ use gmeow_diagnostics::model::Location;
 use gmeow_diagnostics::{Finding, Report, Severity};
 use gmeow_rdf::RdfDataset;
 use gmeow_shacl::shape_union::EXCLUDED;
-use oxigraph::store::Store;
 
 use crate::gufo::{self, GufoConfig};
 use crate::store;
@@ -106,17 +105,17 @@ pub fn run(
     deep: bool,
 ) -> Result<Report, String> {
     let shapes_ttl = data_graph_shapes_from_gts(gts_bytes)?;
-    let store = data_store(data_bytes, data_format)?;
+    let dataset = data_dataset_flat(data_bytes, data_format)?;
 
     let shapes = gmeow_shacl::engine::parse_shapes(&shapes_ttl)
         .map_err(|e| format!("bundled SHACL shapes failed to parse: {e}"))?;
-    let shacl_report = crate::store::shacl_validate_store(&store, &shapes);
+    let shacl_report = store::shacl_validate_dataset(&dataset, &shapes);
     let shacl_findings = shacl_findings_from_report(&shacl_report, Some(origin));
 
     let cfg = GufoConfig {
         namespace: namespace.to_owned(),
     };
-    let discipline_findings = gufo::reasoning_findings(&store, &cfg);
+    let discipline_findings = gufo::reasoning_findings(&dataset, &cfg);
 
     let mut report = build_report(Vec::new(), Vec::new(), shacl_findings);
     for mut f in discipline_findings {
@@ -277,26 +276,40 @@ fn data_dataset(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>,
         .map_err(|e| format!("data graph parse error: {e}"))
 }
 
-/// Build an in-memory oxigraph store from external RDF data bytes, flattening any
+/// Build a frozen native [`RdfDataset`] from external RDF data bytes, flattening any
 /// named graphs into the default graph so the shapes and discipline checks see the
-/// whole graph.
-fn data_store(data_bytes: &[u8], data_format: &str) -> Result<Store, String> {
-    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-
+/// whole graph. (Tier-1 SHACL; the Tier-2 reasoner uses the graph-preserving
+/// [`data_dataset`] above.)
+fn data_dataset_flat(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>, String> {
     if is_json_ld(data_format) {
         // JSON-LD has no native-codec media type; route it through the gmeow-gts
-        // JSON-LD codec to GTS bytes, then fold to a flattened store.
+        // JSON-LD codec to GTS bytes, then fold to a flattened native dataset.
         let text = std::str::from_utf8(data_bytes)
             .map_err(|e| format!("data file is not valid UTF-8: {e}"))?;
         let gts = gmeow_gts::from_yamlld::from_json_ld(text)
             .map_err(|e| format!("JSON-LD parse error: {e}"))?;
-        let graph = store::read_gts_graph(&gts)?;
-        return store::build_store_from_graph(&graph);
+        return store::dataset_from_gts(&gts);
     }
 
+    // Parse to the native IR, then re-home every named graph to the default graph so
+    // the flattened graph matches the old `FlattenToDefaultGraph` store.
     let dataset = gmeow_rdf::parse_dataset(data_bytes, data_format, None)
         .map_err(|e| format!("data graph parse error: {e}"))?;
-    store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).map_err(|e| e.to_string())
+    flatten_to_default_graph(&dataset)
+}
+
+/// Re-home every quad of `dataset` to the default graph (the native twin of
+/// `GraphPolicy::FlattenToDefaultGraph`), returning a fresh frozen dataset.
+fn flatten_to_default_graph(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, String> {
+    use gmeow_rdf::RdfDatasetBuilder;
+    let mut builder = RdfDatasetBuilder::new();
+    for mut quad in dataset.owned_quads() {
+        quad.graph_name = None;
+        builder.push_owned_quad(&quad);
+    }
+    builder
+        .freeze()
+        .map_err(|e| format!("flatten data graph to default graph: {e}"))
 }
 
 /// True for the JSON-LD format ids (handled outside the native-codec router).
