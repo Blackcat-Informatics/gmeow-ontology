@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native oxigraph-backed Store / SPARQL / parse / canonicalize surface for the
-//! `gmeow_rdf` Python extension — the in-repo replacement for the external
-//! `pyoxigraph` package (#667).
+//! Native Store / SPARQL / parse / canonicalize surface for the `gmeow_rdf` Python
+//! extension — the in-repo replacement for the external `pyoxigraph` package
+//! (#667). Backed entirely by the oxigraph-free `gmeow-rdf-core` IR + the native
+//! SPARQL engine (EPIC #906): no `oxigraph` types cross this surface.
 //!
 //! # Why this exists
 //!
@@ -18,8 +19,7 @@
 //! # Kernel-clean separation
 //!
 //! Like [`crate::py`], this module is compiled **only under the `python`
-//! feature**. The RDF kernel ([`crate::model`], [`crate::store`],
-//! [`crate::oxigraph`]) stays PyO3-free.
+//! feature**. The RDF kernel ([`crate::model`], [`crate::store`]) stays PyO3-free.
 //!
 //! # Single-responsibility layout (#835)
 //!
@@ -37,9 +37,9 @@
 //!
 //! # Design
 //!
-//! * **Eager materialization** — `Store.query` collects results into owned
-//!   `Vec`s before returning, because oxigraph's `QueryResults<'a>` borrows the
-//!   store and cannot live inside a `'static` `#[pyclass]`.
+//! * **Eager materialization** — `Store.query` freezes a snapshot and collects the
+//!   native engine's results into owned `Vec`s before returning, so a borrow of the
+//!   store never escapes into a `'static` `#[pyclass]`.
 //! * **Pure-Rust cores** — [`parse_quads`] and [`canonicalize_quads`] hold the
 //!   load-bearing logic and are unit-tested without a Python interpreter; the
 //!   `#[pymethods]` are thin wrappers over them.
@@ -60,15 +60,14 @@ pub use io::{parse_quads, PyRdfFormat};
 pub use mutable::PyMutableDataset;
 pub use query::{PyQueryBoolean, PyQuerySolution, PyQuerySolutions, PyQueryTriples};
 pub use store::{PyDataset, PyQuadIter, PyStore};
-#[cfg(feature = "oxigraph")]
-pub use term::dataset_quads_to_py;
 pub use term::{
-    quad_to_py, PyBlankNode, PyDefaultGraph, PyLiteral, PyNamedNode, PyQuad, PyTriple, PyVariable,
+    dataset_quads_to_py, quad_to_py, PyBlankNode, PyDefaultGraph, PyLiteral, PyNamedNode, PyQuad,
+    PyTriple, PyVariable,
 };
 
 use pyo3::prelude::*;
 
-/// Register the native oxigraph surface on the `gmeow_rdf` module.
+/// Register the native Store / term / SPARQL surface on the `gmeow_rdf` module.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<io::PyRdfFormat>()?;
     m.add_class::<canon::PyCanonicalizationAlgorithm>()?;
