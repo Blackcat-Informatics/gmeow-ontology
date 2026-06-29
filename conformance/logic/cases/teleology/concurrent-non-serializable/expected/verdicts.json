@@ -1,0 +1,6 @@
+{
+  "https://example.org/teleology/concurrent-non-serializable/world": {
+    "quads": 71,
+    "status": "consistent"
+  }
+}
