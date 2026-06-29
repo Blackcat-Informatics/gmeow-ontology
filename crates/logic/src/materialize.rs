@@ -1121,10 +1121,10 @@ mod tests {
 
     /// Budget-constrained materialization must route to the Nemo fallback, not the native
     /// core: native decides the WHOLE least model and cannot reproduce the oracle's
-    /// post-hoc truncation. With a deliberately unsatisfiable rule-firing budget the
-    /// routed result must still come back (handled by the Nemo governor), and the
-    /// asserted-EDB rows are echoed regardless — confirming the budgeted call did not take
-    /// the native arm (which the `_ =>` routing now guards out when any budget is set).
+    /// post-hoc truncation. The routed result under a budget must match `materialize_core`
+    /// (the Nemo governor) EXACTLY — a regression back to the native arm would derive the
+    /// full closure and diverge from the budgeted oracle, so this equality is what proves
+    /// the fallback (not merely the asserted-EDB echo, which the native arm also emits).
     /// The exact truncation/exhausted-disclosure semantics are pinned by the
     /// `external/szs-mini/unknown-budget` conformance case.
     #[test]
@@ -1138,11 +1138,12 @@ mod tests {
             Some("PositiveHornProfile"),
         )
         .expect("budgeted routed materialize must not fail (Nemo governor handles it)");
-        // The two asserted EDB edges are always echoed; the budgeted path produced a
-        // well-formed result via the fallback rather than erroring or running native.
-        assert!(
-            m.quads.iter().any(|q| q.rule_iri == ASSERT_RULE_IRI),
-            "asserted-EDB echo must be present from the Nemo fallback path"
+        let oracle = materialize_core(TRANSITIVITY_RULES, CHAIN_NQUADS, Some(0), None, None)
+            .expect("budgeted Nemo materialize_core must succeed");
+        assert_eq!(
+            m.quads, oracle,
+            "budgeted routed materialize must match the Nemo fallback exactly; a native \
+             regression would derive the full closure and diverge"
         );
     }
 }
