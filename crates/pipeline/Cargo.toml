@@ -78,10 +78,10 @@ gmeow-shacl = { path = "../shacl" }
 # Turtle parser the slice crate uses (accepts @x-gmeow-* language tags). Mirror
 # the slice/rdf crates' exact oxigraph build for a clean lockfile resolution.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
-# Stage DAG: cycle detection (tarjan_scc) + topological levelling. `petgraph` is
-# a published registry crate (no `path`), so it is an external boundary, not a
-# first-party layering edge — the crate-layering gate (#820 S0) is unaffected.
-petgraph = { version = "0.8", default-features = false }
+# Stage DAG cycle detection is delegated to the shared DAG-workflow certifier in
+# gmeow-logic (gmeow_logic::dag_profile); the topological levelling here is a
+# plain Kahn pass over BTreeMap/BTreeSet, so crates/pipeline no longer depends on
+# petgraph directly — the one acyclicity authority lives in gmeow-logic.
 # Level-parallel scheduling: independent stages within a topological level run
 # concurrently; only Reason stages serialize under the process-wide ENGINE_LOCK.
 rayon = "1"
