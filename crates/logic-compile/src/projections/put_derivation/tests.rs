@@ -223,3 +223,21 @@ fn get_only_with_no_get_leg_is_a_hard_fail() {
     .unwrap();
     assert!(derive_put(&c).is_err(), "no get leg is a hard fail");
 }
+
+#[test]
+fn mnemomorphic_on_non_injective_rung_is_unsupported_not_minted_with_claim() {
+    // A `mnemomorphic` flag on a NON-injective rung is incoherent: the witness cannot honour
+    // the rung. `derive_put` must NOT mint a put for it (that would disagree with the
+    // Mnemomorphism gate, which REDs the declaration) — it falls through to the Unsupported
+    // floor. The gate stays the single authority on the bad-witness coherence rule.
+    let c = mnemomorphic_get_only(MorphismClass::LossyLens);
+    assert!(c.mnemomorphic && c.law_claims.is_empty());
+    match derive_put(&c).expect("derivation is total") {
+        PutDerivation::Unsupported { residue } => {
+            assert!(!residue.is_empty(), "the unsupported floor flags a residue");
+        }
+        PutDerivation::Derived(dp) => {
+            panic!("a mnemomorphic-on-non-injective cell must NOT mint a put: {dp:?}")
+        }
+    }
+}

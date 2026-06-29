@@ -161,11 +161,16 @@ pub fn derive_put(c: &Correspondence) -> Result<PutDerivation, String> {
     }
 
     // Source (2): a co-authored put-with-claim — signalled by a declared law status
-    // (non-empty law_claims) OR a mnemomorphic flag the rung cannot honour (a witness
-    // claimed on a non-injective rung — the Mnemomorphism gate REDs the incoherent
-    // declaration separately; here we mint the honest weakest artifact). The put is
-    // minted-with-claim: a candidate preimage, ValidationOnly, ObligationUnknown.
-    if c.mnemomorphic || !c.law_claims.is_empty() {
+    // (non-empty law_claims). The put is minted-with-claim: a candidate preimage,
+    // ValidationOnly, ObligationUnknown.
+    //
+    // A `mnemomorphic` flag on a NON-injective rung is NOT a source: the witness cannot
+    // honour the rung, so there is no lawful recovery to project (`is_recoverable` already
+    // rejected it). Minting a put for it would have `derive_put` disagree with the
+    // Mnemomorphism gate, which REDs that incoherent declaration — two sources of truth for
+    // one coherence rule. Instead it falls through to `Unsupported`: no put is minted, and
+    // the gate is the single authority that REDs the bad witness.
+    if !c.law_claims.is_empty() {
         return Ok(PutDerivation::Derived(DerivedPut {
             put_leg: mint,
             mnemomorphic_recovery: false,
