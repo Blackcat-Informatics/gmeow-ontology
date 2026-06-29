@@ -3,8 +3,8 @@
 
 //! SHACL property path evaluation.
 //!
-//! Evaluates a [`Path`] against an oxigraph [`Store`], returning the set of
-//! value nodes reachable from a given focus node.
+//! Evaluates a [`Path`] against an oxigraph [`oxigraph::store::Store`],
+//! returning the set of value nodes reachable from a given focus node.
 
 use oxigraph::model::Term;
 
