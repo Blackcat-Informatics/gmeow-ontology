@@ -20,6 +20,8 @@
 pub mod correspondence;
 // The correspondence overclaim gate (relation/morphism vs emitted predicate; P5).
 pub mod correspondence_gate;
+// The lawful put leg derived from the same node as get (F4 mnemomorphism up-lift).
+pub mod put_derivation;
 // The EDOAL correspondence lowering (get leg + relation lattice → EDOAL alignment).
 pub mod edoal;
 // The FnO correspondence lowering (get-leg transform functions → FnO catalog).
