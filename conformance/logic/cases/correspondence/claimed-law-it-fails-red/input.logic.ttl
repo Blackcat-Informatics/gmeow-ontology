@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://gmeow.example/corr/> .
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:liar a logic:Correspondence ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg ex:liarGet ;
+    logic:putLeg ex:liarWrongPut ;
+    logic:hasLawClaim ex:liarClaim0 .
+
+ex:liarClaim0 logic:lawClaimed logic:SectionLaw ;
+    logic:lawDischargeVerdict logic:ObligationDischarged ;
+    logic:lawDischargeCondition logic:DischargeFiniteClosure .
+
+# The lie is at the BODY level: the get leg is `liarStep`, so the lawful inverse put is
+# `^liarStep`, but the authored put leg is a different forward step `wrongStep`. The
+# round-trip gate composes the bodies and REDs (put ∘ get ≠ id) — a real failure the old
+# IRI-string compare could only catch by the put IRI happening to differ from a mint.
+ex:liarGet gm:path ex:liarStep .
+ex:liarWrongPut gm:path ex:wrongStep .

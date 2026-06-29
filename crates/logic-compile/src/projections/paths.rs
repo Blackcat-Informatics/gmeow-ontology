@@ -30,8 +30,52 @@
 
 use gmeow_sparql_algebra::{NamedNode as SparqlNamedNode, PropertyPathExpression};
 
-use super::super::ir::{LogicProgram, PathBase, PathShapeIr};
+use super::super::ir::{LegPath, LogicProgram, PathBase, PathShapeIr};
 use super::{target_meta, LedgerEntry};
+
+/// Lower a correspondence [`LegPath`] body to the SPARQL property-path algebra (the lossy
+/// projection of the canonical `logic:` composite-path form). Used only to derive the
+/// content-addressed key the round-trip gate compares — never to execute the leg.
+pub fn lower_leg_path(path: &LegPath) -> PropertyPathExpression {
+    match path {
+        LegPath::Step(p) => {
+            PropertyPathExpression::NamedNode(SparqlNamedNode::new_unchecked(p.clone()))
+        }
+        LegPath::Inverse(inner) => PropertyPathExpression::Reverse(Box::new(lower_leg_path(inner))),
+        LegPath::Seq(parts) => fold_binary(parts, |a, b| {
+            PropertyPathExpression::Sequence(Box::new(a), Box::new(b))
+        }),
+        LegPath::Alt(parts) => fold_binary(parts, |a, b| {
+            PropertyPathExpression::Alternative(Box::new(a), Box::new(b))
+        }),
+    }
+}
+
+/// Fold a non-empty list of leg sub-paths into a right-nested binary property-path with
+/// `combine`. An empty `Seq`/`Alt` is malformed upstream (the frontend rejects it); we
+/// lower it to an empty negated-property-set so the canonical text is still total and
+/// stable rather than panicking.
+fn fold_binary(
+    parts: &[LegPath],
+    combine: impl Fn(PropertyPathExpression, PropertyPathExpression) -> PropertyPathExpression,
+) -> PropertyPathExpression {
+    let mut iter = parts.iter().rev();
+    match iter.next() {
+        None => PropertyPathExpression::NegatedPropertySet(Vec::new()),
+        Some(last) => iter.fold(lower_leg_path(last), |acc, p| {
+            combine(lower_leg_path(p), acc)
+        }),
+    }
+}
+
+/// The content-addressed canonical key of a leg body: its normalized form lowered to the
+/// SPARQL property-path surface and serialized. Two legs are the same iff these keys are
+/// equal — the decidable graph-iso identity the round-trip / mnemomorphism gates use. The
+/// `Display` of [`PropertyPathExpression`] round-trips with the parser, so the key is a
+/// faithful canonical form, not a lossy digest.
+pub fn leg_path_canonical(path: &LegPath) -> String {
+    lower_leg_path(&path.normalize()).to_string()
+}
 
 /// Lower a [`PathShapeIr`] to the extended SPARQL property-path algebra.
 ///
