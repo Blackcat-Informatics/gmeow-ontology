@@ -33,6 +33,7 @@ const GM_ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject"
 const GM_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
 const GM_JUSTIFICATION: &str = "https://blackcatinformatics.ca/gmeow/justification";
 const GM_COMMENT: &str = "https://blackcatinformatics.ca/gmeow/comment";
+const GM_LOSSY_DROP: &str = "https://blackcatinformatics.ca/gmeow/lossyDrop";
 const GM_SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 const GM_SUBJECT_LABEL: &str = "https://blackcatinformatics.ca/gmeow/subjectLabel";
 const GM_OBJECT_LABEL: &str = "https://blackcatinformatics.ca/gmeow/objectLabel";
@@ -77,6 +78,11 @@ struct EquivalenceCell {
     confidence: Option<f64>,
     justification: Option<String>,
     comment: String,
+    /// Structured per-correspondence drop notes (`gmeow:lossyDrop`) — the specific
+    /// constructs this by-reference lowering does not carry (e.g. a loop unrolls, a
+    /// concurrent composition serializes, a per-outcome compensation is omitted). Folded
+    /// into the report's per-correspondence residue, distinct from the human `comment`.
+    lossy_drops: Vec<String>,
     sssom_file: String,
     subject_label: String,
     object_label: String,
@@ -177,12 +183,18 @@ fn build_ledger(sources: &SssomSources) -> Result<Vec<ProjectionResult>, String>
         // SSSOM carries only subject/predicate/object + confidence + justification; the
         // correspondence's caveat/law/leg structure and world/standpoint scope are
         // dropped (the dialect structural drops, attributed to the get leg).
-        let residue = vec![
+        let mut residue = vec![
             "get-leg: the caveat/law/leg structure of the correspondence is dropped \
              (only subject/predicate/object, confidence, and justification survive)"
                 .to_owned(),
             "get-leg: world/standpoint scope and the put leg are not carried by SSSOM".to_owned(),
         ];
+        // Author-declared per-correspondence drops (gmeow:lossyDrop) — the specific
+        // constructs a by-reference engine surface cannot carry (a loop unrolls/errors, a
+        // concurrent composition serializes, a per-outcome compensation is omitted) — are
+        // structured residue notes, so the loss ledger records WHAT each lowering drops
+        // rather than leaving it to prose.
+        residue.extend(cell.lossy_drops.iter().cloned());
         // A correspondence is the (subject, predicate, object) triple, not just the
         // subject (one subject may align to several objects), so the per-correspondence
         // key folds all three for a stable, collision-free target name.
@@ -242,6 +254,7 @@ fn extract_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) {
             comment: view
                 .object_literal(&subject, GM_COMMENT)
                 .unwrap_or_default(),
+            lossy_drops: view.object_literals(&subject, GM_LOSSY_DROP),
             sssom_file,
             subject_label: view
                 .object_literal(&subject, GM_SUBJECT_LABEL)

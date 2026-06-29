@@ -30,6 +30,17 @@ pub const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifie
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 /// Payloads larger than this select `zstd-rsyncable` over `zstd` (#513).
 pub const DEFAULT_RSYNCABLE_THRESHOLD: usize = 65536;
+/// zstd compression level for the committed `dist` bundle's frames (gmeow-gts 0.9.10
+/// per-frame level). The writer's `Fastest` default left the rsyncable bundle at
+/// 27 MB; level 12 is the measured knee.
+///
+/// MEASURED 2026-06-29 (dist `gmeow.gts`, sink = the terminal stage):
+///   Fastest : 27.1 MB,  sink ~7.0s
+///   level 12: 18.6 MB,  sink ~7.1s   ← here: −31% size for ~0 added sink time
+///   level 19: 17.7 MB,  sink ~44s    (+37s for only 0.9 MB more — not worth it)
+/// rsyncable (set at the `dist` call site) already gives stable git deltas at any
+/// level; 12 also shrinks the absolute blob/working-tree size essentially for free.
+pub const DIST_ZSTD_LEVEL: i32 = 12;
 
 /// A remapped quad row in canonical term ids (`g == None` is the default graph).
 type CanonQuad = (usize, usize, usize, Option<usize>);
@@ -484,6 +495,18 @@ pub fn emit_gts(
 
     let base_chain = transform.unwrap_or_else(|| vec!["zstd".to_string()]);
 
+    // Per-frame zstd level (gmeow-gts 0.9.10). The writer default is `Fastest` (~level
+    // 1) — which is why switching the `dist` bundle to `zstd-rsyncable` bloated it
+    // (16.7 MB gzip → 27 MB Fastest-zstd). The committed `dist` bundle is regenerated
+    // often and lives in git, so a higher level pays off (smaller blob + smaller
+    // git delta), while rsyncable keeps chunk boundaries stable. Other profiles are
+    // not committed artifacts and keep the Fastest default.
+    let zstd_level: Option<i32> = if profile == "dist" {
+        Some(DIST_ZSTD_LEVEL)
+    } else {
+        None
+    };
+
     let mut writer = Writer::new(profile);
     if signing {
         let secret = signer_secret.expect("signing implies a secret");
@@ -521,6 +544,7 @@ pub fn emit_gts(
             raw: Some(blob.data.clone()),
             transform: chain,
             pub_meta: Some(pub_meta),
+            zstd_level,
             ..Default::default()
         };
         writer
@@ -534,6 +558,7 @@ pub fn emit_gts(
     let options = gmeow_gts::writer::FrameOptions {
         payload: Some(payload),
         transform: chain,
+        zstd_level,
         ..Default::default()
     };
     writer

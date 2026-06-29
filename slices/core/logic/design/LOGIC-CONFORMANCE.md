@@ -242,6 +242,32 @@ records the affected polarities and the unsupported-construct set in its `preser
 defined in [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)), and the downstream consumer can inspect the
 ledger to see exactly which formulas were not evaluated.
 
+### The DAG-workflow profile and cyclic-plan preservation
+
+The DAG-workflow profile (the `logic:DagWorkflowResource` resource policy a `logic:DagWorkflowContract`
+requests — see [`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md), *The DAG-workflow resource*) is the
+loss-ledger discipline applied to **process** rather than rule recursion. A `logic:Plan` reaches its
+flow graph through `logic:planFlowEdge`; the shared certifier runs the acyclicity check over that
+graph (the same authority the build pipeline delegates to):
+
+- an **acyclic** plan lies in the certified fragment, so the verdict is `logic:EvaluationCompleted`
+  with `logic:CompleteForFragment` — a conclusive, complete-for-fragment evaluation;
+- a **cyclic** plan stays valid canonically (under a non-DAG contract) but resolves to
+  `logic:EvaluationUnsupported`, with the offending cycle members disclosed by `logic:dagCycleWitness`.
+  This is the cardinal rule of the reasoning contract applied to the Resource facet: the loop is
+  **never silently truncated** to a nearby acyclic approximation; it is reported as unsupported and
+  named.
+
+When a plan is then *lowered* to an external workflow-engine surface (Airflow, CWL, WDL, Temporal,
+Nextflow — by-reference bridges, `logic:ValidationOnly`), the recurring drops that engine imposes on
+the canonical model are recorded as **structured** `gmeow:lossyDrop` notes in the per-correspondence
+residue of `generated/logic/projection-report.ttl`, not left to prose: a `logic:Iteration` loop is
+unrolled or rejected (most DAG engines forbid cycles), a `logic:ConcurrentComposition` is serialized
+where the engine has no parallel gateway, and a per-outcome `logic:compensation` is omitted where the
+engine has no compensation primitive. The strong-cyclic-vs-acyclic-projection contrast and its
+recorded loss are pinned end-to-end by the conformance case
+`conformance/logic/cases/teleology/strong-cyclic-plan`.
+
 ## The divergence ledger as a public benchmark surface
 
 The canonical engine is not the only reasoner. OWL reasoners, Datalog engines, Prolog solvers, and

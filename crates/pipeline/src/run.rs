@@ -440,3 +440,46 @@ fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<(), PipelineE
     std::fs::write(&target, bytes)?;
     Ok(())
 }
+
+#[cfg(test)]
+mod dag_profile_tests {
+    use super::full_spec;
+    use gmeow_logic::dag_profile::{certify_acyclic, DagCertification};
+    use gmeow_logic::result::{CompletenessStatus, EvaluationStatus};
+
+    /// The dogfooded build plan (`gmeow:pipeline-build`, a `logic:Plan`) is
+    /// certified under the DAG-workflow profile (`logic:DagWorkflowResource`): its
+    /// producer → consumer dataflow closure is acyclic, so the shared certifier
+    /// returns `Certified` and the typed result is complete-for-fragment. This is
+    /// the executable witness of "gmeow:Pipeline certified under the profile".
+    #[test]
+    fn build_dag_certifies_under_the_dag_workflow_profile() {
+        let spec = full_spec();
+        // Edges in producer → consumer orientation, matching the canonical
+        // logic:dataflowConsumes (consumer -> producer) the executor inverts.
+        let edges: Vec<(String, String)> = spec
+            .stages
+            .iter()
+            .flat_map(|s| {
+                s.consumes
+                    .iter()
+                    .map(move |dep| (dep.clone(), s.id.clone()))
+            })
+            .collect();
+        let cert = certify_acyclic(edges.iter().map(|(a, b)| (a.as_str(), b.as_str())));
+        assert_eq!(
+            cert,
+            DagCertification::Certified,
+            "the build DAG must certify acyclic under logic:DagWorkflowResource; witness: {:?}",
+            cert.witness()
+        );
+        assert_eq!(
+            cert.result_status(),
+            (
+                EvaluationStatus::Completed,
+                CompletenessStatus::CompleteForFragment
+            ),
+            "an acyclic build plan reports complete-for-fragment under the DAG profile"
+        );
+    }
+}

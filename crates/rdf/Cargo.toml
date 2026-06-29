@@ -63,7 +63,7 @@ gmeow-rdf-core = { path = "../rdf-core", default-features = false }
 # components). The python-gated py_store value comparator also uses it.
 gmeow-xsd = { path = "../xsd" }
 ciborium = { version = "0.2", optional = true }
-gmeow-gts = { version = "0.9.9", optional = true, features = ["duckdb"] }
+gmeow-gts = { version = "0.9.10", optional = true, features = ["duckdb"] }
 gmeow-rdf-events = { path = "../rdf-events", optional = true }
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"], optional = true }
 # pyo3 is pulled ONLY by the `python` feature (maturin). Same version/abi3 as the
@@ -93,7 +93,7 @@ required-features = ["oxigraph"]
 # `use pretty_assertions::assert_eq;` per test file; identical on pass.
 pretty_assertions = "1"
 ciborium = "0.2"
-gmeow-gts = "0.9.9"
+gmeow-gts = "0.9.10"
 # Same oxigraph build the kernel links (rdf-12, no extra codecs) so proptest
 # round-trips drive the identical engine the production codecs use.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
