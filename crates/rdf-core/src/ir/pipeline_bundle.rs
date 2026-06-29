@@ -38,7 +38,7 @@
 
 use std::collections::BTreeMap;
 use std::fmt;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use sha2::{Digest, Sha256};
 
@@ -146,6 +146,15 @@ pub struct PipelineBundle<H> {
     /// PRIVATE: must only be mutated through `pin_handle` / `detach_handle` to
     /// preserve the pin invariant. EXCLUDED from [`digest`](Self::digest).
     handles: BTreeMap<HandleKey, HandleEntry<H>>,
+    /// Memoized per-graph canonical digests for [`graph_digest`](Self::graph_digest).
+    /// PRIVATE, NON-semantic: the `dataset` is frozen, so each named graph's canonical
+    /// digest is stable for the bundle's life — caching it lets the
+    /// `pinned = graph_digest(g); pin_handle(g, …, pinned)` pattern canonicalize each
+    /// backing graph ONCE instead of twice. EXCLUDED from [`digest`](Self::digest) (a
+    /// pure memo). `Arc<Mutex<…>>` so it rides `Clone` (a clone shares the same frozen
+    /// dataset, so the cached digests stay valid) and is `Send`+`Sync` across the
+    /// reasoning engine lock.
+    digest_cache: Arc<Mutex<BTreeMap<String, ContentDigest>>>,
 }
 
 impl<H> PipelineBundle<H> {
@@ -167,6 +176,7 @@ impl<H> PipelineBundle<H> {
             blobs,
             provenance,
             handles: BTreeMap::new(),
+            digest_cache: Arc::new(Mutex::new(BTreeMap::new())),
         }
     }
 
@@ -291,6 +301,13 @@ impl<H> PipelineBundle<H> {
             .collect();
         // Fold the new named graph into the single carrier dataset.
         self.dataset = Arc::new(RdfDataset::union(&[&self.dataset, graph_quads]));
+        // The dataset changed: invalidate the per-graph digest memo so the additive
+        // invariant below (and every later `graph_digest`) recomputes against the NEW
+        // dataset — a stale cache would hide a disturbed pinned graph (fail-closed).
+        self.digest_cache
+            .lock()
+            .expect("digest_cache mutex poisoned")
+            .clear();
         // Additive invariant: no previously pinned graph may have shifted.
         for (k, pinned) in prior {
             let actual = self.graph_digest(&k);
@@ -320,8 +337,24 @@ impl<H> PipelineBundle<H> {
     /// pinned digest is checked against in [`pin_handle`](Self::pin_handle).
     #[must_use]
     pub fn graph_digest(&self, graph: &str) -> ContentDigest {
+        // Memoized: the frozen dataset makes each graph's canonical digest stable, so
+        // the second call in the `pinned = graph_digest(g); pin_handle(g, …, pinned)`
+        // pattern reuses the first canonicalization instead of recomputing it.
+        if let Some(cached) = self
+            .digest_cache
+            .lock()
+            .expect("digest_cache mutex poisoned")
+            .get(graph)
+        {
+            return *cached;
+        }
         let subgraph = self.dataset.project_named_graph(graph);
-        ContentDigest::of(canonicalize(&subgraph).nquads.as_bytes())
+        let digest = ContentDigest::of(canonicalize(&subgraph).nquads.as_bytes());
+        self.digest_cache
+            .lock()
+            .expect("digest_cache mutex poisoned")
+            .insert(graph.to_string(), digest);
+        digest
     }
 
     /// The content [`ContentDigest`] of this bundle: a SHA-256 fold over the
