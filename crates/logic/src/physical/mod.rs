@@ -16,6 +16,7 @@
 //! that would be unwound the next rung.
 #![allow(dead_code)]
 
+mod seminaive;
 mod store;
 
 // Phase-A: these are the engine's public-to-crate surface, consumed by the
@@ -23,3 +24,9 @@ mod store;
 // unused crate-wide, so allow it here rather than dropping the intended API.
 #[allow(unused_imports)]
 pub(crate) use store::{extract_edb, Bound, RelationStore};
+
+// The forward native evaluator (#1090, F3): the stratified semi-naive core and its
+// declared-gap outcome. Consumed by the native-first routing landing on a later rung;
+// until then the re-export is crate-internally unused, so allow it here.
+#[allow(unused_imports)]
+pub(crate) use seminaive::{materialize_native, NativeOutcome, UnsupportedKind};
