@@ -2,7 +2,7 @@
 % Nemo (.rls) projection of the canonical logic: program.
 
 % === Ground facts (axioms) ===
-<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/teleology/concurrent-serializable/GoalExpression>, <https://blackcatinformatics.ca/logic/GoalExpression>, "default").
-<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/teleology/concurrent-serializable/TransactionContract>, <https://blackcatinformatics.ca/logic/ReasoningContract>, "default").
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/transaction/concurrent-serializable/GoalExpression>, <https://blackcatinformatics.ca/logic/GoalExpression>, "default").
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/transaction/concurrent-serializable/TransactionContract>, <https://blackcatinformatics.ca/logic/ReasoningContract>, "default").
 
 % === Rules ===

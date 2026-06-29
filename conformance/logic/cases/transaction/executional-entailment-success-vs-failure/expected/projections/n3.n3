@@ -9,7 +9,7 @@
 # N3 projection of the canonical logic: program.
 
 # === Axioms ===
-<https://example.org/teleology/executional-entailment-success-vs-failure/GoalExpression> a <https://blackcatinformatics.ca/logic/GoalExpression> .
-<https://example.org/teleology/executional-entailment-success-vs-failure/TransactionContract> a <https://blackcatinformatics.ca/logic/ReasoningContract> .
+<https://example.org/transaction/executional-entailment-success-vs-failure/GoalExpression> a <https://blackcatinformatics.ca/logic/GoalExpression> .
+<https://example.org/transaction/executional-entailment-success-vs-failure/TransactionContract> a <https://blackcatinformatics.ca/logic/ReasoningContract> .
 
 # === Rules ===

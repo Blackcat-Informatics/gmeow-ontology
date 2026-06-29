@@ -11,7 +11,7 @@
 # input.nq, exactly as the foundation conformance cases keep theirs).
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
-@prefix ex:    <https://example.org/teleology/executional-entailment-success-vs-failure/> .
+@prefix ex:    <https://example.org/transaction/executional-entailment-success-vs-failure/> .
 
 ex:GoalExpression a logic:GoalExpression .
 

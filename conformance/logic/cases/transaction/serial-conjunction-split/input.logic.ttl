@@ -17,7 +17,7 @@
 # input.nq, exactly as the foundation conformance cases keep theirs).
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
-@prefix ex:    <https://example.org/teleology/serial-conjunction-split/> .
+@prefix ex:    <https://example.org/transaction/serial-conjunction-split/> .
 
 ex:GoalExpression a logic:GoalExpression .
 

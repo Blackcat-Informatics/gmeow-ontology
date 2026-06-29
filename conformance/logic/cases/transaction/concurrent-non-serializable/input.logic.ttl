@@ -22,7 +22,7 @@
 # in input.nq, exactly as the foundation conformance cases keep theirs).
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
-@prefix ex:    <https://example.org/teleology/concurrent-non-serializable/> .
+@prefix ex:    <https://example.org/transaction/concurrent-non-serializable/> .
 
 ex:GoalExpression a logic:GoalExpression .
 

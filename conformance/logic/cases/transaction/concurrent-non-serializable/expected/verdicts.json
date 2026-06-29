@@ -1,5 +1,5 @@
 {
-  "https://example.org/teleology/concurrent-non-serializable/world": {
+  "https://example.org/transaction/concurrent-non-serializable/world": {
     "quads": 71,
     "status": "consistent"
   }

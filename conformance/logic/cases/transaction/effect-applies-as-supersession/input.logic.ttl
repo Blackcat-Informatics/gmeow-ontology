@@ -17,7 +17,7 @@
 # input.nq, exactly as the foundation conformance cases keep theirs).
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
-@prefix ex:    <https://example.org/teleology/effect-applies-as-supersession/> .
+@prefix ex:    <https://example.org/transaction/effect-applies-as-supersession/> .
 
 ex:GoalExpression a logic:GoalExpression .
 
