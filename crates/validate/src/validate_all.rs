@@ -604,12 +604,62 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), S
         .map_err(|e| format!("validate --deep: GTS read error: {e}"))?;
     let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref())
         .map_err(|e| format!("validate --deep: native reasoning failed: {e}"))?;
-    // The native DL deep pass reasons under classical semantics — a glut IS
-    // owl:Nothing, a forbidden violation. A bundle that opts into paraconsistency
-    // declares a glut-admitting contract; the production closure excludes the
-    // test-graph fixtures that carry such gluts.
-    fold_reasoning_result(&result, ContradictionPolicy::DEFAULT, report);
+    // The governing contradiction policy is READ from the bundle's declared
+    // `logic:ReasoningContract` (`logic:admissibleValuation` facet), not pinned. The
+    // resolution rule (see `ContradictionPolicy::resolve_from_dataset`): no contract
+    // / no valuation ⇒ conservative classical DEFAULT (a glut IS owl:Nothing, a
+    // forbidden violation); multiple conflicting valuations ⇒ the MOST CONSERVATIVE
+    // governs. A garbled valuation HARD-FAILS rather than silently relaxing the gate.
+    let policy = ContradictionPolicy::resolve_from_dataset(bundle.dataset.as_ref())
+        .map_err(|e| format!("validate --deep: contract resolution failed: {e}"))?;
+    fold_reasoning_result(&result, policy, report);
+
+    // Build the scoped coherence certificate from the SAME reasoning result, under
+    // the SAME resolved policy and bundle hash, and attach it to the report metadata
+    // (C2). The validate and release lanes share ONE certificate constructor.
+    let bundle_hash = gmeow_gts::writer::digest_string(gts_bytes);
+    let axiom_hashes = gmeow_logic::certificate::per_graph_axiom_hashes(
+        bundle.dataset.as_ref(),
+        gmeow_gts::writer::digest_string,
+    );
+    let outcome = gmeow_logic::certificate::CoherenceOutcome::from_reasoning_result(
+        &result,
+        bundle_hash,
+        axiom_hashes,
+        policy,
+        // Injected, never sampled — the deep pass certificate stays deterministic.
+        DETERMINISTIC_ISSUED_AT,
+    )
+    .map_err(|e| format!("validate --deep: coherence certificate build failed: {e}"))?;
+    attach_coherence_certificate(report, &outcome);
     Ok(())
+}
+
+/// The named graph the deep-pass coherence certificate is projected into.
+const COHERENCE_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/attestations";
+
+/// The injected issue timestamp for the deep-pass certificate. The validate lane is
+/// not a release; a fixed timestamp keeps the certificate fold byte-deterministic so
+/// it never perturbs a cached report.
+const DETERMINISTIC_ISSUED_AT: &str = "1970-01-01T00:00:00Z";
+
+/// Attach a built [`CoherenceOutcome`] to `report.metadata` under the
+/// `"coherence_certificate"` key as its projected N-Quads (the same serialization
+/// the release lane folds into the signed bundle), so the validate and release lanes
+/// present ONE certificate form. A refused outcome serializes to empty — the
+/// violation rides as the error finding instead, so nothing is attached.
+fn attach_coherence_certificate(
+    report: &mut Report,
+    outcome: &gmeow_logic::certificate::CoherenceOutcome,
+) {
+    let nquads = outcome.to_nquads(COHERENCE_GRAPH);
+    if nquads.is_empty() {
+        return;
+    }
+    report.metadata.insert(
+        "coherence_certificate".to_owned(),
+        serde_json::Value::String(nquads),
+    );
 }
 
 /// Fold a shared `logic:ReasoningResult` verdict into `report` as the deep-pass
@@ -1536,6 +1586,130 @@ ex:x rdf:type ex:A .
             "gmeow-validate-deep-test",
         )
         .expect("encode GTS bytes")
+    }
+
+    /// A bundle that BOTH reasons to a within-world glut AND declares a
+    /// `logic:ReasoningContract` whose `logic:admissibleValuation` is the supplied
+    /// policy local name (e.g. `ForbidGap` admits a glut; `ForbidGapAndGlut` forbids
+    /// it). The contract is real RDF in the bundle, so `deep_semantic_findings`
+    /// resolves the governing policy off the bundle exactly as production does.
+    fn glut_bundle_with_contract(valuation_local: &str) -> Vec<u8> {
+        let ttl = format!(
+            "\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <http://gmeow.example/> .
+ex:A rdfs:subClassOf ex:B .
+ex:A rdfs:subClassOf ex:C .
+ex:B owl:disjointWith ex:C .
+ex:x rdf:type ex:A .
+ex:governingContract rdf:type logic:ReasoningContract ;
+    logic:admissibleValuation logic:{valuation_local} .
+"
+        );
+        gts_bytes_from_turtle(&ttl)
+    }
+
+    /// H3(a)+(b)+(c): the FULL deep path on a real glut-admitting bundle. The policy
+    /// comes from the bundle's declared contract (proving the C1 wiring works on real
+    /// data): a `ForbidGap` (glut-admitting) contract turns the within-world glut into
+    /// a PERMITTED, disclosed conflict — a non-error finding that keeps the gate
+    /// GREEN — and a coherence certificate is attached to the report metadata.
+    #[test]
+    fn deep_pass_permitted_glut_stays_green_with_certificate() {
+        let bytes = glut_bundle_with_contract("ForbidGap");
+        let mut report = Report::new("validate");
+        deep_semantic_findings(&bytes, &mut report).expect("deep pass must run");
+
+        // (a) a PermittedEpistemicConflict finding at NON-error severity.
+        let permitted = report
+            .findings
+            .iter()
+            .find(|f| f.category == Some(FindingCategory::PermittedEpistemicConflict))
+            .expect("a glut-admitting contract must emit a permitted-conflict finding");
+        assert_ne!(
+            permitted.severity,
+            Severity::Error,
+            "a permitted, disclosed conflict must NOT be an error"
+        );
+
+        // (b) NO error-severity finding from the conflict — the gate stays GREEN.
+        assert!(
+            report.ok(),
+            "a permitted glut under its declared contract must keep the gate green: {:?}",
+            report.legacy_errors()
+        );
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.code == "validate.deep.inconsistent"),
+            "no forbidden inconsistency error must be emitted"
+        );
+
+        // (c) a coherence certificate is present in report metadata.
+        assert!(
+            report.metadata.contains_key("coherence_certificate"),
+            "the deep pass must attach a coherence certificate"
+        );
+        let cert = report.metadata["coherence_certificate"]
+            .as_str()
+            .expect("certificate is serialized as N-Quads string");
+        assert!(
+            cert.contains("permittedConflictWitness"),
+            "the certificate must disclose the permitted conflict: {cert}"
+        );
+    }
+
+    /// H3 (forbidding side): the SAME glut under a glut-FORBIDDING declared contract
+    /// (`ForbidGapAndGlut`) yields an Error-severity ContradictionWitness (gate fails),
+    /// and the release-lane certificate build REFUSES (Err) on the same bundle.
+    #[test]
+    fn deep_pass_forbidden_glut_fails_and_release_refuses() {
+        let bytes = glut_bundle_with_contract("ForbidGapAndGlut");
+        let mut report = Report::new("validate");
+        deep_semantic_findings(&bytes, &mut report).expect("deep pass must run");
+
+        let witness = report
+            .findings
+            .iter()
+            .find(|f| f.category == Some(FindingCategory::ContradictionWitness))
+            .expect("a glut-forbidding contract must emit a contradiction witness");
+        assert_eq!(witness.severity, Severity::Error);
+        assert!(!report.ok(), "a forbidden glut must fail the gate");
+
+        // The release lane reasons over the SAME bundle bytes under the SAME
+        // bundle-resolved policy, then REFUSES to sign an incoherent bundle (hard-fail,
+        // no DEFAULT papering-over). gmeow-pipeline cannot be imported here (it depends
+        // on gmeow-validate — a cycle), so exercise the exact decision the release lane
+        // makes: resolve the policy off the bundle, build the outcome, and assert it is
+        // refused (release.rs returns Err on `outcome.is_refused()`).
+        let bundle = gmeow_rdf::import_gts_events(&bytes).expect("gts read");
+        let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).expect("reason");
+        let policy =
+            ContradictionPolicy::resolve_from_dataset(bundle.dataset.as_ref()).expect("policy");
+        assert_eq!(
+            policy,
+            ContradictionPolicy::ForbidGapAndGlut,
+            "the bundle's declared contract must resolve to the glut-forbidding policy"
+        );
+        let outcome = gmeow_logic::certificate::CoherenceOutcome::from_reasoning_result(
+            &result,
+            gmeow_gts::writer::digest_string(&bytes),
+            gmeow_logic::certificate::per_graph_axiom_hashes(
+                bundle.dataset.as_ref(),
+                gmeow_gts::writer::digest_string,
+            ),
+            policy,
+            "2026-06-28T00:00:00Z",
+        )
+        .expect("outcome build");
+        assert!(
+            outcome.is_refused(),
+            "the release lane must refuse to sign a bundle carrying a forbidden integrity violation"
+        );
     }
 
     fn minimal_lint_config() -> LintConfig {

@@ -179,14 +179,26 @@ pub fn build_coherence_evidence(
         .map_err(|e| format!("coherence certificate: GTS read error: {e}"))?;
     let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref())
         .map_err(|e| format!("coherence certificate: native reasoning failed: {e}"))?;
+    // The governing contradiction policy is READ from the bundle's declared
+    // logic:ReasoningContract (logic:admissibleValuation), not pinned: no contract /
+    // no valuation ⇒ conservative classical DEFAULT, multiple conflicting valuations
+    // ⇒ the MOST CONSERVATIVE governs, a garbled valuation HARD-FAILS.
+    let policy = ContradictionPolicy::resolve_from_dataset(bundle.dataset.as_ref())
+        .map_err(|e| format!("coherence certificate: contract resolution failed: {e}"))?;
     let bundle_hash = digest_string(snapshot_bytes);
+    // Real per-axiom-bearing-graph digests, computed with the SAME digest primitive
+    // as the bundle hash and sorted for determinism, so the certificate pins exactly
+    // which axiom sets it ranged over. Shared with the validate `--deep` lane.
+    let axiom_hashes =
+        gmeow_logic::certificate::per_graph_axiom_hashes(bundle.dataset.as_ref(), digest_string);
     let outcome = CoherenceOutcome::from_reasoning_result(
         &result,
         bundle_hash,
-        Vec::<String>::new(),
-        ContradictionPolicy::DEFAULT,
+        axiom_hashes,
+        policy,
         issued_at,
-    );
+    )
+    .map_err(|e| format!("coherence certificate: build failed: {e}"))?;
     if outcome.is_refused() {
         return Err(
             "coherence certificate: the bundle being released carries a forbidden \
@@ -790,20 +802,29 @@ mod tests {
     }
 
     #[test]
-    fn build_coherence_evidence_emits_a_certificate_artifact() {
+    fn build_coherence_evidence_emits_a_coherence_artifact() {
         let snapshot = tiny_snapshot();
         let evidence = build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z")
-            .expect("a consistent snapshot must yield a coherence certificate");
+            .expect("a consistent snapshot must yield a coherence artifact");
         assert_eq!(evidence.rep, "coherence");
         assert!(evidence
             .attestation_type_iri
             .ends_with("attestationTypeCoherenceCertificate"));
         let nq = String::from_utf8(evidence.data.clone()).expect("utf8 nquads");
+        // The native reasoner names no certified fragment, so the strongest HONEST
+        // claim over a consistent bundle is the attestation, never a fragment-less
+        // certificate (the scoped-certificate contract — a certificate must name the
+        // fragment F it ranges over).
         assert!(
-            nq.contains("<https://blackcatinformatics.ca/logic/CoherenceCertificate>"),
-            "a conclusive consistent bundle must yield a certificate: {nq}"
+            nq.contains("<https://blackcatinformatics.ca/logic/CoherenceCheckAttestation>"),
+            "a fragment-less consistent check must yield an attestation, not a certificate: {nq}"
         );
+        assert!(!nq.contains("<https://blackcatinformatics.ca/logic/CoherenceCertificate>"));
         assert!(nq.contains("<https://blackcatinformatics.ca/logic/bundleHash>"));
+        // The artifact links to the logic:ReasoningResult it summarizes (M2) and pins
+        // a real per-graph axiom digest (C3).
+        assert!(nq.contains("<https://blackcatinformatics.ca/logic/summarizesResult>"));
+        assert!(nq.contains("<https://blackcatinformatics.ca/logic/axiomHash>"));
         // Deterministic with the injected timestamp.
         let again = build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z").unwrap();
         assert_eq!(evidence.data, again.data);

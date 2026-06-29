@@ -35,9 +35,10 @@
 //! This is a pure-data builder (Principle 17), mirroring [`crate::result`]; the
 //! authored source is Rust and the RDF emission is one lossy projection.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
+use gmeow_rdf::prelude::{RdfDataset, TermRef};
 
 // Re-export so consumers (e.g. the validator) reach the contradiction policy
 // through the coherence module rather than depending on logic-compile directly.
@@ -117,13 +118,25 @@ impl CoherenceOutcome {
     ///
     /// `issued_at` is injected (never sampled) so re-running with the same inputs is
     /// byte-identical.
+    ///
+    /// # Certificate-requires-fragment gate
+    /// A conclusive, violation-free check would issue a [`Self::Certificate`], but a
+    /// scoped certificate that names no certified fragment `F` cannot honour the
+    /// scoped-certificate assertion (the claim ranges over `F`). When the conclusive
+    /// result carries no `certified_fragment`, the outcome is DOWNGRADED to a
+    /// [`Self::Attestation`] (the honest weaker claim) rather than a fragment-less
+    /// certificate — a certificate is NEVER silently emitted with no fragment.
+    ///
+    /// # Errors
+    /// Returns `Result` for forward-compatibility with stricter future gates; the
+    /// current builder is infallible.
     pub fn from_reasoning_result(
         result: &ReasoningResult,
         bundle_hash: impl Into<String>,
         axiom_hashes: impl IntoIterator<Item = impl Into<String>>,
         contradiction_policy: ContradictionPolicy,
         issued_at: impl Into<String>,
-    ) -> Self {
+    ) -> Result<Self, String> {
         // Partition the witnesses purely on the policy: a glut is permitted iff the
         // valuation admits a glut, otherwise it is a forbidden violation.
         let glut_permitted = contradiction_policy.glut_permitted();
@@ -156,12 +169,30 @@ impl CoherenceOutcome {
             issued_at: issued_at.into(),
         };
 
+        let conclusive = result.is_conclusive();
         if !payload.forbidden_violations.is_empty() {
-            Self::Refused(payload)
-        } else if result.is_conclusive() {
-            Self::Certificate(payload)
+            // A forbidden integrity violation refutes coherence. A CONCLUSIVE check
+            // that found one is a flat refusal — no coherence artifact issues. A
+            // NON-conclusive check that ran into one cannot refute coherence wholesale
+            // (it never completed the search), but it must still DISCLOSE what it
+            // found: it issues a CoherenceCheckAttestation carrying the
+            // logic:forbiddenViolationWitness set (the property's real producer). Only
+            // a bounded check can carry a non-empty forbidden set on an issued
+            // artifact; a certificate's set is necessarily empty.
+            if conclusive {
+                Ok(Self::Refused(payload))
+            } else {
+                Ok(Self::Attestation(payload))
+            }
+        } else if conclusive && payload.certified_fragment.is_some() {
+            // A conclusive, violation-free check certifies — but ONLY over a NAMED
+            // certified fragment. With a fragment it is a real certificate.
+            Ok(Self::Certificate(payload))
         } else {
-            Self::Attestation(payload)
+            // Either the check was non-conclusive, or it was conclusive but named no
+            // certified fragment: in both cases the strongest honest claim is the
+            // weaker attestation. A certificate is NEVER emitted fragment-less.
+            Ok(Self::Attestation(payload))
         }
     }
 
@@ -233,6 +264,52 @@ impl CoherenceOutcome {
             &format!("<{GMEOW_NS}boxABox>"),
         );
 
+        // Link the artifact to the logic:ReasoningResult it summarizes (M2): a
+        // deterministically minted result individual, content-addressed on the
+        // result identity the certificate is scoped by (contract + fragment +
+        // engine), so contract/fragment/budget are reachable from the certificate as
+        // the ontology asserts (logic:summarizesResult, single-valued). The result
+        // node carries its own type + the contract/fragment/budget facets it backs.
+        let result_id = result_content_id(payload);
+        let result_subject = format!("<{GMEOW_NS}coherence/result/{result_id}>");
+        triple(
+            &subject,
+            &format!("{LOGIC_NAMESPACE}summarizesResult"),
+            &result_subject,
+        );
+        triple(
+            &result_subject,
+            RDF_TYPE,
+            &format!("<{LOGIC_NAMESPACE}ReasoningResult>"),
+        );
+        triple(
+            &result_subject,
+            RDFS_IS_DEFINED_BY,
+            &format!("<{LOGIC_SLICE}>"),
+        );
+        triple(
+            &result_subject,
+            &format!("{GMEOW_NS}graphBoxRole"),
+            &format!("<{GMEOW_NS}boxABox>"),
+        );
+        triple(
+            &result_subject,
+            &format!("{LOGIC_NAMESPACE}contractHash"),
+            &format!("\"{}\"", nq_escape(&payload.contract_hash)),
+        );
+        if let Some(fragment) = &payload.certified_fragment {
+            triple(
+                &result_subject,
+                &format!("{LOGIC_NAMESPACE}certifiedFragment"),
+                &format!("\"{}\"", nq_escape(fragment)),
+            );
+        }
+        triple(
+            &result_subject,
+            &format!("{LOGIC_NAMESPACE}consumedBudget"),
+            &format!("\"{}\"", nq_escape(&budget_text(&payload.consumed_budget))),
+        );
+
         // The scoped identity payload.
         triple(
             &subject,
@@ -299,8 +376,7 @@ impl CoherenceOutcome {
             );
         }
         // Disclosed permitted conflicts (sorted by their clash individual) point at
-        // the individual forced into the glut. forbidden_violations is empty here
-        // (a non-empty set would have made this a Refused outcome).
+        // the individual forced into the glut.
         let mut permitted: Vec<&str> = payload
             .permitted_conflicts
             .iter()
@@ -312,6 +388,26 @@ impl CoherenceOutcome {
             triple(
                 &subject,
                 &format!("{LOGIC_NAMESPACE}permittedConflictWitness"),
+                &format!("<{individual}>"),
+            );
+        }
+
+        // Disclosed FORBIDDEN violations (the producer of logic:forbiddenViolationWitness):
+        // non-empty only on a bounded CoherenceCheckAttestation that ran into a
+        // forbidden glut without completing — a conclusive check with a forbidden
+        // violation is Refused and serializes nothing. On an issued certificate this
+        // set is necessarily empty.
+        let mut forbidden: Vec<&str> = payload
+            .forbidden_violations
+            .iter()
+            .map(|w| w.individual.as_str())
+            .collect();
+        forbidden.sort_unstable();
+        forbidden.dedup();
+        for individual in forbidden {
+            triple(
+                &subject,
+                &format!("{LOGIC_NAMESPACE}forbiddenViolationWitness"),
                 &format!("<{individual}>"),
             );
         }
@@ -383,6 +479,90 @@ fn content_id(class_local: &str, payload: &CoherencePayload) -> String {
     format!("{hash:016x}")
 }
 
+/// A deterministic content-addressed local id for the minted `logic:ReasoningResult`
+/// individual the certificate's `logic:summarizesResult` points at. Keyed on the
+/// result identity the certificate is scoped by — contract, certified fragment, and
+/// engine — so the same result reproduces the same IRI and two distinct results never
+/// collide. Same FNV-1a primitive as [`content_id`], dependency-free and stable.
+fn result_content_id(payload: &CoherencePayload) -> String {
+    const FNV_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
+    const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
+    let mut hash = FNV_OFFSET;
+    let mut absorb = |part: &str| {
+        for byte in part.as_bytes() {
+            hash ^= u64::from(*byte);
+            hash = hash.wrapping_mul(FNV_PRIME);
+        }
+        hash ^= 0x1f;
+        hash = hash.wrapping_mul(FNV_PRIME);
+    };
+    absorb("ReasoningResult");
+    absorb(&payload.contract_hash);
+    absorb(payload.certified_fragment.as_deref().unwrap_or(""));
+    absorb(&payload.engine.name);
+    absorb(&payload.engine.version);
+    format!("{hash:016x}")
+}
+
+/// Compute a stable, deterministic digest per axiom-bearing named graph of a
+/// dataset — the per-fragment axiom hashes a [`CoherencePayload`] signs over.
+///
+/// Each graph's quads are rendered as canonical, sorted, N-Quad-ish lines and hashed
+/// with the caller-supplied `digest` primitive (the SAME blake3 `digest_string` used
+/// for the bundle hash, injected so this PyO3-free crate takes no gmeow-gts edge).
+/// The resulting Vec is sorted so re-runs are byte-identical. The default graph (no
+/// graph name) is keyed under an empty string.
+///
+/// Shared by the validate `--deep` lane and the release lane so both pin axiom sets
+/// identically (one construction, no drift).
+pub fn per_graph_axiom_hashes(
+    dataset: &RdfDataset,
+    digest: impl Fn(&[u8]) -> String,
+) -> Vec<String> {
+    let render = |t: TermRef<'_>| -> String {
+        match t {
+            TermRef::Iri(iri) => format!("<{iri}>"),
+            TermRef::Blank { label, .. } => format!("_:{label}"),
+            TermRef::Literal {
+                lexical, language, ..
+            } => match language {
+                Some(lang) => format!("\"{}\"@{lang}", nq_escape(lexical)),
+                None => format!("\"{}\"", nq_escape(lexical)),
+            },
+            TermRef::Triple { .. } => "<<triple>>".to_owned(),
+        }
+    };
+
+    // Group canonical per-quad lines by their graph name.
+    let mut per_graph: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for q in dataset.quads() {
+        let graph_key = match q.g {
+            Some(g) => match dataset.resolve(g) {
+                TermRef::Iri(iri) => iri.to_owned(),
+                other => render(other),
+            },
+            None => String::new(),
+        };
+        let line = format!(
+            "{} {} {} .",
+            render(dataset.resolve(q.s)),
+            render(dataset.resolve(q.p)),
+            render(dataset.resolve(q.o)),
+        );
+        per_graph.entry(graph_key).or_default().push(line);
+    }
+
+    let mut hashes: Vec<String> = per_graph
+        .into_values()
+        .map(|mut lines| {
+            lines.sort_unstable();
+            digest(lines.join("\n").as_bytes())
+        })
+        .collect();
+    hashes.sort_unstable();
+    hashes
+}
+
 /// Escape a string literal for N-Triples/N-Quads (mirrors the diagnostics emitter).
 fn nq_escape(value: &str) -> String {
     let mut out = String::with_capacity(value.len() + 2);
@@ -413,13 +593,17 @@ mod tests {
         evaluation: EvaluationStatus,
         completeness: CompletenessStatus,
     ) -> ReasoningResult {
+        let mut provenance = ResultProvenance::native("contract:abc", "world:default");
+        // A named certified fragment: a conclusive, violation-free check is only
+        // entitled to a CoherenceCertificate when it names the fragment it ranges over.
+        provenance.certified_fragment = Some("fragment:test".to_owned());
         ReasoningResult {
             input: InputStatus::Valid,
             evaluation,
             completeness,
             preservation: PreservationClaim::exact(),
             information: InformationState::Supported,
-            provenance: ResultProvenance::native("contract:abc", "world:default"),
+            provenance,
             payload: ResultPayload::Empty,
             row_schema: None,
         }
@@ -452,9 +636,35 @@ mod tests {
             ["blake3:axioms"],
             ContradictionPolicy::ForbidGapAndGlut,
             "2026-06-28T00:00:00Z",
-        );
+        )
+        .unwrap();
         assert!(outcome.issues_certificate());
         assert_eq!(outcome.class_local_name(), Some("CoherenceCertificate"));
+    }
+
+    #[test]
+    fn conclusive_consistent_without_fragment_downgrades_to_attestation() {
+        // A conclusive, violation-free check that names NO certified fragment cannot
+        // certify (no F to range over): it DOWNGRADES to an attestation, never a
+        // fragment-less certificate.
+        let mut result = consistent_result(
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+        );
+        result.provenance.certified_fragment = None;
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &result,
+            "blake3:bundle",
+            Vec::<String>::new(),
+            ContradictionPolicy::ForbidGapAndGlut,
+            "2026-06-28T00:00:00Z",
+        )
+        .unwrap();
+        assert!(
+            !outcome.issues_certificate(),
+            "no fragment ⇒ no certificate"
+        );
+        assert!(matches!(outcome, CoherenceOutcome::Attestation(_)));
     }
 
     #[test]
@@ -473,7 +683,8 @@ mod tests {
             Vec::<String>::new(),
             ContradictionPolicy::ForbidGapAndGlut,
             "2026-06-28T00:00:00Z",
-        );
+        )
+        .unwrap();
         assert!(!outcome.issues_certificate());
         assert_eq!(
             outcome.class_local_name(),
@@ -496,7 +707,8 @@ mod tests {
             Vec::<String>::new(),
             ContradictionPolicy::ForbidGapAndGlut,
             "2026-06-28T00:00:00Z",
-        );
+        )
+        .unwrap();
         assert!(outcome.issues_certificate());
     }
 
@@ -510,7 +722,8 @@ mod tests {
             Vec::<String>::new(),
             ContradictionPolicy::ForbidGap, // admits a glut
             "2026-06-28T00:00:00Z",
-        );
+        )
+        .unwrap();
         assert!(
             outcome.issues_certificate(),
             "permitted glut must still certify"
@@ -529,13 +742,41 @@ mod tests {
             Vec::<String>::new(),
             ContradictionPolicy::ForbidGapAndGlut, // forbids a glut
             "2026-06-28T00:00:00Z",
-        );
+        )
+        .unwrap();
         assert!(outcome.is_refused());
         assert!(!outcome.issues_certificate());
         assert_eq!(outcome.class_local_name(), None);
         assert_eq!(outcome.payload().forbidden_violations.len(), 1);
         // A refusal emits no coherence artifact.
         assert!(outcome.to_nquads("https://example.org/g").is_empty());
+    }
+
+    #[test]
+    fn bounded_forbidden_glut_attests_and_discloses_the_forbidden_witness() {
+        // A NON-conclusive (bounded/incomplete) check that ran into a glut under a
+        // glut-FORBIDDING contract cannot refute coherence wholesale, but must
+        // DISCLOSE what it found: an attestation carrying logic:forbiddenViolationWitness
+        // (the property's producer — without this path the minted property is orphaned).
+        let mut result = glut_result();
+        result.evaluation = EvaluationStatus::BudgetExhausted;
+        result.completeness = CompletenessStatus::Incomplete;
+        assert!(!result.is_conclusive());
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &result,
+            "blake3:bundle",
+            Vec::<String>::new(),
+            ContradictionPolicy::ForbidGapAndGlut, // forbids a glut
+            "2026-06-28T00:00:00Z",
+        )
+        .unwrap();
+        assert!(matches!(outcome, CoherenceOutcome::Attestation(_)));
+        assert!(!outcome.issues_certificate());
+        assert_eq!(outcome.payload().forbidden_violations.len(), 1);
+        let nquads = outcome.to_nquads("https://example.org/g");
+        assert!(nquads.contains(
+            "<https://blackcatinformatics.ca/logic/forbiddenViolationWitness> <https://example.org/clash>"
+        ));
     }
 
     #[test]
@@ -546,7 +787,8 @@ mod tests {
             ["blake3:axioms"],
             ContradictionPolicy::ForbidGap,
             "2026-06-28T00:00:00Z",
-        );
+        )
+        .unwrap();
         let graph = "https://blackcatinformatics.ca/gmeow/graph/attestations";
         let nquads = outcome.to_nquads(graph);
         // Re-running with the same inputs is byte-identical.
@@ -556,6 +798,9 @@ mod tests {
         assert!(nquads.contains("<https://blackcatinformatics.ca/logic/bundleHash>"));
         assert!(nquads.contains("<https://blackcatinformatics.ca/logic/contradictionPolicy> <https://blackcatinformatics.ca/logic/ForbidGap>"));
         assert!(nquads.contains("<https://blackcatinformatics.ca/logic/permittedConflictWitness> <https://example.org/clash>"));
+        // The certificate links to the logic:ReasoningResult it summarizes (M2).
+        assert!(nquads.contains("<https://blackcatinformatics.ca/logic/summarizesResult>"));
+        assert!(nquads.contains("<https://blackcatinformatics.ca/logic/ReasoningResult>"));
         for line in nquads.lines() {
             assert!(
                 line.ends_with(&format!("<{graph}> .")),
