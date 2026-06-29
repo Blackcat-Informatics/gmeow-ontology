@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/iteration-zero-pass.
+#
+# A logic:Iteration whose logic:iterationCondition is false at the start state runs ZERO body passes and still succeeds: the outcome records logic:transactionSucceeds true with a single-state path (no logic:temporallySucceeds edges, no step substrate). Proves the zero-iteration boundary.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/iteration-zero-pass/> .
+
+ex:GoalExpression a logic:GoalExpression .

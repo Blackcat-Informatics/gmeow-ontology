@@ -222,12 +222,12 @@ pub struct TeleologyQuad {
 }
 
 /// N3 form of an IRI: `<iri>`.
-fn n3(iri: &str) -> String {
+pub(crate) fn n3(iri: &str) -> String {
     format!("<{iri}>")
 }
 
 /// Reifier IRI for an explicit `(s, p, o)` IRI triple, via the golden-pinned recipe.
-fn triple_reifier(s: &str, p: &str, o: &str) -> Result<String, String> {
+pub(crate) fn triple_reifier(s: &str, p: &str, o: &str) -> Result<String, String> {
     let sn = Term::NamedNode(NamedNode::new(s).map_err(|e| format!("invalid subject IRI: {e}"))?);
     let pn = NamedNode::new(p).map_err(|e| format!("invalid predicate IRI: {e}"))?;
     let on = Term::NamedNode(NamedNode::new(o).map_err(|e| format!("invalid object IRI: {e}"))?);
@@ -289,7 +289,7 @@ impl WorldFacts {
     }
 
     /// All object IRIs for `(subject, predicate)`, in sorted order; literals skipped.
-    fn objects(&self, subject: &str, predicate: &str) -> Vec<&str> {
+    pub(crate) fn objects(&self, subject: &str, predicate: &str) -> Vec<&str> {
         self.sp_index
             .get(&(subject.to_owned(), predicate.to_owned()))
             .map(|idxs| {
@@ -301,20 +301,48 @@ impl WorldFacts {
     }
 
     /// The first object IRI for `(subject, predicate)`, or `None`.
-    fn object(&self, subject: &str, predicate: &str) -> Option<&str> {
+    pub(crate) fn object(&self, subject: &str, predicate: &str) -> Option<&str> {
         self.objects(subject, predicate).into_iter().next()
     }
 
     /// The first object's N3 form (IRI or literal) for `(subject, predicate)`.
-    fn object_n3(&self, subject: &str, predicate: &str) -> Option<&str> {
+    pub(crate) fn object_n3(&self, subject: &str, predicate: &str) -> Option<&str> {
         self.sp_index
             .get(&(subject.to_owned(), predicate.to_owned()))
             .and_then(|idxs| idxs.first().map(|&i| self.triples[i].object_n3.as_str()))
     }
 
     /// Whether `(subject, predicate, object)` (object an IRI) is present.
-    fn has(&self, subject: &str, predicate: &str, object: &str) -> bool {
+    pub(crate) fn has(&self, subject: &str, predicate: &str, object: &str) -> bool {
         self.objects(subject, predicate).contains(&object)
+    }
+
+    /// All subjects asserted `(subject, rdf:type, class_iri)`, in content-sorted dedup
+    /// order — the object-keyed counterpart of [`Self::objects`] for type discovery.
+    pub(crate) fn subjects_with_type(&self, class_iri: &str) -> Vec<String> {
+        let mut subs: Vec<String> = self
+            .triples
+            .iter()
+            .filter(|t| t.predicate == RDF_TYPE && t.object_iri.as_deref() == Some(class_iri))
+            .map(|t| t.subject.clone())
+            .collect();
+        subs.sort();
+        subs.dedup();
+        subs
+    }
+
+    /// Every `(subject, object IRI)` pair for `predicate`, in the content-sorted order of
+    /// the underlying triples (literal objects skipped).
+    pub(crate) fn subject_objects(&self, predicate: &str) -> Vec<(String, String)> {
+        self.triples
+            .iter()
+            .filter(|t| t.predicate == predicate)
+            .filter_map(|t| {
+                t.object_iri
+                    .as_ref()
+                    .map(|o| (t.subject.clone(), o.clone()))
+            })
+            .collect()
     }
 
     /// Return a NEW content-sorted fact view extending `self` with the triples carried
@@ -1669,15 +1697,40 @@ pub fn apply_effect(
     schema: &str,
     from_state: &str,
 ) -> Result<SuccessorSupport, String> {
+    // The predecessor support of an authored step is the situations obtaining at the
+    // authored `from_state` (`logic:situationObtains`).
+    let predecessor: BTreeSet<String> = facts
+        .objects(from_state, &logic(SITUATION_OBTAINS))
+        .into_iter()
+        .map(ToOwned::to_owned)
+        .collect();
+    apply_effect_over(facts, schema, &predecessor)
+}
+
+/// Apply an action schema's `logic:effect` over an EXPLICIT predecessor support set,
+/// computing the successor support as an ins/del supersession.
+///
+/// Identical in semantics to [`apply_effect`] except the predecessor support is supplied
+/// directly rather than read from a `from_state`'s `logic:situationObtains` facts.  This
+/// is what lets the transaction-program interpreter thread a *generated* support set
+/// forward across engine-minted successor states (whose situations are not in the input
+/// `WorldFacts`) — the same situation-level substrate, no store mutation.
+///
+/// `asserted = predecessor ∪ ins \ del`; `retired = del ∩ predecessor` (a `del` of a
+/// support that was never active retires nothing — no phantom supersession).
+///
+/// # Errors
+///
+/// Returns `Err` if the schema names no `logic:effect` node.
+pub(crate) fn apply_effect_over(
+    facts: &WorldFacts,
+    schema: &str,
+    predecessor: &BTreeSet<String>,
+) -> Result<SuccessorSupport, String> {
     let effect = facts
         .object(schema, &logic(EFFECT))
         .ok_or_else(|| format!("logic:ActionSchema {schema:?} names no logic:effect node"))?
         .to_owned();
-    let predecessor: BTreeSet<String> = facts
-        .objects(from_state, &logic(SITUATION_OBTAINS))
-        .iter()
-        .map(|s| (*s).to_owned())
-        .collect();
     let ins: BTreeSet<String> = facts
         .objects(&effect, &logic(INS))
         .iter()
@@ -1690,13 +1743,64 @@ pub fn apply_effect(
         .collect();
     // The retired set is the del supports that were ACTIVE in the predecessor — a del of
     // a support that was never active retires nothing (no phantom supersession).
-    let retired: BTreeSet<String> = del.intersection(&predecessor).cloned().collect();
+    let retired: BTreeSet<String> = del.intersection(predecessor).cloned().collect();
     // asserted = predecessor ∪ ins \ del.
     let mut asserted: BTreeSet<String> = predecessor.union(&ins).cloned().collect();
     for d in &del {
         asserted.remove(d);
     }
     Ok(SuccessorSupport { asserted, retired })
+}
+
+/// Build the materialized quads for one effect application: the successor state's
+/// asserted `logic:situationObtains` supports plus, for every retired support, the full
+/// append-only supersession quartet (`activeInState` / `validUntilState` /
+/// `retiredByTransaction` / `supersededBy`).
+///
+/// Shared by the authored-step family ([`emit_effect_application`], rule
+/// `logic:rule/teleology`) and the transaction-program family (rule
+/// `logic:rule/transaction`): the quad SHAPE is identical; only the grounding provenance
+/// (`source`, `deriv`, `rule_iri`) and the retiring `attribution` node differ, so the
+/// caller supplies them.  Keeping one emitter guarantees byte-identical supersession
+/// substrate across both families.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn effect_quads(
+    world: &str,
+    support: &SuccessorSupport,
+    from_state: &str,
+    to_state: &str,
+    attribution: &str,
+    source: &str,
+    deriv: &str,
+    rule_iri: &str,
+) -> Vec<TeleologyQuad> {
+    let mut out: Vec<TeleologyQuad> = Vec::new();
+    let mut push = |subject: &str, p: &str, o_n3: String| {
+        out.push(TeleologyQuad {
+            graph: world.to_owned(),
+            subject: subject.to_owned(),
+            predicate: p.to_owned(),
+            object: o_n3,
+            rule_iri: rule_iri.to_owned(),
+            source_quad_ids: vec![source.to_owned()],
+            derivation_id: deriv.to_owned(),
+        });
+    };
+    // The successor state's asserted support — the effect advances the path by
+    // materializing these supports in the successor snapshot.
+    for sit in &support.asserted {
+        push(to_state, &logic(SITUATION_OBTAINS), n3(sit));
+    }
+    // Every retired support is recorded as a SUPERSESSION (append-only), never erased:
+    // the support remains recoverable via the quartet and the historical predecessor
+    // state still carries it.
+    for sit in &support.retired {
+        push(sit, &logic(ACTIVE_IN_STATE), n3(from_state));
+        push(sit, &logic(VALID_UNTIL_STATE), n3(to_state));
+        push(sit, &logic(RETIRED_BY_TRANSACTION), n3(attribution));
+        push(sit, &logic(SUPERSEDED_BY), n3(attribution));
+    }
+    out
 }
 
 /// Emit the materialized quads for an effect application over a transaction step.
@@ -1745,33 +1849,16 @@ fn emit_effect_application(
 
     let source = triple_reifier(&schema, &logic(EFFECT), &effect)?;
     let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
-    let mut out: Vec<TeleologyQuad> = Vec::new();
-    let mut push = |subject: &str, p: &str, o_n3: String| {
-        out.push(TeleologyQuad {
-            graph: world.to_owned(),
-            subject: subject.to_owned(),
-            predicate: p.to_owned(),
-            object: o_n3,
-            rule_iri: TELEOLOGY_RULE_IRI.to_owned(),
-            source_quad_ids: vec![source.clone()],
-            derivation_id: deriv.clone(),
-        });
-    };
-    // The successor state's asserted support — the effect advances the path by
-    // materializing these supports in the successor snapshot.
-    for sit in &support.asserted {
-        push(&to_state, &logic(SITUATION_OBTAINS), n3(sit));
-    }
-    // Every retired support is recorded as a SUPERSESSION (append-only), never erased:
-    // the support remains recoverable via the quartet and the historical predecessor
-    // state still carries it.
-    for sit in &support.retired {
-        push(sit, &logic(ACTIVE_IN_STATE), n3(&from_state));
-        push(sit, &logic(VALID_UNTIL_STATE), n3(&to_state));
-        push(sit, &logic(RETIRED_BY_TRANSACTION), n3(step));
-        push(sit, &logic(SUPERSEDED_BY), n3(step));
-    }
-    Ok(out)
+    Ok(effect_quads(
+        world,
+        &support,
+        &from_state,
+        &to_state,
+        step,
+        &source,
+        &deriv,
+        TELEOLOGY_RULE_IRI,
+    ))
 }
 
 // ── 7. Observation-conditioned policy ────────────────────────────────────────────
@@ -2222,6 +2309,18 @@ pub fn materialize_teleology(
         // invariant-breach and resource-exhaustion denials as hard, recorded findings.
         for probe in typed_subjects(facts, GATE_PROBE_CLASS) {
             out.extend(emit_gate_probe(facts, world, &probe)?);
+        }
+
+        // ── Family 9: transaction-program executional entailment ──────────────────
+        // Every executable transaction-program root (a combinator carrying
+        // logic:transitionFromState) is EXECUTED under executional entailment: the
+        // verdict + executed path surface as a logic:TransactionOutcome.  Placed AFTER
+        // family 6 so on any situationObtains overlap the effect family's provenance
+        // wins the first-wins dedup, keeping existing teleology goldens stable.
+        for prog in crate::transaction::program_roots(facts) {
+            out.extend(crate::transaction::emit_transaction_outcome(
+                facts, world, &prog,
+            )?);
         }
     }
 

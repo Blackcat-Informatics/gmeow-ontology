@@ -27,7 +27,7 @@ Tier-2 uplift backlog.
 | coreference | core | core | 2 | 0 | 5 | 0 | 1 | 5/5 | full |
 | creative-works | core | core | 4 | 16 | 41 | 0 | 1 | 57/57 | full |
 | deception | core | core | 5 | 2 | 10 | 0 | 1 | 12/12 | full |
-| diagnostics | core | core | 2 | 2 | 12 | 0 | 1 | 14/14 | full |
+| diagnostics | core | core | 2 | 2 | 11 | 0 | 1 | 13/13 | full |
 | documents | core | core | 7 | 22 | 37 | 0 | 1 | 59/59 | full |
 | dreaming | extension | extensions | 10 | 1 | 1 | 0 | 3 | - | full |
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
@@ -53,7 +53,7 @@ Tier-2 uplift backlog.
 | learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
-| logic | core | core | 0 | 164 | 269 | 252 | 6 | 0/433 | full |
+| logic | core | core | 0 | 162 | 265 | 244 | 6 | 0/427 | full |
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | music | extension | extensions | 12 | 59 | 126 | 0 | 1 | - | full |
@@ -84,4 +84,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 12 | 0 | 1 | 18/18 | full |
 
-**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1207/1768 core class/property terms (#471).
+**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1206/1761 core class/property terms (#471).

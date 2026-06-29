@@ -3,21 +3,12 @@
 #
 # Conformance case: teleology/iteration-combinator.
 #
-# A logic:Iteration program combinator (loop operator) is declared with a loop
-# body (retryAction) and a loop condition (resourceStillAvailable). The body is
-# repeated while the condition holds; when it does not, the iteration terminates.
-# This pins the structural vocabulary: logic:iterationBody and
-# logic:iterationCondition are the two dedicated properties of logic:Iteration
-# (binary left/right operands do not fit a loop — a body and a condition are not
-# co-equal operands). The case also demonstrates the connection to
-# logic:StrongCyclicPlanSuccess quantification: a strong-cyclic plan succeeds
-# when every fair execution of such a loop terminates at the goal in finitely
-# many steps.
+# A logic:Iteration is EXECUTED under executional entailment: its logic:iterationCondition (resourceStillAvailable) holds at the start, so the body (retryAction) runs ONE pass — deleting resourceStillAvailable (supersession) and asserting retryComplete — after which the condition no longer holds and the loop terminates. The engine records the executed path and the per-pass supersession substrate. Proves while-condition iteration with a terminating loop.
 #
 # CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
-# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
-# the projections need (no asserted teleology triples here — the world facts live
-# in input.nq, exactly as the foundation conformance cases keep theirs).
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://example.org/teleology/iteration-combinator/> .
