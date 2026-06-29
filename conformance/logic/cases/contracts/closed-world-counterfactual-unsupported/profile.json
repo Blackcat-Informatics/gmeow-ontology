@@ -1,0 +1,5 @@
+{
+  "reasoning_contract": {"preset": "PositiveHornProfile"},
+  "expect_unsupported": true,
+  "mode": "native"
+}

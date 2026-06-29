@@ -19,13 +19,24 @@
 //!    input is *rejected* rather than silently collapsed. Generators are biased
 //!    toward connected edge sets so the order relations are exercised
 //!    non-vacuously.
+//!
+//! 3. **Reasoning-contract compatibility totality** (#766 ME1) — `compat::check` is
+//!    a total, deterministic, hard verdict over a [`ReasoningContract`]. The
+//!    exhaustive oracle sweep in `compat.rs` pins correctness over the documented
+//!    value domains; this property complements it with *robustness* over ARBITRARY
+//!    facet strings (junk included): `check` never panics, is deterministic, and a
+//!    contract that sets none of the documented forbidden facet values is always
+//!    `Supported` — junk values never fabricate an `Unsupported` verdict.
 
 use std::cmp::Ordering;
 
 use gmeow_logic::entrenchment::{Entrenchment, OVERRIDES};
 use gmeow_logic::store::WorldStore;
 use gmeow_logic_compile::adapter::assert_ir_isomorphic;
-use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
+use gmeow_logic_compile::compat::{check, ContractVerdict};
+use gmeow_logic_compile::ir::{
+    ContextualScope, LogicAxiom, LogicProgram, LogicRule, ReasoningContract,
+};
 use proptest::prelude::*;
 
 const WORLD: &str = "http://world/base";
@@ -102,6 +113,105 @@ fn arb_dag_edges() -> impl Strategy<Value = Vec<(usize, usize)>> {
             })
             .collect()
     })
+}
+
+// ── Reasoning-contract generators (#766 ME1) ──────────────────────────────────────
+
+/// One facet-value string: a documented value drawn from across the facets mixed
+/// with arbitrary junk, so generated contracts exercise both recognised and
+/// unrecognised local names in every field.
+fn arb_member() -> impl Strategy<Value = String> {
+    prop_oneof![
+        prop::sample::select(vec![
+            "StableModelSemantics",
+            "LeastModelSemantics",
+            "EntrenchmentRevision",
+            "MonotonicRevision",
+            "BelnapBilattice",
+            "TwoValuedBoolean",
+            "AdmitAllFour",
+            "ForbidGap",
+            "ForbidGlut",
+            "ForbidGapAndGlut",
+            "OpenWorldClosure",
+            "ClosedWorldClosure",
+            "ProbabilisticMeasure",
+            "DefaultNegation",
+        ])
+        .prop_map(str::to_owned),
+        "[A-Za-z]{1,8}".prop_map(|s| s),
+    ]
+}
+
+/// An optional single-valued facet: `None` or one [`arb_member`].
+fn arb_facet() -> impl Strategy<Value = Option<String>> {
+    prop::option::of(arb_member())
+}
+
+/// A fully arbitrary contract: every rule-participating facet (plus a few others)
+/// populated with documented-or-junk values, sets, and a closure map.
+fn arb_contract() -> impl Strategy<Value = ReasoningContract> {
+    (
+        arb_facet(),                                               // model_semantics
+        arb_facet(),                                               // truth_algebra
+        arb_facet(),                                               // revision
+        arb_facet(),                                               // admissible_valuation
+        arb_facet(),                                               // default_closure
+        arb_facet(),                                               // formula_fragment
+        prop::collection::vec(arb_member(), 0..3),                 // uncertainty_measures
+        prop::collection::vec(arb_member(), 0..3),                 // negation_operators
+        prop::collection::vec(("[a-z]{1,4}", arb_member()), 0..3), // closure_entries
+    )
+        .prop_map(|(ms, ta, rev, av, dc, ff, um, neg, ce)| {
+            let mut c = ReasoningContract::new();
+            c.model_semantics = ms;
+            c.truth_algebra = ta;
+            c.revision = rev;
+            c.admissible_valuation = av;
+            c.default_closure = dc;
+            c.formula_fragment = ff;
+            c.uncertainty_measures.extend(um);
+            c.negation_operators.extend(neg);
+            c.closure_entries.extend(ce);
+            c
+        })
+}
+
+/// A junk facet value guaranteed NOT to equal any documented forbidden-trigger
+/// value: the `Junk` prefix makes a collision impossible.
+fn arb_junk() -> impl Strategy<Value = Option<String>> {
+    prop::option::of("[A-Za-z]{1,8}".prop_map(|s| format!("Junk{s}")))
+}
+
+/// A contract whose every facet value is junk (never a documented trigger). It can
+/// match no forbidden rule, so `check` MUST rule it `Supported`.
+fn arb_safe_contract() -> impl Strategy<Value = ReasoningContract> {
+    (
+        arb_junk(),
+        arb_junk(),
+        arb_junk(),
+        arb_junk(),
+        arb_junk(),
+        prop::collection::vec("[A-Za-z]{1,8}".prop_map(|s| format!("Junk{s}")), 0..3),
+        prop::collection::vec(
+            (
+                "[a-z]{1,4}",
+                "[A-Za-z]{1,8}".prop_map(|s| format!("Junk{s}")),
+            ),
+            0..3,
+        ),
+    )
+        .prop_map(|(ms, ta, rev, av, dc, um, ce)| {
+            let mut c = ReasoningContract::new();
+            c.model_semantics = ms;
+            c.truth_algebra = ta;
+            c.revision = rev;
+            c.admissible_valuation = av;
+            c.default_closure = dc;
+            c.uncertainty_measures.extend(um);
+            c.closure_entries.extend(ce);
+            c
+        })
 }
 
 // ── Properties ──────────────────────────────────────────────────────────────────
@@ -198,5 +308,28 @@ proptest! {
         let err = Entrenchment::read_from_world(&store, WORLD)
             .expect_err("a cyclic ordering must be rejected");
         prop_assert!(err.contains("cycle"), "unexpected error: {}", err);
+    }
+
+    /// `compat::check` is total and deterministic over ARBITRARY facet strings: it
+    /// never panics on junk input, and evaluating the same contract twice yields the
+    /// identical verdict. (Totality is witnessed by the test simply not panicking.)
+    #[test]
+    fn contract_check_is_total_and_deterministic(contract in arb_contract()) {
+        let first = check(&contract);
+        let second = check(&contract);
+        prop_assert_eq!(first, second);
+    }
+
+    /// No-false-unsupported: a contract whose every facet value is junk (never a
+    /// documented forbidden-trigger value) is always `Supported`. Junk values can
+    /// never fabricate an `Unsupported` verdict — the hard verdict fires only on the
+    /// declared forbidden combinations, never on unrecognised facet content.
+    #[test]
+    fn junk_only_contract_is_supported(contract in arb_safe_contract()) {
+        prop_assert!(
+            matches!(check(&contract), ContractVerdict::Supported),
+            "a junk-only contract was rejected: {:?}",
+            contract,
+        );
     }
 }
