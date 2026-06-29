@@ -546,6 +546,93 @@ fn eval_stratum_fixpoint(
     Ok(())
 }
 
+// ── RelationStore-seeded bottom-up entry (the backward leg's evaluator) ───────────
+
+/// Evaluate `rules` bottom-up over a [`RelationStore`] EDB, returning the FULL derived
+/// fact set (EDB ∪ derived) of the stratified least model.
+///
+/// This is the [`RelationStore`]-seeded sibling of [`materialize_native`]: the backward
+/// (`resolve_native`) leg magic-transforms a query into binary [`EvalRule`]s, extracts the
+/// world EDB columnar-form via [`crate::physical::store::extract_edb`], seeds the magic
+/// fact(s), and runs the SAME stratified semi-naive fixpoint the forward path uses.  The
+/// caller then reads the goal predicate's tuples out of the returned facts.  Provenance
+/// (`DerivedRow`) is not needed for answer projection, so this entry returns bare
+/// [`Fact`]s (EDB seeded at depth 0, derived facts accreted by the fixpoint).
+///
+/// The EDB facts are seeded in a deterministic sorted-key order (matching
+/// `world_edb_facts`' seed discipline) so the fixpoint is reproducible run-to-run.
+///
+/// # Errors
+///
+/// Returns `Err` for an unbound head/guard variable or a provenance-recipe failure
+/// (propagated from the shared `rule_ir` helpers); `Ok(Unsupported(NonStratifiable))` if
+/// the (transformed) rules carry a negative edge inside a cycle.
+pub(crate) fn evaluate(
+    edb: RelationStore,
+    rules: &[EvalRule],
+) -> Result<NativeOutcome<Vec<Fact>>, String> {
+    let Some(stratum_of) = stratify(rules) else {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
+    };
+
+    let max_stratum = rules
+        .iter()
+        .map(|r| stratum_of[r.head.predicate.as_str()])
+        .max()
+        .unwrap_or(0);
+    let mut rules_by_stratum: Vec<Vec<&EvalRule>> = vec![Vec::new(); max_stratum + 1];
+    for rule in rules {
+        let s = stratum_of[rule.head.predicate.as_str()];
+        rules_by_stratum[s].push(rule);
+    }
+
+    // Lower the columnar EDB into the ternary `Fact` seed in sorted-key order so the
+    // semi-naive seed order is deterministic (mirrors `world_edb_facts`).
+    let mut edb_facts: Vec<Fact> = Vec::new();
+    for pred in edb.predicates() {
+        let predicate = oxigraph::model::NamedNode::new(pred)
+            .map_err(|e| format!("physical::evaluate: invalid EDB predicate IRI {pred:?}: {e}"))?;
+        for (subject, object) in edb.select(pred, Bound::Any) {
+            edb_facts.push(Fact {
+                subject,
+                predicate: predicate.clone(),
+                object,
+            });
+        }
+    }
+    edb_facts.sort_by_key(Fact::key);
+
+    // Run the stratified fixpoint, accumulating into a shared FactStore/RelationStore.
+    let mut store = FactStore::new();
+    let mut rel = RelationStore::new();
+    let mut depth: HashMap<FactKey, u32> = HashMap::new();
+    let edb_keys: HashSet<FactKey> = edb_facts.iter().map(Fact::key).collect();
+
+    for f in &edb_facts {
+        depth.insert(f.key(), 0);
+        if store.insert(f.clone()) {
+            rel.insert(&f.predicate, f.subject.clone(), f.object.clone());
+        }
+    }
+
+    let mut derivations: Vec<DerivedRow> = Vec::new();
+    for stratum_rules in &rules_by_stratum {
+        if stratum_rules.is_empty() {
+            continue;
+        }
+        eval_stratum_fixpoint(
+            stratum_rules,
+            &mut store,
+            &mut rel,
+            &mut depth,
+            &edb_keys,
+            &mut derivations,
+        )?;
+    }
+
+    Ok(NativeOutcome::Decided(store.facts().to_vec()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
