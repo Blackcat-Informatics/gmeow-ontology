@@ -1304,8 +1304,8 @@ mod tests {
         graph.terms.push(literal_term("meta"));
 
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
         graph
     }
 
@@ -1393,10 +1393,10 @@ mod tests {
         graph.terms.push(literal_term("0.7"));
 
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.reifiers.push((4, (0, 1, 2)));
-        graph.annotations.push((3, 5, 6));
-        graph.annotations.push((4, 7, 8));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.reifiers.push((4, (0, 1, 2), None));
+        graph.annotations.push((3, 5, 6, None));
+        graph.annotations.push((4, 7, 8, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let expected = parse_nquads(&gmeow_gts::nquads::to_nquads(&graph));
@@ -1512,7 +1512,7 @@ mod tests {
         for (key, (term_id, quad_key)) in reifier_inputs {
             let q = graph.quads[quad_idx[quad_key]];
             let id = graph.reifiers.len();
-            graph.reifiers.push((term_id, (q.0, q.1, q.2)));
+            graph.reifiers.push((term_id, (q.0, q.1, q.2), None));
             reifier_idx.insert(key, id);
         }
 
@@ -1522,7 +1522,7 @@ mod tests {
         annotation_inputs.insert("a1", (term_idx["r1"], term_idx["ap"], term_idx["av1"]));
         annotation_inputs.insert("a2", (term_idx["r2"], term_idx["ap"], term_idx["av2"]));
         for (_, ann) in annotation_inputs {
-            graph.annotations.push(ann);
+            graph.annotations.push((ann.0, ann.1, ann.2, None));
         }
 
         graph
@@ -1637,8 +1637,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
@@ -1668,8 +1668,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
@@ -1699,8 +1699,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
@@ -1749,8 +1749,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
@@ -1823,8 +1823,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.95"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
@@ -1864,8 +1864,8 @@ mod tests {
             .push(iri_term("https://blackcatinformatics.ca/gmeow/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
@@ -1953,8 +1953,8 @@ mod tests {
             reifier: None,
         });
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 6));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 6, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
