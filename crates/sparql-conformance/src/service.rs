@@ -5,8 +5,8 @@
 //!
 //! A manifest's `qt:serviceData` declarations map endpoint IRIs to local data
 //! files. This builds a [`LocalRemoteQuerySource`] from them — each endpoint
-//! becomes an in-memory [`RdfDataset`] that the native engine queries when a
-//! `SERVICE <endpoint> { … }` clause is evaluated. **Fully offline and
+//! becomes an in-memory [`gmeow_rdf_core::RdfDataset`] that the native engine
+//! queries when a `SERVICE <endpoint> { … }` clause is evaluated. **Fully offline and
 //! deterministic**: there is no socket, the "remote" endpoint is just another
 //! in-memory dataset answered by the same native engine (dog-fooding).
 

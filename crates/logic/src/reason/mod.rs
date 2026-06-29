@@ -111,7 +111,7 @@ pub fn reason_all(edb: &RdfDataset) -> Result<ReasoningResult, String> {
     Ok(typed_result(inferred, &verdict))
 }
 
-/// Reason over a canonical [`LogicProgram`]'s rules AND full-FOL formulas against `edb`,
+/// Reason over a canonical [`gmeow_logic_compile::ir::LogicProgram`]'s rules AND full-FOL formulas against `edb`,
 /// returning the shared typed [`ReasoningResult`].
 ///
 /// This is the program-carrying entry the full-FOL formula layer flows through to actual
