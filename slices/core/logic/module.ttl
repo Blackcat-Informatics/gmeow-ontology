@@ -2470,6 +2470,13 @@ logic:evolution
     rdfs:label "evolution"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:EvolutionMode it selects — whether and how state changes. Single-valued on the contract. Domain logic:ReasoningContract, range logic:EvolutionMode (stated in prose, matching the module's convention). Evolution is independent of the model-semantics facet, which is why state-change reasoning (logic:TransactionPathEvolution) is a facet value, never a parallel profile."@x-gmeow-english .
 
+logic:executedUnderContract
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "executed under contract"@x-gmeow-english ;
+    skos:definition "Relates a transaction-program node — a transaction-program combinator root (logic:SerialConjunction, logic:Choice, logic:Fallback, or logic:Iteration) marked executable by logic:transitionFromState — to the logic:ReasoningContract it executes under, whose logic:executionMode selects whether the program's effects are committed (logic:CommittedExecution, the default) or discarded (logic:HypotheticalExecution, the sandbox operator). This is the link by which a program reaches the execution-commitment facet: without it the contract-level logic:executionMode could not select commit-versus-discard for a concrete run. Single-valued — a program names at most one governing contract; absence resolves to the default committed execution. Domain a transaction-program node, range logic:ReasoningContract (stated in prose, matching the module's domain/range convention)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:executionMode
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -5075,6 +5082,13 @@ logic:transactionSucceeds
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "transaction succeeds"@x-gmeow-english ;
     skos:definition "The boolean executional-entailment verdict of a logic:TransactionOutcome: true iff there exists a path from logic:transactionStart along which the program holds, false otherwise. Domain logic:TransactionOutcome, range xsd:boolean (stated in prose). Kept distinct from goal satisfaction (logic:satisfactionStatus over a logic:GoalEvaluation) and from plan success mode (logic:planSuccessMode): it is the bare 'a path exists from the start' reading of the transaction layer, and a false verdict is honest total failure rather than a weak or partial success."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:executedHypotheticallyAs
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "executed hypothetically as"@x-gmeow-english ;
+    skos:definition "The content-addressed witness (a digest) of a hypothetical (sandbox) transaction run: present on a logic:TransactionOutcome exactly when the program executed under logic:HypotheticalExecution, recording the identity of the discarded run whose verdict (logic:transactionSucceeds) was computed without committing its effects. The run's effect substrate — the executed logic:Path, the per-step logic:TransactionStep records, and the supersession quads — is intentionally ABSENT, because the sandbox operator tests without committing; this digest is therefore the sole standing trace that the run occurred and what it ranged over. Nothing is asserted to be erased, only never emitted, so suppression-never-erasure holds for free. Single-valued. Domain logic:TransactionOutcome, range xsd:string (stated in prose). The committed counterpart (logic:CommittedExecution) emits the full effect substrate and carries no such witness."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Concurrency: three distinct, separately-declared concerns ----------------
