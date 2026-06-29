@@ -9,6 +9,7 @@ use std::sync::Arc;
 
 use oxigraph::model::{GraphNameRef, Term};
 use oxigraph::store::Store;
+use rayon::prelude::*;
 use sha2::{Digest, Sha256};
 
 use gmeow_rdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral};
@@ -123,10 +124,11 @@ impl SliceCatalog {
     /// containing a `manifest.ttl`) and load each one.
     pub fn discover(root: &Path) -> Result<Self, SliceError> {
         let dirs = find_slice_dirs(root)?;
-        let mut records = Vec::new();
-        for dir in dirs {
-            records.push(Self::from_slice_dir(&dir)?);
-        }
+        let records: Result<Vec<_>, _> = dirs
+            .par_iter()
+            .map(|dir| Self::from_slice_dir(dir))
+            .collect();
+        let records = records?;
         Ok(Self { records })
     }
 

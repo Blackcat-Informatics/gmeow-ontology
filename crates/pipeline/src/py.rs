@@ -4,7 +4,7 @@
 //! PyO3 bindings for the pipeline — the `gmeow_native.pipeline` submodule (#861).
 //!
 //! Only this module imports `pyo3`, gated by the `python` feature, so the engine
-//! core stays PyO3-free. [`run_pipeline`] is the single Python surface that
+//! core stays PyO3-free. `run_pipeline` is the single Python surface that
 //! replaces the Python build orchestrator: it runs the WHOLE dogfooded DAG
 //! single-pass (`crate::run::run_full`) and either WRITES every committed
 //! artifact (regenerate) or COMPARES each against the committed bytes and reports
@@ -872,7 +872,7 @@ fn usize_map(
 }
 
 /// Register the `gmeow_native.pipeline` submodule. Called by the unified
-/// `gmeow_native` cdylib (#630); exposes [`run_pipeline`].
+/// `gmeow_native` cdylib (#630); exposes `run_pipeline`.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(run_pipeline, m)?)?;
     m.add_function(wrap_pyfunction!(compile_statements, m)?)?;

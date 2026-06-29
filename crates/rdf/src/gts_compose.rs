@@ -660,7 +660,7 @@ pub fn emit_gts(
 
 /// Parse RDF bytes into the flat oxigraph quad stream via the native codec (#909).
 ///
-/// Routes through the native [`parse_dataset`](crate::parse_dataset) → IR → flat
+/// Routes through the native [`parse_dataset`] → IR → flat
 /// quad un-fold so the `SnapshotBuilder` ingests the same set of quads it did when it
 /// re-parsed N-Quads/Turtle text (base quads plus the `rdf:reifies` / annotation rows
 /// re-materialized from the folded statement layer). Private-use language tags such

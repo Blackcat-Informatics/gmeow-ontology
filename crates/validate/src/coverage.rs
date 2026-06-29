@@ -4,7 +4,7 @@
 //! Coverage graph-analysis over the vendored entity-slice fixtures (#579).
 //!
 //! PyO3-free. Mirrors `gmeow_tools.coverage.analyze` EXACTLY: it loads the merged
-//! fixture graphs into one oxigraph [`Store`], collects every distinct class
+//! fixture graphs into one oxigraph [`oxigraph::store::Store`], collects every distinct class
 //! (`rdf:type` object) and predicate IRI, then classifies each as *covered* or a
 //! *gap*. The SSSOM-derived `aligned` set (every external IRI GMEOW links to) is
 //! computed in Python and passed in — the TSV parsing stays on the Python side of

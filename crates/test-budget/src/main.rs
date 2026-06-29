@@ -15,7 +15,7 @@
 //! here too — no separate leak guard is needed: presence over budget IS the failure.
 //!
 //! Usage:
-//!   gmeow-test-budget [JUNIT_PATH]
+//!   gmeow-test-budget <JUNIT_PATH>
 //! Env:
 //!   GMEOW_TEST_BUDGET_SECS  override the 25.0 s budget (e.g. CI variance headroom).
 //!
