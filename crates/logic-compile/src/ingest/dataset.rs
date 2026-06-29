@@ -177,6 +177,18 @@ impl<'a> DslView<'a> {
         }
     }
 
+    /// The lexical forms of ALL literal objects of `<subject_iri> <pred> ?o`, in dataset
+    /// order — the multi-valued counterpart of [`Self::object_literal`].
+    pub fn object_literals(&self, subject_iri: &str, pred: &str) -> Vec<String> {
+        self.objects_of(subject_iri, pred)
+            .into_iter()
+            .filter_map(|t| match t {
+                DslTerm::Literal { lexical, .. } => Some(lexical),
+                _ => None,
+            })
+            .collect()
+    }
+
     /// The first object term of `<term> <pred> ?o` where `term` is a (named or blank)
     /// subject, or `None`.
     pub fn first_object_of(&self, subject: &DslTerm, pred: &str) -> Option<DslTerm> {
