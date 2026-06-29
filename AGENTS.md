@@ -286,9 +286,10 @@ budget under gate contention as the ontology grows — fast per-commit reason co
 is `make reason` + the gmeow-logic unit reason tests); a Nemo conformance case; a few whole-ontology
 `gmeow-slice`/`gmeow-slicetest` emit/closure checks; the off-gate corpus parity
 queries (`OFF_GATE_HEAVY` in `crates/rdf/tests/sparql_eval_parity.rs` — now six:
-the `class-without-stereotype` anti-join, the ~107 s `ontolex` projection outlier,
-and the heaviest generated CONSTRUCT projections `schema-org`/`vcard`/`foaf`/
-`missing-definitions` whose per-shard aggregate × CI slowdown blew the budget);
+the ~107 s `ontolex` projection outlier, the heaviest generated CONSTRUCT
+projections `schema-org`/`vcard`/`foaf`/`missing-definitions`, and the
+`axis-not-disjoint` anti-join (~9 s native, carved as the ontology grew) whose
+per-shard aggregate × CI slowdown blew the budget);
 `gmeow-rdf-capi::c_smoke` (self-builds the libpurrdf cdylib, ~33 s cold
 compile on CI — build-time-bound, already covered by the dedicated `capi` CI job);
 `w3c_rdfc10_heavy_offgate` (the sole RDFC-1.0 negative/poison vector `test074`,
