@@ -11,7 +11,10 @@
 //! native-SPARQL EPIC children S5–S14), which is text-free — it materializes the IR
 //! into a `Store` through `crate::oxigraph::store_from_dataset`, never re-parsing text.
 
-use ::oxigraph::model::{BaseDirection, NamedOrBlankNode, Term as OxTerm, Triple};
+use ::oxigraph::model::{
+    BaseDirection, BlankNode as OxBlankNode, Literal as OxLiteral, NamedNode as OxNamedNode,
+    NamedOrBlankNode, Term as OxTerm, Triple, Variable as OxVariable,
+};
 use ::oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use ::oxigraph::store::Store;
 
@@ -33,9 +36,20 @@ impl SparqlEngine for OxigraphBackend {
         request: SparqlRequest<'_>,
     ) -> Result<SparqlResult, RdfDiagnostic> {
         let evaluator = sparql_evaluator(request.base_iri)?;
-        let results = evaluator
+        let mut prepared = evaluator
             .parse_query(request.query)
-            .map_err(|e| RdfDiagnostic::error("oxigraph-sparql-query-parse", e.to_string()))?
+            .map_err(|e| RdfDiagnostic::error("oxigraph-sparql-query-parse", e.to_string()))?;
+        // Pre-bind each substitution variable to its term (#906 GAP-A): the
+        // transitional oracle path mirrors the native engine's
+        // `SparqlRequest.substitutions` through oxigraph's own pre-binding API so the
+        // two engines run the SAME contract in the parity tests.
+        for (name, value) in request.substitutions {
+            let var = OxVariable::new(name.as_str())
+                .map_err(|e| RdfDiagnostic::error("oxigraph-sparql-subst-var", e.to_string()))?;
+            let term = oxigraph_term_from_value(value)?;
+            prepared = prepared.substitute_variable(var, term);
+        }
+        let results = prepared
             .on_store(dataset)
             .execute()
             .map_err(|e| RdfDiagnostic::error("oxigraph-sparql-query-eval", e.to_string()))?;
@@ -131,6 +145,78 @@ fn term_value_from_oxigraph(term: &OxTerm) -> TermValue {
     }
 }
 
+/// Convert a dataset-independent [`TermValue`] to an oxigraph [`OxTerm`] for the
+/// pre-binding (`substitute_variable`) oracle path. The inverse of
+/// [`term_value_from_oxigraph`]; covers every term kind (IRI, blank, literal —
+/// plain/typed/lang/dir-lang — and RDF 1.2 quoted triple).
+fn oxigraph_term_from_value(value: &TermValue) -> Result<OxTerm, RdfDiagnostic> {
+    match value {
+        TermValue::Iri(iri) => {
+            Ok(OxTerm::NamedNode(OxNamedNode::new(iri).map_err(|e| {
+                RdfDiagnostic::error("oxigraph-subst-iri", e.to_string())
+            })?))
+        }
+        TermValue::Blank { label, .. } => {
+            Ok(OxTerm::BlankNode(OxBlankNode::new(label).map_err(|e| {
+                RdfDiagnostic::error("oxigraph-subst-blank", e.to_string())
+            })?))
+        }
+        TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            direction,
+        } => {
+            let literal = match (language, direction) {
+                (Some(lang), Some(dir)) => {
+                    // dir-lang strings only round-trip through the directional ctor.
+                    let dir = match dir {
+                        RdfTextDirection::Ltr => BaseDirection::Ltr,
+                        RdfTextDirection::Rtl => BaseDirection::Rtl,
+                    };
+                    OxLiteral::new_directional_language_tagged_literal(lexical_form, lang, dir)
+                        .map_err(|e| {
+                            RdfDiagnostic::error("oxigraph-subst-dir-lang", e.to_string())
+                        })?
+                }
+                (Some(lang), None) => OxLiteral::new_language_tagged_literal(lexical_form, lang)
+                    .map_err(|e| RdfDiagnostic::error("oxigraph-subst-lang", e.to_string()))?,
+                (None, _) => {
+                    let dt = OxNamedNode::new(datatype).map_err(|e| {
+                        RdfDiagnostic::error("oxigraph-subst-literal-dt", e.to_string())
+                    })?;
+                    OxLiteral::new_typed_literal(lexical_form, dt)
+                }
+            };
+            Ok(OxTerm::Literal(literal))
+        }
+        TermValue::Triple { s, p, o } => {
+            let s = oxigraph_term_from_value(s)?;
+            let s = match s {
+                OxTerm::NamedNode(n) => NamedOrBlankNode::NamedNode(n),
+                OxTerm::BlankNode(b) => NamedOrBlankNode::BlankNode(b),
+                _ => {
+                    return Err(RdfDiagnostic::error(
+                        "oxigraph-subst-triple-subject",
+                        "a quoted-triple subject must be an IRI or blank node".to_owned(),
+                    ))
+                }
+            };
+            let p = match oxigraph_term_from_value(p)? {
+                OxTerm::NamedNode(n) => n,
+                _ => {
+                    return Err(RdfDiagnostic::error(
+                        "oxigraph-subst-triple-predicate",
+                        "a quoted-triple predicate must be an IRI".to_owned(),
+                    ))
+                }
+            };
+            let o = oxigraph_term_from_value(o)?;
+            Ok(OxTerm::Triple(Box::new(Triple::new(s, p, o))))
+        }
+    }
+}
+
 fn intern_term_from_oxigraph(builder: &mut RdfDatasetBuilder, term: &OxTerm) -> TermId {
     match term {
         OxTerm::NamedNode(node) => builder.intern_iri_value(node.as_str()),
@@ -204,6 +290,7 @@ mod tests {
                 SparqlRequest {
                     query: "INSERT DATA { <https://e/s> <https://e/p> <https://e/o> }",
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .expect("update");
@@ -214,6 +301,7 @@ mod tests {
                 SparqlRequest {
                     query: "ASK { <https://e/s> <https://e/p> <https://e/o> }",
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .expect("ask");
@@ -225,6 +313,7 @@ mod tests {
                 SparqlRequest {
                     query: "SELECT ?o WHERE { <https://e/s> <https://e/p> ?o }",
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .expect("select");
@@ -246,6 +335,7 @@ mod tests {
                 SparqlRequest {
                     query: "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }",
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .expect("construct");

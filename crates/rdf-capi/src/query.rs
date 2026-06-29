@@ -35,7 +35,14 @@ unsafe fn run_query(
     )
     .map_err(|diagnostic| PurrdfError::from_diagnostic(PurrdfStatus::QueryError, &diagnostic))?;
     OxigraphBackend
-        .query(&store, SparqlRequest { query, base_iri })
+        .query(
+            &store,
+            SparqlRequest {
+                query,
+                base_iri,
+                substitutions: &[],
+            },
+        )
         .map_err(|diagnostic| PurrdfError::from_diagnostic(PurrdfStatus::QueryError, &diagnostic))
 }
 

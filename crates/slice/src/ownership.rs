@@ -1008,5 +1008,9 @@ fn walk_ground_term(t: &gmeow_sparql_algebra::GroundTerm, out: &mut BTreeSet<Nam
             insert_oxiri(&tri.predicate, out);
             walk_ground_term(&tri.object, out);
         }
+        // Injection-only variant (native `$this` substitution): never produced by
+        // the parser, so it cannot appear in a VALUES clause, and a blank node
+        // carries no IRI dependency edge — a no-op.
+        GT::BlankNode(_) => {}
     }
 }

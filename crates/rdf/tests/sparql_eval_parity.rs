@@ -50,6 +50,7 @@ fn run_both(dataset: &Arc<RdfDataset>, store: &Store, query: &str) -> (SparqlRes
     let request = SparqlRequest {
         query,
         base_iri: None,
+        substitutions: &[],
     };
     let ox = OxigraphBackend
         .query(store, request)
@@ -549,6 +550,7 @@ fn run_corpus_subset(include: &dyn Fn(&str) -> bool) -> CorpusTally {
         let request = SparqlRequest {
             query: &query_text,
             base_iri: None,
+            substitutions: &[],
         };
 
         // --- NONDETERMINISTIC class ---
@@ -587,6 +589,7 @@ fn run_corpus_subset(include: &dyn Fn(&str) -> bool) -> CorpusTally {
                 let request_ox = SparqlRequest {
                     query: &query_text,
                     base_iri: None,
+                    substitutions: &[],
                 };
                 let ox_result = ox.query(&store, request_ox).unwrap_or_else(|e| {
                     panic!("oxigraph failed on in-scope query {label}: {e}\nQuery:\n{query_text}")
