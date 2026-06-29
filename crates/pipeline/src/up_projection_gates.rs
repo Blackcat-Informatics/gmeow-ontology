@@ -304,11 +304,20 @@ fn correspondences_from_audit(
     (corrs, legs, cells, unsupported_by_vocab)
 }
 
-/// A URL-safe slug for a term qname, used to mint a stable correspondence IRI per term.
+/// A collision-free, URL-safe slug for a term qname, used to mint a stable
+/// correspondence IRI per term. Alphanumerics plus `-`/`_` pass through verbatim
+/// (both are URL-safe and must stay distinct so e.g. `foo-bar` and `foo_bar` mint
+/// different IRIs); every other byte is percent-encoded, which is injective.
 fn slug(term: &str) -> String {
-    term.chars()
-        .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
-        .collect()
+    let mut out = String::with_capacity(term.len());
+    for &b in term.as_bytes() {
+        if b.is_ascii_alphanumeric() || b == b'-' || b == b'_' {
+            out.push(b as char);
+        } else {
+            out.push_str(&format!("%{b:02X}"));
+        }
+    }
+    out
 }
 
 /// Which tier a gate report places a correspondence in. A PASS on the round-trip OR
