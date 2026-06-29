@@ -21,9 +21,9 @@
 //! the drift gate (RDFC-1.0 isomorphism) stays green.
 
 use gmeow_rdf::turtle::{emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};
-use gmeow_rdf::{RdfAnnotation, RdfDataset, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple};
-use oxigraph::model::vocab::xsd;
-use oxigraph::model::{Literal, Term};
+use gmeow_rdf::{
+    RdfAnnotation, RdfDataset, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple, TermValue,
+};
 
 use crate::encode::decode_nemo_term;
 use crate::reason::dl::gaps_from_unsupported;
@@ -264,22 +264,36 @@ pub fn build_explanations_ttl(result: &ReasoningResult) -> Result<String, String
 /// premise object) falls back to the bare-IRI unwrap.
 fn premise_object(display: &str) -> RdfTerm {
     match decode_nemo_term(display) {
-        Ok(Term::NamedNode(node)) => RdfTerm::iri(node.into_string()),
-        Ok(Term::Literal(literal)) => RdfTerm::literal(rdf_literal_from_oxigraph(&literal)),
+        Ok(TermValue::Iri(iri)) => RdfTerm::iri(iri),
+        Ok(TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            ..
+        }) => RdfTerm::literal(rdf_literal_from_value(
+            &lexical_form,
+            &datatype,
+            language.as_deref(),
+        )),
         _ => iri_term(display),
     }
 }
 
-/// Convert an oxigraph [`Literal`] to the model [`RdfLiteral`], preserving a
-/// language tag or a non-`xsd:string` datatype so [`emit_term`] re-serializes it
-/// to the same Turtle literal form.
-fn rdf_literal_from_oxigraph(literal: &Literal) -> RdfLiteral {
-    if let Some(language) = literal.language() {
-        RdfLiteral::language_tagged(literal.value(), language)
-    } else if literal.datatype() == xsd::STRING {
-        RdfLiteral::simple(literal.value())
+/// Convert a native literal's value-space components to the model [`RdfLiteral`],
+/// preserving a language tag or a non-`xsd:string` datatype so [`emit_term`]
+/// re-serializes it to the same Turtle literal form.
+fn rdf_literal_from_value(
+    lexical_form: &str,
+    datatype: &str,
+    language: Option<&str>,
+) -> RdfLiteral {
+    const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+    if let Some(language) = language {
+        RdfLiteral::language_tagged(lexical_form, language)
+    } else if datatype == XSD_STRING {
+        RdfLiteral::simple(lexical_form)
     } else {
-        RdfLiteral::typed(literal.value(), literal.datatype().as_str())
+        RdfLiteral::typed(lexical_form, datatype)
     }
 }
 

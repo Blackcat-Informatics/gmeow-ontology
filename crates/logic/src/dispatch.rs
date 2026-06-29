@@ -9,7 +9,7 @@
 //!
 //! - **Fast path** (`Dispatch::Fast`): the goal contains only EDB atoms (no rule in the
 //!   program defines any goal predicate). Resolved directly via a single SPARQL
-//!   `SELECT DISTINCT` query against the oxigraph store — no Prolog overhead.
+//!   `SELECT DISTINCT` query against the native store — no Prolog overhead.
 //!
 //! - **Scryer path** (`Dispatch::Scryer`): the goal hits at least one IDB predicate
 //!   (a predicate defined as a rule head). Delegated to `scryer_engine::run_scryer`
@@ -22,8 +22,6 @@
 //! any engine is invoked.
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
-
-use oxigraph::model::NamedNode;
 
 use crate::profile_gate;
 use crate::query_ir::{AnswerSet, Budget, QBodyLit, QProgram, QTerm};
@@ -157,7 +155,7 @@ pub fn classify_goal(program: &QProgram) -> Dispatch {
 // ── Fast path ─────────────────────────────────────────────────────────────────
 
 /// Resolve the program's goal via a single SPARQL SELECT DISTINCT query against
-/// the oxigraph store (EDB-only fast path).
+/// the native store (EDB-only fast path).
 ///
 /// Builds `SELECT DISTINCT ?V0 ?V1 … WHERE { GRAPH <world> { t0 . t1 . … } }`
 /// from the goal atoms.  Each atom `pred(S, O)` emits a triple pattern where:
@@ -173,7 +171,7 @@ pub fn classify_goal(program: &QProgram) -> Dispatch {
 /// Returns `Err(String)` if `store.select` fails (SPARQL error or `term_n3` failure).
 pub fn fast_path(
     store: &WorldStore,
-    world: &NamedNode,
+    world: &str,
     program: &QProgram,
     budget: &Budget,
 ) -> Result<AnswerSet, String> {
@@ -237,7 +235,7 @@ pub fn fast_path(
         .unwrap_or_default();
     let sparql = format!(
         "SELECT DISTINCT {select_vars} WHERE {{ GRAPH <{}> {{ {} }} }}{limit_clause}",
-        world.as_str(),
+        world,
         patterns.join(" . ")
     );
 
@@ -307,7 +305,7 @@ fn term_to_sparql(t: &QTerm) -> String {
 pub fn dispatch_query(
     foreign: &dyn ScryerForeign,
     store: &WorldStore,
-    world: &NamedNode,
+    world: &str,
     program: &QProgram,
     profile: &str,
     budget: &Budget,
@@ -352,7 +350,7 @@ mod tests {
     }
 
     /// Build a 3-element RDF list (x y z) at l0 → l1 → l2 → rdf:nil in a fresh world.
-    fn list_world() -> (WorldStore, NamedNode) {
+    fn list_world() -> (WorldStore, &'static str) {
         let store = WorldStore::new();
         let first = rdf("first");
         let rest = rdf("rest");
@@ -363,7 +361,7 @@ mod tests {
         store.insert_quad(W, &p("l1"), &rest, &p("l2"));
         store.insert_quad(W, &p("l2"), &first, &p("z"));
         store.insert_quad(W, &p("l2"), &rest, &nil);
-        (store, NamedNode::new(W).unwrap())
+        (store, W)
     }
 
     // ── classify_goal ──────────────────────────────────────────────────────────
@@ -434,7 +432,6 @@ mod tests {
         let store = WorldStore::new();
         store.insert_quad(W, &p("a"), &p("parentOf"), &p("b"));
         store.insert_quad(W, &p("a"), &p("parentOf"), &p("c"));
-        let world_nn = NamedNode::new(W).unwrap();
 
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
@@ -442,7 +439,7 @@ mod tests {
         );
         let prog = parse_query_program(&src).unwrap();
         let budget = Budget::default();
-        let ans = fast_path(&store, &world_nn, &prog, &budget).unwrap();
+        let ans = fast_path(&store, W, &prog, &budget).unwrap();
 
         assert_eq!(ans.status, BudgetStatus::Ok);
         assert_eq!(ans.bindings.len(), 2, "expected 2 answers: {ans:?}");
@@ -466,7 +463,6 @@ mod tests {
         let store = WorldStore::new();
         store.insert_quad(W, &p("a"), &p("parentOf"), &p("b"));
         store.insert_quad(W, &p("a"), &p("parentOf"), &p("c"));
-        let world_nn = NamedNode::new(W).unwrap();
 
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
@@ -475,12 +471,11 @@ mod tests {
         let prog = parse_query_program(&src).unwrap();
         let budget = Budget::default();
 
-        let fast = fast_path(&store, &world_nn, &prog, &budget).unwrap();
+        let fast = fast_path(&store, W, &prog, &budget).unwrap();
 
         let foreign = WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap();
         // run_scryer with no table preds on an EDB-only goal.
-        let scryer =
-            crate::scryer_engine::run_scryer(&foreign, &world_nn, &prog, &[], &budget).unwrap();
+        let scryer = crate::scryer_engine::run_scryer(&foreign, W, &prog, &[], &budget).unwrap();
 
         assert_eq!(
             fast.bindings, scryer.bindings,
@@ -496,7 +491,6 @@ mod tests {
         store.insert_quad(W, &p("a"), &p("parentOf"), &p("b"));
         store.insert_quad(W, &p("b"), &p("parentOf"), &p("c"));
         store.insert_quad(W, &p("c"), &p("parentOf"), &p("d"));
-        let world_nn = NamedNode::new(W).unwrap();
 
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
@@ -508,8 +502,7 @@ mod tests {
         let budget = Budget::default();
 
         let foreign = WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap();
-        let ans =
-            dispatch_query(&foreign, &store, &world_nn, &prog, HORN_PROFILE, &budget).unwrap();
+        let ans = dispatch_query(&foreign, &store, W, &prog, HORN_PROFILE, &budget).unwrap();
 
         assert_eq!(ans.status, BudgetStatus::Ok);
         assert_eq!(
@@ -555,7 +548,7 @@ mod tests {
         let ans = dispatch_query(
             &foreign,
             &store,
-            &world,
+            world,
             &prog,
             PROCEDURAL_PROFILE,
             &Budget::default(),
@@ -581,7 +574,7 @@ mod tests {
         let ans = dispatch_query(
             &foreign,
             &store,
-            &world,
+            world,
             &prog,
             PROCEDURAL_PROFILE,
             &Budget::default(),
@@ -607,7 +600,7 @@ mod tests {
         let ans = dispatch_query(
             &foreign,
             &store,
-            &world,
+            world,
             &prog,
             PROCEDURAL_PROFILE,
             &Budget::default(),
@@ -635,7 +628,7 @@ mod tests {
         let ans = dispatch_query(
             &foreign,
             &store,
-            &world,
+            world,
             &prog,
             PROCEDURAL_PROFILE,
             &Budget::default(),
@@ -673,7 +666,7 @@ mod tests {
         let result = dispatch_query(
             &foreign,
             &store,
-            &world,
+            world,
             &prog,
             HORN_PROFILE,
             &Budget::default(),

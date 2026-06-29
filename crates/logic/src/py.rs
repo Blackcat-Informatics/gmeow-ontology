@@ -16,13 +16,11 @@
 //! 3. Delegate to [`crate::materialize::materialize_core`] off the GIL.
 //! 4. Serialize the resulting `DerivedQuad`s to Python dicts.
 //!
-//! Encode/decode helpers (oxigraph term ⇄ Nemo fact string) live in
+//! Encode/decode helpers (native `TermValue` ⇄ Nemo fact string) live in
 //! [`crate::encode`]; this module handles the PyO3 surface.
 
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
-
-use oxigraph::model::NamedNode;
 
 use crate::certify::certify as certify_rules;
 use crate::dispatch::dispatch_query;
@@ -97,9 +95,9 @@ fn preservation_to_dict<'py>(
 fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<Py<PyAny>> {
     let d = PyDict::new(py);
     d.set_item("graph", dq.graph.as_str())?;
-    d.set_item("subject", dq.subject.to_string())?;
+    d.set_item("subject", crate::provenance::term_display(&dq.subject))?;
     d.set_item("predicate", dq.predicate.as_str())?;
-    d.set_item("object", dq.object.to_string())?;
+    d.set_item("object", crate::provenance::term_display(&dq.object))?;
     d.set_item("graph_component", dq.graph_component.as_str())?;
     d.set_item("derivation_id", dq.derivation_id.as_str())?;
     d.set_item("rule_iri", &dq.rule_iri)?;
@@ -275,7 +273,7 @@ fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<Py<PyAny>> {
 ///
 /// This is the AC-1/AC-2 engine surface: it loads the materialized EDB, parses the
 /// `.logic` query program (rules + goal), enforces the cut/profile gate, and routes
-/// the goal through the dispatcher (oxigraph SPARQL fast path for non-recursive
+/// the goal through the dispatcher (native SPARQL fast path for non-recursive
 /// pattern goals; embedded Scryer Prolog with tabling for recursive/unification-heavy
 /// goals). Answers are **virtual** — nothing is written back into the store.
 ///
@@ -338,8 +336,6 @@ fn query(
             worlds.into_iter().next().expect("len == 1")
         }
     };
-    let world_nn = NamedNode::new(&world)
-        .map_err(|e| value_err(format!("invalid world IRI {world:?}: {e}")))?;
 
     // 3. Parse the query program (rules + goal).
     let program = parse_query_program(query_program).map_err(value_err)?;
@@ -404,7 +400,7 @@ fn query(
         let preservation = cf.result.preservation.clone();
         (std::mem::take(&mut cf.bindings), status, preservation)
     } else {
-        let answer = dispatch_query(&foreign, &store, &world_nn, &program, profile, &budget)
+        let answer = dispatch_query(&foreign, &store, &world, &program, profile, &budget)
             .map_err(value_err)?;
         let preservation = answer.preservation.clone();
         (
@@ -795,9 +791,9 @@ fn stable_models(py: Python<'_>, rules: &str, input: &str) -> PyResult<Py<PyAny>
             let atoms_list = PyList::empty(py);
             for fact in &model.atoms {
                 let ad = PyDict::new(py);
-                ad.set_item("subject", fact.subject.to_string())?;
+                ad.set_item("subject", crate::provenance::term_display(&fact.subject))?;
                 ad.set_item("predicate", fact.predicate.as_str())?;
-                ad.set_item("object", fact.object.to_string())?;
+                ad.set_item("object", crate::provenance::term_display(&fact.object))?;
                 atoms_list.append(ad)?;
             }
             models_list.append(atoms_list)?;
@@ -1354,7 +1350,7 @@ fn rl_closure_nt(py: Python<'_>, input: &str) -> PyResult<String> {
 /// Compute the OWL 2 RL/RDF deductive closure and return live `gmeow_rdf.Quad`s.
 ///
 /// The structured twin of [`rl_closure_nt`]: the closure is rendered to N-Triples
-/// in Rust and re-parsed (reusing oxigraph's lossless term parser) into a list of
+/// in Rust and re-parsed (reusing the native lossless term parser) into a list of
 /// `gmeow_rdf.Quad` objects, so an rdflib caller folds the closure straight back
 /// into its graph with no intermediate Python-side N-Triples render/parse seam
 /// (issue #630). Blank nodes round-trip as blank nodes; literals keep
@@ -1366,32 +1362,23 @@ fn rl_closure_quads(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
         return Ok(vec![]);
     }
     let nt = compute_rl_closure(py, input)?.to_ntriples();
-    // Re-parse the rendered closure through the native codec (#909), then fold it into
-    // an in-memory oxigraph Store (text-free IR → Store hop) so each quad is handed to
+    // Re-parse the rendered closure through the native codec (#909), then flatten the
+    // frozen IR directly into the gmeow-rdf adapter quad list (text-free IR → quad
+    // stream, the same un-fold the GTS producer surfaces use) so each quad is handed to
     // Python as a native `gmeow_rdf.Quad` (#630). The native codec is the same engine
     // that the rest of the stack parses with — literal/datatype and blank-node grammar
     // decode identically.
-    let quads = py
-        .detach(move || -> Result<Vec<oxigraph::model::Quad>, String> {
-            let dataset = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
-                .map_err(|e| format!("RL closure re-parse failed: {e}"))?;
-            let store = gmeow_rdf::oxigraph::store_from_dataset(
-                dataset.as_ref(),
-                gmeow_rdf::oxigraph::GraphPolicy::PreserveNamedGraphs,
-            )
-            .map_err(|e| format!("RL closure store materialization failed: {e}"))?;
-            store
-                .iter()
-                .collect::<Result<Vec<_>, _>>()
-                .map_err(|e| format!("RL closure store iteration failed: {e}"))
+    // Re-parse the rendered closure through the native codec (#909) into the frozen
+    // IR, then hand each quad to Python as a live `gmeow_rdf.Quad` via the
+    // oxigraph-free cross-crate entry point `dataset_quads_to_py` (the logic crate
+    // names no oxigraph type; the conversion is owned by gmeow-rdf, EPIC #906).
+    let dataset = py
+        .detach(move || {
+            gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+                .map_err(|e| format!("RL closure re-parse failed: {e}"))
         })
         .map_err(pyo3::exceptions::PyRuntimeError::new_err)?;
-
-    let mut out: Vec<Py<PyAny>> = Vec::with_capacity(quads.len());
-    for quad in &quads {
-        out.push(gmeow_rdf::py_store::quad_to_py(py, quad)?);
-    }
-    Ok(out)
+    gmeow_rdf::py_store::dataset_quads_to_py(py, dataset.as_ref())
 }
 
 // ── verify_native ─────────────────────────────────────────────────────────────
@@ -1546,21 +1533,20 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::encode::decode_nemo_term;
     use crate::materialize::reifier_for_quad;
     use crate::provenance::term_n3;
-    use oxigraph::model::Term;
+    use gmeow_rdf::TermValue;
 
     // ── reifier_for_quad ──────────────────────────────────────────────────────
 
     #[test]
     fn reifier_for_quad_golden_1() {
         // Matches golden-1 from determinism-goldens.json
-        let s = Term::NamedNode(NamedNode::new("http://example.org/a").unwrap());
-        let p = NamedNode::new("http://example.org/related").unwrap();
-        let o = Term::NamedNode(NamedNode::new("http://example.org/b").unwrap());
-        let got = reifier_for_quad(&s, &p, &o).expect("IRI terms must not fail");
+        let s = TermValue::iri("http://example.org/a");
+        let p = "http://example.org/related";
+        let o = TermValue::iri("http://example.org/b");
+        let got = reifier_for_quad(&s, p, &o).expect("IRI terms must not fail");
         assert_eq!(
             got,
             "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a"
@@ -1571,8 +1557,7 @@ mod tests {
 
     #[test]
     fn term_n3_iri_for_quad_object() {
-        let nn = NamedNode::new("http://example.org/Foo").unwrap();
-        let term = Term::NamedNode(nn);
+        let term = TermValue::iri("http://example.org/Foo");
         assert_eq!(
             term_n3(&term).expect("IRI term must not fail"),
             "<http://example.org/Foo>"
@@ -1586,8 +1571,8 @@ mod tests {
         // Verify that py.rs can use decode_nemo_term from crate::encode.
         let term = decode_nemo_term("<http://example.org/Smoke>").unwrap();
         match term {
-            Term::NamedNode(nn) => assert_eq!(nn.as_str(), "http://example.org/Smoke"),
-            other => panic!("expected NamedNode, got {other:?}"),
+            TermValue::Iri(iri) => assert_eq!(iri, "http://example.org/Smoke"),
+            other => panic!("expected Iri, got {other:?}"),
         }
     }
 }

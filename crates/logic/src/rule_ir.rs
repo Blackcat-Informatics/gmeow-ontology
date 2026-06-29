@@ -12,14 +12,14 @@
 //! [`crate::certify`] does, so the predicate / variable surface is byte-identical
 //! to the engine.
 //!
-//! # Why oxigraph terms, not strings
+//! # Why native terms, not bare strings
 //!
 //! Unlike [`crate::foundation`] (whose facts are all-IRI and stored as bare
-//! strings), the IR here works over oxigraph [`Term`] / [`NamedNode`] so literal
-//! object constants and the golden-pinned provenance recipe
-//! ([`crate::provenance::mint_reifier`]) are handled for free.  The dedup key is
-//! the `(subject.to_string(), predicate.as_str(), object.to_string())` triple of
-//! N3 surfaces, mirroring `foundation.rs`'s first-wins `fact_index`.
+//! strings), the IR here works over the native [`TermValue`] (with predicate IRIs
+//! as plain `String`) so literal object constants and the golden-pinned provenance
+//! recipe ([`crate::provenance::mint_reifier`]) are handled for free.  The dedup key
+//! is the `(term_display(subject), predicate, term_display(object))` triple of N3
+//! surfaces, mirroring `foundation.rs`'s first-wins `fact_index`.
 //!
 //! # The reduct least model (the crux)
 //!
@@ -50,9 +50,11 @@
 
 use std::collections::{HashMap, HashSet};
 
-use oxigraph::model::{NamedNode, Term};
+use gmeow_rdf::TermValue;
 
-use crate::provenance::{mint_derivation_id, mint_reifier, ASSERT_RULE_IRI, LOGIC_NAMESPACE};
+use crate::provenance::{
+    mint_derivation_id, mint_reifier, term_display, ASSERT_RULE_IRI, LOGIC_NAMESPACE,
+};
 
 // ── Evaluable term / atom / rule ────────────────────────────────────────────────
 
@@ -66,10 +68,10 @@ pub(crate) enum EvalTerm {
     /// A variable, e.g. `?X` (the string includes the leading `?`, matching Nemo's
     /// `Display` for a universal variable).
     Var(String),
-    /// A constant IRI.
-    ConstNamed(NamedNode),
+    /// A constant IRI (the full IRI string).
+    ConstNamed(String),
     /// A constant literal (object position only).
-    ConstLit(Term),
+    ConstLit(TermValue),
 }
 
 /// A single arity-3-derived atom, with the world slot dropped (subject, object).
@@ -77,8 +79,8 @@ pub(crate) enum EvalTerm {
 pub(crate) struct EvalAtom {
     /// The subject term (slot 0).
     pub(crate) subject: EvalTerm,
-    /// The predicate IRI (constant in the gmeow fragment).
-    pub(crate) predicate: NamedNode,
+    /// The predicate IRI string (constant in the gmeow fragment).
+    pub(crate) predicate: String,
     /// The object term (slot 1).
     pub(crate) object: EvalTerm,
     /// `true` iff this is a negation-as-failure body literal.
@@ -102,27 +104,27 @@ pub(crate) struct EvalRule {
 
 // ── Ground fact + store (oxigraph-term based, insertion-ordered, first-wins) ─────
 
-/// A fully-ground fact `(subject, predicate, object)` over oxigraph terms.
+/// A fully-ground fact `(subject, predicate, object)` over native terms.
 #[derive(Debug, Clone)]
 pub(crate) struct Fact {
     /// The subject term (an IRI/blank node in practice).
-    pub(crate) subject: Term,
-    /// The predicate IRI.
-    pub(crate) predicate: NamedNode,
+    pub(crate) subject: TermValue,
+    /// The predicate IRI string.
+    pub(crate) predicate: String,
     /// The object term (IRI or literal).
-    pub(crate) object: Term,
+    pub(crate) object: TermValue,
 }
 
 /// The dedup key of a fact: the N3 surfaces of `(subject, predicate, object)`.
 type FactKey = (String, String, String);
 
 impl Fact {
-    /// The dedup / membership key `(s.to_string(), p.as_str(), o.to_string())`.
+    /// The dedup / membership key `(term_display(s), predicate, term_display(o))`.
     pub(crate) fn key(&self) -> FactKey {
         (
-            self.subject.to_string(),
-            self.predicate.as_str().to_owned(),
-            self.object.to_string(),
+            term_display(&self.subject),
+            self.predicate.clone(),
+            term_display(&self.object),
         )
     }
 
@@ -205,19 +207,19 @@ impl FactStore {
 
 /// A materialized quad with full content-addressed provenance.
 ///
-/// `graph` is filled by the caller (per world).  `object` is an oxigraph [`Term`];
-/// its N3 surface (`Term::to_string()`) is what the seam stamps, matching
+/// `graph` is filled by the caller (per world).  `object` is a native [`TermValue`];
+/// its N3 surface (`term_display`) is what the seam stamps, matching
 /// `foundation.rs` and `py.rs`.
 #[derive(Debug, Clone)]
 pub(crate) struct DerivedRow {
     /// The world IRI (named-graph component).
     pub(crate) graph: String,
     /// The subject term.
-    pub(crate) subject: Term,
-    /// The predicate IRI.
-    pub(crate) predicate: NamedNode,
+    pub(crate) subject: TermValue,
+    /// The predicate IRI string.
+    pub(crate) predicate: String,
     /// The object term.
-    pub(crate) object: Term,
+    pub(crate) object: TermValue,
     /// The firing rule IRI (`logic:assert` for EDB, else the rule's `#[name(...)]`).
     pub(crate) rule_iri: String,
     /// The reifier IRIs of the antecedent quads consumed by the firing.
@@ -236,9 +238,9 @@ pub(crate) fn sort_rows(rows: &mut [DerivedRow]) {
     rows.sort_by_cached_key(|r| {
         (
             r.graph.clone(),
-            r.subject.to_string(),
-            r.predicate.as_str().to_owned(),
-            r.object.to_string(),
+            term_display(&r.subject),
+            r.predicate.clone(),
+            term_display(&r.object),
         )
     });
 }
@@ -271,8 +273,7 @@ fn lower_nemo_term(
     }
     let rendered = term.to_string();
     if let Some(iri) = rendered.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
-        let nn = NamedNode::new(iri).map_err(|e| format!("invalid {slot} IRI {iri:?}: {e}"))?;
-        return Ok(EvalTerm::ConstNamed(nn));
+        return Ok(EvalTerm::ConstNamed(iri.to_owned()));
     }
     // A literal (or any non-IRI ground term).  Only an object may be a literal.
     if slot != "object" {
@@ -281,40 +282,22 @@ fn lower_nemo_term(
              only an object may be a literal (no-optionality)"
         ));
     }
-    // Parse the literal's N3 surface into an oxigraph term via the same N-Triples
-    // grammar the rest of the stack uses.  Wrap into a one-triple document so
-    // oxigraph's reader yields the object term.
+    // Parse the literal's N3 surface into a native term via the shared Nemo-surface
+    // decoder — the same `"lex"`/`"lex"@lang`/`"lex"^^<dt>` grammar the encode/decode
+    // path uses, oxigraph-free.
     let lit = parse_n3_object_literal(&rendered)?;
     Ok(EvalTerm::ConstLit(lit))
 }
 
 /// Parse a literal object's Nemo N3 surface (`"lex"`, `"lex"@lang`,
-/// `"lex"^^<dt>`) into an oxigraph [`Term`].
+/// `"lex"^^<dt>`) into a native [`TermValue`].
 ///
-/// The one-triple N-Triples document is parsed through the native codec
-/// (`parse_dataset`) into the frozen IR, then materialized into an in-memory store via
-/// the text-free `store_from_dataset` hop so the object term comes back as the oxigraph
-/// [`Term`] the rest of `rule_ir` works over — same codec as the rest of the stack, no
-/// drift, no `oxigraph::io` text reader.
-fn parse_n3_object_literal(n3: &str) -> Result<Term, String> {
-    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-    use gmeow_rdf::parse_dataset;
-    use oxigraph::model::{NamedNode, Quad};
-    let doc = format!("<urn:s> <urn:p> {n3} .\n");
-    let dataset = parse_dataset(doc.as_bytes(), "application/n-triples", None)
-        .map_err(|e| format!("rule_ir: cannot parse literal object {n3:?}: {e}"))?;
-    let store = store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
-        .map_err(|e| format!("rule_ir: cannot materialize literal object {n3:?}: {e}"))?;
-    let want_p = NamedNode::new("urn:p").expect("constant IRI");
-    let quads: Vec<Quad> = store
-        .quads_for_pattern(None, Some(want_p.as_ref()), None, None)
-        .filter_map(Result::ok)
-        .collect();
-    let q = quads
-        .into_iter()
-        .next()
-        .ok_or_else(|| format!("rule_ir: literal object {n3:?} produced no triple"))?;
-    Ok(q.object)
+/// Delegates to [`crate::encode::decode_nemo_term`], the shared decoder for the
+/// `"lex"`/`"lex"@lang`/`"lex"^^<dt>`/`<iri>` surface grammar — same codec as the
+/// rest of the stack, oxigraph-free.
+fn parse_n3_object_literal(n3: &str) -> Result<TermValue, String> {
+    crate::encode::decode_nemo_term(n3)
+        .map_err(|e| format!("rule_ir: cannot parse literal object {n3:?}: {e}"))
 }
 
 /// Lower a Nemo atom into an [`EvalAtom`], dropping the arity-3 world slot.
@@ -325,9 +308,7 @@ fn lower_nemo_atom(
     atom: &nemo::rule_model::components::atom::Atom,
     negated: bool,
 ) -> Result<EvalAtom, String> {
-    let predicate_iri = atom.predicate().to_string();
-    let predicate = NamedNode::new(&predicate_iri)
-        .map_err(|e| format!("invalid predicate IRI {predicate_iri:?}: {e}"))?;
+    let predicate = atom.predicate().to_string();
     let mut it = atom.terms();
     let subj = it
         .next()
@@ -419,8 +400,8 @@ impl Solution {
 /// The N3 surface of an [`EvalTerm`] under bindings, or `None` if an unbound var.
 fn ground(term: &EvalTerm, sol: &Solution) -> Option<String> {
     match term {
-        EvalTerm::ConstNamed(nn) => Some(format!("<{}>", nn.as_str())),
-        EvalTerm::ConstLit(t) => Some(t.to_string()),
+        EvalTerm::ConstNamed(iri) => Some(format!("<{iri}>")),
+        EvalTerm::ConstLit(t) => Some(term_display(t)),
         EvalTerm::Var(name) => sol.get(name).map(str::to_owned),
     }
 }
@@ -428,8 +409,8 @@ fn ground(term: &EvalTerm, sol: &Solution) -> Option<String> {
 /// The N3 surface a term pattern must equal against a fact term, for a constant.
 fn const_surface(term: &EvalTerm) -> Option<String> {
     match term {
-        EvalTerm::ConstNamed(nn) => Some(format!("<{}>", nn.as_str())),
-        EvalTerm::ConstLit(t) => Some(t.to_string()),
+        EvalTerm::ConstNamed(iri) => Some(format!("<{iri}>")),
+        EvalTerm::ConstLit(t) => Some(term_display(t)),
         EvalTerm::Var(_) => None,
     }
 }
@@ -439,9 +420,9 @@ fn const_surface(term: &EvalTerm) -> Option<String> {
 /// fact term's N3 surface exactly.  Mirrors `foundation.rs::match_atom`.
 fn match_atom(atom: &EvalAtom, f: &Fact, base: &Solution) -> Option<Solution> {
     let fact_surfaces = [
-        f.subject.to_string(),
-        format!("<{}>", f.predicate.as_str()),
-        f.object.to_string(),
+        term_display(&f.subject),
+        format!("<{}>", f.predicate),
+        term_display(&f.object),
     ];
     let pats = [
         &atom.subject,
@@ -818,10 +799,10 @@ pub(crate) fn least_model_of_reduct(
 /// Ground a rule head into a [`Fact`], failing hard on an unbound head variable or
 /// a literal subject/predicate.
 fn ground_head(head: &EvalAtom, sol: &Solution) -> Result<Fact, String> {
-    let subject = ground_term_to_oxi(&head.subject, sol, "head subject")?;
-    let object = ground_term_to_oxi(&head.object, sol, "head object")?;
+    let subject = ground_term_to_value(&head.subject, sol, "head subject")?;
+    let object = ground_term_to_value(&head.object, sol, "head object")?;
     // The subject must be an IRI/blank node, never a literal.
-    if let Term::Literal(_) = subject {
+    if subject.is_literal() {
         return Err("rule_ir: head subject grounded to a literal (no-optionality)".to_owned());
     }
     Ok(Fact {
@@ -831,31 +812,36 @@ fn ground_head(head: &EvalAtom, sol: &Solution) -> Result<Fact, String> {
     })
 }
 
-/// Ground an [`EvalTerm`] into a concrete oxigraph [`Term`].
-fn ground_term_to_oxi(term: &EvalTerm, sol: &Solution, slot: &str) -> Result<Term, String> {
+/// Ground an [`EvalTerm`] into a concrete native [`TermValue`].
+fn ground_term_to_value(term: &EvalTerm, sol: &Solution, slot: &str) -> Result<TermValue, String> {
     match term {
-        EvalTerm::ConstNamed(nn) => Ok(Term::NamedNode(nn.clone())),
+        EvalTerm::ConstNamed(iri) => Ok(TermValue::iri(iri.clone())),
         EvalTerm::ConstLit(t) => Ok(t.clone()),
         EvalTerm::Var(name) => {
             let surface = sol
                 .get(name)
                 .ok_or_else(|| format!("{slot} variable {name:?} unbound after body matching"))?;
-            surface_to_term(surface)
+            surface_to_value(surface)
         }
     }
 }
 
-/// Re-materialize an oxigraph [`Term`] from its N3 surface (`<iri>` or a literal).
-fn surface_to_term(surface: &str) -> Result<Term, String> {
+/// Re-materialize a native [`TermValue`] from its N3 surface (`<iri>`, `_:blank`, or
+/// a literal).
+fn surface_to_value(surface: &str) -> Result<TermValue, String> {
     if let Some(iri) = surface.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
-        let nn =
-            NamedNode::new(iri).map_err(|e| format!("rule_ir: invalid bound IRI {iri:?}: {e}"))?;
-        return Ok(Term::NamedNode(nn));
+        if iri.is_empty() {
+            return Err(format!("rule_ir: invalid bound IRI {surface:?}: empty"));
+        }
+        return Ok(TermValue::iri(iri.to_owned()));
     }
     if let Some(inner) = surface.strip_prefix("_:") {
-        let bn = oxigraph::model::BlankNode::new(inner)
-            .map_err(|e| format!("rule_ir: invalid bound blank node {surface:?}: {e}"))?;
-        return Ok(Term::BlankNode(bn));
+        if inner.is_empty() {
+            return Err(format!(
+                "rule_ir: invalid bound blank node {surface:?}: empty"
+            ));
+        }
+        return Ok(TermValue::blank(inner.to_owned()));
     }
     // Literal surface.
     parse_n3_object_literal(surface)
@@ -901,13 +887,10 @@ pub(crate) fn world_edb_facts(
     let raw = store.quads_in_world(world);
     let mut facts: Vec<Fact> = Vec::with_capacity(raw.len());
     for r in &raw {
-        // r[0], r[1], r[2] are N3 surfaces from oxigraph `to_string()`.
-        let subject = surface_to_term(&r[0])?;
-        let predicate = {
-            let p = strip_angle(&r[1]);
-            NamedNode::new(p).map_err(|e| format!("rule_ir: invalid predicate IRI {p:?}: {e}"))?
-        };
-        let object = surface_to_term(&r[2])?;
+        // r[0], r[1], r[2] are N3 surfaces from `term_display`.
+        let subject = surface_to_value(&r[0])?;
+        let predicate = strip_angle(&r[1]).to_owned();
+        let object = surface_to_value(&r[2])?;
         facts.push(Fact {
             subject,
             predicate,
@@ -984,12 +967,12 @@ fn render_eval_atom(atom: &EvalAtom, world: &str) -> String {
 fn render_eval_term(term: &EvalTerm) -> String {
     match term {
         EvalTerm::Var(name) => name.clone(),
-        EvalTerm::ConstNamed(nn) => format!("<{}>", nn.as_str()),
-        EvalTerm::ConstLit(Term::Literal(lit)) => {
-            let escaped = lit.value().replace('\\', "\\\\").replace('"', "\\\"");
+        EvalTerm::ConstNamed(iri) => format!("<{iri}>"),
+        EvalTerm::ConstLit(TermValue::Literal { lexical_form, .. }) => {
+            let escaped = lexical_form.replace('\\', "\\\\").replace('"', "\\\"");
             format!("\"{escaped}\"")
         }
-        EvalTerm::ConstLit(other) => other.to_string(),
+        EvalTerm::ConstLit(other) => term_display(other),
     }
 }
 
@@ -1037,9 +1020,9 @@ mod tests {
 
     fn fact(s: &str, p: &str, o: &str) -> Fact {
         Fact {
-            subject: Term::NamedNode(NamedNode::new(format!("{NS}{s}")).unwrap()),
-            predicate: NamedNode::new(format!("{NS}{p}")).unwrap(),
-            object: Term::NamedNode(NamedNode::new(format!("{NS}{o}")).unwrap()),
+            subject: TermValue::iri(format!("{NS}{s}")),
+            predicate: format!("{NS}{p}"),
+            object: TermValue::iri(format!("{NS}{o}")),
         }
     }
 
@@ -1087,7 +1070,7 @@ mod tests {
     fn eval_rules_to_rls_renders_a_bodyless_rule_as_a_default_world_fact() {
         // A Skolemized existential lowers to a bodyless EvalRule; it must render as a
         // ground fact in the "default" world (which the chase consumes as EDB).
-        let nn = |l: &str| NamedNode::new(format!("{NS}{l}")).unwrap();
+        let nn = |l: &str| format!("{NS}{l}");
         let fact_rule = EvalRule {
             head: EvalAtom {
                 subject: EvalTerm::ConstNamed(nn("a")),
