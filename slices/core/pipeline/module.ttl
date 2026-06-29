@@ -231,7 +231,6 @@ gmeow:pipeline-build
         gmeow:stage-export-evals ,
         gmeow:stage-export-bench ,
         gmeow:stage-export-lpg ,
-        gmeow:stage-export-logic ,
         gmeow:stage-export-yaml-ld ,
         gmeow:stage-gts-sink .
 
@@ -282,14 +281,16 @@ gmeow:stage-reason
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "reason"@x-gmeow-english ;
-    skos:definition "Compute the native EL/DL reasoned closure and logic materialization. The only lock-carrying stage: it runs under the process-wide reasoning engine lock."@x-gmeow-english ;
+    skos:definition "Compute the native EL/DL reasoned closure and logic materialization — the SOLE reasoning pass. It reasons ONCE over the object-level EDB (ontology + imports + statements + alignments + logic/relational-core/correspondence, in the bundle's graph layout but WITHOUT the meta/report graphs, which assert no axioms and only perturb the content-addressed Skolem witnesses). The single result both backs the bundle's graph/reasoning projection AND owns the committed artifacts (generated/logic/inferred-closure.rdf12.ttl, reasoning-explanations.rdf12.ttl, dl-el-crosscheck-report.ttl) — there is no separate full-fold export leaf. The only lock-carrying stage: it runs under the process-wide reasoning engine lock."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindReason ;
     gmeow:stageImpl "reason" ;
     gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-source-load ,
         gmeow:stage-statements ;
+    gmeow:producesFormat "rdf12-turtle" ;
     gmeow:carriesEngineLock true .
 
 gmeow:stage-gts-compose
@@ -564,18 +565,6 @@ gmeow:stage-export-lpg
     gmeow:stageImpl "lpg" ;
     gmeow:dataflowConsumes gmeow:stage-snapshot ;
     gmeow:producesFormat "lpg-cypher" ;
-    gmeow:carriesEngineLock false .
-
-gmeow:stage-export-logic
-    a gmeow:PipelineStage ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "export: logic"@x-gmeow-english ;
-    skos:definition "Emit the three native EL/DL reasoning artifacts (generated/logic/inferred-closure.rdf12.ttl, reasoning-explanations.rdf12.ttl, dl-el-crosscheck-report.ttl) by reasoning over THIS run's FULL snapshot fold — the same GtsGraphStore → reason_all → build_*_ttl path native_reason_gen.py drives over the committed gmeow.gts. (The earlier gmeow:stage-reason transform reasons over the smaller early-composed subset for the bundle's reasoned-closure graph; this leaf reproduces the committed full-fold logic artifacts.) An export leaf, so it acquires the engine lock explicitly around the native chase."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
-    gmeow:stageImpl "logic" ;
-    gmeow:dataflowConsumes gmeow:stage-snapshot ;
-    gmeow:producesFormat "rdf12-turtle" ;
     gmeow:carriesEngineLock false .
 
 gmeow:stage-export-yaml-ld
