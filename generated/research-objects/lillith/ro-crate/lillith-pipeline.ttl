@@ -1,123 +1,127 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7>
-    a <https://blackcatinformatics.ca/gmeow/Chunk> ;
-    <https://blackcatinformatics.ca/gmeow/chunkOf> <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive> ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" ;
-    <https://blackcatinformatics.ca/gmeow/spanEnd> 6100 ;
-    <https://blackcatinformatics.ca/gmeow/spanStart> 5200 .
+    a gmeow:Chunk ;
+    gmeow:chunkOf <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive> ;
+    gmeow:contentDigest "blake3:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" ;
+    gmeow:spanEnd 6100 ;
+    gmeow:spanStart 5200 .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/cluster-run>
-    a <https://blackcatinformatics.ca/gmeow/Activity> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "leiden clustering 2026-06-02"@en ;
-    <https://blackcatinformatics.ca/gmeow/eventTemporalFrame> <https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian> ;
-    <https://blackcatinformatics.ca/gmeow/eventTime> "2026-06-02T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+    a gmeow:Activity ;
+    rdfs:label "leiden clustering 2026-06-02"@en ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "2026-06-02T00:00:00Z"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/community-infra>
-    a <https://blackcatinformatics.ca/gmeow/Community> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "infrastructure community"@en ;
-    <https://blackcatinformatics.ca/gmeow/communityLevel> 0 ;
-    <https://blackcatinformatics.ca/gmeow/communityMember> <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-buildsys> ,
+    a gmeow:Community ;
+    rdfs:label "infrastructure community"@en ;
+    gmeow:communityLevel 0 ;
+    gmeow:communityMember <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-buildsys> ,
         <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-mara> ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:6666777788889999000011112222333344445555aaaabbbbccccddddeeeeff44" ;
-    <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/examples/graphrag/cluster-run> .
+    gmeow:contentDigest "blake3:6666777788889999000011112222333344445555aaaabbbbccccddddeeeeff44" ;
+    gmeow:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/examples/graphrag/cluster-run> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/corpus-lillith>
-    a <https://blackcatinformatics.ca/gmeow/Corpus> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "Lillith working corpus"@en ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ;
-    <https://blackcatinformatics.ca/gmeow/corpusMember> <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive> .
+    a gmeow:Corpus ;
+    rdfs:label "Lillith working corpus"@en ;
+    gmeow:contentDigest "blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ;
+    gmeow:corpusMember <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-buildsys>
-    a <https://blackcatinformatics.ca/gmeow/ExtractedEntity> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "extracted: 'the build system'"@en ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:4444555566667777888899990000111122223333aaaabbbbccccddddeeeeff22" ;
-    <https://blackcatinformatics.ca/gmeow/wasDerivedFrom> <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ;
-    <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/examples/graphrag/invocation-44> .
+    a gmeow:ExtractedEntity ;
+    rdfs:label "extracted: 'the build system'"@en ;
+    gmeow:contentDigest "blake3:4444555566667777888899990000111122223333aaaabbbbccccddddeeeeff22" ;
+    gmeow:wasDerivedFrom <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ;
+    gmeow:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/examples/graphrag/invocation-44> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-mara>
-    a <https://blackcatinformatics.ca/gmeow/ExtractedEntity> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "extracted: 'Mara' (maintainer?)"@en ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:3333444455556666777788889999000011112222aaaabbbbccccddddeeeeff11" ;
-    <https://blackcatinformatics.ca/gmeow/wasDerivedFrom> <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ;
-    <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/examples/graphrag/invocation-44> .
+    a gmeow:ExtractedEntity ;
+    rdfs:label "extracted: 'Mara' (maintainer?)"@en ;
+    gmeow:contentDigest "blake3:3333444455556666777788889999000011112222aaaabbbbccccddddeeeeff11" ;
+    gmeow:wasDerivedFrom <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ;
+    gmeow:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/examples/graphrag/invocation-44> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/embed-run>
-    a <https://blackcatinformatics.ca/gmeow/Activity> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "embedding pass 2026-06-01"@en ;
-    <https://blackcatinformatics.ca/gmeow/eventTemporalFrame> <https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian> ;
-    <https://blackcatinformatics.ca/gmeow/eventTime> "2026-06-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+    a gmeow:Activity ;
+    rdfs:label "embedding pass 2026-06-01"@en ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "2026-06-01T00:00:00Z"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/embedder>
-    a <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "embedder-v3"@en .
+    a gmeow:SoftwareAgent ;
+    rdfs:label "embedder-v3"@en .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/embedding-7>
-    a <https://blackcatinformatics.ca/gmeow/Embedding> ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" ;
-    <https://blackcatinformatics.ca/gmeow/distanceMetric> <https://blackcatinformatics.ca/gmeow/distanceMetricCosine> ;
-    <https://blackcatinformatics.ca/gmeow/embeddingDimensions> 1024 ;
-    <https://blackcatinformatics.ca/gmeow/embeddingModel> <https://blackcatinformatics.ca/gmeow/examples/graphrag/embedder> ;
-    <https://blackcatinformatics.ca/gmeow/embeddingOf> <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ;
-    <https://blackcatinformatics.ca/gmeow/vectorRef> "s3://lillith/vectors/chunk-7"^^<http://www.w3.org/2001/XMLSchema#anyURI> ;
-    <https://blackcatinformatics.ca/gmeow/wasDerivedFrom> <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ;
-    <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/examples/graphrag/embed-run> .
+    a gmeow:Embedding ;
+    gmeow:contentDigest "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:embeddingDimensions 1024 ;
+    gmeow:embeddingModel <https://blackcatinformatics.ca/gmeow/examples/graphrag/embedder> ;
+    gmeow:embeddingOf <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ;
+    gmeow:vectorRef "s3://lillith/vectors/chunk-7"^^xsd:anyURI ;
+    gmeow:wasDerivedFrom <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ;
+    gmeow:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/examples/graphrag/embed-run> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/extractor>
-    a <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "extraction model"@en .
+    a gmeow:SoftwareAgent ;
+    rdfs:label "extraction model"@en .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/index-build>
-    a <https://blackcatinformatics.ca/gmeow/Activity> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "index build 2026-06-01"@en ;
-    <https://blackcatinformatics.ca/gmeow/eventTemporalFrame> <https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian> ;
-    <https://blackcatinformatics.ca/gmeow/eventTime> "2026-06-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+    a gmeow:Activity ;
+    rdfs:label "index build 2026-06-01"@en ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "2026-06-01T00:00:00Z"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/index-lillith>
-    a <https://blackcatinformatics.ca/gmeow/VectorIndex> ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:2222333344445555666677778888999900001111aaaabbbbccccddddeeeeff00" ;
-    <https://blackcatinformatics.ca/gmeow/distanceMetric> <https://blackcatinformatics.ca/gmeow/distanceMetricCosine> ;
-    <https://blackcatinformatics.ca/gmeow/indexAlgorithm> <https://blackcatinformatics.ca/gmeow/indexAlgorithmHnsw> ;
-    <https://blackcatinformatics.ca/gmeow/indexParameters> "{\"M\": 16, \"efConstruction\": 200}" ;
-    <https://blackcatinformatics.ca/gmeow/indexesCorpus> <https://blackcatinformatics.ca/gmeow/examples/graphrag/corpus-lillith> ;
-    <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/examples/graphrag/index-build> .
+    a gmeow:VectorIndex ;
+    gmeow:contentDigest "blake3:2222333344445555666677778888999900001111aaaabbbbccccddddeeeeff00" ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ;
+    gmeow:indexParameters "{\"M\": 16, \"efConstruction\": 200}" ;
+    gmeow:indexesCorpus <https://blackcatinformatics.ca/gmeow/examples/graphrag/corpus-lillith> ;
+    gmeow:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/examples/graphrag/index-build> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/invocation-44>
-    a <https://blackcatinformatics.ca/gmeow/ModelInvocation> ;
-    <https://blackcatinformatics.ca/gmeow/atTime> "2026-06-01T12:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
-    <https://blackcatinformatics.ca/gmeow/eventTemporalFrame> <https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian> ;
-    <https://blackcatinformatics.ca/gmeow/samplingTemperature> "0"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
-    <https://blackcatinformatics.ca/gmeow/usedModel> <https://blackcatinformatics.ca/gmeow/examples/graphrag/extractor> .
+    a gmeow:ModelInvocation ;
+    gmeow:atTime "2026-06-01T12:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:samplingTemperature "0"^^xsd:decimal ;
+    gmeow:usedModel <https://blackcatinformatics.ca/gmeow/examples/graphrag/extractor> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive>
-    a <https://blackcatinformatics.ca/gmeow/Document> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "list archive, 2025"@en ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0" ,
+    a gmeow:Document ;
+    rdfs:label "list archive, 2025"@en ;
+    gmeow:contentDigest "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0" ,
         "md5:cec9e36b1db871d2575ef8d6a4b23015" ,
         "sha256:9a1db2371ff810323b9187139fe012a30fc6b2cc879cabccfaefe30f727a9c62" ;
-    <https://blackcatinformatics.ca/gmeow/sourceLocation> "https://blackcatinformatics.ca/gmeow/examples/graphrag/list-archive-2025" .
+    gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/list-archive-2025" .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/rel-maintains>
-    a <https://blackcatinformatics.ca/gmeow/ExtractedRelationship> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "extracted: Mara maintains the build system"@en ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:5555666677778888999900001111222233334444aaaabbbbccccddddeeeeff33" ;
-    <https://blackcatinformatics.ca/gmeow/relationshipSource> <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-mara> ;
-    <https://blackcatinformatics.ca/gmeow/relationshipTarget> <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-buildsys> ;
-    <https://blackcatinformatics.ca/gmeow/wasDerivedFrom> <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ;
-    <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/examples/graphrag/invocation-44> .
+    a gmeow:ExtractedRelationship ;
+    rdfs:label "extracted: Mara maintains the build system"@en ;
+    gmeow:contentDigest "blake3:5555666677778888999900001111222233334444aaaabbbbccccddddeeeeff33" ;
+    gmeow:relationshipSource <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-mara> ;
+    gmeow:relationshipTarget <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-buildsys> ;
+    gmeow:wasDerivedFrom <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ;
+    gmeow:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/examples/graphrag/invocation-44> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/retrieval-3>
-    a <https://blackcatinformatics.ca/gmeow/RetrievalEvent> ;
-    <https://blackcatinformatics.ca/gmeow/againstIndex> <https://blackcatinformatics.ca/gmeow/examples/graphrag/index-lillith> ;
-    <https://blackcatinformatics.ca/gmeow/atTime> "2026-06-02T10:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
-    <https://blackcatinformatics.ca/gmeow/eventTemporalFrame> <https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian> ;
-    <https://blackcatinformatics.ca/gmeow/forQuery> "who maintained the build system?" ;
-    <https://blackcatinformatics.ca/gmeow/retrievedChunk> <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> .
+    a gmeow:RetrievalEvent ;
+    gmeow:againstIndex <https://blackcatinformatics.ca/gmeow/examples/graphrag/index-lillith> ;
+    gmeow:atTime "2026-06-02T10:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:forQuery "who maintained the build system?" ;
+    gmeow:retrievedChunk <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/summary-infra>
-    a <https://blackcatinformatics.ca/gmeow/CommunitySummary> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "summary: the infrastructure crew"@en ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:7777888899990000111122223333444455556666aaaabbbbccccddddeeeeff55" ;
-    <https://blackcatinformatics.ca/gmeow/summarizesCommunity> <https://blackcatinformatics.ca/gmeow/examples/graphrag/community-infra> ;
-    <https://blackcatinformatics.ca/gmeow/wasDerivedFrom> <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ,
+    a gmeow:CommunitySummary ;
+    rdfs:label "summary: the infrastructure crew"@en ;
+    gmeow:contentDigest "blake3:7777888899990000111122223333444455556666aaaabbbbccccddddeeeeff55" ;
+    gmeow:summarizesCommunity <https://blackcatinformatics.ca/gmeow/examples/graphrag/community-infra> ;
+    gmeow:wasDerivedFrom <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ,
         <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-buildsys> ,
         <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-mara> ;
-    <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/examples/graphrag/invocation-44> .
+    gmeow:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/examples/graphrag/invocation-44> .
