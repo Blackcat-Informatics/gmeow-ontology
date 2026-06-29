@@ -41,6 +41,14 @@
 #     round-trips / mapping byte-parity / the correspondence-parity oracle family
 #     (EDOAL/SPARQL/FnO/SSSOM — off-gated by whole binary, every test lowers the full
 #     corpus) / scoreboards acceptance: full-DAG, minutes.
+#   - gmeow-pipeline stages::carrier ustar_tests::build_docs_archive_packs_the_rendered_site
+#     (~60-110 s) renders and packs the whole embedded ontology-docs site into the
+#     carrier archive; native_assembly_tests::authored_default_assembles_natively
+#     (~72 s) assembles the entire authored bundle from the real tree. Both are
+#     O(ontology-size) render/assembly + I-O, NOT engine-bound, and grow with the
+#     ontology — irreducibly over the zero-headroom 25 s budget (still run on
+#     maint-heavy). They live under `stages::carrier` after the snapshot→carrier
+#     refactor; the longer terminate cliff is in the slow-timeout override below.
 #   - gmeow-pipeline stages::yaml_ld dist_jsonld_roundtrips_through_oxigraph: parses
 #     the entire dist JSON-LD into oxigraph and serializes it back — an O(ontology
 #     size) round-trip that sits just under the zero-headroom 25 s budget and crosses
@@ -58,15 +66,6 @@
 #     budget under the gate's parallel contention as the ontology grows. Engine/graph-size
 #     bound and irreducible like ontology_entailments; the fast per-commit reason coverage
 #     is `make reason` (native lane) plus the gmeow-logic unit reason tests.
-#   - gmeow-pipeline stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site
-#     (~40 s) and stages::carrier::native_assembly_tests::authored_default_assembles_natively
-#     (~32 s): both whole-bundle, build/I-O-bound (NOT engine-bound). The docs-archive test
-#     renders+packs the entire embedded ontology-docs site (a LIVE O(terms) full render, the
-#     same irreducible class as the gmeow-docs live-render guards below); the native-assembly
-#     test folds the whole authored default graph (union + native translation/guideBlob fold)
-#     and re-runs it for a byte-determinism check, an O(ontology-size) assembly ×2. Both grow
-#     with the ontology and cross the zero-headroom 25 s budget; the cheaper per-member /
-#     per-stage assertions stay on-gate.
 #   - gmeow-slice alignment emit parity + gmeow-slicetest places structural:
 #     whole-ontology emit/closure checks just over budget.
 #   - gmeow-rdf-capi c_smoke binary: self-builds the libpurrdf cdylib (~33 s cold
