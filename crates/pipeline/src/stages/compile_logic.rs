@@ -37,6 +37,7 @@ use gmeow_logic_compile::ir::LogicProgram;
 use gmeow_logic_compile::projections::correspondence::{
     affine_triangle_worked_example, project_correspondence, CorrespondenceProgram,
 };
+use gmeow_logic_compile::projections::correspondence_gates::{assert_gates, evaluate_gates};
 use gmeow_logic_compile::projections::report::ReportHeader;
 use gmeow_logic_compile::projections::{compile_program, ProjectionResult};
 use gmeow_logic_compile::relational_core::{
@@ -250,6 +251,20 @@ impl Stage for CompileLogicStage {
         // re-asserted below) keeps a caveated affine overlap at `skos:relatedMatch`,
         // never `skos:exactMatch` / `owl:equivalentClass`.
         let correspondence = affine_triangle_worked_example();
+        // HARD-FAIL the build on a correspondence-gate RED. The affine-triangle carrier lane
+        // bypasses `compile_program` (whose `program.correspondences` is empty in production),
+        // so the five gates are RECORDED but never enforced there — this is the one place they
+        // are thrown. Derive the lawful put legs first, then run the gates over the production
+        // program: an overclaim, a violated/over-discharged law, a broken `put ∘ get = id`
+        // round-trip, a failed witness recovery, or a strengthening composition aborts the
+        // build rather than shipping a green bundle around an unlawful correspondence.
+        let (gated, _gate_outcomes) = correspondence
+            .clone()
+            .with_derived_puts()
+            .map_err(|e| stage_err(format!("derive correspondence put legs: {e}")))?;
+        let gate_report = evaluate_gates(&gated, &[]);
+        assert_gates(&gate_report).map_err(|e| stage_err(format!("correspondence gate: {e}")))?;
+
         let correspondence_nt = project_correspondence(&correspondence);
         artifacts.insert(
             CORRESPONDENCE_PATH.to_string(),
@@ -908,6 +923,50 @@ mod tests {
         // The related-match surface (what the lane actually emits) is NOT an overclaim.
         assert_no_overclaim_correspondence(correspondence, false)
             .expect("the related-match surface is not an overclaim");
+    }
+
+    /// The five-gate `assert_gates` is now a STAGE hard-fail (not merely recorded): the
+    /// lawful affine triangle passes all five, and a constructed RED report errors — the
+    /// exact `?` the stage propagates to abort the build around an unlawful correspondence.
+    #[test]
+    fn stage_asserts_five_correspondence_gates_as_hard_fail() {
+        use gmeow_logic_compile::ir::{
+            Correspondence, CorrespondenceRelation, MorphismClass, MorphismKind, PreservationKind,
+        };
+        use gmeow_logic_compile::projections::correspondence_gates::{
+            assert_gates, evaluate_gates,
+        };
+
+        // The production affine triangle passes the five gates: the wiring will not spuriously
+        // fail the build (and the full stage `run` succeeds in the sibling tests).
+        let (gated, _) = affine_triangle_worked_example()
+            .with_derived_puts()
+            .expect("derive affine put legs");
+        assert_gates(&evaluate_gates(&gated, &[])).expect("the §14 affine triangle is lawful");
+
+        // A bridge view declaring equivalence is an overclaim RED → `assert_gates` errors,
+        // which is precisely what the stage propagates as a `PipelineError` build failure.
+        let bridge = Correspondence::new(
+            "https://gmeow.example/corr/bridge".to_owned(),
+            CorrespondenceRelation::Equiv,
+            MorphismClass::BridgeView,
+            MorphismKind::CommitmentShiftingBridge,
+            false,
+            None,
+            Some("https://gmeow.example/corr/bridgeGet".to_owned()),
+            None,
+            Vec::new(),
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
+        .expect("well-formed bridge correspondence");
+        let red =
+            CorrespondenceProgram::new(vec![bridge], Vec::new(), PreservationKind::SoundUnder);
+        assert_gates(&evaluate_gates(&red, &[]))
+            .expect_err("a bridge-view equivalence overclaim must HARD-fail the build");
     }
 
     /// `pin_handle` HARD-fails when the Correspondence handle's pinned digest disagrees
