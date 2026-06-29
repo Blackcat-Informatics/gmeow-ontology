@@ -12,12 +12,14 @@
 //! Timing records are collected when [`ValidateOptions::timings`] is true and
 //! can be serialized to JSON alongside the error/warning output.
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use gmeow_diagnostics::{Finding, FindingCategory, Location, Report, Severity};
 use gmeow_gts::model::Graph;
 use gmeow_logic::certificate::ContradictionPolicy;
+use gmeow_rdf::{pair_loss_ledger, PROJECTION_CODECS};
 use oxigraph::model::Quad;
 use oxigraph::store::Store;
 use rayon::prelude::*;
@@ -622,6 +624,18 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), S
         bundle.dataset.as_ref(),
         gmeow_gts::writer::digest_string,
     );
+    // Compute genuine projection-loss codes from the static loss ledger — the same
+    // computation the release lane uses, ensuring validate and release agree.
+    let projection_loss_codes: BTreeSet<String> = PROJECTION_CODECS
+        .iter()
+        .flat_map(|&to| {
+            pair_loss_ledger("gts", to)
+                .entries()
+                .iter()
+                .map(|e| e.code.to_owned())
+                .collect::<Vec<_>>()
+        })
+        .collect();
     let outcome = gmeow_logic::certificate::CoherenceOutcome::from_reasoning_result(
         &result,
         bundle_hash,
@@ -629,6 +643,7 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), S
         policy,
         // Injected, never sampled — the deep pass certificate stays deterministic.
         DETERMINISTIC_ISSUED_AT,
+        projection_loss_codes,
     )
     .map_err(|e| format!("validate --deep: coherence certificate build failed: {e}"))?;
     attach_coherence_certificate(report, &outcome);
@@ -746,6 +761,53 @@ pub(crate) fn fold_reasoning_result(
         );
     }
 
+    // Emit one ProjectionLoss finding per genuine ledger entry: intentional losses
+    // incurred projecting this GTS bundle to each canonical projection codec. These
+    // are serialization/semantic-subset losses from the static loss ledger, entirely
+    // distinct from the DL-reasoner's unsupported_constructs above.
+    for &to in PROJECTION_CODECS {
+        for entry in pair_loss_ledger("gts", to).entries() {
+            report.add_finding(
+                Finding::new(
+                    Severity::Note,
+                    "validate.deep.projection-loss",
+                    format!(
+                        "projection gts → {to}: loss code '{}' — {}",
+                        entry.code, entry.note
+                    ),
+                )
+                .with_tool("validate")
+                .with_category(FindingCategory::ProjectionLoss),
+            );
+        }
+    }
+
+    // Emit an IncompleteCheck finding when the reasoning run did not reach a
+    // conclusive verdict: budget exhaustion on the computation axis, or an
+    // incomplete result on the completeness axis. These are orthogonal signals —
+    // `BudgetExhausted` means the engine stopped early; `Incomplete` means the
+    // answer covers only part of the fragment. Either alone warrants disclosure.
+    let budget_exhausted =
+        result.evaluation == gmeow_logic::result::EvaluationStatus::BudgetExhausted;
+    let completeness_incomplete =
+        result.completeness == gmeow_logic::result::CompletenessStatus::Incomplete;
+    if budget_exhausted || completeness_incomplete {
+        report.add_finding(
+            Finding::new(
+                Severity::Warning,
+                "validate.deep.incomplete",
+                format!(
+                    "native deep semantic pass did not reach a conclusive verdict \
+                     (evaluation={}, completeness={}); results may be partial",
+                    result.evaluation.wire(),
+                    result.completeness.wire(),
+                ),
+            )
+            .with_tool("validate")
+            .with_category(FindingCategory::IncompleteCheck),
+        );
+    }
+
     if result.is_consistent() && result.preservation.unsupported_constructs.is_empty() {
         report.add_finding(
             Finding::new(
@@ -776,7 +838,8 @@ pub(crate) fn shacl_findings_from_report(
         .results
         .iter()
         .map(|result| {
-            let mut finding = finding_from_shacl(result);
+            let mut finding =
+                finding_from_shacl(result).with_category(FindingCategory::DataShapeViolation);
             // Attribute the example/DSL source file as the finding's PRIMARY
             // physical location (a repo-relative path), keeping the focus-node
             // IRI as that location's logical anchor. SARIF `artifactLocation.uri`
@@ -803,7 +866,8 @@ pub(crate) fn shacl_findings_from_report(
             "shacl.nonconforming",
             "SHACL validation failed: non-conforming with no results",
         )
-        .with_tool("shacl");
+        .with_tool("shacl")
+        .with_category(FindingCategory::DataShapeViolation);
         if let Some(origin) = origin {
             finding.add_location(Location {
                 path: Some(origin.to_owned()),
@@ -1695,6 +1759,16 @@ ex:governingContract rdf:type logic:ReasoningContract ;
             ContradictionPolicy::ForbidGapAndGlut,
             "the bundle's declared contract must resolve to the glut-forbidding policy"
         );
+        let projection_loss_codes: BTreeSet<String> = PROJECTION_CODECS
+            .iter()
+            .flat_map(|&to| {
+                pair_loss_ledger("gts", to)
+                    .entries()
+                    .iter()
+                    .map(|e| e.code.to_owned())
+                    .collect::<Vec<_>>()
+            })
+            .collect();
         let outcome = gmeow_logic::certificate::CoherenceOutcome::from_reasoning_result(
             &result,
             gmeow_gts::writer::digest_string(&bytes),
@@ -1704,6 +1778,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
             ),
             policy,
             "2026-06-28T00:00:00Z",
+            projection_loss_codes,
         )
         .expect("outcome build");
         assert!(
@@ -1857,6 +1932,304 @@ ex:governingContract rdf:type logic:ReasoningContract ;
                 .iter()
                 .any(|f| f.code == "advice.tier.active"),
             "early-return path must emit no advice.tier.active finding"
+        );
+    }
+
+    // ── Category-assignment tests (H1) ──────────────────────────────────────
+
+    /// A SHACL constraint violation folded through `shacl_findings_from_report`
+    /// must carry `FindingCategory::DataShapeViolation`.
+    #[test]
+    fn shacl_violation_is_categorized_data_shape_violation() {
+        use gmeow_shacl::report::{ValidationReport, ValidationResult};
+        use oxigraph::model::{Literal, NamedNode, Term};
+
+        let result = ValidationResult {
+            focus_node: Term::NamedNode(NamedNode::new_unchecked("https://example.org/FocusA")),
+            result_path: None,
+            value: None,
+            source_constraint_component: NamedNode::new_unchecked(
+                "http://www.w3.org/ns/shacl#MinCountConstraintComponent",
+            ),
+            source_shape: Term::NamedNode(NamedNode::new_unchecked("https://example.org/ShapeA")),
+            severity: gmeow_shacl::report::Severity::Violation,
+            message: Some("must have at least one value".to_owned()),
+            source_box_roles: vec![],
+            path_box_roles: vec![],
+            result_box_roles: vec![],
+            attributions: vec![],
+        };
+        let _ = Literal::new_simple_literal("unused");
+        let report = ValidationReport {
+            conforms: false,
+            results: vec![result],
+        };
+
+        let findings = shacl_findings_from_report(&report, None);
+
+        assert_eq!(findings.len(), 1, "expected exactly one finding");
+        assert_eq!(
+            findings[0].category,
+            Some(FindingCategory::DataShapeViolation),
+            "a SHACL violation must carry DataShapeViolation; got {:?}",
+            findings[0].category
+        );
+        assert!(
+            findings[0].code.starts_with("shacl."),
+            "finding code must start with 'shacl.'; got {}",
+            findings[0].code
+        );
+    }
+
+    /// A non-conforming SHACL report with zero results (the `shacl.nonconforming`
+    /// guard) must also carry `FindingCategory::DataShapeViolation`.
+    #[test]
+    fn shacl_nonconforming_guard_is_categorized_data_shape_violation() {
+        use gmeow_shacl::report::ValidationReport;
+
+        let report = ValidationReport {
+            conforms: false,
+            results: vec![],
+        };
+
+        let findings = shacl_findings_from_report(&report, None);
+
+        assert_eq!(
+            findings.len(),
+            1,
+            "expected the nonconforming guard finding"
+        );
+        assert_eq!(findings[0].code, "shacl.nonconforming");
+        assert_eq!(
+            findings[0].category,
+            Some(FindingCategory::DataShapeViolation),
+            "the nonconforming guard must carry DataShapeViolation"
+        );
+    }
+
+    /// A `ReasoningResult` with `evaluation=BudgetExhausted` must cause
+    /// `fold_reasoning_result` to emit a finding categorized `IncompleteCheck`.
+    #[test]
+    fn budget_exhausted_result_emits_incomplete_check() {
+        use gmeow_logic::result::{
+            CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
+            ReasoningResult, ResultPayload, ResultProvenance,
+        };
+
+        let result = ReasoningResult::new(
+            InputStatus::Valid,
+            EvaluationStatus::BudgetExhausted,
+            // BudgetExhausted → completeness must be Incomplete or Unknown (not CompleteForFragment
+            // with BudgetExhausted, as that would mean conclusive). Use Incomplete.
+            CompletenessStatus::Incomplete,
+            PreservationClaim::exact(),
+            // Neither requires conclusive, but BudgetExhausted + Incomplete is non-conclusive,
+            // so the information state must be Undetermined (not Neither).
+            InformationState::Undetermined,
+            ResultProvenance::native("test-contract", "test-world"),
+            ResultPayload::Empty,
+        );
+
+        let mut report = Report::new("validate");
+        fold_reasoning_result(&result, ContradictionPolicy::ForbidGapAndGlut, &mut report);
+
+        let incomplete_findings: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.category == Some(FindingCategory::IncompleteCheck))
+            .collect();
+
+        assert!(
+            !incomplete_findings.is_empty(),
+            "a BudgetExhausted result must emit at least one IncompleteCheck finding; \
+             got findings: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+        assert_eq!(
+            incomplete_findings[0].code, "validate.deep.incomplete",
+            "incomplete finding must carry the expected code"
+        );
+        assert_eq!(
+            incomplete_findings[0].severity,
+            Severity::Warning,
+            "incomplete check must be a Warning, not an error"
+        );
+    }
+
+    /// A `ReasoningResult` with `completeness=Incomplete` (but evaluation Completed)
+    /// must also trigger the `IncompleteCheck` category.
+    #[test]
+    fn completeness_incomplete_result_emits_incomplete_check() {
+        use gmeow_logic::result::{
+            CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
+            ReasoningResult, ResultPayload, ResultProvenance,
+        };
+
+        // Completed + CompleteForFragment is conclusive → Neither is valid.
+        // Completed + Incomplete is conclusive via Completed → Neither is still valid.
+        // We want to fire the IncompleteCheck path: evaluation=Completed, completeness=Incomplete.
+        let result = ReasoningResult::new(
+            InputStatus::Valid,
+            EvaluationStatus::Completed,
+            CompletenessStatus::Incomplete,
+            PreservationClaim::exact(),
+            // Completed alone makes it conclusive, so Neither is valid.
+            InformationState::Neither,
+            ResultProvenance::native("test-contract", "test-world"),
+            ResultPayload::Empty,
+        );
+
+        let mut report = Report::new("validate");
+        fold_reasoning_result(&result, ContradictionPolicy::ForbidGapAndGlut, &mut report);
+
+        let incomplete = report
+            .findings
+            .iter()
+            .find(|f| f.category == Some(FindingCategory::IncompleteCheck))
+            .expect("completeness=Incomplete must emit an IncompleteCheck finding");
+        assert_eq!(incomplete.code, "validate.deep.incomplete");
+        assert_eq!(incomplete.severity, Severity::Warning);
+    }
+
+    /// A fully-conclusive, consistent result (evaluation=Completed, completeness=CompleteForFragment)
+    /// must NOT emit any IncompleteCheck finding.
+    #[test]
+    fn conclusive_consistent_result_does_not_emit_incomplete_check() {
+        use gmeow_logic::result::{
+            CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
+            ReasoningResult, ResultPayload, ResultProvenance,
+        };
+
+        let result = ReasoningResult::new(
+            InputStatus::Valid,
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+            PreservationClaim::exact(),
+            InformationState::Neither,
+            ResultProvenance::native("test-contract", "test-world"),
+            ResultPayload::Empty,
+        );
+
+        let mut report = Report::new("validate");
+        fold_reasoning_result(&result, ContradictionPolicy::ForbidGapAndGlut, &mut report);
+
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.category == Some(FindingCategory::IncompleteCheck)),
+            "a conclusive, consistent result must NOT emit IncompleteCheck; \
+             got: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+    }
+
+    /// `fold_reasoning_result` must emit at least one `FindingCategory::ProjectionLoss`
+    /// finding sourced from the genuine static loss ledger, distinct from any
+    /// `UnsupportedSemanticFeature` findings. The ledger has at least one entry for
+    /// `gts → owl-dl` (named-graph-dropped + owl-dl-projection), so the count is
+    /// deterministically at least 2.
+    #[test]
+    fn fold_emits_projection_loss_findings_from_ledger() {
+        use gmeow_logic::result::{
+            CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
+            ReasoningResult, ResultPayload, ResultProvenance,
+        };
+
+        let result = ReasoningResult::new(
+            InputStatus::Valid,
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+            PreservationClaim::exact(),
+            InformationState::Neither,
+            ResultProvenance::native("test-contract", "test-world"),
+            ResultPayload::Empty,
+        );
+
+        let mut report = Report::new("validate");
+        fold_reasoning_result(&result, ContradictionPolicy::ForbidGapAndGlut, &mut report);
+
+        let projection_loss_findings: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.category == Some(FindingCategory::ProjectionLoss))
+            .collect();
+
+        assert!(
+            !projection_loss_findings.is_empty(),
+            "fold_reasoning_result must emit at least one ProjectionLoss finding; \
+             got findings: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+
+        // All ProjectionLoss findings carry the expected code and severity.
+        for f in &projection_loss_findings {
+            assert_eq!(
+                f.code, "validate.deep.projection-loss",
+                "ProjectionLoss finding must carry the expected code"
+            );
+            assert_eq!(
+                f.severity,
+                Severity::Note,
+                "ProjectionLoss must be a Note (informational), not a failure"
+            );
+        }
+
+        // The ledger must contribute at least the owl-dl pair (named-graph-dropped +
+        // owl-dl-projection), so we expect at least 2 findings.
+        assert!(
+            projection_loss_findings.len() >= 2,
+            "must have at least 2 ProjectionLoss findings (owl-dl pair); got {}",
+            projection_loss_findings.len()
+        );
+
+        // Messages must name the target codec and contain the loss code.
+        let has_named_graph_dropped = projection_loss_findings
+            .iter()
+            .any(|f| f.message.contains("named-graph-dropped"));
+        assert!(
+            has_named_graph_dropped,
+            "at least one ProjectionLoss finding must mention 'named-graph-dropped'"
+        );
+
+        // ProjectionLoss findings must NOT carry UnsupportedSemanticFeature category.
+        for f in &projection_loss_findings {
+            assert_ne!(
+                f.category,
+                Some(FindingCategory::UnsupportedSemanticFeature),
+                "ProjectionLoss must not be conflated with UnsupportedSemanticFeature"
+            );
+        }
+    }
+
+    /// Verify that `deep_semantic_findings` (the full GTS path) also emits
+    /// ProjectionLoss findings — confirming they reach the report via the real bundle path.
+    #[test]
+    fn deep_semantic_findings_emits_projection_loss_on_consistent_bundle() {
+        // A minimal consistent bundle is sufficient; the projection losses come from
+        // the static ledger, not from bundle content.
+        let consistent = "\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex: <http://gmeow.example/> .
+ex:A rdfs:subClassOf ex:B .
+ex:x rdf:type ex:A .
+";
+        let bytes = gts_bytes_from_turtle(consistent);
+        let mut report = Report::new("validate");
+        deep_semantic_findings(&bytes, &mut report).expect("deep pass must run");
+
+        let projection_loss_findings: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.category == Some(FindingCategory::ProjectionLoss))
+            .collect();
+
+        assert!(
+            !projection_loss_findings.is_empty(),
+            "deep_semantic_findings must emit at least one ProjectionLoss finding; \
+             got findings: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
         );
     }
 }

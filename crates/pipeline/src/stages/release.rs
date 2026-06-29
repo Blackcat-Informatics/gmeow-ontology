@@ -31,6 +31,8 @@
 //! bundle is, by definition, signed): all three signer fields are passed to
 //! [`emit_gts`], which itself hard-fails any partial signing config.
 
+use std::collections::BTreeSet;
+
 use gmeow_gts::model::Graph;
 use gmeow_gts::reader::read;
 use gmeow_gts::writer::digest_string;
@@ -38,7 +40,7 @@ use gmeow_rdf::gts_compose::{
     emit_gts, parse_quads_lenient, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD,
     RDF_REIFIES,
 };
-use gmeow_rdf::NativeRdfFormat;
+use gmeow_rdf::{pair_loss_ledger, NativeRdfFormat, PROJECTION_CODECS};
 use oxigraph::model::Quad;
 
 /// The named graph the release-manifest + per-artifact attestations ride in.
@@ -191,12 +193,27 @@ pub fn build_coherence_evidence(
     // which axiom sets it ranged over. Shared with the validate `--deep` lane.
     let axiom_hashes =
         gmeow_logic::certificate::per_graph_axiom_hashes(bundle.dataset.as_ref(), digest_string);
+    // Compute genuine projection-loss codes from the static loss ledger: for each
+    // canonical projection target, fold `pair_loss_ledger("gts", to).entries()`
+    // into a sorted set of unique loss codes. This is what actually belongs in
+    // `projection_losses` — NOT the DL-reasoner's unsupported_constructs.
+    let projection_loss_codes: BTreeSet<String> = PROJECTION_CODECS
+        .iter()
+        .flat_map(|&to| {
+            pair_loss_ledger("gts", to)
+                .entries()
+                .iter()
+                .map(|e| e.code.to_owned())
+                .collect::<Vec<_>>()
+        })
+        .collect();
     let outcome = CoherenceOutcome::from_reasoning_result(
         &result,
         bundle_hash,
         axiom_hashes,
         policy,
         issued_at,
+        projection_loss_codes,
     )
     .map_err(|e| format!("coherence certificate: build failed: {e}"))?;
     if outcome.is_refused() {
