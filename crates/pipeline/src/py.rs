@@ -465,7 +465,9 @@ fn up_projection_gate_audit(
         .detach(move || {
             let mut corpus_nts = Vec::with_capacity(corpus_ttls.len());
             for (name, ttl) in &corpus_ttls {
-                corpus_nts.push((name.clone(), up_projection::ttl_to_nt(ttl)?));
+                let nt = up_projection::ttl_to_nt(ttl)
+                    .map_err(|e| format!("corpus {name} ttl→nt: {e}"))?;
+                corpus_nts.push((name.clone(), nt));
             }
             let ledger = crate::up_projection_gates::gate_derived_audit(
                 &sssom_texts,
