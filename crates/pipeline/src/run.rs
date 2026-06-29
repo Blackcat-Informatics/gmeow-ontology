@@ -262,13 +262,16 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     let graph = spec.validate()?;
     let registry = default_registry();
     let bound = bind(&spec, &graph, &registry)?;
-    // A full single-pass build runs over a FRESH ephemeral cache (never the persistent
-    // `generated/.pipeline-cache/`): the persistent cache keys stages by `impl_version`,
-    // so a stage whose Rust impl changed without a version bump could be served a stale
-    // pre-change product — a false-parity / false-drift source for the cutover gate.
-    // Per-level memoization within this run still applies; only cross-invocation reuse
-    // is dropped.
-    let mut ctx = RunContext::open_ephemeral(root, jobs)?;
+    // A full single-pass build runs over the PERSISTENT per-stage cache
+    // (`generated/.pipeline-cache/`, gitignored) for cross-invocation reuse: an edit to
+    // one slice re-runs only the affected stages, not the whole DAG. This is safe
+    // because every `stage_key` folds `cache::BUILD_FINGERPRINT` (a hash of the whole
+    // workspace source + Cargo.lock + rustc), so ANY code/dependency/toolchain change —
+    // including one with no `impl_version` bump — yields fresh keys and recomputes. The
+    // cache is also self-verifying (blobs re-hashed on load; a mismatch hard-fails), so
+    // it can never serve a stale or corrupt product. A clean checkout (CI) has no cache
+    // dir and builds cold; subsequent local runs are warm.
+    let mut ctx = RunContext::open(root, jobs)?;
     let result = run(&graph, &bound, &mut ctx)?;
     let products: BTreeMap<String, StageProduct> = result.products;
 

@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: contracts/belnap-counterfactual-revision-unsupported
+# AC: a ReasoningContract that pairs the Belnap bilattice
+# truth algebra (logic:BelnapBilattice) with counterfactual entrenchment revision
+# (logic:EntrenchmentRevision) is a FORBIDDEN facet combination
+# (RuleNoParaconsistentCounterfactualRevision): the closest-world selection that
+# generates the counterfactual states is not defined over gappy or glutty
+# valuations. The compile MUST emit an UNSUPPORTED_CONTRACT Severity::Error and the
+# harness MUST short-circuit before evaluating — the "unsupported is a hard stop"
+# guarantee, pinned at the corpus level (profile.json declares
+# "expect_unsupported": true).
+#
+# The pre-existing paraconsistent-counterfactual-revision case exercises this rule
+# via its admissibleValuation (gap/glut) LHS branch; this case pins the SECOND LHS
+# branch — the truth-algebra (logic:BelnapBilattice) trigger — so both alternative
+# conditions of the rule are covered at the corpus level.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/contracts/belnap-counterfactual-revision/> .
+
+ex:UnsupportedContract a logic:ReasoningContract ;
+    logic:truthAlgebra logic:BelnapBilattice ;
+    logic:revision logic:EntrenchmentRevision .
