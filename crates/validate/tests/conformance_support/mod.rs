@@ -257,12 +257,21 @@ fn nt_to_store(nt: &str) -> Store {
         .unwrap_or_else(|errors| panic!("N-Triples parse failed:\n{}", errors.join("\n")))
 }
 
+fn copy_store(source: &Store) -> Store {
+    let target = Store::new().expect("in-memory store creation is infallible");
+    for quad in source.quads_for_pattern(None, None, None, None) {
+        let quad = quad.expect("source store iteration must succeed");
+        target.insert(&quad).expect("store insert is infallible");
+    }
+    target
+}
+
 /// Validate `base_ontology_nt() + "\n" + fixture_nt` against `whole_shapes_ttl()`.
 ///
 /// Use this variant when the fixture triples rely on class/property declarations
 /// from the merged ontology to pass SHACL class-constraint checks.
 pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
-    let store = base_ontology_store().clone();
+    let store = copy_store(base_ontology_store());
     let fixture_store = nt_to_store(fixture_nt);
     for quad in fixture_store.quads_for_pattern(None, None, None, None) {
         let quad = quad.expect("fixture store iteration must succeed");
