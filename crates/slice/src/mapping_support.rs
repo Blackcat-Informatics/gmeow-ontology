@@ -14,8 +14,8 @@
 //! * the [`GENERATED_BANNER`] generated-artifact comment;
 //! * the [`prefix_block`] SPARQL `PREFIX` emitter;
 //! * the merged-store collectors [`collect_dsl_store`] / [`collect_ontology_store`]
-//!   and the generic store/term helpers ([`subjects_of_type`], [`term_iri`],
-//!   [`term_lexical`], [`quads_with_predicate`], [`first_lexical_of_iri`],
+//!   and the generic store/term helpers (`subjects_of_type`, `term_iri`,
+//!   `term_lexical`, `quads_with_predicate`, `first_lexical_of_iri`,
 //!   [`object_literal`]);
 //! * the FnO range lookup [`predicate_ranges`] and the language-retag helper
 //!   [`retag_quad`].

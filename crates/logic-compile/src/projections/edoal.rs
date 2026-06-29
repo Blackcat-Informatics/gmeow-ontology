@@ -6,7 +6,8 @@
 //!
 //! EDOAL is an under-approximation of the correspondence: it drops the SOL caveats,
 //! the put leg, and world/standpoint scope, so the ledger-row preservation is
-//! `SoundUnder`. It renders from the SAME [`get_leg`] model the SPARQL lowering uses.
+//! `SoundUnder`. It renders from the SAME [`crate::projections::get_leg`] model
+//! the SPARQL lowering uses.
 //! The triples are built as N-Triples with a deterministic first-seen blank order and
 //! rendered through the **wasm-clean** canonical-Turtle serializer
 //! ([`gmeow_rdf::turtle_render`]) — no oxigraph: the serializer's object ordering is a

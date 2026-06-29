@@ -14,13 +14,14 @@
 //! ## Design pillars
 //!
 //! - **TermId hot path.** Basic-graph-pattern matching and joins never leave
-//!   interned-id space: constants resolve to a dataset [`TermId`] once (via
-//!   `term_id_by_value`, P4 #838) and solutions carry [`SolutionTerm`]s that are a
-//!   single integer compare apart. Computed terms (FILTER/BIND results not already
-//!   in the dataset) are interned in a per-query scratch table — but a computed
-//!   value that *does* exist in the dataset is **promoted** to
-//!   [`SolutionTerm::Existing`] at mint time, so cross-case join keys are unequal
-//!   purely by construction (no structural fallback at join time). See
+//!   interned-id space: constants resolve to a dataset
+//!   [`gmeow_rdf_core::TermId`] once (via `term_id_by_value`, P4 #838) and
+//!   solutions carry [`SolutionTerm`]s that are a single integer compare apart.
+//!   Computed terms (FILTER/BIND results not already in the dataset) are interned
+//!   in a per-query scratch table — but a computed value that *does* exist in the
+//!   dataset is **promoted** to [`SolutionTerm::Existing`] at mint time, so
+//!   cross-case join keys are unequal purely by construction (no structural
+//!   fallback at join time). See
 //!   [`scratch`].
 //! - **Multiset (bag) semantics.** Solutions are a bag, preserved until
 //!   `DISTINCT`/`REDUCED`. See [`solution`].
