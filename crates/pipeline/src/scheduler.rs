@@ -45,11 +45,27 @@ pub struct RunContext {
 }
 
 impl RunContext {
-    /// Construct a run context rooted at `root` with `jobs` parallelism, opening
-    /// the cache under `generated/.pipeline-cache/`.
+    /// Construct a run context rooted at `root` with `jobs` parallelism, opening the
+    /// persistent cache under `generated/.pipeline-cache/<build-fingerprint>/`.
+    ///
+    /// The cache is namespaced by [`crate::cache::BUILD_FINGERPRINT`] and any SIBLING
+    /// fingerprint directory is garbage-collected on open. Because every cache key also
+    /// embeds the fingerprint, a code/dependency/toolchain change orphans the whole
+    /// prior cache; GC-ing it bounds disk to a single build's products instead of
+    /// growing unbounded across edits.
     pub fn open(root: impl Into<PathBuf>, jobs: usize) -> Result<Self, PipelineError> {
         let root = root.into();
-        let cache = PipelineCache::open(PipelineCache::default_dir(&root))?;
+        let base = PipelineCache::default_dir(&root);
+        let fp = &crate::cache::BUILD_FINGERPRINT[..16];
+        // GC stale fingerprint namespaces (best-effort: a missing base dir is fine).
+        if let Ok(entries) = std::fs::read_dir(&base) {
+            for entry in entries.flatten() {
+                if entry.file_name().to_string_lossy() != *fp {
+                    let _ = std::fs::remove_dir_all(entry.path());
+                }
+            }
+        }
+        let cache = PipelineCache::open(base.join(fp))?;
         Ok(Self {
             root,
             jobs: jobs.max(1),
@@ -61,14 +77,12 @@ impl RunContext {
     /// Construct a run context whose cache lives in a FRESH, process-unique temp
     /// directory rather than the persistent `generated/.pipeline-cache/`.
     ///
-    /// The full-build entry point ([`crate::run::run_full`]) uses this so the
-    /// build is deterministic w.r.t. the CURRENT code: the persistent cache keys
-    /// stages by `stage_id + impl_version + upstream_digests`, so a stage whose
-    /// Rust implementation changed (e.g. across a rebase) without a bumped
-    /// `impl_version` would otherwise be served a STALE pre-change product — a
-    /// false-parity / false-drift source for the gate. Per-level memoization
-    /// within the single run still applies (the temp cache is populated and read
-    /// during the run); only cross-invocation reuse is dropped.
+    /// Used by TESTS that want a clean, isolated cache per run (no cross-test or
+    /// cross-invocation reuse). The full build ([`crate::run::run_full`]) instead uses
+    /// the persistent [`Self::open`] cache: that is safe because every `stage_key`
+    /// folds [`crate::cache::BUILD_FINGERPRINT`], so a changed Rust impl (here or in
+    /// any workspace crate) yields a fresh key and recomputes — the stale-serve hazard
+    /// that once forced an ephemeral full build no longer exists.
     pub fn open_ephemeral(root: impl Into<PathBuf>, jobs: usize) -> Result<Self, PipelineError> {
         let root = root.into();
         // A process- + nanosecond-unique cache dir under the system temp root, so
@@ -249,8 +263,9 @@ fn exec_stage(
         upstream.insert(dep.clone(), p.clone());
     }
 
-    // Cache key = id ++ impl_version ++ sorted(upstream digests) ++ the content
-    // digest of any RAW source files the stage declares via `input_files` (export
+    // Cache key = build fingerprint ++ id ++ impl_version ++ sorted(upstream digests)
+    // ++ the content digest of any RAW source files the stage declares via `input_files`
+    // (export
     // leaves that read non-fold sources — references.ttl, the eval corpus, the
     // slice manifests — declare them there so a source change busts the cache;
     // cache soundness for stages that legitimately consume nothing, #861/#863).

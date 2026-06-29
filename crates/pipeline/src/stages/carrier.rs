@@ -398,7 +398,12 @@ fn serialize_snapshot(
     emit_gts(
         &builder,
         "dist",
-        Some(vec!["gzip".to_string()]),
+        // zstd-rsyncable, not gzip: rsyncable keeps chunk boundaries stable across
+        // regenerations, so a small ontology change yields a small binary diff in the
+        // committed `gmeow.gts` instead of churning the whole file. (The absolute size
+        // is larger than gzip at the gts library's current fixed zstd level — a
+        // per-frame configurable level is tracked upstream in gmeow-gts.)
+        Some(vec!["zstd-rsyncable".to_string()]),
         blobs,
         report_blobs,
         None,
