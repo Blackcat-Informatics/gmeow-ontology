@@ -44,6 +44,7 @@ pub mod transcode;
 pub mod transform;
 pub mod up_projection;
 pub mod up_projection_gates;
+pub mod up_projection_report;
 
 #[cfg(feature = "python")]
 pub mod mcp;

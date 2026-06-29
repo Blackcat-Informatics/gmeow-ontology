@@ -207,13 +207,6 @@ pub struct FileBaseline {
 }
 
 impl FileBaseline {
-    pub fn liftable(&self) -> usize {
-        self.per_term
-            .values()
-            .filter(|bucket| matches!(bucket.as_str(), "clean" | "liftable-with-claim"))
-            .count()
-    }
-
     pub fn total(&self) -> usize {
         self.per_term.len()
     }
@@ -228,10 +221,6 @@ pub struct AuditReport {
 }
 
 impl AuditReport {
-    pub fn liftable(&self) -> usize {
-        self.files.iter().map(FileBaseline::liftable).sum()
-    }
-
     pub fn total(&self) -> usize {
         self.files.iter().map(FileBaseline::total).sum()
     }
@@ -1598,6 +1587,13 @@ fn parse_store(data: &[u8], format: RdfFormat) -> Result<Store, String> {
             .map_err(|e| format!("RDF store insert failed: {e}"))?;
     }
     Ok(store)
+}
+
+/// Parse a Turtle document and re-serialize it as N-Triples — the Rust-native TTL→NT
+/// conversion the gate-derived audit uses so corpus reading never re-enters Python (rdflib).
+pub(crate) fn ttl_to_nt(ttl: &str) -> Result<String, String> {
+    let store = parse_store(ttl.as_bytes(), RdfFormat::Turtle)?;
+    dump_nt(&store)
 }
 
 fn dump_nt(store: &Store) -> Result<String, String> {

@@ -1,14 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Tests for the up-projection invertibility audit (#449)."""
+"""Tests for the gate-derived up-projection invertibility audit."""
 
 from __future__ import annotations
 
 from gmeow_tools.up_projection_audit import (
     classify_sssom,
     combined_class,
-    render_markdown,
-    run_audit,
+    gate_audit,
 )
 
 
@@ -55,45 +54,61 @@ def test_combined_prefers_best_layer() -> None:
     assert combined_class("x", {}, {}) == "GAP"
 
 
-def test_real_data_baseline_is_sane() -> None:
-    """The audit runs on the vendored real snapshots and is internally consistent."""
-    report = run_audit()
-    assert {f.name for f in report.files} == {"bii", "paudley"}
-    # The vendored snapshots make this a REPRODUCIBLE baseline contract — pin
-    # the exact numbers so any regression in invertibility coverage is caught.
-    # Update deliberately (with the docs/up-projection-audit.md regen) when
-    # cells or GMEOW coverage genuinely change.
-    by_name = {f.name: f for f in report.files}
-    assert (by_name["bii"].liftable, by_name["bii"].total) == (213, 264)
-    assert (by_name["paudley"].liftable, by_name["paudley"].total) == (266, 327)
-    assert (report.liftable, report.total) == (479, 591)
-    assert len(report.gaps) == 72
-    # gaps are de-duplicated and sorted across the corpus
-    assert report.gaps == sorted(set(report.gaps))
-    # the markdown renders with the headline + a gap section
-    md = render_markdown(report)
+def test_gate_derived_baseline_is_sane() -> None:
+    """The gate audit runs on the vendored real snapshots and is consistent.
+
+    The headline is a correspondence-gate verdict ledger: ``proved`` (round-trip
+    verified over two independently-sourced real projection rules) vs ``claimed``
+    (liftable, asserted by the alignment relation, not proved by inversion). The
+    vendored snapshots make this a REPRODUCIBLE baseline contract — pin the exact
+    numbers so any regression is caught; update deliberately (with the
+    docs/up-projection-audit.md regen) when cells or GMEOW coverage change.
+    """
+    report = gate_audit()
+    # The four tiers strictly partition every audited term.
+    proved = report["proved"]
+    claimed = report["claimed"]
+    excluded = report["red_excluded"]
+    unsupported = report["unsupported"]
+    total = report["total"]
+    assert proved + claimed + excluded + unsupported == total
+    # The liftable headline numerator is proved + claimed.
+    assert report["liftable"] == proved + claimed
+    # Pinned gate-derived baseline over the vendored corpus. The 479
+    # historically-"liftable" terms are all CLAIMS (alignment-asserted): the
+    # corpus authors no independent forward + reverse path pair, so zero terms
+    # are structurally proved-invertible — the gate machinery is exercised (and
+    # would exclude a non-inverting pair, see the Rust gate-audit tests).
+    assert (proved, claimed, excluded, unsupported, total) == (0, 479, 0, 112, 591)
+    assert report["liftable"] == 479
+    assert len(report["gaps"]) == 72
+    # gaps are de-duplicated and sorted across the corpus.
+    assert report["gaps"] == sorted(set(report["gaps"]))
+    # the markdown renders with the gate-derived headline + a gap section.
+    md = report["markdown"]
     assert "Headline:" in md and "Coverage gaps" in md
+    assert "proved-lawful" in md and "claimed" in md
 
 
-def test_no_term_double_counted_within_a_file() -> None:
-    report = run_audit()
-    for f in report.files:
-        # per_vocab counts sum to the per_term total (no term lost or doubled)
-        vocab_total = sum(sum(c.values()) for c in f.per_vocab.values())
-        assert vocab_total == f.total
+def test_per_vocab_partitions_match_the_totals() -> None:
+    """Per-vocabulary tier counts sum to the whole-audit totals."""
+    report = gate_audit()
+    for tier in ("proved", "claimed", "red_excluded", "unsupported"):
+        vocab_sum = sum(counts[tier] for counts in report["per_vocab"].values())
+        assert vocab_sum == report[tier], tier
 
 
 def test_iri_matching_no_false_gaps_from_prefix_skew() -> None:
     """The geosparql namespace appears as geo: in our cells but geosparql: in the
     real files; IRI-based matching must treat them as one term, not a false gap."""
-    from gmeow_tools.up_projection_audit import _canon_qname, _to_iri, run_audit
+    from gmeow_tools.up_projection_audit import _canon_qname, _to_iri
 
     # config curies resolve to full IRIs; the real files supply full IRIs
     # directly, so the geo: cells and the files' geosparql: usage share one IRI.
     geo_iri = "http://www.opengis.net/ont/geosparql#"
     assert _to_iri("geo:Geometry") == geo_iri + "Geometry"
     assert _canon_qname(geo_iri + "Geometry").endswith(":Geometry")
-    report = run_audit()
+    report = gate_audit()
     # geosparql geometry terms are covered (geo: cells), never reported as gaps
-    geo_gaps = [t for t in report.gaps if "Geometry" in t or "asWKT" in t]
+    geo_gaps = [t for t in report["gaps"] if "Geometry" in t or "asWKT" in t]
     assert geo_gaps == [], f"prefix-skew false gaps: {geo_gaps}"

@@ -1,18 +1,26 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Rust-backed up-projection invertibility audit (#942)."""
+"""Rust-backed up-projection invertibility audit.
+
+The audit headline and Markdown report are computed natively: each liftable
+external target term is realized as a ``logic:Correspondence`` and run through
+the five correspondence gates, so the headline is a gate-verdict ledger (proved
+/ claimed / excluded / unsupported), not a heuristic bucket count. This module
+is the thin Python surface — it gathers the SSSOM, projection-cell, and corpus
+inputs and hands them to the Rust gate-audit; it computes no count itself. The
+input-gathering helpers (``_sssom_texts``, ``_projection_ttls``,
+``_ontology_nt``, ``_canon_qname`` …) are shared by the other up-projection
+surfaces.
+"""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from functools import lru_cache
 from types import ModuleType
-from typing import cast
-
-from gmeow_rdf.compat.rdflib import Graph
+from typing import TypedDict, cast
 
 from gmeow_tools.config import (
-    FIXTURES_DIR,
+    EXTERNAL_FIXTURES_DIR,
     MAPPING_DSL_DIR,
     MAPPINGS_DIR,
     PREFIXES,
@@ -136,132 +144,58 @@ def combined_class(term: str, sssom: dict[str, str], struct: dict[str, str]) -> 
     return cast(str, _pipeline().up_projection_combined_class(term, sssom, struct))
 
 
-@dataclass
-class FileBaseline:
-    """Up-projection coverage for one real source file."""
+class TierCounts(TypedDict):
+    """The four-tier gate-verdict counts for one vocabulary (or the whole audit)."""
 
-    name: str
-    per_term: dict[str, str]
-    per_vocab: dict[str, dict[str, int]] = field(default_factory=dict)
-
-    @property
-    def liftable(self) -> int:
-        """Count of target terms with a liftable clean or claim path."""
-        return sum(
-            1 for c in self.per_term.values() if c in ("clean", "liftable-with-claim")
-        )
-
-    @property
-    def total(self) -> int:
-        """Total distinct projection-target terms used by the file."""
-        return len(self.per_term)
+    proved: int
+    claimed: int
+    red_excluded: int
+    unsupported: int
+    liftable: int
+    total: int
 
 
-@dataclass
-class AuditReport:
-    """The full per-file up-projection audit plus the corpus gap list."""
+class GateAudit(TypedDict):
+    """The gate-derived audit result: the rendered Markdown plus the verdict ledger."""
 
-    files: list[FileBaseline]
+    markdown: str
+    totals: TierCounts
+    per_vocab: dict[str, TierCounts]
     gaps: list[str]
-    sssom_total: int
-    struct_total: int
-
-    @property
-    def liftable(self) -> int:
-        """Liftable target terms across the whole corpus."""
-        return sum(f.liftable for f in self.files)
-
-    @property
-    def total(self) -> int:
-        """Total target terms across the whole corpus."""
-        return sum(f.total for f in self.files)
+    proved: int
+    claimed: int
+    red_excluded: int
+    unsupported: int
+    liftable: int
+    total: int
 
 
-def run_audit() -> AuditReport:
-    """Classify both layers and compute the real-data baseline through Rust."""
+def _corpus_ttls() -> list[tuple[str, str]]:
+    """The vendored real-world corpus snapshots as ``(name, turtle_text)`` pairs.
+
+    Fixed real RDF (``tests/fixtures/coverage/external/{bii,paudley}.ttl``) — the
+    audit number moves only by extending GMEOW or its cells, never by authoring
+    fixtures. The Turtle→NT conversion happens natively in the gate audit, so no
+    rdflib parse is needed here.
+    """
     corpus: list[tuple[str, str]] = []
     for name in ("bii", "paudley"):
-        path = FIXTURES_DIR / "external" / f"{name}.ttl"
-        if not path.exists():
-            continue
-        graph = Graph().parse(path, format="turtle")
-        corpus.append(
-            (
-                name,
-                graph.serialize(format="nt", encoding="utf-8").decode("utf-8"),
-            )
-        )
-    raw = _pipeline().up_projection_audit_nt(
-        list(_sssom_texts()), list(_projection_ttls()), corpus
-    )
-    files = [
-        FileBaseline(
-            name=file["name"],
-            per_term=dict(file["per_term"]),
-            per_vocab={
-                vocab: dict(counts) for vocab, counts in file["per_vocab"].items()
-            },
-        )
-        for file in raw["files"]
-    ]
-    return AuditReport(
-        files=files,
-        gaps=list(raw["gaps"]),
-        sssom_total=raw["sssom_total"],
-        struct_total=raw["struct_total"],
-    )
+        path = EXTERNAL_FIXTURES_DIR / f"{name}.ttl"
+        if path.exists():
+            corpus.append((name, path.read_text(encoding="utf-8")))
+    return corpus
 
 
-def render_markdown(report: AuditReport) -> str:
-    """Render the audit as the committed Markdown report."""
-    lines: list[str] = []
-    lines.append("# Up-projection invertibility audit (#449)\n")
-    lines.append(
-        "Generated by `gmeow up-projection-audit`. Coverage is measured on the "
-        "vendored real-world snapshots `tests/fixtures/coverage/external/"
-        "{bii,paudley}.ttl` — fixed real RDF, so the number moves only by "
-        "extending GMEOW or its cells, never by authoring fixtures.\n"
-    )
-    lift, tot = report.liftable, report.total
-    pct = (100 * lift // tot) if tot else 0
-    lines.append(f"## Headline: {lift}/{tot} target terms liftable ({pct}%)\n")
-    agg: dict[str, int] = {}
-    for f in report.files:
-        for c in f.per_term.values():
-            agg[c] = agg.get(c, 0) + 1
-    lines.append("| bucket | count | meaning |")
-    lines.append("|---|---|---|")
-    rows = [
-        ("clean", "free 1:1 reverse (symmetric SSSOM or simple structural cell)"),
-        (
-            "liftable-with-claim",
-            "closeMatch / multi-leg — lift with a provenance-stamped claim",
+def gate_audit() -> GateAudit:
+    """The gate-derived up-projection audit through Rust.
+
+    Returns the rendered Markdown report plus the gate-verdict ledger (``proved``
+    / ``claimed`` / ``red_excluded`` / ``unsupported`` counts, overall and
+    per-vocabulary, with the coverage-gap terms). No count is computed in Python.
+    """
+    return cast(
+        "GateAudit",
+        _pipeline().up_projection_gate_audit(
+            list(_sssom_texts()), list(_projection_ttls()), _corpus_ttls()
         ),
-        ("hard-mint", "structural minting cell — needs a hand-authored inverse"),
-        ("down-only", "relatedMatch / narrowMatch — no faithful lift"),
-        ("GAP", "no liftable cell either layer — GMEOW coverage gap"),
-    ]
-    for key, meaning in rows:
-        lines.append(f"| {key} | {agg.get(key, 0)} | {meaning} |")
-    lines.append("")
-    for f in report.files:
-        lines.append(f"## {f.name}: {f.liftable}/{f.total} liftable\n")
-        lines.append("| vocab | liftable/total | breakdown |")
-        lines.append("|---|---|---|")
-        for vocab in sorted(f.per_vocab, key=lambda v: -sum(f.per_vocab[v].values())):
-            counts = f.per_vocab[vocab]
-            liftable = counts.get("clean", 0) + counts.get("liftable-with-claim", 0)
-            lines.append(f"| {vocab} | {liftable}/{sum(counts.values())} | {counts} |")
-        lines.append("")
-    lines.append(f"## Coverage gaps ({len(report.gaps)} distinct terms)\n")
-    lines.append(
-        "Used in the real files with no liftable cell in either layer. Triage: "
-        "*has-concept-needs-cell* / *pass-through* (authority links) / "
-        "*genuine GMEOW gap* (model it or declare out-of-coverage).\n"
     )
-    if report.gaps:
-        lines.append("| term |")
-        lines.append("|---|")
-        lines.extend(f"| `{term}` |" for term in report.gaps)
-        lines.append("")
-    return "\n".join(lines)
