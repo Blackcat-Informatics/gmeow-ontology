@@ -2,7 +2,7 @@
 % Datalog projection of the canonical logic: program.
 
 % === Ground facts (axioms) ===
-type("https://example.org/teleology/concurrent-non-serializable/GoalExpression", "https://blackcatinformatics.ca/logic/GoalExpression", "default").
-type("https://example.org/teleology/concurrent-non-serializable/TransactionContract", "https://blackcatinformatics.ca/logic/ReasoningContract", "default").
+type("https://example.org/transaction/concurrent-non-serializable/GoalExpression", "https://blackcatinformatics.ca/logic/GoalExpression", "default").
+type("https://example.org/transaction/concurrent-non-serializable/TransactionContract", "https://blackcatinformatics.ca/logic/ReasoningContract", "default").
 
 % === Rules ===

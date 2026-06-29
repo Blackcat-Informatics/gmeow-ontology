@@ -9,7 +9,7 @@
 # N3 projection of the canonical logic: program.
 
 # === Axioms ===
-<https://example.org/teleology/concurrent-non-serializable/GoalExpression> a <https://blackcatinformatics.ca/logic/GoalExpression> .
-<https://example.org/teleology/concurrent-non-serializable/TransactionContract> a <https://blackcatinformatics.ca/logic/ReasoningContract> .
+<https://example.org/transaction/concurrent-non-serializable/GoalExpression> a <https://blackcatinformatics.ca/logic/GoalExpression> .
+<https://example.org/transaction/concurrent-non-serializable/TransactionContract> a <https://blackcatinformatics.ca/logic/ReasoningContract> .
 
 # === Rules ===

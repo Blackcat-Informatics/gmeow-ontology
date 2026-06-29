@@ -1,5 +1,5 @@
 {
-  "https://example.org/teleology/effect-applies-as-supersession/world": {
+  "https://example.org/transaction/effect-applies-as-supersession/world": {
     "quads": 17,
     "status": "consistent"
   }
