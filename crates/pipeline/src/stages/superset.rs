@@ -348,6 +348,14 @@ fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, Pipe
         if record.media_type.as_deref() != Some("application/x-tar") {
             continue;
         }
+        // Decode ONLY the archives that can carry a committed `generated/` file. The
+        // source archives (cells/tests) and the large docs/okf payloads back no
+        // `generated/` path — and the docs/okf archives are large enough to trip the
+        // zstd decode safety bound, so decoding them would be both wasteful and fatal.
+        let rep = record.representation.as_deref().unwrap_or_default();
+        if !crate::stages::carrier::archive_rep_carries_generated(rep) {
+            continue;
+        }
         let Some((_, entry)) = graph.blobs.iter().find(|(d, _)| d == &record.digest) else {
             continue;
         };
@@ -380,6 +388,12 @@ fn walk(dir: &Path, root: &Path, out: &mut Vec<String>) -> Result<(), PipelineEr
     for entry in entries {
         let entry = entry.map_err(|e| stage_err(&format!("dir entry in {dir:?}: {e}")))?;
         let path = entry.path();
+        // Skip hidden (dot) directories: they are runtime, never committed — e.g.
+        // `generated/.pipeline-cache/` (gitignored persistent stage cache). The gate
+        // reconstructs only committed artifacts.
+        if entry.file_name().to_string_lossy().starts_with('.') {
+            continue;
+        }
         let file_type = entry
             .file_type()
             .map_err(|e| stage_err(&format!("file type {path:?}: {e}")))?;
