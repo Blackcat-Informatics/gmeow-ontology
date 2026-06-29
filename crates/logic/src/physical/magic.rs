@@ -574,10 +574,10 @@ pub(crate) fn resolve_native(
     // (4) Project the goal predicate's derived tuples into bindings.
     let mut bindings = project_answers(&facts, goal, goal_atom.predicate.as_str());
 
-    // (5) Budget semantics, mirroring reference_resolver: truncate at max_answers
-    //     (status Partial); max_steps exhaustion (status Exhausted).  The native engine
-    //     runs to fixpoint, so we apply the answer cap on the projected set and report
-    //     Exhausted only if the step budget is below the number of answers we enumerated.
+    // (5) Budget semantics — max_answers truncation only.  The native engine runs to
+    //     fixpoint; it has no step governor.  Step-budget queries (max_steps.is_some())
+    //     are demoted at the dispatch layer before reaching here, so only max_answers
+    //     applies at this point.
     let mut status = BudgetStatus::Ok;
     if let Some(max_a) = budget.max_answers {
         // Deterministic truncation: canonicalize first so the kept prefix is stable.

@@ -334,9 +334,18 @@ pub fn dispatch_query(
     // bottom-up demand evaluation; it is authoritative for what it decides. A declared
     // gap (`NativeOutcome::Unsupported` — cut / arithmetic / non-binary / demand-breaks-
     // stratification) falls through to the demoted fast-path / Scryer fallback below.
-    match crate::physical::resolve_native(foreign, world, program, budget)? {
-        crate::physical::NativeOutcome::Decided(answer) => return Ok(answer),
-        crate::physical::NativeOutcome::Unsupported(_) => {}
+    //
+    // Step-budget demotion: the native engine runs to fixpoint and has no post-hoc step
+    // governor; it cannot stamp `BudgetStatus::Exhausted` or honour `max_steps`. When
+    // the caller supplies a step limit, route to the Scryer/fast-path fallback (which
+    // does honour it) rather than silently running unbounded and reporting the wrong
+    // status. `max_answers`-only budgets are genuinely handled natively and are NOT
+    // demoted. A query carrying BOTH fields is demoted (max_steps takes precedence).
+    if budget.max_steps.is_none() {
+        match crate::physical::resolve_native(foreign, world, program, budget)? {
+            crate::physical::NativeOutcome::Decided(answer) => return Ok(answer),
+            crate::physical::NativeOutcome::Unsupported(_) => {}
+        }
     }
 
     // (3) Fallback: cyclic IDB predicates for tabling, then the legacy router.
@@ -813,6 +822,119 @@ mod tests {
         assert!(
             msg.contains("builtin") && msg.contains(HORN_PROFILE),
             "error must name the offending profile: {msg:?}"
+        );
+    }
+
+    // ── Budget: max_steps demotion parity ─────────────────────────────────────────
+
+    #[test]
+    fn dispatch_budget_max_steps_demotes_native_and_matches_reference() {
+        // Build a chain: a→b→c→d (3 EDB parentOf edges), transitive-closure program.
+        // With a very tight max_steps budget (1), the Scryer fallback exhausts before
+        // fixpoint and reports Exhausted.  The native engine has no step governor and
+        // would silently return all 3 answers with status Ok — the demotion guard must
+        // prevent it from firing at all.
+        let store = WorldStore::new();
+        let base = "https://example.org/";
+        store.insert_quad(
+            W,
+            &format!("{base}a"),
+            &format!("{base}parentOf"),
+            &format!("{base}b"),
+        );
+        store.insert_quad(
+            W,
+            &format!("{base}b"),
+            &format!("{base}parentOf"),
+            &format!("{base}c"),
+        );
+        store.insert_quad(
+            W,
+            &format!("{base}c"),
+            &format!("{base}parentOf"),
+            &format!("{base}d"),
+        );
+        let world_nn = NamedNode::new(W).unwrap();
+        let foreign = crate::seam::WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap();
+
+        let src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:ancestor(X, Y) :- ex:parentOf(X, Y).\n\
+             ex:ancestor(X, Y) :- ex:parentOf(X, Z), ex:ancestor(Z, Y).\n\
+             ?- ex:ancestor(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+
+        // Unbudgeted dispatch goes through native and returns all 3 ancestors.
+        let full = dispatch_query(
+            &foreign,
+            &store,
+            &world_nn,
+            &prog,
+            HORN_PROFILE,
+            &Budget::default(),
+        )
+        .unwrap();
+        assert_eq!(
+            full.bindings.len(),
+            3,
+            "unbudgeted should yield all 3 ancestors"
+        );
+        assert_eq!(
+            full.status,
+            BudgetStatus::Ok,
+            "unbudgeted status must be Ok"
+        );
+
+        // Zero-step budget: reference_resolver exhausts at the very first budget_exceeded()
+        // check (steps=0 >= 0) in resolve_conjunct, reporting Exhausted with no bindings.
+        // Scryer's inference limit of 0 also fires immediately.  The native engine has no
+        // step governor and would silently return all 3 answers with status Ok; the
+        // demotion guard must prevent it from being invoked at all.
+        let tight_budget = Budget {
+            max_steps: Some(0),
+            max_answers: None,
+        };
+        let dispatched = dispatch_query(
+            &foreign,
+            &store,
+            &world_nn,
+            &prog,
+            HORN_PROFILE,
+            &tight_budget,
+        )
+        .unwrap();
+
+        // Core invariant: the native engine was NOT invoked.  If it had been, it would
+        // have returned Ok with 3 bindings; the Scryer fallback honours the step budget
+        // and returns Exhausted before collecting any answer.
+        assert_eq!(
+            dispatched.status,
+            BudgetStatus::Exhausted,
+            "a 1-step budget must be Exhausted (native would wrongly return Ok with 3 answers)"
+        );
+        assert!(
+            dispatched.bindings.len() < 3,
+            "demoted path must not deliver all 3 native answers"
+        );
+
+        // Cross-check the reference oracle under the same budget: reference_resolver hits
+        // budget_exceeded() (steps=0 >= 0) at the top of the first resolve_conjunct call
+        // and stamps Exhausted immediately.  Bindings must also match (both empty).
+        let reference =
+            crate::reference_resolver::resolve(&foreign, &world_nn, &prog, &tight_budget).unwrap();
+        assert_eq!(
+            reference.status,
+            BudgetStatus::Exhausted,
+            "reference oracle must also stamp Exhausted under a zero-step budget"
+        );
+        assert_eq!(
+            dispatched.status, reference.status,
+            "demoted dispatch status must match reference oracle under max_steps budget"
+        );
+        assert_eq!(
+            dispatched.bindings, reference.bindings,
+            "demoted dispatch bindings must match reference oracle under max_steps budget"
         );
     }
 }
