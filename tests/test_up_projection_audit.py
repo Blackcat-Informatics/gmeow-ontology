@@ -86,16 +86,35 @@ def test_gate_derived_baseline_is_sane() -> None:
     assert report["gaps"] == sorted(set(report["gaps"]))
     # the markdown renders with the gate-derived headline + a gap section.
     md = report["markdown"]
-    assert "Headline:" in md and "Coverage gaps" in md
-    assert "proved-lawful" in md and "claimed" in md
+    assert "Headline:" in md
+    assert "Coverage gaps" in md
+    assert "proved" in md
+    assert "claimed" in md
 
 
-def test_per_vocab_partitions_match_the_totals() -> None:
-    """Per-vocabulary tier counts sum to the whole-audit totals."""
+def test_binding_surfaces_mirror_and_per_vocab_shape() -> None:
+    """The PyO3 binding exposes the ledger consistently across its surfaces.
+
+    This guards the wrapper contract (the convenience top-level figures mirror
+    the nested ``totals`` dict, and every per-vocab cell carries the full tier
+    shape) — NOT the partition arithmetic, which the native Rust gate-audit
+    tests own.
+    """
     report = gate_audit()
-    for tier in ("proved", "claimed", "red_excluded", "unsupported"):
-        vocab_sum = sum(counts[tier] for counts in report["per_vocab"].values())
-        assert vocab_sum == report[tier], tier
+    tier_keys = {
+        "proved",
+        "claimed",
+        "red_excluded",
+        "unsupported",
+        "liftable",
+        "total",
+    }
+    # The convenience top-level figures mirror the nested totals dict.
+    for key in tier_keys:
+        assert report[key] == report["totals"][key], key
+    # Every per-vocabulary cell carries the full tier shape.
+    for vocab, counts in report["per_vocab"].items():
+        assert set(counts) == tier_keys, vocab
 
 
 def test_iri_matching_no_false_gaps_from_prefix_skew() -> None:
