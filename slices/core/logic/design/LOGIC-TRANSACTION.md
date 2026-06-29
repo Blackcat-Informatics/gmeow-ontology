@@ -204,8 +204,9 @@ This evaluator decides **conflict-serializability only**. The other two concerns
 separate — whether a schedule meets a declared `logic:IsolationLevel` (a guarantee strength) and
 whether a `logic:ConcurrencyControlProtocol` enforces it (a mechanism) — remain
 declared-but-not-enforced facets, together with the view-serializability edges
-(`logic:readsFrom` / `logic:happensBefore`) that have no consumer yet. Their enforcement is the
-work of [#1153](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1153).
+(`logic:readsFrom` / `logic:happensBefore`) that have no consumer yet. Enforcing isolation-level
+adequacy and protocol soundness, and minting those view-serializability edges with a real consumer,
+is future work.
 
 ## Where it connects, and what it is not
 
