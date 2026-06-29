@@ -17,6 +17,7 @@
 #![allow(dead_code)]
 
 mod magic;
+mod parity;
 mod seminaive;
 mod store;
 
