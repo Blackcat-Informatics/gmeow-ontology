@@ -13,14 +13,17 @@ repository.workspace = true
 path = "src/lib.rs"
 
 [dependencies]
-# oxigraph in-memory Store with RDF 1.2 (same version + features as the rest of
-# the workspace): load slice graphs, run the competency/structural SPARQL, and
-# compute the RDFS closure (CONSTRUCT rules) for the reasoning opt-in lane.
-oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
-# Store construction (build_store), the SHACL Finding bridge (finding_from_shacl
-# -> shacl.<LocalName>), and the scoped-overlay example-conformance path.
+# OXIGRAPH-FREE native SPARQL substrate (EPIC #906): parse slice Turtle through the
+# canonical native codec (`gmeow_rdf::parse_dataset`) into a frozen `RdfDataset`
+# (`gmeow-rdf-core`), then run the competency/structural/RDFS-closure SPARQL through
+# the native `NativeSparqlEngine` (`gmeow-sparql-eval`) — no oxigraph Store anywhere.
+gmeow-rdf = { path = "../rdf" }
+gmeow-rdf-core = { path = "../rdf-core" }
+gmeow-sparql-eval = { path = "../sparql-eval" }
+# The SHACL Finding bridge (finding_from_shacl -> shacl.<LocalName>) for the
+# example-conformance executor.
 gmeow-validate = { path = "../validate" }
-# SHACL engine: parse_shapes + validate for the ExampleConformance executor.
+# SHACL engine: parse_shapes + validate_dataset (IR-native) for the ExampleConformance executor.
 gmeow-shacl = { path = "../shacl" }
 # The canonical logic:ResultShape type contract (validate_bindings / is_satisfiable_by)
 # for the cqResultShape / cqInputShape contract check. It lives in the Nemo-FREE
@@ -29,21 +32,16 @@ gmeow-shacl = { path = "../shacl" }
 gmeow-logic-compile = { path = "../logic-compile" }
 
 # NOTE: deliberately NO gmeow-logic / Nemo dependency. Competency reasoning is
-# RDFS-only (computed natively in oxigraph; see src/stores.rs and docs/TESTING.md),
-# which is seconds, not the ~4-minute OWL 2 RL chase — and keeps Nemo out of this
-# crate's build graph entirely. The ResultShape type is taken from the Nemo-free
-# gmeow-logic-compile crate above for exactly this reason.
+# RDFS-only (computed via native CONSTRUCT rules iterated to fixpoint over the
+# native SPARQL engine; see src/stores.rs and docs/TESTING.md), which is seconds,
+# not the ~4-minute OWL 2 RL chase — and keeps Nemo out of this crate's build graph
+# entirely. The ResultShape type is taken from the Nemo-free gmeow-logic-compile
+# crate above for exactly this reason.
 
 [dev-dependencies]
 # File-driven test harness: one nextest case per discovered tests/*.ttl spec
 # file, run in parallel. The headline speed win of #784 (T3).
 datatest-stable = "0.3"
-# Native RDF text codec (#909): the test-only `store_from_turtle` helper parses
-# inline Turtle through `parse_dataset` + `store_from_dataset` (text-free IR → Store)
-# instead of oxigraph's `RdfParser`, so even the harness's parse path uses the
-# canonical native codec. Production slicetest parsing already routes through
-# `gmeow-validate::store::build_store`, so this stays a dev-dependency.
-gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts"] }
 
 [[test]]
 name = "slice_specs"
