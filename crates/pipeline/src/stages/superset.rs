@@ -111,6 +111,11 @@ pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
         || path.starts_with("generated/research-objects/")
         || path == "generated/evals/scores.ttl"
         || path == "generated/foundation/gufo.ttl"
+        // The projection-report loss ledger (no RDF-star). The reasoning closure /
+        // explanations / crosscheck are RDF-1.2 with reifiers — their graph-less
+        // side-tables do not separate cleanly under a per-file fold, so they ride a
+        // dedicated reifier-preserving path (below), not the generic fanout.
+        || path == "generated/logic/projection-report.ttl"
         // The non-EDOAL RDF projections; EDOAL keeps its dedicated graph/projections/.
         || path == "generated/projections/core-prefixes.ttl"
         || path == "generated/projections/functions.fno.ttl"

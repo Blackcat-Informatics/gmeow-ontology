@@ -342,6 +342,17 @@ fn rdf_fanout_members(
         .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing generated/foundation/gufo.ttl in stage-compile-logic"))?;
     out.insert(crate::stages::compile_logic::GUFO_PATH.to_string(), gufo);
+
+    // projection-report loss ledger (mappings) — Turtle, no RDF-star.
+    let report = upstream
+        .get("stage-mappings")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::PROJECTION_REPORT_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing projection-report.ttl in stage-mappings"))?;
+    out.insert(
+        crate::stages::compile_logic::PROJECTION_REPORT_PATH.to_string(),
+        report,
+    );
     Ok(out)
 }
 
