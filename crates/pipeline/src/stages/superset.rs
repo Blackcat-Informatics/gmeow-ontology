@@ -53,23 +53,84 @@ impl SupersetReport {
     }
 }
 
-/// A committed path carried as the fold of one named graph: the backing graph IRI
-/// whose canonical-Turtle fold equals the committed bytes. (The N-Quads-rooted form
-/// for `.nq` classes lands with the diagnostics graphs.)
-struct GraphRep {
-    iri: String,
+/// The serialization whose output equals one named graph's committed bytes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum GraphForm {
+    /// Canonical Turtle (single graph, no graph label).
+    Turtle,
+    /// N-Triples of the projected graph (no graph label).
+    NTriples,
+    /// N-Quads of the graph re-rooted into its IRI (graph label restamped).
+    NQuads,
 }
 
-/// Resolve the named-graph representative for a committed `generated/` path, or
-/// `None` if the path is not carried as a named graph (it is then expected to be
-/// an inline blob member). This is the single graph-IRI <-> path convention,
-/// shared with the producing stages so the mapping is identity in both directions.
+/// A committed path carried as the fold of one named graph: the backing graph IRI
+/// and the serialization form whose output equals the committed bytes.
+struct GraphRep {
+    iri: String,
+    form: GraphForm,
+}
+
+/// Resolve the named-graph representative for a committed `generated/` path. Every
+/// RDF output (`.ttl`/`.nt`/`.nq`) is carried as a named graph (the locked
+/// principle: RDF travels as RDF, the fold is the byte-truth); opaque outputs are
+/// inline blob members. The serialization form is fixed by the file extension and
+/// matches the form the producing stage emits the committed file with, so
+/// `file == fold` holds by construction. A path whose graph is not (yet) carried
+/// reconstructs to `None` and surfaces as `missing` — how the gate enumerates the
+/// remaining gap.
 fn graph_rep_for_path(path: &str) -> Option<GraphRep> {
-    // Classes are wired here as their producing stage starts attaching the named
-    // graph (and emitting `file == fold`). Until a class is wired, its committed
-    // paths fall through to the blob match and — if not yet carried — surface as
-    // `missing`, which is exactly how this gate enumerates the remaining gap.
-    edoal_projection_graph_iri(path).map(|iri| GraphRep { iri })
+    // EDOAL projections keep their dedicated per-file `graph/projections/<stem>`.
+    if let Some(iri) = edoal_projection_graph_iri(path) {
+        return Some(GraphRep {
+            iri,
+            form: GraphForm::Turtle,
+        });
+    }
+    if !is_rdf_fanout_class(path) {
+        return None;
+    }
+    let iri = rdf_fanout_graph_iri(path)?;
+    let form = if path.ends_with(".nt") {
+        GraphForm::NTriples
+    } else if path.ends_with(".nq") {
+        GraphForm::NQuads
+    } else {
+        GraphForm::Turtle
+    };
+    Some(GraphRep { iri, form })
+}
+
+/// Whether a committed RDF `generated/` path is carried as an RDF-fanout named graph
+/// (vs. an older dedicated rep). Both the gate (claiming the rep) and the carrier
+/// (attaching the graph) consult this single predicate, so the wired set is one
+/// authority. Classes are added here as their producing stage starts emitting the
+/// committed file as the canonical fold of its attached graph.
+pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
+    path.starts_with("generated/profiles/")
+}
+
+/// The named graph IRI for any RDF committed file under `generated/` (other than the
+/// EDOAL projections): `graph/fanout/<path-without-the-generated/-prefix>`. The
+/// producing stage attaches its graph at this IRI and the gate folds it; the mapping
+/// is an identity in both directions.
+pub(crate) const RDF_FANOUT_NS: &str = "https://blackcatinformatics.ca/gmeow/graph/fanout/";
+
+/// `Some(graph IRI)` for an RDF committed path (`.ttl`/`.nt`/`.nq`) under
+/// `generated/`, else `None` (an opaque output, carried as a blob).
+pub(crate) fn rdf_fanout_graph_iri(committed_path: &str) -> Option<String> {
+    let rest = committed_path.strip_prefix("generated/")?;
+    if !(rest.ends_with(".ttl") || rest.ends_with(".nt") || rest.ends_with(".nq")) {
+        return None;
+    }
+    Some(format!("{RDF_FANOUT_NS}{rest}"))
+}
+
+/// The committed path for an RDF-fanout graph IRI — the inverse of
+/// [`rdf_fanout_graph_iri`], used by the reverse (orphan) sweep.
+pub(crate) fn rdf_fanout_path_for_graph_iri(iri: &str) -> Option<String> {
+    iri.strip_prefix(RDF_FANOUT_NS)
+        .map(|rest| format!("generated/{rest}"))
 }
 
 /// The base IRI of every carrier named graph (mirrors `carrier::GRAPH_*`).
@@ -101,14 +162,15 @@ pub(crate) fn edoal_path_for_graph_iri(iri: &str) -> Option<String> {
     Some(format!("generated/projections/{stem}.ttl"))
 }
 
-/// Every distinct projection graph IRI present in the bundle dataset (the named
-/// graphs under `…/graph/projections/`), for the reverse orphan sweep.
-fn projection_graph_iris(dataset: &RdfDataset) -> BTreeSet<String> {
-    let prefix = format!("{GRAPH_NS}projections/");
+/// Every distinct RDF-reconstruction graph IRI in the bundle: the per-file EDOAL
+/// projection graphs (`…/graph/projections/…`) and the RDF-fanout graphs
+/// (`…/graph/fanout/…`). For the reverse orphan sweep.
+fn reconstruction_graph_iris(dataset: &RdfDataset) -> BTreeSet<String> {
+    let projections = format!("{GRAPH_NS}projections/");
     let mut out = BTreeSet::new();
     for quad in dataset.owned_quads() {
         if let Some(gmeow_rdf::RdfTerm::Iri(iri)) = &quad.graph_name {
-            if iri.starts_with(&prefix) {
+            if iri.starts_with(&projections) || iri.starts_with(RDF_FANOUT_NS) {
                 out.insert(iri.clone());
             }
         }
@@ -181,10 +243,13 @@ pub fn check_superset(root: &Path, gts_bytes: &[u8]) -> Result<SupersetReport, P
             orphan.push(format!("blob-member:{member}"));
         }
     }
-    // Named-graph orphans: every projection graph in the bundle must back a
-    // committed EDOAL file (the only named-graph reconstruction class wired so far).
-    for iri in projection_graph_iris(dataset) {
-        if let Some(path) = edoal_path_for_graph_iri(&iri) {
+    // Named-graph orphans: every RDF-reconstruction graph in the bundle (an EDOAL
+    // projection graph or an `…/graph/fanout/…` RDF-fanout graph) must back a
+    // committed file. Other carrier graphs (statements, imports, reasoning, …) are
+    // not `generated/`-reconstruction reps and are out of scope.
+    for iri in reconstruction_graph_iris(dataset) {
+        let path = edoal_path_for_graph_iri(&iri).or_else(|| rdf_fanout_path_for_graph_iri(&iri));
+        if let Some(path) = path {
             if !committed_set.contains(path.as_str()) {
                 orphan.push(format!("named-graph:{iri}"));
             }
@@ -210,11 +275,37 @@ fn reconstruct_graph(dataset: &RdfDataset, rep: &GraphRep) -> Option<Vec<u8>> {
     if projected.quad_count() == 0 {
         return None;
     }
-    Some(gmeow_rdf::turtle_normalize::render(&projected, &registry_prefixes()).into_bytes())
+    match rep.form {
+        GraphForm::Turtle => {
+            Some(gmeow_rdf::turtle_normalize::render(&projected, &rdf_prefixes()).into_bytes())
+        }
+        GraphForm::NTriples => gmeow_rdf::serialize_dataset_to_format(
+            &projected,
+            gmeow_rdf::NativeRdfFormat::NTriples,
+            None,
+        )
+        .ok()
+        .map(|outcome| outcome.bytes),
+        GraphForm::NQuads => {
+            // `project_named_graph` drops the graph label; restamp it so the N-Quads
+            // 4th column matches the committed file, then serialize.
+            let rooted = crate::stages::carrier::rooted_in_graph(&projected, &rep.iri).ok()?;
+            gmeow_rdf::serialize_dataset_to_format(
+                &rooted,
+                gmeow_rdf::NativeRdfFormat::NQuads,
+                None,
+            )
+            .ok()
+            .map(|outcome| outcome.bytes)
+        }
+    }
 }
 
-/// The project's single prefix authority, for the canonical Turtle renderer.
-fn registry_prefixes() -> Vec<(String, String)> {
+/// The project's single prefix authority for the canonical Turtle renderer — shared
+/// by the gate (folding a carried named graph) and every producing stage that emits
+/// an RDF file as `canonical_turtle(body, rdf_prefixes())`, so `file == fold` holds
+/// by construction (identical prefix selection on both legs).
+pub(crate) fn rdf_prefixes() -> Vec<(String, String)> {
     gmeow_logic_compile::ingest::prefixes::registry_pairs()
 }
 
@@ -355,8 +446,14 @@ mod tests {
         b.push_quad(s, p, o, Some(g));
         let dataset = b.freeze().expect("freeze");
 
-        let turtle = reconstruct_graph(&dataset, &GraphRep { iri: G.to_string() })
-            .expect("turtle reconstruction");
+        let turtle = reconstruct_graph(
+            &dataset,
+            &GraphRep {
+                iri: G.to_string(),
+                form: GraphForm::Turtle,
+            },
+        )
+        .expect("turtle reconstruction");
         let turtle = String::from_utf8(turtle).expect("utf8");
         assert!(turtle.contains("align:Alignment") || turtle.contains(O));
         assert!(
@@ -369,6 +466,7 @@ mod tests {
             &dataset,
             &GraphRep {
                 iri: "https://blackcatinformatics.ca/gmeow/graph/absent".to_string(),
+                form: GraphForm::Turtle,
             },
         )
         .is_none());

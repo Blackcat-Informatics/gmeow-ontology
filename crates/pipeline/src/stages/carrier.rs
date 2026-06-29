@@ -283,8 +283,36 @@ fn assemble_carrier(
             datasets.push(parse_into_graph(&bytes, "text/turtle", &iri)?);
         }
     }
+    // graph/fanout/<path> ← every other RDF generated/ file, one named graph per file,
+    // recomputed from THIS run's source. Each producing stage emits the committed file
+    // as the canonical fold of these triples, so the superset gate reconstructs them
+    // byte-for-byte (PIPELINE_SPINE §5; RDF travels as RDF, never a blob).
+    for (path, bytes) in rdf_fanout_members(root)? {
+        let iri = crate::stages::superset::rdf_fanout_graph_iri(&path)
+            .ok_or_else(|| stage_err(&format!("non-RDF path in rdf_fanout_members: {path}")))?;
+        let media_type = if path.ends_with(".nt") {
+            "application/n-triples"
+        } else if path.ends_with(".nq") {
+            "application/n-quads"
+        } else {
+            "text/turtle"
+        };
+        datasets.push(parse_into_graph(&bytes, media_type, &iri)?);
+    }
     let refs: Vec<&gmeow_rdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
     Ok(std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&refs)))
+}
+
+/// Every remaining RDF `generated/` file (committed-path → bytes) that rides as an
+/// RDF-fanout named graph, recomputed from THIS run's source. Each is the canonical
+/// fold the producing stage also emits as its committed file. Grows class-by-class.
+fn rdf_fanout_members(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    // profiles — `owl:Ontology` import closures, emitted as canonical Turtle.
+    for (name, ttl) in crate::stages::profiles::render_profiles(root)? {
+        out.insert(format!("generated/profiles/{name}"), ttl.into_bytes());
+    }
+    Ok(out)
 }
 
 /// Assemble the OBJECT-LEVEL reasoned EDB: the authored default graph plus the
