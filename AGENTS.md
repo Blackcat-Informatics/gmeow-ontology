@@ -268,8 +268,11 @@ paths — every case drives `run_scryer`, paying a ~9-10 s Scryer
 machine-construction floor that process-per-test cannot share; several reach
 19-34 s; engine-construction-bound like `ontology_entailments`); the
 `gmeow-pipeline` `end_to_end`/`fold_parity`/full-fold/snapshot-codec/mapping-parity
-tests, including the EDOAL/SPARQL corpus parity oracle
-`sparql_lowering_matches_committed_corpus_modulo_order`; scoreboards-acceptance
+tests, including the twin EDOAL/SPARQL corpus parity oracles
+`edoal_lowering_matches_committed_corpus` +
+`sparql_lowering_matches_committed_corpus_modulo_order` (both lower from one shared
+get-leg model over the full DSL+ontology merge — irreducibly O(ontology-size));
+scoreboards-acceptance
 tests; the `gmeow-pipeline`
 `dist_jsonld_roundtrips_through_oxigraph` + `product_routing`
 `compiler_products_are_first_class_dag_artifacts` tests (both round-trip / route the
