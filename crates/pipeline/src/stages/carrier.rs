@@ -312,6 +312,13 @@ fn rdf_fanout_members(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeline
     for (name, ttl) in crate::stages::profiles::render_profiles(root)? {
         out.insert(format!("generated/profiles/{name}"), ttl.into_bytes());
     }
+    // research-objects — the RO-crate `.ttl` re-serializations + the `lillith.dcat.ttl`
+    // CONSTRUCT (opaque JSON/HTML/XML members ride the opaque fanout blob).
+    for (path, bytes) in crate::stages::research_objects::render_research_objects(root)? {
+        if is_rdf_member(&path) {
+            out.insert(path, bytes);
+        }
+    }
     Ok(out)
 }
 
