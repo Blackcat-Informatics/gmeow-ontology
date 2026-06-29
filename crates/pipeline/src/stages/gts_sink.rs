@@ -101,90 +101,74 @@ mod tests {
     }
 
     #[test]
-    fn sink_re_emits_the_snapshot_bytes_verbatim() {
-        // The sink now consumes the assembled `stage-snapshot` product and just
-        // re-emits its `gmeow.gts` bytes. Build a snapshot product the way the
-        // SnapshotStage would, run the sink over it, and assert byte-equality.
+    fn sink_serializes_the_snapshot_carrier_with_blob_inputs() {
+        // Build the minimal upstream product set the sink requires: a snapshot
+        // carrier plus by-reference blob sources. Full real-DAG coverage lives in
+        // the end-to-end pipeline test; this unit test pins the sink's fail-closed
+        // artifact wiring without paying for reasoning and snapshot assembly.
         let root = repo_root();
-        let (_, rdf12) = crate::stages::statements::compile_statements(&root).unwrap();
-        let docs = crate::stages::docs_render::render_docs_graph(&root).unwrap();
+        let carrier = gmeow_rdf::parse_dataset(
+            b"<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
+              <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n\
+              <https://example.org/s> <https://example.org/p> <https://example.org/o> .\n",
+            "application/n-triples",
+            None,
+        )
+        .expect("minimal carrier dataset");
+        let snapshot =
+            StageProduct::from_artifacts_over("stage-snapshot", carrier, BTreeMap::new());
 
-        let mut snap_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        let mut st: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        st.insert(
-            crate::stages::statements::RDF12_PATH.to_string(),
-            rdf12.into_bytes(),
-        );
-        snap_upstream.insert(
-            "stage-statements".to_string(),
-            StageProduct::from_artifacts("stage-statements", st),
-        );
-        let mut dc: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        dc.insert(
-            crate::stages::docs_render::DOCS_GRAPH_PATH.to_string(),
-            docs.into_bytes(),
-        );
-        snap_upstream.insert(
-            "stage-docs-render".to_string(),
-            StageProduct::from_artifacts("stage-docs-render", dc),
-        );
-        let mut vd: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        vd.insert(
-            crate::stages::validate::SHACL_RDF_PATH.to_string(),
-            Vec::new(),
-        );
-        snap_upstream.insert(
-            "stage-validate".to_string(),
-            StageProduct::from_artifacts("stage-validate", vd),
-        );
-        // The snapshot now folds the compiler's loss ledger + diagnostics; provide the
-        // real stage-compile-logic product the SnapshotStage would consume.
-        let compile = crate::stages::compile_logic::CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &BTreeMap::new(),
-            })
-            .expect("compile-logic stage");
-        snap_upstream.insert("stage-compile-logic".to_string(), compile.product.clone());
-        // The snapshot now reads the FINAL projection-report loss ledger from the
-        // mappings product (logic rows ∪ correspondence rows); run the real mappings
-        // stage over the compile-logic product so the report is present.
-        let mut mappings_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        mappings_upstream.insert("stage-compile-logic".to_string(), compile.product);
-        let mappings = crate::stages::mappings::MappingsStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &mappings_upstream,
-            })
-            .expect("mappings stage");
-        snap_upstream.insert("stage-mappings".to_string(), mappings.product);
-        // The snapshot folds the external-corpus divergence Findings; provide the
-        // real stage-conformance product the SnapshotStage would consume.
-        let conformance = crate::stages::conformance::ConformanceStage
-            .run(StageInput {
-                root: &root,
-                upstream: &BTreeMap::new(),
-            })
-            .expect("conformance stage");
-        snap_upstream.insert("stage-conformance".to_string(), conformance.product);
+        let mut compile_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        for path in [
+            "generated/owl/gmeow-dl.ttl",
+            "generated/owl/gmeow-el.ttl",
+            "generated/logic/gmeow.logic.rdf12.ttl",
+            "generated/logic/gmeow.rls",
+            "generated/datalog/gmeow.dl",
+        ] {
+            compile_artifacts.insert(path.to_string(), Vec::new());
+        }
+        let compile = StageProduct::from_artifacts("stage-compile-logic", compile_artifacts);
 
-        let gts =
-            crate::stages::carrier::build_snapshot(&root, &snap_upstream, Vec::new(), Vec::new())
-                .expect("build_snapshot");
-        assert!(
-            gts.len() > 1024,
-            "GTS bundle implausibly small: {} bytes",
-            gts.len()
+        let mut json_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        json_artifacts.insert(
+            crate::stages::json_schema::JSON_SCHEMA_PATH.to_string(),
+            b"{}".to_vec(),
         );
+        json_artifacts.insert(
+            crate::stages::json_schema::OPENAPI_PATH.to_string(),
+            b"{}".to_vec(),
+        );
+        let json_schema = StageProduct::from_artifacts("stage-export-json-schema", json_artifacts);
 
-        // Hand the assembled snapshot to the sink as the `stage-snapshot` product.
-        let mut snap_art: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        snap_art.insert(GTS_PATH.to_string(), gts.clone());
+        let mut reason_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        reason_artifacts.insert(
+            crate::stages::reason::EXPLANATIONS_PATH.to_string(),
+            b"# explanations".to_vec(),
+        );
+        reason_artifacts.insert(
+            crate::stages::reason::LEDGER_PATH.to_string(),
+            b"# ledger".to_vec(),
+        );
+        let reason = StageProduct::from_artifacts("stage-reason", reason_artifacts);
+
+        let mut validate_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        validate_artifacts.insert(
+            crate::stages::validate::SHACL_JSON_PATH.to_string(),
+            b"{}".to_vec(),
+        );
+        validate_artifacts.insert(
+            crate::stages::validate::SHACL_SARIF_PATH.to_string(),
+            b"{}".to_vec(),
+        );
+        let validate = StageProduct::from_artifacts("stage-validate", validate_artifacts);
+
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        upstream.insert(
-            "stage-snapshot".to_string(),
-            StageProduct::from_artifacts("stage-snapshot", snap_art),
-        );
+        upstream.insert("stage-compile-logic".to_string(), compile);
+        upstream.insert("stage-export-json-schema".to_string(), json_schema);
+        upstream.insert("stage-reason".to_string(), reason);
+        upstream.insert("stage-snapshot".to_string(), snapshot);
+        upstream.insert("stage-validate".to_string(), validate);
         let out = GtsSinkStage::new()
             .run(StageInput {
                 root: &root,
@@ -195,7 +179,11 @@ mod tests {
             .product
             .artifact(GTS_PATH)
             .expect("sink emits gmeow.gts");
-        assert_eq!(emitted, gts.as_slice(), "sink must re-emit verbatim");
+        assert!(
+            emitted.len() > 1024,
+            "GTS bundle implausibly small: {} bytes",
+            emitted.len()
+        );
 
         // Round-trips through the kernel GTS importer (the bundle is well-formed).
         let _ = gmeow_rdf::import_gts_events(emitted).expect("import_gts_events");

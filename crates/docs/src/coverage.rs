@@ -4,7 +4,7 @@
 //! Documentation-coverage status — the SINGLE source of the per-term coverage
 //! predicates.
 //!
-//! Both the lint gate ([`crate::lint`], which emits a `docs/missing-*` warning per
+//! Both the lint gate ([`crate::lint()`], which emits a `docs/missing-*` warning per
 //! absent dimension) and the rendered docs site ([`crate::render`], which surfaces
 //! coverage on each term page and the documentation-health page) read coverage
 //! from here. Keeping the predicates in one place means the gate count and the

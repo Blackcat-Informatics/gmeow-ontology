@@ -5,7 +5,7 @@
 //! `gmeow_native.foundation` submodule (#944).
 //!
 //! Only this module imports `pyo3`, gated by the `python` feature, so the engine
-//! core stays PyO3-free. [`import_foundation`] is the single Python surface that
+//! core stays PyO3-free. `import_foundation` is the single Python surface that
 //! replaces the retired `gmeow_tools.foundation_import`: it runs the full import
 //! into `out_dir` and returns the budget-report text (the CLI prints it).
 
@@ -29,7 +29,7 @@ fn import_foundation(jsonl: String, out_dir: String, nq: Option<String>) -> PyRe
 }
 
 /// Register the `gmeow_native.foundation` submodule. Called by the unified
-/// `gmeow_native` cdylib (#630); exposes [`import_foundation`].
+/// `gmeow_native` cdylib (#630); exposes `import_foundation`.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(import_foundation, m)?)?;
     Ok(())

@@ -411,7 +411,12 @@ def reason_native(
     from gmeow_tools.box_roles import audit_box_roles
 
     gts_bytes = gts.read_bytes()
-    result = gmeow_logic.reason_native(gts_bytes)
+    if hasattr(gmeow_logic, "reason_native_with_artifacts"):
+        result = gmeow_logic.reason_native_with_artifacts(gts_bytes, merge)
+        artifacts = result["artifacts"]
+    else:  # pragma: no cover - compatibility for older native wheels
+        result = gmeow_logic.reason_native(gts_bytes)
+        artifacts = gmeow_logic.reason_native_artifacts(gts_bytes, merge)
 
     derived = [a for a in result.get("inferred", []) if not a.get("is_edb")]
     gaps = result.get("gaps", [])
@@ -523,12 +528,11 @@ def reason_native(
             )
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    # The RDF 1.2 closure Turtle is emitted natively (Rust + gmeow-rdf): the
-    # gmeow-logic engine reasons the bundle once and serializes the artifact
-    # through the gmeow-rdf RDF 1.2 Turtle emitter. `--merge` prepends the
-    # asserted (told) graph so the document is the union of asserted and derived
-    # axioms; otherwise it carries only the derived closure.
-    artifacts = gmeow_logic.reason_native_artifacts(gts_bytes, merge)
+    # The RDF 1.2 closure Turtle is emitted natively (Rust + gmeow-rdf) from
+    # the same native reasoning pass that produced the diagnostics above.
+    # `--merge` prepends the asserted (told) graph so the document is the union
+    # of asserted and derived axioms; otherwise it carries only the derived
+    # closure.
     (output_dir / "gmeow-inferred-closure.rdf12.ttl").write_text(
         artifacts["closure"], encoding="utf-8"
     )
