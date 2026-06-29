@@ -603,7 +603,7 @@ ASK {
     gmeow:saRationale "logic:ConcurrentComposition MUST NOT be a subclass of logic:SerializabilityCriterion (or any of the three concurrency correctness concerns): it is the COMPOSITION OPERATOR, while SerializabilityCriterion is a correctness PROPERTY OF A HISTORY — the three concurrency concerns are kept pairwise distinct precisely because they are not interchangeable." .
 
 # === Semantics-aware validator findings + scoped coherence certificate ========
-# The slice carries its own correctness claims for the ME13 vocabulary as ontology
+# The slice carries its own correctness claims for the coherence-certificate vocabulary as ontology
 # data: the 8-way finding taxonomy, the two completeness-gated coherence artifacts,
 # and the payload that scopes them. The runtime gate (conclusive->Certificate,
 # bounded->Attestation, forbidden glut->refused) is authored canonically in Rust
@@ -652,7 +652,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     logic:FindingPermittedEpistemicConflict owl:sameAs logic:FindingContradictionWitness .
 }""" ;
-    gmeow:saRationale "The permitted, disclosed conflict MUST NOT be identified with the forbidden contradiction witness -- they are distinct logic:FindingCategory individuals. This is the load-bearing distinction: a glut under a glut-admitting contract is coherent (non-failing), a glut under a glut-forbidding one is an integrity violation; collapsing them would erase the central ME13 claim." .
+    gmeow:saRationale "The permitted, disclosed conflict MUST NOT be identified with the forbidden contradiction witness -- they are distinct logic:FindingCategory individuals. This is the load-bearing distinction: a glut under a glut-admitting contract is coherent (non-failing), a glut under a glut-forbidding one is an integrity violation; collapsing them would erase the central coherence-certificate claim." .
 
 # --- 38. The scoped coherence payload properties exist (MUST) -----------------
 ex:saCoherencePayloadPropertiesExist a gmeow:StructuralAssertion ;
