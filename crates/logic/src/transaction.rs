@@ -585,14 +585,14 @@ pub(crate) fn root_execution_mode(facts: &WorldFacts, root: &str) -> Result<Exec
     let contracts = facts.objects(root, &logic(EXECUTED_UNDER_CONTRACT));
     let contract = match contracts.len() {
         0 => return Ok(ExecutionMode::Committed),
-        1 => contracts[0].to_owned(),
+        1 => contracts[0],
         n => {
             return Err(format!(
                 "transaction-program node {root:?} has {n} logic:executedUnderContract links (at most one governing contract allowed)"
             ))
         }
     };
-    let modes = facts.objects(&contract, &logic(EXECUTION_MODE));
+    let modes = facts.objects(contract, &logic(EXECUTION_MODE));
     match modes.len() {
         0 => Ok(ExecutionMode::Committed),
         1 => {
@@ -721,9 +721,17 @@ pub(crate) fn emit_transaction_outcome(
     // for free). The verdict above is observable in BOTH modes; the substrate below is the
     // committed effect that the sandbox operator discards.
     if mode == ExecutionMode::Hypothetical {
+        // `sits` is a BTreeSet, so iteration is already lexically ordered — the hash input is
+        // deterministic without an explicit sort; borrow the elements rather than cloning them.
         let key =
             crate::versioning::hypothetical_run_key(&crate::versioning::HypotheticalRunKeyInputs {
-                start_state_hash: blake3_32(&sits.iter().cloned().collect::<Vec<_>>().join("\n")),
+                start_state_hash: blake3_32(
+                    &sits
+                        .iter()
+                        .map(String::as_str)
+                        .collect::<Vec<_>>()
+                        .join("\n"),
+                ),
                 program_hash: blake3_32(&format!("{program:?}")),
                 world: world.to_owned(),
                 solver_version: crate::counterfactual::SOLVER_VERSION.to_owned(),
