@@ -181,8 +181,7 @@ def _corpus_ttls() -> list[tuple[str, str]]:
     corpus: list[tuple[str, str]] = []
     for name in ("bii", "paudley"):
         path = EXTERNAL_FIXTURES_DIR / f"{name}.ttl"
-        if path.exists():
-            corpus.append((name, path.read_text(encoding="utf-8")))
+        corpus.append((name, path.read_text(encoding="utf-8")))
     return corpus
 
 

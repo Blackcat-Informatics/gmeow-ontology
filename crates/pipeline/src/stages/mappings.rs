@@ -245,13 +245,11 @@ fn fold_up_projection_audit(
             .join("coverage")
             .join("external")
             .join(format!("{name}.ttl"));
-        if path.exists() {
-            let ttl = std::fs::read_to_string(&path)
-                .map_err(|e| stage_err(format!("read {path:?}: {e}")))?;
-            let nt = crate::up_projection::ttl_to_nt(&ttl)
-                .map_err(|e| stage_err(format!("corpus {name} ttl→nt: {e}")))?;
-            corpus_nts.push((name.to_string(), nt));
-        }
+        let ttl =
+            std::fs::read_to_string(&path).map_err(|e| stage_err(format!("read {path:?}: {e}")))?;
+        let nt = crate::up_projection::ttl_to_nt(&ttl)
+            .map_err(|e| stage_err(format!("corpus {name} ttl→nt: {e}")))?;
+        corpus_nts.push((name.to_string(), nt));
     }
 
     let ledger =
