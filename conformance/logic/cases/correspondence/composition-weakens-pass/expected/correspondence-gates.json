@@ -2,6 +2,7 @@
   "per_composition": [
     {
       "composed_class": "LossyLens",
+      "composed_law_status": "ObligationUnknown",
       "composition": {
         "status": "pass"
       },

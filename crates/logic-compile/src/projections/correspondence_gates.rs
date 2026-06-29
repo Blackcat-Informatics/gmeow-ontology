@@ -84,6 +84,9 @@ pub struct CompositionGateReport {
     pub right: String,
     /// The computed lattice-join rung (the weakest rung the composite may claim).
     pub composed_class: String,
+    /// The composed law status by weakest-dominates: the weaker of the two parts' aggregate
+    /// discharge verdicts (the strongest law the composite may claim).
+    pub composed_law_status: String,
     /// The Composition gate verdict.
     pub composition: GateVerdict,
 }
@@ -281,6 +284,7 @@ fn composition_gate(
             left: left.to_owned(),
             right: right.to_owned(),
             composed_class: String::new(),
+            composed_law_status: String::new(),
             composition: GateVerdict::Red {
                 reason: "composition references a correspondence not present in the program"
                     .to_owned(),
@@ -292,6 +296,12 @@ fn composition_gate(
     // the weakening lattice. It is NOT a rung-membership test; those use the explicit
     // `is_injective_rung` predicate. Do not "fix" this `max`/`<` into a `matches!`.
     let join = l.morphism_class.max(r.morphism_class);
+    // Law-status by weakest-dominates: the composite may claim no stronger discharge verdict
+    // than the WEAKER of its parts'. The rung-class join already carries the loss ordering
+    // (a weaker rung is the more-lossy one — the spine IS the unsupported-construct lattice),
+    // so the loss dimension is enforced by the class check above; this adds the orthogonal
+    // law-status dimension (LOGIC-CONFORMANCE.md § Composition gate).
+    let join_status = weaker_law_status(aggregate_law_status(l), aggregate_law_status(r));
     let verdict = match composite {
         Some(comp_iri) => match lookup(comp_iri) {
             Some(comp) => {
@@ -305,6 +315,18 @@ fn composition_gate(
                             join.as_str(),
                             l.morphism_class.as_str(),
                             r.morphism_class.as_str(),
+                        ),
+                    }
+                } else if law_status_strength(aggregate_law_status(comp))
+                    > law_status_strength(join_status)
+                {
+                    GateVerdict::Red {
+                        reason: format!(
+                            "composite law status logic:{} is STRONGER than the weakest-dominates \
+                             join logic:{} of its parts; a composite may not discharge a law its \
+                             parts leave unverified or violated",
+                            aggregate_law_status(comp).as_str(),
+                            join_status.as_str(),
                         ),
                     }
                 } else {
@@ -322,8 +344,41 @@ fn composition_gate(
         left: left.to_owned(),
         right: right.to_owned(),
         composed_class: join.as_str().to_owned(),
+        composed_law_status: join_status.as_str().to_owned(),
         composition: verdict,
     }
+}
+
+/// The composition strength of a discharge verdict (EXPLICIT, never the derived `Ord` on
+/// [`DischargeVerdict`] — whose declaration order is Discharged/Unknown/Violated, the
+/// REVERSE of strength, so a derived comparison would invert the law). Violated is weakest,
+/// Discharged strongest.
+fn law_status_strength(v: DischargeVerdict) -> u8 {
+    match v {
+        DischargeVerdict::ObligationViolated => 0,
+        DischargeVerdict::ObligationUnknown => 1,
+        DischargeVerdict::ObligationDischarged => 2,
+    }
+}
+
+/// The weaker of two law statuses (weakest-dominates).
+fn weaker_law_status(a: DischargeVerdict, b: DischargeVerdict) -> DischargeVerdict {
+    if law_status_strength(a) <= law_status_strength(b) {
+        a
+    } else {
+        b
+    }
+}
+
+/// A correspondence's aggregate law status: the WEAKEST discharge verdict among its law
+/// claims (the weakest claim caps the cell). A cell with no law claims asserts no discharged
+/// law, so its status is `ObligationUnknown` — it cannot license a composite's discharged law.
+fn aggregate_law_status(c: &Correspondence) -> DischargeVerdict {
+    c.law_claims
+        .iter()
+        .map(|cl| cl.verdict)
+        .min_by_key(|v| law_status_strength(*v))
+        .unwrap_or(DischargeVerdict::ObligationUnknown)
 }
 
 /// Run the five gates over a (derived) correspondence program plus any declared

@@ -272,6 +272,64 @@ fn mnemomorphic_on_non_injective_rung_is_mnemomorphism_red() {
 }
 
 #[test]
+fn composition_law_status_overclaim_is_red() {
+    // Both parts are lossy lenses whose authored law status is ObligationUnknown (the honest
+    // unverified verdict). The composite is also a lossy lens (so the rung-class check passes
+    // — not stronger than the join) but claims a DISCHARGED SectionLaw. A composite may not
+    // discharge a law its parts leave unverified → law-status RED even though the rung is
+    // fine. (Built UN-derived so the authored statuses are exactly what the gate sees; the
+    // composite's own law gate is irrelevant — the COMPOSITION is the violation under test.)
+    let mk = |name: &str, verdict, law| {
+        corr(
+            &format!("{GMEOW}ex/{name}"),
+            CorrespondenceRelation::Overlaps,
+            MorphismClass::LossyLens,
+            MorphismKind::InstitutionMorphism,
+            false,
+            Some(&format!("{GMEOW}ex/{name}Get")),
+            None,
+            vec![LawClaimIr {
+                law,
+                verdict,
+                condition: None,
+            }],
+        )
+    };
+    let left = mk(
+        "lsLeft",
+        DischargeVerdict::ObligationUnknown,
+        CorrespondenceLaw::PutGet,
+    );
+    let right = mk(
+        "lsRight",
+        DischargeVerdict::ObligationUnknown,
+        CorrespondenceLaw::PutGet,
+    );
+    let composite = mk(
+        "lsComposite",
+        DischargeVerdict::ObligationDischarged,
+        CorrespondenceLaw::SectionLaw,
+    );
+    let comps = vec![(
+        format!("{GMEOW}ex/lsLeft"),
+        format!("{GMEOW}ex/lsRight"),
+        Some(format!("{GMEOW}ex/lsComposite")),
+    )];
+    let report = evaluate_gates(&program(vec![left, right, composite]), &comps);
+    let comp = &report.per_composition[0];
+    assert_eq!(
+        comp.composed_class, "LossyLens",
+        "rung join is not stronger"
+    );
+    assert_eq!(comp.composed_law_status, "ObligationUnknown");
+    assert!(
+        comp.composition.is_red(),
+        "law-status overclaim must RED: {:?}",
+        comp.composition
+    );
+}
+
+#[test]
 fn composition_weakens_passes() {
     let iso = corr(
         &format!("{GMEOW}ex/cIso"),
