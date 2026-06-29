@@ -753,4 +753,218 @@ logic:strict rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:
         };
         assert!(ContradictionPolicy::for_contract(&garbled).is_err());
     }
+
+    // ── Facet-combination completeness sweep (#766 ME1 watch-item) ────────────
+    //
+    // The unit tests above each pin ONE forbidden combination. They do not answer
+    // the meta-epic's standing question: as facets multiply, is the feature model
+    // *complete* — does `check` fire EXACTLY the right rules over the whole space of
+    // facet combinations, never silently approximating a forbidden contract to a
+    // supported one (a false-supported) and never rejecting a sound one (a
+    // false-unsupported)? This block enumerates the full cross-product of the
+    // rule-participating facet domains and checks every contract against an
+    // INDEPENDENT oracle — a second, hand-written statement of the three documented
+    // forbidden combinations that does NOT call [`check`], [`RULES`], [`FacetRef`],
+    // or [`admits_gap_or_glut`]. Agreement across the whole product is the
+    // completeness witness; a divergence is a real soundness bug, not flakiness.
+
+    /// The value domains the sweep varies, one tuple field per rule-participating
+    /// facet (plus `None`/absent where the facet is optional). Deliberately
+    /// INDEPENDENT of the production value lists — if a new facet value gains a rule,
+    /// it must be added here too, and the completeness guard
+    /// (`sweep_reaches_every_table_rule`) fails loudly until it is.
+    const SWEEP_MODEL_SEMANTICS: &[Option<&str>] = &[
+        None,
+        Some("LeastModelSemantics"),
+        Some("StratifiedSemantics"),
+        Some("WellFoundedSemantics"),
+        Some("StableModelSemantics"),
+    ];
+    const SWEEP_TRUTH_ALGEBRA: &[Option<&str>] =
+        &[None, Some("BelnapBilattice"), Some("TwoValuedBoolean")];
+    const SWEEP_REVISION: &[Option<&str>] = &[
+        None,
+        Some("MonotonicRevision"),
+        Some("EntrenchmentRevision"),
+    ];
+    const SWEEP_DEFAULT_CLOSURE: &[Option<&str>] =
+        &[None, Some("OpenWorldClosure"), Some("ClosedWorldClosure")];
+    const SWEEP_ADMISSIBLE_VALUATION: &[Option<&str>] = &[
+        None,
+        Some("AdmitAllFour"),
+        Some("ForbidGap"),
+        Some("ForbidGlut"),
+        Some("ForbidGapAndGlut"),
+    ];
+
+    /// The independent oracle: the set of rule-ids that SHOULD fire for `c`, derived
+    /// by re-stating the three documented forbidden combinations by hand
+    /// (LOGIC-CONTRACT.md), with NO reference to the production
+    /// `RULES`/`FacetRef`/`admits_gap_or_glut`. This is intentionally a separate
+    /// implementation so the sweep tests intent, not a tautology against the table.
+    fn oracle_fired_ids(c: &ReasoningContract) -> std::collections::BTreeSet<&'static str> {
+        let mut ids = std::collections::BTreeSet::new();
+
+        // Rule 1: a probabilistic uncertainty measure cannot coexist with stable-model
+        // semantics (no calibrated mass over incomparable answer sets).
+        let probabilistic = c
+            .uncertainty_measures
+            .iter()
+            .any(|m| m == "ProbabilisticMeasure");
+        let stable_model = c.model_semantics.as_deref() == Some("StableModelSemantics");
+        if probabilistic && stable_model {
+            ids.insert("RuleNoProbabilisticStableModel");
+        }
+
+        // Rule 2: a paraconsistent valuation — a gap/glut-admitting admissibleValuation
+        // (anything but the classical gap-and-glut-forbidding policy) OR the Belnap
+        // bilattice truth algebra — cannot coexist with counterfactual entrenchment
+        // revision.
+        let counterfactual = c.revision.as_deref() == Some("EntrenchmentRevision");
+        let valuation_admits_gap_or_glut = matches!(
+            c.admissible_valuation.as_deref(),
+            Some("AdmitAllFour") | Some("ForbidGap") | Some("ForbidGlut")
+        );
+        let belnap = c.truth_algebra.as_deref() == Some("BelnapBilattice");
+        if (valuation_admits_gap_or_glut || belnap) && counterfactual {
+            ids.insert("RuleNoParaconsistentCounterfactualRevision");
+        }
+
+        // Rule 3: closed-world closure — the default closure OR any per-key closure
+        // entry — cannot coexist with counterfactual entrenchment revision (its
+        // generated states are open-ended).
+        let closed_world_anywhere = c.default_closure.as_deref() == Some("ClosedWorldClosure")
+            || c.closure_entries
+                .values()
+                .any(|v| v == "ClosedWorldClosure");
+        if closed_world_anywhere && counterfactual {
+            ids.insert("RuleNoClosedWorldInCounterfactual");
+        }
+
+        ids
+    }
+
+    /// Extract the rule-ids `check` actually fired from its verdict, by parsing the
+    /// `[{id}] {reason}` prefix each reason carries (the format `check` builds).
+    fn fired_ids_from_verdict(verdict: &ContractVerdict) -> std::collections::BTreeSet<String> {
+        match verdict {
+            ContractVerdict::Supported => std::collections::BTreeSet::new(),
+            ContractVerdict::Unsupported(reasons) => reasons
+                .iter()
+                .map(|r| {
+                    let id = r
+                        .strip_prefix('[')
+                        .and_then(|s| s.split_once(']'))
+                        .map(|(id, _)| id)
+                        .unwrap_or_else(|| panic!("reason not in `[id] ...` form: {r}"));
+                    id.to_owned()
+                })
+                .collect(),
+        }
+    }
+
+    /// Build every contract in the swept cross-product, invoking `body` on each.
+    /// 5 × 3 × 3 × 3 × 5 (singletons) × 2 (probabilistic measure) × 2 (per-key
+    /// closed-world entry) = 8100 contracts; each `check` is µs-scale, so the whole
+    /// sweep is well inside the 25 s/test budget.
+    fn for_each_swept_contract(mut body: impl FnMut(&ReasoningContract)) {
+        for &model in SWEEP_MODEL_SEMANTICS {
+            for &algebra in SWEEP_TRUTH_ALGEBRA {
+                for &revision in SWEEP_REVISION {
+                    for &closure in SWEEP_DEFAULT_CLOSURE {
+                        for &valuation in SWEEP_ADMISSIBLE_VALUATION {
+                            for &probabilistic in &[false, true] {
+                                for &per_key_closed_world in &[false, true] {
+                                    let mut c = ReasoningContract::new();
+                                    c.model_semantics = model.map(str::to_owned);
+                                    c.truth_algebra = algebra.map(str::to_owned);
+                                    c.revision = revision.map(str::to_owned);
+                                    c.default_closure = closure.map(str::to_owned);
+                                    c.admissible_valuation = valuation.map(str::to_owned);
+                                    if probabilistic {
+                                        c.uncertainty_measures
+                                            .insert("ProbabilisticMeasure".to_owned());
+                                    }
+                                    if per_key_closed_world {
+                                        c.closure_entries.insert(
+                                            "ex:pred".to_owned(),
+                                            "ClosedWorldClosure".to_owned(),
+                                        );
+                                    }
+                                    body(&c);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn sweep_check_agrees_with_the_independent_oracle() {
+        // The completeness assertion: over the WHOLE facet cross-product, `check`
+        // fires exactly the rule set an independent oracle says it must. This pins
+        // BOTH directions at once — no false-supported (a forbidden combo silently
+        // approximated to Supported) and no false-unsupported (a sound combo
+        // rejected) — for every combination, not just the hand-picked unit cases.
+        for_each_swept_contract(|c| {
+            let verdict = check(c);
+            let actual = fired_ids_from_verdict(&verdict);
+            let expected: std::collections::BTreeSet<String> =
+                oracle_fired_ids(c).into_iter().map(str::to_owned).collect();
+            assert_eq!(
+                actual, expected,
+                "check/oracle disagree for contract {c:?}: check fired {actual:?}, oracle expected {expected:?}"
+            );
+            // The verdict's Supported flag must agree with the oracle's emptiness.
+            assert_eq!(
+                verdict.is_supported(),
+                expected.is_empty(),
+                "Supported flag disagrees with oracle for contract {c:?}"
+            );
+        });
+    }
+
+    #[test]
+    fn sweep_reaches_every_table_rule() {
+        // OCP completeness guard: every table rule must FIRE at least once somewhere
+        // in the swept domain. If a future rule keys on a facet/value the sweep does
+        // not vary, that rule never fires here and this guard fails — forcing the
+        // swept domains above to be extended in lockstep with the rule table, so
+        // coverage can never silently fall behind the feature model.
+        let mut observed: std::collections::BTreeSet<&'static str> =
+            std::collections::BTreeSet::new();
+        for_each_swept_contract(|c| {
+            if let ContractVerdict::Unsupported(reasons) = check(c) {
+                for r in &reasons {
+                    let id = r
+                        .strip_prefix('[')
+                        .and_then(|s| s.split_once(']'))
+                        .map(|(id, _)| id)
+                        .expect("reason in `[id] ...` form");
+                    // Re-map the parsed &str to a &'static rule id from the table so
+                    // the observed set is comparable to `table_rule_ids()`.
+                    if let Some(stable) = RULES.iter().map(|rule| rule.id).find(|sid| *sid == id) {
+                        observed.insert(stable);
+                    }
+                }
+            }
+        });
+        assert_eq!(
+            observed,
+            table_rule_ids(),
+            "the sweep does not reach every table rule — extend the swept facet domains \
+             to cover the rule(s) in the symmetric difference"
+        );
+    }
+
+    #[test]
+    fn sweep_determinism_check_is_stable() {
+        // `check` is a pure function of the contract: evaluating the same contract
+        // twice yields the identical verdict, across the whole swept domain.
+        for_each_swept_contract(|c| {
+            assert_eq!(check(c), check(c), "check is non-deterministic for {c:?}");
+        });
+    }
 }
