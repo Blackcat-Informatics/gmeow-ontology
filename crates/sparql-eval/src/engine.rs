@@ -218,6 +218,52 @@ mod tests {
     use super::*;
     use gmeow_rdf_core::{BlankScope, RdfDatasetBuilder, RdfLiteral, TermValue};
 
+    /// Regression: `=` is RDFterm-equality, so `?a != ?b` over two *distinct IRIs*
+    /// must be `true` (the row survives), NOT a type error. Routing `=` through the
+    /// ordering comparator made every distinct-IRI `!=` evaluate to an error and drop
+    /// the row, so this triangle+FILTER query (the LOGIC `non-entailment-counterpart`
+    /// verify) wrongly returned 0 rows. See `expr::equal`.
+    #[test]
+    fn neq_on_distinct_iris_is_true_not_error() {
+        // A→B→C plus the forbidden transitive A→C, all gmeow:counterpartOf.
+        let mut b = RdfDatasetBuilder::new();
+        let cp = b.intern_iri("http://ex/cp".to_owned());
+        let a = b.intern_iri("http://ex/a".to_owned());
+        let bn = b.intern_iri("http://ex/b".to_owned());
+        let c = b.intern_iri("http://ex/c".to_owned());
+        b.push_quad(a, cp, bn, None);
+        b.push_quad(bn, cp, c, None);
+        b.push_quad(a, cp, c, None);
+        let ds = b.freeze().expect("freeze");
+        let q = "PREFIX ex: <http://ex/>\n\
+                 SELECT ?a ?b ?c WHERE {\n\
+                   ?a ex:cp ?b . ?b ex:cp ?c . ?a ex:cp ?c .\n\
+                   FILTER(?a != ?b && ?b != ?c && ?a != ?c)\n\
+                 } ORDER BY ?a ?b ?c";
+        match run_on(&ds, q) {
+            SparqlResult::Solutions { rows, .. } => {
+                // The forbidden transitive triangle (a,b,c) is the one violating row.
+                assert_eq!(rows.len(), 1, "expected exactly the A,B,C row: {rows:?}");
+            }
+            other => panic!("expected solutions, got {other:?}"),
+        }
+        // Direct check: `!=` on two distinct IRIs is TRUE, not an error → the row survives.
+        match run_on(
+            &ds,
+            "PREFIX ex: <http://ex/>\n\
+             SELECT ?a ?b WHERE { ?a ex:cp ?b . FILTER(?a != ?b) }",
+        ) {
+            SparqlResult::Solutions { rows, .. } => {
+                assert_eq!(
+                    rows.len(),
+                    3,
+                    "all three distinct-IRI edges survive `!=`: {rows:?}"
+                );
+            }
+            other => panic!("expected solutions, got {other:?}"),
+        }
+    }
+
     fn social() -> Arc<RdfDataset> {
         // :a :knows :b ; :a :name "Ann" .
         let mut b = RdfDatasetBuilder::new();

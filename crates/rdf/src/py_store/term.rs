@@ -386,6 +386,35 @@ pub fn quad_to_py(py: Python<'_>, quad: &Quad) -> PyResult<Py<PyAny>> {
     .into_any())
 }
 
+/// Build the live `gmeow_rdf.Quad` list for every (flattened) quad of a native
+/// [`RdfDataset`](crate::RdfDataset) — the oxigraph-free cross-crate entry point for
+/// engine crates (`gmeow-logic`'s RL closure, #630 / EPIC #906) that produce a
+/// frozen IR dataset and must hand Python live quad objects without naming any
+/// oxigraph type themselves.
+///
+/// The dataset is flattened to the source-faithful flat quad stream (base quads plus
+/// the re-materialized RDF 1.2 statement layer), then each quad becomes a `PyQuad`.
+/// The flatten + this conversion are the byte-identical inverse of the parser fold,
+/// so the Python-facing quads match the prior
+/// `flat_oxigraph_quads_from_dataset` → `quad_to_py` path exactly.
+///
+/// # Errors
+///
+/// Returns a Python error if the dataset cannot be flattened into oxigraph quads.
+#[cfg(feature = "oxigraph")]
+pub fn dataset_quads_to_py(
+    py: Python<'_>,
+    dataset: &crate::RdfDataset,
+) -> PyResult<Vec<Py<PyAny>>> {
+    let quads = crate::oxigraph::flat_oxigraph_quads_from_dataset(dataset)
+        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
+    let mut out: Vec<Py<PyAny>> = Vec::with_capacity(quads.len());
+    for quad in &quads {
+        out.push(quad_to_py(py, quad)?);
+    }
+    Ok(out)
+}
+
 // ── Term ⇄ Python conversions ────────────────────────────────────────────────────
 
 pub(crate) fn term_to_py(py: Python<'_>, term: &Term) -> PyResult<Py<PyAny>> {

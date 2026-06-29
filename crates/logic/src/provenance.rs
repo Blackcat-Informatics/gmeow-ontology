@@ -38,7 +38,7 @@
 //! under `{NAMESPACE}derivation/`.
 //! Sources are sorted for order-independence.
 
-use oxigraph::model::{Literal, NamedNode, Term};
+use gmeow_rdf::TermValue;
 use sha1::{Digest, Sha1};
 
 // ── Namespace constants ────────────────────────────────────────────────────────
@@ -99,68 +99,119 @@ fn escape_lexical(s: &str) -> String {
     out
 }
 
-/// Serialize an oxigraph `Literal` to rdflib `.n3()` form.
+/// Serialize a native literal (lexical form + datatype IRI + optional language) to
+/// rdflib `.n3()` form.
 ///
 /// Rules:
 /// - `xsd:string` → `"lex"` (datatype elided)
 /// - `rdf:langString` (lang-tagged) → `"lex"@lang` (datatype elided, lang kept)
 /// - Any other datatype → `"lex"^^<datatype_iri>`
 ///
-/// rdflib lowercases the BCP-47 language subtag.  oxigraph already stores the
-/// language tag exactly as parsed, but the Python oracle uses rdflib which
-/// lowercases on parse.  We lowercase here to stay in sync.
-pub fn literal_n3(lit: &Literal) -> String {
-    let lex = escape_lexical(lit.value());
+/// rdflib lowercases the BCP-47 language subtag.  The native IR lowercases the
+/// language tag for the identity key, but a `TermValue` constructed directly may
+/// carry an un-lowercased tag, so we lowercase here to stay in sync regardless.
+fn literal_n3_parts(lexical_form: &str, datatype: &str, language: Option<&str>) -> String {
+    let lex = escape_lexical(lexical_form);
 
-    if let Some(lang) = lit.language() {
+    if let Some(lang) = language {
         // Language-tagged literal — rdflib elides the rdf:langString datatype.
         // rdflib lowercases the language tag; mirror that.
         return format!("\"{}\"@{}", lex, lang.to_lowercase());
     }
 
-    let dt = lit.datatype().as_str();
-    if dt == XSD_STRING {
+    if datatype == XSD_STRING {
         // Plain xsd:string — rdflib elides the datatype.
         return format!("\"{}\"", lex);
     }
-    if dt == RDF_LANG_STRING {
+    if datatype == RDF_LANG_STRING {
         // rdf:langString without a language tag — treated like xsd:string by rdflib.
         // (In practice rdf:langString always has a lang tag; be defensive.)
         return format!("\"{}\"", lex);
     }
 
     // Typed literal with a non-elided datatype.
-    format!("\"{}\"^^<{}>", lex, dt)
+    format!("\"{}\"^^<{}>", lex, datatype)
 }
 
-/// Serialize an oxigraph `Term` to rdflib `.n3()` form.
+/// Serialize a native [`TermValue`] to rdflib `.n3()` form.
 ///
-/// - `NamedNode(iri)` → `<iri>`
-/// - `BlankNode` → not expected after Skolemization; serialized as `_:id`
-/// - `Literal` → delegated to [`literal_n3`]
+/// - `Iri(iri)` → `<iri>`
+/// - `Blank` → not expected after Skolemization; serialized as `_:label`
+/// - `Literal` → delegated to [`literal_n3_parts`]
 /// - `Triple` → hard error: RDF-star quoted-triple terms are out of scope for
 ///   gmeow-logic v1.  An empty hash would cause silent ID collisions; failing
 ///   closed is the correct behavior.
 ///
 /// # Errors
 ///
-/// Returns an error string if `term` is `Term::Triple`.
-pub fn term_n3(term: &Term) -> Result<String, String> {
+/// Returns an error string if `term` is a `TermValue::Triple`.
+pub fn term_n3(term: &TermValue) -> Result<String, String> {
     match term {
-        Term::NamedNode(nn) => Ok(format!("<{}>", nn.as_str())),
-        Term::BlankNode(bn) => Ok(format!("_:{}", bn.as_str())),
-        Term::Literal(lit) => Ok(literal_n3(lit)),
-        Term::Triple(_) => Err(
+        TermValue::Iri(iri) => Ok(format!("<{}>", iri)),
+        TermValue::Blank { label, scope } => Ok(format!("_:{}", scope.qualify_label(label))),
+        TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            ..
+        } => Ok(literal_n3_parts(
+            lexical_form,
+            datatype,
+            language.as_deref(),
+        )),
+        TermValue::Triple { .. } => Err(
             "RDF-star quoted-triple terms are not supported in gmeow-logic v1 \
-             (Term::Triple cannot be hashed without risking ID collisions)"
+             (TermValue::Triple cannot be hashed without risking ID collisions)"
                 .to_owned(),
         ),
     }
 }
 
-/// Serialize a `NamedNode` to rdflib `.n3()` form: `<iri>`.
-pub fn named_node_n3(nn: &NamedNode) -> String {
-    format!("<{}>", nn.as_str())
+/// Serialize an IRI string to rdflib `.n3()` form: `<iri>`.
+pub fn named_node_n3(iri: &str) -> String {
+    format!("<{}>", iri)
+}
+
+/// Render a [`TermValue`] in oxigraph's Turtle term Display form — the exact byte
+/// form the prior `Term::to_string()` produced. This is the canonical-surface used
+/// for content-addressed dedup keys and sort keys (`rule_ir`, `foundation`) and for
+/// the verify finding detail, so it MUST stay byte-identical to oxigraph's Display.
+///
+/// Unlike [`term_n3`] this does **not** lowercase the language tag (oxigraph's
+/// Display preserves the stored tag verbatim) and renders a triple term in the
+/// RDF-1.2 quoted form `<< s p o >>`.
+///
+/// - `Iri` → `<iri>`
+/// - `Blank` → `_:label`
+/// - `Literal` xsd:string / rdf:langString → `"lex"` ; lang → `"lex"@lang` ;
+///   typed → `"lex"^^<dt>`
+/// - `Triple` → `<< s p o >>` (recursive)
+pub fn term_display(term: &TermValue) -> String {
+    match term {
+        TermValue::Iri(iri) => format!("<{iri}>"),
+        TermValue::Blank { label, scope } => format!("_:{}", scope.qualify_label(label)),
+        TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            ..
+        } => {
+            let lex = escape_lexical(lexical_form);
+            if let Some(lang) = language {
+                format!("\"{lex}\"@{lang}")
+            } else if datatype == XSD_STRING || datatype == RDF_LANG_STRING {
+                format!("\"{lex}\"")
+            } else {
+                format!("\"{lex}\"^^<{datatype}>")
+            }
+        }
+        TermValue::Triple { s, p, o } => format!(
+            "<< {} {} {} >>",
+            term_display(s),
+            term_display(p),
+            term_display(o)
+        ),
+    }
 }
 
 // ── mint_reifier ─────────────────────────────────────────────────────────────
@@ -176,19 +227,19 @@ pub fn named_node_n3(nn: &NamedNode) -> String {
 ///
 /// # Arguments
 ///
-/// - `s` — Subject term (as `Term`; IRIs after Skolemization).
-/// - `p` — Predicate named node.
+/// - `s` — Subject term (as [`TermValue`]; IRIs after Skolemization).
+/// - `p` — Predicate IRI string.
 /// - `o` — Object term.
 ///
 /// # Errors
 ///
-/// Returns an error string if either `s` or `o` is a `Term::Triple`
+/// Returns an error string if either `s` or `o` is a `TermValue::Triple`
 /// (RDF-star quoted triples are out of scope for gmeow-logic v1).
 ///
 /// # Returns
 ///
 /// The reifier IRI as a `String`.
-pub fn mint_reifier(s: &Term, p: &NamedNode, o: &Term) -> Result<String, String> {
+pub fn mint_reifier(s: &TermValue, p: &str, o: &TermValue) -> Result<String, String> {
     let s_n3 = term_n3(s)?;
     let o_n3 = term_n3(o)?;
     let canonical = format!("{} {} {}", s_n3, named_node_n3(p), o_n3);
@@ -254,36 +305,39 @@ pub fn mint_derivation_id(rule_iri: &str, source_reifier_iris: &[&str]) -> Strin
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oxigraph::model::{Literal, NamedNode, Term};
+
+    /// Test-only helper mirroring `literal_n3_parts` over a constructed `TermValue`.
+    fn literal_n3(term: &TermValue) -> String {
+        term_n3(term).expect("literal term must serialize")
+    }
 
     // ── literal_n3 ────────────────────────────────────────────────────────────
 
     #[test]
     fn literal_n3_plain_string_elides_datatype() {
         // xsd:string datatype must be elided — matches rdflib .n3()
-        let lit = Literal::new_simple_literal("plain string");
+        let lit = TermValue::simple_literal("plain string");
         assert_eq!(literal_n3(&lit), "\"plain string\"");
     }
 
     #[test]
     fn literal_n3_language_tagged_lowercased() {
         // rdflib lowercases lang tags; we must mirror that
-        let lit = Literal::new_language_tagged_literal("hello", "en").unwrap();
+        let lit = TermValue::lang_literal("hello", "en");
         assert_eq!(literal_n3(&lit), "\"hello\"@en");
     }
 
     #[test]
     fn literal_n3_uppercase_lang_lowercased() {
         // Upper-case lang tag must be lowercased
-        let lit = Literal::new_language_tagged_literal("Bonjour", "FR").unwrap();
+        let lit = TermValue::lang_literal("Bonjour", "FR");
         assert_eq!(literal_n3(&lit), "\"Bonjour\"@fr");
     }
 
     #[test]
     fn literal_n3_decimal_not_elided() {
         // xsd:decimal must NOT be elided — only xsd:string and rdf:langString are
-        let dt = NamedNode::new("http://www.w3.org/2001/XMLSchema#decimal").unwrap();
-        let lit = Literal::new_typed_literal("1.0", dt);
+        let lit = TermValue::typed_literal("1.0", "http://www.w3.org/2001/XMLSchema#decimal");
         assert_eq!(
             literal_n3(&lit),
             "\"1.0\"^^<http://www.w3.org/2001/XMLSchema#decimal>"
@@ -292,25 +346,25 @@ mod tests {
 
     #[test]
     fn literal_n3_escape_backslash() {
-        let lit = Literal::new_simple_literal("a\\b");
+        let lit = TermValue::simple_literal("a\\b");
         assert_eq!(literal_n3(&lit), "\"a\\\\b\"");
     }
 
     #[test]
     fn literal_n3_escape_quote() {
-        let lit = Literal::new_simple_literal("say \"hi\"");
+        let lit = TermValue::simple_literal("say \"hi\"");
         assert_eq!(literal_n3(&lit), "\"say \\\"hi\\\"\"");
     }
 
     #[test]
     fn literal_n3_escape_newline() {
-        let lit = Literal::new_simple_literal("line1\nline2");
+        let lit = TermValue::simple_literal("line1\nline2");
         assert_eq!(literal_n3(&lit), "\"line1\\nline2\"");
     }
 
     #[test]
     fn literal_n3_escape_tab() {
-        let lit = Literal::new_simple_literal("col1\tcol2");
+        let lit = TermValue::simple_literal("col1\tcol2");
         assert_eq!(literal_n3(&lit), "\"col1\\tcol2\"");
     }
 
@@ -318,15 +372,13 @@ mod tests {
 
     #[test]
     fn term_n3_iri() {
-        let nn = NamedNode::new("http://example.org/a").unwrap();
-        let term = Term::NamedNode(nn);
+        let term = TermValue::iri("http://example.org/a");
         assert_eq!(term_n3(&term).unwrap(), "<http://example.org/a>");
     }
 
     #[test]
     fn term_n3_literal_string() {
-        let lit = Literal::new_simple_literal("hello");
-        let term = Term::Literal(lit);
+        let term = TermValue::simple_literal("hello");
         assert_eq!(term_n3(&term).unwrap(), "\"hello\"");
     }
 
@@ -337,10 +389,10 @@ mod tests {
     ///             = 10d9bdab72fe25cf3b81fe842b3a105077d98a6a
     #[test]
     fn mint_reifier_golden_1_iri_triple() {
-        let s = Term::NamedNode(NamedNode::new("http://example.org/a").unwrap());
-        let p = NamedNode::new("http://example.org/related").unwrap();
-        let o = Term::NamedNode(NamedNode::new("http://example.org/b").unwrap());
-        let got = mint_reifier(&s, &p, &o).expect("IRI terms must not fail");
+        let s = TermValue::iri("http://example.org/a");
+        let p = "http://example.org/related";
+        let o = TermValue::iri("http://example.org/b");
+        let got = mint_reifier(&s, p, &o).expect("IRI terms must not fail");
         assert_eq!(
             got,
             "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a",
@@ -353,11 +405,10 @@ mod tests {
     ///             = 61194b8ccffff3db1bbb81df91c55b7776ee4064
     #[test]
     fn mint_reifier_golden_2_lang_literal() {
-        let s = Term::NamedNode(NamedNode::new("http://example.org/x").unwrap());
-        let p = NamedNode::new("http://www.w3.org/2000/01/rdf-schema#label").unwrap();
-        let lit = Literal::new_language_tagged_literal("hello", "en").unwrap();
-        let o = Term::Literal(lit);
-        let got = mint_reifier(&s, &p, &o).expect("lang literal terms must not fail");
+        let s = TermValue::iri("http://example.org/x");
+        let p = "http://www.w3.org/2000/01/rdf-schema#label";
+        let o = TermValue::lang_literal("hello", "en");
+        let got = mint_reifier(&s, p, &o).expect("lang literal terms must not fail");
         assert_eq!(
             got,
             "https://blackcatinformatics.ca/gmeow/reifier/61194b8ccffff3db1bbb81df91c55b7776ee4064",
@@ -370,12 +421,10 @@ mod tests {
     ///             = efbda8fbbb765e64c7f8ca2d690489a1ba70e569
     #[test]
     fn mint_reifier_golden_3_xsd_decimal() {
-        let s = Term::NamedNode(NamedNode::new("http://example.org/m").unwrap());
-        let p = NamedNode::new("http://example.org/value").unwrap();
-        let dt = NamedNode::new("http://www.w3.org/2001/XMLSchema#decimal").unwrap();
-        let lit = Literal::new_typed_literal("1.0", dt);
-        let o = Term::Literal(lit);
-        let got = mint_reifier(&s, &p, &o).expect("typed literal terms must not fail");
+        let s = TermValue::iri("http://example.org/m");
+        let p = "http://example.org/value";
+        let o = TermValue::typed_literal("1.0", "http://www.w3.org/2001/XMLSchema#decimal");
+        let got = mint_reifier(&s, p, &o).expect("typed literal terms must not fail");
         assert_eq!(
             got,
             "https://blackcatinformatics.ca/gmeow/reifier/efbda8fbbb765e64c7f8ca2d690489a1ba70e569",
@@ -388,11 +437,10 @@ mod tests {
     ///             = 784c486d79b869539405a3f90f21126477b07f26
     #[test]
     fn mint_reifier_golden_4_plain_string() {
-        let s = Term::NamedNode(NamedNode::new("http://example.org/n").unwrap());
-        let p = NamedNode::new("http://example.org/name").unwrap();
-        let lit = Literal::new_simple_literal("plain string");
-        let o = Term::Literal(lit);
-        let got = mint_reifier(&s, &p, &o).expect("plain literal terms must not fail");
+        let s = TermValue::iri("http://example.org/n");
+        let p = "http://example.org/name";
+        let o = TermValue::simple_literal("plain string");
+        let got = mint_reifier(&s, p, &o).expect("plain literal terms must not fail");
         assert_eq!(
             got,
             "https://blackcatinformatics.ca/gmeow/reifier/784c486d79b869539405a3f90f21126477b07f26",
@@ -488,37 +536,24 @@ mod tests {
             let expected_reifier = entry["reifier_iri"].as_str().expect("reifier_iri");
             let is_literal = entry["object_is_literal"].as_bool().unwrap_or(false);
 
-            let s = Term::NamedNode(
-                NamedNode::new(subj_iri)
-                    .unwrap_or_else(|e| panic!("{id}: invalid subject IRI {subj_iri:?}: {e}")),
-            );
-            let p = NamedNode::new(pred_iri)
-                .unwrap_or_else(|e| panic!("{id}: invalid predicate IRI {pred_iri:?}: {e}"));
+            let s = TermValue::iri(subj_iri);
 
-            let o: Term = if is_literal {
+            let o: TermValue = if is_literal {
                 let lex = entry["object"].as_str().expect("object lexical");
                 if let Some(lang) = entry["object_lang"].as_str() {
-                    Term::Literal(
-                        Literal::new_language_tagged_literal(lex, lang)
-                            .unwrap_or_else(|e| panic!("{id}: invalid lang tag: {e}")),
-                    )
+                    TermValue::lang_literal(lex, lang)
                 } else if let Some(dt_iri) = entry["object_datatype"].as_str() {
-                    let dt = NamedNode::new(dt_iri)
-                        .unwrap_or_else(|e| panic!("{id}: invalid datatype IRI: {e}"));
-                    Term::Literal(Literal::new_typed_literal(lex, dt))
+                    TermValue::typed_literal(lex, dt_iri)
                 } else {
                     // Plain xsd:string
-                    Term::Literal(Literal::new_simple_literal(lex))
+                    TermValue::simple_literal(lex)
                 }
             } else {
                 let obj_iri = entry["object"].as_str().expect("object IRI");
-                Term::NamedNode(
-                    NamedNode::new(obj_iri)
-                        .unwrap_or_else(|e| panic!("{id}: invalid object IRI: {e}")),
-                )
+                TermValue::iri(obj_iri)
             };
 
-            let got = mint_reifier(&s, &p, &o)
+            let got = mint_reifier(&s, pred_iri, &o)
                 .unwrap_or_else(|e| panic!("{id}: mint_reifier failed: {e}"));
             assert_eq!(
                 got, expected_reifier,

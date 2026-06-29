@@ -42,7 +42,7 @@
 use std::collections::{BTreeMap, HashSet};
 use std::sync::{LazyLock, Mutex};
 
-use oxigraph::model::{NamedNode, Term as OxTerm};
+use gmeow_rdf::TermValue;
 use scryer_prolog::{LeafAnswer, MachineBuilder, Term as PlTerm};
 
 use crate::provenance::term_n3;
@@ -114,7 +114,7 @@ static SCRYER_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 /// canonicalized, or an answer binding of an unexpected Prolog shape.
 pub fn run_scryer(
     foreign: &dyn ScryerForeign,
-    world: &NamedNode,
+    world: &str,
     program: &QProgram,
     table_preds: &[String],
     budget: &Budget,
@@ -226,7 +226,7 @@ fn budget_exhausted(pl: &BTreeMap<String, PlTerm>) -> bool {
 /// Build the Prolog module string: library imports, table directives, EDB facts, IDB rules.
 fn build_module(
     foreign: &dyn ScryerForeign,
-    world: &NamedNode,
+    world: &str,
     program: &QProgram,
     table_preds: &[String],
 ) -> Result<String, String> {
@@ -253,7 +253,7 @@ fn build_module(
     // Scryer's clause-enumeration order is deterministic. This matters for
     // order-sensitive resolution — `cut` (commit-to-first) and `max_answers`
     // truncation — where the *which* answer/subset must be reproducible across runs
-    // (oxigraph's quad-iteration order is not contractually stable).
+    // (the native store's quad-iteration order is not contractually stable).
     let mut facts: Vec<(String, String, String)> = Vec::new();
     for dq in foreign.in_world(world, None, None, None) {
         let s = canonical(&dq.subject)?;
@@ -365,9 +365,9 @@ fn build_goal_query(goal: &QGoal, budget: &Budget) -> Result<String, String> {
 
 // ── Term canonicalization + Prolog quoting ───────────────────────────────────────
 
-/// Canonical string for an oxigraph object/subject term, identical to the oracle's
+/// Canonical string for a native object/subject term, identical to the oracle's
 /// `Const` form: `<iri>` for IRIs, n3 form for literals.
-fn canonical(term: &OxTerm) -> Result<String, String> {
+fn canonical(term: &TermValue) -> Result<String, String> {
     term_n3(term).map_err(|e| format!("cannot canonicalize EDB term: {e}"))
 }
 
@@ -416,12 +416,12 @@ mod tests {
     const PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
     const BASE: &str = "https://example.org/";
 
-    fn make_foreign(triples: &[(&str, &str, &str)]) -> (WorldStore, NamedNode) {
+    fn make_foreign(triples: &[(&str, &str, &str)]) -> (WorldStore, String) {
         let store = WorldStore::new();
         for (s, p, o) in triples {
             store.insert_quad(W, s, p, o);
         }
-        (store, NamedNode::new(W).unwrap())
+        (store, W.to_owned())
     }
 
     fn p(local: &str) -> String {

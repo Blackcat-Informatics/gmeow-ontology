@@ -60,6 +60,8 @@ pub use io::{parse_quads, PyRdfFormat};
 pub use mutable::PyMutableDataset;
 pub use query::{PyQueryBoolean, PyQuerySolution, PyQuerySolutions, PyQueryTriples};
 pub use store::{PyDataset, PyQuadIter, PyStore};
+#[cfg(feature = "oxigraph")]
+pub use term::dataset_quads_to_py;
 pub use term::{
     quad_to_py, PyBlankNode, PyDefaultGraph, PyLiteral, PyNamedNode, PyQuad, PyTriple, PyVariable,
 };

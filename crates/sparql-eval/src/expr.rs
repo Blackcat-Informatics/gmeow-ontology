@@ -85,7 +85,13 @@ pub(crate) fn eval_expr(
         }
 
         // ---- comparisons ---------------------------------------------------
-        Expression::Equal(a, b) => compare(a, b, row, schema, ctx, |c| c == Ordering::Equal),
+        // `=` is RDFterm-equality, NOT an ordering test: distinct IRIs/blank nodes
+        // are *unequal* (`false`), not a type error. Routing `=` through the
+        // ordering `compare` (which returns a type error for un-orderable IRI pairs)
+        // would make `?a = ?b` — and therefore the desugared `?a != ?b` — evaluate
+        // to an error (and so filter the row out) whenever the two IRIs differ. The
+        // dedicated `equal` path applies the value-equality semantics of `rdf_equal`.
+        Expression::Equal(a, b) => equal(a, b, row, schema, ctx),
         Expression::Greater(a, b) => compare(a, b, row, schema, ctx, |c| c == Ordering::Greater),
         Expression::GreaterOrEqual(a, b) => {
             compare(a, b, row, schema, ctx, |c| c != Ordering::Less)
@@ -302,6 +308,34 @@ fn compare(
     let va = value_of(ctx, ta);
     let vb = value_of(ctx, tb);
     Ok(rdf_cmp(&va, &vb).map(|ord| bool_term(ctx, keep(ord))))
+}
+
+/// Evaluate `a = b` under SPARQL RDFterm-equality (SPARQL §17.4.1.7 / `RDFterm-equal`):
+/// both operands resolve to a term, identical terms are equal, value-comparable
+/// literals compare in the XSD value space, distinct terms where at least one is a
+/// non-literal (IRI/blank) are **unequal** (`false`, NOT a type error), and two
+/// incomparable literals are a type error (`None`). This is the equality companion to
+/// the ordering [`compare`]; using `compare` for `=` would wrongly turn a distinct
+/// IRI pair into an error.
+fn equal(
+    a: &Expression,
+    b: &Expression,
+    row: &[Option<SolutionTerm>],
+    schema: &VarSchema,
+    ctx: &mut EvalCtx<'_>,
+) -> Result<Option<SolutionTerm>, EvalError> {
+    let ta = eval_expr(a, row, schema, ctx)?;
+    let tb = eval_expr(b, row, schema, ctx)?;
+    let (Some(ta), Some(tb)) = (ta, tb) else {
+        return Ok(None);
+    };
+    // sameTerm short-circuit: identical terms are equal regardless of value space.
+    if ta == tb {
+        return Ok(Some(bool_term(ctx, true)));
+    }
+    let va = value_of(ctx, ta);
+    let vb = value_of(ctx, tb);
+    Ok(rdf_equal(&va, &vb).map(|eq| bool_term(ctx, eq)))
 }
 
 /// Compare two RDF terms in the SPARQL value space. `None` = a type error (the

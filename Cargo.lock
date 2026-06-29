@@ -1794,7 +1794,6 @@ dependencies = [
  "gmeow-sparql-eval",
  "insta",
  "nemo",
- "oxigraph",
  "proptest",
  "pyo3",
  "rayon",
