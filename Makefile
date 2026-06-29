@@ -623,7 +623,13 @@ maint-external-corpora: ## Grade the native reasoner against the full Lane-B ext
 native-py: $(NATIVE_PY_STAMP)
 
 $(NATIVE_PY_STAMP): $(NATIVE_PY_INPUTS)
-	VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
+	# Build --release: the native reasoner (Nemo chase + RDFC-1.0 canonicalization +
+	# Turtle serialization) is pure CPU and dominates every gate that runs the
+	# pipeline. MEASURED 2026-06-28: a release ext cuts `make regenerate` 353s → 81s
+	# (4.4x) with byte-identical output. The `[profile.release]` overrides in
+	# Cargo.toml already cap Nemo's build RAM (opt-2/256-units, measured 7.37 GB —
+	# within the 16 GB wheel-runner budget), so the cutover is safe.
+	VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin develop --release --manifest-path crates/native/Cargo.toml
 	@touch $@
 
 native-py-wheel: ## Build the unified gmeow_native wheel into dist/wheels (CI prebuild-once).
@@ -632,9 +638,11 @@ native-py-wheel: ## Build the unified gmeow_native wheel into dist/wheels (CI pr
 	# (the legacy gmeow_* import shims) relative to that pyproject, not the repo root.
 	# `--compatibility linux` skips auditwheel repair (no system-lib bundling): the
 	# prebuild job and every consumer run on the same ubuntu-latest image, so a plain
-	# linux wheel is correct and avoids the repair step. Debug (no --release) matches
-	# the per-job `maturin develop` it replaces and keeps the Nemo build fast/light.
-	cd crates/native && VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin build --compatibility linux -o "$(CURDIR)/dist/wheels"
+	# linux wheel is correct and avoids the repair step. --release matches the
+	# `maturin develop --release` in `native-py`: the optimized reasoner cuts every
+	# pipeline gate (regenerate/check-generated/validate) ~4.4x; Nemo's release build
+	# RAM is capped to 7.37 GB by the `[profile.release]` overrides in Cargo.toml.
+	cd crates/native && VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin build --release --compatibility linux -o "$(CURDIR)/dist/wheels"
 
 native-py-install: ## Install the prebuilt unified wheel from dist/wheels (CI consumers); hard-fail if absent/ambiguous.
 	set -eu; \
