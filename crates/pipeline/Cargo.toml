@@ -44,7 +44,7 @@ gmeow-xsd = { path = "../xsd" }
 # (Ed25519 release signing), and `mcp.rs` (the McpView memory server, a separate
 # system consuming the bundled snapshot). Same pin as gmeow-rdf links. Do NOT
 # reintroduce it into an export leaf — the carrier is the single internal transport.
-gmeow-gts = "0.9.9"
+gmeow-gts = "0.9.10"
 # The `reason` stage wires the native EL/DL reasoner + artifact builders directly
 # (gmeow_logic::reason::reason_all + reason::artifacts) — no Python, no PyO3.
 gmeow-logic = { path = "../logic" }
