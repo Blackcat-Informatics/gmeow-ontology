@@ -35,7 +35,7 @@ use gmeow_conformance::external::parse_test_manifest;
 use gmeow_logic::reason::ExternalComparison;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// The in-memory logical path of the external-corpus divergence N-Quads product
 /// [`crate::stages::carrier`] folds into the `graph/conformance` named graph. The
@@ -239,9 +239,6 @@ pub struct ConformanceStage;
 impl Stage for ConformanceStage {
     fn id(&self) -> &str {
         "stage-conformance"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::Transform
     }
     fn consumes(&self) -> &[String] {
         &[]

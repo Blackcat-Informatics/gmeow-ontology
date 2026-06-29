@@ -29,7 +29,7 @@ use gmeow_diagnostics::{Finding, Severity};
 
 use crate::error::PipelineError;
 use crate::loader::{bind, PipelineSpec, StageSpec};
-use crate::node::{StageKind, StageProduct, ENGINE_RESOURCE};
+use crate::node::{StageProduct, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN};
 use crate::registry::default_registry;
 use crate::scheduler::{run, RunContext};
 
@@ -83,25 +83,10 @@ impl RunReport {
 pub fn full_spec() -> PipelineSpec {
     // ── the spine ──
     let mut stages = vec![
-        st(
-            "stage-source-load",
-            StageKind::SourceLoad,
-            "source_load",
-            &[],
-        ),
-        st("stage-statements", StageKind::Transform, "statements", &[]),
-        st(
-            "stage-compile-logic",
-            StageKind::Transform,
-            "compile_logic",
-            &[],
-        ),
-        st(
-            "stage-mappings",
-            StageKind::Transform,
-            "mappings",
-            &["stage-compile-logic"],
-        ),
+        st_source("stage-source-load", "source_load", &[]),
+        st("stage-statements", "statements", &[]),
+        st("stage-compile-logic", "compile_logic", &[]),
+        st("stage-mappings", "mappings", &["stage-compile-logic"]),
         st_reason(
             "stage-reason",
             "reason",
@@ -114,7 +99,6 @@ pub fn full_spec() -> PipelineSpec {
         ),
         st(
             "stage-gts-compose",
-            StageKind::Transform,
             "gts_compose",
             &[
                 "stage-mappings",
@@ -123,27 +107,11 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-statements",
             ],
         ),
-        st(
-            "stage-validate",
-            StageKind::Validate,
-            "validate",
-            &["stage-source-load"],
-        ),
-        st(
-            "stage-conformance",
-            StageKind::Transform,
-            "conformance",
-            &[],
-        ),
-        st(
-            "stage-docs-render",
-            StageKind::DocsRender,
-            "docs_render",
-            &["stage-gts-compose"],
-        ),
+        st("stage-validate", "validate", &["stage-source-load"]),
+        st("stage-conformance", "conformance", &[]),
+        st("stage-docs-render", "docs_render", &["stage-gts-compose"]),
         st(
             "stage-snapshot",
-            StageKind::Transform,
             "snapshot",
             &[
                 "stage-compile-logic",
@@ -171,7 +139,7 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-okf", "okf"),
         ("stage-export-parquet", "parquet"),
     ] {
-        stages.push(st(id, StageKind::ExportLeaf, impl_key, &["stage-snapshot"]));
+        stages.push(st(id, impl_key, &["stage-snapshot"]));
     }
 
     // ── source-reading export leaves (independent; read slices/metadata/evals) ──
@@ -188,14 +156,13 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-research-objects", "research-objects"),
         ("stage-export-bench", "bench"),
     ] {
-        stages.push(st(id, StageKind::ExportLeaf, impl_key, &[]));
+        stages.push(st(id, impl_key, &[]));
     }
 
     // ── source-reading validation leaf: enforces the typed result-shape
     //    composition contract across competency files (emits no bundle artifact). ──
     stages.push(st(
         "stage-validate-result-shape-composition",
-        StageKind::Validate,
         "result_shape_composition",
         &[],
     ));
@@ -204,9 +171,8 @@ pub fn full_spec() -> PipelineSpec {
     //    serializes the assembled carrier (read off `stage-snapshot`'s bundle — no
     //    re-assembly) and folds the by-reference blob archives gathered from the
     //    in-memory JSON-Schema / axiom / reasoning / SHACL-report products. ──
-    stages.push(st(
+    stages.push(st_sink(
         SINK_STAGE,
-        StageKind::Sink,
         "gts_sink",
         &[
             "stage-compile-logic",
@@ -219,12 +185,7 @@ pub fn full_spec() -> PipelineSpec {
 
     // ── the schemas tail: a fold-reading export leaf over the carrier dataset
     //    (#1132) — reads `stage-snapshot`'s bundle directly, never the gts bytes. ──
-    stages.push(st(
-        SCHEMAS_STAGE,
-        StageKind::ExportLeaf,
-        "schemas",
-        &["stage-snapshot"],
-    ));
+    stages.push(st(SCHEMAS_STAGE, "schemas", &["stage-snapshot"]));
 
     PipelineSpec {
         id: "pipeline-build".to_string(),
@@ -232,16 +193,37 @@ pub fn full_spec() -> PipelineSpec {
     }
 }
 
-fn st(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSpec {
+/// A capability-free stage (Generated provenance, non-sink) — the default for every
+/// transform / validate / docs-render / export leaf (the four behaviorally-inert
+/// former kinds collapse to no declaration).
+fn st(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     StageSpec {
         id: id.to_string(),
-        kind,
+        capabilities: Vec::new(),
         impl_key: impl_key.to_string(),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
         resources: Vec::new(),
         dataflow_entities: Vec::new(),
         formats: Vec::new(),
     }
+}
+
+/// The authored-source loader: holds [`SOURCE_ORIGIN`], so its emitted quads' provenance
+/// origin is `Source`. Mirrors [`crate::stages::source_load::SourceLoadStage`]'s
+/// capabilities() so the loader's bind-agreement holds.
+fn st_source(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.capabilities = vec![SOURCE_ORIGIN.to_string()];
+    s
+}
+
+/// The sole serialization exit (the gts narrow waist): holds [`SINK_CAPABILITY`], the
+/// one stage the loader requires to hold it. Mirrors
+/// [`crate::stages::gts_sink::GtsSinkStage`]'s capabilities() for bind-agreement.
+fn st_sink(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.capabilities = vec![SINK_CAPABILITY.to_string()];
+    s
 }
 
 /// The reasoning stage: it requires the exclusive reasoning engine (resource-conflict
@@ -251,7 +233,7 @@ fn st(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSpec
 /// dag_dogfood parity and the loader's bind-agreement both hold.
 fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     use crate::stages::compile_logic::{GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE};
-    let mut s = st(id, StageKind::Reason, impl_key, consumes);
+    let mut s = st(id, impl_key, consumes);
     s.resources = vec![ENGINE_RESOURCE.to_string()];
     s.dataflow_entities = vec![(
         "stage-compile-logic".to_string(),

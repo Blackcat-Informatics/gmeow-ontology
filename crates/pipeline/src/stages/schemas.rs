@@ -22,7 +22,7 @@ use gmeow_rdf::RdfDataset;
 use serde::Serialize;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::export::{FoldView, DEFAULT_SCOPE};
 
 /// The carrier producer this leaf reads (GTS is exit-only; no gts re-parse).
@@ -819,9 +819,6 @@ impl Default for SchemasStage {
 impl Stage for SchemasStage {
     fn id(&self) -> &str {
         "stage-export-schemas"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &self.consumes

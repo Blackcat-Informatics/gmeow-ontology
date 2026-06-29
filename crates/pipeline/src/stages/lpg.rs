@@ -16,7 +16,7 @@ use gmeow_rdf::RdfDataset;
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// Logical-path prefix of the generated LPG artifacts.
 pub const LPG_DIR: &str = "generated/lpg";
@@ -790,9 +790,6 @@ impl Default for LpgStage {
 impl Stage for LpgStage {
     fn id(&self) -> &str {
         "stage-export-lpg"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &self.consumes

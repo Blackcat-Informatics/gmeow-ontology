@@ -60,7 +60,7 @@ pub struct RunContext {
     pub jobs: usize,
     /// The persistent, self-verifying per-stage cache.
     pub cache: PipelineCache,
-    /// The provenance sidecar: one unit per stage (kind-derived origin).
+    /// The provenance sidecar: one unit per stage (capability-derived origin).
     pub provenance: DatasetProvenance,
 }
 
@@ -209,8 +209,8 @@ pub fn run(
             }
             let stage = by_id[r.id.as_str()];
             // Register this stage as a provenance unit in the run-wide sidecar
-            // (kind-derived origin: SourceLoad → Source, derived stages → Generated).
-            register_stage_unit(&mut ctx.provenance, &r.id, stage.kind());
+            // (capability-derived origin: sourceOrigin → Source, else → Generated).
+            register_stage_unit(&mut ctx.provenance, &r.id, stage.capabilities());
             // Thread a per-stage provenance into the produced bundle so the carrier
             // CARRIES a provenance sidecar (C4 deliverable 3). The producing stage is
             // MERGED into whatever provenance the bundle already carries (e.g.
@@ -221,7 +221,7 @@ pub fn run(
             // digest stable, and `combined()` still folds sorted `(id, digest)` — the
             // digest is the value the product was cached under.
             let mut stage_prov = r.product.bundle.provenance().clone();
-            register_stage_unit(&mut stage_prov, &r.id, stage.kind());
+            register_stage_unit(&mut stage_prov, &r.id, stage.capabilities());
             set_bundle_provenance(&mut r.product.bundle, stage_prov);
             if profile {
                 if r.elapsed_ms > level_max {
@@ -266,7 +266,7 @@ pub fn run(
 }
 
 /// Execute one stage: assemble its upstream inputs, consult the cache, and run it
-/// (under the engine lock when its kind requires) on a miss.
+/// (holding any resource it requires exclusively) on a miss.
 fn exec_stage(
     stage: &dyn Stage,
     root: &Path,

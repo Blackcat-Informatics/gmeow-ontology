@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The pipeline node model: the [`Stage`] trait, the [`StageKind`] taxonomy, and
-//! the in-memory [`StageInput`] / [`StageOutput`] / [`StageProduct`] handles a
-//! stage exchanges (#861).
+//! The pipeline node model: the [`Stage`] trait and the in-memory
+//! [`StageInput`] / [`StageOutput`] / [`StageProduct`] handles a stage exchanges
+//! (#861).
 //!
 //! A stage is re-cut for in-memory dataflow: it consumes the products of its
 //! upstream stages (live handles, not re-parsed files) and emits one product.
@@ -34,70 +34,15 @@ pub(crate) const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 /// declarative replacement for a hardcoded engine mutex).
 pub const ENGINE_RESOURCE: &str = "https://blackcatinformatics.ca/gmeow/engineResource";
 
-/// The kind of a pipeline stage. The kind drives scheduling treatment; serialization
-/// is no longer kind-derived — a stage declares the shared resources it competes for
-/// through [`Stage::resources`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum StageKind {
-    /// Parse authored sources (statement-dsl, slices, imports) into a dataset.
-    SourceLoad,
-    /// A pure in-memory dataset → dataset transform (e.g. statements, mappings).
-    Transform,
-    /// Reasoning (native EL/DL, logic closure). Serialized under the engine lock
-    /// because the underlying Nemo/Scryer engines hold process-wide locks.
-    Reason,
-    /// A validation pass (SHACL / lints) producing diagnostics, no new data.
-    Validate,
-    /// Documentation rendering over the composed dataset (#853).
-    DocsRender,
-    /// An independent output-format leaf folding one artifact into the bundle.
-    ExportLeaf,
-    /// The sole serialization exit — the gts narrow waist. Exactly one per DAG.
-    Sink,
-}
+/// The `gmeow:sinkCapability` IRI: the single narrow-waist serialization exit. Held
+/// (via [`Stage::capabilities`] / RDF `gmeow:hasCapability`) by exactly ONE stage in
+/// the DAG — the loader HARD-fails unless precisely one stage holds it.
+pub const SINK_CAPABILITY: &str = "https://blackcatinformatics.ca/gmeow/sinkCapability";
 
-impl StageKind {
-    /// The `gmeow:StageKind` individual IRI for this kind.
-    pub fn iri(self) -> &'static str {
-        match self {
-            StageKind::SourceLoad => "https://blackcatinformatics.ca/gmeow/kindSourceLoad",
-            StageKind::Transform => "https://blackcatinformatics.ca/gmeow/kindTransform",
-            StageKind::Reason => "https://blackcatinformatics.ca/gmeow/kindReason",
-            StageKind::Validate => "https://blackcatinformatics.ca/gmeow/kindValidate",
-            StageKind::DocsRender => "https://blackcatinformatics.ca/gmeow/kindDocsRender",
-            StageKind::ExportLeaf => "https://blackcatinformatics.ca/gmeow/kindExportLeaf",
-            StageKind::Sink => "https://blackcatinformatics.ca/gmeow/kindSink",
-        }
-    }
-
-    /// A short, stable tag for diagnostics.
-    pub fn tag(self) -> &'static str {
-        match self {
-            StageKind::SourceLoad => "source-load",
-            StageKind::Transform => "transform",
-            StageKind::Reason => "reason",
-            StageKind::Validate => "validate",
-            StageKind::DocsRender => "docs-render",
-            StageKind::ExportLeaf => "export-leaf",
-            StageKind::Sink => "sink",
-        }
-    }
-
-    /// Resolve a `gmeow:StageKind` individual IRI to a kind.
-    pub fn from_iri(iri: &str) -> Option<Self> {
-        let suffix = iri.strip_prefix(GMEOW)?;
-        Some(match suffix {
-            "kindSourceLoad" => StageKind::SourceLoad,
-            "kindTransform" => StageKind::Transform,
-            "kindReason" => StageKind::Reason,
-            "kindValidate" => StageKind::Validate,
-            "kindDocsRender" => StageKind::DocsRender,
-            "kindExportLeaf" => StageKind::ExportLeaf,
-            "kindSink" => StageKind::Sink,
-            _ => return None,
-        })
-    }
-}
+/// The `gmeow:sourceOrigin` IRI: the authored-source loader. The stage that holds it
+/// stamps its emitted quads with provenance origin `Source`; every other stage stamps
+/// `Generated` (the kind-enum replacement — origin is read off a capability, not a tag).
+pub const SOURCE_ORIGIN: &str = "https://blackcatinformatics.ca/gmeow/sourceOrigin";
 
 /// The product of one stage: its id, the hex content digest of the value it
 /// produced (the cache-key contribution downstream stages fold in — Merkle
@@ -220,15 +165,24 @@ pub struct StageOutput {
 
 /// A pipeline stage: one node in the build DAG. The Rust impl is the executable
 /// twin of a `gmeow:PipelineStage` individual; the loader binds them by
-/// `gmeow:stageImpl` and HARD-fails if their `kind` / `consumes` / `resources`
-/// disagree.
+/// `gmeow:stageImpl` and HARD-fails if their `capabilities` / `consumes` /
+/// `resources` disagree.
 pub trait Stage: Send + Sync {
     /// The stable stage id — matches the `gmeow:PipelineStage` individual.
     fn id(&self) -> &str;
-    /// The stage kind (drives scheduling treatment).
-    fn kind(&self) -> StageKind;
     /// The ids of the upstream stages this stage consumes, sorted.
     fn consumes(&self) -> &[String];
+    /// The capability IRIs (`gmeow:hasCapability`) this stage holds, sorted. The
+    /// executor reads these declarations in place of a kind enum: [`SINK_CAPABILITY`]
+    /// marks the sole serialization exit (the gts narrow waist — the loader HARD-fails
+    /// unless exactly one stage holds it), and [`SOURCE_ORIGIN`] marks the
+    /// authored-source loader (its emitted quads' provenance origin is `Source`, every
+    /// other stage's is `Generated`). The default is none — a stage holding no
+    /// recognized capability is provenance-`Generated` and non-sink. The loader
+    /// HARD-fails if this disagrees with the RDF `gmeow:hasCapability` declaration.
+    fn capabilities(&self) -> &[String] {
+        &[]
+    }
     /// The IRIs of the shared resources this stage must hold exclusively while it
     /// runs (`gmeow:requiresResource`), sorted. Two stages declaring the same
     /// resource serialize; the default is none (parallel-eligible). The reasoning

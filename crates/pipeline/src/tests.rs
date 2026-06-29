@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Unit tests. P1: DAG validation (cycle / completeness / sink), registry
-//! binding agreement (kind / consumes / resources), the dogfooded-DAG Turtle
-//! round-trip. P2: the self-verifying cache, provenance stamping, and scheduler
-//! determinism.
+//! binding agreement (capabilities / consumes / resources), the dogfooded-DAG
+//! Turtle round-trip. P2: the self-verifying cache, provenance stamping, and
+//! scheduler determinism.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -12,29 +12,40 @@ use std::sync::Arc;
 use crate::cache::{stage_key, PipelineCache};
 use crate::error::PipelineError;
 use crate::loader::{bind, PipelineSpec, StageSpec};
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct, ENGINE_RESOURCE};
+use crate::node::{
+    Stage, StageInput, StageOutput, StageProduct, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
+};
 use crate::provenance::register_stage_unit;
 use crate::registry::StageRegistry;
 use crate::scheduler::{run, RunContext};
 
-/// The resources a stage of `kind` declares: the reasoning stage requires the
-/// exclusive engine resource, every other kind requires none. Mirrors the real
-/// stage impls so bind's resource-agreement holds in fixtures.
-fn resources_for(kind: StageKind) -> Vec<String> {
-    if kind == StageKind::Reason {
+/// The resources / capabilities a stage with id `id` declares, mirroring the real
+/// stage impls so bind's agreement holds in fixtures: `r` (the reasoner) requires the
+/// exclusive engine resource, `source` holds [`SOURCE_ORIGIN`], `sink` holds
+/// [`SINK_CAPABILITY`], everything else declares neither.
+fn resources_for(id: &str) -> Vec<String> {
+    if id == "r" {
         vec![ENGINE_RESOURCE.to_string()]
     } else {
         Vec::new()
     }
 }
 
-fn spec(id: &str, kind: StageKind, consumes: &[&str]) -> StageSpec {
+fn capabilities_for(id: &str) -> Vec<String> {
+    match id {
+        "source" => vec![SOURCE_ORIGIN.to_string()],
+        "sink" => vec![SINK_CAPABILITY.to_string()],
+        _ => Vec::new(),
+    }
+}
+
+fn spec(id: &str, consumes: &[&str]) -> StageSpec {
     StageSpec {
         id: id.to_string(),
-        kind,
+        capabilities: capabilities_for(id),
         impl_key: format!("impl:{id}"),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
-        resources: resources_for(kind),
+        resources: resources_for(id),
         dataflow_entities: Vec::new(),
         formats: Vec::new(),
     }
@@ -45,10 +56,10 @@ fn diamond() -> PipelineSpec {
     PipelineSpec {
         id: "pipeline-build".to_string(),
         stages: vec![
-            spec("source", StageKind::SourceLoad, &[]),
-            spec("a", StageKind::Transform, &["source"]),
-            spec("b", StageKind::Transform, &["source"]),
-            spec("sink", StageKind::Sink, &["a", "b"]),
+            spec("source", &[]),
+            spec("a", &["source"]),
+            spec("b", &["source"]),
+            spec("sink", &["a", "b"]),
         ],
     }
 }
@@ -111,7 +122,7 @@ fn unknown_consumes_edge_errors_instead_of_panicking() {
 #[test]
 fn missing_sink_is_rejected() {
     let mut s = diamond();
-    s.stages[3].kind = StageKind::ExportLeaf; // demote the only sink
+    s.stages[3].capabilities.clear(); // strip SINK_CAPABILITY from the only sink
     match s.validate() {
         Err(PipelineError::InvalidDag(msg)) => assert!(msg.contains("no Sink"), "{msg}"),
         other => panic!("expected missing-sink rejection, got {other:?}"),
@@ -121,7 +132,8 @@ fn missing_sink_is_rejected() {
 #[test]
 fn multiple_sinks_are_rejected() {
     let mut s = diamond();
-    s.stages[1].kind = StageKind::Sink; // now `a` and `sink` are both sinks
+    // Give `a` SINK_CAPABILITY too: now `a` and `sink` are both sinks.
+    s.stages[1].capabilities = vec![SINK_CAPABILITY.to_string()];
     match s.validate() {
         Err(PipelineError::InvalidDag(msg)) => assert!(msg.contains("Sink stages"), "{msg}"),
         other => panic!("expected multiple-sink rejection, got {other:?}"),
@@ -132,7 +144,7 @@ fn multiple_sinks_are_rejected() {
 
 struct FakeStage {
     id: String,
-    kind: StageKind,
+    capabilities: Vec<String>,
     consumes: Vec<String>,
     resources: Vec<String>,
 }
@@ -141,11 +153,11 @@ impl Stage for FakeStage {
     fn id(&self) -> &str {
         &self.id
     }
-    fn kind(&self) -> StageKind {
-        self.kind
-    }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn capabilities(&self) -> &[String] {
+        &self.capabilities
     }
     fn resources(&self) -> &[String] {
         &self.resources
@@ -160,12 +172,12 @@ impl Stage for FakeStage {
     }
 }
 
-fn fake(id: &str, kind: StageKind, consumes: &[&str]) -> Arc<dyn Stage> {
+fn fake(id: &str, consumes: &[&str]) -> Arc<dyn Stage> {
     Arc::new(FakeStage {
         id: id.to_string(),
-        kind,
+        capabilities: capabilities_for(id),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
-        resources: resources_for(kind),
+        resources: resources_for(id),
     })
 }
 
@@ -184,10 +196,10 @@ fn bind_succeeds_when_rust_agrees() {
     let reg = registry_for(
         &s,
         vec![
-            fake("source", StageKind::SourceLoad, &[]),
-            fake("a", StageKind::Transform, &["source"]),
-            fake("b", StageKind::Transform, &["source"]),
-            fake("sink", StageKind::Sink, &["a", "b"]),
+            fake("source", &[]),
+            fake("a", &["source"]),
+            fake("b", &["source"]),
+            fake("sink", &["a", "b"]),
         ],
     );
     let bound = bind(&s, &g, &reg).expect("binds");
@@ -204,10 +216,10 @@ fn bind_rejects_consumes_disagreement() {
     let reg = registry_for(
         &s,
         vec![
-            fake("source", StageKind::SourceLoad, &[]),
-            fake("a", StageKind::Transform, &[]),
-            fake("b", StageKind::Transform, &["source"]),
-            fake("sink", StageKind::Sink, &["a", "b"]),
+            fake("source", &[]),
+            fake("a", &[]),
+            fake("b", &["source"]),
+            fake("sink", &["a", "b"]),
         ],
     );
     match bind(&s, &g, &reg).map(|v| v.len()) {
@@ -224,31 +236,25 @@ fn bind_rejects_resource_disagreement() {
     let s = PipelineSpec {
         id: "p".to_string(),
         stages: vec![
-            spec("source", StageKind::SourceLoad, &[]),
-            spec("r", StageKind::Reason, &["source"]),
-            spec("sink", StageKind::Sink, &["r"]),
+            spec("source", &[]),
+            spec("r", &["source"]),
+            spec("sink", &["r"]),
         ],
     };
     let g = s.validate().unwrap();
     let mut reg = StageRegistry::new();
-    reg.register(
-        "impl:source".to_string(),
-        fake("source", StageKind::SourceLoad, &[]),
-    );
+    reg.register("impl:source".to_string(), fake("source", &[]));
     // The reason impl declares NO resources, disagreeing with the spec.
     reg.register(
         "impl:r".to_string(),
         Arc::new(FakeStage {
             id: "r".to_string(),
-            kind: StageKind::Reason,
+            capabilities: Vec::new(),
             consumes: vec!["source".to_string()],
             resources: Vec::new(),
         }) as Arc<dyn Stage>,
     );
-    reg.register(
-        "impl:sink".to_string(),
-        fake("sink", StageKind::Sink, &["r"]),
-    );
+    reg.register("impl:sink".to_string(), fake("sink", &["r"]));
     match bind(&s, &g, &reg).map(|v| v.len()) {
         Err(PipelineError::ResourceMismatch { stage, rdf, rust }) => {
             assert_eq!(stage, "r");
@@ -279,17 +285,16 @@ gmeow:pipeline-test a gmeow:Pipeline ;
     gmeow:hasStage gmeow:stageSource , gmeow:stageReason , gmeow:stageSink .
 
 gmeow:stageSource a gmeow:PipelineStage ;
-    gmeow:stageKind gmeow:kindSourceLoad ;
+    gmeow:hasCapability gmeow:sourceOrigin ;
     gmeow:stageImpl "source_load" .
 
 gmeow:stageReason a gmeow:PipelineStage ;
-    gmeow:stageKind gmeow:kindReason ;
     gmeow:stageImpl "reason" ;
     gmeow:dataflowConsumes gmeow:stageSource ;
     gmeow:requiresResource gmeow:engineResource .
 
 gmeow:stageSink a gmeow:PipelineStage ;
-    gmeow:stageKind gmeow:kindSink ;
+    gmeow:hasCapability gmeow:sinkCapability ;
     gmeow:stageImpl "gts_sink" ;
     gmeow:dataflowConsumes gmeow:stageReason ;
     gmeow:producesFormat "gts" .
@@ -302,12 +307,16 @@ fn turtle_dag_round_trips_and_validates() {
     assert_eq!(spec.stages.len(), 3);
 
     let reason = spec.stage("stageReason").expect("reason stage");
-    assert_eq!(reason.kind, StageKind::Reason);
+    assert!(reason.capabilities.is_empty());
     assert_eq!(reason.impl_key, "reason");
     assert_eq!(reason.resources, vec![ENGINE_RESOURCE.to_string()]);
     assert_eq!(reason.consumes, vec!["stageSource"]);
 
+    let source = spec.stage("stageSource").expect("source stage");
+    assert_eq!(source.capabilities, vec![SOURCE_ORIGIN.to_string()]);
+
     let sink = spec.stage("stageSink").expect("sink stage");
+    assert_eq!(sink.capabilities, vec![SINK_CAPABILITY.to_string()]);
     assert_eq!(sink.formats, vec!["gts"]);
 
     let g = spec.validate().expect("DAG is valid");
@@ -383,15 +392,17 @@ fn cache_hard_fails_on_corruption() {
 // ── P2: provenance stamping ──────────────────────────────────────────────────
 
 #[test]
-fn provenance_stamps_kind_derived_origin() {
+fn provenance_stamps_capability_derived_origin() {
     use gmeow_rdf::provenance::{DatasetProvenance, OriginKind};
     let mut prov = DatasetProvenance::new();
-    let load = register_stage_unit(&mut prov, "stage-source-load", StageKind::SourceLoad);
-    let reason = register_stage_unit(&mut prov, "stage-reason", StageKind::Reason);
+    let source_caps = [SOURCE_ORIGIN.to_string()];
+    let load = register_stage_unit(&mut prov, "stage-source-load", &source_caps);
+    // A stage holding no SOURCE_ORIGIN capability (e.g. the reasoner) stamps Generated.
+    let reason = register_stage_unit(&mut prov, "stage-reason", &[]);
     assert_eq!(prov.unit_kind(load), Some(&OriginKind::Source));
     assert_eq!(prov.unit_kind(reason), Some(&OriginKind::Generated));
     // Idempotent: re-registering the same id returns the same unit.
-    let load2 = register_stage_unit(&mut prov, "stage-source-load", StageKind::SourceLoad);
+    let load2 = register_stage_unit(&mut prov, "stage-source-load", &source_caps);
     assert_eq!(load, load2);
 }
 
@@ -401,7 +412,7 @@ fn provenance_stamps_kind_derived_origin() {
 /// (sorted) upstream digests, with a run counter to observe cache hits.
 struct ComputeStage {
     id: String,
-    kind: StageKind,
+    capabilities: Vec<String>,
     consumes: Vec<String>,
     resources: Vec<String>,
     runs: Arc<AtomicUsize>,
@@ -411,11 +422,11 @@ impl Stage for ComputeStage {
     fn id(&self) -> &str {
         &self.id
     }
-    fn kind(&self) -> StageKind {
-        self.kind
-    }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn capabilities(&self) -> &[String] {
+        &self.capabilities
     }
     fn resources(&self) -> &[String] {
         &self.resources
@@ -445,7 +456,7 @@ fn compute_registry(spec: &PipelineSpec, runs: &Arc<AtomicUsize>) -> StageRegist
             s.impl_key.clone(),
             Arc::new(ComputeStage {
                 id: s.id.clone(),
-                kind: s.kind,
+                capabilities: s.capabilities.clone(),
                 consumes: s.consumes.clone(),
                 resources: s.resources.clone(),
                 runs: Arc::clone(runs),
@@ -461,10 +472,10 @@ fn reason_diamond() -> PipelineSpec {
     PipelineSpec {
         id: "p".to_string(),
         stages: vec![
-            spec("source", StageKind::SourceLoad, &[]),
-            spec("a", StageKind::Transform, &["source"]),
-            spec("r", StageKind::Reason, &["source"]),
-            spec("sink", StageKind::Sink, &["a", "r"]),
+            spec("source", &[]),
+            spec("a", &["source"]),
+            spec("r", &["source"]),
+            spec("sink", &["a", "r"]),
         ],
     }
 }
@@ -513,9 +524,6 @@ impl Stage for FileReadingStage {
     fn id(&self) -> &str {
         "file-leaf"
     }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
-    }
     fn consumes(&self) -> &[String] {
         &[]
     }
@@ -549,10 +557,7 @@ fn input_files_content_busts_the_cache() {
     let runs = Arc::new(AtomicUsize::new(0));
     let spec = PipelineSpec {
         id: "p".to_string(),
-        stages: vec![
-            spec("file-leaf", StageKind::ExportLeaf, &[]),
-            spec("sink", StageKind::Sink, &[]),
-        ],
+        stages: vec![spec("file-leaf", &[]), spec("sink", &[])],
     };
     let graph = spec.validate().unwrap();
     let mut reg = StageRegistry::new();
@@ -563,7 +568,7 @@ fn input_files_content_busts_the_cache() {
             runs: Arc::clone(&runs),
         }) as Arc<dyn Stage>,
     );
-    reg.register("impl:sink".to_string(), fake("sink", StageKind::Sink, &[]));
+    reg.register("impl:sink".to_string(), fake("sink", &[]));
     let bound = bind(&spec, &graph, &reg).unwrap();
 
     let mut ctx = RunContext::open(dir.path().join("cache"), 2).unwrap();
@@ -628,9 +633,6 @@ impl Stage for TwoGraphProducer {
     fn id(&self) -> &str {
         "producer"
     }
-    fn kind(&self) -> StageKind {
-        StageKind::Transform
-    }
     fn consumes(&self) -> &[String] {
         &[]
     }
@@ -676,9 +678,6 @@ impl Stage for EntityConsumer {
     fn id(&self) -> &str {
         &self.id
     }
-    fn kind(&self) -> StageKind {
-        StageKind::Transform
-    }
     fn consumes(&self) -> &[String] {
         std::slice::from_ref(&self.entities[0].0)
     }
@@ -713,10 +712,10 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
     let mut s = PipelineSpec {
         id: "p".to_string(),
         stages: vec![
-            spec("producer", StageKind::Transform, &[]),
-            spec("cg1", StageKind::Transform, &["producer"]),
-            spec("cg2", StageKind::Transform, &["producer"]),
-            spec("sink", StageKind::Sink, &["cg1", "cg2"]),
+            spec("producer", &[]),
+            spec("cg1", &["producer"]),
+            spec("cg2", &["producer"]),
+            spec("sink", &["cg1", "cg2"]),
         ],
     };
     // Declare the typed dataflow on the consumer specs (Rust/RDF agreement at bind).
@@ -753,10 +752,7 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
             runs: Arc::clone(&cg2_runs),
         }) as Arc<dyn Stage>,
     );
-    reg.register(
-        "impl:sink".to_string(),
-        fake("sink", StageKind::Sink, &["cg1", "cg2"]),
-    );
+    reg.register("impl:sink".to_string(), fake("sink", &["cg1", "cg2"]));
     let bound = bind(&s, &g, &reg).expect("binds (resource + dataflow agreement hold)");
 
     let mut ctx = RunContext::open(dir.path().join("cache"), 4).unwrap();

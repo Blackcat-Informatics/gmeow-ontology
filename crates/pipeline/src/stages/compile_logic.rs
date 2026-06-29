@@ -24,8 +24,9 @@
 //!
 //! ## Engine lock
 //!
-//! Compilation is pure (parse + projection); it never drives Nemo/Scryer, so this is a
-//! [`StageKind::Transform`] that carries no engine lock.
+//! Compilation is pure (parse + projection); it never drives Nemo/Scryer, so it
+//! declares no resource and holds no capability — a parallel-eligible stage with no
+//! engine lock.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -51,7 +52,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::bundle::{bundle_from_artifacts_over, PipelineHandle};
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::diag_render::{render_diagnostics_artifacts, DiagnosticsPaths};
 
 /// The single authoritative `logic:` vocabulary source the compiler reads.
@@ -176,9 +177,6 @@ impl Default for CompileLogicStage {
 impl Stage for CompileLogicStage {
     fn id(&self) -> &str {
         "stage-compile-logic"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::Transform
     }
     fn consumes(&self) -> &[String] {
         &[]
