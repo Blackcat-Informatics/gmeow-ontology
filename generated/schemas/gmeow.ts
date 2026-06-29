@@ -1094,6 +1094,11 @@ export enum GeometryTypeEnum {
     geometryTypePolygon = "geometryTypePolygon",
 }
 
+export enum GoalEnum {
+    goalCanonicalIngestion = "goalCanonicalIngestion",
+    goalShippableBundle = "goalShippableBundle",
+}
+
 export enum GovernanceModelEnum {
     governanceBDFL = "governanceBDFL",
     governanceCorporate = "governanceCorporate",

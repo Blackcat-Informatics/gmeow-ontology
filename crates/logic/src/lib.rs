@@ -13,6 +13,9 @@
 
 pub mod certificate;
 pub mod counterfactual;
+/// The DAG-workflow profile certifier (`logic:DagWorkflowResource`): the single
+/// shared acyclicity check the canonical process model and the build pipeline run.
+pub mod dag_profile;
 /// Dense-id graph primitives (interner + bitset) for the hot graph algorithms.
 pub(crate) mod dense;
 pub mod derivation_graph;
