@@ -131,6 +131,14 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
         write_json(p, &out.preservation)
     })?;
 
+    // Correspondence gates (F4): write the five-gate report when the program authored
+    // correspondences (refresh an existing golden or seed in init mode).
+    if let Some(gates) = &out.correspondence_gates {
+        write_if(init, &expected.join("correspondence-gates.json"), |p| {
+            write_json(p, gates)
+        })?;
+    }
+
     // Answers (#504).
     if !out.answers.is_empty() {
         let answers_dir = expected.join("answers");
