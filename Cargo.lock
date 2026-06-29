@@ -1723,7 +1723,6 @@ dependencies = [
  "gmeow-slice",
  "insta",
  "minijinja",
- "oxigraph",
  "pretty_assertions",
  "pulldown-cmark",
  "pyo3",
