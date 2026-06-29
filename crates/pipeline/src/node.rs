@@ -20,7 +20,7 @@ use gmeow_rdf::{PipelineBundle, RdfDataset};
 
 use crate::bundle::{
     bundle_artifact, bundle_artifacts, bundle_from_artifacts, bundle_from_artifacts_over,
-    PipelineHandle, SnapshotViews,
+    PipelineHandle,
 };
 use crate::error::PipelineError;
 
@@ -126,14 +126,6 @@ pub struct StageProduct {
     /// The structured carrier this stage emitted: the frozen dataset, lookaside
     /// (including the byte-artifact lane), blob store, provenance, and handle lane.
     pub bundle: Arc<PipelineBundle<PipelineHandle>>,
-    /// The parse-once-and-share snapshot views (#1132 C5), present ONLY on the
-    /// freshly-run `stage-snapshot` product. They are the single parse of the
-    /// emitted `gmeow.gts` bytes into the two views the fold-reading leaves need
-    /// (event-import [`GtsBundle`] + model [`gmeow_gts::model::Graph`]), so those
-    /// leaves consume the shared in-memory view instead of each re-parsing the
-    /// bytes. Derived/non-canonical: NOT folded into the bundle digest and NOT
-    /// restored on a cache hit (a leaf falls back to parsing the lane bytes then).
-    pub snapshot_views: Option<Arc<SnapshotViews>>,
 }
 
 impl StageProduct {
@@ -151,7 +143,6 @@ impl StageProduct {
                 BTreeMap::new(),
                 DatasetProvenance::new(),
             )),
-            snapshot_views: None,
         }
     }
 
@@ -187,24 +178,7 @@ impl StageProduct {
             stage_id: stage_id.into(),
             digest,
             bundle,
-            snapshot_views: None,
         }
-    }
-
-    /// Attach the parse-once-and-share snapshot views (#1132 C5) to this product.
-    /// Only `stage-snapshot` calls this; the views ride the product (not the
-    /// content-addressed bundle), so the digest is unchanged.
-    #[must_use]
-    pub fn with_snapshot_views(mut self, views: Arc<SnapshotViews>) -> Self {
-        self.snapshot_views = Some(views);
-        self
-    }
-
-    /// The shared parsed snapshot views, present only on a freshly-run
-    /// `stage-snapshot` product (absent on a cache hit — the consumer then parses
-    /// the lane bytes). See [`SnapshotViews`].
-    pub fn snapshot_views(&self) -> Option<&Arc<SnapshotViews>> {
-        self.snapshot_views.as_ref()
     }
 
     /// Borrow the structured carrier this product emitted.

@@ -175,6 +175,12 @@ impl<H> PipelineBundle<H> {
         &self.dataset
     }
 
+    /// Clone the `Arc` to the frozen hot graph (cheap reference-count bump) — for a
+    /// consumer that needs to share the dataset by handle rather than borrow it.
+    pub fn dataset_arc(&self) -> Arc<RdfDataset> {
+        Arc::clone(&self.dataset)
+    }
+
     /// Borrow the out-of-band lookaside.
     pub fn lookaside(&self) -> &RdfLookaside {
         &self.lookaside

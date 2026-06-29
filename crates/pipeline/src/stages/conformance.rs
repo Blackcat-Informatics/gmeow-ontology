@@ -24,7 +24,7 @@
 //! this stage) is deterministic by construction and never couples the snapshot fold
 //! to engine availability: the native token in `expected/verdicts.json` IS the
 //! verdict `gmeow_logic::reason::dl_consistency` produced for that case (it is the
-//! golden the conformance harness asserts). [`crate::stages::snapshot`] folds this
+//! golden the conformance harness asserts). [`crate::stages::carrier`] folds this
 //! stage's product into the `graph/conformance` named graph of `gmeow.gts`.
 
 use std::collections::BTreeMap;
@@ -38,7 +38,7 @@ use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
 
 /// The in-memory logical path of the external-corpus divergence N-Quads product
-/// [`crate::stages::snapshot`] folds into the `graph/conformance` named graph. The
+/// [`crate::stages::carrier`] folds into the `graph/conformance` named graph. The
 /// `pipeline/` prefix marks it as in-memory dataflow that is never written to disk
 /// (the same convention the diagnostics / composed dataflow products follow).
 pub const CONFORMANCE_NQ_PATH: &str = "pipeline/conformance-divergence.nq";
@@ -232,7 +232,7 @@ fn stage_err(message: &str) -> PipelineError {
 /// The `stage-conformance` Transform stage: grades the committed external corpus
 /// (native frozen verdict vs published external verdict) and emits the divergences
 /// as the in-memory `graph/conformance` N-Quads product
-/// [`crate::stages::snapshot`] folds into `gmeow.gts`. It consumes no upstream
+/// [`crate::stages::carrier`] folds into `gmeow.gts`. It consumes no upstream
 /// product — it reads the committed corpus directly.
 pub struct ConformanceStage;
 

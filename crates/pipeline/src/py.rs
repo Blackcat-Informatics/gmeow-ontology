@@ -143,17 +143,13 @@ fn compile_mappings_report(py: Python<'_>, root: String) -> PyResult<Py<PyAny>> 
 #[pyfunction]
 #[pyo3(signature = (nquads_bytes, format = "jsonld"))]
 fn serialize_yaml_ld(py: Python<'_>, nquads_bytes: &[u8], format: &str) -> PyResult<Py<PyAny>> {
-    let gts =
-        gmeow_gts::from_nquads::from_nquads(std::str::from_utf8(nquads_bytes).map_err(|e| {
-            pyo3::exceptions::PyValueError::new_err(format!("N-Quads bytes are not UTF-8: {e}"))
-        })?)
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("parse N-Quads: {e}")))?;
-    let graph = gmeow_rdf::gts::read_graph(&gts, true)
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("read GTS graph: {e}")))?;
+    let dataset =
+        gmeow_rdf::dataset_from_bytes(nquads_bytes, gmeow_rdf::NativeRdfFormat::NQuads)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("parse N-Quads: {e}")))?;
     let text = match format {
-        "jsonld" => crate::stages::yaml_ld::serialize_graph(&graph)
+        "jsonld" => crate::stages::yaml_ld::serialize_graph(&dataset)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?,
-        "yamlld" => crate::stages::yaml_ld::serialize_graph_yaml(&graph, None)
+        "yamlld" => crate::stages::yaml_ld::serialize_graph_yaml(&dataset, None)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?,
         _ => {
             return Err(pyo3::exceptions::PyValueError::new_err(format!(

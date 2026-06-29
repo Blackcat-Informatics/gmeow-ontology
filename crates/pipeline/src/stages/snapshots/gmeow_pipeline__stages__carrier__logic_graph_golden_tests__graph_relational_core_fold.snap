@@ -1,5 +1,6 @@
 ---
-source: crates/pipeline/src/stages/snapshot.rs
+source: crates/pipeline/src/stages/carrier.rs
+assertion_line: 2749
 expression: folded
 ---
 <https://blackcatinformatics.ca/logic/relational-core/body/16c04b04e107> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/RelationalCoreAtom> .
