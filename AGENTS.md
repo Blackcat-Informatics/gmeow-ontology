@@ -105,6 +105,8 @@ and CI (Principles 1, 6, 7).
 
 When you change canonical sources (ontology modules, mapping-dsl, statement-dsl), the checked-in generated artifacts can become stale. Use these targets to refresh and commit them safely:
 
+The build's architecture — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout that projects the flat files back out — is specified in [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md). Every committed artifact under `generated/` is a projection of `gmeow.gts`; that document is canonical for any work that produces one.
+
 ```bash
 make regenerate      # Rebuild ALL checked-in generated artifacts from canonical sources
 make commit          # Run regenerate, stage the artifacts, and commit (default message)
