@@ -397,6 +397,20 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 	else \
 		echo "SKIP: wasm32-unknown-unknown target not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' to enable the wasm-clean check"; \
 	fi
+	@# [EPIC #906] No FIRST-PARTY crate may name oxigraph or any oxigraph-family crate
+	@# as a DIRECT dependency. The oxigraph umbrella is fully removed; the residual
+	@# ox*-family sub-crates (oxrdf/oxttl/oxiri/spargebra/oxsdatatypes/…) survive ONLY
+	@# transitively through two EXTERNAL crates — nemo (the Datalog chase engine) and
+	@# gmeow-gts — which are outside this workspace and on their own retirement track,
+	@# so a whole-workspace `cargo tree` ban is not achievable here; this grep guards
+	@# against a first-party regression that re-introduces a direct edge.
+	@hits=$$(grep -rnE '^\s*(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld)\s*=|"oxigraph"|dep:oxigraph' crates/*/Cargo.toml 2>/dev/null || true); \
+	if [ -n "$$hits" ]; then \
+		echo "FAIL: a first-party crate names an oxigraph-family crate as a direct dependency:"; \
+		echo "$$hits"; exit 1; \
+	else \
+		echo "OK: no first-party crate has a direct oxigraph-family dependency (umbrella removed; residual ox* is external nemo/gmeow-gts only)"; \
+	fi
 
 CAPI_HEADER := crates/rdf-capi/include/purrdf.h
 
