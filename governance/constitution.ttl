@@ -301,8 +301,8 @@ meta:gate-reason-native a meta:Gate ;
 
 meta:gate-dl-el-crosscheck a meta:Gate ;
     rdfs:label "native gap-zero divergence ledger — native-built gap-zero artifact; oracle confirmation runs in the classic-cross-check lane"@x-gmeow-english ;
-    meta:artifact "crates/pipeline/src/stages/logic.rs", "generated/logic/dl-el-crosscheck-report.ttl" ;
-    meta:symbol "LogicStage" ;
+    meta:artifact "crates/pipeline/src/stages/reason.rs", "generated/logic/dl-el-crosscheck-report.ttl" ;
+    meta:symbol "ReasonStage" ;
     meta:generator "logic" .
 
 # The ENFORCING classic-cross-check lane: the sole Java+Docker surface, a
