@@ -5117,7 +5117,7 @@ logic:DagWorkflowResource
         logic:ResourcePolicy ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "DAG-Workflow Resource"@x-gmeow-english ;
-    skos:definition "The resource execution policy of the DAG-workflow profile: it requires the plan's control/dataflow graph to be a single-entry, loop-free DAG — no logic:Iteration and an acyclic logic:dataflowConsumes / flow-edge closure — so the schedule is a topological order with a hard termination guarantee, and the result reports logic:CompleteForFragment. A specialization of the certified-fragment discipline of logic:CertifiedFragmentResource applied to process control flow rather than rule recursion; because resource is an execution policy holding independent properties together, a contract may carry both a DAG-workflow requirement and a budget at once. A plan outside the acyclic fragment is still valid canonically but resolves to `unsupported` under this policy, the offending edge disclosed by logic:dagCycleWitness — never silently truncated."@x-gmeow-english .
+    skos:definition "The resource execution policy of the DAG-workflow profile: it requires the plan's control/dataflow graph to be a loop-free (acyclic) DAG — no logic:Iteration and an acyclic logic:dataflowConsumes / flow-edge closure — so the schedule is a topological order with a hard termination guarantee, and the result reports logic:CompleteForFragment. Acyclicity is the universal structural guarantee certified here; a typed terminal discipline such as the build pipeline's single gmeow:kindSink is an additional per-surface constraint, not part of this graph-level certification. A specialization of the certified-fragment discipline of logic:CertifiedFragmentResource applied to process control flow rather than rule recursion; because resource is an execution policy holding independent properties together, a contract may carry both a DAG-workflow requirement and a budget at once. A plan outside the acyclic fragment is still valid canonically but resolves to `unsupported` under this policy, the offending edge disclosed by logic:dagCycleWitness — never silently truncated."@x-gmeow-english .
 
 logic:DagWorkflowProfile
     a owl:NamedIndividual ,
@@ -5125,7 +5125,7 @@ logic:DagWorkflowProfile
     logic:expandsToFacet logic:DagWorkflowResource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "DAG-Workflow Profile"@x-gmeow-english ;
-    skos:definition "The preset naming the statically-certified acyclic fragment of logic:Plan as a reusable ReasoningContract: it expands to the DAG-workflow resource policy (logic:DagWorkflowResource), under which a single-entry, loop-free plan is topologically schedulable and complete-for-fragment. The dogfooded build pipeline is certified under this profile; a cyclic plan resolves to `unsupported` with its offending edge named rather than being approximated to a nearby supported semantics."@x-gmeow-english .
+    skos:definition "The preset naming the statically-certified acyclic fragment of logic:Plan as a reusable ReasoningContract: it expands to the DAG-workflow resource policy (logic:DagWorkflowResource), under which a loop-free plan is topologically schedulable and complete-for-fragment. The dogfooded build pipeline is certified under this profile; a cyclic plan resolves to `unsupported` with its offending edge named rather than being approximated to a nearby supported semantics."@x-gmeow-english .
 
 logic:dagCycleWitness
     a owl:ObjectProperty ;
