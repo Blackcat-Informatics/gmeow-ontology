@@ -769,7 +769,7 @@ logic:Plan
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Plan"@x-gmeow-english ;
-    skos:definition "A transaction program (a logic:TransactionProgram-kind node) whose primitive operations invoke action schemas and whose success criterion is a goal expression. As a program it carries the structure a decomposed goal alone cannot — ordering and serial composition, guards, branching, concurrency, loops, and fallback — all in the operators of the transaction layer. A POLICY is a plan whose branches are conditioned on what an earlier action's observation reveals rather than fixed in advance; this is a reading of a plan, NOT a separate class. Plan adoption and revision are recorded as an intention is: a plan is held over an interval and revised by suppression, never mutated. Because an action schema may carry a nondeterministic outcome set, plan success is quantified over those outcomes through logic:planSuccessMode rather than left to the bare executional-success reading."@x-gmeow-english ;
+    skos:definition "A transaction program (a logic:TransactionProgram-kind node) whose primitive operations invoke action schemas and whose success criterion is a goal expression. As a program it carries the structure a decomposed goal alone cannot — ordering and serial composition, guards, branching, concurrency, loops, and fallback — all in the operators of the transaction layer. A POLICY is a plan whose branches are conditioned on what an earlier action's observation reveals rather than fixed in advance; this is a reading of a plan, NOT a separate class. Plan adoption and revision are recorded as an intention is: a plan is held over an interval and revised by suppression, never mutated. Because an action schema may carry a nondeterministic outcome set, plan success is quantified over those outcomes through logic:planSuccessMode rather than left to the bare executional-success reading. On the foundational spine a logic:Plan is a gmeow:SocialObject (a description, not a physical thing), grounded in prose per the logic-core convention rather than by a subclass edge; a process surface that specializes logic:Plan therefore also asserts its own gmeow:SocialObject or gmeow:InformationObject sort directly, since the prose grounding licenses no DL inference of it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:PlanSuccessMode
@@ -2184,6 +2184,20 @@ logic:planSuccessMode
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "plan success mode"@x-gmeow-english ;
     skos:definition "Relates a logic:Plan to the logic:PlanSuccessMode quantifying its success over the nondeterministic outcomes of its action schemas. Domain logic:Plan, range logic:PlanSuccessMode (stated in prose). The quantification exists because the bare executional-success reading of the transaction layer would count one favourable path as success; this declares whether some, every, or every fair execution must reach the goal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:planFlowEdge
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "plan flow edge"@x-gmeow-english ;
+    skos:definition "Relates a logic:Plan to a reified flow edge (logic:ControlFlowEdge or logic:DataFlowEdge) that constitutes its FLOW-GRAPH — the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC over, each edge mediating a source (logic:flowFrom) and a target (logic:flowTo) process node. MULTI-valued: a plan gathers all the control-flow and dataflow edges of its process graph. The canonical-plan counterpart of the build pipeline's gmeow:hasStage stage-membership — where a pipeline gathers gmeow:PipelineStage members whose gmeow:dataflowConsumes edges form its graph, a logic:Plan gathers its reified flow edges directly — so a plan's flow graph is reachable from the plan rather than left as free-standing edges. A plan whose planFlowEdge closure is acyclic is certified logic:CompleteForFragment under logic:DagWorkflowResource; a cyclic closure resolves to the `unsupported` verdict (logic:EvaluationUnsupported) with the offending members disclosed by logic:dagCycleWitness, never silently truncated. Domain logic:Plan, range logic:ControlFlowEdge or logic:DataFlowEdge (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:planCertification
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "plan certification"@x-gmeow-english ;
+    skos:definition "Relates a logic:Plan to the logic:ReasoningResult recording its DAG-workflow certification verdict — the result the acyclicity certifier emits when the plan runs logic:executedUnderContract a contract requesting logic:DagWorkflowResource. The result carries logic:resultEvaluation (logic:EvaluationCompleted on an acyclic plan, logic:EvaluationUnsupported on a cyclic one) and logic:resultCompleteness (logic:CompleteForFragment when certified), and on a cyclic plan it discloses the offending cycle members through logic:dagCycleWitness — so the `unsupported` verdict and its witness are reachable from the plan rather than computed and discarded. Domain logic:Plan, range logic:ReasoningResult (stated in prose). The plan stays valid canonically under a non-DAG contract; this link records only what the DAG profile certified over it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:activationBasis
@@ -5048,6 +5062,90 @@ logic:executedAlongPath
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "executed along path"@x-gmeow-english ;
     skos:definition "Relates a program run — a logic:Plan or a logic:TransactionOutcome — to the logic:Path along which it executed: the executed history that realizes the program. Domain logic:Plan or logic:TransactionOutcome, range logic:Path (stated in prose). This is the one link the four-notion chain intention -> plan -> action -> transaction-path did not already have: intention reaches its goal and action through gmeow:intentionGoal / gmeow:motivates, a logic:Plan reaches the same goal through logic:planGoal, and an action occurrence reaches its type through logic:instantiatesSchema, but no existing term tied a program to the run that executed it. It CONNECTS the program to its path but does NOT subsume either: a plan is the program (what is intended to be done), a path is the executed run (how state actually changed); the link records that this program ran along that history without conflating the two."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Canonical process model: the DAG-workflow profile + flow edges ----------
+# The decidable, schedulable SHADOW of the canonical process model. A "DAG
+# workflow" is NOT a kind of process but a statically-certified ACYCLIC fragment
+# of logic:Plan, expressed as a Resource-facet value (logic:DagWorkflowResource)
+# requested by a named contract (logic:DagWorkflowContract) — never a standalone
+# class (design/LOGIC-CONTRACT.md, "Why a contract, not a profile"). The genuinely
+# missing canonical edge is DATAFLOW: logic:dataflowConsumes is the binary
+# dependency a DAG executor schedules over; logic:ControlFlowEdge /
+# logic:DataFlowEdge are its reified FLOW-GRAPH form (the graph the acyclicity
+# certifier runs Tarjan SCC over), complementary to — not a duplicate of — the
+# structured-program combinators (logic:Choice, logic:Iteration,
+# logic:ConcurrentComposition, logic:Fallback), which are the program-TREE form an
+# interpreter walks. The DAG fragment excludes the loop combinator logic:Iteration
+# (the program-level counterpart of logic:StrongCyclicPlanSuccess); a cyclic plan
+# stays valid canonically but resolves to `unsupported` under the DAG profile,
+# the offending edge disclosed by logic:dagCycleWitness — never silently truncated.
+
+logic:dataflowConsumes
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "dataflow consumes"@x-gmeow-english ;
+    skos:definition "Relates a process node — a logic:Plan step, a pipeline stage, or a procedure step — to an upstream node whose product it reads: the canonical binary dataflow dependency, oriented consumer -> producer (an executor inverts it to schedule producers first). The transitive closure must be acyclic for the DAG-workflow profile (logic:DagWorkflowResource); a cycle takes the plan out of the certified acyclic fragment and is disclosed through logic:dagCycleWitness, never silently dropped. Domain and range a process node (stated in prose, matching the module's convention). The reified FLOW-GRAPH counterpart is logic:DataFlowEdge; downstream surfaces such as gmeow:dataflowConsumes specialize this property."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:dataflowProduces
+    a owl:ObjectProperty ;
+    owl:inverseOf logic:dataflowConsumes ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "dataflow produces"@x-gmeow-english ;
+    skos:definition "The inverse of logic:dataflowConsumes: relates a process node to a downstream node that reads its product (producer -> consumer). The canonical authored direction is logic:dataflowConsumes, so this inverse is normally left to be inferred rather than asserted. Domain and range a process node (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ControlFlowEdge
+    a owl:Class ;
+    rdfs:subClassOf logic:Relator ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Control-Flow Edge"@x-gmeow-english ;
+    skos:definition "A reified control-flow edge between two process nodes — the canonical FLOW-GRAPH form of control flow, mediating a source node (logic:flowFrom) and a target node (logic:flowTo). Complementary to, NOT a duplicate of, the structured-program combinators (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback): the combinators are the program-TREE form an interpreter walks, while a logic:ControlFlowEdge is the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC over. A graph carrying a logic:Iteration loop edge (or any back-edge) is outside the DAG fragment. Downstream reified control-flow relators such as gmeow:ControlFlow specialize this class. A Relator mediating two distinct relata (its flowFrom and flowTo nodes), satisfying the relator-mediation discipline."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DataFlowEdge
+    a owl:Class ;
+    rdfs:subClassOf logic:Relator ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Data-Flow Edge"@x-gmeow-english ;
+    skos:definition "A reified dataflow edge between two process nodes — the FLOW-GRAPH counterpart of the logic:dataflowConsumes property, mediating a source (producer) node via logic:flowFrom and a target (consumer) node via logic:flowTo. Use the property form (logic:dataflowConsumes) for a bare binary dependency and this reified form when an edge must carry its own attributes (the flowing entity, a guard, an order). Downstream reified dataflow relators such as gmeow:DataFlow specialize this class. A Relator mediating two distinct relata, satisfying the relator-mediation discipline."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:flowFrom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "flow from"@x-gmeow-english ;
+    skos:definition "Relates a reified flow edge (logic:ControlFlowEdge or logic:DataFlowEdge) to its source process node — the predecessor in a control-flow edge, the producer in a dataflow edge. Domain a flow edge, range a process node (stated in prose). Paired with logic:flowTo; the two mediation legs that make a flow edge a well-formed Relator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:flowTo
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "flow to"@x-gmeow-english ;
+    skos:definition "Relates a reified flow edge (logic:ControlFlowEdge or logic:DataFlowEdge) to its target process node — the successor in a control-flow edge, the consumer in a dataflow edge. Domain a flow edge, range a process node (stated in prose). Paired with logic:flowFrom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:DagWorkflowResource
+    a owl:NamedIndividual ,
+        logic:ResourcePolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "DAG-Workflow Resource"@x-gmeow-english ;
+    skos:definition "The resource execution policy of the DAG-workflow profile: it requires the plan's control/dataflow graph to be a loop-free (acyclic) DAG — no logic:Iteration and an acyclic logic:dataflowConsumes / flow-edge closure — so the schedule is a topological order with a hard termination guarantee, and the result reports logic:CompleteForFragment. Acyclicity is the universal structural guarantee certified here; a typed terminal discipline such as the build pipeline's single gmeow:kindSink is an additional per-surface constraint, not part of this graph-level certification. A specialization of the certified-fragment discipline of logic:CertifiedFragmentResource applied to process control flow rather than rule recursion; because resource is an execution policy holding independent properties together, a contract may carry both a DAG-workflow requirement and a budget at once. A plan outside the acyclic fragment is still valid canonically but resolves to `unsupported` under this policy, the offending edge disclosed by logic:dagCycleWitness — never silently truncated."@x-gmeow-english .
+
+logic:DagWorkflowContract
+    a owl:NamedIndividual ,
+        logic:ReasoningContract ;
+    logic:resourcePolicy logic:DagWorkflowResource ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "DAG-Workflow Contract"@x-gmeow-english ;
+    skos:definition "The named ReasoningContract that requests the DAG-workflow resource policy (logic:resourcePolicy logic:DagWorkflowResource), under which a loop-free logic:Plan is topologically schedulable and complete-for-fragment. It is a CONTRACT (a standing request on the Resource facet), NOT a logic:ReasoningPreset: a preset bundles a model-semantics selection, whereas this fixes only the execution-discipline (Resource) facet — the contract-not-profile doctrine, applied so the resource discipline is a facet a contract requests, not a semantic profile. The dogfooded build pipeline runs logic:executedUnderContract this contract; a cyclic plan resolves to `unsupported` with its offending edge named rather than being approximated to a nearby supported semantics."@x-gmeow-english .
+
+logic:dagCycleWitness
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "DAG cycle witness"@x-gmeow-english ;
+    skos:definition "Relates an `unsupported` DAG-workflow verdict to a disclosed offending edge or cycle member — the back-edge or logic:Iteration that places a plan outside the certified acyclic fragment — MULTI-valued (a graph may carry several cycles). Mirrors the witness-disclosure discipline of logic:forbiddenViolationWitness: the certifier never silently truncates a cyclic plan, it surfaces exactly which edges break acyclicity while the plan stays valid under a non-DAG contract. Domain a reasoning result or coherence outcome carrying the `unsupported` evaluation status, range a flow edge or process node (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Transaction outcome: the executional-entailment verdict surface ----------

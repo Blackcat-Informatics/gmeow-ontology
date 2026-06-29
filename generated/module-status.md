@@ -53,7 +53,7 @@ Tier-2 uplift backlog.
 | learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
-| logic | core | core | 0 | 166 | 280 | 252 | 6 | 0/446 | full |
+| logic | core | core | 0 | 168 | 287 | 254 | 6 | 0/455 | full |
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | music | extension | extensions | 12 | 59 | 126 | 0 | 1 | - | full |
@@ -64,9 +64,9 @@ Tier-2 uplift backlog.
 | notes | extension | extensions | 2 | 6 | 15 | 0 | 1 | - | full |
 | observations | core | core | 6 | 11 | 19 | 0 | 1 | 30/30 | full |
 | organization | core | core | 4 | 12 | 39 | 0 | 1 | 51/51 | full |
-| pipeline | core | core | 1 | 3 | 7 | 0 | 1 | 0/10 | full |
+| pipeline | core | core | 2 | 3 | 7 | 0 | 1 | 0/10 | full |
 | places | core | core | 7 | 46 | 140 | 0 | 1 | 186/186 | full |
-| procedures | extension | extensions | 2 | 9 | 26 | 0 | 1 | - | full |
+| procedures | extension | extensions | 3 | 9 | 26 | 0 | 1 | - | full |
 | profiles | core | core | 3 | 1 | 4 | 0 | 1 | 4/5 | full |
 | provenance | core | core | 3 | 4 | 9 | 0 | 1 | 10/13 | full |
 | quality | core | core | 2 | 2 | 2 | 0 | 1 | 4/4 | full |
@@ -84,4 +84,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 12 | 0 | 1 | 18/18 | full |
 
-**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1207/1781 core class/property terms (#471).
+**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1207/1790 core class/property terms (#471).

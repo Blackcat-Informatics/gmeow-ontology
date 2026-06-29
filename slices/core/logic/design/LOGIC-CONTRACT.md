@@ -124,6 +124,30 @@ is not a single "complete vs. bounded" toggle.
 **Projection is an output request.** It is what the caller wants the answer rendered as, and it may
 name multiple targets in one contract; it never alters which entailments hold.
 
+### The DAG-workflow resource
+
+A concrete Resource-facet value makes the doctrine above tangible for **process** reasoning:
+`logic:DagWorkflowResource` is a `logic:ResourcePolicy` individual — a sibling of the certified-fragment
+policy `logic:CertifiedFragmentResource` — that requires a plan's control/dataflow graph to be a
+loop-free (acyclic) DAG: no `logic:Iteration`, and an acyclic `logic:dataflowConsumes` / flow-edge
+closure. On an acyclic plan the schedule is a topological order with a hard termination guarantee, and
+the result reports `logic:CompleteForFragment`.
+
+Because Resource is an *execution policy* holding independent properties together (above), a contract
+may carry both a DAG-workflow requirement and a budget at once; the DAG requirement constrains only
+the execution discipline, never the model semantics. A named contract requests it on the Resource
+facet: `logic:DagWorkflowContract` carries `logic:resourcePolicy logic:DagWorkflowResource`. It is a
+**contract, not a profile** — it fixes only the execution-discipline facet, so it is deliberately
+*not* a `logic:ReasoningPreset` (those bundle a model-semantics selection). The dogfooded build
+pipeline runs `logic:executedUnderContract logic:DagWorkflowContract`.
+
+The unsupported rule applies verbatim: a plan **outside** the acyclic fragment stays valid canonically
+under a non-DAG contract but resolves to `unsupported` (`logic:EvaluationUnsupported`) under this
+policy, the offending cycle disclosed by `logic:dagCycleWitness` — never quietly approximated to a
+nearby acyclic plan. The preservation consequences of that verdict, and the drops external
+workflow-engine lowerings impose, are specified in [`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md),
+*The DAG-workflow profile and cyclic-plan preservation*.
+
 The facets compose, but with the cardinalities above respected. **Evolution = transaction-path**
 (the state-change semantics specified in [`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md)) is
 independent of whether the model semantics is least-model, well-founded, or stable-model — which

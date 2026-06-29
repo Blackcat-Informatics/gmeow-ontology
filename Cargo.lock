@@ -1749,9 +1749,9 @@ dependencies = [
 
 [[package]]
 name = "gmeow-gts"
-version = "0.9.9"
+version = "0.9.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "832a9d2a9f73409b0532440b3d1be3b04edbe5fdfb76041d997018a2cd612501"
+checksum = "8f79b93e4ff5b8db77a092227ff65cb584e9d8d45613b4728bfc409eb15f3ba4"
 dependencies = [
  "aes-gcm",
  "blake3",
@@ -1762,12 +1762,12 @@ dependencies = [
  "getrandom 0.2.17",
  "libc",
  "oxsdatatypes",
- "quick-xml",
- "ruzstd",
+ "quick-xml 0.40.1",
  "serde",
  "serde_json",
  "serde_yaml",
  "sha1 0.11.0",
+ "structured-zstd",
  "time",
  "visual-hashing",
 ]
@@ -1795,6 +1795,7 @@ dependencies = [
  "insta",
  "nemo",
  "oxigraph",
+ "petgraph",
  "proptest",
  "pyo3",
  "rayon",
@@ -1886,7 +1887,6 @@ dependencies = [
  "jsonschema",
  "oxigraph",
  "parquet",
- "petgraph",
  "pyo3",
  "rayon",
  "serde",
@@ -3505,7 +3505,7 @@ dependencies = [
  "oxilangtag",
  "oxiri",
  "oxrdf 0.2.4",
- "quick-xml",
+ "quick-xml 0.37.5",
  "thiserror 2.0.18",
 ]
 
@@ -3518,7 +3518,7 @@ dependencies = [
  "oxilangtag",
  "oxiri",
  "oxrdf 0.3.3",
- "quick-xml",
+ "quick-xml 0.37.5",
  "thiserror 2.0.18",
 ]
 
@@ -3990,6 +3990,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "quick-xml"
+version = "0.40.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2474bd2e5029e7ccb6abb2ba48cf2383a333851dedf495901544281590c7da7f"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4373,15 +4382,6 @@ dependencies = [
  "quick-error",
  "tempfile",
  "wait-timeout",
-]
-
-[[package]]
-name = "ruzstd"
-version = "0.8.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7c1c839d570d835527c9a5e4db7cb2198683a988cb9d7293fc8674e6bd58fc8"
-dependencies = [
- "twox-hash",
 ]
 
 [[package]]
@@ -4792,7 +4792,7 @@ dependencies = [
  "json-event-parser",
  "memchr",
  "oxrdf 0.3.3",
- "quick-xml",
+ "quick-xml 0.37.5",
  "thiserror 2.0.18",
 ]
 
@@ -4916,6 +4916,15 @@ name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
+
+[[package]]
+name = "structured-zstd"
+version = "0.0.40"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af7b9352cd002e0abc4d70cbf06656c8edd93f74a7f00fdafdb36c5a3bcd67ce"
+dependencies = [
+ "twox-hash",
+]
 
 [[package]]
 name = "strum"
