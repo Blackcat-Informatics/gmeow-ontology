@@ -644,18 +644,12 @@ def validate_all(
     py_errors: list[str] = []
     py_warnings: list[str] = []
     if gts_input is None:
-        # Ownership gate (#820 S8 / #809): the authoritative ownership-validation
-        # source is the native gmeow_slice OwnershipAnalyzer (Conflict + Mismatch +
-        # Unowned, #329). `make validate` stays a focused GATE — it folds only the
-        # ownership-DEFECT errors here, exactly as before. The full STRUCTURED
-        # report (those errors PLUS the dependency-observation warnings that the
-        # old list[str] path dropped entirely) is surfaced separately, with full
-        # fidelity, on the `slice-ownership` feedback surface (#809) → SARIF +
-        # gmeow.gts — so the previously-trimmed information now reaches a shippable
-        # surface without flooding the gate.
-        ownership_errors = list(native_ownership_report().errors)
-        result.errors.extend(ownership_errors)
-        py_errors.extend(ownership_errors)
+        # Ownership gate (#820 S8 / #809): Rust folds ownership-DEFECT errors
+        # into the canonical validate report while computing the merged-SHACL
+        # Merkle key, so the Python wrapper does not run the analyzer a second
+        # time. The full STRUCTURED report (including dependency-observation
+        # warnings) remains available on the separate `slice-ownership` feedback
+        # surface (#809), keeping `make validate` focused.
 
         # Guide-anchor lint stays Python-side: it resolves markdown anchors in
         # slice docs.md against the declared GMEOW terms returned by Rust. Skip

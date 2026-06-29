@@ -889,7 +889,7 @@ pub struct PathShapeIr {
 }
 
 /// Hard cap on `max_depth` accepted by [`PathShapeIr::new`].  A value larger
-/// than this would cause [`datalog_text`](super::super::projections::paths::datalog_text)
+/// than this would cause [`datalog_text`](crate::projections::paths::datalog_text)
 /// to unroll billions of rule lines, exhausting memory (CWE-400).  The cap is
 /// conservative but generous: 1 000 hops covers every practical ontology
 /// traversal; no legitimate graph walk needs more.
