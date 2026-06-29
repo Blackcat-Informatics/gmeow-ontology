@@ -592,15 +592,20 @@ fn gts_from_maximal(
     derived: &BTreeMap<TripleKey, DerivedTriple>,
 ) -> Result<Vec<u8>, String> {
     let mut builder = gmeow_rdf::gts_compose::SnapshotBuilder::new();
-    let base_quads = quads(base_plus_derived)?;
-    builder.add_quads(&base_quads, None, None);
+    // Native carrier ingestion (#909): serialize the default graph to N-Triples and
+    // parse it into a frozen dataset, then fold it in. The native parse folds any RDF
+    // 1.2 statement layer into the dataset's reifier/annotation side-tables, so a
+    // single `add_dataset` reproduces the old `add_quads` + `add_rdf12` split.
+    let base_nt = dump_nt(base_plus_derived)?;
+    let base_dataset = gmeow_rdf::parse_dataset(base_nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| e.to_string())?;
+    builder.add_dataset(&base_dataset)?;
     let statement_nt = statement_layer_nt(derived);
     if !statement_nt.trim().is_empty() {
-        let statement_quads = gmeow_rdf::gts_compose::parse_quads_lenient(
-            statement_nt.as_bytes(),
-            gmeow_rdf::NativeRdfFormat::NTriples,
-        )?;
-        builder.add_rdf12(&statement_quads, None, None)?;
+        let statement_dataset =
+            gmeow_rdf::parse_dataset(statement_nt.as_bytes(), "application/n-triples", None)
+                .map_err(|e| e.to_string())?;
+        builder.add_dataset(&statement_dataset)?;
     }
     gmeow_rdf::gts_compose::emit_gts(
         &builder,
@@ -916,14 +921,6 @@ fn parse_quads(data: &[u8], format: RdfFormat) -> Result<Vec<Quad>, String> {
     let mut out = Vec::new();
     for quad in RdfParser::from_format(format).lenient().for_slice(data) {
         out.push(quad.map_err(|e| format!("RDF parse failed: {e}"))?);
-    }
-    Ok(out)
-}
-
-fn quads(store: &Store) -> Result<Vec<Quad>, String> {
-    let mut out = Vec::new();
-    for q in store.quads_for_pattern(None, None, None, Some(GraphNameRef::DefaultGraph)) {
-        out.push(q.map_err(|e| format!("quad collection failed: {e}"))?);
     }
     Ok(out)
 }

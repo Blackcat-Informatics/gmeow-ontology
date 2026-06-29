@@ -1698,24 +1698,48 @@ fn add_named(
     let canon = canonicalize_nq(nq_bytes, scope)?;
     let quads = parse_nq(canon.as_bytes())?;
     reject_quoted_triples(&quads, graph_name)?;
-    builder.add_quads(&quads, Some(graph_name), Some(scope));
+    let dataset = parse_dataset(canon.as_bytes(), "application/n-quads", None)
+        .map_err(|e| stage_err(&format!("add_named parse: {e}")))?;
+    builder
+        .add_dataset_scoped(&dataset, Some(graph_name), Some(scope))
+        .map_err(|e| stage_err(&e))?;
     Ok(())
 }
 
-/// `SnapshotBuilder::add_quads` SILENTLY DROPS a quad whose object is a quoted
-/// triple (`<<>>`), because the RDF-1.2 statement layer is meant to arrive only via
-/// `add_rdf12` (as reifies/annotation rows), never as a base quoted-triple object.
-/// In the pipeline these base/named graphs are plain RDF-1.1 N-Quads, so a quoted
-/// triple here would be a real defect — HARD-fail rather than let `add_quads` drop
-/// the statement and shrink the fold (no-optionality / no silent data loss, #863).
+/// Ingest a default-graph N-Quads fixture under a blank scope (test-only): canonicalize
+/// → native parse → `add_dataset_scoped`, the carrier-test analogue of [`add_named`] for
+/// the default graph (no graph name).
+#[cfg(test)]
+fn add_base_nq(
+    builder: &mut SnapshotBuilder,
+    nq_bytes: &[u8],
+    scope: &str,
+) -> Result<(), PipelineError> {
+    let canon = canonicalize_nq(nq_bytes, scope)?;
+    let quads = parse_nq(canon.as_bytes())?;
+    reject_quoted_triples(&quads, "default")?;
+    let dataset = parse_dataset(canon.as_bytes(), "application/n-quads", None)
+        .map_err(|e| stage_err(&format!("add_base_nq parse: {e}")))?;
+    builder
+        .add_dataset_scoped(&dataset, None, Some(scope))
+        .map_err(|e| stage_err(&e))?;
+    Ok(())
+}
+
+/// A plain RDF-1.1 N-Quads fixture must carry no quoted-triple (`<<>>`) object: the
+/// RDF-1.2 statement layer rides the dataset's reifier/annotation side-tables (which
+/// `add_dataset` folds), never a base quoted-triple object. A quoted triple here would
+/// be a real defect — HARD-fail rather than let it shrink the fold (no-optionality /
+/// no silent data loss, #863).
 fn reject_quoted_triples(quads: &[Quad], graph_name: &str) -> Result<(), PipelineError> {
     if quads
         .iter()
         .any(|q| matches!(q.object, oxigraph::model::Term::Triple(_)))
     {
         return Err(stage_err(&format!(
-            "graph {graph_name} carries a quoted-triple (<<>>) object that add_quads would \
-             silently drop; the RDF-1.2 statement layer must arrive via add_rdf12, not as a base quad"
+            "graph {graph_name} carries a quoted-triple (<<>>) object that the base-quad fold \
+             would not represent; the RDF-1.2 statement layer must ride the reifier/annotation \
+             tables, not a base quad"
         )));
     }
     Ok(())
@@ -2460,13 +2484,14 @@ mod conformance_fold_tests {
         // read the bundle back.
         let mut builder = SnapshotBuilder::new();
         // A non-empty default graph so the bundle is well-formed.
-        let base = parse_nq(
+        add_base_nq(
+            &mut builder,
             b"<https://blackcatinformatics.ca/gmeow/> \
               <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
               <http://www.w3.org/2002/07/owl#Ontology> .\n",
+            "base",
         )
-        .expect("base parse");
-        builder.add_quads(&base, None, Some("base"));
+        .expect("fold base graph");
         add_named(
             &mut builder,
             conformance.as_bytes(),
@@ -2500,13 +2525,14 @@ mod conformance_fold_tests {
     #[test]
     fn empty_divergence_adds_no_conformance_graph() {
         let mut builder = SnapshotBuilder::new();
-        let base = parse_nq(
+        add_base_nq(
+            &mut builder,
             b"<https://blackcatinformatics.ca/gmeow/> \
               <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
               <http://www.w3.org/2002/07/owl#Ontology> .\n",
+            "base",
         )
-        .expect("base parse");
-        builder.add_quads(&base, None, Some("base"));
+        .expect("fold base graph");
         // Mirror build_snapshot's guard: an empty graph is never add_named'd.
         let conformance: Vec<u8> = Vec::new();
         if !conformance.is_empty() {
@@ -2615,13 +2641,14 @@ mod logic_graph_golden_tests {
 
         let build = || {
             let mut builder = SnapshotBuilder::new();
-            let base = parse_nq(
+            add_base_nq(
+                &mut builder,
                 b"<https://blackcatinformatics.ca/gmeow/> \
                   <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
                   <http://www.w3.org/2002/07/owl#Ontology> .\n",
+                "base",
             )
-            .expect("base parse");
-            builder.add_quads(&base, None, Some("base"));
+            .expect("fold base graph");
             add_named(&mut builder, &logic_nq, GRAPH_LOGIC, "logic").expect("fold graph/logic");
             emit_gts(
                 &builder,
@@ -2687,13 +2714,14 @@ mod logic_graph_golden_tests {
 
         let build = || {
             let mut builder = SnapshotBuilder::new();
-            let base = parse_nq(
+            add_base_nq(
+                &mut builder,
                 b"<https://blackcatinformatics.ca/gmeow/> \
                   <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
                   <http://www.w3.org/2002/07/owl#Ontology> .\n",
+                "base",
             )
-            .expect("base parse");
-            builder.add_quads(&base, None, Some("base"));
+            .expect("fold base graph");
             add_named(
                 &mut builder,
                 reasoning_nt.as_bytes(),
@@ -2776,13 +2804,14 @@ mod logic_graph_golden_tests {
 
         let build = || {
             let mut builder = SnapshotBuilder::new();
-            let base = parse_nq(
+            add_base_nq(
+                &mut builder,
                 b"<https://blackcatinformatics.ca/gmeow/> \
                   <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
                   <http://www.w3.org/2002/07/owl#Ontology> .\n",
+                "base",
             )
-            .expect("base parse");
-            builder.add_quads(&base, None, Some("base"));
+            .expect("fold base graph");
             add_named(
                 &mut builder,
                 rc_nt.as_bytes(),
@@ -2838,13 +2867,14 @@ mod logic_graph_golden_tests {
 
         let build = || {
             let mut builder = SnapshotBuilder::new();
-            let base = parse_nq(
+            add_base_nq(
+                &mut builder,
                 b"<https://blackcatinformatics.ca/gmeow/> \
                   <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
                   <http://www.w3.org/2002/07/owl#Ontology> .\n",
+                "base",
             )
-            .expect("base parse");
-            builder.add_quads(&base, None, Some("base"));
+            .expect("fold base graph");
             add_named(
                 &mut builder,
                 corr_nt.as_bytes(),
@@ -2947,13 +2977,14 @@ mod logic_graph_golden_tests {
 
         let build = || {
             let mut builder = SnapshotBuilder::new();
-            let base = parse_nq(
+            add_base_nq(
+                &mut builder,
                 b"<https://blackcatinformatics.ca/gmeow/> \
                   <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
                   <http://www.w3.org/2002/07/owl#Ontology> .\n",
+                "base",
             )
-            .expect("base parse");
-            builder.add_quads(&base, None, Some("base"));
+            .expect("fold base graph");
             add_named(
                 &mut builder,
                 prov_nt.as_bytes(),

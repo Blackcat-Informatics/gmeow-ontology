@@ -57,7 +57,7 @@ pub mod native_codecs;
 pub mod canon;
 #[cfg(feature = "oxigraph")]
 pub mod dataset_io;
-#[cfg(all(feature = "gts", feature = "oxigraph"))]
+#[cfg(feature = "gts")]
 pub mod gts_compose;
 #[cfg(feature = "oxigraph")]
 pub mod oxigraph;
