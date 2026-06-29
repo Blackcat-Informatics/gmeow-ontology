@@ -609,6 +609,43 @@ ASK {
 # bounded->Attestation, forbidden glut->refused) is authored canonically in Rust
 # (crates/logic/src/certificate.rs); these assertions pin the vocabulary surface it
 # projects from.
+#
+# OBSERVABILITY BOUNDARY (LOGIC-CONFORMANCE.md §"Tests as ontology data",
+# §"The coherence certificate"). The coherence claim has two halves, and only one is
+# checkable as ontology data through the conformance harness:
+#
+#   * OBSERVABLE — the REASONING VERDICT. "A within-world contradiction emits a
+#     captured witness; the same contradiction isolated across worlds does not
+#     contaminate either world." This IS checked behaviorally as ontology data by the
+#     paraconsistency corpus, which the native engine genuinely evaluates and the
+#     harness diffs against per-world expected/verdicts.json goldens:
+#       - conformance/logic/cases/paraconsistency/within-world-glut/         => `inconsistent`
+#         (the glut is captured + surfaced, i.e. DISCLOSED, not silently swallowed);
+#       - conformance/logic/cases/paraconsistency/within-world-glut-isolated/ => `consistent`
+#         (the SAME contradictory pair, split across two worlds, stays isolated);
+#       - conformance/logic/cases/paraconsistency/cross-world-isolation/      => `consistent`
+#         (cross-world coexistence, the original isolation witness).
+#     These are GENUINELY-EVALUATED witnesses (verdict_mode=consistency runs
+#     gmeow_logic::reason::dl_consistency, folding from the same closure as reason_all),
+#     NOT term-existence probes.
+#
+#   * RUST-ONLY — the PERMITTED-vs-FORBIDDEN CLASSIFICATION of a disclosed glut, and the
+#     certificate-vs-attestation completeness gate. Whether a captured within-world glut
+#     is a permitted, disclosed conflict (coherent under a glut-admitting contract:
+#     AdmitAllFour / ForbidGap) or a forbidden integrity violation (under a glut-forbidding
+#     contract: ForbidGlut / ForbidGapAndGlut) is computed in Rust off the ReasoningResult
+#     by the contract's ContradictionPolicy
+#     (crates/logic/src/certificate.rs::CoherenceOutcome::from_reasoning_result, partitioning
+#     purely on contradiction_policy.glut_permitted()). This classification is NOT folded
+#     into the reasoned/materialized graph, and the conformance profile surface is closed
+#     (reasoning_contract carries only `preset`, no admissible_valuation facet —
+#     crates/conformance/src/profile.rs), so the harness CANNOT evaluate it as ontology data.
+#     It is pinned canonically by the Rust certificate tests
+#     (permitted_glut_is_coherent / forbidden_glut_refuses_and_issues_no_certificate /
+#     bounded_forbidden_glut_attests_and_discloses_the_forbidden_witness). Cells 36-39 below
+#     therefore pin only the vocabulary SURFACE of this Rust-checked classification (the two
+#     completeness-gated artifacts, the permitted/=/forbidden distinctness, the four policy
+#     valuations) — they do not, and honestly cannot, re-prove the classification behaviorally.
 
 # --- 35. FindingCategory is a closed eight-member value set (MUST) ------------
 ex:saFindingCategoryClosedValueSet a gmeow:StructuralAssertion ;

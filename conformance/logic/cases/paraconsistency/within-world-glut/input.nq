@@ -1,0 +1,3 @@
+<https://example.org/paraconsistency/within-world-glut/CrimePenalty> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/paraconsistency/within-world-glut/JurisdictionStrict> <https://example.org/paraconsistency/within-world-glut/w> .
+<https://example.org/paraconsistency/within-world-glut/CrimePenalty> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/paraconsistency/within-world-glut/JurisdictionLenient> <https://example.org/paraconsistency/within-world-glut/w> .
+<https://example.org/paraconsistency/within-world-glut/JurisdictionStrict> <http://www.w3.org/2002/07/owl#disjointWith> <https://example.org/paraconsistency/within-world-glut/JurisdictionLenient> <https://example.org/paraconsistency/within-world-glut/w> .
