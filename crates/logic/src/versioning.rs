@@ -27,9 +27,9 @@
 //! Components are fed into BLAKE3 in a **fixed, documented order** using **length-prefixed
 //! framing**: every component is preceded by its 8-byte little-endian length. This prevents
 //! component-boundary collisions — i.e. the two different splits `("ab", "c")` vs `("a", "bc")`
-//! produce distinct byte streams and therefore distinct keys. The domain tag `"materialized-world-key\0"`
-//! or `"counterfactual-world-key\0"` is fed first as a length-prefixed entry so the two key
-//! spaces never collide even if all component values happen to coincide.
+//! produce distinct byte streams and therefore distinct keys. The domain tag `"materialized-world-key\0"`,
+//! `"counterfactual-world-key\0"`, or `"hypothetical-run-key\0"` is fed first as a length-prefixed entry
+//! so the key spaces never collide even if all component values happen to coincide.
 
 /// Length-prefix a byte slice and feed it into a BLAKE3 hasher.
 ///
@@ -198,6 +198,64 @@ pub fn counterfactual_world_key(inputs: &CounterfactualKeyInputs) -> String {
     to_hex(h.finalize())
 }
 
+// ── Hypothetical run key ──────────────────────────────────────────────────────────────────────────
+
+/// Input components for a **hypothetical (sandbox) transaction-run** key.
+///
+/// This is the content-addressed identity of a Transaction-Logic program executed under
+/// `logic:HypotheticalExecution` — run to test whether it *would* succeed, with its effects
+/// discarded rather than committed. It is the witness recorded as `logic:executedHypotheticallyAs`
+/// on the resulting `logic:TransactionOutcome`: the sole standing trace of a run whose effect
+/// substrate is intentionally never emitted.
+///
+/// It reuses the **same content-addressed keying discipline** as [`counterfactual_world_key`] — the
+/// paradigm-neutral substrate the hypothetical and modal-possibility operators share — under its own
+/// domain tag so the two remain separate typed operators whose key spaces never collide. It does
+/// **not** reuse the counterfactual store/dispatch machinery: the transaction interpreter is
+/// deliberately effect-free, and coupling it to a store would conflate the two operators.
+///
+/// The components are the transaction-run analogue of a counterfactual's `(base_world, antecedent)`:
+/// the start-state support set the run departs from, the program that was run, the world it is scoped
+/// to, and the solver version (a behavioral bump invalidates the recorded witness).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HypotheticalRunKeyInputs {
+    /// BLAKE3 digest of the start-state situation support the hypothetical run departs from.
+    pub start_state_hash: [u8; 32],
+    /// BLAKE3 digest of the transaction program (its combinator tree and action schemas).
+    pub program_hash: [u8; 32],
+    /// IRI of the world / named graph the run is scoped to (salts the run's identity).
+    pub world: String,
+    /// Semver string of the solver version used.
+    pub solver_version: String,
+}
+
+/// Compute the deterministic BLAKE3 key for a **hypothetical (sandbox) transaction run**.
+///
+/// # Hashing order (fixed and documented)
+///
+/// 1. Domain tag: `"hypothetical-run-key\0"` (prevents collision with the materialized and
+///    counterfactual spaces)
+/// 2. `start_state_hash`
+/// 3. `program_hash`
+/// 4. `world`
+/// 5. `solver_version`
+///
+/// Every component is length-prefixed (8-byte LE u64) before its data bytes so that distinct
+/// component splits yield distinct byte streams.
+///
+/// # Returns
+///
+/// Lowercase hex string of the 32-byte BLAKE3 digest.
+pub fn hypothetical_run_key(inputs: &HypotheticalRunKeyInputs) -> String {
+    let mut h = blake3::Hasher::new();
+    feed(&mut h, b"hypothetical-run-key\0");
+    feed(&mut h, &inputs.start_state_hash);
+    feed(&mut h, &inputs.program_hash);
+    feed(&mut h, inputs.world.as_bytes());
+    feed(&mut h, inputs.solver_version.as_bytes());
+    to_hex(h.finalize())
+}
+
 // ── Unit tests — AC#3: cache-invalidation ────────────────────────────────────────────────────────
 
 #[cfg(test)]
@@ -239,6 +297,15 @@ mod tests {
         }
     }
 
+    fn baseline_hypo() -> HypotheticalRunKeyInputs {
+        HypotheticalRunKeyInputs {
+            start_state_hash: hash_a(),
+            program_hash: hash_b(),
+            world: "https://blackcatinformatics.ca/gmeow/graph/imports".to_owned(),
+            solver_version: "0.1.0".to_owned(),
+        }
+    }
+
     // ── Determinism ───────────────────────────────────────────────────────────────────────────────
 
     #[test]
@@ -252,6 +319,13 @@ mod tests {
     fn counterfactual_key_is_deterministic() {
         let k0 = counterfactual_world_key(&baseline_cf());
         let k1 = counterfactual_world_key(&baseline_cf());
+        assert_eq!(k0, k1, "same inputs must produce identical keys");
+    }
+
+    #[test]
+    fn hypothetical_key_is_deterministic() {
+        let k0 = hypothetical_run_key(&baseline_hypo());
+        let k1 = hypothetical_run_key(&baseline_hypo());
         assert_eq!(k0, k1, "same inputs must produce identical keys");
     }
 
@@ -427,7 +501,57 @@ mod tests {
         );
     }
 
-    // ── Domain separation: materialized vs counterfactual ─────────────────────────────────────────
+    // ── Hypothetical key: per-component invalidation ──────────────────────────────────────────────
+
+    #[test]
+    fn hypo_key_changes_on_start_state_hash() {
+        let k0 = hypothetical_run_key(&baseline_hypo());
+        let mut inp = baseline_hypo();
+        inp.start_state_hash = [0x01u8; 32];
+        assert_ne!(
+            hypothetical_run_key(&inp),
+            k0,
+            "start_state_hash mutation must change key"
+        );
+    }
+
+    #[test]
+    fn hypo_key_changes_on_program_hash() {
+        let k0 = hypothetical_run_key(&baseline_hypo());
+        let mut inp = baseline_hypo();
+        inp.program_hash = [0x02u8; 32];
+        assert_ne!(
+            hypothetical_run_key(&inp),
+            k0,
+            "program_hash mutation must change key"
+        );
+    }
+
+    #[test]
+    fn hypo_key_changes_on_world() {
+        let k0 = hypothetical_run_key(&baseline_hypo());
+        let mut inp = baseline_hypo();
+        inp.world = "https://blackcatinformatics.ca/gmeow/graph/other".to_owned();
+        assert_ne!(
+            hypothetical_run_key(&inp),
+            k0,
+            "world mutation must change key"
+        );
+    }
+
+    #[test]
+    fn hypo_key_changes_on_solver_version() {
+        let k0 = hypothetical_run_key(&baseline_hypo());
+        let mut inp = baseline_hypo();
+        inp.solver_version = "0.2.0".to_owned();
+        assert_ne!(
+            hypothetical_run_key(&inp),
+            k0,
+            "solver_version mutation must change key"
+        );
+    }
+
+    // ── Domain separation: materialized vs counterfactual vs hypothetical ──────────────────────────
 
     #[test]
     fn mat_and_cf_keys_never_collide_on_equal_overlapping_components() {
@@ -452,13 +576,29 @@ mod tests {
             antecedent_hash: shared_hash,
             rule_set_hash: shared_hash,
             entrenchment_hash: shared_hash,
-            profile: shared_profile,
+            profile: shared_profile.clone(),
+            solver_version: shared_solver.clone(),
+        };
+        let hypo = HypotheticalRunKeyInputs {
+            start_state_hash: shared_hash,
+            program_hash: shared_hash,
+            world: shared_profile,
             solver_version: shared_solver,
         };
+        let mk = materialized_world_key(&mat);
+        let ck = counterfactual_world_key(&cf);
+        let hk = hypothetical_run_key(&hypo);
         assert_ne!(
-            materialized_world_key(&mat),
-            counterfactual_world_key(&cf),
+            mk, ck,
             "materialized and counterfactual keys must never collide"
+        );
+        assert_ne!(
+            mk, hk,
+            "materialized and hypothetical keys must never collide"
+        );
+        assert_ne!(
+            ck, hk,
+            "counterfactual and hypothetical keys must never collide"
         );
     }
 
