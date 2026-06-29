@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming fixture: a STRONG-CYCLIC logic:Plan — valid canonically even though
+# its control flow contains a recovery loop. The plan retries a flaky step until
+# it succeeds (logic:StrongCyclicPlanSuccess: every fair execution reaches the
+# goal in finitely many steps, allowing retried loops through recoverable
+# failures). It is a well-formed logic:Plan (exactly one logic:planGoal, exactly
+# one logic:planSuccessMode), so it satisfies logic:PlanShape with no findings.
+#
+# The loop (ex:cfRetry: stepProbe -> stepProbe via the recover edge back to itself
+# through stepRecover) is what places the plan OUTSIDE the certified acyclic DAG
+# fragment. Under the DAG-workflow profile (logic:DagWorkflowResource) this plan
+# resolves to `unsupported` with the offending back-edge named by
+# logic:dagCycleWitness — but the plan stays valid canonically here, never
+# silently truncated (the cyclic-vs-acyclic projection is exercised in the Rust
+# certifier test crates/logic dag_profile::strong_cyclic_plan_vs_acyclic_projection).
+#
+# Bound by tests/example-conformance.ttl (ex:ecDagStrongCyclicPlan, gmeow:conforms).
+# Self-contained: the harness loads logic/module.ttl + ONLY this file against
+# logic/shapes.ttl.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lgc/> .
+
+ex:goalDataIngested a gmeow:Goal ;
+    rdfs:label "data ingested despite flaky fetch (fixture)"@en .
+
+# The strong-cyclic plan: valid canonically, with a retry loop in its control flow.
+ex:planResilientIngest a logic:Plan ;
+    logic:planGoal ex:goalDataIngested ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess .
+
+# The plan's steps (process nodes).
+ex:stepProbe   a gmeow:Entity ; rdfs:label "probe source"@en .
+ex:stepRecover a gmeow:Entity ; rdfs:label "recover and retry"@en .
+ex:stepCommit  a gmeow:Entity ; rdfs:label "commit ingested data"@en .
+
+# Control flow, as canonical reified flow-graph edges. The recovery loop is the
+# cycle: probe -> recover -> probe (a back-edge), then probe -> commit on success.
+ex:cfProbeRecover a logic:ControlFlowEdge ;
+    logic:flowFrom ex:stepProbe ;
+    logic:flowTo   ex:stepRecover .
+
+ex:cfRecoverProbe a logic:ControlFlowEdge ;
+    logic:flowFrom ex:stepRecover ;
+    logic:flowTo   ex:stepProbe .
+
+ex:cfProbeCommit a logic:ControlFlowEdge ;
+    logic:flowFrom ex:stepProbe ;
+    logic:flowTo   ex:stepCommit .

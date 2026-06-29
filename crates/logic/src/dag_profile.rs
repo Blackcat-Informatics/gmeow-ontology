@@ -210,4 +210,46 @@ mod tests {
         let cert = certify_acyclic(std::iter::empty());
         assert_eq!(cert, DagCertification::Certified);
     }
+
+    /// The W2 conformance case in executable form (mirrors the SHACL fixture
+    /// tests/conformance-fixtures/dag-strong-cyclic-plan.ttl): a strong-cyclic
+    /// plan with a retry loop is valid canonically, but the SAME plan under the
+    /// DAG-workflow profile resolves to `unsupported` with the offending back-edge
+    /// named (the recorded loss), while its acyclic projection — the plan with the
+    /// back-edge dropped — certifies as complete-for-fragment.
+    #[test]
+    fn strong_cyclic_plan_vs_its_acyclic_projection() {
+        // The strong-cyclic plan's control flow: probe -> recover -> probe (the
+        // retry loop / back-edge) and probe -> commit (success).
+        let cyclic = [
+            ("stepProbe", "stepRecover"),
+            ("stepRecover", "stepProbe"), // the recovery back-edge
+            ("stepProbe", "stepCommit"),
+        ];
+        let verdict = certify_acyclic(cyclic.iter().copied());
+        // Under the DAG profile the loop is unsupported, and the loss is RECORDED:
+        // the witness names exactly the cycle members (the dropped back-edge).
+        assert_eq!(
+            verdict,
+            DagCertification::Cycle(vec!["stepProbe".into(), "stepRecover".into()])
+        );
+        assert_eq!(verdict.result_status().0, EvaluationStatus::Unsupported);
+        assert_eq!(
+            verdict.witness(),
+            vec!["stepProbe".to_string(), "stepRecover".to_string()],
+            "the recorded loss names the loop the DAG projection drops"
+        );
+
+        // The acyclic PROJECTION drops the back-edge; the rest certifies cleanly.
+        let acyclic = [("stepProbe", "stepRecover"), ("stepProbe", "stepCommit")];
+        let projected = certify_acyclic(acyclic.iter().copied());
+        assert_eq!(projected, DagCertification::Certified);
+        assert_eq!(
+            projected.result_status(),
+            (
+                EvaluationStatus::Completed,
+                CompletenessStatus::CompleteForFragment
+            )
+        );
+    }
 }
