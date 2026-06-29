@@ -1083,6 +1083,101 @@ impl fmt::Display for CorrespondenceRelation {
     }
 }
 
+/// The realized body of a correspondence leg (`logic:getLeg` / `logic:putLeg`): the
+/// `logic:TransactionProgram` a leg IRI resolves to, expressed in the canonical `logic:`
+/// composite-path vocabulary (`gm:SeqPath` / `gm:InversePath` / `gm:AltPath`).
+///
+/// This is the canonical structured form; the SPARQL property-path string
+/// ([`super::projections::paths::leg_path_canonical`]) is its **projection** (Principle 17),
+/// used only as the content-addressed key the round-trip gate compares. Identity is the
+/// projected canonical text, so two bodies are "the same leg" iff their normalized path
+/// expressions are graph-isomorphic — never a hash of surrounding metadata.
+///
+/// A lawful `put` leg is the structural [`LegPath::invert`] of its `get` leg: that is what
+/// makes `put ∘ get = id` a *decidable* canonical-IR identity (the spec's graph-iso check)
+/// rather than a data-execution round-trip (the F3 executor, off this path).
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum LegPath {
+    /// A single forward predicate step (`gm:SeqPath` member / bare predicate IRI).
+    Step(String),
+    /// The structural reverse of a sub-path (`gm:InversePath`): `^p`.
+    Inverse(Box<LegPath>),
+    /// Left-to-right sequential composition (`gm:SeqPath`): `a / b / …`.
+    Seq(Vec<LegPath>),
+    /// Alternation (`gm:AltPath`): `a | b | …`.
+    Alt(Vec<LegPath>),
+}
+
+impl LegPath {
+    /// The structural reverse of this path — the lawful inverse leg. `reverse` is an
+    /// involution: `reverse(^x) = x`, `reverse(a/b/c) = ^c / ^b / ^a`, and `reverse` of an
+    /// alternation reverses each branch. A lawful `put` leg equals `get.invert()`, so the
+    /// round-trip gate verifies `put == get.invert()` over the normalized canonical form.
+    pub fn invert(&self) -> LegPath {
+        match self {
+            LegPath::Step(_) => LegPath::Inverse(Box::new(self.clone())),
+            // reverse(^x) = x — never accumulate a double inverse.
+            LegPath::Inverse(inner) => (**inner).clone(),
+            LegPath::Seq(parts) => LegPath::Seq(parts.iter().rev().map(LegPath::invert).collect()),
+            LegPath::Alt(parts) => LegPath::Alt(parts.iter().map(LegPath::invert).collect()),
+        }
+    }
+
+    /// The canonical normal form: cancel double inverses (`^^x → x`), flatten nested
+    /// `Seq`/`Alt`, and drop singleton `Seq`/`Alt`. Two paths with the same normal form are
+    /// the same leg — the decidable identity the round-trip / mnemomorphism gates compare.
+    pub fn normalize(&self) -> LegPath {
+        match self {
+            LegPath::Step(p) => LegPath::Step(p.clone()),
+            LegPath::Inverse(inner) => match inner.normalize() {
+                // ^^x → x
+                LegPath::Inverse(x) => *x,
+                other => LegPath::Inverse(Box::new(other)),
+            },
+            LegPath::Seq(parts) => {
+                let mut flat = Vec::new();
+                for p in parts {
+                    match p.normalize() {
+                        LegPath::Seq(inner) => flat.extend(inner),
+                        other => flat.push(other),
+                    }
+                }
+                if flat.len() == 1 {
+                    flat.pop().expect("len checked")
+                } else {
+                    LegPath::Seq(flat)
+                }
+            }
+            LegPath::Alt(parts) => {
+                let mut flat = Vec::new();
+                for p in parts {
+                    match p.normalize() {
+                        LegPath::Alt(inner) => flat.extend(inner),
+                        other => flat.push(other),
+                    }
+                }
+                if flat.len() == 1 {
+                    flat.pop().expect("len checked")
+                } else {
+                    LegPath::Alt(flat)
+                }
+            }
+        }
+    }
+}
+
+/// A resolvable `logic:TransactionProgram` node: a leg IRI bound to its realized
+/// [`LegPath`] body. The registry the `logic:getLeg` / `logic:putLeg` IRIs on a
+/// [`Correspondence`] resolve through, so the round-trip gate can compose the actual leg
+/// bodies rather than compare opaque IRIs.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TransactionProgramIr {
+    /// IRI of the leg program individual (what a `logic:getLeg` / `logic:putLeg` names).
+    pub iri: String,
+    /// The realized leg path.
+    pub body: LegPath,
+}
+
 /// The `logic:MorphismClass` ordered law-spine — the seven rungs capping how much
 /// invertibility a correspondence may lawfully claim, strongest first.  The derived
 /// `Ord` is the spine order; composition can only weaken the rung, never strengthen it.

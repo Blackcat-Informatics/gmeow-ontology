@@ -220,6 +220,7 @@ impl CorrespondenceProgram {
             correspondences,
             caveats,
             preservation,
+            leg_programs,
         } = self;
 
         let mut rebuilt = Vec::with_capacity(correspondences.len());
@@ -265,7 +266,8 @@ impl CorrespondenceProgram {
         }
 
         Ok((
-            CorrespondenceProgram::new(rebuilt, caveats, preservation),
+            CorrespondenceProgram::new(rebuilt, caveats, preservation)
+                .with_leg_programs(leg_programs),
             outcomes,
         ))
     }

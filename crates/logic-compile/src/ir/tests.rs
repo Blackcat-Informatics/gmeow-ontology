@@ -1504,3 +1504,95 @@ fn with_formulas_rejects_binary_atom() {
     let f = pred("r", vec![tv("x"), tv("y")]);
     let _ = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
 }
+
+// ── LegPath leg-body algebra ─────────────────────────────────────────────────────
+
+use crate::projections::paths::leg_path_canonical;
+
+fn step(p: &str) -> LegPath {
+    LegPath::Step(format!("{LOGIC}{p}"))
+}
+
+#[test]
+fn invert_of_a_step_is_its_inverse() {
+    let p = step("foo");
+    assert_eq!(p.invert(), LegPath::Inverse(Box::new(p)));
+}
+
+#[test]
+fn invert_is_an_involution() {
+    // reverse(reverse(x)) == x for every shape: step, inverse, seq, alt.
+    let cases = [
+        step("foo"),
+        LegPath::Inverse(Box::new(step("foo"))),
+        LegPath::Seq(vec![step("a"), step("b"), step("c")]),
+        LegPath::Alt(vec![step("a"), LegPath::Inverse(Box::new(step("b")))]),
+        LegPath::Seq(vec![
+            LegPath::Inverse(Box::new(step("a"))),
+            LegPath::Alt(vec![step("b"), step("c")]),
+        ]),
+    ];
+    for c in cases {
+        assert_eq!(
+            c.invert().invert().normalize(),
+            c.normalize(),
+            "reverse∘reverse must be identity on {c:?}"
+        );
+    }
+}
+
+#[test]
+fn invert_of_a_sequence_reverses_order_and_each_step() {
+    // reverse(a / b / c) = ^c / ^b / ^a.
+    let seq = LegPath::Seq(vec![step("a"), step("b"), step("c")]);
+    let expected = LegPath::Seq(vec![
+        LegPath::Inverse(Box::new(step("c"))),
+        LegPath::Inverse(Box::new(step("b"))),
+        LegPath::Inverse(Box::new(step("a"))),
+    ]);
+    assert_eq!(seq.invert(), expected);
+}
+
+#[test]
+fn normalize_cancels_double_inverse_and_flattens() {
+    // ^^foo → foo
+    let dbl = LegPath::Inverse(Box::new(LegPath::Inverse(Box::new(step("foo")))));
+    assert_eq!(dbl.normalize(), step("foo"));
+    // nested Seq flattens; singleton Seq collapses.
+    let nested = LegPath::Seq(vec![
+        LegPath::Seq(vec![step("a"), step("b")]),
+        LegPath::Seq(vec![step("c")]),
+    ]);
+    assert_eq!(
+        nested.normalize(),
+        LegPath::Seq(vec![step("a"), step("b"), step("c")])
+    );
+}
+
+#[test]
+fn canonical_key_round_trips_inverse_to_get() {
+    // The lawful put is the structural inverse of get; put∘get identity is decided by the
+    // canonical key, NOT by hashing surrounding metadata. A WRONG put body has a different
+    // key — the property the old IRI-string tautology could not see.
+    let get = LegPath::Seq(vec![step("foo"), LegPath::Inverse(Box::new(step("bar")))]);
+    let lawful_put = get.invert();
+    assert_eq!(
+        leg_path_canonical(&lawful_put),
+        leg_path_canonical(&get.invert()),
+        "the lawful put is reproducibly get.invert()"
+    );
+    let wrong_put = LegPath::Seq(vec![step("foo"), LegPath::Inverse(Box::new(step("baz")))]);
+    assert_ne!(
+        leg_path_canonical(&wrong_put),
+        leg_path_canonical(&get.invert()),
+        "a put with a different predicate body must NOT match the derived inverse"
+    );
+}
+
+#[test]
+fn canonical_key_is_normal_form_invariant() {
+    // Two structurally different but normalization-equal bodies share a canonical key.
+    let a = LegPath::Inverse(Box::new(LegPath::Inverse(Box::new(step("foo")))));
+    let b = LegPath::Seq(vec![step("foo")]);
+    assert_eq!(leg_path_canonical(&a), leg_path_canonical(&b));
+}
