@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://gmeow.example/corr/> .
+
+ex:amnesic a logic:Correspondence ;
+    logic:correspondenceRelation logic:Overlaps ;
+    logic:morphismClass logic:LossyLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:getLeg ex:amnesicGet ;
+    logic:hasLawClaim ex:amnesicClaim0 .
+
+ex:amnesicClaim0 logic:lawClaimed logic:PutGet ;
+    logic:lawDischargeVerdict logic:ObligationUnknown .
