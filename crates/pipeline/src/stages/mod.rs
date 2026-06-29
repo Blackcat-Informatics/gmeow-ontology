@@ -35,7 +35,6 @@ pub mod frame_shapes;
 pub mod gts_compose;
 pub mod gts_sink;
 pub mod json_schema;
-pub mod logic;
 pub mod lpg;
 pub mod mappings;
 pub mod matrix;
@@ -88,7 +87,6 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("metadata", Arc::new(metadata::MetadataStage::new()));
     registry.register("apache", Arc::new(apache::ApacheStage));
     registry.register("lpg", Arc::new(lpg::LpgStage::new()));
-    registry.register("logic", Arc::new(logic::LogicStage::new()));
     registry.register("references", Arc::new(references::ReferencesStage));
     registry.register("evals", Arc::new(evals::EvalsStage));
     registry.register("schemas", Arc::new(schemas::SchemasStage::new()));
