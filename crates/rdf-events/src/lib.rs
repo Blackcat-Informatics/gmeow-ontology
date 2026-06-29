@@ -51,7 +51,7 @@
 //!   when [`finish`](RdfEventSink::finish) runs is [`EventError::Unresolved`] — never
 //!   a silent drop or degraded fallback (no-optionality doctrine).
 //! * **Cancellation must not freeze.** A sink MAY return
-//!   [`ControlFlow::Break`](core::ops::ControlFlow::Break) from any event to cancel
+//!   [`ControlFlow::Break`] from any event to cancel
 //!   the drive; the source stops immediately and the sink's partial state MUST NOT be
 //!   frozen into a result.
 //! * **Triple-term nesting is depth-bounded.** Reified [`EventTriple`] terms may
@@ -400,7 +400,7 @@ pub trait RdfEventSource {
     /// either a concrete sink (zero-cost, monomorphized) or a `dyn RdfEventSink`.
     ///
     /// A source MUST stop immediately if any event returns
-    /// [`ControlFlow::Break`](core::ops::ControlFlow::Break), and MUST call
+    /// [`ControlFlow::Break`], and MUST call
     /// [`finish`](RdfEventSink::finish) exactly once at the end of a non-cancelled
     /// drive.
     fn drive<S: RdfEventSink + ?Sized>(&self, sink: &mut S) -> Result<(), EventError>;

@@ -8,8 +8,8 @@
 //!
 //! Python remains the *conformance oracle* (slow, simple, correct); this crate
 //! is the *engine* (fast path).  The `oracle ≡ engine` gate (issue #502, Task 6)
-//! diffs the Python [`CertificationVerdict.to_json()`] against the Rust
-//! [`CertificationVerdict::to_json`] for the SAME input.  For that diff to hold,
+//! diffs the Python `CertificationVerdict.to_json()` against the Rust
+//! [`CertificationVerdict::to_json_pairs`] for the SAME input.  For that diff to hold,
 //! every field name, every violation string, and the SCC-cycle rendering must be
 //! **byte-identical** to Python.  This module copies the Python check logic and
 //! the diagnostic-string format verbatim (the strings cite
@@ -69,7 +69,7 @@
 //!
 //! Rejecting a genuinely **non-terminating** rule set up front is *this static
 //! certifier's* job, not the runtime budget governor's. The governor in
-//! [`crate::py::materialize`] is **post-hoc for the count ceilings**: both the
+//! `gmeow_logic.materialize` is **post-hoc for the count ceilings**: both the
 //! Python oracle and Nemo run the chase to full fixpoint and then truncate the
 //! derived set to the canonical-sort prefix of the *complete* derivation, so
 //! `max_rule_firings`/`max_answers` are engine-independent and deterministic —
@@ -107,8 +107,9 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /// The static-certification verdict for a program against a declared profile.
 ///
-/// Mirrors Python `CertificationVerdict`. [`to_json`](Self::to_json) produces a
-/// key-for-key, value-for-value match of the Python `to_json()` dict.
+/// Mirrors Python `CertificationVerdict`. [`to_json_pairs`](Self::to_json_pairs)
+/// yields fields for a key-for-key, value-for-value match of the Python
+/// `to_json()` dict.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CertificationVerdict {
     /// The declared profile-id string, e.g. `"PositiveHornProfile"`.

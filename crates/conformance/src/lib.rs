@@ -12,7 +12,7 @@
 //! verdicts, certification, budget, answers).
 //!
 //! This crate runs that corpus natively under `cargo-nextest` via
-//! [`datatest-stable`], one case per discovered `profile.json`. It drives the
+//! `datatest-stable`, one case per discovered `profile.json`. It drives the
 //! [`gmeow_logic`] native engine cores **directly** — the same functions the
 //! PyO3 surface (`gmeow_logic::py`) wraps — so the produced artifacts are
 //! identical by construction (the Python `logic_runner.py` this replaced was
@@ -24,7 +24,7 @@
 //!   / answers ([`compare::compare_canonical_json`]),
 //! * **cited-IRI skeleton** for explanations ([`compare::compare_explanation_skeleton`]).
 //!
-//! The modules mirror the structure of [`crates/slicetest`] (#784):
+//! The modules mirror the structure of `crates/slicetest` (#784):
 //!
 //! * [`discover`] — find every case directory under `conformance/logic/cases/`.
 //! * [`profile`] — parse and validate `profile.json` (hard-fail, no-optionality).

@@ -202,7 +202,7 @@ pub(crate) enum InternedTerm {
 /// [`RdfDataset::term_id_by_value`](super::RdfDataset::term_id_by_value) (purrdf P4,
 /// #838).
 ///
-/// Unlike [`TermRef`] (whose literal-datatype and triple-component slots carry
+/// Unlike [`crate::ir::TermRef`] (whose literal-datatype and triple-component slots carry
 /// dataset-local [`TermId`]s), `TermValue` expresses every component **by value** —
 /// the literal datatype is its IRI string, triple terms recurse by value. This is
 /// the issue's core correctness rule: keying value→id lookup on `TermRef` would

@@ -13,7 +13,7 @@
 //!
 //! The ledger is kernel-clean (PyO3-free) and renders to byte-stable JSON sorted
 //! by code; the rendered matrix is committed at `generated/rdf-loss-matrix.json`
-//! and a drift gate ([`tests`]) re-derives and compares it.
+//! and a drift gate in this module's tests re-derives and compares it.
 
 /// In-band machine code: a `CONSTRUCT` whose `WHERE` bound an RDF-1.2 reifier (via
 /// an `rdf:reifies` triple pattern) but whose template drops that reifier — the
