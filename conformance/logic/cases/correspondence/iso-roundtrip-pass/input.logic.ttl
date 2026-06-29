@@ -3,6 +3,7 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex: <https://gmeow.example/corr/> .
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
 
 ex:iso a logic:Correspondence ;
     logic:correspondenceRelation logic:Equiv ;
@@ -10,3 +11,7 @@ ex:iso a logic:Correspondence ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:mnemomorphic "true"^^xsd:boolean ;
     logic:getLeg ex:isoGet .
+
+# The get leg's realized body: a single forward step. The lawful put is its structural
+# inverse (^isoStep), which the round-trip gate composes and verifies — not an IRI match.
+ex:isoGet gm:path ex:isoStep .

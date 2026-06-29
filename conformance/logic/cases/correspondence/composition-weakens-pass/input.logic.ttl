@@ -3,6 +3,11 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex: <https://gmeow.example/corr/> .
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+
+# The iso part's get leg body; its put leg is the structural inverse the round-trip gate
+# composes. The lossy parts make no round-trip claim, so they need no body.
+ex:cIsoGet gm:path ex:cIsoStep .
 
 ex:cIso a logic:Correspondence ;
     logic:correspondenceRelation logic:Equiv ;

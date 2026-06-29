@@ -3,6 +3,11 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex: <https://gmeow.example/corr/> .
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+
+# The well-behaved-lens part's get leg body (it is mnemomorphic, so the witness must
+# recover the source via the inverse put leg the round-trip gate composes).
+ex:sCompositeGet gm:path ex:sCompositeStep .
 
 ex:sLossy a logic:Correspondence ;
     logic:correspondenceRelation logic:Overlaps ;

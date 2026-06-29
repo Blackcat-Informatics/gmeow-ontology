@@ -4,10 +4,39 @@
 use super::*;
 use crate::ir::{
     CorrespondenceLaw, CorrespondenceRelation, DischargeCondition, DischargeVerdict, LawClaimIr,
-    MorphismKind, PreservationKind,
+    LegPath, MorphismKind, PreservationKind, TransactionProgramIr,
 };
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// A deterministic single-step body for a leg IRI — distinct legs get distinct bodies, so
+/// the round-trip gate composes real (non-trivially-equal) paths.
+fn body_for(leg_iri: &str) -> LegPath {
+    LegPath::Step(format!("{leg_iri}#p"))
+}
+
+/// Register a [`body_for`] body for every get/put leg IRI the correspondences reference, so
+/// the leg registry resolves. A derived put then registers the *inverse* of its get body
+/// (see `with_derived_puts`); an AUTHORED put (e.g. the liar) keeps the distinct body here,
+/// which the round-trip gate compares against `get.invert()` (and REDs when they differ).
+fn legs_for(correspondences: &[Correspondence]) -> Vec<TransactionProgramIr> {
+    let mut legs = Vec::new();
+    for c in correspondences {
+        if let Some(g) = c.get_leg.as_deref() {
+            legs.push(TransactionProgramIr {
+                iri: g.to_owned(),
+                body: body_for(g),
+            });
+        }
+        if let Some(p) = c.put_leg.as_deref() {
+            legs.push(TransactionProgramIr {
+                iri: p.to_owned(),
+                body: body_for(p),
+            });
+        }
+    }
+    legs
+}
 
 #[allow(clippy::too_many_arguments)]
 fn corr(
@@ -40,7 +69,9 @@ fn corr(
 }
 
 fn program(correspondences: Vec<Correspondence>) -> CorrespondenceProgram {
+    let legs = legs_for(&correspondences);
     CorrespondenceProgram::new(correspondences, Vec::new(), PreservationKind::SoundUnder)
+        .with_leg_programs(legs)
 }
 
 /// Build a derived program (puts minted) the way compile_program will.
@@ -91,6 +122,76 @@ fn section_retraction_passes_round_trip() {
     let r = &evaluate_gates(&prog, &[]).per_correspondence[0];
     assert_eq!(r.round_trip, GateVerdict::Pass);
     assert_eq!(r.mnemomorphism, GateVerdict::Pass);
+}
+
+#[test]
+fn correct_put_iri_but_wrong_body_fails_the_real_round_trip() {
+    // THE acceptance test for un-faking the gate. We derive an iso's put leg the lawful way
+    // (so its IRI is exactly the content-addressed mint `<get>/put#sha8`), then corrupt ONLY
+    // the put leg's BODY in the registry, keeping that correct IRI. The OLD gate compared
+    // `put_leg == derived_put_iri(get, c)` — a pure IRI-string match — so it would PASS this.
+    // The REAL gate composes the leg BODIES and REDs, because the body is no longer the
+    // inverse of get. This test is *impossible to write* against the old gate (legs had no
+    // bodies) — which is itself the proof the old gate verified nothing.
+    let get = format!("{GMEOW}ex/getIso");
+    let c = corr(
+        &format!("{GMEOW}ex/iso"),
+        CorrespondenceRelation::Equiv,
+        MorphismClass::Isomorphism,
+        MorphismKind::InstitutionMorphism,
+        true,
+        Some(&get),
+        None,
+        Vec::new(),
+    );
+    let prog = derived(vec![c]);
+    // Lawful derived put passes (control).
+    assert_eq!(
+        evaluate_gates(&prog, &[]).per_correspondence[0].round_trip,
+        GateVerdict::Pass
+    );
+
+    // The derived put IRI IS the content-addressed mint — the OLD string compare would pass.
+    let put_iri = prog.correspondences[0]
+        .put_leg
+        .clone()
+        .expect("iso derives a put leg");
+    assert_eq!(
+        put_iri,
+        crate::projections::put_derivation::derived_put_iri(&get, &prog.correspondences[0]),
+        "the put IRI is the content-addressed mint (so the IRI tautology would pass)"
+    );
+
+    // Corrupt ONLY the body behind that (correct) IRI.
+    let mut legs = prog.leg_programs.clone();
+    for leg in &mut legs {
+        if leg.iri == put_iri {
+            leg.body = LegPath::Inverse(Box::new(LegPath::Step(format!("{GMEOW}ex/WRONG"))));
+        }
+    }
+    let corrupted = CorrespondenceProgram::new(
+        prog.correspondences.clone(),
+        prog.caveats.clone(),
+        prog.preservation,
+    )
+    .with_leg_programs(legs);
+
+    let r = &evaluate_gates(&corrupted, &[]).per_correspondence[0];
+    assert!(
+        r.round_trip.is_red(),
+        "a wrong put BODY (correct IRI) must RED the round-trip: {:?}",
+        r.round_trip
+    );
+    assert!(
+        r.mnemomorphism.is_red(),
+        "a wrong put BODY must fail witness recovery: {:?}",
+        r.mnemomorphism
+    );
+    // The put IRI never changed — proving it is the BODY, not the IRI, that decides the law.
+    assert_eq!(
+        corrupted.correspondences[0].put_leg.as_deref(),
+        Some(put_iri.as_str())
+    );
 }
 
 #[test]

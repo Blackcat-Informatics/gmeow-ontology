@@ -1178,6 +1178,18 @@ pub struct TransactionProgramIr {
     pub body: LegPath,
 }
 
+impl TransactionProgramIr {
+    /// The content key: the IRI bound to the canonical (normalized, projected) path text.
+    /// Two leg programs are the same iff they share this key.
+    pub fn content_key(&self) -> String {
+        format!(
+            "{}={}",
+            self.iri,
+            crate::projections::paths::leg_path_canonical(&self.body)
+        )
+    }
+}
+
 /// The `logic:MorphismClass` ordered law-spine — the seven rungs capping how much
 /// invertibility a correspondence may lawfully claim, strongest first.  The derived
 /// `Ord` is the spine order; composition can only weaken the rung, never strengthen it.
@@ -2100,6 +2112,11 @@ pub struct LogicProgram {
     /// Attached via [`LogicProgram::with_correspondences`]; empty for the
     /// historical correspondence-free corpus, so the canonical key is unchanged there.
     pub correspondences: Vec<Correspondence>,
+    /// Leg-program bodies (`logic:TransactionProgram`) a correspondence's `logic:getLeg` /
+    /// `logic:putLeg` IRI resolves to, in canonical (IRI) order. Attached via
+    /// [`LogicProgram::with_transaction_programs`]; empty for the historical leg-body-free
+    /// corpus, so the canonical key is unchanged there.
+    pub transaction_programs: Vec<TransactionProgramIr>,
     /// Full first-order [`Formula`] nodes that exceed the Horn+NAF sub-fragment, in
     /// canonical (sort-key) order. Attached via [`LogicProgram::with_formulas`]; empty
     /// for the historical Horn-only corpus, so the canonical key is byte-unchanged there.
@@ -2131,9 +2148,23 @@ impl LogicProgram {
             contracts,
             path_shapes: Vec::new(),
             correspondences: Vec::new(),
+            transaction_programs: Vec::new(),
             formulas: Vec::new(),
             source_iri,
         }
+    }
+
+    /// Attach the leg-program registry (`logic:TransactionProgram` bodies the get/put leg
+    /// IRIs resolve to), canonicalizing into IRI order. Append-only: the byte-pinned
+    /// canonical key of a leg-body-free program is unchanged.
+    pub fn with_transaction_programs(
+        mut self,
+        transaction_programs: Vec<TransactionProgramIr>,
+    ) -> Self {
+        let mut transaction_programs = transaction_programs;
+        transaction_programs.sort_by(|a, b| a.iri.cmp(&b.iri));
+        self.transaction_programs = transaction_programs;
+        self
     }
 
     /// Attach the program's `logic:PathShape` individuals, canonicalizing
@@ -2242,6 +2273,17 @@ impl LogicProgram {
                 .join("\n");
             key.push_str("\nFORMULAS\n");
             key.push_str(&forms);
+        }
+        // Append-only at the FIXED tail: a leg-body-free program keeps its exact key.
+        if !self.transaction_programs.is_empty() {
+            let legs = self
+                .transaction_programs
+                .iter()
+                .map(TransactionProgramIr::content_key)
+                .collect::<Vec<_>>()
+                .join("\n");
+            key.push_str("\nTRANSACTIONPROGRAMS\n");
+            key.push_str(&legs);
         }
         key
     }

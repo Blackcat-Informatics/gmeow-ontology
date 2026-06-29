@@ -26,7 +26,7 @@ use crate::ir::{Correspondence, DischargeVerdict, MorphismClass};
 
 use super::correspondence::CorrespondenceProgram;
 use super::correspondence_gate::assert_relation_no_overclaim;
-use super::put_derivation::derived_put_iri;
+use super::paths::leg_path_canonical;
 use super::OverclaimError;
 
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
@@ -104,23 +104,51 @@ fn is_injective_rung(class: MorphismClass) -> bool {
     class.is_injective_rung()
 }
 
-/// The Round-trip witness: an iso/section cell must carry the derived inverse `put` leg.
-/// PASS iff `put_leg` is exactly the content-addressed mint `<get_leg>/put#<sha8>` (so
-/// `put ∘ get = id` as a string compare).
-fn round_trip_witness_passes(c: &Correspondence) -> bool {
-    match c.get_leg.as_deref() {
-        Some(get_leg) => c.put_leg.as_deref() == Some(derived_put_iri(get_leg, c).as_str()),
-        None => false,
+/// The Round-trip witness, computed over the actual leg **bodies** (not the IRI strings):
+/// resolve both the `get` and `put` leg programs and check `put == get.invert()` over the
+/// normalized canonical path form. This decides `put ∘ get = id` as the spec's canonical-IR
+/// graph-iso identity — a `put` whose body is a *different* path FAILS, which the old
+/// `put_leg == <get>/put#sha8` string compare (a content-addressing tautology — the mint
+/// recomputed from the same get-side fields it was minted from) could never catch.
+///
+/// `Err` carries the canonical mismatch so the gate reason names exactly what diverged. A
+/// missing leg, or a leg IRI that resolves to no `logic:TransactionProgram` body, is a
+/// failure: a full round-trip claim with no verifiable leg body is unverifiable, hence unmet.
+fn round_trip_holds(program: &CorrespondenceProgram, c: &Correspondence) -> Result<(), String> {
+    let get_iri = c
+        .get_leg
+        .as_deref()
+        .ok_or_else(|| "carries no logic:getLeg".to_owned())?;
+    let put_iri = c
+        .put_leg
+        .as_deref()
+        .ok_or_else(|| "carries no logic:putLeg (the derived inverse leg is absent)".to_owned())?;
+    let get = program.resolve_leg(get_iri).ok_or_else(|| {
+        format!("get leg <{get_iri}> resolves to no logic:TransactionProgram body")
+    })?;
+    let put = program.resolve_leg(put_iri).ok_or_else(|| {
+        format!("put leg <{put_iri}> resolves to no logic:TransactionProgram body")
+    })?;
+    let expected = get.invert();
+    let put_key = leg_path_canonical(put);
+    let expected_key = leg_path_canonical(&expected);
+    if put_key == expected_key {
+        Ok(())
+    } else {
+        Err(format!(
+            "put leg body is `{put_key}`, not the derived inverse `{expected_key}` of the get \
+             leg; put ∘ get ≠ id"
+        ))
     }
 }
 
 /// The **Law gate**: a discharged law must have a passing witness; a violated law may not
 /// ship. An authored-but-unverified (`ObligationUnknown`) law is honest and passes.
-fn law_gate(c: &Correspondence) -> GateVerdict {
+fn law_gate(program: &CorrespondenceProgram, c: &Correspondence) -> GateVerdict {
     for claim in &c.law_claims {
         match claim.verdict {
             DischargeVerdict::ObligationDischarged => {
-                if !round_trip_witness_passes(c) {
+                if round_trip_holds(program, c).is_err() {
                     return GateVerdict::Red {
                         reason: format!(
                             "claims logic:{} as ObligationDischarged but the round-trip witness \
@@ -186,24 +214,17 @@ fn overclaim_gate(c: &Correspondence) -> GateVerdict {
 /// The **Round-trip gate** (iso / section only): the cell must carry the derived inverse
 /// `put` leg, so `put ∘ get = id` (and, for iso, `get ∘ put = id`) holds as a canonical
 /// identity. Other rungs make no full round-trip claim (per-construct scoping).
-fn round_trip_gate(c: &Correspondence) -> GateVerdict {
+fn round_trip_gate(program: &CorrespondenceProgram, c: &Correspondence) -> GateVerdict {
     match c.morphism_class {
         MorphismClass::Isomorphism | MorphismClass::SectionRetraction => {
-            if round_trip_witness_passes(c) {
-                GateVerdict::Pass
-            } else {
-                let expected = c
-                    .get_leg
-                    .as_deref()
-                    .map(|g| derived_put_iri(g, c))
-                    .unwrap_or_else(|| "<no get leg>".to_owned());
-                GateVerdict::Red {
+            match round_trip_holds(program, c) {
+                Ok(()) => GateVerdict::Pass,
+                Err(detail) => GateVerdict::Red {
                     reason: format!(
-                        "logic:{} claims a full round-trip but its put leg is not the derived \
-                         inverse (expected <{expected}>); put ∘ get ≠ id",
+                        "logic:{} claims a full round-trip but {detail}",
                         c.morphism_class.as_str()
                     ),
-                }
+                },
             }
         }
         other => GateVerdict::NotApplicable {
@@ -215,7 +236,7 @@ fn round_trip_gate(c: &Correspondence) -> GateVerdict {
 /// The **Mnemomorphism gate**: a declared-recoverable cell's retained witness must
 /// actually recover the source — evidenced by the derived recovery `put` leg. A witness
 /// declared on a non-injective rung cannot recover `S ∖ im(get)` and is a build failure.
-fn mnemomorphism_gate(c: &Correspondence) -> GateVerdict {
+fn mnemomorphism_gate(program: &CorrespondenceProgram, c: &Correspondence) -> GateVerdict {
     if !c.mnemomorphic {
         return GateVerdict::NotApplicable {
             reason: "the cell is not declared mnemomorphic".to_owned(),
@@ -230,14 +251,17 @@ fn mnemomorphism_gate(c: &Correspondence) -> GateVerdict {
             ),
         };
     }
-    if round_trip_witness_passes(c) {
-        GateVerdict::Pass
-    } else {
-        GateVerdict::Red {
-            reason: "declared mnemomorphic but carries no derived recovery put leg; the witness \
-                     does not recover the source"
-                .to_owned(),
-        }
+    // The witness recovers the source iff the put leg is the genuine inverse of the get leg
+    // BODY (a real path composition, not an IRI-string match). A `WellBehavedLens` makes no
+    // full round-trip claim but, when declared mnemomorphic, must still carry a recovering
+    // inverse leg — so the recovery evidence is the same body-level identity.
+    match round_trip_holds(program, c) {
+        Ok(()) => GateVerdict::Pass,
+        Err(detail) => GateVerdict::Red {
+            reason: format!(
+                "declared mnemomorphic but the witness does not recover the source: {detail}"
+            ),
+        },
     }
 }
 
@@ -316,10 +340,10 @@ pub fn evaluate_gates(
         .iter()
         .map(|c| GateReport {
             correspondence: c.iri.clone(),
-            law: law_gate(c),
+            law: law_gate(program, c),
             overclaim: overclaim_gate(c),
-            round_trip: round_trip_gate(c),
-            mnemomorphism: mnemomorphism_gate(c),
+            round_trip: round_trip_gate(program, c),
+            mnemomorphism: mnemomorphism_gate(program, c),
         })
         .collect();
     per_correspondence.sort_by(|a, b| a.correspondence.cmp(&b.correspondence));
