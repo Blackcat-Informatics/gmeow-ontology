@@ -1,0 +1,20 @@
+{
+  "per_composition": [],
+  "per_correspondence": [
+    {
+      "correspondence": "https://gmeow.example/corr/iso",
+      "law": {
+        "status": "pass"
+      },
+      "mnemomorphism": {
+        "status": "pass"
+      },
+      "overclaim": {
+        "status": "pass"
+      },
+      "round_trip": {
+        "status": "pass"
+      }
+    }
+  ]
+}

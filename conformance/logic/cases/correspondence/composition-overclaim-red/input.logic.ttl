@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://gmeow.example/corr/> .
+
+ex:sLossy a logic:Correspondence ;
+    logic:correspondenceRelation logic:Overlaps ;
+    logic:morphismClass logic:LossyLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:getLeg ex:sLossyGet ;
+    logic:hasLawClaim ex:sLossyClaim0 .
+ex:sLossyClaim0 logic:lawClaimed logic:PutGet ;
+    logic:lawDischargeVerdict logic:ObligationUnknown .
+
+ex:sAffine a logic:Correspondence ;
+    logic:correspondenceRelation logic:Overlaps ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:getLeg ex:sAffineGet ;
+    logic:hasLawClaim ex:sAffineClaim0 .
+ex:sAffineClaim0 logic:lawClaimed logic:PutGet ;
+    logic:lawDischargeVerdict logic:ObligationUnknown .
+
+ex:sComposite a logic:Correspondence ;
+    logic:correspondenceRelation logic:Overlaps ;
+    logic:morphismClass logic:WellBehavedLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg ex:sCompositeGet .
