@@ -112,6 +112,9 @@ pub(crate) fn serialize_carrier_snapshot(
     blobs.extend(build_guide_blobs(root)?);
     blobs.push(build_docs_archive(root)?);
     blobs.push(build_reasoning_blob(upstream)?);
+    // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed
+    // from THIS run's carrier (superset law — RDF rides as named graphs, not here).
+    blobs.push(build_fanout_opaque_blob(root, carrier, upstream)?);
 
     let shacl_json = upstream
         .get("stage-validate")
@@ -371,6 +374,13 @@ pub(crate) fn snapshot_dataset(
 // bare filename; cells/tests preserve the repo-relative path (so
 // `bundled_cells_under(prefix)` can route by directory).
 
+/// tar of the OPAQUE (non-RDF) fanout files under `generated/` that no dedicated
+/// rep already carries — the byte-exact members are recomputed from THIS run's
+/// carrier (carrier-reading leaves) or source (source-reading leaves) inside the
+/// snapshot and keyed repo-relative. RDF outputs (`.ttl`/`.nt`/`.nq`) are NEVER
+/// here: they ride as named graphs so the superset law reconstructs them as folds.
+const REP_GENERATED: &str = "generated-opaque-archive";
+
 const REP_MAPPINGS: &str = "mappings-archive";
 const REP_CELLS: &str = "cells-archive";
 const REP_QUERIES: &str = "queries-archive";
@@ -528,6 +538,100 @@ fn build_archive_blobs(
         archive_blob(REP_SHAPES, &shapes)?,
         archive_blob(REP_AXIOMS, &axioms)?,
     ])
+}
+
+/// Fold the opaque (non-RDF, not-already-carried) members of one leaf's output into
+/// the fanout member map.
+fn take_opaque(members: &mut BTreeMap<String, Vec<u8>>, arts: BTreeMap<String, Vec<u8>>) {
+    for (path, bytes) in arts {
+        if !is_rdf_member(&path) && !opaque_already_carried(&path) {
+            members.insert(path, bytes);
+        }
+    }
+}
+
+/// Whether `path` is an RDF text artifact (carried as a NAMED GRAPH, never a blob).
+fn is_rdf_member(path: &str) -> bool {
+    path.ends_with(".ttl") || path.ends_with(".nt") || path.ends_with(".nq")
+}
+
+/// Whether an opaque `generated/` file is already carried by another rep, so the
+/// fanout archive must not double-carry it (keeps the superset reverse sweep clean).
+fn opaque_already_carried(path: &str) -> bool {
+    path.ends_with(".sssom.tsv")                        // REP_MAPPINGS
+        || path.ends_with(".rq")                        // REP_QUERIES
+        || path == "generated/schemas/gmeow.schema.json"  // REP_SCHEMAS
+        || path == "generated/schemas/gmeow.openapi.json" // REP_SCHEMAS
+        || path == "generated/datalog/gmeow.dl"           // REP_AXIOMS
+        || path == "generated/logic/gmeow.rls" // REP_AXIOMS
+}
+
+/// Build the opaque-fanout archive [`REP_GENERATED`]: recompute each opaque
+/// `generated/` fanout output from THIS run's carrier (carrier-reading leaves) or
+/// source (source-reading leaves) and fold the non-RDF bytes into one deterministic
+/// archive, keyed repo-relative. The post-snapshot export leaves still write the
+/// disk files (additive — the writer retirement is a separate concern); the bytes
+/// here are byte-identical to the committed files, which the superset gate proves.
+fn build_fanout_opaque_blob(
+    root: &Path,
+    carrier: &gmeow_rdf::RdfDataset,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<BlobRow, PipelineError> {
+    let mut members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+
+    // carrier-reading leaves (project from THIS run's carrier dataset).
+    take_opaque(
+        &mut members,
+        crate::stages::lpg::render_from_dataset(carrier)?,
+    );
+    take_opaque(
+        &mut members,
+        crate::stages::schemas::render_schemas_from_dataset(carrier)?,
+    );
+
+    // source-reading leaves (read slices/metadata; no snapshot dependency).
+    take_opaque(
+        &mut members,
+        crate::stages::references::render_references(root)?,
+    );
+    take_opaque(
+        &mut members,
+        crate::stages::bench::render_bench_leaderboard(root)?,
+    );
+    members.insert(
+        crate::stages::apache::APACHE_PATH.to_string(),
+        crate::stages::apache::render_apache(root)?.into_bytes(),
+    );
+    members.insert(
+        crate::stages::matrix::MATRIX_PATH.to_string(),
+        crate::stages::matrix::render_matrix(root)?.into_bytes(),
+    );
+
+    // n3 rides in from the sink-consumed stage-compile-logic product (no recompute).
+    let n3 = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::N3_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing generated/n3/gmeow.n3 in stage-compile-logic"))?;
+    members.insert(crate::stages::compile_logic::N3_PATH.to_string(), n3);
+
+    // context.jsonld + dsl-stats: recomputed from source (the producing stage is not
+    // sink-consumed; these are deterministic source projections, byte-identical to
+    // the committed files).
+    members.insert(
+        crate::stages::mappings::JSONLD_CONTEXT_PATH.to_string(),
+        gmeow_slice::emit_jsonld_context().into_bytes(),
+    );
+    members.insert(
+        crate::stages::mappings::DSL_STATS_PATH.to_string(),
+        gmeow_slice::emit_dsl_stats(root)
+            .map_err(|e| stage_err(&format!("recompute dsl-stats: {e}")))?
+            .into_bytes(),
+    );
+
+    let mut members: Vec<(String, Vec<u8>)> = members.into_iter().collect();
+    members.sort_by(|a, b| a.0.cmp(&b.0));
+    archive_blob(REP_GENERATED, &members)
 }
 
 /// Fold the native reasoner's explanation + DL/EL cross-check ledger REPORTS into a
