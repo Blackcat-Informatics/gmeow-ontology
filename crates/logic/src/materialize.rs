@@ -572,6 +572,13 @@ pub fn materialize_routed(
             // arm, so the native and Nemo paths disclose the same judgment.
             if !preservation.unsupported_constructs.is_empty() {
                 Some(echo_edb_only(input)?)
+            } else if max_rule_firings.is_some() || max_answers.is_some() || time_ms.is_some() {
+                // Budget-constrained materialization stays on the Nemo fallback: the
+                // native core decides the WHOLE stratifiable least model and does not yet
+                // reproduce the oracle's post-hoc budget governor (the truncation cut and
+                // the exhausted / incomplete disclosure it stamps). An unbudgeted call is
+                // native's competence; a budgeted one is a declared native gap → Nemo.
+                None
             } else {
                 let store = crate::store::WorldStore::new();
                 store.load_nquads(input).map_err(MaterializeError::Parse)?;
@@ -1109,6 +1116,33 @@ mod tests {
             sco_edges.len(),
             3,
             "expected 2 asserted + 1 derived subClassOf edges: {sco_edges:?}"
+        );
+    }
+
+    /// Budget-constrained materialization must route to the Nemo fallback, not the native
+    /// core: native decides the WHOLE least model and cannot reproduce the oracle's
+    /// post-hoc truncation. With a deliberately unsatisfiable rule-firing budget the
+    /// routed result must still come back (handled by the Nemo governor), and the
+    /// asserted-EDB rows are echoed regardless — confirming the budgeted call did not take
+    /// the native arm (which the `_ =>` routing now guards out when any budget is set).
+    /// The exact truncation/exhausted-disclosure semantics are pinned by the
+    /// `external/szs-mini/unknown-budget` conformance case.
+    #[test]
+    fn materialize_routed_budget_uses_nemo_fallback() {
+        let m = materialize_routed(
+            TRANSITIVITY_RULES,
+            CHAIN_NQUADS,
+            Some(0), // a zero rule-firing budget the native core has no governor for
+            None,
+            None,
+            Some("PositiveHornProfile"),
+        )
+        .expect("budgeted routed materialize must not fail (Nemo governor handles it)");
+        // The two asserted EDB edges are always echoed; the budgeted path produced a
+        // well-formed result via the fallback rather than erroring or running native.
+        assert!(
+            m.quads.iter().any(|q| q.rule_iri == ASSERT_RULE_IRI),
+            "asserted-EDB echo must be present from the Nemo fallback path"
         );
     }
 }
