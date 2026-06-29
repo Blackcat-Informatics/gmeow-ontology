@@ -4908,7 +4908,41 @@ logic:executedAlongPath
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "executed along path"@x-gmeow-english ;
-    skos:definition "Relates a logic:Plan to the logic:Path along which a particular run of it executed — the executed history that realizes the program. Domain logic:Plan, range logic:Path (stated in prose). This is the one link the four-notion chain intention -> plan -> action -> transaction-path did not already have: intention reaches its goal and action through gmeow:intentionGoal / gmeow:motivates, a logic:Plan reaches the same goal through logic:planGoal, and an action occurrence reaches its type through logic:instantiatesSchema, but no existing term tied a plan to the run that executed it. It CONNECTS the plan to its path but does NOT subsume either: a plan is the program (what is intended to be done), a path is the executed run (how state actually changed); the link records that this program ran along that history without conflating the two."@x-gmeow-english ;
+    skos:definition "Relates a program run — a logic:Plan or a logic:TransactionOutcome — to the logic:Path along which it executed: the executed history that realizes the program. Domain logic:Plan or logic:TransactionOutcome, range logic:Path (stated in prose). This is the one link the four-notion chain intention -> plan -> action -> transaction-path did not already have: intention reaches its goal and action through gmeow:intentionGoal / gmeow:motivates, a logic:Plan reaches the same goal through logic:planGoal, and an action occurrence reaches its type through logic:instantiatesSchema, but no existing term tied a program to the run that executed it. It CONNECTS the program to its path but does NOT subsume either: a plan is the program (what is intended to be done), a path is the executed run (how state actually changed); the link records that this program ran along that history without conflating the two."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Transaction outcome: the executional-entailment verdict surface ----------
+# The recorded result of EXECUTING a transaction program (the combinators above)
+# under executional entailment — the native engine's verdict, surfaced as quads
+# so the success/failure decision and the executed path carry into the
+# derivation graph rather than being discarded after evaluation.
+
+logic:TransactionOutcome
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Transaction Outcome"@x-gmeow-english ;
+    skos:definition "The recorded result of executing a transaction program from a start state under executional entailment: the program succeeds iff there exists a path from the start state along which it holds, and failure leaves the start state untouched. It carries logic:outcomeOfProgram (the program executed), logic:transactionStart (the state it started from), and logic:transactionSucceeds (the boolean verdict); on success it is linked by logic:executedAlongPath to the logic:Path of states the run traversed and the per-step support is recorded as supersession. Typed APART from logic:GoalEvaluation, which records at-a-state satisfaction of a goal, and from logic:PlanSuccessMode, which classifies a plan's success mode over its nondeterministic outcome set: a logic:TransactionOutcome records ONE concrete executed run's success or failure under executional entailment, not a satisfaction judgement and not a mode classification."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:outcomeOfProgram
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "outcome of program"@x-gmeow-english ;
+    skos:definition "Relates a logic:TransactionOutcome to the transaction program whose execution it records — a transaction-program combinator node (logic:SerialConjunction, logic:Choice, logic:Fallback, or logic:Iteration). Domain logic:TransactionOutcome, range a transaction-program node (stated in prose). It ties the verdict back to the program that produced it without conflating the outcome (a run record) with the program (the structure that was run)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:transactionStart
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "transaction start"@x-gmeow-english ;
+    skos:definition "Relates a logic:TransactionOutcome to the gmeow:State the program executed from — the start state of the executional-entailment run. Domain logic:TransactionOutcome, range gmeow:State (stated in prose). On failure the start state is left untouched (no successor is materialized); on success it is the first state of the logic:executedAlongPath path. The input side marks the executable program root with logic:transitionFromState; logic:transactionStart records, on the outcome, the start the verdict was computed from."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:transactionSucceeds
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "transaction succeeds"@x-gmeow-english ;
+    skos:definition "The boolean executional-entailment verdict of a logic:TransactionOutcome: true iff there exists a path from logic:transactionStart along which the program holds, false otherwise. Domain logic:TransactionOutcome, range xsd:boolean (stated in prose). Kept distinct from goal satisfaction (logic:satisfactionStatus over a logic:GoalEvaluation) and from plan success mode (logic:planSuccessMode): it is the bare 'a path exists from the start' reading of the transaction layer, and a false verdict is honest total failure rather than a weak or partial success."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Concurrency: three distinct, separately-declared concerns ----------------

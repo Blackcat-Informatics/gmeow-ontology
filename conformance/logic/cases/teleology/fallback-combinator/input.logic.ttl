@@ -3,23 +3,12 @@
 #
 # Conformance case: teleology/fallback-combinator.
 #
-# A logic:Fallback program combinator (try-primary-else-alternate) is declared
-# over two sub-programs: primaryRoute (left operand) is attempted first; if its
-# executional entailment does not hold from the current state, backupRoute (right
-# operand) is executed instead. This pins the structural vocabulary and the key
-# distinction: logic:Fallback is a STRUCTURAL PROGRAM OPERATOR that routes
-# control to an alternate when the primary cannot succeed, typed APART from
-# action-level logic:compensation (which undoes the EFFECT of an action that ran
-# and reached a realized nondeterministic outcome branch). Compensation recovers
-# from an outcome that occurred; Fallback structurally provides an alternate path
-# before commitment. The two sub-programs use logic:leftOperand (primary) and
-# logic:rightOperand (alternate), reusing the same properties
-# logic:SerialConjunction and logic:Choice use.
+# A logic:Fallback is EXECUTED under executional entailment: the primary sub-program (primaryRoute) requires a precondition (primaryClear) that does NOT hold, so its executional entailment fails and the engine routes to the alternate (backupRoute), which runs and asserts rerouted. Nothing the failed primary would have done is emitted — there is no rollback because nothing was committed. Proves primary-fails-then-backup-succeeds, typed APART from action-level compensation.
 #
 # CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
-# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
-# the projections need (no asserted teleology triples here — the world facts live
-# in input.nq, exactly as the foundation conformance cases keep theirs).
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://example.org/teleology/fallback-combinator/> .
