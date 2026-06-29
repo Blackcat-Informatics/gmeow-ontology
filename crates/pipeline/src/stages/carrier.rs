@@ -644,6 +644,19 @@ fn take_opaque(members: &mut BTreeMap<String, Vec<u8>>, arts: BTreeMap<String, V
     }
 }
 
+/// Whether an archive blob `rep` can contain committed `generated/` reconstruction
+/// targets, so the superset gate decodes it. Excludes the source archives
+/// (cells/tests carry `dsl/`+`slices/`), the `reason/` reports, the per-slice
+/// guides, and the large `ontology-docs`/`okf`/`yaml-ld` payloads — none back a
+/// `generated/` file, and the docs/okf archives are large enough to trip the zstd
+/// decode safety bound. One authority, consulted by the gate.
+pub(crate) fn archive_rep_carries_generated(rep: &str) -> bool {
+    matches!(
+        rep,
+        REP_MAPPINGS | REP_QUERIES | REP_SCHEMAS | REP_AXIOMS | REP_SHAPES | REP_GENERATED
+    )
+}
+
 /// Whether `path` is an RDF text artifact (carried as a NAMED GRAPH, never a blob).
 fn is_rdf_member(path: &str) -> bool {
     path.ends_with(".ttl") || path.ends_with(".nt") || path.ends_with(".nq")
