@@ -270,8 +270,11 @@ paths — every case drives `run_scryer`, paying a ~9-10 s Scryer
 machine-construction floor that process-per-test cannot share; several reach
 19-34 s; engine-construction-bound like `ontology_entailments`); the
 `gmeow-pipeline` `end_to_end`/`fold_parity`/full-fold/snapshot-codec/mapping-parity
-tests, including the EDOAL/SPARQL corpus parity oracle
-`sparql_lowering_matches_committed_corpus_modulo_order`; scoreboards-acceptance
+tests, including the correspondence-parity oracle family — the whole
+`edoal_sparql_correspondence_parity`, `fno_correspondence_parity`, and
+`sssom_correspondence_parity` binaries (every test lowers the full DSL+ontology
+correspondence corpus from one shared get-leg model — irreducibly O(ontology-size);
+off-gated by binary so no oracle's twin slips through); scoreboards-acceptance
 tests; the `gmeow-pipeline`
 `dist_jsonld_roundtrips_through_oxigraph` + `product_routing`
 `compiler_products_are_first_class_dag_artifacts` tests (both round-trip / route the
@@ -432,24 +435,37 @@ tests/                   # Cross-slice tests (slice-local tests live IN slices)
 
 Slice rules (Principles 15–16): core slices interlink freely and reason as one union; **extension slices depend only on core** (the dependency DAG gate rejects extension→extension edges); every slice names its consumer in the manifest; every term is *declared* in exactly one slice. To add a slice, copy any core slice's anatomy — there is nothing else to learn. The generated `generated/module-status.md` matrix tracks tier, dependencies, and documentation status per slice.
 
-## 5. PR Lifecycle: Rebase, Review, Push
+## 5. PR Lifecycle: Integrate, Review, Push
 
 When a PR is open and feedback arrives, follow this cycle strictly.
 
-### Rebase onto latest main
+### Integrate latest main
+
+Refresh a stale branch by **merging current `main` into it** — never rebase. `main` enforces
+linear history, which the final squash-merge (`ghprsq`, see § Finalize) provides; the branch may
+freely contain merge commits because the squash collapses them.
 
 ```bash
 git fetch origin main
-git rebase origin/main
+git merge origin/main
 ```
 
-If conflicts involve generated files, **always resolve by accepting the main branch version** and regenerating afterward:
+Resolve **each conflict individually** — read both sides and keep maximum functionality. The
+following are forbidden (they discard a side wholesale and are an ETHOS deal-breaker):
 
 ```bash
-git checkout --theirs <generated-file>
-git add <generated-file>
-git rebase --continue
-make regenerate
+# ❌ NEVER
+git checkout --theirs .   ;   git checkout --ours .
+git merge -X theirs       ;   git merge -X ours
+```
+
+For conflicts in `generated/*` artifacts, do **not** hand-edit or hand-pick a side — regenerate
+them from canonical sources after the merge. `generated/dist/gmeow.gts` is `merge=ours` (it keeps
+your branch copy without a conflict marker), so it too must be regenerated and committed:
+
+```bash
+make regenerate          # reconcile all generated artifacts on the merged base
+make check-generated     # verify no drift remains
 ```
 
 ### Pull review feedback
@@ -512,13 +528,17 @@ oracle lane.
 
 ### Push
 
-Amend the commit to keep the branch history clean:
+Commit your changes and push — no rebase, no amend, no force-push (the branch only *gains*
+commits, including the merge from § Integrate, so a normal push fast-forwards the remote):
 
 ```bash
-git add -A
-git commit --amend --no-edit
-git push --force-with-lease origin <branch-name>
+git add <explicit paths>   # stage explicit paths, never `git add -A` in a shared checkout
+git commit
+git push
 ```
 
-> [!IMPORTANT]
-> Always use `--force-with-lease`, never bare `--force`. This prevents overwriting commits you have not yet fetched.
+### Finalize
+
+The PR lands as a **squash-merge via `ghprsq`** — never `git merge` / `gh pr merge`. The squash
+collapses the whole branch (your commits *and* the merge commits from § Integrate) into one commit
+on `main`, so `main` stays linear. See the `/stage3` finalization flow.

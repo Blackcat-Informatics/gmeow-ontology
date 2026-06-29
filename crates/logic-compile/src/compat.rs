@@ -35,7 +35,195 @@
 //! Some("EntrenchmentRevision")` rather than on a modality string — the contract
 //! carries no per-world modality, only its revision policy.
 
-use super::ir::ReasoningContract;
+use gmeow_rdf::{RdfDataset, TermRef};
+
+use super::ir::{ReasoningContract, LOGIC_NAMESPACE};
+
+/// The `rdf:type` IRI, for recognising a `logic:ReasoningContract` subject in a
+/// dataset.
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// The contradiction-handling policy a reasoning contract selects — the typed form
+/// of the `admissible_valuation` facet (the four `logic:AdmissibleValuationPolicy`
+/// individuals). It is the pivot that classifies a within-world glut as a permitted,
+/// disclosed conflict or a forbidden integrity violation for the scoped coherence
+/// certificate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ContradictionPolicy {
+    /// Belnap's four-valued algebra: both truth-value gaps AND gluts are admitted.
+    AdmitAllFour,
+    /// Gaps forbidden, gluts admitted — the paraconsistent policy.
+    ForbidGap,
+    /// Gluts forbidden, gaps admitted — the paracomplete policy.
+    ForbidGlut,
+    /// Both gaps and gluts forbidden — the classical two-valued policy. The default
+    /// when a contract pins no explicit `admissible_valuation` (and the implicit
+    /// policy of native DL reasoning, where an inconsistency IS `owl:Nothing`).
+    ForbidGapAndGlut,
+}
+
+impl ContradictionPolicy {
+    /// The conservative default a contract carries when it pins no explicit
+    /// `admissible_valuation`: classical, gluts forbidden. Choosing the *forbidding*
+    /// default can never mask a forbidden glut (the SAFE direction); only an explicit
+    /// glut-admitting policy relaxes a contradiction to a permitted disclosed conflict.
+    pub const DEFAULT: Self = Self::ForbidGapAndGlut;
+
+    /// Parse the `module.ttl` local value name. HARD-FAILS on an unrecognised name —
+    /// the coherence certificate must never silently default a *garbled* policy to a
+    /// permissive one (that would mask a forbidden glut and turn the gate green).
+    pub fn from_local(name: &str) -> Result<Self, String> {
+        Ok(match name {
+            "AdmitAllFour" => Self::AdmitAllFour,
+            "ForbidGap" => Self::ForbidGap,
+            "ForbidGlut" => Self::ForbidGlut,
+            "ForbidGapAndGlut" => Self::ForbidGapAndGlut,
+            other => {
+                return Err(format!(
+                    "unknown admissible-valuation policy `{other}`; expected one of \
+                     AdmitAllFour, ForbidGap, ForbidGlut, ForbidGapAndGlut"
+                ))
+            }
+        })
+    }
+
+    /// The policy a contract carries: its explicit `admissible_valuation` (HARD-FAIL
+    /// on a garbled value), or the conservative classical [`Self::DEFAULT`] when none
+    /// is pinned.
+    pub fn for_contract(contract: &ReasoningContract) -> Result<Self, String> {
+        match contract.admissible_valuation.as_deref() {
+            Some(name) => Self::from_local(name),
+            None => Ok(Self::DEFAULT),
+        }
+    }
+
+    /// How FORBIDDING this policy is, for the conservative-resolution tie-break: a
+    /// HIGHER rank forbids strictly more. `ForbidGapAndGlut` (classical, forbids
+    /// both) is the most conservative; `AdmitAllFour` (admits both) the least. When
+    /// several contracts in one dataset declare conflicting valuations, the most
+    /// conservative governs, so a permissive contract can never relax a glut that a
+    /// stricter sibling forbids.
+    fn forbidding_rank(self) -> u8 {
+        match self {
+            Self::AdmitAllFour => 0,
+            // ForbidGap and ForbidGlut each forbid exactly one of {gap, glut}. Only
+            // glut-forbidding bears on the coherence certificate, so rank ForbidGlut
+            // above ForbidGap; the deterministic order is fixed regardless.
+            Self::ForbidGap => 1,
+            Self::ForbidGlut => 2,
+            Self::ForbidGapAndGlut => 3,
+        }
+    }
+
+    /// Resolve the governing contradiction policy from a dataset by reading the
+    /// `logic:admissibleValuation` facet on every `logic:ReasoningContract` (or
+    /// `logic:ReasoningPreset`) subject the bundle declares.
+    ///
+    /// Resolution rule:
+    /// * NO contract / NO `admissibleValuation` declared ⇒ the conservative
+    ///   classical [`Self::DEFAULT`] (the `for_contract` None branch). A bundle that
+    ///   pins nothing is checked under the SAFE, most-forbidding policy.
+    /// * EXACTLY ONE valuation ⇒ that policy (HARD-FAIL on a garbled value name —
+    ///   [`Self::from_local`] never silently defaults a garbled policy to a
+    ///   permissive one).
+    /// * MULTIPLE contracts declaring CONFLICTING valuations ⇒ the MOST CONSERVATIVE
+    ///   (most-forbidding) of them governs, picked deterministically by
+    ///   [`Self::forbidding_rank`]. A permissive contract can never overrule a
+    ///   stricter sibling's forbiddance.
+    ///
+    /// # Errors
+    /// Propagates the [`Self::from_local`] error if ANY declared valuation is a
+    /// garbled / unknown policy name — a HARD FAIL, never a silent fallback.
+    pub fn resolve_from_dataset(dataset: &RdfDataset) -> Result<Self, String> {
+        let admissible_valuation = format!("{LOGIC_NAMESPACE}admissibleValuation");
+        let contract_type = format!("{LOGIC_NAMESPACE}ReasoningContract");
+        let preset_type = format!("{LOGIC_NAMESPACE}ReasoningPreset");
+
+        // First pass: collect the subjects typed as a reasoning contract / preset.
+        let mut contract_subjects: std::collections::BTreeSet<String> =
+            std::collections::BTreeSet::new();
+        for q in dataset.quads() {
+            let (TermRef::Iri(p), TermRef::Iri(o)) = (dataset.resolve(q.p), dataset.resolve(q.o))
+            else {
+                continue;
+            };
+            if p == RDF_TYPE && (o == contract_type || o == preset_type) {
+                if let TermRef::Iri(s) = dataset.resolve(q.s) {
+                    contract_subjects.insert(s.to_string());
+                }
+            }
+        }
+
+        // Second pass: read each contract subject's admissibleValuation. A
+        // valuation triple on a non-contract subject is ignored — only a declared
+        // contract governs.
+        let mut governing: Option<Self> = None;
+        for q in dataset.quads() {
+            let (TermRef::Iri(s), TermRef::Iri(p), TermRef::Iri(o)) = (
+                dataset.resolve(q.s),
+                dataset.resolve(q.p),
+                dataset.resolve(q.o),
+            ) else {
+                continue;
+            };
+            if p != admissible_valuation || !contract_subjects.contains(s) {
+                continue;
+            }
+            // The object is the facet-value IRI `logic:<Policy>`; strip the prefix.
+            let Some(local) = o.strip_prefix(LOGIC_NAMESPACE) else {
+                continue;
+            };
+            // HARD-FAIL on a garbled value — never silently default to permissive.
+            let policy = Self::from_local(local)?;
+            governing = Some(match governing {
+                None => policy,
+                Some(current) => {
+                    if policy.forbidding_rank() > current.forbidding_rank() {
+                        policy
+                    } else {
+                        current
+                    }
+                }
+            });
+        }
+
+        Ok(governing.unwrap_or(Self::DEFAULT))
+    }
+
+    /// The `module.ttl` named-individual local name.
+    pub fn local_name(self) -> &'static str {
+        match self {
+            Self::AdmitAllFour => "AdmitAllFour",
+            Self::ForbidGap => "ForbidGap",
+            Self::ForbidGlut => "ForbidGlut",
+            Self::ForbidGapAndGlut => "ForbidGapAndGlut",
+        }
+    }
+
+    /// The full IRI of the `logic:AdmissibleValuationPolicy` individual.
+    pub fn iri(self) -> String {
+        format!("{LOGIC_NAMESPACE}{}", self.local_name())
+    }
+
+    /// Whether a within-world GLUT (a witnessed contradiction) is PERMITTED under
+    /// this policy. Wildcard-free `match` so a future policy variant is a COMPILE
+    /// error, never a silent default. NARROWER than [`admits_gap_or_glut`]:
+    /// `ForbidGlut` admits a gap but FORBIDS a glut, so it is not glut-permitting.
+    pub fn glut_permitted(self) -> bool {
+        match self {
+            Self::AdmitAllFour | Self::ForbidGap => true,
+            Self::ForbidGlut | Self::ForbidGapAndGlut => false,
+        }
+    }
+
+    /// Every variant, for the Rust↔TTL cross-check.
+    pub const ALL: &'static [Self] = &[
+        Self::AdmitAllFour,
+        Self::ForbidGap,
+        Self::ForbidGlut,
+        Self::ForbidGapAndGlut,
+    ];
+}
 
 /// The verdict of a compatibility [`check`] over a [`ReasoningContract`].
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -321,6 +509,59 @@ mod tests {
         }
     }
 
+    fn dataset_from(ttl: &str) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+        let header = "\
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+";
+        gmeow_rdf::parse_dataset(format!("{header}{ttl}").as_bytes(), "text/turtle", None)
+            .expect("parse contract turtle")
+    }
+
+    #[test]
+    fn resolve_from_dataset_reads_the_declared_valuation() {
+        let ds = dataset_from(
+            "logic:c rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:ForbidGap .",
+        );
+        assert_eq!(
+            ContradictionPolicy::resolve_from_dataset(ds.as_ref()).unwrap(),
+            ContradictionPolicy::ForbidGap
+        );
+    }
+
+    #[test]
+    fn resolve_from_dataset_defaults_to_classical_when_none_declared() {
+        // No contract / no valuation ⇒ the conservative classical DEFAULT.
+        let ds = dataset_from("logic:x rdf:type logic:Anything .");
+        assert_eq!(
+            ContradictionPolicy::resolve_from_dataset(ds.as_ref()).unwrap(),
+            ContradictionPolicy::DEFAULT
+        );
+    }
+
+    #[test]
+    fn resolve_from_dataset_picks_the_most_conservative_of_conflicting_contracts() {
+        // Two contracts: one admits a glut (ForbidGap), one forbids both
+        // (ForbidGapAndGlut). The MOST CONSERVATIVE (most-forbidding) governs.
+        let ds = dataset_from(
+            "\
+logic:permissive rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:ForbidGap .
+logic:strict rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:ForbidGapAndGlut .",
+        );
+        assert_eq!(
+            ContradictionPolicy::resolve_from_dataset(ds.as_ref()).unwrap(),
+            ContradictionPolicy::ForbidGapAndGlut
+        );
+    }
+
+    #[test]
+    fn resolve_from_dataset_hard_fails_on_a_garbled_valuation() {
+        let ds = dataset_from(
+            "logic:c rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:Nonsense .",
+        );
+        assert!(ContradictionPolicy::resolve_from_dataset(ds.as_ref()).is_err());
+    }
+
     // ── Forbidden combinations each fire with the right reason ───────────────
 
     #[test]
@@ -460,5 +701,56 @@ mod tests {
                 check(&contract),
             );
         }
+    }
+
+    #[test]
+    fn contradiction_policy_glut_permitted_truth_table() {
+        // The glut-permitting policies admit a glut; the glut-forbidding ones do not.
+        // NARROWER than admits_gap_or_glut: ForbidGlut admits a gap but FORBIDS a glut.
+        assert!(ContradictionPolicy::AdmitAllFour.glut_permitted());
+        assert!(ContradictionPolicy::ForbidGap.glut_permitted());
+        assert!(!ContradictionPolicy::ForbidGlut.glut_permitted());
+        assert!(!ContradictionPolicy::ForbidGapAndGlut.glut_permitted());
+    }
+
+    #[test]
+    fn contradiction_policy_local_name_round_trips_and_hard_fails() {
+        for &policy in ContradictionPolicy::ALL {
+            assert_eq!(
+                ContradictionPolicy::from_local(policy.local_name()),
+                Ok(policy)
+            );
+            assert!(policy.iri().ends_with(policy.local_name()));
+        }
+        // A garbled value is a HARD FAIL, never a silent permissive default.
+        assert!(ContradictionPolicy::from_local("Permissive").is_err());
+        assert!(ContradictionPolicy::from_local("").is_err());
+    }
+
+    #[test]
+    fn contradiction_policy_for_contract_defaults_to_classical() {
+        // No explicit admissible_valuation ⇒ conservative classical default (gluts
+        // forbidden), so the native DL path keeps treating a glut as a violation.
+        let bare = ReasoningContract::default();
+        assert_eq!(bare.admissible_valuation, None);
+        assert_eq!(
+            ContradictionPolicy::for_contract(&bare),
+            Ok(ContradictionPolicy::ForbidGapAndGlut)
+        );
+        // An explicit glut-admitting policy relaxes it to permitted.
+        let paraconsistent = ReasoningContract {
+            admissible_valuation: Some("ForbidGap".to_owned()),
+            ..ReasoningContract::default()
+        };
+        assert_eq!(
+            ContradictionPolicy::for_contract(&paraconsistent),
+            Ok(ContradictionPolicy::ForbidGap)
+        );
+        // A garbled explicit value propagates the hard failure.
+        let garbled = ReasoningContract {
+            admissible_valuation: Some("nonsense".to_owned()),
+            ..ReasoningContract::default()
+        };
+        assert!(ContradictionPolicy::for_contract(&garbled).is_err());
     }
 }

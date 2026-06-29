@@ -7,5 +7,11 @@
       "X": "<https://example.org/profiles/goal-rdf-list-functions/z>"
     }
   ],
+  "preservation": {
+    "polarities": [
+      "ExactPreservation"
+    ],
+    "unsupported_constructs": []
+  },
   "status": "ok"
 }

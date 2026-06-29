@@ -142,6 +142,7 @@ enum AttestationTypeEnum {
   attestationTypeAIOutput
   attestationTypeBlockchainClaim
   attestationTypeC2PA
+  attestationTypeCoherenceCertificate
   attestationTypeConformanceVerdict
   attestationTypeCrossCheckAgreement
   attestationTypeDSSE
@@ -4835,6 +4836,7 @@ type FinancialTransaction {
 type Finding {
   id: String
   iri: String
+  findingCategory: [String!]
   findingCode: [String!]
   findingHelpUri: [String!]
   findingLocation: [String!]

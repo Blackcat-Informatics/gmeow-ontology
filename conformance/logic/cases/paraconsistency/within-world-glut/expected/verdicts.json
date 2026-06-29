@@ -1,0 +1,6 @@
+{
+  "https://example.org/paraconsistency/within-world-glut/w": {
+    "quads": 3,
+    "status": "inconsistent"
+  }
+}

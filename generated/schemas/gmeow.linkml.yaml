@@ -1478,6 +1478,7 @@ classes:
     title: Finding
     is_a: Observation
     slots:
+    - findingCategory
     - findingCode
     - findingHelpUri
     - findingLocation
@@ -7109,6 +7110,12 @@ slots:
     range: PhysicalObject
     domain: ArchaeologicalFindContext
     multivalued: false
+  findingCategory:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingCategory
+    title: finding category
+    range: string
+    domain: Finding
+    multivalued: true
   findingCode:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingCode
     title: finding code
@@ -13898,6 +13905,9 @@ enums:
       attestationTypeC2PA:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeC2PA
         title: C2PA manifest
+      attestationTypeCoherenceCertificate:
+        meaning: https://blackcatinformatics.ca/gmeow/attestationTypeCoherenceCertificate
+        title: coherence certificate
       attestationTypeConformanceVerdict:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeConformanceVerdict
         title: conformance verdict
