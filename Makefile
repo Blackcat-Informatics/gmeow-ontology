@@ -58,14 +58,14 @@ NATIVE_PY_INPUTS := pyproject.toml $(RUST_INPUTS)
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	crate-check audit wikidata coverage acceptance reason verify mappings \
-	lint-alignment doc-lint
+	lint-alignment doc-lint sparql-conformance
 
 .PHONY: help \
 	install fmt lint \
 	native-py native-py-wheel native-py-install validate validate-gts reason verify test test-fast rust-build rust-test check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene carrier-purity wasm wasm-pkg wasm-pkg-test \
+	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene carrier-purity sparql-conformance wasm wasm-pkg wasm-pkg-test \
 	capi-build capi-header capi-check capi-install \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
@@ -297,6 +297,22 @@ rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-pur
 	cargo nextest run --profile ci $(NEXTEST_PARTITION_ARG)
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc
+
+sparql-conformance: rust-build ## Run the OXIGRAPH-FREE native frozen-golden SPARQL corpus conformance gate (EPIC #906 Task 4).
+	@# Replays every captured query through NativeSparqlEngine over the merged ontology,
+	@# loaded oxigraph-free + flattened identically to the capture, and asserts equality
+	@# vs the frozen oxigraph goldens. Default nextest profile excludes the off-gate-heavy
+	@# sweep (run on `make maint-rust-heavy`). MUST NOT require the oxigraph feature.
+	@# Hygiene: the conformance crate must carry NO oxigraph normal dependency, so it
+	@# survives oxigraph removal in Task 8.
+	@tree=$$(cargo tree -p gmeow-sparql-conformance --edges normal -f "{p}") || { echo "FAIL: cargo tree errored"; exit 1; }; \
+	if echo "$$tree" | grep -q 'oxigraph v'; then \
+		echo "FAIL: oxigraph is a NORMAL dependency of gmeow-sparql-conformance"; \
+		echo "$$tree" | grep 'oxigraph v'; exit 1; \
+	else \
+		echo "OK: gmeow-sparql-conformance has no oxigraph normal dependency"; \
+	fi
+	cargo nextest run -p gmeow-sparql-conformance
 
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings

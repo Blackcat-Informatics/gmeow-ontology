@@ -78,6 +78,7 @@
 default-filter = '''
   not (
     test(/corpus_parity_heavy_offgate/)
+    | test(/corpus_conformance_heavy_offgate/)
     | test(/w3c_rdfc10_heavy_offgate/)
     | (package(gmeow-logic) & binary(ontology_entailments))
     | (package(gmeow-logic) & (binary(sparql_path_parity) | test(/sparql_path_lower::tests/)))

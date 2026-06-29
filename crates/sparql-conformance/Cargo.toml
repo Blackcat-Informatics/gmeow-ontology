@@ -31,3 +31,11 @@ datatest-stable = "0.3"
 [[test]]
 name = "sparql_conformance"
 harness = false
+
+# EPIC #906 Task 4 — the OXIGRAPH-FREE native frozen-golden corpus conformance gate.
+# Replays each query through `NativeSparqlEngine` and asserts equality vs the
+# committed oxigraph goldens under `tests/goldens/`. Default harness (`#[test]`),
+# so the off-gate-heavy sweep is excluded by the default nextest profile filter.
+[[test]]
+name = "corpus_conformance"
+harness = true
