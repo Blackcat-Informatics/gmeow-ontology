@@ -352,8 +352,13 @@ pub fn dispatch_query(
     let table_preds = cyclic_predicates(program);
 
     match classify_goal(program) {
-        Dispatch::Fast => fast_path(store, world, program, budget),
-        Dispatch::Scryer => {
+        // `fast_path` is a single-pass EDB SPARQL optimisation that honours only
+        // `max_answers`; it has no step governor. A step-budgeted query must therefore
+        // bypass it and go to Scryer, which wraps the goal in `call_with_inference_limit`
+        // and stamps `BudgetStatus::Exhausted` on the step ceiling (matching the reference
+        // oracle). Without this, a step-budgeted pure-EDB goal would silently report `Ok`.
+        Dispatch::Fast if budget.max_steps.is_none() => fast_path(store, world, program, budget),
+        Dispatch::Fast | Dispatch::Scryer => {
             scryer_engine::run_scryer(foreign, world, program, &table_preds, budget)
         }
     }
@@ -935,6 +940,90 @@ mod tests {
         assert_eq!(
             dispatched.bindings, reference.bindings,
             "demoted dispatch bindings must match reference oracle under max_steps budget"
+        );
+    }
+
+    #[test]
+    fn dispatch_budget_max_steps_pure_edb_goal_honours_budget() {
+        // A single binary EDB atom classifies as `Dispatch::Fast`. `fast_path` honours
+        // only `max_answers`, so a step budget routed there would silently report `Ok`.
+        // The router must instead send step-budgeted Fast goals to Scryer, which stamps
+        // Exhausted on the step ceiling — matching the reference oracle.
+        let store = WorldStore::new();
+        store.insert_quad(
+            W,
+            &format!("{BASE}a"),
+            &format!("{BASE}parentOf"),
+            &format!("{BASE}b"),
+        );
+        store.insert_quad(
+            W,
+            &format!("{BASE}a"),
+            &format!("{BASE}parentOf"),
+            &format!("{BASE}c"),
+        );
+        let world_nn = NamedNode::new(W).unwrap();
+        let foreign = WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap();
+
+        // Pure-EDB goal (no IDB predicate) → classify_goal == Fast.
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ?- ex:parentOf(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        assert_eq!(
+            classify_goal(&prog),
+            Dispatch::Fast,
+            "single binary EDB atom must classify as Fast"
+        );
+
+        // Unbudgeted: fast_path returns both children with status Ok.
+        let full = dispatch_query(
+            &foreign,
+            &store,
+            &world_nn,
+            &prog,
+            HORN_PROFILE,
+            &Budget::default(),
+        )
+        .unwrap();
+        assert_eq!(
+            full.bindings.len(),
+            2,
+            "unbudgeted Fast goal yields both children"
+        );
+        assert_eq!(full.status, BudgetStatus::Ok);
+
+        // Zero-step budget: must NOT take fast_path (which would report Ok); routes to
+        // Scryer and stamps Exhausted, matching the reference oracle.
+        let tight_budget = Budget {
+            max_steps: Some(0),
+            max_answers: None,
+        };
+        let dispatched = dispatch_query(
+            &foreign,
+            &store,
+            &world_nn,
+            &prog,
+            HORN_PROFILE,
+            &tight_budget,
+        )
+        .unwrap();
+        assert_eq!(
+            dispatched.status,
+            BudgetStatus::Exhausted,
+            "a step-budgeted pure-EDB goal must report Exhausted, not silent Ok via fast_path"
+        );
+
+        let reference =
+            crate::reference_resolver::resolve(&foreign, &world_nn, &prog, &tight_budget).unwrap();
+        assert_eq!(
+            dispatched.status, reference.status,
+            "step-budgeted Fast goal status must match the reference oracle"
+        );
+        assert_eq!(
+            dispatched.bindings, reference.bindings,
+            "step-budgeted Fast goal bindings must match the reference oracle"
         );
     }
 }
