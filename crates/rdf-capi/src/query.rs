@@ -6,8 +6,8 @@
 
 use std::os::raw::c_char;
 
-use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-use gmeow_rdf::{OxigraphBackend, SparqlEngine, SparqlRequest, SparqlResult};
+use gmeow_rdf::{SparqlEngine, SparqlRequest, SparqlResult};
+use gmeow_sparql_eval::NativeSparqlEngine;
 
 use crate::buffer::PurrdfBuffer;
 use crate::error::PurrdfError;
@@ -29,14 +29,13 @@ unsafe fn run_query(
 ) -> Result<SparqlResult, PurrdfError> {
     let query = cstr_to_str(query)?;
     let base_iri = opt_cstr_to_str(base_iri)?;
-    let store = store_from_dataset(
-        PurrdfDataset::dataset(dataset),
-        GraphPolicy::PreserveNamedGraphs,
-    )
-    .map_err(|diagnostic| PurrdfError::from_diagnostic(PurrdfStatus::QueryError, &diagnostic))?;
-    OxigraphBackend
+    // Evaluate over the frozen `Arc<RdfDataset>` directly via the native engine —
+    // no oxigraph `Store` round-trip. `NativeSparqlEngine::query` is the single
+    // `SparqlEngine` impl (#887/#912); its `Dataset` IS the `Arc<RdfDataset>` the
+    // handle already owns.
+    NativeSparqlEngine::new()
         .query(
-            &store,
+            PurrdfDataset::arc(dataset),
             SparqlRequest {
                 query,
                 base_iri,
