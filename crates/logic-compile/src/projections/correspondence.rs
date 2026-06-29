@@ -36,7 +36,8 @@
 use std::collections::BTreeMap;
 
 use crate::ir::{
-    Correspondence, CorrespondenceRelation, MorphismKind, PreservationKind, LOGIC_NAMESPACE,
+    Correspondence, CorrespondenceRelation, LegPath, MorphismKind, PreservationKind,
+    TransactionProgramIr, LOGIC_NAMESPACE,
 };
 
 use super::OverclaimError;
@@ -219,11 +220,17 @@ pub struct CorrespondenceProgram {
     /// caveated overlap is a `SoundUnderApproximation` (it under-approximates the
     /// forced-equality reading it refuses), never `ExactPreservation`.
     pub preservation: PreservationKind,
+    /// The leg-program registry: each `logic:getLeg` / `logic:putLeg` IRI resolves to its
+    /// realized [`LegPath`] body here, so the round-trip gate composes actual leg bodies
+    /// instead of comparing opaque IRIs. Sorted by IRI; **append-only** in the content key
+    /// (a leg-free program keys identically to before legs were modelled).
+    pub leg_programs: Vec<TransactionProgramIr>,
 }
 
 impl CorrespondenceProgram {
     /// Construct, canonicalizing the collections into sorted order so the content
-    /// identity is construction-order-independent.
+    /// identity is construction-order-independent. The leg-program registry starts empty;
+    /// attach it with [`CorrespondenceProgram::with_leg_programs`].
     pub fn new(
         correspondences: Vec<Correspondence>,
         caveats: Vec<(String, CorrespondenceCaveat)>,
@@ -237,7 +244,25 @@ impl CorrespondenceProgram {
             correspondences,
             caveats,
             preservation,
+            leg_programs: Vec::new(),
         }
+    }
+
+    /// Attach the leg-program registry, sorted by IRI for a construction-order-independent
+    /// identity. Append-only: a program with no leg bodies keys exactly as it did before.
+    pub fn with_leg_programs(mut self, leg_programs: Vec<TransactionProgramIr>) -> Self {
+        let mut leg_programs = leg_programs;
+        leg_programs.sort_by(|a, b| a.iri.cmp(&b.iri));
+        self.leg_programs = leg_programs;
+        self
+    }
+
+    /// Resolve a leg IRI to its realized [`LegPath`] body via the registry, if present.
+    pub fn resolve_leg(&self, leg_iri: &str) -> Option<&LegPath> {
+        self.leg_programs
+            .iter()
+            .find(|p| p.iri == leg_iri)
+            .map(|p| &p.body)
     }
 
     /// A deterministic, order-independent content key for the whole program — the
@@ -279,10 +304,23 @@ impl CorrespondenceProgram {
             .map(|(owner, c)| format!("{owner}=>{}={}", c.iri, c.text))
             .collect::<Vec<_>>()
             .join(",");
-        format!(
+        let base = format!(
             "PRESERVATION={}\nCORRESPONDENCES={corr}\nCAVEATS={caveats}",
             self.preservation.as_str(),
-        )
+        );
+        // Append-only: omit the section entirely when there are no leg bodies, so a
+        // leg-free program keeps the byte-identical key it had before legs were modelled.
+        if self.leg_programs.is_empty() {
+            base
+        } else {
+            let legs = self
+                .leg_programs
+                .iter()
+                .map(|p| format!("{}={}", p.iri, super::paths::leg_path_canonical(&p.body)))
+                .collect::<Vec<_>>()
+                .join(",");
+            format!("{base}\nLEGS={legs}")
+        }
     }
 }
 
